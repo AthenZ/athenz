@@ -1,0 +1,38 @@
+{
+    "services" : {
+        "coretech.storage": {
+            "allowedOperations": [
+                {"name":"putproviderresourcegrouproles"},
+                {"name":"deleteproviderresourcegrouproles"},
+                {"name":"putrole"},
+                {"name":"putpolicy"},
+                {"name":"puttenancy"},
+                {"name":"deletetenancy"}
+            ]
+        },
+        "coretech.index": {
+            "allowedOperations": [
+                {"name":"putrole"},
+                {"name":"putpolicy"}
+            ]
+        },
+        "sports.hockey": {
+        },
+        "coretech.newsvc": {
+            "allowedOperations": [
+                {"name":"putrole"},
+                {"name":"putmembership",
+                 "items": {
+                     "role" : [
+                         "platforms_deployer",
+                         "platforms_different_deployer"
+                     ],
+                     "not_role" : [
+                         "platforms_role_deployer"
+                     ]
+                  }
+                }
+            ]
+        }
+    }
+}

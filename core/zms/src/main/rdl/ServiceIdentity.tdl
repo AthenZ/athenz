@@ -1,0 +1,33 @@
+// Copyright 2016 Yahoo Inc.
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+include "Names.tdl";
+
+//The representation of the public key in a service identity object.
+type PublicKeyEntry Struct {
+    String key; //the public key for the service
+    String id; //the key identifier (version or zone name)
+}
+
+//The representation of the service identity object.
+type ServiceIdentity Struct {
+    ServiceName name; //the full name of the service, i.e. "sports.storage"
+    Array<PublicKeyEntry> publicKeys (optional); //array of public keys for key rotation
+    String providerEndpoint (optional); //if present, then this service can provision tenants via this endpoint.
+    Timestamp modified (optional); //the timestamp when this entry was last modified
+    String executable (optional); //the path of the executable that runs the service
+    Array<String> hosts (optional); //list of host names that this service can run on
+    String user (optional); //local (unix) user name this service can run as
+    String group (optional); //local (unix) group name this service can run as
+}
+
+//The representation of list of services
+type ServiceIdentities Struct {
+    Array<ServiceIdentity> list; //list of services
+}
+
+//The representation for an enumeration of services in the namespace, with pagination.
+type ServiceIdentityList Struct {
+    Array<EntityName> names; //list of service names
+    String next (optional); //if the response is a paginated list, this attribute specifies the value to be used in the next service list request as the value for the skip query parameter.
+}

@@ -1,0 +1,79 @@
+// Copyright 2016 Yahoo Inc.
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+include "Names.tdl";
+include "Identity.tdl";
+
+// AWSInstanceInformation - the information a booting EC2 instance must provide to ZTS to authenticate.
+type AWSInstanceInformation Struct {
+    String document; //signed document containing attributes like IP address, instance-id, account#, etc.
+    String signature; //the signature for the document
+    CompoundName domain; //the domain of the instance
+    SimpleName service; //the service this instance is supposed to run
+    String csr; //return a certificate in the response
+    CompoundName name; //the full service identity name (same as the EC2 instance profile name)
+    SimpleName account; //the account id (as a string) for the instance. parsed from the instance profile ARN
+    SimpleName cloud (optional); //the name of the cloud (namespace) within the account, parsed from the name
+    SimpleName subnet; //the name of the subnet this instance is expected to be running in, parsed from the name
+    String access; //the AWS Access Key Id for the role
+    String secret; //the AWS Secret Access Key for the role
+    String token; //the AWS STS Token for the role
+    Timestamp expires; // the expiration time of the access keys
+    Timestamp modified; //the modified time of the access keys
+    String flavor; //the 'flavor' of the access keys, i.e. "AWS-HMAC"
+}
+
+// Register an instance in AWS ZTS. Whether this succeeds or not depends on the
+// contents of the request (the request itself is not authenticated or authorized in the normal way).
+// If successful, the Identity is returned as a x.509 client certificate (to be used in TLS operations)
+resource Identity POST "/aws/instance" {
+    AWSInstanceInformation info;
+    expected OK;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+    }
+}
+
+// AWSCertificateRequest - a certificate signing request
+type AWSCertificateRequest Struct {
+    String csr;
+}
+
+// Rotate certs. Make this request with previous cert, the result
+// is new cert for the same identity.
+resource Identity POST "/aws/instance/{domain}/{service}/refresh" {
+    CompoundName domain; //name of the domain requesting the refresh
+    SimpleName service; //name of the service requesting the refresh
+    AWSCertificateRequest req; //the refresh request
+    authenticate;
+    expected OK;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+    }
+}
+
+type AWSTemporaryCredentials Struct {
+    String accessKeyId;
+    String secretAccessKey;
+    String sessionToken;
+    Timestamp expiration;
+}
+
+// perform an AWS AssumeRole of the target role and return the credentials. ZTS
+// must have been granted the ability to assume the role in IAM, and granted
+// the ability to ASSUME_AWS_ROLE in Athenz for this to succeed.
+resource AWSTemporaryCredentials GET "/domain/{domainName}/role/{role}/creds" {
+    DomainName domainName; //name of the domain containing the role, which implies the target account
+    CompoundName role; //the target AWS role name in the domain account, in Athenz terms, i.e. "the.role"
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+    }
+}

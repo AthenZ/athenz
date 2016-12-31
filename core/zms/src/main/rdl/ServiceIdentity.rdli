@@ -1,0 +1,130 @@
+// Copyright 2016 Yahoo Inc.
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+include "ServiceIdentity.tdl";
+
+//Register the specified ServiceIdentity in the specified domain
+resource ServiceIdentity PUT "/domain/{domain}/service/{service}" {
+    DomainName domain; //name of the domain
+    SimpleName service; //name of the service
+    String      auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    ServiceIdentity detail; //ServiceIdentity object to be added/updated in the domain
+    authorize ("update", "{domain}:service");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+    }
+}
+
+//Get info for the specified ServiceIdentity.
+resource ServiceIdentity GET "/domain/{domain}/service/{service}" {
+    DomainName domain; //name of the domain
+    SimpleName service; //name of the service to be retrieved
+    authenticate;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+    }
+}
+
+//Delete the specified ServiceIdentity. Upon successful completion of this
+//delete request, the server will return NO_CONTENT status code without any
+//data (no object will be returned).
+resource ServiceIdentity DELETE "/domain/{domain}/service/{service}" {
+    DomainName domain; //name of the domain
+    SimpleName service; //name of the service to be deleted
+    String      auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    authorize ("delete", "{domain}:service"); 
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+    }
+}
+
+//Retrieve list of service identities
+resource ServiceIdentities GET "/domain/{domainName}/services?publickeys={publickeys}&hosts={hosts}" {
+    DomainName domainName; //name of the domain
+    Bool publickeys (optional, default=false); // return list of public keys in the service
+    Bool hosts (optional, default=false); // return list of hosts in the service
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+    }
+}
+
+//Enumerate services provisioned in this domain.
+resource ServiceIdentityList GET "/domain/{domainName}/service?limit={limit}&skip={skip}" {
+    DomainName domainName;//name of the domain
+    Int32 limit (optional); //restrict the number of results in this call
+    String skip (optional); //restrict the set to those after the specified "next" token returned from a previous call
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+    }
+}
+
+//Retrieve the specified public key from the service.
+resource PublicKeyEntry GET "/domain/{domain}/service/{service}/publickey/{id}" {
+    DomainName domain; //name of the domain
+    SimpleName service; //name of the service
+    String id; //the identifier of the public key to be retrieved
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+    }
+}
+
+//Add the specified public key to the service.
+resource PublicKeyEntry PUT "/domain/{domain}/service/{service}/publickey/{id}" {
+    DomainName domain; //name of the domain
+    SimpleName service; //name of the service
+    String id; //the identifier of the public key to be added
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    PublicKeyEntry publicKeyEntry; //PublicKeyEntry object to be added/updated in the service
+    authorize ("update", "{domain}:service.{service}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+    }
+}
+
+//Remove the specified public key from the service. Upon successful completion of
+//this delete request, the server will return NO_CONTENT status code without any
+//data (no object will be returned).
+resource PublicKeyEntry DELETE "/domain/{domain}/service/{service}/publickey/{id}" {
+    DomainName domain; //name of the domain
+    SimpleName service; //name of the service
+    String id; //the identifier of the public key to be deleted
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    authorize ("update", "{domain}:service.{service}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+    }
+}

@@ -1,0 +1,101 @@
+// Copyright 2016 Yahoo Inc.
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+//The API to create/remove a tenancy for a client domain. Called as that tenant's admins.
+include "Names.tdl";
+
+//A representation of tenant.
+type Tenancy Struct {
+    DomainName domain; //the domain that is to get a tenancy
+    ServiceName service; //the provider service on which the tenancy is to reside
+    Array<EntityName> resourceGroups (optional); //registered resource groups for this tenant
+}
+
+type TenancyResourceGroup Struct {
+    DomainName domain; //the domain that is to get a tenancy
+    ServiceName service; //the provider service on which the tenancy is to reside
+    EntityName resourceGroup; //registered resource group for this tenant
+}
+
+//Add a tenant for the specified service.
+resource Tenancy PUT "/domain/{domain}/tenancy/{service}" {
+    DomainName domain; //name of the tenant domain
+    ServiceName service; //name of the provider service
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    Tenancy detail; //tenancy object
+    authorize ("update", "{domain}:tenancy");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+    }
+}
+
+//Retrieve the specified tenant.
+resource Tenancy GET "/domain/{domain}/tenancy/{service}" {
+    DomainName domain; //name of the tenant domain
+    ServiceName service; //name of the provider service
+    authenticate;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+    }
+}
+
+//Delete the tenant from the specified service. Upon successful completion of
+//this delete request, the server will return NO_CONTENT status code without
+//any data (no object will be returned).
+resource Tenancy DELETE "/domain/{domain}/tenancy/{service}" {
+    DomainName domain; //name of the tenant domain
+    ServiceName service; //name of the provider service
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    authorize ("delete", "{domain}:tenancy");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+    }
+}
+
+//Add a new resource group for the tenant for the specified service.
+resource TenancyResourceGroup PUT "/domain/{domain}/tenancy/{service}/resourceGroup/{resourceGroup}" {
+    DomainName domain; //name of the tenant domain
+    ServiceName service; //name of the provider service
+    EntityName resourceGroup; //tenant resource group
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    TenancyResourceGroup detail; //tenancy resource group object
+    authorize ("update", "{domain}:tenancy.{service}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+    }
+}
+
+//Delete the specified resource group for tenant from the specified service.
+resource TenancyResourceGroup DELETE "/domain/{domain}/tenancy/{service}/resourceGroup/{resourceGroup}" {
+    DomainName domain; //name of the tenant domain
+    ServiceName service; //name of the provider service
+    EntityName resourceGroup; //tenant resource group
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    authorize ("update", "{domain}:tenancy.{service}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+    }
+}

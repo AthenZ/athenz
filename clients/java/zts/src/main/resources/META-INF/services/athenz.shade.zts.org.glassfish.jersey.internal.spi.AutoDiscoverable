@@ -1,0 +1,2 @@
+athenz.shade.zts.org.glassfish.jersey.jackson.internal.JacksonAutoDiscoverable
+athenz.shade.zts.org.glassfish.jersey.logging.LoggingFeatureAutoDiscoverable

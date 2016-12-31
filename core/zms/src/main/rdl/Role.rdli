@@ -1,0 +1,151 @@
+// Copyright 2016 Yahoo Inc.
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+//Role API
+include "Role.tdl";
+
+//Enumerate roles provisioned in this domain.
+resource RoleList GET "/domain/{domainName}/role?limit={limit}&skip={skip}" {
+    DomainName domainName; //name of the domain
+    Int32 limit (optional); //restrict the number of results in this call
+    String skip (optional); //restrict the set to those after the specified "next" token returned from a previous call
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+    }
+}
+
+// Get the list of all roles in a domain with optional flag
+// whether or not include members
+resource Roles GET "/domain/{domainName}/roles?members={members}" {
+    DomainName domainName; // name of the domain
+    Bool members (optional, default=false); // return list of members in the role
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+    }
+}
+
+//Get the specified role in the domain.
+resource Role GET "/domain/{domainName}/role/{roleName}?auditLog={auditLog}&expand={expand}" {
+    DomainName domainName; //name of the domain
+    EntityName roleName; //name of the role to be retrieved
+    Bool auditLog (optional, default=false); //flag to indicate whether or not to return role audit log
+    Bool expand (optional, default=false); // expand delegated trust roles and return trusted members
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+    }
+}
+
+//Create/update the specified role.
+resource Role PUT "/domain/{domainName}/role/{roleName}" {
+    DomainName domainName; //name of the domain
+    EntityName roleName; //name of the role to be added/updated
+    String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    Role role; //Role object to be added/updated in the domain
+    authorize ("update", "{domainName}:role.{roleName}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+    }
+}
+
+//Delete the specified role. Upon successful completion of this delete
+//request, the server will return NO_CONTENT status code without any
+//data (no object will be returned).
+resource Role DELETE "/domain/{domainName}/role/{roleName}" {
+    DomainName domainName; //name of the domain
+    EntityName roleName; //name of the role to be deleted
+    String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    authorize ("delete", "{domainName}:role.{roleName}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+    }
+}
+
+//Get the membership status for a specified user in a role.
+resource Membership GET "/domain/{domainName}/role/{roleName}/member/{memberName}" {
+    DomainName domainName; //name of the domain
+    EntityName roleName; //name of the role
+    ResourceName memberName; //user name to be checked for membership
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+    }
+}
+
+//Add the specified user to the role's member list.
+resource Membership PUT "/domain/{domainName}/role/{roleName}/member/{memberName}" {
+    DomainName domainName; //name of the domain
+    EntityName roleName; //name of the role
+    ResourceName memberName; //name of the user to be added as a member
+    String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    Membership membership; //Membership object (must contain role/member names as specified in the URI)
+    authorize ("update", "{domainName}:role.{roleName}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+    }
+}
+
+//Delete the specified role membership. Upon successful completion of this delete
+//request, the server will return NO_CONTENT status code without any data (no 
+//object will be returned).
+resource Membership DELETE "/domain/{domainName}/role/{roleName}/member/{memberName}" {
+    DomainName domainName; //name of the domain
+    EntityName roleName; //name of the role
+    ResourceName memberName; //name of the user to be removed as a member
+    String       auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    authorize ("update", "{domainName}:role.{roleName}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+    }
+}
+
+//Verify and, if necessary, fix domain roles and policies to make sure the given
+//set of users have administrative access to the domain. This request is only
+//restricted to "sys.auth" domain administrators and can be used when the domain
+//administrators incorrectly have blocked their own access to their domains.
+resource DefaultAdmins PUT "/domain/{domainName}/admins" {
+    DomainName domainName; //name of the domain
+    String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    DefaultAdmins defaultAdmins; //list of domain administrators
+    authorize ("update", "sys.auth:domain");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+    }
+}

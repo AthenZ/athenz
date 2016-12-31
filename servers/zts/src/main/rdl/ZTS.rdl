@@ -1,0 +1,17 @@
+// Copyright 2016 Yahoo Inc.
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+//
+// The Authorization Token Service (ZTS) API
+//
+name ZTS;
+use "rdl";
+version 1;
+namespace com.yahoo.athenz.zts;
+
+include "../../../../../core/zts/src/main/rdl/ZTS.rdl";
+
+// Get RDL Schema
+resource rdl.Schema GET "/schema" {
+    expected OK;
+}

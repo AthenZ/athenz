@@ -1,0 +1,28 @@
+{
+    "contents": {
+        "domain": "sports",
+        "modified": "2015-01-13T19:13:18.601Z",
+        "policies": [
+            {
+                "name": "sports:policy.admin",
+                "assertions": [
+                    {
+                        "resource": "*",
+                        "role": "sports:role.admin",
+                        "action": "*",
+                        "effect": "ALLOW"
+                    },
+                    {
+                        "resource": "*",
+                        "role": "sports:role.non-admin",
+                        "action": "*",
+                        "effect": "DENY"
+                    }
+                ]
+            }
+        ],
+        "expires": "2015-01-20T19:13:18.599Z"
+    },
+    "signature": "qJXtTXPI0aQcxUgerT9X4BM6HoKVM1pNClt86UViintmC5.IK9uYoFhtdMfDLq7Kzc8jdyT1iCqv_OmEyMHLCA--",
+    "keyId": "0"
+}

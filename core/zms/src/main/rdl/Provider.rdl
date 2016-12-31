@@ -1,0 +1,12 @@
+// Copyright 2016 Yahoo Inc.
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+//
+//This "service" definition is just to provide a generic client
+//stub for any service implementing the provider API
+//
+name Provider;
+version 1;
+namespace com.yahoo.athenz.provider;
+
+include "Provider.rdli";

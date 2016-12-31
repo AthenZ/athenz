@@ -1,0 +1,75 @@
+// Copyright 2016 Yahoo Inc.
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+include "Names.tdl";
+
+//The representation of the public key in a service identity object.
+type PublicKeyEntry Struct {
+    String key; //the public key for the service
+    String id; //the key identifier (version or zone name)
+}
+
+//The representation of the service identity object.
+type ServiceIdentity Struct {
+    ServiceName name; //the full name of the service, i.e. "sports.storage"
+    Array<PublicKeyEntry> publicKeys (optional); //array of public keys for key rotation
+    String providerEndpoint (optional); //if present, then this service can provision tenants via this endpoint.
+    Timestamp modified (optional); //the timestamp when this entry was last modified
+    String executable (optional); //the path of the executable that runs the service
+    Array<String> hosts (optional); //list of host names that this service can run on
+    String user (optional); //local (unix) user name this service can run as
+    String group (optional); //local (unix) group name this service can run as
+}
+
+//Get info for the specified ServiceIdentity.
+resource ServiceIdentity GET "/domain/{domainName}/service/{serviceName}" {
+    DomainName domainName; //name of the domain
+    ServiceName serviceName; //name of the service to be retrieved
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+    }
+}
+
+//The representation for an enumeration of services in the namespace.
+type ServiceIdentityList Struct {
+    Array<EntityName> names; //list of service names
+}
+
+//Enumerate services provisioned in this domain.
+resource ServiceIdentityList GET "/domain/{domainName}/service" {
+    DomainName domainName;//name of the domain
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+    }
+}
+
+//Retrieve the specified public key from the service.
+resource PublicKeyEntry GET "/domain/{domainName}/service/{serviceName}/publickey/{keyId}" {
+    DomainName domainName; //name of the domain
+    SimpleName serviceName; //name of the service
+    String keyId; //the identifier of the public key to be retrieved
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+    }
+}
+
+//The representation for an enumeration of services authorized to run on a specific host.
+type HostServices Struct {
+    String host; //name of the host
+    Array<EntityName> names; //list of service names authorized to run on this host
+}
+
+//Enumerate services provisioned on a specific host
+resource HostServices GET "/host/{host}/services" {
+    String host; //name of the host
+    exceptions {
+        ResourceError BAD_REQUEST;
+    }
+}

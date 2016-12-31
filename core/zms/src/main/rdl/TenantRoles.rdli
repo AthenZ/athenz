@@ -1,0 +1,192 @@
+// Copyright 2016 Yahoo Inc.
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+//The API for a provider service to grant tenant access, providing the roles.
+include "Names.tdl";
+
+//A representation of tenant role action.
+type TenantRoleAction Struct {
+    SimpleName role; //name of the role
+    String action; //action value for the generated policy assertion
+}
+
+//A representation of tenant roles to be provisioned.
+type TenantRoles Struct {
+    DomainName domain; //name of the provider domain
+    SimpleName service; //name of the provider service
+    DomainName tenant; //name of the tenant domain
+    Array<TenantRoleAction> roles; //the role/action pairs to provision
+}
+
+//A representation of tenant roles for resource groups to be provisioned.
+type TenantResourceGroupRoles Struct {
+    DomainName domain; //name of the provider domain
+    SimpleName service; //name of the provider service
+    DomainName tenant; //name of the tenant domain
+    Array<TenantRoleAction> roles; //the role/action pairs to provision
+    EntityName resourceGroup; //tenant resource group
+}
+
+//A representation of provider roles to be provisioned.
+type ProviderResourceGroupRoles Struct {
+    DomainName domain; //name of the provider domain
+    SimpleName service; //name of the provider service
+    DomainName tenant; //name of the tenant domain
+    Array<TenantRoleAction> roles; //the role/action pairs to provision
+    EntityName resourceGroup; //tenant resource group
+}
+
+//Create/update set of roles for a given tenant.
+resource TenantRoles PUT "/domain/{domain}/service/{service}/tenant/{tenantDomain}" {
+    DomainName domain; //name of the provider domain
+    SimpleName service; //name of the provider service
+    DomainName tenantDomain; //name of the tenant domain
+    String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    TenantRoles detail; //list of roles to be added/updated for the tenant
+    authorize ("update", "{domain}:tenant.{tenantDomain}");
+    expected OK, CREATED;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+    }
+}
+
+//Retrieve the configured set of roles for the tenant.
+resource TenantRoles GET "/domain/{domain}/service/{service}/tenant/{tenantDomain}" {
+    DomainName domain; //name of the provider domain
+    SimpleName service; //name of the provider service
+    DomainName tenantDomain; //name of the tenant domain
+    authenticate;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+    }
+}
+
+//Delete the configured set of roles for the tenant. Upon successful completion of
+//this delete request, the server will return NO_CONTENT status code without any
+//data (no object will be returned).
+resource TenantRoles DELETE "/domain/{domain}/service/{service}/tenant/{tenantDomain}" {
+    DomainName domain; //name of the provider domain
+    SimpleName service; //name of the provider service
+    DomainName tenantDomain; //name of the tenant domain
+    String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    authorize ("delete", "{domain}:tenant.{tenantDomain}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+    }
+}
+
+//Create/update set of roles for a given tenant and resource group
+resource TenantResourceGroupRoles PUT "/domain/{domain}/service/{service}/tenant/{tenantDomain}/resourceGroup/{resourceGroup}" {
+    DomainName domain; //name of the provider domain
+    SimpleName service; //name of the provider service
+    DomainName tenantDomain; //name of the tenant domain
+    EntityName resourceGroup; //tenant resource group
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    TenantResourceGroupRoles detail; //list of roles to be added/updated for the tenant
+    authorize ("update", "{domain}:tenant.{tenantDomain}");
+    expected OK, CREATED;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+    }
+}
+
+//Retrieve the configured set of roles for the tenant and resource group
+resource TenantResourceGroupRoles GET "/domain/{domain}/service/{service}/tenant/{tenantDomain}/resourceGroup/{resourceGroup}" {
+    DomainName domain; //name of the provider domain
+    SimpleName service; //name of the provider service
+    DomainName tenantDomain; //name of the tenant domain
+    EntityName resourceGroup; //tenant resource group
+    authenticate;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+    }
+}
+
+//Delete the configured set of roles for the tenant and resource group
+resource TenantResourceGroupRoles DELETE "/domain/{domain}/service/{service}/tenant/{tenantDomain}/resourceGroup/{resourceGroup}" {
+    DomainName domain; //name of the provider domain
+    SimpleName service; //name of the provider service
+    DomainName tenantDomain; //name of the tenant domain
+    EntityName resourceGroup; //tenant resource group
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    authorize ("update", "{domain}:tenant.{tenantDomain}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+    }
+}
+
+//Create/update set of roles for a given provider and resource group
+resource ProviderResourceGroupRoles PUT "/domain/{tenantDomain}/provDomain/{provDomain}/provService/{provService}/resourceGroup/{resourceGroup}" {
+    DomainName tenantDomain; //name of the tenant domain
+    DomainName provDomain; //name of the provider domain
+    SimpleName provService; //name of the provider service
+    EntityName resourceGroup; //tenant resource group
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    ProviderResourceGroupRoles detail; //list of roles to be added/updated for the provider
+    authorize ("update", "{tenantDomain}:tenancy.{provDomain}.{provService}");
+    expected OK, CREATED;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+    }
+}
+
+//Retrieve the configured set of roles for the provider and resource group
+resource ProviderResourceGroupRoles GET "/domain/{tenantDomain}/provDomain/{provDomain}/provService/{provService}/resourceGroup/{resourceGroup}" {
+    DomainName tenantDomain; //name of the tenant domain
+    DomainName provDomain; //name of the provider domain
+    SimpleName provService; //name of the provider service
+    EntityName resourceGroup; //tenant resource group
+    authenticate;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+    }
+}
+
+//Delete the configured set of roles for the provider and resource group
+resource ProviderResourceGroupRoles DELETE "/domain/{tenantDomain}/provDomain/{provDomain}/provService/{provService}/resourceGroup/{resourceGroup}" {
+    DomainName tenantDomain; //name of the tenant domain
+    DomainName provDomain; //name of the provider domain
+    SimpleName provService; //name of the provider service
+    EntityName resourceGroup; //tenant resource group
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    authorize ("update", "{tenantDomain}:tenancy.{provDomain}.{provService}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+    }
+}

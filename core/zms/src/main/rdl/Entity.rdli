@@ -1,0 +1,66 @@
+// Copyright 2016 Yahoo Inc.
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+//Entity API. Not strictly needed for Athenz, but useful for storing info in/about domains.
+include "Names.tdl";
+include "Entity.tdl";
+
+//Put an entity into the domain.
+resource Entity PUT "/domain/{domainName}/entity/{entityName}" {
+    DomainName domainName; //name of the domain
+    EntityName entityName; //name of entity
+    String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    Entity entity; //Entity object to be added to the domain
+    authorize ("update", "{domainName}:{entityName}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+    }
+}
+
+//Get a entity from a domain.
+resource Entity GET "/domain/{domainName}/entity/{entityName}" {
+    DomainName domainName; //name of the domain
+    EntityName entityName; //name of entity
+    authenticate; //open for all authenticated users to read
+    expected OK;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+    }
+}
+
+//Delete the entity from the domain. Upon successful completion of this delete
+//request, the server will return NO_CONTENT status code without any data 
+//(no object will be returned).
+resource Entity DELETE "/domain/{domainName}/entity/{entityName}" {
+    DomainName domainName; //name of the domain
+    EntityName entityName; //name of entity
+    String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    authorize ("delete", "{domainName}:{entityName}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+    }
+}
+
+//Enumerate entities provisioned in this domain.
+resource EntityList GET "/domain/{domainName}/entity" {
+    DomainName domainName; //name of the domain
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+    }
+}

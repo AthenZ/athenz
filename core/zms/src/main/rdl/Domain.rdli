@@ -1,0 +1,233 @@
+// Copyright 2016 Yahoo Inc.
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+//Domain API
+include "Names.tdl";
+include "Domain.tdl";
+include "Template.tdl";
+
+//Get info for the specified domain, by name. This request only returns
+//the configured domain attributes and not any domain objects like roles,
+//policies or service identities.
+resource Domain GET "/domain/{domain}" {
+    DomainName domain; //name of the domain
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+    }
+}
+
+//A paginated list of domains.
+type DomainList Struct {
+    Array<DomainName> names; //list of domain names
+    String next (optional); //if the response is a paginated list, this attribute specifies the value to be used in the next domain list request as the value for the skip query parameter.
+}
+
+//Enumerate domains. Can be filtered by prefix and depth, and paginated.
+//This operation can be expensive, as it may span multiple domains.
+resource DomainList GET "/domain?limit={limit}&skip={skip}&prefix={prefix}&depth={depth}&account={account}&ypmid={productId}&member={roleMember}&role={roleName}" {
+    Int32 limit (optional); //restrict the number of results in this call
+    String skip (optional); //restrict the set to those after the specified "next" token returned from a previous call
+    String prefix (optional); //restrict to names that start with the prefix
+    Int32 depth (optional); //restrict the depth of the name, specifying the number of '.' characters that can appear
+    String account (optional); //restrict to domain names that have specified account name
+    Int32 productId (optional); //restrict the domain names that have specified product id
+    ResourceName roleMember (optional); //restrict the domain names where the specified user is in a role - see roleName
+    ResourceName roleName (optional); //restrict the domain names where the specified user is in this role - see roleMember
+    String modifiedSince (header="If-Modified-Since"); //This header specifies to the server to return any domains modified since this HTTP date
+    exceptions {
+        ResourceError UNAUTHORIZED;
+    }
+}
+
+//Set of metadata attributes that all domains may have and can be changed.
+type DomainMeta Struct {
+    String description (optional); //a description of the domain
+    ResourceName org (optional); //a reference to an Organization. (i.e. org:media)
+    Bool enabled (optional, default=true); //Future use only, currently not used
+    Bool auditEnabled (optional, default=false); //Flag indicates whether or not domain modifications should be logged for SOX+Auditing. If true, the auditRef parameter must be supplied(not empty) for any API defining it.
+    String account (optional); // associated cloud (i.e. aws) account id
+    Int32 ypmId (optional); // associated product id
+}
+
+//Top Level Domain object. The required attributes include the name of the
+//domain and list of domain administrators.
+type TopLevelDomain DomainMeta {
+    SimpleName name; //name of the domain
+    Array<ResourceName> adminUsers; //list of domain administrators
+    DomainTemplateList templates (optional); //list of solution template names
+}
+
+//A Subdomain is a TopLevelDomain, except it has a parent.
+type SubDomain TopLevelDomain {
+    DomainName parent; //name of the parent domain
+}
+
+//Create a new top level domain. This is a privileged action for the "sys.auth" administrators.
+resource Domain POST "/domain" {
+    String         auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    TopLevelDomain detail; //TopLevelDomain object to be created
+    authorize ("create", "sys.auth:domain");
+    expected OK;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+    }
+}
+
+//Create a new subdomain. The domain administrators of the {parent} domain
+//have the privilege to create subdomains.
+resource Domain POST "/subdomain/{parent}" {
+    DomainName parent; //name of the parent domain
+    String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    SubDomain  detail; //Subdomain object to be created
+    authorize ("create", "{parent}:domain");
+    expected OK;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+    }
+}
+
+//A UserDomain is the user's own top level domain in user - e.g. user.hga
+type UserDomain DomainMeta {
+    SimpleName name; //user id which will be the domain name
+    DomainTemplateList templates (optional); //list of solution template names
+}
+
+//Create a new user domain. The user domain will be created in the user
+//top level domain and the user himself will be set as the administrator
+//for this domain.
+resource Domain POST "/userdomain/{name}" {
+    SimpleName name; //name of the domain which will be the user id
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    UserDomain detail; //UserDomain object to be created
+    authorize ("create", "user.{name}:domain");
+    expected OK;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+    }
+}
+
+//Delete the specified domain.  This is a privileged action for the "sys.auth" administrators.
+//Upon successful completion of this delete request, the server will return NO_CONTENT status
+//code without any data (no object will be returned).
+resource TopLevelDomain DELETE "/domain/{name}" {
+    DomainName name; //name of the domain to be deleted
+    String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    authorize ("delete", "sys.auth:domain");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+    }
+}
+
+//Delete the specified subdomain. Caller must have domain delete permissions in parent.
+//Upon successful completion of this delete request, the server will return NO_CONTENT status
+//code without any data (no object will be returned).
+resource SubDomain DELETE "/subdomain/{parent}/{name}" {
+    DomainName parent; //name of the parent domain
+    DomainName name; //name of the subdomain to be deleted
+    String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    authorize ("delete", "{parent}:domain");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+    }
+}
+
+//Delete the specified userdomain. Caller must have domain delete permissions in the domain.
+//Upon successful completion of this delete request, the server will return NO_CONTENT status
+//code without any data (no object will be returned).
+resource UserDomain DELETE "/userdomain/{name}" {
+    SimpleName name; //name of the domain to be deleted which will be the user id
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    authorize ("delete", "user.{name}:domain");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+    }
+}
+
+//Update the specified top level domain metadata. Note that entities in the domain
+//are not affected. Caller must have update privileges on the domain itself.
+resource Domain PUT "/domain/{name}/meta" {
+    DomainName name; //name of the domain to be updated
+    String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    DomainMeta detail; //DomainMeta object with updated attribute values
+    authorize ("update", "{name}:");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+    }
+}
+
+//Update the given domain by applying the roles and policies defined
+//in the specified solution template(s). Caller must have UPDATE privileges
+//on the domain itself.
+resource DomainTemplate PUT "/domain/{name}/template" {
+    DomainName name; //name of the domain to be updated
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    DomainTemplate template; //DomainTemplate object with solution template name(s)
+    authorize ("update", "{name}:");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+    }
+}
+
+//Get the list of solution templates applied to a domain
+resource DomainTemplateList GET "/domain/{name}/template" {
+    DomainName name; //name of the domain
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+    }
+}
+
+//Update the given domain by deleting the specified template from the 
+//domain template list. Cycles through the roles and policies defined in the
+//template and deletes them.
+//Caller must have delete privileges on the domain itself.
+resource DomainTemplate DELETE "/domain/{name}/template/{template}" {
+    DomainName name; //name of the domain to be updated
+    SimpleName template; //name of the solution template
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    authorize ("delete", "{name}:");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+    }
+}

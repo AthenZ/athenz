@@ -1,0 +1,162 @@
+{
+    "signedPolicyData": {
+        "expires": "2014-05-31T00:35:44.535Z",
+        "modified": "2014-05-24T00:34:45.922Z",
+        "policyData": {
+            "domain": "angler",
+            "policies": [
+                {
+                    "assertions": [
+                        {
+                            "action": "*",
+                            "role": "angler:role.admin",
+                            "resource": "angler:*"
+                        }
+                    ],
+                    "modified": "2014-05-24T00:34:45.922Z",
+                    "name": "angler:policy.admin"
+                },
+                {
+                    "assertions": [
+                        {
+                            "action": "read",
+                            "role": "angler:role.public",
+                            "resource": "angler:stuff"
+                        },
+                        {
+                            "effect": "ALLOW",
+                            "action": "write",
+                            "role": "angler:role.public",
+                            "resource": "angler:stuff"
+                        },
+                        {
+                            "effect": "DENY",
+                            "action": "throw",
+                            "role": "angler:role.public",
+                            "resource": "angler:stuff"
+                        },
+                        {
+                            "effect": "DENY",
+                            "action": "fish",
+                            "role": "angler:role.public",
+                            "resource": "angler:spawningpond*"
+                        },
+                        {
+                            "effect": "ALLOW",
+                            "action": "fish",
+                            "role": "angler:role.public",
+                            "resource": "angler:stockedpond*"
+                        },
+                        {
+                            "role": "angler:role.pachinko",
+                            "action": "access",
+                            "effect": "ALLOW",
+                            "resource": "angler:tables.blah"
+                        }
+                    ],
+                    "modified": "2014-05-24T00:35:11.387Z",
+                    "name": "angler:policy.public"
+                },
+                {
+                    "assertions": [
+                        {
+                            "action": "direct",
+                            "role": "angler:role.director",
+                            "resource": "angler:ponds*"
+                        },
+                        {
+                            "action": "oversee",
+                            "role": "angler:role.foreman",
+                            "resource": "angler:ponds*"
+                        },
+                        {
+                            "action": "manage",
+                            "role": "angler:role.manager*",
+                            "resource": "angler:ponds*"
+                        },
+                        {
+                            "effect": "DENY",
+                            "action": "manage",
+                            "role": "angler:role.managerkern*",
+                            "resource": "angler:pondsventura*"
+                        },
+                        {
+                            "action": "direct",
+                            "role": "angler:role.director",
+                            "resource": "angler:rivers*"
+                        },
+                        {
+                            "action": "oversee",
+                            "role": "angler:role.foreman",
+                            "resource": "angler:rivers*"
+                        },
+                        {
+                            "action": "manage",
+                            "role": "angler:role.manager*",
+                            "resource": "angler:rivers*"
+                        },
+                        {
+                            "effect": "DENY",
+                            "action": "manage",
+                            "role": "angler:role.managerventura*",
+                            "resource": "angler:riverskern*"
+                        }
+                    ],
+                    "modified": "2014-05-24T00:34:45.922Z",
+                    "name": "angler:policy.wildcardgamewardens"
+                },
+                {
+                    "assertions": [
+                        {
+                            "action": "all",
+                            "role": "angler:role.matchall",
+                            "resource": "angler:*"
+                        },
+                        {
+                            "action": "startswith",
+                            "role": "angler:role.matchstarts",
+                            "resource": "angler:startswith*"
+                        },
+                        {
+                            "action": "compare",
+                            "role": "angler:role.matchcompare",
+                            "resource": "angler:compare"
+                        },
+                        {
+                            "action": "regex",
+                            "role": "angler:role.matchregex",
+                            "resource": "angler:nhl*kings"
+                        }
+                    ],
+                    "modified": "2014-05-24T00:35:11.387Z",
+                    "name": "angler:policy.matchtypes"
+                },
+                {
+                    "assertions": [
+                        {
+                            "action": "full_regex",
+                            "role": "angler:role.full_regex",
+                            "resource": "angler:?ore(tech|commit)"
+                        },
+                        {
+                            "action": "full_regex",
+                            "role": "angler:role.full_regex",
+                            "resource": "angler:?ore[a-c]"
+                        },
+                        {
+                            "action": "full_regex",
+                            "role": "angler:role.full_regex",
+                            "resource": "angler:?ore[def]"
+                        }
+                    ],
+                    "modified": "2014-05-24T00:35:11.387Z",
+                    "name": "angler:policy.full_regex"
+                }
+            ]
+        },
+        "zmsSignature": "eN5aZiqCof3HjHctjkYB2itNvI.90u.bq6zzLoXG8CJ8hSwG6IBMaIQ0yf.Q_SR5HTFi7Tmrc1quQuH17H0PJg--",
+        "zmsKeyId": "0"
+    },
+    "signature": "o6G6eXPifUvvE87ElgpquAaSQGr0L0v_6HkcXJ972.v62eaedhMkJO5fPLS0RbmhQfiy_GPZsZNPB_gkULI4eFSsqfWb4hTtKgo1uqS6QoPc2KZDeXrGc_ocAqpB4l1qsj4y_o9vj8ICtHgLqRxIvmdajSPmy4xo0p8Us7q0pZ2_td8xN3ZsjMZDES78_grhRexcwnI_3a25jAWg_BzUZh5ynGUh221wAZZ3FzqL7CijKzHv.V7iUqOaqb4yziCtxEuWIkcpyQ8U77BA8jCxvwxoIEBbGXE_BM0Hp8G7sfFFxV6WojoY4YwHfVIPCOlG5C0fcH5gf0NzsvlUb7oOew--",
+    "keyId": "0"
+}

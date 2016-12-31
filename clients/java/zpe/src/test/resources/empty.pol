@@ -1,0 +1,15 @@
+{
+    "signedPolicyData": {
+        "modified": "2015-01-13T19:13:18.601Z",
+        "policyData": {
+            "domain": "empty",
+            "policies": [
+            ]
+        },
+        "zmsSignature": "eN5aZiqCof3HjHctjkYB2itNvI.90u.bq6zzLoXG8CJ8hSwG6IBMaIQ0yf.Q_SR5HTFi7Tmrc1quQuH17H0PJg--",
+        "zmsKeyId": "0",
+        "expires": "2015-01-20T19:13:18.599Z"
+    },
+    "signature": "qJXtTXPI0aQcxUgerT9X4BM6HoKVM1pNClt86UViintmC5.IK9uYoFhtdMfDLq7Kzc8jdyT1iCqv_OmEyMHLCA--",
+    "keyId": "0"
+}

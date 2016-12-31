@@ -1,0 +1,79 @@
+// Copyright 2016 Yahoo Inc.
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+include "Policy.tdl";
+include "Role.tdl";
+include "ServiceIdentity.tdl";
+include "Entity.tdl";
+
+//Tuple of domain-name and modification time-stamps. This object is returned
+//when the caller has requested list of domains modified since a specific timestamp.
+type DomainModified Struct {
+    DomainName name; //name of the domain
+    Int64 modified; //last modified timestamp of the domain
+}
+
+//A list of {domain, modified-timestamp} tuples.
+type DomainModifiedList Struct {
+    Array<DomainModified> nameModList; //list of modified domains
+}
+
+//We need to include the name of the domain in this struct since
+//this data will be passed back to ZPU through ZTS so we need to
+//sign not only the list of policies but also the corresponding
+//domain name that the policies belong to.
+type DomainPolicies Struct {
+    DomainName domain; //name of the domain
+    Array<Policy> policies; //list of policies defined in this server
+}
+
+//A signed bulk transfer of policies. The data is signed with server's
+//private key.
+type SignedPolicies Struct {
+    DomainPolicies contents; //list of policies defined in a domain
+    String signature; //signature generated based on the domain policies object
+    String keyId; //the identifier of the key used to generate the signature
+}
+
+//A domain object that includes its roles, policies and services.
+type DomainData Struct {
+    DomainName name; //name of the domain
+    String account (optional); // associated cloud (i.e. aws) account id
+    Int32 ypmId (optional); // associated product id
+    Array<Role> roles; //list of roles in the domain
+    SignedPolicies policies; //list of policies in the domain signed with ZMS private key
+    Array<ServiceIdentity> services; //list of services in the domain
+    Array<Entity> entities; //list of entities in the domain
+    Timestamp modified; //last modification timestamp
+}
+
+//A domain object signed with server's private key 
+type SignedDomain Struct {
+    DomainData domain; //domain object with its roles, policies and services
+    String signature; //signature generated based on the domain object
+    String keyId; //the identifier of the key used to generate the signature
+}
+
+//A list of signed domain objects
+type SignedDomains Struct {
+    Array<SignedDomain> domains;
+}
+
+//Retrieve the list of modified domains since the specified timestamp. The
+//server will return the list of all modified domains and the latest modification
+//timestamp as the value of the ETag header. The client will need to use this
+//value during its next call to request the changes since the previous request.
+// When metaonly set to true, dont add roles, policies or services, dont sign
+resource SignedDomains GET "/sys/modified_domains?domain={domain}&metaonly={metaOnly}" {
+    DomainName domain (optional); //filter the domain list only to the specified name
+    String metaOnly (optional); // valid values are "true" or "false"
+    String matchingTag (header="If-None-Match"); //Retrieved from the previous request, this timestamp specifies to the server to return any domains modified since this time
+    String tag (header="ETag", out); //The current latest modification timestamp is returned in this header
+    authenticate;
+    expected OK, NOT_MODIFIED;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED; 
+    }
+}

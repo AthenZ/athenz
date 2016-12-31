@@ -1,0 +1,23 @@
+// Copyright 2016 Yahoo Inc.
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+//Domain types
+include "Names.tdl";
+
+//A domain is an independent partition of users, roles, and resources.
+//Its name represents the definition of a namespace; the only way a
+//new namespace can be created, from the top, is by creating Domains.
+//Administration of a domain is governed by the parent domain (using
+//reverse-DNS namespaces). The top level domains are governed by the
+//special "sys.auth" domain.
+type Domain Struct {
+    DomainName name; //the common name to be referred to, the symbolic id. It is immutable
+    Timestamp modified (optional); //the last modification timestamp of any object or attribute in this domain
+    UUID id (optional); //unique identifier of the domain. generated on create, never reused
+    String description (optional); //description of the domain
+    ResourceName org (optional); //a reference to an Organization
+    Bool enabled (optional, default=true); //Future use only, currently not used
+    Bool auditEnabled (optional, default=false); //Flag indicates whether or not domain modifications should be logged for SOX+Auditing. If true, the auditRef parameter must be supplied(not empty) for any API defining it.
+    String account (optional); // associated cloud (i.e. aws) account id
+    Int32 ypmId (optional); // associated product id
+}

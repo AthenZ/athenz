@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# ** directory location for zpu to store policy files
+UTILITY_POLICY_FILE_DIR="${ROOT}/var/zpe"
+
+# ** athenz configuration file
+UTILITY_ATHENZ_CONF="conf/zpe_policy_updater/athenz.conf"
+
+# ** logback configuration file
+UTILITY_LOG_CONFIG="${ROOT}/conf/zpe_policy_updater/logback.xml"
+
+# ** truststore path
+UTILITY_SSL_TRUSTSTORE="${ROOT}/var/zpe_policy_updater/certs/zpu_truststore.jks"

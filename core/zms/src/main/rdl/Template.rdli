@@ -1,0 +1,26 @@
+// Copyright 2016 Yahoo Inc.
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+include "Names.tdl";
+include "Template.tdl";
+
+//Get the list of solution templates defined in the server
+resource ServerTemplateList GET "/template" {
+    authenticate;
+    exceptions {
+        ResourceError UNAUTHORIZED;
+    }
+}
+
+//Get solution template details. Includes the roles and policies
+//that will be automatically provisioned when the template
+//is applied to a domain
+resource Template GET "/template/{template}" {
+    SimpleName template; //name of the solution template
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+    }
+}

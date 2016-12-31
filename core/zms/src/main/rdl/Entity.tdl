@@ -1,0 +1,17 @@
+// Copyright 2016 Yahoo Inc.
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+//Entity API. Not strictly needed for Athenz, but useful for storing info in/about domains.
+include "Names.tdl";
+
+//An entity is a name and a structured value.
+//some entity names/prefixes are reserved (i.e. "role",  "policy", "meta", "domain", "service")
+type Entity Struct {
+    EntityName name; //name of the entity object
+    Struct value; //value of the entity
+}
+
+//The representation for an enumeration of entities in the namespace
+type EntityList Struct {
+    Array<EntityName> names; //list of entity names
+}

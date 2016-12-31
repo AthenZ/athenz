@@ -1,0 +1,15 @@
+// Copyright 2016 Yahoo Inc.
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+include "Names.tdl";
+
+// Identity - a signed assertion of service or human identity, the response could be either a client certificate
+// or just a regular NToken (depending if the request contained a csr or not).
+type Identity Struct {
+    CompoundName name; //name of the identity, fully qualified, i.e. my.domain.service1, or aws.1232321321312.myusername
+    String certificate (optional); //a certificate usable for both client and server in TLS connections
+    String caCertBundle (optional); //the CA certificate chain to use with all IMS-generated certs
+    String sshServerCert (optional); //the SSH server cert, signed by the CA
+    SignedToken serviceToken (optional); //service token instead of TLS certificate
+    Map<String,String> attributes (optional); //other config-like attributes determined at boot time
+}

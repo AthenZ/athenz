@@ -1,0 +1,892 @@
+/**
+ * Copyright 2016 Yahoo Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.yahoo.athenz.auth.util;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SecureRandom;
+import java.security.Security;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.MessageDigest;
+import java.security.SignatureException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Iterator;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.yahoo.rdl.*;
+
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.asn1.x509.BasicConstraints;
+import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.Extensions;
+import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.GeneralNames;
+import org.bouncycastle.asn1.x509.KeyPurposeId;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.asn1.pkcs.Attribute;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
+import org.bouncycastle.asn1.x9.ECNamedCurveTable;
+import org.bouncycastle.asn1.x9.X9ECParameters;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.X509v3CertificateBuilder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
+import org.bouncycastle.cms.CMSException;
+import org.bouncycastle.cms.CMSProcessable;
+import org.bouncycastle.cms.CMSProcessableByteArray;
+import org.bouncycastle.cms.CMSSignedData;
+import org.bouncycastle.cms.SignerInformation;
+import org.bouncycastle.cms.SignerInformationStore;
+import org.bouncycastle.cms.SignerInformationVerifier;
+import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoVerifierBuilder;
+import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey;
+import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPublicKey;
+import org.bouncycastle.jce.X509KeyUsage;
+import org.bouncycastle.jce.spec.ECParameterSpec;
+import org.bouncycastle.jce.spec.ECPublicKeySpec;
+import org.bouncycastle.jce.spec.ECPrivateKeySpec;
+import org.bouncycastle.openssl.PEMException;
+import org.bouncycastle.openssl.PEMKeyPair;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
+import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
+import org.bouncycastle.openssl.jcajce.JceOpenSSLPKCS8DecryptorProviderBuilder;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.InputDecryptorProvider;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.bouncycastle.pkcs.PKCS8EncryptedPrivateKeyInfo;
+import org.bouncycastle.pkcs.PKCSException;
+import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
+import org.bouncycastle.util.encoders.Base64;
+
+public class Crypto {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(Crypto.class);
+    private static final String RSA = "RSA";
+    private static final String RSA_SHA1 = "SHA1withRSA";
+    private static final String RSA_SHA256 = "SHA256withRSA";
+
+    private static final String ECDSA = "ECDSA";
+    private static final String ECDSA_SHA1 = "SHA1withECDSA";
+    private static final String ECDSA_SHA256 = "SHA256withECDSA";
+    
+    public static final String SHA1 = "SHA1";
+    public static final String SHA256 = "SHA256";
+    
+    private static final String BC_PROVIDER = "BC";
+    
+    static final SecureRandom RANDOM;
+    static {
+        Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+        SecureRandom r = null;
+        try {
+            r = SecureRandom.getInstance("NativePRNGNonBlocking");
+        } catch (NoSuchAlgorithmException nsa) {
+            r = new SecureRandom();
+        }
+        
+        RANDOM = r;
+        // force seeding.
+        RANDOM.nextBytes(new byte[] { 8 });
+    }
+
+    /**
+     * Return a signature for the specific structured data with HmacSHA256 algorithm, 
+     * using the provided secret.
+     * @param data structured data
+     * @param sharedSecret provided secret
+     * @return signature for the data
+     * @throws CryptoException for any issues with provider/algorithm/signature/key
+     */
+    public static String hmac(Struct data, String sharedSecret) throws CryptoException {
+        return hmac(hashableString(data), sharedSecret);
+    }
+
+    /**
+     * Calculate the SHA256withRSA signature for the specific structured data, using the provided private key.
+     * @param data structured data to sign
+     * @param key the RSA private key to sign with
+     * @return a ybase64 encoded signature
+     * @throws CryptoException for any issues with provider/algorithm/signature/key
+     */
+    public static String sign(Struct data, PrivateKey key) throws CryptoException {
+        return sign(hashableString(data), key);
+    }
+
+    /**
+     * Verify the SHA256withRSA signature for the specific structured data, using the provided public key.
+     * @param data structured data that was signed
+     * @param key the RSA public key corresponding to the signing key
+     * @param signature the ybase64 encoded signature to check
+     * @return true if the data signature can be verified with the given public key
+     * @throws CryptoException for any issues with provider/algorithm/signature/key
+     */
+    public static boolean verify(Struct data, PublicKey key, String signature) throws CryptoException {
+        return verify(hashableString(data), key, signature);
+    }
+
+    private static Object canonical(Object obj) {
+        if (obj != null) {
+            if (obj instanceof Struct) {
+                Struct s = (Struct) obj;
+                Struct s2 = new Struct();
+                for (String k : s.sortedNames()) {
+                    s2.put(k, canonical(s.get(k)));
+                }
+                return s2;
+            } else if (obj instanceof Array) {
+                Array a = new Array();
+                for (Object o : (Array) obj) {
+                    a.add(canonical(o));
+                }
+                return a;
+            }
+        }
+        return obj;
+    }
+
+    /**
+     * Make a copy of the data in canonical form. This means the field names are sorted,
+     * (recursively), so the same data (from a JSON point of view) will produce the same
+     * string.
+     * @param data structured data to normalize
+     * @return the canonical form for the data
+     */
+    public static String hashableString(Struct data) {
+        return JSON.string(canonical(data));
+    }
+
+    /**
+     * Sign the message with the shared secret using HmacSHA256
+     * The result is a ybase64 (url safe) string.
+     * @param message the UTF-8 string to be signed
+     * @param sharedSecret the secret to sign with
+     * @return the ybase64 representation of the signature.
+     * @throws CryptoException for any issues with provider/algorithm/signature/key
+     */
+    public static String hmac(String message, String sharedSecret) throws CryptoException {
+        //this has not been optimized!
+        String method = "HmacSHA256";
+        byte [] bsig = null;
+        try {
+            
+            javax.crypto.Mac hmac = javax.crypto.Mac.getInstance(method);
+            javax.crypto.spec.SecretKeySpec secretKey = new javax.crypto.spec.SecretKeySpec(utf8Bytes(sharedSecret), method);
+            hmac.init(secretKey);
+            bsig = hmac.doFinal(message.getBytes());
+            
+        } catch (NoSuchAlgorithmException e) {
+            LOG.error("hmac: Caught NoSuchAlgorithmException, check to make sure the algorithm is supported by the provider.");
+            throw new CryptoException(e);
+        } catch (InvalidKeyException e) {
+            LOG.error("hmac: Caught InvalidKeyException, incorrect key type is being used.");
+            throw new CryptoException(e);
+        }
+        return ybase64(bsig);
+    }
+
+    static String getSignatureAlgorithm(String keyAlgorithm) throws NoSuchAlgorithmException {
+        return getSignatureAlgorithm(keyAlgorithm, SHA256);
+    }
+        
+    static String getSignatureAlgorithm(String keyAlgorithm, String digestAlgorithm) throws NoSuchAlgorithmException {
+        
+        String signatureAlgorithm = null;
+        switch (keyAlgorithm) {
+            case RSA:
+                if (SHA256.equals(digestAlgorithm)) {
+                    signatureAlgorithm = RSA_SHA256;
+                } else if (SHA1.equals(digestAlgorithm)) {
+                    signatureAlgorithm = RSA_SHA1;
+                }
+                break;
+            case ECDSA:
+                if (SHA256.equals(digestAlgorithm)) {
+                    signatureAlgorithm = ECDSA_SHA256;
+                } else if (SHA1.equals(digestAlgorithm)) {
+                    signatureAlgorithm = ECDSA_SHA1;
+                }
+                break;
+        }
+        
+        if (signatureAlgorithm == null) {
+            LOG.error("getSignatureAlgorithm: Unknown key algorithm: " + keyAlgorithm
+                    + " digest algorithm: " + digestAlgorithm);
+            throw new NoSuchAlgorithmException();
+        }
+        
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Signature Algorithm: " + signatureAlgorithm);
+        }
+        
+        return signatureAlgorithm;
+    }
+
+    /**
+     * Sign the text with with given digest algorithm and private key. Returns the ybase64 encoding of it.
+     * @param message the message to sign, as a UTF8 string
+     * @param key the private key to sign with
+     * @param digestAlgorithm supported values SHA1 and SHA256
+     * @return the ybase64 encoded signature for the data
+     * @throws CryptoException for any issues with provider/algorithm/signature/key
+     */
+    public static String sign(String message, PrivateKey key, String digestAlgorithm) throws CryptoException {
+        try {
+            byte [] sig = null;
+            String signatureAlgorithm = getSignatureAlgorithm(key.getAlgorithm(), digestAlgorithm);
+            java.security.Signature signer = java.security.Signature.getInstance(signatureAlgorithm, BC_PROVIDER);
+            signer.initSign(key);
+            signer.update(utf8Bytes(message));
+            sig = signer.sign();
+            return ybase64(sig);
+        } catch (NoSuchProviderException e) {
+            LOG.error("sign: Caught NoSuchProviderException, check to make sure the provider is loaded correctly.");
+            throw new CryptoException(e);
+        } catch (NoSuchAlgorithmException e) {
+            LOG.error("sign: Caught NoSuchAlgorithmException, check to make sure the algorithm is supported by the provider.");
+            throw new CryptoException(e);
+        } catch (SignatureException e) {
+            LOG.error("sign: Caught SignatureException.");
+            throw new CryptoException(e);
+        } catch (InvalidKeyException e) {
+            LOG.error("sign: Caught InvalidKeyException, incorrect key type is being used.");
+            throw new CryptoException(e);
+        }
+    }
+
+    /**
+     * Sign the text with with SHA-256 and the private key. Returns the ybase64 encoding of it.
+     * @param message the message to sign, as a UTF8 string
+     * @param key the private key to sign with
+     * @return the ybase64 encoded signature for the data
+     * @throws CryptoException for any issues with provider/algorithm/signature/key
+     */
+    public static String sign(String message, PrivateKey key) throws CryptoException {
+        return sign(message, key, SHA256);
+    }
+
+    /**
+     * Verify the signed data with given digest algorithm and the private key against the ybase64 encoded signature.
+     * @param message the message to sign, as a UTF8 string
+     * @param key the public key corresponding to the signing key
+     * @param signature the ybase64 encoded signature for the data
+     * @param digestAlgorithm supported values SHA1 and SHA256
+     * @return true if the message was indeed signed by the signature.
+     * @throws CryptoException for any issues with provider/algorithm/signature/key
+     */
+    public static boolean verify(String message, PublicKey key, String signature,
+                String digestAlgorithm) throws CryptoException {
+        try {
+            byte [] sig = ybase64Decode(signature);
+            String signatureAlgorithm = getSignatureAlgorithm(key.getAlgorithm(), digestAlgorithm);
+            java.security.Signature signer = java.security.Signature.getInstance(signatureAlgorithm, BC_PROVIDER);
+            signer.initVerify(key);
+            signer.update(utf8Bytes(message));
+            return signer.verify(sig);
+        } catch (NoSuchProviderException e) {
+            LOG.error("verify: Caught NoSuchProviderException, check to make sure the provider is loaded correctly.");
+            throw new CryptoException(e);
+        } catch (NoSuchAlgorithmException e) {
+            LOG.error("verify: Caught NoSuchAlgorithmException, check to make sure the algorithm is supported by the provider.");
+            throw new CryptoException(e);
+        } catch (SignatureException e) {
+            LOG.error("verify: Caught SignatureException.");
+            throw new CryptoException(e);
+        } catch (InvalidKeyException e) {
+            LOG.error("verify: Caught InvalidKeyException, invalid key type is being used.");
+            throw new CryptoException(e);
+        }
+    }
+
+    /**
+     * Verify the signed data with SHA-256 and private key against the ybase64 encoded signature.
+     * @param message the message to sign, as a UTF8 string
+     * @param key the public key corresponding to the signing key
+     * @param signature the ybase64 encoded signature for the data
+     * @return true if the message was indeed signed by the signature.
+     * @throws CryptoException for any issues with provider/algorithm/signature/key
+     */
+    public static boolean verify(String message, PublicKey key, String signature) throws CryptoException {
+        return verify(message, key, signature, SHA256);
+    }
+    
+    static String utf8String(byte [] b) {
+        return new String(b, StandardCharsets.UTF_8);
+    }
+
+    static byte [] utf8Bytes(String s) {
+        return s.getBytes(StandardCharsets.UTF_8);
+    }
+
+    public static byte [] sha256(byte [] data) throws CryptoException {
+        MessageDigest sha256;
+        try {
+            sha256 = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            LOG.error("sha256: Caught NoSuchAlgorithmException, check to make sure the algorithm is supported by the provider.");
+            throw new CryptoException(e);
+        }
+        return sha256.digest(data);
+    }
+    
+    public static byte [] sha256(String text) throws CryptoException {
+        return sha256(utf8Bytes(text));
+    }
+    
+    /**
+     * ybase64 is url-safe base64 encoding, using Y's unique convention.
+     * The industry standard urlsafe solution is ("+/=" =&gt; "-_.").
+     * The Y! convention is ("+/=" =&gt; "._-").
+     * @param data the data to encode
+     * @return the ybase64-encoded data as a String
+     */
+    public static String ybase64(byte [] data) {
+        return utf8String(YBase64.encode(data));
+    }
+
+    /**
+     * ybase64 is url-safe base64 encoding, using Y's unique convention.
+     * The industry standard urlsafe solution is ("+/=" =&gt; "-_.").
+     * The Y! convention is ("+/=" =&gt; "._-").
+     * @param b64 the ybase64-encoded data
+     * @return the decoded data
+     */
+    public static byte [] ybase64Decode(String b64) {
+        return YBase64.decode(utf8Bytes(b64));
+    }
+
+    public static String ybase64DecodeString(String b64) {
+        return utf8String(ybase64Decode(b64));
+    }
+
+    public static X509Certificate loadX509Certificate(File certFile) throws CryptoException  {
+        try (FileReader fileReader = new FileReader(certFile)) {
+            return loadX509Certificate(fileReader);
+        } catch (FileNotFoundException e) {
+            LOG.error("loadX509Certificate: Caught FileNotFoundException while attempting to load certificate for file: "
+                    + certFile.getAbsolutePath());
+            throw new CryptoException(e);
+        } catch (IOException e) {
+            LOG.error("loadX509Certificate: Caught IOException while attempting to load certificate for file: "
+                    + certFile.getAbsolutePath());
+            throw new CryptoException(e);
+        }
+    }
+    
+    public static X509Certificate loadX509Certificate(String pemEncoded) throws CryptoException {
+        return Crypto.loadX509Certificate(new StringReader(pemEncoded));
+    }
+
+    public static X509Certificate loadX509Certificate(Reader reader) throws CryptoException {
+        try (PEMParser pemParser = new PEMParser(reader)) {
+            Object pemObj = pemParser.readObject();
+            if (pemObj instanceof X509Certificate) {
+                return (X509Certificate) pemObj;
+            } else if (pemObj instanceof X509CertificateHolder) {
+                try {
+                    return new JcaX509CertificateConverter()
+                            .setProvider(BC_PROVIDER)
+                            .getCertificate((X509CertificateHolder) pemObj);
+                } catch (CertificateException ex) {
+                    LOG.error("loadX509Certificate: Caught CertificateException, unable to parse X509 certficate", ex);
+                    throw new CryptoException(ex);
+                }
+            }
+        } catch (IOException ex) {
+            LOG.error("loadX509Certificate: Caught IOException, unable to parse X509 certficate", ex);
+            throw new CryptoException(ex);
+        }
+        
+        return null;
+    }
+    
+    public static PublicKey loadPublicKey(String pemEncoded) throws CryptoException {
+        return Crypto.loadPublicKey(new StringReader(pemEncoded));
+    }
+
+    public static PublicKey loadPublicKey(Reader r) throws CryptoException {
+        try (org.bouncycastle.openssl.PEMParser pemReader = new org.bouncycastle.openssl.PEMParser(r)) {
+            PublicKey pubKey = null;
+            Object pemObj = pemReader.readObject();
+            JcaPEMKeyConverter pemConverter = new JcaPEMKeyConverter();
+            SubjectPublicKeyInfo keyInfo = null;
+            X9ECParameters ecParam = null;
+
+            if (pemObj instanceof ASN1ObjectIdentifier) {
+                
+                // make sure this is EC Parameter we're handling. In which case
+                // we'll store it and read the next object which should be our
+                // EC Public Key
+                
+                ASN1ObjectIdentifier ecOID = (ASN1ObjectIdentifier) pemObj;
+                ecParam = ECNamedCurveTable.getByOID(ecOID);
+                if (ecParam == null) {
+                    throw new PEMException("Unable to find EC Parameter for the given curve oid: "
+                            + ((ASN1ObjectIdentifier) pemObj).getId());
+                }
+                
+                pemObj = pemReader.readObject();
+            } else if (pemObj instanceof X9ECParameters) {
+                ecParam = (X9ECParameters) pemObj;
+                pemObj = pemReader.readObject();
+            }
+            
+            if (pemObj instanceof org.bouncycastle.cert.X509CertificateHolder) {
+                keyInfo = ((org.bouncycastle.cert.X509CertificateHolder) pemObj).getSubjectPublicKeyInfo();
+            } else {
+                keyInfo = (SubjectPublicKeyInfo) pemObj;
+            }
+            pubKey = pemConverter.getPublicKey(keyInfo);
+            
+            if (ecParam != null && ECDSA.equals(pubKey.getAlgorithm())) {
+                ECParameterSpec ecSpec = new ECParameterSpec(ecParam.getCurve(), ecParam.getG(),
+                        ecParam.getN(), ecParam.getH(), ecParam.getSeed());
+                KeyFactory keyFactory = KeyFactory.getInstance(ECDSA, BC_PROVIDER);
+                ECPublicKeySpec keySpec = new ECPublicKeySpec(((BCECPublicKey) pubKey).getQ(), ecSpec);
+                pubKey = (PublicKey) keyFactory.generatePublic(keySpec);
+            }
+            return pubKey;
+        } catch (PEMException e) {
+            throw new CryptoException(e);
+        } catch (NoSuchProviderException e) {
+            LOG.error("loadPublicKey: Caught NoSuchProviderException, check to make sure the provider is loaded correctly.");
+            throw new CryptoException(e);
+        } catch (NoSuchAlgorithmException e) {
+            LOG.error("loadPublicKey: Caught NoSuchAlgorithmException, check to make sure the algorithm is supported by the provider.");
+            throw new CryptoException(e);
+        } catch (InvalidKeySpecException e) {
+            LOG.error("loadPublicKey: Caught InvalidKeySpecException, invalid key spec is being used.");
+            throw new CryptoException("InvalidKeySpecException");
+          } catch (IOException e) {
+            throw new CryptoException(e);
+        }
+    }
+
+    public static PublicKey loadPublicKey(File f) throws CryptoException  {
+        try (FileReader fileReader = new FileReader(f)) {
+            return loadPublicKey(fileReader);
+        } catch (FileNotFoundException e) {
+            LOG.error("loadPublicKey: Caught FileNotFoundException while attempting to load public key for file: "
+                    + f.getAbsolutePath());
+            throw new CryptoException(e);
+        } catch (IOException e) {
+            LOG.error("loadPublicKey: Caught IOException while attempting to load public key for file: "
+                    + f.getAbsolutePath());
+            throw new CryptoException(e);
+        }
+    }
+    
+    public static PrivateKey loadPrivateKey(String pemEncoded) throws CryptoException {
+        return Crypto.loadPrivateKey(new StringReader(pemEncoded), null);
+    }
+
+    public static PrivateKey loadPrivateKey(Reader reader) throws CryptoException {
+        return Crypto.loadPrivateKey(reader, null);
+    }
+
+    public static PrivateKey loadPrivateKey(File file) throws CryptoException  {
+        return Crypto.loadPrivateKey(file, null);
+    }
+    
+    public static PrivateKey loadPrivateKey(File file, String pwd) throws CryptoException  {
+        try (java.io.FileReader fileReader = new java.io.FileReader(file)) {
+            return loadPrivateKey(fileReader, pwd);
+        } catch (FileNotFoundException e) {
+            LOG.error("loadPrivateKey: Caught FileNotFoundException while attempting to load private key for file: "
+                    + file.getAbsolutePath());
+            throw new CryptoException(e);
+        } catch (IOException e) {
+            LOG.error("loadPrivateKey: Caught IOException while attempting to load private key for file: "
+                    + file.getAbsolutePath());
+            throw new CryptoException(e);
+        }
+    }
+    
+    public static PrivateKey loadPrivateKey(String pemEncoded, String pwd) throws CryptoException {
+        return Crypto.loadPrivateKey(new StringReader(pemEncoded), pwd);
+    }
+    
+    public static PrivateKey loadPrivateKey(Reader reader, String pwd) throws CryptoException {
+        
+        try (PEMParser pemReader = new PEMParser(reader)) {
+            PrivateKey privKey = null;
+            X9ECParameters ecParam = null;
+            
+            Object pemObj = pemReader.readObject();
+            
+            if (pemObj instanceof ASN1ObjectIdentifier) {
+                    
+                // make sure this is EC Parameter we're handling. In which case
+                // we'll store it and read the next object which should be our
+                // EC Private Key
+                
+                ASN1ObjectIdentifier ecOID = (ASN1ObjectIdentifier) pemObj;
+                ecParam = ECNamedCurveTable.getByOID(ecOID);
+                if (ecParam == null) {
+                    throw new PEMException("Unable to find EC Parameter for the given curve oid: "
+                            + ((ASN1ObjectIdentifier) pemObj).getId());
+                }
+                
+                pemObj = pemReader.readObject();
+                
+            } else if (pemObj instanceof X9ECParameters) {
+                
+                ecParam = (X9ECParameters) pemObj;
+                pemObj = pemReader.readObject();
+            }
+            
+            if (pemObj instanceof PEMKeyPair) {
+                
+                PrivateKeyInfo pKeyInfo = ((PEMKeyPair) pemObj).getPrivateKeyInfo();
+                JcaPEMKeyConverter pemConverter = new JcaPEMKeyConverter();
+                privKey = pemConverter.getPrivateKey(pKeyInfo);
+                
+            } else if (pemObj instanceof PKCS8EncryptedPrivateKeyInfo) {
+                
+                PKCS8EncryptedPrivateKeyInfo pKeyInfo = (PKCS8EncryptedPrivateKeyInfo) pemObj;
+                if (pwd == null) {
+                    throw new CryptoException("No password specified to decrypt encrypted private key");
+                }
+                
+                // Decrypt the private key with the specified password
+
+                InputDecryptorProvider pkcs8Prov = new JceOpenSSLPKCS8DecryptorProviderBuilder()
+                        .setProvider(BC_PROVIDER).build(pwd.toCharArray());
+                
+                PrivateKeyInfo privateKeyInfo = pKeyInfo.decryptPrivateKeyInfo(pkcs8Prov);
+                JcaPEMKeyConverter pemConverter = new JcaPEMKeyConverter();
+                privKey = pemConverter.getPrivateKey(privateKeyInfo);
+            }
+            
+            // if our private key is EC type and we have parameters specified
+            // then we need to set it accordingly
+            
+            if (ecParam != null && ECDSA.equals(privKey.getAlgorithm())) {
+                ECParameterSpec ecSpec = new ECParameterSpec(ecParam.getCurve(), ecParam.getG(),
+                        ecParam.getN(), ecParam.getH(), ecParam.getSeed());
+                KeyFactory keyFactory = KeyFactory.getInstance(ECDSA, BC_PROVIDER);
+                ECPrivateKeySpec keySpec = new ECPrivateKeySpec(((BCECPrivateKey) privKey).getS(), ecSpec);
+                privKey = (PrivateKey) keyFactory.generatePrivate(keySpec);
+            }
+            
+            return privKey;
+            
+        } catch (PEMException e) {
+            LOG.error("loadPrivateKey: Caught PEMException, problem with format of key detected.");
+            throw new CryptoException(e);
+        } catch (NoSuchProviderException e) {
+            LOG.error("loadPrivateKey: Caught NoSuchProviderException, check to make sure the provider is loaded correctly.");
+            throw new CryptoException(e);
+        } catch (NoSuchAlgorithmException e) {
+            LOG.error("loadPrivateKey: Caught NoSuchAlgorithmException, check to make sure the algorithm is supported by the provider.");
+            throw new CryptoException(e);
+        } catch (InvalidKeySpecException e) {
+            LOG.error("loadPrivateKey: Caught InvalidKeySpecException, invalid key spec is being used.");
+            throw new CryptoException(e);
+        } catch (OperatorCreationException e) {
+            LOG.error("loadPrivateKey: Caught OperatorCreationException when creating JceOpenSSLPKCS8DecryptorProviderBuilder.");
+            throw new CryptoException(e);
+        } catch (PKCSException e) {
+            LOG.error("loadPrivateKey: Caught PKCSException when decrypting private key.");
+            throw new CryptoException(e);
+        } catch (IOException e) {
+            LOG.error("loadPrivateKey: Caught IOException, while trying to read key.");
+            throw new CryptoException(e);
+        }
+    }
+
+    public static String randomSalt() {
+        long v = RANDOM.nextLong();
+        return Long.toHexString(v);
+    }
+
+    public static String encodedFile(File f) {
+        try (FileInputStream in = new FileInputStream(f)) {
+            byte [] buf = new byte[(int) f.length()];
+            in.read(buf);
+            return ybase64(buf);
+        } catch (FileNotFoundException e) {
+            LOG.error("encodedFile: Caught FileNotFoundException while attempting to read encoded file: "
+                    + f.getAbsolutePath());
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            LOG.error("encodedFile: Caught IOException while attempting to read encoded file: "
+                    + f.getAbsolutePath());
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static String encodedFile(FileInputStream is) {
+        try {
+            byte [] buf = new byte[4096];
+            int readBytes = 0;
+            String contents = null;
+            while ((readBytes = is.read(buf)) > 0) {
+                if (contents == null) {
+                    contents = new String(buf, 0, readBytes - 1);
+                } else {
+                    contents = contents.concat(new String(buf, 0, readBytes - 1));
+                }
+            }
+            return ybase64(utf8Bytes(contents));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static PKCS10CertificationRequest getPKCS10CertRequest(String csr) {
+        
+        if (csr == null || csr.isEmpty()) {
+            LOG.error("getPKCS10CertRequest: CSR is null or empty");
+            throw new CryptoException("CSR is null or empty");
+        }
+        
+        try {
+            Reader csrReader = new StringReader(csr);
+            try (PEMParser pemParser = new PEMParser(csrReader)) {
+                Object pemObj = pemParser.readObject();
+                if (pemObj instanceof PKCS10CertificationRequest) {
+                    return (PKCS10CertificationRequest) pemObj;
+                }
+            }
+        } catch (IOException ex) {
+            LOG.error("getPKCS10CertRequest: unable to parse csr", ex);
+            throw new CryptoException(ex);
+        }
+
+        return null;
+    }
+    
+    public static X509Certificate generateX509Certificate(PKCS10CertificationRequest certReq, PrivateKey caPrivateKey,
+            X509Certificate caCertificate, int validityTimeout, boolean basicConstraints) {
+        
+        // set validity for the given number of minutes from now
+        
+        Date notBefore = new Date();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(notBefore);
+        cal.add(Calendar.MINUTE, validityTimeout);
+        Date notAfter = cal.getTime();
+
+        // Generate self-signed certificate
+        
+        X509Certificate cert = null;
+        try {
+            JcaPKCS10CertificationRequest jcaPKCS10CertificationRequest = new JcaPKCS10CertificationRequest(certReq);
+            PublicKey publicKey = jcaPKCS10CertificationRequest.getPublicKey();
+            
+            X509v3CertificateBuilder caBuilder = new JcaX509v3CertificateBuilder(
+                    caCertificate,
+                    BigInteger.valueOf(System.currentTimeMillis()),
+                    notBefore,
+                    notAfter,
+                    certReq.getSubject(),
+                    publicKey)
+                .addExtension(Extension.basicConstraints, false,
+                        new BasicConstraints(basicConstraints))
+                .addExtension(Extension.keyUsage, true,
+                        new X509KeyUsage(X509KeyUsage.digitalSignature | X509KeyUsage.keyEncipherment))
+                .addExtension(Extension.extendedKeyUsage, true,
+                        new ExtendedKeyUsage(new KeyPurposeId[]{ KeyPurposeId.id_kp_clientAuth, KeyPurposeId.id_kp_serverAuth }));
+            
+            // see if we have the dns/rfc822/ip address extensions specified in the csr
+            
+            ArrayList<GeneralName> altNames = new ArrayList<>();
+            Attribute[] certAttributes = jcaPKCS10CertificationRequest.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);
+            if (certAttributes != null && certAttributes.length > 0) {
+                for (Attribute attribute : certAttributes) {
+                    Extensions extensions = Extensions.getInstance(attribute.getAttrValues().getObjectAt(0));
+                    GeneralNames gns = GeneralNames.fromExtensions(extensions, Extension.subjectAlternativeName);
+                    if (gns == null) {
+                        continue;
+                    }
+                    GeneralName[] names = gns.getNames();
+                    for (int i = 0; i < names.length; i++) {
+                        switch (names[i].getTagNo()) {
+                            case GeneralName.dNSName:
+                            case GeneralName.iPAddress:
+                            case GeneralName.rfc822Name:
+                                altNames.add(names[i]);
+                                break;
+                        }
+                    }
+                }
+                if (!altNames.isEmpty()) {
+                    caBuilder.addExtension(Extension.subjectAlternativeName, false,
+                            new GeneralNames(altNames.toArray(new GeneralName[altNames.size()])));
+                }
+           }
+            
+            String signatureAlgorithm = getSignatureAlgorithm(caPrivateKey.getAlgorithm(), SHA256);
+            ContentSigner caSigner = new JcaContentSignerBuilder(signatureAlgorithm)
+                .setProvider(BC_PROVIDER).build(caPrivateKey);
+            
+            JcaX509CertificateConverter converter = new JcaX509CertificateConverter().setProvider(BC_PROVIDER);
+            cert = converter.getCertificate(caBuilder.build(caSigner));
+
+        } catch (CertificateException ex) {
+            LOG.error("generateX509Certificate: Caught CertificateException when generating certificate: "
+                    + ex.getMessage());
+            throw new CryptoException(ex);
+        } catch (OperatorCreationException ex) {
+            LOG.error("generateX509Certificate: Caught OperatorCreationException when creating JcaContentSignerBuilder: "
+                    + ex.getMessage());
+            throw new CryptoException(ex);
+        } catch (InvalidKeyException ex) {
+            LOG.error("generateX509Certificate: Caught InvalidKeySpecException, invalid key spec is being used: "
+                    + ex.getMessage());
+            throw new CryptoException(ex);
+        } catch (NoSuchAlgorithmException ex) {
+            LOG.error("generateX509Certificate: Caught NoSuchAlgorithmException, check to make sure the algorithm is supported by the provider: "
+                    + ex.getMessage());
+            throw new CryptoException(ex);
+        } catch (Exception ex) {
+            LOG.error("generateX509Certificate: unable to generate X509 Certificate: " + ex.getMessage());
+            throw new CryptoException("Unable to generate X509 Certificate");
+        }
+        
+        return cert;
+    }
+    
+    public static boolean validatePKCS7Signature(String data, String signature, PublicKey publicKey) {
+        
+        try {
+            SignerInformationStore signerStore = null;
+            try (InputStream sigIs = new ByteArrayInputStream(Base64.decode(signature.getBytes(StandardCharsets.UTF_8)))) {
+                CMSProcessable content = new CMSProcessableByteArray(data.getBytes(StandardCharsets.UTF_8));
+                CMSSignedData signedData = new CMSSignedData(content, sigIs);
+                signerStore = signedData.getSignerInfos();
+            }
+            
+            Collection<SignerInformation> signers = signerStore.getSigners();
+            Iterator<SignerInformation> it = signers.iterator();
+            
+            SignerInformationVerifier infoVerifier = new JcaSimpleSignerInfoVerifierBuilder()
+                    .setProvider(BC_PROVIDER).build(publicKey);
+            while (it.hasNext()) {
+                SignerInformation signerInfo = (SignerInformation) it.next();
+                if (signerInfo.verify(infoVerifier)) {
+                    return true;
+                }
+            }
+        } catch (CMSException ex) {
+            LOG.error("validatePKCS7Signature: unable to initialize CMSSignedData object: " + ex.getMessage());
+            throw new CryptoException(ex);
+        } catch (OperatorCreationException ex) {
+            LOG.error("validatePKCS7Signature: Caught OperatorCreationException when creating JcaSimpleSignerInfoVerifierBuilder: "
+                    + ex.getMessage());
+            throw new CryptoException(ex);
+        } catch (IOException ex) {
+            LOG.error("validatePKCS7Signature: Caught IOException when closing InputStream: " + ex.getMessage());
+            throw new CryptoException(ex);
+        } catch (Exception ex) {
+            LOG.error("validatePKCS7Signature: unable to validate signature: " + ex.getMessage());
+            throw new CryptoException(ex.getMessage());
+        }
+        
+        return false;
+    }
+    
+    public static String x509CertificateToPem(X509Certificate cert) {
+        StringWriter writer = new StringWriter();
+        try {
+            try (JcaPEMWriter pemWriter = new JcaPEMWriter(writer)) {
+                pemWriter.writeObject(cert);
+                pemWriter.flush();
+                pemWriter.close();
+            }
+        } catch (IOException ex) {
+            LOG.error("x509CertificateToPem: unable to convert X509 cert to PEM: " + ex.getMessage());
+            return null;
+        }
+
+        return writer.toString();
+    }
+    
+    public static void main(String [] args) throws CryptoException {
+        if (args.length >= 2) {
+            String op = args[0];
+            if ("sign".equals(op)) {
+                if (args.length == 3) {
+                    String sig = Crypto.sign(args[1], Crypto.loadPrivateKey(new File(args[2])));
+                    System.out.println(sig);
+                    System.exit(0);
+                }
+            } else if ("verify".equals(op)) {
+                if (args.length == 4) {
+                    if (Crypto.verify(args[1], Crypto.loadPublicKey(new File(args[2])), args[3])) {
+                        System.out.println("Verified.");
+                    } else {
+                        System.out.println("NOT VERIFIED");
+                    }
+                    System.exit(0);
+                }
+            } else if ("public".equals(op)) {
+                if (args.length == 2) {
+                    String pub = encodedFile(new File(args[1]));
+                    Crypto.loadPublicKey(ybase64DecodeString(pub)); //throws if something is wrong
+                    System.out.println(pub);
+                    System.exit(0);
+                }
+            } else if ("private".equals(op)) {
+                if (args.length == 2) {
+                    try {
+                        String priv = encodedFile(new File(args[1]));
+                        Crypto.loadPrivateKey(ybase64DecodeString(priv)); //throws if something is wrong
+                        System.out.println(priv);
+                        System.exit(0);
+                    } catch (Exception e) {
+                        System.out.println("*** " + e.getMessage());
+                        System.exit(1);
+                    }
+                }
+            }
+        }
+        System.out.println("usage: r Crypto private privateKeyFile");
+        System.out.println("usage: r Crypto public publicKeyFile");
+        System.out.println("usage: r Crypto sign msg privateKeyFile");
+        System.out.println("usage: r Crypto verify msg privateKeyFile signature");
+        System.exit(1);
+    }
+    
+}

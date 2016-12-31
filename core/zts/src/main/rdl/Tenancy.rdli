@@ -1,0 +1,23 @@
+// Copyright 2016 Yahoo Inc.
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+include "Names.tdl";
+
+type TenantDomains Struct {
+    Array<DomainName> tenantDomainNames;
+}
+
+// Get list of tenant domains user has access to for specified provider domain and service
+
+resource TenantDomains GET "/providerdomain/{providerDomainName}/user/{userName}?roleName={roleName}&serviceName={serviceName}" {
+    DomainName providerDomainName; // name of the provider domain
+    EntityName userName; // name of the user to retrieve tenant domain access for
+    EntityName roleName (optional); // role name to filter on when looking for the tenants in provider
+    ServiceName serviceName (optional); // service name to filter on when looking for the tenants in provider
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+    }
+}

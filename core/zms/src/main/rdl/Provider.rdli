@@ -1,0 +1,109 @@
+// Copyright 2016 Yahoo Inc.
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+//
+//The Provider API is the API to be implement to host tenants
+//
+include "Names.tdl";
+
+type TenantState Enum { INACTIVE, PENDING, ACTIVE }
+
+type Tenant Struct {
+    SimpleName service; //name of the service
+    DomainName name; //name of the tenant domain in this service. Must be a valid domain name the caller has rights to
+    TenantState state (optional, default=ACTIVE); //the state of the tenant
+    Array<EntityName> roles (optional); //the roles this tenant may assume. Determined by and returned by this service
+    Array<EntityName> resourceGroups (optional); //registered resource groups for this tenant
+}
+
+type TenantResourceGroup Struct {
+    SimpleName service; //name of the service
+    DomainName name; //name of the tenant domain in this service. Must be a valid domain name the caller has rights to
+    EntityName resourceGroup; //resource group for this tenant
+    Array<EntityName> roles (optional); //the roles this tenant may assume. Determined by and returned by this service
+}
+
+//Create a new tenant in this provider
+resource Tenant PUT "/service/{service}/tenant/{tenant}" {
+    SimpleName service; //name of the service
+    DomainName tenant; //name of the tenant domain in this service
+    String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    Tenant template;
+    authorize("assume_role", "role.{service}.tenant.{tenant}.admin", "{tenant}"); //note optional 3rd arg in this case -- it is unusual!
+    expected OK;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        Tenant ACCEPTED;
+    }
+}
+
+//Get information about the tenant
+resource Tenant GET "/service/{service}/tenant/{tenant}" {
+    SimpleName service; //name of the service
+    DomainName tenant; //name of the tenant domain in this service
+    authenticate;
+    expected OK;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+    }
+}
+
+//Remove a tenant and all its resources. Upon successful completion of this delete
+//request, the server will return NO_CONTENT status code without any data (no 
+//object will be returned).
+resource Tenant DELETE "/service/{service}/tenant/{tenant}" {
+    SimpleName service; //name of the service
+    DomainName tenant; //name of the tenant domain in this service
+    String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    authorize("assume_role", "role.{service}.tenant.{tenant}.admin", "{tenant}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+    }
+}
+
+//Create a new resource group for this tenant in this provider. The tenant
+//must already be registered with the provider
+resource TenantResourceGroup PUT "/service/{service}/tenant/{tenant}/resourceGroup/{resourceGroup}" {
+    SimpleName service; //name of the service
+    DomainName tenant; //name of the tenant domain in this service
+    EntityName resourceGroup; //tenant resource group
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    TenantResourceGroup template;
+    authorize("assume_role", "role.{service}.tenant.{tenant}.admin", "{tenant}");
+    expected OK;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        Tenant ACCEPTED;
+    }
+}
+
+//Remove the specified resource group from this tenant and all its resources.
+resource TenantResourceGroup DELETE "/service/{service}/tenant/{tenant}/resourceGroup/{resourceGroup}" {
+    SimpleName service; //name of the service
+    DomainName tenant; //name of the tenant domain in this service
+    EntityName resourceGroup; //tenant resource group
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    authorize("assume_role", "role.{service}.tenant.{tenant}.admin", "{tenant}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+    }
+}

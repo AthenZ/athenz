@@ -1,0 +1,41 @@
+// Copyright 2016 Yahoo Inc.
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+include "Policy.tdl";
+
+type PolicyData Struct {
+    DomainName domain; //name of the domain
+    Array<Policy> policies; //list of policies defined in this server
+}
+
+//A representation of policies object defined in a given server.
+type SignedPolicyData Struct {
+    PolicyData policyData; //list of policies defined in a domain
+    String zmsSignature; //zms signature generated based on the domain policies object
+    String zmsKeyId; //the identifier of the zms key used to generate the signature
+    Timestamp modified; //when the domain itself was last modified
+    Timestamp expires; //timestamp specifying the expiration time for using this set of policies
+}
+
+//A signed bulk transfer of policies. The data is signed with server's
+//private key.
+type DomainSignedPolicyData Struct {
+    SignedPolicyData signedPolicyData; //policy data signed by ZMS
+    String signature; //signature generated based on the domain policies object
+    String keyId; //the identifier of the key used to generate the signature
+}
+
+//Get a signed policy enumeration from the service, to transfer to a local store.
+//An ETag is generated for the PolicyList that changes when any item in the list
+//changes. If the If-None-Match header is provided, and it matches the ETag that
+//would be returned, then a NOT_MODIFIED response is returned instead of the list.
+resource DomainSignedPolicyData GET "/domain/{domainName}/signed_policy_data" {
+    DomainName domainName; //name of the domain
+    String matchingTag (header="If-None-Match"); //Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time
+    String tag (header="ETag", out); //The current latest modification timestamp is returned in this header
+    expected OK, NOT_MODIFIED;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+    }
+}

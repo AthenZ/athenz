@@ -1,0 +1,48 @@
+// Copyright 2016 Yahoo Inc.
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+include "Names.tdl";
+include "Identity.tdl";
+
+// Instance object that includes requested service details plus host document
+// that is signed by provider as part of the host bootstrap process
+type InstanceInformation Struct {
+    String document; //signed document containing attributes like IP address, instance-id, account#, etc.
+    String signature; //the signature for the document
+    String keyId; // the keyid used to sign the document
+    CompoundName domain; //the domain of the instance
+    SimpleName service; //the service this instance is supposed to run
+    String csr; //return a certificate in the response
+}
+
+// Get a cert for service being bootstrapped by supported service
+resource Identity POST "/instance" {
+    InstanceInformation info;
+    expected OK;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+    }
+}
+
+// InstanceRefreshRequest - a certificate refresh request
+type InstanceRefreshRequest Struct {
+     String csr; // Cert CSR if requesting TLS certificate
+     Int32 expiryTime (optional); //in seconds how long token should be valid for
+}
+
+// Refresh self identity if the original identity was issued by ZTS
+resource Identity POST "/instance/{domain}/{service}/refresh" {
+    CompoundName domain; //name of the domain requesting the refresh
+    SimpleName service; //name of the service requesting the refresh
+    InstanceRefreshRequest req; //the refresh request
+    authenticate;
+    expected OK;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+    }
+}

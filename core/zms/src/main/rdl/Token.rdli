@@ -1,0 +1,52 @@
+// Copyright 2016 Yahoo Inc.
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+include "Names.tdl";
+
+//A user token generated based on user's credentials
+type UserToken Struct {
+    SignedToken token; //Signed user token identifying a specific authenticated user
+}
+
+//Return a user/principal token for the specified authenticated user. Typical
+//authenticated users with their native credentials are not allowed to update
+//their domain data. They must first obtain a UserToken and then use that
+//token for authentication and authorization of their update requests.
+resource UserToken GET "/user/{userName}/token?services={serviceNames}" {
+    SimpleName userName; //name of the user
+    String serviceNames (optional); //comma separated list of on-behalf-of service names
+    authenticate;
+    exceptions {
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+    }
+}
+
+//CORS (Cross-Origin Resource Sharing) support to allow Provider Services to obtain
+//AuthorizedService Tokens on behalf of Tenant administrators
+resource UserToken OPTIONS "/user/{userName}/token?services={serviceNames}" {
+    SimpleName userName; //name of the user
+    String serviceNames (optional); //comma separated list of on-behalf-of service names
+    exceptions {
+        ResourceError BAD_REQUEST;
+    }
+}
+
+//A service principal object identifying a given service.
+type ServicePrincipal Struct {
+    DomainName domain; //name of the domain
+    EntityName service; //name of the service
+    SignedToken token; //service's signed token
+}
+
+//Return a ServicePrincipal object if the serviceToken is valid. This request
+//provides a simple operation that an external application can execute to
+//validate a service token.
+resource ServicePrincipal GET "/principal" {
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+    }
+}

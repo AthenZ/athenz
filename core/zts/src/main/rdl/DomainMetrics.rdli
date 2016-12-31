@@ -1,0 +1,50 @@
+// Copyright 2016 Yahoo Inc.
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+include "Names.tdl";
+
+// zpe metric attributes
+type DomainMetricType Enum {
+    ACCESS_ALLOWED,
+    ACCESS_ALLOWED_DENY,
+    ACCESS_ALLOWED_DENY_NO_MATCH,
+    ACCESS_ALLOWED_ALLOW,
+    ACCESS_ALLOWED_ERROR,
+    ACCESS_ALLOWED_TOKEN_INVALID,
+    ACCESS_Allowed_TOKEN_EXPIRED,
+    ACCESS_ALLOWED_DOMAIN_NOT_FOUND,
+    ACCESS_ALLOWED_DOMAIN_MISMATCH,
+    ACCESS_ALLOWED_DOMAIN_EXPIRED,
+    ACCESS_ALLOWED_DOMAIN_EMPTY,
+    ACCESS_ALLOWED_TOKEN_CACHE_FAILURE,
+    ACCESS_ALLOWED_TOKEN_CACHE_NOT_FOUND,
+    ACCESS_ALLOWED_TOKEN_CACHE_SUCCESS,
+    ACCESS_ALLOWED_TOKEN_VALIDATE,
+    LOAD_FILE_FAIL,
+    LOAD_FILE_GOOD,
+    LOAD_DOMAIN_GOOD
+}
+
+type DomainMetric Struct {
+    DomainMetricType metricType;
+    Int32            metricVal;
+}
+
+type DomainMetrics Struct {
+    DomainName domainName; //name of the domain the metrics pertain to
+    Array<DomainMetric> metricList; //list of the domains metrics
+}
+
+// called to post multiple zpe related metric attributes
+resource DomainMetrics POST "/metrics/{domainName}" {
+    DomainName domainName; //name of the domain the metrics pertain to
+    DomainMetrics req;
+    expected OK;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+    }
+}
+

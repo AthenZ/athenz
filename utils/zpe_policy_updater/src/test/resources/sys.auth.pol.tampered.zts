@@ -1,0 +1,32 @@
+{
+    "signature": "e7Nuk70agdFv54UOWf4EauTYuAQ3ww_G5A_5OiBt22DQVv23DVTCLovtWNBdzcsmDgdDAxGwWO2CG1T4uT0KhA--",
+    "keyId": "0",
+    "signedPolicyData": {
+        "zmsSignature": "Y2HuXmgL86PL1WnleGFHwPmNEqUdWgDxmmIsDnF5f5oqakacqTtwt9JNqDV9nuJ7LnKl3zsZoDQSAtcHMu4IGA--",
+        "zmsKeyId": "0",
+        "expires": "2015-10-16T05:29:28.507Z",
+        "policyData": {
+            "policies": [
+                {
+                    "name": "sys.auth:policy.admin",
+                    "assertions": [
+                        {
+                            "resource": "*",
+                            "role": "sys.auth:role.admin",
+                            "action": "*",
+                            "effect": "ALLOW"
+                        },
+                        {
+                            "resource": "*",
+                            "role": "sys.auth:role.non-admin",
+                            "action": "*",
+                            "effect": "DENY"
+                        }
+                    ]
+                }
+            ],
+            "domain": "sys.auth"
+        },
+        "modified": "2015-10-09T05:29:29.507Z"
+    }
+}

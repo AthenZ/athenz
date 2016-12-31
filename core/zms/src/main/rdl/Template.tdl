@@ -1,0 +1,31 @@
+// Copyright 2016 Yahoo Inc.
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+//Template API
+include "Names.tdl";
+include "Role.tdl";
+include "Policy.tdl";
+
+//Solution Template object defined on the server
+type Template Struct {
+    Array<Role> roles; //list of roles in the template
+    Array<Policy> policies; //list of policies defined in this template
+}
+
+//List of template names that is the base struct for
+//server and domain templates
+type TemplateList Struct {
+    Array<SimpleName> templateNames; //list of template names
+}
+
+//solution template(s) to be applied to a domain
+type DomainTemplate TemplateList {
+}
+
+//List of solution templates to be applied to a domain
+type DomainTemplateList TemplateList {
+}
+
+//List of solution templates available in the server
+type ServerTemplateList TemplateList {
+}

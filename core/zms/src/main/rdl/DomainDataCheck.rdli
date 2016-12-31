@@ -1,0 +1,52 @@
+// Copyright 2016 Yahoo Inc.
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+// DomainDataCheck API
+
+include "Names.tdl";
+
+// A dangling policy where the assertion is referencing
+// a role name that doesn't exist in the domain
+type DanglingPolicy Struct {
+    EntityName policyName;
+    EntityName roleName;
+}
+
+// Domain data object representing the results of a
+// check operation looking for dangling roles, policies
+// and trust relationships that are set either on tenant
+// or provider side only
+type DomainDataCheck Struct {
+
+    // Names of roles not specified in any assertion.
+    // Might be empty or null if no dangling roles.
+    Array<EntityName> danglingRoles (optional);
+
+    // Policy+role tuples where role doesnt exist.
+    // Might be empty or null if no dangling policies.
+    Array<DanglingPolicy> danglingPolicies (optional);
+
+    Int32 policyCount;       // total number of policies
+    Int32 assertionCount;    // total number of assertions
+    Int32 roleWildCardCount; // total number of assertions containing roles as wildcards
+
+    // Service names (domain.service) that dont contain trust role if this is a tenant domain.
+    // Might be empty or null, if not a tenant or if all providers support this tenant.
+    Array<ServiceName> providersWithoutTrust (optional);
+
+    // Names of Tenant domains that dont contain assume role assertions if this is a provider domain.
+    // Might be empty or null, if not a provider or if all tenants support use this provider.
+    Array<DomainName> tenantsWithoutAssumeRole (optional);
+}
+
+// Carry out data check operation for the specified domain.
+resource DomainDataCheck GET "/domain/{domainName}/check" {
+    DomainName domainName; //name of the domain
+    authenticate;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+    }
+}
+
