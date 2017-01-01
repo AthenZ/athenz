@@ -31,7 +31,7 @@ public class DebugZTSClientFactory implements ZTSClientFactory {
     public ZTSClient create() throws IOException {
         ZTSMock zts = new ZTSMock();
         zts.setPublicKeyId(keyId);
-        ZTSClient client = new ZTSClient("http://localhost:10080", null, null);
+        ZTSClient client = new ZTSClient("http://localhost:10080", (String) null, (String) null);
         client.setZTSRDLGeneratedClient(zts);
         client.setSIAClient(new DebugSIAClientFactory().create());
         return client;

@@ -48,6 +48,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.ServiceIdentityProvider;
 import com.yahoo.athenz.auth.impl.RoleAuthority;
 import com.yahoo.athenz.common.config.AthenzConfig;
 import com.yahoo.athenz.sia.SIA;
@@ -61,8 +62,9 @@ public class ZTSClient implements Closeable {
     private String ztsUrl = null;
     private String domain = null;
     private String service = null;
-    protected ZTSRDLGeneratedClient ztsClient;
     protected SIA siaClient = null;
+    protected ZTSRDLGeneratedClient ztsClient;
+    protected ServiceIdentityProvider siaProvider = null;
 
     // configurable fields
     //
@@ -97,7 +99,7 @@ public class ZTSClient implements Closeable {
             RoleAuthority.HTTP_HEADER);
     
     final static ConcurrentHashMap<String, RoleToken> ROLE_TOKEN_CACHE = new ConcurrentHashMap<>();
-    static ConcurrentHashMap<String, AWSTemporaryCredentials> awsCredCache = new ConcurrentHashMap<>();
+    final static ConcurrentHashMap<String, AWSTemporaryCredentials> AWS_CREDS_CACHE = new ConcurrentHashMap<>();
 
     private static final long FETCH_EPSILON = 60; // if cache expires in the next minute, fetch it.
     private static final Queue<PrefetchRoleTokenScheduledItem> PREFETCH_SCHEDULED_ITEMS = new ConcurrentLinkedQueue<>();
@@ -161,8 +163,8 @@ public class ZTSClient implements Closeable {
      * @param identity Principal identity for authenticating requests
      */
     public ZTSClient(Principal identity) {
-        initClient(null, identity, null, null);
-        enablePrefetch = false; // cant use this domain and service for prefetch
+        initClient(null, identity, null, null, null);
+        enablePrefetch = false; // can't use this domain and service for prefetch
     }
     
     /**
@@ -176,8 +178,8 @@ public class ZTSClient implements Closeable {
      * @param identity Principal identity for authenticating requests
      */
     public ZTSClient(String url, Principal identity) {
-        initClient(url, identity, null, null);
-        enablePrefetch = false; // cant use this domain and service for prefetch
+        initClient(url, identity, null, null, null);
+        enablePrefetch = false; // can't use this domain and service for prefetch
     }
     
     /**
@@ -194,7 +196,25 @@ public class ZTSClient implements Closeable {
      * @param serviceName name of the service
      */
     public ZTSClient(String domainName, String serviceName) {
-        initClient(null, null, domainName, serviceName);
+        initClient(null, null, domainName, serviceName, null);
+    }
+    
+    /**
+     * Constructs a new ZTSClient object with the given service identity
+     * and media type set to application/json. The url for ZTS Server is
+     * automatically retrieved from the athenz_config package's configuration
+     * file (zts_url field). The service's principal token will be retrieved
+     * from the SIA Client.
+     * Default read and connect timeout values are 30000ms (30sec). The application can
+     * change these values by using the yahoo.zts_java_client.read_timeout and
+     * yahoo.zts_java_client.connect_timeout system properties. The values specified
+     * for timeouts must be in milliseconds.
+     * @param domainName name of the domain
+     * @param serviceName name of the service
+     * @param siaProvider service identity provider for the client to request principals
+     */
+    public ZTSClient(String domainName, String serviceName, ServiceIdentityProvider siaProvider) {
+        initClient(null, null, domainName, serviceName, siaProvider);
     }
     
     /**
@@ -210,7 +230,7 @@ public class ZTSClient implements Closeable {
      * @param serviceName name of the service
      */
     public ZTSClient(String url, String domainName, String serviceName) {
-        initClient(url, null, domainName, serviceName);
+        initClient(url, null, domainName, serviceName, null);
     }
     
     /**
@@ -268,7 +288,8 @@ public class ZTSClient implements Closeable {
         return url;
     }
     
-    void initClient(String url, Principal identity, String domainName, String serviceName) {
+    void initClient(String url, Principal identity, String domainName, String serviceName,
+            ServiceIdentityProvider siaProvider) {
         
         if (url == null) {
             ztsUrl = lookupZTSUrl();
@@ -310,7 +331,11 @@ public class ZTSClient implements Closeable {
         } else if (domainName != null && serviceName != null) {
             domain = domainName;
             service = serviceName;
-            siaClient = new SIAClient();
+            if (siaProvider != null) {
+                this.siaProvider = siaProvider;
+            } else {
+                siaClient = new SIAClient();
+            }
         }
     }
     
@@ -397,13 +422,19 @@ public class ZTSClient implements Closeable {
         /* if we have a service principal then we need to keep updating
          * our PrincipalToken otherwise it might expire. */
         
-        if (siaClient == null) {
+        if (siaClient == null && siaProvider == null) {
             return false;
         }
         
         try {
-            Principal svcPrincipal = siaClient.getServicePrincipal(domain, service,
+            Principal svcPrincipal = null;
+            
+            if (siaClient != null) {
+                svcPrincipal = siaClient.getServicePrincipal(domain, service,
                     siaTokenMinExpiryTime, siaTokenMaxExpiryTime, false);
+            } else {
+                svcPrincipal = siaProvider.getIdentity(domain, service);
+            }
             
             // if the principal has the same credentials as before
             // then we don't need to update anything
@@ -421,7 +452,7 @@ public class ZTSClient implements Closeable {
             // illegal domain/service was passed to the constructor - 
             // and the ZTS Server just rejects the request with 401
             
-            String msg = "UpdateServicePrincipal: Unable to get PrincipalToken from SIA Server for "
+            String msg = "UpdateServicePrincipal: Unable to get PrincipalToken from SIA for "
                     + domain + "." + service + ": " + ex.getMessage();
             LOG.error(msg);
             throw new IllegalArgumentException(msg);
@@ -634,6 +665,9 @@ public class ZTSClient implements Closeable {
                         }
                         if (item.ztsClient != null) {
                             itemZtsClient.ztsClient = item.ztsClient;
+                        }
+                        if (item.siaProvider != null) {
+                            itemZtsClient.siaProvider = item.siaProvider;
                         }
                         if (item.isRoleToken()) {
                             // check if this came from service provider
@@ -909,7 +943,7 @@ public class ZTSClient implements Closeable {
     
     AWSTemporaryCredentials lookupAwsCredInCache(String cacheKey, Integer minExpiryTime, Integer maxExpiryTime) {
 
-        AWSTemporaryCredentials awsCred = awsCredCache.get(cacheKey);
+        AWSTemporaryCredentials awsCred = AWS_CREDS_CACHE.get(cacheKey);
         if (awsCred == null) {
             if (LOG.isInfoEnabled()) {
                 LOG.info("LookupAwsCredInCache: aws-cache-lookup key: " + cacheKey + " result: not found");
@@ -931,7 +965,7 @@ public class ZTSClient implements Closeable {
                         + " client-min-expiry: " + tokenMinExpiryTime + " result: expired");
             }
             
-            awsCredCache.remove(cacheKey);
+            AWS_CREDS_CACHE.remove(cacheKey);
             return null;
         }
         
@@ -1101,7 +1135,7 @@ public class ZTSClient implements Closeable {
             cacheKey = getRoleTokenCacheKey(domainName, roleName, null);
         }
         if (cacheKey != null) {
-            awsCredCache.put(cacheKey, awsCred);
+            AWS_CREDS_CACHE.put(cacheKey, awsCred);
         }
         return awsCred;
     }
@@ -1185,6 +1219,12 @@ public class ZTSClient implements Closeable {
         SIA siaClient;
         PrefetchRoleTokenScheduledItem siaClient(SIA s) {
             siaClient = s;
+            return this;
+        }
+        
+        ServiceIdentityProvider siaProvider;
+        PrefetchRoleTokenScheduledItem siaIdentityProvider(ServiceIdentityProvider s) {
+            siaProvider = s;
             return this;
         }
         

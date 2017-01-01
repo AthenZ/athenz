@@ -47,8 +47,10 @@ import org.testng.annotations.Test;
 
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.ServiceIdentityProvider;
 import com.yahoo.athenz.auth.impl.PrincipalAuthority;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
+import com.yahoo.athenz.auth.impl.SimpleServiceIdentityProvider;
 import com.yahoo.athenz.sia.impl.SIAClient;
 import com.yahoo.rdl.Timestamp;
 
@@ -201,7 +203,6 @@ public class ZTSClientTest {
     @Test
     public void testLookupAwsCredInCacheExpired() {
         
-        
         Principal principal = SimplePrincipal.create("user_domain", "user", "auth_creds", PRINCIPAL_AUTHORITY);
         ZTSClient client = new ZTSClient("http://localhost:4080/", principal);
         
@@ -209,12 +210,12 @@ public class ZTSClientTest {
         AWSTemporaryCredentials awsCred = new AWSTemporaryCredentials().setAccessKeyId("accesskey")
             .setExpiration(Timestamp.fromMillis((System.currentTimeMillis() / 1000) + 1000L))
             .setSecretAccessKey("secretkey").setSessionToken("sesstoken");
-        client.awsCredCache.put(cacheKey, awsCred);
+        client.AWS_CREDS_CACHE.put(cacheKey, awsCred);
         
         assertNull(client.lookupAwsCredInCache(cacheKey, 3000, 4000));
         assertNull(client.lookupAwsCredInCache(cacheKey, 500, 800));
         
-        client.awsCredCache.clear();
+        client.AWS_CREDS_CACHE.clear();
         client.close();
     }
     
@@ -234,7 +235,7 @@ public class ZTSClientTest {
                 .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + 3500000L))
                 .setAccessKeyId(accessKey).setSecretAccessKey(secretKey).setSessionToken(sessToken);
         String cacheKey = ztsClient.getRoleTokenCacheKey("coretech", "Role1", null);
-        ztsClient.awsCredCache.put(cacheKey, awsCred);
+        ztsClient.AWS_CREDS_CACHE.put(cacheKey, awsCred);
         assertEquals(cacheKey, "p=user_domain.user;d=coretech;r=Role1");
         AWSTemporaryCredentials cred = ztsClient.lookupAwsCredInCache(cacheKey, 3000, 4000);
         assertTrue(cred.getAccessKeyId().contains(accessKey));
@@ -248,7 +249,7 @@ public class ZTSClientTest {
         ZTSClient client = new ZTSClient("mytenantdomain", "myservice");
         
         String cacheKey1 = client.getRoleTokenCacheKey("mydomain", "Role1", null);
-        client.awsCredCache.put(cacheKey1, awsCred);
+        client.AWS_CREDS_CACHE.put(cacheKey1, awsCred);
         assertNotNull(client.lookupAwsCredInCache(cacheKey1, 3000, 4000));
         
         // add new aws cred for caching
@@ -258,7 +259,7 @@ public class ZTSClientTest {
                 .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + 3500000L))
                 .setAccessKeyId("notrustdomaccesskey")
                 .setSecretAccessKey(secretKey).setSessionToken(sessToken);
-        client.awsCredCache.put(cacheKey2, awsCredNoTrustDomain);
+        client.AWS_CREDS_CACHE.put(cacheKey2, awsCredNoTrustDomain);
         assertEquals(cacheKey2, "p=mytenantdomain.myservice;d=mydomain;r=admin");
         assertNotNull(client.lookupAwsCredInCache(cacheKey2, 3000, 4000));
 
@@ -281,7 +282,7 @@ public class ZTSClientTest {
                 .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + 3500000L))
                 .setAccessKeyId("newdomaccesskey")
                 .setSecretAccessKey(secretKey).setSessionToken(sessToken);
-        client.awsCredCache.put(cacheKeyNewDomain, awsCredNewDomain);
+        client.AWS_CREDS_CACHE.put(cacheKeyNewDomain, awsCredNewDomain);
         assertEquals(cacheKeyNewDomain, "p=mytenantdomain2.myservice2;d=mydomain2;r=admin");
         assertEquals(client2.lookupAwsCredInCache(cacheKeyNewDomain, 3000, 4000).getAccessKeyId(), "newdomaccesskey");
 
@@ -292,7 +293,7 @@ public class ZTSClientTest {
                 .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + 3500000L))
                 .setAccessKeyId("noroleaccesskey")
                 .setSecretAccessKey(secretKey).setSessionToken(sessToken);
-        client.awsCredCache.put(cacheKeyNoRole, awsCredNoRole);
+        client.AWS_CREDS_CACHE.put(cacheKeyNoRole, awsCredNoRole);
         assertEquals(cacheKeyNoRole, "p=mytenantdomain2.myservice2;d=mydomain2");
         assertEquals(client2.lookupAwsCredInCache(cacheKeyNoRole, 3000, 4000).getAccessKeyId(), "noroleaccesskey");
 
@@ -325,11 +326,9 @@ public class ZTSClientTest {
         client.close();
     }
     
-    
     @SuppressWarnings("static-access")
     @Test
     public void testLookupRoleTokenInCacheExpired() {
-        
         
         Principal principal = SimplePrincipal.create("user_domain", "user", "auth_creds", PRINCIPAL_AUTHORITY);
         ZTSClient client = new ZTSClient("http://localhost:4080/", principal);
@@ -348,7 +347,6 @@ public class ZTSClientTest {
     @SuppressWarnings("static-access")
     @Test
     public void testLookupRoleTokenInCache() {
-        
         
         Principal principal = SimplePrincipal.create("user_domain", "user", "auth_creds", PRINCIPAL_AUTHORITY);
         ZTSClient client = new ZTSClient("http://localhost:4080/", principal);
@@ -490,7 +488,7 @@ public class ZTSClientTest {
         rToken = client.lookupRoleTokenInCache(cacheKey, null, null);
         assertNull(rToken);
 
-        // dont ignore cache so 1st thing it will do is check in the cache
+        // don't ignore cache so 1st thing it will do is check in the cache
         // before it checks the providers
         rToken = client.getRoleToken(domName, null, null, null, false, null);
         assertNotNull(rToken);
@@ -588,7 +586,7 @@ public class ZTSClientTest {
         
         // clear credential
         client.clearCredentials();
-        assertNull(client.principal);     
+        assertNull(client.principal);
         
         client.close();
     }
@@ -709,6 +707,48 @@ public class ZTSClientTest {
     }
     
     @Test
+    public void testGetRoleTokenWithSiaProvider() {
+        
+        Principal principal = SimplePrincipal.create("user_domain", "user", "auth_creds", PRINCIPAL_AUTHORITY);
+        
+        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ztsClientMock.setRoleName("role1");
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        RoleToken roleToken = client.getRoleToken("coretech");
+        assertNotNull(roleToken);
+        
+        com.yahoo.athenz.auth.token.RoleToken token = new com.yahoo.athenz.auth.token.RoleToken(roleToken.getToken());
+        assertEquals(token.getDomain(), "coretech");
+        assertEquals(1, token.getRoles().size());
+        assertTrue(token.getRoles().contains("role1"));
+        
+        // now we're going to get a token again and this time we should get back
+        // from our cache thus the same exact one but we're going to use
+        // the sia provider instead of principal given
+        
+        SimpleServiceIdentityProvider siaProvider = Mockito.mock(SimpleServiceIdentityProvider.class);
+        Mockito.when(siaProvider.getIdentity("user_domain", "user")).thenReturn(principal);
+        
+        ZTSClient client2 = new ZTSClient("user_domain", "user", siaProvider);
+        client2.setZTSRDLGeneratedClient(ztsClientMock);
+        
+        RoleToken roleToken2 = client2.getRoleToken("coretech");
+        assertTrue(roleToken2.getToken().equals(roleToken.getToken()));
+        
+        // now we're going to use the full API to request the token with ignoring from the cache
+        // and we should get back a new token
+        
+        roleToken2 = client2.getRoleToken("coretech", null, null, null, true, null);
+        assertFalse(roleToken2.getToken().equals(roleToken.getToken()));
+        
+        // close our clients
+        client.close();
+        client2.close();
+    }
+    
+    @Test
     public void testPrefetchRoleTokenShouldNotCallServer() throws Exception {
         System.out.println("testPrefetchRoleTokenShouldNotCallServer");
 
@@ -753,7 +793,8 @@ public class ZTSClientTest {
         RoleToken roleToken2 = client.getRoleToken(domain2);
         assertTrue(roleToken2 != null);
         long rt2Expiry = roleToken2.getExpiryTime();
-        System.out.println("testPrefetchRoleTokenShouldNotCallServer: roleToken2:domain=" + domain2 + " expires at " + rt2Expiry + " curtime_secs=" + (System.currentTimeMillis() / 1000));
+        System.out.println("testPrefetchRoleTokenShouldNotCallServer: roleToken2:domain="
+                + domain2 + " expires at " + rt2Expiry + " curtime_secs=" + (System.currentTimeMillis() / 1000));
 
         System.out.println("testPrefetchRoleTokenShouldNotCallServer: sleep Secs=" + (2*intervalSecs) + "+0.1");
         Thread.sleep((2 * intervalSecs * 1000) + 100);
@@ -767,7 +808,8 @@ public class ZTSClientTest {
 
         roleToken2 = client.getRoleToken(domain2);
         long rt2Expiry2 = roleToken2.getExpiryTime();
-        System.out.println("testPrefetchRoleTokenShouldNotCallServer: roleToken2:domain=" + domain2 + " expires at " + rt2Expiry2 + " curtime_secs=" + (System.currentTimeMillis() / 1000));
+        System.out.println("testPrefetchRoleTokenShouldNotCallServer: roleToken2:domain="
+                + domain2 + " expires at " + rt2Expiry2 + " curtime_secs=" + (System.currentTimeMillis() / 1000));
         assertTrue(rt2Expiry2 > rt2Expiry); // this token was refreshed
 
         // wait a few seconds, and see subsequent fetch happened.
@@ -777,7 +819,8 @@ public class ZTSClientTest {
 
         RoleToken roleToken3 = client.getRoleToken(domain2);
         long rt2Expiry3 = roleToken3.getExpiryTime();
-        System.out.println("testPrefetchRoleTokenShouldNotCallServer: roleToken3:domain=" + domain2 + " expires at " + rt2Expiry3);
+        System.out.println("testPrefetchRoleTokenShouldNotCallServer: roleToken3:domain="
+                + domain2 + " expires at " + rt2Expiry3);
         assertTrue(rt2Expiry3 > rt2Expiry2); // this token was refreshed
 
         long lastTokenFetchedTime2 = ztsClientMock.getLastRoleTokenFetchedTime(domain1, null, null);
@@ -1006,7 +1049,8 @@ public class ZTSClientTest {
         AWSTemporaryCredentials awsCred4 = client.getAWSTemporaryCredentials(domain2, "role2");
         assertTrue(awsCred4 != null);
         long rtExpiry3 = awsCred4.getExpiration().millis();
-        System.out.println("testPrefetchAwsCredShouldNotCallServer: awsCred4:domain=" + domain2 + " role=role2 expires at " + rtExpiry3 + " curtime_millis=" + System.currentTimeMillis());
+        System.out.println("testPrefetchAwsCredShouldNotCallServer: awsCred4:domain="
+                + domain2 + " role=role2 expires at " + rtExpiry3 + " curtime_millis=" + System.currentTimeMillis());
 
         lastTokenFetchedTime3 = ztsClientMock.getLastRoleTokenFetchedTime(domain2, "role2", null);
         assertTrue(lastTokenFetchedTime3 > lastTokenFetchedTime2);
@@ -1195,7 +1239,8 @@ public class ZTSClientTest {
         RoleToken roleToken1 = client.getRoleToken(domain1);
         assertTrue(roleToken1 != null);
         long rtExpiry = roleToken1.getExpiryTime();
-        System.out.println("testPrefetchRoleTokenShouldCallServer: roleToken1:domain=" + domain1 + " expires at " + rtExpiry + " curtime_secs=" + (System.currentTimeMillis() / 1000));
+        System.out.println("testPrefetchRoleTokenShouldCallServer: roleToken1:domain="
+                + domain1 + " expires at " + rtExpiry + " curtime_secs=" + (System.currentTimeMillis() / 1000));
 
         System.out.println("testPrefetchRoleTokenShouldCallServer: sleep Secs=" + (2*intervalSecs) + "+0.1");
         Thread.sleep((2 * intervalSecs * 1000) + 100);
@@ -1208,7 +1253,8 @@ public class ZTSClientTest {
         long lastTokenFetchedTime1 = ztsClientMock.getLastRoleTokenFetchedTime(domain1, null, null);
         roleToken1 = client.getRoleToken(domain1);
         long rtExpiry2 = roleToken1.getExpiryTime();
-        System.out.println("testPrefetchRoleTokenShouldCallServer: roleToken1:domain=" + domain1 + " expires at " + rtExpiry2 + " curtime_secs=" + (System.currentTimeMillis() / 1000));
+        System.out.println("testPrefetchRoleTokenShouldCallServer: roleToken1:domain="
+                + domain1 + " expires at " + rtExpiry2 + " curtime_secs=" + (System.currentTimeMillis() / 1000));
         assertTrue(rtExpiry2 > rtExpiry); // this token was refreshed
 
         assertTrue(lastTokenFetchedTime1 > 0);
@@ -1221,7 +1267,8 @@ public class ZTSClientTest {
         long lastTokenFetchedTime2 = ztsClientMock.getLastRoleTokenFetchedTime(domain1, null, null);
         RoleToken roleToken2 = client.getRoleToken(domain1);
         long rt2Expiry = roleToken2.getExpiryTime();
-        System.out.println("testPrefetchRoleTokenShouldCallServer: roleToken2:domain=" + domain1 + " expires at " + rt2Expiry + " curtime_secs=" + (System.currentTimeMillis() / 1000));
+        System.out.println("testPrefetchRoleTokenShouldCallServer: roleToken2:domain=" + domain1
+                    + " expires at " + rt2Expiry + " curtime_secs=" + (System.currentTimeMillis() / 1000));
         assertTrue(rt2Expiry > rtExpiry2); // this token was refreshed
 
         // token should be different
@@ -1283,7 +1330,8 @@ public class ZTSClientTest {
         AWSTemporaryCredentials awsCred1 = client.getAWSTemporaryCredentials(domain1, "role1");
         assertTrue(awsCred1 != null);
         long rtExpiry = awsCred1.getExpiration().millis();
-        System.out.println("testPrefetchAwsCredShouldCallServer: awsCred1:domain=" + domain1 + " expires at " + rtExpiry + " curtime_millis=" + System.currentTimeMillis());
+        System.out.println("testPrefetchAwsCredShouldCallServer: awsCred1:domain=" + domain1
+                    + " expires at " + rtExpiry + " curtime_millis=" + System.currentTimeMillis());
 
         System.out.println("testPrefetchAwsCredShouldCallServer: sleep Secs=" + (2*intervalSecs) + "+0.1");
         Thread.sleep((2 * intervalSecs * 1000) + 100);
@@ -1296,7 +1344,8 @@ public class ZTSClientTest {
         long lastTokenFetchedTime1 = ztsClientMock.getLastRoleTokenFetchedTime(domain1, "role1", null);
         awsCred1 = client.getAWSTemporaryCredentials(domain1, "role1");
         long rtExpiry2 = awsCred1.getExpiration().millis();
-        System.out.println("testPrefetchAwsCredShouldCallServer: roleToken1:domain=" + domain1 + " expires at " + rtExpiry2 + " curtime_millis=" + System.currentTimeMillis());
+        System.out.println("testPrefetchAwsCredShouldCallServer: roleToken1:domain=" + domain1
+                    + " expires at " + rtExpiry2 + " curtime_millis=" + System.currentTimeMillis());
         assertTrue(rtExpiry2 > rtExpiry); // this token was refreshed
 
         assertTrue(lastTokenFetchedTime1 > 0);
@@ -1309,7 +1358,8 @@ public class ZTSClientTest {
         long lastTokenFetchedTime2 = ztsClientMock.getLastRoleTokenFetchedTime(domain1, "role1", null);
         AWSTemporaryCredentials awsCred2 = client.getAWSTemporaryCredentials(domain1, "role1");
         long rt2Expiry = awsCred2.getExpiration().millis();
-        System.out.println("testPrefetchAwsCredShouldCallServer: awsCred2:domain=" + domain1 + " expires at " + rt2Expiry + " curtime_millis=" + System.currentTimeMillis());
+        System.out.println("testPrefetchAwsCredShouldCallServer: awsCred2:domain=" + domain1
+                    + " expires at " + rt2Expiry + " curtime_millis=" + System.currentTimeMillis());
         assertTrue(rt2Expiry > rtExpiry2); // this token was refreshed
 
         // token should be different
@@ -1335,7 +1385,8 @@ public class ZTSClientTest {
         AWSTemporaryCredentials awsCred4 = client.getAWSTemporaryCredentials(domain1, "role2");
         assertTrue(awsCred4 != null);
         long rtExpiry3 = awsCred4.getExpiration().millis();
-        System.out.println("testPrefetchAwsCredShouldCallServer: awsCred4:domain=" + domain1 + " role=role2 expires at " + rtExpiry3 + " curtime_millis=" + System.currentTimeMillis());
+        System.out.println("testPrefetchAwsCredShouldCallServer: awsCred4:domain=" + domain1
+                    + " role=role2 expires at " + rtExpiry3 + " curtime_millis=" + System.currentTimeMillis());
 
         lastTokenFetchedTime3 = ztsClientMock.getLastRoleTokenFetchedTime(domain1, "role2", null);
         assertTrue(lastTokenFetchedTime3 > lastTokenFetchedTime2);
@@ -1389,12 +1440,14 @@ public class ZTSClientTest {
         RoleToken roleToken1 = client.getRoleToken(domain1);
         assertTrue(roleToken1 != null);
         long rtExpiry = roleToken1.getExpiryTime();
-        System.out.println("testPrefetchShouldCallServer: roleToken1:domain=" + domain1 + " expires at " + rtExpiry + " curtime_secs=" + (System.currentTimeMillis() / 1000));
+        System.out.println("testPrefetchShouldCallServer: roleToken1:domain=" + domain1 +
+                " expires at " + rtExpiry + " curtime_secs=" + (System.currentTimeMillis() / 1000));
 
         AWSTemporaryCredentials awsCred1 = client.getAWSTemporaryCredentials(domain1, "role1");
         assertTrue(awsCred1 != null);
         long awsExpiry = awsCred1.getExpiration().millis();
-        System.out.println("testPrefetchShouldCallServer: awsCred1:domain=" + domain1 + " expires at " + awsExpiry + " curtime_millis=" + System.currentTimeMillis());
+        System.out.println("testPrefetchShouldCallServer: awsCred1:domain=" + domain1 + " expires at "
+                + awsExpiry + " curtime_millis=" + System.currentTimeMillis());
         assertEquals(client.getScheduledItemsSize(), 2);
         
         System.out.println("testPrefetchShouldCallServer: sleep Secs=" + (2*intervalSecs) + "+0.1");
@@ -1408,7 +1461,8 @@ public class ZTSClientTest {
         long lastTokenFetchedTime1 = ztsClientMock.getLastRoleTokenFetchedTime(domain1, null, null);
         roleToken1 = client.getRoleToken(domain1);
         long rtExpiry2 = roleToken1.getExpiryTime();
-        System.out.println("testPrefetchShouldCallServer: roleToken1:domain=" + domain1 + " expires at " + rtExpiry2 + " curtime_secs=" + (System.currentTimeMillis() / 1000));
+        System.out.println("testPrefetchShouldCallServer: roleToken1:domain=" + domain1 +
+                " expires at " + rtExpiry2 + " curtime_secs=" + (System.currentTimeMillis() / 1000));
         assertTrue(rtExpiry2 > rtExpiry); // this token was refreshed
 
         assertTrue(lastTokenFetchedTime1 > 0);
@@ -1416,7 +1470,8 @@ public class ZTSClientTest {
         long lastTokenFetchedTime1aws = ztsClientMock.getLastRoleTokenFetchedTime(domain1, "role1", null);
         AWSTemporaryCredentials awsCredLast = client.getAWSTemporaryCredentials(domain1, "role1");
         long awsExpiry2 = awsCredLast.getExpiration().millis();
-        System.out.println("testPrefetchShouldCallServer: awsCred1:domain=" + domain1 + " expires at " + awsExpiry2 + " curtime_millis=" + System.currentTimeMillis());
+        System.out.println("testPrefetchShouldCallServer: awsCred1:domain=" + domain1 + " expires at "
+                + awsExpiry2 + " curtime_millis=" + System.currentTimeMillis());
         assertTrue(awsExpiry2 > awsExpiry); // this token was refreshed
 
         assertTrue(lastTokenFetchedTime1aws > 0);
@@ -1431,7 +1486,8 @@ public class ZTSClientTest {
 
         RoleToken roleToken2 = client.getRoleToken(domain1);
         long rt2Expiry = roleToken2.getExpiryTime();
-        System.out.println("testPrefetchShouldCallServer: roleToken2:domain=" + domain1 + " expires at " + rt2Expiry + " curtime_secs=" + (System.currentTimeMillis() / 1000));
+        System.out.println("testPrefetchShouldCallServer: roleToken2:domain=" + domain1 + " expires at "
+                + rt2Expiry + " curtime_secs=" + (System.currentTimeMillis() / 1000));
         assertTrue(rt2Expiry > rtExpiry2); // this token was refreshed
 
         // token should be different
@@ -1441,7 +1497,8 @@ public class ZTSClientTest {
         
         AWSTemporaryCredentials awsCred3 = client.getAWSTemporaryCredentials(domain1, "role1");
         long awsExpiry3 = awsCred3.getExpiration().millis();
-        System.out.println("testPrefetchShouldCallServer: awsCred3:domain=" + domain1 + " expires at " + awsExpiry3 + " curtime_millis=" + System.currentTimeMillis());
+        System.out.println("testPrefetchShouldCallServer: awsCred3:domain=" + domain1 + " expires at "
+                + awsExpiry3 + " curtime_millis=" + System.currentTimeMillis());
         assertTrue(awsExpiry3 > awsExpiry2); // this token was refreshed
 
         // token should be different
