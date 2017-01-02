@@ -40,6 +40,14 @@
       <outputDirectory>lib/jars</outputDirectory>
     </fileSet>
     <fileSet>
+      <directory>${basedir}/../utils/zms_cli/target</directory>
+      <outputDirectory>bin</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>${basedir}/../utils/athenz_conf/target</directory>
+      <outputDirectory>bin</outputDirectory>
+    </fileSet>
+    <fileSet>
       <directory>.</directory>
       <outputDirectory>logs/zms_server</outputDirectory>
       <excludes>

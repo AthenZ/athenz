@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/base64"
 	"errors"
 	"flag"
@@ -136,6 +137,7 @@ func usage() string {
 	buf.WriteString(" flags:\n")
 	buf.WriteString("   -a auditRef         Audit Reference Token if auditing is required for domain\n")
 	buf.WriteString("   -b                  Bulk import/update mode. Do not read/display updated role/policy/service objects (default=false)\n")
+	buf.WriteString("   -c cacert_file      CA Certificate file path\n")
 	buf.WriteString("   -d domain           The domain used for every command that takes a domain argument\n")
 	buf.WriteString("   -f ntoken_file      Principal Authority NToken file used for authentication\n")
 	buf.WriteString("   -i identity         User identity to authenticate as if NToken file is not specified\n")
@@ -164,6 +166,7 @@ func main() {
 	pZMS := flag.String("z", defaultZmsUrl(), "Base URL of the ZMS server to use")
 	pIdentity := flag.String("i", defaultIdentity(), "the identity to authenticate as")
 	pNtokenFile := flag.String("f", "", "ntoken file path")
+	pCACert := flag.String("c", "", "CA Certificate file path")
 	pVerbose := flag.Bool("v", false, "verbose mode. YRNs are included in output")
 	pBulkmode := flag.Bool("b", false, "bulk mode. Do not display updated role/policy/service in output")
 	pProductIdSupport := flag.Bool("p", false, "Top Level Domain add operations require product ids")
@@ -223,14 +226,17 @@ func main() {
 		return
 	}
 
-	if *pSocks == "" {
-		pSocks = nil
-	}
 	identity := *pIdentity
 	if strings.Index(identity, ".") < 0 {
 		identity = "user." + identity
 	}
-	tr := getHttpTransport(pSocks, *pSkipVerify)
+	if *pSocks == "" {
+		pSocks = nil
+	}
+	if *pCACert == "" {
+		pCACert = nil
+	}
+	tr := getHttpTransport(pSocks, pCACert, *pSkipVerify)
 	var ntoken string
 	var err error
 	if *pNtokenFile == "" {
@@ -293,11 +299,8 @@ func main() {
 	}
 }
 
-func getHttpTransport(socksProxy *string, skipVerify bool) *http.Transport {
+func getHttpTransport(socksProxy, caCertFile *string, skipVerify bool) *http.Transport {
 	tr := http.Transport{}
-	if socksProxy == nil && skipVerify == false {
-		return &tr
-	}
 	if socksProxy != nil {
 		dialer := &net.Dialer{}
 		dialSocksProxy, err := proxy.SOCKS5("tcp", *socksProxy, nil, dialer)
@@ -305,8 +308,23 @@ func getHttpTransport(socksProxy *string, skipVerify bool) *http.Transport {
 			tr.Dial = dialSocksProxy.Dial
 		}
 	}
-	if skipVerify {
-		tr.TLSClientConfig = &tls.Config{InsecureSkipVerify: skipVerify}
+	if caCertFile != nil || skipVerify {
+		config := &tls.Config{}
+		if caCertFile != nil {
+			capem, err := ioutil.ReadFile(*caCertFile)
+			if err != nil {
+				log.Fatalf("Unable to read CA Certificate file %s, error: %v", *caCertFile, err)
+			}
+			certPool := x509.NewCertPool()
+			if !certPool.AppendCertsFromPEM(capem) {
+				log.Fatalf("Unable to append CA Certificate to pool")
+			}
+			config.RootCAs = certPool
+		}
+		if skipVerify {
+			config.InsecureSkipVerify = skipVerify
+		}
+		tr.TLSClientConfig = config
 	}
 	return &tr
 }

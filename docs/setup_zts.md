@@ -9,7 +9,7 @@
     * [Self Signed X509 Certificate](#self-signed-x509-certificate)
     * [ZMS Certificate TrustStore](#zms-certificate-truststore)
     * [Register ZTS Service](#register-zts-service)
-    * [Update Athenz Configuration File](#update-athenz-configuration-file)
+    * [Generate Athenz Configuration File](#generate-athenz-configuration-file)
 * [Start ZMS Server](#start-zms-server)
 
 ## Requirements
@@ -66,7 +66,7 @@ openssl rsa -in zts_private.pem -pubout > zts_public.pem
 
 Generate a self-signed X509 certificate for ZTS Server HTTPS
 support. After we generate the X509 certificate, we need to add
-that certificate along its private key to a keystore for Jetty 
+that certificate along with its private key to a keystore for Jetty 
 use. From the `athenz-zts-X.Y` directory execute the following
 commands:
 
@@ -102,18 +102,27 @@ keytool -importcert -noprompt -alias zms -keystore zts_truststore.jks -file zms_
 
 In order for ZTS to access ZMS domain data, it must identify itself
 as a registered service in ZMS. Using the `zms-cli` utility, we will
-register a new service in `sys.auth` domain:
+register a new service in `sys.auth` domain. For this step, we also
+need to reference the zms_cert.pem certificate file in order to
+successfully validate ZMS Server's certificate.
 
 ```
 cd athenz-zts-X.Y
-bin/zms-cli -k -z https://<zms-server>:4443/zms/v1 -d sys.auth add-service zts 0 var/zts_server/keys zts_public.pem
+bin/<platform>/zms-cli -c <path-to-zms_cert.pem> -z https://<zms-server>:4443/zms/v1 -d sys.auth add-service zts 0 var/zts_server/keys zts_public.pem
 ```
 
-### Update Athenz Configuration File
-------------------------------------
+### Generate Athenz Configuration File
+--------------------------------------
 
-Update the Athenz configuration file `athenz.conf` in `athenz-zts-X.Y/conf/zts_server`
-directory to include the correct ZMS Server URL and the registered public keys.
+Generate an Athenz configuration file `athenz.conf` in `athenz-zts-X.Y/conf/zts_server`
+directory to include the ZMS Server URL and the registered public keys that the
+athenz client libraries and utilities will use to establish connection and validate any
+data signed by the ZMS Server:
+
+```
+cd athenz-zts-X.Y
+bin/<platform>/athenz-conf -o conf/zts_server/athenz.conf -c <path-to-zms_cert.pem> -z https://<zms-server>:4443/ -t https://<zts-server>:8443/
+```
 
 ## Start ZTS Server
 -------------------

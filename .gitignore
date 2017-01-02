@@ -16,6 +16,5 @@ clients/java/sia/src/test/resources/svc.ntoken
 clients/java/zpe/src/test/resources/upd_pol_dir/
 ui/build/
 ui/node_modules/
-utils/zms_cli/zms-cli
 utils/zpe_policy_updater/tmp_metrics/
 utils/zpe_policy_updater/src/test/resources/sys.auth.new.pol

@@ -92,6 +92,20 @@
               </descriptors>
             </configuration>
           </execution>
+          <execution>
+            <id>package-utils-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <tarLongFileMode>posix</tarLongFileMode>
+              <finalName>athenz-utils-${project.version}</finalName>
+              <descriptors>
+                <descriptor>components/utils.xml</descriptor>
+              </descriptors>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
     </plugins>

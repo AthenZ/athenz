@@ -5,7 +5,6 @@ package zmscli
 
 import (
 	"bytes"
-	"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -1504,19 +1503,14 @@ func (cli Zms) HelpListCommand() string {
 	return buf.String()
 }
 
-func (cli Zms) ybase64(data []byte) string {
-	b64 := base64.StdEncoding.EncodeToString(data)
-	yb64 := strings.Replace(strings.Replace(strings.Replace(b64, "+", ".", -1), "/", "_", -1), "=", "-", -1)
-	return yb64
-}
-
 func (cli Zms) getPublicKey(s string) (*string, error) {
 	if strings.HasSuffix(s, ".pem") || strings.HasSuffix(s, ".key") {
 		bytes, err := ioutil.ReadFile(s)
 		if err != nil {
 			return nil, err
 		}
-		yb64 := cli.ybase64(bytes)
+		var lb64 yBase64
+		yb64 := lb64.EncodeToString(bytes)
 		return &yb64, nil
 	} else {
 		return &s, nil

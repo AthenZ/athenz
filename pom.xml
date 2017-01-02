@@ -92,6 +92,9 @@
     <module>servers/zms</module>
     <module>servers/zts</module>
     <module>utils/zpe_policy_updater</module>
+    <module>clients/go/zms</module>
+    <module>clients/go/zts</module>
+    <module>utils/zms_cli</module>
   </modules>
 
   <build>
