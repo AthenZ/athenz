@@ -27,6 +27,10 @@
   <name>zts-go-client</name>
   <description>ZTS Go Client Library</description>
 
+  <properties>
+    <maven.install.skip>true</maven.install.skip>
+  </properties>
+
   <build>
     <plugins>
       <plugin>

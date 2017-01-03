@@ -27,6 +27,10 @@
   <name>zms-go-client</name>
   <description>ZMS Go Client Library</description>
 
+  <properties>
+    <maven.install.skip>true</maven.install.skip>
+  </properties>
+
   <build>
     <plugins>
       <plugin>
