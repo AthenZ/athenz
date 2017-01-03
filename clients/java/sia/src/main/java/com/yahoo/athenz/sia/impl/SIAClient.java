@@ -97,11 +97,12 @@ public class SIAClient implements SIA {
 
         // load the config vars. in case of any exceptions
         // we'll just set our config variables to null and default to using
-        // SIA Server for principal tokens
+        // optional SIA Server if one is available for principal tokens
         
+        String confFile = null;
         Struct configVars = null;
         try {
-            String confFile = System.getProperty(SIA_PROP_CFG_FILE);
+            confFile = System.getProperty(SIA_PROP_CFG_FILE);
             if (confFile == null) {
                 String rootDir = System.getenv("ROOT");
                 if (null == rootDir) {
@@ -116,8 +117,10 @@ public class SIAClient implements SIA {
             setupConfigVars(configVars.getString(SIACLT_NTOKEN_PATH),
                             configVars.getString(SIACLT_NTOKEN_DOMAIN),
                             configVars.getString(SIACLT_NTOKEN_SERVICE));
-        } catch (Exception exc) {
-            LOG.error("SIACLT: config variable initialization failure. Will use SIA Server for Principal Tokens", exc);
+
+        } catch (Exception ex) {
+            LOG.warn("SIACLT: config variable initialization failure from file {}, exc: {}",
+                    confFile, ex.getMessage());
             cfgNtokenPath = null;
             cfgNtokenDomain = null;
             cfgNtokenService = null;
@@ -127,19 +130,11 @@ public class SIAClient implements SIA {
         // load the System properties
         // if set, they over-ride the config variables. in case of any exceptions
         // we'll just set our config variables to null and default to using
-        // SIA Server for principal tokens
-        
-        try {
-            ntokenPath    = System.getProperty(SIA_PROP_NTOKEN_PATH);
-            ntokenDomain  = System.getProperty(SIA_PROP_NTOKEN_DOMAIN);
-            ntokenSvc     = System.getProperty(SIA_PROP_NTOKEN_SERVICE);
-        } catch (Exception exc) {
-            LOG.error("SIACLT: system property initialization failure. Will use SIA Server for Principal Tokens", exc);
-            cfgNtokenPath = null;
-            cfgNtokenDomain = null;
-            cfgNtokenService = null;
-            return;
-        }
+        // optional SIA Server if one is available for principal tokens
+
+        ntokenPath = System.getProperty(SIA_PROP_NTOKEN_PATH);
+        ntokenDomain = System.getProperty(SIA_PROP_NTOKEN_DOMAIN);
+        ntokenSvc = System.getProperty(SIA_PROP_NTOKEN_SERVICE);
 
         if (ntokenPath == null || ntokenPath.isEmpty()) {
             ntokenPath = cfgNtokenPath;
@@ -153,7 +148,8 @@ public class SIAClient implements SIA {
         setupConfigVars(ntokenPath, ntokenDomain, ntokenSvc);
     }
 
-    static void setupConfigVars(String ntokenPath, String ntokenDomain, String ntokenSvc) throws IllegalArgumentException {
+    static void setupConfigVars(String ntokenPath, String ntokenDomain, String ntokenSvc)
+            throws IllegalArgumentException {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("SIACLT:setupConfigVars: ntoken path=" + ntokenPath +

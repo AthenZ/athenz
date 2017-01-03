@@ -98,7 +98,16 @@ public class ZTSClientTest {
     public void testLookupZTSUrlInvalidFile() {
         System.setProperty(ZTSClient.ZTS_CLIENT_PROP_ATHENZ_CONF, "src/test/resources/athenz_invaild.conf");
         ZTSClient client = new ZTSClient("http://localhost:4080/", (Principal) null);
-        assertNull(client.lookupZTSUrl());
+        
+        // we have 2 possible values - if no serviceloader is defined then
+        // the result is null otherwise we get back default https://localhost:4443
+        // so we'll look for one of those values instead of forcing the tests
+        // to be carried out in specific order
+        
+        String url = client.lookupZTSUrl();
+        if (url != null && !url.equals("https://localhost:4443/")) {
+            fail();
+        }
         client.close();
     }
     

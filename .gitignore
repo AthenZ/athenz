@@ -18,3 +18,6 @@ ui/build/
 ui/node_modules/
 utils/zpe_policy_updater/tmp_metrics/
 utils/zpe_policy_updater/src/test/resources/sys.auth.new.pol
+clients/java/zpe/src/test/resources/pol_dir/angler.pol
+clients/java/zpe/src/test/resources/pol_dir/empty.pol
+clients/java/zpe/src/test/resources/pol_dir/sports.pol

@@ -281,8 +281,21 @@ public class ZTSClient implements Closeable {
             AthenzConfig conf = JSON.fromBytes(Files.readAllBytes(path), AthenzConfig.class);
             url = conf.getZtsUrl();
         } catch (Exception ex) {
-            LOG.error("Unable to extract ZTS Url from {} exc: {}",
-                    confFileName, ex.getMessage());
+            // if we have a zts client service specified and we have keys
+            // in our service loader cache then we're running within
+            // some managed framework (e.g. hadoop) so we're going to
+            // report this exception as a warning rather than an error
+            // and default to localhost as the url to avoid further
+            // warnings from our generated client
+
+            if (!SVC_LOADER_CACHE_KEYS.get().isEmpty()) {
+                LOG.warn("Unable to extract ZTS Url from conf file {}, exc: {}",
+                        confFileName, ex.getMessage());
+                url = "https://localhost:4443/";
+            } else {
+                LOG.error("Unable to extract ZTS Url from conf file {}, exc: {}",
+                        confFileName, ex.getMessage());
+            }
         }
         
         return url;
@@ -851,23 +864,24 @@ public class ZTSClient implements Closeable {
         return true;
     }
     
-    String getRoleTokenCacheKey(String domainName, String roleName) {
-        return getRoleTokenCacheKey(domainName, roleName, null);
+    String getRoleTokenCacheKey(String domainName, String roleName, String proxyForPrincipal) {
+        return getRoleTokenCacheKey(domain, service, domainName, roleName, proxyForPrincipal);
     }
     
-    String getRoleTokenCacheKey(String domainName, String roleName, String proxyForPrincipal) {
+    static String getRoleTokenCacheKey(String tenantDomain, String tenantService, String domainName,
+            String roleName, String proxyForPrincipal) {
 
         // before we generate a cache key we need to have a valid domain
 
-        if (domain == null) {
+        if (tenantDomain == null) {
             return null;
         }
         
         StringBuilder cacheKey = new StringBuilder(256);
         cacheKey.append("p=");
-        cacheKey.append(domain);
-        if (service != null) {
-            cacheKey.append(".").append(service);
+        cacheKey.append(tenantDomain);
+        if (tenantService != null) {
+            cacheKey.append(".").append(tenantService);
         }
 
         cacheKey.append(";d=");
@@ -1481,7 +1495,8 @@ public class ZTSClient implements Closeable {
         // if it's not then we must have a single role in the list
         
         if (!completeRoleSet && roles.size() != 1) {
-            LOG.error("cacheSvcProvRoleToken: Unable to determine original rolename query: "  + rt.getUnsignedToken());
+            LOG.error("cacheSvcProvRoleToken: Unable to determine original rolename query: "
+                    + rt.getUnsignedToken());
             return null;
         }
         
@@ -1508,17 +1523,13 @@ public class ZTSClient implements Closeable {
 
         RoleToken roleToken = new RoleToken().setToken(desc.getSignedToken()).setExpiryTime(expiryTime);
 
-        String key = null;
-        try (ZTSClient clt = new ZTSClient(tenantDomain, tenantService)) {
-            
-            key = clt.getRoleTokenCacheKey(domainName, roleName, null);
+        String key = getRoleTokenCacheKey(tenantDomain, tenantService, domainName, roleName, null);
 
-            if (LOG.isInfoEnabled()) {
-                LOG.info("cacheSvcProvRoleToken: cache-add key: " + key + " expiry: " + expiryTime);
-            }
-
-            ROLE_TOKEN_CACHE.put(key, roleToken);
+        if (LOG.isInfoEnabled()) {
+            LOG.info("cacheSvcProvRoleToken: cache-add key: " + key + " expiry: " + expiryTime);
         }
+
+        ROLE_TOKEN_CACHE.put(key, roleToken);
 
         // setup prefetch task
         

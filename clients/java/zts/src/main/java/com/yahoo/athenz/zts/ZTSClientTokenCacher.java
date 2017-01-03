@@ -34,28 +34,25 @@ public class ZTSClientTokenCacher {
         // parse principalName for the tenant domain and service name
         // if we have an invalid principal name then we'll just skip
         
-        String tenantDomain = null;
-        String serviceName  = null;
         int index = principalName.lastIndexOf('.'); // ex: cities.burbank.mysvc
         if (index == -1) {
             return;
         }
 
-        tenantDomain = principalName.substring(0, index);
-        serviceName  = principalName.substring(index + 1);
+        String tenantDomain = principalName.substring(0, index);
+        String tenantService  = principalName.substring(index + 1);
         Long expiryTime  = rt.getExpiryTime();
 
         RoleToken roleToken = new RoleToken().setToken(signedRoleToken).setExpiryTime(expiryTime);
 
-        try (ZTSClient clt = new ZTSClient(tenantDomain, serviceName)) {
-            String key = clt.getRoleTokenCacheKey(domainName, roleName, null);
-            
-            if (LOG.isInfoEnabled()) {
-                LOG.info("ZTSTokenCache: cache-add key: " + key + " expiry: " + expiryTime);
-            }
-            
-            ZTSClient.ROLE_TOKEN_CACHE.put(key, roleToken);
+        String key = ZTSClient.getRoleTokenCacheKey(tenantDomain, tenantService,
+                domainName, roleName, null);
+        
+        if (LOG.isInfoEnabled()) {
+            LOG.info("ZTSTokenCache: cache-add key: " + key + " expiry: " + expiryTime);
         }
+        
+        ZTSClient.ROLE_TOKEN_CACHE.put(key, roleToken);
     }
 }
 
