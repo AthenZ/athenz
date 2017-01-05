@@ -28,6 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.EntityTag;
 
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +47,7 @@ import com.yahoo.athenz.common.server.util.ServletRequestUtil;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zts.cache.DataCache;
+import com.yahoo.athenz.zts.cert.CertSigner;
 import com.yahoo.athenz.zts.cert.SvcCertStore;
 import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.DataStore;
@@ -96,12 +98,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private static final String TYPE_AWS_CERT_REQUEST = "AWSCertificateRequest";
     private static final String TYPE_INSTANCE_REFRESH_REQUEST = "InstanceRefreshRequest";
     private static final String TYPE_DOMAIN_METRICS = "DomainMetrics";
-
+    private static final String TYPE_ROLE_CERTIFICATE_REQUEST = "RoleCertificateRequest";
+    
     private static final String ZTS_ROLE_TOKEN_VERSION = "Z1";
     
     private static final long ZTS_NTOKEN_DEFAULT_EXPIRY = TimeUnit.SECONDS.convert(2, TimeUnit.HOURS);
     private static final long ZTS_NTOKEN_MAX_EXPIRY = TimeUnit.SECONDS.convert(7, TimeUnit.DAYS);
-
+    private static final long ZTS_ROLE_CERT_EXPIRY = TimeUnit.SECONDS.convert(30, TimeUnit.DAYS);
+    
     // HTTP operation types used in metrics
     private static final String HTTP_GET  = "GET";
     private static final String HTTP_POST = "POST";
@@ -1030,6 +1034,192 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return roleAccess;
     }
     
+    @Override
+    public RoleToken postRoleCertificateRequest(ResourceContext ctx, String domainName, String roleName,
+            RoleCertificateRequest req) {
+        
+        final String caller = "postrolecertificaterequest";
+        final String callerTiming = "postrolecertificaterequest_timing";
+        metric.increment(HTTP_POST);
+
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(roleName, TYPE_ENTITY_NAME, caller);
+        validate(req, TYPE_ROLE_CERTIFICATE_REQUEST, caller);
+        
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case since ZMS Server
+        // saves all of its object names in lower case
+        
+        domainName = domainName.toLowerCase();
+        roleName = roleName.toLowerCase();
+        
+        Object timerMetric = metric.startTiming(callerTiming, domainName);
+
+        // get our principal's name
+        
+        String principal = ((RsrcCtxWrapper) ctx).principal().getYRN();
+        
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("postRoleCertificateRequest(domain: " + domainName + ", principal: "
+                    + principal + ", role: " + roleName + ")");
+        }
+        
+        StringBuilder auditLogDetails = new StringBuilder(512);
+        AuditLogMsgBuilder msgBldr = getAuditLogMsgBuilder(ctx, domainName, caller, HTTP_GET);
+        msgBldr.when(Timestamp.fromCurrentTime().toString()).
+                whatEntity("RoleCertificate").why("zts-audit");
+
+        // first retrieve our domain data object from the cache
+
+        DataCache data = dataStore.getDataCache(domainName);
+        if (data == null) {
+            // just increment the request counter without any dimension
+            // we don't want to get persistent indexes for invalid domains
+
+            metric.increment(HTTP_REQUEST, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+            metric.increment(caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+            
+            // create our audit log entry
+            
+            auditLogDetails.append(",ERROR=(No Such Domain)");
+            msgBldr.whatDetails(auditLogDetails.toString());
+            if (auditLogger != null) {
+                auditLogger.log(msgBldr);
+            } else {
+                LOGGER.error(msgBldr.toString());
+            }
+            LOGGER.error("postRoleCertificateRequest: Principal: " + principal +
+                    " requested a role certificate for an unknown domain: " + domainName);
+            throw notFoundError("postRoleCertificateRequest: No such domain: " + domainName,
+                    caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+        }
+        
+        // update our metric with dimension. we're moving the metric here
+        // after the domain name has been confirmed as valid since with
+        // dimensions we get stuck with persistent indexes so we only want
+        // to create them for valid domain names
+
+        metric.increment(HTTP_REQUEST, domainName);
+        metric.increment(caller, domainName);
+        
+        // process our request and retrieve the roles for the principal
+        
+        ArrayList<String> roles = new ArrayList<>();
+        dataStore.getAccessibleRoles(data, domainName, principal, roleName,
+                roles, false);
+        
+        if (roles.isEmpty()) {
+            auditLogDetails.append(",ERROR=(Principal Has No Access to Domain)");
+            msgBldr.whatDetails(auditLogDetails.toString());
+            if (auditLogger != null) {
+                auditLogger.log(msgBldr);
+            } else {
+                LOGGER.error(msgBldr.toString());
+            }
+            LOGGER.error("postRoleCertificateRequest: Principal: " + principal +
+                    " has no acccess to any roles in domain: " + domainName);
+            throw forbiddenError("postRoleCertificateRequest: No access to any roles in domain: "
+                    + domainName, caller, domainName);
+        }
+        
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(req.getCsr());
+        if (certReq == null) {
+            LOGGER.error("postRoleCertificateRequest: unable to parse cert request");
+            throw requestError("postRoleCertificateRequest: Unable to parse cert request",
+                    caller, domainName);
+        }
+
+        if (!validateRoleCertificateRequest(certReq, domainName, roles, principal)) {
+            LOGGER.error("postRoleCertificateRequest: unable to validate certificate request");
+            throw requestError("postRoleCertificateRequest: Unable to validate cert request",
+                    caller, domainName);
+        }
+        
+        CertSigner certSigner = this.cloudStore.getCertSigner();
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Cert signer: {} ", certSigner);
+        }
+        String x509Cert = certSigner.generateX509Certificate(req.getCsr());
+        if (null == x509Cert || x509Cert.isEmpty()) {
+            LOGGER.error("Unable to create certificate from the cert signer");
+            throw serverError("postRoleCertificateRequest: Unable to create certificate from the cert signer",
+                    caller, domainName);
+        }
+        RoleToken roleToken = new RoleToken().setToken(x509Cert).setExpiryTime(ZTS_ROLE_CERT_EXPIRY);
+        
+        auditLogDetails.append(",SUCCESS ROLE-CERTIFICATE");
+        msgBldr.whatDetails(auditLogDetails.toString());
+        if (auditLogger != null) {
+            auditLogger.log(msgBldr);
+        } else {
+            LOGGER.error(msgBldr.toString());
+        }
+
+        metric.stopTiming(timerMetric);
+        return roleToken;
+    }
+
+    boolean validateRoleCertificateRequest(PKCS10CertificationRequest certReq,
+            String domainName, List<String> roles, String principal) {
+        
+        String cnCertReq = null;
+        try {
+            cnCertReq = Crypto.extractX509CSRCommonName(certReq);
+        } catch (Exception ex) {
+            
+            // we want to catch all the exceptions here as we want to
+            // handle all the errors and not let container to return
+            // standard server error
+            
+            LOGGER.error("validateRoleCertificateRequest: unable to extract csr cn", ex);
+        }
+        
+        if (cnCertReq == null) {
+            return false;
+        }
+        
+        // we must have only a single value in our list since we specified
+        // what role we're looking for but we'll iterate through the list
+        // anyway
+        
+        boolean roleNameValidated = false;
+        for (String role : roles) {
+            final String roleName = domainName + ":role." + role;
+            if (cnCertReq.equals(roleName)) {
+                roleNameValidated = true;
+                break;
+            }
+        }
+        
+        if (!roleNameValidated) {
+            return false;
+        }
+        
+        // now let's check if we have an rfc822 field specified in the
+        // request. if we have, then it must be of the following format:
+        // principal@[cloud].yahoo.cloud
+        
+        String email = null;
+        try {
+            email = Crypto.extractX509CSREmail(certReq);
+        } catch (Exception ex) {
+            
+            // we want to catch all the exceptions here as we want to
+            // handle all the errors and not let container to return
+            // standard server error
+            
+            LOGGER.error("validateRoleCertificateRequest: unable to extract csr email", ex);
+        }
+        
+        if (email != null) {
+            String emailPrefix = principal + "@";
+            if (!email.startsWith(emailPrefix) || !email.endsWith(".yahoo.cloud")) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
     public AWSTemporaryCredentials getAWSTemporaryCredentials(ResourceContext ctx, String domainName,
             String roleName) {
 
@@ -1597,6 +1787,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return error(ResourceException.NOT_FOUND, msg, caller, domainName);
     }
 
+    protected RuntimeException serverError(String msg, String caller, String domainName) {
+        return error(ResourceException.INTERNAL_SERVER_ERROR, msg, caller, domainName);
+    }
 
     public ResourceContext newResourceContext(HttpServletRequest request, HttpServletResponse response) {
         return new RsrcCtxWrapper(request, response, authorities, authorizer);

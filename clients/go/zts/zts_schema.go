@@ -159,6 +159,12 @@ func init() {
 	tRoleToken.Field("expiryTime", "Int64", false, nil, "")
 	sb.AddType(tRoleToken.Build())
 
+	tRoleCertificateRequest := rdl.NewStructTypeBuilder("Struct", "RoleCertificateRequest")
+	tRoleCertificateRequest.Comment("RoleCertificateRequest - a certificate signing request")
+	tRoleCertificateRequest.Field("csr", "String", false, nil, "")
+	tRoleCertificateRequest.Field("expiryTime", "Int64", false, nil, "")
+	sb.AddType(tRoleCertificateRequest.Build())
+
 	tAccess := rdl.NewStructTypeBuilder("Struct", "Access")
 	tAccess.Comment("Access can be checked and returned as this resource.")
 	tAccess.Field("granted", "Bool", false, nil, "true (allowed) or false (denied)")
@@ -305,7 +311,7 @@ func init() {
 	sb.AddResource(rGetDomainSignedPolicyData.Build())
 
 	rGetRoleToken := rdl.NewResourceBuilder("RoleToken", "GET", "/domain/{domainName}/token")
-	rGetRoleToken.Comment("Return a security token for the specific role in the namespace that the user can assume. If the role is omitted, then all roles in the namespace that the authenticated user can assume are returned. the caller can specify how long the RoleToken should be valid for by specifying the minExpiryTime and maxExpiryTime parameters. The minExpiryTime specifies that the returned RoleToken must be at least valid (min/lower bound) for specified number of seconds, while maxExpiryTime specifies that the RoleToken must be at most valid (max/upper bound) for specified number of seconds. If both values are the same, the server must return a RoleToken for that many seconds. If no values are specified, the server's default RoleToken Timeout value is used.")
+	rGetRoleToken.Comment("Return a security token for the specific role in the namespace that the principal can assume. If the role is omitted, then all roles in the namespace that the authenticated user can assume are returned. the caller can specify how long the RoleToken should be valid for by specifying the minExpiryTime and maxExpiryTime parameters. The minExpiryTime specifies that the returned RoleToken must be at least valid (min/lower bound) for specified number of seconds, while maxExpiryTime specifies that the RoleToken must be at most valid (max/upper bound) for specified number of seconds. If both values are the same, the server must return a RoleToken for that many seconds. If no values are specified, the server's default RoleToken Timeout value is used.")
 	rGetRoleToken.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
 	rGetRoleToken.Input("role", "EntityName", false, "role", "", true, nil, "only interested for a token for this role")
 	rGetRoleToken.Input("minExpiryTime", "Int32", false, "minExpiryTime", "", true, nil, "in seconds min expiry time")
@@ -317,6 +323,18 @@ func init() {
 	rGetRoleToken.Exception("NOT_FOUND", "ResourceError", "")
 	rGetRoleToken.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rGetRoleToken.Build())
+
+	rPostRoleCertificateRequest := rdl.NewResourceBuilder("RoleToken", "POST", "/domain/{domainName}/role/{roleName}/token")
+	rPostRoleCertificateRequest.Comment("Return a TLS certificate for the specific role in the namespace that the principal can assume. Role certificates are valid for 30 days by default")
+	rPostRoleCertificateRequest.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
+	rPostRoleCertificateRequest.Input("roleName", "EntityName", true, "", "", false, nil, "name of role")
+	rPostRoleCertificateRequest.Input("req", "RoleCertificateRequest", false, "", "", false, nil, "csr request")
+	rPostRoleCertificateRequest.Auth("", "", true, "")
+	rPostRoleCertificateRequest.Exception("BAD_REQUEST", "ResourceError", "")
+	rPostRoleCertificateRequest.Exception("FORBIDDEN", "ResourceError", "")
+	rPostRoleCertificateRequest.Exception("NOT_FOUND", "ResourceError", "")
+	rPostRoleCertificateRequest.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(rPostRoleCertificateRequest.Build())
 
 	rGetAccess := rdl.NewResourceBuilder("Access", "GET", "/access/domain/{domainName}/role/{roleName}/principal/{principal}")
 	rGetAccess.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")

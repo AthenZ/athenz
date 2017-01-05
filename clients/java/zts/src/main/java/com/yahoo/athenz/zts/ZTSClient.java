@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
@@ -43,6 +45,10 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 
+import org.bouncycastle.asn1.DERIA5String;
+import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.operator.OperatorCreationException;
+
 import org.glassfish.jersey.client.ClientProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +56,7 @@ import org.slf4j.LoggerFactory;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.ServiceIdentityProvider;
 import com.yahoo.athenz.auth.impl.RoleAuthority;
+import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.config.AthenzConfig;
 import com.yahoo.athenz.sia.SIA;
 import com.yahoo.athenz.sia.impl.SIAClient;
@@ -93,10 +100,14 @@ public class ZTSClient implements Closeable {
     public static final String ZTS_CLIENT_PROP_PREFETCH_SLEEP_INTERVAL   = "athenz.zts.client.prefetch_sleep_interval";
     public static final String ZTS_CLIENT_PROP_PREFETCH_AUTO_ENABLE      = "athenz.zts.client.prefetch_auto_enable";
     public static final String ZTS_CLIENT_PROP_X509CERT_DNS_NAME         = "athenz.zts.client.x509cert_dns_name";
+    public static final String ZTS_CLIENT_PROP_X509CSR_DN                = "athenz.zts.client.x509csr_dn";
+    public static final String ZTS_CLIENT_PROP_X509CSR_DOMAIN            = "athenz.zts.client.x509csr_domain";
     public static final String ZTS_CLIENT_PROP_DISABLE_CACHE             = "athenz.zts.client.disable_cache";
     
     public static final String ROLE_TOKEN_HEADER = System.getProperty(RoleAuthority.ATHENZ_PROP_ROLE_HEADER,
             RoleAuthority.HTTP_HEADER);
+    private static final String X509_CSR_DN = System.getProperty(ZTS_CLIENT_PROP_X509CSR_DN);
+    private static final String X509_CSR_DOMAIN = System.getProperty(ZTS_CLIENT_PROP_X509CSR_DOMAIN);
     
     final static ConcurrentHashMap<String, RoleToken> ROLE_TOKEN_CACHE = new ConcurrentHashMap<>();
     final static ConcurrentHashMap<String, AWSTemporaryCredentials> AWS_CREDS_CACHE = new ConcurrentHashMap<>();
@@ -625,6 +636,92 @@ public class ZTSClient implements Closeable {
         return roleToken;
     }
 
+    /**
+     * For the specified requester(user/service) return the corresponding Role Certificate
+     * @param domainName name of the domain
+     * @param roleName name of the role
+     * @param req Role Certificate Request (csr)
+     * @return RoleToken that includes client x509 role certificate
+     */
+    public RoleToken postRoleCertificateRequest(String domainName, String roleName,
+            RoleCertificateRequest req) {
+        
+        updateServicePrincipal();
+        try {
+            return ztsClient.postRoleCertificateRequest(domainName, roleName, req);
+        } catch (ResourceException ex) {
+            throw new ZTSClientException(ex.getCode(), ex.getMessage());
+        } catch (Exception ex) {
+            throw new ZTSClientException(ZTSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+    
+    /**
+     * Generate a Role Certificate request that could be sent to ZTS
+     * to obtain a X509 Certificate for the requested role.
+     * @param principalDomain name of the principal's domain
+     * @param principalService name of the principal's service
+     * @param roleDomainName name of the domain where role is defined
+     * @param roleName name of the role to get a certificate request for
+     * @param privateKey private key for the service identity for the caller
+     * @param publicKey the corresponding public key for the service
+     * @param cloud string identifying the environment, e.g. aws
+     * @param expiryTime number of seconds to request certificate to be valid for
+     * @return RoleCertificateRequest object
+     */
+    static public RoleCertificateRequest generateRoleCertificateRequest(String principalDomain,
+            String principalService, String roleDomainName, String roleName, PrivateKey privateKey,
+            PublicKey publicKey, String cloud, int expiryTime) {
+        
+        if (principalDomain == null || principalService == null) {
+            throw new IllegalArgumentException("Principal's Domain and Service must be specified");
+        }
+        
+        if (roleDomainName == null || roleName == null) {
+            throw new IllegalArgumentException("Role DomainName and Name must be specified");
+        }
+        
+        // Athens uses lower case for all elements, so let's
+        // generate our dn which will be our role yrn
+        
+        principalDomain = principalDomain.toLowerCase();
+        principalService = principalService.toLowerCase();
+        
+        roleDomainName = roleDomainName.toLowerCase();
+        roleName = roleName.toLowerCase();
+        final String dn = "cn=" + roleDomainName + ":role." + roleName + "," + X509_CSR_DN;
+        
+        // now let's generate our dsnName and email fields which will based on
+        // our principal's details
+        
+        StringBuilder hostBuilder = new StringBuilder(128);
+        hostBuilder.append(principalService);
+        hostBuilder.append('.');
+        hostBuilder.append(principalDomain.replace('.', '-'));
+        hostBuilder.append('.');
+        hostBuilder.append(cloud);
+        hostBuilder.append('.');
+        hostBuilder.append(X509_CSR_DOMAIN);
+        String hostName = hostBuilder.toString();
+
+        String email = principalDomain + "." + principalService + "@" + cloud + "." + X509_CSR_DOMAIN;
+        
+        GeneralName[] sanArray = new GeneralName[2];
+        sanArray[0] = new GeneralName(GeneralName.dNSName, new DERIA5String(hostName));
+        sanArray[1] = new GeneralName(GeneralName.rfc822Name, new DERIA5String(email));
+        
+        String csr = null;
+        try {
+            csr = Crypto.generateX509CSR(privateKey, publicKey, dn, sanArray);
+        } catch (OperatorCreationException | IOException ex) {
+            throw new ZTSClientException(ZTSClientException.BAD_REQUEST, ex.getMessage());
+        }
+        
+        RoleCertificateRequest req = new RoleCertificateRequest().setCsr(csr)
+                .setExpiryTime(Long.valueOf(expiryTime));
+        return req;
+    }
+    
     private static class RolePrefetchTask extends TimerTask {
         
         @Override

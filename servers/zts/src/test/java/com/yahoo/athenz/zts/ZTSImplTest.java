@@ -31,6 +31,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -41,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -123,6 +125,28 @@ public class ZTSImplTest {
             + "  \"ramdiskId\" : null,\n"
             + "  \"region\" : \"us-west-2\"\n"
             + "}";
+    final static String ROLE_CERT_DB_REQUEST = "-----BEGIN CERTIFICATE REQUEST-----\n"
+            + "MIIBujCCASMCAQAwOzELMAkGA1UEBhMCVVMxDjAMBgNVBAoTBVlhaG9vMRwwGgYD\n"
+            + "VQQDExNzcG9ydHM6cm9sZS5yZWFkZXJzMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCB\n"
+            + "iQKBgQCu0nOEra8WmmU91u2KrDdcKRDcZn3oSwsZD/55d0bkMwEiMzfQ+xHVRFI1\n"
+            + "PPGjhG167oRhTRKE3a3uakMGmMDM5WWcDLbLo+PHZGqUyhJrvq5BF4VWrUWpY+rp\n"
+            + "paklBTUPY0asmlObVpFBVoujkSyxMIXmOi9qK/O+Bs0BI4jo6QIDAQABoD8wPQYJ\n"
+            + "KoZIhvcNAQkOMTAwLjAsBgNVHREEJTAjgiFhcGkuY29yZXRlY2gtdGVzdC5hd3Mu\n"
+            + "eWFob28uY2xvdWQwDQYJKoZIhvcNAQELBQADgYEAQSEWI7eRM5Xv0oENQ+zzdoQI\n"
+            + "MgzgsXRKGxlZFBpHNvT1R/4pkrU2XdpU1sQP8nrs3Xl+jUd70Ke7K1b2qL6D9op8\n"
+            + "eE/qKXv+mcEBGlSCaJtK9MBUnOh4TVZ3EePxbc41Ha2/zWn+J3RFBMz9i1Nxy+Nq\n"
+            + "s1K+2Aj6SbErxrEunNI=\n-----END CERTIFICATE REQUEST-----\n";
+    final static String ROLE_CERT_CORETECH_REQUEST = "-----BEGIN CERTIFICATE REQUEST-----\n"
+            + "MIIBuDCCASECAQAwPTELMAkGA1UEBhMCVVMxDjAMBgNVBAoTBVlhaG9vMR4wHAYD\n"
+            + "VQQDExVjb3JldGVjaDpyb2xlLnJlYWRlcnMwgZ8wDQYJKoZIhvcNAQEBBQADgY0A\n"
+            + "MIGJAoGBAK7Sc4StrxaaZT3W7YqsN1wpENxmfehLCxkP/nl3RuQzASIzN9D7EdVE\n"
+            + "UjU88aOEbXruhGFNEoTdre5qQwaYwMzlZZwMtsuj48dkapTKEmu+rkEXhVatRalj\n"
+            + "6umlqSUFNQ9jRqyaU5tWkUFWi6ORLLEwheY6L2or874GzQEjiOjpAgMBAAGgOzA5\n"
+            + "BgkqhkiG9w0BCQ4xLDAqMCgGA1UdEQQhMB+CHWFwaS55YnktdXNlcjEuYXdzLnlh\n"
+            + "aG9vLmNsb3VkMA0GCSqGSIb3DQEBCwUAA4GBAKvuws3Ls+kCvRbriP3Abb2ApTuK\n"
+            + "747eax54gzyhGYdVqOKcGATy9S3RoEQaLeB1wMp+aHRHdcZXlEiNIqqzKWTIlr6l\n"
+            + "NUAnfloQjAe8SN4EaZUaUVep76zhpkoXAytfxM/rKWUFzPKPIZ0tv7p1rJsj5USc\n"
+            + "KxZ+SxVr4KD8nM/v\n-----END CERTIFICATE REQUEST-----\n";
     
     private static final String MOCKCLIENTADDR = "10.11.12.13";
     @Mock HttpServletRequest  mockServletRequest;
@@ -3658,5 +3682,147 @@ public class ZTSImplTest {
         list2.add("role2");
         
         assertTrue(zts.compareRoleLists(list1, list2));
+    }
+    
+    @Test
+    public void testValidateRoleCertificateRequestMismatchRole() throws IOException {
+        
+        Path path = Paths.get("src/test/resources/valid_email.csr");
+        String csr = new String(Files.readAllBytes(path));
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
+        
+        List<String> roles = Arrays.asList("writer");
+        assertFalse(zts.validateRoleCertificateRequest(certReq, "sports", roles, "sports.scores"));
+    }
+    
+    @Test
+    public void testValidateRoleCertificateRequestMismatchEmail() throws IOException {
+        
+        Path path = Paths.get("src/test/resources/valid_email.csr");
+        String csr = new String(Files.readAllBytes(path));
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
+        
+        List<String> roles = Arrays.asList("readers");
+        assertFalse(zts.validateRoleCertificateRequest(certReq, "sports", roles, "sports.standings"));
+    }
+    
+    @Test
+    public void testValidateRoleCertificateRequestNoEmail() throws IOException {
+        
+        Path path = Paths.get("src/test/resources/valid_noemail.csr");
+        String csr = new String(Files.readAllBytes(path));
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
+        
+        List<String> roles = Arrays.asList("readers");
+        assertTrue(zts.validateRoleCertificateRequest(certReq, "sports", roles, "no-email"));
+    }
+    
+    @Test
+    public void testValidateRoleCertificateRequest() throws IOException {
+        
+        Path path = Paths.get("src/test/resources/valid_email.csr");
+        String csr = new String(Files.readAllBytes(path));
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
+        
+        List<String> roles = Arrays.asList("readers");
+        assertTrue(zts.validateRoleCertificateRequest(certReq, "sports", roles, "sports.scores"));
+    }
+    
+    @Test
+    public void testGetRoleTokenCert() throws Exception{
+
+        // this csr is for sports:role.readers role
+        RoleCertificateRequest req = new RoleCertificateRequest()
+                .setCsr(ROLE_CERT_CORETECH_REQUEST).setExpiryTime(Long.valueOf(3600));
+        
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        File caCert = new File("src/test/resources/valid_cn_x509.cert");
+        X509Certificate caCertificate = Crypto.loadX509Certificate(caCert);
+        
+        File caKey = new File("src/test/resources/private_encrypted.key");
+        PrivateKey caPrivateKey = Crypto.loadPrivateKey(caKey, "athenz");
+        CertSigner certSigner = new MockCertSigner(caPrivateKey, caCertificate);
+
+        CloudStore cloudStore = new MockCloudStore(certSigner);
+        store.setCloudStore(cloudStore);
+        zts.cloudStore = cloudStore;
+        
+        Principal principal = SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        RoleToken roleToken = zts.postRoleCertificateRequest(context, "coretech",
+                "readers", req);
+        assertNotNull(roleToken);
+        assertEquals(roleToken.getExpiryTime(), TimeUnit.SECONDS.convert(30, TimeUnit.DAYS));
+    }
+    
+    @Test
+    public void testGetRoleTokenCertInvalidRequests() throws Exception{
+
+        // this csr is for sports:role.readers role
+        RoleCertificateRequest req = new RoleCertificateRequest()
+                .setCsr(ROLE_CERT_CORETECH_REQUEST).setExpiryTime(Long.valueOf(3600));
+        
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        // this time we're passing an invalid role name so we should
+        // get no accss - 403
+        
+        try {
+            zts.postRoleCertificateRequest(context, "coretech", "unknownrole", req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+        
+        // this time we're passing an role name that the user has access to
+        // but it's not the readers role as in the csr
+        
+        try {
+            zts.postRoleCertificateRequest(context, "coretech", "writers", req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+        
+        // this time we're passing unknown domain
+        
+        try {
+            zts.postRoleCertificateRequest(context, "unknown-domain", "readers", req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+    }
+    
+    @Test
+    public void testGetRoleTokenCertMismatchDomain() throws Exception{
+
+        RoleCertificateRequest req = new RoleCertificateRequest()
+                .setCsr(ROLE_CERT_DB_REQUEST).setExpiryTime(Long.valueOf(3600));
+        
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        // this time we're passing an invalid role name
+        
+        try {
+            zts.postRoleCertificateRequest(context, "coretech", "readers", req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
     }
 }

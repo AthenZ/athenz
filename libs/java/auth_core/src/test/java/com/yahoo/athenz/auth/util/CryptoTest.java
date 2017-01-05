@@ -18,6 +18,7 @@ package com.yahoo.athenz.auth.util;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
@@ -26,12 +27,16 @@ import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 
 import static org.testng.Assert.*;
 
+import org.bouncycastle.asn1.DERIA5String;
+import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.auth.util.Crypto;
@@ -499,7 +504,8 @@ public class CryptoTest {
     }
 
     @Test
-    public void testCanonical() throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+    public void testCanonical() throws NoSuchMethodException, SecurityException, IllegalAccessException,
+            IllegalArgumentException, InvocationTargetException {
         Class<Crypto> c = Crypto.class;
         Crypto check = new Crypto();
 
@@ -512,5 +518,68 @@ public class CryptoTest {
         az.add("aa");
         a = (Object) m.invoke(check, az);
         assertNotNull(a);
+    }
+    
+    @DataProvider
+    public Object[][] x500Principal() {
+        return new Object[][] {
+                {"CN=athenzcompany.com,O=foo", false},
+                {"CDDN=athenzcompany.com", true},
+            };
+    }
+
+    @Test(dataProvider = "x500Principal")
+    public void testX509CSRrequest(String x500Principal, boolean badRequest) throws Exception{
+        PublicKey publicKey = Crypto.loadPublicKey(rsaPublicKey);
+        PrivateKey privateKey = Crypto.loadPrivateKey(rsaPrivateKey);
+        String certRequest = null;
+        GeneralName otherName1 = new GeneralName(GeneralName.otherName, new DERIA5String("role1"));
+        GeneralName otherName2 = new GeneralName(GeneralName.otherName, new DERIA5String("role2"));
+        GeneralName[] sanArray = new GeneralName[]{otherName1, otherName2};
+        try {
+            certRequest = Crypto.generateX509CSR(privateKey, publicKey, x500Principal, sanArray);
+        } catch (Exception e){
+            if (!badRequest){
+                fail("Should not have failed to create csr");
+            }
+        }
+        if (!badRequest){
+            //Now validate the csr
+            Crypto.getPKCS10CertRequest(certRequest);
+        }
+    }
+    
+    @Test
+    public void testExtractX509CertCommonName() throws Exception, IOException {
+        
+        try (InputStream inStream = new FileInputStream("src/test/resources/valid_cn_x509.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+            
+            String cn = Crypto.extractX509CertCommonName(cert);
+            assertEquals("athenz.syncer", cn);
+        }
+    }
+    
+    @Test
+    public void testExtractCsrFieldsNoRfc822() throws IOException {
+        
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String csr = new String(Files.readAllBytes(path));
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
+
+        assertEquals(Crypto.extractX509CSRCommonName(certReq), "athenz.syncer");
+        assertNull(Crypto.extractX509CSREmail(certReq));
+    }
+    
+    @Test
+    public void testExtractCsrFieldsWithRfc822() throws IOException {
+        
+        Path path = Paths.get("src/test/resources/valid_email.csr");
+        String csr = new String(Files.readAllBytes(path));
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
+
+        assertEquals(Crypto.extractX509CSRCommonName(certReq), "sports:role.readers");
+        assertEquals(Crypto.extractX509CSREmail(certReq), "sports.scores@aws.yahoo.cloud");
     }
 }

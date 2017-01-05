@@ -23,9 +23,26 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.DERIA5String;
+import org.bouncycastle.asn1.pkcs.Attribute;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
+import org.bouncycastle.asn1.x500.RDN;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.bouncycastle.asn1.x500.style.IETFUtils;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.Extensions;
+import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.GeneralNames;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -47,10 +64,10 @@ import org.testng.annotations.Test;
 
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
-import com.yahoo.athenz.auth.ServiceIdentityProvider;
 import com.yahoo.athenz.auth.impl.PrincipalAuthority;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.impl.SimpleServiceIdentityProvider;
+import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.sia.impl.SIAClient;
 import com.yahoo.rdl.Timestamp;
 
@@ -62,6 +79,8 @@ public class ZTSClientTest {
     public void init() {
         System.setProperty(ZTSClient.ZTS_CLIENT_PROP_PREFETCH_SLEEP_INTERVAL,  "5");
         System.setProperty(ZTSClient.ZTS_CLIENT_PROP_PREFETCH_AUTO_ENABLE,  "false");
+        System.setProperty(ZTSClient.ZTS_CLIENT_PROP_X509CSR_DN, "ou=eng,o=athenz,c=us");
+        System.setProperty(ZTSClient.ZTS_CLIENT_PROP_X509CSR_DOMAIN, "athenz.cloud");
     }
     
     @AfterMethod
@@ -2215,5 +2234,68 @@ public class ZTSClientTest {
         
         assertFalse(hostnameVerifier.verify("unknown", session));
         client.close();
+    }
+    
+    @Test
+    public void testPostRoleCertificateRequest() {
+        Principal principal = SimplePrincipal.create("user_domain", "user", "auth_creds", PRINCIPAL_AUTHORITY);
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        RoleCertificateRequest req = new RoleCertificateRequest().setCsr("csr");
+        RoleToken roleToken = client.postRoleCertificateRequest("coretech", "role1", req);
+        assertNotNull(roleToken);
+        
+        try {
+            client.postRoleCertificateRequest("exc", "no-role", req);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+        
+        try {
+            client.postRoleCertificateRequest("good-domain", "no-role", req);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+        client.close();
+    }
+    
+    @Test
+    public void testGenerateRoleCertificateRequest() {
+        
+        File privkey = new File("./src/test/resources/test_private_k0.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(privkey);
+        
+        File pubKey = new File("./src/test/resources/test_public_k0.pem");
+        PublicKey publicKey = Crypto.loadPublicKey(pubKey);
+
+        RoleCertificateRequest req = ZTSClient.generateRoleCertificateRequest("coretech",
+                "test", "sports", "readers", privateKey, publicKey, "aws", 3600);
+        assertNotNull(req);
+        
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(req.getCsr());
+        X500Name x500name = certReq.getSubject();
+        RDN cnRdn = x500name.getRDNs(BCStyle.CN)[0];
+        assertEquals("sports:role.readers", IETFUtils.valueToString(cnRdn.getFirst().getValue()));
+
+        String rfc822 = null;
+        Attribute[] attributes = certReq.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);
+        for (Attribute attribute : attributes) {
+            for (ASN1Encodable value : attribute.getAttributeValues()) {
+                Extensions extensions = Extensions.getInstance(value);
+                GeneralNames gns = GeneralNames.fromExtensions(extensions, Extension.subjectAlternativeName);
+                for (GeneralName name : gns.getNames()) {
+                    if (name.getTagNo() == GeneralName.rfc822Name) {
+                        rfc822 = (((DERIA5String) name.getName()).getString());
+                        break;
+                    }
+                }
+            }
+        }
+        assertNotNull(rfc822);
+        assertEquals("coretech.test@aws.athenz.cloud", rfc822);
     }
 }

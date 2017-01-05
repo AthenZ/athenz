@@ -157,6 +157,34 @@ public class ZTSResources {
         }
     }
 
+    @POST
+    @Path("/domain/{domainName}/role/{roleName}/token")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public RoleToken postRoleCertificateRequest(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, RoleCertificateRequest req) {
+        try {
+            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context.authenticate();
+            RoleToken e = this.delegate.postRoleCertificateRequest(context, domainName, roleName, req);
+            return e;
+        } catch (ResourceException e) {
+            int code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource postRoleCertificateRequest");
+                throw typedException(code, e, ResourceError.class);
+            }
+        }
+    }
+
     @GET
     @Path("/access/domain/{domainName}/role/{roleName}/principal/{principal}")
     @Produces(MediaType.APPLICATION_JSON)

@@ -18,6 +18,7 @@ public interface ZTSHandler {
     public HostServices getHostServices(ResourceContext context, String host);
     public void getDomainSignedPolicyData(ResourceContext context, String domainName, String matchingTag, GetDomainSignedPolicyDataResult result);
     public RoleToken getRoleToken(ResourceContext context, String domainName, String role, Integer minExpiryTime, Integer maxExpiryTime, String proxyForPrincipal);
+    public RoleToken postRoleCertificateRequest(ResourceContext context, String domainName, String roleName, RoleCertificateRequest req);
     public Access getAccess(ResourceContext context, String domainName, String roleName, String principal);
     public RoleAccess getRoleAccess(ResourceContext context, String domainName, String principal);
     public TenantDomains getTenantDomains(ResourceContext context, String providerDomainName, String userName, String roleName, String serviceName);

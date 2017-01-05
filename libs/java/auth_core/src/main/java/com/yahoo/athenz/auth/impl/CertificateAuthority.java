@@ -17,15 +17,12 @@ package com.yahoo.athenz.auth.impl;
 
 import java.security.cert.X509Certificate;
 
-import org.bouncycastle.asn1.x500.RDN;
-import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.asn1.x500.style.BCStyle;
-import org.bouncycastle.asn1.x500.style.IETFUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.util.Crypto;
 
 public class CertificateAuthority implements Authority {
 
@@ -55,30 +52,6 @@ public class CertificateAuthority implements Authority {
         return CredSource.CERTIFICATE;
     }
     
-    String extractX509CertCN(X509Certificate x509Cert) {
-        
-        String cn = null;
-        try {
-            String principalName = x509Cert.getSubjectX500Principal().getName();
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("CertificateAuthority:authenticate: TLS Certificate Principal: " + principalName);
-            }
-            if (principalName != null && !principalName.isEmpty()) {
-                
-                // in case there are multiple CNs, we're only looking at the first one
-                
-                X500Name x500name = new X500Name(x509Cert.getSubjectX500Principal().getName());
-                RDN cnRdn = x500name.getRDNs(BCStyle.CN)[0];
-                cn = IETFUtils.valueToString(cnRdn.getFirst().getValue());
-            }
-        } catch (Exception ex) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("CertificateAuthority:authenticate: Unable to extract principal", ex);
-            }
-        }
-        return cn;
-    }
-    
     @Override
     public Principal authenticate(X509Certificate[] certs, StringBuilder errMsg) {
 
@@ -101,7 +74,7 @@ public class CertificateAuthority implements Authority {
         }
         
         X509Certificate x509Cert = certs[0];
-        String principalName = extractX509CertCN(x509Cert);
+        String principalName = Crypto.extractX509CertCommonName(x509Cert);
         if (principalName == null || principalName.isEmpty()) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("CertificateAuthority:authenticate: Certificate principal is empty");

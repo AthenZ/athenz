@@ -16,6 +16,7 @@
 package com.yahoo.athenz.zts.utils;
 
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,10 +28,6 @@ import com.yahoo.athenz.zts.Identity;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.cert.CertSigner;
 import com.yahoo.athenz.zts.store.DataStore;
-
-import javax.naming.InvalidNameException;
-import javax.naming.ldap.LdapName;
-import javax.naming.ldap.Rdn;
 
 public class ZTSUtils {
 
@@ -154,52 +151,50 @@ public class ZTSUtils {
 
         return true;
     }
-
-    public static boolean validateCertificateRequest(PKCS10CertificationRequest certReq, String serviceYrn) {
+    
+    public static boolean validateCertificateRequest(PKCS10CertificationRequest certReq, String cn) {
+        
         String cnCertReq = null;
         try {
-            LdapName ldapDN = new LdapName(certReq.getSubject().toString());
-            for (Rdn rdn: ldapDN.getRdns()) {
-                if (rdn.getType().equalsIgnoreCase("cn")) {
-                    cnCertReq = (String) rdn.getValue();
-                    break;
-                }
-            }
-        } catch (InvalidNameException ex) {
-            LOGGER.error("YSvcCertStore::validateCertificateRequest - unable to extract csr cn", ex);
-            return false;
+            cnCertReq = Crypto.extractX509CSRCommonName(certReq);
+        } catch (Exception ex) {
+            
+            // we want to catch all the exceptions here as we want to
+            // handle all the errors and not let container to return
+            // standard server error
+            
+            LOGGER.error("validateCertificateRequest: unable to extract csr cn", ex);
         }
-
+        
         if (cnCertReq == null) {
-            LOGGER.error("YSvcCertStore::validateCertificateRequest - unable to extract csr cn: "
+            LOGGER.error("validateCertificateRequest - unable to extract csr cn: "
                     + certReq.toString());
             return false;
         }
 
-        if (!cnCertReq.equalsIgnoreCase(serviceYrn)) {
-            LOGGER.error("YSvcCertStore::validateCertificateRequest - cn mismatch: "
-                    + cnCertReq + " vs. " + serviceYrn);
+        if (!cnCertReq.equalsIgnoreCase(cn)) {
+            LOGGER.error("validateCertificateRequest - cn mismatch: "
+                    + cnCertReq + " vs. " + cn);
             return false;
         }
 
         return true;
     }
-
-    public static Identity generateIdentity(CertSigner certSigner, String csr, String serviceYrn,
-            String caPEMCertificate) {
-        
+    
+    public static Identity generateIdentity(CertSigner certSigner, String csr, String cn,
+                                            String caPEMCertificate) {
         // first we need to validate our csr to make sure
         // it contains the right common name
 
         try {
             PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
             if (certReq == null) {
-                LOGGER.error("YSvcCertStore::generateIdentity: unable to parse PKCS10 cert request");
+                LOGGER.error("generateIdentity: unable to parse PKCS10 cert request");
                 return null;
             }
 
-            if (!validateCertificateRequest(certReq, serviceYrn)) {
-                LOGGER.error("YSvcCertStore::generateIdentity: unable to validate PKCS10 cert request");
+            if (!validateCertificateRequest(certReq, cn)) {
+                LOGGER.error("generateIdentity: unable to validate PKCS10 cert request");
                 return null;
             }
 
@@ -209,13 +204,13 @@ public class ZTSUtils {
         }
 
         // generate a certificate for this certificate request
-        
+
         String pemCert = certSigner.generateX509Certificate(csr);
         if (pemCert == null || pemCert.isEmpty()) {
             LOGGER.error("generateIdentity: CertSigner was unable to generate X509 certificate");
             return null;
         }
         
-        return new Identity().setName(serviceYrn).setCertificate(pemCert).setCaCertBundle(caPEMCertificate);
+        return new Identity().setName(cn).setCertificate(pemCert).setCaCertBundle(caPEMCertificate);
     }
 }

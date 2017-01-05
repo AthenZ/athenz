@@ -10,7 +10,7 @@ type RoleToken Struct {
 }
 
 //Return a security token for the specific role in the namespace that 
-//the user can assume. If the role is omitted, then all roles in the
+//the principal can assume. If the role is omitted, then all roles in the
 //namespace that the authenticated user can assume are returned.
 //the caller can specify how long the RoleToken should be valid for
 //by specifying the minExpiryTime and maxExpiryTime parameters. The
@@ -27,6 +27,28 @@ resource RoleToken GET "/domain/{domainName}/token?role={role}&minExpiryTime={mi
     Int32 minExpiryTime (optional); //in seconds min expiry time
     Int32 maxExpiryTime (optional); //in seconds max expiry time
     EntityName proxyForPrincipal (optional); //optional this request is proxy for this principal
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+    }
+}
+
+// RoleCertificateRequest - a certificate signing request
+type RoleCertificateRequest Struct {
+    String csr;
+    Int64 expiryTime;
+}
+
+//Return a TLS certificate for the specific role in the namespace that
+//the principal can assume. Role certificates are valid for 30 days
+//by default
+resource RoleToken POST "/domain/{domainName}/role/{roleName}/token" {
+    DomainName domainName; //name of the domain
+    EntityName roleName; //name of role
+    RoleCertificateRequest req; //csr request
     authenticate;
     exceptions {
         ResourceError BAD_REQUEST;

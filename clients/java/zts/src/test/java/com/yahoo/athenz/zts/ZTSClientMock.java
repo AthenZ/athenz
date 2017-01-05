@@ -307,6 +307,16 @@ public class ZTSClientMock extends ZTSRDLGeneratedClient implements java.io.Clos
     }
 
     @Override
+    public RoleToken postRoleCertificateRequest(String domainName, String roleName, RoleCertificateRequest req) {
+        if (domainName.equals("exc")) {
+            throw new ResourceException(400, "Invalid request");
+        } if (roleName.equals("no-role")) {
+            throw new ResourceException(403, "Forbidden");
+        }
+        return new RoleToken().setToken("x509cert");
+    }
+
+    @Override
     public Access getAccess(String domainName, String roleName, String principal) {
         if (domainName.equals("exc")) {
             throw new ResourceException(400, "Invalid request");

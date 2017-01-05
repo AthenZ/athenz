@@ -632,5 +632,9 @@ public class CloudStore {
     public Identity generateIdentity(String csr, String serviceYrn) {
         return ZTSUtils.generateIdentity(certSigner, csr, serviceYrn, caPEMCertificate);
     }
+    
+    public CertSigner getCertSigner() {
+        return this.certSigner;
+    }
 }
 

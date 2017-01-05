@@ -959,6 +959,59 @@ func (pTypeDef *RoleToken) Validate() error {
 }
 
 //
+// RoleCertificateRequest - RoleCertificateRequest - a certificate signing
+// request
+//
+type RoleCertificateRequest struct {
+	Csr        string `json:"csr"`
+	ExpiryTime int64  `json:"expiryTime"`
+}
+
+//
+// NewRoleCertificateRequest - creates an initialized RoleCertificateRequest instance, returns a pointer to it
+//
+func NewRoleCertificateRequest(init ...*RoleCertificateRequest) *RoleCertificateRequest {
+	var o *RoleCertificateRequest
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(RoleCertificateRequest)
+	}
+	return o
+}
+
+type rawRoleCertificateRequest RoleCertificateRequest
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a RoleCertificateRequest
+//
+func (pTypeDef *RoleCertificateRequest) UnmarshalJSON(b []byte) error {
+	var r rawRoleCertificateRequest
+	err := json.Unmarshal(b, &r)
+	if err == nil {
+		o := RoleCertificateRequest(r)
+		*pTypeDef = o
+		err = pTypeDef.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (pTypeDef *RoleCertificateRequest) Validate() error {
+	if pTypeDef.Csr == "" {
+		return fmt.Errorf("RoleCertificateRequest.csr is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", pTypeDef.Csr)
+		if !val.Valid {
+			return fmt.Errorf("RoleCertificateRequest.csr does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
 // Access - Access can be checked and returned as this resource.
 //
 type Access struct {

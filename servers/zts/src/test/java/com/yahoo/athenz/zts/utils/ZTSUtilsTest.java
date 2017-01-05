@@ -158,7 +158,7 @@ public class ZTSUtilsTest {
         Path path = Paths.get("src/test/resources/valid.csr");
         String csr = new String(Files.readAllBytes(path));
         
-        Identity identity = ZTSUtils.generateIdentity(certSigner, csr, "iaas.athens.syncer", "pem");
+        Identity identity = ZTSUtils.generateIdentity(certSigner, csr, "unknown.syncer", "pem");
         assertNull(identity);
     }
 }

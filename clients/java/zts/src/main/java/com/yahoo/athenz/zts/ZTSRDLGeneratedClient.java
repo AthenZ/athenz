@@ -166,6 +166,25 @@ public class ZTSRDLGeneratedClient {
 
     }
 
+    public RoleToken postRoleCertificateRequest(String domainName, String roleName, RoleCertificateRequest req) {
+        WebTarget target = base.path("/domain/{domainName}/role/{roleName}/token")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("roleName", roleName);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+        }
+        Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(req, "application/json"));
+        int code = response.getStatus();
+        switch (code) {
+        case 200:
+            return response.readEntity(RoleToken.class);
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
     public Access getAccess(String domainName, String roleName, String principal) {
         WebTarget target = base.path("/access/domain/{domainName}/role/{roleName}/principal/{principal}")
             .resolveTemplate("domainName", domainName)

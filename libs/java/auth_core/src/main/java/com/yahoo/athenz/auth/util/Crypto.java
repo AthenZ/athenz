@@ -46,17 +46,26 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 
+import javax.security.auth.x500.X500Principal;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yahoo.rdl.*;
 
+import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.asn1.x500.RDN;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.bouncycastle.asn1.x500.style.IETFUtils;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.Extensions;
+import org.bouncycastle.asn1.x509.ExtensionsGenerator;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.asn1.x509.KeyPurposeId;
@@ -94,10 +103,13 @@ import org.bouncycastle.operator.InputDecryptorProvider;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
 import org.bouncycastle.pkcs.PKCS8EncryptedPrivateKeyInfo;
 import org.bouncycastle.pkcs.PKCSException;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
+import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
 import org.bouncycastle.util.encoders.Base64;
+import org.bouncycastle.util.io.pem.PemObject;
 
 public class Crypto {
     
@@ -695,6 +707,87 @@ public class Crypto {
         }
 
         return null;
+    }
+    
+    public static String extractX509CSRCommonName(PKCS10CertificationRequest certReq) {
+        
+        String cn = null;
+        X500Name x500name = certReq.getSubject();
+        RDN cnRdn = x500name.getRDNs(BCStyle.CN)[0];
+        if (cnRdn != null) {
+            cn = IETFUtils.valueToString(cnRdn.getFirst().getValue());
+        }
+        return cn;
+    }
+    
+    public static String extractX509CSREmail(PKCS10CertificationRequest certReq) {
+        
+        String rfc822 = null;
+        Attribute[] attributes = certReq.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);
+        for (Attribute attribute : attributes) {
+            for (ASN1Encodable value : attribute.getAttributeValues()) {
+                Extensions extensions = Extensions.getInstance(value);
+                GeneralNames gns = GeneralNames.fromExtensions(extensions, Extension.subjectAlternativeName);
+                for (GeneralName name : gns.getNames()) {
+                    if (name.getTagNo() == GeneralName.rfc822Name) {
+                        rfc822 = (((DERIA5String) name.getName()).getString());
+                        break;
+                    }
+                }
+            }
+        }
+        return rfc822;
+    }
+    
+    public static String generateX509CSR(PrivateKey privateKey, PublicKey publicKey,
+            String x500Principal, GeneralName[] SAN) throws OperatorCreationException, IOException {
+
+        // Create Distinguished Name
+
+        X500Principal subject = new X500Principal(x500Principal);
+
+        // Create ContentSigner
+
+        JcaContentSignerBuilder csBuilder = new JcaContentSignerBuilder(Crypto.RSA_SHA256);
+        ContentSigner signer = csBuilder.build(privateKey);
+
+        // Create the CSR
+
+        PKCS10CertificationRequestBuilder p10Builder = new JcaPKCS10CertificationRequestBuilder(
+                subject, publicKey);
+
+        // Add SubjectAlternativeNames (SAN)
+
+        ExtensionsGenerator extGen = new ExtensionsGenerator();
+        GeneralNames subjectAltNames = new GeneralNames(SAN);
+        extGen.addExtension(Extension.subjectAlternativeName, false, subjectAltNames);
+        p10Builder.addAttribute(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest, extGen.generate());
+        PKCS10CertificationRequest csr = p10Builder.build(signer);
+
+        // write to openssl PEM format
+
+        PemObject pemObject = new PemObject("CERTIFICATE REQUEST", csr.getEncoded());
+        StringWriter strWriter;
+        try (JcaPEMWriter pemWriter = new JcaPEMWriter(strWriter = new StringWriter())) {
+            pemWriter.writeObject(pemObject);
+        }
+        return strWriter.toString();
+    }
+    
+    public static String extractX509CertCommonName(X509Certificate x509Cert) {
+        
+        // in case there are multiple CNs, we're only looking at the first one
+
+        String cn = null;
+        String principalName = x509Cert.getSubjectX500Principal().getName();
+        if (principalName != null && !principalName.isEmpty()) {
+            X500Name x500name = new X500Name(principalName);
+            RDN cnRdn = x500name.getRDNs(BCStyle.CN)[0];
+            if (cnRdn != null) {
+                cn = IETFUtils.valueToString(cnRdn.getFirst().getValue());
+            }
+        }
+        return cn;
     }
     
     public static X509Certificate generateX509Certificate(PKCS10CertificationRequest certReq, PrivateKey caPrivateKey,

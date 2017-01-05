@@ -61,20 +61,6 @@ public class CertificateAuthorityTest {
     }
     
     @Test
-    public void testExtractX509CertCN() throws Exception, IOException {
-        CertificateAuthority authority = new CertificateAuthority();
-        authority.initialize();
-        
-        try (InputStream inStream = new FileInputStream("src/test/resources/valid_cn_x509.cert")) {
-            CertificateFactory cf = CertificateFactory.getInstance("X.509");
-            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
-            
-            String cn = authority.extractX509CertCN(cert);
-            assertEquals("athenz.syncer", cn);
-        }
-    }
-    
-    @Test
     public void testAuthenticateCertificate() throws Exception, IOException {
         CertificateAuthority authority = new CertificateAuthority();
         authority.initialize();

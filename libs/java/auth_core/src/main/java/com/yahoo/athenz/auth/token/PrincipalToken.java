@@ -302,7 +302,7 @@ public class PrincipalToken extends Token {
                     " host:" + host +
                     " ip: " + ip +
                     " id: " + keyId +
-                    " keyServic: " + keyService +
+                    " keyService: " + keyService +
                     " originalRequestor: " + originalRequestor +
                     " salt:" + salt +
                     " timestamp:" + timestamp +
