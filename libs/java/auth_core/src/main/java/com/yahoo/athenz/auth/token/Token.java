@@ -17,6 +17,7 @@ package com.yahoo.athenz.auth.token;
 
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +43,10 @@ public class Token {
     protected long timestamp = 0;
     protected String digestAlgorithm = Crypto.SHA256;
     
+    private static final String ATHENZ_PROP_TOKEN_MAX_EXPIRY = "athenz.token_max_expiry";
+    private static final long ATHENZ_TOKEN_MAX_EXPIRY = Long.parseLong(
+            System.getProperty(ATHENZ_PROP_TOKEN_MAX_EXPIRY, Long.toString(TimeUnit.SECONDS.convert(30, TimeUnit.DAYS))));
+
     public void sign(String privKey) throws CryptoException {
         sign(Crypto.loadPrivateKey(privKey));
     }
@@ -103,20 +108,22 @@ public class Token {
         
         long now = System.currentTimeMillis() / 1000;
 
-        /**
-         * make sure the token does not have a timestamp in the future
-         * we'll allow the configured offset between servers
-         */
+        // make sure the token does not have a timestamp in the future
+        // we'll allow the configured offset between servers
 
         if (timestamp != 0 && timestamp - allowedOffset > now) {
             errMsg.append("Token:validate: token=").append(unsignedToken).
                    append(" : has future timestamp=").append(timestamp).
-                   append(" : current time=").append(now);
+                   append(" : current time=").append(now).
+                   append(" : allowed offset=").append(allowedOffset);
             LOG.error(errMsg.toString());
             return false;
         }
 
-        if (expiryTime != 0 && expiryTime < now) {
+        // make sure we don't have unlimited tokens. by default
+        // they should have an expiration date of less than 30 days
+        
+        if (expiryTime < now) {
             errMsg.append("Token:validate: token=").append(unsignedToken).
                    append(" : has expired time=").append(expiryTime).
                    append(" : current time=").append(now);
@@ -124,6 +131,16 @@ public class Token {
             return false;
         }
 
+        if (expiryTime > now + ATHENZ_TOKEN_MAX_EXPIRY + allowedOffset) {
+            errMsg.append("Token:validate: token=").append(unsignedToken).
+                append(" : expires too far in the future=").append(expiryTime).
+                append(" : current time=").append(now).
+                append(" : max expiry=").append(ATHENZ_TOKEN_MAX_EXPIRY).
+                append(" : allowed offset=").append(allowedOffset);
+            LOG.error(errMsg.toString());
+            return false;
+        }
+        
         boolean verified = false; // fail safe
         try {
             verified = Crypto.verify(unsignedToken, publicKey, signature, digestAlgorithm);

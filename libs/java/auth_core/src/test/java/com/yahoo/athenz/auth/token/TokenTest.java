@@ -18,6 +18,7 @@ package com.yahoo.athenz.auth.token;
 import static org.testng.Assert.*;
 
 import java.security.PublicKey;
+import java.util.concurrent.TimeUnit;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -42,6 +43,7 @@ public class TokenTest {
     
     private String servicePrivateKeyStringK0 = null;
     private String servicePrivateKeyStringK1 = null;
+    private String servicePublicKeyStringK0 = null;
 
     @BeforeTest
     private void loadKeys() throws IOException {
@@ -49,6 +51,9 @@ public class TokenTest {
         Path path = Paths.get("./src/test/resources/fantasy_private_k0.key");
         servicePrivateKeyStringK0 = new String(Files.readAllBytes(path));
 
+        path = Paths.get("./src/test/resources/fantasy_public_k0.key");
+        servicePublicKeyStringK0 = new String(Files.readAllBytes(path));
+        
         path = Paths.get("./src/test/resources/fantasy_private_k1.key");
         servicePrivateKeyStringK1 = new String(Files.readAllBytes(path));
     }
@@ -58,12 +63,11 @@ public class TokenTest {
         PrincipalToken token = new PrincipalToken.Builder(svcVersion, svcDomain, svcName)
             .host(host).salt(salt).expirationWindow(expirationTime).build();
         
-        assertFalse(token.validate(servicePrivateKeyStringK0, 3600));
-
-        assertFalse(token.validate(servicePrivateKeyStringK0, 3600, null));
+        assertFalse(token.validate(servicePublicKeyStringK0, 3600));
+        assertFalse(token.validate(servicePublicKeyStringK0, 3600, null));
 
         StringBuilder errMsg = new StringBuilder();
-        assertFalse(token.validate(servicePrivateKeyStringK0, 3600, errMsg));
+        assertFalse(token.validate(servicePublicKeyStringK0, 3600, errMsg));
         assertTrue(!errMsg.toString().isEmpty());
     }
     
@@ -71,7 +75,7 @@ public class TokenTest {
     public void testTokenValidateNullData() throws CryptoException {
         
         Token token = new Token();
-        assertFalse(token.validate(servicePrivateKeyStringK0, 3600));
+        assertFalse(token.validate(servicePublicKeyStringK0, 3600));
     }
     
     @Test
@@ -82,12 +86,25 @@ public class TokenTest {
             .host(host).salt(salt).issueTime(timestamp).expirationWindow(expirationTime).build();
         token.sign(servicePrivateKeyStringK0);
 
-        assertFalse(token.validate(servicePrivateKeyStringK0, 3600));
+        assertFalse(token.validate(servicePublicKeyStringK0, 3600));
 
         timestamp = System.currentTimeMillis() + 1000000;
         token.setTimeStamp(timestamp,1000000);
         PublicKey pubkey = Mockito.mock(PublicKey.class);
-        assertFalse(token.validate(pubkey, 3600,null));
+        assertFalse(token.validate(pubkey, 3600, null));
+    }
+    
+    @Test
+    public void testTokenValidateTooFarExpiryTimestamp() throws CryptoException {
+        
+        long timestamp = System.currentTimeMillis() / 1000;
+        long expiration = TimeUnit.SECONDS.convert(30, TimeUnit.DAYS) + 11;
+        PrincipalToken token = new PrincipalToken.Builder(svcVersion, svcDomain, svcName)
+            .host(host).salt(salt).issueTime(timestamp).expirationWindow(expiration).build();
+        token.sign(servicePrivateKeyStringK0);
+
+        assertFalse(token.validate(servicePublicKeyStringK0, 5));
+        assertTrue(token.validate(servicePublicKeyStringK0, 20));
     }
     
     @Test
@@ -173,9 +190,6 @@ public class TokenTest {
     @Test
     public void testValidateFail() {
         Token token = new Token();
-        
-        PublicKey pubkey = null;
-        
-        assertFalse(token.validate(pubkey, 3600,null));
+        assertFalse(token.validate((PublicKey) null, 3600,null));
     }
 }
