@@ -50,7 +50,7 @@ public class ZMSAuthorizerTest {
     public void testAuthorizer() {
 
         ZMSClient client = getClient(systemAdminUser);
-        String domain = "AuthorizerDom1";
+        String domain = "authorizerdom1";
         ZMSAuthorizer authorizer = new ZMSAuthorizer(zmsUrl, domain);
         assertNotNull(authorizer);
 
@@ -60,10 +60,10 @@ public class ZMSAuthorizerTest {
         Principal p2 = createPrincipal("user2");
         Principal p3 = createPrincipal("user3");
 
-        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
-        client.setZMSRDLGeneratedClient(c);
+        ZMSRDLGeneratedClient zmsRdlClient = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(zmsRdlClient);
         Domain domainMock = Mockito.mock(Domain.class);
-        Mockito.when(c.postTopLevelDomain(Mockito.anyString(), Mockito.any(TopLevelDomain.class)))
+        Mockito.when(zmsRdlClient.postTopLevelDomain(Mockito.anyString(), Mockito.any(TopLevelDomain.class)))
                 .thenReturn(domainMock);
 
         setupAccess(client, domain);
@@ -72,10 +72,13 @@ public class ZMSAuthorizerTest {
         ZMSClient mockZMSClient = Mockito.mock(ZMSClient.class);
         authorizer.setZMSClient(mockZMSClient);
         Access accessMock = Mockito.mock(Access.class);
-        Mockito.when(mockZMSClient.getAccess("UPDATE", "AuthorizerDom1:resource1", "AuthorizerDom1"))
-                .thenReturn(accessMock, accessMock, accessMock);
-        Mockito.when(accessMock.getGranted()).thenReturn(true, true, false, false, true, true);
-        Mockito.when(c.getAccess("UPDATE", "AuthorizerDom1:resource1", "AuthorizerDom1", null)).thenReturn(accessMock);
+        Mockito.when(mockZMSClient.getAccess("UPDATE", "authorizerdom1:resource1", "authorizerdom1"))
+            .thenReturn(accessMock);
+        Mockito.when(mockZMSClient.getAccess("UPDATE", "authorizerdom1:resource1", null))
+            .thenReturn(accessMock);
+        Mockito.when(accessMock.getGranted()).thenReturn(true, true, true, false, false, false, true, true);
+        Mockito.when(zmsRdlClient.getAccess("UPDATE", "authorizerdom1:resource1", "authorizerdom1", null))
+                .thenReturn(accessMock);
 
         boolean access = authorizer.access("UPDATE", "resource1", p1, domain);
         assertTrue(access);
@@ -86,11 +89,23 @@ public class ZMSAuthorizerTest {
         access = authorizer.access("UPDATE", "resource1", principalToken1, domain);
         assertTrue(access);
         
+        // finally testing with role token as well
+        
+        String roleToken1 = "v=Z1;d=authorizerdom1;r=role1;s=signature";
+        access = authorizer.access("UPDATE", "resource1", roleToken1, null);
+        assertTrue(access);
+
+        // now try with other users
+        
         access = authorizer.access("UPDATE", "resource1", p2, domain);
         assertFalse(access);
 
         String principalToken2 = "v=U1;d=user;n=user2;s=signature";
         access = authorizer.access("UPDATE", "resource1", principalToken2, domain);
+        assertFalse(access);
+
+        String roleToken2 = "v=Z1;d=authorizerdom1;r=role2;s=signature";
+        access = authorizer.access("UPDATE", "resource1", roleToken2, null);
         assertFalse(access);
 
         access = authorizer.access("UPDATE", "resource1", p3, domain);
@@ -118,7 +133,7 @@ public class ZMSAuthorizerTest {
         }
         
         TopLevelDomain topLevelDomainMock = Mockito.mock(TopLevelDomain.class);
-        Mockito.when(c.deleteTopLevelDomain(domain, AUDIT_REF)).thenReturn(topLevelDomainMock);
+        Mockito.when(zmsRdlClient.deleteTopLevelDomain(domain, AUDIT_REF)).thenReturn(topLevelDomainMock);
         cleanUpAccess(domain);
     }
 
@@ -130,7 +145,7 @@ public class ZMSAuthorizerTest {
     }
 
     @Test
-    public void TestAddCredentials() {
+    public void testAddCredentials() {
         ZMSClient client = getClient(systemAdminUser);
         String domain = "AuthorizerDom5";
         ZMSAuthorizer authorizer = new ZMSAuthorizer(zmsUrl, null);
@@ -180,7 +195,7 @@ public class ZMSAuthorizerTest {
     }
 
     @Test
-    public void TestAuthorizerNoDomain() {
+    public void testAuthorizerNoDomain() {
         ZMSClient client = getClient(systemAdminUser);
         String domain = "AuthorizerDom3";
         ZMSAuthorizer authorizer = new ZMSAuthorizer(zmsUrl, null);
@@ -223,7 +238,7 @@ public class ZMSAuthorizerTest {
     }
 
     @Test
-    public void TestAuthorizerResourceWithDomain() {
+    public void testAuthorizerResourceWithDomain() {
         ZMSClient client = getClient(systemAdminUser);
         String domain = "AuthorizerDom4";
         ZMSAuthorizer authorizer = new ZMSAuthorizer(zmsUrl, domain);
@@ -262,9 +277,21 @@ public class ZMSAuthorizerTest {
         TopLevelDomain topLevelDomainMock = Mockito.mock(TopLevelDomain.class);
         Mockito.when(c.deleteTopLevelDomain(domain, AUDIT_REF)).thenReturn(topLevelDomainMock);
         cleanUpAccess(domain);
-
     }
 
+    @Test
+    public void testIsRoleToken() {
+        String domain = "AuthorizerRoleToken";
+        ZMSAuthorizer authorizer = new ZMSAuthorizer(zmsUrl, domain);
+        
+        assertTrue(authorizer.isRoleToken("v=Z1;d=domain;r=roles;s=signature"));
+        assertTrue(authorizer.isRoleToken("d=domain;r=roles;v=Z1;s=signature"));
+        assertFalse(authorizer.isRoleToken("v=S1;d=domain;n=server;s=signature"));
+        assertFalse(authorizer.isRoleToken("d=domain;r=roles;s=signature"));
+        assertFalse(authorizer.isRoleToken("vZ1"));
+        authorizer.close();
+    }
+    
     private Role createRoleObject(ZMSClient client, String domainName, String roleName, String trust, String member1,
             String member2) {
 

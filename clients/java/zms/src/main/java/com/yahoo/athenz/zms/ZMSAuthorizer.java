@@ -22,9 +22,11 @@ import org.slf4j.LoggerFactory;
 
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.impl.RoleAuthority;
 import com.yahoo.athenz.auth.impl.PrincipalAuthority;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.token.PrincipalToken;
+import com.yahoo.athenz.auth.token.RoleToken;
 
 public class ZMSAuthorizer implements Authorizer, Closeable {
     
@@ -33,6 +35,7 @@ public class ZMSAuthorizer implements Authorizer, Closeable {
     protected ZMSClient client = null; 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZMSAuthorizer.class);
     private static final PrincipalAuthority PRINCIPAL_AUTHORITY = new PrincipalAuthority();
+    private static final RoleAuthority ROLE_AUTHORITY = new RoleAuthority();
     
     /**
      * Constructs a new ZMSAuthorizer object with the given resource service domain
@@ -75,22 +78,35 @@ public class ZMSAuthorizer implements Authorizer, Closeable {
         close();
         this.client = client;
     }
-   
+    
     /**
      * Requests the ZMS to indicate whether or not the specific request for the
      * specified resource with authentication details will be granted or not.
      * @param action value of the action to be carried out (e.g. "UPDATE", "DELETE")
      * @param resource resource value
-     * @param principalToken principal token (NToken) that will be authenticated and checked for
-     *        requested access
+     * @param token either principal token (NToken) or role token (ZToken) that will
+     *        be authenticated and checked for requested access
      * @param trustDomain (optional - usually null) if the access checks involves cross
      *        domain check only check the specified trusted domain and ignore all others
+     *        If the token is a role token, this argument must be null.
      * @return boolean indicating whether or not the request will be granted or not
      */
-    public boolean access(String action, String resource, String principalToken, String trustDomain) {
-        PrincipalToken token = new PrincipalToken(principalToken);
-        Principal principal = SimplePrincipal.create(token.getDomain(), token.getName(),
-                token.getSignedToken(), 0, PRINCIPAL_AUTHORITY);
+    public boolean access(String action, String resource, String token, String trustDomain) {
+        
+        // first let's find out what type of token we're given
+        // either Role Token with version Z1 or principal token
+        
+        Principal principal = null;
+        if (isRoleToken(token)) {
+            RoleToken roleToken = new RoleToken(token);
+            principal = SimplePrincipal.create(roleToken.getDomain(),
+                    roleToken.getSignedToken(), roleToken.getRoles(), ROLE_AUTHORITY);
+        } else {
+            PrincipalToken principalToken = new PrincipalToken(token);
+            principal = SimplePrincipal.create(principalToken.getDomain(),
+                    principalToken.getName(), principalToken.getSignedToken(),
+                    0, PRINCIPAL_AUTHORITY);
+        }
         return access(action, resource, principal, trustDomain);
     }
     
@@ -135,5 +151,21 @@ public class ZMSAuthorizer implements Authorizer, Closeable {
             th.printStackTrace();
             throw new ZMSClientException(ZMSClientException.FORBIDDEN, "Cannot contact ZMS");
         }
+    }
+    
+    boolean isRoleToken(String token) {
+        
+        // we're only looking for the version component
+        // which is usually the first one so we're not
+        // going to parse the full token
+        
+        boolean roleToken = false;
+        for (String item : token.split(";")) {
+	    if ("v=Z1".equalsIgnoreCase(item)) {
+		roleToken = true;
+		break;
+            }
+        }
+        return roleToken;
     }
 }
