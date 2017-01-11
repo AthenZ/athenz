@@ -34,6 +34,7 @@ import java.util.Date;
 import static org.testng.Assert.*;
 
 import org.bouncycastle.asn1.DERIA5String;
+import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.testng.annotations.DataProvider;
@@ -86,6 +87,21 @@ public class CryptoTest {
     }
 
     @Test
+    public void testSignVerifyExtractedRSAKey() {
+        
+        PrivateKey privateKey = Crypto.loadPrivateKey(rsaPrivateKey);
+        assertNotNull(privateKey);
+        
+        String signature = Crypto.sign(serviceToken, privateKey);
+        assertEquals(signature, serviceRSASignature);
+        
+        PublicKey publicKey = Crypto.extractPublicKey(privateKey);
+        assertNotNull(publicKey);
+        
+        assertTrue(Crypto.verify(serviceToken, publicKey, signature));
+    }
+    
+    @Test
     public void testSignVerifyRSAKey_Invalid() {
         
         PublicKey publicKey = Crypto.loadPublicKey(rsaPublicInvalidKey);
@@ -112,6 +128,20 @@ public class CryptoTest {
         String signature = Crypto.sign(serviceToken, privateKey);
         
         PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
+        assertNotNull(publicKey);
+        
+        assertTrue(Crypto.verify(serviceToken, publicKey, signature));
+    }
+    
+    @Test
+    public void testSignVerifyExtractedECKey() {
+        
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        assertNotNull(privateKey);
+        
+        String signature = Crypto.sign(serviceToken, privateKey);
+        
+        PublicKey publicKey = Crypto.extractPublicKey(privateKey);
         assertNotNull(publicKey);
         
         assertTrue(Crypto.verify(serviceToken, publicKey, signature));
@@ -417,7 +447,7 @@ public class CryptoTest {
         PrivateKey caPrivateKey = Crypto.loadPrivateKey(rsaPrivateKey);
 
         try {
-            Crypto.generateX509Certificate(certReq, caPrivateKey, null, 600, true);
+            Crypto.generateX509Certificate(certReq, caPrivateKey, (X500Name) null, 600, true);
             fail();
         } catch (CryptoException ex) {
             assertTrue(true, "Caught excepted exception");
@@ -538,6 +568,26 @@ public class CryptoTest {
         GeneralName[] sanArray = new GeneralName[]{otherName1, otherName2};
         try {
             certRequest = Crypto.generateX509CSR(privateKey, publicKey, x500Principal, sanArray);
+        } catch (Exception e){
+            if (!badRequest){
+                fail("Should not have failed to create csr");
+            }
+        }
+        if (!badRequest){
+            //Now validate the csr
+            Crypto.getPKCS10CertRequest(certRequest);
+        }
+    }
+    
+    @Test(dataProvider = "x500Principal")
+    public void testX509CSRrequestWithPrivateKeyOnly(String x500Principal, boolean badRequest) throws Exception {
+        PrivateKey privateKey = Crypto.loadPrivateKey(rsaPrivateKey);
+        String certRequest = null;
+        GeneralName otherName1 = new GeneralName(GeneralName.otherName, new DERIA5String("role1"));
+        GeneralName otherName2 = new GeneralName(GeneralName.otherName, new DERIA5String("role2"));
+        GeneralName[] sanArray = new GeneralName[]{otherName1, otherName2};
+        try {
+            certRequest = Crypto.generateX509CSR(privateKey, x500Principal, sanArray);
         } catch (Exception e){
             if (!badRequest){
                 fail("Should not have failed to create csr");

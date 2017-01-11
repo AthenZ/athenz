@@ -15,24 +15,12 @@
  */
 package com.yahoo.athenz.zts.cert;
 
-import com.yahoo.athenz.zts.Identity;
-import com.yahoo.athenz.zts.InstanceInformation;
-
-public interface SvcCertStore {
+public interface InstanceIdentityStoreFactory {
 
     /**
-     * Generate Identity for the csr passed.
-     * @param csr Certificate request
-     * @param serviceYrn
-     * @return Identity
+     * Create and return a new instance identity store instance
+     * @param certSigner CertSigner client to use for signing
+     * @return InstanceIdentityStore instance
      */
-    Identity generateIdentity(String csr, String serviceYrn);
-
-    /**
-     * Is the request valid? Is the HostDocument valid and matches the signature
-     * Does the domain match the one in host document
-     * @param instanceInformation
-     * @return boolean true if instanceInformation is valid, false otherwise
-     */
-    boolean isValidRequest(InstanceInformation instanceInformation);
+    public InstanceIdentityStore create(CertSigner certSigner);
 }

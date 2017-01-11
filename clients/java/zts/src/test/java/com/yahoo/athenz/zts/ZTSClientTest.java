@@ -23,18 +23,10 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import org.bouncycastle.asn1.ASN1Encodable;
-import org.bouncycastle.asn1.DERIA5String;
-import org.bouncycastle.asn1.pkcs.Attribute;
-import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x500.style.IETFUtils;
-import org.bouncycastle.asn1.x509.Extension;
-import org.bouncycastle.asn1.x509.Extensions;
-import org.bouncycastle.asn1.x509.GeneralName;
-import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 
 import java.io.ByteArrayInputStream;
@@ -42,7 +34,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -2268,34 +2259,47 @@ public class ZTSClientTest {
         
         File privkey = new File("./src/test/resources/test_private_k0.pem");
         PrivateKey privateKey = Crypto.loadPrivateKey(privkey);
-        
-        File pubKey = new File("./src/test/resources/test_public_k0.pem");
-        PublicKey publicKey = Crypto.loadPublicKey(pubKey);
 
         RoleCertificateRequest req = ZTSClient.generateRoleCertificateRequest("coretech",
-                "test", "sports", "readers", privateKey, publicKey, "aws", 3600);
+                "test", "sports", "readers", privateKey, "aws", 3600);
         assertNotNull(req);
         
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(req.getCsr());
+        assertEquals("sports:role.readers", Crypto.extractX509CSRCommonName(certReq));
+        assertEquals("coretech.test@aws.athenz.cloud", Crypto.extractX509CSREmail(certReq));
+    }
+    
+    @Test
+    public void testGenerateInstanceRefreshRequestTopDomain() {
+        
+        File privkey = new File("./src/test/resources/test_private_k0.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(privkey);
+
+        InstanceRefreshRequest req = ZTSClient.generateInstanceRefreshRequest("coretech",
+                "test", privateKey, "aws", 3600);
+        assertNotNull(req);
+        
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(req.getCsr());
+        assertEquals("coretech.test", Crypto.extractX509CSRCommonName(certReq));
+        assertEquals("test.coretech.aws.athenz.cloud", Crypto.extractX509CSRDnsName(certReq));
+    }
+    
+    @Test
+    public void testGenerateInstanceRefreshRequestSubDomain() {
+        
+        File privkey = new File("./src/test/resources/test_private_k0.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(privkey);
+
+        InstanceRefreshRequest req = ZTSClient.generateInstanceRefreshRequest("coretech.system",
+                "test", privateKey, "aws", 3600);
+        assertNotNull(req);
+        
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(req.getCsr());
+        assertEquals("coretech.system.test", Crypto.extractX509CSRCommonName(certReq));
+
         X500Name x500name = certReq.getSubject();
         RDN cnRdn = x500name.getRDNs(BCStyle.CN)[0];
-        assertEquals("sports:role.readers", IETFUtils.valueToString(cnRdn.getFirst().getValue()));
-
-        String rfc822 = null;
-        Attribute[] attributes = certReq.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);
-        for (Attribute attribute : attributes) {
-            for (ASN1Encodable value : attribute.getAttributeValues()) {
-                Extensions extensions = Extensions.getInstance(value);
-                GeneralNames gns = GeneralNames.fromExtensions(extensions, Extension.subjectAlternativeName);
-                for (GeneralName name : gns.getNames()) {
-                    if (name.getTagNo() == GeneralName.rfc822Name) {
-                        rfc822 = (((DERIA5String) name.getName()).getString());
-                        break;
-                    }
-                }
-            }
-        }
-        assertNotNull(rfc822);
-        assertEquals("coretech.test@aws.athenz.cloud", rfc822);
+        assertEquals("coretech.system.test", IETFUtils.valueToString(cnRdn.getFirst().getValue()));
+        assertEquals("test.coretech-system.aws.athenz.cloud", Crypto.extractX509CSRDnsName(certReq));
     }
 }

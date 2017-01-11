@@ -34,8 +34,8 @@ import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
 import com.yahoo.athenz.zts.cert.CertSigner;
 import com.yahoo.athenz.zts.cert.CertSignerFactory;
-import com.yahoo.athenz.zts.cert.SvcCertStore;
-import com.yahoo.athenz.zts.cert.SvcCertStoreFactory;
+import com.yahoo.athenz.zts.cert.InstanceIdentityStore;
+import com.yahoo.athenz.zts.cert.InstanceIdentityStoreFactory;
 import com.yahoo.athenz.zts.pkey.PrivateKeyStore;
 import com.yahoo.athenz.zts.pkey.PrivateKeyStoreFactory;
 import com.yahoo.athenz.zts.store.ChangeLogStore;
@@ -47,11 +47,11 @@ public class ZTS {
 
     private static final Logger LOG = LoggerFactory.getLogger(ZTS.class);
 
-    static final String ZTS_PRINCIPAL_AUTHORITY_CLASS = "com.yahoo.athenz.auth.impl.PrincipalAuthority";
-    static final String ZTS_CHANGE_LOG_STORE_CLASS = "com.yahoo.athenz.zts.store.file.ZMSFileChangeLogStoreFactory";
-    static final String ZTS_PKEY_STORE_CLASS = "com.yahoo.athenz.zts.pkey.file.FilePrivateKeyStoreFactory";
-    static final String ZTS_CERT_SIGNER_CLASS = "com.yahoo.athenz.zts.cert.impl.YCertSignerFactory";
-    static final String ZTS_SVC_CERT_STORE_CLASS = "com.yahoo.athenz.zts.cert.impl.YSvcCertStoreFactory";
+    static final String ZTS_PRINCIPAL_AUTHORITY_CLASS     = "com.yahoo.athenz.auth.impl.PrincipalAuthority";
+    static final String ZTS_CHANGE_LOG_STORE_CLASS        = "com.yahoo.athenz.zts.store.file.ZMSFileChangeLogStoreFactory";
+    static final String ZTS_PKEY_STORE_CLASS              = "com.yahoo.athenz.zts.pkey.file.FilePrivateKeyStoreFactory";
+    static final String ZTS_CERT_SIGNER_CLASS             = "com.yahoo.athenz.zts.cert.impl.HttpCertSignerFactory";
+    static final String ZTS_INSTANCE_IDENTITY_STORE_CLASS = "com.yahoo.athenz.zts.cert.impl.LocalInstanceIdentityStoreFactory";
 
     // This String is used to create the desired AuditLogMsgBuilder object.
     // Its OK if its null, we will just get the default msg builder.
@@ -160,7 +160,8 @@ public class ZTS {
     
     static CertSigner getCertSigner() {
         
-        String certSignerFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_CLASS, ZTS_CERT_SIGNER_CLASS);
+        String certSignerFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_CLASS,
+                ZTS_CERT_SIGNER_CLASS);
         CertSignerFactory certSignerFactory = null;
         try {
             certSignerFactory = (CertSignerFactory) Class.forName(certSignerFactoryClass).newInstance();
@@ -172,30 +173,32 @@ public class ZTS {
 
         // create our cert signer instance
         
-        return certSignerFactory.create(null);
+        return certSignerFactory.create();
     }
 
-    static SvcCertStore getSvcCertStore(CertSigner certSigner) {
+    static InstanceIdentityStore getInstanceIdentityStore(CertSigner certSigner) {
 
-        String svcCertStoreFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_SVC_CERT_STORE_CLASS, ZTS_SVC_CERT_STORE_CLASS);
-        SvcCertStoreFactory svcCertStoreFactory = null;
+        String instanceIdentityStoreFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_INSTANCE_IDENTITY_STORE_CLASS,
+                ZTS_INSTANCE_IDENTITY_STORE_CLASS);
+        InstanceIdentityStoreFactory instanceIdentityStoreFactory = null;
         try {
-            svcCertStoreFactory = (SvcCertStoreFactory) Class.forName(svcCertStoreFactoryClass).newInstance();
+            instanceIdentityStoreFactory = (InstanceIdentityStoreFactory)
+                    Class.forName(instanceIdentityStoreFactoryClass).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOG.error("Invalid CertSigerFactory class: " + svcCertStoreFactoryClass
+            LOG.error("Invalid InstanceIdentityStoreFactory class: " + instanceIdentityStoreFactoryClass
                     + " error: " + e.getMessage());
             return null;
         }
 
-        // create our svc cert store instance
+        // create our instance identity store instance
 
-        return svcCertStoreFactory.create(certSigner);
+        return instanceIdentityStoreFactory.create(certSigner);
     }
     
     static Metric getMetric() {
         
         String metricFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_METRIC_FACTORY_CLASS, ZTSConsts.ZTS_METRIC_FACTORY_CLASS);
-        boolean statsEnabled      = Boolean.parseBoolean(System.getProperty(ZTSConsts.ZTS_PROP_STATS_ENABLED, "false"));
+        boolean statsEnabled = Boolean.parseBoolean(System.getProperty(ZTSConsts.ZTS_PROP_STATS_ENABLED, "false"));
         if (!statsEnabled && !metricFactoryClass.equals(ZTSConsts.ZTS_METRIC_FACTORY_CLASS)) {
             LOG.warn("Override users metric factory property with default since stats are disabled");
             metricFactoryClass = ZTSConsts.ZTS_METRIC_FACTORY_CLASS;
@@ -306,10 +309,10 @@ public class ZTS {
         
         CloudStore cloudStore = new CloudStore(certSigner);
 
-        // create our SvcCertStore
+        // create our instance identity store
 
-        SvcCertStore svcCertStore = getSvcCertStore(certSigner);
-        if (svcCertStore == null) {
+        InstanceIdentityStore instanceIdentityStore = getInstanceIdentityStore(certSigner);
+        if (instanceIdentityStore == null) {
             return null;
         }
         
@@ -342,7 +345,7 @@ public class ZTS {
         
         ZTSImpl ztsImpl = null;
         try {
-            ztsImpl = new ZTSImpl(serverHostName, dataStore, cloudStore, svcCertStore, metric,
+            ztsImpl = new ZTSImpl(serverHostName, dataStore, cloudStore, instanceIdentityStore, metric,
                     pkey, privKeyId.toString(), AUDITLOG, AUDIT_LOG_MSG_BLDR_CLASS);
             ztsImpl.putAuthorityList(authorities);
         } catch (Exception ex) {

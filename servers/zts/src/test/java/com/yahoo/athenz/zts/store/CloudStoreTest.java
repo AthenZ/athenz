@@ -45,7 +45,7 @@ import com.yahoo.athenz.zts.AWSTemporaryCredentials;
 import com.yahoo.athenz.zts.Identity;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.cert.CertSigner;
-import com.yahoo.athenz.zts.cert.MockCertSigner;
+import com.yahoo.athenz.zts.cert.impl.SelfCertSigner;
 import com.yahoo.athenz.zts.store.CloudStore;
 
 public class CloudStoreTest {
@@ -712,7 +712,7 @@ public class CloudStoreTest {
         
         File caKey = new File("src/test/resources/private_encrypted.key");
         PrivateKey caPrivateKey = Crypto.loadPrivateKey(caKey, "athenz");
-        CertSigner certSigner = new MockCertSigner(caPrivateKey, caCertificate);
+        CertSigner certSigner = new SelfCertSigner(caPrivateKey, caCertificate);
         
         CloudStore cloudStore = new CloudStore(certSigner);
         
@@ -732,7 +732,7 @@ public class CloudStoreTest {
         
         File caKey = new File("src/test/resources/private_encrypted.key");
         PrivateKey caPrivateKey = Crypto.loadPrivateKey(caKey, "athenz");
-        CertSigner certSigner = new MockCertSigner(caPrivateKey, caCertificate);
+        CertSigner certSigner = new SelfCertSigner(caPrivateKey, caCertificate);
 
         CloudStore cloudStore = new CloudStore(certSigner);
         
@@ -749,7 +749,7 @@ public class CloudStoreTest {
         
         File caKey = new File("src/test/resources/private_encrypted.key");
         PrivateKey caPrivateKey = Crypto.loadPrivateKey(caKey, "athenz");
-        CertSigner certSigner = new MockCertSigner(caPrivateKey, caCertificate);
+        CertSigner certSigner = new SelfCertSigner(caPrivateKey, caCertificate);
 
         CloudStore cloudStore = new CloudStore(certSigner);
         

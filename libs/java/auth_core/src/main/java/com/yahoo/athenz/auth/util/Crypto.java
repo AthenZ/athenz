@@ -39,7 +39,9 @@ import java.security.MessageDigest;
 import java.security.SignatureException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.RSAPublicKeySpec;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -92,6 +94,9 @@ import org.bouncycastle.jce.X509KeyUsage;
 import org.bouncycastle.jce.spec.ECParameterSpec;
 import org.bouncycastle.jce.spec.ECPublicKeySpec;
 import org.bouncycastle.jce.spec.ECPrivateKeySpec;
+import org.bouncycastle.math.ec.ECMultiplier;
+import org.bouncycastle.math.ec.ECPoint;
+import org.bouncycastle.math.ec.FixedPointCombMultiplier;
 import org.bouncycastle.openssl.PEMException;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
@@ -528,6 +533,60 @@ public class Crypto {
         }
     }
     
+    public static PublicKey extractPublicKey(PrivateKey privateKey) throws CryptoException {
+        
+        // we only support RSA and ECDSA private keys
+        
+        PublicKey publicKey = null;
+        switch (privateKey.getAlgorithm()) {
+            case RSA:
+                try {
+                    KeyFactory kf = KeyFactory.getInstance(RSA, BC_PROVIDER);
+                    RSAPrivateCrtKey rsaCrtKey = (RSAPrivateCrtKey) privateKey;
+                    RSAPublicKeySpec keySpec = new RSAPublicKeySpec(rsaCrtKey.getModulus(),
+                            rsaCrtKey.getPublicExponent());
+                    publicKey = kf.generatePublic(keySpec);
+                } catch (NoSuchProviderException ex) {
+                    LOG.error("extractPublicKey: RSA - Caught NoSuchProviderException exception", ex);
+                    throw new CryptoException(ex);
+                } catch (NoSuchAlgorithmException ex) {
+                    LOG.error("extractPublicKey: RSA - Caught NoSuchAlgorithmException exception", ex);
+                    throw new CryptoException(ex);
+                } catch (InvalidKeySpecException ex) {
+                    LOG.error("extractPublicKey: RSA - Caught InvalidKeySpecException exception", ex);
+                    throw new CryptoException(ex);
+                }
+                break;
+                
+            case ECDSA:
+                try {
+                    KeyFactory kf = KeyFactory.getInstance(ECDSA, BC_PROVIDER);
+                    BCECPrivateKey ecPrivKey = (BCECPrivateKey) privateKey;
+                    ECMultiplier ecMultiplier = new FixedPointCombMultiplier();
+                    ECParameterSpec ecParamSpec = (ECParameterSpec) ecPrivKey.getParameters();
+                    ECPoint ecPointQ = ecMultiplier.multiply(ecParamSpec.getG(), ecPrivKey.getD());
+                    ECPublicKeySpec keySpec = new ECPublicKeySpec(ecPointQ, ecParamSpec);
+                    publicKey = kf.generatePublic(keySpec);
+                } catch (NoSuchProviderException ex) {
+                    LOG.error("extractPublicKey: ECDSA - Caught NoSuchProviderException exception", ex);
+                    throw new CryptoException(ex);
+                } catch (NoSuchAlgorithmException ex) {
+                    LOG.error("extractPublicKey: ECDSA - Caught NoSuchAlgorithmException exception", ex);
+                    throw new CryptoException(ex);
+                } catch (InvalidKeySpecException ex) {
+                    LOG.error("extractPublicKey: ECDSA - Caught InvalidKeySpecException exception", ex);
+                    throw new CryptoException(ex);
+                }
+                break;
+                
+            default:
+                String msg = "Unsupported Key Algorithm: " + privateKey.getAlgorithm();
+                LOG.error("extractPublicKey: " + msg);
+                throw new CryptoException(msg);
+        }
+        return publicKey;
+    }
+    
     public static PrivateKey loadPrivateKey(String pemEncoded) throws CryptoException {
         return Crypto.loadPrivateKey(new StringReader(pemEncoded), null);
     }
@@ -739,8 +798,36 @@ public class Crypto {
         return rfc822;
     }
     
+    public static String extractX509CSRDnsName(PKCS10CertificationRequest certReq) {
+        
+        String dnsName = null;
+        Attribute[] attributes = certReq.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);
+        for (Attribute attribute : attributes) {
+            for (ASN1Encodable value : attribute.getAttributeValues()) {
+                Extensions extensions = Extensions.getInstance(value);
+                GeneralNames gns = GeneralNames.fromExtensions(extensions, Extension.subjectAlternativeName);
+                for (GeneralName name : gns.getNames()) {
+                    if (name.getTagNo() == GeneralName.dNSName) {
+                        dnsName = (((DERIA5String) name.getName()).getString());
+                        break;
+                    }
+                }
+            }
+        }
+        return dnsName;
+    }
+    
+    public static String generateX509CSR(PrivateKey privateKey, String x500Principal,
+            GeneralName[] sanArray) throws OperatorCreationException, IOException {
+        final PublicKey publicKey = extractPublicKey(privateKey);
+        if (publicKey == null) {
+            throw new CryptoException("Unable to extract public key from private key");
+        }
+        return generateX509CSR(privateKey, publicKey, x500Principal, sanArray);
+    }
+    
     public static String generateX509CSR(PrivateKey privateKey, PublicKey publicKey,
-            String x500Principal, GeneralName[] SAN) throws OperatorCreationException, IOException {
+            String x500Principal, GeneralName[] sanArray) throws OperatorCreationException, IOException {
 
         // Create Distinguished Name
 
@@ -756,12 +843,15 @@ public class Crypto {
         PKCS10CertificationRequestBuilder p10Builder = new JcaPKCS10CertificationRequestBuilder(
                 subject, publicKey);
 
-        // Add SubjectAlternativeNames (SAN)
+        // Add SubjectAlternativeNames (SAN) if specified
 
-        ExtensionsGenerator extGen = new ExtensionsGenerator();
-        GeneralNames subjectAltNames = new GeneralNames(SAN);
-        extGen.addExtension(Extension.subjectAlternativeName, false, subjectAltNames);
-        p10Builder.addAttribute(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest, extGen.generate());
+        if (sanArray != null) {
+            ExtensionsGenerator extGen = new ExtensionsGenerator();
+            GeneralNames subjectAltNames = new GeneralNames(sanArray);
+            extGen.addExtension(Extension.subjectAlternativeName, false, subjectAltNames);
+            p10Builder.addAttribute(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest, extGen.generate());
+        }
+        
         PKCS10CertificationRequest csr = p10Builder.build(signer);
 
         // write to openssl PEM format
@@ -790,8 +880,18 @@ public class Crypto {
         return cn;
     }
     
-    public static X509Certificate generateX509Certificate(PKCS10CertificationRequest certReq, PrivateKey caPrivateKey,
-            X509Certificate caCertificate, int validityTimeout, boolean basicConstraints) {
+    public static X509Certificate generateX509Certificate(PKCS10CertificationRequest certReq,
+            PrivateKey caPrivateKey, X509Certificate caCertificate, int validityTimeout,
+            boolean basicConstraints) {
+        
+        return generateX509Certificate(certReq, caPrivateKey,
+                X500Name.getInstance(caCertificate.getSubjectX500Principal().getEncoded()),
+                validityTimeout, basicConstraints);
+    }
+    
+    public static X509Certificate generateX509Certificate(PKCS10CertificationRequest certReq,
+            PrivateKey caPrivateKey, X500Name issuer, int validityTimeout,
+            boolean basicConstraints) {
         
         // set validity for the given number of minutes from now
         
@@ -809,12 +909,8 @@ public class Crypto {
             PublicKey publicKey = jcaPKCS10CertificationRequest.getPublicKey();
             
             X509v3CertificateBuilder caBuilder = new JcaX509v3CertificateBuilder(
-                    caCertificate,
-                    BigInteger.valueOf(System.currentTimeMillis()),
-                    notBefore,
-                    notAfter,
-                    certReq.getSubject(),
-                    publicKey)
+                    issuer, BigInteger.valueOf(System.currentTimeMillis()),
+                    notBefore, notAfter, certReq.getSubject(), publicKey)
                 .addExtension(Extension.basicConstraints, false,
                         new BasicConstraints(basicConstraints))
                 .addExtension(Extension.keyUsage, true,

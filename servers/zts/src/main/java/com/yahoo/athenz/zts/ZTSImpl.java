@@ -37,6 +37,7 @@ import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.CertificateAuthority;
+import com.yahoo.athenz.auth.impl.PrincipalAuthority;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.server.log.AuditLogFactory;
@@ -48,7 +49,7 @@ import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.cert.CertSigner;
-import com.yahoo.athenz.zts.cert.SvcCertStore;
+import com.yahoo.athenz.zts.cert.InstanceIdentityStore;
 import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.DataStore;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
@@ -66,7 +67,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
     protected DataStore dataStore;
     protected CloudStore cloudStore;
-    protected SvcCertStore svcCertStore;
+    protected InstanceIdentityStore instanceIdentityStore;
     protected Metric metric;
     protected Schema schema;
     protected PrivateKey privateKey;
@@ -120,16 +121,16 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private final ZTSAuthorizer authorizer;
     protected static Validator validator;
     
-    public ZTSImpl(String serverHostName, DataStore dataStore, CloudStore cloudStore, SvcCertStore svcCertStore,
-            Metric metric, PrivateKey privateKey, String privateKeyId,
-            AuditLogger auditLog, String auditLogMsgBldrClass) {
+    public ZTSImpl(String serverHostName, DataStore dataStore, CloudStore cloudStore,
+            InstanceIdentityStore instanceIdentityStore, Metric metric, PrivateKey privateKey,
+            String privateKeyId, AuditLogger auditLog, String auditLogMsgBldrClass) {
 
         this.schema = ZTSSchema.instance();
         validator = new Validator(schema);
 
         this.dataStore = dataStore;
         this.cloudStore = cloudStore;
-        this.svcCertStore = svcCertStore;
+        this.instanceIdentityStore = instanceIdentityStore;
         this.metric = metric;
         this.privateKey = privateKey;
         this.privateKeyId = privateKeyId;
@@ -1467,11 +1468,29 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     + yrn + " vs. " + principal.getYRN(), caller, domain);
         }
 
-        Identity identity = null;
-        if (principal.getAuthority() instanceof CertificateAuthority) {
-            identity = svcCertStore.generateIdentity(req.getCsr(), yrn);
+        Authority authority = principal.getAuthority();
+        
+        // currently we only support ServiceTokens being refreshed to
+        // certificates and services that already have certificates
+        
+        if (!(authority instanceof CertificateAuthority || authority instanceof PrincipalAuthority)) {
+            throw requestError("postInstanceRefreshRequest: Unsupported authority for TLS Certs: " +
+                    authority.toString(), caller, domain);
+        }
+         
+        // if the authority is a principal authority, make sure it's not
+        // a personal domain user token as users should not get personal
+        // TLS certificates from ZTS
+        
+        if (authority instanceof PrincipalAuthority && userDomain.equalsIgnoreCase(principal.getDomain())) {
+            throw requestError("postInstanceRefreshRequest: TLS Certificates require ServiceTokens: " +
+                    yrn, caller, domain);
         }
         
+        // generate identity with the certificate. Note that generateIdentity checks
+        // if yrn matches the cn inside the csr, before issuing the cert
+        
+        Identity identity = instanceIdentityStore.generateIdentity(req.getCsr(), yrn);
         if (identity == null) {
             throw requestError("postInstanceRefreshRequest: unable to generate identity", caller, domain);
         }
@@ -1505,11 +1524,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // now let's validate the request, and the csr, given to us by the client
         // and generate certificate for the instance
 
-        if (!svcCertStore.isValidRequest(info)) {
+        if (!instanceIdentityStore.verifyInstanceIdentity(info)) {
             throw requestError("postInstanceInformation: unable to generate identity, invalid request", caller, domain);
         }
 
-        Identity identity = svcCertStore.generateIdentity(info.getCsr(), domain + "." + service);
+        Identity identity = instanceIdentityStore.generateIdentity(info.getCsr(), domain + "." + service);
         if (identity == null) {
             throw requestError("postInstanceInformation: unable to generate identity",
                     caller, domain);

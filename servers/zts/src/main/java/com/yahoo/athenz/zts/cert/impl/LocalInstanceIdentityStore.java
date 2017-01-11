@@ -17,29 +17,34 @@ package com.yahoo.athenz.zts.cert.impl;
 
 import com.yahoo.athenz.zts.*;
 import com.yahoo.athenz.zts.cert.CertSigner;
-import com.yahoo.athenz.zts.cert.SvcCertStore;
+import com.yahoo.athenz.zts.cert.InstanceIdentityStore;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
 
-public class YSvcCertStore implements SvcCertStore {
+public class LocalInstanceIdentityStore implements InstanceIdentityStore {
     CertSigner certSigner = null;
     String caPEMCertificate = null;
 
-    public YSvcCertStore() {
-
+    public LocalInstanceIdentityStore() {
     }
 
-    public YSvcCertStore(CertSigner certSigner) {
+    public LocalInstanceIdentityStore(CertSigner certSigner) {
         this.certSigner = certSigner;
         if (certSigner != null) {
             caPEMCertificate = certSigner.getCACertificate();
         }
     }
 
-    public Identity generateIdentity(String csr, String serviceYrn) {
-        return ZTSUtils.generateIdentity(certSigner, csr, serviceYrn, caPEMCertificate);
+    @Override
+    public Identity generateIdentity(String csr, String cn) {
+        return ZTSUtils.generateIdentity(certSigner, csr, cn, caPEMCertificate);
     }
 
-    public boolean isValidRequest(InstanceInformation instanceInformation) {
+    /**
+     * This local implementation does not verify the instance document
+     * and is provided as a sample only.
+     */
+    @Override
+    public boolean verifyInstanceIdentity(InstanceInformation instanceInformation) {
         return true;
     }
 }

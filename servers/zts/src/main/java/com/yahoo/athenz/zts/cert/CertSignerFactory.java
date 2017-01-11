@@ -15,13 +15,13 @@
  */
 package com.yahoo.athenz.zts.cert;
 
-import org.eclipse.jetty.client.HttpClient;
-
 public interface CertSignerFactory {
 
     /**
-     * Create and return a new CertSigner instance
+     * Create and return a new CertSigner instance. The CertSigner
+     * will be responsible for generating a X509 Certificate based
+     * on the provider CSR.
      * @return CertSigner instance
      */
-    public CertSigner create(HttpClient httpClient);
+    public CertSigner create();
 }

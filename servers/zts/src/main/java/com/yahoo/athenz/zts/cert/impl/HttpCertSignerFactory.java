@@ -15,15 +15,13 @@
  */
 package com.yahoo.athenz.zts.cert.impl;
 
-import org.eclipse.jetty.client.HttpClient;
-
 import com.yahoo.athenz.zts.cert.CertSigner;
 import com.yahoo.athenz.zts.cert.CertSignerFactory;
 
-public class YCertSignerFactory implements CertSignerFactory {
+public class HttpCertSignerFactory implements CertSignerFactory {
 
     @Override
-    public CertSigner create(HttpClient httpClient) {
-        return new YCertSigner(httpClient);
+    public CertSigner create() {
+        return new HttpCertSigner();
     }
 }

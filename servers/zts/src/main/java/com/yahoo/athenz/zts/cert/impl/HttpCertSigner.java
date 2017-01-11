@@ -34,29 +34,27 @@ import org.slf4j.LoggerFactory;
 
 import com.yahoo.rdl.JSON;
 
-public class YCertSigner implements CertSigner {
+public class HttpCertSigner implements CertSigner {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(YCertSigner.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(HttpCertSigner.class);
     private HttpClient httpClient = null;
     String certUri = null;
 
     private static final String ZTS_PROP_CERTSIGN_BASE_URI = "athenz.zts.certsign_base_uri";
     private static final String DEFAULT_CERTSIGN_BASE_URI = "https://localhost:443/certsign/v2";
 
-    public YCertSigner(HttpClient client) {
-        if (client != null) {
-            this.httpClient = client;
-        } else {
-            // Instantiate and start our HttpClient
-            httpClient = new HttpClient(ZTSUtils.createSSLContextObject(new String[] {"TLSv1.2"}));
-            httpClient.setFollowRedirects(false);
-            try {
-                httpClient.start();
-            } catch (Exception ex) {
-                LOGGER.error("YCertSigner: unable to start http client", ex);
-                throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
-                        "Http client not available");
-            }
+    public HttpCertSigner() {
+
+        // Instantiate and start our HttpClient
+            
+        httpClient = new HttpClient(ZTSUtils.createSSLContextObject(new String[] {"TLSv1.2"}));
+        httpClient.setFollowRedirects(false);
+        try {
+            httpClient.start();
+        } catch (Exception ex) {
+            LOGGER.error("YCertSigner: unable to start http client", ex);
+            throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
+                    "Http client not available");
         }
 
         // generate our post and get certificate URIs
@@ -154,5 +152,10 @@ public class YCertSigner implements CertSigner {
                     "' error: " + ex.getMessage());
         }
         return (pemCert != null) ? pemCert.getPem() : null;
+    }
+    
+    void setHttpClient(HttpClient client) {
+        close();
+        this.httpClient = client;
     }
 }

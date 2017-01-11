@@ -53,7 +53,9 @@ import org.testng.annotations.Test;
 
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.impl.PrincipalAuthority;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
+import com.yahoo.athenz.auth.impl.UserAuthority;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.server.log.AuditLogFactory;
@@ -70,10 +72,10 @@ import com.yahoo.athenz.zms.SignedDomain;
 import com.yahoo.athenz.zts.ZTSAuthorizer.AccessStatus;
 import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.cert.CertSigner;
-import com.yahoo.athenz.zts.cert.MockCertSigner;
-import com.yahoo.athenz.zts.cert.MockCertSignerFactory;
-import com.yahoo.athenz.zts.cert.SvcCertStore;
-import com.yahoo.athenz.zts.cert.impl.YSvcCertStore;
+import com.yahoo.athenz.zts.cert.impl.SelfCertSigner;
+import com.yahoo.athenz.zts.cert.impl.SelfCertSignerFactory;
+import com.yahoo.athenz.zts.cert.InstanceIdentityStore;
+import com.yahoo.athenz.zts.cert.impl.LocalInstanceIdentityStore;
 import com.yahoo.athenz.zts.store.ChangeLogStore;
 import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.CloudStoreTest;
@@ -308,13 +310,16 @@ public class ZTSImplTest {
         CloudStore cloudStore = new CloudStore(null);
         cloudStore.setHttpClient(null);
         
-        CertSigner certSigner = new MockCertSignerFactory().create(null);
-        SvcCertStore svcCertStore = new YSvcCertStore(certSigner);
+        System.setProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_FNAME,
+                "src/test/resources/private_encrypted.key");
+        System.setProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_PASSWORD, "athenz");
+        CertSigner certSigner = new SelfCertSignerFactory().create();
+        InstanceIdentityStore instanceIdentityStore = new LocalInstanceIdentityStore(certSigner);
 
         store = new DataStore(structStore, cloudStore);
 
         com.yahoo.athenz.common.metrics.Metric metric = getMetric();
-        zts = new ZTSImpl("localhost", store, cloudStore, svcCertStore, metric,
+        zts = new ZTSImpl("localhost", store, cloudStore, instanceIdentityStore, metric,
                 privateKey, "0", AuditLogFactory.getLogger(), null);
         authorizer = (ZTSAuthorizer) zts.getAuthorizer();
     }
@@ -2882,7 +2887,7 @@ public class ZTSImplTest {
         
         File caKey = new File("src/test/resources/private_encrypted.key");
         PrivateKey caPrivateKey = Crypto.loadPrivateKey(caKey, "athenz");
-        CertSigner certSigner = new MockCertSigner(caPrivateKey, caCertificate);
+        CertSigner certSigner = new SelfCertSigner(caPrivateKey, caCertificate);
 
         CloudStore cloudStore = new MockCloudStore(certSigner);
         store.setCloudStore(cloudStore);
@@ -2912,7 +2917,7 @@ public class ZTSImplTest {
         
         File caKey = new File("src/test/resources/private_encrypted.key");
         PrivateKey caPrivateKey = Crypto.loadPrivateKey(caKey, "athenz");
-        CertSigner certSigner = new MockCertSigner(caPrivateKey, caCertificate);
+        CertSigner certSigner = new SelfCertSigner(caPrivateKey, caCertificate);
 
         CloudStore cloudStore = new MockCloudStore(certSigner);
         store.setCloudStore(cloudStore);
@@ -2944,7 +2949,7 @@ public class ZTSImplTest {
         
         File caKey = new File("src/test/resources/private_encrypted.key");
         PrivateKey caPrivateKey = Crypto.loadPrivateKey(caKey, "athenz");
-        CertSigner certSigner = new MockCertSigner(caPrivateKey, caCertificate);
+        CertSigner certSigner = new SelfCertSigner(caPrivateKey, caCertificate);
 
         CloudStore cloudStore = new MockCloudStore(certSigner);
         store.setCloudStore(cloudStore);
@@ -3260,7 +3265,7 @@ public class ZTSImplTest {
         
         File caKey = new File("src/test/resources/private_encrypted.key");
         PrivateKey caPrivateKey = Crypto.loadPrivateKey(caKey, "athenz");
-        CertSigner certSigner = new MockCertSigner(caPrivateKey, caCertificate);
+        CertSigner certSigner = new SelfCertSigner(caPrivateKey, caCertificate);
 
         MockCloudStore cloudStore = new MockCloudStore(certSigner);
         cloudStore.setIdentityCheckResult(1);
@@ -3311,6 +3316,98 @@ public class ZTSImplTest {
     }
     
     @Test
+    public void testPostInstanceRefreshRequestPrincipalMismatch() throws IOException {
+
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String certCsr = new String(Files.readAllBytes(path));
+
+        InstanceRefreshRequest req = new InstanceRefreshRequest().setCsr(certCsr);
+        
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            zts.postInstanceRefreshRequest(context, "basketbal", "kings", req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Principal mismatch"), ex.getMessage());
+        }
+
+        try {
+            zts.postInstanceRefreshRequest(context, "hockey", "bruins", req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Principal mismatch"), ex.getMessage());
+        }
+    }
+
+    @Test
+    public void testPostInstanceRefreshRequestUserAuthority() throws IOException {
+
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String certCsr = new String(Files.readAllBytes(path));
+
+        InstanceRefreshRequest req = new InstanceRefreshRequest().setCsr(certCsr);
+        
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user", "joe",
+                "v=U1,d=user;n=joe;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            zts.postInstanceRefreshRequest(context, "user", "joe", req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("TLS Certificates require ServiceTokens"), ex.getMessage());
+        }
+    }
+    
+    @Test
+    public void testPostInstanceRefreshRequestUnknownAuthority() throws IOException {
+
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String certCsr = new String(Files.readAllBytes(path));
+
+        InstanceRefreshRequest req = new InstanceRefreshRequest().setCsr(certCsr);
+        
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user", "kings",
+                "v=U1,d=user;n=kings;s=sig", 0, new UserAuthority());
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            zts.postInstanceRefreshRequest(context, "user", "kings", req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Unsupported authority"), ex.getMessage());
+        }
+    }
+    
+    @Test
+    public void testPostInstanceRefreshRequest() throws IOException {
+
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String certCsr = new String(Files.readAllBytes(path));
+
+        InstanceRefreshRequest req = new InstanceRefreshRequest().setCsr(certCsr);
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz",
+                "syncer", "v=S1,d=athenz;n=syncer;s=sig", 0, new PrincipalAuthority());
+        
+        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
+        ResourceContext context = createResourceContext(principal, servletRequest);
+
+        Identity identity = zts.postInstanceRefreshRequest(context, "athenz", "syncer", req);
+        assertNotNull(identity);
+
+        X509Certificate cert = Crypto.loadX509Certificate(identity.getCertificate());
+        assertNotNull(cert);
+    }
+    
+    @Test
     public void testPostInstanceRefreshRequestHcaCNMismatch() throws IOException {
         Path path = Paths.get("src/test/resources/valid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -3318,7 +3415,7 @@ public class ZTSImplTest {
         InstanceRefreshRequest req = new InstanceRefreshRequest().setCsr(certCsr);
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("abc", "xyz",
-                "v=S1,d=abc;n=xyz;s=sig", 0, null);
+                "v=S1,d=abc;n=xyz;s=sig", 0, new PrincipalAuthority());
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
         ResourceContext context = createResourceContext(principal, servletRequest);
 
@@ -3465,10 +3562,10 @@ public class ZTSImplTest {
         // create zts with a metric we can verify
         CloudStore cloudStore = new CloudStore(null);
         cloudStore.setHttpClient(null);
-        CertSigner certSigner = new MockCertSignerFactory().create(null);
-        SvcCertStore svcCertStore = new YSvcCertStore(certSigner);
+        CertSigner certSigner = new SelfCertSignerFactory().create();
+        InstanceIdentityStore instanceIdentityStore = new LocalInstanceIdentityStore(certSigner);
         ZtsMetricTester metric = new ZtsMetricTester();
-        ZTSImpl ztsImpl = new ZTSImpl("localhost", store, cloudStore, svcCertStore, metric,
+        ZTSImpl ztsImpl = new ZTSImpl("localhost", store, cloudStore, instanceIdentityStore, metric,
                 privateKey, "0", AuditLogFactory.getLogger(), null);
 
         String testDomain = "coretech";
@@ -3743,7 +3840,7 @@ public class ZTSImplTest {
         
         File caKey = new File("src/test/resources/private_encrypted.key");
         PrivateKey caPrivateKey = Crypto.loadPrivateKey(caKey, "athenz");
-        CertSigner certSigner = new MockCertSigner(caPrivateKey, caCertificate);
+        CertSigner certSigner = new SelfCertSigner(caPrivateKey, caCertificate);
 
         CloudStore cloudStore = new MockCloudStore(certSigner);
         store.setCloudStore(cloudStore);

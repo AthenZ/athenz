@@ -20,9 +20,8 @@ import static org.testng.Assert.*;
 import java.util.concurrent.TimeoutException;
 
 import com.yahoo.athenz.zts.cert.CertSigner;
-import com.yahoo.athenz.zts.cert.impl.YCertSigner;
-import com.yahoo.athenz.zts.cert.impl.YCertSignerFactory;
-import com.yahoo.athenz.zts.utils.ZTSUtils;
+import com.yahoo.athenz.zts.cert.impl.HttpCertSigner;
+import com.yahoo.athenz.zts.cert.impl.HttpCertSignerFactory;
 
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
@@ -30,17 +29,14 @@ import org.eclipse.jetty.client.api.Request;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
-public class YCertSignerTest {
+public class HttpCertSignerTest {
 
     @Test
-    public void testYCertSignerFactory() {
-        YCertSignerFactory certFactory = new YCertSignerFactory();
+    public void testHttpCertSignerFactory() {
+        HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
         assertNotNull(certFactory);
 
-        HttpClient httpClient = new HttpClient(ZTSUtils.createSSLContextObject(new String[] {"TLSv1.2"}));
-        httpClient.setFollowRedirects(false);
-
-        CertSigner certSigner = certFactory.create(httpClient);
+        CertSigner certSigner = certFactory.create();
         assertNotNull(certSigner);
 
         certSigner.close();
@@ -51,9 +47,10 @@ public class YCertSignerTest {
  
         HttpClient httpClient = Mockito.mock(HttpClient.class);
 
-        YCertSignerFactory certFactory = new YCertSignerFactory();
-        YCertSigner certSigner = (YCertSigner) certFactory.create(httpClient);
-
+        HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
+        HttpCertSigner certSigner = (HttpCertSigner) certFactory.create();
+        certSigner.setHttpClient(httpClient);
+        
         Request request = Mockito.mock(Request.class);
         Mockito.when(httpClient.POST("https://localhost:443/certsign/v2/x509")).thenReturn(request);
         Mockito.when(request.send()).thenThrow(new TimeoutException());
@@ -66,8 +63,9 @@ public class YCertSignerTest {
 
         HttpClient httpClient = Mockito.mock(HttpClient.class);
 
-        YCertSignerFactory certFactory = new YCertSignerFactory();
-        YCertSigner certSigner = (YCertSigner) certFactory.create(httpClient);
+        HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
+        HttpCertSigner certSigner = (HttpCertSigner) certFactory.create();
+        certSigner.setHttpClient(httpClient);
 
         Request request = Mockito.mock(Request.class);
         Mockito.when(httpClient.POST("https://localhost:443/certsign/v2/x509")).thenReturn(request);
@@ -84,8 +82,9 @@ public class YCertSignerTest {
 
         HttpClient httpClient = Mockito.mock(HttpClient.class);
 
-        YCertSignerFactory certFactory = new YCertSignerFactory();
-        YCertSigner certSigner = (YCertSigner) certFactory.create(httpClient);
+        HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
+        HttpCertSigner certSigner = (HttpCertSigner) certFactory.create();
+        certSigner.setHttpClient(httpClient);
 
         Request request = Mockito.mock(Request.class);
         Mockito.when(httpClient.POST("https://localhost:443/certsign/v2/x509")).thenReturn(request);
@@ -103,8 +102,9 @@ public class YCertSignerTest {
 
         HttpClient httpClient = Mockito.mock(HttpClient.class);
 
-        YCertSignerFactory certFactory = new YCertSignerFactory();
-        YCertSigner certSigner = (YCertSigner) certFactory.create(httpClient);
+        HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
+        HttpCertSigner certSigner = (HttpCertSigner) certFactory.create();
+        certSigner.setHttpClient(httpClient);
 
         Request request = Mockito.mock(Request.class);
         Mockito.when(httpClient.POST("https://localhost:443/certsign/v2/x509")).thenReturn(request);
@@ -122,8 +122,9 @@ public class YCertSignerTest {
 
         HttpClient httpClient = Mockito.mock(HttpClient.class);
 
-        YCertSignerFactory certFactory = new YCertSignerFactory();
-        YCertSigner certSigner = (YCertSigner) certFactory.create(httpClient);
+        HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
+        HttpCertSigner certSigner = (HttpCertSigner) certFactory.create();
+        certSigner.setHttpClient(httpClient);
 
         Request request = Mockito.mock(Request.class);
         Mockito.when(httpClient.POST("https://localhost:443/certsign/v2/x509")).thenReturn(request);
@@ -142,8 +143,9 @@ public class YCertSignerTest {
 
         HttpClient httpClient = Mockito.mock(HttpClient.class);
 
-        YCertSignerFactory certFactory = new YCertSignerFactory();
-        YCertSigner certSigner = (YCertSigner) certFactory.create(httpClient);
+        HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
+        HttpCertSigner certSigner = (HttpCertSigner) certFactory.create();
+        certSigner.setHttpClient(httpClient);
 
         Request request = Mockito.mock(Request.class);
         Mockito.when(httpClient.POST("https://localhost:443/certsign/v2/x509")).thenReturn(request);
@@ -164,8 +166,9 @@ public class YCertSignerTest {
 
         HttpClient httpClient = Mockito.mock(HttpClient.class);
 
-        YCertSignerFactory certFactory = new YCertSignerFactory();
-        YCertSigner certSigner = (YCertSigner) certFactory.create(httpClient);
+        HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
+        HttpCertSigner certSigner = (HttpCertSigner) certFactory.create();
+        certSigner.setHttpClient(httpClient);
 
         Mockito.when(httpClient.GET("https://localhost:443/certsign/v2/x509")).thenThrow(new TimeoutException());
 
@@ -177,8 +180,9 @@ public class YCertSignerTest {
 
         HttpClient httpClient = Mockito.mock(HttpClient.class);
 
-        YCertSignerFactory certFactory = new YCertSignerFactory();
-        YCertSigner certSigner = (YCertSigner) certFactory.create(httpClient);
+        HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
+        HttpCertSigner certSigner = (HttpCertSigner) certFactory.create();
+        certSigner.setHttpClient(httpClient);
 
         ContentResponse response = Mockito.mock(ContentResponse.class);
         Mockito.when(httpClient.GET("https://localhost:443/certsign/v2/x509")).thenReturn(response);
@@ -192,8 +196,9 @@ public class YCertSignerTest {
 
         HttpClient httpClient = Mockito.mock(HttpClient.class);
 
-        YCertSignerFactory certFactory = new YCertSignerFactory();
-        YCertSigner certSigner = (YCertSigner) certFactory.create(httpClient);
+        HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
+        HttpCertSigner certSigner = (HttpCertSigner) certFactory.create();
+        certSigner.setHttpClient(httpClient);
 
         ContentResponse response = Mockito.mock(ContentResponse.class);
         Mockito.when(httpClient.GET("https://localhost:443/certsign/v2/x509")).thenReturn(response);
@@ -208,8 +213,9 @@ public class YCertSignerTest {
 
         HttpClient httpClient = Mockito.mock(HttpClient.class);
 
-        YCertSignerFactory certFactory = new YCertSignerFactory();
-        YCertSigner certSigner = (YCertSigner) certFactory.create(httpClient);
+        HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
+        HttpCertSigner certSigner = (HttpCertSigner) certFactory.create();
+        certSigner.setHttpClient(httpClient);
 
         ContentResponse response = Mockito.mock(ContentResponse.class);
         Mockito.when(httpClient.GET("https://localhost:443/certsign/v2/x509")).thenReturn(response);
@@ -224,8 +230,9 @@ public class YCertSignerTest {
 
         HttpClient httpClient = Mockito.mock(HttpClient.class);
 
-        YCertSignerFactory certFactory = new YCertSignerFactory();
-        YCertSigner certSigner = (YCertSigner) certFactory.create(httpClient);
+        HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
+        HttpCertSigner certSigner = (HttpCertSigner) certFactory.create();
+        certSigner.setHttpClient(httpClient);
 
         ContentResponse response = Mockito.mock(ContentResponse.class);
         Mockito.when(httpClient.GET("https://localhost:443/certsign/v2/x509")).thenReturn(response);
@@ -241,8 +248,9 @@ public class YCertSignerTest {
 
         HttpClient httpClient = Mockito.mock(HttpClient.class);
 
-        YCertSignerFactory certFactory = new YCertSignerFactory();
-        YCertSigner certSigner = (YCertSigner) certFactory.create(httpClient);
+        HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
+        HttpCertSigner certSigner = (HttpCertSigner) certFactory.create();
+        certSigner.setHttpClient(httpClient);
 
         ContentResponse response = Mockito.mock(ContentResponse.class);
         Mockito.when(httpClient.GET("https://localhost:443/certsign/v2/x509")).thenReturn(response);

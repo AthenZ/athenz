@@ -22,7 +22,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
@@ -664,14 +663,13 @@ public class ZTSClient implements Closeable {
      * @param roleDomainName name of the domain where role is defined
      * @param roleName name of the role to get a certificate request for
      * @param privateKey private key for the service identity for the caller
-     * @param publicKey the corresponding public key for the service
      * @param cloud string identifying the environment, e.g. aws
      * @param expiryTime number of seconds to request certificate to be valid for
      * @return RoleCertificateRequest object
      */
     static public RoleCertificateRequest generateRoleCertificateRequest(String principalDomain,
             String principalService, String roleDomainName, String roleName, PrivateKey privateKey,
-            PublicKey publicKey, String cloud, int expiryTime) {
+            String cloud, int expiryTime) {
         
         if (principalDomain == null || principalService == null) {
             throw new IllegalArgumentException("Principal's Domain and Service must be specified");
@@ -712,13 +710,66 @@ public class ZTSClient implements Closeable {
         
         String csr = null;
         try {
-            csr = Crypto.generateX509CSR(privateKey, publicKey, dn, sanArray);
+            csr = Crypto.generateX509CSR(privateKey, dn, sanArray);
         } catch (OperatorCreationException | IOException ex) {
             throw new ZTSClientException(ZTSClientException.BAD_REQUEST, ex.getMessage());
         }
         
         RoleCertificateRequest req = new RoleCertificateRequest().setCsr(csr)
                 .setExpiryTime(Long.valueOf(expiryTime));
+        return req;
+    }
+    
+    /**
+     * Generate a Instance Refresh request that could be sent to ZTS to
+     * request a TLS certificate for a service.
+     * @param principalDomain name of the principal's domain
+     * @param principalService name of the principal's service
+     * @param privateKey private key for the service identity for the caller
+     * @param cloud string identifying the environment, e.g. aws
+     * @param expiryTime number of seconds to request certificate to be valid for
+     * @return InstanceRefreshRequest object
+     */
+    static public InstanceRefreshRequest generateInstanceRefreshRequest(String principalDomain,
+            String principalService, PrivateKey privateKey, String cloud, int expiryTime) {
+        
+        if (principalDomain == null || principalService == null) {
+            throw new IllegalArgumentException("Principal's Domain and Service must be specified");
+        }
+        
+        // Athenz uses lower case for all elements, so let's
+        // generate our dn which will be based on our service name
+        
+        principalDomain = principalDomain.toLowerCase();
+        principalService = principalService.toLowerCase();
+        final String cn = principalDomain + "." + principalService;
+        
+        final String dn = "cn=" + cn + "," + X509_CSR_DN;
+        
+        // now let's generate our dsnName field based on our principal's details
+        
+        StringBuilder hostBuilder = new StringBuilder(128);
+        hostBuilder.append(principalService);
+        hostBuilder.append('.');
+        hostBuilder.append(principalDomain.replace('.', '-'));
+        hostBuilder.append('.');
+        hostBuilder.append(cloud);
+        hostBuilder.append('.');
+        hostBuilder.append(X509_CSR_DOMAIN);
+        String hostName = hostBuilder.toString();
+        
+        GeneralName[] sanArray = new GeneralName[1];
+        sanArray[0] = new GeneralName(GeneralName.dNSName, new DERIA5String(hostName));
+        
+        String csr = null;
+        try {
+            csr = Crypto.generateX509CSR(privateKey, dn, sanArray);
+        } catch (OperatorCreationException | IOException ex) {
+            throw new ZTSClientException(ZTSClientException.BAD_REQUEST, ex.getMessage());
+        }
+        
+        InstanceRefreshRequest req = new InstanceRefreshRequest().setCsr(csr)
+                .setExpiryTime(Integer.valueOf(expiryTime));
         return req;
     }
     

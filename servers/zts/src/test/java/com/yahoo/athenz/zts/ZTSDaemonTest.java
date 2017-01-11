@@ -79,10 +79,10 @@ public class ZTSDaemonTest {
     }
 
     @Test
-    public void testZTSGetSvcCertStore() {
+    public void testZTSGetInstancIdentityStore() {
         CertSigner signer = ZTS.getCertSigner();
 
-        assertNotNull(ZTS.getSvcCertStore(signer));
+        assertNotNull(ZTS.getInstanceIdentityStore(signer));
     }
 
     @Test

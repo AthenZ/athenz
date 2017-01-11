@@ -16,16 +16,16 @@
 package com.yahoo.athenz.zts.cert.impl;
 
 import com.yahoo.athenz.zts.cert.CertSigner;
-import com.yahoo.athenz.zts.cert.SvcCertStore;
-import com.yahoo.athenz.zts.cert.SvcCertStoreFactory;
+import com.yahoo.athenz.zts.cert.InstanceIdentityStore;
+import com.yahoo.athenz.zts.cert.InstanceIdentityStoreFactory;
 
-public class YSvcCertStoreFactory implements SvcCertStoreFactory {
+public class LocalInstanceIdentityStoreFactory implements InstanceIdentityStoreFactory {
 
-    public YSvcCertStoreFactory() {
+    public LocalInstanceIdentityStoreFactory() {
     }
 
     @Override
-    public SvcCertStore create(CertSigner certSigner) {
-        return new YSvcCertStore(certSigner);
+    public InstanceIdentityStore create(CertSigner certSigner) {
+        return new LocalInstanceIdentityStore(certSigner);
     }
 }

@@ -28,7 +28,7 @@ import org.testng.annotations.Test;
 public class ZTSTest {
 
     private static final String ZTS_CHANGE_LOG_STORE_CLASS = "com.yahoo.athenz.zts.store.file.MockZMSFileChangeLogStoreFactory";
-    private static final String ZTS_SVC_CERT_STORE_CLASS = "com.yahoo.athenz.zts.cert.MockCertSignerFactory";
+    private static final String ZTS_SELF_CERT_SIGNER_STORE_CLASS = "com.yahoo.athenz.zts.cert.impl.SelfCertSignerFactory";
 
     @BeforeClass
     public void setUp() throws Exception {
@@ -40,6 +40,9 @@ public class ZTSTest {
     
     @BeforeMethod
     public void prepare() {
+        System.setProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_FNAME,
+                "src/test/resources/private_encrypted.key");
+        System.setProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_PASSWORD, "athenz");
     }
 
     @AfterMethod
@@ -64,7 +67,7 @@ public class ZTSTest {
     @Test
     public void initContainerValidPorts() {
         System.setProperty(ZTSConsts.ZTS_PROP_DATA_CHANGE_LOG_STORE_CLASS, ZTS_CHANGE_LOG_STORE_CLASS);
-        System.setProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_CLASS, ZTS_SVC_CERT_STORE_CLASS);
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_CLASS, ZTS_SELF_CERT_SIGNER_STORE_CLASS);
 
         System.setProperty(ZTSConsts.ZTS_PROP_HOME, "/tmp/zts_server");
         System.setProperty(ZTSConsts.ZTS_PROP_HTTP_PORT, "4080");
@@ -92,7 +95,7 @@ public class ZTSTest {
     @Test
     public void initContainerOnlyHTTPSPort() {
         System.setProperty(ZTSConsts.ZTS_PROP_DATA_CHANGE_LOG_STORE_CLASS, ZTS_CHANGE_LOG_STORE_CLASS);
-        System.setProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_CLASS, ZTS_SVC_CERT_STORE_CLASS);
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_CLASS, ZTS_SELF_CERT_SIGNER_STORE_CLASS);
 
         System.setProperty(ZTSConsts.ZTS_PROP_HOME, "/tmp/zts_server");
         System.setProperty(ZTSConsts.ZTS_PROP_HTTP_PORT, "0");
@@ -116,7 +119,7 @@ public class ZTSTest {
     @Test
     public void initContainerOnlyHTTPPort() {
         System.setProperty(ZTSConsts.ZTS_PROP_DATA_CHANGE_LOG_STORE_CLASS, ZTS_CHANGE_LOG_STORE_CLASS);
-        System.setProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_CLASS, ZTS_SVC_CERT_STORE_CLASS);
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_CLASS, ZTS_SELF_CERT_SIGNER_STORE_CLASS);
 
         System.setProperty(ZTSConsts.ZTS_PROP_HOME, "/tmp/zts_server");
         System.setProperty(ZTSConsts.ZTS_PROP_HTTP_PORT, "4080");
@@ -140,7 +143,7 @@ public class ZTSTest {
     @Test
     public void initContainerInvalidHTTPPort() {
         System.setProperty(ZTSConsts.ZTS_PROP_DATA_CHANGE_LOG_STORE_CLASS, ZTS_CHANGE_LOG_STORE_CLASS);
-        System.setProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_CLASS, ZTS_SVC_CERT_STORE_CLASS);
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_CLASS, ZTS_SELF_CERT_SIGNER_STORE_CLASS);
 
         System.setProperty(ZTSConsts.ZTS_PROP_HOME, "/tmp/zts_server");
         System.setProperty(ZTSConsts.ZTS_PROP_HTTP_PORT, "-10");
@@ -167,7 +170,7 @@ public class ZTSTest {
     @Test
     public void initContainerInvalidHTTPSPort() {
         System.setProperty(ZTSConsts.ZTS_PROP_DATA_CHANGE_LOG_STORE_CLASS, ZTS_CHANGE_LOG_STORE_CLASS);
-        System.setProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_CLASS, ZTS_SVC_CERT_STORE_CLASS);
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_CLASS, ZTS_SELF_CERT_SIGNER_STORE_CLASS);
 
         System.setProperty(ZTSConsts.ZTS_PROP_HOME, "/tmp/zts_server");
         System.setProperty(ZTSConsts.ZTS_PROP_HTTP_PORT, "4080");

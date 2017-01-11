@@ -19,21 +19,24 @@ public interface CertSigner {
 
     /**
      * Generate a signed X509 Certificate based on the given request. The
-     * certificate should be valid for given number of minutes. The result
-     * must be the certificate in PEM format
+     * signer imposes how long the certificate is valid for. The result
+     * must be the certificate in PEM format.
      * @param csr Certificate request
      * @return X509 Certificate in PEM format
      */
     String generateX509Certificate(String csr);
 
     /**
-     * Retrieve the CA certificate in PEM format
-     * @return the CA Certificate
+     * Retrieve the CA certificate in PEM format. This will be returned
+     * along with the x509 certificate back to the client.
+     * @return the CA Certificate in PEM format
      */
     String getCACertificate();
 
     /**
-     * Close the httpClient held by certSigner
+     * Close the certSigner signer object and release all
+     * allocated resources (if any)
      */
-    void close();
+    default void close() {
+    }
 }

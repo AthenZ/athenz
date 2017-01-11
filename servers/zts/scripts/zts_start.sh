@@ -148,7 +148,6 @@ if [ "x${CONTAINER_HOST_SIGNER_SERVICE}" != "x" ]; then
     export JAVA_OPTS="${JAVA_OPTS} -Dathenz.zts.host_signer_service=${CONTAINER_HOST_SIGNER_SERVICE}"
 fi
 
-
 if [ "x${CONTAINER_KRB_KEYTAB}" != "x" ]; then
     export JAVA_OPTS="${JAVA_OPTS} -Dyahoo.auth_core.keytab_location=${CONTAINER_KRB_KEYTAB}"
 fi
