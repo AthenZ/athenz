@@ -9256,7 +9256,7 @@ public class ZMSImplTest extends TestCase {
         authRoles.add("role1");
         Principal principal = SimplePrincipal.create("coretech", "v=U1;d=user;n=user1;s=signature", authRoles, null);
         AthenzDomain domain = zms.retrieveAccessDomain("coretech", principal);
-        assertEquals(zms.hasAccess(domain, "coretech", "read", "coretech:entity", principal, "trustdomain"),
+        assertEquals(zms.hasAccess(domain, "read", "coretech:entity", principal, "trustdomain"),
                 AccessStatus.DENIED_INVALID_ROLE_TOKEN);
     }
     
@@ -9291,11 +9291,11 @@ public class ZMSImplTest extends TestCase {
         Principal principal1 = SimplePrincipal.create("user", "user1", "v=U1;d=user;n=user1;s=signature");
         AthenzDomain domain = zms.retrieveAccessDomain("hasaccessdom1", principal1);
 
-        assertEquals(zms.hasAccess(domain, "hasaccessdom1", "update", "hasaccessdom1:resource1",
+        assertEquals(zms.hasAccess(domain, "update", "hasaccessdom1:resource1",
                 principal1, null), AccessStatus.ALLOWED);
         
         Principal principal3 = SimplePrincipal.create("user", "user3", "v=U1;d=user;n=user3;s=signature");
-        assertEquals(zms.hasAccess(domain, "hasaccessdom1", "update", "hasaccessdom1:resource1",
+        assertEquals(zms.hasAccess(domain, "update", "hasaccessdom1:resource1",
                 principal3, null), AccessStatus.ALLOWED);
         
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "HasAccessDom1", auditRef);
@@ -9324,7 +9324,7 @@ public class ZMSImplTest extends TestCase {
         // case so we need to handle the test case accordingly.
         
         AthenzDomain domain = zms.retrieveAccessDomain("hasaccessdom2", principal2);
-        assertEquals(AccessStatus.DENIED, zms.hasAccess(domain, "hasaccessdom2", "update",
+        assertEquals(AccessStatus.DENIED, zms.hasAccess(domain, "update",
                 "hasaccessdom2:resource1", principal2, null));
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "HasAccessDom2", auditRef);
     }

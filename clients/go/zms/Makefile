@@ -18,6 +18,7 @@ build: src/$(RDL_LIB)
 
 src/$(RDL_LIB):
 	go get $(RDL_LIB)
+	go get github.com/ardielle/ardielle-tools/...
 
 model.go: $(RDL_FILE)
 	rdl -ps generate -t -o $@ go-model $(RDL_FILE)

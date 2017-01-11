@@ -1503,7 +1503,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 
                 // if no match then process the next assertion
                 
-                if (!assertionMatch(assertion, identityYRN, action, resource, roles, authenticatedRoles, trustDomain)) {
+                if (!assertionMatch(assertion, identityYRN, action, resource, domain.getName(),
+                        roles, authenticatedRoles, trustDomain)) {
                     continue;
                 }
                 
@@ -1574,7 +1575,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw new com.yahoo.athenz.common.server.rest.ResourceException(ResourceException.NOT_FOUND, "Domain not found");
         }
         
-        AccessStatus accessStatus = hasAccess(domain, domainName, action, resource, principal, trustDomain);
+        AccessStatus accessStatus = hasAccess(domain, action, resource, principal, trustDomain);
         if (accessStatus == AccessStatus.ALLOWED) {
             return true;
         }
@@ -1610,7 +1611,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return domainName;
     }
     
-    AccessStatus hasAccess(AthenzDomain domain, String domainName, String action, String resource,
+    AccessStatus hasAccess(AthenzDomain domain, String action, String resource,
             Principal principal, String trustDomain) {
        
         String identityYRN = principal.getYRN();
@@ -1619,7 +1620,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // make sure it's valid before processing it
         
         List<String> authenticatedRoles = principal.getRoles();
-        if (authenticatedRoles != null && !validRoleTokenAccess(trustDomain, domainName, identityYRN)) {
+        if (authenticatedRoles != null && !validRoleTokenAccess(trustDomain, domain.getName(), identityYRN)) {
             return AccessStatus.DENIED_INVALID_ROLE_TOKEN;
         }
         
@@ -1700,7 +1701,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         
         boolean accessAllowed = false;
-        AccessStatus accessStatus = hasAccess(domain, domainName, action, resource, principal, trustDomain);
+        AccessStatus accessStatus = hasAccess(domain, action, resource, principal, trustDomain);
         if (accessStatus == AccessStatus.ALLOWED) {
             accessAllowed = true;
         }
@@ -2936,7 +2937,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return false;
     }
 
-    boolean matchRole(String domain, List<Role> roles, String rolePattern, List<String> authenticatedRoles) {
+    boolean matchRole(String domain, List<Role> roles, String rolePattern,
+            List<String> authenticatedRoles) {
         
         if (LOG.isDebugEnabled()) {
             LOG.debug("matchRole domain: " + domain + " rolePattern: " + rolePattern);
@@ -3050,7 +3052,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
     
     boolean assertionMatch(Assertion assertion, String identityYRN, String action, String resource,
-            List<Role> roles, List<String> authenticatedRoles, String trustDomain) {
+            String domain, List<Role> roles, List<String> authenticatedRoles, String trustDomain) {
         
         String actionPattern = StringUtils.patternFromGlob(assertion.getAction());
         if (!action.matches(actionPattern)) {
@@ -3065,7 +3067,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         boolean matchResult = false;
         String rolePattern = StringUtils.patternFromGlob(assertion.getRole());
         if (authenticatedRoles != null) {
-            matchResult = matchRole(trustDomain, roles, rolePattern, authenticatedRoles);
+            matchResult = matchRole(domain, roles, rolePattern, authenticatedRoles);
         } else {
             matchResult = matchPrincipal(roles, rolePattern, identityYRN, trustDomain);
         }
