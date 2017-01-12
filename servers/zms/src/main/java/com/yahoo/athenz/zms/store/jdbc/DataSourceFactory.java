@@ -34,14 +34,11 @@ import org.apache.commons.pool2.impl.BaseObjectPoolConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-// a simple factory for datasources
-// typically, the datasource configuration would be done by the container (i.e. spring)
+import com.yahoo.athenz.zms.ZMSConsts;
+
 public class DataSourceFactory {
 
     private static final Logger LOG = LoggerFactory.getLogger(DataSourceFactory.class);
-
-    static final String ZMS_PROP_DBUSER = "athenz.zms.jdbc_user";
-    static final String ZMS_PROP_DBPASS = "athenz.zms.jdbc_password";
 
     static final String ZMS_PROP_DBPOOL_MAX_TOTAL = "athenz.zms.db_pool_max_total";
     static final String ZMS_PROP_DBPOOL_MAX_IDLE = "athenz.zms.db_pool_max_idle";
@@ -54,22 +51,27 @@ public class DataSourceFactory {
     static final long MAX_TTL_CONN_MS = TimeUnit.MILLISECONDS.convert(10L, TimeUnit.MINUTES);
     
     public static PoolableDataSource create(String url) {
-        String userName = System.getProperty(ZMS_PROP_DBUSER);
-        String driver = "?";
+        
+        String driver = null;
         try {
             if (url.indexOf("sqlite") > 0) {
+                
                 driver = "org.sqlite.JDBC";
                 Class.forName(driver);
                 return new SimpleDataSource(driver, url);
+                
             } else if (url.indexOf(":mysql:") > 0) {
+                
                 driver = "com.mysql.jdbc.Driver";
                 Class.forName(driver);
-
-                String password = System.getProperty(ZMS_PROP_DBPASS, "");
+                
+                String userName = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_USER);
+                String password = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_PASSWORD, "");
                 ConnectionFactory connectionFactory =
                     new DriverManagerConnectionFactory(url, userName, password);
 
                 return create(connectionFactory);
+                
             } else {
                 throw new RuntimeException("Cannot figure out how to instantiate this data source: " + url);
             }

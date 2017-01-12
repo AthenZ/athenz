@@ -6,7 +6,6 @@ export ZMS_OPTS="${ZMS_OPTS} -Dlogback.configurationFile=src/test/resources/logb
 export ZMS_OPTS="${ZMS_OPTS} -Dathenz.zms.domain_admin=user.$USER,user.zms_test_admin,user.user_admin"
 export ZMS_OPTS="${ZMS_OPTS} -Dathenz.zms.authority_classes=com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority,com.yahoo.athenz.common.server.debug.DebugUserAuthority,com.yahoo.athenz.common.server.debug.DebugRoleAuthority,com.yahoo.athenz.common.server.debug.DebugKerberosAuthority"
 export ZMS_OPTS="${ZMS_OPTS} -Dathenz.zms.home=./"
-export ZMS_OPTS="${ZMS_OPTS} -Dathenz.zms.jdbcstore=./"
 export ZMS_OPTS="${ZMS_OPTS} -Dathenz.zms.port=4080"
 export ZMS_OPTS="${ZMS_OPTS} -Dathenz.zms.private_key_store_class=com.yahoo.athenz.zms.pkey.file.FilePrivateKeyStoreFactory"
 export ZMS_OPTS="${ZMS_OPTS} -Dathenz.zms.privatekey=src/test/resources/zms_private.pem"

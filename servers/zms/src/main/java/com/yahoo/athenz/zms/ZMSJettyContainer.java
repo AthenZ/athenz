@@ -104,7 +104,7 @@ public class ZMSJettyContainer extends HttpContainer {
         getHandlers().addHandler(requestLogHandler);
     }
 
-    public void addServletHandlers(String homeDir, String serverHostName) {
+    public void addServletHandlers(String serverHostName) {
         
         RewriteHandler rewriteHandler = new RewriteHandler();
         

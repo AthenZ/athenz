@@ -197,7 +197,8 @@ public class ZTS {
     
     static Metric getMetric() {
         
-        String metricFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_METRIC_FACTORY_CLASS, ZTSConsts.ZTS_METRIC_FACTORY_CLASS);
+        String metricFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_METRIC_FACTORY_CLASS,
+                ZTSConsts.ZTS_METRIC_FACTORY_CLASS);
         boolean statsEnabled = Boolean.parseBoolean(System.getProperty(ZTSConsts.ZTS_PROP_STATS_ENABLED, "false"));
         if (!statsEnabled && !metricFactoryClass.equals(ZTSConsts.ZTS_METRIC_FACTORY_CLASS)) {
             LOG.warn("Override users metric factory property with default since stats are disabled");
@@ -239,7 +240,8 @@ public class ZTS {
     private static ChangeLogStore getChangeLogStore(String homeDir, PrivateKey pkey, String pkeyId,
             CloudStore cloudStore) {
 
-        String clogFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_DATA_CHANGE_LOG_STORE_CLASS, ZTS_CHANGE_LOG_STORE_CLASS);
+        String clogFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_DATA_CHANGE_LOG_STORE_CLASS,
+                ZTS_CHANGE_LOG_STORE_CLASS);
         ChangeLogStoreFactory clogFactory = null;
         try {
             clogFactory = (ChangeLogStoreFactory) Class.forName(clogFactoryClass).newInstance();
@@ -272,7 +274,8 @@ public class ZTS {
         
         // get our authorities
         
-        String authListConfig = System.getProperty(ZTSConsts.ZTS_PROP_AUTHORITY_CLASSES, ZTS_PRINCIPAL_AUTHORITY_CLASS);
+        String authListConfig = System.getProperty(ZTSConsts.ZTS_PROP_AUTHORITY_CLASSES,
+                ZTS_PRINCIPAL_AUTHORITY_CLASS);
         AuthorityList authorities = new AuthorityList();
 
         String[] authorityList = authListConfig.split(",");

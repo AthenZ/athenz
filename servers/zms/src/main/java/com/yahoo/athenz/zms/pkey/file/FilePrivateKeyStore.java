@@ -25,29 +25,22 @@ import org.slf4j.LoggerFactory;
 
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.zms.ResourceException;
+import com.yahoo.athenz.zms.ZMS;
 import com.yahoo.athenz.zms.ZMSConsts;
 import com.yahoo.athenz.zms.pkey.PrivateKeyStore;
 
 public class FilePrivateKeyStore implements PrivateKeyStore {
     
     private static final Logger LOG = LoggerFactory.getLogger(FilePrivateKeyStore.class);
-
-    String rootDir = null;
     
     public FilePrivateKeyStore() {
-        
-        // get the system  root directory
-        
-        rootDir = System.getenv(ZMSConsts.STR_ENV_ROOT);
-        if (rootDir == null) {
-            rootDir = ZMSConsts.STR_DEF_ROOT;
-        }
     }
 
     @Override
     public PrivateKey getPrivateKey(StringBuilder privateKeyId) {
+        
         String privKeyName = System.getProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY,
-                rootDir + "/share/athenz/sys.auth/zms.key");
+                ZMS.getRootDir() + "/share/athenz/sys.auth/zms.key");
         
         if (LOG.isDebugEnabled()) {
             LOG.debug("FilePrivateKeyStore: private key file=" + privKeyName);
@@ -78,7 +71,7 @@ public class FilePrivateKeyStore implements PrivateKeyStore {
     public String getPEMPublicKey() {
         
         String pubKeyName = System.getProperty(ZMSConsts.ZMS_PROP_PUBLIC_KEY,
-                rootDir + "/share/athenz/pubkeys/zms.key");
+                ZMSConsts.STR_DEF_ROOT + "/share/athenz/pubkeys/zms.key");
         
         if (LOG.isDebugEnabled()) {
             LOG.debug("FilePrivateKeyStore: public key file=" + pubKeyName);

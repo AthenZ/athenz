@@ -45,7 +45,10 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_PUBLIC_KEY       = "athenz.zms.publickey";
     public static final String ZMS_PROP_PUBLIC_KEY_NAME  = "athenz.zms.publickey_name";
 
-    public static final String ZMS_PROP_JDBC_STORE        = "athenz.zms.jdbcstore";
+    public static final String ZMS_PROP_JDBC_STORE        = "athenz.zms.jdbc_store";
+    public static final String ZMS_PROP_JDBC_USER         = "athenz.zms.jdbc_user";
+    public static final String ZMS_PROP_JDBC_PASSWORD     = "athenz.zms.jdbc_password";
+    public static final String ZMS_PROP_FILE_STORE        = "athenz.zms.file_store";
     public static final String ZMS_PROP_MAX_THREADS       = "athenz.zms.http_max_threads";
     public static final String ZMS_PROP_AUTHORITY_CLASSES = "athenz.zms.authority_classes";
 
@@ -77,7 +80,6 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_RESPONSE_HEADER_SIZE   = "athenz.zms.http_response_header_size";
     public static final String ZMS_PROP_LISTEN_HOST            = "athenz.zms.listen_host";
     public static final String ZMS_PROP_KEEP_ALIVE             = "athenz.zms.keep_alive";
-    public static final String ZMS_PROP_DB_TABLE               = "athenz.zms.zms_dbtable";
     public static final String ZMS_PROP_PROVIDER_ENDPOINTS     = "athenz.zms.provider_endpoints";
     public static final String ZMS_PROP_PRODUCT_ID_SUPPORT     = "athenz.zms.product_id_support";
     

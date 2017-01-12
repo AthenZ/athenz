@@ -36,7 +36,9 @@ public class ZMS {
 
     private static final String ZMS_PRINCIPAL_AUTHORITY_CLASS = "com.yahoo.athenz.auth.impl.PrincipalAuthority";
     private static final String ZMS_PKEY_STORE_CLASS = "com.yahoo.athenz.zms.pkey.file.FilePrivateKeyStoreFactory";
- 
+    
+    private static String ROOT_DIR;
+    
     // This String is used to create the desired AuditLogMsgBuilder object.
     // Its OK if its null, we will just get the default msg builder.
     //
@@ -141,18 +143,22 @@ public class ZMS {
         return port;
     }
     
+    public static String getRootDir() {
+        
+        if (ROOT_DIR == null) {
+            ROOT_DIR = System.getenv(ZMSConsts.STR_ENV_ROOT);
+        }
+        
+        if (ROOT_DIR == null) {
+            ROOT_DIR = ZMSConsts.STR_DEF_ROOT;
+        }
+
+        return ROOT_DIR;
+    }
+    
     public static ZMSJettyContainer createJettyContainer() {
         
         ZMSJettyContainer container = null;
-        
-        String root = System.getenv("ROOT");
-        if (root == null) {
-            root = "/home/athenz";
-        }
-        
-        String homeDir = System.getProperty(ZMSConsts.ZMS_PROP_HOME, root + "/var/zms_server");
-        String jdbcStore = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_STORE);
-        String dataStoreContext = jdbcStore == null ? homeDir : jdbcStore;
         
         // retrieve our http and https port numbers
         
@@ -163,7 +169,8 @@ public class ZMS {
         
         // get our authorities
         
-        String authListConfig = System.getProperty(ZMSConsts.ZMS_PROP_AUTHORITY_CLASSES, ZMS_PRINCIPAL_AUTHORITY_CLASS);
+        String authListConfig = System.getProperty(ZMSConsts.ZMS_PROP_AUTHORITY_CLASSES,
+                ZMS_PRINCIPAL_AUTHORITY_CLASS);
         AuthorityList authorities = new AuthorityList();
 
         String[] authorityList = authListConfig.split(",");
@@ -176,7 +183,8 @@ public class ZMS {
             authorities.add(authority);
         }
         
-        String pkeyFactoryClass = System.getProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_STORE_CLASS, ZMS_PKEY_STORE_CLASS);
+        String pkeyFactoryClass = System.getProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_STORE_CLASS,
+                ZMS_PKEY_STORE_CLASS);
         PrivateKeyStoreFactory pkeyFactory = null;
         try {
             pkeyFactory = (PrivateKeyStoreFactory) Class.forName(pkeyFactoryClass).newInstance();
@@ -186,7 +194,8 @@ public class ZMS {
             return null;
         }
         
-        String metricFactoryClass = System.getProperty(ZMSConsts.ZMS_PROP_METRIC_FACTORY_CLASS, ZMSConsts.ZMS_METRIC_FACTORY_CLASS);
+        String metricFactoryClass = System.getProperty(ZMSConsts.ZMS_PROP_METRIC_FACTORY_CLASS,
+                ZMSConsts.ZMS_METRIC_FACTORY_CLASS);
         boolean statsEnabled      = Boolean.parseBoolean(System.getProperty(ZMSConsts.ZMS_PROP_STATS_ENABLED, "false"));
         if (!statsEnabled && !metricFactoryClass.equals(ZMSConsts.ZMS_METRIC_FACTORY_CLASS)) {
             LOG.warn("Override users metric factory property with default since stats are disabled");
@@ -202,8 +211,8 @@ public class ZMS {
             return null;
         }
         
-        ZMSServerImpl core = new ZMSServerImpl(serverHostName, dataStoreContext,
-                pkeyFactory, metricFactory, AUDITLOG, AUDIT_LOG_MSG_BLDR_CLASS, authorities);
+        ZMSServerImpl core = new ZMSServerImpl(serverHostName, pkeyFactory, metricFactory,
+                AUDITLOG, AUDIT_LOG_MSG_BLDR_CLASS, authorities);
         
         container = new ZMSJettyContainer(AUDITLOG);
         container.resource(ZMSResources.class);
@@ -216,9 +225,9 @@ public class ZMS {
         
         HttpConfiguration httpConfig = container.newHttpConfiguration(httpsPort);
         container.addHTTPConnectors(httpConfig, httpPort, httpsPort);
-        container.addServletHandlers(homeDir, serverHostName);
+        container.addServletHandlers(serverHostName);
         
-        container.addRequestLogHandler(root);
+        container.addRequestLogHandler(getRootDir());
         
         return container;
     }

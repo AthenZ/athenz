@@ -75,20 +75,20 @@ if [ "x${CONTAINER_ADMINUSER}" != "x" ]; then
     export JAVA_OPTS="${JAVA_OPTS} -Dathenz.zms.domain_admin=${CONTAINER_ADMINUSER}"
 fi
 
-if [ "x${CONTAINER_JDBCSTORE}" != "x" ]; then
-    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.zms.jdbcstore=${CONTAINER_JDBCSTORE}"
+if [ "x${CONTAINER_JDBC_STORE}" != "x" ]; then
+    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.zms.jdbc_store=${CONTAINER_JDBC_STORE}"
 fi
 
-if [ "x${CONTAINER_JDBCUSER}" != "x" ]; then
-    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.zms.jdbc_user=${CONTAINER_JDBCUSER}"
+if [ "x${CONTAINER_JDBC_USER}" != "x" ]; then
+    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.zms.jdbc_user=${CONTAINER_JDBC_USER}"
 fi
 
-if [ "x${CONTAINER_JDBCPASSWD}" != "x" ]; then
-    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.zms.jdbc_password=${CONTAINER_JDBCPASSWD}"
+if [ "x${CONTAINER_JDBC_PASSWORD}" != "x" ]; then
+    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.zms.jdbc_password=${CONTAINER_JDBC_PASSWORD}"
 fi
 
-if [ "x${CONTAINER_JDBCTABLE}" != "x" ]; then
-    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.zms.zms_dbtable=${CONTAINER_JDBCTABLE}"
+if [ "x${CONTAINER_FILE_STORE}" != "x" ]; then
+    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.zms.file_store=${CONTAINER_FILE_STORE}"
 fi
 
 if [ "x${CONTAINER_DBPOOL_MAX_TOTAL}" != "x" ]; then

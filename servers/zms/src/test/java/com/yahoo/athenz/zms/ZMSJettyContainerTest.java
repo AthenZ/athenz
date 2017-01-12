@@ -155,7 +155,7 @@ public class ZMSJettyContainerTest {
         container.resource(ZMSResources.class);
         container.delegate(ZMSHandler.class, mockImpl);
         container.createServer(100);
-        container.addServletHandlers("/tmp", "localhost");
+        container.addServletHandlers("localhost");
     }
     
     @Test
@@ -165,7 +165,7 @@ public class ZMSJettyContainerTest {
         container.resource(ZMSResources.class);
         container.delegate(ZMSHandler.class, mockImpl);
         container.createServer(100);
-        container.addServletHandlers("/tmp", "localhost");
+        container.addServletHandlers("localhost");
         
         Handler[] handlers = container.getHandlers().getHandlers();
         ServletContextHandler srvHandler = null;
@@ -325,7 +325,7 @@ public class ZMSJettyContainerTest {
         container.resource(ZMSResources.class);
         container.delegate(ZMSHandler.class, mockImpl);
         container.createServer(100);
-        container.addServletHandlers("/tmp", "localhost");
+        container.addServletHandlers("localhost");
         
         Handler[] handlers = container.getHandlers().getHandlers();
         ServletContextHandler srvHandler = null;

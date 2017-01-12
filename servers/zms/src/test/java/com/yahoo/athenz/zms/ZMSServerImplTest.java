@@ -24,17 +24,29 @@ import com.yahoo.athenz.zms.pkey.file.FilePrivateKeyStoreFactory;
 
 import static org.testng.Assert.*;
 
-import org.testng.annotations.BeforeClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 public class ZMSServerImplTest {
     
-    @BeforeClass
+    @BeforeMethod
     public void setUp() throws Exception {
-        System.setProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_STORE_CLASS, "com.yahoo.athenz.zms.pkey.file.FilePrivateKeyStoreFactory");
+        System.setProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_STORE_CLASS,
+                "com.yahoo.athenz.zms.pkey.file.FilePrivateKeyStoreFactory");
         System.setProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY, "src/test/resources/zms_private.pem");
         System.setProperty(ZMSConsts.ZMS_PROP_PUBLIC_KEY, "src/test/resources/zms_public.pem");
         System.setProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN, "user.testadminuser");
+        System.setProperty(ZMSConsts.ZMS_PROP_HOME, ".");
+    }
+    
+    @AfterMethod
+    public void cleanup() {
+        System.clearProperty(ZMSConsts.ZMS_PROP_HOME);
+        System.clearProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_STORE_CLASS);
+        System.clearProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY);
+        System.clearProperty(ZMSConsts.ZMS_PROP_PUBLIC_KEY);
+        System.clearProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN);
     }
     
     @Test
@@ -46,17 +58,15 @@ public class ZMSServerImplTest {
         Authority roleAuthority = new com.yahoo.athenz.common.server.debug.DebugRoleAuthority();
         roleAuthority.initialize();
 
-        com.yahoo.athenz.common.server.rest.Http.AuthorityList authList = new com.yahoo.athenz.common.server.rest.Http.AuthorityList();
+        com.yahoo.athenz.common.server.rest.Http.AuthorityList authList =
+                new com.yahoo.athenz.common.server.rest.Http.AuthorityList();
         authList.add(principalAuthority);
         authList.add(roleAuthority);
 
-        String policyStoreContext = ".";
-
         MetricFactory debugMetricFactory = new com.yahoo.athenz.common.metrics.impl.NoOpMetricFactory();
         PrivateKeyStoreFactory privateKeyFactory = new FilePrivateKeyStoreFactory();
-        ZMSServerImpl core = new ZMSServerImpl("localhost", policyStoreContext,
-                privateKeyFactory, debugMetricFactory, AuditLogFactory.getLogger(),
-                null, authList);
+        ZMSServerImpl core = new ZMSServerImpl("localhost", privateKeyFactory, debugMetricFactory,
+                AuditLogFactory.getLogger(), null, authList);
         assertNotNull(core);
         
         assertNotNull(core.getAuthorizer());
@@ -69,17 +79,15 @@ public class ZMSServerImplTest {
         Authority principalAuthority = new com.yahoo.athenz.auth.impl.PrincipalAuthority();
         Authority roleAuthority = new com.yahoo.athenz.auth.impl.RoleAuthority();
 
-        String policyStoreContext = ".";
-
-        com.yahoo.athenz.common.server.rest.Http.AuthorityList authList = new com.yahoo.athenz.common.server.rest.Http.AuthorityList();
+        com.yahoo.athenz.common.server.rest.Http.AuthorityList authList =
+                new com.yahoo.athenz.common.server.rest.Http.AuthorityList();
         authList.add(principalAuthority);
         authList.add(roleAuthority);
 
         MetricFactory debugMetricFactory = new com.yahoo.athenz.common.metrics.impl.NoOpMetricFactory();
         PrivateKeyStoreFactory privateKeyFactory = new FilePrivateKeyStoreFactory();
-        ZMSServerImpl core = new ZMSServerImpl("localhost", policyStoreContext,
-                privateKeyFactory, debugMetricFactory, AuditLogFactory.getLogger(),
-                null, authList);
+        ZMSServerImpl core = new ZMSServerImpl("localhost", privateKeyFactory, debugMetricFactory,
+                AuditLogFactory.getLogger(), null, authList);
         assertNotNull(core);
         
         assertNotNull(core.getAuthorizer());
@@ -92,16 +100,15 @@ public class ZMSServerImplTest {
         Authority principalAuthority = new com.yahoo.athenz.auth.impl.PrincipalAuthority();
         Authority roleAuthority = new com.yahoo.athenz.auth.impl.RoleAuthority();
 
-        String policyStoreContext = null;
-
-        com.yahoo.athenz.common.server.rest.Http.AuthorityList authList = new com.yahoo.athenz.common.server.rest.Http.AuthorityList();
+        com.yahoo.athenz.common.server.rest.Http.AuthorityList authList =
+                new com.yahoo.athenz.common.server.rest.Http.AuthorityList();
         authList.add(principalAuthority);
         authList.add(roleAuthority);
 
         MetricFactory debugMetricFactory = new com.yahoo.athenz.common.metrics.impl.NoOpMetricFactory();
         PrivateKeyStoreFactory privateKeyFactory = new FilePrivateKeyStoreFactory();
-        ZMSServerImpl core = new ZMSServerImpl("localhost", policyStoreContext,
-                privateKeyFactory, debugMetricFactory, AuditLogFactory.getLogger(),
+        ZMSServerImpl core = new ZMSServerImpl("localhost", privateKeyFactory, debugMetricFactory,
+                AuditLogFactory.getLogger(),
                 null, authList);
         assertNotNull(core);
         

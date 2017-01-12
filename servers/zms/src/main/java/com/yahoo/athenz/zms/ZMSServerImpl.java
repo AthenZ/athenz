@@ -40,9 +40,9 @@ public class ZMSServerImpl {
     AuditLogger auditLogger             = null;
     String      auditLoggerMsgBldrClass = null;
 
-    public ZMSServerImpl(String serverHostName, String db_context,
-            PrivateKeyStoreFactory pkeyStoreFactory, MetricFactory metricFactory,
-            AuditLogger auditLog, String auditLogMsgBldrClass, AuthorityList authList) {
+    public ZMSServerImpl(String serverHostName, PrivateKeyStoreFactory pkeyStoreFactory,
+            MetricFactory metricFactory, AuditLogger auditLog, String auditLogMsgBldrClass,
+            AuthorityList authList) {
 
         auditLogger             = auditLog;
         auditLoggerMsgBldrClass = auditLogMsgBldrClass;
@@ -60,12 +60,15 @@ public class ZMSServerImpl {
         metric.increment("zms_sa_startup");
         
         ObjectStore store = null;
-        if (db_context != null && db_context.startsWith("jdbc:")) {
-            PoolableDataSource src = DataSourceFactory.create(db_context);
+        String jdbcStore = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_STORE);
+        if (jdbcStore != null && jdbcStore.startsWith("jdbc:")) {
+            PoolableDataSource src = DataSourceFactory.create(jdbcStore);
             store = new JDBCObjectStore(src);
         } else {
-            String fileDirName = System.getProperty(ZMSConsts.ZMS_PROP_DB_TABLE, "zms_root");
-            String path = getFileStructPath(db_context, fileDirName);
+            String homeDir = System.getProperty(ZMSConsts.ZMS_PROP_HOME,
+                    ZMS.getRootDir() + "/var/zms_server");
+            String fileDirName = System.getProperty(ZMSConsts.ZMS_PROP_FILE_STORE, "zms_root");
+            String path = getFileStructPath(homeDir, fileDirName);
             store = new FileObjectStore(new File(path));
         }
         

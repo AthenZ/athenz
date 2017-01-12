@@ -99,7 +99,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private static final String DOMAIN_FIELD = "domain";
     
     private static final String SYS_AUTH = "sys.auth";
-    private static final String ZMS = "zms";
+    private static final String ZMS_SERVICE = "zms";
     private static final String USER_TOKEN_DEFAULT_NAME = "_self_";
 
     // data validation types
@@ -148,7 +148,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected static Validator validator;
     protected static String userDomain;
     protected static String userDomainPrefix;
-    protected String zmsRootDir = null;
     protected Http.AuthorityList authorities = null;
     protected List<String> providerEndpoints = null;
     
@@ -360,13 +359,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         auditLogger = auditLog;
         auditLoggerMsgBldrClass = auditLogMsgBldrClass;
-
-        // first determine our root directory
-        
-        zmsRootDir = System.getenv("ROOT");
-        if (zmsRootDir == null) {
-            zmsRootDir = "/home/athenz";
-        }
         
         this.publicKey = publicKey;
         this.privateKey = privateKey;
@@ -457,7 +449,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         // retrieve our zms service identity object
         
-        ServiceIdentity identity = dbService.getServiceIdentity(SYS_AUTH, ZMS);
+        ServiceIdentity identity = dbService.getServiceIdentity(SYS_AUTH, ZMS_SERVICE);
         if (identity != null) {
             
             // process all the public keys and add them to the map
@@ -491,7 +483,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // get the configured path for the list of service templates
         
         String solutionTemplatesFname =  System.getProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME,
-                zmsRootDir + "/conf/zms_server/solution_templates.json");
+                ZMS.getRootDir() + "/conf/zms_server/solution_templates.json");
         
         Path path = Paths.get(solutionTemplatesFname);
         try {
@@ -513,7 +505,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // those services are allowed to process
         
         String authzServiceFname =  System.getProperty(ZMSConsts.ZMS_PROP_AUTHZ_SERVICE_FNAME,
-                zmsRootDir + "/conf/zms_server/authorized_services.json");
+                ZMS.getRootDir() + "/conf/zms_server/authorized_services.json");
         
         // let's read our authorized list into a local struct
         
@@ -571,7 +563,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             List<PublicKeyEntry> pubKeys = new ArrayList<>();
             pubKeys.add(new PublicKeyEntry().setId(privateKeyId).setKey(publicKey));
             ServiceIdentity id = new ServiceIdentity().setName("sys.auth.zms").setPublicKeys(pubKeys);
-            dbService.executePutServiceIdentity(null, SYS_AUTH, ZMS, id, null, caller);
+            dbService.executePutServiceIdentity(null, SYS_AUTH, ZMS_SERVICE, id, null, caller);
         } else {
             if (LOG.isWarnEnabled()) {
                 LOG.warn("init: Warning: no public key, cannot register sys.auth.zms identity");
@@ -5660,7 +5652,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
     
     boolean isZMSService(String domain, String service) {
-        return (SYS_AUTH.equalsIgnoreCase(domain) && ZMS.equalsIgnoreCase(service));
+        return (SYS_AUTH.equalsIgnoreCase(domain) && ZMS_SERVICE.equalsIgnoreCase(service));
     }
     
     /**
@@ -6035,7 +6027,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .issueTime(sdToken.getTimestamp())
                 .expirationWindow(sdToken.getExpiryTime() - sdToken.getTimestamp())
                 .ip(sdToken.getIP()).keyId(privateKeyId).host(serverHostName)
-                .keyService(ZMS).build();
+                .keyService(ZMS_SERVICE).build();
             zmsToken.sign(privateKey);
             servicePrincipal = new ServicePrincipal();
             servicePrincipal.setDomain(principal.getDomain());
