@@ -140,6 +140,10 @@ if [ "x${CONTAINER_CERT_SIGNER_CLASS}" != "x" ]; then
     export JAVA_OPTS="${JAVA_OPTS} -Dathenz.zts.cert_signer_class=${CONTAINER_CERT_SIGNER_CLASS}"
 fi
 
+if [ "x${CONTAINER_SELF_SIGNER_PRIVATE_KEY_FNAME}" != "x" ]; then
+    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.zts.self_signer_private_key_fname=${CONTAINER_SELF_SIGNER_PRIVATE_KEY_FNAME}"
+fi
+
 if [ "x${CONTAINER_CERTSIGN_BASE_URI}" != "x" ]; then
     export JAVA_OPTS="${JAVA_OPTS} -Dathenz.zts.certsign_base_uri=${CONTAINER_CERTSIGN_BASE_URI}"
 fi

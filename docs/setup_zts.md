@@ -67,7 +67,8 @@ $ openssl rsa -in zts_private.pem -pubout > zts_public.pem
 Generate a self-signed X509 certificate for ZTS Server HTTPS
 support. After we generate the X509 certificate, we need to add
 that certificate along with its private key to a keystore for Jetty 
-use. From the `athenz-zts-X.Y` directory execute the following
+use. For the local environment steps, we're using default password
+of "athenz". From the `athenz-zts-X.Y` directory execute the following
 commands:
 
 ```shell
@@ -108,7 +109,7 @@ successfully validate ZMS Server's certificate.
 
 ```shell
 $ cd athenz-zts-X.Y
-$ bin/<platform>/zms-cli -c <path-to-zms_cert.pem> -z https://<zms-server>:4443/zms/v1 -d sys.auth add-service zts 0 var/zts_server/keys zts_public.pem
+$ bin/<platform>/zms-cli -c var/zts_server/certs/zms_cert.pem -z https://<zms-server>:4443/zms/v1 -d sys.auth add-service zts 0 var/zts_server/keys/zts_public.pem
 ```
 
 ### Generate Athenz Configuration File
@@ -121,7 +122,7 @@ data signed by the ZMS Server:
 
 ```shell
 $ cd athenz-zts-X.Y
-$ bin/<platform>/athenz-conf -o conf/zts_server/athenz.conf -c <path-to-zms_cert.pem> -z https://<zms-server>:4443/ -t https://<zts-server>:8443/
+$ bin/<platform>/athenz-conf -o conf/zts_server/athenz.conf -c var/zts_server/certs/zms_cert.pem -z https://<zms-server>:4443/ -t https://<zts-server>:8443/
 ```
 
 ## Start ZTS Server
@@ -132,7 +133,7 @@ directory and from there start the ZTS Server by executing:
 
 ```shell
 $ export ROOT=<full-path-to-athenz-zts-X.Y>
-$ sudo -E bin/zts_start.sh
+$ bin/zts_start.sh
 ```
 
 Based on the sample configuration file provided, ZTS Server will be listening

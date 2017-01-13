@@ -103,7 +103,7 @@ need to copy the `zms_cert.pem` file from the
 
 ```shell
 $ cd athenz-zpu-X.Y
-$ bin/<platform>/athenz-conf -o conf/zpe_policy_updater/athenz.conf -c <path-to-zms_cert.pem> -z https://<zms-server>:4443/ -t https://<zts-server>:8443/
+$ bin/<platform>/athenz-conf -o conf/zpe_policy_updater/athenz.conf -c var/zpe_policy_updater/certs/zms_cert.pem -z https://<zms-server>:4443/ -t https://<zts-server>:8443/
 ```
 
 ### ZPE Policy Directory
@@ -123,7 +123,7 @@ directory and from there start the ZPU utility by executing:
 
 ```shell
 $ export ROOT=<full-path-to-athenz-zpu-X.Y>
-$ sudo -E bin/zpu_run.sh
+$ bin/zpu_run.sh
 ```
 
 ### Periodic Update

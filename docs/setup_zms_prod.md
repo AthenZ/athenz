@@ -157,7 +157,7 @@ directory and from there start the ZMS Server by executing:
 
 ```shell
 $ export ROOT=<full-path-to-athenz-zms-X.Y>
-$ sudo -E bin/zms_start.sh
+$ bin/zms_start.sh
 ```
 
 Based on the sample configuration file provided, ZMS Server will be listening

@@ -117,7 +117,7 @@ directory and from there start the ZTS Server by executing:
 
 ```shell
 $ export ROOT=<full-path-to-athenz-zts-X.Y>
-$ sudo -E bin/zts_start.sh
+$ bin/zts_start.sh
 ```
 
 Based on the sample configuration file provided, ZTS Server will be listening

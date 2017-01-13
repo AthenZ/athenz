@@ -36,6 +36,10 @@
       </includes>
     </fileSet>
     <fileSet>
+      <directory>${basedir}/../utils/athenz_conf/target</directory>
+      <outputDirectory>bin</outputDirectory>
+    </fileSet>
+    <fileSet>
       <directory>.</directory>
       <outputDirectory>logs/zpe_policy_updater</outputDirectory>
       <excludes>
