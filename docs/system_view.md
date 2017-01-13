@@ -59,7 +59,7 @@ ZMS so Athenz services can validate the signature.
 -----------------------------
 
 Like ZTS, ZPE, the authorization policy engine is only needed to support
-the decentralized authorization. ZPE is the subsystem of Athenz that
+decentralized authorization. ZPE is the subsystem of Athenz that
 evaluates policies for a set of roles to yield an allowed or a denied
 response.
 
@@ -69,7 +69,7 @@ policy cache for your services domain (a small amount of data).
 ### ZPU (AuthZ PolicyEngine Updater)
 ------------------------------------
 
-Like ZTS and ZPE, ZPU is only needed to support the decentralized
+Like ZTS and ZPE, ZPU is only needed to support decentralized
 authorization. The policy updater is the utility that retrieves from ZTS
 the policy files for provisioned domains on a host, which ZPE uses to
 evaluate access requests.

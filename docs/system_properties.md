@@ -25,6 +25,7 @@
 | athenz.zms.debug.role_authority          | false                               | Boolean setting to specify whether or not debug Role authority is used instead of the real one. If the | athenz.zms.debug is set to true, then this setting has no impact and the the debug authority is used. |
 | athenz.zms.domain_admin                  | none                                | If the datastore does not contain any domains during startup, the server will automatically create sys, sys.auth and user domains and assign the specified user as the admin for those domains |
 | athenz.zms.enable_stats                  | true                                | Boolean setting to configure whether or not stat counters are enabled or not |
+| athenz.zms.filestore                     | zms_root                            | This specifies the subdirectory name where domain files will be stored. The parent directory is identified by the athenz.zms.home property |
 | athenz.zms.home                          | $ROOT/var/zms_server                | Default home directory for ZMS Server. |
 | athenz.zms.hostname                      | none                                | Specify the FQDN/hostname of the server. This value will be used as the h parameter in the ZMS generated UserTokens. It is also reported as part of the server banner notification in logs. |
 | athenz.zms.http_idle_timeout             | 30000                               | In milliseconds how long that connector will be allowed to remain idle with no traffic before it is shutdown|
@@ -34,10 +35,10 @@
 | athenz.zms.http_response_header_size     | 8192                                | The maximum allowed size in bytes for a HTTP response header |
 | athenz.zms.http_send_date_header         | false                               | Boolean setting to specify whether or not the server should include the Date in HTTP headers. |
 | athenz.zms.http_send_server_version      | false                               | Boolean setting to specify whether or not the server should send the Server header in response |
-| athenz.zms.jdbcstore                     | none                                | URL where the ZMS Server will store domain json documents. jdbc:mysql://localhost:3306/zms - specifies MySQL instance /home/athenz/var/zms_server - specifies file store |
+| athenz.zms.jdbcstore                     | none                                | URL where the ZMS Server will store domain json documents. jdbc:mysql://localhost:3306/zms - specifies MySQL instance |
 | athenz.zms.jdbc_password                 | none                                | If the jdbcstore is pointing to a MySQL server then this specifies the password for the jdbc user |
 | athenz.zms.jdbc_user                     | none                                | If the jdbcstore is pointing to a MySQL server then this specifies the name of the user that has full access to the zms db table |
-| athenz.zms.listen_host                   | none                                | For HTTP access specifies the IP address/Host for service to listen on. This is necessary when ATS is handling TLS traffic and we need Jetty to listen on 127.0.0.1 loopback address only for HTTP connections from ATS. |
+| athenz.zms.listen_host                   | none                                | For HTTP access specifies the IP address/Host for service to listen on. This could be necessary, for example, if the system administrator wants ATS to handle TLS traffic and configure Jetty to listen on 127.0.0.1 loopback address only for HTTP connections from ATS. |
 | athenz.zms.port                          | 10080                               | Default port for HTTP access |
 | athenz.zms.privatekey                    | none                                | Specifies the path to the ZMS Server's private key |
 | athenz.zms.privatekey_id                 | 0                                   | Specifies the identifier of the private key |
@@ -57,4 +58,3 @@
 | athenz.zms.user_token_timeout            | 3600                                | Specifies in seconds how long would the User Tokens be valid for |
 | athenz.zms.virtual_domain_limit          | 2                                   | If virtual domain support is enabled, this setting specifies the number of sub domains in the user's virtual namespace that are allowed to be created. Value of 0 indicates no limit.|
 | athenz.zms.virtual_domain_support        | true                                | Boolean setting to configure whether or not virtual domains are supported or not. These are domains created in the user's own "user" namespace |
-| athenz.zms.zms_dbtable                   | zms_root                            | If the jdbcstore is pointing to a MySQL server then this specifies the DB table name. If the jdbcstore is pointing to a filestore directory then this specifies the subdirectory name |

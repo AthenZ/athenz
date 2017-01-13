@@ -1,0 +1,164 @@
+# Setup ZMS (AuthoriZation Management System) For Production
+------------------------------------------------------------
+
+The primary requirement for running ZMS in a Production environment is
+using JDBC (MySQL Server) to store the domain data as opposed to
+file based json documents.
+
+* [Requirements](#requirements)
+    * [JDK 8](#jdk-8)
+    * [MySQL Server](#mysql-server)
+        * [ZMS Server Schema Setup](#zms-server-schema-setup)
+        * [MySQL User and Permissions](#mysql-user-and-permissions)
+* [Getting Software](#getting-software)
+* [Configuration](#configuration)
+    * [DB Access](#db-access)
+    * [Private/Public Key Pair](#privatepublic-key-pair)
+    * [Server X509 Certificate](#server-x509-certificate)
+* [Start ZMS Server](#start-zms-server)
+
+## Requirements
+---------------
+
+The following tools are required to be installed on hosts
+configured to run ZMS server.
+
+### JDK 8
+---------
+
+ZMS Server is written in Java and using embedded Jetty.
+
+[Oracle Java Platform JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
+
+While ZMS has been developed and tested with Oracle Java Platform JDK 8
+it should run successfully with OpenJDK 8 as well.
+
+### MySQL Server
+----------------
+
+On a separate host, download and install the latest version
+of [MySQL Server](https://dev.mysql.com/downloads/mysql/)
+
+#### ZMS Server Schema Setup
+----------------------------
+
+Copy the `zms_server.sql` file from the Athenz Git repository (from the
+servers/zms/schema directory) onto this host and create the database:
+
+```shell 
+$ mysql -u root < zms_server.sql
+```
+
+#### MySQL User and Permissions
+-------------------------------
+
+Follow MySQL documentation to create a user and grant this user full
+privileges over the zms_server database created. For example, let's assume
+our ZMS Server will be running on zms1.athenz.com host and we want to
+create a user called zms_admin with password "Athenz":
+
+```
+$ mysql -u root
+mysql> CREATE USER 'zms_admin'@'zms1.athenz.com' IDENTIFIED BY 'Athenz';
+mysql> GRANT ALL PRIVILEGES ON zms_server.* TO 'zms_admin'@'zms1.athenz.com';
+mysql> FLUSH PRIVILEGES;
+```
+
+## Getting Software
+-------------------
+
+Download latest ZMS binary release from
+
+```
+https://github.com/yahoo/athenz/releases/latest
+```
+
+```shell
+$ tar xvfz athenz-zms-X.Y-bin.tar.gz
+$ cd athenz-zms-X.Y
+```
+
+## Configuration
+----------------
+
+To run ZMS Server, the system administrator must generate the keys
+and make necessary changes to the configuration settings.
+
+### DB Access
+-------------
+
+In the "MySQL Server" section above we installed and configured the
+schema required for ZMS Server. We also created a zms admin user and
+granted full access over those tables. Now, we need to configure the
+ZMS with those access details:
+
+```shell
+$ cd conf/zms_server
+$ vi container_settings
+```
+
+Make the following changes:
+
+1. Uncomment the CONTAINER_JDBC_STORE line and set it to point to your
+   MySQL Server instance. For example if your DB Server is running on
+   a host called db1.athenz.com, then your line would be:
+   
+   CONTAINER_JDBC_STORE="jdbc:mysql://db1.athenz.com:3306/zms_server"
+
+2. Uncomment the CONTAINER_JDBC_USER line and set it to the user
+   configured to have full access over zms server database:
+   
+   CONTAINER_JDBC_USER="zms_admin"
+
+3. Uncomment the CONTAINER_JDBC_PASSWORD lin and set it to the
+   configured password the for the jdbc user with full access:
+   
+   CONTAINER_JDBC_PASSWORD="Athenz"
+
+### Private/Public Key Pair
+---------------------------
+
+Generate a unique private/public key pair that ZMS Server will use
+to sign any NTokens it issues. From the `athenz-zms-X.Y` directory
+execute the following commands:
+
+```shell
+$ cd var/zms_server/keys
+$ openssl genrsa -out zms_private.pem 2048
+$ openssl rsa -in zms_private.pem -pubout > zms_public.pem
+```
+
+### Server X509 Certificate
+---------------------------
+
+While it is still possible to generate and use a self-signed X509 
+certificate for ZMS Servers, it is recommended to purchase one for
+your production server from a well known certificate authority.
+Having such a certificate installed on your ZMS Servers will no
+longer require to distribute the server's public certificate to
+other hosts (e.g. ZTS Servers, Hosts running ZPU).
+
+Follow the instructions provided by the Certificate Authority to
+generate your private key and then the Certificate Request (CSR).
+Once you have received your X509 certificate, we just need to add
+that certificate along with its private key to a keystore for Jetty 
+use. From the `athenz-zms-X.Y` directory execute the following
+command:
+
+```shell
+$ openssl pkcs12 -export -out zms_keystore.pkcs12 -in zms_cert.pem -inkey zms_key.pem
+```
+
+## Start ZMS Server
+-------------------
+
+Set the required Athenz ROOT environment variable to the `athenz-zms-X.Y`
+directory and from there start the ZMS Server by executing:
+
+```shell
+$ export ROOT=<full-path-to-athenz-zms-X.Y>
+$ sudo -E bin/zms_start.sh
+```
+
+Based on the sample configuration file provided, ZMS Server will be listening
+on port 4443.

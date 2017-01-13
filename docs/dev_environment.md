@@ -51,8 +51,7 @@ To build Athenz components, change to the top level directory where
 Athenz code has been checked out and execute:
 
 ```
-git clone https://github.com/yahoo/AtheNZ.git
-cd AtheNZ
+git clone https://github.com/yahoo/athenz.git
+cd athenz
 mvn clean install
 ```
-

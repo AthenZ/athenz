@@ -35,8 +35,14 @@ and often rely on network ACLs and manual updating.
 
 * Getting Started
     * [Development Enviornment](docs/dev_environment.md)
-    * [Setup ZMS](docs/setup_zms.md)
-    * [Setup ZTS](docs/setup_zts.md)
+    * Local/Development Environment Setup
+        * [ZMS Server](docs/setup_zms.md)
+        * [ZTS Server](docs/setup_zts.md)
+        * [UI Server](docs/setup_ui.md)
+    * Production Environment Setup
+        * [ZMS Server](docs/setup_zms_prod.md)
+        * [ZTS Server](docs/setup_zts_prod.md)
+        * [UI Server](docs/setup_ui_prod.md)
 * Architecture
     * [Data Model](docs/data_model.md)
     * [System View](docs/system_view.md)
@@ -47,6 +53,7 @@ and often rely on network ACLs and manual updating.
     * [System Properties](docs/system_properties.md)
 * User Guide
     * [ZMS Client Utility](docs/zms_client.md)
+    * [ZPU Utility](docs/setup_zpu.md)
     * [Registering ZMS Service Identity](docs/reg_service_guide.md)
 
 ## Contact

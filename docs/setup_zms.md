@@ -31,7 +31,7 @@ it should run successfully with OpenJDK 8 as well.
 Download latest ZMS binary release from
 
 ```
-https://github.com/yahoo/AtheNZ/releases/latest
+https://github.com/yahoo/athenz/releases/latest
 ```
 
 ```shell
@@ -52,10 +52,10 @@ Generate a unique private/public key pair that ZMS Server will use
 to sign any NTokens it issues. From the `athenz-zms-X.Y` directory
 execute the following commands:
 
-```
-cd var/zms_server/keys
-openssl genrsa -out zms_private.pem 2048
-openssl rsa -in zms_private.pem -pubout > zms_public.pem
+```shell
+$ cd var/zms_server/keys
+$ openssl genrsa -out zms_private.pem 2048
+$ openssl rsa -in zms_private.pem -pubout > zms_public.pem
 ```
 
 ### Self Signed X509 Certificate
@@ -67,15 +67,15 @@ that certificate along with its private key to a keystore for Jetty
 use. From the `athenz-zms-X.Y` directory execute the following
 commands:
 
-```
-cd var/zms_server/certs
-openssl req -x509 -newkey rsa:2048 -keyout zms_key.pem -out zms_cert.pem -days 365
+```shell
+$ cd var/zms_server/certs
+$ openssl req -x509 -newkey rsa:2048 -keyout zms_key.pem -out zms_cert.pem -days 365
 ```
 
 Generate a keystore in PKCS#12 format:
 
-```
-openssl pkcs12 -export -out zms_keystore.pkcs12 -in zms_cert.pem -inkey zms_key.pem
+```shell
+$ openssl pkcs12 -export -out zms_keystore.pkcs12 -in zms_cert.pem -inkey zms_key.pem
 ```
 
 ## Start ZMS Server
@@ -84,9 +84,9 @@ openssl pkcs12 -export -out zms_keystore.pkcs12 -in zms_cert.pem -inkey zms_key.
 Set the required Athenz ROOT environment variable to the `athenz-zms-X.Y`
 directory and from there start the ZMS Server by executing:
 
-```
-export ROOT=<full-path-to-athenz-zms-X.Y>
-sudo -E bin/zms_start.sh
+```shell
+$ export ROOT=<full-path-to-athenz-zms-X.Y>
+$ sudo -E bin/zms_start.sh
 ```
 
 Based on the sample configuration file provided, ZMS Server will be listening
