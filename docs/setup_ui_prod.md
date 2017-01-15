@@ -50,7 +50,7 @@ operation. From the `athenz-ui-X.Y` directory execute the following
 commands:
 
 ```shell
-$ cd var/athens_ui/keys
+$ cd var/athenz_ui/keys
 $ openssl genrsa -out ui_private.pem 2048
 $ openssl rsa -in ui_private.pem -pubout > ui_public.pem
 ```
