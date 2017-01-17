@@ -3,7 +3,9 @@
 # ** list of authorities for authenticating principals
 CONTAINER_AUTHORITY_CLASSES="com.yahoo.athenz.auth.impl.PrincipalAuthority,com.yahoo.athenz.auth.impl.UserAuthority"
 
-# ** admin user for new installations - defaults to current user
+# ** admin users for new installations - defaults to current user
+# ** the value is a comma separated list of users in the user
+# ** domain. e.g. user.joe,user.jack,user.john
 CONTAINER_ADMINUSER="user.${USER}"
 
 # ** private/public key pair for zms instance - must be generated

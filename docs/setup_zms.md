@@ -7,6 +7,8 @@
 * [Configuration](#configuration)
     * [Private/Public Key Pair](#privatepublic-key-pair)
     * [Self Signed X509 Certificate](#self-signed-x509-certificate)
+    * [User Authentication](#user-authentication)
+    * [System Administrators](#system-administrators)
 * [Start ZMS Server](#start-zms-server)
 
 ## Requirements
@@ -78,6 +80,46 @@ Generate a keystore in PKCS#12 format:
 $ openssl pkcs12 -export -out zms_keystore.pkcs12 -in zms_cert.pem -inkey zms_key.pem
 ```
 
+### User Authentication
+-----------------------
+
+For a user to authenticate himself/herself in ZMS, the server must have
+the appropriate authentication authority implementation configured. By
+default, ZMS enables the following two authorities:
+
+* Unix User Authority - using pam login profile to authenticate users
+* Principal Authority - validating Principal Tokens that are issued
+  when users authenticate using their unix login password.
+
+The server also provides other authorities - e.g. Kerberos, TLS Certificate
+that are not enabled by default. Since the default setup includes Unix
+Authority, the user that the ZMS process runs as must have read access
+to the /etc/shadow file. There are two options available:
+
+* Run the process as root using sudo. This is only recommended for a local
+  development installation.
+* Create a special Unix group that has read access to the /etc/shadow file
+  and set the user that the ZMS process will be running as a member of that
+  group.
+
+### System Administrators
+-------------------------
+
+When running the server very first time, ZMS Server automatically creates
+the required domains and sets the running user as the system administrator.
+The system administrators are the only ones authorized to create top
+level domains in Athenz. Before running the server very first time, you
+can configure the set of system administrators by following these steps:
+
+```shell
+$ cd athenz-zms-X.Y
+$ vi conf/zms_server/container_settings
+```
+
+Modify the `CONTAINER_ADMINUSER="user.${USER}"` line and include comma
+separated list of unix user ids that should be set as Athenz system
+administrators. e.g. `CONTAINER_ADMINUSER="user.joe,user.john`
+
 ## Start ZMS Server
 -------------------
 
@@ -86,8 +128,11 @@ directory and from there start the ZMS Server by executing:
 
 ```shell
 $ export ROOT=<full-path-to-athenz-zms-X.Y>
-$ bin/zms_start.sh
+$ sudo -E bin/zms_start.sh
 ```
+
+See the `User Authentication` section above regarding an alternative
+solution of starting ZMS Server without using sudo.
 
 Based on the sample configuration file provided, ZMS Server will be listening
 on port 4443.
