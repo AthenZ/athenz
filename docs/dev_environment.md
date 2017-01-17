@@ -6,6 +6,7 @@
     * [Maven](#maven)
     * [Git Client](#git-client)
     * [Go](#go)
+    * [Node JS](#node-js)
 * [Build Steps](#build-steps)
 
 ## Development Tools
@@ -44,14 +45,39 @@ one from [Git website](https://git-scm.com/downloads)
 Install go by following the directions at
 [Getting Started - The Go Programming Language](https://golang.org/doc/install).
 
+### Node JS
+-----------
+
+Install node by following the directions at
+[Node.js JavaScript Runtime](https://nodejs.org/en/)
+
+Verify that you have the required minimum version of `node` and
+`nodemon` binaries installed on your system and are included
+in your runtime path:
+
+```shell
+$ node --version
+v6.9.4
+$ nodemon --version
+1.11.0
+```
+
 ## Build Steps
 --------------
 
 To build Athenz components, change to the top level directory where
 Athenz code has been checked out and execute:
 
+```shell
+$ git clone https://github.com/yahoo/athenz.git
+$ cd athenz
+$ mvn clean install
 ```
-git clone https://github.com/yahoo/athenz.git
-cd athenz
-mvn clean install
+
+To build the release packages after the build has completed
+successfully:
+
+```shell
+$ cd assembly
+$ mvn clean package
 ```

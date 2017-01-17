@@ -93,6 +93,7 @@ register a new service in `athenz` domain:
 $ cd athenz-ui-X.Y
 $ bin/<platform>/zms-cli -z https://<zms-server>:4443/zms/v1 add-domain athenz
 $ bin/<platform>/zms-cli -z https://<zms-server>:4443/zms/v1 -d athenz add-service ui 0 keys/athenz.ui_pub.pem
+```
 
 ## Start UI Server
 ------------------

@@ -113,6 +113,7 @@ successfully validate ZMS Server's certificate.
 $ cd athenz-ui-X.Y
 $ bin/<platform>/zms-cli -c keys/zms_cert.pem -z https://<zms-server>:4443/zms/v1 add-domain athenz
 $ bin/<platform>/zms-cli -c keys/zms_cert.pem -z https://<zms-server>:4443/zms/v1 -d athenz add-service ui 0 keys/athenz.ui_pub.pem
+```
 
 ## Start UI Server
 ------------------
