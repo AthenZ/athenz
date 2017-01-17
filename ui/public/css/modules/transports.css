@@ -1,0 +1,10 @@
+.transports {
+  .add-transport {
+    @mixin add-button;
+  }
+  table {
+    width: 100%;
+    @mixin data-table white {
+    }
+  }
+}

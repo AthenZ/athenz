@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Copyright 2016 Yahoo Inc.
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->
+<assembly
+  xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+  <id>bin</id>
+  <formats>
+    <format>tar.gz</format>
+  </formats>
+  <includeBaseDirectory>true</includeBaseDirectory>
+  <fileSets>
+    <fileSet>
+      <directory>${basedir}/../ui</directory>
+      <outputDirectory>.</outputDirectory>
+      <includes>
+        <include>README.md</include>
+        <include>Gruntfile.js</include>
+        <include>package.json</include>
+        <include>rdl-api.md</include>
+        <include>server.js</include>
+        <include>index.js</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <directory>${basedir}/../ui/build</directory>
+      <outputDirectory>build</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>${basedir}/../ui/config</directory>
+      <outputDirectory>config</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>${basedir}/../ui/node_modules</directory>
+      <outputDirectory>node_modules</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>${basedir}/../ui/src</directory>
+      <outputDirectory>src</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>${basedir}/../ui/views</directory>
+      <outputDirectory>views</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>${basedir}/../ui/public</directory>
+      <outputDirectory>public</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>${basedir}/../ui/scripts</directory>
+      <outputDirectory>bin</outputDirectory>
+      <fileMode>755</fileMode>
+      <includes>
+        <include>ui_start.sh</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <directory>.</directory>
+      <outputDirectory>keys</outputDirectory>
+      <excludes>
+        <exclude>*/**</exclude>
+      </excludes>
+    </fileSet>
+    <fileSet>
+      <directory>${basedir}/../utils/zms_cli/target</directory>
+      <outputDirectory>bin</outputDirectory>
+    </fileSet>
+  </fileSets>
+  <files>
+    <file>
+      <source>${basedir}/../LICENSE</source>
+      <outputDirectory>.</outputDirectory>
+      <fileMode>644</fileMode>
+    </file>
+  </files>
+</assembly>

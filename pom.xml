@@ -96,6 +96,7 @@
     <module>clients/go/zts</module>
     <module>utils/zms_cli</module>
     <module>utils/athenz_conf</module>
+    <module>ui</module>
   </modules>
 
   <build>

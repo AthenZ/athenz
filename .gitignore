@@ -18,6 +18,7 @@ clients/java/sia/src/test/resources/svc.ntoken
 clients/java/zpe/src/test/resources/upd_pol_dir/
 ui/build/
 ui/node_modules/
+ui/artifacts/
 utils/zpe_policy_updater/tmp_metrics/
 utils/zpe_policy_updater/src/test/resources/sys.auth.new.pol
 clients/java/zpe/src/test/resources/pol_dir/angler.pol

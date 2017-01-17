@@ -93,6 +93,20 @@
             </configuration>
           </execution>
           <execution>
+            <id>package-ui-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <tarLongFileMode>posix</tarLongFileMode>
+              <finalName>athenz-ui-${project.version}</finalName>
+              <descriptors>
+                <descriptor>components/ui.xml</descriptor>
+              </descriptors>
+            </configuration>
+          </execution>
+          <execution>
             <id>package-utils-assembly</id>
             <phase>package</phase>
             <goals>
