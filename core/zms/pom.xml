@@ -41,27 +41,29 @@
   </dependencies>
 
   <build>
-    <plugins>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.1.1</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <phase>generate-sources</phase>
-          </execution>
-        </executions>
-        <configuration>
-          <executable>bash</executable>
-          <arguments>
-            <argument>scripts/make_stubs.sh</argument>
-          </arguments>
-        </configuration>
-      </plugin>
-    </plugins>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>exec-maven-plugin</artifactId>
+          <version>1.1.1</version>
+          <executions>
+            <execution>
+              <goals>
+                <goal>exec</goal>
+              </goals>
+              <phase>generate-sources</phase>
+            </execution>
+          </executions>
+          <configuration>
+            <executable>bash</executable>
+            <arguments>
+              <argument>scripts/make_stubs.sh</argument>
+            </arguments>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
   </build>
 
 </project>

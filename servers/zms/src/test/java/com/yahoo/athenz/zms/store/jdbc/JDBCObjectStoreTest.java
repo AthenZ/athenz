@@ -21,8 +21,8 @@ import java.sql.SQLException;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
+import com.yahoo.athenz.common.server.db.PoolableDataSource;
 import com.yahoo.athenz.zms.store.jdbc.JDBCObjectStore;
-import com.yahoo.athenz.zms.store.jdbc.PoolableDataSource;
 
 import static org.testng.Assert.*;
 

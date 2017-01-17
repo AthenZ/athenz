@@ -13,14 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zms.store.jdbc;
+package com.yahoo.athenz.common.server.db;
 
-import java.io.PrintWriter;
 import java.util.concurrent.TimeUnit;
-import java.sql.DriverManager;
-import java.sql.Connection;
-import java.sql.SQLFeatureNotSupportedException;
-import java.sql.SQLException;
 
 import org.apache.commons.dbcp2.ConnectionFactory;
 import org.apache.commons.dbcp2.DriverManagerConnectionFactory;
@@ -34,39 +29,29 @@ import org.apache.commons.pool2.impl.BaseObjectPoolConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.yahoo.athenz.zms.ZMSConsts;
-
 public class DataSourceFactory {
 
     private static final Logger LOG = LoggerFactory.getLogger(DataSourceFactory.class);
 
-    static final String ZMS_PROP_DBPOOL_MAX_TOTAL = "athenz.zms.db_pool_max_total";
-    static final String ZMS_PROP_DBPOOL_MAX_IDLE = "athenz.zms.db_pool_max_idle";
-    static final String ZMS_PROP_DBPOOL_MIN_IDLE = "athenz.zms.db_pool_min_idle";
-    static final String ZMS_PROP_DBPOOL_MAX_WAIT = "athenz.zms.db_pool_max_wait";
-    static final String ZMS_PROP_DBPOOL_EVICT_IDLE_TIMEOUT = "athenz.zms.db_pool_evict_idle_timeout";
-    static final String ZMS_PROP_DBPOOL_EVICT_IDLE_INTERVAL = "athenz.zms.db_pool_evict_idle_interval";
-    static final String ZMS_PROP_DBPOOL_MAX_TTL = "athenz.zms.db_pool_max_ttl";
+    static final String ZMS_PROP_DBPOOL_MAX_TOTAL = "athenz.db.pool_max_total";
+    static final String ZMS_PROP_DBPOOL_MAX_IDLE = "athenz.db.pool_max_idle";
+    static final String ZMS_PROP_DBPOOL_MIN_IDLE = "athenz.db.pool_min_idle";
+    static final String ZMS_PROP_DBPOOL_MAX_WAIT = "athenz.db.pool_max_wait";
+    static final String ZMS_PROP_DBPOOL_EVICT_IDLE_TIMEOUT = "athenz.db.pool_evict_idle_timeout";
+    static final String ZMS_PROP_DBPOOL_EVICT_IDLE_INTERVAL = "athenz.db.pool_evict_idle_interval";
+    static final String ZMS_PROP_DBPOOL_MAX_TTL = "athenz.db.pool_max_ttl";
 
     static final long MAX_TTL_CONN_MS = TimeUnit.MILLISECONDS.convert(10L, TimeUnit.MINUTES);
     
-    public static PoolableDataSource create(String url) {
+    public static PoolableDataSource create(String url, String userName, String password) {
         
         String driver = null;
         try {
-            if (url.indexOf("sqlite") > 0) {
-                
-                driver = "org.sqlite.JDBC";
-                Class.forName(driver);
-                return new SimpleDataSource(driver, url);
-                
-            } else if (url.indexOf(":mysql:") > 0) {
+            if (url.indexOf(":mysql:") > 0) {
                 
                 driver = "com.mysql.jdbc.Driver";
                 Class.forName(driver);
-                
-                String userName = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_USER);
-                String password = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_PASSWORD, "");
+
                 ConnectionFactory connectionFactory =
                     new DriverManagerConnectionFactory(url, userName, password);
 
@@ -85,8 +70,6 @@ public class DataSourceFactory {
     
     static long retrieveConfigSetting(String propName, long defaultValue) {
 
-        final String errPrefix = "Using default instead. Ignoring Invalid number(";
-
         String propValue = System.getProperty(propName);
         if (propValue == null) {
             return defaultValue;
@@ -97,7 +80,8 @@ public class DataSourceFactory {
             value = Long.parseLong(propValue);
         } catch (NumberFormatException ex) {
             if (LOG.isWarnEnabled()) {
-                LOG.warn(errPrefix + propValue + ") set in system property(" + propName + "): " + ex.getMessage());
+                LOG.warn("Ignoring Invalid number({}) set in system property({}). Using default ({})",
+                        propValue, propName, defaultValue);
             }
         }
         
@@ -105,8 +89,6 @@ public class DataSourceFactory {
     }
     
     static int retrieveConfigSetting(String propName, int defaultValue) {
-
-        final String errPrefix = "Using default instead. Ignoring Invalid number(";
 
         String propValue = System.getProperty(propName);
         if (propValue == null) {
@@ -118,7 +100,8 @@ public class DataSourceFactory {
             value = Integer.parseInt(propValue);
         } catch (NumberFormatException ex) {
             if (LOG.isWarnEnabled()) {
-                LOG.warn(errPrefix + propValue + ") set in system property(" + propName + "): " + ex.getMessage());
+                LOG.warn("Ignoring Invalid number({}) set in system property({}). Using default ({})",
+                        propValue, propName, defaultValue);
             }
         }
         
@@ -134,21 +117,24 @@ public class DataSourceFactory {
 
         // The maximum number of active connections that can be allocated from
         // this pool at the same time, or negative for no limit. Default: 8
-        config.setMaxTotal(retrieveConfigSetting(ZMS_PROP_DBPOOL_MAX_TOTAL, GenericObjectPoolConfig.DEFAULT_MAX_TOTAL));
+        config.setMaxTotal(retrieveConfigSetting(ZMS_PROP_DBPOOL_MAX_TOTAL,
+                GenericObjectPoolConfig.DEFAULT_MAX_TOTAL));
         if (config.getMaxTotal() == 0) {
             config.setMaxTotal(-1); // -1 means no limit
         }
         
         //  The maximum number of connections that can remain idle in the pool,
         // without extra ones being released, or negative for no limit. Default 8
-        config.setMaxIdle(retrieveConfigSetting(ZMS_PROP_DBPOOL_MAX_IDLE, GenericObjectPoolConfig.DEFAULT_MAX_IDLE));
+        config.setMaxIdle(retrieveConfigSetting(ZMS_PROP_DBPOOL_MAX_IDLE,
+                GenericObjectPoolConfig.DEFAULT_MAX_IDLE));
         if (config.getMaxIdle() == 0) {
             config.setMaxIdle(-1); // -1 means no limit
         }
         
         // The minimum number of connections that can remain idle in the pool,
         // without extra ones being created, or zero to create none. Default 0
-        config.setMinIdle(retrieveConfigSetting(ZMS_PROP_DBPOOL_MIN_IDLE, GenericObjectPoolConfig.DEFAULT_MIN_IDLE));
+        config.setMinIdle(retrieveConfigSetting(ZMS_PROP_DBPOOL_MIN_IDLE,
+                GenericObjectPoolConfig.DEFAULT_MIN_IDLE));
         
         // The maximum number of milliseconds that the pool will wait (when
         // there are no available connections) for a connection to be returned
@@ -209,61 +195,12 @@ public class DataSourceFactory {
                     connTtlMillis + ")milli-secs");
         }
         
-        ObjectPool<PoolableConnection> connectionPool = new GenericObjectPool<>(poolableConnectionFactory, config);
+        ObjectPool<PoolableConnection> connectionPool =
+                new GenericObjectPool<>(poolableConnectionFactory, config);
         poolableConnectionFactory.setPool(connectionPool);
         
-        ZMSDataSource dataSource = new ZMSDataSource(connectionPool);
+        AthenzDataSource dataSource = new AthenzDataSource(connectionPool);
         return dataSource;
-    }
-
-    static class SimpleDataSource implements PoolableDataSource {
-        PrintWriter logger;
-        String className;
-        String url;
-        
-        SimpleDataSource(String className, String url) {
-            this.className = className;
-            this.url = url;
-            this.logger = new PrintWriter(System.out);
-        }
-        
-        public Connection getConnection() {
-            try {
-                Class.forName(className);
-                return DriverManager.getConnection(url);
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException("Cannot load class: " + className);
-            } catch (SQLException e) {
-                throw new RuntimeException("Cannot connect to database " + url);
-            }
-        }
-        public Connection getConnection(String user, String pass) {
-            return getConnection(); //use a real datasource if you want this
-        }
-        public int getLoginTimeout() {
-            return 0;
-        }
-        public void setLoginTimeout(int seconds) {
-        }
-        public void setLogWriter(PrintWriter out) {
-            logger = out;
-        }
-        public PrintWriter getLogWriter() {
-            return logger;
-        }
-        public java.util.logging.Logger getParentLogger() throws SQLFeatureNotSupportedException {
-            throw new SQLFeatureNotSupportedException();
-        }
-        public boolean isWrapperFor(Class<?> iface) {
-            return false;
-        }
-        public <T> T unwrap(Class<T> iface) throws SQLException {
-            throw new SQLException("Not implemented");
-        }
-
-        @Override
-        public void clearPoolConnections() {
-        }
     }
 }
 

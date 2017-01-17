@@ -20,15 +20,15 @@ import com.yahoo.athenz.auth.AuthorityKeyStore;
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.metrics.MetricFactory;
+import com.yahoo.athenz.common.server.db.DataSourceFactory;
+import com.yahoo.athenz.common.server.db.PoolableDataSource;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
 import com.yahoo.athenz.zms.pkey.PrivateKeyStore;
 import com.yahoo.athenz.zms.pkey.PrivateKeyStoreFactory;
 import com.yahoo.athenz.zms.store.ObjectStore;
 import com.yahoo.athenz.zms.store.file.FileObjectStore;
-import com.yahoo.athenz.zms.store.jdbc.DataSourceFactory;
 import com.yahoo.athenz.zms.store.jdbc.JDBCObjectStore;
-import com.yahoo.athenz.zms.store.jdbc.PoolableDataSource;
 
 import java.io.File;
 import java.security.PrivateKey;
@@ -62,7 +62,9 @@ public class ZMSServerImpl {
         ObjectStore store = null;
         String jdbcStore = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_STORE);
         if (jdbcStore != null && jdbcStore.startsWith("jdbc:")) {
-            PoolableDataSource src = DataSourceFactory.create(jdbcStore);
+            String userName = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_USER);
+            String password = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_PASSWORD, "");
+            PoolableDataSource src = DataSourceFactory.create(jdbcStore, userName, password);
             store = new JDBCObjectStore(src);
         } else {
             String homeDir = System.getProperty(ZMSConsts.ZMS_PROP_HOME,

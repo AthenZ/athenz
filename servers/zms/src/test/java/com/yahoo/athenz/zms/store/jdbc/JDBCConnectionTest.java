@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.zms.store.jdbc;
 
+import com.yahoo.athenz.common.server.db.PoolableDataSource;
 import com.yahoo.athenz.zms.Assertion;
 import com.yahoo.athenz.zms.AssertionEffect;
 import com.yahoo.athenz.zms.Domain;
@@ -34,7 +35,6 @@ import com.yahoo.athenz.zms.ZMSConsts;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.athenz.zms.store.jdbc.JDBCConnection;
 import com.yahoo.athenz.zms.store.jdbc.JDBCObjectStore;
-import com.yahoo.athenz.zms.store.jdbc.PoolableDataSource;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.UUID;

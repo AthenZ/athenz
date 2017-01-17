@@ -13,22 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zms.store.jdbc;
+package com.yahoo.athenz.common.server.db;
 
 import static org.testng.Assert.*;
 
-import java.io.PrintWriter;
-
 import org.apache.commons.pool2.impl.BaseObjectPoolConfig;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
-import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
-import com.yahoo.athenz.zms.MockConnectionFactory;
-import com.yahoo.athenz.zms.store.jdbc.DataSourceFactory;
-import com.yahoo.athenz.zms.store.jdbc.DataSourceFactory.SimpleDataSource;
-import com.yahoo.athenz.zms.store.jdbc.PoolableDataSource;
-
+import com.yahoo.athenz.common.server.db.DataSourceFactory;
+import com.yahoo.athenz.common.server.db.PoolableDataSource;
 
 public class DataSourceFactoryTest {
 
@@ -37,22 +31,16 @@ public class DataSourceFactoryTest {
     @Test
     public void testCrateDataSourceWithMysqlUrl() {
         
-        PoolableDataSource src = DataSourceFactory.create("jdbc:mysql:localhost:3306/athenz");
+        PoolableDataSource src = DataSourceFactory.create("jdbc:mysql:localhost:3306/athenz",
+                "user", "password");
         assertNotNull(src);
     }
     
     @Test
-    public void testCrateDataSourceWithSQLiteUrl() {
-        
-        PoolableDataSource src = DataSourceFactory.create("jdbc:sqlite:localhost:3306/athenz");
-        assertNotNull(src);
-    }
-
-    @Test
     public void testCreateDataSourceWithUnknownUrl() {
         
         try {
-            DataSourceFactory.create("jdbc:tdb:localhost:11080");
+            DataSourceFactory.create("jdbc:tdb:localhost:11080", "user", "password");
             fail();
         } catch (RuntimeException ex) {
             assertTrue(true);
@@ -244,77 +232,5 @@ public class DataSourceFactoryTest {
         System.setProperty(ZMS_DBPOOL_PROP1, "abc");
         assertEquals(DataSourceFactory.retrieveConfigSetting(ZMS_DBPOOL_PROP1, 20), 20);
         System.clearProperty(ZMS_DBPOOL_PROP1);
-    }
-    
-    @Test
-    public void testGetConnection() {
-        SimpleDataSource dataSource = new SimpleDataSource("zmsclass", "localhost:3306/athenz");
-        assertEquals(dataSource.getLoginTimeout(), 0);
-    }
-
-    @Test
-    public void testSetLoginTimeout() {
-        SimpleDataSource dataSource = new SimpleDataSource("zmsclass", "localhost:3306/athenz");
-        dataSource.setLoginTimeout(30);
-    }
-
-    @Test
-    public void testSetLogWriter() {
-        SimpleDataSource dataSource = new SimpleDataSource("zmsclass", "localhost:3306/athenz");
-        PrintWriter writer = Mockito.mock(PrintWriter.class);
-        dataSource.setLogWriter(writer);
-    }
-
-    @Test
-    public void testGetLogWriter() {
-        SimpleDataSource dataSource = new SimpleDataSource("zmsclass", "localhost:3306/athenz");
-        dataSource.getLogWriter();
-    }
-
-    @Test
-    public void testConnectionGetConnection() {
-        SimpleDataSource dataSource = new SimpleDataSource("zmsclass", "localhost:3306/athenz");
-        try {
-            dataSource.getConnection();
-            fail();
-        } catch (Exception ex) {
-            assertTrue(true);
-        }
-
-        try {
-            dataSource.getConnection("user1", "pass1");
-            fail();
-        } catch (Exception ex) {
-            assertTrue(true);
-        }
-
-    }
-
-    @Test
-    public void testGetParentLogger() {
-        SimpleDataSource dataSource = new SimpleDataSource("zmsclass", "localhost:3306/athenz");
-        try {
-            dataSource.getParentLogger();
-            fail();
-        } catch (Exception ex) {
-            assertTrue(true);
-        }
-    }
-
-    @Test
-    public void testIsWrapperFor() {
-        SimpleDataSource dataSource = new SimpleDataSource("zmsclass", "localhost:3306/athenz");
-        assertFalse(dataSource.isWrapperFor(String.class));
-    }
-
-    @Test
-    public void testUnwrap() {
-        SimpleDataSource dataSource = new SimpleDataSource("zmsclass", "localhost:3306/athenz");
-        try {
-            dataSource.unwrap(String.class);
-            fail();
-        } catch (Exception ex) {
-            assertTrue(true);
-        }
     }
 }

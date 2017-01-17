@@ -17,6 +17,7 @@
             "allowedOperations": [
                 { "name":"putmembership" },
                 { "name":"deletemembership" },
+                { "name":"posttopleveldomain" },
                 { "name":"postuserdomain" },
                 { "name":"postsubdomain" },
                 { "name":"deletesubdomain" },

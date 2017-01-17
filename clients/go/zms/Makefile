@@ -4,7 +4,7 @@
 # Prerequisite: Go development environment
 #
 # Copyright 2016 Yahoo Inc.
-# Licensed under the Apache License, Version 2.0: [http://www.apache.org/licenses/LICENSE-2.0]()
+# Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
 #
 
 RDL_FILE=../../../core/zms/src/main/rdl/ZMS.rdl

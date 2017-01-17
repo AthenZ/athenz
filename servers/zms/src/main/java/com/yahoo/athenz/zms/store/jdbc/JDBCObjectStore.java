@@ -17,6 +17,7 @@ package com.yahoo.athenz.zms.store.jdbc;
 
 import java.sql.SQLException;
 
+import com.yahoo.athenz.common.server.db.PoolableDataSource;
 import com.yahoo.athenz.zms.ResourceException;
 import com.yahoo.athenz.zms.store.ObjectStore;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;

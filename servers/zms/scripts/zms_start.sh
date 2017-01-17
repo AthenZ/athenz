@@ -92,31 +92,31 @@ if [ "x${CONTAINER_FILE_STORE}" != "x" ]; then
 fi
 
 if [ "x${CONTAINER_DBPOOL_MAX_TOTAL}" != "x" ]; then
-    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.zms.db_pool_max_total=${CONTAINER_DBPOOL_MAX_TOTAL}"
+    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.db.pool_max_total=${CONTAINER_DBPOOL_MAX_TOTAL}"
 fi
 
 if [ "x${CONTAINER_DBPOOL_MAX_IDLE}" != "x" ]; then
-    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.zms.db_pool_max_idle=${CONTAINER_DBPOOL_MAX_IDLE}"
+    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.db.pool_max_idle=${CONTAINER_DBPOOL_MAX_IDLE}"
 fi
 
 if [ "x${CONTAINER_DBPOOL_MIN_IDLE}" != "x" ]; then
-    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.zms.db_pool_min_idle=${CONTAINER_DBPOOL_MIN_IDLE}"
+    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.db.pool_min_idle=${CONTAINER_DBPOOL_MIN_IDLE}"
 fi
 
 if [ "x${CONTAINER_DBPOOL_MAX_WAIT}" != "x" ]; then
-    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.zms.db_pool_max_wait=${CONTAINER_DBPOOL_MAX_WAIT}"
+    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.db.pool_max_wait=${CONTAINER_DBPOOL_MAX_WAIT}"
 fi
 
 if [ "x${CONTAINER_DBPOOL_EVICT_IDLE_TIMEOUT}" != "x" ]; then
-    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.zms.db_pool_evict_idle_timeout=${CONTAINER_DBPOOL_EVICT_IDLE_TIMEOUT}"
+    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.db.pool_evict_idle_timeout=${CONTAINER_DBPOOL_EVICT_IDLE_TIMEOUT}"
 fi
 
 if [ "x${CONTAINER_DBPOOL_EVICT_IDLE_INTERVAL}" != "x" ]; then
-    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.zms.db_pool_evict_idle_interval=${CONTAINER_DBPOOL_EVICT_IDLE_INTERVAL}"
+    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.db.pool_evict_idle_interval=${CONTAINER_DBPOOL_EVICT_IDLE_INTERVAL}"
 fi
 
 if [ "x${CONTAINER_DBPOOL_MAX_TTL}" != "x" ]; then
-    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.zms.db_pool_max_ttl=${CONTAINER_DBPOOL_MAX_TTL}"
+    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.db.pool_max_ttl=${CONTAINER_DBPOOL_MAX_TTL}"
 fi
 
 if [ "x${CONTAINER_SSL_KEYSTORE}" != "x" ]; then

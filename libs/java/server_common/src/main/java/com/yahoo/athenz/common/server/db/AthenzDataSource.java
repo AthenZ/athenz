@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zms.store.jdbc;
+package com.yahoo.athenz.common.server.db;
 
 import org.apache.commons.dbcp2.PoolableConnection;
 import org.apache.commons.dbcp2.PoolingDataSource;
@@ -22,11 +22,11 @@ import org.apache.commons.pool2.ObjectPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ZMSDataSource extends PoolingDataSource<PoolableConnection> implements PoolableDataSource {
+public class AthenzDataSource extends PoolingDataSource<PoolableConnection> implements PoolableDataSource {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ZMSDataSource.class);
+    private static final Logger LOG = LoggerFactory.getLogger(AthenzDataSource.class);
     
-    public ZMSDataSource(ObjectPool<PoolableConnection> pool) {
+    public AthenzDataSource(ObjectPool<PoolableConnection> pool) {
         super(pool);
     }
 

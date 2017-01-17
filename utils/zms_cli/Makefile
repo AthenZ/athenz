@@ -3,7 +3,7 @@
 # Prerequisite: Go development environment
 #
 # Copyright 2016 Yahoo Inc.
-# Licensed under the Apache License, Version 2.0: [http://www.apache.org/licenses/LICENSE-2.0]()
+# Licensed under the Apache License, Version 2.0 - http://www.apache.org/licenses/LICENSE-2.0
 #
 
 PKG_DATE=$(shell date '+%Y-%m-%dT%H:%M:%S')
