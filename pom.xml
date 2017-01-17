@@ -22,7 +22,7 @@
   <groupId>com.yahoo.athenz</groupId>
   <artifactId>athenz</artifactId>
   <packaging>pom</packaging>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0</version>
 
   <name>AthenZ</name>
   <description>
