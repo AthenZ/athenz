@@ -10,8 +10,20 @@ PKG_DATE=$(shell date '+%Y-%m-%dT%H:%M:%S')
 BINARY=athenz-conf
 SRC=athenz-conf.go
 
+# check to see if go utility is installed
+GO := $(shell command -v go 2> /dev/null)
+
+ifdef GO
+
 .PHONY: linux darwin
 all: linux darwin
+
+else
+
+all:
+	@echo "go is not available please install golang"
+
+endif
 
 darwin:
 	@echo "Building darwin client"

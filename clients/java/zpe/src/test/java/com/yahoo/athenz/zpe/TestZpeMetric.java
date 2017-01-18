@@ -96,35 +96,29 @@ public class TestZpeMetric extends TestCase {
         System.out.println("testZpeMetric: Nap over");
 
         // Reading from the json file generated
-        File[] filenames = dir.listFiles();
-        
-        String filepath = test.getFilePath() + filenames[0].getName();
-        Path path = Paths.get(filepath);
-        DomainMetrics domainMetrics = JSON.fromBytes(Files.readAllBytes(path), DomainMetrics.class);
-        // verifying the value of the metric
-        List<DomainMetric> metricList = domainMetrics.getMetricList();
-        boolean metricVerified = false;
-        for (DomainMetric metric : metricList) {
-            if (metric.getMetricType().toString().equals(ZpeConsts.ZPE_METRIC_NAME)) {
-                assertEquals(10, metric.getMetricVal());
-                metricVerified = true;
-            }
-        }
-        assertTrue(metricVerified);
 
-        filepath = test.getFilePath() + filenames[1].getName();
-        path = Paths.get(filepath);
-        domainMetrics = JSON.fromBytes(Files.readAllBytes(path), DomainMetrics.class);
-        // verifying the value of the metric
-        metricList = domainMetrics.getMetricList();
-        metricVerified = false;
-        for (DomainMetric metric : metricList) {
-            if (metric.getMetricType().toString().equals(ZpeConsts.ZPE_METRIC_NAME)) {
-                assertEquals(2, metric.getMetricVal());
-                metricVerified = true;
+        boolean sysDomainMetricVerified = false;
+        boolean testDomainMetricVerified = false;
+        for (File file : dir.listFiles()) {
+            String filepath = test.getFilePath() + file.getName();
+            Path path = Paths.get(filepath);
+            DomainMetrics domainMetrics = JSON.fromBytes(Files.readAllBytes(path), DomainMetrics.class);
+            // verifying the value of the metric
+            List<DomainMetric> metricList = domainMetrics.getMetricList();
+            for (DomainMetric metric : metricList) {
+                if (metric.getMetricType().toString().equals(ZpeConsts.ZPE_METRIC_NAME)) {
+                    if (domainMetrics.getDomainName().equals("sys.auth")) {
+                        assertEquals(10, metric.getMetricVal());
+                        sysDomainMetricVerified = true;
+                    } else if (domainMetrics.getDomainName().equals("test")) {
+                        assertEquals(2, metric.getMetricVal());
+                        testDomainMetricVerified = true;
+                    }
+                }
             }
         }
-        assertTrue(metricVerified);
+        assertTrue(sysDomainMetricVerified);
+        assertTrue(testDomainMetricVerified);
 
         // unsetting the system property
         System.clearProperty(ZpeConsts.ZPE_PROP_METRIC_WRITE_INTERVAL);
