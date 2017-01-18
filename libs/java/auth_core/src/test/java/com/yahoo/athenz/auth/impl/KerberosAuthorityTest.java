@@ -83,7 +83,8 @@ public class KerberosAuthorityTest {
     @Test(groups="kerberos-tests")
     public void testKerberosAuthorityBadCreds() {
 
-        KerberosAuthority authority = new KerberosAuthority("myserver", "src/test/resources/example.keytab", null);
+        KerberosAuthority authority = new KerberosAuthority("myserver@athenz.com",
+                "src/test/resources/example.keytab", null);
         authority.initialize();
 
         assertNull(authority.getDomain());
@@ -114,7 +115,7 @@ public class KerberosAuthorityTest {
         System.setProperty(KerberosToken.KRB_PROP_TOKEN_PRIV_ACTION, "com.yahoo.athenz.auth.impl.MockPrivExcAction");
         System.setProperty(KerberosToken.KRB_PROP_TOKEN_PRIV_ACTION + "_TEST_REALM", "USER_REALM");
         String token = "YIGeBgYrBgEFBQKggZMwgZCgGjAYBgorBgEEAYI3AgIeBgorBgEEAYI3AgIKonIEcE5FR09FWFRTAAfakecreds";
-        System.setProperty(KerberosAuthority.KRB_PROP_SVCPRPL, "myserver");
+        System.setProperty(KerberosAuthority.KRB_PROP_SVCPRPL, "myserver@EXAMPLE.COM");
         System.setProperty(KerberosAuthority.KRB_PROP_LOGIN_CB_CLASS, KRB_LOGIN_CB_CLASS);
         System.setProperty(KerberosAuthority.KRB_PROP_KEYTAB, "src/test/resources/example.keytab");
         
@@ -212,7 +213,7 @@ public class KerberosAuthorityTest {
     public void testKerberosAuthorityKeytab() {
         
         System.setProperty(KerberosAuthority.KRB_PROP_KEYTAB, "src/test/resources/example.keytab");
-        System.setProperty(KerberosAuthority.KRB_PROP_SVCPRPL, "myserver");
+        System.setProperty(KerberosAuthority.KRB_PROP_SVCPRPL, "myserver@EXAMPLE.COM");
         System.setProperty(KerberosAuthority.KRB_PROP_LOGIN_CB_CLASS, KRB_LOGIN_CB_CLASS);
         System.setProperty( "sun.security.krb5.debug", "true");
         System.setProperty( "java.security.krb5.realm", "EXAMPLE.COM");
