@@ -14,6 +14,10 @@ clients/go/zms/bin/
 clients/go/zts/pkg/
 clients/go/zts/src/
 clients/go/zts/bin/
+utils/zms_cli/pkg/
+utils/zms_cli/src/
+utils/athenz_conf/pkg/
+utils/athenz_conf/src/
 clients/java/sia/src/test/resources/svc.ntoken
 clients/java/zpe/src/test/resources/upd_pol_dir/
 ui/build/

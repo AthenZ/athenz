@@ -96,7 +96,10 @@ func (client ZMSClient) httpDelete(url string, headers map[string]string) (*http
 }
 
 func (client ZMSClient) httpPut(url string, headers map[string]string, body []byte) (*http.Response, error) {
-	contentReader := bytes.NewReader(body)
+	var contentReader io.Reader
+	if body != nil {
+		contentReader = bytes.NewReader(body)
+	}
 	hclient := client.getClient()
 	req, err := http.NewRequest("PUT", url, contentReader)
 	if err != nil {
@@ -113,7 +116,10 @@ func (client ZMSClient) httpPut(url string, headers map[string]string, body []by
 }
 
 func (client ZMSClient) httpPost(url string, headers map[string]string, body []byte) (*http.Response, error) {
-	contentReader := bytes.NewReader(body)
+	var contentReader io.Reader
+	if body != nil {
+		contentReader = bytes.NewReader(body)
+	}
 	hclient := client.getClient()
 	req, err := http.NewRequest("POST", url, contentReader)
 	if err != nil {
@@ -130,7 +136,10 @@ func (client ZMSClient) httpPost(url string, headers map[string]string, body []b
 }
 
 func (client ZMSClient) httpPatch(url string, headers map[string]string, body []byte) (*http.Response, error) {
-	contentReader := bytes.NewReader(body)
+	var contentReader io.Reader
+	if body != nil {
+		contentReader = bytes.NewReader(body)
+	}
 	hclient := client.getClient()
 	req, err := http.NewRequest("PATCH", url, contentReader)
 	if err != nil {
