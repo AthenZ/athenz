@@ -3,12 +3,15 @@ language: java
 jdk:
 - oraclejdk8
 
+sudo: required
+dist: trusty
+
 cache:
   directories:
   - "$HOME/.m2"
 
 before_install:
-- eval "$(gimme 1.7)"
+- eval "$(gimme 1.7.3)"
 - npm install -g npm@lts
 
 script: mvn install
