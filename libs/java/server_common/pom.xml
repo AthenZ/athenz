@@ -18,7 +18,7 @@
   <parent>
     <groupId>com.yahoo.athenz</groupId>
     <artifactId>athenz</artifactId>
-    <version>1.1.0</version>
+    <version>1.1-SNAPSHOT</version>
     <relativePath>../../../pom.xml</relativePath>
   </parent>
 
@@ -128,7 +128,7 @@
   <distributionManagement>
     <repository>
       <id>bintray-athenz-server-common-repo</id>
-      <url>https://api.bintray.com/maven/yahoo/maven/athenz-server-common;publish=1</url>
+      <url>https://api.bintray.com/maven/yahoo/maven/athenz-server-common/;publish=1</url>
     </repository>
   </distributionManagement>
 
