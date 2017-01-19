@@ -7,6 +7,9 @@ cache:
   directories:
   - "$HOME/.m2"
 
+before_install:
+- go install 1.7.4
+
 script: mvn install
 
 after_success:
