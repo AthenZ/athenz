@@ -28,3 +28,17 @@ utils/zpe_policy_updater/src/test/resources/sys.auth.new.pol
 clients/java/zpe/src/test/resources/pol_dir/angler.pol
 clients/java/zpe/src/test/resources/pol_dir/empty.pol
 clients/java/zpe/src/test/resources/pol_dir/sports.pol
+clients/java/sia/bin/
+clients/java/zms/bin/
+clients/java/zpe/bin/
+clients/java/zts/bin/
+libs/java/client_common/bin/
+libs/java/server_common/bin/
+servers/zts/bin/
+utils/athenz_conf/bin/
+core/zms/bin/
+core/zts/bin/
+libs/java/auth_core/bin/
+servers/zms/bin/
+utils/zms_cli/bin/
+utils/zpe_policy_updater/bin/
