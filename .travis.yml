@@ -8,7 +8,7 @@ cache:
   - "$HOME/.m2"
 
 before_install:
-- go install 1.7.4
+- go install 1.7
 
 script: mvn install
 
