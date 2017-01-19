@@ -234,4 +234,12 @@
       </build>
     </profile>
   </profiles>
+
+  <distributionManagement>
+    <repository>
+      <id>bintray-athenz-zts-java-client-repo</id>
+      <url>https://api.bintray.com/maven/yahoo/maven/athenz-zts-java-client;publish=1</url>
+    </repository>
+  </distributionManagement>
+
 </project>

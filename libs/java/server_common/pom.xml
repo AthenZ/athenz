@@ -125,4 +125,11 @@
     </dependency>
   </dependencies>
 
+  <distributionManagement>
+    <repository>
+      <id>bintray-athenz-server-common-repo</id>
+      <url>https://api.bintray.com/maven/yahoo/maven/athenz-server-common;publish=1</url>
+    </repository>
+  </distributionManagement>
+
 </project>
