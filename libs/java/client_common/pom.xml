@@ -40,4 +40,11 @@
     </dependency>
   </dependencies>
 
+  <distributionManagement>
+    <repository>
+      <id>bintray-athenz-client-common-repo</id>
+      <url>https://api.bintray.com/maven/yahoo/maven/athenz-client-common;publish=1</url>
+    </repository>
+  </distributionManagement>
+
 </project>

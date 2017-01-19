@@ -63,4 +63,11 @@
     </plugins>
   </build>
 
+  <distributionManagement>
+    <repository>
+      <id>bintray-athenz-auth-core-repo</id>
+      <url>https://api.bintray.com/maven/yahoo/maven/athenz-auth-core;publish=1</url>
+    </repository>
+  </distributionManagement>
+
 </project>

@@ -58,5 +58,12 @@
     </plugins>
   </build>
 
+  <distributionManagement>
+    <repository>
+      <id>bintray-athenz-sia-java-client-repo</id>
+      <url>https://api.bintray.com/maven/yahoo/maven/athenz-sia-java-client;publish=1</url>
+    </repository>
+  </distributionManagement>
+
 </project>
 

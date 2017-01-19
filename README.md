@@ -1,5 +1,7 @@
 <!-- ![logo](images/athenz.png) -->
 
+[![Build Status](https://travis-ci.org/yahoo/athenz.svg?branch=master)](https://travis-ci.org/yahoo/athnz)
+
 Athenz is a set of services and libraries supporting role-based
 authorization (RBAC) for provisioning and configuration (centralized
 authorization) use cases as well as serving/runtime (decentralized

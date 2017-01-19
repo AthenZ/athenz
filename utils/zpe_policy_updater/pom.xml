@@ -88,4 +88,12 @@
       </plugin>
     </plugins>
   </build>
+
+  <distributionManagement>
+    <repository>
+      <id>bintray-athenz-zpe-policy-updater-repo</id>
+      <url>https://api.bintray.com/maven/yahoo/maven/athenz-zpe-policy-updater;publish=1</url>
+    </repository>
+  </distributionManagement>
+
 </project>
