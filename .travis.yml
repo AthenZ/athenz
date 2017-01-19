@@ -9,6 +9,7 @@ cache:
 
 before_install:
 - eval "$(gimme 1.7)"
+- npm install -g npm@lts
 
 script: mvn install
 
