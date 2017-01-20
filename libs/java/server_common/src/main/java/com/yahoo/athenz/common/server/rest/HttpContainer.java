@@ -22,22 +22,17 @@ import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 
-import com.yahoo.athenz.auth.Authority;
-import com.yahoo.athenz.auth.Authorizer;
-
 public class HttpContainer {
 
     protected Server server = null;
     protected String banner = null;
     private HandlerCollection handlers = null;
-    protected Http.AuthorityList authorities = null;
-    protected Authorizer authorizer = null;
     
     /** Currently not a public class. Use JettyContainer */
     protected HttpContainer() {
     }
 
-    protected HashSet<Class<?>> resources  = new HashSet<Class<?>>();
+    protected HashSet<Class<?>> resources = new HashSet<Class<?>>();
     protected HashSet<Object> singletons = new HashSet<Object>();
     protected HashSet<Class<?>> singletonsCheck = new HashSet<Class<?>>();
 
@@ -121,19 +116,6 @@ public class HttpContainer {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public HttpContainer authority(Authority a) {
-        if (authorities == null) {
-            authorities = new Http.AuthorityList();
-        }
-        authorities.add(a);
-        return this;
-    }
-
-    public HttpContainer authorizer(Authorizer a) {
-        authorizer = a;
-        return this;
     }
 
     public <T> HttpContainer delegate(Class<T> targetType, Object singleton) {
