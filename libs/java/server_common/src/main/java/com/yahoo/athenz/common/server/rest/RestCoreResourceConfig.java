@@ -16,30 +16,23 @@
 package com.yahoo.athenz.common.server.rest;
 
 import java.util.HashSet;
-import java.util.HashMap;
 
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.hk2.utilities.binding.AbstractBinder;
 
 /*
- * This is used to setup the application configuration for authorities,
- * authorizer, supported content-providers, and delegate.
+ * This is used to setup the application configuration delegate.
  */
 public class RestCoreResourceConfig extends ResourceConfig {
 
-    // map of authorizer and authority objects
-    @SuppressWarnings("rawtypes")
-    HashMap<Class, Object> authObjMap = new HashMap<Class, Object>();
-
     // typically contains delegate binding (AbstractBinder)
-    //
-    HashSet<Object>        singletons;
 
+    HashSet<Object> singletons;
 
     public RestCoreResourceConfig(HashSet<Class<?>> resources, HashSet<Object> singletonSet) {
         if (resources == null || resources.isEmpty()) {
-            throw new ResourceException(ResourceException.BAD_REQUEST, "Missing required parameter: resources");
+            throw new ResourceException(ResourceException.BAD_REQUEST,
+                    "Missing required parameter: resources");
         }
 
         StringBuilder packageList = new StringBuilder(256);
@@ -66,7 +59,7 @@ public class RestCoreResourceConfig extends ResourceConfig {
 
         setSingletons(singletonSet);
     }
-        
+    
     void setupPackages(String packageList) {
         packages(packageList)
             .register(JacksonFeature.class);
@@ -84,34 +77,11 @@ public class RestCoreResourceConfig extends ResourceConfig {
         }
     }
 
-    // for setting Authority list and Authorizer
-    @SuppressWarnings("rawtypes")
-    public void setAuthorityObject(Class klassType, Object authObj) {
-        authObjMap.put(klassType, authObj);
-    }
-
-    @SuppressWarnings({ "unchecked", "rawtypes" })
     public void registerAll() {
-        // register the authority objects
-        if (authObjMap.isEmpty()) {
-            throw new ResourceException(ResourceException.BAD_REQUEST, "Missing required parameter: authorizer or authorities");
-        }
-
-        AbstractBinder binder = new AbstractBinder() {
-            final HashMap<Class, Object> authMap = authObjMap;
-
-            @Override
-            protected void configure() {
-                for (Class klass: authMap.keySet()) {
-                    bind(klass).in(javax.inject.Singleton.class);
-                    bind(klass.cast(authMap.get(klass))).to(klass);
-                }
-            }
-        };
-        registerInstances(binder);
 
         if (singletons == null || singletons.isEmpty()) {
-            throw new ResourceException(ResourceException.BAD_REQUEST, "Missing required parameter: singletons (delegate for the resource)");
+            throw new ResourceException(ResourceException.BAD_REQUEST,
+                    "Missing required parameter: singletons (delegate for the resource)");
         }
 
         // register the singletons

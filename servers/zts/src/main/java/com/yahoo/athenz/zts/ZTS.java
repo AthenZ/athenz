@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.AuthorityKeyStore;
-import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.metrics.MetricFactory;
 import com.yahoo.athenz.common.server.log.AuditLogFactory;
@@ -365,10 +364,8 @@ public class ZTS {
             }
         }
         
-        Authorizer authorizer = ztsImpl.getAuthorizer();
-        container.authorizer(authorizer);
-        
-        container.setBanner("http://" + serverHostName + " http port: " + httpPort + " https port: " + httpsPort);
+        container.setBanner("http://" + serverHostName + " http port: " +
+                httpPort + " https port: " + httpsPort);
         int maxThreads = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_MAX_THREADS, "1024"));
         container.createServer(maxThreads);
         

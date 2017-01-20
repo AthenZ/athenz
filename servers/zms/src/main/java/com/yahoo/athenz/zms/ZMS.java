@@ -217,8 +217,8 @@ public class ZMS {
         container = new ZMSJettyContainer(AUDITLOG);
         container.resource(ZMSResources.class);
         container.delegate(ZMSHandler.class, core.getInstance());
-        container.authorizer(core.getAuthorizer());
-        container.setBanner("http://" + serverHostName + " http port: " + httpPort + " https port: " + httpsPort);
+        container.setBanner("http://" + serverHostName + " http port: " +
+                httpPort + " https port: " + httpsPort);
 
         int maxThreads = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_MAX_THREADS, "1024"));
         container.createServer(maxThreads);

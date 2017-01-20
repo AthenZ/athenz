@@ -15,9 +15,6 @@
  */
 package com.yahoo.athenz.common.server.rest;
 
-import com.yahoo.athenz.auth.Authority;
-import com.yahoo.athenz.auth.Authorizer;
-
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 
 import org.mockito.Mockito;
@@ -26,20 +23,6 @@ import static org.testng.Assert.*;
 import org.testng.annotations.Test;
 
 public class HttpContainerTest {
-
-    @Test
-    public void testAuthority() {
-        Authority authority = Mockito.mock(Authority.class);
-        HttpContainer extend = new HttpContainer();
-        assertNotNull(extend.authority(authority));
-    }
-
-    @Test
-    public void testAuthorizer() {
-        Authorizer authorizer = Mockito.mock(Authorizer.class);
-        HttpContainer extend = new HttpContainer();
-        assertNotNull(extend.authorizer(authorizer));
-    }
 
     @Test
     public void testAbstractBinder() {

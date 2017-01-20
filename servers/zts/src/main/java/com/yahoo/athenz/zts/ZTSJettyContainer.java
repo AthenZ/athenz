@@ -39,7 +39,6 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import com.yahoo.athenz.common.server.filters.DefaultMediaTypeFilter;
 import com.yahoo.athenz.common.server.log.AthenzRequestLog;
 import com.yahoo.athenz.common.server.log.AuditLogger;
-import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.athenz.common.server.rest.HttpContainer;
 import com.yahoo.athenz.common.server.rest.RestCoreResourceConfig;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
@@ -60,8 +59,6 @@ public class ZTSJettyContainer extends HttpContainer {
     public ZTSJettyContainer(AuditLogger auditLog, String auditLogMsgBldrClass) {
         auditLogger             = auditLog;
         auditLoggerMsgBldrClass = auditLogMsgBldrClass;
-
-        authorities = new Http.AuthorityList();
     }
     
     public void addRequestLogHandler(String rootDir) {
@@ -140,15 +137,12 @@ public class ZTSJettyContainer extends HttpContainer {
         // any type of media
         addContainerRequestFilter(DefaultMediaTypeFilter.class);
 
-        // setup application configuration for authorities, content-providers
-        // et al
+        // setup application configuration
         RestCoreResourceConfig rconf = new RestCoreResourceConfig(resources, singletons);
-        rconf.setAuthorityObject(com.yahoo.athenz.auth.Authorizer.class, authorizer);
-        rconf.setAuthorityObject(Http.AuthorityList.class, authorities);
         rconf.registerAll();
 
         // now setup our servlet handler
-        //
+        
         ServletContextHandler servletHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
         servletHandler.setContextPath("/");
         
