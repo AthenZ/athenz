@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	rdl "github.com/ardielle/ardielle-go/rdl"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -16,6 +15,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	rdl "github.com/ardielle/ardielle-go/rdl"
 )
 
 var _ = json.Marshal
@@ -72,7 +73,7 @@ func (client ZMSClient) httpGet(url string, headers map[string]string) (*http.Re
 		return nil, err
 	}
 	client.addAuthHeader(req)
-    if headers != nil {
+	if headers != nil {
 		for k, v := range headers {
 			req.Header.Add(k, v)
 		}
@@ -87,7 +88,7 @@ func (client ZMSClient) httpDelete(url string, headers map[string]string) (*http
 		return nil, err
 	}
 	client.addAuthHeader(req)
-    if headers != nil {
+	if headers != nil {
 		for k, v := range headers {
 			req.Header.Add(k, v)
 		}
@@ -107,7 +108,7 @@ func (client ZMSClient) httpPut(url string, headers map[string]string, body []by
 	}
 	req.Header.Add("Content-type", "application/json")
 	client.addAuthHeader(req)
-    if headers != nil {
+	if headers != nil {
 		for k, v := range headers {
 			req.Header.Add(k, v)
 		}
@@ -127,7 +128,7 @@ func (client ZMSClient) httpPost(url string, headers map[string]string, body []b
 	}
 	req.Header.Add("Content-type", "application/json")
 	client.addAuthHeader(req)
-    if headers != nil {
+	if headers != nil {
 		for k, v := range headers {
 			req.Header.Add(k, v)
 		}
@@ -147,7 +148,7 @@ func (client ZMSClient) httpPatch(url string, headers map[string]string, body []
 	}
 	req.Header.Add("Content-type", "application/json")
 	client.addAuthHeader(req)
-    if headers != nil {
+	if headers != nil {
 		for k, v := range headers {
 			req.Header.Add(k, v)
 		}
@@ -169,7 +170,7 @@ func (client ZMSClient) httpOptions(url string, headers map[string]string, body 
 		req.Header.Add("Content-type", "application/json")
 	}
 	client.addAuthHeader(req)
-    if headers != nil {
+	if headers != nil {
 		for k, v := range headers {
 			req.Header.Add(k, v)
 		}

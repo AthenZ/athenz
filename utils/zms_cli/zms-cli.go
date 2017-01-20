@@ -8,8 +8,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"golang.org/x/crypto/ssh/terminal"
-	"golang.org/x/net/proxy"
 	"io/ioutil"
 	"log"
 	"net"
@@ -19,8 +17,10 @@ import (
 	"syscall"
 	"time"
 
-	"../../clients/go/zms"
-	"../../libs/go/zmscli"
+	"github.com/yahoo/athenz/clients/go/zms"
+	"github.com/yahoo/athenz/libs/go/zmscli"
+	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/net/proxy"
 )
 
 //these get set by the build script via the LDFLAGS

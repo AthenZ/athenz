@@ -6,7 +6,7 @@ package zmscli
 import (
 	"testing"
 
-	"../../../clients/go/zms"
+	"github.com/yahoo/athenz/clients/go/zms"
 )
 
 func TestAssertionMatchTrue(t *testing.T) {

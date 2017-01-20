@@ -7,7 +7,7 @@ import (
 	"bufio"
 	"strings"
 
-	"../../../clients/go/zms"
+	"github.com/yahoo/athenz/clients/go/zms"
 )
 
 func split(data []byte, atEOF bool) (advance int, token []byte, err error) {
