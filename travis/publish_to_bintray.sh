@@ -2,6 +2,7 @@
 
 set -ev
 
+mvn deploy --projects com.yahoo.athenz:athenz --settings travis/settings-athenz-parent.xml
 mvn deploy --projects com.yahoo.athenz:zms_core --settings travis/settings-zms-core.xml
 mvn deploy --projects com.yahoo.athenz:zts_core --settings travis/settings-zts-core.xml
 mvn deploy --projects com.yahoo.athenz:auth_core --settings travis/settings-auth-core.xml

@@ -200,4 +200,11 @@
     </profile>
   </profiles>
 
+  <distributionManagement>
+    <repository>
+      <id>bintray-athenz-parent-repo</id>
+      <url>https://api.bintray.com/maven/yahoo/maven/athenz-parent/;publish=1</url>
+    </repository>
+  </distributionManagement>
+
 </project>
