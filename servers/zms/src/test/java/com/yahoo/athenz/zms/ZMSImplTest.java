@@ -8372,8 +8372,9 @@ public class ZMSImplTest extends TestCase {
     @Test
     public void testGetServicePrincipal() {
         
-        Authority principalAuthority = new com.yahoo.athenz.auth.impl.PrincipalAuthority();
-        SimpleServiceIdentityProvider provider = new SimpleServiceIdentityProvider(principalAuthority, privKey);
+        PrivateKey privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
+        SimpleServiceIdentityProvider provider = new SimpleServiceIdentityProvider("coretech",
+                "storage", privateKey, "0");
         
         Principal testPrincipal = provider.getIdentity("coretech", "storage");
         assertNotNull(testPrincipal);

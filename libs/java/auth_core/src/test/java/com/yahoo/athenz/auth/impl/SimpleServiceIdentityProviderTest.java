@@ -15,9 +15,7 @@
  */
 package com.yahoo.athenz.auth.impl;
 
-import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
-import com.yahoo.athenz.auth.impl.PrincipalAuthority;
 import com.yahoo.athenz.auth.impl.SimpleServiceIdentityProvider;
 import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.auth.util.Crypto;
@@ -40,7 +38,6 @@ public class SimpleServiceIdentityProviderTest {
     private String servicePublicKeyStringK1 = null;
     private String servicePrivateKeyStringK1 = null;
     private File k0File = null;
-    private Authority authority = null;
     
     @BeforeTest
     private void loadKeys() throws IOException {
@@ -55,14 +52,13 @@ public class SimpleServiceIdentityProviderTest {
 
         path = Paths.get("./src/test/resources/fantasy_private_k1.key");
         servicePrivateKeyStringK1 = new String(Files.readAllBytes(path));
-        
-        authority = new PrincipalAuthority();
     }
 
     @Test
     public void testSimpleIdentityDefaultV0() {
         
-        SimpleServiceIdentityProvider provider = new SimpleServiceIdentityProvider(authority, k0File);
+        SimpleServiceIdentityProvider provider = new SimpleServiceIdentityProvider("coretech",
+                "athenz", Crypto.loadPrivateKey(k0File), "0");
         Principal user = provider.getIdentity("coretech", "athenz");
         assertNotNull(user);
         assertTrue(user.getIssueTime() != 0);
@@ -77,7 +73,8 @@ public class SimpleServiceIdentityProviderTest {
     public void testSimpleIdentityDefaultV1() {
         
         PrivateKey key = Crypto.loadPrivateKey(servicePrivateKeyStringK1);
-        SimpleServiceIdentityProvider provider = new SimpleServiceIdentityProvider(authority, key, "1", 3600);
+        SimpleServiceIdentityProvider provider = new SimpleServiceIdentityProvider("coretech",
+                "athenz", key, "1");
         Principal user = provider.getIdentity("coretech", "athenz");
         assertNotNull(user);
         assertTrue(user.getIssueTime() != 0);
@@ -89,44 +86,27 @@ public class SimpleServiceIdentityProviderTest {
     }
 
     @Test
-    public void testSimpleIdentityPrivateKey() {
+    public void testSimpleIdentityPrivateKeyDomainMismatch() {
 
-        PrivateKey privateKey = Crypto.loadPrivateKey(k0File);
+        PrivateKey key = Crypto.loadPrivateKey(servicePrivateKeyStringK1);
+        SimpleServiceIdentityProvider provider = new SimpleServiceIdentityProvider("coretech",
+                "athenz", key, "1");
+        
+        Principal user = provider.getIdentity("coretech2", "athenz");
+        assertNull(user);
 
-        SimpleServiceIdentityProvider provider = new SimpleServiceIdentityProvider(authority, privateKey);
-        Principal user = provider.getIdentity("coretech", "athenz");
-        assertNotNull(user);
-        assertTrue(user.getIssueTime() != 0);
-
-        String token = user.getCredentials();
-        PrincipalToken prToken = new PrincipalToken(token);
-        assertTrue(prToken.validate(servicePublicKeyStringK0, 0));
-        assertEquals(prToken.getKeyId(), "0");
-
-        provider = new SimpleServiceIdentityProvider(authority, privateKey, 3600);
-        user = provider.getIdentity("coretech", "athenz");
-        assertNotNull(user);
-        assertTrue(user.getIssueTime() != 0);
-
-        token = user.getCredentials();
-        prToken = new PrincipalToken(token);
-        assertTrue(prToken.validate(servicePublicKeyStringK0, 0));
-        assertEquals(prToken.getKeyId(), "0");
+        user = provider.getIdentity("coretech", "athenz2");
+        assertNull(user);
     }
 
     @Test
     public void testGetHost() {
-        PrivateKey privateKey = Crypto.loadPrivateKey(k0File);
 
-        SimpleServiceIdentityProvider provider = new SimpleServiceIdentityProvider(authority, privateKey);
+        PrivateKey key = Crypto.loadPrivateKey(servicePrivateKeyStringK1);
+        SimpleServiceIdentityProvider provider = new SimpleServiceIdentityProvider("coretech",
+                "athenz", key, "1");
 
         String name = provider.getHost();
         assertNotNull(name);
-    }
-
-    @Test
-    public void testSimpleIdentityString() {
-        SimpleServiceIdentityProvider provider = new SimpleServiceIdentityProvider(authority, "aaaaaaaa");
-        assertNotNull(provider);
     }
 }

@@ -34,33 +34,30 @@ import java.security.PrivateKey;
  */
 public class SimpleServiceIdentityProvider implements ServiceIdentityProvider {
 
+    private static final Authority PRINCIPAL_AUTHORITY = new PrincipalAuthority();
+
+    private String domain;
+    private String service;
     private PrivateKey key = null;
-    private Authority authority = null;
     private long tokenTimeout = 3600;
-    private String keyId = "0";
+    private String keyId;
     private String host = null;
+    
+    /**
+     * A simple implementation of the ServiceIdentityProvider interface.
+     * The caller specifies the domain and service name along with the
+     * private key for the given service
+     * @param domainName Name of the domain
+     * @param serviceName Name of the service
+     * @param privateKey the private key for the service
+     * @param keyId the registered key id in ZMS for this private key
+     */
+    public SimpleServiceIdentityProvider(String domainName, String serviceName,
+            PrivateKey privateKey, String keyId) {
 
-    public SimpleServiceIdentityProvider(Authority authority, File privateKeyFile) throws CryptoException {
-        this(authority, Crypto.loadPrivateKey(privateKeyFile), "0", 3600);
-    }
-
-    public SimpleServiceIdentityProvider(Authority authority, String privateKey) throws CryptoException {
-        this(authority, Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privateKey)), "0", 3600);
-    }
-
-    public SimpleServiceIdentityProvider(Authority authority, PrivateKey privateKey) {
-        this(authority, privateKey, "0", 3600);
-    }
-
-    public SimpleServiceIdentityProvider(Authority authority, PrivateKey privateKey, long tokenTimeout) {
-        this(authority, privateKey, "0", tokenTimeout);
-    }
-
-    public SimpleServiceIdentityProvider(Authority authority, PrivateKey privateKey, 
-            String keyId, long tokenTimeout) {
-        this.authority = authority;
+        this.domain = domainName.toLowerCase();
+        this.service = serviceName.toLowerCase();
         this.key = privateKey;
-        this.tokenTimeout = tokenTimeout;
         this.keyId = keyId.toLowerCase();
         this.setHost(getServerHostName());
     }
@@ -73,14 +70,21 @@ public class SimpleServiceIdentityProvider implements ServiceIdentityProvider {
         domainName = domainName.toLowerCase();
         serviceName = serviceName.toLowerCase();
         
+        // make sure we're handling correct domain and service
+        
+        if (!domainName.equals(domain) || !serviceName.equals(service)) {
+            return null;
+        }
+        
         PrincipalToken token = new PrincipalToken.Builder("S1", domainName, serviceName)
             .expirationWindow(tokenTimeout).host(host).keyId(keyId).build();
         token.sign(key);
         
-        SimplePrincipal princ = (SimplePrincipal) SimplePrincipal.create(domainName,
-                serviceName, token.getSignedToken(), System.currentTimeMillis() / 1000, authority);
-        princ.setUnsignedCreds(token.getUnsignedToken());
-        return princ;
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create(domainName,
+                serviceName, token.getSignedToken(), System.currentTimeMillis() / 1000,
+                PRINCIPAL_AUTHORITY);
+        principal.setUnsignedCreds(token.getUnsignedToken());
+        return principal;
     }
     
     String getServerHostName() {
@@ -102,5 +106,9 @@ public class SimpleServiceIdentityProvider implements ServiceIdentityProvider {
 
     public void setHost(String host) {
         this.host = host;
+    }
+    
+    public void setTokenTimeout(long tokenTimeout) {
+        this.tokenTimeout = tokenTimeout;
     }
 }
