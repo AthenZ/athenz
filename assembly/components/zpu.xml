@@ -80,15 +80,23 @@
       <fileMode>644</fileMode>
     </file>
   </files>
-  <dependencySets>
-    <dependencySet>
+  <moduleSets>
+    <moduleSet>
+      <useAllReactorProjects>false</useAllReactorProjects>
       <includes>
         <include>com.yahoo.athenz:zpe_policy_updater</include>
       </includes>
-      <outputDirectory>lib/jars</outputDirectory>
-      <unpack>false</unpack>
-      <scope>runtime</scope>
-      <useProjectArtifact>false</useProjectArtifact>
-    </dependencySet>
-  </dependencySets>
+      <binaries>
+        <outputDirectory>lib/jars</outputDirectory>
+        <unpack>false</unpack>
+        <includeDependencies>true</includeDependencies>
+        <dependencySets>
+          <dependencySet>
+            <scope>runtime</scope>
+            <useProjectArtifact>false</useProjectArtifact>
+          </dependencySet>
+        </dependencySets>
+      </binaries>
+    </moduleSet>
+  </moduleSets>
 </assembly>

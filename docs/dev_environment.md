@@ -79,5 +79,5 @@ successfully:
 
 ```shell
 $ cd assembly
-$ mvn clean package
+$ mvn clean package -Dmaven.test.skip=true
 ```
