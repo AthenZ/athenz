@@ -26,26 +26,25 @@
   <name>assembly</name>
   <packaging>pom</packaging>
 
-  <dependencies>
-    <dependency>
-      <groupId>com.yahoo.athenz</groupId>
-      <artifactId>zms_server</artifactId>
-      <version>${project.parent.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.yahoo.athenz</groupId>
-      <artifactId>zts_server</artifactId>
-      <version>${project.parent.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.yahoo.athenz</groupId>
-      <artifactId>zpe_policy_updater</artifactId>
-      <version>${project.parent.version}</version>
-    </dependency>
-  </dependencies>
+  <properties>
+    <maven.test.skip>true</maven.test.skip>
+  </properties>
 
+  <modules>
+    <module>../servers/zms</module>
+    <module>../servers/zts</module>
+    <module>../utils/zpe_policy_updater</module>
+  </modules>
+    
   <build>
     <plugins>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.12.4</version>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <version>2.6</version>
