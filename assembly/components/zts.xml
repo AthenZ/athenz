@@ -36,10 +36,6 @@
       </includes>
     </fileSet>
     <fileSet>
-      <directory>${basedir}/../servers/zts/target/dependency</directory>
-      <outputDirectory>lib/jars</outputDirectory>
-    </fileSet>
-    <fileSet>
       <directory>${basedir}/../utils/zms_cli/target</directory>
       <outputDirectory>bin</outputDirectory>
     </fileSet>

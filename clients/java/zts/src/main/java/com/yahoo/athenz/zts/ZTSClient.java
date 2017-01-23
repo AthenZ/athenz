@@ -151,7 +151,7 @@ public class ZTSClient implements Closeable {
      * that require no authentication or setting the principal using
      * addCredentials method before calling any other athentication
      * protected API.
-     * @param url ZTS Server's URL (optional)
+     * @param ztsUrl ZTS Server's URL (optional)
      */
     public ZTSClient(String ztsUrl) {
         initClient(ztsUrl, null, null, null, null);
@@ -166,7 +166,7 @@ public class ZTSClient implements Closeable {
      * 30000ms (30sec). The application can change these values by using the
      * athenz.zts.client.read_timeout and athenz.zts.client.connct_timeout
      * system properties. The values specified for timeouts must be in milliseconds.
-     * @param url ZTS Server's URL (optional)
+     * @param ztsUrl ZTS Server's URL (optional)
      * @param identity Principal identity for authenticating requests
      */
     public ZTSClient(String ztsUrl, Principal identity) {
@@ -192,7 +192,7 @@ public class ZTSClient implements Closeable {
      * 30000ms (30sec). The application can change these values by using the
      * athenz.zts.client.read_timeout and athenz.zts.client.connct_timeout
      * system properties. The values specified for timeouts must be in milliseconds.
-     * @param url ZTS Server's URL (optional)
+     * @param ztsUrl ZTS Server's URL (optional)
      * @param domainName name of the domain
      * @param serviceName name of the service
      * @param siaProvider service identity provider for the client to request principals
