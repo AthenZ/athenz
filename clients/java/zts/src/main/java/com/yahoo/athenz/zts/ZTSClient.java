@@ -57,8 +57,6 @@ import com.yahoo.athenz.auth.ServiceIdentityProvider;
 import com.yahoo.athenz.auth.impl.RoleAuthority;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.config.AthenzConfig;
-import com.yahoo.athenz.sia.SIA;
-import com.yahoo.athenz.sia.impl.SIAClient;
 import com.yahoo.rdl.JSON;
 
 public class ZTSClient implements Closeable {
@@ -68,7 +66,6 @@ public class ZTSClient implements Closeable {
     private String ztsUrl = null;
     private String domain = null;
     private String service = null;
-    protected SIA siaClient = null;
     protected ZTSRDLGeneratedClient ztsClient;
     protected ServiceIdentityProvider siaProvider = null;
 
@@ -76,8 +73,6 @@ public class ZTSClient implements Closeable {
     //
     static private boolean cacheDisabled = false;
     static private int tokenMinExpiryTime = 900;
-    static private int siaTokenMinExpiryTime = 300;
-    static private int siaTokenMaxExpiryTime = 3600;
     static private long prefetchInterval = 60; // seconds
     static private boolean prefetchAutoEnable = false;
     
@@ -92,8 +87,6 @@ public class ZTSClient implements Closeable {
     public static final String ZTS_CLIENT_PROP_ATHENZ_CONF               = "athenz.athenz_conf";
     
     public static final String ZTS_CLIENT_PROP_TOKEN_MIN_EXPIRY_TIME     = "athenz.zts.client.token_min_expiry_time";
-    public static final String ZTS_CLIENT_PROP_TOKEN_SIA_MIN_EXPIRY_TIME = "athenz.zts.client.sia_token_min_expiry_time";
-    public static final String ZTS_CLIENT_PROP_TOKEN_SIA_MAX_EXPIRY_TIME = "athenz.zts.client.sia_token_max_expiry_time";
     public static final String ZTS_CLIENT_PROP_READ_TIMEOUT              = "athenz.zts.client.read_timeout";
     public static final String ZTS_CLIENT_PROP_CONNECT_TIMEOUT           = "athenz.zts.client.connect_timeout";
     public static final String ZTS_CLIENT_PROP_PREFETCH_SLEEP_INTERVAL   = "athenz.zts.client.prefetch_sleep_interval";
@@ -136,21 +129,6 @@ public class ZTSClient implements Closeable {
             tokenMinExpiryTime = 900;
         }
 
-        /* We're going to cache Service Principal Tokens as long as possible so by default
-         * we're going to request tokens with a minimum timeout of 5 mins and max default
-         * value of 1hr. SIA Client Library provides the caching support so we'll just
-         * make the call for every request and let the SIA client library to return the
-         * cached token back to us */
-
-        siaTokenMinExpiryTime = Integer.parseInt(System.getProperty(ZTS_CLIENT_PROP_TOKEN_SIA_MIN_EXPIRY_TIME, "300"));
-        if (siaTokenMinExpiryTime < 0) {
-            siaTokenMinExpiryTime = 300;
-        }
-        siaTokenMaxExpiryTime = Integer.parseInt(System.getProperty(ZTS_CLIENT_PROP_TOKEN_SIA_MAX_EXPIRY_TIME, "3600"));
-        if (siaTokenMaxExpiryTime < 0) {
-            siaTokenMaxExpiryTime = 3600;
-        }
-
         prefetchInterval = Integer.parseInt(System.getProperty(ZTS_CLIENT_PROP_PREFETCH_SLEEP_INTERVAL, "60"));
         if (prefetchInterval >= tokenMinExpiryTime) {
             prefetchInterval = 60;
@@ -162,85 +140,75 @@ public class ZTSClient implements Closeable {
     }
     
     /**
-     * Constructs a new ZTSClient object with the given principal identity
-     * and media type set to application/json. The url for ZTS Server is
-     * automatically retrieved from the athenz_config package's configuration
-     * file (zts_url field).
-     * Default read and connect timeout values are 30000ms (30sec). The application can
-     * change these values by using the yahoo.zts_java_client.read_timeout and
-     * yahoo.zts_java_client.connect_timeout system properties. The values specified
-     * for timeouts must be in milliseconds.
-     * @param identity Principal identity for authenticating requests
+     * Constructs a new ZTSClient object with the given ZTS Server Url.
+     * If the specified zts url is null, then it is automatically
+     * retrieved from athenz.conf configuration file (ztsUrl field).
+     * Default read and connect timeout values are 30000ms (30sec).
+     * The application can change these values by using the
+     * athenz.zts.client.read_timeout and athenz.zts.client.connct_timeout
+     * system properties. The values specified for timeouts must be in
+     * milliseconds. This client object can only be used for API calls
+     * that require no authentication or setting the principal using
+     * addCredentials method before calling any other athentication
+     * protected API.
+     * @param url ZTS Server's URL (optional)
      */
-    public ZTSClient(Principal identity) {
-        initClient(null, identity, null, null, null);
+    public ZTSClient(String ztsUrl) {
+        initClient(ztsUrl, null, null, null, null);
         enablePrefetch = false; // can't use this domain and service for prefetch
     }
     
     /**
      * Constructs a new ZTSClient object with the given principal identity
-     * and ZTS Server URL and media type set to application/json.
-     * Default read and connect timeout values are 30000ms (30sec). The application can
-     * change these values by using the yahoo.zts_java_client.read_timeout and
-     * yahoo.zts_java_client.connect_timeout system properties. The values specified
-     * for timeouts must be in milliseconds.
-     * @param url ZTS Server's URL
+     * and ZTS Server Url. If the specified zts url is null, then it is
+     * automatically retrieved from athenz.conf configuration file
+     * (ztsUrl field). Default read and connect timeout values are
+     * 30000ms (30sec). The application can change these values by using the
+     * athenz.zts.client.read_timeout and athenz.zts.client.connct_timeout
+     * system properties. The values specified for timeouts must be in milliseconds.
+     * @param url ZTS Server's URL (optional)
      * @param identity Principal identity for authenticating requests
      */
-    public ZTSClient(String url, Principal identity) {
-        initClient(url, identity, null, null, null);
+    public ZTSClient(String ztsUrl, Principal identity) {
+        
+        // verify we have a valid principal and authority
+        
+        if (identity == null) {
+            throw new IllegalArgumentException("Principal object must be specified");
+        }
+        if (identity.getAuthority() == null) {
+            throw new IllegalArgumentException("Principal Authority cannot be null");
+        }
+        initClient(ztsUrl, identity, null, null, null);
         enablePrefetch = false; // can't use this domain and service for prefetch
     }
     
     /**
-     * Constructs a new ZTSClient object with the given service identity
-     * and media type set to application/json. The url for ZTS Server is
-     * automatically retrieved from the athenz_config package's configuration
-     * file (zts_url field). The service's principal token will be retrieved
-     * from the SIA Client.
-     * Default read and connect timeout values are 30000ms (30sec). The application can
-     * change these values by using the yahoo.zts_java_client.read_timeout and
-     * yahoo.zts_java_client.connect_timeout system properties. The values specified
-     * for timeouts must be in milliseconds.
-     * @param domainName name of the domain
-     * @param serviceName name of the service
-     */
-    public ZTSClient(String domainName, String serviceName) {
-        initClient(null, null, domainName, serviceName, null);
-    }
-    
-    /**
-     * Constructs a new ZTSClient object with the given service identity
-     * and media type set to application/json. The url for ZTS Server is
-     * automatically retrieved from the athenz_config package's configuration
-     * file (zts_url field). The service's principal token will be retrieved
-     * from the SIA Client.
-     * Default read and connect timeout values are 30000ms (30sec). The application can
-     * change these values by using the yahoo.zts_java_client.read_timeout and
-     * yahoo.zts_java_client.connect_timeout system properties. The values specified
-     * for timeouts must be in milliseconds.
+     * Constructs a new ZTSClient object with the given service details
+     * identity provider (which will provide the ntoken for the service)
+     * and ZTS Server Url. If the specified zts url is null, then it is
+     * automatically retrieved from athenz.conf configuration file
+     * (ztsUrl field). Default read and connect timeout values are
+     * 30000ms (30sec). The application can change these values by using the
+     * athenz.zts.client.read_timeout and athenz.zts.client.connct_timeout
+     * system properties. The values specified for timeouts must be in milliseconds.
+     * @param url ZTS Server's URL (optional)
      * @param domainName name of the domain
      * @param serviceName name of the service
      * @param siaProvider service identity provider for the client to request principals
      */
-    public ZTSClient(String domainName, String serviceName, ServiceIdentityProvider siaProvider) {
-        initClient(null, null, domainName, serviceName, siaProvider);
-    }
-    
-    /**
-     * Constructs a new ZTSClient object with the given service identity
-     * and media type set to application/json. The service's principal
-     * token will be retrieved from the SIA Client.
-     * Default read and connect timeout values are 30000ms (30sec). The application can
-     * change these values by using the yahoo.zts_java_client.read_timeout and
-     * yahoo.zts_java_client.connect_timeout system properties. The values specified
-     * for timeouts must be in milliseconds.
-     * @param url ZTS Server's URL
-     * @param domainName name of the domain
-     * @param serviceName name of the service
-     */
-    public ZTSClient(String url, String domainName, String serviceName) {
-        initClient(url, null, domainName, serviceName, null);
+    public ZTSClient(String ztsUrl, String domainName, String serviceName,
+            ServiceIdentityProvider siaProvider) {
+        if (domainName == null || domainName.isEmpty()) {
+            throw new IllegalArgumentException("Domain name must be specified");
+        }
+        if (serviceName == null || serviceName.isEmpty()) {
+            throw new IllegalArgumentException("Service name must be specified");
+        }
+        if (siaProvider == null) {
+            throw new IllegalArgumentException("Service Identity Provider must be specified");
+        }
+        initClient(ztsUrl, null, domainName, serviceName, siaProvider);
     }
     
     /**
@@ -270,10 +238,6 @@ public class ZTSClient implements Closeable {
     
     public void setZTSRDLGeneratedClient(ZTSRDLGeneratedClient client) {
         this.ztsClient = client;
-    }
-    
-    public void setSIAClient(SIA client) {
-        this.siaClient = client;
     }
     
     String lookupZTSUrl() {
@@ -347,18 +311,17 @@ public class ZTSClient implements Closeable {
                 .setProperty(ClientProperties.READ_TIMEOUT, readTimeout);
         
         principal = identity;
-        if (principal != null && principal.getAuthority() != null) {
+        domain = domainName;
+        service = serviceName;
+        this.siaProvider = siaProvider;
+        
+        // if we are given a principal object then we need
+        // to update the domain/service settings
+        
+        if (principal != null) {
             domain  = principal.getDomain();
             service = principal.getName();
             ztsClient.addCredentials(identity.getAuthority().getHeader(), identity.getCredentials());
-        } else if (domainName != null && serviceName != null) {
-            domain = domainName;
-            service = serviceName;
-            if (siaProvider != null) {
-                this.siaProvider = siaProvider;
-            } else {
-                siaClient = new SIAClient();
-            }
         }
     }
     
@@ -375,7 +338,7 @@ public class ZTSClient implements Closeable {
      * the received RoleToken to the Athenz protected service.
      * @return HTTP header name
      */
-    public String getHeader() {
+    public static String getHeader() {
         return ROLE_TOKEN_HEADER;
     }
 
@@ -412,11 +375,11 @@ public class ZTSClient implements Closeable {
         }
 
         // if the client is adding new principal identity then we have to 
-        // clear out the SIA client object reference so that we don't try
+        // clear out the sia provider object reference so that we don't try
         // to get a service token since we already have one given to us
 
         if (resetServiceDetails) {
-            siaClient = null;
+            siaProvider = null;
         }
         
         principal = identity;
@@ -445,42 +408,33 @@ public class ZTSClient implements Closeable {
         /* if we have a service principal then we need to keep updating
          * our PrincipalToken otherwise it might expire. */
         
-        if (siaClient == null && siaProvider == null) {
+        if (siaProvider == null) {
             return false;
         }
         
-        try {
-            Principal svcPrincipal = null;
-            
-            if (siaClient != null) {
-                svcPrincipal = siaClient.getServicePrincipal(domain, service,
-                    siaTokenMinExpiryTime, siaTokenMaxExpiryTime, false);
-            } else {
-                svcPrincipal = siaProvider.getIdentity(domain, service);
-            }
-            
-            // if the principal has the same credentials as before
-            // then we don't need to update anything
-            
-            if (sameCredentialsAsBefore(svcPrincipal)) {
-                return false;
-            }
-            
-            addPrincipalCredentials(svcPrincipal, false);
-
-        } catch (IOException ex) {
-            
-            // we should log and throw an IllegalArgumentException otherwise the
-            // client doesn't know that something bad has happened - in this case
-            // illegal domain/service was passed to the constructor - 
-            // and the ZTS Server just rejects the request with 401
-            
-            String msg = "UpdateServicePrincipal: Unable to get PrincipalToken from SIA for "
-                    + domain + "." + service + ": " + ex.getMessage();
+        Principal svcPrincipal = siaProvider.getIdentity(domain, service);
+        
+        // if we get no principal from our sia provider, then we
+        // should log and throw an IllegalArgumentException otherwise the
+        // client doesn't know that something bad has happened - in this
+        // case illegal domain/service was passed to the constructor
+        // and the ZTS Server just rejects the request with 401
+        
+        if (svcPrincipal == null) {
+            String msg = "UpdateServicePrincipal: Unable to get PrincipalToken "
+                    + "from SIA Provider for " + domain + "." + service;
             LOG.error(msg);
             throw new IllegalArgumentException(msg);
         }
         
+        // if the principal has the same credentials as before
+        // then we don't need to update anything
+        
+        if (sameCredentialsAsBefore(svcPrincipal)) {
+            return false;
+        }
+            
+        addPrincipalCredentials(svcPrincipal, false);
         return true;
     }
     
@@ -578,7 +532,8 @@ public class ZTSClient implements Closeable {
                 }
                 // start prefetch for this token if prefetch is enabled
                 if (enablePrefetch && prefetchAutoEnable) {
-                    if (prefetchRoleToken(domainName, roleName, minExpiryTime, maxExpiryTime, proxyForPrincipal)) {
+                    if (prefetchRoleToken(domainName, roleName, minExpiryTime, maxExpiryTime,
+                            proxyForPrincipal)) {
                         roleToken = lookupRoleTokenInCache(cacheKey, minExpiryTime, maxExpiryTime);
                     }
                     if (roleToken != null) {
@@ -819,16 +774,10 @@ public class ZTSClient implements Closeable {
                 // fetch items
                 for (PrefetchRoleTokenScheduledItem item : toFetch) {
                     // create ZTS Client for this particular item
-                    try (ZTSClient itemZtsClient = new ZTSClient(item.identityDomain, item.identityName)) {
-                        
-                        if (item.siaClient != null) {
-                            itemZtsClient.siaClient = item.siaClient;
-                        }
+                    try (ZTSClient itemZtsClient = new ZTSClient(item.providedZTSUrl,
+                            item.identityDomain, item.identityName, item.siaProvider)) {
                         if (item.ztsClient != null) {
                             itemZtsClient.ztsClient = item.ztsClient;
-                        }
-                        if (item.siaProvider != null) {
-                            itemZtsClient.siaProvider = item.siaProvider;
                         }
                         if (item.isRoleToken()) {
                             // check if this came from service provider
@@ -927,10 +876,12 @@ public class ZTSClient implements Closeable {
      */
     boolean prefetchRoleToken(String domainName, String roleName,
             Integer minExpiryTime, Integer maxExpiryTime, String proxyForPrincipal) {
-        return prefetchToken(domainName, roleName, minExpiryTime, maxExpiryTime, proxyForPrincipal, true);
+        return prefetchToken(domainName, roleName, minExpiryTime, maxExpiryTime,
+                proxyForPrincipal, true);
     }
     
-    boolean prefetchAwsCred(String domainName, String roleName, Integer minExpiryTime, Integer maxExpiryTime) {
+    boolean prefetchAwsCred(String domainName, String roleName, Integer minExpiryTime,
+            Integer maxExpiryTime) {
         return prefetchToken(domainName, roleName, minExpiryTime, maxExpiryTime, null, false);
     }
     
@@ -984,7 +935,7 @@ public class ZTSClient implements Closeable {
             .tokenMinExpiryTime(ZTSClient.tokenMinExpiryTime)
             .providedZTSUrl(this.ztsUrl)
             .ztsClient(this.ztsClient)
-            .siaClient(this.siaClient);
+            .siaIdentityProvider(siaProvider);
         
         if (!PREFETCH_SCHEDULED_ITEMS.contains(item)) {
             PREFETCH_SCHEDULED_ITEMS.add(item);
@@ -1103,7 +1054,8 @@ public class ZTSClient implements Closeable {
         return roleToken;
     }
     
-    AWSTemporaryCredentials lookupAwsCredInCache(String cacheKey, Integer minExpiryTime, Integer maxExpiryTime) {
+    AWSTemporaryCredentials lookupAwsCredInCache(String cacheKey, Integer minExpiryTime,
+            Integer maxExpiryTime) {
 
         AWSTemporaryCredentials awsCred = AWS_CREDS_CACHE.get(cacheKey);
         if (awsCred == null) {
@@ -1254,7 +1206,8 @@ public class ZTSClient implements Closeable {
         return getAWSTemporaryCredentials(domainName, roleName, false);
     }
     
-    public AWSTemporaryCredentials getAWSTemporaryCredentials(String domainName, String roleName, boolean ignoreCache) {
+    public AWSTemporaryCredentials getAWSTemporaryCredentials(String domainName, String roleName,
+            boolean ignoreCache) {
 
         // first lookup in our cache to see if it can be satisfied
         // only if we're not asked to ignore the cache
@@ -1293,11 +1246,13 @@ public class ZTSClient implements Closeable {
         // need to add the token to our cache. If our principal was
         // updated then we need to retrieve a new cache key
         
-        if (cacheKey == null) {
-            cacheKey = getRoleTokenCacheKey(domainName, roleName, null);
-        }
-        if (cacheKey != null) {
-            AWS_CREDS_CACHE.put(cacheKey, awsCred);
+        if (awsCred != null) {
+            if (cacheKey == null) {
+                cacheKey = getRoleTokenCacheKey(domainName, roleName, null);
+            }
+            if (cacheKey != null) {
+                AWS_CREDS_CACHE.put(cacheKey, awsCred);
+            }
         }
         return awsCred;
     }
@@ -1375,12 +1330,6 @@ public class ZTSClient implements Closeable {
         String providedZTSUrl;
         PrefetchRoleTokenScheduledItem providedZTSUrl(String u) {
             providedZTSUrl = u;
-            return this;
-        }
-
-        SIA siaClient;
-        PrefetchRoleTokenScheduledItem siaClient(SIA s) {
-            siaClient = s;
             return this;
         }
         

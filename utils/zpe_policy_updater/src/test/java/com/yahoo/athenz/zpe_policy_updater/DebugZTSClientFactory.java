@@ -17,6 +17,10 @@ package com.yahoo.athenz.zpe_policy_updater;
 
 import java.io.IOException;
 
+import org.mockito.Mockito;
+
+import com.yahoo.athenz.auth.ServiceIdentityProvider;
+import com.yahoo.athenz.auth.impl.SimpleServiceIdentityProvider;
 import com.yahoo.athenz.zpe_policy_updater.ZTSClientFactory;
 import com.yahoo.athenz.zts.ZTSClient;
 
@@ -31,9 +35,9 @@ public class DebugZTSClientFactory implements ZTSClientFactory {
     public ZTSClient create() throws IOException {
         ZTSMock zts = new ZTSMock();
         zts.setPublicKeyId(keyId);
-        ZTSClient client = new ZTSClient("http://localhost:10080", (String) null, (String) null);
+        ServiceIdentityProvider siaProvider = Mockito.mock(SimpleServiceIdentityProvider.class);
+        ZTSClient client = new ZTSClient("http://localhost:10080", "domain", "service", siaProvider);
         client.setZTSRDLGeneratedClient(zts);
-        client.setSIAClient(new DebugSIAClientFactory().create());
         return client;
     }
 }

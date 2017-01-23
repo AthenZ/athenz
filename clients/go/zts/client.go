@@ -72,7 +72,7 @@ func (client ZTSClient) httpGet(url string, headers map[string]string) (*http.Re
 		return nil, err
 	}
 	client.addAuthHeader(req)
-    if headers != nil {
+	if headers != nil {
 		for k, v := range headers {
 			req.Header.Add(k, v)
 		}
@@ -87,7 +87,7 @@ func (client ZTSClient) httpDelete(url string, headers map[string]string) (*http
 		return nil, err
 	}
 	client.addAuthHeader(req)
-    if headers != nil {
+	if headers != nil {
 		for k, v := range headers {
 			req.Header.Add(k, v)
 		}
@@ -107,7 +107,7 @@ func (client ZTSClient) httpPut(url string, headers map[string]string, body []by
 	}
 	req.Header.Add("Content-type", "application/json")
 	client.addAuthHeader(req)
-    if headers != nil {
+	if headers != nil {
 		for k, v := range headers {
 			req.Header.Add(k, v)
 		}
@@ -127,7 +127,7 @@ func (client ZTSClient) httpPost(url string, headers map[string]string, body []b
 	}
 	req.Header.Add("Content-type", "application/json")
 	client.addAuthHeader(req)
-    if headers != nil {
+	if headers != nil {
 		for k, v := range headers {
 			req.Header.Add(k, v)
 		}
@@ -147,7 +147,7 @@ func (client ZTSClient) httpPatch(url string, headers map[string]string, body []
 	}
 	req.Header.Add("Content-type", "application/json")
 	client.addAuthHeader(req)
-    if headers != nil {
+	if headers != nil {
 		for k, v := range headers {
 			req.Header.Add(k, v)
 		}
@@ -169,7 +169,7 @@ func (client ZTSClient) httpOptions(url string, headers map[string]string, body 
 		req.Header.Add("Content-type", "application/json")
 	}
 	client.addAuthHeader(req)
-    if headers != nil {
+	if headers != nil {
 		for k, v := range headers {
 			req.Header.Add(k, v)
 		}

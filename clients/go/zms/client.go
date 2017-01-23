@@ -72,7 +72,7 @@ func (client ZMSClient) httpGet(url string, headers map[string]string) (*http.Re
 		return nil, err
 	}
 	client.addAuthHeader(req)
-    if headers != nil {
+	if headers != nil {
 		for k, v := range headers {
 			req.Header.Add(k, v)
 		}
@@ -87,7 +87,7 @@ func (client ZMSClient) httpDelete(url string, headers map[string]string) (*http
 		return nil, err
 	}
 	client.addAuthHeader(req)
-    if headers != nil {
+	if headers != nil {
 		for k, v := range headers {
 			req.Header.Add(k, v)
 		}
@@ -107,7 +107,7 @@ func (client ZMSClient) httpPut(url string, headers map[string]string, body []by
 	}
 	req.Header.Add("Content-type", "application/json")
 	client.addAuthHeader(req)
-    if headers != nil {
+	if headers != nil {
 		for k, v := range headers {
 			req.Header.Add(k, v)
 		}
@@ -127,7 +127,7 @@ func (client ZMSClient) httpPost(url string, headers map[string]string, body []b
 	}
 	req.Header.Add("Content-type", "application/json")
 	client.addAuthHeader(req)
-    if headers != nil {
+	if headers != nil {
 		for k, v := range headers {
 			req.Header.Add(k, v)
 		}
@@ -147,7 +147,7 @@ func (client ZMSClient) httpPatch(url string, headers map[string]string, body []
 	}
 	req.Header.Add("Content-type", "application/json")
 	client.addAuthHeader(req)
-    if headers != nil {
+	if headers != nil {
 		for k, v := range headers {
 			req.Header.Add(k, v)
 		}
@@ -169,7 +169,7 @@ func (client ZMSClient) httpOptions(url string, headers map[string]string, body 
 		req.Header.Add("Content-type", "application/json")
 	}
 	client.addAuthHeader(req)
-    if headers != nil {
+	if headers != nil {
 		for k, v := range headers {
 			req.Header.Add(k, v)
 		}
@@ -2123,7 +2123,7 @@ func (client ZMSClient) GetAccess(action ActionName, resource YRN, domain Domain
 	}
 }
 
-func (client ZMSClient) Getaccessext(action ActionName, resource string, domain DomainName, checkPrincipal EntityName) (*Access, error) {
+func (client ZMSClient) GetAccessExt(action ActionName, resource string, domain DomainName, checkPrincipal EntityName) (*Access, error) {
 	var data *Access
 	url := client.URL + "/access/" + fmt.Sprint(action) + encodeParams(encodeStringParam("resource", string(resource), ""), encodeStringParam("domain", string(domain), ""), encodeStringParam("principal", string(checkPrincipal), ""))
 	resp, err := client.httpGet(url, nil)

@@ -85,7 +85,6 @@
     <module>libs/java/auth_core</module>
     <module>libs/java/client_common</module>
     <module>libs/java/server_common</module>
-    <module>clients/java/sia</module>
     <module>clients/java/zms</module>
     <module>clients/java/zts</module>
     <module>clients/java/zpe</module>
