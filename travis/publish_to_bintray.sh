@@ -9,7 +9,6 @@ mvn deploy --projects com.yahoo.athenz:auth_core --settings travis/settings-auth
 mvn deploy --projects com.yahoo.athenz:zms_java_client --settings travis/settings-zms-java-client.xml
 mvn deploy --projects com.yahoo.athenz:zts_java_client --settings travis/settings-zts-java-client.xml
 mvn deploy --projects com.yahoo.athenz:zpe_java_client --settings travis/settings-zpe-java-client.xml
-mvn deploy --projects com.yahoo.athenz:sia_java_client --settings travis/settings-sia-java-client.xml
 mvn deploy --projects com.yahoo.athenz:client_common --settings travis/settings-client-common.xml
 mvn deploy --projects com.yahoo.athenz:server_common --settings travis/settings-server-common.xml
 mvn deploy --projects com.yahoo.athenz:zpe_policy_updater --settings travis/settings-zpe-policy-updater.xml

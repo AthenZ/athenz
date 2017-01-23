@@ -35,11 +35,6 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>sia_java_client</artifactId>
-      <version>${project.parent.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
       <artifactId>client_common</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
@@ -138,8 +133,6 @@
                     <include>javax.inject</include>
                     <include>jersey.repackaged.com.google.common</include>
                     <include>org.aopalliance</include>
-                    <include>com.yahoo.athenz:sia_java_client</include>
-                    <include>com.kohlschutter.junixsocket</include>
                   </includes>
                 </artifactSet>
                 <relocations>

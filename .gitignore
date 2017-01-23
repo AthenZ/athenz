@@ -18,7 +18,6 @@ utils/zms_cli/pkg/
 utils/zms_cli/src/
 utils/athenz_conf/pkg/
 utils/athenz_conf/src/
-clients/java/sia/src/test/resources/svc.ntoken
 clients/java/zpe/src/test/resources/upd_pol_dir/
 ui/build/
 ui/node_modules/
@@ -28,7 +27,6 @@ utils/zpe_policy_updater/src/test/resources/sys.auth.new.pol
 clients/java/zpe/src/test/resources/pol_dir/angler.pol
 clients/java/zpe/src/test/resources/pol_dir/empty.pol
 clients/java/zpe/src/test/resources/pol_dir/sports.pol
-clients/java/sia/bin/
 clients/java/zms/bin/
 clients/java/zpe/bin/
 clients/java/zts/bin/

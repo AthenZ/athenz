@@ -33,7 +33,6 @@ import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Timestamp;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.utils.SignUtils;
-import com.yahoo.athenz.sia.SIA;
 import com.yahoo.athenz.zts.DomainMetrics;
 import com.yahoo.athenz.zts.DomainSignedPolicyData;
 import com.yahoo.athenz.zts.PolicyData;
@@ -108,7 +107,7 @@ public class PolicyUpdater {
             }
 
             try {
-                PolicyUpdater.policyUpdater(configuration, new SIAClientFactoryImpl(), new ZTSClientFactoryImpl());
+                PolicyUpdater.policyUpdater(configuration, new ZTSClientFactoryImpl());
             } catch (Exception ex) {
                 LOG.error("PolicyUpdater: Unable to update policy data: ", ex);
                 exitCode = ZPUExitCode.POLICY_UPDATE_FAILURE;
@@ -121,21 +120,16 @@ public class PolicyUpdater {
         }
     }
     
-    static void policyUpdater(PolicyUpdaterConfiguration configuration, SIAClientFactory siaFactory,
-            ZTSClientFactory ztsFactory) throws Exception {
+    static void policyUpdater(PolicyUpdaterConfiguration configuration, ZTSClientFactory ztsFactory)
+            throws Exception {
 
         try (ZTSClient zts = ztsFactory.create()) {
 
             List<String> domainList = configuration.getDomainList();
+            LOG.info("policyUpdater: Number of domains to process:"
+                    + (domainList == null ? 0 : domainList.size()));
             if (domainList == null) {
-                SIA siaClient = siaFactory.create();
-                domainList = siaClient.getDomainList();
-                LOG.info("policyUpdater: Number of domains returned from SIA:" + (domainList == null ? 0 : domainList.size()));
-            }
-
-            LOG.info("policyUpdater: Number of domains to process:" + (domainList == null ? 0 : domainList.size()));
-            if (domainList == null) {
-                LOG.error("policyUpdater: no domain list to process from configuration or SIA");
+                LOG.error("policyUpdater: no domain list to process from configuration");
                 throw new Exception("no configured domains to process");
             }
             
@@ -148,10 +142,12 @@ public class PolicyUpdater {
                 Map<String, List<String>> responseHeaders = null;
                 DomainSignedPolicyData domainSignedPolicyData = null;
                 try {
-                    domainSignedPolicyData = zts.getDomainSignedPolicyData(domain, matchingTag, responseHeaders);
+                    domainSignedPolicyData = zts.getDomainSignedPolicyData(domain, matchingTag,
+                            responseHeaders);
                 } catch (Exception exc) {
                     domainSignedPolicyData = null;
-                    LOG.error("PolicyUpdater: Unable to retrieve policies from zts for domain=" + domain, exc);
+                    LOG.error("PolicyUpdater: Unable to retrieve policies from zts for domain="
+                            + domain, exc);
                 }
                 if (domainSignedPolicyData == null) {
                     if (matchingTag != null && !matchingTag.isEmpty()) {

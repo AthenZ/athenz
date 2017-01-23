@@ -28,8 +28,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.yahoo.athenz.auth.util.Crypto;
-import com.yahoo.athenz.sia.SIA;
-import com.yahoo.athenz.sia.impl.SIAClient;
 import com.yahoo.athenz.zts.DomainSignedPolicyData;
 import com.yahoo.athenz.zts.ZTSClient;
 import com.yahoo.rdl.JSON;
@@ -44,6 +42,7 @@ public class PolicyUpdaterTest {
 
     private final String pathToAthenzConfigFile = "./src/test/resources/athenz.conf";
     private final String pathToZPUConfigFile = "./src/test/resources/zpu.conf";
+    private final String pathToZPUTestConfigFile = "./src/test/resources/zpu_test.conf";
     private final String pathToZPUEmptyConfigFile = "./src/test/resources/zpu_empty.conf";
     private final String EXPECTED_ROOT_DIR = "/home/athenz";
     private final String TEST_ROOT_DIR = "/home/myroot";
@@ -369,30 +368,37 @@ public class PolicyUpdaterTest {
 
     @Test
     public void TestPolicyUpdater() throws Exception {
-        System.setProperty(PolicyUpdaterConfiguration.ZPU_PROP_METRIC_FACTORY, "com.yahoo.athenz.zpe_policy_updater.MockMetricFactory");
+        System.setProperty(PolicyUpdaterConfiguration.ZPU_PROP_METRIC_FACTORY,
+                "com.yahoo.athenz.zpe_policy_updater.MockMetricFactory");
         
         PolicyUpdaterConfiguration configuration = new PolicyUpdaterConfiguration();
-        configuration.init(pathToAthenzConfigFile, pathToZPUEmptyConfigFile);
+        configuration.init(pathToAthenzConfigFile, pathToZPUTestConfigFile);
         configuration.setPolicyFileDir(configuration.getRootDir() + TEST_POLICY_DIR);
         configuration.setPolicyFileTmpDir(configuration.getRootDir() + TEST_POLICY_TEMP_DIR);
 
         DebugZTSClientFactory ztsFactory = new DebugZTSClientFactory();
         ztsFactory.setPublicKeyId("0");
-        PolicyUpdater.policyUpdater(configuration, new DebugSIAClientFactory(), ztsFactory);
+        PolicyUpdater.policyUpdater(configuration, ztsFactory);
         
-        Path path = Paths.get(configuration.getRootDir() + TEST_POLICY_DIR + File.separator + "sports.pol");
-        DomainSignedPolicyData domainPolicySignedData = JSON.fromBytes(Files.readAllBytes(path), DomainSignedPolicyData.class);
+        Path path = Paths.get(configuration.getRootDir() + TEST_POLICY_DIR
+                + File.separator + "sports.pol");
+        DomainSignedPolicyData domainPolicySignedData =
+                JSON.fromBytes(Files.readAllBytes(path), DomainSignedPolicyData.class);
         
-        // Validate that the SignedPolicy written to target/classes is correct, return value is true when policies are correctly validated
-        Assert.assertTrue(PolicyUpdater.validateSignedPolicies(null, configuration, domainPolicySignedData, "sports"));
+        // Validate that the SignedPolicy written to target/classes is correct,
+        // return value is true when policies are correctly validated
+        Assert.assertTrue(PolicyUpdater.validateSignedPolicies(null, configuration,
+                domainPolicySignedData, "sports"));
          
         Files.delete(path);
         
         path = Paths.get(configuration.getRootDir() + TEST_POLICY_DIR + File.separator + "sys.auth.pol");
         domainPolicySignedData = JSON.fromBytes(Files.readAllBytes(path), DomainSignedPolicyData.class);
         
-        // Validate that the SignedPolicy written to target/classes is correct, return value is true when policies are correctly validated
-        Assert.assertTrue(PolicyUpdater.validateSignedPolicies(null, configuration, domainPolicySignedData, "sys.auth.pol"));
+        // Validate that the SignedPolicy written to target/classes is correct,
+        // return value is true when policies are correctly validated
+        Assert.assertTrue(PolicyUpdater.validateSignedPolicies(null, configuration,
+                domainPolicySignedData, "sys.auth.pol"));
         
         Files.delete(path);
 
@@ -405,56 +411,31 @@ public class PolicyUpdaterTest {
         configuration.init(pathToAthenzConfigFile, pathToZPUEmptyConfigFile);
         configuration.setPolicyFileDir("./target/classes");
         
-        PolicyUpdater.policyUpdater(configuration, new DebugSIAClientFactory(true), new DebugZTSClientFactory());
-        
-        // Domain list was empty so no file should be found
-        Path path = Paths.get("./target/classes/sports.pol");
         try {
-            @SuppressWarnings("unused")
-            String fileBufferOutput = new String(Files.readAllBytes(path));
+            PolicyUpdater.policyUpdater(configuration, new DebugZTSClientFactory());
             Assert.fail();
-        } catch (IOException ex) {
-            Assert.assertTrue(true);
-        }
-    }
-    
-    @Test
-    public void TestPolicyUpdaterSIANotHasDomainList() throws Exception {
-        
-        PolicyUpdaterConfiguration confMock = Mockito.mock(PolicyUpdaterConfiguration.class);
-        Mockito.when(confMock.getDomainList()).thenReturn(null);
-        
-        // sia has no domainList
-        SIA siaMock = Mockito.mock(SIA.class);
-        Mockito.when(siaMock.getDomainList()).thenReturn(null);
-        
-        SIAClientFactory siafactoryMock = Mockito.mock(SIAClientFactory.class);
-        Mockito.when(siafactoryMock.create()).thenReturn(siaMock);
-        
-        try {
-            PolicyUpdater.policyUpdater(confMock, siafactoryMock, new DebugZTSClientFactory());
-            Assert.fail();
-        } catch(Exception e) {
-            Assert.assertEquals(e.getMessage(), "no configured domains to process");
+        } catch (Exception ex) {
+            Assert.assertTrue(ex.getMessage().contains("no configured domains"));
         }
     }
     
     @Test
     public void TestPolicyUpdaterZTSException() throws Exception {
-        System.setProperty(PolicyUpdaterConfiguration.ZPU_PROP_METRIC_FACTORY, "com.yahoo.athenz.zpe_policy_updater.MockMetricFactory");
+        System.setProperty(PolicyUpdaterConfiguration.ZPU_PROP_METRIC_FACTORY,
+                "com.yahoo.athenz.zpe_policy_updater.MockMetricFactory");
         
         PolicyUpdaterConfiguration configuration = new PolicyUpdaterConfiguration();
-        configuration.init(pathToAthenzConfigFile, pathToZPUEmptyConfigFile);
+        configuration.init(pathToAthenzConfigFile, pathToZPUConfigFile);
         configuration.setPolicyFileDir(configuration.getRootDir() + TEST_POLICY_DIR);
         configuration.setPolicyFileTmpDir(configuration.getRootDir() + TEST_POLICY_TEMP_DIR);
 
         DebugZTSClientFactory ztsFactory = new DebugZTSClientFactory();
         ztsFactory.setPublicKeyId("4"); // not exist id
-        PolicyUpdater.policyUpdater(configuration, new DebugSIAClientFactory(), ztsFactory);
+        PolicyUpdater.policyUpdater(configuration, ztsFactory);
     }
     
     @Test
-    public void TestPolicyUpdaterConfiguraturationZTSKeyRetrieval() throws Exception {
+    public void TestPolicyUpdaterConfigurationZTSKeyRetrieval() throws Exception {
         
         PolicyUpdaterConfiguration configuration = new PolicyUpdaterConfiguration();
         configuration.init(pathToAthenzConfigFile, pathToZPUConfigFile);
@@ -468,12 +449,6 @@ public class PolicyUpdaterTest {
     public void TestZTSClientFactoryImpl() {
         ZTSClientFactoryImpl factory = new ZTSClientFactoryImpl();
         factory.create();
-    }
-    
-    @Test
-    public void TestSIAClientFactoryImpl() {
-        SIAClientFactoryImpl siafactory = new SIAClientFactoryImpl();
-        Assert.assertEquals(siafactory.create().getClass(), SIAClient.class);
     }
     
     @Test
