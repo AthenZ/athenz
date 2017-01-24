@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://java.sun.com/xml/ns/javaee"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+         version="2.5">
+
+   <display-name>athenz_centralized_authz_example</display-name>
+   
+    <servlet>
+        <servlet-name>athenz-centralized-authz-example</servlet-name>
+        <servlet-class>com.yahoo.athenz.example.centralized_authz.RecServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>athenz-centralized-authz-example</servlet-name>
+        <url-pattern>/rec/v1/*</url-pattern>
+    </servlet-mapping>
+
+</web-app>
+
