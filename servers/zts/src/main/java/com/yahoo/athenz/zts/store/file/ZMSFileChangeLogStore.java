@@ -300,7 +300,8 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
             // request all the changes from ZMS
             
             Map<String, List<String>> responseHeaders = new HashMap<String, List<String>>();
-            SignedDomains signedDomains = zmsClient.getSignedDomains(lastModTime, null, null, responseHeaders);
+            SignedDomains signedDomains = zmsClient.getSignedDomains(null, null,
+                    lastModTime, responseHeaders);
             
             // retrieve the tag value for the request
             
