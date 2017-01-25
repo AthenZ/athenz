@@ -52,20 +52,20 @@ public class ZpeUpdPolLoader implements Closeable {
 
     private static final Logger LOG = LoggerFactory.getLogger(ZpeUpdPolLoader.class);
      
-    static long   _sleepTimeMillis = -1;
-    static long   _cleanupTokenInterval = 600000; // 600 secs = 10 minutes
-    static long   _lastTokenCleanup     = System.currentTimeMillis();
+    static long   sleepTimeMillis = -1;
+    static long   cleanupTokenInterval = 600000; // 600 secs = 10 minutes
+    static long   lastTokenCleanup     = System.currentTimeMillis();
     
     static {
         
         String timeoutSecs = System.getProperty(ZpeConsts.ZPE_PROP_MON_TIMEOUT, null);
         if (timeoutSecs == null) {
             // default to 5 minutes
-            _sleepTimeMillis = TimeUnit.MILLISECONDS.convert(5, TimeUnit.MINUTES);
+            sleepTimeMillis = TimeUnit.MILLISECONDS.convert(5, TimeUnit.MINUTES);
         } else {
             try {
                 long secs = Long.parseLong(timeoutSecs);
-                _sleepTimeMillis = TimeUnit.MILLISECONDS.convert(secs, TimeUnit.SECONDS);
+                sleepTimeMillis = TimeUnit.MILLISECONDS.convert(secs, TimeUnit.SECONDS);
             } catch (NumberFormatException exc) {
                 String errMsg = "start: WARNING: Failed using system property("
                         + ZpeConsts.ZPE_PROP_MON_TIMEOUT
@@ -78,7 +78,7 @@ public class ZpeUpdPolLoader implements Closeable {
         if (timeoutSecs != null) {
             try {
                 long secs = Long.parseLong(timeoutSecs);
-                _cleanupTokenInterval = TimeUnit.MILLISECONDS.convert(secs, TimeUnit.SECONDS);
+                cleanupTokenInterval = TimeUnit.MILLISECONDS.convert(secs, TimeUnit.SECONDS);
             } catch (NumberFormatException exc) {
                 String errMsg = "start: WARNING: Failed using system property("
                         + ZpeConsts.ZPE_PROP_MON_CLEANUP_TOKENS
@@ -188,7 +188,7 @@ public class ZpeUpdPolLoader implements Closeable {
             updMonWorker = new ZpeUpdMonitor(this);
         }
         scheduledExecutorSvc.scheduleAtFixedRate(updMonWorker, 0,
-                _sleepTimeMillis, TimeUnit.MILLISECONDS);
+                sleepTimeMillis, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -202,7 +202,7 @@ public class ZpeUpdPolLoader implements Closeable {
     static public void cleanupRoleTokenCache() {
         // is it time to cleanup?
         long now = System.currentTimeMillis();
-        if (now < (_cleanupTokenInterval + _lastTokenCleanup)) {
+        if (now < (cleanupTokenInterval + lastTokenCleanup)) {
             return;
         }
 
@@ -228,7 +228,7 @@ public class ZpeUpdPolLoader implements Closeable {
         for (String key: expired) {
             roleTokenCacheMap.remove(key);
         }
-        _lastTokenCleanup = now; // reset time of last cleanup
+        lastTokenCleanup = now; // reset time of last cleanup
     }
 
     void loadDb() {
