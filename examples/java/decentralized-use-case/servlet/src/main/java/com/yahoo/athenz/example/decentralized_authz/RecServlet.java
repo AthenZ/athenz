@@ -23,9 +23,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.yahoo.athenz.zpe.AuthZpeClient;
 import com.yahoo.athenz.zpe.AuthZpeClient.AccessCheckStatus;
 
@@ -35,7 +32,6 @@ import com.yahoo.athenz.zpe.AuthZpeClient.AccessCheckStatus;
 public class RecServlet extends HttpServlet {
     
     private static final long serialVersionUID = 2846506476975366921L;
-    private static final Logger LOGGER = LoggerFactory.getLogger(RecServlet.class);
 
     static final String URI_PREFIX = "/athenz-data/rec/v1";
     static final String ATHENZ_HEADER = "Athenz-Role-Auth";
@@ -56,7 +52,6 @@ public class RecServlet extends HttpServlet {
         
         String athenzRoleToken = request.getHeader(ATHENZ_HEADER);
         if (athenzRoleToken == null) {
-            LOGGER.error("No Athenz RoleToken provided in request - rejecting as forbidden");
             response.sendError(403, "Forbidden - No Athenz RoleToken provided in request");
             return;
         }
@@ -90,8 +85,7 @@ public class RecServlet extends HttpServlet {
         AccessCheckStatus status = AuthZpeClient.allowAccess(athenzRoleToken,
                 athenzResource, athenzAction);
         if (status != AccessCheckStatus.ALLOW) {
-            LOGGER.error("Athenz Authorization check failed with status '{}'", status);
-            response.sendError(403, "Forbidden - Athens Authorization Rejected");
+            response.sendError(403, "Forbidden - Athenz Authorization Rejected");
             return;
         }
         

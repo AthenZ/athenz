@@ -23,9 +23,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.yahoo.athenz.zms.ZMSAuthorizer;
 
 /*
@@ -34,12 +31,13 @@ import com.yahoo.athenz.zms.ZMSAuthorizer;
 public class RecServlet extends HttpServlet {
     
     private static final long serialVersionUID = 2846506476975366921L;
-    private static final Logger LOGGER = LoggerFactory.getLogger(RecServlet.class);
 
     static final String URI_PREFIX = "/athenz-control/rec/v1";
     static final String ATHENZ_HEADER = "Athenz-Principal-Auth";
+    String zmsUrl = null;
     
     public void init() throws ServletException {
+        zmsUrl = System.getenv("ZMS_SERVER_URL");
     }
 
     protected void doGet(HttpServletRequest request,
@@ -50,7 +48,6 @@ public class RecServlet extends HttpServlet {
         
         String athenzServiceToken = request.getHeader(ATHENZ_HEADER);
         if (athenzServiceToken == null) {
-            LOGGER.error("No Athenz ServiceToken provided in request - rejecting as forbidden");
             response.sendError(403, "Forbidden - No Athenz ServiceToken provided in request");
             return;
         }
@@ -81,11 +78,10 @@ public class RecServlet extends HttpServlet {
         // carry out the authorization check with the expected resource
         // and action values
         
-        try (ZMSAuthorizer authorizer = new ZMSAuthorizer("recommend")) {
+        try (ZMSAuthorizer authorizer = new ZMSAuthorizer(zmsUrl, "recommend")) {
             boolean authorized = authorizer.access(athenzAction, athenzResource,
                     athenzServiceToken, null);
             if (!authorized) {
-                LOGGER.error("Athenz Authorization check failed - rejecting as forbidden");
                 response.sendError(403, "Forbidden - Athenz Authorization Rejected");
                 return;
             }

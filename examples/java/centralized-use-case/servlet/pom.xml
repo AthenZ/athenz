@@ -71,12 +71,6 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>1.7.5</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
       <groupId>com.yahoo.athenz</groupId>
       <artifactId>zms_java_client</artifactId>
       <version>1.1.1</version>

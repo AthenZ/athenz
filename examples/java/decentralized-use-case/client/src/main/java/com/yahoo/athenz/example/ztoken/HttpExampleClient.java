@@ -32,7 +32,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.ServiceIdentityProvider;
 import com.yahoo.athenz.auth.impl.SimpleServiceIdentityProvider;
 import com.yahoo.athenz.auth.util.Crypto;
@@ -56,8 +55,8 @@ public class HttpExampleClient {
         String keyId = cmd.getOptionValue("keyid");
         String url = cmd.getOptionValue("url");
         String ztsUrl = cmd.getOptionValue("ztsurl");
-        String providerDomain = cmd.getOptionValue("provider");
-        String providerRole = cmd.getOptionValue("role");
+        String providerDomain = cmd.getOptionValue("provider-domain");
+        String providerRole = cmd.getOptionValue("provider-role");
         
         // we need to generate our principal credentials (ntoken). In
         // addition to the domain and service names, we need the
@@ -87,10 +86,11 @@ public class HttpExampleClient {
         URL obj = new URL(url);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         
-        // set our Athenz credentials. Th ZTSClient provides the header
+        // set our Athenz credentials. The ZTSClient provides the header
         // name that we must use for authorization token while the role
         // token itself provides the token string (ztoken).
         
+        System.out.println("Using RoleToken: " + roleToken.getToken());
         con.setRequestProperty(ZTSClient.getHeader(), roleToken.getToken());
         
         // now process our request
@@ -142,11 +142,11 @@ public class HttpExampleClient {
         ztsUrl.setRequired(true);
         options.addOption(ztsUrl);
         
-        Option providerDomain = new Option("z", "provider", true, "Provider domain name");
+        Option providerDomain = new Option("pd", "provider-domain", true, "Provider domain name");
         providerDomain.setRequired(true);
         options.addOption(providerDomain);
         
-        Option providerRole = new Option("r", "role", true, "Provider role name");
+        Option providerRole = new Option("pr", "provider-role", true, "Provider role name");
         providerRole.setRequired(true);
         options.addOption(providerRole);
         

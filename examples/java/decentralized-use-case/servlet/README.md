@@ -1,8 +1,11 @@
-Athenz Java Servlet Centralized Authorization Example
-=====================================================
+Athenz Java Servlet Decentralized Authorization Example
+=======================================================
 
-This example demonstrates the use of ZMS Java client to implement
-Athenz centralized authorization support in a servlet.
+This example demonstrates the use of ZPE Java client to implement
+Athenz decentralized authorization support in a servlet. Decentralized
+authorization support requires the installation of the ZPE Policy Updater (ZPU)
+utility on the host. This utility will download the policy files from the
+ZTS Server that are used by ZPE client for authorization checks.
 
 ## License
 
