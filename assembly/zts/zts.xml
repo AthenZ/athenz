@@ -13,10 +13,9 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 -->
-<assembly
-  xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+<assembly xmlns="http://maven.apache.org/ASSEMBLY/2.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.0.0 http://maven.apache.org/xsd/assembly-2.0.0.xsd">
   <id>bin</id>
   <formats>
     <format>tar.gz</format>
@@ -24,11 +23,11 @@
   <includeBaseDirectory>true</includeBaseDirectory>
   <fileSets>
     <fileSet>
-      <directory>${basedir}/../servers/zts/conf</directory>
+      <directory>${basedir}/../../servers/zts/conf</directory>
       <outputDirectory>conf/zts_server</outputDirectory>
     </fileSet>
     <fileSet>
-      <directory>${basedir}/../servers/zts/scripts</directory>
+      <directory>${basedir}/../../servers/zts/scripts</directory>
       <outputDirectory>bin</outputDirectory>
       <fileMode>755</fileMode>
       <includes>
@@ -36,11 +35,11 @@
       </includes>
     </fileSet>
     <fileSet>
-      <directory>${basedir}/../utils/zms_cli/target</directory>
+      <directory>${basedir}/../../utils/zms_cli/target</directory>
       <outputDirectory>bin</outputDirectory>
     </fileSet>
     <fileSet>
-      <directory>${basedir}/../utils/athenz_conf/target</directory>
+      <directory>${basedir}/../../utils/athenz_conf/target</directory>
       <outputDirectory>bin</outputDirectory>
     </fileSet>
     <fileSet>
@@ -67,33 +66,21 @@
   </fileSets>
   <files>
     <file>
-      <source>${basedir}/../servers/zts/README.md</source>
+      <source>${basedir}/../../servers/zts/README.md</source>
       <outputDirectory>.</outputDirectory>
       <fileMode>644</fileMode>
     </file>
     <file>
-      <source>${basedir}/../LICENSE</source>
+      <source>${basedir}/../../LICENSE</source>
       <outputDirectory>.</outputDirectory>
       <fileMode>644</fileMode>
     </file>
   </files>
-  <moduleSets>
-    <moduleSet>
-      <useAllReactorProjects>false</useAllReactorProjects>
-      <includes>
-        <include>com.yahoo.athenz:zts_server</include>
-      </includes>
-      <binaries>
-        <outputDirectory>lib/jars</outputDirectory>
-        <unpack>false</unpack>
-        <includeDependencies>true</includeDependencies>
-        <dependencySets>
-          <dependencySet>
-            <scope>runtime</scope>
-            <useProjectArtifact>false</useProjectArtifact>
-          </dependencySet>
-        </dependencySets>
-      </binaries>
-    </moduleSet>
-  </moduleSets>
+  <dependencySets>
+    <dependencySet>
+      <outputDirectory>lib/jars</outputDirectory>
+      <scope>runtime</scope>
+      <useProjectArtifact>false</useProjectArtifact>
+    </dependencySet>
+  </dependencySets>
 </assembly>
