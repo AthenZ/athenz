@@ -587,7 +587,7 @@ $ ls -lat <zpe-directory>/var/zpe/recommend.pol
 * Configure ZPE library to look for the policy file and the athenz.conf
 files in the expected directory:
 ```shell
-$ export JAVA_OPTIONS="-Dathenz.zpe.policy_dir=<zpe-directory>/var/zpe -Dathenz.athenz_conf=<zpe-directory>/conf/zpe_policy_updater/athenz.conf"
+$ export JAVA_OPTIONS="-Dathenz.zpe.policy_dir=<zpu-directory>/var/zpe -Dathenz.athenz_conf=<zpu-directory>/conf/zpe_policy_updater/athenz.conf"
 ```
 * Start the Jetty server by running the following command from
 Jetty's distribution base directory:
