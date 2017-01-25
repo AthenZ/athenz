@@ -57,7 +57,6 @@
   <scm>
     <url>https://github.com/yahoo/athenz</url>
     <connection>scm:git:https://github.com/yahoo/athenz.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com:yahoo/athenz.git</developerConnection>
   </scm>
 
   <issueManagement>
@@ -96,6 +95,11 @@
     <module>utils/zms_cli</module>
     <module>utils/athenz_conf</module>
     <module>ui</module>
+    <module>assembly/zms</module>
+    <module>assembly/zts</module>
+    <module>assembly/zpu</module>
+    <module>assembly/ui</module>
+    <module>assembly/utils</module>
   </modules>
 
   <build>
@@ -115,6 +119,20 @@
           <artifactId>maven-install-plugin</artifactId>
           <version>2.4</version>
         </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>2.5.3</version>
+          <configuration>
+            <autoVersionSubmodules>true</autoVersionSubmodules>
+            <tagNameFormat>v@{project.version}</tagNameFormat>
+          </configuration>
+	</plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>3.0.0</version>
+	</plugin>
       </plugins>
     </pluginManagement>
   </build>

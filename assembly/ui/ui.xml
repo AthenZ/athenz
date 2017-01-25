@@ -13,10 +13,9 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 -->
-<assembly
-  xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+<assembly xmlns="http://maven.apache.org/ASSEMBLY/2.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.0.0 http://maven.apache.org/xsd/assembly-2.0.0.xsd">
   <id>bin</id>
   <formats>
     <format>tar.gz</format>
@@ -24,7 +23,7 @@
   <includeBaseDirectory>true</includeBaseDirectory>
   <fileSets>
     <fileSet>
-      <directory>${basedir}/../ui</directory>
+      <directory>${basedir}/../../ui</directory>
       <outputDirectory>.</outputDirectory>
       <includes>
         <include>README.md</include>
@@ -36,31 +35,31 @@
       </includes>
     </fileSet>
     <fileSet>
-      <directory>${basedir}/../ui/build</directory>
+      <directory>${basedir}/../../ui/build</directory>
       <outputDirectory>build</outputDirectory>
     </fileSet>
     <fileSet>
-      <directory>${basedir}/../ui/config</directory>
+      <directory>${basedir}/../../ui/config</directory>
       <outputDirectory>config</outputDirectory>
     </fileSet>
     <fileSet>
-      <directory>${basedir}/../ui/node_modules</directory>
+      <directory>${basedir}/../../ui/node_modules</directory>
       <outputDirectory>node_modules</outputDirectory>
     </fileSet>
     <fileSet>
-      <directory>${basedir}/../ui/src</directory>
+      <directory>${basedir}/../../ui/src</directory>
       <outputDirectory>src</outputDirectory>
     </fileSet>
     <fileSet>
-      <directory>${basedir}/../ui/views</directory>
+      <directory>${basedir}/../../ui/views</directory>
       <outputDirectory>views</outputDirectory>
     </fileSet>
     <fileSet>
-      <directory>${basedir}/../ui/public</directory>
+      <directory>${basedir}/../../ui/public</directory>
       <outputDirectory>public</outputDirectory>
     </fileSet>
     <fileSet>
-      <directory>${basedir}/../ui/scripts</directory>
+      <directory>${basedir}/../../ui/scripts</directory>
       <outputDirectory>bin</outputDirectory>
       <fileMode>755</fileMode>
       <includes>
@@ -75,13 +74,13 @@
       </excludes>
     </fileSet>
     <fileSet>
-      <directory>${basedir}/../utils/zms_cli/target</directory>
+      <directory>${basedir}/../../utils/zms_cli/target</directory>
       <outputDirectory>bin</outputDirectory>
     </fileSet>
   </fileSets>
   <files>
     <file>
-      <source>${basedir}/../LICENSE</source>
+      <source>${basedir}/../../LICENSE</source>
       <outputDirectory>.</outputDirectory>
       <fileMode>644</fileMode>
     </file>
