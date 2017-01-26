@@ -2,6 +2,7 @@
 ---------------------
 
 * [Overview](#overview)
+* [Getting Software](#getting-software)
 * [Prerequisites](#prerequisites)
 * [Getting Help](#getting-help)
 * [Specifying ZMS Environments](#specifying-zms-environments)
@@ -29,6 +30,17 @@
 The ZMS client utility allows administrators to manage Athenz domains,
 to check domain details, create personal domains, and add other
 administrators.
+
+## Getting Software
+-------------------
+
+Download latest ZPU binary release from Bintray:
+
+[ ![Download](https://api.bintray.com/packages/yahoo/maven/athenz-utils/images/download.svg) ](https://bintray.com/yahoo/maven/athenz-utils/_latestVersion)
+
+```shell
+$ tar xvfz athenz-utils-X.Y-bin.tar.gz
+```
 
 ## Prerequisites
 ----------------

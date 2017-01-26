@@ -26,6 +26,10 @@
   <name>zts-java-client</name>
   <description>ZTS Java Client Library</description>
 
+  <properties>
+    <checkstyle.skip>true</checkstyle.skip>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
