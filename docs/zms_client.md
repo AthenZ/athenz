@@ -34,7 +34,9 @@ administrators.
 ## Getting Software
 -------------------
 
-Download latest ZPU binary release from Bintray:
+Download latest ZMS Client utility binary release from Bintray - click
+on the `Files` tab, choose the latest version directory and then
+download the `athenz-utils-<latest-version>-bin.tar.gz` file::
 
 [ ![Download](https://api.bintray.com/packages/yahoo/maven/athenz-utils/images/download.svg) ](https://bintray.com/yahoo/maven/athenz-utils/_latestVersion)
 

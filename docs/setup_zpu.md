@@ -36,7 +36,9 @@ it should run successfully with OpenJDK 8 as well.
 ## Getting Software
 -------------------
 
-Download latest ZPU binary release from Bintray:
+Download latest ZPU binary release from Bintray - click on the `Files` tab,
+choose the latest version directory and then download the
+`athenz-zpu-<latest-version>-bin.tar.gz` file::
 
 [ ![Download](https://api.bintray.com/packages/yahoo/maven/athenz-zpu/images/download.svg) ](https://bintray.com/yahoo/maven/athenz-zpu/_latestVersion)
 

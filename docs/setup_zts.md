@@ -31,7 +31,9 @@ it should run successfully with OpenJDK 8 as well.
 ## Getting Software
 -------------------
 
-Download latest ZTS binary release from Bintray:
+Download latest ZTS binary release from Bintray - click on the `Files` tab,
+choose the latest version directory and then download the
+`athenz-zts-<latest-version>-bin.tar.gz` file::
 
 [ ![Download](https://api.bintray.com/packages/yahoo/maven/athenz-zts/images/download.svg) ](https://bintray.com/yahoo/maven/athenz-zts/_latestVersion)
 
