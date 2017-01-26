@@ -23,8 +23,8 @@
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>zpu_assembly</artifactId>
-  <name>zpu_assembly</name>
+  <artifactId>athenz-zpu</artifactId>
+  <name>athenz-zpu</name>
   <packaging>pom</packaging>
 
   <properties>

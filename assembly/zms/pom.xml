@@ -23,8 +23,8 @@
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>zms_assembly</artifactId>
-  <name>zms_assembly</name>
+  <artifactId>athenz-zms</artifactId>
+  <name>athenz-zms</name>
   <packaging>pom</packaging>
 
   <properties>
