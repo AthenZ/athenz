@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE module PUBLIC "-//Puppy Crawl//DTD Check Configuration 1.3//EN" "http://www.puppycrawl.com/dtds/configuration_1_3.dtd">
+<module name="Checker">
+
+  <!-- Enforce no tabs, only spaces for indent. -->
+  <module name="FileTabCharacter">
+    <property name="eachLine" value="true"/>
+    <property name="severity" value="error"/>
+  </module>
+
+  <!-- Enforce Unix newlines. -->
+  <module name="NewlineAtEndOfFile">
+    <property name="lineSeparator" value="lf"/>
+    <property name="severity" value="error"/>
+  </module>
+
+  <!-- Check each Java file for violations. -->
+  <module name="TreeWalker">
+
+    <!-- Constants (static finals) must be uppercase letters/digits/underscore. -->
+    <module name="ConstantName">
+      <property name="format" value="^[A-Z][A-Z0-9_]*$"/>
+      <property name="severity" value="error"/>
+    </module>
+
+    <!-- Duplicate import checking. -->
+    <module name="RedundantImport">
+      <property name="severity" value="error"/>
+    </module>
+
+    <!-- Unused imports checking. -->
+    <module name="UnusedImports">
+      <property name="severity" value="error"/>
+    </module>
+
+    <!-- Method name check. -->
+    <module name="MethodName">
+      <property name="format" value="^[a-z][a-zA-Z0-9]*$"/>
+      <property name="severity" value="error"/>
+    </module>
+
+    <!-- Local variable name check. -->
+    <module name="LocalVariableName">
+      <property name="format" value="^[a-z][a-zA-Z0-9]*$"/>
+      <property name="severity" value="error"/>
+    </module>
+
+    <!-- Local variable name check. -->
+    <module name="LocalFinalVariableName">
+      <property name="format" value="^[a-z][a-zA-Z0-9]*$"/>
+      <property name="severity" value="error"/>
+    </module>
+
+    <!-- Member name check. -->
+    <module name="MemberName">
+      <property name="format" value="^[a-z][a-zA-Z0-9]*$"/>
+      <property name="severity" value="error"/>
+    </module>
+
+    <!-- Class name check. -->
+    <module name="TypeName">
+      <property name="format" value="^[A-Z][a-zA-Z0-9]*$"/>
+      <property name="severity" value="error"/>
+    </module>
+
+    <!-- Left curly goes on end of line (eol). -->
+    <module name="LeftCurly">
+      <property name="option" value="eol"/>
+      <property name="severity" value="error"/>
+    </module>
+
+    <!-- Right curly goes same line as 'else', 'try', and 'catch'. -->
+    <module name="RightCurly">
+      <property name="option" value="same"/>
+      <property name="severity" value="error"/>
+    </module>
+
+    <!-- Need braces for all code blocks. -->
+    <module name="NeedBraces">
+      <property name="severity" value="error"/>
+    </module>
+
+    <!-- Checks that a token is surrounded by whitespace. -->
+    <module name="WhitespaceAround">
+      <property name="severity" value="error"/>
+    </module>
+
+    <!-- Checks that a token is followed by whitespace. -->
+    <module name="WhitespaceAfter">
+      <property name="severity" value="error"/>
+    </module>
+
+    <!-- Checks the policy on the padding of parentheses. -->
+    <module name="ParenPad">
+      <property name="severity" value="error"/>
+    </module>
+
+    <!-- Fails if there is whitespace around generic '<' '>' characters. -->
+    <module name="GenericWhitespace">
+      <property name="severity" value="error"/>
+    </module>
+
+    <!-- Cyclomatic complexity limit of 10. -->
+    <module name="CyclomaticComplexity">
+      <property name="max" value="10"/>
+      <property name="severity" value="warning"/>
+    </module>
+
+    <!-- Checks that long constants are defined with an upper ell. 'l' looks too much like '1'. -->
+    <module name="UpperEll">
+      <property name="severity" value="error"/>
+    </module>
+
+    <!-- Enforce Java array type style. -->
+    <module name="ArrayTypeStyle">
+      <property name="severity" value="error"/>
+    </module>
+
+    <!-- Checks if a line it too long. -->
+    <module name="LineLength">
+      <property name="max" value="120"/>
+      <property name="severity" value="warning"/>
+    </module>
+
+  </module>
+
+</module>

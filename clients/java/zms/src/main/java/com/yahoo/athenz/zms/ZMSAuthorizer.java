@@ -161,9 +161,9 @@ public class ZMSAuthorizer implements Authorizer, Closeable {
         
         boolean roleToken = false;
         for (String item : token.split(";")) {
-	    if ("v=Z1".equalsIgnoreCase(item)) {
-		roleToken = true;
-		break;
+            if ("v=Z1".equalsIgnoreCase(item)) {
+                roleToken = true;
+                break;
             }
         }
         return roleToken;
