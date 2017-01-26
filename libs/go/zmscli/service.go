@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/ardielle/ardielle-go/rdl"
-	"../../../clients/go/zms"
+	"github.com/yahoo/athenz/clients/go/zms"
 )
 
 func shortname(dn string, sn string) string {
