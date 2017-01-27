@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/ardielle/ardielle-go/rdl"
-	"../../../clients/go/zms"
+	"github.com/yahoo/athenz/clients/go/zms"
 )
 
 func providerRoleName(provider, group, action string) string {

@@ -1,5 +1,5 @@
-zms-cli
-=======
+zmscli
+======
 
 ZMS Client application library in go to manage your Athenz domain in ZMS Server.
 

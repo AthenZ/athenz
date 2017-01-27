@@ -6,7 +6,7 @@ package zmscli
 import (
 	"testing"
 
-	"../../../clients/go/zms"
+	"github.com/yahoo/athenz/clients/go/zms"
 )
 
 func TestAssertionMatchTrue(t *testing.T) {
@@ -18,7 +18,20 @@ func TestAssertionMatchTrue(t *testing.T) {
 		CredsToken:  nil,
 		Timeout:     0,
 	}
-	cli := Zms{"dev.zms", "ntoken", false, false, false, zms_cli, "domain", "", false}
+
+	cli := Zms{
+		ZmsUrl:           "dev.zms",
+		Identity:         "ntoken",
+		Verbose:          false,
+		Bulkmode:         false,
+		Interactive:      false,
+		Domain:           "domain",
+		AuditRef:         "",
+		UserDomain:       "user",
+		ProductIdSupport: false,
+		Debug:            false,
+		Zms:              zms_cli,
+	}
 
 	denyEffect := zms.NewAssertionEffect("DENY")
 	allowEffect := zms.NewAssertionEffect("ALLOW")
@@ -69,7 +82,20 @@ func TestAssertionMatchFalse(t *testing.T) {
 		CredsToken:  nil,
 		Timeout:     0,
 	}
-	cli := Zms{"dev.zms", "ntoken", false, false, false, zms_cli, "domain", "", false}
+
+	cli := Zms{
+		ZmsUrl:           "dev.zms",
+		Identity:         "ntoken",
+		Verbose:          false,
+		Bulkmode:         false,
+		Interactive:      false,
+		Domain:           "domain",
+		AuditRef:         "",
+		UserDomain:       "user",
+		ProductIdSupport: false,
+		Debug:            false,
+		Zms:              zms_cli,
+	}
 
 	denyEffect := zms.NewAssertionEffect("DENY")
 	allowEffect := zms.NewAssertionEffect("ALLOW")

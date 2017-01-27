@@ -8,8 +8,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"golang.org/x/crypto/ssh/terminal"
-	"golang.org/x/net/proxy"
 	"io/ioutil"
 	"log"
 	"net"
@@ -19,8 +17,11 @@ import (
 	"syscall"
 	"time"
 
-	"../../clients/go/zms"
-	"../../libs/go/zmscli"
+	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/net/proxy"
+
+	"github.com/yahoo/athenz/clients/go/zms"
+	"github.com/yahoo/athenz/libs/go/zmscli"
 )
 
 //these get set by the build script via the LDFLAGS
@@ -171,7 +172,7 @@ func main() {
 	pBulkmode := flag.Bool("b", false, "bulk mode. Do not display updated role/policy/service in output")
 	pProductIdSupport := flag.Bool("p", false, "Top Level Domain add operations require product ids")
 	pDomain := flag.String("d", "", "The domain for the command to execute in. If not specified, only certain commands are available")
-	pUserDomain := flag.String("u", "user", "User domain name as configured in Athens systems")
+	pUserDomain := flag.String("u", "user", "User domain name as configured in Athenz systems")
 	pSocks := flag.String("s", defaultSocksProxy(), "The SOCKS5 proxy to route requests through, i.e. 127.0.0.1:1080")
 	pSkipVerify := flag.Bool("k", false, "Disable peer verification of SSL certificates")
 	pDebug := flag.Bool("debug", defaultDebug(), "debug mode (for authentication, mainly)")

@@ -31,28 +31,28 @@ func TestDisplayObjectName(t *testing.T) {
 	var buf bytes.Buffer
 	zms := Zms{}
 
-	zms.verbose = false
+	zms.Verbose = false
 	zms.displayObjectName(&buf, "coretech:role.role1", ":role.", "--")
 	if buf.String() != "--name: role1\n" {
-		t.Error("coretech:role.role1 didn't display the correct object name with verbose off")
+		t.Error("coretech:role.role1 didn't display the correct object name with Verbose off")
 	}
 
 	buf.Reset()
-	zms.verbose = true
+	zms.Verbose = true
 	zms.displayObjectName(&buf, "coretech:role.role1", ":role.", "--")
 	if buf.String() != "--name: coretech:role.role1\n" {
-		t.Error("coretech:role.role1 didn't display the correct object name with verbose on")
+		t.Error("coretech:role.role1 didn't display the correct object name with Verbose on")
 	}
 
 	buf.Reset()
-	zms.verbose = false
+	zms.Verbose = false
 	zms.displayObjectName(&buf, "coretech:role.role1", "", "--")
 	if buf.String() != "--name: coretech:role.role1\n" {
 		t.Error("coretech:role.role1 didn't display the correct object name with empty obj type")
 	}
 
 	buf.Reset()
-	zms.verbose = false
+	zms.Verbose = false
 	zms.displayObjectName(&buf, "coretech:role.role1", ":policy.", "--")
 	if buf.String() != "--name: coretech:role.role1\n" {
 		t.Error("coretech:role.role1 didn't display the correct object name with no match obj type")

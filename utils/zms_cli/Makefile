@@ -6,9 +6,12 @@
 # Licensed under the Apache License, Version 2.0 - http://www.apache.org/licenses/LICENSE-2.0
 #
 
+GOPKGNAME = github.com/yahoo/athenz/utils/zms-cli
 PKG_DATE=$(shell date '+%Y-%m-%dT%H:%M:%S')
 BINARY=zms-cli
 SRC=zms-cli.go
+FMT_LOG=/tmp/zms-cli-fmt.log
+IMPORTS_LOG=/tmp/zms-cli-imports.log
 
 # check to see if go utility is installed
 GO := $(shell command -v go 2> /dev/null)
@@ -26,8 +29,8 @@ all:
 	@echo "Please install 1.7.x or newer version of golang"
 else
 
-.PHONY: source linux darwin
-all: source linux darwin
+.PHONY: source vet fmt imports linux darwin
+all: source vet fmt imports linux darwin
 
 endif
 
@@ -38,13 +41,35 @@ all:
 
 endif
 
+# we need to build the zms-cli with the local copies
+# of zmscli and zms-go-client so that any changes
+# can be reflected right away. So we are going to
+# copy the source directories into our source tree
+# and compile them
 source:
+	@echo "Setting up the source code..."
+	mkdir -p /tmp/zms-cli-build/src/$(GOPKGNAME)
+	cp -r * /tmp/zms-cli-build/src/$(GOPKGNAME)/.
+	mv /tmp/zms-cli-build/src .
+	@echo "Copying local source files..."
+	mkdir -p $(GOPATH)/src/github.com/yahoo/athenz/clients/go
+	cp -r ../../clients/go/zms $(GOPATH)/src/github.com/yahoo/athenz/clients/go
+	mkdir -p $(GOPATH)/src/github.com/yahoo/athenz/libs/go
+	cp -r ../../libs/go/zmscli $(GOPATH)/src/github.com/yahoo/athenz/libs/go
 	@echo "Getting dependency packages..."
-	go get github.com/ardielle/ardielle-go/rdl
-	go get github.com/boynton/repl
-	go get golang.org/x/crypto/ssh/terminal
-	go get golang.org/x/net/proxy
-	go get gopkg.in/yaml.v2
+	go get -t -d -tags testing $(GOPKGNAME)/...
+
+vet:
+	go vet $(GOPKGNAME)/...
+
+fmt:
+	go list $(GOPKGNAME)/... | sed "s:^:$(GOPATH)/src/:" | xargs gofmt -d >$(FMT_LOG)
+	@if [ -s $(FMT_LOG) ]; then echo gofmt FAIL; cat $(FMT_LOG); false; fi
+
+imports:
+	go get golang.org/x/tools/cmd/goimports
+	go list $(GOPKGNAME)/... | sed "s:^:$(GOPATH)/src/:" | xargs goimports -d >$(IMPORTS_LOG)
+	@if [ -s $(IMPORTS_LOG) ]; then echo goimports FAIL; cat $(IMPORTS_LOG); false; fi
 
 darwin:
 	@echo "Building darwin client..."
@@ -55,4 +80,4 @@ linux:
 	GOOS=linux go build -ldflags "-X main.VERSION=$(PKG_VERSION) -X main.BUILD_DATE=$(PKG_DATE)" -o target/linux/$(BINARY) $(SRC)
 
 clean:
-	rm -rf target
+	rm -rf target src bin pkg /tmp/zms-cli-build $(FMT_LOG) $(IMPORTS_LOG)

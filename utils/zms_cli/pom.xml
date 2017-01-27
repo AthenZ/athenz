@@ -28,6 +28,7 @@
 
   <properties>
     <maven.install.skip>true</maven.install.skip>
+    <checkstyle.skip>true</checkstyle.skip>
   </properties>
 
   <build>
@@ -41,7 +42,7 @@
             <goals>
               <goal>exec</goal>
             </goals>
-            <phase>generate-sources</phase>
+            <phase>compile</phase>
           </execution>
         </executions>
         <configuration>

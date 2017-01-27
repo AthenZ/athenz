@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/ardielle/ardielle-go/rdl"
-	"../../../clients/go/zms"
+	"github.com/yahoo/athenz/clients/go/zms"
 )
 
 func (cli Zms) ShowEntity(dn string, en string) (*string, error) {
