@@ -51,9 +51,10 @@ and often rely on network ACLs and manual updating.
     * [Authorization Flow](docs/auth_flow.md)
 * Developer Guide
     * [Centralized Access Control](docs/dev_centralized_access.md)
-        * [Client/Servlet Example](docs/example_centralized_access.md)
+        * [Java Client/Servlet Example](docs/example_java_centralized_access.md)
+        * [Go Client/Server Example](docs/example_go_centralized_access.md)
     * [Decentralized Access Control](docs/dev_decentralized_access.md)
-        * [Client/Servlet Example](docs/example_decentralized_access.md)
+        * [Java Client/Servlet Example](docs/example_java_decentralized_access.md)
     * [System Properties](docs/system_properties.md)
 * User Guide
     * [ZMS Client Utility](docs/zms_client.md)

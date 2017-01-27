@@ -18,10 +18,10 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.yahoo.athenz</groupId>
-  <artifactId>example-client-ntoken</artifactId>
+  <artifactId>example-java-client-ntoken</artifactId>
   <packaging>jar</packaging>
   <version>1.0</version>
-  <name>athenz_example_client_ntoken</name>
+  <name>athenz_example_java_client_ntoken</name>
   <description>Athenz Centralized Authorization Java Client Example</description>
 
   <properties>

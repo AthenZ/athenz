@@ -3,6 +3,8 @@ zmscli
 
 ZMS Client application library in go to manage your Athenz domain in ZMS Server.
 
+[![GoDoc](https://godoc.org/github.com/yahoo/athenz/libs/go/zmscli?status.svg)](https://godoc.org/github.com/yahoo/athenz/libs/go/zmscli)
+
 ## License
 
 Copyright 2016 Yahoo Inc.
