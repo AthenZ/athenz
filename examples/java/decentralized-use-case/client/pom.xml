@@ -18,10 +18,10 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.yahoo.athenz</groupId>
-  <artifactId>example-client-ztoken</artifactId>
+  <artifactId>example-java-client-ztoken</artifactId>
   <packaging>jar</packaging>
   <version>1.0</version>
-  <name>athenz_example_client_ztoken</name>
+  <name>athenz_example_java_client_ztoken</name>
   <description>Athenz Decentralized Authorization Java Client Example</description>
 
   <properties>

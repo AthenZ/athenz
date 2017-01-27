@@ -16,10 +16,10 @@ const authHeader = "Athenz-Principal-Auth"
 func main() {
 
 	var domain, role, ntoken, ztsUrl string
-	flag.StringVar(&domain, "domain", domain, "name of provider domain")
-	flag.StringVar(&role, "role", role, "name of provider role")
-	flag.StringVar(&ntoken, "ntoken", ntoken, "service identity token")
-	flag.StringVar(&ztsUrl, "zts", ztsUrl, "url of the ZTS Service")
+	flag.StringVar(&domain, "domain", "", "name of provider domain")
+	flag.StringVar(&role, "role", "", "name of provider role")
+	flag.StringVar(&ntoken, "ntoken", "", "service identity token")
+	flag.StringVar(&ztsUrl, "zts", "", "url of the ZTS Service")
 	flag.Parse()
 
 	if domain == "" || ntoken == "" || ztsUrl == "" {

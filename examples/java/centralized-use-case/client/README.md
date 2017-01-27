@@ -1,5 +1,5 @@
 Athenz Client Ntoken Example
-=====================================================
+============================
 
 This example demonstrates the use of auth_core to generate
 an NToken for a service that can be used for centralized

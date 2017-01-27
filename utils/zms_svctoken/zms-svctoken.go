@@ -16,10 +16,10 @@ import (
 func main() {
 
 	var privateKeyFile, domain, service, keyVersion string
-	flag.StringVar(&privateKeyFile, "private-key", privateKeyFile, "private key file")
-	flag.StringVar(&domain, "domain", domain, "domain of service")
-	flag.StringVar(&service, "service", service, "name of service")
-	flag.StringVar(&keyVersion, "key-version", keyVersion, "key version")
+	flag.StringVar(&privateKeyFile, "private-key", "", "private key file")
+	flag.StringVar(&domain, "domain", "", "domain of service")
+	flag.StringVar(&service, "service", "", "name of service")
+	flag.StringVar(&keyVersion, "key-version", "", "key version")
 	flag.Parse()
 
 	if privateKeyFile == "" || domain == "" || service == "" || keyVersion == "" {
