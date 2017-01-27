@@ -68,7 +68,7 @@ fmt:
 # we are going to verify our library
 imports:
 	go get golang.org/x/tools/cmd/goimports
-	go list $(GOPKGNAME)/... | sed "s:^:$(GOPATH)/src/:" | xargs goimports -d >$(IMPORTS_LOG)
+	go list $(GOPKGNAME)/... | sed "s:^:$(GOPATH)/src/:" | xargs $(GOPATH)/bin/goimports -d >$(IMPORTS_LOG)
 	@if [ -s $(IMPORTS_LOG) ]; then echo goimports FAIL; cat $(IMPORTS_LOG); false; fi
 
 build:
