@@ -7,6 +7,10 @@
 # go get github.com/ardielle/ardielle-tools/...
 #
 
+if [ -x "$(command -v go)" ]; then
+    go get github.com/ardielle/ardielle-tools/...
+fi
+
 command -v rdl >/dev/null 2>&1 || {
     echo >&2 "------------------------------------------------------------------------";
     echo >&2 "SOURCE WARNING";

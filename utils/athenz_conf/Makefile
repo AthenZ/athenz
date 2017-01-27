@@ -6,9 +6,12 @@
 # Licensed under the Apache License, Version 2.0 - http://www.apache.org/licenses/LICENSE-2.0
 #
 
+GOPKGNAME = github.com/yahoo/athenz/utils/athenz-conf
 PKG_DATE=$(shell date '+%Y-%m-%dT%H:%M:%S')
 BINARY=athenz-conf
 SRC=athenz-conf.go
+FMT_LOG=/tmp/athenz-conf-fmt.log
+IMPORTS_LOG=/tmp/athenz-conf-imports.log
 
 # check to see if go utility is installed
 GO := $(shell command -v go 2> /dev/null)
@@ -26,8 +29,8 @@ all:
 	@echo "Please install 1.7.x or newer version of golang"
 else
 
-.PHONY: source linux darwin
-all: source linux darwin
+.PHONY: source vet fmt imports linux darwin
+all: source vet fmt imports linux darwin
 
 endif
 
@@ -38,12 +41,32 @@ all:
 
 endif
 
+# we need to build the athenz-conf with the local copy
+# of zms-go-client so that any changes can be reflected
+# right away. So we are going to copy the source directories
+# into our source tree and compile them
 source:
+	@echo "Setting up the source code..."
+	mkdir -p /tmp/athenz-conf-build/src/$(GOPKGNAME)
+	cp -r * /tmp/athenz-conf-build/src/$(GOPKGNAME)/.
+	mv /tmp/athenz-conf-build/src .
+	@echo "Copying local source files..."
+	mkdir -p $(GOPATH)/src/github.com/yahoo/athenz/clients/go
+	cp -r ../../clients/go/zms $(GOPATH)/src/github.com/yahoo/athenz/clients/go
 	@echo "Getting dependency packages..."
-	go get github.com/ardielle/ardielle-go/rdl
-	go get github.com/boynton/repl
-	go get golang.org/x/crypto/ssh/terminal
-	go get golang.org/x/net/proxy
+	go get -t -d -tags testing $(GOPKGNAME)/...
+
+imports:
+	go get golang.org/x/tools/cmd/goimports
+	go list $(GOPKGNAME)/... | sed "s:^:$(GOPATH)/src/:" | xargs $(GOPATH)/bin/goimports -d >$(IMPORTS_LOG)
+	@if [ -s $(IMPORTS_LOG) ]; then echo goimports FAIL; cat $(IMPORTS_LOG); false; fi
+
+vet:
+	go vet $(GOPKGNAME)/...
+
+fmt:
+	go list $(GOPKGNAME)/... | sed "s:^:$(GOPATH)/src/:" | xargs gofmt -d >$(FMT_LOG)
+	@if [ -s $(FMT_LOG) ]; then echo gofmt FAIL; cat $(FMT_LOG); false; fi
 
 darwin:
 	@echo "Building darwin client..."
@@ -54,4 +77,4 @@ linux:
 	GOOS=linux go build -ldflags "-X main.VERSION=$(PKG_VERSION) -X main.BUILD_DATE=$(PKG_DATE)" -o target/linux/$(BINARY) $(SRC)
 
 clean:
-	rm -rf target
+	rm -rf target src bin pkg /tmp/athenz-conf-build $(FMT_LOG) $(IMPORTS_LOG)

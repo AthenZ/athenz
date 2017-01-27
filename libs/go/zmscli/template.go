@@ -6,7 +6,7 @@ package zmscli
 import (
 	"bytes"
 
-	"../../../clients/go/zms"
+	"github.com/yahoo/athenz/clients/go/zms"
 )
 
 func (cli Zms) ListServerTemplates() (*string, error) {

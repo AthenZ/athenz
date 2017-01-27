@@ -64,7 +64,7 @@ func TestIndexOfString(t *testing.T) {
 func TestValidatedUsers(t *testing.T) {
 	cli := Zms{}
 	cli.UserDomain = "user"
-	cli.identity = "user.user1"
+	cli.Identity = "user.user1"
 	members := []string{"user.user2", "user3"}
 	list := cli.validatedUsers(members, false)
 	if len(list) != 2 {
@@ -137,34 +137,5 @@ func TestRemoveAll(t *testing.T) {
 	list = cli.RemoveAll(fullList, removeList)
 	if len(list) != 0 {
 		t.Error("Returned list is not empty")
-	}
-}
-
-func TestGetHttpTransport(t *testing.T) {
-	tr := getHttpTransport(nil, false)
-	if tr != nil {
-		t.Error("Did not receive nil transport")
-	}
-	tr = getHttpTransport(nil, true)
-	if tr.TLSClientConfig == nil {
-		t.Error("Only TLSConfig not set correctly")
-	}
-	if tr.Dial != nil {
-		t.Error("Only TLSConfig - Dial is not nil")
-	}
-	proxy := "socks.athenzcompany.com:10080"
-	tr = getHttpTransport(&proxy, false)
-	if tr.TLSClientConfig != nil {
-		t.Error("Only Proxy - TLSConfig not set correctly")
-	}
-	if tr.Dial == nil {
-		t.Error("Only Proxy - Dial is nil")
-	}
-	tr = getHttpTransport(&proxy, true)
-	if tr.TLSClientConfig == nil {
-		t.Error("Both optionss - TLSConfig not set correctly")
-	}
-	if tr.Dial == nil {
-		t.Error("Both options - Dial is not set correctly")
 	}
 }

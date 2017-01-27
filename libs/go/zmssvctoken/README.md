@@ -1,0 +1,15 @@
+zmssvctoken
+===========
+
+Go library to generate/validate Athenz NTokens given private/public keys.
+
+Mirrors the functionality of the Java token signer. It supports RSA and ECDSA keys
+
+See [the zms-svctoken utility source](https://github.com/yahoo/athenz/utils/zms_svctoken/zms-svctoken.go)
+for example use.
+
+## License
+
+Copyright 2016 Yahoo Inc.
+
+Licensed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)

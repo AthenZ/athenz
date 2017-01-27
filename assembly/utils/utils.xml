@@ -30,6 +30,14 @@
       <directory>${basedir}/../../utils/athenz_conf/target</directory>
       <outputDirectory>bin</outputDirectory>
     </fileSet>
+    <fileSet>
+      <directory>${basedir}/../../utils/zms_svctoken/target</directory>
+      <outputDirectory>bin</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>${basedir}/../../utils/zts_roletoken/target</directory>
+      <outputDirectory>bin</outputDirectory>
+    </fileSet>
   </fileSets>
   <files>
     <file>

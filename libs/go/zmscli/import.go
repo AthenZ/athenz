@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"../../../clients/go/zms"
+	"github.com/yahoo/athenz/clients/go/zms"
 )
 
 func (cli Zms) importRoles(dn string, lstRoles []interface{}, validatedAdmins []string, skipErrors bool) error {

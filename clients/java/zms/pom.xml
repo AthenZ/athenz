@@ -26,10 +26,6 @@
   <name>zms-java-client</name>
   <description>ZMS Java Client Library</description>
 
-  <properties>
-    <checkstyle.skip>true</checkstyle.skip>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>

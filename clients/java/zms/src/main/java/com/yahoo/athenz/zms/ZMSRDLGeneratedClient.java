@@ -1351,7 +1351,7 @@ public class ZMSRDLGeneratedClient {
 
     }
 
-    public SignedDomains getSignedDomains(String domain, String metaOnly, String matchingTag, java.util.Map<String,java.util.List<String>> headers) {
+    public SignedDomains getSignedDomains(String domain, String metaOnly, String matchingTag, java.util.Map<String, java.util.List<String>> headers) {
         WebTarget target = base.path("/sys/modified_domains");
         if (domain != null) {
             target = target.queryParam("domain", domain);
@@ -1372,7 +1372,7 @@ public class ZMSRDLGeneratedClient {
         case 200:
         case 304:
             if (headers != null) {
-                headers.put("tag", java.util.Arrays.asList((String)response.getHeaders().getFirst("ETag")));
+                headers.put("tag", java.util.Arrays.asList((String) response.getHeaders().getFirst("ETag")));
             }
             if (code == 304) {
                 return null;

@@ -1,17 +1,17 @@
 #
-# Makefile to build ZMS Go client utility
+# Makefile to build ZTS Role Token utility
 # Prerequisite: Go development environment
 #
 # Copyright 2016 Yahoo Inc.
 # Licensed under the Apache License, Version 2.0 - http://www.apache.org/licenses/LICENSE-2.0
 #
 
-GOPKGNAME = github.com/yahoo/athenz/utils/zms-cli
+GOPKGNAME = github.com/yahoo/athenz/utils/zts-roletoken
 PKG_DATE=$(shell date '+%Y-%m-%dT%H:%M:%S')
-BINARY=zms-cli
-SRC=zms-cli.go
-FMT_LOG=/tmp/zms-cli-fmt.log
-IMPORTS_LOG=/tmp/zms-cli-imports.log
+BINARY=zts-roletoken
+SRC=zts-roletoken.go
+FMT_LOG=/tmp/zts-roletoken-fmt.log
+IMPORTS_LOG=/tmp/zts-roletoken-imports.log
 
 # check to see if go utility is installed
 GO := $(shell command -v go 2> /dev/null)
@@ -41,21 +41,22 @@ all:
 
 endif
 
-# we need to build the zms-cli with the local copies
-# of zmscli and zms-go-client so that any changes
-# can be reflected right away. So we are going to
-# copy the source directories into our source tree
-# and compile them
+# we need to build the zts-roletoken with the local copies
+# of zts-go-client so that any changes can be reflected
+# right away. So we are going to copy the source directories
+# into our source tree and compile them
 source:
+	@echo "Cleanup up local GOPATH src directory..."
+	rm -rf src
 	@echo "Setting up the source code..."
-	mkdir -p /tmp/zms-cli-build/src/$(GOPKGNAME)
-	cp -r * /tmp/zms-cli-build/src/$(GOPKGNAME)/.
-	mv /tmp/zms-cli-build/src .
+	mkdir -p /tmp/zts-roletoken-build/src/$(GOPKGNAME)
+	cp -r * /tmp/zts-roletoken-build/src/$(GOPKGNAME)/.
+	mv /tmp/zts-roletoken-build/src .
 	@echo "Copying local source files..."
 	mkdir -p $(GOPATH)/src/github.com/yahoo/athenz/clients/go
-	cp -r ../../clients/go/zms $(GOPATH)/src/github.com/yahoo/athenz/clients/go
+	cp -r ../../clients/go/zts $(GOPATH)/src/github.com/yahoo/athenz/clients/go
 	mkdir -p $(GOPATH)/src/github.com/yahoo/athenz/libs/go
-	cp -r ../../libs/go/zmscli $(GOPATH)/src/github.com/yahoo/athenz/libs/go
+	cp -r ../../libs/go/zmssvctoken $(GOPATH)/src/github.com/yahoo/athenz/libs/go
 	@echo "Getting dependency packages..."
 	go get -t -d -tags testing $(GOPKGNAME)/...
 
@@ -80,4 +81,4 @@ linux:
 	GOOS=linux go build -ldflags "-X main.VERSION=$(PKG_VERSION) -X main.BUILD_DATE=$(PKG_DATE)" -o target/linux/$(BINARY) $(SRC)
 
 clean:
-	rm -rf target src bin pkg /tmp/zms-cli-build $(FMT_LOG) $(IMPORTS_LOG)
+	rm -rf target src bin pkg /tmp/zts-roletoken-build $(FMT_LOG) $(IMPORTS_LOG)

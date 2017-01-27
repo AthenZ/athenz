@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"../../../clients/go/zms"
+	"github.com/yahoo/athenz/clients/go/zms"
 )
 
 var (

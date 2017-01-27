@@ -4,7 +4,9 @@
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
+
         http://www.apache.org/licenses/LICENSE-2.0
+
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,10 +23,10 @@
     <relativePath>../../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>zts_go_client</artifactId>
+  <artifactId>zmscli</artifactId>
   <packaging>jar</packaging>
-  <name>zts-go-client</name>
-  <description>ZTS Go Client Library</description>
+  <name>zmscli</name>
+  <description>ZMS Client Utility Library</description>
 
   <properties>
     <maven.install.skip>true</maven.install.skip>
@@ -42,7 +44,7 @@
             <goals>
               <goal>exec</goal>
             </goals>
-            <phase>generate-sources</phase>
+            <phase>compile</phase>
           </execution>
         </executions>
         <configuration>
