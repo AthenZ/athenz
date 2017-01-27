@@ -58,7 +58,7 @@ To build the client and server components of this example,
 you need to download and install Go and Git client
 if you don't already have these available on your box:
 
-* [The Go Programming Language](https://golang.org/doc/install).
+* [The Go Programming Language](https://golang.org/doc/install)
 * [Git client](https://git-scm.com/downloads)
 
 Make sure your GOPATH variable is set and the PATH variable
@@ -299,7 +299,7 @@ $ go get github.com/yahoo/athenz/examples/go/centralized-use-case/server
 ---------------------------
 
 To run the Go server, you just need to specify the ZMS Server url.
-The server listens on port 9080:
+The server listens on port 8080:
 
 ```shell
 $ recommend -zms https://<zms-server>:4443/zms/v1
@@ -314,7 +314,8 @@ box so we're using localhost as the hostname.
 
 * The zms_svctoken utility should already be built and installed
 on your host. cd to the directory that includes the private keys for the test
-services we created in the section `Athenz Management Setup` above.
+services we created in the section [Athenz Management Setup](#athenz-management-setup)
+above.
 
 ### Invalid Access Without ServiceToken
 ---------------------------------------
@@ -324,6 +325,7 @@ For this test case we'll just use the curl client directly:
 ```shell
 $ curl http://localhost:8080/rec/v1/movie
 403 - Missing NToken
+```
 
 ### Movie Editor Access
 -----------------------
