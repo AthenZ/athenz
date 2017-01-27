@@ -1,5 +1,5 @@
 # Developer guide - Decentralized Access Control
--------------------------------------------------------
+------------------------------------------------
 
 * [Client - Obtaining RoleTokens from ZTS Server](#client---obtaining-roletokens-from-zts-server)
     * [Obtaining ServiceIdentityProvider object](#obtaining-serviceidentityprovider-object)
@@ -18,7 +18,7 @@ to a target service to access its resources.
 ![Decentralized Authorization for Services](images/decentralized_authz_for_services.png)
 
 The required steps to setup the environment for provider and tenant
-services to support centralized access control are as follows:
+services to support decentralized access control are as follows:
 
 * System administrator creates the provider and tenant domains.
 * Tenant Domain administrator generates a public/private key pair
@@ -396,6 +396,14 @@ your dependency on the ZPE Java Client Library:
     <artifactId>zpe_java_client</artifactId>
     <version>1.X.Y</version>
 </dependency>
+```
+
+In your server startup code you must initialize the Athenz
+ZPE Client object which will process and load all the policy
+files configured and downloaded by ZPU on this host.
+
+```
+    AuthZpeClient.init();
 ```
 
 Now, the most important part of the rest of the required code is to

@@ -1,8 +1,9 @@
-Athenz Client Ntoken Example
-=====================================================
+Athenz Client ZToken Example
+============================
 
-This example demonstrates the use of auth_core to generate
-an NToken for a service that can be used for centralized
+This example demonstrates the use of auth_core and zts_java_client
+to generate a NToken for a service and use that NToken to request
+a RoleToken from ZTS Server that can be used for decentralized
 authorization support when contacting other Athenz enabled
 services.
 
