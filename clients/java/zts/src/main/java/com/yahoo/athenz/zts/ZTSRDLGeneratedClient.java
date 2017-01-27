@@ -111,7 +111,7 @@ public class ZTSRDLGeneratedClient {
 
     }
 
-    public DomainSignedPolicyData getDomainSignedPolicyData(String domainName, String matchingTag, java.util.Map<String,java.util.List<String>> headers) {
+    public DomainSignedPolicyData getDomainSignedPolicyData(String domainName, String matchingTag, java.util.Map<String, java.util.List<String>> headers) {
         WebTarget target = base.path("/domain/{domainName}/signed_policy_data")
             .resolveTemplate("domainName", domainName);
         Invocation.Builder invocationBuilder = target.request("application/json");
@@ -124,7 +124,7 @@ public class ZTSRDLGeneratedClient {
         case 200:
         case 304:
             if (headers != null) {
-                headers.put("tag", java.util.Arrays.asList((String)response.getHeaders().getFirst("ETag")));
+                headers.put("tag", java.util.Arrays.asList((String) response.getHeaders().getFirst("ETag")));
             }
             if (code == 304) {
                 return null;
