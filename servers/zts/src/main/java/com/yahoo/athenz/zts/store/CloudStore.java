@@ -629,8 +629,15 @@ public class CloudStore {
         }
     }
 
-    public Identity generateIdentity(String csr, String serviceYrn) {
-        return ZTSUtils.generateIdentity(certSigner, csr, serviceYrn, caPEMCertificate);
+    public Identity generateIdentity(String csr, String cn) {
+        
+        // first verify that the cn in the certificate is valid
+        
+        if (!ZTSUtils.verifyCertificateRequest(csr, cn, null)) {
+            return null;
+        }
+        
+        return ZTSUtils.generateIdentity(certSigner, csr, cn, caPEMCertificate);
     }
     
     public CertSigner getCertSigner() {

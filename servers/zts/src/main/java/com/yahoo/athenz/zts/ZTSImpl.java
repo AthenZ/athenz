@@ -1478,21 +1478,45 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     authority.toString(), caller, domain);
         }
          
-        // if the authority is a principal authority, make sure it's not
-        // a personal domain user token as users should not get personal
-        // TLS certificates from ZTS
+        // if we're converting NTokens into TLS Certs, then we have two
+        // additional checks - need to verify it's not a user and the
+        // public key for the NToken must match what's in the CSR
         
-        if (authority instanceof PrincipalAuthority && userDomain.equalsIgnoreCase(principal.getDomain())) {
-            throw requestError("postInstanceRefreshRequest: TLS Certificates require ServiceTokens: " +
-                    yrn, caller, domain);
+        String publicKey = null;
+        if (authority instanceof PrincipalAuthority) {
+            
+            // if the authority is a principal authority, make sure it's not
+            // a personal domain user token as users should not get personal
+            // TLS certificates from ZTS
+            
+            if (userDomain.equalsIgnoreCase(principal.getDomain())) {
+                throw requestError("postInstanceRefreshRequest: TLS Certificates require ServiceTokens: " +
+                        yrn, caller, domain);
+            }
+
+            // retrieve the public key for the principal
+            
+            publicKey = getPublicKey(domain, service, principal.getKeyId());
+            if (publicKey == null) {
+                throw requestError("postInstanceRefreshRequest: Unable to retrieve public key for " +
+                        yrn + " with key id: " + principal.getKeyId(), caller, domain);
+            }
         }
         
-        // generate identity with the certificate. Note that generateIdentity checks
-        // if yrn matches the cn inside the csr, before issuing the cert
+        // validate that the cn and public key (if required) match to
+        // the provided details
+        
+        if (!instanceIdentityStore.verifyCertificateRequest(req.getCsr(), yrn, publicKey)) {
+            throw requestError("postInstanceRefreshRequest: invalid CSR - cn or public key mismatch",
+                    caller, domain);
+        }
+        
+        // generate identity with the certificate
         
         Identity identity = instanceIdentityStore.generateIdentity(req.getCsr(), yrn);
         if (identity == null) {
-            throw requestError("postInstanceRefreshRequest: unable to generate identity", caller, domain);
+            throw requestError("postInstanceRefreshRequest: unable to generate identity",
+                    caller, domain);
         }
         
         metric.stopTiming(timerMetric);
@@ -1520,22 +1544,31 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         domain = domain.toLowerCase();
         service = service.toLowerCase();
-
+        final String cn = domain + "." + service;
+        
         // now let's validate the request, and the csr, given to us by the client
-        // and generate certificate for the instance
 
         if (!instanceIdentityStore.verifyInstanceIdentity(info)) {
-            throw requestError("postInstanceInformation: unable to generate identity, invalid request", caller, domain);
+            throw requestError("postInstanceInformation: unable to generate identity, invalid request",
+                    caller, domain);
         }
 
-        Identity identity = instanceIdentityStore.generateIdentity(info.getCsr(), domain + "." + service);
+        // validate the CSR
+        
+        if (!instanceIdentityStore.verifyCertificateRequest(info.getCsr(), cn, null)) {
+            throw requestError("postInstanceInformation: unable to generate identity, invalid csr",
+                    caller, domain);
+        }
+        
+        // generate certificate for the instance
+
+        Identity identity = instanceIdentityStore.generateIdentity(info.getCsr(), cn);
         if (identity == null) {
             throw requestError("postInstanceInformation: unable to generate identity",
                     caller, domain);
         }
 
         metric.stopTiming(timerMetric);
-
         return identity;
     }
     

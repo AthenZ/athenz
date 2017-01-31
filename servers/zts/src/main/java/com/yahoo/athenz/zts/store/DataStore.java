@@ -892,6 +892,10 @@ public class DataStore implements DataCacheProvider {
         return cacheStore;
     }
 
+    public Map<String, String> getPublicKeyCache() {
+        return publicKeyCache;
+    }
+    
     class DataUpdater implements Runnable {
         
         @Override

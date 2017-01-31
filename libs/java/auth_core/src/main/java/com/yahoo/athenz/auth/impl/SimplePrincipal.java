@@ -40,6 +40,7 @@ public class SimplePrincipal implements Principal {
     String authorizedService = null;
     String originalRequestor = null;
     String keyService = null;
+    String keyId = null;
     
     public static Principal create(String domain, String name, String creds) {
         return create(domain, name, creds, 0, null);
@@ -161,6 +162,10 @@ public class SimplePrincipal implements Principal {
         this.keyService = keyService;
     }
     
+    public void setKeyId(String keyId) {
+        this.keyId = keyId;
+    }
+    
     public String getIP() {
         return ip;
     }
@@ -229,5 +234,9 @@ public class SimplePrincipal implements Principal {
     
     public String getKeyService() {
         return keyService;
+    }
+    
+    public String getKeyId() {
+        return keyId;
     }
 }

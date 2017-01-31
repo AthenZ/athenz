@@ -27,10 +27,21 @@ public interface InstanceIdentityStore {
      * Subject DN.The identity object must include the signed X509 certificate
      * along with the CA certificate.
      * @param csr Certificate request
-     * @param cn the common name value to be validated
-     * @return Identity object with X509 certificates.
+     * @param cn the common name for the identity
+     * @return Identity object with X509 certificate.
      */
     Identity generateIdentity(String csr, String cn);
+
+    /**
+     * Is the CSR valid for the given cn and public key. The method
+     * validates that cn passed is exactly what's in the csr subject
+     * and the public key in the csr is identical to the one passed.
+     * @param csr Certificate request
+     * @param cn service common name to be matched against
+     * @param publicKey public key to be matched against
+     * @return boolean true if details match, false otherwise
+     */
+    boolean verifyCertificateRequest(String csr, String cn, String publicKey);
 
     /**
      * The identity store will validate if the given instance request

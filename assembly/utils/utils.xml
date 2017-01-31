@@ -38,6 +38,10 @@
       <directory>${basedir}/../../utils/zts_roletoken/target</directory>
       <outputDirectory>bin</outputDirectory>
     </fileSet>
+    <fileSet>
+      <directory>${basedir}/../../utils/zts-svccert/target</directory>
+      <outputDirectory>bin</outputDirectory>
+    </fileSet>
   </fileSets>
   <files>
     <file>
