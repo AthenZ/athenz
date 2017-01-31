@@ -18,6 +18,8 @@ package com.yahoo.athenz.zts.utils;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.security.PublicKey;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.bouncycastle.openssl.PEMException;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
@@ -45,6 +47,8 @@ public class ZTSUtils {
             + "SSL_RSA_EXPORT_WITH_RC4_40_MD5,SSL_RSA_EXPORT_WITH_DES40_CBC_SHA,"
             + "SSL_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA,SSL_DHE_DSS_EXPORT_WITH_DES40_CBC_SHA";
     public static final String ZTS_DEFAULT_EXCLUDED_PROTOCOLS = "SSLv2,SSLv3";
+    
+    private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
     
     public static int retrieveConfigSetting(String property, int defaultValue) {
         
@@ -251,8 +255,12 @@ public class ZTSUtils {
         // we are going to remove all whitespace, new lines
         // in order to compare the pem encoded keys
         
-        String normCsrPublicKey = csrPublicKey.replaceAll("\\s+", "");
-        String normZtsPublicKey = ztsPublicKey.replaceAll("\\s+", "");
+        Matcher matcher = WHITESPACE_PATTERN.matcher(csrPublicKey);
+        String normCsrPublicKey = matcher.replaceAll("");
+
+        matcher = WHITESPACE_PATTERN.matcher(ztsPublicKey);
+        String normZtsPublicKey = matcher.replaceAll("");
+
         if (!normZtsPublicKey.equals(normCsrPublicKey)) {
             LOGGER.error("validateCertificatePublicKey: Public key mismatch: '{}' vs '{}'",
                     csrPublicKey, ztsPublicKey);
