@@ -21,10 +21,10 @@
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>athenz_conf</artifactId>
+  <artifactId>zms-cli</artifactId>
   <packaging>jar</packaging>
-  <name>athenz_conf</name>
-  <description>AtheNZ Config File Utility</description>
+  <name>zms-cli</name>
+  <description>ZMS Client Utility</description>
 
   <properties>
     <maven.install.skip>true</maven.install.skip>

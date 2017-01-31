@@ -135,7 +135,7 @@ that utilizes our zmssvctoken go library to generate
 service identity tokens. The full client source code is
 available from:
 
-https://github.com/yahoo/athenz/blob/master/utils/zms_svctoken/zms-svctoken.go
+https://github.com/yahoo/athenz/blob/master/utils/zms-svctoken/zms-svctoken.go
 
 #### Client Import Dependency Update
 ------------------------------------
@@ -195,7 +195,7 @@ To download, compile and install zms_svctoken utility, execute
 the following command:
 
 ```shell
-$ go get github.com/yahoo/athenz/utils/zms_svctoken/...
+$ go get github.com/yahoo/athenz/utils/zms-svctoken/...
 ```
 
 ### Server Changes

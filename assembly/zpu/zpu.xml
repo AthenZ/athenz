@@ -35,7 +35,7 @@
       </includes>
     </fileSet>
     <fileSet>
-      <directory>${basedir}/../../utils/athenz_conf/target</directory>
+      <directory>${basedir}/../../utils/athenz-conf/target</directory>
       <outputDirectory>bin</outputDirectory>
     </fileSet>
     <fileSet>

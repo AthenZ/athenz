@@ -74,7 +74,7 @@
       </excludes>
     </fileSet>
     <fileSet>
-      <directory>${basedir}/../../utils/zms_cli/target</directory>
+      <directory>${basedir}/../../utils/zms-cli/target</directory>
       <outputDirectory>bin</outputDirectory>
     </fileSet>
   </fileSets>

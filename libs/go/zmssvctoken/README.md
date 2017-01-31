@@ -7,7 +7,7 @@ Go library to generate/validate Athenz NTokens given private/public keys.
 
 Mirrors the functionality of the Java token signer. It supports RSA and ECDSA keys
 
-See [the zms-svctoken utility source](https://github.com/yahoo/athenz/utils/zms_svctoken/zms-svctoken.go)
+See [the zms-svctoken utility source](https://github.com/yahoo/athenz/utils/zms-svctoken/zms-svctoken.go)
 for example use.
 
 ## License

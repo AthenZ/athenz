@@ -21,10 +21,10 @@
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>zts_roletoken</artifactId>
+  <artifactId>zms-svctoken</artifactId>
   <packaging>jar</packaging>
-  <name>zts_roletoken</name>
-  <description>ZTS Role Token Utility</description>
+  <name>zms-svctoken</name>
+  <description>ZMS Service Token Utility</description>
 
   <properties>
     <maven.install.skip>true</maven.install.skip>

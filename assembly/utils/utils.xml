@@ -23,19 +23,19 @@
   <includeBaseDirectory>true</includeBaseDirectory>
   <fileSets>
     <fileSet>
-      <directory>${basedir}/../../utils/zms_cli/target</directory>
+      <directory>${basedir}/../../utils/zms-cli/target</directory>
       <outputDirectory>bin</outputDirectory>
     </fileSet>
     <fileSet>
-      <directory>${basedir}/../../utils/athenz_conf/target</directory>
+      <directory>${basedir}/../../utils/athenz-conf/target</directory>
       <outputDirectory>bin</outputDirectory>
     </fileSet>
     <fileSet>
-      <directory>${basedir}/../../utils/zms_svctoken/target</directory>
+      <directory>${basedir}/../../utils/zms-svctoken/target</directory>
       <outputDirectory>bin</outputDirectory>
     </fileSet>
     <fileSet>
-      <directory>${basedir}/../../utils/zts_roletoken/target</directory>
+      <directory>${basedir}/../../utils/zts-roletoken/target</directory>
       <outputDirectory>bin</outputDirectory>
     </fileSet>
     <fileSet>

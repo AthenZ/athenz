@@ -21,10 +21,10 @@
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>zms_svctoken</artifactId>
+  <artifactId>athenz-conf</artifactId>
   <packaging>jar</packaging>
-  <name>zms_svctoken</name>
-  <description>ZMS Service Token Utility</description>
+  <name>athenz-conf</name>
+  <description>AtheNZ Config File Utility</description>
 
   <properties>
     <maven.install.skip>true</maven.install.skip>

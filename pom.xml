@@ -93,10 +93,10 @@
     <module>clients/go/zts</module>
     <module>libs/go/zmscli</module>
     <module>libs/go/zmssvctoken</module>
-    <module>utils/zms_cli</module>
-    <module>utils/athenz_conf</module>
-    <module>utils/zms_svctoken</module>
-    <module>utils/zts_roletoken</module>
+    <module>utils/zms-cli</module>
+    <module>utils/athenz-conf</module>
+    <module>utils/zms-svctoken</module>
+    <module>utils/zts-roletoken</module>
     <module>utils/zts-svccert</module>
     <module>ui</module>
     <module>assembly/zms</module>
