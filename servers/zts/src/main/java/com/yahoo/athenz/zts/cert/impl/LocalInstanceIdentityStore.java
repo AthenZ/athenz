@@ -35,6 +35,11 @@ public class LocalInstanceIdentityStore implements InstanceIdentityStore {
     }
 
     @Override
+    public boolean verifyCertificateRequest(String csr, String cn, String publicKey) {
+        return ZTSUtils.verifyCertificateRequest(csr, cn, publicKey);
+    }
+    
+    @Override
     public Identity generateIdentity(String csr, String cn) {
         return ZTSUtils.generateIdentity(certSigner, csr, cn, caPEMCertificate);
     }

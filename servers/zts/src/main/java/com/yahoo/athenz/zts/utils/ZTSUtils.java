@@ -15,6 +15,13 @@
  */
 package com.yahoo.athenz.zts.utils;
 
+import java.io.IOException;
+import java.io.StringWriter;
+import java.security.PublicKey;
+
+import org.bouncycastle.openssl.PEMException;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
+import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 
 import org.eclipse.jetty.util.ssl.SslContextFactory;
@@ -152,7 +159,40 @@ public class ZTSUtils {
         return true;
     }
     
-    public static boolean validateCertificateRequest(PKCS10CertificationRequest certReq, String cn) {
+    public static boolean verifyCertificateRequest(String csr, String cn, String publicKey) {
+        
+        // verify that it contains the right common name
+        // and the certificate matches to what we have
+        // registered in ZMS
+
+        try {
+            PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
+            if (certReq == null) {
+                LOGGER.error("validateCertificateRequest: unable to parse PKCS10 cert request");
+                return false;
+            }
+
+            if (!validateCertReqCommonName(certReq, cn)) {
+                LOGGER.error("validateCertificateRequest: unable to validate PKCS10 cert request common name");
+                return false;
+            }
+
+            if (publicKey != null) {
+                if (!validateCertReqPublicKey(certReq, publicKey)) {
+                    LOGGER.error("validateCertificateRequest: unable to validate PKCS10 cert request public key");
+                    return false;
+                }
+            }
+            
+        } catch (CryptoException ex) {
+            LOGGER.error("validateCertificateRequest: unable to generate identity certificate: ", ex);
+            return false;
+        }
+        
+        return true;
+    }
+    
+    public static boolean validateCertReqCommonName(PKCS10CertificationRequest certReq, String cn) {
         
         String cnCertReq = null;
         try {
@@ -163,17 +203,17 @@ public class ZTSUtils {
             // handle all the errors and not let container to return
             // standard server error
             
-            LOGGER.error("validateCertificateRequest: unable to extract csr cn", ex);
+            LOGGER.error("validateCertReqCommonName: unable to extract csr cn", ex);
         }
         
         if (cnCertReq == null) {
-            LOGGER.error("validateCertificateRequest - unable to extract csr cn: "
+            LOGGER.error("validateCertReqCommonName - unable to extract csr cn: "
                     + certReq.toString());
             return false;
         }
 
         if (!cnCertReq.equalsIgnoreCase(cn)) {
-            LOGGER.error("validateCertificateRequest - cn mismatch: "
+            LOGGER.error("validateCertReqCommonName - cn mismatch: "
                     + cnCertReq + " vs. " + cn);
             return false;
         }
@@ -181,27 +221,50 @@ public class ZTSUtils {
         return true;
     }
     
+    public static boolean validateCertReqPublicKey(PKCS10CertificationRequest certReq,
+            String ztsPublicKey) {
+
+        JcaPEMKeyConverter pemConverter = new JcaPEMKeyConverter();
+        PublicKey pubKey = null;
+        try {
+            pubKey = pemConverter.getPublicKey(certReq.getSubjectPublicKeyInfo());
+        } catch (PEMException ex) {
+            LOGGER.error("validateCertificatePublicKey: unable to get public: "
+                    + ex.getMessage());
+            return false;
+        }
+        StringWriter writer = new StringWriter();
+        String csrPublicKey = "";
+        try {
+            try (JcaPEMWriter pemWriter = new JcaPEMWriter(writer)) {
+                pemWriter.writeObject(pubKey);
+                pemWriter.flush();
+                pemWriter.close();
+            }
+            csrPublicKey = writer.toString();
+        } catch (IOException ex) {
+            LOGGER.error("validateCertificatePublicKey: unable to convert public key to PEM: "
+                    + ex.getMessage());
+            return false;
+        }
+        
+        // we are going to remove all whitespace, new lines
+        // in order to compare the pem encoded keys
+        
+        String normCsrPublicKey = csrPublicKey.replaceAll("\\s+", "");
+        String normZtsPublicKey = ztsPublicKey.replaceAll("\\s+", "");
+        if (!normZtsPublicKey.equals(normCsrPublicKey)) {
+            LOGGER.error("validateCertificatePublicKey: Public key mismatch: '{}' vs '{}'",
+                    csrPublicKey, ztsPublicKey);
+            return false;
+        }
+        
+        return true;
+    }
+    
     public static Identity generateIdentity(CertSigner certSigner, String csr, String cn,
                                             String caPEMCertificate) {
-        // first we need to validate our csr to make sure
-        // it contains the right common name
-
-        try {
-            PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
-            if (certReq == null) {
-                LOGGER.error("generateIdentity: unable to parse PKCS10 cert request");
-                return null;
-            }
-
-            if (!validateCertificateRequest(certReq, cn)) {
-                LOGGER.error("generateIdentity: unable to validate PKCS10 cert request");
-                return null;
-            }
-
-        } catch (CryptoException ex) {
-            LOGGER.error("generateIdentity: unable to generate identity certificate: ", ex);
-            return null;
-        }
+        
 
         // generate a certificate for this certificate request
 

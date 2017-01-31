@@ -64,4 +64,9 @@ public interface Principal {
     default String getKeyService() {
         return null;
     }
+    
+    /** @return the private key identifier that was used to sign the service token */
+    default String getKeyId() {
+        return null;
+    }
 }

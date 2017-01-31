@@ -3396,7 +3396,14 @@ public class ZTSImplTest {
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz",
                 "syncer", "v=S1,d=athenz;n=syncer;s=sig", 0, new PrincipalAuthority());
-        
+        principal.setKeyId("0");
+        String publicKeyName = "athenz.syncer_0";
+        final String ztsPublicKey = "-----BEGIN PUBLIC KEY-----\n"
+                + "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAKrvfvBgXWqWAorw5hYJu3dpOJe0gp3n\n"
+                + "TgiiPGT7+jzm6BRcssOBTPFIMkePT2a8Tq+FYSmFnHfbQjwmYw2uMK8CAwEAAQ==\n"
+                + "-----END PUBLIC KEY-----";
+        zts.dataStore.getPublicKeyCache().put(publicKeyName, ztsPublicKey);
+
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
         ResourceContext context = createResourceContext(principal, servletRequest);
 

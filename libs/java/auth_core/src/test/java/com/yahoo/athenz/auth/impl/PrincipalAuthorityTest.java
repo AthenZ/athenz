@@ -129,8 +129,9 @@ public class PrincipalAuthorityTest {
         assertNotNull(principal.getAuthority());
         assertEquals(principal.getCredentials(), serviceToken.getSignedToken());
         assertEquals(principal.getDomain(), serviceToken.getDomain());
-            assertEquals(principal.getName(), serviceToken.getName());
-
+        assertEquals(principal.getName(), serviceToken.getName());
+        assertEquals(principal.getKeyId(), "0");
+        
         principal = serviceAuthority.authenticate(
                 serviceToken.getSignedToken(), null, "GET", null);
         assertNotNull(principal);

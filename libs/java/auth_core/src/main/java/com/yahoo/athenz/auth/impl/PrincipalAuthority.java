@@ -166,6 +166,7 @@ public class PrincipalAuthority implements Authority, AuthorityKeyStore {
         princ.setOriginalRequestor(serviceToken.getOriginalRequestor());
         princ.setKeyService(keyService);
         princ.setIP(serviceToken.getIP());
+        princ.setKeyId(serviceToken.getKeyId());
         return princ;
     }
 

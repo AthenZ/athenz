@@ -225,10 +225,12 @@ public class SimplePrincipalTest {
         Principal p = SimplePrincipal.create("user", "jdoe", fakeCreds, 101, userAuthority);
         ((SimplePrincipal) p).setOriginalRequestor("athenz.ci");
         ((SimplePrincipal) p).setKeyService("zts");
-        
+        ((SimplePrincipal) p).setKeyId("v1");
+
         assertEquals(p.toString(), "user.jdoe");
         assertEquals(p.getOriginalRequestor(), "athenz.ci");
         assertEquals(p.getKeyService(), "zts");
+        assertEquals(p.getKeyId(), "v1");
     }
 
     @Test
