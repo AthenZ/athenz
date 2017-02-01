@@ -116,12 +116,6 @@
       <property name="severity" value="error"/>
     </module>
 
-    <!-- Checks if a line it too long. -->
-    <module name="LineLength">
-      <property name="max" value="120"/>
-      <property name="severity" value="warning"/>
-    </module>
-
   </module>
 
 </module>

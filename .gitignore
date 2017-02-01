@@ -2,6 +2,7 @@
 **/.classpath
 **/.project
 **/.settings
+**/.checkstyle
 **/target/
 **/dependency-reduced-pom.xml
 **/pom.xml.releaseBackup
