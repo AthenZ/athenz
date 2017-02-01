@@ -32,7 +32,7 @@ public class ZMSServerImplTest {
     
     @BeforeMethod
     public void setUp() throws Exception {
-        System.setProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_STORE_CLASS,
+        System.setProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
                 "com.yahoo.athenz.zms.pkey.file.FilePrivateKeyStoreFactory");
         System.setProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY, "src/test/resources/zms_private.pem");
         System.setProperty(ZMSConsts.ZMS_PROP_PUBLIC_KEY, "src/test/resources/zms_public.pem");
@@ -43,7 +43,7 @@ public class ZMSServerImplTest {
     @AfterMethod
     public void cleanup() {
         System.clearProperty(ZMSConsts.ZMS_PROP_HOME);
-        System.clearProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_STORE_CLASS);
+        System.clearProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS);
         System.clearProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY);
         System.clearProperty(ZMSConsts.ZMS_PROP_PUBLIC_KEY);
         System.clearProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN);

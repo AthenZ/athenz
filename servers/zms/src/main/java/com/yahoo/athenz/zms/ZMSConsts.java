@@ -34,7 +34,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_VIRTUAL_DOMAIN_LIMIT = "athenz.zms.virtual_domain_limit";
     public static final String ZMS_PROP_READ_ONLY_MODE       = "athenz.zms.read_only_mode";
     public static final String ZMS_PROP_DOMAIN_NAME_MAX_SIZE = "athenz.zms.domain_name_max_len";
-    public static final String ZMS_PROP_METRIC_FACTORY_CLASS = "athenz.zms.metric_class";
+    public static final String ZMS_PROP_METRIC_FACTORY_CLASS = "athenz.zms.metric_factory_class";
     
     public static final String ZMS_PROP_CONFLICT_RETRY_COUNT      = "athenz.zms.request_conflict_retry_count";
     public static final String ZMS_PROP_CONFLICT_RETRY_SLEEP_TIME = "athenz.zms.request_conflict_retry_sleep_time";
@@ -89,7 +89,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_AUDIT_LOGGER_CLASS_PARAM = "athenz.zms.audit_logger_class_param";
     public static final String ZMS_PROP_AUDIT_LOG_MSG_BLDR_CLASS = "athenz.zms.audit_log_msg_builder_class";
 
-    public static final String ZMS_PROP_PRIVATE_KEY_STORE_CLASS = "athenz.zms.private_key_store_class";
+    public static final String ZMS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS = "athenz.zms.private_key_store_factory_class";
     
     public static final String ZMS_METRIC_FACTORY_CLASS         = "com.yahoo.athenz.common.metrics.impl.NoOpMetricFactory";
 

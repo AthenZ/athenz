@@ -30,7 +30,7 @@ CONTAINER_ATHENZ_CONF="conf/zts_server/athenz.conf"
 CONTAINER_LOG_CONFIG="${ROOT}/conf/zts_server/logback.xml"
 
 # ** we're going to use self signer class
-CONTAINER_CERT_SIGNER_CLASS="com.yahoo.athenz.zts.cert.impl.SelfCertSignerFactory"
+CONTAINER_CERT_SIGNER_FACTORY_CLASS="com.yahoo.athenz.zts.cert.impl.SelfCertSignerFactory"
 CONTAINER_SELF_SIGNER_PRIVATE_KEY_FNAME="${ROOT}/var/zts_server/keys/zts_private.pem"
 
 # ** server settings
@@ -60,9 +60,9 @@ CONTAINER_SELF_SIGNER_PRIVATE_KEY_FNAME="${ROOT}/var/zts_server/keys/zts_private
 # CONTAINER_ACCESS_LOG_ROTATION_PERIOD=
 # CONTAINER_ACCESS_LOG_ROTATION_UNIT=
 
-# ** configure what implemenation classes to use
-# CONTAINER_DATA_CHANGE_LOG_STORE_CLASS=
-# CONTAINER_PRIVATE_KEY_STORE_CLASS=
+# ** configure what implementation classes to use
+# CONTAINER_DATA_CHANGE_LOG_STORE_FACTORY_CLASS=
+# CONTAINER_PRIVATE_KEY_STORE_FACTORY_CLASS=
 # CONTAINER_HOST_SIGNER_SERVICE=
 # CONTAINER_CERTSIGN_BASE_URI=
 

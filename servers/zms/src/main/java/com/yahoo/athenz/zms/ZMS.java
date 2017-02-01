@@ -35,7 +35,7 @@ public class ZMS {
     private static final Logger LOG = LoggerFactory.getLogger(ZMS.class);
 
     private static final String ZMS_PRINCIPAL_AUTHORITY_CLASS = "com.yahoo.athenz.auth.impl.PrincipalAuthority";
-    private static final String ZMS_PKEY_STORE_CLASS = "com.yahoo.athenz.zms.pkey.file.FilePrivateKeyStoreFactory";
+    private static final String ZMS_PKEY_STORE_FACTORY_CLASS = "com.yahoo.athenz.zms.pkey.file.FilePrivateKeyStoreFactory";
     
     private static String ROOT_DIR;
     
@@ -183,8 +183,8 @@ public class ZMS {
             authorities.add(authority);
         }
         
-        String pkeyFactoryClass = System.getProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_STORE_CLASS,
-                ZMS_PKEY_STORE_CLASS);
+        String pkeyFactoryClass = System.getProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
+                ZMS_PKEY_STORE_FACTORY_CLASS);
         PrivateKeyStoreFactory pkeyFactory = null;
         try {
             pkeyFactory = (PrivateKeyStoreFactory) Class.forName(pkeyFactoryClass).newInstance();
@@ -196,7 +196,7 @@ public class ZMS {
         
         String metricFactoryClass = System.getProperty(ZMSConsts.ZMS_PROP_METRIC_FACTORY_CLASS,
                 ZMSConsts.ZMS_METRIC_FACTORY_CLASS);
-        boolean statsEnabled      = Boolean.parseBoolean(System.getProperty(ZMSConsts.ZMS_PROP_STATS_ENABLED, "false"));
+        boolean statsEnabled = Boolean.parseBoolean(System.getProperty(ZMSConsts.ZMS_PROP_STATS_ENABLED, "false"));
         if (!statsEnabled && !metricFactoryClass.equals(ZMSConsts.ZMS_METRIC_FACTORY_CLASS)) {
             LOG.warn("Override users metric factory property with default since stats are disabled");
             metricFactoryClass = ZMSConsts.ZMS_METRIC_FACTORY_CLASS;

@@ -13,6 +13,7 @@ CONTAINER_ADMINUSER="user.${USER}"
 CONTAINER_PRIVKEY="${ROOT}/var/zms_server/keys/zms_private.pem"
 CONTAINER_PUBKEY="${ROOT}/var/zms_server/keys/zms_public.pem"
 CONTAINER_PRIVKEY_ID="0"
+# CONTAINER_PRIVATE_KEY_STORE_FACTORY_CLASS=
 
 # ** default ports for zms server. http support is disabled
 # ** https support enabled - must provide certificate for server

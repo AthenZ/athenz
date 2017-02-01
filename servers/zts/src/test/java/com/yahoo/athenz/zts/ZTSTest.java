@@ -27,14 +27,17 @@ import org.testng.annotations.Test;
 
 public class ZTSTest {
 
-    private static final String ZTS_CHANGE_LOG_STORE_CLASS = "com.yahoo.athenz.zts.store.file.MockZMSFileChangeLogStoreFactory";
-    private static final String ZTS_SELF_CERT_SIGNER_STORE_CLASS = "com.yahoo.athenz.zts.cert.impl.SelfCertSignerFactory";
+    private static final String ZTS_CHANGE_LOG_STORE_FACTORY_CLASS =
+            "com.yahoo.athenz.zts.store.file.MockZMSFileChangeLogStoreFactory";
+    private static final String ZTS_SELF_CERT_SIGNER_STORE_FACTORY_CLASS =
+            "com.yahoo.athenz.zts.cert.impl.SelfCertSignerFactory";
 
     @BeforeClass
     public void setUp() throws Exception {
-        System.setProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_CLASS, "com.yahoo.athenz.zts.pkey.file.FilePrivateKeyStoreFactory");
+        System.setProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
+                "com.yahoo.athenz.zts.pkey.file.FilePrivateKeyStoreFactory");
         System.setProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY, "src/test/resources/zts_private.pem");
-        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF,  "src/test/resources/athenz.conf");
+        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
         System.setProperty("logback.configurationFile", "src/test/resources/logback.xml");
     }
     
@@ -66,8 +69,10 @@ public class ZTSTest {
     
     @Test
     public void initContainerValidPorts() {
-        System.setProperty(ZTSConsts.ZTS_PROP_DATA_CHANGE_LOG_STORE_CLASS, ZTS_CHANGE_LOG_STORE_CLASS);
-        System.setProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_CLASS, ZTS_SELF_CERT_SIGNER_STORE_CLASS);
+        System.setProperty(ZTSConsts.ZTS_PROP_DATA_CHANGE_LOG_STORE_FACTORY_CLASS,
+                ZTS_CHANGE_LOG_STORE_FACTORY_CLASS);
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_FACTORY_CLASS,
+                ZTS_SELF_CERT_SIGNER_STORE_FACTORY_CLASS);
 
         System.setProperty(ZTSConsts.ZTS_PROP_HOME, "/tmp/zts_server");
         System.setProperty(ZTSConsts.ZTS_PROP_HTTP_PORT, "4080");
@@ -87,15 +92,17 @@ public class ZTSTest {
         assertTrue(connectors[1].getProtocols().contains("http/1.1"));
         assertTrue(connectors[1].getProtocols().contains("ssl"));
         
-        System.clearProperty(ZTSConsts.ZTS_PROP_DATA_CHANGE_LOG_STORE_CLASS);
-        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_CLASS);
+        System.clearProperty(ZTSConsts.ZTS_PROP_DATA_CHANGE_LOG_STORE_FACTORY_CLASS);
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_FACTORY_CLASS);
 
     }
     
     @Test
     public void initContainerOnlyHTTPSPort() {
-        System.setProperty(ZTSConsts.ZTS_PROP_DATA_CHANGE_LOG_STORE_CLASS, ZTS_CHANGE_LOG_STORE_CLASS);
-        System.setProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_CLASS, ZTS_SELF_CERT_SIGNER_STORE_CLASS);
+        System.setProperty(ZTSConsts.ZTS_PROP_DATA_CHANGE_LOG_STORE_FACTORY_CLASS,
+                ZTS_CHANGE_LOG_STORE_FACTORY_CLASS);
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_FACTORY_CLASS,
+                ZTS_SELF_CERT_SIGNER_STORE_FACTORY_CLASS);
 
         System.setProperty(ZTSConsts.ZTS_PROP_HOME, "/tmp/zts_server");
         System.setProperty(ZTSConsts.ZTS_PROP_HTTP_PORT, "0");
@@ -112,14 +119,16 @@ public class ZTSTest {
         assertTrue(connectors[0].getProtocols().contains("http/1.1"));
         assertTrue(connectors[0].getProtocols().contains("ssl"));
         
-        System.clearProperty(ZTSConsts.ZTS_PROP_DATA_CHANGE_LOG_STORE_CLASS);
-        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_CLASS);
+        System.clearProperty(ZTSConsts.ZTS_PROP_DATA_CHANGE_LOG_STORE_FACTORY_CLASS);
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_FACTORY_CLASS);
     }
     
     @Test
     public void initContainerOnlyHTTPPort() {
-        System.setProperty(ZTSConsts.ZTS_PROP_DATA_CHANGE_LOG_STORE_CLASS, ZTS_CHANGE_LOG_STORE_CLASS);
-        System.setProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_CLASS, ZTS_SELF_CERT_SIGNER_STORE_CLASS);
+        System.setProperty(ZTSConsts.ZTS_PROP_DATA_CHANGE_LOG_STORE_FACTORY_CLASS,
+                ZTS_CHANGE_LOG_STORE_FACTORY_CLASS);
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_FACTORY_CLASS,
+                ZTS_SELF_CERT_SIGNER_STORE_FACTORY_CLASS);
 
         System.setProperty(ZTSConsts.ZTS_PROP_HOME, "/tmp/zts_server");
         System.setProperty(ZTSConsts.ZTS_PROP_HTTP_PORT, "4080");
@@ -136,14 +145,16 @@ public class ZTSTest {
         assertTrue(connectors[0].getProtocols().contains("http/1.1"));
         assertFalse(connectors[0].getProtocols().contains("ssl"));
         
-        System.clearProperty(ZTSConsts.ZTS_PROP_DATA_CHANGE_LOG_STORE_CLASS);
-        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_CLASS);
+        System.clearProperty(ZTSConsts.ZTS_PROP_DATA_CHANGE_LOG_STORE_FACTORY_CLASS);
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_FACTORY_CLASS);
     }
     
     @Test
     public void initContainerInvalidHTTPPort() {
-        System.setProperty(ZTSConsts.ZTS_PROP_DATA_CHANGE_LOG_STORE_CLASS, ZTS_CHANGE_LOG_STORE_CLASS);
-        System.setProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_CLASS, ZTS_SELF_CERT_SIGNER_STORE_CLASS);
+        System.setProperty(ZTSConsts.ZTS_PROP_DATA_CHANGE_LOG_STORE_FACTORY_CLASS,
+                ZTS_CHANGE_LOG_STORE_FACTORY_CLASS);
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_FACTORY_CLASS,
+                ZTS_SELF_CERT_SIGNER_STORE_FACTORY_CLASS);
 
         System.setProperty(ZTSConsts.ZTS_PROP_HOME, "/tmp/zts_server");
         System.setProperty(ZTSConsts.ZTS_PROP_HTTP_PORT, "-10");
@@ -163,14 +174,16 @@ public class ZTSTest {
         assertTrue(connectors[1].getProtocols().contains("http/1.1"));
         assertTrue(connectors[1].getProtocols().contains("ssl"));
         
-        System.clearProperty(ZTSConsts.ZTS_PROP_DATA_CHANGE_LOG_STORE_CLASS);
-        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_CLASS);
+        System.clearProperty(ZTSConsts.ZTS_PROP_DATA_CHANGE_LOG_STORE_FACTORY_CLASS);
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_FACTORY_CLASS);
     }
     
     @Test
     public void initContainerInvalidHTTPSPort() {
-        System.setProperty(ZTSConsts.ZTS_PROP_DATA_CHANGE_LOG_STORE_CLASS, ZTS_CHANGE_LOG_STORE_CLASS);
-        System.setProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_CLASS, ZTS_SELF_CERT_SIGNER_STORE_CLASS);
+        System.setProperty(ZTSConsts.ZTS_PROP_DATA_CHANGE_LOG_STORE_FACTORY_CLASS,
+                ZTS_CHANGE_LOG_STORE_FACTORY_CLASS);
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_FACTORY_CLASS,
+                ZTS_SELF_CERT_SIGNER_STORE_FACTORY_CLASS);
 
         System.setProperty(ZTSConsts.ZTS_PROP_HOME, "/tmp/zts_server");
         System.setProperty(ZTSConsts.ZTS_PROP_HTTP_PORT, "4080");
@@ -187,8 +200,8 @@ public class ZTSTest {
         assertTrue(connectors[0].getProtocols().contains("http/1.1"));
         assertFalse(connectors[0].getProtocols().contains("ssl"));
         
-        System.clearProperty(ZTSConsts.ZTS_PROP_DATA_CHANGE_LOG_STORE_CLASS);
-        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_CLASS);
+        System.clearProperty(ZTSConsts.ZTS_PROP_DATA_CHANGE_LOG_STORE_FACTORY_CLASS);
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_FACTORY_CLASS);
     }
     
     @Test

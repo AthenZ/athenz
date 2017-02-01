@@ -107,7 +107,8 @@ public class DataStoreTest {
 
     @BeforeClass
     public void setUpClass() throws Exception {
-        System.setProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_CLASS, "com.yahoo.athenz.zts.pkey.file.FilePrivateKeyStoreFactory");
+        System.setProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
+                "com.yahoo.athenz.zts.pkey.file.FilePrivateKeyStoreFactory");
         System.setProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY, "src/test/resources/zts_private.pem");
         System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF,  "src/test/resources/athenz.conf");
     }

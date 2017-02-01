@@ -113,12 +113,15 @@ public class ZMSImplTest extends TestCase {
         System.setProperty(ZMSConsts.ZMS_PROP_STATS_ENABLED, "true");
         System.setProperty(ZMSConsts.ZMS_PROP_PROVIDER_ENDPOINTS, ".athenzcompany.com");
         
-        System.setProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_STORE_CLASS, "com.yahoo.athenz.zms.pkey.file.FilePrivateKeyStoreFactory");
+        System.setProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
+                "com.yahoo.athenz.zms.pkey.file.FilePrivateKeyStoreFactory");
         System.setProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY, "src/test/resources/zms_private.pem");
         System.setProperty(ZMSConsts.ZMS_PROP_PUBLIC_KEY, "src/test/resources/zms_public.pem");
         System.setProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN, "user.testadminuser");
-        System.setProperty(ZMSConsts.ZMS_PROP_AUTHZ_SERVICE_FNAME, "src/test/resources/authorized_services.json");
-        System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, "src/test/resources/solution_templates.json");
+        System.setProperty(ZMSConsts.ZMS_PROP_AUTHZ_SERVICE_FNAME,
+                "src/test/resources/authorized_services.json");
+        System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME,
+                "src/test/resources/solution_templates.json");
         System.setProperty("logback.configurationFile", "src/test/resources/logback.xml");
 
         setupServiceId();

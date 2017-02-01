@@ -27,7 +27,8 @@ public class ZMSTest {
     
     @BeforeClass
     public void setUp() throws Exception {
-        System.setProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_STORE_CLASS, "com.yahoo.athenz.zms.pkey.file.FilePrivateKeyStoreFactory");
+        System.setProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
+                "com.yahoo.athenz.zms.pkey.file.FilePrivateKeyStoreFactory");
         System.setProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY, "src/test/resources/zms_private.pem");
         System.setProperty(ZMSConsts.ZMS_PROP_PUBLIC_KEY, "src/test/resources/zms_public.pem");
         System.setProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN, "user.testadminuser");
