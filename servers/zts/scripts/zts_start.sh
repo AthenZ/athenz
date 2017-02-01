@@ -128,16 +128,16 @@ if [ "x${CONTAINER_LISTEN_HOST}" != "x" ]; then
     export JAVA_OPTS="${JAVA_OPTS} -Dathenz.zts.listen_host=${CONTAINER_LISTEN_HOST}"
 fi
 
-if [ "x${CONTAINER_DATA_CHANGE_LOG_STORE_CLASS}" != "x" ]; then
-    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.zts.data_change_log_store_class=${CONTAINER_DATA_CHANGE_LOG_STORE_CLASS}"
+if [ "x${CONTAINER_DATA_CHANGE_LOG_STORE_FACTORY_CLASS}" != "x" ]; then
+    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.zts.data_change_log_store_factory_class=${CONTAINER_DATA_CHANGE_LOG_STORE_CLASS}"
 fi
 
-if [ "x${CONTAINER_PRIVATE_KEY_STORE_CLASS}" != "x" ]; then
-    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.zts.private_key_store_class=${CONTAINER_PRIVATE_KEY_STORE_CLASS}"
+if [ "x${CONTAINER_PRIVATE_KEY_STORE_FACTORY_CLASS}" != "x" ]; then
+    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.zts.private_key_store_factory_class=${CONTAINER_PRIVATE_KEY_STORE_FACTORY_CLASS}"
 fi
 
-if [ "x${CONTAINER_CERT_SIGNER_CLASS}" != "x" ]; then
-    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.zts.cert_signer_class=${CONTAINER_CERT_SIGNER_CLASS}"
+if [ "x${CONTAINER_CERT_SIGNER_FACTORY_CLASS}" != "x" ]; then
+    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.zts.cert_signer_factory_class=${CONTAINER_CERT_SIGNER_FACTORY_CLASS}"
 fi
 
 if [ "x${CONTAINER_SELF_SIGNER_PRIVATE_KEY_FNAME}" != "x" ]; then

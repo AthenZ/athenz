@@ -63,8 +63,8 @@ to decide if further checks and/or restrictions are necessary.
 Both ZMS and ZTS Servers expect to find the list of authority classes
 in their respective system properties:
 
-ZMS: athenz.zms.authority_classes
-ZTS: athenz.zts.authority_classes
+* ZMS: athenz.zms.authority_classes
+* ZTS: athenz.zts.authority_classes
 
 The value of the property must be a comma separated (no spaces) list
 of authority class names. For example,

@@ -46,11 +46,11 @@ public class ZTS {
 
     private static final Logger LOG = LoggerFactory.getLogger(ZTS.class);
 
-    static final String ZTS_PRINCIPAL_AUTHORITY_CLASS     = "com.yahoo.athenz.auth.impl.PrincipalAuthority";
-    static final String ZTS_CHANGE_LOG_STORE_CLASS        = "com.yahoo.athenz.zts.store.file.ZMSFileChangeLogStoreFactory";
-    static final String ZTS_PKEY_STORE_CLASS              = "com.yahoo.athenz.zts.pkey.file.FilePrivateKeyStoreFactory";
-    static final String ZTS_CERT_SIGNER_CLASS             = "com.yahoo.athenz.zts.cert.impl.HttpCertSignerFactory";
-    static final String ZTS_INSTANCE_IDENTITY_STORE_CLASS = "com.yahoo.athenz.zts.cert.impl.LocalInstanceIdentityStoreFactory";
+    static final String ZTS_PRINCIPAL_AUTHORITY_CLASS = "com.yahoo.athenz.auth.impl.PrincipalAuthority";
+    static final String ZTS_CHANGE_LOG_STORE_FACTORY_CLASS = "com.yahoo.athenz.zts.store.file.ZMSFileChangeLogStoreFactory";
+    static final String ZTS_PKEY_STORE_FACTORY_CLASS = "com.yahoo.athenz.zts.pkey.file.FilePrivateKeyStoreFactory";
+    static final String ZTS_CERT_SIGNER_FACTORY_CLASS = "com.yahoo.athenz.zts.cert.impl.HttpCertSignerFactory";
+    static final String ZTS_INSTANCE_IDENTITY_STORE_FACTORY_CLASS = "com.yahoo.athenz.zts.cert.impl.LocalInstanceIdentityStoreFactory";
 
     // This String is used to create the desired AuditLogMsgBuilder object.
     // Its OK if its null, we will just get the default msg builder.
@@ -159,8 +159,8 @@ public class ZTS {
     
     static CertSigner getCertSigner() {
         
-        String certSignerFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_CLASS,
-                ZTS_CERT_SIGNER_CLASS);
+        String certSignerFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_FACTORY_CLASS,
+                ZTS_CERT_SIGNER_FACTORY_CLASS);
         CertSignerFactory certSignerFactory = null;
         try {
             certSignerFactory = (CertSignerFactory) Class.forName(certSignerFactoryClass).newInstance();
@@ -177,8 +177,9 @@ public class ZTS {
 
     static InstanceIdentityStore getInstanceIdentityStore(CertSigner certSigner) {
 
-        String instanceIdentityStoreFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_INSTANCE_IDENTITY_STORE_CLASS,
-                ZTS_INSTANCE_IDENTITY_STORE_CLASS);
+        String instanceIdentityStoreFactoryClass = System.getProperty(
+                ZTSConsts.ZTS_PROP_INSTANCE_IDENTITY_STORE_FACTORY_CLASS,
+                ZTS_INSTANCE_IDENTITY_STORE_FACTORY_CLASS);
         InstanceIdentityStoreFactory instanceIdentityStoreFactory = null;
         try {
             instanceIdentityStoreFactory = (InstanceIdentityStoreFactory)
@@ -222,7 +223,8 @@ public class ZTS {
     
     static PrivateKeyStore getPrivateKeyStore() {
         
-        String pkeyFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_CLASS, ZTS_PKEY_STORE_CLASS);
+        String pkeyFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
+                ZTS_PKEY_STORE_FACTORY_CLASS);
         PrivateKeyStoreFactory pkeyFactory = null;
         try {
             pkeyFactory = (PrivateKeyStoreFactory) Class.forName(pkeyFactoryClass).newInstance();
@@ -239,8 +241,8 @@ public class ZTS {
     private static ChangeLogStore getChangeLogStore(String homeDir, PrivateKey pkey, String pkeyId,
             CloudStore cloudStore) {
 
-        String clogFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_DATA_CHANGE_LOG_STORE_CLASS,
-                ZTS_CHANGE_LOG_STORE_CLASS);
+        String clogFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_DATA_CHANGE_LOG_STORE_FACTORY_CLASS,
+                ZTS_CHANGE_LOG_STORE_FACTORY_CLASS);
         ChangeLogStoreFactory clogFactory = null;
         try {
             clogFactory = (ChangeLogStoreFactory) Class.forName(clogFactoryClass).newInstance();

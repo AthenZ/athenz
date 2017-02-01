@@ -51,6 +51,10 @@ if [ "x${CONTAINER_PUBKEY}" != "x" ]; then
     export JAVA_OPTS="${JAVA_OPTS} -Dathenz.zms.publickey=${CONTAINER_PUBKEY}"
 fi
 
+if [ "x${CONTAINER_PRIVATE_KEY_STORE_FACTORY_CLASS}" != "x" ]; then
+    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.zms.private_key_store_factory_class=${CONTAINER_PRIVATE_KEY_STORE_FACTORY_CLASS}"
+fi
+
 if [ "x${CONTAINER_HOSTNAME}" != "x" ]; then
     export JAVA_OPTS="${JAVA_OPTS} -Dathenz.zms.hostname=${CONTAINER_HOSTNAME}"
 fi
