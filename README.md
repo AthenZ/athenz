@@ -56,6 +56,8 @@ and often rely on network ACLs and manual updating.
     * [Decentralized Access Control](docs/dev_decentralized_access.md)
         * [Java Client/Servlet Example](docs/example_java_decentralized_access.md)
     * [System Properties](docs/system_properties.md)
+* Customizing Athenz
+    * [Principal Authentication](docs/principal_authentication.md)
 * User Guide
     * [ZMS Client Utility](docs/zms_client.md)
     * [ZPU Utility](docs/setup_zpu.md)

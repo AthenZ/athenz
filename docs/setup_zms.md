@@ -103,6 +103,9 @@ to the /etc/shadow file. There are two options available:
   and set the user that the ZMS process will be running as a member of that
   group.
 
+Checkout the [Principal Authentication](principal_authentication.md) section
+for full details on authorities.
+
 ### System Administrators
 -------------------------
 
