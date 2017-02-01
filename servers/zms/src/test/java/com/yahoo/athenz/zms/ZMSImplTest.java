@@ -217,7 +217,7 @@ public class ZMSImplTest extends TestCase {
 
         Metric metric = createMetric();
         ZMSImpl zmsObj = new ZMSImpl("localhost", store, metric, privateKey,
-                privKeyId, pubKey, AuditLogFactory.getLogger(), null);
+                privKeyId, AuditLogFactory.getLogger(), null);
         
         ServiceIdentity service = createServiceObject("sys.auth",
                         "zms", "http://localhost", "/usr/bin/java", "root",
@@ -244,7 +244,7 @@ public class ZMSImplTest extends TestCase {
 
         Metric metric = createMetric();
         ZMSImpl zmsObj = new ZMSImpl("localhost", store, metric, privateKey,
-                privKeyId, pubKey, alogger, null);
+                privKeyId, alogger, null);
         zmsObj.putServiceIdentity(mockDomRsrcCtx, "sys.auth", "zms", auditRef, service);
         zmsObj.setProviderClientClass(ProviderMockClient.class);
         return zmsObj;
@@ -4657,7 +4657,6 @@ public class ZMSImplTest extends TestCase {
         
         zms.privateKeyId = "0";
         zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
-        zms.publicKey = pubKey;
         
         UserToken token = zms.getUserToken(rsrcCtx1, userId, null);
         assertNotNull(token);
@@ -4671,7 +4670,6 @@ public class ZMSImplTest extends TestCase {
         
         zms.privateKeyId = "1";
         zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKeyK1));
-        zms.publicKey = pubKeyK1;
         token = zms.getUserToken(rsrcCtx1, userId, null);
         assertNotNull(token);
         assertTrue(token.getToken().contains("k=1"));
@@ -4681,7 +4679,6 @@ public class ZMSImplTest extends TestCase {
         
         zms.privateKeyId = "2";
         zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKeyK2));
-        zms.publicKey = pubKeyK2;
 
         token = zms.getUserToken(rsrcCtx1, userId, null);
         assertNotNull(token);
@@ -4704,7 +4701,6 @@ public class ZMSImplTest extends TestCase {
         
         zms.privateKeyId = "0";
         zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
-        zms.publicKey = pubKey;
         
         UserToken token = zms.getUserToken(rsrcCtx1, userId, "coretech.storage");
         assertNotNull(token);
@@ -4769,7 +4765,6 @@ public class ZMSImplTest extends TestCase {
         
         zms.privateKeyId = "0";
         zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
-        zms.publicKey = pubKey;
         
         UserToken token = zms.getUserToken(rsrcCtx1, userId, null);
         assertNotNull(token);
@@ -4838,7 +4833,6 @@ public class ZMSImplTest extends TestCase {
         
         zms.privateKeyId = "0";
         zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
-        zms.publicKey = pubKey;
         
         UserToken token = zms.getUserToken(rsrcCtx1, "_self_", null);
         assertNotNull(token);
@@ -5544,7 +5538,6 @@ public class ZMSImplTest extends TestCase {
 
         zms.privateKeyId = "0";
         zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
-        zms.publicKey = pubKey;
 
         GetSignedDomainsResult result = new GetSignedDomainsResult(mockDomRsrcCtx);
         SignedDomains sdoms = null;
@@ -5581,7 +5574,6 @@ public class ZMSImplTest extends TestCase {
         
         zms.privateKeyId = "1";
         zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKeyK1));
-        zms.publicKey = pubKeyK1;
 
         result = new GetSignedDomainsResult(mockDomRsrcCtx);
         sdoms = null;
@@ -5614,7 +5606,6 @@ public class ZMSImplTest extends TestCase {
         
         zms.privateKeyId = "2";
         zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKeyK2));
-        zms.publicKey = pubKeyK2;
 
         result = new GetSignedDomainsResult(mockDomRsrcCtx);
         sdoms = null;
@@ -5812,7 +5803,6 @@ public class ZMSImplTest extends TestCase {
 
         zms.privateKeyId = "0";
         zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
-        zms.publicKey = pubKey;
 
         GetSignedDomainsResult result = new GetSignedDomainsResult(mockDomRsrcCtx);
         SignedDomains sdoms = null;
@@ -12588,7 +12578,7 @@ public class ZMSImplTest extends TestCase {
 
         Metric metric = createMetric();
         zmsTest = new ZMSImpl("localhost", store, metric, privateKey,
-                privKeyId, pubKey, AuditLogFactory.getLogger(), null);
+                privKeyId, AuditLogFactory.getLogger(), null);
         
         TopLevelDomain dom1 = createTopLevelDomainObject("ReadOnlyDom1",
                 "Test Domain1", "testOrg", adminUser);

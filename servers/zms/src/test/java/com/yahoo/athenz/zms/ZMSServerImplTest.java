@@ -16,10 +16,10 @@
 package com.yahoo.athenz.zms;
 
 import com.yahoo.athenz.auth.Authority;
+import com.yahoo.athenz.auth.PrivateKeyStoreFactory;
 import com.yahoo.athenz.common.metrics.MetricFactory;
 import com.yahoo.athenz.common.server.log.AuditLogFactory;
 import com.yahoo.athenz.zms.ZMSServerImpl;
-import com.yahoo.athenz.zms.pkey.PrivateKeyStoreFactory;
 import com.yahoo.athenz.zms.pkey.file.FilePrivateKeyStoreFactory;
 
 import static org.testng.Assert.*;

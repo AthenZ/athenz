@@ -5,7 +5,7 @@
     * [JDK 8](#jdk-8)
 * [Getting Software](#getting-software)
 * [Configuration](#configuration)
-    * [Private/Public Key Pair](#privatepublic-key-pair)
+    * [Private Key](#private-key)
     * [Self Signed X509 Certificate](#self-signed-x509-certificate)
     * [User Authentication](#user-authentication)
     * [System Administrators](#system-administrators)
@@ -48,17 +48,16 @@ $ cd athenz-zms-X.Y
 To run ZMS Server, the system administrator must generate the keys
 and make necessary changes to the configuration settings.
 
-### Private/Public Key Pair
+### Private Key
 ---------------------------
 
-Generate a unique private/public key pair that ZMS Server will use
+Generate a unique private key that ZMS Server will use
 to sign any NTokens it issues. From the `athenz-zms-X.Y` directory
 execute the following commands:
 
 ```shell
 $ cd var/zms_server/keys
 $ openssl genrsa -out zms_private.pem 2048
-$ openssl rsa -in zms_private.pem -pubout > zms_public.pem
 ```
 
 ### Self Signed X509 Certificate

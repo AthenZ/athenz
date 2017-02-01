@@ -40,12 +40,12 @@ public class SelfCertSigner implements CertSigner {
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
         X509Certificate cert = Crypto.generateX509Certificate(certReq, caPrivateKey,
                 caCertificate, certValidityTime, false);
-        return Crypto.x509CertificateToPem(cert);
+        return Crypto.convertToPEMFormat(cert);
     }
 
     @Override
     public String getCACertificate() {
-        return Crypto.x509CertificateToPem(caCertificate);
+        return Crypto.convertToPEMFormat(caCertificate);
     }
 
     @Override

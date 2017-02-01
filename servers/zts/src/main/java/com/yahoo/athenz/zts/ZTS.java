@@ -25,6 +25,8 @@ import org.slf4j.LoggerFactory;
 
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.AuthorityKeyStore;
+import com.yahoo.athenz.auth.PrivateKeyStore;
+import com.yahoo.athenz.auth.PrivateKeyStoreFactory;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.metrics.MetricFactory;
 import com.yahoo.athenz.common.server.log.AuditLogFactory;
@@ -35,8 +37,6 @@ import com.yahoo.athenz.zts.cert.CertSigner;
 import com.yahoo.athenz.zts.cert.CertSignerFactory;
 import com.yahoo.athenz.zts.cert.InstanceIdentityStore;
 import com.yahoo.athenz.zts.cert.InstanceIdentityStoreFactory;
-import com.yahoo.athenz.zts.pkey.PrivateKeyStore;
-import com.yahoo.athenz.zts.pkey.PrivateKeyStoreFactory;
 import com.yahoo.athenz.zts.store.ChangeLogStore;
 import com.yahoo.athenz.zts.store.ChangeLogStoreFactory;
 import com.yahoo.athenz.zts.store.CloudStore;
@@ -220,7 +220,7 @@ public class ZTS {
         return metric;
     }
     
-    static PrivateKeyStore getPrivateKeyStore(String serverHostName) {
+    static PrivateKeyStore getPrivateKeyStore() {
         
         String pkeyFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_CLASS, ZTS_PKEY_STORE_CLASS);
         PrivateKeyStoreFactory pkeyFactory = null;
@@ -232,7 +232,7 @@ public class ZTS {
             return null;
         }
         
-        return pkeyFactory.create(serverHostName);
+        return pkeyFactory.create();
     }
     
     
@@ -287,7 +287,7 @@ public class ZTS {
             authorities.add(authority);
         }
         
-        PrivateKeyStore keyStore = getPrivateKeyStore(serverHostName);
+        PrivateKeyStore keyStore = getPrivateKeyStore();
         if (keyStore == null) {
             return null;
         }
@@ -305,7 +305,7 @@ public class ZTS {
         /// extract our official per-host ZTS private key
         
         StringBuilder privKeyId = new StringBuilder(256);
-        PrivateKey pkey = keyStore.getHostPrivateKey(privKeyId);
+        PrivateKey pkey = keyStore.getPrivateKey(serverHostName, privKeyId);
         
         // create our cloud store if configured
         

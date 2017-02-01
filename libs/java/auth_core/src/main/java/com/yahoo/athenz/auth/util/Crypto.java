@@ -416,6 +416,10 @@ public class Crypto {
         return utf8String(ybase64Decode(b64));
     }
 
+    public static String ybase64EncodeString(String str) {
+        return utf8String(YBase64.encode(utf8Bytes(str)));
+    }
+    
     public static X509Certificate loadX509Certificate(File certFile) throws CryptoException  {
         try (FileReader fileReader = new FileReader(certFile)) {
             return loadX509Certificate(fileReader);
@@ -1016,16 +1020,16 @@ public class Crypto {
         return false;
     }
     
-    public static String x509CertificateToPem(X509Certificate cert) {
+    public static String convertToPEMFormat(Object obj) {
         StringWriter writer = new StringWriter();
         try {
             try (JcaPEMWriter pemWriter = new JcaPEMWriter(writer)) {
-                pemWriter.writeObject(cert);
+                pemWriter.writeObject(obj);
                 pemWriter.flush();
                 pemWriter.close();
             }
         } catch (IOException ex) {
-            LOG.error("x509CertificateToPem: unable to convert X509 cert to PEM: " + ex.getMessage());
+            LOG.error("convertToPEMFormat: unable to convert object to PEM: " + ex.getMessage());
             return null;
         }
 

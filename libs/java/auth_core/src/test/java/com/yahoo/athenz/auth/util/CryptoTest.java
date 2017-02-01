@@ -417,7 +417,7 @@ public class CryptoTest {
         System.out.println("****** Generated Certificate With Alternative Names *********");
         System.out.println(cert.toString());
         System.out.println("PEM format:");
-        System.out.println(Crypto.x509CertificateToPem(cert));
+        System.out.println(Crypto.convertToPEMFormat(cert));
     }
     
     @Test
@@ -457,7 +457,7 @@ public class CryptoTest {
     @Test
     public void testX509CertificateToPem() {
         X509Certificate cert = Crypto.loadX509Certificate(ecPublicX509Cert);
-        String pem = Crypto.x509CertificateToPem(cert);
+        String pem = Crypto.convertToPEMFormat(cert);
         assertNotNull(pem);
         assertTrue(pem.contains("BEGIN CERTIFICATE"), pem);
         assertTrue(pem.contains("END CERTIFICATE"), pem);

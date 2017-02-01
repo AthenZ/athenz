@@ -129,7 +129,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected DBService dbService = null;
     protected Class<? extends ProviderClient> providerClass = null;
     protected Schema schema = null;
-    protected String publicKey = null;
     protected PrivateKey privateKey = null;
     protected String privateKeyId = "0";
     protected int userTokenTimeout = 3600;
@@ -354,13 +353,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     static String auditLoggerMsgBldrClass = null;
 
     public ZMSImpl(String serverHostName, ObjectStore dbStore, Metric metric,
-            PrivateKey privateKey, String privateKeyId, String publicKey,
-            AuditLogger auditLog, String auditLogMsgBldrClass) {
+            PrivateKey privateKey, String privateKeyId, AuditLogger auditLog,
+            String auditLogMsgBldrClass) {
         
         auditLogger = auditLog;
         auditLoggerMsgBldrClass = auditLogMsgBldrClass;
         
-        this.publicKey = publicKey;
         this.privateKey = privateKey;
         this.privateKeyId = privateKeyId;
         this.schema = ZMSSchema.instance();
@@ -465,8 +463,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // this should never happen but just in case we'll just
         // use the public key we retrieved ourselves to the map
         
-        if (serverPublicKeyMap.isEmpty()) {
-            serverPublicKeyMap.put(privateKeyId, publicKey);
+        if (serverPublicKeyMap.isEmpty() && privateKey != null) {
+            final String publicKey = Crypto.convertToPEMFormat(Crypto.extractPublicKey(privateKey));
+            serverPublicKeyMap.put(privateKeyId, Crypto.ybase64EncodeString(publicKey));
         }
     }
     
@@ -559,9 +558,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         createSubDomain(null, "sys", "auth", "The AuthNG domain", null, null, adminUsers,
                 null, 0, null, null, caller);
 
-        if (publicKey != null) {
+        if (privateKey != null) {
             List<PublicKeyEntry> pubKeys = new ArrayList<>();
-            pubKeys.add(new PublicKeyEntry().setId(privateKeyId).setKey(publicKey));
+            final String publicKey = Crypto.convertToPEMFormat(Crypto.extractPublicKey(privateKey));
+            pubKeys.add(new PublicKeyEntry().setId(privateKeyId).setKey(Crypto.ybase64EncodeString(publicKey)));
             ServiceIdentity id = new ServiceIdentity().setName("sys.auth.zms").setPublicKeys(pubKeys);
             dbService.executePutServiceIdentity(null, SYS_AUTH, ZMS_SERVICE, id, null, caller);
         } else {

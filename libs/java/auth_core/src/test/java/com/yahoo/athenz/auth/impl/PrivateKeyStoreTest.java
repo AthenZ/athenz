@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zms.pkey;
+package com.yahoo.athenz.auth.impl;
 
 import static org.testng.Assert.*;
 
 import java.security.PrivateKey;
 
 import org.testng.annotations.Test;
+
+import com.yahoo.athenz.auth.PrivateKeyStore;
 
 public class PrivateKeyStoreTest {
 
@@ -29,14 +31,8 @@ public class PrivateKeyStoreTest {
         public void testGetPrivateKeyMulti() {
             PrivateKeyStoreInstance keystore = new PrivateKeyStoreInstance();
             StringBuilder sb = new StringBuilder();
-            PrivateKey key = keystore.getPrivateKey(sb);
+            PrivateKey key = keystore.getPrivateKey("hostname", sb);
             assertNull(key);
-        }
-
-        @Test
-        public void testGetPEMPublicKey() {
-            PrivateKeyStoreInstance keystore = new PrivateKeyStoreInstance();
-            assertNull(keystore.getPEMPublicKey());
         }
     }
 }

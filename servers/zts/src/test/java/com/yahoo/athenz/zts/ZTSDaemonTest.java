@@ -92,7 +92,7 @@ public class ZTSDaemonTest {
 
     @Test
     public void testZTSGetPrivateKeyStore() {
-        assertNotNull(ZTS.getPrivateKeyStore("localhost"));
+        assertNotNull(ZTS.getPrivateKeyStore());
     }
 
 }

@@ -17,7 +17,8 @@ package com.yahoo.athenz.zts.pkey.hsm;
 
 import java.security.PrivateKey;
 
-import com.yahoo.athenz.zts.pkey.PrivateKeyStore;
+import com.yahoo.athenz.auth.PrivateKeyStore;
+
 
 public class HSMPrivateKeyStore implements PrivateKeyStore {
     
@@ -25,7 +26,7 @@ public class HSMPrivateKeyStore implements PrivateKeyStore {
     }
 
     @Override
-    public PrivateKey getHostPrivateKey(StringBuilder privateKeyId) {
+    public PrivateKey getPrivateKey(String serverHostName, StringBuilder privateKeyId) {
         return null;
     }
 }

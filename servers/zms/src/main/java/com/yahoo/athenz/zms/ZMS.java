@@ -21,12 +21,12 @@ import org.slf4j.LoggerFactory;
 import org.eclipse.jetty.server.HttpConfiguration;
 
 import com.yahoo.athenz.auth.Authority;
+import com.yahoo.athenz.auth.PrivateKeyStoreFactory;
 import com.yahoo.athenz.common.metrics.MetricFactory;
 import com.yahoo.athenz.common.server.log.AuditLogFactory;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
-import com.yahoo.athenz.zms.pkey.PrivateKeyStoreFactory;
 
 import java.net.InetAddress;
 

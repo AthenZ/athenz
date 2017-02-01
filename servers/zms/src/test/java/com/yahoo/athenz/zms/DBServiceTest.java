@@ -177,7 +177,7 @@ public class DBServiceTest extends TestCase {
 
         Metric debugMetric = new com.yahoo.athenz.common.metrics.impl.NoOpMetric();
         ZMSImpl zmsObj = new ZMSImpl("localhost", store, debugMetric, privateKey,
-                privKeyId, pubKey, AuditLogFactory.getLogger(), null);
+                privKeyId, AuditLogFactory.getLogger(), null);
         
         ServiceIdentity service = createServiceObject("sys.auth",
                         "zms", "http://localhost", "/usr/bin/java", "root",
@@ -305,7 +305,7 @@ public class DBServiceTest extends TestCase {
 
         Metric debugMetric = new com.yahoo.athenz.common.metrics.impl.NoOpMetric();
         ZMSImpl zmsObj = new ZMSImpl("localhost", store, debugMetric, privateKey,
-                privKeyId, pubKey, alogger, null);
+                privKeyId, alogger, null);
         zmsObj.putServiceIdentity(mockDomRsrcCtx, "sys.auth", "zms", auditRef, service);
         zmsObj.setProviderClientClass(ProviderMockClient.class);
         return zmsObj;
