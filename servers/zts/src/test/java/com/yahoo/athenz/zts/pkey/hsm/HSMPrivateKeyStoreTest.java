@@ -22,7 +22,7 @@ import java.security.PrivateKey;
 
 import org.testng.annotations.Test;
 
-import com.yahoo.athenz.zts.pkey.PrivateKeyStore;
+import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.zts.pkey.hsm.HSMPrivateKeyStore;
 import com.yahoo.athenz.zts.pkey.hsm.HSMPrivateKeyStoreFactory;
 
@@ -31,7 +31,7 @@ public class HSMPrivateKeyStoreTest {
     @Test
     public void testCreateStore() {
         HSMPrivateKeyStoreFactory factory = new HSMPrivateKeyStoreFactory();
-        PrivateKeyStore store = factory.create("localhost");
+        PrivateKeyStore store = factory.create();
         assertNotNull(store);
     }
     
@@ -40,7 +40,7 @@ public class HSMPrivateKeyStoreTest {
         
         HSMPrivateKeyStore store = new HSMPrivateKeyStore();
         StringBuilder privateKeyId = new StringBuilder(256);
-        PrivateKey pkey = store.getHostPrivateKey(privateKeyId);
+        PrivateKey pkey = store.getPrivateKey("localhost", privateKeyId);
         assertNull(pkey);
     }
 }

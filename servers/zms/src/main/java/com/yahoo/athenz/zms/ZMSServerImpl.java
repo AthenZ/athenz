@@ -18,14 +18,14 @@ package com.yahoo.athenz.zms;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.AuthorityKeyStore;
 import com.yahoo.athenz.auth.Authorizer;
+import com.yahoo.athenz.auth.PrivateKeyStore;
+import com.yahoo.athenz.auth.PrivateKeyStoreFactory;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.metrics.MetricFactory;
 import com.yahoo.athenz.common.server.db.DataSourceFactory;
 import com.yahoo.athenz.common.server.db.PoolableDataSource;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
-import com.yahoo.athenz.zms.pkey.PrivateKeyStore;
-import com.yahoo.athenz.zms.pkey.PrivateKeyStoreFactory;
 import com.yahoo.athenz.zms.store.ObjectStore;
 import com.yahoo.athenz.zms.store.file.FileObjectStore;
 import com.yahoo.athenz.zms.store.jdbc.JDBCObjectStore;
@@ -50,9 +50,8 @@ public class ZMSServerImpl {
         // extract the private key and public keys for our service
         
         StringBuilder privKeyId = new StringBuilder(256);
-        PrivateKeyStore keyStore = pkeyStoreFactory.create(serverHostName);
-        PrivateKey pkey = keyStore.getPrivateKey(privKeyId);
-        String publicKey = keyStore.getPEMPublicKey();
+        PrivateKeyStore keyStore = pkeyStoreFactory.create();
+        PrivateKey pkey = keyStore.getPrivateKey(serverHostName, privKeyId);
         
         // create our metric and increment our startup count
         
@@ -76,7 +75,7 @@ public class ZMSServerImpl {
         
         try {
             instance = new ZMSImpl(serverHostName, store, metric, pkey, privKeyId.toString(),
-                    publicKey, auditLogger, auditLoggerMsgBldrClass);
+                    auditLogger, auditLoggerMsgBldrClass);
             instance.putAuthorityList(authList);
         } catch (Exception ex) {
             metric.increment("zms_startup_fail_sum");

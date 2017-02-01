@@ -25,8 +25,8 @@ import java.security.PrivateKey;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.zms.ZMSConsts;
-import com.yahoo.athenz.zms.pkey.PrivateKeyStore;
 import com.yahoo.athenz.zms.pkey.file.FilePrivateKeyStore;
 import com.yahoo.athenz.zms.pkey.file.FilePrivateKeyStoreFactory;
 
@@ -42,55 +42,21 @@ public class FilePrivateKeyStoreTest {
     @Test
     public void testCreateStore() {
         FilePrivateKeyStoreFactory factory = new FilePrivateKeyStoreFactory();
-        PrivateKeyStore store = factory.create("localhost");
+        PrivateKeyStore store = factory.create();
         assertNotNull(store);
-    }
-    
-    @Test
-    public void testRetrievePublicKeyValid() {
-        
-        FilePrivateKeyStoreFactory factory = new FilePrivateKeyStoreFactory();
-        PrivateKeyStore store = factory.create("localhost");
-        
-        String saveProp = System.getProperty(ZMSConsts.ZMS_PROP_PUBLIC_KEY);
-        System.setProperty(ZMSConsts.ZMS_PROP_PUBLIC_KEY, "src/test/resources/zms_public.pem");
-
-        String pubKey = store.getPEMPublicKey();
-        assertNotNull(pubKey);
-        
-        System.setProperty(ZMSConsts.ZMS_PROP_PUBLIC_KEY, saveProp);
-    }
-    
-    @Test
-    public void testRetrievePublicKeyInValid() {
-        
-        FilePrivateKeyStoreFactory factory = new FilePrivateKeyStoreFactory();
-        PrivateKeyStore store = factory.create("localhost");
-        
-        String saveProp = System.getProperty(ZMSConsts.ZMS_PROP_PUBLIC_KEY);
-        System.setProperty(ZMSConsts.ZMS_PROP_PUBLIC_KEY, "src/test/resources/invalid_zms_public.pem");
-        
-        try {
-            store.getPEMPublicKey();
-            fail();
-        } catch (Exception ex) {
-            assertTrue(true);
-        }
-        
-        System.setProperty(ZMSConsts.ZMS_PROP_PUBLIC_KEY, saveProp);
     }
     
     @Test
     public void testRetrievePrivateKeyValid() {
         
         FilePrivateKeyStoreFactory factory = new FilePrivateKeyStoreFactory();
-        PrivateKeyStore store = factory.create("localhost");
+        PrivateKeyStore store = factory.create();
         
         String saveProp = System.getProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY);
         System.setProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY, "src/test/resources/zms_private.pem");
 
         StringBuilder keyId = new StringBuilder(256);
-        PrivateKey privKey = store.getPrivateKey(keyId);
+        PrivateKey privKey = store.getPrivateKey("localhost", keyId);
         assertNotNull(privKey);
         
         System.setProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY, saveProp);
@@ -100,14 +66,14 @@ public class FilePrivateKeyStoreTest {
     public void testRetrievePrivateKeyInValid() {
         
         FilePrivateKeyStoreFactory factory = new FilePrivateKeyStoreFactory();
-        PrivateKeyStore store = factory.create("localhost");
+        PrivateKeyStore store = factory.create();
         
         String saveProp = System.getProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY);
         System.setProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY, "src/test/resources/invalid_zms_private.pem");
         
         try {
             StringBuilder keyId = new StringBuilder(256);
-            store.getPrivateKey(keyId);
+            store.getPrivateKey("localhost", keyId);
             fail();
         } catch (Exception ex) {
             assertTrue(true);
@@ -120,7 +86,7 @@ public class FilePrivateKeyStoreTest {
     public void testGetStringNullStream() throws IOException {
 
         FilePrivateKeyStoreFactory factory = new FilePrivateKeyStoreFactory();
-        FilePrivateKeyStore store = (FilePrivateKeyStore) factory.create("localhost");
+        FilePrivateKeyStore store = (FilePrivateKeyStore) factory.create();
         assertNull(store.getString(null));
     }
     
@@ -129,7 +95,7 @@ public class FilePrivateKeyStoreTest {
         String str = "This is a Unit Test String";
         
         FilePrivateKeyStoreFactory factory = new FilePrivateKeyStoreFactory();
-        FilePrivateKeyStore store = (FilePrivateKeyStore) factory.create("localhost");
+        FilePrivateKeyStore store = (FilePrivateKeyStore) factory.create();
         try (InputStream is = new ByteArrayInputStream(str.getBytes("UTF-8"))) {
             String getStr = store.getString(is);
             assertEquals(getStr, str);

@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zms.pkey;
+package com.yahoo.athenz.auth;
 
 public interface PrivateKeyStoreFactory {
 
     /**
      * Create and return a new PrivateKeyStore instance
-     * @param serverHostName hostname of the ZMS Server instance
      * @return PrivateKeyStore instance
      */
-    public PrivateKeyStore create(String serverHostName);
+    public PrivateKeyStore create();
 }

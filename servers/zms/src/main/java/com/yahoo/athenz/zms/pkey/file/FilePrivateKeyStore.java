@@ -23,11 +23,11 @@ import java.security.PrivateKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.zms.ResourceException;
 import com.yahoo.athenz.zms.ZMS;
 import com.yahoo.athenz.zms.ZMSConsts;
-import com.yahoo.athenz.zms.pkey.PrivateKeyStore;
 
 public class FilePrivateKeyStore implements PrivateKeyStore {
     
@@ -37,7 +37,7 @@ public class FilePrivateKeyStore implements PrivateKeyStore {
     }
 
     @Override
-    public PrivateKey getPrivateKey(StringBuilder privateKeyId) {
+    public PrivateKey getPrivateKey(String serverHostName, StringBuilder privateKeyId) {
         
         String privKeyName = System.getProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY,
                 ZMS.getRootDir() + "/share/athenz/sys.auth/zms.key");
@@ -65,30 +65,6 @@ public class FilePrivateKeyStore implements PrivateKeyStore {
 
         privateKeyId.append(System.getProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_ID, "0"));
         return pkey;
-    }
-    
-    @Override
-    public String getPEMPublicKey() {
-        
-        String pubKeyName = System.getProperty(ZMSConsts.ZMS_PROP_PUBLIC_KEY,
-                ZMSConsts.STR_DEF_ROOT + "/share/athenz/pubkeys/zms.key");
-        
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("FilePrivateKeyStore: public key file=" + pubKeyName);
-        }
-        
-        // check to see if this is running in dev mode and thus it's
-        // a resource in our jar file
-        
-        String pubKey = null;
-        if (pubKeyName.startsWith(ZMSConsts.STR_JAR_RESOURCE)) {
-            pubKey = retrieveKeyFromResource(pubKeyName.substring(ZMSConsts.STR_JAR_RESOURCE.length()));
-        } else {
-            File pubKeyFile = new File(pubKeyName);
-            pubKey = Crypto.encodedFile(pubKeyFile);
-        }
-        
-        return pubKey;
     }
     
     String retrieveKeyFromResource(String resourceName) {

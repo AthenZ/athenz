@@ -13,29 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zms.pkey;
+package com.yahoo.athenz.auth;
 
 import java.security.PrivateKey;
 
 public interface PrivateKeyStore {
 
     /**
-     * Retrieve private key for this ZMS Server instance to sign its tokens
+     * Retrieve private key for this Athenz Server instance to sign its tokens
      * The private key identifier must be updated in the privateKeyId out
-     * StringBuilder field. The Private Key Store Factory has the knowledge
-     * which hostname we're processing this request for.
+     * StringBuilder field.
+     * @param serverHostName hostname of the Athenz Server instance
      * @param privateKeyId - out argument - must be updated to include key id
      * @return private key for this ZMS Server instance.
      */
-    default PrivateKey getPrivateKey(StringBuilder privateKeyId) {
-        return null;
-    }
-    
-    /**
-     * Retrieve server's corresponding public key in PEM format.
-     * @return public key in PEM format
-     */
-    default String getPEMPublicKey() {
+    default PrivateKey getPrivateKey(String serverHostName, StringBuilder privateKeyId) {
         return null;
     }
 }

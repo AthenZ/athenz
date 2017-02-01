@@ -16,19 +16,15 @@
 package com.yahoo.athenz.zts.pkey.file;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.PrivateKey;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.pkey.PrivateKeyStore;
 
 public class FilePrivateKeyStore implements PrivateKeyStore {
     
@@ -47,7 +43,7 @@ public class FilePrivateKeyStore implements PrivateKeyStore {
     }
 
     @Override
-    public PrivateKey getHostPrivateKey(StringBuilder privateKeyId) {
+    public PrivateKey getPrivateKey(String serverHostName, StringBuilder privateKeyId) {
         
         String privKeyName = System.getProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY,
                 rootDir + "/share/athenz/sys.auth/zts.key");
@@ -65,64 +61,6 @@ public class FilePrivateKeyStore implements PrivateKeyStore {
         }
 
         privateKeyId.append(System.getProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_ID, "0"));
-        return pkey;
-    }
-    
-    @Override
-    public PrivateKey getPrivateKey(String keyName, int keyVersion) {
-        
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("FilePrivateKeyStore: private key file=" + keyName);
-        }
-        
-        // if the version is 0 then we're going to take the keyname
-        // as the filename otherwise we'll append ".v<keyVersion>"
-        // to generated the versioned key filename
-        
-        String fileName = keyName;
-        if (keyVersion != 0) {
-            fileName += ".v" + keyVersion;
-        }
-        File privKeyFile = new File(fileName);
-        String key = Crypto.encodedFile(privKeyFile);
-        PrivateKey pkey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(key));
-        
-        if (pkey == null) {
-            throw new ResourceException(500, "Unable to retrieve private key: " + fileName);
-        }
-
-        return pkey;
-    }
-    
-    @Override
-    public String getPublicKey(String keyName, int keyVersion) {
-        
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("FilePrivateKeyStore: public key file=" + keyName);
-        }
-        
-        // if the version is 0 then we're going to take the keyname
-        // as the filename otherwise we'll append ".v<keyVersion>"
-        // to generated the versioned key filename
-        
-        String fileName = keyName;
-        if (keyVersion != 0) {
-            fileName += ".v" + keyVersion;
-        }
-        Path path = Paths.get(fileName);
-        String pkey = null;
-        try {
-            pkey = new String(Files.readAllBytes(path));
-        } catch (IOException ex) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("FilePrivateKeyStore: unable to read public key", ex);
-            }
-        }
-        
-        if (pkey == null) {
-            throw new ResourceException(500, "Unable to retrieve public key: " + fileName);
-        }
-
         return pkey;
     }
 }

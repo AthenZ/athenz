@@ -15,13 +15,13 @@
  */
 package com.yahoo.athenz.zts.pkey.file;
 
-import com.yahoo.athenz.zts.pkey.PrivateKeyStore;
-import com.yahoo.athenz.zts.pkey.PrivateKeyStoreFactory;
+import com.yahoo.athenz.auth.PrivateKeyStore;
+import com.yahoo.athenz.auth.PrivateKeyStoreFactory;
 
 public class FilePrivateKeyStoreFactory implements PrivateKeyStoreFactory {
 
     @Override
-    public PrivateKeyStore create(String serverHostName) {
+    public PrivateKeyStore create() {
         return new FilePrivateKeyStore();
     }
 }
