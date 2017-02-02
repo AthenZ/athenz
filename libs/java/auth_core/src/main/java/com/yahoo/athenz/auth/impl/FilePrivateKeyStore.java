@@ -38,7 +38,8 @@ public class FilePrivateKeyStore implements PrivateKeyStore {
     }
 
     @Override
-    public PrivateKey getPrivateKey(String serverHostName, StringBuilder privateKeyId) {
+    public PrivateKey getPrivateKey(String service, String serverHostName,
+            StringBuilder privateKeyId) {
         
         String privKeyName = System.getProperty(ATHENZ_PROP_PRIVATE_KEY);
         

@@ -47,10 +47,6 @@ if [ "x${CONTAINER_PRIVKEY_ID}" != "x" ]; then
     export JAVA_OPTS="${JAVA_OPTS} -Dathenz.auth.private_key_store.private_key_id=${CONTAINER_PRIVKEY_ID}"
 fi
 
-if [ "x${CONTAINER_PUBKEY}" != "x" ]; then
-    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.zms.publickey=${CONTAINER_PUBKEY}"
-fi
-
 if [ "x${CONTAINER_PRIVATE_KEY_STORE_FACTORY_CLASS}" != "x" ]; then
     export JAVA_OPTS="${JAVA_OPTS} -Dathenz.zms.private_key_store_factory_class=${CONTAINER_PRIVATE_KEY_STORE_FACTORY_CLASS}"
 fi

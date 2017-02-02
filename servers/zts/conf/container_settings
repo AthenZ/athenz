@@ -7,6 +7,7 @@ CONTAINER_AUTHORITY_CLASSES="com.yahoo.athenz.auth.impl.PrincipalAuthority,com.y
 # using with default key id of 0
 CONTAINER_PRIVKEY="${ROOT}/var/zts_server/keys/zts_private.pem"
 CONTAINER_PRIVKEY_ID="0"
+# CONTAINER_PRIVATE_KEY_STORE_FACTORY_CLASS=com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory
 
 # default ports for zts server. http support is disabled
 # https support enabled - must provide certificate for server
@@ -62,7 +63,6 @@ CONTAINER_SELF_SIGNER_PRIVATE_KEY_FNAME="${ROOT}/var/zts_server/keys/zts_private
 
 # ** configure what implementation classes to use
 # CONTAINER_DATA_CHANGE_LOG_STORE_FACTORY_CLASS=
-# CONTAINER_PRIVATE_KEY_STORE_FACTORY_CLASS=
 # CONTAINER_HOST_SIGNER_SERVICE=
 # CONTAINER_CERTSIGN_BASE_URI=
 

@@ -23,11 +23,13 @@ public interface PrivateKeyStore {
      * Retrieve private key for this Athenz Server instance to sign its tokens
      * The private key identifier must be updated in the privateKeyId out
      * StringBuilder field.
+     * @param service Athenz service (zms or zts) requesting private key
      * @param serverHostName hostname of the Athenz Server instance
      * @param privateKeyId - out argument - must be updated to include key id
      * @return private key for this ZMS Server instance.
      */
-    default PrivateKey getPrivateKey(String serverHostName, StringBuilder privateKeyId) {
+    default PrivateKey getPrivateKey(String service, String serverHostName,
+            StringBuilder privateKeyId) {
         return null;
     }
 }

@@ -51,7 +51,7 @@ public class ZMSServerImpl {
         
         StringBuilder privKeyId = new StringBuilder(256);
         PrivateKeyStore keyStore = pkeyStoreFactory.create();
-        PrivateKey pkey = keyStore.getPrivateKey(serverHostName, privKeyId);
+        PrivateKey pkey = keyStore.getPrivateKey(ZMSConsts.ZMS_SERVICE, serverHostName, privKeyId);
         
         // create our metric and increment our startup count
         

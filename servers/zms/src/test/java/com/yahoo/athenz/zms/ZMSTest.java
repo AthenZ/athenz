@@ -27,7 +27,7 @@ import com.yahoo.athenz.auth.impl.FilePrivateKeyStore;
 
 public class ZMSTest {
     
-    public static final String ZMS_PROP_PUBLIC_KEY       = "athenz.zms.publickey";
+    public static final String ZMS_PROP_PUBLIC_KEY = "athenz.zms.publickey";
 
     @BeforeClass
     public void setUp() throws Exception {
