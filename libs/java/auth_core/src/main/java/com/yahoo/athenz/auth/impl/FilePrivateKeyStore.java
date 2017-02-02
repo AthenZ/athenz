@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zms.pkey.file;
+package com.yahoo.athenz.auth.impl;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,45 +25,47 @@ import org.slf4j.LoggerFactory;
 
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.auth.util.Crypto;
-import com.yahoo.athenz.zms.ResourceException;
-import com.yahoo.athenz.zms.ZMS;
-import com.yahoo.athenz.zms.ZMSConsts;
 
 public class FilePrivateKeyStore implements PrivateKeyStore {
     
     private static final Logger LOG = LoggerFactory.getLogger(FilePrivateKeyStore.class);
     
+    public static final String ATHENZ_PROP_PRIVATE_KEY = "athenz.auth.private_key_store.private_key";
+    public static final String ATHENZ_PROP_PRIVATE_KEY_ID = "athenz.auth.private_key_store.private_key_id";
+    public static final String ATHENZ_STR_JAR_RESOURCE = "JAR_RESOURCE:";
+
     public FilePrivateKeyStore() {
     }
 
     @Override
     public PrivateKey getPrivateKey(String serverHostName, StringBuilder privateKeyId) {
         
-        String privKeyName = System.getProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY,
-                ZMS.getRootDir() + "/share/athenz/sys.auth/zms.key");
+        String privKeyName = System.getProperty(ATHENZ_PROP_PRIVATE_KEY);
         
         if (LOG.isDebugEnabled()) {
             LOG.debug("FilePrivateKeyStore: private key file=" + privKeyName);
+        }
+        
+        if (privKeyName == null) {
+            return null;
         }
         
         // check to see if this is running in dev mode and thus it's
         // a resource in our jar file
         
         String privKey = null;
-        if (privKeyName.startsWith(ZMSConsts.STR_JAR_RESOURCE)) {
-            privKey = retrieveKeyFromResource(privKeyName.substring(ZMSConsts.STR_JAR_RESOURCE.length()));
+        if (privKeyName.startsWith(ATHENZ_STR_JAR_RESOURCE)) {
+            privKey = retrieveKeyFromResource(privKeyName.substring(ATHENZ_STR_JAR_RESOURCE.length()));
         } else {
             File privKeyFile = new File(privKeyName);
             privKey = Crypto.encodedFile(privKeyFile);
         }
         
         PrivateKey pkey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
-        
-        if (pkey == null) {
-            throw new ResourceException(500, "Unable to retrieve ZMS Server private key");
+        if (pkey != null) {
+            privateKeyId.append(System.getProperty(ATHENZ_PROP_PRIVATE_KEY_ID, "0"));
         }
-
-        privateKeyId.append(System.getProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_ID, "0"));
+        
         return pkey;
     }
     

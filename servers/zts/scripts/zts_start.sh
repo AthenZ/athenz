@@ -28,11 +28,11 @@ if [ "x${CONTAINER_LOG_CONFIG}" != "x" ]; then
 fi
 
 if [ "x${CONTAINER_PRIVKEY}" != "x" ]; then
-    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.zts.privatekey=${CONTAINER_PRIVKEY}"
+    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.auth.private_key_store.private_key=${CONTAINER_PRIVKEY}"
 fi
 
 if [ "x${CONTAINER_PRIVKEY_ID}" != "x" ]; then
-    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.zts.privatekey_id=${CONTAINER_PRIVKEY_ID}"
+    export JAVA_OPTS="${JAVA_OPTS} -Dathenz.auth.private_key_store.private_key_id=${CONTAINER_PRIVKEY_ID}"
 fi
 
 if [ "x${CONTAINER_HOSTNAME}" != "x" ]; then

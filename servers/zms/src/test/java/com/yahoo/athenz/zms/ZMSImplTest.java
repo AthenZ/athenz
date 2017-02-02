@@ -42,6 +42,7 @@ import javax.ws.rs.WebApplicationException;
 
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.impl.FilePrivateKeyStore;
 import com.yahoo.athenz.auth.impl.PrincipalAuthority;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.impl.SimpleServiceIdentityProvider;
@@ -114,9 +115,9 @@ public class ZMSImplTest extends TestCase {
         System.setProperty(ZMSConsts.ZMS_PROP_PROVIDER_ENDPOINTS, ".athenzcompany.com");
         
         System.setProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
-                "com.yahoo.athenz.zms.pkey.file.FilePrivateKeyStoreFactory");
-        System.setProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY, "src/test/resources/zms_private.pem");
-        System.setProperty(ZMSConsts.ZMS_PROP_PUBLIC_KEY, "src/test/resources/zms_public.pem");
+                "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory");
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zms_private.pem");
+        System.setProperty(ZMSTest.ZMS_PROP_PUBLIC_KEY, "src/test/resources/zms_public.pem");
         System.setProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN, "user.testadminuser");
         System.setProperty(ZMSConsts.ZMS_PROP_AUTHZ_SERVICE_FNAME,
                 "src/test/resources/authorized_services.json");
@@ -203,18 +204,18 @@ public class ZMSImplTest extends TestCase {
 
         ObjectStore store = new FileObjectStore(new File(ZMS_DATA_STORE_PATH));
 
-        String pubKeyName = System.getProperty(ZMSConsts.ZMS_PROP_PUBLIC_KEY);
+        String pubKeyName = System.getProperty(ZMSTest.ZMS_PROP_PUBLIC_KEY);
         System.out.println("public key file=" + pubKeyName);
         File pubKeyFile = new File(pubKeyName);
         pubKey = Crypto.encodedFile(pubKeyFile);
         
-        String privKeyName = System.getProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY);
+        String privKeyName = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
         System.out.println("private key file=" + privKeyName);
         File privKeyFile = new File(privKeyName);
         privKey = Crypto.encodedFile(privKeyFile);
         PrivateKey privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
 
-        String privKeyId = System.getProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_ID, "0");
+        String privKeyId = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY_ID, "0");
 
         adminUser = System.getProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN);
 
@@ -235,12 +236,12 @@ public class ZMSImplTest extends TestCase {
         
         FileConnection.deleteDirectory(new File(storeDir));
         ObjectStore store = new FileObjectStore(new File(storeDir));
-        String privKeyName = System.getProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY);
+        String privKeyName = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
         File   privKeyFile = new File(privKeyName);
         String privKey = Crypto.encodedFile(privKeyFile);
         PrivateKey privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
 
-        String privKeyId = System.getProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_ID, "0");
+        String privKeyId = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY_ID, "0");
         ServiceIdentity service = createServiceObject("sys.auth",
                         "zms", "http://localhost", "/usr/bin/java", "root",
                         "users", "host1");
@@ -12517,7 +12518,7 @@ public class ZMSImplTest extends TestCase {
     public void testLoadPublicKeys() {
         // verify that the public keys were loaded during server startup
         assertFalse(zms.serverPublicKeyMap.isEmpty());
-        String privKeyId = System.getProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_ID, "0");
+        String privKeyId = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY_ID, "0");
         assertEquals(zms.serverPublicKeyMap.get(privKeyId), pubKey);
     }
     
@@ -12572,12 +12573,12 @@ public class ZMSImplTest extends TestCase {
         System.setProperty(ZMSConsts.ZMS_PROP_READ_ONLY_MODE, "true");
         
         ObjectStore store = new FileObjectStore(new File(ZMS_DATA_STORE_PATH));
-        String privKeyName = System.getProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY);
+        String privKeyName = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
         File privKeyFile = new File(privKeyName);
         String privKey = Crypto.encodedFile(privKeyFile);
         PrivateKey privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
 
-        String privKeyId = System.getProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_ID, "0");
+        String privKeyId = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY_ID, "0");
 
         Metric metric = createMetric();
         zmsTest = new ZMSImpl("localhost", store, metric, privateKey,

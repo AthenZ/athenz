@@ -35,7 +35,7 @@ public class ZMS {
     private static final Logger LOG = LoggerFactory.getLogger(ZMS.class);
 
     private static final String ZMS_PRINCIPAL_AUTHORITY_CLASS = "com.yahoo.athenz.auth.impl.PrincipalAuthority";
-    private static final String ZMS_PKEY_STORE_FACTORY_CLASS = "com.yahoo.athenz.zms.pkey.file.FilePrivateKeyStoreFactory";
+    private static final String ZMS_PKEY_STORE_FACTORY_CLASS = "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory";
     
     private static String ROOT_DIR;
     
