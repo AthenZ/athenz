@@ -88,9 +88,9 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_INSTANCE_IDENTITY_STORE_FACTORY_CLASS = "athenz.zts.instance_identity_store_factory_class";
     public static final String ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS       = "athenz.zts.private_key_store_factory_class";
 
-    public static final String ZTS_PROP_USER_DOMAIN                = "athenz.user_domain";
-    public static final String ZTS_PROP_ATHENZ_CONF                = "athenz.athenz_conf";
-
+    public static final String ZTS_PROP_USER_DOMAIN   = "athenz.user_domain";
+    public static final String ZTS_PROP_ATHENZ_CONF   = "athenz.athenz_conf";
+    public static final String ZTS_SERVICE            = "zts";
     public static final String ZTS_UNKNOWN_DOMAIN     = "unknown_domain";
     public static final String ATHENZ_SYS_DOMAIN      = "sys.auth";
 

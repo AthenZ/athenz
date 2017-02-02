@@ -31,7 +31,7 @@ public class PrivateKeyStoreTest {
         public void testGetPrivateKeyMulti() {
             PrivateKeyStoreInstance keystore = new PrivateKeyStoreInstance();
             StringBuilder sb = new StringBuilder();
-            PrivateKey key = keystore.getPrivateKey("hostname", sb);
+            PrivateKey key = keystore.getPrivateKey("zms", "hostname", sb);
             assertNull(key);
         }
     }

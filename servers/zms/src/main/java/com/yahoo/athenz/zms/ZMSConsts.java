@@ -89,7 +89,8 @@ public final class ZMSConsts {
 
     public static final String ZMS_UNKNOWN_DOMAIN     = "unknown_domain";
     public static final String ZMS_INVALID_DOMAIN     = "invalid_domain";
-    
+    public static final String ZMS_SERVICE            = "zms";
+
     public static final int    ZMS_HTTPS_PORT_DEFAULT = 0;
     public static final int    ZMS_HTTP_PORT_DEFAULT  = 10080;
     public static final String ZMS_STATS_SCOREBOARD   = "zms_core";

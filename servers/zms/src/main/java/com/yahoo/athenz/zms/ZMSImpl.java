@@ -99,7 +99,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private static final String DOMAIN_FIELD = "domain";
     
     private static final String SYS_AUTH = "sys.auth";
-    private static final String ZMS_SERVICE = "zms";
     private static final String USER_TOKEN_DEFAULT_NAME = "_self_";
 
     // data validation types
@@ -447,7 +446,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         // retrieve our zms service identity object
         
-        ServiceIdentity identity = dbService.getServiceIdentity(SYS_AUTH, ZMS_SERVICE);
+        ServiceIdentity identity = dbService.getServiceIdentity(SYS_AUTH, ZMSConsts.ZMS_SERVICE);
         if (identity != null) {
             
             // process all the public keys and add them to the map
@@ -563,7 +562,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             final String publicKey = Crypto.convertToPEMFormat(Crypto.extractPublicKey(privateKey));
             pubKeys.add(new PublicKeyEntry().setId(privateKeyId).setKey(Crypto.ybase64EncodeString(publicKey)));
             ServiceIdentity id = new ServiceIdentity().setName("sys.auth.zms").setPublicKeys(pubKeys);
-            dbService.executePutServiceIdentity(null, SYS_AUTH, ZMS_SERVICE, id, null, caller);
+            dbService.executePutServiceIdentity(null, SYS_AUTH, ZMSConsts.ZMS_SERVICE, id, null, caller);
         } else {
             if (LOG.isWarnEnabled()) {
                 LOG.warn("init: Warning: no public key, cannot register sys.auth.zms identity");
@@ -5652,7 +5651,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
     
     boolean isZMSService(String domain, String service) {
-        return (SYS_AUTH.equalsIgnoreCase(domain) && ZMS_SERVICE.equalsIgnoreCase(service));
+        return (SYS_AUTH.equalsIgnoreCase(domain) && ZMSConsts.ZMS_SERVICE.equalsIgnoreCase(service));
     }
     
     /**
@@ -6027,7 +6026,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .issueTime(sdToken.getTimestamp())
                 .expirationWindow(sdToken.getExpiryTime() - sdToken.getTimestamp())
                 .ip(sdToken.getIP()).keyId(privateKeyId).host(serverHostName)
-                .keyService(ZMS_SERVICE).build();
+                .keyService(ZMSConsts.ZMS_SERVICE).build();
             zmsToken.sign(privateKey);
             servicePrincipal = new ServicePrincipal();
             servicePrincipal.setDomain(principal.getDomain());

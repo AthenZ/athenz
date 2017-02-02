@@ -11,9 +11,8 @@ CONTAINER_ADMINUSER="user.${USER}"
 # ** private/public key pair for zms instance - must be generated
 # ** using with default key id of 0
 CONTAINER_PRIVKEY="${ROOT}/var/zms_server/keys/zms_private.pem"
-CONTAINER_PUBKEY="${ROOT}/var/zms_server/keys/zms_public.pem"
 CONTAINER_PRIVKEY_ID="0"
-# CONTAINER_PRIVATE_KEY_STORE_FACTORY_CLASS=
+# CONTAINER_PRIVATE_KEY_STORE_FACTORY_CLASS=com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory
 
 # ** default ports for zms server. http support is disabled
 # ** https support enabled - must provide certificate for server

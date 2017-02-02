@@ -307,7 +307,7 @@ public class ZTS {
         /// extract our official per-host ZTS private key
         
         StringBuilder privKeyId = new StringBuilder(256);
-        PrivateKey pkey = keyStore.getPrivateKey(serverHostName, privKeyId);
+        PrivateKey pkey = keyStore.getPrivateKey(ZTSConsts.ZTS_SERVICE, serverHostName, privKeyId);
         
         // create our cloud store if configured
         

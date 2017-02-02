@@ -23,6 +23,7 @@ import com.yahoo.athenz.zms.SignedDomain;
 import com.yahoo.athenz.zms.SignedDomains;
 import com.yahoo.athenz.zms.ZMSClient;
 import com.yahoo.athenz.zms.ZMSClientException;
+import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.store.ChangeLogStore;
 import com.yahoo.rdl.*;
 
@@ -64,8 +65,6 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
     private static final String ATTR_TAG = "tag";
     private static final String LAST_MOD_FNAME = ".lastModTime";
     private static final String ATTR_LAST_MOD_TIME = "lastModTime";
-    private static final String ATHENZ_SYS_DOMAIN = "sys.auth";
-    private static final String ATHENZ_ZTS_SERVICE = "zts";
     
     private static final String ZTS_PROP_ZMS_URL_OVERRIDE = "athenz.zts.zms_url";
     
@@ -225,12 +224,12 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
     
     ZMSClient getZMSClient() {
         
-        PrincipalToken token = new PrincipalToken.Builder("S1", ATHENZ_SYS_DOMAIN, ATHENZ_ZTS_SERVICE)
-            .expirationWindow(24 * 60 * 60L).keyId(privateKeyId).build();
+        PrincipalToken token = new PrincipalToken.Builder("S1", ZTSConsts.ATHENZ_SYS_DOMAIN, ZTSConsts.ZTS_SERVICE)
+                .expirationWindow(24 * 60 * 60L).keyId(privateKeyId).build();
         token.sign(privateKey);
         
-        Principal principal = SimplePrincipal.create(ATHENZ_SYS_DOMAIN, ATHENZ_ZTS_SERVICE,
-                token.getSignedToken(), authority);
+        Principal principal = SimplePrincipal.create(ZTSConsts.ATHENZ_SYS_DOMAIN,
+                ZTSConsts.ZTS_SERVICE, token.getSignedToken(), authority);
         
         ZMSClient zmsClient = new ZMSClient(zmsUrl);
         zmsClient.addCredentials(principal);

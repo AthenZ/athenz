@@ -46,7 +46,7 @@ public class FilePrivateKeyStoreTest {
                 "src/test/resources/zts_private_k0.key");
 
         StringBuilder keyId = new StringBuilder(256);
-        PrivateKey privKey = store.getPrivateKey("localhost", keyId);
+        PrivateKey privKey = store.getPrivateKey("zms", "localhost", keyId);
         assertNotNull(privKey);
         
         if (saveProp == null) {
@@ -68,7 +68,7 @@ public class FilePrivateKeyStoreTest {
         
         try {
             StringBuilder keyId = new StringBuilder(256);
-            store.getPrivateKey("localhost", keyId);
+            store.getPrivateKey("zts", "localhost", keyId);
             fail();
         } catch (Exception ex) {
             assertTrue(true);
