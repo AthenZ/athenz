@@ -38,6 +38,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.yahoo.athenz.auth.impl.FilePrivateKeyStore;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.zms.DomainData;
@@ -108,8 +109,9 @@ public class DataStoreTest {
     @BeforeClass
     public void setUpClass() throws Exception {
         System.setProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
-                "com.yahoo.athenz.zts.pkey.file.FilePrivateKeyStoreFactory");
-        System.setProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY, "src/test/resources/zts_private.pem");
+                "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory");
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,
+                "src/test/resources/zts_private.pem");
         System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF,  "src/test/resources/athenz.conf");
     }
     
@@ -120,7 +122,7 @@ public class DataStoreTest {
 
         ZMSFileChangeLogStore.deleteDirectory(new File(ZTS_DATA_STORE_PATH));
         
-        String privKeyName = System.getProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY);
+        String privKeyName = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
         System.out.println("private key file=" + privKeyName);
         File privKeyFile = new File(privKeyName);
         String privKey = Crypto.encodedFile(privKeyFile);

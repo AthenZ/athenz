@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zms.pkey.file;
+package com.yahoo.athenz.auth.impl;
 
 import static org.testng.Assert.*;
 
@@ -22,23 +22,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.PrivateKey;
 
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.auth.PrivateKeyStore;
-import com.yahoo.athenz.zms.ZMSConsts;
-import com.yahoo.athenz.zms.pkey.file.FilePrivateKeyStore;
-import com.yahoo.athenz.zms.pkey.file.FilePrivateKeyStoreFactory;
 
 public class FilePrivateKeyStoreTest {
-
-    @BeforeClass
-    public void setUp() throws Exception {
-        System.setProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
-                "com.yahoo.athenz.zms.pkey.file.FilePrivateKeyStoreFactory");
-        System.setProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY, "src/test/resources/zms_private.pem");
-        System.setProperty(ZMSConsts.ZMS_PROP_PUBLIC_KEY, "src/test/resources/zms_public.pem");
-    }
     
     @Test
     public void testCreateStore() {
@@ -53,14 +41,19 @@ public class FilePrivateKeyStoreTest {
         FilePrivateKeyStoreFactory factory = new FilePrivateKeyStoreFactory();
         PrivateKeyStore store = factory.create();
         
-        String saveProp = System.getProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY);
-        System.setProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY, "src/test/resources/zms_private.pem");
+        String saveProp = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,
+                "src/test/resources/zts_private_k0.key");
 
         StringBuilder keyId = new StringBuilder(256);
         PrivateKey privKey = store.getPrivateKey("localhost", keyId);
         assertNotNull(privKey);
         
-        System.setProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY, saveProp);
+        if (saveProp == null) {
+            System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
+        } else {
+            System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, saveProp);
+        }
     }
     
     @Test
@@ -69,8 +62,9 @@ public class FilePrivateKeyStoreTest {
         FilePrivateKeyStoreFactory factory = new FilePrivateKeyStoreFactory();
         PrivateKeyStore store = factory.create();
         
-        String saveProp = System.getProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY);
-        System.setProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY, "src/test/resources/invalid_zms_private.pem");
+        String saveProp = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,
+                "src/test/resources/zts_private_k0_invalid.pem");
         
         try {
             StringBuilder keyId = new StringBuilder(256);
@@ -80,7 +74,11 @@ public class FilePrivateKeyStoreTest {
             assertTrue(true);
         }
         
-        System.setProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY, saveProp);
+        if (saveProp == null) {
+            System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
+        } else {
+            System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, saveProp);
+        }
     }
     
     @Test

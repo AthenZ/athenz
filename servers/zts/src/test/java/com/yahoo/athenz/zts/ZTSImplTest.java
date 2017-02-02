@@ -53,6 +53,7 @@ import org.testng.annotations.Test;
 
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.impl.FilePrivateKeyStore;
 import com.yahoo.athenz.auth.impl.PrincipalAuthority;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.impl.UserAuthority;
@@ -272,8 +273,9 @@ public class ZTSImplTest {
         System.setProperty(ZTSConsts.ZTS_PROP_METRIC_FACTORY_CLASS, ZTSConsts.ZTS_METRIC_FACTORY_CLASS);
         System.setProperty(ZTSConsts.ZTS_PROP_STATS_ENABLED, "true");
         System.setProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
-                "com.yahoo.athenz.zts.pkey.file.FilePrivateKeyStoreFactory");
-        System.setProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY, "src/test/resources/zts_private.pem");
+                "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory");
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,
+                "src/test/resources/zts_private.pem");
         System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF,  "src/test/resources/athenz.conf");
     }
     
@@ -284,7 +286,7 @@ public class ZTSImplTest {
 
         ZMSFileChangeLogStore.deleteDirectory(new File(ZTS_DATA_STORE_PATH));
         
-        String privKeyName = System.getProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY);
+        String privKeyName = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
         System.out.println("private key file=" + privKeyName);
         File privKeyFile = new File(privKeyName);
         String privKey = Crypto.encodedFile(privKeyFile);

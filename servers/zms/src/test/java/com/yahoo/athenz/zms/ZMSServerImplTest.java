@@ -17,10 +17,11 @@ package com.yahoo.athenz.zms;
 
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.PrivateKeyStoreFactory;
+import com.yahoo.athenz.auth.impl.FilePrivateKeyStore;
+import com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory;
 import com.yahoo.athenz.common.metrics.MetricFactory;
 import com.yahoo.athenz.common.server.log.AuditLogFactory;
 import com.yahoo.athenz.zms.ZMSServerImpl;
-import com.yahoo.athenz.zms.pkey.file.FilePrivateKeyStoreFactory;
 
 import static org.testng.Assert.*;
 
@@ -33,9 +34,8 @@ public class ZMSServerImplTest {
     @BeforeMethod
     public void setUp() throws Exception {
         System.setProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
-                "com.yahoo.athenz.zms.pkey.file.FilePrivateKeyStoreFactory");
-        System.setProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY, "src/test/resources/zms_private.pem");
-        System.setProperty(ZMSConsts.ZMS_PROP_PUBLIC_KEY, "src/test/resources/zms_public.pem");
+                "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory");
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zms_private.pem");
         System.setProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN, "user.testadminuser");
         System.setProperty(ZMSConsts.ZMS_PROP_HOME, ".");
     }
@@ -44,8 +44,7 @@ public class ZMSServerImplTest {
     public void cleanup() {
         System.clearProperty(ZMSConsts.ZMS_PROP_HOME);
         System.clearProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS);
-        System.clearProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY);
-        System.clearProperty(ZMSConsts.ZMS_PROP_PUBLIC_KEY);
+        System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
         System.clearProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN);
     }
     

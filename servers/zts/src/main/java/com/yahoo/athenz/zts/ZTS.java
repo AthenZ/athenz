@@ -48,7 +48,7 @@ public class ZTS {
 
     static final String ZTS_PRINCIPAL_AUTHORITY_CLASS = "com.yahoo.athenz.auth.impl.PrincipalAuthority";
     static final String ZTS_CHANGE_LOG_STORE_FACTORY_CLASS = "com.yahoo.athenz.zts.store.file.ZMSFileChangeLogStoreFactory";
-    static final String ZTS_PKEY_STORE_FACTORY_CLASS = "com.yahoo.athenz.zts.pkey.file.FilePrivateKeyStoreFactory";
+    static final String ZTS_PKEY_STORE_FACTORY_CLASS = "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory";
     static final String ZTS_CERT_SIGNER_FACTORY_CLASS = "com.yahoo.athenz.zts.cert.impl.HttpCertSignerFactory";
     static final String ZTS_INSTANCE_IDENTITY_STORE_FACTORY_CLASS = "com.yahoo.athenz.zts.cert.impl.LocalInstanceIdentityStoreFactory";
 

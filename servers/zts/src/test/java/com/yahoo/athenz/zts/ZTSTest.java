@@ -25,6 +25,8 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.yahoo.athenz.auth.impl.FilePrivateKeyStore;
+
 public class ZTSTest {
 
     private static final String ZTS_CHANGE_LOG_STORE_FACTORY_CLASS =
@@ -35,8 +37,9 @@ public class ZTSTest {
     @BeforeClass
     public void setUp() throws Exception {
         System.setProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
-                "com.yahoo.athenz.zts.pkey.file.FilePrivateKeyStoreFactory");
-        System.setProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY, "src/test/resources/zts_private.pem");
+                "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory");
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,
+                "src/test/resources/zts_private.pem");
         System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
         System.setProperty("logback.configurationFile", "src/test/resources/logback.xml");
     }

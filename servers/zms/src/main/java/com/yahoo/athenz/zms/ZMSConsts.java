@@ -39,12 +39,6 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_CONFLICT_RETRY_COUNT      = "athenz.zms.request_conflict_retry_count";
     public static final String ZMS_PROP_CONFLICT_RETRY_SLEEP_TIME = "athenz.zms.request_conflict_retry_sleep_time";
 
-    public static final String ZMS_PROP_PRIVATE_KEY      = "athenz.zms.privatekey";
-    public static final String ZMS_PROP_PRIVATE_KEY_ID   = "athenz.zms.privatekey_id";
-    public static final String ZMS_PROP_PRIVATE_KEY_NAME = "athenz.zms.privatekey_name";
-    public static final String ZMS_PROP_PUBLIC_KEY       = "athenz.zms.publickey";
-    public static final String ZMS_PROP_PUBLIC_KEY_NAME  = "athenz.zms.publickey_name";
-
     public static final String ZMS_PROP_JDBC_STORE        = "athenz.zms.jdbc_store";
     public static final String ZMS_PROP_JDBC_USER         = "athenz.zms.jdbc_user";
     public static final String ZMS_PROP_JDBC_PASSWORD     = "athenz.zms.jdbc_password";
@@ -179,7 +173,6 @@ public final class ZMSConsts {
     
     public static final String STR_DEF_ROOT     = "/home/athenz";
     public static final String STR_ENV_ROOT     = "ROOT";
-    public static final String STR_JAR_RESOURCE = "JAR_RESOURCE:";
     
     public static final int STRING_BLDR_SIZE_DEFAULT = 512;
 }

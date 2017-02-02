@@ -39,9 +39,6 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_ACCESS_SLF4J_LOGGER    = "athenz.zts.access_slf4j_logger";
     public static final String ZTS_PROP_ACCESS_LOG_DIR         = "athenz.zts.access_log_dir";
     public static final String ZTS_PROP_ACCESS_LOG_NAME        = "athenz.zts.access_log_name";
-    public static final String ZTS_PROP_PRIVATE_KEY            = "athenz.zts.privatekey";
-    public static final String ZTS_PROP_PRIVATE_KEY_ID         = "athenz.zts.privatekey_id";
-    public static final String ZTS_PROP_PRIVATE_KEY_NAME       = "athenz.zts.privatekey_name";
     
     public static final String ZTS_PROP_CA_PRIVATE_KEY            = "athenz.zts.ca_privatekey";
     public static final String ZTS_PROP_CA_PRIVATE_KEY_PASSWORD   = "athenz.zts.ca_privatekey_password";
@@ -75,7 +72,6 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_CERT_SIGNER_FACTORY_CLASS   = "athenz.zts.cert_signer_factory_class";
     public static final String ZTS_PROP_MAX_THREADS                 = "athenz.zts.http_max_threads";
     public static final String ZTS_PROP_LEAST_PRIVILEGE_PRINCIPLE   = "athenz.zts.least_privilege_principle";
-
 
     public static final String ZTS_PROP_ROLE_TOKEN_MAX_TIMEOUT     = "athenz.zts.role_token_max_timeout";
     public static final String ZTS_PROP_ROLE_TOKEN_DEFAULT_TIMEOUT = "athenz.zts.role_token_default_timeout";
