@@ -75,7 +75,9 @@ module.exports = function(grunt) {
         }
       }
     },
-    yhint: {},
+    jshint: {
+      files: ['Gruntfile.js', 'src/**/*.js', './*.js',  'test/**/*.js'],
+    },
     postcss: {
       options: {
         failOnError: true,
@@ -199,7 +201,7 @@ module.exports = function(grunt) {
   });
 
   grunt.registerTask('lint', function() {
-    grunt.task.run(['yhint', 'eslint']);
+    grunt.task.run(['jshint', 'eslint']);
   });
 
   grunt.registerTask('build-css', function() {
