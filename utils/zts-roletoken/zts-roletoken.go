@@ -11,15 +11,14 @@ import (
 	"github.com/yahoo/athenz/clients/go/zts"
 )
 
-const authHeader = "Athenz-Principal-Auth"
-
 func main() {
 
-	var domain, role, ntoken, ztsUrl string
+	var domain, role, ntoken, ztsUrl, hdr string
 	flag.StringVar(&domain, "domain", "", "name of provider domain")
 	flag.StringVar(&role, "role", "", "name of provider role")
 	flag.StringVar(&ntoken, "ntoken", "", "service identity token")
 	flag.StringVar(&ztsUrl, "zts", "", "url of the ZTS Service")
+	flag.StringVar(&hdr, "hdr", "Athenz-Principal-Auth", "Header name")
 	flag.Parse()
 
 	if domain == "" || ntoken == "" || ztsUrl == "" {
@@ -28,7 +27,7 @@ func main() {
 
 	// use the ntoken to talk to Athenz
 	client := zts.NewClient(ztsUrl, nil)
-	client.AddCredentials(authHeader, ntoken)
+	client.AddCredentials(hdr, ntoken)
 
 	// request a roletoken
 	roleToken, err := client.GetRoleToken(zts.DomainName(domain), zts.EntityName(role), nil, nil, "")
