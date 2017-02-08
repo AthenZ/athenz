@@ -42,6 +42,7 @@ import com.yahoo.athenz.zms.ResourceAccessList;
 import com.yahoo.athenz.zms.ResourceException;
 import com.yahoo.athenz.zms.Role;
 import com.yahoo.athenz.zms.RoleAuditLog;
+import com.yahoo.athenz.zms.RoleMember;
 import com.yahoo.athenz.zms.ServiceIdentity;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
@@ -235,8 +236,14 @@ public class FileConnection implements ObjectStoreConnection {
                         continue;
                     }
                     if (memberPresent) {
-                        if (role.getMembers().contains(roleMember)) {
-                            uniqueDomains.add(domainName);
+                        List<RoleMember> roleMembers = role.getRoleMembers();
+                        if (roleMembers != null) {
+                            for (RoleMember member: roleMembers) {
+                                if (member.getMemberName().equalsIgnoreCase(roleMember)) {
+                                    uniqueDomains.add(domainName);
+                                    break;
+                                }
+                            }
                         }
                     } else {
                         uniqueDomains.add(domainName);
@@ -245,9 +252,18 @@ public class FileConnection implements ObjectStoreConnection {
                     HashMap<String, Role> roles = domainStruct.getRoles();
                     if (roles != null) {
                         for (Role role : roles.values()) {
-                            if (role.getMembers().contains(roleMember)) {
-                                uniqueDomains.add(domainName);
-                                break;
+                            boolean roleMemberFound = false;
+                            if (role.getRoleMembers() != null) {
+                                for (RoleMember member: role.getRoleMembers()) {
+                                    if (member.getMemberName().equals(roleMember)) {
+                                        uniqueDomains.add(domainName);
+                                        roleMemberFound = true;
+                                        break;
+                                    }
+                                }
+                                if (roleMemberFound) {
+                                    break;
+                                }
                             }
                         }
                     }
@@ -454,16 +470,16 @@ public class FileConnection implements ObjectStoreConnection {
         // the members
 
         Role originalRole = getRoleObject(domainStruct, roleName);
-        List<String> members = role.getMembers();
+        List<RoleMember> members = role.getRoleMembers();
         if (originalRole != null) {
-            role.setMembers(originalRole.getMembers());
+            role.setRoleMembers(originalRole.getRoleMembers());
         } else {
-            role.setMembers(null);
+            role.setRoleMembers(null);
         }
         role.setModified(Timestamp.fromCurrentTime());
         roles.put(roleName, role);
         putDomainStruct(domainName, domainStruct);
-        role.setMembers(members);
+        role.setRoleMembers(members);
         return true;
     }
 
@@ -526,7 +542,7 @@ public class FileConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public List<String> listRoleMembers(String domainName, String roleName) {
+    public List<RoleMember> listRoleMembers(String domainName, String roleName) {
         DomainStruct domainStruct = getDomainStruct(domainName);
         if (domainStruct == null) {
             throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "listRoleMembers");
@@ -535,7 +551,7 @@ public class FileConnection implements ObjectStoreConnection {
         if (role == null) {
             throw ZMSUtils.error(ResourceException.NOT_FOUND, "role not found", "listRoleMembers");
         }
-        return role.getMembers();
+        return role.getRoleMembers();
     }
 
     @Override
@@ -552,15 +568,21 @@ public class FileConnection implements ObjectStoreConnection {
                 .setMemberName(principal)
                 .setRoleName(ZMSUtils.roleResourceName(domainName, roleName))
                 .setIsMember(false);
-        if (role.getMembers() != null) {
-            Set<String> members = new HashSet<>(role.getMembers());
-            membership.setIsMember(members.contains(principal));
+        if (role.getRoleMembers() != null) {
+            Set<RoleMember> members = new HashSet<>(role.getRoleMembers());
+            for (RoleMember member: members) {
+                if (member.getMemberName().equalsIgnoreCase(principal)) {
+                    membership.setIsMember(true);
+                    membership.setExpiration(member.getExpiration());
+                    break;
+                }
+            }
         }
         return membership;
     }
 
     @Override
-    public boolean insertRoleMember(String domainName, String roleName, String principal,
+    public boolean insertRoleMember(String domainName, String roleName, RoleMember member,
             String admin, String auditRef) {
 
         DomainStruct domainStruct = getDomainStruct(domainName);
@@ -571,15 +593,25 @@ public class FileConnection implements ObjectStoreConnection {
         if (role == null) {
             throw ZMSUtils.error(ResourceException.NOT_FOUND, "role not found", "insertRoleMember");
         }
-        if (!validatePrincipalDomain(principal)) {
+        if (!validatePrincipalDomain(member.getMemberName())) {
             throw ZMSUtils.error(ResourceException.NOT_FOUND, "principal domain not found", "insertRoleMember");
         }
         // make sure our existing role as the member array
         // and if it doesn't exist then create one
-        if (role.getMembers() == null) {
-            role.setMembers(new ArrayList<String>());
+        if (role.getRoleMembers() == null) {
+            role.setRoleMembers(new ArrayList<RoleMember>());
         }
-        role.getMembers().add(principal);
+        // need to check if the member already exists
+        boolean entryUpdated = false;
+        for (RoleMember roleMember : role.getRoleMembers()) {
+            if (roleMember.getMemberName().equals(member.getMemberName())) {
+                roleMember.setExpiration(member.getExpiration());
+                entryUpdated = true;
+            }
+        }
+        if (!entryUpdated) {
+            role.getRoleMembers().add(member);
+        }
         putDomainStruct(domainName, domainStruct);
         return true;
     }
@@ -607,8 +639,14 @@ public class FileConnection implements ObjectStoreConnection {
         if (role == null) {
             throw ZMSUtils.error(ResourceException.NOT_FOUND, "role not found", "deleteRoleMember");
         }
-        if (role.getMembers() != null) {
-            role.getMembers().remove(principal);
+        List<RoleMember> roleMembers = role.getRoleMembers();
+        if (roleMembers != null) {
+            for (int idx = 0; idx < roleMembers.size(); idx++) {
+                if (roleMembers.get(idx).getMemberName().equalsIgnoreCase(principal)) {
+                    roleMembers.remove(idx);
+                    break;
+                }
+            }
         }
         putDomainStruct(domainName, domainStruct);
         return true;

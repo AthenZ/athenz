@@ -9,8 +9,24 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/yahoo/athenz/clients/go/zms"
 )
+
+func parseRoleMember(memberLine string) *zms.RoleMember {
+	memberFields := strings.Split(memberLine, " ")
+	roleMember := zms.NewRoleMember()
+	roleMember.MemberName = zms.ResourceName(memberFields[0])
+	if len(memberFields) > 1 {
+		expiration, err := rdl.TimestampParse(memberFields[1])
+		if err != nil {
+			fmt.Println("***", err)
+		} else {
+			roleMember.Expiration = &expiration
+		}
+	}
+	return roleMember
+}
 
 func (cli Zms) importRoles(dn string, lstRoles []interface{}, validatedAdmins []string, skipErrors bool) error {
 	for _, role := range lstRoles {
@@ -19,7 +35,7 @@ func (cli Zms) importRoles(dn string, lstRoles []interface{}, validatedAdmins []
 		fmt.Fprintf(os.Stdout, "Processing role "+rn+"...\n")
 		if val, ok := roleMap["members"]; ok {
 			mem := val.([]interface{})
-			members := make([]string, 0)
+			roleMembers := make([]*zms.RoleMember, 0)
 			var err error
 			if rn == "admin" && validatedAdmins != nil {
 				// need to retrieve the current admin role
@@ -28,25 +44,28 @@ func (cli Zms) importRoles(dn string, lstRoles []interface{}, validatedAdmins []
 				if err != nil {
 					return err
 				}
-				roleMembers := cli.createStringList(role.Members)
-				for _, m := range mem {
-					if !cli.contains(roleMembers, m.(string)) {
-						members = append(members, m.(string))
+				for _, mbr := range mem {
+					roleMember := parseRoleMember(mbr.(string))
+					if !cli.containsMember(role.RoleMembers, string(roleMember.MemberName)) {
+						roleMembers = append(roleMembers, roleMember)
 					}
 				}
-				for _, a := range validatedAdmins {
-					if !cli.contains(members, a) && !cli.contains(roleMembers, a) {
-						members = append(members, a)
+				for _, admin := range validatedAdmins {
+					roleMember := zms.NewRoleMember()
+					roleMember.MemberName = zms.ResourceName(admin)
+					if !cli.containsMember(roleMembers, admin) && !cli.containsMember(role.RoleMembers, admin) {
+						roleMembers = append(roleMembers, roleMember)
 					}
 				}
-				_, err = cli.AddMembers(dn, rn, members)
+				_, err = cli.AddRoleMembers(dn, rn, roleMembers)
 			} else {
 				for _, m := range mem {
-					members = append(members, m.(string))
+					roleMember := parseRoleMember(m.(string))
+					roleMembers = append(roleMembers, roleMember)
 				}
 				b := cli.Verbose
 				cli.Verbose = true
-				_, err = cli.AddGroupRole(dn, rn, members)
+				_, err = cli.AddGroupRole(dn, rn, roleMembers)
 				cli.Verbose = b
 			}
 			if err != nil {
@@ -67,10 +86,10 @@ func (cli Zms) importRoles(dn string, lstRoles []interface{}, validatedAdmins []
 				}
 			}
 		} else {
-			members := make([]string, 0)
+			roleMembers := make([]*zms.RoleMember, 0)
 			b := cli.Verbose
 			cli.Verbose = true
-			_, err := cli.AddGroupRole(dn, rn, members)
+			_, err := cli.AddGroupRole(dn, rn, roleMembers)
 			cli.Verbose = b
 			if err != nil {
 				if skipErrors {

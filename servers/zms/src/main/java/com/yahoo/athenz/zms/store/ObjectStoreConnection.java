@@ -28,6 +28,7 @@ import com.yahoo.athenz.zms.PublicKeyEntry;
 import com.yahoo.athenz.zms.ResourceAccessList;
 import com.yahoo.athenz.zms.Role;
 import com.yahoo.athenz.zms.RoleAuditLog;
+import com.yahoo.athenz.zms.RoleMember;
 import com.yahoo.athenz.zms.ServiceIdentity;
 
 public interface ObjectStoreConnection extends Closeable {
@@ -69,9 +70,9 @@ public interface ObjectStoreConnection extends Closeable {
     List<String> listRoles(String domainName);
     List<RoleAuditLog> listRoleAuditLogs(String domainName, String roleName);
     
-    List<String> listRoleMembers(String domainName, String roleName);
+    List<RoleMember> listRoleMembers(String domainName, String roleName);
     Membership getRoleMember(String domainName, String roleName, String member);
-    boolean insertRoleMember(String domainName, String roleName, String member, String principal, String auditRef);
+    boolean insertRoleMember(String domainName, String roleName, RoleMember roleMember, String principal, String auditRef);
     boolean deleteRoleMember(String domainName, String roleName, String member, String principal, String auditRef);
 
     // Policy commands

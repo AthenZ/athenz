@@ -17,10 +17,17 @@ package com.yahoo.athenz.zms.utils;
 
 import static org.testng.Assert.*;
 
+import java.util.Arrays;
+import java.util.List;
+
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.zms.Assertion;
 import com.yahoo.athenz.zms.AssertionEffect;
+import com.yahoo.athenz.zms.ResourceException;
+import com.yahoo.athenz.zms.Role;
+import com.yahoo.athenz.zms.RoleMember;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 
 public class ZMSUtilsTest {
@@ -143,5 +150,93 @@ public class ZMSUtilsTest {
                 .setRole("domain2:role.role1")
                 .setResource("*:role.role1");
         assertTrue(ZMSUtils.assumeRoleResourceMatch("domain1:role.role1", assertion));
+    }
+    
+    @DataProvider(name = "roles")
+    public static Object[][] getRoles() {
+        String domainName = "test_domain";
+
+        Role role1 = new Role();
+        String memberName = "member";
+        RoleMember roleMember = new RoleMember().setMemberName(memberName);
+        
+        Role role2 = new Role();
+        role2.setMembers(Arrays.asList(memberName));
+        role2.setRoleMembers(Arrays.asList(roleMember));
+        
+        Role role3 = new Role();
+        role3.setRoleMembers(Arrays.asList(roleMember));
+        
+        Role role4 = new Role();
+        role4.setRoleMembers(Arrays.asList(roleMember));
+        role4.setTrust("trust");
+        
+        Role role5 = new Role();
+        role5.setMembers(Arrays.asList(memberName));
+        role5.setTrust("trust");
+        
+        Role role6 = new Role();
+        role6.setTrust("trust");
+        
+        return new Object[][] {
+            {domainName, role1, false}, 
+            {domainName, role2, true}, 
+            {domainName, role3, false}, 
+            {domainName, role4, true},
+            {domainName, role5, true}, 
+            {"trust", role6, true}, 
+            {"test_domain", role6, false}, 
+        };
+    }
+
+    @Test(dataProvider = "roles")
+    public void testValidateRoleMembers(String domainName, Role role, boolean expectedFailure)
+            throws Exception {
+        String caller = null;
+        try {
+            ZMSUtils.validateRoleMembers(role, caller, domainName);
+            if (expectedFailure) {
+                fail();
+            }
+        } catch (ResourceException e) {
+            if (expectedFailure) {
+                assertEquals(e.getCode(), 400);
+            } else {
+                fail("should not have failed with ResourceException");
+            }
+        }
+    }
+    
+    @DataProvider(name = "members")
+    public static Object[][] getMembers() {
+        return new Object[][] {
+            {Arrays.asList("member1"), null, 1}, 
+            {Arrays.asList("member1"), Arrays.asList("member1"), 0}, 
+            {Arrays.asList("member1"), Arrays.asList("member2"), 1},
+            {Arrays.asList("member1"), Arrays.asList("member2", "member1"), 0},
+            {Arrays.asList("member1", "member2"), Arrays.asList("member2", "member1"), 0},
+            {Arrays.asList("member1", "member2"), Arrays.asList("member3"), 2}
+        };
+    }
+    
+    @Test(dataProvider = "members")
+    public void testRemoveMembers(List<String> orginalRoleMembersList,
+            List<String> removeRoleMembersList, int expectedSize) throws Exception {
+        
+        List<RoleMember> orginalRoleMembers = ZMSUtils.convertMembersToRoleMembers(orginalRoleMembersList);
+        List<RoleMember> removeRoleMembers = ZMSUtils.convertMembersToRoleMembers(removeRoleMembersList);
+        
+        ZMSUtils.removeMembers(orginalRoleMembers, removeRoleMembers);
+        
+        //remove case
+        for (RoleMember orgMember: orginalRoleMembers) {
+            for (RoleMember removeMember: removeRoleMembers) {
+                if (orgMember.getMemberName().equalsIgnoreCase(removeMember.getMemberName())) {
+                    fail("Should have removed " + removeMember);
+                }
+            }
+        }
+        
+        assertEquals(orginalRoleMembers.size(), expectedSize);
     }
 }
