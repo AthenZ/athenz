@@ -109,11 +109,17 @@ func init() {
 	tRoleAuditLog.Field("auditRef", "String", true, nil, "audit reference string for the change as supplied by admin")
 	sb.AddType(tRoleAuditLog.Build())
 
+	tRoleMember := rdl.NewStructTypeBuilder("Struct", "RoleMember")
+	tRoleMember.Field("memberName", "ResourceName", false, nil, "name of the member")
+	tRoleMember.Field("expiration", "Timestamp", true, nil, "the expiration timestamp")
+	sb.AddType(tRoleMember.Build())
+
 	tRole := rdl.NewStructTypeBuilder("Struct", "Role")
 	tRole.Comment("The representation for a Role with set of members.")
 	tRole.Field("name", "ResourceName", false, nil, "name of the role")
 	tRole.Field("modified", "Timestamp", true, nil, "last modification timestamp of the role")
 	tRole.ArrayField("members", "ResourceName", true, "an explicit list of members. Might be empty or null, if trust is set")
+	tRole.ArrayField("roleMembers", "RoleMember", true, "members with expiration")
 	tRole.Field("trust", "DomainName", true, nil, "a trusted domain to delegate membership decisions to")
 	tRole.ArrayField("auditLog", "RoleAuditLog", true, "an audit log for role membership changes")
 	sb.AddType(tRole.Build())
@@ -128,6 +134,7 @@ func init() {
 	tMembership.Field("memberName", "ResourceName", false, nil, "name of the member")
 	tMembership.Field("isMember", "Bool", true, true, "flag to indicate whether or the user is a member or not")
 	tMembership.Field("roleName", "ResourceName", true, nil, "name of the role")
+	tMembership.Field("expiration", "Timestamp", true, nil, "the expiration timestamp")
 	sb.AddType(tMembership.Build())
 
 	tDefaultAdmins := rdl.NewStructTypeBuilder("Struct", "DefaultAdmins")

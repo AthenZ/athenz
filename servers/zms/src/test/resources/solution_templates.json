@@ -100,7 +100,14 @@
             },
             {
                 "name": "_domain_:role.openstack_readers",
-                "members": [ "sys.builder", "sys.openstack" ],
+                "roleMembers": [
+                        {
+                            "memberName": "sys.builder"
+                        },
+                        {
+                            "memberName": "sys.openstack"
+                        }
+                    ],
                 "modified": "1970-01-01T00:00:00.000Z"
             }
         ],

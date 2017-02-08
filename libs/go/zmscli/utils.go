@@ -55,7 +55,6 @@ func (cli Zms) createStringList(items []zms.ResourceName) []string {
 }
 
 func (cli Zms) tokenizer(input string) ([]string, error) {
-
 	scanner := bufio.NewScanner(strings.NewReader(input))
 	scanner.Split(split)
 
@@ -74,6 +73,13 @@ func indexOfString(s []string, match string) int {
 		}
 	}
 	return -1
+}
+
+func (cli Zms) validatedUser(user string) string {
+	if strings.Index(user, ".") < 0 {
+		return cli.UserDomain + "." + user
+	}
+	return user
 }
 
 func (cli Zms) validatedUsers(users []string, forceSelf bool) []string {
@@ -98,6 +104,35 @@ func (cli Zms) contains(s []string, e string) bool {
 		}
 	}
 	return false
+}
+
+func (cli Zms) containsMember(roleMembers []*zms.RoleMember, member string) bool {
+	for _, roleMember := range roleMembers {
+		if string(roleMember.MemberName) == member {
+			return true
+		}
+	}
+	return false
+}
+
+func (cli Zms) validateRoleMembers(users []*zms.RoleMember) {
+	for _, v := range users {
+		v.MemberName = zms.ResourceName(cli.validatedUser(string(v.MemberName)))
+	}
+}
+
+func (cli Zms) convertRoleMembers(users []string) []*zms.RoleMember {
+	roleMembers := make([]*zms.RoleMember, 0)
+	for _, v := range users {
+		roleMember := zms.NewRoleMember()
+		if strings.Index(v, ".") < 0 {
+			roleMember.MemberName = zms.ResourceName(cli.UserDomain + "." + v)
+		} else {
+			roleMember.MemberName = zms.ResourceName(v)
+		}
+		roleMembers = append(roleMembers, roleMember)
+	}
+	return roleMembers
 }
 
 func (cli Zms) RemoveAll(fullList []string, removeList []string) []string {

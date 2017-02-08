@@ -36,6 +36,7 @@ import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.common.config.AthenzConfig;
 import com.yahoo.rdl.JSON;
+import com.yahoo.rdl.Timestamp;
 
 public class ZMSClient implements Closeable {
 
@@ -656,11 +657,25 @@ public class ZMSClient implements Closeable {
      * @param auditRef string containing audit specification or ticket number
      */
     public void putMembership(String domainName, String roleName, String memberName, String auditRef) {
-        updatePrincipal();
+        putMembership(domainName, roleName, memberName, null, auditRef);
+    }
+    
+    /**
+     * Add a temporary member in the specified role with expiration
+     * @param domainName name of the domain
+     * @param roleName name of the role
+     * @param memberName name of the member to be added
+     * @param expiration timestamp when this membership will expire (optional)
+     * @param auditRef string containing audit specification or ticket number
+     */
+    public void putMembership(String domainName, String roleName, String memberName,
+            Timestamp expiration, String auditRef) {
         Membership mbr = new Membership();
         mbr.setRoleName(roleName);
         mbr.setMemberName(memberName);
+        mbr.setExpiration(expiration);
         mbr.setIsMember(true);
+        updatePrincipal();
         try {
             client.putMembership(domainName, roleName, memberName, auditRef, mbr);
         } catch (ResourceException ex) {

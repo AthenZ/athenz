@@ -31,20 +31,17 @@ import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zms.Policy;
 import com.yahoo.athenz.zms.PublicKeyEntry;
 import com.yahoo.athenz.zms.Role;
+import com.yahoo.athenz.zms.RoleMember;
 
 public class DataCache {
 
     DomainData domainData = null;
 
     // member ==> [ role1, role2, ...] complete map
-    private final Map<String, Set<String>> memberRoleCache;
+    private final Map<String, Set<MemberRole>> memberRoleCache;
     private final Map<String, Set<String>> trustCache;
     private final Map<String, Set<String>> hostCache;
     private final Map<String, Set<String>> awsRoleCache;
-    
-    // list of roles and their users: role ==> [ member1, member2, ...] complete map
-    private final Map<String, Set<String>> roleMemberCache;
-    
     private final Map<String, String> publicKeyCache;
 
     public static final String ACTION_ASSUME_ROLE = "assume_role";
@@ -52,15 +49,12 @@ public class DataCache {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(DataCache.class);
     
-    // rolecache --> memberRoleCache
-
     public DataCache() {
         memberRoleCache = new HashMap<>();
         trustCache = new HashMap<>();
         hostCache = new HashMap<>();
         awsRoleCache = new HashMap<>();
         publicKeyCache = new HashMap<>();
-        roleMemberCache = new HashMap<>();
     }
     
     public void setDomainData(DomainData domainData) {
@@ -72,17 +66,11 @@ public class DataCache {
     }
     
     /**
-     * Update {@code memberRoleCache} and {@code roleMemberCache}
+     * Update {@code memberRoleCache}
      * @param roleName the new/updated role
      * @param members the list of members of that role
      */
-    void processRoleMembers(String roleName, List<String> members) {
-        
-        // roleMemberCache: add role to list of keys, if missing
-        
-        if (!roleMemberCache.containsKey(roleName)) {
-            roleMemberCache.put(roleName, new HashSet<>());
-        }
+    void processRoleMembers(String roleName, List<RoleMember> members) {
         
         // early out
         
@@ -90,19 +78,25 @@ public class DataCache {
             return;
         }
         
-        // roleMemberCache: add members
-        
-        Set<String> roleMembers = roleMemberCache.get(roleName);
-        roleMembers.addAll(members);
-        
         // memberRoleCache: add members
-        
-        for (String member : members) {
-            if (!memberRoleCache.containsKey(member)) {
-                memberRoleCache.put(member, new HashSet<>());
+
+        long currentTime = System.currentTimeMillis();
+        for (RoleMember member : members) {
+            
+            // if the role member is already expired then there
+            // is no point to add it to the cache
+            
+            long expiration = member.getExpiration() == null ? 0 : member.getExpiration().millis();
+            if (expiration != 0 && expiration < currentTime) {
+                continue;
             }
-            final Set<String> rolesForMember = memberRoleCache.get(member);
-            rolesForMember.add(roleName);
+            
+            final String memberName = member.getMemberName();
+            if (!memberRoleCache.containsKey(memberName)) {
+                memberRoleCache.put(memberName, new HashSet<>());
+            }
+            final Set<MemberRole> rolesForMember = memberRoleCache.get(memberName);
+            rolesForMember.add(new MemberRole(roleName, expiration));
         }
     }
 
@@ -128,7 +122,7 @@ public class DataCache {
         
         /* first process members */
         
-        processRoleMembers(role.getName(), role.getMembers());
+        processRoleMembers(role.getName(), role.getRoleMembers());
         
         /* now process trust domains */
         
@@ -145,7 +139,7 @@ public class DataCache {
         
         /* add the resource as a role name for all the members */
         
-        processRoleMembers(assertion.getResource(), role.getMembers());
+        processRoleMembers(assertion.getResource(), role.getRoleMembers());
     }
     
     void processAWSAssumeRoleAssertion(Assertion assertion) {
@@ -270,7 +264,7 @@ public class DataCache {
      * @param member whose roles we want
      * @return the list of roles
      */
-    public Set<String> getMemberRoleSet(String member) {
+    public Set<MemberRole> getMemberRoleSet(String member) {
         return memberRoleCache.get(member);
     }
     
@@ -279,15 +273,6 @@ public class DataCache {
      */
     public int getMemberCount() {
         return memberRoleCache.size();
-    }
-    
-    /**
-     * Return the members belonging to a role, inverts {@code getMemberRoleSet}
-     * @param roleName the role whose members we want
-     * @return the list of members
-     */
-    public Set<String> getRoleMemberSet(String roleName) {
-        return roleMemberCache.get(roleName);
     }
     
     public Set<String> getAWSResourceRoleSet(String role) {

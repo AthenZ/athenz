@@ -374,6 +374,66 @@ func (pTypeDef *RoleAuditLog) Validate() error {
 }
 
 //
+// RoleMember -
+//
+type RoleMember struct {
+
+	//
+	// name of the member
+	//
+	MemberName ResourceName `json:"memberName"`
+
+	//
+	// the expiration timestamp
+	//
+	Expiration *rdl.Timestamp `json:"expiration,omitempty" rdl:"optional"`
+}
+
+//
+// NewRoleMember - creates an initialized RoleMember instance, returns a pointer to it
+//
+func NewRoleMember(init ...*RoleMember) *RoleMember {
+	var o *RoleMember
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(RoleMember)
+	}
+	return o
+}
+
+type rawRoleMember RoleMember
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a RoleMember
+//
+func (pTypeDef *RoleMember) UnmarshalJSON(b []byte) error {
+	var r rawRoleMember
+	err := json.Unmarshal(b, &r)
+	if err == nil {
+		o := RoleMember(r)
+		*pTypeDef = o
+		err = pTypeDef.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (pTypeDef *RoleMember) Validate() error {
+	if pTypeDef.MemberName == "" {
+		return fmt.Errorf("RoleMember.memberName is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "ResourceName", pTypeDef.MemberName)
+		if !val.Valid {
+			return fmt.Errorf("RoleMember.memberName does not contain a valid ResourceName (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
 // Role - The representation for a Role with set of members.
 //
 type Role struct {
@@ -392,6 +452,11 @@ type Role struct {
 	// an explicit list of members. Might be empty or null, if trust is set
 	//
 	Members []ResourceName `json:"members,omitempty" rdl:"optional"`
+
+	//
+	// members with expiration
+	//
+	RoleMembers []*RoleMember `json:"roleMembers,omitempty" rdl:"optional"`
 
 	//
 	// a trusted domain to delegate membership decisions to
@@ -527,6 +592,11 @@ type Membership struct {
 	// name of the role
 	//
 	RoleName ResourceName `json:"roleName,omitempty" rdl:"optional"`
+
+	//
+	// the expiration timestamp
+	//
+	Expiration *rdl.Timestamp `json:"expiration,omitempty" rdl:"optional"`
 }
 
 //

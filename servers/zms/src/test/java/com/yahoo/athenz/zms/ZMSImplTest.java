@@ -27,6 +27,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.mockito.Mockito;
 import org.mockito.Mock;
@@ -64,6 +65,7 @@ import com.yahoo.athenz.zms.store.file.FileObjectStore;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Struct;
+import com.yahoo.rdl.Timestamp;
 
 public class ZMSImplTest extends TestCase {
 
@@ -278,10 +280,16 @@ public class ZMSImplTest extends TestCase {
     }
 
     private Membership generateMembership(String roleName, String memberName) {
+        return generateMembership(roleName, memberName, null);
+    }
+      
+    private Membership generateMembership(String roleName, String memberName,
+            Timestamp expiration) {
         Membership mbr = new Membership();
         mbr.setRoleName(roleName);
         mbr.setMemberName(memberName);
         mbr.setIsMember(true);
+        mbr.setExpiration(expiration);
         return mbr;
     }
     
@@ -347,6 +355,20 @@ public class ZMSImplTest extends TestCase {
         return meta;
     }
 
+    private void checkRoleMember(final List<String> checkList, List<RoleMember> members) {
+        boolean found = false;
+        for (String roleMemberName: checkList) {
+            for (RoleMember roleMember: members) {
+                if (roleMember.getMemberName().equals(roleMemberName)){
+                    found = true;
+                }
+            }
+            if (!found) {
+                fail("Member " + roleMemberName + " not found");
+            }
+        }
+    }
+    
     private Role createRoleObject(String domainName, String roleName,
             String trust) {
         Role role = new Role();
@@ -358,22 +380,22 @@ public class ZMSImplTest extends TestCase {
     private Role createRoleObject(String domainName, String roleName,
             String trust, String member1, String member2) {
 
-        List<String> members = new ArrayList<String>();
+        List<RoleMember> members = new ArrayList<>();
         if (member1 != null) {
-            members.add(member1);
+            members.add(new RoleMember().setMemberName(member1));
         }
         if (member2 != null) {
-            members.add(member2);
+            members.add(new RoleMember().setMemberName(member2));
         }
         return createRoleObject(domainName, roleName, trust, members);
     }
 
     private Role createRoleObject(String domainName, String roleName,
-            String trust, List<String> members) {
+            String trust, List<RoleMember> members) {
         
         Role role = new Role();
         role.setName(ZMSUtils.roleResourceName(domainName, roleName));
-        role.setMembers(members);
+        role.setRoleMembers(members);
         if (trust != null) {
             role.setTrust(trust);
         }
@@ -1935,12 +1957,14 @@ public class ZMSImplTest extends TestCase {
 
         assertEquals(role.getName(), "GetRoleDom1:role.Role1".toLowerCase());
         assertNull(role.getTrust());
-        List<String> members = role.getMembers();
+        List<RoleMember> members = role.getRoleMembers();
         assertNotNull(members);
         assertEquals(members.size(), 2);
 
-        assertTrue(members.contains("user.joe"));
-        assertTrue(members.contains("user.jane"));
+        List<String> checkList = new ArrayList<>();
+        checkList.add("user.joe");
+        checkList.add("user.jane");
+        checkRoleMember(checkList, members);
         
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "GetRoleDom1", auditRef);
     }
@@ -2267,10 +2291,10 @@ public class ZMSImplTest extends TestCase {
 
         assertEquals(role.getName(), "CreateDuplicateMemberRoleDom1:role.Role1".toLowerCase());
         assertNull(role.getTrust());
-        List<String> members = role.getMembers();
+        List<RoleMember> members = role.getRoleMembers();
         assertNotNull(members);
         assertEquals(members.size(), 1);
-        assertTrue(members.get(0).equals("user.joe"));
+        assertTrue(members.get(0).getMemberName().equals("user.joe"));
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx,"CreateDuplicateMemberRoleDom1", auditRef);
     }
@@ -2282,11 +2306,11 @@ public class ZMSImplTest extends TestCase {
                 "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        ArrayList<String> roleMembers = new ArrayList<>();
-        roleMembers.add("user:joe");
-        roleMembers.add("user.joe");
-        roleMembers.add("user:joe");
-        roleMembers.add("user.jane");
+        ArrayList<RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user:joe"));
+        roleMembers.add(new RoleMember().setMemberName("user.joe"));
+        roleMembers.add(new RoleMember().setMemberName("user:joe"));
+        roleMembers.add(new RoleMember().setMemberName("user.jane"));
         
         Role role1 = createRoleObject("CreateNormalizedUserMemberRoleDom1", "Role1", 
                 null, roleMembers);
@@ -2296,11 +2320,13 @@ public class ZMSImplTest extends TestCase {
         assertNotNull(role);
 
         assertEquals(role.getName(), "CreateNormalizedUserMemberRoleDom1:role.Role1".toLowerCase());
-        List<String> members = role.getMembers();
+        List<RoleMember> members = role.getRoleMembers();
         assertNotNull(members);
         assertEquals(members.size(), 2);
-        assertTrue(members.contains("user.joe"));
-        assertTrue(members.contains("user.jane"));
+        List<String> checkList = new ArrayList<>();
+        checkList.add("user.joe");
+        checkList.add("user.jane");
+        checkRoleMember(checkList, members);
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx,"CreateNormalizedUserMemberRoleDom1", auditRef);
     }
@@ -2328,10 +2354,10 @@ public class ZMSImplTest extends TestCase {
                 "Test Domain2", "testOrg", adminUser);
         zms.postSubDomain(mockDomRsrcCtx, "user.user1", auditRef, subDom4);
         
-        ArrayList<String> roleMembers = new ArrayList<>();
-        roleMembers.add("coretech.storage");
-        roleMembers.add("coretech:service.storage");
-        roleMembers.add("user.user1.dom1:service.api");
+        ArrayList<RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("coretech.storage"));
+        roleMembers.add(new RoleMember().setMemberName("coretech:service.storage"));
+        roleMembers.add(new RoleMember().setMemberName("user.user1.dom1:service.api"));
         
         Role role1 = createRoleObject("CreateNormalizedServiceMemberRoleDom1", "Role1", 
                 null, roleMembers);
@@ -2341,11 +2367,13 @@ public class ZMSImplTest extends TestCase {
         assertNotNull(role);
 
         assertEquals(role.getName(), "CreateNormalizedServiceMemberRoleDom1:role.Role1".toLowerCase());
-        List<String> members = role.getMembers();
+        List<RoleMember> members = role.getRoleMembers();
         assertNotNull(members);
         assertEquals(members.size(), 2);
-        assertTrue(members.contains("coretech.storage"));
-        assertTrue(members.contains("user.user1.dom1.api"));
+        List<String> checkList = new ArrayList<>();
+        checkList.add("coretech.storage");
+        checkList.add("user.user1.dom1.api");
+        checkRoleMember(checkList, members);
 
         zms.deleteSubDomain(mockDomRsrcCtx, "user.user1", "dom1", auditRef);
         zms.deleteSubDomain(mockDomRsrcCtx, "user", "user1", auditRef);
@@ -2377,14 +2405,14 @@ public class ZMSImplTest extends TestCase {
                 "Test Domain2", "testOrg", adminUser);
         zms.postSubDomain(mockDomRsrcCtx, "user.user1", auditRef, subDom4);
         
-        ArrayList<String> roleMembers = new ArrayList<>();
-        roleMembers.add("user:joe");
-        roleMembers.add("user.joe");
-        roleMembers.add("user:joe");
-        roleMembers.add("user.jane");
-        roleMembers.add("coretech.storage");
-        roleMembers.add("coretech:service.storage");
-        roleMembers.add("user.user1.dom1:service.api");
+        ArrayList<RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user:joe"));
+        roleMembers.add(new RoleMember().setMemberName("user.joe"));
+        roleMembers.add(new RoleMember().setMemberName("user:joe"));
+        roleMembers.add(new RoleMember().setMemberName("user.jane"));
+        roleMembers.add(new RoleMember().setMemberName("coretech.storage"));
+        roleMembers.add(new RoleMember().setMemberName("coretech:service.storage"));
+        roleMembers.add(new RoleMember().setMemberName("user.user1.dom1:service.api"));
         
         Role role1 = createRoleObject("CreateNormalizedCombinedMemberRoleDom1", "Role1", 
                 null, roleMembers);
@@ -2394,13 +2422,15 @@ public class ZMSImplTest extends TestCase {
         assertNotNull(role);
 
         assertEquals(role.getName(), "CreateNormalizedCombinedMemberRoleDom1:role.Role1".toLowerCase());
-        List<String> members = role.getMembers();
+        List<RoleMember> members = role.getRoleMembers();
         assertNotNull(members);
         assertEquals(members.size(), 4);
-        assertTrue(members.contains("user.joe"));
-        assertTrue(members.contains("user.jane"));
-        assertTrue(members.contains("coretech.storage"));
-        assertTrue(members.contains("user.user1.dom1.api"));
+        List<String> checkList = new ArrayList<>();
+        checkList.add("user.joe");
+        checkList.add("user.jane");
+        checkList.add("coretech.storage");
+        checkList.add("user.user1.dom1.api");
+        checkRoleMember(checkList, members);
 
         zms.deleteSubDomain(mockDomRsrcCtx, "user.user1", "dom1", auditRef);
         zms.deleteSubDomain(mockDomRsrcCtx, "user", "user1", auditRef);
@@ -2626,20 +2656,90 @@ public class ZMSImplTest extends TestCase {
         Role role = zms.getRole(mockDomRsrcCtx, "MbrAddDom1", "Role1", false, false);
         assertNotNull(role);
 
-        List<String> members = role.getMembers();
+        List<RoleMember> members = role.getRoleMembers();
         assertNotNull(members);
         assertEquals(members.size(), 4);
 
-        assertTrue(members.contains("user.joe"));
-        assertTrue(members.contains("user.jane"));
-        assertTrue(members.contains("user.doe"));
-        assertTrue(members.contains("coretech.storage"));
+        List<String> checkList = new ArrayList<>();
+        checkList.add("user.joe");
+        checkList.add("user.jane");
+        checkList.add("user.doe");
+        checkList.add("coretech.storage");
+        checkRoleMember(checkList, members);
         
         zms.deleteSubDomain(mockDomRsrcCtx, "coretech", "storage", auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "coretech", auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx,"MbrAddDom1", auditRef);
     }
 
+    @Test
+    public void testPutMembershipExpiration() {
+
+        TopLevelDomain dom1 = createTopLevelDomainObject("MbrAddDom1",
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        TopLevelDomain dom2 = createTopLevelDomainObject("coretech",
+                "Test Domain2", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
+        
+        SubDomain subDom2 = createSubDomainObject("storage", "coretech",
+                "Test Domain2", "testOrg", adminUser);
+        zms.postSubDomain(mockDomRsrcCtx, "coretech", auditRef, subDom2);
+        
+        Role role1 = createRoleObject("MbrAddDom1", "Role1", null,
+                "user.joe", "user.jane");
+        zms.putRole(mockDomRsrcCtx, "MbrAddDom1", "Role1", auditRef, role1);
+        
+        Timestamp expired = Timestamp.fromMillis(System.currentTimeMillis() - 100);
+        Timestamp notExpired = Timestamp.fromMillis(System.currentTimeMillis()
+                + TimeUnit.HOURS.toMillis(1));
+        
+        Membership mbr = generateMembership("Role1", "user.doe", expired);
+        zms.putMembership(mockDomRsrcCtx, "MbrAddDom1", "Role1", "user.doe", auditRef, mbr);
+        Membership expiredMember = zms.getMembership(mockDomRsrcCtx, "MbrAddDom1",
+                "Role1", "user.doe");
+        
+        mbr = generateMembership("Role1", "coretech.storage", notExpired);
+        zms.putMembership(mockDomRsrcCtx, "MbrAddDom1", "Role1", "coretech.storage", auditRef, mbr);
+        Membership notExpiredMember = zms.getMembership(mockDomRsrcCtx, "MbrAddDom1",
+                "Role1", "coretech.storage");
+
+        Role role = zms.getRole(mockDomRsrcCtx, "MbrAddDom1", "Role1", false, false);
+        assertNotNull(role);
+
+        List<RoleMember> members = role.getRoleMembers();
+        assertNotNull(members);
+        assertEquals(members.size(), 4);
+
+        List<String> checkList = new ArrayList<String>();
+        checkList.add("user.joe");
+        checkList.add("user.jane");
+        checkList.add("user.doe");
+        checkList.add("coretech.storage");
+        checkRoleMember(checkList, role.getRoleMembers());
+        
+        for (RoleMember roleMember: members) {
+            if (roleMember.getMemberName().equalsIgnoreCase("user.doe")) {
+                Timestamp actual = roleMember.getExpiration();
+                assertNotNull(actual);
+                assertEquals(actual, expired);
+            }
+            if (roleMember.getMemberName().equalsIgnoreCase("coretech.storage")) {
+                Timestamp actual = roleMember.getExpiration();
+                assertNotNull(actual);
+                assertEquals(actual, notExpired);
+            }
+        }
+        
+        assertFalse(expiredMember.getIsMember());
+        assertTrue(notExpiredMember.getIsMember());
+        
+        zms.deleteSubDomain(mockDomRsrcCtx, "coretech", "storage", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "coretech", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx,"MbrAddDom1", auditRef);
+    }
+    
     @Test
     public void testPutMembershipEmptyRoleMembers() {
 
@@ -2657,11 +2757,11 @@ public class ZMSImplTest extends TestCase {
         Role role = zms.getRole(mockDomRsrcCtx, "MbrAddDom1EmptyRole", "Role1", false, false);
         assertNotNull(role);
 
-        List<String> members = role.getMembers();
+        List<RoleMember> members = role.getRoleMembers();
         assertNotNull(members);
         assertEquals(members.size(), 1);
 
-        assertTrue(members.contains("user.doe"));
+        assertTrue(members.get(0).getMemberName().equals("user.doe"));
         
         zms.deleteTopLevelDomain(mockDomRsrcCtx,"MbrAddDom1EmptyRole", auditRef);
     }
@@ -2742,13 +2842,15 @@ public class ZMSImplTest extends TestCase {
         Role role = zms.getRole(mockDomRsrcCtx, "MbrAddDom2", "Role1", false, false);
         assertNotNull(role);
 
-        List<String> members = role.getMembers();
+        List<RoleMember> members = role.getRoleMembers();
         assertNotNull(members);
         assertEquals(members.size(), 3);
 
-        assertTrue(members.contains("coretech.storage"));
-        assertTrue(members.contains("user.jane"));
-        assertTrue(members.contains("user.doe"));
+        List<String> checkList = new ArrayList<>();
+        checkList.add("coretech.storage");
+        checkList.add("user.jane");
+        checkList.add("user.doe");
+        checkRoleMember(checkList, members);
         
         zms.deleteSubDomain(mockDomRsrcCtx, "coretech", "storage", auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "coretech", auditRef);
@@ -2780,13 +2882,15 @@ public class ZMSImplTest extends TestCase {
         Role role = zms.getRole(mockDomRsrcCtx, "MbrAddDom3", "Role1", false, false);
         assertNotNull(role);
 
-        List<String> members = role.getMembers();
+        List<RoleMember> members = role.getRoleMembers();
         assertNotNull(members);
         assertEquals(members.size(), 3);
 
-        assertTrue(members.contains("coretech.storage"));
-        assertTrue(members.contains("user.jane"));
-        assertTrue(members.contains("user.doe"));
+        List<String> checkList = new ArrayList<>();
+        checkList.add("coretech.storage");
+        checkList.add("user.jane");
+        checkList.add("user.doe");
+        checkRoleMember(checkList, members);
         
         zms.deleteSubDomain(mockDomRsrcCtx, "coretech", "storage", auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "coretech", auditRef);
@@ -2826,13 +2930,15 @@ public class ZMSImplTest extends TestCase {
         Role role = zms.getRole(mockDomRsrcCtx, "MbrAddDom4", "Role1", false, false);
         assertNotNull(role);
 
-        List<String> members = role.getMembers();
+        List<RoleMember> members = role.getRoleMembers();
         assertNotNull(members);
         assertEquals(members.size(), 3);
 
-        assertTrue(members.contains("coretech.storage"));
-        assertTrue(members.contains("user.jane"));
-        assertTrue(members.contains("weather.storage"));
+        List<String> checkList = new ArrayList<>();
+        checkList.add("coretech.storage");
+        checkList.add("user.jane");
+        checkList.add("weather.storage");
+        checkRoleMember(checkList, members);
         
         zms.deleteSubDomain(mockDomRsrcCtx, "weather", "storage", auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "weather", auditRef);
@@ -2869,13 +2975,15 @@ public class ZMSImplTest extends TestCase {
         Role role = zms.getRole(mockDomRsrcCtx, "MbrAddDomNoRole", "Role1", false, false);
         assertNotNull(role);
 
-        List<String> members = role.getMembers();
+        List<RoleMember> members = role.getRoleMembers();
         assertNotNull(members);
         assertEquals(members.size(), 3);
 
-        assertTrue(members.contains("coretech.storage"));
-        assertTrue(members.contains("user.jane"));
-        assertTrue(members.contains("user.joe"));
+        List<String> checkList = new ArrayList<>();
+        checkList.add("coretech.storage");
+        checkList.add("user.jane");
+        checkList.add("user.joe");
+        checkRoleMember(checkList, members);
 
         zms.deleteSubDomain(mockDomRsrcCtx, "coretech", "storage", auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "coretech", auditRef);
@@ -3011,12 +3119,22 @@ public class ZMSImplTest extends TestCase {
         Role role = zms.getRole(mockDomRsrcCtx, "MbrDelDom1", "Role1", false, false);
         assertNotNull(role);
 
-        List<String> members = role.getMembers();
+        List<RoleMember> members = role.getRoleMembers();
         assertNotNull(members);
         assertEquals(members.size(), 1);
 
-        assertFalse(members.contains("user.joe"));
-        assertTrue(members.contains("user.jane"));
+        boolean found = false;
+        for (RoleMember member: members) {
+            if (member.getMemberName().equalsIgnoreCase("user.joe")) {
+                fail("delete user.joe failed");
+            }
+            if (member.getMemberName().equalsIgnoreCase("user.jane")) {
+                found = true;
+            }
+        }
+        if (!found) {
+            fail("user.jane not found");
+        }
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "MbrDelDom1", auditRef);
     }
@@ -3145,8 +3263,8 @@ public class ZMSImplTest extends TestCase {
         try {
             String adminRoleName = "admin";
             
-            List<String> members = new ArrayList<String>();
-            members.add(memberName1);
+            List<RoleMember> members = new ArrayList<>();
+            members.add(new RoleMember().setMemberName(memberName1));
             Role role1 = createRoleObject(domainName, adminRoleName, null, members);
             zmsImpl.putRole(mockDomRsrcCtx, domainName, adminRoleName, auditRef, role1);
             
@@ -3187,12 +3305,10 @@ public class ZMSImplTest extends TestCase {
         Role role = zms.getRole(mockDomRsrcCtx, "MbrDelDom1", "Role1", false, false);
         assertNotNull(role);
 
-        List<String> members = role.getMembers();
+        List<RoleMember> members = role.getRoleMembers();
         assertNotNull(members);
         assertEquals(members.size(), 1);
-
-        assertFalse(members.contains("user.joe"));
-        assertTrue(members.contains("user.jane"));
+        assertEquals(members.get(0).getMemberName(), "user.jane");
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "MbrDelDom1", auditRef);
     }
@@ -3212,12 +3328,10 @@ public class ZMSImplTest extends TestCase {
         Role role = zms.getRole(mockDomRsrcCtx, "MbrDelDom1", "Role1", false, false);
         assertNotNull(role);
 
-        List<String> members = role.getMembers();
+        List<RoleMember> members = role.getRoleMembers();
         assertNotNull(members);
         assertEquals(members.size(), 1);
-
-        assertFalse(members.contains("user.joe"));
-        assertTrue(members.contains("user.jane"));
+        assertEquals(members.get(0).getMemberName(), "user.jane");
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "MbrDelDom1", auditRef);
     }
@@ -3245,11 +3359,10 @@ public class ZMSImplTest extends TestCase {
         Role role = zms.getRole(mockDomRsrcCtx, "MbrDelDom1", "Role1", false, false);
         assertNotNull(role);
 
-        List<String> members = role.getMembers();
+        List<RoleMember> members = role.getRoleMembers();
         assertNotNull(members);
         assertEquals(members.size(), 1);
-
-        assertTrue(members.contains("user.joe"));
+        assertEquals(members.get(0).getMemberName(), "user.joe");
 
         zms.deleteSubDomain(mockDomRsrcCtx, "coretech", "storage", auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "coretech", auditRef);
@@ -5120,10 +5233,10 @@ public class ZMSImplTest extends TestCase {
         Role role = zms.getRole(mockDomRsrcCtx, "sports", "admin", false, false);
         assertNotNull(role);
         assertEquals(role.getName(), "sports:role.admin");
-        List<String> members = role.getMembers();
+        List<RoleMember> members = role.getRoleMembers();
         assertNotNull(members);
         assertEquals(members.size(), 1);
-        assertEquals(members.get(0), adminUser);
+        assertEquals(members.get(0).getMemberName(), adminUser);
         
         // positive test
         adminList.add("user.sports_admin");
@@ -5137,7 +5250,7 @@ public class ZMSImplTest extends TestCase {
         role = zms.getRole(mockDomRsrcCtx, "sports", "admin", false, false);
         assertNotNull(role);
         assertEquals(role.getName(), "sports:role.admin");
-        members = role.getMembers();
+        members = role.getRoleMembers();
         assertNotNull(members);
         assertEquals(members.size(), 5);
 
@@ -5146,8 +5259,8 @@ public class ZMSImplTest extends TestCase {
         adminList.add(adminUser);
         for (String admin : adminList) {
             boolean found = false;
-            for (String memberFromRole : members) {
-                if (memberFromRole.equalsIgnoreCase(admin)) {
+            for (RoleMember memberFromRole : members) {
+                if (memberFromRole.getMemberName().equalsIgnoreCase(admin)) {
                     found = true;
                     break;
                 }
@@ -5242,7 +5355,7 @@ public class ZMSImplTest extends TestCase {
         Role role = zms.getRole(mockDomRsrcCtx, "sports", "admin", false, false);
         assertNotNull(role);
         assertEquals(role.getName(), "sports:role.admin");
-        List<String> members = role.getMembers();
+        List<RoleMember> members = role.getRoleMembers();
         assertNotNull(members);
         assertEquals(members.size(), 5);
 
@@ -5251,8 +5364,8 @@ public class ZMSImplTest extends TestCase {
         adminList.add(adminUser);
         for (String admin : adminList) {
             boolean found = false;
-            for (String memberFromRole : members) {
-                if (memberFromRole.equalsIgnoreCase(admin)) {
+            for (RoleMember memberFromRole : members) {
+                if (memberFromRole.getMemberName().equalsIgnoreCase(admin)) {
                     found = true;
                     break;
                 }
@@ -5309,14 +5422,14 @@ public class ZMSImplTest extends TestCase {
         Role role = zms.getRole(mockDomRsrcCtx, "sports", "admin", false, false);
         assertNotNull(role);
         assertEquals(role.getName(), "sports:role.admin");
-        List<String> members = role.getMembers();
+        List<RoleMember> members = role.getRoleMembers();
         assertNotNull(members);
         assertEquals(members.size(), 5);
 
         for (String admin : adminList) {
             boolean found = false;
-            for (String memberFromRole : members) {
-                if (memberFromRole.equalsIgnoreCase(admin)) {
+            for (RoleMember memberFromRole : members) {
+                if (memberFromRole.getMemberName().equalsIgnoreCase(admin)) {
                     found = true;
                     break;
                 }
@@ -5375,14 +5488,14 @@ public class ZMSImplTest extends TestCase {
         Role role = zms.getRole(mockDomRsrcCtx, "sports", "admin", false, false);
         assertNotNull(role);
         assertEquals(role.getName(), "sports:role.admin");
-        List<String> members = role.getMembers();
+        List<RoleMember> members = role.getRoleMembers();
         assertNotNull(members);
         assertEquals(members.size(), 5);
 
         for (String admin : adminList) {
             boolean found = false;
-            for (String memberFromRole : members) {
-                if (memberFromRole.equalsIgnoreCase(admin)) {
+            for (RoleMember memberFromRole : members) {
+                if (memberFromRole.getMemberName().equalsIgnoreCase(admin)) {
                     found = true;
                     break;
                 }
@@ -5407,13 +5520,13 @@ public class ZMSImplTest extends TestCase {
         // Add role indirectRole
         Role role = new Role();
         role.setName("sports:role.indirectRole");
-        List<String> members = new ArrayList<String>();
-        members.add("user.johnadams");
-        members.add("user.sports_admin");
-        members.add("sports.fantasy");
-        members.add("user.joeschmoe");
-        members.add("user.johndoe");
-        role.setMembers(members);
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user.johnadams"));
+        members.add(new RoleMember().setMemberName("user.sports_admin"));
+        members.add(new RoleMember().setMemberName("sports.fantasy"));
+        members.add(new RoleMember().setMemberName("user.joeschmoe"));
+        members.add(new RoleMember().setMemberName("user.johndoe"));
+        role.setRoleMembers(members);
         role.setTrust(null);
         zms.putRole(mockDomRsrcCtx, "sports", "indirectRole", auditRef, role);
 
@@ -5443,13 +5556,13 @@ public class ZMSImplTest extends TestCase {
         role = zms.getRole(mockDomRsrcCtx, "sports", "indirectRole", false, false);
         assertNotNull(role);
         assertEquals(role.getName(), "sports:role.indirectRole".toLowerCase());
-        members = role.getMembers();
+        members = role.getRoleMembers();
         assertEquals(members.size(), 1);
 
         for (String admin : adminList) {
             boolean found = false;
-            for (String memberFromRole : members) {
-                if (memberFromRole.equalsIgnoreCase(admin)) {
+            for (RoleMember memberFromRole : members) {
+                if (memberFromRole.getMemberName().equalsIgnoreCase(admin)) {
                     found = true;
                     break;
                 }
@@ -5460,14 +5573,14 @@ public class ZMSImplTest extends TestCase {
         role = zms.getRole(mockDomRsrcCtx, "sports", "admin", false, false);
         assertNotNull(role);
         assertEquals(role.getName(), "sports:role.admin");
-        members = role.getMembers();
+        members = role.getRoleMembers();
         assertNotNull(members);
         assertEquals(members.size(), 5);
 
         for (String admin : adminList) {
             boolean found = false;
-            for (String memberFromRole : members) {
-                if (memberFromRole.equalsIgnoreCase(admin)) {
+            for (RoleMember memberFromRole : members) {
+                if (memberFromRole.getMemberName().equalsIgnoreCase(admin)) {
                     found = true;
                     break;
                 }
@@ -8552,117 +8665,145 @@ public class ZMSImplTest extends TestCase {
     @Test
     public void testGetNormalizedMemberNoSplit() {
         
-        assertEquals(zms.getNormalizedMember("user.user"), "user.user");
-        assertEquals(zms.getNormalizedMember("user.user2"), "user.user2");
-        assertEquals(zms.getNormalizedMember("user.user1"), "user.user1");
-        assertEquals(zms.getNormalizedMember("coretech.storage"), "coretech.storage");
-        assertEquals(zms.getNormalizedMember("user1"), "user1");
+        assertEquals(zms.getNormalizedMember(
+                new RoleMember().setMemberName("user.user")).getMemberName(), "user.user");
+        assertEquals(zms.getNormalizedMember(
+                new RoleMember().setMemberName("user.user2")).getMemberName(), "user.user2");
+        assertEquals(zms.getNormalizedMember(
+                new RoleMember().setMemberName("user.user1")).getMemberName(), "user.user1");
+        assertEquals(zms.getNormalizedMember(
+                new RoleMember().setMemberName("coretech.storage")).getMemberName(), "coretech.storage");
+        assertEquals(zms.getNormalizedMember(
+                new RoleMember().setMemberName("user1")).getMemberName(), "user1");
     }
     
     @Test
     public void testGetNormalizedMemberInvalidFormat() {
         
-        assertEquals(zms.getNormalizedMember("user:user:user1"), "user:user:user1");
-        assertEquals(zms.getNormalizedMember("user:"), "user:");
-        assertEquals(zms.getNormalizedMember("coretech:storage:api"), "coretech:storage:api");
+        assertEquals(zms.getNormalizedMember(
+                new RoleMember().setMemberName("user:user:user1")).getMemberName(), "user:user:user1");
+        assertEquals(zms.getNormalizedMember(
+                new RoleMember().setMemberName("user:")).getMemberName(), "user:");
+        assertEquals(zms.getNormalizedMember(
+                new RoleMember().setMemberName("coretech:storage:api")).getMemberName(), "coretech:storage:api");
     }
     
     @Test
     public void testGetNormalizedMemberUsersWithSplit() {
         
-        assertEquals(zms.getNormalizedMember("user:user"), "user.user");
-        assertEquals(zms.getNormalizedMember("user:user2"), "user.user2");
-        assertEquals(zms.getNormalizedMember("user:user1"), "user.user1");
+        assertEquals(zms.getNormalizedMember(
+                new RoleMember().setMemberName("user:user")).getMemberName(), "user.user");
+        assertEquals(zms.getNormalizedMember(
+                new RoleMember().setMemberName("user:user2")).getMemberName(), "user.user2");
+        assertEquals(zms.getNormalizedMember(
+                new RoleMember().setMemberName("user:user1")).getMemberName(), "user.user1");
     }
     
     @Test
     public void testGetNormalizedMemberServiceWithSplit() {
         
-        assertEquals(zms.getNormalizedMember("coretech:service.storage"), "coretech.storage");
-        assertEquals(zms.getNormalizedMember("weather:service.storage.api"), "weather.storage.api");
-        assertEquals(zms.getNormalizedMember("weather.storage:service.api"), "weather.storage.api");
-        assertEquals(zms.getNormalizedMember("weather.storage:entity.api"), "weather.storage:entity.api");
-        assertEquals(zms.getNormalizedMember("weather.storage:service."), "weather.storage.");
+        assertEquals(zms.getNormalizedMember(
+                new RoleMember().setMemberName("coretech:service.storage")).getMemberName(), "coretech.storage");
+        assertEquals(zms.getNormalizedMember(
+                new RoleMember().setMemberName("weather:service.storage.api")).getMemberName(), "weather.storage.api");
+        assertEquals(zms.getNormalizedMember(
+                new RoleMember().setMemberName("weather.storage:service.api")).getMemberName(), "weather.storage.api");
+        assertEquals(zms.getNormalizedMember(
+                new RoleMember().setMemberName("weather.storage:entity.api")).getMemberName(), "weather.storage:entity.api");
+        assertEquals(zms.getNormalizedMember(
+                new RoleMember().setMemberName("weather.storage:service.")).getMemberName(), "weather.storage.");
     }
     
     @Test
     public void testNormalizeRoleMembersUsers() {
 
-        ArrayList<String> roleMembers = new ArrayList<>();
-        roleMembers.add("user:joe");
-        roleMembers.add("user.joe");
-        roleMembers.add("user:joe");
-        roleMembers.add("user.jane");
+        ArrayList<RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user:joe"));
+        roleMembers.add(new RoleMember().setMemberName("user.joe"));
+        roleMembers.add(new RoleMember().setMemberName("user:joe"));
+        roleMembers.add(new RoleMember().setMemberName("user.jane"));
         
         Role role = createRoleObject("TestRole", "Role1", null, roleMembers);
         zms.normalizeRoleMembers(role);
 
-        List<String> members = role.getMembers();
+        List<RoleMember> members = role.getRoleMembers();
         assertNotNull(members);
         assertEquals(members.size(), 2);
-        assertTrue(members.contains("user.joe"));
-        assertTrue(members.contains("user.jane"));
+        
+        List<String> checkList = new ArrayList<>();
+        checkList.add("user.joe");
+        checkList.add("user.jane");
+        checkRoleMember(checkList, members);
     }
     
     @Test
     public void testNormalizeRoleMembersServices() {
 
-        ArrayList<String> roleMembers = new ArrayList<>();
-        roleMembers.add("coretech.storage");
-        roleMembers.add("coretech:service.storage");
-        roleMembers.add("weather:service.storage");
+        ArrayList<RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("coretech.storage"));
+        roleMembers.add(new RoleMember().setMemberName("coretech:service.storage"));
+        roleMembers.add(new RoleMember().setMemberName("weather:service.storage"));
         
         Role role = createRoleObject("TestRole", "Role1", null, roleMembers);
         zms.normalizeRoleMembers(role);
 
-        List<String> members = role.getMembers();
+        List<RoleMember> members = role.getRoleMembers();
         assertNotNull(members);
         assertEquals(members.size(), 2);
-        assertTrue(members.contains("coretech.storage"));
-        assertTrue(members.contains("weather.storage"));
+        
+        List<String> checkList = new ArrayList<>();
+        checkList.add("coretech.storage");
+        checkList.add("weather.storage");
+        checkRoleMember(checkList, members);
     }
     
     @Test
     public void testNormalizeRoleMembersCombined() {
 
-        ArrayList<String> roleMembers = new ArrayList<>();
-        roleMembers.add("user:joe");
-        roleMembers.add("user.joe");
-        roleMembers.add("user:joe");
-        roleMembers.add("user.jane");
-        roleMembers.add("coretech.storage");
-        roleMembers.add("coretech:service.storage");
-        roleMembers.add("weather:service.storage");
-        roleMembers.add("weather.api.access");
+        ArrayList<RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user:joe"));
+        roleMembers.add(new RoleMember().setMemberName("user.joe"));
+        roleMembers.add(new RoleMember().setMemberName("user:joe"));
+        roleMembers.add(new RoleMember().setMemberName("user.jane"));
+        roleMembers.add(new RoleMember().setMemberName("coretech.storage"));
+        roleMembers.add(new RoleMember().setMemberName("coretech:service.storage"));
+        roleMembers.add(new RoleMember().setMemberName("weather:service.storage"));
+        roleMembers.add(new RoleMember().setMemberName("weather.api.access"));
         
         Role role = createRoleObject("TestRole", "Role1", null, roleMembers);
         zms.normalizeRoleMembers(role);
 
-        List<String> members = role.getMembers();
+        List<RoleMember> members = role.getRoleMembers();
         assertNotNull(members);
         assertEquals(members.size(), 5);
-        assertTrue(members.contains("user.joe"));
-        assertTrue(members.contains("user.jane"));
-        assertTrue(members.contains("weather.api.access"));
-        assertTrue(members.contains("coretech.storage"));
-        assertTrue(members.contains("weather.storage"));
+        
+        List<String> checkList = new ArrayList<>();
+        checkList.add("user.joe");
+        checkList.add("user.jane");
+        checkList.add("weather.api.access");
+        checkList.add("coretech.storage");
+        checkList.add("weather.storage");
+        checkRoleMember(checkList, members);
     }
     
     @Test
     public void testNormalizeRoleMembersInvalid() {
 
-        ArrayList<String> roleMembers = new ArrayList<>();
-        roleMembers.add("user.joe");
-        roleMembers.add("user2");
+        ArrayList<RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user.joe"));
+        roleMembers.add(new RoleMember().setMemberName("user2"));
         
         Role role = createRoleObject("TestRole", "Role1", null, roleMembers);
         zms.normalizeRoleMembers(role);
         
-        List<String> members = role.getMembers();
+        List<RoleMember> members = role.getRoleMembers();
         assertNotNull(members);
         assertEquals(members.size(), 2);
-        assertTrue(members.contains("user.joe"));
-        assertTrue(members.contains("user2"));
+        
+        List<String> checkList = new ArrayList<>();
+        checkList.add("user.joe");
+        checkList.add("user2");
+        checkRoleMember(checkList, members);
     }
     
     @Test
@@ -10637,8 +10778,10 @@ public class ZMSImplTest extends TestCase {
         Role role = createRoleObject("RoleDomain", "roleName", null, "user.USER1", "user.user2");
         AthenzObject.ROLE.convertToLowerCase(role);
         assertEquals(role.getName(), "roledomain:role.rolename");
-        assertTrue(role.getMembers().contains("user.user1"));
-        assertTrue(role.getMembers().contains("user.user2"));
+        List<String> checkList = new ArrayList<>();
+        checkList.add("user.user1");
+        checkList.add("user.user2");
+        checkRoleMember(checkList, role.getRoleMembers());
     }
     
     @Test
@@ -10655,6 +10798,55 @@ public class ZMSImplTest extends TestCase {
         AthenzObject.MEMBERSHIP.convertToLowerCase(membership);
         assertEquals(membership.getMemberName(), "user.member1");
         assertEquals(membership.getRoleName(), "role1");
+    }
+    
+    @Test
+    public void testConvertToLowerCaseRole() {
+        
+        Role role = new Role().setName("Role1");
+        
+        List<String> list = new ArrayList<>();
+        list.add("item1");
+        list.add("Item2");
+        list.add("ITEM3");
+        role.setMembers(list);
+        
+        List<RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("item1"));
+        roleMembers.add(new RoleMember().setMemberName("Item2"));
+        roleMembers.add(new RoleMember().setMemberName("ITEM3"));
+        role.setRoleMembers(roleMembers);
+        
+        AthenzObject.ROLE.convertToLowerCase(role);
+        
+        assertEquals(role.getName(), "role1");
+        list = role.getMembers();
+        assertTrue(list.contains("item1"));
+        assertTrue(list.contains("item2"));
+        assertTrue(list.contains("item3"));
+        assertEquals(list.size(), 3);
+        
+        roleMembers = role.getRoleMembers();
+        assertEquals(roleMembers.size(), 3);
+        boolean item1 = false;
+        boolean item2 = false;
+        boolean item3 = false;
+        for (RoleMember member : roleMembers) {
+            switch (member.getMemberName()) {
+                case "item1":
+                    item1 = true;
+                    break;
+                case "item2":
+                    item2 = true;
+                    break;
+                case "item3":
+                    item3 = true;
+                    break;
+            }
+        }
+        assertTrue(item1);
+        assertTrue(item2);
+        assertTrue(item3);
     }
     
     @Test
@@ -11695,14 +11887,16 @@ public class ZMSImplTest extends TestCase {
         
         // openstack_readers role has 2 members
         
-        assertEquals(2, openstack_readers_role.getMembers().size());
-        assertTrue(openstack_readers_role.getMembers().contains("sys.builder"));
-        assertTrue(openstack_readers_role.getMembers().contains("sys.openstack"));
+        assertEquals(2, openstack_readers_role.getRoleMembers().size());
+        List<String> checkList = new ArrayList<>();
+        checkList.add("sys.builder");
+        checkList.add("sys.openstack");
+        checkRoleMember(checkList, openstack_readers_role.getRoleMembers());
         
         // other roles have no members
         
-        assertNull(user_role.getMembers());
-        assertNull(superuser_role.getMembers());
+        assertNull(user_role.getRoleMembers());
+        assertNull(superuser_role.getRoleMembers());
 
         List<Policy> policies = template.getPolicies();
         assertNotNull(policies);
@@ -11858,7 +12052,7 @@ public class ZMSImplTest extends TestCase {
         Role role = zms.dbService.getRole(domainName, "vip_admin", false, false);
         assertEquals(domainName + ":role.vip_admin", role.getName());
         assertNull(role.getTrust());
-        assertNull(role.getMembers());
+        assertNull(role.getRoleMembers());
         
         role = zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false);
         assertEquals(domainName + ":role.sys_network_super_vip_admin", role.getName());
@@ -11938,9 +12132,12 @@ public class ZMSImplTest extends TestCase {
         Role role = zms.dbService.getRole(domainName, "openstack_readers", false, false);
         assertEquals(domainName + ":role.openstack_readers", role.getName());
         assertNull(role.getTrust());
-        assertEquals(2, role.getMembers().size());
-        assertTrue(role.getMembers().contains("sys.builder"));
-        assertTrue(role.getMembers().contains("sys.openstack"));
+        assertEquals(2, role.getRoleMembers().size());
+        
+        List<String> checkList = new ArrayList<>();
+        checkList.add("sys.builder");
+        checkList.add("sys.openstack");
+        checkRoleMember(checkList, role.getRoleMembers());
         
         role = zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false);
         assertEquals(domainName + ":role.sys_network_super_vip_admin", role.getName());
@@ -12169,9 +12366,12 @@ public class ZMSImplTest extends TestCase {
         Role role = zms.dbService.getRole(subDomainName, "openstack_readers", false, false);
         assertEquals(subDomainName + ":role.openstack_readers", role.getName());
         assertNull(role.getTrust());
-        assertEquals(2, role.getMembers().size());
-        assertTrue(role.getMembers().contains("sys.builder"));
-        assertTrue(role.getMembers().contains("sys.openstack"));
+        assertEquals(2, role.getRoleMembers().size());
+
+        List<String> checkList = new ArrayList<>();
+        checkList.add("sys.builder");
+        checkList.add("sys.openstack");
+        checkRoleMember(checkList, role.getRoleMembers());
         
         role = zms.dbService.getRole(subDomainName, "sys_network_super_vip_admin", false, false);
         assertEquals(subDomainName + ":role.sys_network_super_vip_admin", role.getName());
@@ -12946,24 +13146,28 @@ public class ZMSImplTest extends TestCase {
         for (Role role : roles) {
             switch (role.getName()) {
                 case "setuprolelistwithmembers:role.role1":
-                    assertTrue(role.getMembers().contains("user.joe"));
-                    assertTrue(role.getMembers().contains("user.jane"));
-                    assertEquals(role.getMembers().size(), 2);
+                    List<String> checkList = new ArrayList<>();
+                    checkList.add("user.joe");
+                    checkList.add("user.jane");
+                    checkRoleMember(checkList, role.getRoleMembers());
+                    assertEquals(role.getRoleMembers().size(), 2);
                     assertNull(role.getTrust());
                     assertNotNull(role.getModified());
                     role1Check = true;
                     break;
                 case "setuprolelistwithmembers:role.role2":
-                    assertTrue(role.getMembers().contains("user.doe"));
-                    assertTrue(role.getMembers().contains("user.janie"));
-                    assertEquals(role.getMembers().size(), 2);
+                    List<String> checkList2 = new ArrayList<>();
+                    checkList2.add("user.doe");
+                    checkList2.add("user.janie");
+                    checkRoleMember(checkList2, role.getRoleMembers());
+                    assertEquals(role.getRoleMembers().size(), 2);
                     assertNull(role.getTrust());
                     assertNotNull(role.getModified());
                     role2Check = true;
                     break;
                 case "setuprolelistwithmembers:role.role3":
                     assertEquals(role.getTrust(), "sys.auth");
-                    assertNull(role.getMembers());
+                    assertNull(role.getRoleMembers());
                     role3Check = true;
                     assertNotNull(role.getModified());
                     break;
@@ -13007,20 +13211,20 @@ public class ZMSImplTest extends TestCase {
         for (Role role : roles) {
             switch (role.getName()) {
                 case "setuprolelistwithoutmembers:role.role1":
-                    assertNull(role.getMembers());
+                    assertNull(role.getRoleMembers());
                     assertNull(role.getTrust());
                     assertNotNull(role.getModified());
                     role1Check = true;
                     break;
                 case "setuprolelistwithoutmembers:role.role2":
-                    assertNull(role.getMembers());
+                    assertNull(role.getRoleMembers());
                     assertNull(role.getTrust());
                     assertNotNull(role.getModified());
                     role2Check = true;
                     break;
                 case "setuprolelistwithoutmembers:role.role3":
                     assertEquals(role.getTrust(), "sys.auth");
-                    assertNull(role.getMembers());
+                    assertNull(role.getRoleMembers());
                     role3Check = true;
                     assertNotNull(role.getModified());
                     break;
@@ -13044,20 +13248,20 @@ public class ZMSImplTest extends TestCase {
         for (Role role : roles) {
             switch (role.getName()) {
                 case "setuprolelistwithoutmembers:role.role1":
-                    assertNull(role.getMembers());
+                    assertNull(role.getRoleMembers());
                     assertNull(role.getTrust());
                     assertNotNull(role.getModified());
                     role1Check = true;
                     break;
                 case "setuprolelistwithoutmembers:role.role2":
-                    assertNull(role.getMembers());
+                    assertNull(role.getRoleMembers());
                     assertNull(role.getTrust());
                     assertNotNull(role.getModified());
                     role2Check = true;
                     break;
                 case "setuprolelistwithoutmembers:role.role3":
                     assertEquals(role.getTrust(), "sys.auth");
-                    assertNull(role.getMembers());
+                    assertNull(role.getRoleMembers());
                     role3Check = true;
                     assertNotNull(role.getModified());
                     break;
@@ -13101,24 +13305,28 @@ public class ZMSImplTest extends TestCase {
         for (Role role : roles) {
             switch (role.getName()) {
                 case "getroles:role.role1":
-                    assertTrue(role.getMembers().contains("user.joe"));
-                    assertTrue(role.getMembers().contains("user.jane"));
-                    assertEquals(role.getMembers().size(), 2);
+                    List<String> checkList = new ArrayList<>();
+                    checkList.add("user.joe");
+                    checkList.add("user.jane");
+                    checkRoleMember(checkList, role.getRoleMembers());
+                    assertEquals(role.getRoleMembers().size(), 2);
                     assertNull(role.getTrust());
                     assertNotNull(role.getModified());
                     role1Check = true;
                     break;
                 case "getroles:role.role2":
-                    assertTrue(role.getMembers().contains("user.doe"));
-                    assertTrue(role.getMembers().contains("user.janie"));
-                    assertEquals(role.getMembers().size(), 2);
+                    List<String> checkList2 = new ArrayList<>();
+                    checkList2.add("user.doe");
+                    checkList2.add("user.janie");
+                    checkRoleMember(checkList2, role.getRoleMembers());
+                    assertEquals(role.getRoleMembers().size(), 2);
                     assertNull(role.getTrust());
                     assertNotNull(role.getModified());
                     role2Check = true;
                     break;
                 case "getroles:role.role3":
                     assertEquals(role.getTrust(), "sys.auth");
-                    assertNull(role.getMembers());
+                    assertNull(role.getRoleMembers());
                     role3Check = true;
                     assertNotNull(role.getModified());
                     break;
@@ -14101,4 +14309,44 @@ public class ZMSImplTest extends TestCase {
             assertTrue(true);
         }
     }
+    
+    @DataProvider(name = "roles")
+    public static Object[][] getRoles() {
+        final String memberName="member1";
+        final String memberNameToSearch="notFound";
+        final Timestamp expiredTimestamp = Timestamp.fromMillis(System.currentTimeMillis() - 100);
+        final Timestamp notExpiredTimestamp = Timestamp.fromMillis(System.currentTimeMillis() + 100);
+        
+        return new Object[][] {
+            //expired
+            {memberName, memberName, expiredTimestamp, true, false}, 
+            //not expired
+            {memberName, memberName, notExpiredTimestamp, true, true}, 
+            //not found
+            {memberName, memberNameToSearch, notExpiredTimestamp, true, false}, 
+            //set not filled which means no members are defined
+            {memberName, memberName, notExpiredTimestamp, false, false}, 
+            //null expiration
+            {memberName, memberName, null, true, true}, 
+        };
+    }
+
+    @Test(dataProvider = "roles")
+    public void testIsMemberOfRole(final String memeberName, final String memberNameToSearch,
+            Timestamp expiredTimestamp, boolean setRoleMembers, boolean isMember) {
+        //Construct roleMembers
+        List<RoleMember> roleMembers = new ArrayList<>();
+        RoleMember roleMember = new RoleMember();
+        roleMember.setMemberName(memeberName);
+        roleMember.setExpiration(expiredTimestamp);
+        roleMembers.add(roleMember);
+
+        Role role = new Role();
+        if (setRoleMembers) {
+            role.setRoleMembers(roleMembers);
+        }
+        boolean actual = zms.isMemberOfRole(role, memberNameToSearch);
+        assertEquals(actual, isMember);
+    }
 }
+

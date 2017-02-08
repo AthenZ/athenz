@@ -27,6 +27,7 @@ import com.yahoo.athenz.zms.Entity;
 import com.yahoo.athenz.zms.Policy;
 import com.yahoo.athenz.zms.PublicKeyEntry;
 import com.yahoo.athenz.zms.Role;
+import com.yahoo.athenz.zms.RoleMember;
 import com.yahoo.athenz.zms.ServiceIdentity;
 
 public class FileConnectionTest {
@@ -150,7 +151,8 @@ public class FileConnectionTest {
         File file = new File("/home/athenz/");
         try (FileConnection fileconnection = new FileConnection(file)) {
             try {
-                fileconnection.insertRoleMember("DummyDomain1", "Role1", "principal1", "audit1", "zmsjcltest");
+                fileconnection.insertRoleMember("DummyDomain1", "Role1",
+                        new RoleMember().setMemberName("principal1"), "audit1", "zmsjcltest");
             } catch (Exception ex) {
                 assertTrue(true);
             }

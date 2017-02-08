@@ -61,7 +61,7 @@ func (cli Zms) ImportDomain(dn string, filename string, admins []string) (*strin
 	var productId int
 	if val, ok := dnSpec["product_id"]; ok {
 		productId = val.(int)
-	} else if strings.LastIndex(dn, ".") < 0 {
+	} else if cli.ProductIdSupport && strings.LastIndex(dn, ".") < 0 {
 		return nil, fmt.Errorf("Top Level Domains require an integer number specified for the Product ID")
 	}
 	productId32 := int32(productId)
