@@ -20,13 +20,13 @@ import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.common.server.util.StringUtils;
 import com.yahoo.athenz.zms.Role;
+import com.yahoo.athenz.zms.RoleMember;
 import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.DataStore;
+import com.yahoo.rdl.Timestamp;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -252,7 +252,7 @@ public class ZTSAuthorizer implements Authorizer {
         // if we have members in the role then we're going to check
         // against that list only
         
-        if (role.getMembers() != null) {
+        if (role.getRoleMembers() != null) {
             return isMemberOfRole(role, fullUser);
         }
         
@@ -274,15 +274,34 @@ public class ZTSAuthorizer implements Authorizer {
 
     boolean isMemberOfRole(Role role, String member) {
         
-        if (role.getMembers() == null) {
+        final List<RoleMember> members = role.getRoleMembers();
+        if (members == null) {
             return false;
         }
         
-        Set<String> members = new HashSet<String>(role.getMembers());
-        return members.contains(member);
+        return checkRoleMemberExpiration(members, member);
     }
     
+    boolean checkRoleMemberExpiration(List<RoleMember> roleMembers, String member) {
+        
+        boolean isMember = false;
+        for (RoleMember memberInfo: roleMembers) {
+            if (member.equals(memberInfo.getMemberName())) {
 
+                // check expiration, if it's not defined, it's not expired.
+
+                Timestamp expiration = memberInfo.getExpiration();
+                if (expiration != null) {
+                    isMember = !(expiration.millis() < System.currentTimeMillis());
+                } else {
+                    isMember = true;
+                }
+                break;
+            }
+        }
+        return isMember;
+    }
+    
     boolean matchDelegatedTrustAssertion(com.yahoo.athenz.zms.Assertion assertion, String roleName,
             String roleMember, List<Role> roles) {
         

@@ -197,153 +197,167 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         },
         LIST {
-                void convertToLowerCase(Object obj) {
-                    @SuppressWarnings("unchecked")
-                    List<String> list = (List<String>) obj;
-                    if (list != null) {
-                        ListIterator<String> iter = list.listIterator();
-                        while (iter.hasNext()) {
-                            iter.set(iter.next().toLowerCase());
-                        }
+            void convertToLowerCase(Object obj) {
+                @SuppressWarnings("unchecked")
+                List<String> list = (List<String>) obj;
+                if (list != null) {
+                    ListIterator<String> iter = list.listIterator();
+                    while (iter.hasNext()) {
+                        iter.set(iter.next().toLowerCase());
                     }
                 }
-            },
+            }
+        },
+        ROLE_MEMBER {
+            void convertToLowerCase(Object obj) {
+                @SuppressWarnings("unchecked")
+                List<RoleMember> list = (List<RoleMember>) obj;
+                if (list != null) {
+                    ListIterator<RoleMember> iter = list.listIterator();
+                    while (iter.hasNext()) {
+                        RoleMember roleMember = iter.next();
+                        iter.set(roleMember.setMemberName(roleMember.getMemberName().toLowerCase()));
+                    }
+                }
+            }
+        },
         MEMBERSHIP {
-                void convertToLowerCase(Object obj) {
-                    Membership membership = (Membership) obj;
-                    membership.setMemberName(membership.getMemberName().toLowerCase());
-                    if (membership.getRoleName() != null) {
-                        membership.setRoleName(membership.getRoleName().toLowerCase());
-                    }
+            void convertToLowerCase(Object obj) {
+                Membership membership = (Membership) obj;
+                membership.setMemberName(membership.getMemberName().toLowerCase());
+                if (membership.getRoleName() != null) {
+                    membership.setRoleName(membership.getRoleName().toLowerCase());
                 }
-            },
+            }
+        },
         POLICY {
-                void convertToLowerCase(Object obj) {
-                    Policy policy = (Policy) obj;
-                    policy.setName(policy.getName().toLowerCase());
-                    if (policy.getAssertions() != null) {
-                        for (Assertion assertion : policy.getAssertions()) {
-                            ASSERTION.convertToLowerCase(assertion);
-                        }
+            void convertToLowerCase(Object obj) {
+                Policy policy = (Policy) obj;
+                policy.setName(policy.getName().toLowerCase());
+                if (policy.getAssertions() != null) {
+                    for (Assertion assertion : policy.getAssertions()) {
+                        ASSERTION.convertToLowerCase(assertion);
                     }
                 }
-            },
+            }
+        },
         PROVIDER_RESOURCE_GROUP_ROLES {
-                void convertToLowerCase(Object obj) {
-                    ProviderResourceGroupRoles tenantRoles = (ProviderResourceGroupRoles) obj;
-                    tenantRoles.setDomain(tenantRoles.getDomain().toLowerCase());
-                    tenantRoles.setService(tenantRoles.getService().toLowerCase());
-                    tenantRoles.setTenant(tenantRoles.getTenant().toLowerCase());
-                    tenantRoles.setResourceGroup(tenantRoles.getResourceGroup().toLowerCase());
-                    if (tenantRoles.getRoles() != null) {
-                        for (TenantRoleAction roleAction : tenantRoles.getRoles()) {
-                            TENANT_ROLE_ACTION.convertToLowerCase(roleAction);
-                        }
+            void convertToLowerCase(Object obj) {
+                ProviderResourceGroupRoles tenantRoles = (ProviderResourceGroupRoles) obj;
+                tenantRoles.setDomain(tenantRoles.getDomain().toLowerCase());
+                tenantRoles.setService(tenantRoles.getService().toLowerCase());
+                tenantRoles.setTenant(tenantRoles.getTenant().toLowerCase());
+                tenantRoles.setResourceGroup(tenantRoles.getResourceGroup().toLowerCase());
+                if (tenantRoles.getRoles() != null) {
+                    for (TenantRoleAction roleAction : tenantRoles.getRoles()) {
+                        TENANT_ROLE_ACTION.convertToLowerCase(roleAction);
                     }
                 }
-            },
+            }
+        },
         PUBLIC_KEY_ENTRY {
-                void convertToLowerCase(Object obj) {
-                    PublicKeyEntry keyEntry = (PublicKeyEntry) obj;
-                    keyEntry.setId(keyEntry.getId().toLowerCase());
-                }
-            },
+            void convertToLowerCase(Object obj) {
+                PublicKeyEntry keyEntry = (PublicKeyEntry) obj;
+                keyEntry.setId(keyEntry.getId().toLowerCase());
+            }
+        },
         ROLE {
-                void convertToLowerCase(Object obj) {
-                    Role role = (Role) obj;
-                    role.setName(role.getName().toLowerCase());
-                    if (role.getTrust() != null) {
-                        role.setTrust(role.getTrust().toLowerCase());
-                    }
-                    LIST.convertToLowerCase(role.getMembers());
+            void convertToLowerCase(Object obj) {
+                Role role = (Role) obj;
+                role.setName(role.getName().toLowerCase());
+                if (role.getTrust() != null) {
+                    role.setTrust(role.getTrust().toLowerCase());
                 }
-            },
+                LIST.convertToLowerCase(role.getMembers());
+                ROLE_MEMBER.convertToLowerCase(role.getRoleMembers());
+            }
+        },
         SERVICE_IDENTITY {
-                void convertToLowerCase(Object obj) {
-                    ServiceIdentity service = (ServiceIdentity) obj;
-                    service.setName(service.getName().toLowerCase());
-                    LIST.convertToLowerCase(service.getHosts());
-                    if (service.getPublicKeys() != null) {
-                        for (PublicKeyEntry key : service.getPublicKeys()) {
-                            PUBLIC_KEY_ENTRY.convertToLowerCase(key);
-                        }
+            void convertToLowerCase(Object obj) {
+                ServiceIdentity service = (ServiceIdentity) obj;
+                service.setName(service.getName().toLowerCase());
+                LIST.convertToLowerCase(service.getHosts());
+                if (service.getPublicKeys() != null) {
+                    for (PublicKeyEntry key : service.getPublicKeys()) {
+                        PUBLIC_KEY_ENTRY.convertToLowerCase(key);
                     }
                 }
-            },
+            }
+        },
         SUB_DOMAIN {
-                void convertToLowerCase(Object obj) {
-                    SubDomain subdomain = (SubDomain) obj;
-                    subdomain.setName(subdomain.getName().toLowerCase());
-                    subdomain.setParent(subdomain.getParent().toLowerCase());
-                    LIST.convertToLowerCase(subdomain.getAdminUsers());
-                    DOMAIN_TEMPLATE_LIST.convertToLowerCase(subdomain.getTemplates());
-                }
-            },
+            void convertToLowerCase(Object obj) {
+                SubDomain subdomain = (SubDomain) obj;
+                subdomain.setName(subdomain.getName().toLowerCase());
+                subdomain.setParent(subdomain.getParent().toLowerCase());
+                LIST.convertToLowerCase(subdomain.getAdminUsers());
+                DOMAIN_TEMPLATE_LIST.convertToLowerCase(subdomain.getTemplates());
+            }
+        },
         TENANCY {
-                void convertToLowerCase(Object obj) {
-                    Tenancy tenancy = (Tenancy) obj;
-                    tenancy.setDomain(tenancy.getDomain().toLowerCase());
-                    tenancy.setService(tenancy.getService().toLowerCase());
-                    LIST.convertToLowerCase(tenancy.getResourceGroups());
-                }
-            },
+            void convertToLowerCase(Object obj) {
+                Tenancy tenancy = (Tenancy) obj;
+                tenancy.setDomain(tenancy.getDomain().toLowerCase());
+                tenancy.setService(tenancy.getService().toLowerCase());
+                LIST.convertToLowerCase(tenancy.getResourceGroups());
+            }
+        },
         TENANCY_RESOURCE_GROUP {
-                void convertToLowerCase(Object obj) {
-                    TenancyResourceGroup tenancyResourceGroup = (TenancyResourceGroup) obj;
-                    tenancyResourceGroup.setDomain(tenancyResourceGroup.getDomain().toLowerCase());
-                    tenancyResourceGroup.setService(tenancyResourceGroup.getService().toLowerCase());
-                    tenancyResourceGroup.setResourceGroup(tenancyResourceGroup.getResourceGroup().toLowerCase());
-                }
-            },
+            void convertToLowerCase(Object obj) {
+                TenancyResourceGroup tenancyResourceGroup = (TenancyResourceGroup) obj;
+                tenancyResourceGroup.setDomain(tenancyResourceGroup.getDomain().toLowerCase());
+                tenancyResourceGroup.setService(tenancyResourceGroup.getService().toLowerCase());
+                tenancyResourceGroup.setResourceGroup(tenancyResourceGroup.getResourceGroup().toLowerCase());
+            }
+        },
         TENANT_RESOURCE_GROUP_ROLES {
-                void convertToLowerCase(Object obj) {
-                    TenantResourceGroupRoles tenantRoles = (TenantResourceGroupRoles) obj;
-                    tenantRoles.setDomain(tenantRoles.getDomain().toLowerCase());
-                    tenantRoles.setService(tenantRoles.getService().toLowerCase());
-                    tenantRoles.setTenant(tenantRoles.getTenant().toLowerCase());
-                    tenantRoles.setResourceGroup(tenantRoles.getResourceGroup().toLowerCase());
-                    if (tenantRoles.getRoles() != null) {
-                        for (TenantRoleAction roleAction : tenantRoles.getRoles()) {
-                            TENANT_ROLE_ACTION.convertToLowerCase(roleAction);
-                        }
+            void convertToLowerCase(Object obj) {
+                TenantResourceGroupRoles tenantRoles = (TenantResourceGroupRoles) obj;
+                tenantRoles.setDomain(tenantRoles.getDomain().toLowerCase());
+                tenantRoles.setService(tenantRoles.getService().toLowerCase());
+                tenantRoles.setTenant(tenantRoles.getTenant().toLowerCase());
+                tenantRoles.setResourceGroup(tenantRoles.getResourceGroup().toLowerCase());
+                if (tenantRoles.getRoles() != null) {
+                    for (TenantRoleAction roleAction : tenantRoles.getRoles()) {
+                        TENANT_ROLE_ACTION.convertToLowerCase(roleAction);
                     }
                 }
-            },
+            }
+        },
         TENANT_ROLE_ACTION {
-                void convertToLowerCase(Object obj) {
-                    TenantRoleAction roleAction = (TenantRoleAction) obj;
-                    roleAction.setAction(roleAction.getAction().toLowerCase());
-                    roleAction.setRole(roleAction.getRole().toLowerCase());
-                }
-            },
+            void convertToLowerCase(Object obj) {
+                TenantRoleAction roleAction = (TenantRoleAction) obj;
+                roleAction.setAction(roleAction.getAction().toLowerCase());
+                roleAction.setRole(roleAction.getRole().toLowerCase());
+            }
+        },
         TENANT_ROLES {
-                void convertToLowerCase(Object obj) {
-                    TenantRoles tenantRoles = (TenantRoles) obj;
-                    tenantRoles.setDomain(tenantRoles.getDomain().toLowerCase());
-                    tenantRoles.setService(tenantRoles.getService().toLowerCase());
-                    tenantRoles.setTenant(tenantRoles.getTenant().toLowerCase());
-                    if (tenantRoles.getRoles() != null) {
-                        for (TenantRoleAction roleAction : tenantRoles.getRoles()) {
-                            TENANT_ROLE_ACTION.convertToLowerCase(roleAction);
-                        }
+            void convertToLowerCase(Object obj) {
+                TenantRoles tenantRoles = (TenantRoles) obj;
+                tenantRoles.setDomain(tenantRoles.getDomain().toLowerCase());
+                tenantRoles.setService(tenantRoles.getService().toLowerCase());
+                tenantRoles.setTenant(tenantRoles.getTenant().toLowerCase());
+                if (tenantRoles.getRoles() != null) {
+                    for (TenantRoleAction roleAction : tenantRoles.getRoles()) {
+                        TENANT_ROLE_ACTION.convertToLowerCase(roleAction);
                     }
                 }
-            },
+            }
+        },
         TOP_LEVEL_DOMAIN {
-                void convertToLowerCase(Object obj) {
-                    TopLevelDomain domain = (TopLevelDomain) obj;
-                    domain.setName(domain.getName().toLowerCase());
-                    LIST.convertToLowerCase(domain.getAdminUsers());
-                    DOMAIN_TEMPLATE_LIST.convertToLowerCase(domain.getTemplates());
-                }
-            },
+            void convertToLowerCase(Object obj) {
+                TopLevelDomain domain = (TopLevelDomain) obj;
+                domain.setName(domain.getName().toLowerCase());
+                LIST.convertToLowerCase(domain.getAdminUsers());
+                DOMAIN_TEMPLATE_LIST.convertToLowerCase(domain.getTemplates());
+            }
+        },
         USER_DOMAIN {
-                void convertToLowerCase(Object obj) {
-                    UserDomain userDomain = (UserDomain) obj;
-                    userDomain.setName(userDomain.getName().toLowerCase());
-                    DOMAIN_TEMPLATE_LIST.convertToLowerCase(userDomain.getTemplates());
-                }
-            };
+            void convertToLowerCase(Object obj) {
+                UserDomain userDomain = (UserDomain) obj;
+                userDomain.setName(userDomain.getName().toLowerCase());
+                DOMAIN_TEMPLATE_LIST.convertToLowerCase(userDomain.getTemplates());
+            }
+        };
             
         abstract void convertToLowerCase(Object obj);
     }
@@ -664,7 +678,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         
         long modTime = 0;
-        if (modifiedSince != null) {
+        if (modifiedSince != null && !modifiedSince.isEmpty()) {
             // we only support RFC1123 format for if-modified-since format
             
             SimpleDateFormat dateFmt = new SimpleDateFormat(ZMSConsts.HTTP_RFC1123_DATE_FORMAT);
@@ -2032,9 +2046,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return role;
     }
 
-    String getNormalizedMember(String member) {
+    RoleMember getNormalizedMember(RoleMember member) {
         
-        String[] yrnParts = member.split(":");
+        String[] yrnParts = member.getMemberName().split(":");
         if (yrnParts.length != 2) {
             return member;
         }
@@ -2044,35 +2058,51 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // user:hga will be replaced with user.hga
         // coretech:service.storage will be replaced with coretech.storage
         
-        String normalizedMember = member;
+        RoleMember normalizedMember = member;
         if (yrnParts[0].equalsIgnoreCase(userDomain)) {
-            normalizedMember = userDomainPrefix + yrnParts[1];
+            normalizedMember.setMemberName(userDomainPrefix + yrnParts[1]);
         } else if (yrnParts[1].startsWith(SERVICE_PREFIX)) {
-            normalizedMember = yrnParts[0] + yrnParts[1].substring(SERVICE_PREFIX.length() - 1);
+            normalizedMember.setMemberName(yrnParts[0] + yrnParts[1].substring(SERVICE_PREFIX.length() - 1));
         }
         
         return normalizedMember;
     }
     
+    private void addNormalizedRoleMember(Map<String, RoleMember> normalizedMembers,
+            RoleMember member) {
+        
+        RoleMember normalizedMember = getNormalizedMember(member);
+        
+        // we'll automatically ignore any duplicates
+        
+        if (!normalizedMembers.containsKey(normalizedMember.getMemberName())) {
+            normalizedMembers.put(normalizedMember.getMemberName(), normalizedMember);
+        }
+    }
+    
     void normalizeRoleMembers(Role role) {
         
+        Map<String, RoleMember> normalizedMembers = new HashMap<>();
+        
+        // normalize getMembers() first
+        
         List<String> members = role.getMembers();
-        if (members == null || members.size() == 0) {
-            return;
+        if (members != null) {
+            for (String memberOld : members) {
+                RoleMember member = new RoleMember().setMemberName(memberOld);
+                addNormalizedRoleMember(normalizedMembers, member);
+            }
         }
         
-        Set<String> normalizedMembers = new HashSet<>();
-        String normalizedMember = null;
-        for (String member : members) {
-            
-            normalizedMember = getNormalizedMember(member);
-
-            // we'll automatically ignore any duplicates
-            
-            normalizedMembers.add(normalizedMember);
+        // normalize getRoleMembers() now
+        
+        List<RoleMember> roleMembers = role.getRoleMembers();
+        if (roleMembers != null) {
+            for (RoleMember member : roleMembers) {
+                addNormalizedRoleMember(normalizedMembers, member);
+            }
         }
-         
-        role.setMembers(new ArrayList<String>(normalizedMembers));
+        role.setRoleMembers(new ArrayList<RoleMember>(normalizedMembers.values()));
         return;
     }
     
@@ -2137,20 +2167,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                         + role.getName(), caller);
             }
             
-            // if this is a delegated role then validate that it's not
-            // delegated back to itself and there are no members since
-            // those 2 fields are mutually exclusive
+            // validate role and trust settings are as expected
             
-            if (role.getTrust() != null && !role.getTrust().isEmpty()) {
-                
-                if (role.getMembers() != null && !role.getMembers().isEmpty()) {
-                    throw ZMSUtils.requestError("putRole: Role cannot have both members and delegated domain set", caller);
-                }
-                
-                if (domainName.equals(role.getTrust())) {
-                    throw ZMSUtils.requestError("putRole: Role cannot be delegated to itself", caller);
-                }
-            }
+            ZMSUtils.validateRoleMembers(role, caller, domainName);
             
             // normalize and remove duplicate members
             
@@ -2218,17 +2237,35 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return null;
     }
 
-    boolean isMemberOfRole(Role role, String member) {
+    boolean checkRoleMemberExpiration(List<RoleMember> roleMembers, String member) {
         
-        if (role.getMembers() == null) {
+        boolean isMember = false;
+        for (RoleMember memberInfo: roleMembers) {
+            String memberName = memberInfo.getMemberName();
+            Timestamp expiration = memberInfo.getExpiration();
+            if (memberName.equals(member)) {
+                // check expiration, if is not defined, its not expired.
+                if (expiration != null) {
+                    isMember = !(expiration.millis() < System.currentTimeMillis());
+                } else {
+                    isMember = true;
+                }
+                break;
+            }
+        }
+        return isMember;
+    }
+    
+    boolean isMemberOfRole(Role role, String member) {
+        List<RoleMember> roleMembers = role.getRoleMembers();
+        if (roleMembers == null) {
             return false;
         }
-        
-        Set<String> members = new HashSet<String>(role.getMembers());
-        return members.contains(member);
+        return checkRoleMemberExpiration(roleMembers, member);
     }
-
-    public Membership getMembership(ResourceContext ctx, String domainName, String roleName, String memberName) {
+    
+    public Membership getMembership(ResourceContext ctx, String domainName,
+            String roleName, String memberName) {
         
         final String caller = "getmembership";
         metric.increment(ZMSConsts.HTTP_GET);
@@ -2302,7 +2339,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             
             // add the member to the specified role
             
-            dbService.executePutMembership(ctx, domainName, roleName, getNormalizedMember(memberName), auditRef, caller);
+            RoleMember roleMember = new RoleMember();
+            roleMember.setMemberName(memberName);
+            roleMember.setExpiration(membership.getExpiration());
+
+            dbService.executePutMembership(ctx, domainName, roleName,
+                    getNormalizedMember(roleMember), auditRef, caller);
             metric.stopTiming(timerMetric);
 
         } catch (Exception exc) {
@@ -2348,7 +2390,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             
             verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
             
-            String normalizedMember = getNormalizedMember(memberName);
+            RoleMember roleMember = new RoleMember();
+            roleMember.setMemberName(memberName);
+            String normalizedMember = getNormalizedMember(roleMember).getMemberName();
             dbService.executeDeleteMembership(ctx, domainName, roleName, normalizedMember, auditRef, caller);
             metric.stopTiming(timerMetric);
 
@@ -2977,7 +3021,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // if we have members in the role then we're going to check
         // against that list only
         
-        if (role.getMembers() != null) {
+        if (role.getRoleMembers() != null) {
             return isMemberOfRole(role, fullUser);
         }
         
@@ -5984,8 +6028,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 if (LOG.isInfoEnabled()) {
                     LOG.info("Adding member: " + adminName + " to admin role for domain: " + domainName);
                 }
+                RoleMember roleMember = new RoleMember().setMemberName(adminName);
                 dbService.executePutMembership(ctx, domainName, ADMIN_ROLE_NAME,
-                        adminName, auditRef, caller);
+                        roleMember, auditRef, caller);
             }
         }
     }

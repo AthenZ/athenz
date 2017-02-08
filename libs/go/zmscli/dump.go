@@ -111,23 +111,30 @@ func (cli Zms) displayObjectName(buf *bytes.Buffer, yrn string, objType string, 
 
 func (cli Zms) dumpRole(buf *bytes.Buffer, role zms.Role, auditLog bool, indent1 string, indent2 string) {
 	cli.displayObjectName(buf, string(role.Name), ":role.", indent1)
-	if role.Members != nil && len(role.Members) > 0 {
+	if role.RoleMembers != nil && len(role.RoleMembers) > 0 {
 		buf.WriteString(indent2)
-		buf.WriteString("members: [")
-		cli.dumpUserName(buf, strings.Join(cli.createStringList(role.Members), ", "), true)
-		buf.WriteString("]\n")
-		if auditLog {
-			buf.WriteString(indent2)
-			buf.WriteString("changes: \n")
-			indent3_dash := indent2 + "  - "
-			indent3_dash_lvl := indent2 + "    "
-			for _, logItem := range role.AuditLog {
-				buf.WriteString(indent3_dash + "Action: " + logItem.Action + "\n")
-				buf.WriteString(indent3_dash_lvl + "Admin: " + string(logItem.Admin) + "\n")
-				buf.WriteString(indent3_dash_lvl + "Member: " + string(logItem.Member) + "\n")
-				buf.WriteString(indent3_dash_lvl + "Date: " + logItem.Created.String() + "\n")
-				buf.WriteString(indent3_dash_lvl + "Ref: " + logItem.AuditRef + "\n")
+		buf.WriteString("members:\n")
+		indent3 := indent2 + "  - "
+		for _, memberItem := range role.RoleMembers {
+			buf.WriteString(indent3)
+			cli.dumpUserName(buf, string(memberItem.MemberName), true)
+			if memberItem.Expiration != nil {
+				buf.WriteString(" " + memberItem.Expiration.String())
 			}
+			buf.WriteString("\n")
+		}
+	}
+	if auditLog {
+		buf.WriteString(indent2)
+		buf.WriteString("changes: \n")
+		indent3_dash := indent2 + "  - "
+		indent3_dash_lvl := indent2 + "    "
+		for _, logItem := range role.AuditLog {
+			buf.WriteString(indent3_dash + "Action: " + logItem.Action + "\n")
+			buf.WriteString(indent3_dash_lvl + "Admin: " + string(logItem.Admin) + "\n")
+			buf.WriteString(indent3_dash_lvl + "Member: " + string(logItem.Member) + "\n")
+			buf.WriteString(indent3_dash_lvl + "Date: " + logItem.Created.String() + "\n")
+			buf.WriteString(indent3_dash_lvl + "Ref: " + logItem.AuditRef + "\n")
 		}
 	}
 	if role.Trust != "" {
@@ -384,6 +391,9 @@ func (cli Zms) dumpRoleMembership(buf *bytes.Buffer, member zms.Membership) {
 	buf.WriteString(indent_level1_dash + "member: ")
 	cli.dumpUserName(buf, string(member.MemberName), true)
 	buf.WriteString("\n")
+	if member.Expiration != nil {
+		buf.WriteString(indent_level1_dash + "expiration: " + member.Expiration.String() + "\n")
+	}
 	buf.WriteString(indent_level1_dash_lvl + "result: " + strconv.FormatBool(*member.IsMember) + "\n")
 }
 

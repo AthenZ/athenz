@@ -393,8 +393,9 @@ public class DBService {
         curAssertions.addAll(matchedAssertions);
     }
     
-    boolean processRole(ObjectStoreConnection con, Role originalRole, String domainName, String roleName,
-            Role role, String admin, String auditRef, boolean ignoreDeletes, StringBuilder auditDetails) {
+    boolean processRole(ObjectStoreConnection con, Role originalRole, String domainName,
+            String roleName, Role role, String admin, String auditRef, boolean ignoreDeletes,
+            StringBuilder auditDetails) {
         
         // check to see if we need to insert the role or update it
         
@@ -419,57 +420,74 @@ public class DBService {
         // now we need process our role members depending this is
         // a new insert operation or an update
 
+        List<RoleMember> roleMembers = role.getRoleMembers();
+        
+        // support older clients which might send members field
+        // at this point, we expect either roleMembers or members,
+        // and we can't have both
+        
         List<String> members = role.getMembers();
+        if (members != null && !members.isEmpty()) {
+            roleMembers = ZMSUtils.convertMembersToRoleMembers(members);
+        }
+        
         if (originalRole == null) {
             
             // we are just going to process all members as new inserts
             
-            if (members != null) {
+            if (roleMembers != null) {
                 
-                for (String member : members) {
+                for (RoleMember member : roleMembers) {
                     if (!con.insertRoleMember(domainName, roleName, member, admin, auditRef)) {
                         return false;
                     }
                 }
-                auditLogStrings(auditDetails, "added-members", members);
+                auditLogRoleMembers(auditDetails, "added-members", roleMembers);
             }
-            
         } else {
-            
-            // first we need to retrieve the current set of members
-            
-            List<String> originalMembers = originalRole.getMembers();
-            if (originalMembers == null) {
-                originalMembers = new ArrayList<>();
-            }
-            Set<String> curMembers = new HashSet<>(originalMembers);
-            Set<String> delMembers = new HashSet<>(curMembers);
-            if (members == null) {
-                members = new ArrayList<>();
-            }
-            Set<String> newMembers = new HashSet<>(members);
-            newMembers.removeAll(curMembers);
-            delMembers.removeAll(members);
-            
-            if (!ignoreDeletes) {
-                for (String member : delMembers) {
-                    if (!con.deleteRoleMember(domainName, roleName, member, admin, auditRef)) {
-                        return false;
-                    }
-                }
-                auditLogStrings(auditDetails, "deleted-members", delMembers);
-            }
-            
-            for (String member : newMembers) {
-                if (!con.insertRoleMember(domainName, roleName, member, admin, auditRef)) {
-                    return false;
-                }
-            }
-            auditLogStrings(auditDetails, "added-members", newMembers);
-
+            processUpdateRoleMembers(con, originalRole, roleMembers, ignoreDeletes, 
+                    domainName, roleName, admin, auditRef, auditDetails);
         }
         
         auditDetails.append('}');
+        return true;
+    }
+    
+    private boolean processUpdateRoleMembers(ObjectStoreConnection con, Role originalRole,
+            List<RoleMember> roleMembers, boolean ignoreDeletes, String domainName,
+            String roleName, String admin, String auditRef, StringBuilder auditDetails) {
+
+        // first we need to retrieve the current set of members
+        
+        List<RoleMember> originalMembers = originalRole.getRoleMembers();
+        List<RoleMember> curMembers = (null == originalMembers) ? new ArrayList<>() : new ArrayList<>(originalMembers);
+        List<RoleMember> delMembers = new ArrayList<>(curMembers);
+        ArrayList<RoleMember> newMembers = (null == roleMembers) ? new ArrayList<>() : new ArrayList<>(roleMembers);
+        
+        // remove current members from new members
+        
+        ZMSUtils.removeMembers(newMembers, curMembers);
+        
+        // remove new members from current members
+        // which leaves the deleted members.
+        
+        ZMSUtils.removeMembers(delMembers, roleMembers);
+        
+        if (!ignoreDeletes) {
+            for (RoleMember member : delMembers) {
+                if (!con.deleteRoleMember(domainName, roleName, member.getMemberName(), admin, auditRef)) {
+                    return false;
+                }
+            }
+            auditLogRoleMembers(auditDetails, "deleted-members", delMembers);
+        }
+        
+        for (RoleMember member : newMembers) {
+            if (!con.insertRoleMember(domainName, roleName, member, admin, auditRef)) {
+                return false;
+            }
+        }
+        auditLogRoleMembers(auditDetails, "added-members", newMembers);
         return true;
     }
     
@@ -894,7 +912,7 @@ public class DBService {
     }
     
     void executePutMembership(ResourceContext ctx, String domainName, String roleName,
-            String normalizedMember, String auditRef, String caller) {
+            RoleMember roleMember, String auditRef, String caller) {
         
         int retryCount = defaultRetryCount;
         do {
@@ -916,11 +934,11 @@ public class DBService {
                 // process our insert role member support. since this is a "single"
                 // operation, we are not using any transactions.
                 
-                if (!con.insertRoleMember(domainName, roleName, normalizedMember,
+                if (!con.insertRoleMember(domainName, roleName, roleMember,
                         getPrincipalYrn(ctx), auditRef)) {
                     con.rollbackChanges();
                     throw ZMSUtils.requestError(caller + ": unable to insert role member: " +
-                            normalizedMember + " to role: " + roleName, caller);
+                            roleMember.getMemberName() + " to role: " + roleName, caller);
                 }
 
                 // update our role and domain time-stamps, and invalidate local cache entry
@@ -932,7 +950,7 @@ public class DBService {
                 // audit log the request
 
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-                auditDetails.append("{member: \"").append(normalizedMember).append("\"}");
+                auditDetails.append("{member: \"").append(roleMember.getMemberName()).append("\"}");
                 
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         roleName, auditDetails.toString());
@@ -951,8 +969,8 @@ public class DBService {
         } while (retryCount > 0);
     }
     
-    void executePutEntity(ResourceContext ctx, String domainName, String entityName, Entity entity,
-            String auditRef, String caller) {
+    void executePutEntity(ResourceContext ctx, String domainName, String entityName,
+            Entity entity, String auditRef, String caller) {
         
         int retryCount = defaultRetryCount;
         do {
@@ -977,7 +995,8 @@ public class DBService {
                 
                 if (!requestSuccess) {
                     con.rollbackChanges();
-                    throw ZMSUtils.internalServerError("unable to put entity: " + entity.getName(), caller);
+                    throw ZMSUtils.internalServerError("unable to put entity: "
+                            + entity.getName(), caller);
                 }
                 
                 // update our domain time-stamp and save changes
@@ -1016,9 +1035,10 @@ public class DBService {
                 // member in the role
                 
                 if (ZMSConsts.ADMIN_ROLE_NAME.equals(roleName)) {
-                    List<String> members = con.listRoleMembers(domainName, roleName);
-                    if (members.size() == 1 && members.get(0).equals(normalizedMember)) {
-                        throw ZMSUtils.forbiddenError(caller + ": Cannot delete last member of 'admin' role", caller);
+                    List<RoleMember> members = con.listRoleMembers(domainName, roleName);
+                    if (members.size() == 1 && members.get(0).getMemberName().equals(normalizedMember)) {
+                        throw ZMSUtils.forbiddenError(caller +
+                                ": Cannot delete last member of 'admin' role", caller);
                     }
                 }
                 
@@ -1362,7 +1382,16 @@ public class DBService {
     Membership getMembership(String domainName, String roleName, String principal) {
         
         try (ObjectStoreConnection con = store.getConnection(true)) {
-            return con.getRoleMember(domainName, roleName, principal);
+            Membership membership = con.getRoleMember(domainName, roleName, principal);
+            Timestamp expiration = membership.getExpiration();
+
+            //need to check expiration and set isMember if expired
+
+            if (expiration != null && expiration.millis() < System.currentTimeMillis()) {
+                membership.setIsMember(false);
+            }
+            
+            return membership;
         }
     }
     
@@ -1384,7 +1413,13 @@ public class DBService {
                 // if we have no trust field specified then we need to
                 // retrieve our standard group role members
                 
-                role.setMembers(con.listRoleMembers(domainName, roleName));
+                role.setRoleMembers(con.listRoleMembers(domainName, roleName));
+                
+                // still populate the members for old clients
+
+                role.setMembers(ZMSUtils.convertRoleMembersToMembers(
+                        role.getRoleMembers()));
+
                 if (auditLog != null && auditLog.booleanValue()) {
                     role.setAuditLog(con.listRoleAuditLogs(domainName, roleName));
                 }
@@ -1394,13 +1429,17 @@ public class DBService {
                 // otherwise, if asked, let's expand the delegated
                 // membership and return the list of members
                 
-                role.setMembers(getDelegatedRoleMembers(domainName, role.getTrust(), roleName));
+                role.setRoleMembers(getDelegatedRoleMembers(domainName, role.getTrust(), roleName));
+                
+                // still populate the members for old clients
+
+                role.setMembers(ZMSUtils.convertRoleMembersToMembers(role.getRoleMembers()));
             }
         }
         return role;
     }
     
-    List<String> getDelegatedRoleMembers(String domainName, String trustDomain, String roleName) {
+    List<RoleMember> getDelegatedRoleMembers(String domainName, String trustDomain, String roleName) {
         
         // verify that the domain and trust domain are not the same
         
@@ -1424,8 +1463,8 @@ public class DBService {
         // multiple assertions and we want to automatically
         // skip any duplicate members
         
-        Set<String> roleMembers = new HashSet<>();
-
+        Map<String, RoleMember> roleMembers = new HashMap<>();
+        
         // generate our full role name
         
         String fullRoleName = ZMSUtils.roleResourceName(domainName, roleName);
@@ -1451,7 +1490,7 @@ public class DBService {
                     
                     // make sure we have members before trying to match the name
                     
-                    List<String> members = role.getMembers();
+                    List<RoleMember> members = role.getRoleMembers();
                     if (members == null || members.isEmpty()) {
                         continue;
                     }
@@ -1460,12 +1499,17 @@ public class DBService {
                         continue;
                     }
                     
-                    roleMembers.addAll(role.getMembers());
+                    for (RoleMember member : members) {
+                        String memberName = member.getMemberName();
+                        if (!roleMembers.containsKey(memberName)) {
+                            roleMembers.put(memberName, member);
+                        }
+                    }
                 }
             }
         }
 
-        return new ArrayList<String>(roleMembers);
+        return new ArrayList<RoleMember>(roleMembers.values());
     }
     
     Policy getPolicy(String domainName, String policyName) {
@@ -1870,12 +1914,12 @@ public class DBService {
         Role templateRole = new Role()
                 .setName(ZMSUtils.roleResourceName(domainName, roleName))
                 .setTrust(role.getTrust());
-        List<String> roleMembers = role.getMembers();
-        List<String> newMembers = new ArrayList<>();
+        List<RoleMember> roleMembers = role.getRoleMembers();
+        List<RoleMember> newMembers = new ArrayList<>();
         if (roleMembers != null && !roleMembers.isEmpty()) {
             newMembers.addAll(roleMembers);
         }
-        templateRole.setMembers(newMembers);
+        templateRole.setRoleMembers(newMembers);
         return templateRole;
     }
     
@@ -2074,8 +2118,9 @@ public class DBService {
         } while (retryCount > 0);
     }
     
-    void addAssumeRolePolicy(ObjectStoreConnection con, String rolePrefix, String trustedRolePrefix, String role,
-            List<String> roleMembers, String tenantDomain, String admin, String auditRef,
+    void addAssumeRolePolicy(ObjectStoreConnection con, String rolePrefix,
+            String trustedRolePrefix, String role, List<RoleMember> roleMembers,
+            String tenantDomain, String admin, String auditRef,
             StringBuilder auditDetails, String caller) {
         
         // first create the role in the domain. We're going to create it
@@ -2090,13 +2135,13 @@ public class DBService {
 
         // we need to add the original role members to the new one
         
-        if (originalRole != null && originalRole.getMembers() != null) {
-            roleMembers.addAll(originalRole.getMembers());
+        if (originalRole != null && originalRole.getRoleMembers() != null) {
+            roleMembers.addAll(originalRole.getRoleMembers());
         }
         
         // now process the request
         
-        Role roleObj = new Role().setName(roleYRN).setMembers(roleMembers);
+        Role roleObj = new Role().setName(roleYRN).setRoleMembers(roleMembers);
         auditDetails.append("{role: ");
         if (!processRole(con, originalRole, tenantDomain, roleName, roleObj,
                 admin, auditRef, false, auditDetails)) {
@@ -2160,15 +2205,17 @@ public class DBService {
                 // based on its action and set the caller as a member in each role
                 
                 String principalYrn = getPrincipalYrn(ctx);
-                List<String> roleMembers = new ArrayList<>();
+                List<RoleMember> roleMembers = new ArrayList<>();
                 if (principalYrn != null) {
-                    roleMembers.add(principalYrn);
+                    RoleMember roleMember = new RoleMember();
+                    roleMember.setMemberName(principalYrn);
+                    roleMembers.add(roleMember);
                 }
                 
-                // now set up the roles and policies for    all the provider roles returned.
+                // now set up the roles and policies for all the provider roles returned.
                 
-                String rolePrefix = ZMSUtils.getProviderResourceGroupRolePrefix(provSvcDomain, provSvcName,
-                        resourceGroup);
+                String rolePrefix = ZMSUtils.getProviderResourceGroupRolePrefix(provSvcDomain,
+                        provSvcName, resourceGroup);
                 String trustedRolePrefix = ZMSUtils.getTrustedResourceGroupRolePrefix(provSvcDomain,
                         provSvcName, tenantDomain, resourceGroup);
                 
@@ -2464,14 +2511,35 @@ public class DBService {
         
         try (ObjectStoreConnection con = store.getConnection(true)) {
             athenzDomain = con.getAthenzDomain(domainName);
+            setMembersInDomain(athenzDomain);
         }
         
         if (athenzDomain != null) {
-            DataCache dataCache = new DataCache(athenzDomain, athenzDomain.getDomain().getModified().millis());
+            DataCache dataCache = new DataCache(athenzDomain,
+                    athenzDomain.getDomain().getModified().millis());
             cacheStore.put(domainName, dataCache);
         }
         
         return athenzDomain;
+    }
+    
+    private void setMembersInDomain(AthenzDomain athenzDomain) {
+        List<Role> roleList = athenzDomain.getRoles();
+        if (roleList != null) {
+            for (Role role: roleList) {
+                List<RoleMember> roleMembers = role.getRoleMembers();
+                if (roleMembers != null) {
+                    List<String> members = role.getMembers();
+                    if (members  == null) {
+                        members = new ArrayList<>();
+                        role.setMembers(members);
+                    }
+                    for (RoleMember roleMember: roleMembers) {
+                        members.add(roleMember.getMemberName());
+                    }
+                }
+            }
+        }
     }
     
     DomainModifiedList listModifiedDomains(long modifiedSince) {
@@ -2505,7 +2573,22 @@ public class DBService {
         return firstEntry;
     }
     
-    void auditLogPublicKeyEntries(StringBuilder auditDetails, String label, List<PublicKeyEntry> values) {
+    void auditLogRoleMembers(StringBuilder auditDetails, String label,
+            Collection<RoleMember> values) {
+        auditDetails.append(", ").append(label).append(": [");
+        boolean firstEntry = true;
+        for (RoleMember value : values) {
+            String entry = value.getMemberName();
+            if (value.getExpiration() != null) {
+                entry = entry + ":" + value.getExpiration().toString();
+            }
+            firstEntry = auditLogString(auditDetails, entry, firstEntry);
+        }
+        auditDetails.append(']');
+    }
+    
+    void auditLogPublicKeyEntries(StringBuilder auditDetails, String label,
+            List<PublicKeyEntry> values) {
         auditDetails.append(", ").append(label).append(": [");
         boolean firstEntry = true;
         for (PublicKeyEntry value : values) {

@@ -30,9 +30,12 @@ import com.yahoo.rdl.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.PosixFilePermission;
 import java.security.PrivateKey;
 import java.util.EnumSet;
@@ -41,6 +44,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -65,6 +69,7 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
     private static final String ATTR_TAG = "tag";
     private static final String LAST_MOD_FNAME = ".lastModTime";
     private static final String ATTR_LAST_MOD_TIME = "lastModTime";
+    private static final String FILE_EXT = ".json";
     
     private static final String ZTS_PROP_ZMS_URL_OVERRIDE = "athenz.zts.zms_url";
     
@@ -86,27 +91,7 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
         // setup our directory for storing domain files
         
         rootDir = new File(rootDirectory);
-        
-        if (!rootDir.exists()) {
-            if (!rootDir.mkdirs()) {
-                error("cannot create specified root: " + rootDirectory);
-            }
-        } else {
-            if (!rootDir.isDirectory()) {
-                error("specified root is not a directory: " + rootDirectory);
-            }
-        }
-        
-        // make sure only the user has access
-        
-        Path rootPath = rootDir.toPath();
-        Set<PosixFilePermission> perms = EnumSet.of(PosixFilePermission.OWNER_READ,
-                PosixFilePermission.OWNER_WRITE, PosixFilePermission.OWNER_EXECUTE);
-        try {
-            Files.setPosixFilePermissions(rootPath, perms);
-        } catch (IOException e) {
-            error("unable to set directory owner permissions: " + e.getMessage());
-        }
+        setupDomainDir(rootDir);
         
         // retrieve our last modification timestamp
         
@@ -123,6 +108,28 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
         }
     }
 
+    void setupDomainDir(File domainDir) {
+        
+        if (!domainDir.exists()) {
+            if (!domainDir.mkdirs()) {
+                error("cannot create specified root: " + domainDir.getAbsolutePath());
+            }
+        } else {
+            if (!domainDir.isDirectory()) {
+                error("specified root is not a directory: " + domainDir.getAbsolutePath());
+            }
+        }
+        
+        Path rootPath = domainDir.toPath();
+        Set<PosixFilePermission> perms = EnumSet.of(PosixFilePermission.OWNER_READ,
+                PosixFilePermission.OWNER_WRITE, PosixFilePermission.OWNER_EXECUTE);
+        try {
+            Files.setPosixFilePermissions(rootPath, perms);
+        } catch (IOException e) {
+            error("unable to set directory owner permissions: " + e.getMessage());
+        }
+    }
+    
     @Override
     public boolean supportsFullRefresh() {
         return true;
@@ -130,21 +137,23 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
 
     @Override
     public SignedDomain getSignedDomain(String domainName) {
-
-        return get(domainName, SignedDomain.class);
+        File file = getDomainFile(domainName);
+        return getData(file, SignedDomain.class);
     }
     
     @Override
     public void removeLocalDomain(String domainName) {
-        delete(domainName);
+        File file = getDomainFile(domainName);
+        delete(file);
     }
     
     @Override
     public void saveLocalDomain(String domainName, SignedDomain signedDomain) {
-        put(domainName, JSON.bytes(signedDomain));
+        File file = getDomainFile(domainName);
+        writeData(file, JSON.bytes(signedDomain));
     }
     
-    void setupDomainFile(File file) {
+    void setupFileOwnershp(File file) {
         
         try {
             new FileOutputStream(file).close();
@@ -155,13 +164,12 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
             Files.setPosixFilePermissions(path, perms);
         } catch (IOException ex) {
             ex.printStackTrace();
-            error("unable to setup domain file with permissions: " + ex.getMessage());
+            error("unable to setup file with owner permissions: " + ex.getMessage());
         }
     }
     
-    public synchronized <T> T get(String name, Class<T> classType) {
+    public synchronized <T> T getData(File file, Class<T> classType) {
 
-        File file = new File(rootDir, name);
         if (!file.exists()) {
             return null;
         }
@@ -169,16 +177,42 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
         try {
             return JSON.fromBytes(Files.readAllBytes(path), classType);
         } catch (IOException ex) {
-            LOGGER.error("Unable to retrieve domain file: {} error: {}", file.getPath(), ex.getMessage());
+            LOGGER.error("Unable to retrieve domain file: {} error: {}",
+                    file.getPath(), ex.getMessage());
         }
         return null;
     }
+    
+    File getDomainFile(String domainName) {
         
-    public synchronized void put(String name, byte[] data) {
+        // first we need to separate our domain name
+        // into components (parent and child). if the domain
+        // is a top level domain then we have nothing to
+        // do, otherwise, we're going to setup the directory
+        // path for all subdomains e.g.
+        // domain sys : path -> <rootDir>/sys.json
+        // domain sys.auth : path -> <rootDir>/sys/auth.json
+        // domain sys.auth.ci : path -> <rootDir>/sys/auth/ci.json
         
-        File file = new File(rootDir, name);
+        File file = null;
+        int idx;
+        if ((idx = domainName.lastIndexOf('.')) == -1) {
+            file = new File(rootDir, domainName + FILE_EXT);
+        } else {
+            final String domainParent = domainName.substring(0, idx)
+                    .replace('.', File.pathSeparatorChar);
+            File parent = new File(rootDir.getAbsolutePath() + File.pathSeparator + domainParent);
+            setupDomainDir(parent);
+            final String child = domainName.substring(idx + 1);
+            file = new File(parent, child + FILE_EXT);
+        }
+        return file;
+    }
+    
+    public synchronized void writeData(File file, byte[] data) {
+        
         if (!file.exists()) {
-            setupDomainFile(file);
+            setupFileOwnershp(file);
         }
         Path path = Paths.get(file.toURI());
         try {
@@ -189,8 +223,8 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
         }
     }
 
-    public synchronized void delete(String name) {
-        File file = new File(rootDir, name);
+    public synchronized void delete(File parentDir, String name) {
+        File file = new File(parentDir, name);
         if (!file.exists()) {
             return;
         }
@@ -201,25 +235,22 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
             error("Cannot delete file or directory: " + name + " : exc: " + exc);
         }
     }
+    
+    public synchronized void delete(String name) {
+        delete(rootDir, name);
+    }
 
     @Override
     public List<String> getLocalDomainList() {
-        return scan();
-    }
-    
-    List<String> scan() {
         
-        List<String> names = new ArrayList<String>();
-        for (String name : rootDir.list()) {
-            
-            // we are going to skip any hidden files
-            
-            if (name.charAt(0) != '.') {
-                names.add(name);
-            }
+        DomainFiles df = new DomainFiles(rootDir.getAbsolutePath());
+        try {
+            Files.walkFileTree(rootDir.toPath(), df);
+        } catch (IOException ex) {
+            LOGGER.error("Unable to retrieve list of local domains: " + ex.getMessage());
+            return Collections.emptyList();
         }
-        
-        return names;
+        return df.getDomains();
     }
     
     ZMSClient getZMSClient() {
@@ -255,7 +286,8 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
     }
     
     public String retrieveLastModificationTime() {
-        Struct lastModStruct = get(LAST_MOD_FNAME, Struct.class);
+        File file = new File(rootDir, LAST_MOD_FNAME);
+        Struct lastModStruct = getData(file, Struct.class);
         if (lastModStruct == null) {
             return null;
         }
@@ -274,7 +306,8 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
             
             Struct lastModStruct = new Struct();
             lastModStruct.put(ATTR_LAST_MOD_TIME, lastModTime);
-            put(LAST_MOD_FNAME, JSON.bytes(lastModStruct));
+            File file = new File(rootDir, LAST_MOD_FNAME);
+            writeData(file, JSON.bytes(lastModStruct));
         }
     }
     
@@ -344,5 +377,45 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
     static void error(String msg) {
         LOGGER.error(msg);
         throw new RuntimeException("ZMSFileChangeLogStore: " + msg);
+    }
+    
+    public static class DomainFiles extends SimpleFileVisitor<Path> {
+
+        List<String> domains = new ArrayList<>();
+        private String domainParent;
+        private String rootDir;
+        
+        public DomainFiles(String rootDir) {
+            this.rootDir = rootDir;
+        }
+        
+        @Override
+        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attr) {
+            final String domainDir = dir.toString().substring(rootDir.length());
+            domainParent = domainDir.replace(File.pathSeparatorChar, '.');
+            if (!domainParent.isEmpty() && domainParent.charAt(0) == '.') {
+                domainParent = domainParent.substring(1);
+            }
+            return FileVisitResult.CONTINUE;
+        }
+        
+        @Override
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attr) {
+            if (attr.isRegularFile()) {
+                final String fileName = file.toFile().getName();
+                if (fileName.endsWith(FILE_EXT)) {
+                    String domain = fileName.substring(0, fileName.length() - FILE_EXT.length());
+                    if (!domainParent.isEmpty()) {
+                        domain = domainParent + "." + domain;
+                    }
+                    domains.add(domain);
+                }
+            }
+            return FileVisitResult.CONTINUE;
+        }
+        
+        public List<String> getDomains() {
+            return domains;
+        }
     }
 }
