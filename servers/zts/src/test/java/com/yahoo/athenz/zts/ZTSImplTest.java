@@ -68,6 +68,7 @@ import com.yahoo.athenz.zms.AssertionEffect;
 import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zms.Policy;
 import com.yahoo.athenz.zms.Role;
+import com.yahoo.athenz.zms.RoleMember;
 import com.yahoo.athenz.zms.ServiceIdentity;
 import com.yahoo.athenz.zms.SignedDomain;
 import com.yahoo.athenz.zts.ZTSAuthorizer.AccessStatus;
@@ -218,22 +219,22 @@ public class ZTSImplTest {
     public static Role createRoleObject(String domainName, String roleName,
             String trust, String member1, String member2) {
 
-        List<String> members = new ArrayList<String>();
+        List<RoleMember> members = new ArrayList<>();
         if (member1 != null) {
-            members.add(member1);
+            members.add(new RoleMember().setMemberName(member1));
         }
         if (member2 != null) {
-            members.add(member2);
+            members.add(new RoleMember().setMemberName(member2));
         }
         return createRoleObject(domainName, roleName, trust, members);
     }
 
     public static Role createRoleObject(String domainName, String roleName,
-            String trust, List<String> members) {
+            String trust, List<RoleMember> members) {
         
         Role role = new Role();
         role.setName(domainName + ":role." + roleName);
-        role.setMembers(members);
+        role.setRoleMembers(members);
         if (trust != null) {
             role.setTrust(trust);
         }
@@ -376,21 +377,21 @@ public class ZTSImplTest {
     private SignedDomain createSignedDomain(String domainName, String tenantDomain,
             String serviceName, boolean includeServices) {
         
-        List<String> writers = new ArrayList<>();
-        writers.add("user_domain.user");
-        writers.add("user_domain.user1");
+        List<RoleMember> writers = new ArrayList<>();
+        writers.add(new RoleMember().setMemberName("user_domain.user"));
+        writers.add(new RoleMember().setMemberName("user_domain.user1"));
         
-        List<String> readers = new ArrayList<>();
-        readers.add("user_domain.user3");
-        readers.add("user_domain.user4");
-        readers.add("user_domain.user1");
+        List<RoleMember> readers = new ArrayList<>();
+        readers.add(new RoleMember().setMemberName("user_domain.user3"));
+        readers.add(new RoleMember().setMemberName("user_domain.user4"));
+        readers.add(new RoleMember().setMemberName("user_domain.user1"));
         
         return createSignedDomain(domainName, tenantDomain, serviceName, writers,
                 readers, includeServices);
     }
     
     private SignedDomain createSignedDomain(String domainName, String tenantDomain,
-            String serviceName, List<String> writers, List<String> readers,
+            String serviceName, List<RoleMember> writers, List<RoleMember> readers,
             boolean includeServices) {
         
         SignedDomain signedDomain = new SignedDomain();
@@ -399,19 +400,19 @@ public class ZTSImplTest {
 
         Role role = new Role();
         role.setName(generateRoleName(domainName, "admin"));
-        List<String> members = new ArrayList<>();
-        members.add("user_domain.adminuser");
-        role.setMembers(members);
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.adminuser"));
+        role.setRoleMembers(members);
         roles.add(role);
         
         role = new Role();
         role.setName(generateRoleName(domainName, "writers"));
-        role.setMembers(writers);
+        role.setRoleMembers(writers);
         roles.add(role);
         
         role = new Role();
         role.setName(generateRoleName(domainName, "readers"));
-        role.setMembers(readers);
+        role.setRoleMembers(readers);
         roles.add(role);
         
         role = new Role();
@@ -503,6 +504,61 @@ public class ZTSImplTest {
         return signedDomain;
     }
     
+    private SignedDomain createSignedDomainExpiration(String domainName, String serviceName) {
+        SignedDomain signedDomain = new SignedDomain();
+
+        List<Role> roles = new ArrayList<>();
+        String memberName = "user_domain.user1";
+        Role role = new Role();
+        role.setName(generateRoleName(domainName, "admin"));
+        List<RoleMember> members = new ArrayList<RoleMember>();
+        RoleMember roleMember = new RoleMember();
+        roleMember.setMemberName("user_domain.adminuser");
+        members.add(roleMember);
+        role.setRoleMembers(members);
+        roles.add(role);
+        
+        role = new Role();
+        role.setName(generateRoleName(domainName, "role1"));
+        members = new ArrayList<RoleMember>();
+        roleMember = new RoleMember();
+        roleMember.setMemberName(memberName);
+        roleMember.setExpiration(Timestamp.fromMillis(System.currentTimeMillis() - 100));
+        members.add(roleMember);
+        role.setRoleMembers(members);
+        roles.add(role);
+        
+        role = new Role();
+        role.setName(generateRoleName(domainName, "role2"));
+        members = new ArrayList<RoleMember>();
+        roleMember = new RoleMember();
+        roleMember.setMemberName(memberName);
+        roleMember.setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(1)));
+        members.add(roleMember);
+        role.setRoleMembers(members);
+        roles.add(role);
+
+        List<ServiceIdentity> services = new ArrayList<>();
+
+        ServiceIdentity service = new ServiceIdentity();
+        service.setName(generateServiceIdentityName(domainName, serviceName));
+        setServicePublicKey(service, "0", ZTS_Y64_CERT0);
+        services.add(service);
+
+        DomainData domain = new DomainData();
+        domain.setName(domainName);
+        domain.setRoles(roles);
+        domain.setServices(services);
+        domain.setModified(Timestamp.fromCurrentTime());
+
+        signedDomain.setDomain(domain);
+
+        signedDomain.setSignature(Crypto.sign(SignUtils.asCanonicalString(domain), privateKey));
+        signedDomain.setKeyId("0");
+
+        return signedDomain;
+    }
+
     private SignedDomain createMultipleSignedDomains(String domainName, String tenantDomain1,
             String tenantDomain2, String serviceName, boolean includeServices) {
         
@@ -512,9 +568,9 @@ public class ZTSImplTest {
 
         Role role = new Role();
         role.setName(generateRoleName(domainName, "admin"));
-        List<String> members = new ArrayList<>();
-        members.add("user_domain.adminuser");
-        role.setMembers(members);
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.adminuser"));
+        role.setRoleMembers(members);
         roles.add(role);
         
         role = new Role();
@@ -604,25 +660,25 @@ public class ZTSImplTest {
 
         Role role = new Role();
         role.setName(generateRoleName(domainName, "admin"));
-        List<String> members = new ArrayList<>();
-        members.add("user_domain.user");
-        role.setMembers(members);
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user"));
+        role.setRoleMembers(members);
         roles.add(role);
         
         role = new Role();
         role.setName(generateRoleName(domainName, "tenancy." + providerDomain + "." + providerService + ".admin"));
         members = new ArrayList<>();
-        members.add("user_domain.user100");
-        members.add("user_domain.user101");
-        role.setMembers(members);
+        members.add(new RoleMember().setMemberName("user_domain.user100"));
+        members.add(new RoleMember().setMemberName("user_domain.user101"));
+        role.setRoleMembers(members);
         roles.add(role);
         
         role = new Role();
         role.setName(generateRoleName(domainName, "readers"));
         members = new ArrayList<>();
-        members.add("user_domain.user100");
-        members.add("user_domain.user101");
-        role.setMembers(members);
+        members.add(new RoleMember().setMemberName("user_domain.user100"));
+        members.add(new RoleMember().setMemberName("user_domain.user101"));
+        role.setRoleMembers(members);
         roles.add(role);
         
         ServiceIdentity service = new ServiceIdentity();
@@ -695,9 +751,9 @@ public class ZTSImplTest {
 
         Role role = new Role();
         role.setName(generateRoleName(domainName, "superusers"));
-        List<String> members = new ArrayList<>();
-        members.add("user_domain.admin_user");
-        role.setMembers(members);
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.admin_user"));
+        role.setRoleMembers(members);
         roles.add(role);
         
         role = new Role();
@@ -781,9 +837,9 @@ public class ZTSImplTest {
 
         Role role = new Role();
         role.setName(generateRoleName(domainName, "superusers"));
-        List<String> members = new ArrayList<>();
-        members.add("user_domain.siteops_user_1");
-        role.setMembers(members);
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.siteops_user_1"));
+        role.setRoleMembers(members);
         roles.add(role);
         
         role = new Role();
@@ -860,17 +916,17 @@ public class ZTSImplTest {
 
         Role role = new Role();
         role.setName(generateRoleName(domainName, "admin"));
-        List<String> members = new ArrayList<>();
-        members.add("user_domain.user");
-        role.setMembers(members);
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user"));
+        role.setRoleMembers(members);
         roles.add(role);
         
         role = new Role();
         role.setName(generateRoleName(domainName, "aws_role"));
         members = new ArrayList<>();
-        members.add("user_domain.user100");
-        members.add("user_domain.user101");
-        role.setMembers(members);
+        members.add(new RoleMember().setMemberName("user_domain.user100"));
+        members.add(new RoleMember().setMemberName("user_domain.user101"));
+        role.setRoleMembers(members);
         roles.add(role);
         
         List<com.yahoo.athenz.zms.Policy> policies = new ArrayList<>();
@@ -1211,6 +1267,24 @@ public class ZTSImplTest {
     }
     
     @Test
+    public void testGetRoleTokenExpire() {
+        
+        SignedDomain signedDomain = createSignedDomainExpiration("coretech-expire", "weather");
+        store.processDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        RoleToken roleToken = zts.getRoleToken(context, "coretech-expire",
+                null, Integer.valueOf(600), Integer.valueOf(1200), null);
+        com.yahoo.athenz.auth.token.RoleToken token =
+                new com.yahoo.athenz.auth.token.RoleToken(roleToken.getToken());
+        assertTrue(token.getRoles().contains("role2"));
+        assertFalse(token.getRoles().contains("role1"));
+    }
+    
+    @Test
     public void testGetRoleTokenEmptyArguments() {
         
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
@@ -1423,13 +1497,13 @@ public class ZTSImplTest {
     @Test
     public void testGetRoleTokenProxyUser() {
         
-        List<String> writers = new ArrayList<>();
-        writers.add("user_domain.proxy-user1");
-        writers.add("user_domain.joe");
+        List<RoleMember> writers = new ArrayList<>();
+        writers.add(new RoleMember().setMemberName("user_domain.proxy-user1"));
+        writers.add(new RoleMember().setMemberName("user_domain.joe"));
         
-        List<String> readers = new ArrayList<>();
-        readers.add("user_domain.proxy-user2");
-        readers.add("user_domain.jane");
+        List<RoleMember> readers = new ArrayList<>();
+        readers.add(new RoleMember().setMemberName("user_domain.proxy-user2"));
+        readers.add(new RoleMember().setMemberName("user_domain.jane"));
         
         SignedDomain signedDomain = createSignedDomain("coretech-proxy2", "weather-proxy2", "storage",
                 writers, readers, true);
@@ -1471,14 +1545,14 @@ public class ZTSImplTest {
     @Test
     public void testGetRoleTokenProxyUserMismatchRoles() {
         
-        List<String> writers = new ArrayList<>();
-        writers.add("user_domain.proxy-user1");
-        writers.add("user_domain.joe");
+        List<RoleMember> writers = new ArrayList<>();
+        writers.add(new RoleMember().setMemberName("user_domain.proxy-user1"));
+        writers.add(new RoleMember().setMemberName("user_domain.joe"));
         
-        List<String> readers = new ArrayList<>();
-        readers.add("user_domain.proxy-user2");
-        readers.add("user_domain.jane");
-        readers.add("user_domain.proxy-user1");
+        List<RoleMember> readers = new ArrayList<>();
+        readers.add(new RoleMember().setMemberName("user_domain.proxy-user2"));
+        readers.add(new RoleMember().setMemberName("user_domain.jane"));
+        readers.add(new RoleMember().setMemberName("user_domain.proxy-user1"));
 
         SignedDomain signedDomain = createSignedDomain("coretech-proxy3", "weather-proxy3", "storage",
                 writers, readers, true);
@@ -1500,14 +1574,14 @@ public class ZTSImplTest {
     @Test
     public void testGetRoleTokenProxyUserSpecificRole() {
         
-        List<String> writers = new ArrayList<>();
-        writers.add("user_domain.proxy-user1");
-        writers.add("user_domain.joe");
+        List<RoleMember> writers = new ArrayList<>();
+        writers.add(new RoleMember().setMemberName("user_domain.proxy-user1"));
+        writers.add(new RoleMember().setMemberName("user_domain.joe"));
         
-        List<String> readers = new ArrayList<>();
-        readers.add("user_domain.proxy-user2");
-        readers.add("user_domain.jane");
-        readers.add("user_domain.proxy-user1");
+        List<RoleMember> readers = new ArrayList<>();
+        readers.add(new RoleMember().setMemberName("user_domain.proxy-user2"));
+        readers.add(new RoleMember().setMemberName("user_domain.jane"));
+        readers.add(new RoleMember().setMemberName("user_domain.proxy-user1"));
         
         SignedDomain signedDomain = createSignedDomain("coretech-proxy4", "weather-proxy4", "storage",
                 writers, readers, true);

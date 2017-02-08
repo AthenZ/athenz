@@ -43,12 +43,14 @@ import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zms.Role;
+import com.yahoo.athenz.zms.RoleMember;
 import com.yahoo.athenz.zms.ServiceIdentity;
 import com.yahoo.athenz.zms.SignedDomain;
 import com.yahoo.athenz.zms.SignedDomains;
 import com.yahoo.athenz.zts.HostServices;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.cache.DataCache;
+import com.yahoo.athenz.zts.cache.MemberRole;
 import com.yahoo.athenz.zts.store.DataStore.DataUpdater;
 import com.yahoo.athenz.zts.store.file.MockZMSFileChangeLogStore;
 import com.yahoo.athenz.zts.store.file.ZMSFileChangeLogStore;
@@ -927,9 +929,9 @@ public class DataStoreTest {
         
         Role role = new Role();
         role.setName("coretech:role.admin");
-        List<String> members = new ArrayList<>();
-        members.add("user_domain.user");
-        role.setMembers(members);
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user"));
+        role.setRoleMembers(members);
 
         List<Role> roles = new ArrayList<>();
         roles.add(role);
@@ -943,8 +945,8 @@ public class DataStoreTest {
         assertNotNull(domain);
         assertEquals(domain.getRoles().size(), 1);
         assertEquals(domain.getRoles().get(0).getName(), "coretech:role.admin");
-        assertEquals(domain.getRoles().get(0).getMembers().size(), 1);
-        assertTrue(domain.getRoles().get(0).getMembers().contains("user_domain.user"));
+        assertEquals(domain.getRoles().get(0).getRoleMembers().size(), 1);
+        assertEquals(domain.getRoles().get(0).getRoleMembers().get(0).getMemberName(), "user_domain.user");
     }
     
     @Test
@@ -957,9 +959,9 @@ public class DataStoreTest {
         
         Role role = new Role();
         role.setName("coretech:role.admin");
-        List<String> members = new ArrayList<>();
-        members.add("user_domain.user");
-        role.setMembers(members);
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user"));
+        role.setRoleMembers(members);
 
         List<Role> roles = new ArrayList<>();
         roles.add(role);
@@ -975,9 +977,9 @@ public class DataStoreTest {
         role = new Role();
         role.setName("coretech:role.admin");
         members = new ArrayList<>();
-        members.add("user_domain.user1");
-        members.add("user_domain.user2");
-        role.setMembers(members);
+        members.add(new RoleMember().setMemberName("user_domain.user1"));
+        members.add(new RoleMember().setMemberName("user_domain.user2"));
+        role.setRoleMembers(members);
 
         roles = new ArrayList<>();
         roles.add(role);
@@ -993,9 +995,21 @@ public class DataStoreTest {
         assertNotNull(domain);
         assertEquals(domain.getRoles().size(), 1);
         assertEquals(domain.getRoles().get(0).getName(), "coretech:role.admin");
-        assertEquals(domain.getRoles().get(0).getMembers().size(), 2);
-        assertTrue(domain.getRoles().get(0).getMembers().contains("user_domain.user1"));
-        assertTrue(domain.getRoles().get(0).getMembers().contains("user_domain.user2"));
+        assertEquals(domain.getRoles().get(0).getRoleMembers().size(), 2);
+        boolean user1 = false;
+        boolean user2 = false;
+        for (RoleMember member : domain.getRoles().get(0).getRoleMembers()) {
+            switch (member.getMemberName()) {
+                case "user_domain.user1":
+                    user1 = true;
+                    break;
+                case "user_domain.user2":
+                    user2 = true;
+                    break;
+            }
+        }
+        assertTrue(user1);
+        assertTrue(user2);
     }
     
     @Test
@@ -1521,9 +1535,9 @@ public class DataStoreTest {
         List<Role> roles = new ArrayList<>();
         Role role = new Role();
         role.setName("coretech:role.admin");
-        List<String> members = new ArrayList<>();
-        members.add("user_domain.user");
-        role.setMembers(members);
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user"));
+        role.setRoleMembers(members);
         
         DomainData domainData = new DomainData();
         domainData.setName("coretech");
@@ -1628,9 +1642,9 @@ public class DataStoreTest {
         List<Role> roles = new ArrayList<>();
         Role role = new Role();
         role.setName("coretech:role.admin");
-        List<String> members = new ArrayList<>();
-        members.add("user_domain.user");
-        role.setMembers(members);
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user"));
+        role.setRoleMembers(members);
         
         DomainData domainData = new DomainData();
         domainData.setName("coretech");
@@ -1720,9 +1734,9 @@ public class DataStoreTest {
         List<Role> roles = new ArrayList<>();
         Role role = new Role();
         role.setName("coretech:role.admin");
-        List<String> members = new ArrayList<>();
-        members.add("user_domain.user");
-        role.setMembers(members);
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user"));
+        role.setRoleMembers(members);
         
         DomainData domain = new DomainData();
         domain.setRoles(roles);
@@ -1746,9 +1760,9 @@ public class DataStoreTest {
         List<Role> roles = new ArrayList<>();
         Role role = new Role();
         role.setName("coretech:role.admin");
-        List<String> members = new ArrayList<>();
-        members.add("user_domain.user");
-        role.setMembers(members);
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user"));
+        role.setRoleMembers(members);
         
         DomainData domain = new DomainData();
         domain.setRoles(roles);
@@ -1772,9 +1786,9 @@ public class DataStoreTest {
         List<Role> roles = new ArrayList<>();
         Role role = new Role();
         role.setName("coretech:role.admin");
-        List<String> members = new ArrayList<>();
-        members.add("user_domain.user");
-        role.setMembers(members);
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user"));
+        role.setRoleMembers(members);
         roles.add(role);
         
         DomainData domain = new DomainData();
@@ -1804,9 +1818,9 @@ public class DataStoreTest {
         
         Role role = new Role();
         role.setName(domainName + ":role.admin");
-        List<String> members = new ArrayList<>();
-        members.add("user_domain.user");
-        role.setMembers(members);
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user"));
+        role.setRoleMembers(members);
 
         List<Role> roles = new ArrayList<>();
         roles.add(role);
@@ -2075,9 +2089,9 @@ public class DataStoreTest {
 
         Role role = new Role();
         role.setName("coretech:role.admin");
-        List<String> members = new ArrayList<>();
-        members.add("user_domain.user8");
-        role.setMembers(members);
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user8"));
+        role.setRoleMembers(members);
         
         List<Role> roles = new ArrayList<>();
         roles.add(role);
@@ -2179,16 +2193,16 @@ public class DataStoreTest {
         
         Role role = new Role();
         role.setName("coretech:role.admin");
-        List<String> members = new ArrayList<>();
-        members.add("user_domain.user");
-        role.setMembers(members);
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user"));
+        role.setRoleMembers(members);
         roles.add(role);
         
         role = new Role();
         role.setName("coretech:role.readers");
         members = new ArrayList<>();
-        members.add("user_domain.user");
-        role.setMembers(members);
+        members.add(new RoleMember().setMemberName("user_domain.user"));
+        role.setRoleMembers(members);
         roles.add(role);
         
         DomainData domainData = new DomainData();
@@ -2201,8 +2215,10 @@ public class DataStoreTest {
         store.processDomainRoles(domainData, dataCache);
         assertEquals(dataCache.getMemberRoleSet("user_domain.user").size(), 2);
         
-        assertTrue(dataCache.getMemberRoleSet("user_domain.user").contains("coretech:role.admin"));
-        assertTrue(dataCache.getMemberRoleSet("user_domain.user").contains("coretech:role.readers"));
+        assertTrue(dataCache.getMemberRoleSet("user_domain.user")
+                .contains(new MemberRole("coretech:role.admin", 0)));
+        assertTrue(dataCache.getMemberRoleSet("user_domain.user")
+                .contains(new MemberRole("coretech:role.readers", 0)));
     }
     
     @Test
@@ -2247,16 +2263,16 @@ public class DataStoreTest {
         
         Role role = new Role();
         role.setName("coretech:role.admin");
-        List<String> members = new ArrayList<>();
-        members.add("user_domain.user");
-        role.setMembers(members);
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user"));
+        role.setRoleMembers(members);
         roles.add(role);
         
         role = new Role();
         role.setName("coretech:role.readers");
         members = new ArrayList<>();
-        members.add("user_domain.user");
-        role.setMembers(members);
+        members.add(new RoleMember().setMemberName("user_domain.user"));
+        role.setRoleMembers(members);
         roles.add(role);
         
         com.yahoo.athenz.zms.DomainPolicies domainPolicies = new com.yahoo.athenz.zms.DomainPolicies();
@@ -2278,8 +2294,10 @@ public class DataStoreTest {
         
         store.processDomainRoles(domainData, dataCache);
         assertEquals(dataCache.getMemberRoleSet("user_domain.user").size(), 2);
-        assertTrue(dataCache.getMemberRoleSet("user_domain.user").contains("coretech:role.admin"));
-        assertTrue(dataCache.getMemberRoleSet("user_domain.user").contains("coretech:role.readers"));
+        assertTrue(dataCache.getMemberRoleSet("user_domain.user")
+                .contains(new MemberRole("coretech:role.admin", 0)));
+        assertTrue(dataCache.getMemberRoleSet("user_domain.user")
+                .contains(new MemberRole("coretech:role.readers", 0)));
     }
     
     @Test
@@ -2357,25 +2375,25 @@ public class DataStoreTest {
 
         Role role = new Role();
         role.setName(domainName + ":role.admin");
-        List<String> members = new ArrayList<>();
-        members.add("user_domain.user");
-        role.setMembers(members);
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user"));
+        role.setRoleMembers(members);
         roles.add(role);
         
         role = new Role();
         role.setName(domainName + ":role.writers");
         members = new ArrayList<>();
-        members.add("user_domain.user");
-        members.add("user_domain.user1");
-        role.setMembers(members);
+        members.add(new RoleMember().setMemberName("user_domain.user"));
+        members.add(new RoleMember().setMemberName("user_domain.user1"));
+        role.setRoleMembers(members);
         roles.add(role);
         
         role = new Role();
         role.setName(domainName + ":role.readers");
         members = new ArrayList<>();
-        members.add("user_domain.user3");
-        members.add("user_domain.user4");
-        role.setMembers(members);
+        members.add(new RoleMember().setMemberName("user_domain.user3"));
+        members.add(new RoleMember().setMemberName("user_domain.user4"));
+        role.setRoleMembers(members);
         roles.add(role);
         
         role = new Role();
@@ -2440,17 +2458,17 @@ public class DataStoreTest {
 
         Role role = new Role();
         role.setName(domainName + ":role.admin");
-        List<String> members = new ArrayList<>();
-        members.add("user_domain.user");
-        role.setMembers(members);
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user"));
+        role.setRoleMembers(members);
         roles.add(role);
         
         role = new Role();
         role.setName(domainName + ":role.readers");
         members = new ArrayList<>();
-        members.add("user_domain.user100");
-        members.add("user_domain.user101");
-        role.setMembers(members);
+        members.add(new RoleMember().setMemberName("user_domain.user100"));
+        members.add(new RoleMember().setMemberName("user_domain.user101"));
+        role.setRoleMembers(members);
         roles.add(role);
         
         List<com.yahoo.athenz.zms.Policy> policies = new ArrayList<>();
@@ -2752,18 +2770,18 @@ public class DataStoreTest {
         
         Role role = new Role();
         role.setName(domainName + ":role.admin");
-        List<String> members = new ArrayList<>();
-        members.add("user_domain.user1");
-        role.setMembers(members);
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user1"));
+        role.setRoleMembers(members);
         roles.add(role);
         dataCache.processRole(role);
         
         role = new Role();
         role.setName(domainName + ":role.readers");
         members = new ArrayList<>();
-        members.add("user_domain.user1");
-        members.add("user_domain.user2");
-        role.setMembers(members);
+        members.add(new RoleMember().setMemberName("user_domain.user1"));
+        members.add(new RoleMember().setMemberName("user_domain.user2"));
+        role.setRoleMembers(members);
         roles.add(role);
         dataCache.processRole(role);
         
@@ -2942,9 +2960,9 @@ public class DataStoreTest {
         List<String> accessibleRoles = new ArrayList<>();
         String prefix = "coretech" + ROLE_POSTFIX;
         
-        Set<String> memberRoles = new HashSet<>();
-        memberRoles.add("coretech:role.admin");
-        memberRoles.add("coretech:role.readers");
+        Set<MemberRole> memberRoles = new HashSet<>();
+        memberRoles.add(new MemberRole("coretech:role.admin", 0));
+        memberRoles.add(new MemberRole("coretech:role.readers", 0));
         
         store.processStandardMembership(memberRoles, prefix, null, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 2);
@@ -2963,9 +2981,9 @@ public class DataStoreTest {
         String prefix = "coretech" + ROLE_POSTFIX;
         String roleCheck = "coretech:role.admin";
         
-        Set<String> memberRoles = new HashSet<>();
-        memberRoles.add("coretech:role.admin");
-        memberRoles.add("coretech:role.readers");
+        Set<MemberRole> memberRoles = new HashSet<>();
+        memberRoles.add(new MemberRole("coretech:role.admin", 0));
+        memberRoles.add(new MemberRole("coretech:role.readers", 0));
         
         store.processStandardMembership(memberRoles, prefix, roleCheck, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 1);
@@ -2982,9 +3000,9 @@ public class DataStoreTest {
         String prefix = "coretech" + ROLE_POSTFIX;
         String roleCheck = "admin";
         
-        Set<String> memberRoles = new HashSet<>();
-        memberRoles.add("coretech:role.admin");
-        memberRoles.add("coretech:role.readers");
+        Set<MemberRole> memberRoles = new HashSet<>();
+        memberRoles.add(new MemberRole("coretech:role.admin", 0));
+        memberRoles.add(new MemberRole("coretech:role.readers", 0));
         
         store.processStandardMembership(memberRoles, prefix, roleCheck, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 1);
@@ -3000,9 +3018,9 @@ public class DataStoreTest {
         String prefix = "coretech2" + ROLE_POSTFIX; /* invalid prefix causing no match */
         String roleCheck = "coretech:role.admin";
         
-        Set<String> memberRoles = new HashSet<>();
-        memberRoles.add("coretech:role.admin");
-        memberRoles.add("coretech:role.readers");
+        Set<MemberRole> memberRoles = new HashSet<>();
+        memberRoles.add(new MemberRole("coretech:role.admin", 0));
+        memberRoles.add(new MemberRole("coretech:role.readers", 0));
         
         store.processStandardMembership(memberRoles, prefix, roleCheck, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
@@ -3019,9 +3037,9 @@ public class DataStoreTest {
         String prefix = "coretech" + ROLE_POSTFIX;
         String roleCheck = "2admin";
         
-        Set<String> memberRoles = new HashSet<>();
-        memberRoles.add("coretech:role.admin");
-        memberRoles.add("coretech:role.readers");
+        Set<MemberRole> memberRoles = new HashSet<>();
+        memberRoles.add(new MemberRole("coretech:role.admin", 0));
+        memberRoles.add(new MemberRole("coretech:role.readers", 0));
         
         store.processStandardMembership(memberRoles, prefix, roleCheck, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
@@ -3176,9 +3194,9 @@ public class DataStoreTest {
 
         Role role = new Role();
         role.setName("coretech:role.admin");
-        List<String> members = new ArrayList<>();
-        members.add("user_domain.user8");
-        role.setMembers(members);
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user8"));
+        role.setRoleMembers(members);
         
         List<Role> roles = new ArrayList<>();
         roles.add(role);
@@ -3237,9 +3255,9 @@ public class DataStoreTest {
 
         Role role = new Role();
         role.setName("coretech:role.admin");
-        List<String> members = new ArrayList<>();
-        members.add("user_domain.user8");
-        role.setMembers(members);
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user8"));
+        role.setRoleMembers(members);
         
         List<Role> roles = new ArrayList<>();
         roles.add(role);
@@ -3307,9 +3325,9 @@ public class DataStoreTest {
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
 
-        Set<String> checkSet = new HashSet<>();
-        checkSet.add("writers");
-        checkSet.add("readers");
+        Set<MemberRole> checkSet = new HashSet<>();
+        checkSet.add(new MemberRole("writers", 0));
+        checkSet.add(new MemberRole("readers", 0));
         
         assertTrue(store.roleMatchInSet("writers", checkSet));
         assertTrue(store.roleMatchInSet("readers", checkSet));
@@ -3325,11 +3343,11 @@ public class DataStoreTest {
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
 
-        Set<String> checkSet = new HashSet<>();
-        checkSet.add("coretech:role.readers");
-        checkSet.add("coretech:role.writers");
-        checkSet.add("*:role.update");
-        checkSet.add("weather:role.*");
+        Set<MemberRole> checkSet = new HashSet<>();
+        checkSet.add(new MemberRole("coretech:role.readers", 0));
+        checkSet.add(new MemberRole("coretech:role.writers", 0));
+        checkSet.add(new MemberRole("*:role.update", 0));
+        checkSet.add(new MemberRole("weather:role.*", 0));
         
         assertTrue(store.roleMatchInSet("coretech:role.readers", checkSet));
         assertTrue(store.roleMatchInSet("coretech:role.writers", checkSet));
@@ -3349,9 +3367,9 @@ public class DataStoreTest {
         String prefix = "coretech" + ROLE_POSTFIX;
         String role = "coretech:role.writers"; /* invalid role causing no match */
         
-        Set<String> memberRoles = new HashSet<>();
-        memberRoles.add("coretech:role.admin");
-        memberRoles.add("coretech:role.readers");
+        Set<MemberRole> memberRoles = new HashSet<>();
+        memberRoles.add(new MemberRole("coretech:role.admin", 0));
+        memberRoles.add(new MemberRole("coretech:role.readers", 0));
         
         store.processSingleTrustedDomainRole(role, prefix, null, memberRoles, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
@@ -3368,9 +3386,9 @@ public class DataStoreTest {
         String prefix = "coretech" + ROLE_POSTFIX;
         String role = "coretech:role.readers"; /* invalid role causing no match */
         
-        Set<String> memberRoles = new HashSet<>();
-        memberRoles.add("coretech:role.admin");
-        memberRoles.add("coretech:role.readers");
+        Set<MemberRole> memberRoles = new HashSet<>();
+        memberRoles.add(new MemberRole("coretech:role.admin", 0));
+        memberRoles.add(new MemberRole("coretech:role.readers", 0));
         
         store.processSingleTrustedDomainRole(role, prefix, null, memberRoles, accessibleRoles, false);
         assertTrue(accessibleRoles.contains("readers"));
@@ -3386,9 +3404,9 @@ public class DataStoreTest {
         String prefix = "coretech2" + ROLE_POSTFIX;
         String role = "coretech:role.readers"; /* invalid role causing no match */
         
-        Set<String> memberRoles = new HashSet<>();
-        memberRoles.add("coretech:role.admin");
-        memberRoles.add("coretech:role.readers");
+        Set<MemberRole> memberRoles = new HashSet<>();
+        memberRoles.add(new MemberRole("coretech:role.admin", 0));
+        memberRoles.add(new MemberRole("coretech:role.readers", 0));
         
         store.processSingleTrustedDomainRole(role, prefix, null, memberRoles, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);

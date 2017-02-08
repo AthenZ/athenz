@@ -12,7 +12,11 @@
                 },
                 {
                     "name": "_domain_:role.builders",
-                    "members": [ "sys.builder" ],
+                    "roleMembers": [
+                        {
+                            "memberName": "sys.builder"
+                        }
+                    ],
                     "modified": "1970-01-01T00:00:00.000Z"
                 }
             ],

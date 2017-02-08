@@ -23,6 +23,7 @@ import com.yahoo.athenz.zms.DomainPolicies;
 import com.yahoo.athenz.zms.Policy;
 import com.yahoo.athenz.zms.PublicKeyEntry;
 import com.yahoo.athenz.zms.Role;
+import com.yahoo.athenz.zms.RoleMember;
 import com.yahoo.athenz.zms.ServiceIdentity;
 import com.yahoo.athenz.zms.SignedPolicies;
 import com.yahoo.athenz.zts.PolicyData;
@@ -40,6 +41,9 @@ public class SignUtils {
     private static final String ATTR_ZMS_SIGNATURE = "zmsSignature";
     private static final String ATTR_ZMS_KEY_ID = "zmsKeyId";
     private static final String ATTR_MEMBERS = "members";
+    private static final String ATTR_ROLE_MEMBERS = "roleMembers";
+    private static final String ATTR_MEMBER_NAME = "memberName";
+    private static final String ATTR_EXPIRATION = "expiration";
     private static final String ATTR_NAME = "name";
     private static final String ATTR_ROLE = "role";
     private static final String ATTR_SERVICES = "services";
@@ -120,6 +124,18 @@ public class SignUtils {
         struct.append(ATTR_MODIFIED, role.getModified());
         appendObject(struct, ATTR_TRUST, role.getTrust());
         appendList(struct, ATTR_MEMBERS, role.getMembers());
+        List<RoleMember> roleMembers = role.getRoleMembers();
+        if (roleMembers != null) {
+            Array roleMembersArray = new Array();
+            for (RoleMember roleMember : roleMembers) {
+                Struct structRoleMember = new Struct();
+                structRoleMember.append(ATTR_MEMBER_NAME, roleMember.getMemberName());
+                appendObject(structRoleMember, ATTR_EXPIRATION,
+                        roleMember.getExpiration());
+                roleMembersArray.add(structRoleMember);
+            }
+            appendArray(struct, ATTR_ROLE_MEMBERS, roleMembersArray);
+        }
         return struct;
     }
     

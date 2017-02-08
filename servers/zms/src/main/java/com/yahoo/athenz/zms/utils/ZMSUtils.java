@@ -28,6 +28,7 @@ import com.yahoo.athenz.zms.Policy;
 import com.yahoo.athenz.zms.ResourceError;
 import com.yahoo.athenz.zms.ResourceException;
 import com.yahoo.athenz.zms.Role;
+import com.yahoo.athenz.zms.RoleMember;
 import com.yahoo.athenz.zms.ZMSConsts;
 import com.yahoo.athenz.zms.ZMSImpl;
 
@@ -51,10 +52,15 @@ public class ZMSUtils {
     }
     
     public static Role makeAdminRole(String domainName, List<String> adminUsers) {
-        
+        List<RoleMember> roleMembers = new ArrayList<>();
+        for (String admin: adminUsers) {
+            RoleMember roleMember = new RoleMember();
+            roleMember.setMemberName(admin);
+            roleMembers.add(roleMember);
+        }
         Role role = new Role()
                 .setName(roleResourceName(domainName, ZMSConsts.ADMIN_ROLE_NAME))
-                .setMembers(adminUsers);
+                .setRoleMembers(roleMembers);
         return role;
     }
     
@@ -146,6 +152,68 @@ public class ZMSUtils {
         }
         
         return true;
+    }
+    
+    public static final void validateRoleMembers(final Role role, final String caller,
+            final String domainName) {
+        
+        if ((role.getMembers() != null && !role.getMembers().isEmpty()) 
+                && (role.getRoleMembers() != null && !role.getRoleMembers().isEmpty())) {
+            throw ZMSUtils.requestError("validateRoleMembers: Role cannot have both members and roleMembers set", caller);
+        }
+        
+        // if this is a delegated role then validate that it's not
+        // delegated back to itself and there are no members since
+        // those 2 fields are mutually exclusive
+        
+        if (role.getTrust() != null && !role.getTrust().isEmpty()) {
+            
+            if (role.getRoleMembers() != null && !role.getRoleMembers().isEmpty()) {
+                throw ZMSUtils.requestError("validateRoleMembers: Role cannot have both roleMembers and delegated domain set", caller);
+            }
+            
+            if (role.getMembers() != null && !role.getMembers().isEmpty()) {
+                throw ZMSUtils.requestError("validateRoleMembers: Role cannot have both members and delegated domain set", caller);
+            }
+            
+            if (domainName.equals(role.getTrust())) {
+                throw ZMSUtils.requestError("validateRoleMembers: Role cannot be delegated to itself", caller);
+            }
+        }
+    }
+    
+    public static final void removeMembers(List<RoleMember> orginalRoleMembers,
+            List<RoleMember> removeRoleMembers) {
+        for (int i = 0; i < removeRoleMembers.size(); i ++) {
+            String removeName = removeRoleMembers.get(i).getMemberName();
+            for (int j = 0; j < orginalRoleMembers.size(); j ++) {
+                if (removeName.equalsIgnoreCase(orginalRoleMembers.get(j).getMemberName())) {
+                    orginalRoleMembers.remove(j);
+                }
+            }
+        }
+    }
+    
+    public static final List<String> convertRoleMembersToMembers(List<RoleMember> members) {
+        List<String> memberList = new ArrayList<String>();
+        if (members == null) {
+            return memberList;
+        }
+        for (RoleMember member: members) {
+            memberList.add(member.getMemberName());
+        }
+        return memberList;
+    }
+    
+    public static final List<RoleMember> convertMembersToRoleMembers(List<String> members) {
+        List<RoleMember> roleMemberList = new ArrayList<RoleMember>();
+        if (members == null) {
+            return roleMemberList;
+        }
+        for (String member: members) {
+            roleMemberList.add(new RoleMember().setMemberName(member));
+        }
+        return roleMemberList;
     }
     
     public static RuntimeException error(int code, String msg, String caller) {

@@ -96,7 +96,7 @@ func (cli Zms) AddDelegatedRole(dn string, rn string, trusted string) (*string, 
 	}
 }
 
-func (cli Zms) AddGroupRole(dn string, rn string, members []string) (*string, error) {
+func (cli Zms) AddGroupRole(dn string, rn string, roleMembers []*zms.RoleMember) (*string, error) {
 	yrn := dn + ":role." + rn
 	var role zms.Role
 	_, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil)
@@ -114,8 +114,8 @@ func (cli Zms) AddGroupRole(dn string, rn string, members []string) (*string, er
 		return nil, fmt.Errorf("Cannot replace reserved 'admin' role")
 	}
 	role.Name = zms.ResourceName(yrn)
-	m := cli.validatedUsers(members, false)
-	role.Members = cli.createResourceList(m)
+	role.RoleMembers = roleMembers
+	cli.validateRoleMembers(role.RoleMembers)
 	err = cli.Zms.PutRole(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &role)
 	if err != nil {
 		return nil, err
@@ -155,6 +155,33 @@ func (cli Zms) DeleteProviderRoleMembers(dn string, provider string, group strin
 	return cli.DeleteMembers(dn, rn, members)
 }
 
+func (cli Zms) AddRoleMembers(dn string, rn string, members []*zms.RoleMember) (*string, error) {
+	yrn := dn + ":role." + rn
+	cli.validateRoleMembers(members)
+	var outputLine string
+	for idx, mbr := range members {
+		var member zms.Membership
+		member.MemberName = zms.ResourceName(mbr.MemberName)
+		member.RoleName = zms.ResourceName(rn)
+		member.Expiration = mbr.Expiration
+		err := cli.Zms.PutMembership(zms.DomainName(dn), zms.EntityName(rn), zms.ResourceName(mbr.MemberName), cli.AuditRef, &member)
+		if err != nil {
+			return nil, err
+		}
+		if idx != 0 {
+			outputLine = ","
+		}
+		outputLine = outputLine + string(member.MemberName)
+	}
+	var s string
+	if cli.Verbose {
+		s = "[Added to " + yrn + ": " + outputLine + "]"
+	} else {
+		s = "[Added to " + rn + ": " + outputLine + "]"
+	}
+	return &s, nil
+}
+
 func (cli Zms) AddMembers(dn string, rn string, members []string) (*string, error) {
 	yrn := dn + ":role." + rn
 	ms := cli.validatedUsers(members, false)
@@ -172,6 +199,27 @@ func (cli Zms) AddMembers(dn string, rn string, members []string) (*string, erro
 		s = "[Added to " + yrn + ": " + strings.Join(ms, ",") + "]"
 	} else {
 		s = "[Added to " + rn + ": " + strings.Join(ms, ",") + "]"
+	}
+	return &s, nil
+}
+
+func (cli Zms) AddTemporaryMember(dn string, rn string, member string, expiration rdl.Timestamp) (*string, error) {
+	yrn := dn + ":role." + rn
+	validatedUser := cli.validatedUser(member)
+
+	var memberShip zms.Membership
+	memberShip.MemberName = zms.ResourceName(validatedUser)
+	memberShip.RoleName = zms.ResourceName(rn)
+	memberShip.Expiration = &expiration
+	err := cli.Zms.PutMembership(zms.DomainName(dn), zms.EntityName(rn), zms.ResourceName(validatedUser), cli.AuditRef, &memberShip)
+	if err != nil {
+		return nil, err
+	}
+	var s string
+	if cli.Verbose {
+		s = "[Added to " + yrn + ": " + validatedUser + "]"
+	} else {
+		s = "[Added to " + rn + ": " + validatedUser + "]"
 	}
 	return &s, nil
 }

@@ -31,6 +31,7 @@ import com.yahoo.athenz.zms.Domain;
 import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zms.Policy;
 import com.yahoo.athenz.zms.Role;
+import com.yahoo.athenz.zms.RoleMember;
 import com.yahoo.athenz.zms.ServiceIdentity;
 import com.yahoo.athenz.zts.cache.DataCache;
 
@@ -104,7 +105,7 @@ public class DataCacheTest {
         DataCache cache = new DataCache();
         cache.processRole(role);
         
-        Set<String> set1 = cache.getMemberRoleSet("user_domain.user1");
+        Set<MemberRole> set1 = cache.getMemberRoleSet("user_domain.user1");
         assertNull(set1);
     }
     
@@ -114,25 +115,25 @@ public class DataCacheTest {
         Role role = new Role();
         role.setName("dom.role1");
 
-        List<String> members = new ArrayList<String>();
-        members.add("user_domain.user1");
-        members.add("user_domain.user2");
-        role.setMembers(members);
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user1"));
+        members.add(new RoleMember().setMemberName("user_domain.user2"));
+        role.setRoleMembers(members);
         
         DataCache cache = new DataCache();
         cache.processRole(role);
         
-        Set<String> set1 = cache.getMemberRoleSet("user_domain.user1");
+        Set<MemberRole> set1 = cache.getMemberRoleSet("user_domain.user1");
         assertNotNull(set1);
-        assertTrue(set1.contains("dom.role1"));
+        assertTrue(set1.contains(new MemberRole("dom.role1", 0)));
         assertEquals(set1.size(), 1);
         
-        Set<String> set2 = cache.getMemberRoleSet("user_domain.user2");
+        Set<MemberRole> set2 = cache.getMemberRoleSet("user_domain.user2");
         assertNotNull(set2);
-        assertTrue(set2.contains("dom.role1"));
+        assertTrue(set2.contains(new MemberRole("dom.role1", 0)));
         assertEquals(set2.size(), 1);
         
-        Set<String> set3 = cache.getMemberRoleSet("user_domain.user3");
+        Set<MemberRole> set3 = cache.getMemberRoleSet("user_domain.user3");
         assertNull(set3);
         
         Map<String, Set<String>> map = cache.getTrustMap();
@@ -146,27 +147,27 @@ public class DataCacheTest {
         Role role = new Role();
         role.setName("dom.role1");
 
-        List<String> members = new ArrayList<String>();
-        members.add("user_domain.user1");
-        members.add("user_domain.user2");
-        members.add("user_domain.user1");
-        members.add("user_domain.user1");
-        role.setMembers(members);
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user1"));
+        members.add(new RoleMember().setMemberName("user_domain.user2"));
+        members.add(new RoleMember().setMemberName("user_domain.user1"));
+        members.add(new RoleMember().setMemberName("user_domain.user1"));
+        role.setRoleMembers(members);
         
         DataCache cache = new DataCache();
         cache.processRole(role);
         
-        Set<String> set1 = cache.getMemberRoleSet("user_domain.user1");
+        Set<MemberRole> set1 = cache.getMemberRoleSet("user_domain.user1");
         assertNotNull(set1);
-        assertTrue(set1.contains("dom.role1"));
+        assertTrue(set1.contains(new MemberRole("dom.role1", 0)));
         assertEquals(set1.size(), 1);
         
-        Set<String> set2 = cache.getMemberRoleSet("user_domain.user2");
+        Set<MemberRole> set2 = cache.getMemberRoleSet("user_domain.user2");
         assertNotNull(set2);
-        assertTrue(set2.contains("dom.role1"));
+        assertTrue(set2.contains(new MemberRole("dom.role1", 0)));
         assertEquals(set2.size(), 1);
         
-        Set<String> set3 = cache.getMemberRoleSet("user_domain.user3");
+        Set<MemberRole> set3 = cache.getMemberRoleSet("user_domain.user3");
         assertNull(set3);
         
         Map<String, Set<String>> map = cache.getTrustMap();
@@ -180,62 +181,62 @@ public class DataCacheTest {
         Role role1 = new Role();
         role1.setName("dom.role1");
 
-        List<String> members1 = new ArrayList<String>();
-        members1.add("user_domain.user1");
-        members1.add("user_domain.user2");
-        role1.setMembers(members1);
+        List<RoleMember> members1 = new ArrayList<>();
+        members1.add(new RoleMember().setMemberName("user_domain.user1"));
+        members1.add(new RoleMember().setMemberName("user_domain.user2"));
+        role1.setRoleMembers(members1);
         
         Role role2 = new Role();
         role2.setName("dom.role2");
 
-        List<String> members2 = new ArrayList<String>();
-        members2.add("user_domain.user2");
-        members2.add("user_domain.user3");
-        role2.setMembers(members2);
+        List<RoleMember> members2 = new ArrayList<>();
+        members2.add(new RoleMember().setMemberName("user_domain.user2"));
+        members2.add(new RoleMember().setMemberName("user_domain.user3"));
+        role2.setRoleMembers(members2);
         
         DataCache cache = new DataCache();
         
         cache.processRole(role1);
         cache.processRole(role2);
         
-        Set<String> set1 = cache.getMemberRoleSet("user_domain.user1");
+        Set<MemberRole> set1 = cache.getMemberRoleSet("user_domain.user1");
         assertNotNull(set1);
-        assertTrue(set1.contains("dom.role1"));
+        assertTrue(set1.contains(new MemberRole("dom.role1", 0)));
         assertEquals(set1.size(), 1);
         
-        Set<String> set2 = cache.getMemberRoleSet("user_domain.user2");
+        Set<MemberRole> set2 = cache.getMemberRoleSet("user_domain.user2");
         assertNotNull(set2);
-        assertTrue(set2.contains("dom.role1"));
-        assertTrue(set2.contains("dom.role2"));
+        assertTrue(set2.contains(new MemberRole("dom.role1", 0)));
+        assertTrue(set2.contains(new MemberRole("dom.role2", 0)));
         assertEquals(set2.size(), 2);
         
-        Set<String> set3 = cache.getMemberRoleSet("user_domain.user3");
+        Set<MemberRole> set3 = cache.getMemberRoleSet("user_domain.user3");
         assertNotNull(set3);
-        assertTrue(set3.contains("dom.role2"));
+        assertTrue(set3.contains(new MemberRole("dom.role2", 0)));
         assertEquals(set3.size(), 1);
         
-        Set<String> set4 = cache.getMemberRoleSet("user_domain.user4");
+        Set<MemberRole> set4 = cache.getMemberRoleSet("user_domain.user4");
         assertNull(set4);
     }
     
     @Test
     public void testProcessRoleMembers() {
         
-        List<String> members1 = new ArrayList<String>();
-        members1.add("user_domain.user1");
-        members1.add("user_domain.user2");
+        List<RoleMember> members1 = new ArrayList<>();
+        members1.add(new RoleMember().setMemberName("user_domain.user1"));
+        members1.add(new RoleMember().setMemberName("user_domain.user2"));
         
         DataCache cache = new DataCache();
         cache.processRoleMembers("dom.role1", members1);
         
-        Set<String> set1 = cache.getMemberRoleSet("user_domain.user1");
+        Set<MemberRole> set1 = cache.getMemberRoleSet("user_domain.user1");
         assertNotNull(set1);
-        assertTrue(set1.contains("dom.role1"));
+        assertTrue(set1.contains(new MemberRole("dom.role1", 0)));
         assertEquals(set1.size(), 1);
         
-        Set<String> set2 = cache.getMemberRoleSet("user_domain.user2");
+        Set<MemberRole> set2 = cache.getMemberRoleSet("user_domain.user2");
         assertNotNull(set2);
-        assertTrue(set2.contains("dom.role1"));
+        assertTrue(set2.contains(new MemberRole("dom.role1", 0)));
         assertEquals(set2.size(), 1);
     }
     
@@ -314,24 +315,24 @@ public class DataCacheTest {
         Role role1 = new Role();
         role1.setName("testDomain.role.role1");
         
-        List<String> members1 = new ArrayList<String>();
-        members1.add("user_domain.user1");
-        members1.add("user_domain.user2");
-        role1.setMembers(members1);
+        List<RoleMember> members1 = new ArrayList<>();
+        members1.add(new RoleMember().setMemberName("user_domain.user1"));
+        members1.add(new RoleMember().setMemberName("user_domain.user2"));
+        role1.setRoleMembers(members1);
         
         Role role2 = new Role();
         role2.setName("testDomain.role.role2");
         
-        List<String> members2 = new ArrayList<String>();
-        members2.add("user_domain.user2");
-        role2.setMembers(members2);
+        List<RoleMember> members2 = new ArrayList<>();
+        members2.add(new RoleMember().setMemberName("user_domain.user2"));
+        role2.setRoleMembers(members2);
         
         Role role3 = new Role();
         role3.setName("testDomain.role.role3");
         
-        List<String> members3 = new ArrayList<String>();
-        members3.add("user_domain.user3");
-        role3.setMembers(members3);
+        List<RoleMember> members3 = new ArrayList<>();
+        members3.add(new RoleMember().setMemberName("user_domain.user3"));
+        role3.setRoleMembers(members3);
         
         Policy policy = new Policy();
         policy.setName("testDomain.policy.policy1");
@@ -364,22 +365,22 @@ public class DataCacheTest {
         roleList.put(role3.getName(), role3);
         cache.processPolicy(domain.getName(), policy, roleList);
         
-        Set<String> set1 = cache.getMemberRoleSet("user_domain.user1");
+        Set<MemberRole> set1 = cache.getMemberRoleSet("user_domain.user1");
         assertNotNull(set1);
-        assertTrue(set1.contains("testDomain.role.role1"));
-        assertTrue(set1.contains("testDomain.roleA"));
+        assertTrue(set1.contains(new MemberRole("testDomain.role.role1", 0)));
+        assertTrue(set1.contains(new MemberRole("testDomain.roleA", 0)));
         assertEquals(set1.size(), 2);
         
-        Set<String> set2 = cache.getMemberRoleSet("user_domain.user2");
+        Set<MemberRole> set2 = cache.getMemberRoleSet("user_domain.user2");
         assertNotNull(set2);
-        assertTrue(set2.contains("testDomain.role.role1"));
-        assertTrue(set2.contains("testDomain.role.role2"));
-        assertTrue(set2.contains("testDomain.roleA"));
+        assertTrue(set2.contains(new MemberRole("testDomain.role.role1", 0)));
+        assertTrue(set2.contains(new MemberRole("testDomain.role.role2", 0)));
+        assertTrue(set2.contains(new MemberRole("testDomain.roleA", 0)));
         assertEquals(set2.size(), 3);
         
-        Set<String> set3 = cache.getMemberRoleSet("user_domain.user3");
+        Set<MemberRole> set3 = cache.getMemberRoleSet("user_domain.user3");
         assertNotNull(set3);
-        assertTrue(set3.contains("testDomain.role.role3"));
+        assertTrue(set3.contains(new MemberRole("testDomain.role.role3", 0)));
         assertEquals(set3.size(), 1);
     }
     
@@ -392,9 +393,9 @@ public class DataCacheTest {
         Role role1 = new Role();
         role1.setName("testDomain.role.role1");
         
-        List<String> members1 = new ArrayList<String>();
-        members1.add("user_domain.user1");
-        role1.setMembers(members1);
+        List<RoleMember> members1 = new ArrayList<>();
+        members1.add(new RoleMember().setMemberName("user_domain.user1"));
+        role1.setRoleMembers(members1);
         
         Policy policy = new Policy();
         policy.setName("testDomain.policy.policy1");
@@ -415,12 +416,12 @@ public class DataCacheTest {
         roleList.put(role1.getName(), role1);
         cache.processPolicy(domain.getName(), policy, roleList);
         
-        Set<String> set1 = cache.getMemberRoleSet("user_domain.user1");
+        Set<MemberRole> set1 = cache.getMemberRoleSet("user_domain.user1");
         assertNotNull(set1);
-        assertTrue(set1.contains("testDomain.roleA"));
+        assertTrue(set1.contains(new MemberRole("testDomain.roleA", 0)));
         assertEquals(set1.size(), 1);
         
-        Set<String> set2 = cache.getMemberRoleSet("user_domain.user2");
+        Set<MemberRole> set2 = cache.getMemberRoleSet("user_domain.user2");
         assertNull(set2);
     }
     
@@ -433,24 +434,24 @@ public class DataCacheTest {
         Role role1 = new Role();
         role1.setName("testDomain.role.role1");
         
-        List<String> members1 = new ArrayList<String>();
-        members1.add("user_domain.user1");
-        members1.add("user_domain.user2");
-        role1.setMembers(members1);
+        List<RoleMember> members1 = new ArrayList<>();
+        members1.add(new RoleMember().setMemberName("user_domain.user1"));
+        members1.add(new RoleMember().setMemberName("user_domain.user2"));
+        role1.setRoleMembers(members1);
         
         Role role2 = new Role();
         role2.setName("testDomain.role.role2");
         
-        List<String> members2 = new ArrayList<String>();
-        members2.add("user_domain.user2");
-        role2.setMembers(members2);
+        List<RoleMember> members2 = new ArrayList<>();
+        members2.add(new RoleMember().setMemberName("user_domain.user2"));
+        role2.setRoleMembers(members2);
         
         Role role3 = new Role();
         role3.setName("testDomain.role.role3");
         
-        List<String> members3 = new ArrayList<String>();
-        members3.add("user_domain.user3");
-        role3.setMembers(members3);
+        List<RoleMember> members3 = new ArrayList<>();
+        members3.add(new RoleMember().setMemberName("user_domain.user3"));
+        role3.setRoleMembers(members3);
         
         Policy policy = new Policy();
         policy.setName("testDomain.policy.policy1");
@@ -466,20 +467,20 @@ public class DataCacheTest {
         cache.processRole(role3);
         cache.processPolicy(domain.getName(), policy, roleList);
         
-        Set<String> set1 = cache.getMemberRoleSet("user_domain.user1");
+        Set<MemberRole> set1 = cache.getMemberRoleSet("user_domain.user1");
         assertNotNull(set1);
-        assertTrue(set1.contains("testDomain.role.role1"));
+        assertTrue(set1.contains(new MemberRole("testDomain.role.role1", 0)));
         assertEquals(set1.size(), 1);
         
-        Set<String> set2 = cache.getMemberRoleSet("user_domain.user2");
+        Set<MemberRole> set2 = cache.getMemberRoleSet("user_domain.user2");
         assertNotNull(set2);
-        assertTrue(set2.contains("testDomain.role.role1"));
-        assertTrue(set2.contains("testDomain.role.role2"));
+        assertTrue(set2.contains(new MemberRole("testDomain.role.role1", 0)));
+        assertTrue(set2.contains(new MemberRole("testDomain.role.role2", 0)));
         assertEquals(set2.size(), 2);
         
-        Set<String> set3 = cache.getMemberRoleSet("user_domain.user3");
+        Set<MemberRole> set3 = cache.getMemberRoleSet("user_domain.user3");
         assertNotNull(set3);
-        assertTrue(set3.contains("testDomain.role.role3"));
+        assertTrue(set3.contains(new MemberRole("testDomain.role.role3", 0)));
         assertEquals(set3.size(), 1);
     }
     
@@ -492,24 +493,24 @@ public class DataCacheTest {
         Role role1 = new Role();
         role1.setName("testDomain.role.role1");
         
-        List<String> members1 = new ArrayList<String>();
-        members1.add("user_domain.user1");
-        members1.add("user_domain.user2");
-        role1.setMembers(members1);
+        List<RoleMember> members1 = new ArrayList<>();
+        members1.add(new RoleMember().setMemberName("user_domain.user1"));
+        members1.add(new RoleMember().setMemberName("user_domain.user2"));
+        role1.setRoleMembers(members1);
         
         Role role2 = new Role();
         role2.setName("testDomain.role.role2");
         
-        List<String> members2 = new ArrayList<String>();
-        members2.add("user_domain.user2");
-        role2.setMembers(members2);
+        List<RoleMember> members2 = new ArrayList<>();
+        members2.add(new RoleMember().setMemberName("user_domain.user2"));
+        role2.setRoleMembers(members2);
         
         Role role3 = new Role();
         role3.setName("testDomain.role.role3");
         
-        List<String> members3 = new ArrayList<String>();
-        members3.add("user_domain.user3");
-        role3.setMembers(members3);
+        List<RoleMember> members3 = new ArrayList<>();
+        members3.add(new RoleMember().setMemberName("user_domain.user3"));
+        role3.setRoleMembers(members3);
         
         Policy policy = new Policy();
         policy.setName("testDomain.policy.policy1");
@@ -536,20 +537,20 @@ public class DataCacheTest {
         cache.processRole(role3);
         cache.processPolicy(domain.getName(), policy, roleList);
         
-        Set<String> set1 = cache.getMemberRoleSet("user_domain.user1");
+        Set<MemberRole> set1 = cache.getMemberRoleSet("user_domain.user1");
         assertNotNull(set1);
-        assertTrue(set1.contains("testDomain.role.role1"));
+        assertTrue(set1.contains(new MemberRole("testDomain.role.role1", 0)));
         assertEquals(set1.size(), 1);
         
-        Set<String> set2 = cache.getMemberRoleSet("user_domain.user2");
+        Set<MemberRole> set2 = cache.getMemberRoleSet("user_domain.user2");
         assertNotNull(set2);
-        assertTrue(set2.contains("testDomain.role.role1"));
-        assertTrue(set2.contains("testDomain.role.role2"));
+        assertTrue(set2.contains(new MemberRole("testDomain.role.role1", 0)));
+        assertTrue(set2.contains(new MemberRole("testDomain.role.role2", 0)));
         assertEquals(set2.size(), 2);
         
-        Set<String> set3 = cache.getMemberRoleSet("user_domain.user3");
+        Set<MemberRole> set3 = cache.getMemberRoleSet("user_domain.user3");
         assertNotNull(set3);
-        assertTrue(set3.contains("testDomain.role.role3"));
+        assertTrue(set3.contains(new MemberRole("testDomain.role.role3", 0)));
         assertEquals(set3.size(), 1);
     }
     
@@ -578,7 +579,7 @@ public class DataCacheTest {
         DataCache cache = new DataCache();
         cache.processPolicy(domain.getName(), policy, roleList);
         
-        Set<String> set1 = cache.getMemberRoleSet("user_domain.user1");
+        Set<MemberRole> set1 = cache.getMemberRoleSet("user_domain.user1");
         assertNull(set1);
     }
     
@@ -594,16 +595,16 @@ public class DataCacheTest {
         Role role2 = new Role();
         role2.setName("testDomain.role.role2");
         
-        List<String> members2 = new ArrayList<String>();
-        members2.add("user_domain.user2");
-        role2.setMembers(members2);
+        List<RoleMember> members2 = new ArrayList<>();
+        members2.add(new RoleMember().setMemberName("user_domain.user2"));
+        role2.setRoleMembers(members2);
         
         Role role3 = new Role();
         role3.setName("testDomain.role.role3");
         
-        List<String> members3 = new ArrayList<String>();
-        members3.add("user_domain.user3");
-        role3.setMembers(members3);
+        List<RoleMember> members3 = new ArrayList<>();
+        members3.add(new RoleMember().setMemberName("user_domain.user3"));
+        role3.setRoleMembers(members3);
         
         Policy policy = new Policy();
         policy.setName("testDomain.policy.policy1");
@@ -630,17 +631,17 @@ public class DataCacheTest {
         cache.processRole(role3);
         cache.processPolicy(domain.getName(), policy, roleList);
         
-        Set<String> set1 = cache.getMemberRoleSet("user_domain.user1");
+        Set<MemberRole> set1 = cache.getMemberRoleSet("user_domain.user1");
         assertNull(set1);
         
-        Set<String> set2 = cache.getMemberRoleSet("user_domain.user2");
+        Set<MemberRole> set2 = cache.getMemberRoleSet("user_domain.user2");
         assertNotNull(set2);
-        assertTrue(set2.contains("testDomain.role.role2"));
+        assertTrue(set2.contains(new MemberRole("testDomain.role.role2", 0)));
         assertEquals(set2.size(), 1);
         
-        Set<String> set3 = cache.getMemberRoleSet("user_domain.user3");
+        Set<MemberRole> set3 = cache.getMemberRoleSet("user_domain.user3");
         assertNotNull(set3);
-        assertTrue(set3.contains("testDomain.role.role3"));
+        assertTrue(set3.contains(new MemberRole("testDomain.role.role3", 0)));
         assertEquals(set3.size(), 1);
     }
     

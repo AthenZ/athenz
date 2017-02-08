@@ -16,6 +16,8 @@ public class Membership {
     public Boolean isMember;
     @RdlOptional
     public String roleName;
+    @RdlOptional
+    public Timestamp expiration;
 
     public Membership setMemberName(String memberName) {
         this.memberName = memberName;
@@ -38,6 +40,13 @@ public class Membership {
     public String getRoleName() {
         return roleName;
     }
+    public Membership setExpiration(Timestamp expiration) {
+        this.expiration = expiration;
+        return this;
+    }
+    public Timestamp getExpiration() {
+        return expiration;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -53,6 +62,9 @@ public class Membership {
                 return false;
             }
             if (roleName == null ? a.roleName != null : !roleName.equals(a.roleName)) {
+                return false;
+            }
+            if (expiration == null ? a.expiration != null : !expiration.equals(a.expiration)) {
                 return false;
             }
         }

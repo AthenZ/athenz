@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/yahoo/athenz/clients/go/zms"
 )
 
@@ -47,6 +48,14 @@ func (cli Zms) getInt32(str string) (int32, error) {
 		return -1, err
 	}
 	return int32(value), nil
+}
+
+func getTimestamp(str string) (rdl.Timestamp, error) {
+	value, err := rdl.TimestampParse(str)
+	if err != nil {
+		return value, err
+	}
+	return value, nil
 }
 
 func (cli *Zms) EvalCommand(params []string) (*string, error) {
@@ -289,7 +298,8 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			}
 		case "add-group-role":
 			if argc >= 1 {
-				return cli.AddGroupRole(dn, args[0], args[1:])
+				roleMembers := cli.convertRoleMembers(args[1:])
+				return cli.AddGroupRole(dn, args[0], roleMembers)
 			}
 		case "add-provider-role-member", "add-provider-role-members":
 			if argc >= 4 {
@@ -306,6 +316,15 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 		case "add-member", "add-members":
 			if argc >= 2 {
 				return cli.AddMembers(dn, args[0], args[1:])
+			}
+		case "add-temporary-member":
+			if argc == 3 {
+				value, err := getTimestamp(args[2])
+				if err == nil {
+					return cli.AddTemporaryMember(dn, args[0], args[1], value)
+				} else {
+					return nil, err
+				}
 			}
 		case "delete-member", "delete-members":
 			if argc >= 2 {
@@ -483,14 +502,6 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 		case "delete-domain-template":
 			if argc == 1 {
 				return cli.DeleteDomainTemplate(dn, args[0])
-			}
-		case "add-profile":
-			if argc == 1 {
-				return cli.AddProfile(dn, args[0])
-			}
-		case "show-profile":
-			if argc == 1 {
-				return cli.ShowProfile(dn, args[0])
 			}
 		default:
 			return nil, fmt.Errorf("Unrecognized command '%v'. Type 'zms-cli help' to see help information", cmd)
@@ -845,6 +856,18 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   user_or_service : users or services to be added as members\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domain_example + " add-member readers " + cli.UserDomain + ".john " + cli.UserDomain + ".joe media.sports.storage\n")
+	case "add-temporary-member":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domain_param + " add-temporary-member group_role user_or_service expiration\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain          : name of the domain that role belongs to\n")
+		}
+		buf.WriteString("   group-role      : name of the standard group role to add a temporary member to\n")
+		buf.WriteString("   user_or_service : user or service to be added as member\n")
+		buf.WriteString("   expiration      : expiration date format yyyy-mm-ddThh:mm:ss.msecZ\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domain_example + " add-temporary-member readers " + cli.UserDomain + ",john 2017-03-02T15:04:05.999Z\n")
 	case "check-member":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domain_param + " check-member group_role user_or_service [user_or_service ...]\n")
@@ -1315,16 +1338,6 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   get-user-token\n")
 		buf.WriteString("   get-user-token iaas.athenz.api\n")
-	case "add-profile":
-		buf.WriteString(" syntax:\n")
-		buf.WriteString("   add-profile name \n")
-		buf.WriteString(" examples:\n")
-		buf.WriteString("   add-profile dev\n")
-	case "show-profile":
-		buf.WriteString(" syntax:\n")
-		buf.WriteString("   show-profile name \n")
-		buf.WriteString(" examples:\n")
-		buf.WriteString("   show-profile dev\n")
 	case "version":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   version\n")
@@ -1442,6 +1455,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   add-delegated-role role trusted_domain\n")
 	buf.WriteString("   add-group-role role member [member ... ]\n")
 	buf.WriteString("   add-member group_role user_or_service [user_or_service ...]\n")
+	buf.WriteString("   add-temporary-member group_role user_or_service expiration\n")
 	buf.WriteString("   check-member group_role user_or_service [user_or_service ...]\n")
 	buf.WriteString("   delete-member group_role user_or_service [user_or_service ...]\n")
 	buf.WriteString("   add-provider-role-member provider_service resource_group provider_role user_or_service [user_or_service ...]\n")
@@ -1495,8 +1509,6 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("\n")
 	buf.WriteString(" Other commands:\n")
 	buf.WriteString("   get-user-token [authorized_service]\n")
-	buf.WriteString("   add-profile name\n")
-	buf.WriteString("   show-profile name\n")
 	buf.WriteString("   repl\n")
 	buf.WriteString("   version\n")
 	buf.WriteString("\n")

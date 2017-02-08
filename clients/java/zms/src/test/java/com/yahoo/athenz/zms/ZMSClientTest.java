@@ -26,6 +26,7 @@ import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.rdl.Array;
 import com.yahoo.rdl.Struct;
+import com.yahoo.rdl.Timestamp;
 
 import static org.testng.Assert.*;
 
@@ -421,16 +422,27 @@ public class ZMSClientTest {
         Role role1 = createRoleObject(client, "MbrAddDom1", "Role1", null, "user.joe", "user.jane");
         client.putRole("MbrAddDom1", "Role1", AUDIT_REF, role1);
         client.putMembership("MbrAddDom1", "Role1", "user.doe", AUDIT_REF);
+        
+        client.putMembership("MbrAddDom1", "Role1", "user.temp",
+                Timestamp.fromMillis(100000), AUDIT_REF);
         Role role = client.getRole("MbrAddDom1", "Role1");
         assertNotNull(role);
         
-        List<String> members = role.getMembers();
+        List<RoleMember> members = role.getRoleMembers();
         assertNotNull(members);
-        assertEquals(members.size(), 3);
+        assertEquals(members.size(), 4);
         
-        assertTrue(members.contains("user.joe"));
-        assertTrue(members.contains("user.jane"));
-        assertTrue(members.contains("user.doe"));
+        boolean userTempCheck = false;
+        boolean userDoeCheck = false;
+        for (RoleMember member: members) {
+            if (member.getMemberName().equals("user.temp")) {
+                userTempCheck = true;
+            } else if (member.getMemberName().equals("user.doe")) {
+                userDoeCheck = true;
+            }
+        }
+        assertTrue(userTempCheck);
+        assertTrue(userDoeCheck);
         
         client.deleteTopLevelDomain("MbrAddDom1", AUDIT_REF);
     }
@@ -1746,14 +1758,22 @@ public class ZMSClientTest {
         mbr.setRoleName("Role1");
         mbr.setMemberName("user.doe");
         mbr.setIsMember(true);
+        Membership mbrExp = new Membership();
+        mbrExp.setRoleName("Role1");
+        mbrExp.setMemberName("user.temp");
+        mbrExp.setExpiration(Timestamp.fromMillis(100000));
+        mbrExp.setIsMember(true);
         Membership membershipMock = Mockito.mock(Membership.class);
         Mockito.when(c.putMembership("MbrAddDom1", "Role1", "user.doe", AUDIT_REF, mbr)).thenReturn(membershipMock);
+        Mockito.when(c.putMembership("MbrAddDom1", "Role1", "user.temp", AUDIT_REF, mbrExp)).thenReturn(membershipMock);
         Mockito.when(c.getRole("MbrAddDom1", "Role1", false, false)).thenReturn(roleMock);
-        @SuppressWarnings("unchecked")
-        List<String> membersMock = Mockito.mock(List.class);
-        Mockito.when(roleMock.getMembers()).thenReturn(membersMock);
-        Mockito.when(membersMock.size()).thenReturn(3);
-        Mockito.when(membersMock.contains(Mockito.anyString())).thenReturn(true);
+        List<RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user.joe"));
+        roleMembers.add(new RoleMember().setMemberName("user.jane"));
+        roleMembers.add(new RoleMember().setMemberName("user.doe"));
+        roleMembers.add(new RoleMember().setMemberName("user.temp")
+                .setExpiration(Timestamp.fromMillis(100000)));
+        Mockito.when(roleMock.getRoleMembers()).thenReturn(roleMembers);
         testAddMembership(client, systemAdminFullUser);
         Mockito.when(c.deleteTopLevelDomain("MbrGetRoleDom1", AUDIT_REF)).thenReturn(dom1Mock);
     }

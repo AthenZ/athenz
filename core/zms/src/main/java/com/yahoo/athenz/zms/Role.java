@@ -18,6 +18,8 @@ public class Role {
     @RdlOptional
     public List<String> members;
     @RdlOptional
+    public List<RoleMember> roleMembers;
+    @RdlOptional
     public String trust;
     @RdlOptional
     public List<RoleAuditLog> auditLog;
@@ -42,6 +44,13 @@ public class Role {
     }
     public List<String> getMembers() {
         return members;
+    }
+    public Role setRoleMembers(List<RoleMember> roleMembers) {
+        this.roleMembers = roleMembers;
+        return this;
+    }
+    public List<RoleMember> getRoleMembers() {
+        return roleMembers;
     }
     public Role setTrust(String trust) {
         this.trust = trust;
@@ -72,6 +81,9 @@ public class Role {
                 return false;
             }
             if (members == null ? a.members != null : !members.equals(a.members)) {
+                return false;
+            }
+            if (roleMembers == null ? a.roleMembers != null : !roleMembers.equals(a.roleMembers)) {
                 return false;
             }
             if (trust == null ? a.trust != null : !trust.equals(a.trust)) {

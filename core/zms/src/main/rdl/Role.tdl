@@ -18,11 +18,17 @@ type RoleAuditLog Struct {
      String auditRef (optional); //audit reference string for the change as supplied by admin
 }
 
+type RoleMember Struct {
+     ResourceName memberName; //name of the member
+     Timestamp expiration (optional); //the expiration timestamp
+}
+
 //The representation for a Role with set of members.
 type Role Struct {
      ResourceName name; //name of the role
      Timestamp modified (optional); //last modification timestamp of the role
      Array<ResourceName> members (optional); //an explicit list of members. Might be empty or null, if trust is set
+     Array<RoleMember> roleMembers (optional);  //members with expiration
      DomainName trust (optional); //a trusted domain to delegate membership decisions to
      Array<RoleAuditLog> auditLog (optional); //an audit log for role membership changes
 }
@@ -37,6 +43,7 @@ type Membership Struct {
      ResourceName memberName; //name of the member
      Bool isMember (optional, default=true); //flag to indicate whether or the user is a member or not
      ResourceName roleName (optional); //name of the role
+     Timestamp expiration (optional); //the expiration timestamp
 }
 
 //The list of domain administrators.

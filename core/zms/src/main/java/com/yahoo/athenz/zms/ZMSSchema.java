@@ -95,11 +95,16 @@ public class ZMSSchema {
             .field("action", "String", false, "log action - either add or delete")
             .field("auditRef", "String", true, "audit reference string for the change as supplied by admin");
 
+        sb.structType("RoleMember")
+            .field("memberName", "ResourceName", false, "name of the member")
+            .field("expiration", "Timestamp", true, "the expiration timestamp");
+
         sb.structType("Role")
             .comment("The representation for a Role with set of members.")
             .field("name", "ResourceName", false, "name of the role")
             .field("modified", "Timestamp", true, "last modification timestamp of the role")
             .arrayField("members", "ResourceName", true, "an explicit list of members. Might be empty or null, if trust is set")
+            .arrayField("roleMembers", "RoleMember", true, "members with expiration")
             .field("trust", "DomainName", true, "a trusted domain to delegate membership decisions to")
             .arrayField("auditLog", "RoleAuditLog", true, "an audit log for role membership changes");
 
@@ -111,7 +116,8 @@ public class ZMSSchema {
             .comment("The representation for a role membership.")
             .field("memberName", "ResourceName", false, "name of the member")
             .field("isMember", "Bool", false, "flag to indicate whether or the user is a member or not", true)
-            .field("roleName", "ResourceName", true, "name of the role");
+            .field("roleName", "ResourceName", true, "name of the role")
+            .field("expiration", "Timestamp", true, "the expiration timestamp");
 
         sb.structType("DefaultAdmins")
             .comment("The list of domain administrators.")
