@@ -22,7 +22,8 @@ import com.yahoo.athenz.auth.token.KerberosToken;
 public class MockPrivExcAction implements PrivilegedExceptionAction<String> {
 
     byte[] kerberosTicket;
-    String realm = System.getProperty(KerberosToken.KRB_PROP_TOKEN_PRIV_ACTION + "_TEST_REALM", KerberosToken.KRB_USER_REALM);
+    String realm = System.getProperty(KerberosToken.KRB_PROP_TOKEN_PRIV_ACTION + "_TEST_REALM",
+            KerberosToken.KRB_USER_REALM);
 
     public MockPrivExcAction(String kerberosTicket) {
         this(kerberosTicket.getBytes());
@@ -34,7 +35,6 @@ public class MockPrivExcAction implements PrivilegedExceptionAction<String> {
     @Override
     public String run() throws Exception {
         String user = "myclient" + "@" + realm;
-    	System.out.println("MockPrivExcAction run: return=" + user);
         return user;
     }
 }

@@ -154,7 +154,6 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
                     PosixFilePermission.OWNER_WRITE);
             Files.setPosixFilePermissions(path, perms);
         } catch (IOException ex) {
-            ex.printStackTrace();
             error("unable to setup domain file with permissions: " + ex.getMessage());
         }
     }
@@ -184,7 +183,6 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
         try {
             Files.write(path, data);
         } catch (IOException ex) {
-            ex.printStackTrace();
             error("unable to save domain file: " + file.getPath() + " error: " + ex.getMessage());
         }
     }

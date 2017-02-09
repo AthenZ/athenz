@@ -189,7 +189,6 @@ public class PolicyUpdaterConfiguration {
             Path path = Paths.get(pathToFile);
             conf = JSON.fromBytes(Files.readAllBytes(path), AthenzConfig.class);
         } catch (Exception e) {
-            e.printStackTrace();
         }
 
         return conf;
@@ -202,7 +201,6 @@ public class PolicyUpdaterConfiguration {
             Path path = Paths.get(pathToFile);
             conf = JSON.fromBytes(Files.readAllBytes(path), Struct.class);
         } catch (Exception e) {
-            e.printStackTrace();
         }
 
         return conf;

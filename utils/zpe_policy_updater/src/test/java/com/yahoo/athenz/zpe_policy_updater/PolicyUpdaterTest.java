@@ -61,7 +61,6 @@ public class PolicyUpdaterTest {
     @BeforeClass
     public void beforeClass() throws Exception {
         System.setProperty("athenz.zpe_policy_updater.dir", "src/test/resources");
-        System.setProperty("logback.configurationFile", "src/test/resources/logback.xml");
         System.setProperty("athenz.zpe_policy_updater.test_root_path", "src/test/resources");
         System.setProperty("athenz.zpe_policy_updater.metric_factory_class", "com.yahoo.athenz.common.metrics.impl.NoOpMetricFactory");
 

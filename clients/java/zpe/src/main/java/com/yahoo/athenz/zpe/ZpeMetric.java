@@ -120,7 +120,6 @@ public class ZpeMetric {
                 Path path = Paths.get(filepath);
                 Files.write(path, JSON.bytes(domainMetrics));
             } catch (IOException e) {
-                e.printStackTrace();
                 counter.remove(domainName);
             }
         }

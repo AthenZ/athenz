@@ -395,9 +395,6 @@ public class CryptoTest {
         Date notAfter = cert.getNotAfter();
         long diff = notAfter.getTime() - System.currentTimeMillis();
         assertTrue(diff <= 600 * 60 * 1000); // convert minutes to milliseconds
-        
-        System.out.println("****** Generated Certificate *********");
-        System.out.println(cert.toString());
     }
     
     @Test
@@ -413,11 +410,6 @@ public class CryptoTest {
         X509Certificate cert = Crypto.generateX509Certificate(certReq, caPrivateKey,
                 caCertificate, 600, true);
         assertNotNull(cert);
-        
-        System.out.println("****** Generated Certificate With Alternative Names *********");
-        System.out.println(cert.toString());
-        System.out.println("PEM format:");
-        System.out.println(Crypto.convertToPEMFormat(cert));
     }
     
     @Test

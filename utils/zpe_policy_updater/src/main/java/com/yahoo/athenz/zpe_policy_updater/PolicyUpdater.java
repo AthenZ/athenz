@@ -79,7 +79,7 @@ public class PolicyUpdater {
         try {
             configuration = new PolicyUpdaterConfiguration();
         } catch (Exception ex) {
-            LOG.error("Unable to create configuration object: ", ex);
+            LOG.error("Unable to create configuration object: " + ex.getMessage());
             System.exit(ZPUExitCode.CONFIG_CREATE_FAILURE.getCode());
         }
 
@@ -101,7 +101,7 @@ public class PolicyUpdater {
             try {
                 configuration.init(null, null);
             } catch (Exception ex) {
-                LOG.error("Unable to initialize configuration object: ", ex);
+                LOG.error("Unable to initialize configuration object: " + ex.getMessage());
                 exitCode = ZPUExitCode.CONFIG_INIT_FAILURE;
                 throw ex;
             }
@@ -109,7 +109,7 @@ public class PolicyUpdater {
             try {
                 PolicyUpdater.policyUpdater(configuration, new ZTSClientFactoryImpl());
             } catch (Exception ex) {
-                LOG.error("PolicyUpdater: Unable to update policy data: ", ex);
+                LOG.error("PolicyUpdater: Unable to update policy data: " + ex.getMessage());
                 exitCode = ZPUExitCode.POLICY_UPDATE_FAILURE;
                 throw ex;
             }
@@ -253,7 +253,8 @@ public class PolicyUpdater {
             java.nio.file.attribute.UserPrincipal uprinc = lookupSvc.lookupPrincipalByName(user);
             Files.setOwner(tmpDir, uprinc);
         } catch (Exception exc) {
-            LOG.warn("Failed to chown of the temp dir: " + tmpDir + " : user: " + user + " : exc: " + exc);
+            LOG.warn("Failed to chown of the temp dir: " + tmpDir
+                    + ", user: " + user + ", exc: " + exc.getMessage());
         }
     }
 
@@ -288,8 +289,8 @@ public class PolicyUpdater {
             Files.copy(sourceFile, destinationFile, StandardCopyOption.REPLACE_EXISTING);
             Files.deleteIfExists(sourceFile);
         } catch (IOException exc) {
-            LOG.error("PolicyUpdater: Moving temp file failure. source: " + sourceFile + " : destination: " + destinationFile + " : exc: " + exc);
-            exc.printStackTrace();
+            LOG.error("PolicyUpdater: Moving temp file failure. source: " + sourceFile
+                    + " : destination: " + destinationFile + " : exc: " + exc);
         }
     }
 

@@ -168,7 +168,7 @@ public class KerberosAuthority implements Authority {
             initState = exc;
             String params = "svc-princ=" + servicePrincipal + " login-callback=" + loginCallbackHandler +
                 " keytab=" + keyTabConfFile + " jaas-section=" + jaasConfigSection;
-            LOG.error("KerberosAuthority:initialize: Login context failure: config params=(" + params + ") exc: " + exc.getMessage(), exc);
+            LOG.error("KerberosAuthority:initialize: Login context failure: config params=(" + params + ") exc: " + exc.getMessage());
         }
     }
 

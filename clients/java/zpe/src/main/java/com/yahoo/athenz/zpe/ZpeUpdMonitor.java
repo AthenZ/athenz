@@ -51,6 +51,9 @@ public class ZpeUpdMonitor implements Runnable {
     }
     
     public File[] loadFileStatus() {
+        if (dirName == null) {
+            return null;
+        }
         // read all the file names in the policy directory and add to the list
         File pdir = new File(dirName);
         File [] files = pdir.listFiles(polFileNameFilter);
@@ -71,7 +74,7 @@ public class ZpeUpdMonitor implements Runnable {
         if (exc == null) {
             LOG.debug(msg);
         } else {
-            LOG.error(msg, exc);
+            LOG.error(msg + ", exc: " + exc.getMessage());
         }
     }
 

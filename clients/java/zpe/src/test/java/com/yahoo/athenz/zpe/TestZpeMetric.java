@@ -50,7 +50,6 @@ public class TestZpeMetric extends TestCase {
 
         // cleaning the directory
         File dir = new File(test.getFilePath());
-        System.out.println(test.getFilePath());
         if (dir.exists()) {
             for (File file: dir.listFiles()) {
                 if (!file.isDirectory()) {
@@ -62,38 +61,29 @@ public class TestZpeMetric extends TestCase {
         }
 
         // incrementing metrics for testing
-        Integer index = com.yahoo.athenz.zts.DomainMetricType.valueOf(ZpeConsts.ZPE_METRIC_NAME).ordinal();
-        System.out.println("Metric is now " + test.counter.get(index));
         test.increment(ZpeConsts.ZPE_METRIC_NAME, AuthZpeClient.DEFAULT_DOMAIN);
         test.increment(ZpeConsts.ZPE_METRIC_NAME, AuthZpeClient.DEFAULT_DOMAIN);
         test.increment(ZpeConsts.ZPE_METRIC_NAME, AuthZpeClient.DEFAULT_DOMAIN);
         test.increment(ZpeConsts.ZPE_METRIC_NAME, AuthZpeClient.DEFAULT_DOMAIN);
         test.increment(ZpeConsts.ZPE_METRIC_NAME, AuthZpeClient.DEFAULT_DOMAIN);
         test.increment(ZpeConsts.ZPE_METRIC_NAME, AuthZpeClient.DEFAULT_DOMAIN);
-        System.out.println("Metric is now " + test.counter.get(index));
-
-        System.out.println("testZpeMetric Sleep Millisecs= 4000");
+        
         try {
             Thread.sleep(4000);
         } catch (InterruptedException e) {
         }
-        System.out.println("testZpeMetric: Nap over");
 
-        System.out.println("Metric is now " + test.counter.get(index));
         test.increment(ZpeConsts.ZPE_METRIC_NAME, TEST_DOMAIN);
         test.increment(ZpeConsts.ZPE_METRIC_NAME, TEST_DOMAIN);
         test.increment(ZpeConsts.ZPE_METRIC_NAME, AuthZpeClient.DEFAULT_DOMAIN);
         test.increment(ZpeConsts.ZPE_METRIC_NAME, AuthZpeClient.DEFAULT_DOMAIN);
         test.increment(ZpeConsts.ZPE_METRIC_NAME, AuthZpeClient.DEFAULT_DOMAIN);
         test.increment(ZpeConsts.ZPE_METRIC_NAME, AuthZpeClient.DEFAULT_DOMAIN);
-        System.out.println("Metric is now " + test.counter.get(index));
 
-        System.out.println("testZpeMetric Sleep Millisecs= 2000");
         try {
             Thread.sleep(2000);
         } catch (InterruptedException e) {
         }
-        System.out.println("testZpeMetric: Nap over");
 
         // Reading from the json file generated
 

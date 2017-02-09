@@ -189,7 +189,8 @@ public class ZTSUtils {
             }
             
         } catch (CryptoException ex) {
-            LOGGER.error("validateCertificateRequest: unable to generate identity certificate: ", ex);
+            LOGGER.error("validateCertificateRequest: unable to generate identity certificate: "
+                    + ex.getMessage());
             return false;
         }
         
@@ -207,7 +208,8 @@ public class ZTSUtils {
             // handle all the errors and not let container to return
             // standard server error
             
-            LOGGER.error("validateCertReqCommonName: unable to extract csr cn", ex);
+            LOGGER.error("validateCertReqCommonName: unable to extract csr cn: "
+                    + ex.getMessage());
         }
         
         if (cnCertReq == null) {

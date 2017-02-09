@@ -70,7 +70,7 @@ public class ZpeUpdPolLoader implements Closeable {
                 String errMsg = "start: WARNING: Failed using system property("
                         + ZpeConsts.ZPE_PROP_MON_TIMEOUT
                         + ") Got property value=" + timeoutSecs;
-                LOG.warn(errMsg, exc);
+                LOG.warn(errMsg + ", exc: " + exc.getMessage());
             }
         }
 
@@ -83,7 +83,7 @@ public class ZpeUpdPolLoader implements Closeable {
                 String errMsg = "start: WARNING: Failed using system property("
                         + ZpeConsts.ZPE_PROP_MON_CLEANUP_TOKENS
                         + ") Got property value=" + timeoutSecs;
-                LOG.warn(errMsg, exc);
+                LOG.warn(errMsg + ", exc: " + exc.getMessage());
             }
         }
     }
@@ -137,7 +137,7 @@ public class ZpeUpdPolLoader implements Closeable {
             try {
                 loadDb();
             } catch (Exception exc) {
-                LOG.error("loadDb Failed", exc);
+                LOG.error("loadDb Failed, exc: " + exc.getMessage());
             }
         }
     }

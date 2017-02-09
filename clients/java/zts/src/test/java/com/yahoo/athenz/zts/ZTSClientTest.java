@@ -177,7 +177,6 @@ public class ZTSClientTest {
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
         ZTSClient client = new ZTSClient("http://localhost:4080/", principal);
-        System.out.println("test:isexpiredtoken: expiry=500");
         assertFalse(client.isExpiredToken(500, null, null));
         client.close();
     }
@@ -811,7 +810,6 @@ public class ZTSClientTest {
     
     @Test
     public void testPrefetchRoleTokenShouldNotCallServer() throws Exception {
-        System.out.println("testPrefetchRoleTokenShouldNotCallServer");
 
         ZTSClientMock ztsClientMock = new ZTSClientMock();
         ztsClientMock.setRoleName("role1");

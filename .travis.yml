@@ -18,7 +18,7 @@ before_install:
 - sudo apt-get install g++-4.8
 - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 50
 
-script: mvn install
+script: mvn install -DargLine="-Dlogback.configurationFile=src/test/resources/travis_logback.xml"
 
 after_success:
   - test "${TRAVIS_PULL_REQUEST}" == "false" && test "${TRAVIS_TAG}" != "" && ./travis/publish_to_bintray.sh

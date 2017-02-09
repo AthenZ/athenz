@@ -128,8 +128,8 @@ public class ZMSAuthorizer implements Authorizer, Closeable {
         String rn = (resource.contains(":")) ? resource : serviceDomain + ":" + resource;
         
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("ZMSAuthorizer.access(" + action + ", " + rn + ", " + principal.getYRN()
-                + ", " + trustDomain + ")");
+            LOGGER.debug("ZMSAuthorizer.access({}, {}, {}, {})", action, rn,
+                    principal != null ? principal.getYRN() : "null", trustDomain);
         }
         
         try {
@@ -148,7 +148,6 @@ public class ZMSAuthorizer implements Authorizer, Closeable {
                 throw e;
             }
         } catch (Throwable th) {
-            th.printStackTrace();
             throw new ZMSClientException(ZMSClientException.FORBIDDEN, "Cannot contact ZMS");
         }
     }

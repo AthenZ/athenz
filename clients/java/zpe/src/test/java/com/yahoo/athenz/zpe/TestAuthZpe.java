@@ -535,7 +535,6 @@ public class TestAuthZpe {
         // increase the timeout to 30 secs. in sd sometimes it takes a while
         // before the entry is expired.
         for (int cnt = 0; mapToken != null && cnt < 30; ++cnt) {
-            System.out.println("testCleanupOfToken: in loop, cnt=" + cnt + " token=" + signedToken);
             // -Dyahoo.zpeclient.updater.monitor_timeout_secs=1
             // -Dyahoo.zpeclient.updater.cleanup_tokens_secs=1
             try {
@@ -571,7 +570,6 @@ public class TestAuthZpe {
         Assert.assertEquals(signedToken.equals(mapToken.getSignedToken()), true);
         // then in a loop, check for existence of the token in the token map
         for (int cnt = 0; mapToken != null && cnt < 5; ++cnt) {
-            System.out.println("testCleanupOfToken: in loop, cnt=" + cnt + " token=" + signedToken);
             // -Dyahoo.zpeclient.updater.monitor_timeout_secs=1
             // -Dyahoo.zpeclient.updater.cleanup_tokens_secs=1
             try {
@@ -997,8 +995,6 @@ public class TestAuthZpe {
     public void testAccessCheckStatus() {
         for (AccessCheckStatus stat : AccessCheckStatus.values()) {
             assertNotNull(stat.toString());
-            System.out.println("Debug for AccessCheckStatus()");
-            System.out.println(stat.toString());
         }
     }
 

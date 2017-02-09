@@ -244,10 +244,8 @@ public class ZTSJettyContainerTest {
         assertEquals(connectors.length, 2);
         
         assertEquals(connectors[0].getIdleTimeout(), 10001);
-        System.out.println("Connectors: " + connectors[0].getProtocols().toString());
         assertTrue(connectors[0].getProtocols().contains("http/1.1"));
         
-        System.out.println("Connectors: " + connectors[1].getProtocols().toString());
         assertTrue(connectors[1].getProtocols().contains("http/1.1"));
         assertTrue(connectors[1].getProtocols().contains("ssl"));
     }
@@ -274,7 +272,6 @@ public class ZTSJettyContainerTest {
         Connector[] connectors = server.getConnectors();
         assertEquals(connectors.length, 1);
         
-        System.out.println("Connectors: " + connectors[0].getProtocols().toString());
         assertTrue(connectors[0].getProtocols().contains("http/1.1"));
         assertTrue(connectors[0].getProtocols().contains("ssl"));
     }
@@ -304,7 +301,6 @@ public class ZTSJettyContainerTest {
         assertEquals(connectors.length, 1);
         
         assertEquals(connectors[0].getIdleTimeout(), 10001);
-        System.out.println("Connectors: " + connectors[0].getProtocols().toString());
         assertTrue(connectors[0].getProtocols().contains("http/1.1"));
         assertFalse(connectors[0].getProtocols().contains("ssl"));
     }

@@ -130,7 +130,6 @@
                 <athenz.zpe.cleanup_tokens_secs>1</athenz.zpe.cleanup_tokens_secs>
                 <athenz.zpe.policy_dir>src/test/resources/pol_dir</athenz.zpe.policy_dir>
                 <athenz.athenz_conf>src/test/resources/athenz.conf</athenz.athenz_conf>
-                <logback.configurationFile>src/test/resources/logback.xml</logback.configurationFile>
               </systemPropertyVariables>
             </configuration>
           </execution>

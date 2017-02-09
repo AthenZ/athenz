@@ -60,9 +60,7 @@ public class ZTSCoreTest {
         Schema schema = ZTSSchema.instance();
         Validator validator = new Validator(schema);
         
-        System.out.println("Testing valid YRNs...");
         for (String s : goodYRNs) {
-            System.out.println(s);
             Result result = validator.validate(s, "YRN");
             assertTrue(result.valid);
         }
@@ -79,9 +77,7 @@ public class ZTSCoreTest {
             "missing_yrn_prefix_service:location:domain:entity"
         };
 
-        System.out.println("Testing bad YRNs...");
         for (String s : badYRNs) {
-            System.out.println(s);
             Result result = validator.validate(s, "YRN");
             assertFalse(result.valid);
         }

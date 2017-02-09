@@ -161,7 +161,6 @@ public class HttpContainer {
             System.out.println("Jetty server running at " + banner);
             server.join();
         } catch (Exception e) {
-            e.printStackTrace();
             throw new RuntimeException(e.getMessage());
         }
     }
@@ -170,7 +169,6 @@ public class HttpContainer {
         try {
             server.stop();
         } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 

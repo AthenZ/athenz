@@ -117,7 +117,7 @@ public class ZMSAuthorizerTest {
 
         // we should get exception with no principal
         try {
-            authorizer.access("UPDATE", "resource1", (Principal) null, domain);
+            authorizer.access("UPDATE", "resource2", (Principal) null, domain);
             fail();
         } catch (Exception ex) {
             assertTrue(true);
@@ -126,7 +126,7 @@ public class ZMSAuthorizerTest {
         // we should get exception with no principal token
 
         try {
-            authorizer.access("UPDATE", "resource1", (String) null, domain);
+            authorizer.access("UPDATE", "resource2", (String) null, domain);
             fail();
         } catch (Exception ex) {
             assertTrue(true);

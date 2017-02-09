@@ -158,12 +158,10 @@ public class DBServiceTest extends TestCase {
         ObjectStore store = new FileObjectStore(new File(ZMS_DATA_STORE_PATH));
 
         String pubKeyName = System.getProperty(ZMSTest.ZMS_PROP_PUBLIC_KEY);
-        System.out.println("public key file=" + pubKeyName);
         File pubKeyFile = new File(pubKeyName);
         pubKey = Crypto.encodedFile(pubKeyFile);
         
         String privKeyName = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
-        System.out.println("private key file=" + privKeyName);
         File privKeyFile = new File(privKeyName);
         privKey = Crypto.encodedFile(privKeyFile);
         PrivateKey privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
