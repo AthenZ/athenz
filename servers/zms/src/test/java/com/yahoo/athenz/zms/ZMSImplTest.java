@@ -51,6 +51,7 @@ import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.metrics.MetricFactory;
+import com.yahoo.athenz.common.server.log.AthenzRequestLog;
 import com.yahoo.athenz.common.server.log.AuditLogFactory;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
@@ -14347,6 +14348,23 @@ public class ZMSImplTest extends TestCase {
         }
         boolean actual = zms.isMemberOfRole(role, memberNameToSearch);
         assertEquals(actual, isMember);
+    }
+    
+    @Test
+    public void testLogPrincipal() {
+        
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        ResourceContext ctx = zms.newResourceContext(request, response);
+        zms.logPrincipal(ctx);
+        assertTrue(request.attributes.isEmpty());
+        
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        Principal principal = SimplePrincipal.create("sports", "nhl", "v=S1;d=sports;n=nhl;s=signature",
+                0, principalAuthority);
+        ResourceContext ctx2 = createResourceContext(principal, request);
+        zms.logPrincipal(ctx2);
+        assertEquals((String) request.getAttribute(AthenzRequestLog.REQUEST_PRINCIPAL), "sports.nhl");
     }
 }
 

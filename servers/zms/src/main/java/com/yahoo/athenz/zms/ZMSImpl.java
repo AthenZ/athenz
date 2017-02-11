@@ -28,6 +28,7 @@ import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.metrics.Metric;
+import com.yahoo.athenz.common.server.log.AthenzRequestLog;
 import com.yahoo.athenz.common.server.log.AuditLogFactory;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
@@ -649,6 +650,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.increment(ZMSConsts.HTTP_REQUEST);
         metric.increment(caller);
         Object timerMetric = metric.startTiming("getdomainlist_timing", null);
+        logPrincipal(ctx);
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("getDomainList: limit: " + limit + " skip: " + skip
@@ -718,7 +720,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "getdomain";
         metric.increment(ZMSConsts.HTTP_GET);
-
+        logPrincipal(ctx);
 
         validate(domainName, TYPE_DOMAIN_NAME, caller);
 
@@ -745,6 +747,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "posttopleveldomain";
         metric.increment(ZMSConsts.HTTP_POST);
+        logPrincipal(ctx);
 
         if (readOnlyMode) {
             throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
@@ -827,6 +830,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "deletetopleveldomain";
         metric.increment(ZMSConsts.HTTP_DELETE);
+        logPrincipal(ctx);
 
         if (readOnlyMode) {
             throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
@@ -913,6 +917,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         final String caller = "postuserdomain";
         metric.increment(ZMSConsts.HTTP_POST);
+        logPrincipal(ctx);
 
         if (readOnlyMode) {
             throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
@@ -969,6 +974,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         final String caller = "postsubdomain";
         metric.increment(ZMSConsts.HTTP_POST);
+        logPrincipal(ctx);
 
         if (readOnlyMode) {
             throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
@@ -1093,6 +1099,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         final String caller = "deletesubdomain";
         metric.increment(ZMSConsts.HTTP_DELETE);
+        logPrincipal(ctx);
 
         if (readOnlyMode) {
             throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
@@ -1134,6 +1141,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         final String caller = "deleteuserdomain";
         metric.increment(ZMSConsts.HTTP_DELETE);
+        logPrincipal(ctx);
 
         if (readOnlyMode) {
             throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
@@ -1172,6 +1180,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         final String caller = "putdomainmeta";
         metric.increment(ZMSConsts.HTTP_PUT);
+        logPrincipal(ctx);
 
         if (readOnlyMode) {
             throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
@@ -1235,6 +1244,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         final String caller = "getdomaintemplatelist";
         metric.increment(ZMSConsts.HTTP_GET);
+        logPrincipal(ctx);
 
         validate(domainName, TYPE_DOMAIN_NAME, caller);
 
@@ -1261,6 +1271,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         final String caller = "putdomaintemplate";
         metric.increment(ZMSConsts.HTTP_PUT);
+        logPrincipal(ctx);
 
         if (readOnlyMode) {
             throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
@@ -1314,6 +1325,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         final String caller = "deletedomaintemplate";
         metric.increment(ZMSConsts.HTTP_DELETE);
+        logPrincipal(ctx);
 
         if (readOnlyMode) {
             throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
@@ -1648,6 +1660,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         final String caller = "getaccess";
         metric.increment(ZMSConsts.HTTP_GET);
+        logPrincipal(ctx);
 
         Principal principal = ((RsrcCtxWrapper) ctx).principal();
         if (LOG.isDebugEnabled()) {
@@ -1756,7 +1769,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "putentity";
         metric.increment(ZMSConsts.HTTP_PUT);
-        
+        logPrincipal(ctx);
+
         if (readOnlyMode) {
             throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
         }
@@ -1800,6 +1814,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "getentitylist";
         metric.increment(ZMSConsts.HTTP_GET);
+        logPrincipal(ctx);
 
         validate(domainName, TYPE_DOMAIN_NAME, caller);
 
@@ -1825,7 +1840,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "getentity";
         metric.increment(ZMSConsts.HTTP_GET);
-        
+        logPrincipal(ctx);
+
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(entityName, TYPE_ENTITY_NAME, caller);
         
@@ -1854,7 +1870,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "deleteentity";
         metric.increment(ZMSConsts.HTTP_DELETE);
-        
+        logPrincipal(ctx);
+
         if (readOnlyMode) {
             throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
         }
@@ -1897,7 +1914,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.increment(ZMSConsts.HTTP_REQUEST);
         metric.increment(caller);
         Object timerMetric = metric.startTiming("getservertemplatelist_timing", null);
-        
+        logPrincipal(ctx);
+
         ServerTemplateList result = new ServerTemplateList();
         result.setTemplateNames(new ArrayList<String>(serverSolutionTemplates.names()));
 
@@ -1912,6 +1930,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.increment(ZMSConsts.HTTP_REQUEST);
         metric.increment(caller);
         Object timerMetric = metric.startTiming("gettemplate_timing", null);
+        logPrincipal(ctx);
 
         validate(templateName, TYPE_SIMPLE_NAME, caller);
 
@@ -1935,6 +1954,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "getrolelist";
         metric.increment(ZMSConsts.HTTP_GET);
+        logPrincipal(ctx);
 
         validate(domainName, TYPE_DOMAIN_NAME, caller);
 
@@ -1990,6 +2010,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "getroles";
         metric.increment(ZMSConsts.HTTP_GET);
+        logPrincipal(ctx);
 
         validate(domainName, TYPE_DOMAIN_NAME, caller);
 
@@ -2021,6 +2042,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "getrole";
         metric.increment(ZMSConsts.HTTP_GET);
+        logPrincipal(ctx);
 
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(roleName, TYPE_ENTITY_NAME, caller);
@@ -2133,6 +2155,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "putrole";
         metric.increment(ZMSConsts.HTTP_PUT);
+        logPrincipal(ctx);
 
         if (readOnlyMode) {
             throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
@@ -2193,6 +2216,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "deleterole";
         metric.increment(ZMSConsts.HTTP_DELETE);
+        logPrincipal(ctx);
 
         if (readOnlyMode) {
             throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
@@ -2269,6 +2293,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "getmembership";
         metric.increment(ZMSConsts.HTTP_GET);
+        logPrincipal(ctx);
 
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(roleName, TYPE_ENTITY_NAME, caller);
@@ -2297,6 +2322,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "putmembership";
         metric.increment(ZMSConsts.HTTP_PUT);
+        logPrincipal(ctx);
 
         if (readOnlyMode) {
             throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
@@ -2364,6 +2390,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "deletemembership";
         metric.increment(ZMSConsts.HTTP_DELETE);
+        logPrincipal(ctx);
 
         if (readOnlyMode) {
             throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
@@ -2471,6 +2498,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "getpolicylist";
         metric.increment(ZMSConsts.HTTP_GET);
+        logPrincipal(ctx);
 
         validate(domainName, TYPE_DOMAIN_NAME, caller);
 
@@ -2523,6 +2551,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "getpolicies";
         metric.increment(ZMSConsts.HTTP_GET);
+        logPrincipal(ctx);
 
         validate(domainName, TYPE_DOMAIN_NAME, caller);
 
@@ -2552,6 +2581,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "getpolicy";
         metric.increment(ZMSConsts.HTTP_GET);
+        logPrincipal(ctx);
 
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(policyName, TYPE_ENTITY_NAME, caller);
@@ -2582,6 +2612,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "getassertion";
         metric.increment(ZMSConsts.HTTP_GET);
+        logPrincipal(ctx);
 
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(policyName, TYPE_ENTITY_NAME, caller);
@@ -2613,6 +2644,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "putassertion";
         metric.increment(ZMSConsts.HTTP_PUT);
+        logPrincipal(ctx);
 
         if (readOnlyMode) {
             throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
@@ -2668,6 +2700,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "deleteassertion";
         metric.increment(ZMSConsts.HTTP_DELETE);
+        logPrincipal(ctx);
 
         if (readOnlyMode) {
             throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
@@ -2773,6 +2806,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "putpolicy";
         metric.increment(ZMSConsts.HTTP_PUT);
+        logPrincipal(ctx);
 
         if (readOnlyMode) {
             throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
@@ -2874,6 +2908,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "deletepolicy";
         metric.increment(ZMSConsts.HTTP_DELETE);
+        logPrincipal(ctx);
 
         if (readOnlyMode) {
             throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
@@ -3212,6 +3247,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "putserviceidentity";
         metric.increment(ZMSConsts.HTTP_PUT);
+        logPrincipal(ctx);
 
         if (readOnlyMode) {
             throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
@@ -3267,6 +3303,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "getserviceidentity";
         metric.increment(ZMSConsts.HTTP_GET);
+        logPrincipal(ctx);
 
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(serviceName, TYPE_SIMPLE_NAME, caller);
@@ -3297,6 +3334,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "deleteserviceidentity";
         metric.increment(ZMSConsts.HTTP_DELETE);
+        logPrincipal(ctx);
 
         if (readOnlyMode) {
             throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
@@ -3368,6 +3406,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "getserviceidentities";
         metric.increment(ZMSConsts.HTTP_GET);
+        logPrincipal(ctx);
 
         validate(domainName, TYPE_DOMAIN_NAME, caller);
 
@@ -3399,6 +3438,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
        
         final String caller = "getserviceidentitylist";
         metric.increment(ZMSConsts.HTTP_GET);
+        logPrincipal(ctx);
 
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         
@@ -3430,6 +3470,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "getpublickeyentry";
         metric.increment(ZMSConsts.HTTP_GET);
+        logPrincipal(ctx);
 
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(serviceName, TYPE_SIMPLE_NAME, caller);
@@ -3461,6 +3502,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "deletepublickeyentry";
         metric.increment(ZMSConsts.HTTP_DELETE);
+        logPrincipal(ctx);
 
         if (readOnlyMode) {
             throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
@@ -3506,6 +3548,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "putpublickeyentry";
         metric.increment(ZMSConsts.HTTP_PUT);
+        logPrincipal(ctx);
 
         if (readOnlyMode) {
             throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
@@ -3599,7 +3642,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
     
     // SignedDomains interface
-    public void getSignedDomains(ResourceContext context, String domain, String metaOnly,
+    public void getSignedDomains(ResourceContext ctx, String domain, String metaOnly,
             String matchingTag, GetSignedDomainsResult result) {
 
         final String caller = "getsigneddomains";
@@ -3607,7 +3650,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.increment(ZMSConsts.HTTP_REQUEST);
         metric.increment(caller);
         Object timerMetric = metric.startTiming("getsigneddomains_timing", null);
-        
+        logPrincipal(ctx);
+
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
         // policy, service, etc name)
@@ -3838,6 +3882,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.increment(ZMSConsts.HTTP_REQUEST);
         metric.increment(caller);
         Object timerMetric = metric.startTiming("getusertoken_timing", null);
+        logPrincipal(ctx);
 
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
@@ -3988,6 +4033,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         final String caller = "puttenancy";
         metric.increment(ZMSConsts.HTTP_PUT);
+        logPrincipal(ctx);
 
         if (readOnlyMode) {
             throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
@@ -4134,6 +4180,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         final String caller = "puttenancyresourcegroup";
         metric.increment(ZMSConsts.HTTP_PUT);
+        logPrincipal(ctx);
 
         if (readOnlyMode) {
             throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
@@ -4292,6 +4339,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "gettenancy";
         metric.increment(ZMSConsts.HTTP_GET);
+        logPrincipal(ctx);
 
         validate(tenantDomain, TYPE_DOMAIN_NAME, caller);
         validate(providerService, TYPE_SERVICE_NAME, caller); // fully qualified provider's service name
@@ -4403,6 +4451,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "deletetenancy";
         metric.increment(ZMSConsts.HTTP_DELETE);
+        logPrincipal(ctx);
 
         if (readOnlyMode) {
             throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
@@ -4525,6 +4574,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "deletetenancyresourcegroup";
         metric.increment(ZMSConsts.HTTP_DELETE);
+        logPrincipal(ctx);
 
         if (readOnlyMode) {
             throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
@@ -4660,6 +4710,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
              
         final String caller = "puttenantroles";
         metric.increment(ZMSConsts.HTTP_PUT);
+        logPrincipal(ctx);
 
         try {
             validate(provSvcDomain, TYPE_DOMAIN_NAME, caller);
@@ -4718,6 +4769,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         final String caller = "puttenantresourcegrouproles";
         metric.increment(ZMSConsts.HTTP_PUT);
+        logPrincipal(ctx);
 
         if (readOnlyMode) {
             throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
@@ -4779,6 +4831,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "getdomaindatacheck";
         metric.increment(ZMSConsts.HTTP_GET);
+        logPrincipal(ctx);
 
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         domainName = domainName.toLowerCase();
@@ -5068,6 +5121,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
          
         final String caller = "deleteproviderresourcegrouproles";
         metric.increment(ZMSConsts.HTTP_DELETE);
+        logPrincipal(ctx);
 
         if (readOnlyMode) {
             throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
@@ -5129,10 +5183,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     public ProviderResourceGroupRoles getProviderResourceGroupRoles(ResourceContext ctx, String tenantDomain,
-                                                                    String provSvcDomain, String provSvcName, String resourceGroup) {
+            String provSvcDomain, String provSvcName, String resourceGroup) {
 
         final String caller = "getproviderresourcegrouproles";
         metric.increment(ZMSConsts.HTTP_GET);
+        logPrincipal(ctx);
 
         validate(provSvcDomain, TYPE_DOMAIN_NAME, caller);
         validate(provSvcName, TYPE_SIMPLE_NAME, caller);
@@ -5238,6 +5293,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         final String caller = "putproviderresourcegrouproles";
         metric.increment(ZMSConsts.HTTP_PUT);
+        logPrincipal(ctx);
 
         if (readOnlyMode) {
             throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
@@ -5353,6 +5409,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "gettenantroles";
         metric.increment(ZMSConsts.HTTP_GET);
+        logPrincipal(ctx);
 
         validate(provSvcDomain, TYPE_DOMAIN_NAME, caller);
         validate(provSvcName, TYPE_SIMPLE_NAME, caller); // not including the domain, this is the domain's service type
@@ -5411,6 +5468,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "gettenantresourcegrouproles";
         metric.increment(ZMSConsts.HTTP_GET);
+        logPrincipal(ctx);
 
         validate(provSvcDomain, TYPE_DOMAIN_NAME, caller);
         validate(provSvcName, TYPE_SIMPLE_NAME, caller); // not including the domain, this is the domain's service type
@@ -5474,6 +5532,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "deletetenantroles";
         metric.increment(ZMSConsts.HTTP_DELETE);
+        logPrincipal(ctx);
 
         if (readOnlyMode) {
             throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
@@ -5521,6 +5580,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         final String caller = "deletetenantresourcegrouproles";
         metric.increment(ZMSConsts.HTTP_DELETE);
+        logPrincipal(ctx);
 
         if (readOnlyMode) {
             throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
@@ -5770,6 +5830,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.increment(ZMSConsts.HTTP_REQUEST);
         metric.increment(caller);
         Object timerMetric = metric.startTiming("putdefaultadmins_timing", null);
+        logPrincipal(ctx);
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("putDefaultAdmins: domain = " + domainName);
@@ -6039,6 +6100,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         final String caller = "getserviceprincipal";
         metric.increment(ZMSConsts.HTTP_GET);
+        logPrincipal(ctx);
 
         // we need to make sure we're only validating service/user tokens
         // so any thing that's been authenticated by the PrincipalAuthority
@@ -6108,7 +6170,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         AuthorizedService authzService = serverAuthorizedServices.get(authorizedService);
         if (authzService == null) {
-            throw ZMSUtils.forbiddenError("Unauthorized Service " + authorizedService, operationName);
+            throw ZMSUtils.forbiddenError("Unauthorized Service " + authorizedService,
+                    operationName);
         }
         
         // if the list is empty then we allow all the operations
@@ -6129,24 +6192,28 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         
         if (!opAllowed) {
-            throw ZMSUtils.forbiddenError("Unauthorized Operation (" + operationName +
-                    ") for Service " + authorizedService +
-                    (opItemType != null && opItemType != "" ? " on opItemKey " + opItemType + " and opItemVal " + opItemVal : ""), operationName);
+            throw ZMSUtils.forbiddenError("Unauthorized Operation (" + operationName
+                    + ") for Service " + authorizedService
+                    + (opItemType != null && opItemType != "" ? " on opItemKey " + opItemType + " and opItemVal " + opItemVal : ""),
+                    operationName);
         }
     }
 
     @Override
-    public ResourceAccessList getResourceAccessList(ResourceContext ctx, String principal, String action) {
+    public ResourceAccessList getResourceAccessList(ResourceContext ctx, String principal,
+            String action) {
         
         final String caller = "getresourceaccesslist";
         metric.increment(ZMSConsts.HTTP_GET);
         metric.increment(ZMSConsts.HTTP_REQUEST);
         metric.increment(caller);
         Object timerMetric = metric.startTiming("getresourceaccesslist_timing", null);
-        
+        logPrincipal(ctx);
+
         Principal ctxPrincipal = ((RsrcCtxWrapper) ctx).principal();
         if (LOG.isDebugEnabled()) {
-            LOG.debug("getResourceAccessList:(" + ctxPrincipal + ", " + principal + ", " + action + ")");
+            LOG.debug("getResourceAccessList:(" + ctxPrincipal + ", " + principal
+                    + ", " + action + ")");
         }
         
         if (principal != null) {
@@ -6175,6 +6242,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return rsrcAccessList;
     }
 
+    void logPrincipal(ResourceContext ctx) {
+        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        if (principal != null) {
+            ctx.request().setAttribute(AthenzRequestLog.REQUEST_PRINCIPAL, principal.getYRN());
+        }
+    }
+    
     static class RsrcCtxWrapper implements ResourceContext {
 
         com.yahoo.athenz.common.server.rest.ResourceContext ctx = null;
@@ -6182,7 +6256,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         RsrcCtxWrapper(HttpServletRequest request,
                        HttpServletResponse response,
                        Http.AuthorityList authList, Authorizer authorizer) {
-            ctx = new com.yahoo.athenz.common.server.rest.ResourceContext(request, response, authList, authorizer);
+            ctx = new com.yahoo.athenz.common.server.rest.ResourceContext(request,
+                    response, authList, authorizer);
         }
 
         com.yahoo.athenz.common.server.rest.ResourceContext context() {
@@ -6235,7 +6310,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
-    public ResourceContext newResourceContext(HttpServletRequest request, HttpServletResponse response) {
+    public ResourceContext newResourceContext(HttpServletRequest request,
+            HttpServletResponse response) {
         return new RsrcCtxWrapper(request, response, authorities, this);
     }
     

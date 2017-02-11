@@ -40,6 +40,7 @@ import com.yahoo.athenz.auth.impl.CertificateAuthority;
 import com.yahoo.athenz.auth.impl.PrincipalAuthority;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.metrics.Metric;
+import com.yahoo.athenz.common.server.log.AthenzRequestLog;
 import com.yahoo.athenz.common.server.log.AuditLogFactory;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
@@ -324,6 +325,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String caller = "getserviceidentity";
         final String callerTiming = "getserviceidentity_timing";
         metric.increment(HTTP_GET);
+        logPrincipal(ctx);
 
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(serviceName, TYPE_SIMPLE_NAME, caller);
@@ -367,6 +369,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String caller = "getpublickeyentry";
         final String callerTiming = "getpublickeyentry_timing";
         metric.increment(HTTP_GET);
+        logPrincipal(ctx);
 
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(serviceName, TYPE_SIMPLE_NAME, caller);
@@ -411,7 +414,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String caller = "getserviceidentitylist";
         final String callerTiming = "getserviceidentitylist_timing";
         metric.increment(HTTP_GET);
-        
+        logPrincipal(ctx);
+
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         
         // for consistent handling of all requests, we're going to convert
@@ -460,7 +464,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_REQUEST);
         metric.increment(caller);
         Object timerMetric = metric.startTiming(callerTiming, null);
-        
+        logPrincipal(ctx);
+
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case since ZMS Server
         // saves all of its object names in lower case
@@ -521,13 +526,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return ztsPolicies;
     }
     
-    public void getDomainSignedPolicyData(ResourceContext context, String domainName,
+    public void getDomainSignedPolicyData(ResourceContext ctx, String domainName,
             String matchingTag, GetDomainSignedPolicyDataResult signedPoliciesResult) {
         
         final String caller = "getdomainsignedpolicydata";
         final String callerTiming = "getdomainsignedpolicydata_timing";
         metric.increment(HTTP_GET);
-        
+        logPrincipal(ctx);
+
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         
         // for consistent handling of all requests, we're going to convert
@@ -643,7 +649,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String caller = "gettenantdomains";
         final String callerTiming = "gettenantdomains_timing";
         metric.increment(HTTP_GET);
-        
+        logPrincipal(ctx);
+
         validate(providerDomainName, TYPE_DOMAIN_NAME, caller);
         validate(userName, TYPE_ENTITY_NAME, caller);
         if (roleName != null) {
@@ -808,6 +815,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String caller = "getroletoken";
         final String callerTiming = "getroletoken_timing";
         metric.increment(HTTP_GET);
+        logPrincipal(ctx);
 
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         if (roleName != null && !roleName.isEmpty()) {
@@ -983,6 +991,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String caller = "getroleaccess";
         final String callerTiming = "getroleaccess_timing";
         metric.increment(HTTP_GET);
+        logPrincipal(ctx);
 
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(principal, TYPE_ENTITY_NAME, caller);
@@ -1042,6 +1051,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String caller = "postrolecertificaterequest";
         final String callerTiming = "postrolecertificaterequest_timing";
         metric.increment(HTTP_POST);
+        logPrincipal(ctx);
 
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(roleName, TYPE_ENTITY_NAME, caller);
@@ -1227,6 +1237,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String caller = "getawstemporarycredentials";
         final String callerTiming = "getawstemporarycredentials_timing";
         metric.increment(HTTP_GET);
+        logPrincipal(ctx);
 
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(roleName, TYPE_ENTITY_NAME, caller);
@@ -1329,11 +1340,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     @Override
-    public Identity postAWSInstanceInformation(ResourceContext context, AWSInstanceInformation info) {
+    public Identity postAWSInstanceInformation(ResourceContext ctx, AWSInstanceInformation info) {
         
         final String caller = "postawsinstanceinformation";
         final String callerTiming = "postawsinstanceinformation_timing";
         metric.increment(HTTP_POST);
+        logPrincipal(ctx);
 
         validate(info, TYPE_AWS_INSTANCE_INFO, caller);
         
@@ -1443,6 +1455,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String caller = "postinstancerefreshrequest";
         final String callerTiming = "postinstancerefreshrequest_timing";
         metric.increment(HTTP_POST);
+        logPrincipal(ctx);
 
         validate(domain, TYPE_DOMAIN_NAME, caller);
         validate(service, TYPE_SIMPLE_NAME, caller);
@@ -1524,10 +1537,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     @Override
-    public Identity postInstanceInformation(ResourceContext context, InstanceInformation info) {
+    public Identity postInstanceInformation(ResourceContext ctx, InstanceInformation info) {
+
         final String caller = "postinstanceinformation";
         final String callerTiming = "postinstanceinformation_timing";
         metric.increment(HTTP_POST);
+        logPrincipal(ctx);
 
         String domain = info.getDomain();
         String service = info.getService();
@@ -1591,6 +1606,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String caller = "postawscertificaterequest";
         final String callerTiming = "postawscertificaterequest_timing";
         metric.increment(HTTP_POST);
+        logPrincipal(ctx);
 
         validate(domain, TYPE_DOMAIN_NAME, caller);
         validate(service, TYPE_SIMPLE_NAME, caller);
@@ -1653,12 +1669,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
     
     @Override
-    public Access getAccess(ResourceContext context, String domainName, String roleName, String principal) {
+    public Access getAccess(ResourceContext ctx, String domainName, String roleName,
+            String principal) {
         
         final String caller = "getaccess";
         final String callerTiming = "getaccess_timing";
         metric.increment(HTTP_GET);
-
+        logPrincipal(ctx);
+        
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(roleName, TYPE_ENTITY_NAME, caller);
         validate(principal, TYPE_ENTITY_NAME, caller);
@@ -1721,10 +1739,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
      * /metrics/{domainName}
      */
     @Override
-    public DomainMetrics postDomainMetrics(ResourceContext context, String domainName, DomainMetrics req) {
+    public DomainMetrics postDomainMetrics(ResourceContext ctx, String domainName,
+            DomainMetrics req) {
+
         final String caller = "postdomainmetrics";
         final String callerTiming = "postdomainmetrics_timing";
         metric.increment(HTTP_POST);
+        logPrincipal(ctx);
 
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(req, TYPE_DOMAIN_METRICS, caller);
@@ -1738,19 +1759,22 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             metric.increment(HTTP_REQUEST, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
             metric.increment(caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
             LOGGER.error("postDomainMetrics: request for unknown domain: " + domainName);
-            throw notFoundError("postDomainMetrics: No such domain: " + domainName, caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+            throw notFoundError("postDomainMetrics: No such domain: " + domainName,
+                    caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
         }
 
         // verify domain name matches domain name in request object
         String metricDomain = req.getDomainName();
         if (metricDomain == null) {
-            String errMsg = "postDomainMetrics: metrics request missing domain name for uri specified domain: " + domainName;
+            String errMsg = "postDomainMetrics: metrics request missing domain name: "
+                    + domainName;
             LOGGER.error(errMsg);
             throw requestError(errMsg, caller, domainName);
         } else if (metricDomain != null) {
             metricDomain = metricDomain.toLowerCase();
             if (!metricDomain.equals(domainName)) {
-                String errMsg = "postDomainMetrics: mismatched domain names: uri domain: " + domainName + " : metric domain: " + metricDomain;
+                String errMsg = "postDomainMetrics: mismatched domain names: uri domain: "
+            + domainName + " : metric domain: " + metricDomain;
                 LOGGER.error(errMsg);
                 throw requestError(errMsg, caller, domainName);
             }
@@ -1810,6 +1834,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
     }
 
+    void logPrincipal(ResourceContext ctx) {
+        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        if (principal != null) {
+            ctx.request().setAttribute(AthenzRequestLog.REQUEST_PRINCIPAL, principal.getYRN());
+        }
+    }
+    
     protected RuntimeException error(int code, String msg, String caller, String domainName) {
         
         if (LOGGER.isDebugEnabled()) {
@@ -1850,5 +1881,4 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     public Authorizer getAuthorizer() {
         return authorizer;
     }
-    
 }
