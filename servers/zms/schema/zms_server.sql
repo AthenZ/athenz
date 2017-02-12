@@ -211,6 +211,7 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS `zms_server`.`role_member` (
   `role_id` INT UNSIGNED NOT NULL,
   `principal_id` INT UNSIGNED NOT NULL,
+  `expiration` DATETIME(3),
   PRIMARY KEY (`role_id`, `principal_id`),
   INDEX `idx_principal` (`principal_id` ASC, `role_id` ASC),
   CONSTRAINT `fk_role_member_role`
