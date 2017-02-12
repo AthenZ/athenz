@@ -52,7 +52,7 @@ public class HttpCertSigner implements CertSigner {
         try {
             httpClient.start();
         } catch (Exception ex) {
-            LOGGER.error("HttpCertSigner: unable to start http client", ex);
+            LOGGER.error("HttpCertSigner: unable to start http client: " + ex.getMessage());
             throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
                     "Http client not available");
         }

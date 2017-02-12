@@ -100,7 +100,7 @@ public class CloudStore {
         try {
             httpClient.start();
         } catch (Exception ex) {
-            LOGGER.error("CloudStore: unable to start http client", ex);
+            LOGGER.error("CloudStore: unable to start http client: " + ex.getMessage());
             throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
                     "Http client not available");
         }
@@ -121,7 +121,8 @@ public class CloudStore {
         
         // initialize aws support
         
-        awsEnabled = Boolean.parseBoolean(System.getProperty(ZTSConsts.ZTS_PROP_AWS_ENABLED, "false"));
+        awsEnabled = Boolean.parseBoolean(System.getProperty(
+                ZTSConsts.ZTS_PROP_AWS_ENABLED, "false"));
         initializeAwsSupport();
     }
     
@@ -213,7 +214,8 @@ public class CloudStore {
                 return false;
             }
         } catch (Exception ex) {
-            LOGGER.error("CloudStore: unable to parse instance identity document: " + document, ex);
+            LOGGER.error("CloudStore: unable to parse instance identity document: "
+                    + document + ", error: " + ex.getMessage());
             return false;
         }
         
@@ -240,7 +242,8 @@ public class CloudStore {
                 return false;
             }
         } catch (Exception ex) {
-            LOGGER.error("CloudStore: unable to parse iam role data: " + iamRole, ex);
+            LOGGER.error("CloudStore: unable to parse iam role data: " + iamRole
+                    + ", error: " + ex.getMessage());
             return false;
         }
         
@@ -263,7 +266,8 @@ public class CloudStore {
         try {
             instStruct = JSON.fromString(document, Struct.class);
         } catch (Exception ex) {
-            LOGGER.error("CloudStore: unable to parse instance identity document", ex);
+            LOGGER.error("CloudStore: unable to parse instance identity document: "
+                    + ex.getMessage());
         }
         
         if (instStruct == null) {
@@ -296,7 +300,7 @@ public class CloudStore {
         try {
             iamRoleStruct = JSON.fromString(iamRole, Struct.class);
         } catch (Exception ex) {
-            LOGGER.error("CloudStore: unable to parse iam role data", ex);
+            LOGGER.error("CloudStore: unable to parse iam role data: " + ex.getMessage());
         }
         
         if (iamRoleStruct == null) {
@@ -401,7 +405,7 @@ public class CloudStore {
         try {
             credsStruct = JSON.fromString(creds, Struct.class);
         } catch (Exception ex) {
-            LOGGER.error("CloudStore: unable to parse role credentials data", ex);
+            LOGGER.error("CloudStore: unable to parse role credentials data: " + ex.getMessage());
         }
         
         if (credsStruct == null) {
@@ -421,7 +425,8 @@ public class CloudStore {
         try {
             credentials = new BasicSessionCredentials(accessKeyId, secretAccessKey, token);
         } catch (Exception ex) {
-            LOGGER.error("CloudStore: unable to generate session credentials from: " + creds, ex);
+            LOGGER.error("CloudStore: unable to generate session credentials from: "
+                    + creds + ", error: " + ex.getMessage());
             return false;
         }
         
@@ -541,7 +546,8 @@ public class CloudStore {
         try {
             valid = Crypto.validatePKCS7Signature(document, signature, awsPublicKey);
         } catch (CryptoException ex) {
-             LOGGER.error("validateInstanceDocument: unable to validate AWS instance document", ex);
+             LOGGER.error("validateInstanceDocument: unable to validate AWS instance document: "
+                     + ex.getMessage());
         }
         return valid;
     }
@@ -558,7 +564,8 @@ public class CloudStore {
             try {
                 fetchRoleCredentials();
             } catch (Exception ex) {
-                LOGGER.error("RoleCredentialsFetcher: unable to fetch aws role credentials", ex);
+                LOGGER.error("RoleCredentialsFetcher: unable to fetch aws role credentials: "
+                        + ex.getMessage());
             }
         }
     }

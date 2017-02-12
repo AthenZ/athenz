@@ -199,7 +199,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         try {
             msgBldr = AuditLogFactory.getMsgBuilder(auditLoggerMsgBldrClass);
         } catch (Exception exc) {
-            LOGGER.error("getAuditLogMsgBuilder: failed to get an AuditLogMsgBuilder. Get the default instead.", exc);
+            LOGGER.error("getAuditLogMsgBuilder: failed to get an AuditLogMsgBuilder. Get the default instead: "
+                    + exc.getMessage());
             msgBldr = AuditLogFactory.getMsgBuilder();
         }
 
@@ -1172,7 +1173,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             // handle all the errors and not let container to return
             // standard server error
             
-            LOGGER.error("validateRoleCertificateRequest: unable to extract csr cn", ex);
+            LOGGER.error("validateRoleCertificateRequest: unable to extract csr cn: "
+                    + ex.getMessage());
         }
         
         if (cnCertReq == null) {
@@ -1209,7 +1211,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             // handle all the errors and not let container to return
             // standard server error
             
-            LOGGER.error("validateRoleCertificateRequest: unable to extract csr email", ex);
+            LOGGER.error("validateRoleCertificateRequest: unable to extract csr email: "
+                    + ex.getMessage());
         }
         
         if (email != null) {

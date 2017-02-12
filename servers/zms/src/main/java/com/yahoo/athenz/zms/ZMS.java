@@ -51,14 +51,17 @@ public class ZMS {
                 @SuppressWarnings("unused")
                 AuditLogMsgBuilder msgBldr = AuditLogFactory.getMsgBuilder(AUDIT_LOG_MSG_BLDR_CLASS);
             } catch (Exception exc) {
-                LOG.warn("AuditLogMsgBuilder: Cannot instantiate message builder class from=" +
-                    AUDIT_LOG_MSG_BLDR_CLASS + ", therefore will use default log message builder class instead.", exc);
+                LOG.warn("AuditLogMsgBuilder: Cannot instantiate message builder class from="
+                    + AUDIT_LOG_MSG_BLDR_CLASS
+                    + ", therefore will use default log message builder class instead: "
+                    + exc.getMessage());
                 AUDIT_LOG_MSG_BLDR_CLASS = null;
             }
         } catch (Exception exc) {
-            LOG.warn("Failed to get the audit log message builder class using property=" +
-                    ZMSConsts.ZMS_PROP_AUDIT_LOG_MSG_BLDR_CLASS +
-                ", ZMS will use the default log message builder class instead.", exc);
+            LOG.warn("Failed to get the audit log message builder class using property="
+                    + ZMSConsts.ZMS_PROP_AUDIT_LOG_MSG_BLDR_CLASS
+                    + ", ZMS will use the default log message builder class instead: "
+                    + exc.getMessage());
             AUDIT_LOG_MSG_BLDR_CLASS = null;
         }
     }
@@ -78,8 +81,9 @@ public class ZMS {
                 auditLog = AuditLogFactory.getLogger(auditLoggerClassName);
             }
         } catch (Exception exc) {
-            LOG.warn("Failed to create audit logger from class=" +
-                auditLoggerClassName + ", ZMS will use the default logger instead.", exc);
+            LOG.warn("Failed to create audit logger from class="
+                    + auditLoggerClassName + ", ZMS will use the default logger instead: "
+                    + exc.getMessage());
             auditLog = AuditLogFactory.getLogger();
         }
         return auditLog;

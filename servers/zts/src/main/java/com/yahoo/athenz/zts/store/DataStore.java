@@ -942,7 +942,7 @@ public class DataStore implements DataCacheProvider {
                 }
                 
             } catch (Exception ex) {
-                LOGGER.error("DataUpdater: unable to process domain changes", ex);
+                LOGGER.error("DataUpdater: unable to process domain changes: " + ex.getMessage());
             }
         }
     }

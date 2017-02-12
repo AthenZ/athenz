@@ -140,7 +140,6 @@ public class KerberosAuthorityTest {
         
         principal = authority.authenticate(ktoken.getSignedToken(), null, "GET", null);
         assertNotNull(principal);
-        System.out.println("test mock priv action: got principal=" + principal );
 
         // test with ygrid realm
         System.setProperty(KerberosToken.KRB_PROP_TOKEN_PRIV_ACTION + "_TEST_REALM", KerberosToken.KRB_USER_REALM);
@@ -160,7 +159,6 @@ public class KerberosAuthorityTest {
         
         principal = authority.authenticate(ktoken.getSignedToken(), null, "GET", null);
         assertNotNull(principal);
-        System.out.println("test mock priv action: got principal=" + principal );
 
         // test with invalid realm
         System.setProperty(KerberosToken.KRB_PROP_TOKEN_PRIV_ACTION + "_TEST_REALM", "REALM.SOMECOMPANY.COM");
@@ -174,7 +172,6 @@ public class KerberosAuthorityTest {
         
         principal = authority.authenticate(ktoken.getSignedToken(), null, "GET", null);
         assertNull(principal);
-        System.out.println("test mock priv action: got principal=" + principal );
         
         principal = authority.authenticate(null, null, "GET", null);
         assertNull(principal);

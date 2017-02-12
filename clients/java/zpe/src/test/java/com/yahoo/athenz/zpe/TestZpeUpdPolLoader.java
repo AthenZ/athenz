@@ -59,7 +59,7 @@ public class TestZpeUpdPolLoader {
             
             matchObject = loader.getMatchObject("*test");
             assertTrue(matchObject instanceof ZpeMatchRegex);
-    
+            
             matchObject = loader.getMatchObject("test");
             assertTrue(matchObject instanceof ZpeMatchEqual);
             

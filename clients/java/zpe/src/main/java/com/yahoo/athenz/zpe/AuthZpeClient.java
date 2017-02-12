@@ -120,7 +120,8 @@ public class AuthZpeClient {
         try {
             zpeClt = getZpeClient();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
-            LOG.error("Unable to instantiate zpe class: " + zpeClientImplName, ex);
+            LOG.error("Unable to instantiate zpe class: " + zpeClientImplName
+                    + ", error: " + ex.getMessage());
             throw new RuntimeException(ex);
         }
         zpeClt.init(null);
@@ -139,7 +140,8 @@ public class AuthZpeClient {
         try {
             publicKeyStoreFactory = (PublicKeyStoreFactory) Class.forName(pkeyFactoryClass).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
-            LOG.error("Invalid PublicKeyStore class: " + pkeyFactoryClass, ex);
+            LOG.error("Invalid PublicKeyStore class: " + pkeyFactoryClass
+                    + ", error: " + ex.getMessage());
             throw new RuntimeException(ex);
         }
         publicKeyStore = publicKeyStoreFactory.create();
@@ -215,7 +217,7 @@ public class AuthZpeClient {
             rToken = tokenCache.get(roleToken);
         } catch (Exception exc) {
             zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_CACHE_FAILURE, DEFAULT_DOMAIN);
-            LOG.error("allowAccess: token cache failure, exc: ", exc);
+            LOG.error("allowAccess: token cache failure, exc: " + exc.getMessage());
         }
 
         if (rToken == null) {
@@ -281,7 +283,7 @@ public class AuthZpeClient {
                 tokenCache = zpeclt.getRoleTokenCacheMap();
                 tokenCache.remove(signedToken);
             } catch (Exception exc) {
-                LOG.error("allowAccess: token cache failure, exc: ", exc);
+                LOG.error("allowAccess: token cache failure, exc: " + exc.getMessage());
             }
 
             zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_EXPIRED_TOKEN, rToken.getDomain());
@@ -756,7 +758,7 @@ public class AuthZpeClient {
             Map<String, List<Struct>> roleAsserts = zpeclt.getWildcardAllowAssertions(domain);
             return roleAsserts;
         } catch (Exception exc) {
-            LOG.error("getWildCardAllowPolicies: exc: ", exc);
+            LOG.error("getWildCardAllowPolicies: exc: " + exc.getMessage());
         }
         return null;
     }
@@ -767,7 +769,7 @@ public class AuthZpeClient {
             Map<String, List<Struct>> roleAsserts = zpeclt.getRoleAllowAssertions(domain);
             return roleAsserts;
         } catch (Exception exc) {
-            LOG.error("getRoleSpecificAllowPolicies: exc: ", exc);
+            LOG.error("getRoleSpecificAllowPolicies: exc: " + exc.getMessage());
         }
         return null;
     }
@@ -778,7 +780,7 @@ public class AuthZpeClient {
             Map<String, List<Struct>> roleAsserts = zpeclt.getWildcardDenyAssertions(domain);
             return roleAsserts;
         } catch (Exception exc) {
-            LOG.error("getWildCardDenyPolicies: exc: ", exc);
+            LOG.error("getWildCardDenyPolicies: exc: " + exc.getMessage());
         }
         return null;
     }
@@ -789,7 +791,7 @@ public class AuthZpeClient {
             Map<String, List<Struct>> roleAsserts = zpeclt.getRoleDenyAssertions(domain);
             return roleAsserts;
         } catch (Exception exc) {
-            LOG.error("getRoleSpecificDenyPolicies: exc: ", exc);
+            LOG.error("getRoleSpecificDenyPolicies: exc: " + exc.getMessage());
         }
         return null;
     }

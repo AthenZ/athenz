@@ -601,7 +601,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         try {
             msgBldr = AuditLogFactory.getMsgBuilder(auditLoggerMsgBldrClass);
         } catch (Exception exc) {
-            LOG.error("getAuditLogMsgBuilder: failed to get an AuditLogMsgBuilder. Get the default instead.", exc);
+            LOG.error("getAuditLogMsgBuilder: failed to get an AuditLogMsgBuilder. Get the default instead: "
+                    + exc.getMessage());
             msgBldr = AuditLogFactory.getMsgBuilder();
         }
 

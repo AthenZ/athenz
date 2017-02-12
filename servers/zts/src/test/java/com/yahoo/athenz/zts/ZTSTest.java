@@ -41,7 +41,6 @@ public class ZTSTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,
                 "src/test/resources/zts_private.pem");
         System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
-        System.setProperty("logback.configurationFile", "src/test/resources/logback.xml");
     }
     
     @BeforeMethod
@@ -88,10 +87,8 @@ public class ZTSTest {
         Connector[] connectors = server.getConnectors();
         assertEquals(connectors.length, 2);
         
-        System.out.println("Connectors: " + connectors[0].getProtocols().toString());
         assertTrue(connectors[0].getProtocols().contains("http/1.1"));
         
-        System.out.println("Connectors: " + connectors[1].getProtocols().toString());
         assertTrue(connectors[1].getProtocols().contains("http/1.1"));
         assertTrue(connectors[1].getProtocols().contains("ssl"));
         
@@ -118,7 +115,6 @@ public class ZTSTest {
         Connector[] connectors = server.getConnectors();
         assertEquals(connectors.length, 1);
         
-        System.out.println("Connectors: " + connectors[0].getProtocols().toString());
         assertTrue(connectors[0].getProtocols().contains("http/1.1"));
         assertTrue(connectors[0].getProtocols().contains("ssl"));
         
@@ -144,7 +140,6 @@ public class ZTSTest {
         Connector[] connectors = server.getConnectors();
         assertEquals(connectors.length, 1);
         
-        System.out.println("Connectors: " + connectors[0].getProtocols().toString());
         assertTrue(connectors[0].getProtocols().contains("http/1.1"));
         assertFalse(connectors[0].getProtocols().contains("ssl"));
         
@@ -170,10 +165,8 @@ public class ZTSTest {
         Connector[] connectors = server.getConnectors();
         assertEquals(connectors.length, 2);
         
-        System.out.println("Connectors: " + connectors[0].getProtocols().toString());
         assertTrue(connectors[0].getProtocols().contains("http/1.1"));
         
-        System.out.println("Connectors: " + connectors[1].getProtocols().toString());
         assertTrue(connectors[1].getProtocols().contains("http/1.1"));
         assertTrue(connectors[1].getProtocols().contains("ssl"));
         
@@ -199,7 +192,6 @@ public class ZTSTest {
         Connector[] connectors = server.getConnectors();
         assertEquals(connectors.length, 1);
         
-        System.out.println("Connectors: " + connectors[0].getProtocols().toString());
         assertTrue(connectors[0].getProtocols().contains("http/1.1"));
         assertFalse(connectors[0].getProtocols().contains("ssl"));
         

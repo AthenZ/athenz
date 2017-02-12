@@ -125,7 +125,6 @@ public class ZMSImplTest extends TestCase {
                 "src/test/resources/authorized_services.json");
         System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME,
                 "src/test/resources/solution_templates.json");
-        System.setProperty("logback.configurationFile", "src/test/resources/logback.xml");
 
         setupServiceId();
     }
@@ -207,12 +206,10 @@ public class ZMSImplTest extends TestCase {
         ObjectStore store = new FileObjectStore(new File(ZMS_DATA_STORE_PATH));
 
         String pubKeyName = System.getProperty(ZMSTest.ZMS_PROP_PUBLIC_KEY);
-        System.out.println("public key file=" + pubKeyName);
         File pubKeyFile = new File(pubKeyName);
         pubKey = Crypto.encodedFile(pubKeyFile);
         
         String privKeyName = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
-        System.out.println("private key file=" + privKeyName);
         File privKeyFile = new File(privKeyName);
         privKey = Crypto.encodedFile(privKeyFile);
         PrivateKey privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));

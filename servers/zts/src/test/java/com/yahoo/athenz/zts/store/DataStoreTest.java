@@ -125,7 +125,6 @@ public class DataStoreTest {
         ZMSFileChangeLogStore.deleteDirectory(new File(ZTS_DATA_STORE_PATH));
         
         String privKeyName = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
-        System.out.println("private key file=" + privKeyName);
         File privKeyFile = new File(privKeyName);
         String privKey = Crypto.encodedFile(privKeyFile);
         
@@ -228,7 +227,6 @@ public class DataStoreTest {
         try (PrintWriter out = new PrintWriter("/tmp/zts_server_unit_tests/zts_root/.lastModTime")) {
             out.write("{\"lastModTime\":\"12345\"}");
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
             fail();
         }
         
@@ -258,7 +256,6 @@ public class DataStoreTest {
         try {
             data = new String(Files.readAllBytes(f.toPath()), "UTF-8");
         } catch (IOException e) {
-            e.printStackTrace();
             fail();
         }
         

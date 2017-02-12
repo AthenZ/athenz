@@ -449,12 +449,12 @@ public class Crypto {
                             .setProvider(BC_PROVIDER)
                             .getCertificate((X509CertificateHolder) pemObj);
                 } catch (CertificateException ex) {
-                    LOG.error("loadX509Certificate: Caught CertificateException, unable to parse X509 certficate", ex);
+                    LOG.error("loadX509Certificate: Caught CertificateException, unable to parse X509 certficate: " + ex.getMessage());
                     throw new CryptoException(ex);
                 }
             }
         } catch (IOException ex) {
-            LOG.error("loadX509Certificate: Caught IOException, unable to parse X509 certficate", ex);
+            LOG.error("loadX509Certificate: Caught IOException, unable to parse X509 certficate: " + ex.getMessage());
             throw new CryptoException(ex);
         }
         
@@ -551,13 +551,13 @@ public class Crypto {
                             rsaCrtKey.getPublicExponent());
                     publicKey = kf.generatePublic(keySpec);
                 } catch (NoSuchProviderException ex) {
-                    LOG.error("extractPublicKey: RSA - Caught NoSuchProviderException exception", ex);
+                    LOG.error("extractPublicKey: RSA - Caught NoSuchProviderException exception: " + ex.getMessage());
                     throw new CryptoException(ex);
                 } catch (NoSuchAlgorithmException ex) {
-                    LOG.error("extractPublicKey: RSA - Caught NoSuchAlgorithmException exception", ex);
+                    LOG.error("extractPublicKey: RSA - Caught NoSuchAlgorithmException exception: " + ex.getMessage());
                     throw new CryptoException(ex);
                 } catch (InvalidKeySpecException ex) {
-                    LOG.error("extractPublicKey: RSA - Caught InvalidKeySpecException exception", ex);
+                    LOG.error("extractPublicKey: RSA - Caught InvalidKeySpecException exception: " + ex.getMessage());
                     throw new CryptoException(ex);
                 }
                 break;
@@ -572,13 +572,13 @@ public class Crypto {
                     ECPublicKeySpec keySpec = new ECPublicKeySpec(ecPointQ, ecParamSpec);
                     publicKey = kf.generatePublic(keySpec);
                 } catch (NoSuchProviderException ex) {
-                    LOG.error("extractPublicKey: ECDSA - Caught NoSuchProviderException exception", ex);
+                    LOG.error("extractPublicKey: ECDSA - Caught NoSuchProviderException exception: " + ex.getMessage());
                     throw new CryptoException(ex);
                 } catch (NoSuchAlgorithmException ex) {
-                    LOG.error("extractPublicKey: ECDSA - Caught NoSuchAlgorithmException exception", ex);
+                    LOG.error("extractPublicKey: ECDSA - Caught NoSuchAlgorithmException exception: " + ex.getMessage());
                     throw new CryptoException(ex);
                 } catch (InvalidKeySpecException ex) {
-                    LOG.error("extractPublicKey: ECDSA - Caught InvalidKeySpecException exception", ex);
+                    LOG.error("extractPublicKey: ECDSA - Caught InvalidKeySpecException exception: " + ex.getMessage());
                     throw new CryptoException(ex);
                 }
                 break;
@@ -765,7 +765,7 @@ public class Crypto {
                 }
             }
         } catch (IOException ex) {
-            LOG.error("getPKCS10CertRequest: unable to parse csr", ex);
+            LOG.error("getPKCS10CertRequest: unable to parse csr: " + ex.getMessage());
             throw new CryptoException(ex);
         }
 

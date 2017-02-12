@@ -346,8 +346,8 @@ public class FileConnection implements ObjectStoreConnection {
                     continue;
                 }
             } catch (Exception exc) {
-                System.out.println("FileStructStore: FAILED to get timestamp for file " + dname);
-                exc.printStackTrace();
+                System.out.println("FileStructStore: FAILED to get timestamp for file "
+                        + dname + ", error: " + exc.getMessage());
             }
             DomainModified dm = new DomainModified().setName(dname).setModified(ts);
             nameMods.add(dm);
@@ -1116,7 +1116,6 @@ public class FileConnection implements ObjectStoreConnection {
             Path path = Paths.get(f.toURI());
             domainStruct = JSON.fromBytes(Files.readAllBytes(path), DomainStruct.class);
         } catch (IOException e) {
-            e.printStackTrace();
         }
         return domainStruct;
     }
@@ -1131,7 +1130,6 @@ public class FileConnection implements ObjectStoreConnection {
             fileWriter.flush();
             fileWriter.close();
         } catch (IOException e) {
-            e.printStackTrace();
         }
     }
     

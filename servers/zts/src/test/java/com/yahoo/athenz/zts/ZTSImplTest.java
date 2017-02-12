@@ -288,7 +288,6 @@ public class ZTSImplTest {
         ZMSFileChangeLogStore.deleteDirectory(new File(ZTS_DATA_STORE_PATH));
         
         String privKeyName = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
-        System.out.println("private key file=" + privKeyName);
         File privKeyFile = new File(privKeyName);
         String privKey = Crypto.encodedFile(privKeyFile);
         

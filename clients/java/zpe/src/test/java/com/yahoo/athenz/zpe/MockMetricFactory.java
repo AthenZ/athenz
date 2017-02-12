@@ -37,11 +37,9 @@ public class MockMetricFactory implements MetricFactory {
             Integer mcnt = metricMap.get(metric);
             if (mcnt == null) {
                 metricMap.put(metric, new Integer(count));
-                System.out.println("MockMetric:increment: " + metric + "=1");
             } else {
                 int cnt = mcnt.intValue() + count;
                 metricMap.put(metric, new Integer(cnt));
-                System.out.println("MockMetric:increment: " + metric + "=" + cnt);
             }
         }
 

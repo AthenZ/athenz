@@ -171,9 +171,7 @@ public class ZMSCoreTest {
         Schema schema = ZMSSchema.instance();
         Validator validator = new Validator(schema);
 
-        System.out.println("Testing valid SignedTokens...");
         for (String s : signedTokens) {
-            System.out.println(s);
             Result result = validator.validate(s, "SignedToken");
             assertTrue(result.valid);
         }
@@ -190,9 +188,7 @@ public class ZMSCoreTest {
         Schema schema = ZMSSchema.instance();
         Validator validator = new Validator(schema);
 
-        System.out.println("Testing valid YRNs...");
         for (String s : goodYRNs) {
-            System.out.println(s);
             Result result = validator.validate(s, "YRN");
             assertTrue(result.valid);
         }
@@ -201,9 +197,7 @@ public class ZMSCoreTest {
                 "cannot-use:Punctuation_except_underbar!", "yrn::location_only", "yrn:service:location_only",
                 "non_yrn_prefix:service:location:domain:entity", "missing_yrn_prefix_service:location:domain:entity" };
 
-        System.out.println("Testing bad YRNs...");
         for (String s : badYRNs) {
-            System.out.println(s);
             Result result = validator.validate(s, "YRN");
             assertFalse(result.valid);
         }

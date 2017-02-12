@@ -95,7 +95,6 @@ public class KerberosToken extends Token {
             errMsg.append("KerberosToken:validate: token=").append(unsignedToken).
                    append(" : privilege exc=").append(paexc);
             LOG.error(errMsg.toString());
-            paexc.printStackTrace();
         } catch (Exception exc) {
             if (errMsg == null) {
                 errMsg = new StringBuilder(512);
@@ -103,7 +102,6 @@ public class KerberosToken extends Token {
             errMsg.append("KerberosToken:validate: token=").append(unsignedToken).
                    append(" : unknown exc=").append(exc);
             LOG.error(errMsg.toString());
-            exc.printStackTrace();
         }
         return false;
     }

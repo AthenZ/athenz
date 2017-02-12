@@ -188,7 +188,6 @@ public class ZTSMock extends ZTSRDLGeneratedClient {
             try {
                 keyEntry.setKey(Crypto.ybase64(Files.readAllBytes(path)));
             } catch (IOException e) {
-                e.printStackTrace();
             }
         }
         if (keyEntry == null) {
