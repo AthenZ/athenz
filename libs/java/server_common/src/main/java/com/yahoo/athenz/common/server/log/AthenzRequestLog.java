@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.common.server.log;
 
+import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,7 +35,8 @@ public class AthenzRequestLog extends NCSARequestLog {
     static final String AUDIT_LOG_CRED_REF = "Authority Credential Error: Request Access Log";
     
     static final Pattern AUDIT_CRED_ERROR_PAT_WHO = Pattern.compile(".*(credential=)(.*)");
-
+    public static final String REQUEST_PRINCIPAL = "com.yahoo.athenz.auth.principal";
+    
     private AuditLogger auditLogger = null;
     
     public AthenzRequestLog() {
@@ -77,6 +79,44 @@ public class AthenzRequestLog extends NCSARequestLog {
         }
     }
     
+    @Override
+    public void logExtended(StringBuilder b, Request request, Response response)
+            throws IOException {
+        
+        super.logExtended(b, request, response);
+        
+        Object principal = request.getAttribute(REQUEST_PRINCIPAL);
+        if (principal == null) {
+            b.append(" \"-\" ");
+        } else {
+            b.append(" \"");
+            b.append(principal.toString());
+            b.append("\" ");
+        }
+        
+        long requestLength = request.getContentLengthLong();
+        if (requestLength >= 0) {
+            if (requestLength > 99999) {
+                b.append(requestLength);
+            } else {
+                if (requestLength > 9999) {
+                    b.append((char) ('0' + ((requestLength / 10000) % 10)));
+                }
+                if (requestLength > 999) {
+                    b.append((char) ('0' + ((requestLength / 1000) % 10)));
+                }
+                if (requestLength > 99) {
+                    b.append((char) ('0' + ((requestLength / 100) % 10)));
+                }
+                if (requestLength > 9) {
+                    b.append((char) ('0' + ((requestLength / 10) % 10)));
+                }
+                b.append((char) ('0' + (requestLength) % 10));
+            }
+        } else {
+            b.append('-');
+        }
+    }
     /*
      * Parse authenticate credential error message for token string.
      * If found, return the token string, else null.

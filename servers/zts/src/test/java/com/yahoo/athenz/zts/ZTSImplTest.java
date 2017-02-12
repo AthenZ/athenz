@@ -59,6 +59,7 @@ import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.impl.UserAuthority;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.metrics.Metric;
+import com.yahoo.athenz.common.server.log.AthenzRequestLog;
 import com.yahoo.athenz.common.server.log.AuditLogFactory;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
@@ -1116,16 +1117,20 @@ public class ZTSImplTest {
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
         
-        HostServices hosts = zts.getHostServices(null, "host1");
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+        
+        HostServices hosts = zts.getHostServices(context, "host1");
         assertTrue(hosts.getNames().size() == 1);
         assertTrue(hosts.getNames().contains("coretech.storage"));
         
-        hosts = zts.getHostServices(null, "host2");
+        hosts = zts.getHostServices(context, "host2");
         assertTrue(hosts.getNames().size() == 2);
         assertTrue(hosts.getNames().contains("coretech.storage"));
         assertTrue(hosts.getNames().contains("coretech.backup"));
         
-        hosts = zts.getHostServices(null, "host3");
+        hosts = zts.getHostServices(context, "host3");
         assertTrue(hosts.getNames().size() == 1);
         assertTrue(hosts.getNames().contains("coretech.backup"));
         }
@@ -1136,7 +1141,11 @@ public class ZTSImplTest {
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
         
-        HostServices hosts = zts.getHostServices(null, "unknownHost");
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+        
+        HostServices hosts = zts.getHostServices(context, "unknownHost");
         assertNull(hosts.getNames());
         }
     
@@ -1663,7 +1672,11 @@ public class ZTSImplTest {
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
         
-        PublicKeyEntry entry = zts.getPublicKeyEntry(null, "coretech", "storage", "0");
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+        
+        PublicKeyEntry entry = zts.getPublicKeyEntry(context, "coretech", "storage", "0");
         assertEquals(entry.getId(), "0");
         assertEquals(entry.getKey(), ZTS_Y64_CERT0);
     }
@@ -1674,9 +1687,13 @@ public class ZTSImplTest {
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
         
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+        
         // with null we get 400
         try {
-            zts.getPublicKeyEntry(null, "coretech", "storage", null);
+            zts.getPublicKeyEntry(context, "coretech", "storage", null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -1684,7 +1701,7 @@ public class ZTSImplTest {
         
         // with nonexistent we get 404
         try {
-            zts.getPublicKeyEntry(null, "coretech", "storage", "999999");
+            zts.getPublicKeyEntry(context, "coretech", "storage", "999999");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
@@ -1694,8 +1711,12 @@ public class ZTSImplTest {
     @Test
     public void testGetPublicKeyEntryInvalidDomain() {
         
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+        
         try {
-            zts.getPublicKeyEntry(null, "nonexistentdomain", "storage", "0");
+            zts.getPublicKeyEntry(context, "nonexistentdomain", "storage", "0");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
@@ -1708,8 +1729,12 @@ public class ZTSImplTest {
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
         
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+        
         try {
-            zts.getPublicKeyEntry(null, "coretech", "nonexistentservice", "0");
+            zts.getPublicKeyEntry(context, "coretech", "nonexistentservice", "0");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
@@ -1722,11 +1747,15 @@ public class ZTSImplTest {
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
         
-        com.yahoo.athenz.zts.ServiceIdentity svc = zts.getServiceIdentity(null, "coretech", "storage");
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+        
+        com.yahoo.athenz.zts.ServiceIdentity svc = zts.getServiceIdentity(context, "coretech", "storage");
         assertNotNull(svc);
         assertEquals(svc.getName(), "coretech.storage");
         
-        svc = zts.getServiceIdentity(null, "coretech", "backup");
+        svc = zts.getServiceIdentity(context, "coretech", "backup");
         assertNotNull(svc);
         assertEquals(svc.getName(), "coretech.backup");
     }
@@ -1737,9 +1766,13 @@ public class ZTSImplTest {
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
         
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+        
         try {
             @SuppressWarnings("unused")
-            com.yahoo.athenz.zts.ServiceIdentity svc = zts.getServiceIdentity(null, "coretech", "storage2");
+            com.yahoo.athenz.zts.ServiceIdentity svc = zts.getServiceIdentity(context, "coretech", "storage2");
             fail();
         } catch (ResourceException ex) {
             assertTrue(true);
@@ -1747,7 +1780,7 @@ public class ZTSImplTest {
         
         try {
             @SuppressWarnings("unused")
-            com.yahoo.athenz.zts.ServiceIdentity svc = zts.getServiceIdentity(null, "testDomain2", "storage");
+            com.yahoo.athenz.zts.ServiceIdentity svc = zts.getServiceIdentity(context, "testDomain2", "storage");
             fail();
         } catch (ResourceException ex) {
             assertTrue(true);
@@ -1779,7 +1812,11 @@ public class ZTSImplTest {
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
         
-        com.yahoo.athenz.zts.ServiceIdentityList svcList = zts.getServiceIdentityList(null, "coretech");
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+        
+        com.yahoo.athenz.zts.ServiceIdentityList svcList = zts.getServiceIdentityList(context, "coretech");
         assertEquals(svcList.getNames().size(), 2);
         assertTrue(svcList.getNames().contains("storage"));
         assertTrue(svcList.getNames().contains("backup"));
@@ -1791,9 +1828,13 @@ public class ZTSImplTest {
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
 
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+        
         try {
             @SuppressWarnings("unused")
-            com.yahoo.athenz.zts.ServiceIdentityList svcList = zts.getServiceIdentityList(null, "testDomain2");
+            com.yahoo.athenz.zts.ServiceIdentityList svcList = zts.getServiceIdentityList(context, "testDomain2");
             fail();
         } catch (ResourceException ex) {
             assertTrue(true);
@@ -1806,7 +1847,11 @@ public class ZTSImplTest {
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", false);
         store.processDomain(signedDomain, false);
 
-        com.yahoo.athenz.zts.ServiceIdentityList svcList = zts.getServiceIdentityList(null, "coretech");
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+        
+        com.yahoo.athenz.zts.ServiceIdentityList svcList = zts.getServiceIdentityList(context, "coretech");
         assertEquals(svcList.getNames().size(), 0);
     }
     
@@ -2255,7 +2300,6 @@ public class ZTSImplTest {
         assertEquals("coretech.office.burbank", zts.retrieveTenantDomainName("storage.tenant.coretech.office.burbank.resource_group.admin", null));
     }
     
-    
     @Test
     public void testRetrieveTenantDomainName4PlusCompsValidDomainWithOutResourceGroup() {
         
@@ -2285,7 +2329,12 @@ public class ZTSImplTest {
         signedDomain = createTenantSignedDomain("weather.frontpage", "athenz.product", "storage");
         store.processDomain(signedDomain, false);
         
-        TenantDomains tenantDomains = zts.getTenantDomains(null, "athenz.product", "user_domain.user100", null, null);
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+        
+        TenantDomains tenantDomains = zts.getTenantDomains(context, "athenz.product",
+                "user_domain.user100", null, null);
         assertNotNull(tenantDomains);
         assertEquals(tenantDomains.getTenantDomainNames().size(), 1);
         assertEquals(tenantDomains.getTenantDomainNames().get(0), "weather.frontpage");
@@ -2300,7 +2349,12 @@ public class ZTSImplTest {
         signedDomain = createTenantSignedDomain("weather.frontpage", "athenz.product", "storage");
         store.processDomain(signedDomain, false);
         
-        TenantDomains tenantDomains = zts.getTenantDomains(null, "athenz.product", "user_domain.user100", null, null);
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+        
+        TenantDomains tenantDomains = zts.getTenantDomains(context, "athenz.product",
+                "user_domain.user100", null, null);
         assertNotNull(tenantDomains);
         assertEquals(tenantDomains.getTenantDomainNames().size(), 1);
         assertEquals(tenantDomains.getTenantDomainNames().get(0), "weather.frontpage");
@@ -2319,7 +2373,11 @@ public class ZTSImplTest {
         signedDomain = createTenantSignedDomain("hockey.stars", "athenz.multiple", "storage");
         store.processDomain(signedDomain, false);
         
-        TenantDomains tenantDomains = zts.getTenantDomains(null, "athenz.multiple", "user_domain.user100", null, null);
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+        
+        TenantDomains tenantDomains = zts.getTenantDomains(context, "athenz.multiple", "user_domain.user100", null, null);
         assertNotNull(tenantDomains);
         assertEquals(tenantDomains.getTenantDomainNames().size(), 2);
         assertTrue(tenantDomains.getTenantDomainNames().contains("hockey.kings"));
@@ -2335,7 +2393,11 @@ public class ZTSImplTest {
         signedDomain = createTenantSignedDomain("weather.frontpage", "athenz.product", "storage");
         store.processDomain(signedDomain, false);
         
-        TenantDomains tenantDomains = zts.getTenantDomains(null, "athenz.product", "user1099", null, null);
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+        
+        TenantDomains tenantDomains = zts.getTenantDomains(context, "athenz.product", "user1099", null, null);
         assertNotNull(tenantDomains);
         assertEquals(tenantDomains.getTenantDomainNames().size(), 0);
     }
@@ -2349,8 +2411,12 @@ public class ZTSImplTest {
         signedDomain = createTenantSignedDomain("weather.frontpage", "athenz.product", "storage");
         store.processDomain(signedDomain, false);
         
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+        
         try {
-            zts.getTenantDomains(null, "athenz.non_product", "user100", null, null);
+            zts.getTenantDomains(context, "athenz.non_product", "user100", null, null);
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
         }
@@ -2368,7 +2434,8 @@ public class ZTSImplTest {
         
         // throw exception without struct
         try {
-            com.yahoo.athenz.common.server.rest.ResourceException restExc = new com.yahoo.athenz.common.server.rest.ResourceException(401, "failed message");
+            com.yahoo.athenz.common.server.rest.ResourceException restExc
+                = new com.yahoo.athenz.common.server.rest.ResourceException(401, "failed message");
             ctx.throwZtsException(restExc);
             fail();
         } catch (ResourceException ex) {
@@ -2416,8 +2483,12 @@ public class ZTSImplTest {
         SignedDomain signedDomain = createAwsSignedDomain("athenz.product", "1234");
         store.processDomain(signedDomain, false);
         
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+        
         try {
-            zts.getAWSTemporaryCredentials(null, "athenz.product", "aws_role_name");
+            zts.getAWSTemporaryCredentials(context, "athenz.product", "aws_role_name");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -3095,7 +3166,11 @@ public class ZTSImplTest {
                 .setService("syncer")
                 .setKeyId("0");
 
-        Identity identity = zts.postInstanceInformation(null, info);
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+        
+        Identity identity = zts.postInstanceInformation(context, info);
 
         assertNotNull(identity);
 
@@ -3112,8 +3187,12 @@ public class ZTSImplTest {
                 .setDomain("iaas.athenz")
                 .setService("syncer");
 
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+        
         try {
-            zts.postInstanceInformation(null, info);
+            zts.postInstanceInformation(context, info);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -3133,8 +3212,12 @@ public class ZTSImplTest {
         AWSInstanceInformation info = generateAWSInstanceInformation("athenz.product",
                 "111111111111", null, null);
 
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+        
         try {
-            zts.postAWSInstanceInformation(null, info);
+            zts.postAWSInstanceInformation(context, info);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -3154,8 +3237,12 @@ public class ZTSImplTest {
         AWSInstanceInformation info = generateAWSInstanceInformation("athenz.product",
                 "111111111111", null, null);
         
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+        
         try {
-            zts.postAWSInstanceInformation(null, info);
+            zts.postAWSInstanceInformation(context, info);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -3171,8 +3258,12 @@ public class ZTSImplTest {
         AWSInstanceInformation info = generateAWSInstanceInformation("athenz.product",
                 "111111111111", null, null);
         
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+        
         try {
-            zts.postAWSInstanceInformation(null, info);
+            zts.postAWSInstanceInformation(context, info);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -3192,8 +3283,12 @@ public class ZTSImplTest {
         AWSInstanceInformation info = generateAWSInstanceInformation("athenz.product",
                 "111111111111", null, "invalid-signature");
         
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+        
         try {
-            zts.postAWSInstanceInformation(null, info);
+            zts.postAWSInstanceInformation(context, info);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -3214,8 +3309,12 @@ public class ZTSImplTest {
         AWSInstanceInformation info = generateAWSInstanceInformation("athenz.product",
                 "111111111111", "invalid-document", null);
         
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+        
         try {
-            zts.postAWSInstanceInformation(null, info);
+            zts.postAWSInstanceInformation(context, info);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -3236,8 +3335,12 @@ public class ZTSImplTest {
         AWSInstanceInformation info = generateAWSInstanceInformation("athenz.product",
                 "12345", null, null);
         
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+        
         try {
-            zts.postAWSInstanceInformation(null, info);
+            zts.postAWSInstanceInformation(context, info);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -3267,8 +3370,12 @@ public class ZTSImplTest {
         AWSInstanceInformation info = generateAWSInstanceInformation("athenz.product",
                 "111111111111", instanceDocument, "signature");
         
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+        
         try {
-            zts.postAWSInstanceInformation(null, info);
+            zts.postAWSInstanceInformation(context, info);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
@@ -3295,8 +3402,12 @@ public class ZTSImplTest {
         AWSInstanceInformation info = generateAWSInstanceInformation("athenz.product",
                 "111111111111", instanceDocument, null);
         
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+        
         try {
-            zts.postAWSInstanceInformation(null, info);
+            zts.postAWSInstanceInformation(context, info);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -3324,8 +3435,12 @@ public class ZTSImplTest {
                 "111111111111", instanceDocument, null);
         info.setCsr("invalid-csr");
         
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+        
         try {
-            zts.postAWSInstanceInformation(null, info);
+            zts.postAWSInstanceInformation(context, info);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -3363,7 +3478,11 @@ public class ZTSImplTest {
                 "111111111111", instanceDocument, "signature");
         info.setCsr(certCsr);
         
-        Identity identity = zts.postAWSInstanceInformation(null, info);
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+        
+        Identity identity = zts.postAWSInstanceInformation(context, info);
         assertNotNull(identity);
     }
     
@@ -4003,5 +4122,20 @@ public class ZTSImplTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
         }
+    }
+    
+    @Test
+    public void testLogPrincipal() {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        ResourceContext ctx = zts.newResourceContext(request, null);
+        zts.logPrincipal(ctx);
+        assertTrue(request.attributes.isEmpty());
+        
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        Principal principal = SimplePrincipal.create("sports", "nhl", "v=S1;d=sports;n=nhl;s=signature",
+                0, principalAuthority);
+        ResourceContext ctx2 = createResourceContext(principal, request);
+        zts.logPrincipal(ctx2);
+        assertEquals((String) request.getAttribute(AthenzRequestLog.REQUEST_PRINCIPAL), "sports.nhl");
     }
 }
