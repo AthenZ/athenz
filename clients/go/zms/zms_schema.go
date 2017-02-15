@@ -52,14 +52,9 @@ func init() {
 	sb.AddType(tActionName.Build())
 
 	tResourceName := rdl.NewStringTypeBuilder("ResourceName")
-	tResourceName.Comment("A shorthand for a YRN with no service or location. The 'tail' of a YRN, just the domain:entity. Note that the EntityName part is optional, that is, a domain name followed by a colon is valid resource name.")
+	tResourceName.Comment("A resource name Note that the EntityName part is optional, that is, a domain name followed by a colon is valid resource name.")
 	tResourceName.Pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(:([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?")
 	sb.AddType(tResourceName.Build())
-
-	tYRN := rdl.NewStringTypeBuilder("YRN")
-	tYRN.Comment("A full Yahoo Resource name (YRN).")
-	tYRN.Pattern("(yrn:(([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?:(([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?:)?([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(:([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?")
-	sb.AddType(tYRN.Build())
 
 	tYBase64 := rdl.NewStringTypeBuilder("YBase64")
 	tYBase64.Comment("The Y-specific URL-safe Base64 variant.")
@@ -1145,9 +1140,9 @@ func init() {
 	sb.AddResource(rDeleteProviderResourceGroupRoles.Build())
 
 	rGetAccess := rdl.NewResourceBuilder("Access", "GET", "/access/{action}/{resource}")
-	rGetAccess.Comment("Check access for the specified operation on the specified resource for the currently authenticated user. This is the slow centralized access for control-plane purposes. Use distributed mechanisms for decentralized (data-plane) access by fetching signed policies and role tokens for users.")
+	rGetAccess.Comment("Check access for the specified operation on the specified resource for the currently authenticated user. This is the slow centralized access for control-plane purposes. Use distributed mechanisms for decentralized (data-plane) access by fetching signed policies and role tokens for users. With this endpoint the resource is part of the uri and restricted to its strict definition of resource name. If needed, you can use the GetAccessExt api that allows resource name to be less restrictive.")
 	rGetAccess.Input("action", "ActionName", true, "", "", false, nil, "action as specified in the policy assertion, i.e. update or read")
-	rGetAccess.Input("resource", "YRN", true, "", "", false, nil, "the resource to check access against, i.e. \"media.news:articles\"")
+	rGetAccess.Input("resource", "ResourceName", true, "", "", false, nil, "the resource to check access against, i.e. \"media.news:articles\"")
 	rGetAccess.Input("domain", "DomainName", false, "domain", "", true, nil, "usually null. If present, it specifies an alternate domain for cross-domain trust relation")
 	rGetAccess.Input("checkPrincipal", "EntityName", false, "principal", "", true, nil, "usually null. If present, carry out the access check for this principal")
 	rGetAccess.Auth("", "", true, "")
@@ -1158,6 +1153,7 @@ func init() {
 	sb.AddResource(rGetAccess.Build())
 
 	rGetAccessExt := rdl.NewResourceBuilder("Access", "GET", "/access/{action}")
+	rGetAccessExt.Comment("Check access for the specified operation on the specified resource for the currently authenticated user. This is the slow centralized access for control-plane purposes.")
 	rGetAccessExt.Name("GetAccessExt")
 	rGetAccessExt.Input("action", "ActionName", true, "", "", false, nil, "action as specified in the policy assertion, i.e. update or read")
 	rGetAccessExt.Input("resource", "String", false, "resource", "", false, nil, "the resource to check access against, i.e. \"media.news:articles\"")

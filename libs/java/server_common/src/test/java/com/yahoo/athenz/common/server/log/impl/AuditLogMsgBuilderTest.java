@@ -476,7 +476,7 @@ public class AuditLogMsgBuilderTest {
         Pattern PAT_VERS = Pattern.compile(".*(VERS)" + GEN_FLD_PAT);
 
         String logMsg = "VERS=(test-0.1);WHEN=(2015-03-26T20:30:34.457Z);WHO=(who-name=testadminuser,who-domain=" + USER_DOMAIN
-                + ",who-yrn=" + USER_DOMAIN + ".testadminuser);WHY=(zmsjcltest);WHERE=(server-ip=somehost.somecompany.com,server-https-port=0,server-http-port=10080);CLIENT-IP=(127.0.0.1);WHAT-method=(PUT);WHAT-api=(putdomainmeta);WHAT-domain=(MetaDom1);WHAT-entity=(meta);WHAT-details=(meta-attrs=(CHANGED=(org=(FROM=(testOrg);TO=(NewOrg));description=(FROM=(Test Domain1);TO=(Test2 Domain)););REMOVED=(null);ADDED=(auditEnabled=true);));";
+                + ",who-fullname=" + USER_DOMAIN + ".testadminuser);WHY=(zmsjcltest);WHERE=(server-ip=somehost.somecompany.com,server-https-port=0,server-http-port=10080);CLIENT-IP=(127.0.0.1);WHAT-method=(PUT);WHAT-api=(putdomainmeta);WHAT-domain=(MetaDom1);WHAT-entity=(meta);WHAT-details=(meta-attrs=(CHANGED=(org=(FROM=(testOrg);TO=(NewOrg));description=(FROM=(Test Domain1);TO=(Test2 Domain)););REMOVED=(null);ADDED=(auditEnabled=true);));";
         CharSequence charSeq = logMsg.subSequence(0, logMsg.length());
         DefaultAuditLogMsgBuilder msgBldr = new DefaultAuditLogMsgBuilder();
         String group = msgBldr.getMatchedGroup(PAT_VERS, 2, charSeq);
@@ -496,7 +496,7 @@ public class AuditLogMsgBuilderTest {
     @Test
     public void testParse() {
         String logMsg = "WHEN=(2015-03-26T20:30:34.457Z);WHO=(who-name=testadminuser,who-domain=" + USER_DOMAIN
-                + ",who-yrn=" + USER_DOMAIN + ".testadminuser);WHY=(zmsjcltest);WHERE=(server-ip=somehost.somecompany.com,server-https-port=0,server-http-port=10080);CLIENT-IP=(127.0.0.1);WHAT-method=(PUT);WHAT-api=(putdomainmeta);WHAT-domain=(MetaDom1);WHAT-entity=(meta);WHAT-details=(meta-attrs=(CHANGED=(metattrs=(ADDED-VALUES=(\"" + USER_DOMAIN + ".doe\"));metattrs=(REMOVED-VALUES=(\"" + USER_DOMAIN + ".dough\"));org=(FROM=(testOrg);TO=(NewOrg));description=(FROM=(Test Domain1);TO=(Test2 Domain)););REMOVED=(null);ADDED=(auditEnabled=true);));";
+                + ",who-fullname=" + USER_DOMAIN + ".testadminuser);WHY=(zmsjcltest);WHERE=(server-ip=somehost.somecompany.com,server-https-port=0,server-http-port=10080);CLIENT-IP=(127.0.0.1);WHAT-method=(PUT);WHAT-api=(putdomainmeta);WHAT-domain=(MetaDom1);WHAT-entity=(meta);WHAT-details=(meta-attrs=(CHANGED=(metattrs=(ADDED-VALUES=(\"" + USER_DOMAIN + ".doe\"));metattrs=(REMOVED-VALUES=(\"" + USER_DOMAIN + ".dough\"));org=(FROM=(testOrg);TO=(NewOrg));description=(FROM=(Test Domain1);TO=(Test2 Domain)););REMOVED=(null);ADDED=(auditEnabled=true);));";
         AuditLogMsgBuilder msgBldr = new DefaultAuditLogMsgBuilder();
         Struct parsed = msgBldr.parse(logMsg);
         Assert.assertNotNull(parsed);
@@ -505,7 +505,7 @@ public class AuditLogMsgBuilderTest {
         Assert.assertTrue(val.contains("2015-03-26T20:30:34.457Z"));
         Assert.assertTrue(parsed.containsKey("WHO"));
         val = parsed.getString("WHO");
-        Assert.assertTrue(val.contains("who-name=testadminuser,who-domain=" + USER_DOMAIN + ",who-yrn=" + USER_DOMAIN + ".testadminuser"));
+        Assert.assertTrue(val.contains("who-name=testadminuser,who-domain=" + USER_DOMAIN + ",who-fullname=" + USER_DOMAIN + ".testadminuser"));
         Assert.assertTrue(parsed.containsKey("WHY"));
         val = parsed.getString("WHY");
         Assert.assertTrue(val.contains("zmsjcltest"));

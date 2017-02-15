@@ -46,6 +46,8 @@ endif
 # right away. So we are going to copy the source directories
 # into our source tree and compile them
 source:
+	@echo "Cleanup up local GOPATH src directory..."
+	rm -rf src
 	@echo "Setting up the source code..."
 	mkdir -p /tmp/athenz-conf-build/src/$(GOPKGNAME)
 	cp -r * /tmp/athenz-conf-build/src/$(GOPKGNAME)/.

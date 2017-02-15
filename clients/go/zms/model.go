@@ -56,16 +56,10 @@ type LocationName string
 type ActionName string
 
 //
-// ResourceName - A shorthand for a YRN with no service or location. The 'tail'
-// of a YRN, just the domain:entity. Note that the EntityName part is optional,
+// ResourceName - A resource name Note that the EntityName part is optional,
 // that is, a domain name followed by a colon is valid resource name.
 //
 type ResourceName string
-
-//
-// YRN - A full Yahoo Resource name (YRN).
-//
-type YRN string
 
 //
 // YBase64 - The Y-specific URL-safe Base64 variant.

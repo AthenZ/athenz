@@ -1322,7 +1322,7 @@ public class ZMSClient implements Closeable {
      * Requests the ZMS to indicate whether or not the specific request for the 
      * specified resource with authentication details will be granted or not.
      * @param action value of the action to be carried out (e.g. "UPDATE", "DELETE")
-     * @param resource resource YRN. YRN is defined as {ServiceName})?:({LocationName})?:)?{ResourceName}"
+     * @param resource resource name. Resource is defined as {DomainName}:{Entity}"
      * @param trustDomain (optional) if the access checks involves cross domain check only
      *        check the specified trusted domain and ignore all others
      * @return Access object indicating whether or not the request will be granted or not
@@ -1335,7 +1335,7 @@ public class ZMSClient implements Closeable {
      * Requests the ZMS to indicate whether or not the specific request for the 
      * specified resource with authentication details will be granted or not.
      * @param action value of the action to be carried out (e.g. "UPDATE", "DELETE")
-     * @param resource resource YRN. YRN is defined as {ServiceName})?:({LocationName})?:)?{ResourceName}"
+     * @param resource resource name. Resource is defined as {DomainName}:{Entity}"
      * @param trustDomain (optional) if the access checks involves cross domain check only
      *        check the specified trusted domain and ignore all others
      * @param principal (optional) carry out the access check for specified principal

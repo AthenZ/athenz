@@ -55,22 +55,22 @@ public class SimplePrincipalTest {
     }
     
     @Test
-    public void testYRN() {
+    public void testFullName() {
         Principal p = SimplePrincipal.create("user", "jdoe", fakeCreds, null);
-        assertEquals(p.getYRN(), "user.jdoe");
+        assertEquals(p.getFullName(), "user.jdoe");
         
         p = SimplePrincipal.create(null, "jdoe", fakeCreds);
-        assertEquals(p.getYRN(), "jdoe");
+        assertEquals(p.getFullName(), "jdoe");
         
         List<String> roles = new ArrayList<String>();
         roles.add("role1");
         
         p = SimplePrincipal.create("user", fakeCreds, roles, null);
-        assertEquals(p.getYRN(), "user");
+        assertEquals(p.getFullName(), "user");
         
         Authority a = null;
         p = SimplePrincipal.create(null, null, a);
-        assertNull(p.getYRN());
+        assertNull(p.getFullName());
     }
     
     @Test

@@ -121,7 +121,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private static final String TYPE_TENANT_ROLES = "TenantRoles";
     private static final String TYPE_TENANT_RESOURCE_GROUP_ROLES = "TenantResourceGroupRoles";
     private static final String TYPE_PROVIDER_RESOURCE_GROUP_ROLES = "ProviderResourceGroupRoles";
-    private static final String TYPE_YRN = "YRN";
     private static final String TYPE_PUBLIC_KEY_ENTRY = "PublicKeyEntry";
     
     public static Metric metric;
@@ -595,14 +594,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     /**
      * Setup a new AuditLogMsgBuilder object with common values.
     **/
-    static AuditLogMsgBuilder getAuditLogMsgBuilder(ResourceContext ctx, String domainName, String auditRef,
-            String caller, String method) {
+    static AuditLogMsgBuilder getAuditLogMsgBuilder(ResourceContext ctx, String domainName,
+            String auditRef, String caller, String method) {
         
         AuditLogMsgBuilder msgBldr = null;
         try {
             msgBldr = AuditLogFactory.getMsgBuilder(auditLoggerMsgBldrClass);
         } catch (Exception exc) {
-            LOG.error("getAuditLogMsgBuilder: failed to get an AuditLogMsgBuilder. Get the default instead: "
+            LOG.error("getAuditLogMsgBuilder: Using default failed to get an AuditLogMsgBuilder: "
                     + exc.getMessage());
             msgBldr = AuditLogFactory.getMsgBuilder();
         }
@@ -622,7 +621,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     StringBuilder sb = new StringBuilder();
                     sb.append("who-name=").append(princ.getName());
                     sb.append(",who-domain=").append(princ.getDomain());
-                    sb.append(",who-yrn=").append(princ.getYRN());
+                    sb.append(",who-fullname=").append(princ.getFullName());
                     List<String> roles = princ.getRoles();
                     if (roles != null && roles.size() > 0) {
                         sb.append(",who-roles=").append(roles.toString());
@@ -1062,7 +1061,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // our action are always converted to lowercase
         
         String resource = SYS_AUTH + ":domain";
-        AccessStatus accessStatus = evaluateAccess(domain, principal.getYRN(), "create",
+        AccessStatus accessStatus = evaluateAccess(domain, principal.getFullName(), "create",
                 resource, null, null);
         
         if (accessStatus == AccessStatus.ALLOWED) {
@@ -1086,7 +1085,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // our action are always converted to lowercase
 
         String resource = SYS_AUTH + ":resource-lookup-all";
-        AccessStatus accessStatus = evaluateAccess(domain, principal.getYRN(), "access",
+        AccessStatus accessStatus = evaluateAccess(domain, principal.getFullName(), "access",
                 resource, null, null);
         
         if (accessStatus == AccessStatus.ALLOWED) {
@@ -1397,7 +1396,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return SimplePrincipal.create(domain, name, (String) null);
     }
     
-    boolean validRoleTokenAccess(String trustDomain, String domainYRN, String principalYRN) {
+    boolean validRoleTokenAccess(String trustDomain, String domainName, String principalName) {
         
         if (trustDomain != null) {
             if (LOG.isWarnEnabled()) {
@@ -1407,12 +1406,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         
         // for Role tokens we don't have a name component in the principal
-        // so the principalYRN should be the same as the domain value 
-        // thus it must match the domainYRN from the resource
+        // so the principal name should be the same as the domain value 
+        // thus it must match the domain name from the resource
         
-        if (!domainYRN.equalsIgnoreCase(principalYRN)) {
+        if (!domainName.equalsIgnoreCase(principalName)) {
             if (LOG.isWarnEnabled()) {
-                LOG.warn("validRoleTokenAccess: resource domain YRN does not match RoleToken domain");
+                LOG.warn("validRoleTokenAccess: resource domain does not match RoleToken domain");
             }
             return false;
         }
@@ -1443,7 +1442,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     AthenzDomain retrieveAccessDomain(String domainName, Principal principal) {
         
         if (LOG.isDebugEnabled()) {
-            LOG.debug("retrieveAccessDomain: identityYRN: " + principal.getYRN()
+            LOG.debug("retrieveAccessDomain: identity: " + principal.getFullName()
                 + " domain: " + domainName);
         }
         
@@ -1467,14 +1466,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             return null;
         }
         
-        if (!principal.getYRN().equals(domainName)) {
+        if (!principal.getFullName().equals(domainName)) {
             return null;
         }
         
         return virtualHomeDomain(principal);
     }
 
-    AccessStatus evaluateAccess(AthenzDomain domain, String identityYRN, String action, String resource,
+    AccessStatus evaluateAccess(AthenzDomain domain, String identity, String action, String resource,
             List<String> authenticatedRoles, String trustDomain) {
         
         AccessStatus accessStatus = AccessStatus.DENIED;
@@ -1521,7 +1520,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 
                 // if no match then process the next assertion
                 
-                if (!assertionMatch(assertion, identityYRN, action, resource, domain.getName(),
+                if (!assertionMatch(assertion, identity, action, resource, domain.getName(),
                         roles, authenticatedRoles, trustDomain)) {
                     continue;
                 }
@@ -1624,7 +1623,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (ZMSConsts.ACTION_ASSUME_ROLE.equalsIgnoreCase(op) && trustDomain != null) {
             domainName = trustDomain;
         } else {
-            domainName = yrnDomain(resource);
+            domainName = extractDomainName(resource);
         }
         return domainName;
     }
@@ -1632,46 +1631,59 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     AccessStatus hasAccess(AthenzDomain domain, String action, String resource,
             Principal principal, String trustDomain) {
        
-        String identityYRN = principal.getYRN();
+        String identity = principal.getFullName();
         
         // if we're dealing with an access check based on a Role token then
         // make sure it's valid before processing it
         
         List<String> authenticatedRoles = principal.getRoles();
-        if (authenticatedRoles != null && !validRoleTokenAccess(trustDomain, domain.getName(), identityYRN)) {
+        if (authenticatedRoles != null && !validRoleTokenAccess(trustDomain, domain.getName(), identity)) {
             return AccessStatus.DENIED_INVALID_ROLE_TOKEN;
         }
         
         // evaluate our domain's roles and policies to see if access
         // is allowed or not for the given operation and resource
         
-        return evaluateAccess(domain, identityYRN, action, resource, authenticatedRoles, trustDomain);
+        return evaluateAccess(domain, identity, action, resource, authenticatedRoles, trustDomain);
     }
     
-    public Access getAccessExt(ResourceContext ctx, String action, String resource,  String trustDomain, 
-            String checkPrincipal) {
+    public Access getAccessExt(ResourceContext ctx, String action, String resource,
+            String trustDomain, String checkPrincipal) {
         
-        // for now we'll just fall back to our constraind version
+        final String caller = "getaccessext";
+        metric.increment(ZMSConsts.HTTP_GET);
+        logPrincipal(ctx);
+
+        validate(action, TYPE_COMPOUND_NAME, caller);
         
-        return getAccess(ctx, action, resource, trustDomain, checkPrincipal);
+        return getAccessCheck(((RsrcCtxWrapper) ctx).principal(), action, resource,
+                trustDomain, checkPrincipal);
     }
     
-    public Access getAccess(ResourceContext ctx, String action, String resource,  String trustDomain, 
-            String checkPrincipal) {
+    public Access getAccess(ResourceContext ctx, String action, String resource,
+            String trustDomain, String checkPrincipal) {
 
         final String caller = "getaccess";
         metric.increment(ZMSConsts.HTTP_GET);
         logPrincipal(ctx);
 
-        Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        validate(action, TYPE_COMPOUND_NAME, caller);
+        validate(resource, TYPE_RESOURCE_NAME, caller);
+        
+        return getAccessCheck(((RsrcCtxWrapper) ctx).principal(), action, resource,
+                trustDomain, checkPrincipal);
+    }
+    
+    Access getAccessCheck(Principal principal, String action, String resource,
+            String trustDomain, String checkPrincipal) {
+        
+        final String caller = "getaccess";
+
         if (LOG.isDebugEnabled()) {
-            LOG.debug("getAccess:(" + action + ", " + resource + ", " + principal +
+            LOG.debug("getAccessCheck:(" + action + ", " + resource + ", " + principal +
                     ", " + trustDomain + ", " + checkPrincipal + ")");
         }
-
-        validate(action, TYPE_COMPOUND_NAME, caller);
-        validate(resource, TYPE_YRN, caller);
-
+        
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
         // policy, service, etc name)
@@ -1691,13 +1703,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (domainName == null) {
             metric.increment(ZMSConsts.HTTP_REQUEST, ZMSConsts.ZMS_INVALID_DOMAIN);
             metric.increment(caller, ZMSConsts.ZMS_INVALID_DOMAIN);
-            throw ZMSUtils.notFoundError("getAccess: Unable to extract resource domain", caller);
+            throw ZMSUtils.notFoundError("getAccessCheck: Unable to extract resource domain", caller);
         }
         AthenzDomain domain = retrieveAccessDomain(domainName, principal);
         if (domain == null) {
             metric.increment(ZMSConsts.HTTP_REQUEST, ZMSConsts.ZMS_UNKNOWN_DOMAIN);
             metric.increment(caller, ZMSConsts.ZMS_UNKNOWN_DOMAIN);
-            throw ZMSUtils.notFoundError("getAccess: Resource Domain not found: '" + domainName + "'", caller);
+            throw ZMSUtils.notFoundError("getAccessCheck: Resource Domain not found: '"
+                    + domainName + "'", caller);
         }
         
         // start our counter with domain dimension. we're moving the metric here
@@ -1715,7 +1728,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (checkPrincipal != null) {
             principal = createPrincipalForName(checkPrincipal);
             if (principal == null) {
-                throw ZMSUtils.unauthorizedError("getAccess: Invalid check principal value specified", caller);
+                throw ZMSUtils.unauthorizedError("getAccessCheck: Invalid check principal value specified", caller);
             }
         }
         
@@ -2071,8 +2084,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     RoleMember getNormalizedMember(RoleMember member) {
         
-        String[] yrnParts = member.getMemberName().split(":");
-        if (yrnParts.length != 2) {
+        String[] resourceParts = member.getMemberName().split(":");
+        if (resourceParts.length != 2) {
             return member;
         }
         
@@ -2082,10 +2095,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // coretech:service.storage will be replaced with coretech.storage
         
         RoleMember normalizedMember = member;
-        if (yrnParts[0].equalsIgnoreCase(userDomain)) {
-            normalizedMember.setMemberName(userDomainPrefix + yrnParts[1]);
-        } else if (yrnParts[1].startsWith(SERVICE_PREFIX)) {
-            normalizedMember.setMemberName(yrnParts[0] + yrnParts[1].substring(SERVICE_PREFIX.length() - 1));
+        if (resourceParts[0].equalsIgnoreCase(userDomain)) {
+            normalizedMember.setMemberName(userDomainPrefix + resourceParts[1]);
+        } else if (resourceParts[1].startsWith(SERVICE_PREFIX)) {
+            normalizedMember.setMemberName(resourceParts[0] + resourceParts[1].substring(SERVICE_PREFIX.length() - 1));
         }
         
         return normalizedMember;
@@ -2131,19 +2144,19 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     
     boolean isConsistentRoleName(final String domainName, final String roleName, Role role) {
         
-        String yrn = ZMSUtils.roleResourceName(domainName, roleName);
+        String resourceName = ZMSUtils.roleResourceName(domainName, roleName);
         
         // first lets assume we have the expected name specified in the role
         
-        if (yrn.equals(role.getName())) {
+        if (resourceName.equals(role.getName())) {
             return true;
         }
 
         // if not check to see if the role contains the relative local name
-        // part only instead of the expected yrn and update accordingly
+        // part only instead of the expected resourceName and update accordingly
         
         if (roleName.equals(role.getName())) {
-            role.setName(yrn);
+            role.setName(resourceName);
             return true;
         }
         
@@ -2782,19 +2795,19 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     
     boolean isConsistentPolicyName(final String domainName, final String policyName, Policy policy) {
         
-        String yrn = ZMSUtils.policyResourceName(domainName, policyName);
+        String resourceName = ZMSUtils.policyResourceName(domainName, policyName);
         
         // first lets assume we have the expected name specified in the policy
         
-        if (yrn.equals(policy.getName())) {
+        if (resourceName.equals(policy.getName())) {
             return true;
         }
 
         // if not check to see if the policy contains the relative local name
-        // part only instead of the expected yrn and update accordingly
+        // part only instead of the expected resourceName and update accordingly
         
         if (policyName.equals(policy.getName())) {
-            policy.setName(yrn);
+            policy.setName(resourceName);
             return true;
         }
         
@@ -3107,7 +3120,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             LOG.debug("homeDomain: home domain detected. Create on the fly.");
         }
         
-        String name = principal.getYRN();
+        String name = principal.getFullName();
         AthenzDomain athenzDomain = new AthenzDomain(name);
         
         List<String> adminUsers = new ArrayList<>();
@@ -3122,15 +3135,21 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return athenzDomain;
     }
     
-    boolean assertionMatch(Assertion assertion, String identityYRN, String action, String resource,
+    boolean assertionMatch(Assertion assertion, String identity, String action, String resource,
             String domain, List<Role> roles, List<String> authenticatedRoles, String trustDomain) {
         
         String actionPattern = StringUtils.patternFromGlob(assertion.getAction());
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("assertionMatch: action '{}' pattern '{}'", action, actionPattern);
+        }
         if (!action.matches(actionPattern)) {
             return false;
         }
         
         String rezPattern = StringUtils.patternFromGlob(assertion.getResource());
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("assertionMatch: resource '{}' pattern '{}'", resource, rezPattern);
+        }
         if (!resource.matches(rezPattern)) {
             return false;
         }
@@ -3140,7 +3159,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (authenticatedRoles != null) {
             matchResult = matchRole(domain, roles, rolePattern, authenticatedRoles);
         } else {
-            matchResult = matchPrincipal(roles, rolePattern, identityYRN, trustDomain);
+            matchResult = matchPrincipal(roles, rolePattern, identity, trustDomain);
         }
         
         if (LOG.isDebugEnabled()) {
@@ -4125,7 +4144,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 
                 Principal tenantAdmin = ((RsrcCtxWrapper) ctx).principal();
                 if (LOG.isInfoEnabled()) {
-                    LOG.info("---- now tell the provider to setTenant, as " + tenantAdmin.getYRN()
+                    LOG.info("---- now tell the provider to setTenant, as " + tenantAdmin.getFullName()
                         + ", creds = " + tenantAdmin.getCredentials());
                 }
                 
@@ -5626,19 +5645,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return null;
     }
     
-    String yrnDomain(String yrn) {
-        //"yrn:service:location:domain:entity" or "domain:entity"
-        String [] s = yrn.split(":");
-        if (s.length <= 2) {
-            return s[0];
-        } else if (s.length == 5) {
-            return s[3];
-        } else {
+    String extractDomainName(String resource) {
+        int idx;
+        if ((idx = resource.indexOf(':')) == -1) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("yrnDomain: missing domain name: " + yrn);
+                LOG.debug("extractDomainName: missing domain name: " + resource);
             }
             return null;
         }
+        return resource.substring(0, idx);
     }
 
     void validate(Object val, String type, String caller) {
@@ -6232,7 +6247,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         if (principal == null || principal.isEmpty()) {
             if (!isAllowedResourceLookForAllUsers(ctxPrincipal)) {
-                throw ZMSUtils.forbiddenError("Principal: " + ctxPrincipal.getYRN() +
+                throw ZMSUtils.forbiddenError("Principal: " + ctxPrincipal.getFullName() +
                         " not authorized to lookup resources for all users in Athenz", caller);
             }
         }
@@ -6246,7 +6261,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     void logPrincipal(ResourceContext ctx) {
         final Principal principal = ((RsrcCtxWrapper) ctx).principal();
         if (principal != null) {
-            ctx.request().setAttribute(AthenzRequestLog.REQUEST_PRINCIPAL, principal.getYRN());
+            ctx.request().setAttribute(AthenzRequestLog.REQUEST_PRINCIPAL, principal.getFullName());
         }
     }
     

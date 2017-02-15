@@ -47,12 +47,8 @@ public class ZMSSchema {
             .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
 
         sb.stringType("ResourceName")
-            .comment("A shorthand for a YRN with no service or location. The 'tail' of a YRN, just the domain:entity. Note that the EntityName part is optional, that is, a domain name followed by a colon is valid resource name.")
+            .comment("A resource name Note that the EntityName part is optional, that is, a domain name followed by a colon is valid resource name.")
             .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(:([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?");
-
-        sb.stringType("YRN")
-            .comment("A full Yahoo Resource name (YRN).")
-            .pattern("(yrn:(([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?:(([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?:)?([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(:([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?");
 
         sb.stringType("YBase64")
             .comment("The Y-specific URL-safe Base64 variant.")
@@ -1300,9 +1296,9 @@ public class ZMSSchema {
 ;
 
         sb.resource("Access", "GET", "/access/{action}/{resource}")
-            .comment("Check access for the specified operation on the specified resource for the currently authenticated user. This is the slow centralized access for control-plane purposes. Use distributed mechanisms for decentralized (data-plane) access by fetching signed policies and role tokens for users.")
+            .comment("Check access for the specified operation on the specified resource for the currently authenticated user. This is the slow centralized access for control-plane purposes. Use distributed mechanisms for decentralized (data-plane) access by fetching signed policies and role tokens for users. With this endpoint the resource is part of the uri and restricted to its strict definition of resource name. If needed, you can use the GetAccessExt api that allows resource name to be less restrictive.")
             .pathParam("action", "ActionName", "action as specified in the policy assertion, i.e. update or read")
-            .pathParam("resource", "YRN", "the resource to check access against, i.e. \"media.news:articles\"")
+            .pathParam("resource", "ResourceName", "the resource to check access against, i.e. \"media.news:articles\"")
             .queryParam("domain", "domain", "DomainName", null, "usually null. If present, it specifies an alternate domain for cross-domain trust relation")
             .queryParam("principal", "checkPrincipal", "EntityName", null, "usually null. If present, carry out the access check for this principal")
             .auth("", "", true)
@@ -1317,6 +1313,7 @@ public class ZMSSchema {
 ;
 
         sb.resource("Access", "GET", "/access/{action}")
+            .comment("Check access for the specified operation on the specified resource for the currently authenticated user. This is the slow centralized access for control-plane purposes.")
             .name("GetAccessExt")
             .pathParam("action", "ActionName", "action as specified in the policy assertion, i.e. update or read")
             .queryParam("resource", "resource", "String", null, "the resource to check access against, i.e. \"media.news:articles\"")

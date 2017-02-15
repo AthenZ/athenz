@@ -47,6 +47,8 @@ endif
 # copy the source directories into our source tree
 # and compile them
 source:
+	@echo "Cleanup up local GOPATH src directory..."
+	rm -rf src
 	@echo "Setting up the source code..."
 	mkdir -p /tmp/zms-cli-build/src/$(GOPKGNAME)
 	cp -r * /tmp/zms-cli-build/src/$(GOPKGNAME)/.

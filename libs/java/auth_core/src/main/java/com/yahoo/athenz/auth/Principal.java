@@ -28,8 +28,8 @@ public interface Principal {
     /** @return the name of the principal as a string, i.e. "joe" */
     public String getName();
 
-    /** @return the YRN of the principal as a string, i.e. "user.joe" */
-    public String getYRN();
+    /** @return the full name of the principal as a string, i.e. "user.joe" */
+    public String getFullName();
     
     /** @return the credentials token as a string */
     public String getCredentials();

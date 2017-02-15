@@ -220,7 +220,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     StringBuilder sb = new StringBuilder();
                     sb.append("who-name=").append(princ.getName());
                     sb.append(",who-domain=").append(princ.getDomain());
-                    sb.append(",who-yrn=").append(princ.getYRN());
+                    sb.append(",who-fullname=").append(princ.getFullName());
                     List<String> roles = princ.getRoles();
                     if (roles != null && roles.size() > 0) {
                         sb.append(",who-roles=").append(roles.toString());
@@ -839,7 +839,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // get our principal's name
         
-        String principal = ((RsrcCtxWrapper) ctx).principal().getYRN();
+        String principal = ((RsrcCtxWrapper) ctx).principal().getFullName();
         
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("getRoleToken(domain: " + domainName + ", principal: " + principal +
@@ -1069,7 +1069,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // get our principal's name
         
-        String principal = ((RsrcCtxWrapper) ctx).principal().getYRN();
+        String principal = ((RsrcCtxWrapper) ctx).principal().getFullName();
         
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("postRoleCertificateRequest(domain: " + domainName + ", principal: "
@@ -1267,7 +1267,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // get our principal's name
         
-        String principal = ((RsrcCtxWrapper) ctx).principal().getYRN();
+        String principal = ((RsrcCtxWrapper) ctx).principal().getFullName();
         
         String roleResource = domainName + ":" + roleName;
         
@@ -1478,10 +1478,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // make sure the credentials match to whatever the request is
 
         Principal principal = ((RsrcCtxWrapper) ctx).principal();
-        String yrn = domain + "." + service;
-        if (!yrn.equals(principal.getYRN())) {
+        String principalName = domain + "." + service;
+        if (!principalName.equals(principal.getFullName())) {
             throw requestError("postInstanceRefreshRequest: Principal mismatch: "
-                    + yrn + " vs. " + principal.getYRN(), caller, domain);
+                    + principalName + " vs. " + principal.getFullName(), caller, domain);
         }
 
         Authority authority = principal.getAuthority();
@@ -1507,7 +1507,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             
             if (userDomain.equalsIgnoreCase(principal.getDomain())) {
                 throw requestError("postInstanceRefreshRequest: TLS Certificates require ServiceTokens: " +
-                        yrn, caller, domain);
+                        principalName, caller, domain);
             }
 
             // retrieve the public key for the principal
@@ -1515,21 +1515,21 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             publicKey = getPublicKey(domain, service, principal.getKeyId());
             if (publicKey == null) {
                 throw requestError("postInstanceRefreshRequest: Unable to retrieve public key for " +
-                        yrn + " with key id: " + principal.getKeyId(), caller, domain);
+                        principalName + " with key id: " + principal.getKeyId(), caller, domain);
             }
         }
         
         // validate that the cn and public key (if required) match to
         // the provided details
         
-        if (!instanceIdentityStore.verifyCertificateRequest(req.getCsr(), yrn, publicKey)) {
+        if (!instanceIdentityStore.verifyCertificateRequest(req.getCsr(), principalName, publicKey)) {
             throw requestError("postInstanceRefreshRequest: invalid CSR - cn or public key mismatch",
                     caller, domain);
         }
         
         // generate identity with the certificate
         
-        Identity identity = instanceIdentityStore.generateIdentity(req.getCsr(), yrn);
+        Identity identity = instanceIdentityStore.generateIdentity(req.getCsr(), principalName);
         if (identity == null) {
             throw requestError("postInstanceRefreshRequest: unable to generate identity",
                     caller, domain);
@@ -1639,7 +1639,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domain);
         }
         
-        String principalYrn = principal.getYRN();
+        String principalName = principal.getFullName();
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("postAWSCertificateRequest: " + req + " for principal: " + principal);
@@ -1661,7 +1661,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // now let's validate the csr given to us by the client
         // and generate certificate for the instance
         
-        Identity identity = cloudStore.generateIdentity(req.getCsr(), principalYrn);
+        Identity identity = cloudStore.generateIdentity(req.getCsr(), principalName);
         if (identity == null) {
             throw requestError("postAWSCertificateRequest: unable to generate identity",
                     caller, domain);
@@ -1840,7 +1840,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     void logPrincipal(ResourceContext ctx) {
         final Principal principal = ((RsrcCtxWrapper) ctx).principal();
         if (principal != null) {
-            ctx.request().setAttribute(AthenzRequestLog.REQUEST_PRINCIPAL, principal.getYRN());
+            ctx.request().setAttribute(AthenzRequestLog.REQUEST_PRINCIPAL, principal.getFullName());
         }
     }
     

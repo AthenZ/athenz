@@ -2322,18 +2322,18 @@ public class DBServiceTest extends TestCase {
     }
     
     @Test
-    public void testGetPrincipalYrn() {
+    public void testGetPrincipalName() {
         
         Principal principal = SimplePrincipal.create("user", "user1", "creds", null);
         ZMSImpl.RsrcCtxWrapper rsrcCtx = Mockito.mock(ZMSImpl.RsrcCtxWrapper.class);
         Mockito.when(rsrcCtx.principal()).thenReturn(principal);
-        assertEquals(zms.dbService.getPrincipalYrn(rsrcCtx), "user.user1");
+        assertEquals(zms.dbService.getPrincipalName(rsrcCtx), "user.user1");
         
-        assertNull(zms.dbService.getPrincipalYrn(null));
+        assertNull(zms.dbService.getPrincipalName(null));
         
         ZMSImpl.RsrcCtxWrapper rsrcCtx2 = Mockito.mock(ZMSImpl.RsrcCtxWrapper.class);
         Mockito.when(rsrcCtx2.principal()).thenReturn(null);
-        assertNull(zms.dbService.getPrincipalYrn(rsrcCtx2));
+        assertNull(zms.dbService.getPrincipalName(rsrcCtx2));
     }
     
     @Test

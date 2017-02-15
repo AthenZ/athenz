@@ -141,7 +141,7 @@ public class Http {
     public static String authenticatedUser(HttpServletRequest request,
             AuthorityList authorities) {
         Principal principal = authenticate(request, authorities);
-        return principal.getYRN();
+        return principal.getFullName();
     }
 
     public static String authorizedUser(HttpServletRequest request,
@@ -152,7 +152,7 @@ public class Http {
         if (principal == null) {
             return null;
         }
-        return principal.getYRN();
+        return principal.getFullName();
     }
 
     public static Principal authorize(Authorizer authorizer, Principal principal,

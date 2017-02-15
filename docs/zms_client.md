@@ -313,7 +313,7 @@ The name of the new policy to be added.
 The value effect must be either 'grant' or 'deny'. The action is the
 domain administrator defined action available for the resource (e.g.
 read, write, delete). The role is the name of the role this assertion
-applies to. The resource is the YRN of the resource this assertion
+applies to. The resource is the name of the resource this assertion
 applies to. Once the policy has been created, the administrator can add
 and/or delete assertions using the `add-assertion` and
 `delete-assertion` commands.
