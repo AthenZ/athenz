@@ -277,7 +277,7 @@ Finally, we are going to contact ZMS for the authorization check.
                 Transport: &tr,
         }
         zmsClient.AddCredentials(authHeader, ntoken)
-        access, err := zmsClient.GetAccess(zms.ActionName(action), zms.YRN(resource), "", "")
+        access, err := zmsClient.GetAccess(zms.ActionName(action), zms.ResourceName(resource), "", "")
         if err != nil {
                 fmt.Println("Unable to verify access: %v", err)
                 return false

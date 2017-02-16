@@ -2195,7 +2195,7 @@ public class ZTSImplTest {
         for (String msg: aLogMsgs) {
             assertTrue(msg.contains("ERROR=(Principal Has No Access to Domain)"));
             assertTrue(msg.contains("CLIENT-IP=(99.88.77.66)"));
-            assertTrue(msg.contains("WHO=(who-name=invalidUser,who-domain=user_domain,who-yrn=user_domain.invalidUser)"));
+            assertTrue(msg.contains("WHO=(who-name=invalidUser,who-domain=user_domain,who-fullname=user_domain.invalidUser)"));
             break;
         }
     }
@@ -2241,7 +2241,7 @@ public class ZTSImplTest {
         for (String msg: aLogMsgs) {
             assertTrue(msg.contains("ERROR=(No Such Domain)"));
             assertTrue(msg.contains("CLIENT-IP=(55.88.77.66)"));
-            assertTrue(msg.contains("WHO=(who-name=user,who-domain=user_domain,who-yrn=user_domain.user)"));
+            assertTrue(msg.contains("WHO=(who-name=user,who-domain=user_domain,who-fullname=user_domain.user)"));
             break;
         }
     }
@@ -2578,12 +2578,12 @@ public class ZTSImplTest {
     public void testRetrieveResourceDomainValidDomain() {
         assertEquals("domain1", authorizer.retrieveResourceDomain("domain1:resource", "read", null));
         assertEquals("domain1", authorizer.retrieveResourceDomain("domain1:resource", "read", "trustdomain"));
+        assertEquals("domain1", authorizer.retrieveResourceDomain("domain1:resource:invalid", "read", null));
     }
     
     @Test
     public void testRetrieveResourceDomainInvalidResource() {
-        assertEquals(null, authorizer.retrieveResourceDomain("domain1:resource:invalid", "read", null));
-        assertEquals(null, authorizer.retrieveResourceDomain("domain1:a:b:c:d:e", "read", "trustdomain"));
+        assertEquals(null, authorizer.retrieveResourceDomain("domain1", "read", "trustdomain"));
     }
 
 

@@ -88,9 +88,9 @@ func parseAssertion(dn string, lst []string) (*zms.Assertion, error) {
 }
 
 func (cli Zms) AddPolicyWithAssertions(dn string, pn string, assertions []*zms.Assertion) (*string, error) {
-	yrn := dn + ":policy." + pn
+	fullResourceName := dn + ":policy." + pn
 	policy := zms.Policy{
-		Name:       zms.ResourceName(yrn),
+		Name:       zms.ResourceName(fullResourceName),
 		Modified:   nil,
 		Assertions: assertions,
 	}
@@ -107,10 +107,10 @@ func (cli Zms) AddPolicyWithAssertions(dn string, pn string, assertions []*zms.A
 }
 
 func (cli Zms) AddPolicy(dn string, pn string, assertion []string) (*string, error) {
-	yrn := dn + ":policy." + pn
+	fullResourceName := dn + ":policy." + pn
 	_, err := cli.Zms.GetPolicy(zms.DomainName(dn), zms.EntityName(pn))
 	if err == nil {
-		return nil, fmt.Errorf("Policy already exists: %v", yrn)
+		return nil, fmt.Errorf("Policy already exists: %v", fullResourceName)
 	} else {
 		switch v := err.(type) {
 		case rdl.ResourceError:
@@ -120,7 +120,7 @@ func (cli Zms) AddPolicy(dn string, pn string, assertion []string) (*string, err
 		}
 	}
 	policy := zms.Policy{}
-	policy.Name = zms.ResourceName(yrn)
+	policy.Name = zms.ResourceName(fullResourceName)
 	if assertion == nil || len(assertion) == 0 {
 		policy.Assertions = make([]*zms.Assertion, 0)
 	} else {

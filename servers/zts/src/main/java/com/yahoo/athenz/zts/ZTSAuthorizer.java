@@ -97,7 +97,7 @@ public class ZTSAuthorizer implements Authorizer {
             throw new com.yahoo.athenz.zts.ResourceException(ResourceException.NOT_FOUND, "Domain not found");
         }
         
-        AccessStatus accessStatus = evaluateAccess(domain, principal.getYRN(), op, resource, trustDomain);
+        AccessStatus accessStatus = evaluateAccess(domain, principal.getFullName(), op, resource, trustDomain);
         if (accessStatus == AccessStatus.ALLOWED) {
             return true;
         }
@@ -128,12 +128,12 @@ public class ZTSAuthorizer implements Authorizer {
         if (ASSUME_ROLE.equalsIgnoreCase(op) && trustDomain != null) {
             domainName = trustDomain;
         } else {
-            domainName = yrnDomain(resource);
+            domainName = extractDomainName(resource);
         }
         return domainName;
     }
     
-    AccessStatus evaluateAccess(DataCache domain, String identityYRN, String op, String resource,
+    AccessStatus evaluateAccess(DataCache domain, String identity, String op, String resource,
             String trustDomain) {
         
         AccessStatus accessStatus = AccessStatus.DENIED;
@@ -180,7 +180,7 @@ public class ZTSAuthorizer implements Authorizer {
                 
                 // if no match then process the next assertion
                 
-                if (!assertionMatch(assertion, identityYRN, op, resource, roles, trustDomain)) {
+                if (!assertionMatch(assertion, identity, op, resource, roles, trustDomain)) {
                     continue;
                 }
                 
@@ -200,8 +200,8 @@ public class ZTSAuthorizer implements Authorizer {
         return accessStatus;
     }
     
-    boolean assertionMatch(com.yahoo.athenz.zms.Assertion assertion, String identityYRN, String op, String resource,
-            List<Role> roles, String trustDomain) {
+    boolean assertionMatch(com.yahoo.athenz.zms.Assertion assertion, String identity, String op,
+            String resource, List<Role> roles, String trustDomain) {
         
         String opPattern = StringUtils.patternFromGlob(assertion.getAction());
         if (!op.matches(opPattern)) {
@@ -214,7 +214,7 @@ public class ZTSAuthorizer implements Authorizer {
         }
         
         String rolePattern = StringUtils.patternFromGlob(assertion.getRole());
-        boolean matchResult = matchPrincipal(roles, rolePattern, identityYRN, trustDomain);
+        boolean matchResult = matchPrincipal(roles, rolePattern, identity, trustDomain);
         
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("assertionMatch: -> " + matchResult + " (effect: " + assertion.getEffect() + ")");
@@ -382,17 +382,15 @@ public class ZTSAuthorizer implements Authorizer {
         return trust.equalsIgnoreCase(trustDomain);
     }
     
-    String yrnDomain(String yrn) {
-        // supported format: "domain:entity"
-        String [] s = yrn.split(":");
-        if (s.length <= 2) {
-            return s[0];
-        } else {
+    String extractDomainName(String resource) {
+        int idx;
+        if ((idx = resource.indexOf(':')) == -1) {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("yrnDomain: missing domain name: " + yrn);
+                LOGGER.debug("extractDomainName: missing domain name: " + resource);
             }
             return null;
         }
+        return resource.substring(0, idx);
     }
     
 }

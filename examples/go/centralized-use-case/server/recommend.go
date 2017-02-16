@@ -29,7 +29,7 @@ func authorizeRequest(ntoken, resource, action string) bool {
 		Transport: &tr,
 	}
 	zmsClient.AddCredentials(authHeader, ntoken)
-	access, err := zmsClient.GetAccess(zms.ActionName(action), zms.YRN(resource), "", "")
+	access, err := zmsClient.GetAccess(zms.ActionName(action), zms.ResourceName(resource), "", "")
 	if err != nil {
 		fmt.Println("Unable to verify access: %v", err)
 		return false

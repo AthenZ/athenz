@@ -98,13 +98,13 @@ func (cli Zms) dumpDataCheck(buf *bytes.Buffer, dataCheck zms.DomainDataCheck) {
 	}
 }
 
-func (cli Zms) displayObjectName(buf *bytes.Buffer, yrn string, objType string, indent1 string) {
+func (cli Zms) displayObjectName(buf *bytes.Buffer, fullResourceName string, objType string, indent1 string) {
 	buf.WriteString(indent1)
 	buf.WriteString("name: ")
 	if cli.Verbose || objType == "" {
-		buf.WriteString(yrn)
+		buf.WriteString(fullResourceName)
 	} else {
-		buf.WriteString(localName(yrn, objType))
+		buf.WriteString(localName(fullResourceName, objType))
 	}
 	buf.WriteString("\n")
 }
@@ -158,17 +158,17 @@ func (cli Zms) dumpRoles(buf *bytes.Buffer, dn string) {
 	}
 }
 
-func localName(yrn string, prefix string) string {
-	idx := strings.Index(yrn, prefix)
-	s := yrn
+func localName(fullResourceName string, prefix string) string {
+	idx := strings.Index(fullResourceName, prefix)
+	s := fullResourceName
 	if idx != -1 {
-		s = yrn[idx+len(prefix):]
+		s = fullResourceName[idx+len(prefix):]
 	}
 	return s
 }
 
 func (cli Zms) dumpAssertion(buf *bytes.Buffer, assertion *zms.Assertion, dn string, indent1 string) {
-	showYrn := cli.Verbose
+	showFullResourceName := cli.Verbose
 	buf.WriteString(indent1)
 	effect := "grant"
 	if assertion.Effect != nil {
@@ -181,13 +181,13 @@ func (cli Zms) dumpAssertion(buf *bytes.Buffer, assertion *zms.Assertion, dn str
 	buf.WriteString(" ")
 	buf.WriteString(assertion.Action)
 	buf.WriteString(" to ")
-	if showYrn {
+	if showFullResourceName {
 		buf.WriteString(assertion.Role)
 	} else {
 		buf.WriteString(localName(assertion.Role, ":role."))
 	}
 	buf.WriteString(" on ")
-	if showYrn {
+	if showFullResourceName {
 		buf.WriteString(assertion.Resource)
 	} else {
 		prefix := dn + ":"
@@ -201,9 +201,9 @@ func (cli Zms) dumpAssertion(buf *bytes.Buffer, assertion *zms.Assertion, dn str
 }
 
 func (cli Zms) dumpPolicy(buf *bytes.Buffer, policy zms.Policy, indent1 string, indent2 string) {
-	yrn := string(policy.Name)
-	cli.displayObjectName(buf, yrn, ":policy.", indent1)
-	dn := yrn[0:strings.LastIndex(yrn, ":")]
+	resourceName := string(policy.Name)
+	cli.displayObjectName(buf, resourceName, ":policy.", indent1)
+	dn := resourceName[0:strings.LastIndex(resourceName, ":")]
 	buf.WriteString(indent2)
 	if len(policy.Assertions) == 0 {
 		buf.WriteString("assertions: []\n")
@@ -379,8 +379,8 @@ func (cli Zms) dumpProviderResourceGroupRoles(buf *bytes.Buffer, providerRoles *
 	}
 }
 
-func (cli Zms) dumpUserName(buf *bytes.Buffer, user string, showYrn bool) {
-	if showYrn {
+func (cli Zms) dumpUserName(buf *bytes.Buffer, user string, showFullResourceName bool) {
+	if showFullResourceName {
 		buf.WriteString(user)
 	} else {
 		buf.WriteString(strings.Replace(user, cli.UserDomain+".", "", -1))

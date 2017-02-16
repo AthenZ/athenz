@@ -24,7 +24,7 @@ package com.yahoo.athenz.auth;
 public interface Authorizer {
     /**
      * Check access, return true if access is granted, false otherwise.
-     * @param resource - (YRN) the resource to check access against. Must include the domain.
+     * @param resource - (ResourceName) the resource to check access against. Must include the domain.
      * @param action - (CompoundName) the action to check access for
      * @param principal - (ResourceName) the principal who will access the resource.
      * @param crossDomain - (DomainName) an alternate domain responsible for the policy involved. This is usually null.

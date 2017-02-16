@@ -41,25 +41,15 @@ func init() {
 	tServiceName.Pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*")
 	sb.AddType(tServiceName.Build())
 
-	tLocationName := rdl.NewStringTypeBuilder("LocationName")
-	tLocationName.Comment("A location name is not yet defined, but will be a dotted name like everything else.")
-	tLocationName.Pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*")
-	sb.AddType(tLocationName.Build())
-
 	tActionName := rdl.NewStringTypeBuilder("ActionName")
 	tActionName.Comment("An action (operation) name.")
 	tActionName.Pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*")
 	sb.AddType(tActionName.Build())
 
 	tResourceName := rdl.NewStringTypeBuilder("ResourceName")
-	tResourceName.Comment("A shorthand for a YRN with no service or location. The 'tail' of a YRN, just the domain:entity. Note that the EntityName part is optional, that is, a domain name followed by a colon is valid resource name.")
+	tResourceName.Comment("A resource name Note that the EntityName part is optional, that is, a domain name followed by a colon is valid resource name.")
 	tResourceName.Pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(:([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?")
 	sb.AddType(tResourceName.Build())
-
-	tYRN := rdl.NewStringTypeBuilder("YRN")
-	tYRN.Comment("A full Yahoo Resource name (YRN).")
-	tYRN.Pattern("(yrn:(([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?:(([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?:)?([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(:([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?")
-	sb.AddType(tYRN.Build())
 
 	tYBase64 := rdl.NewStringTypeBuilder("YBase64")
 	tYBase64.Comment("The Y-specific URL-safe Base64 variant.")

@@ -125,7 +125,7 @@ public class DBService {
         return null;
     }
     
-    String getPrincipalYrn(ResourceContext ctx) {
+    String getPrincipalName(ResourceContext ctx) {
         if (ctx == null) {
             return null;
         }
@@ -133,7 +133,7 @@ public class DBService {
         if (principal == null) {
             return null;
         }
-        return principal.getYRN();
+        return principal.getFullName();
     }
     
     void saveChanges(ObjectStoreConnection con, String domainName) {
@@ -198,7 +198,7 @@ public class DBService {
                 Role adminRole = ZMSUtils.makeAdminRole(domainName, adminUsers);
                 auditDetails.append(", role: ");
                 if (!processRole(con, null, domainName, ZMSConsts.ADMIN_ROLE_NAME, adminRole,
-                        getPrincipalYrn(ctx), auditRef, false, auditDetails)) {
+                        getPrincipalName(ctx), auditRef, false, auditDetails)) {
                     con.rollbackChanges();
                     throw ZMSUtils.internalServerError("makeDomain: Cannot process role: '" +
                             adminRole.getName(), caller);
@@ -223,7 +223,7 @@ public class DBService {
                         auditDetails.append(", template: ");
                         Template template = ZMSImpl.serverSolutionTemplates.get(templateName);
                         if (!applySolutionTemplate(con, domainName, templateName, template, true,
-                                getPrincipalYrn(ctx), auditRef, auditDetails)) {
+                                getPrincipalName(ctx), auditRef, auditDetails)) {
                             con.rollbackChanges();
                             throw ZMSUtils.internalServerError("makeDomain: Cannot apply templates: '" +
                                     domain, caller);
@@ -724,7 +724,7 @@ public class DBService {
                 
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
                 if (!processRole(con, originalRole, domainName, roleName, role,
-                        getPrincipalYrn(ctx), auditRef, false, auditDetails)) {
+                        getPrincipalName(ctx), auditRef, false, auditDetails)) {
                     con.rollbackChanges();
                     throw ZMSUtils.internalServerError("unable to put role: " + role.getName(), caller);
                 }
@@ -935,7 +935,7 @@ public class DBService {
                 // operation, we are not using any transactions.
                 
                 if (!con.insertRoleMember(domainName, roleName, roleMember,
-                        getPrincipalYrn(ctx), auditRef)) {
+                        getPrincipalName(ctx), auditRef)) {
                     con.rollbackChanges();
                     throw ZMSUtils.requestError(caller + ": unable to insert role member: " +
                             roleMember.getMemberName() + " to role: " + roleName, caller);
@@ -1045,7 +1045,7 @@ public class DBService {
                 // process our delete role member operation
                 
                 if (!con.deleteRoleMember(domainName, roleName, normalizedMember,
-                        getPrincipalYrn(ctx), auditRef)) {
+                        getPrincipalName(ctx), auditRef)) {
                     con.rollbackChanges();
                     throw ZMSUtils.notFoundError(caller + ": unable to delete role member: " +
                             normalizedMember + " from role: " + roleName, caller);
@@ -1735,7 +1735,7 @@ public class DBService {
                     Template template = ZMSImpl.serverSolutionTemplates.get(templateName);
                     firstEntry = auditLogSeparator(auditDetails, firstEntry);
                     if (!applySolutionTemplate(con, domainName, templateName, template, true,
-                            getPrincipalYrn(ctx), auditRef, auditDetails)) {
+                            getPrincipalName(ctx), auditRef, auditDetails)) {
                         con.rollbackChanges();
                         throw ZMSUtils.internalServerError("unable to put domain templates: " + domainName, caller);
                     }
@@ -1781,7 +1781,7 @@ public class DBService {
                 
                 Template template = ZMSImpl.serverSolutionTemplates.get(templateName);
                 if (!applySolutionTemplate(con, domainName, templateName, template, false,
-                        getPrincipalYrn(ctx), auditRef, auditDetails)) {
+                        getPrincipalName(ctx), auditRef, auditDetails)) {
                     con.rollbackChanges();
                     throw ZMSUtils.internalServerError("unable to delete domain template: " + domainName, caller);
                 }
@@ -1954,8 +1954,8 @@ public class DBService {
                 checkDomainAuditEnabled(con, tenantDomain, auditRef, caller);
                 
                 String domainAdminRole = ZMSUtils.roleResourceName(tenantDomain, ZMSConsts.ADMIN_ROLE_NAME);
-                String serviceRoleYRN = ZMSUtils.getTrustedResourceGroupRolePrefix(provSvcDomain, provSvcName,
-                        tenantDomain, null) + ZMSConsts.ADMIN_ROLE_NAME;
+                String serviceRoleResourceName = ZMSUtils.getTrustedResourceGroupRolePrefix(provSvcDomain,
+                        provSvcName, tenantDomain, null) + ZMSConsts.ADMIN_ROLE_NAME;
 
                 // our tenant admin role/policy name
                 
@@ -1985,12 +1985,12 @@ public class DBService {
                     // and another for the tenant admin role
                     
                     Assertion assertion = new Assertion().setRole(domainAdminRole)
-                            .setResource(serviceRoleYRN).setAction(ZMSConsts.ACTION_ASSUME_ROLE)
+                            .setResource(serviceRoleResourceName).setAction(ZMSConsts.ACTION_ASSUME_ROLE)
                             .setEffect(AssertionEffect.ALLOW);
                     con.insertAssertion(tenantDomain, adminName, assertion);
                     
                     assertion = new Assertion().setRole(tenantAdminRole)
-                            .setResource(serviceRoleYRN).setAction(ZMSConsts.ACTION_ASSUME_ROLE)
+                            .setResource(serviceRoleResourceName).setAction(ZMSConsts.ACTION_ASSUME_ROLE)
                             .setEffect(AssertionEffect.ALLOW);
                     con.insertAssertion(tenantDomain, adminName, assertion);
                     
@@ -1998,9 +1998,9 @@ public class DBService {
                     // new resource groups in the domain which requires update
                     // action capability on resource tenancy.<prov_domain>.<prov_svc>
                     
-                    String tenantResourceYRN = tenantDomain + ":" + tenancyResource;
+                    String tenantResourceName = tenantDomain + ":" + tenancyResource;
                     assertion = new Assertion().setRole(tenantAdminRole)
-                            .setResource(tenantResourceYRN).setAction(ZMSConsts.ACTION_UPDATE)
+                            .setResource(tenantResourceName).setAction(ZMSConsts.ACTION_UPDATE)
                             .setEffect(AssertionEffect.ALLOW);
                     con.insertAssertion(tenantDomain, adminName, assertion);
                 }
@@ -2062,22 +2062,22 @@ public class DBService {
 
                     auditDetails.append("{role: ");
                     if (!processRole(con, originalRole, provSvcDomain, trustedName, role,
-                            getPrincipalYrn(ctx), auditRef, false, auditDetails)) {
+                            getPrincipalName(ctx), auditRef, false, auditDetails)) {
                         con.rollbackChanges();
                         throw ZMSUtils.internalServerError("unable to put role: " + trustedRole, caller);
                     }
                     
-                    String policyYRN = ZMSUtils.policyResourceName(provSvcDomain, trustedName);
-                    StringBuilder resourceYRN = new StringBuilder(256);
-                    resourceYRN.append(provSvcDomain).append(":service.")
+                    String policyResourceName = ZMSUtils.policyResourceName(provSvcDomain, trustedName);
+                    StringBuilder resourceName = new StringBuilder(256);
+                    resourceName.append(provSvcDomain).append(":service.")
                         .append(ZMSUtils.getTenantResourceGroupRolePrefix(provSvcName, tenantDomain, resourceGroup))
                         .append('*');
                     List<Assertion> assertions = Arrays.asList(
                         new Assertion().setRole(trustedRole)
-                            .setResource(resourceYRN.toString())
+                            .setResource(resourceName.toString())
                             .setAction(tenantAction));
                     
-                    Policy policy = new Policy().setName(policyYRN).setAssertions(assertions);
+                    Policy policy = new Policy().setName(policyResourceName).setAssertions(assertions);
                     
                     if (LOG.isInfoEnabled()) {
                         LOG.info(caller + ": add trust policy to domain " + provSvcDomain +
@@ -2086,7 +2086,7 @@ public class DBService {
                     
                     // retrieve our original policy
                     
-                    Policy originalPolicy = getPolicy(con, provSvcDomain, policyYRN);
+                    Policy originalPolicy = getPolicy(con, provSvcDomain, policyResourceName);
 
                     // now process the request
                     
@@ -2127,7 +2127,7 @@ public class DBService {
         // only if the role does not already exist
         
         String roleName = rolePrefix + role;
-        String roleYRN = ZMSUtils.roleResourceName(tenantDomain, roleName);
+        String roleResourceName = ZMSUtils.roleResourceName(tenantDomain, roleName);
         
         // retrieve our original role in case one exists
         
@@ -2141,7 +2141,7 @@ public class DBService {
         
         // now process the request
         
-        Role roleObj = new Role().setName(roleYRN).setRoleMembers(roleMembers);
+        Role roleObj = new Role().setName(roleResourceName).setRoleMembers(roleMembers);
         auditDetails.append("{role: ");
         if (!processRole(con, originalRole, tenantDomain, roleName, roleObj,
                 admin, auditRef, false, auditDetails)) {
@@ -2154,10 +2154,10 @@ public class DBService {
         // add a new assertion
         
         String policyName = "tenancy." + roleName;
-        String policyYRN = ZMSUtils.policyResourceName(tenantDomain, policyName);
-        String serviceRoleYRN = trustedRolePrefix + role;
-        Assertion assertion = new Assertion().setRole(roleYRN)
-                .setResource(serviceRoleYRN).setAction(ZMSConsts.ACTION_ASSUME_ROLE)
+        String policyResourceName = ZMSUtils.policyResourceName(tenantDomain, policyName);
+        String serviceRoleResourceName = trustedRolePrefix + role;
+        Assertion assertion = new Assertion().setRole(roleResourceName)
+                .setResource(serviceRoleResourceName).setAction(ZMSConsts.ACTION_ASSUME_ROLE)
                 .setEffect(AssertionEffect.ALLOW);
         
         if (LOG.isInfoEnabled()) {
@@ -2178,7 +2178,7 @@ public class DBService {
         
         // now process the request
         
-        Policy assumeRolePolicy = new Policy().setName(policyYRN).setAssertions(newAssertions);
+        Policy assumeRolePolicy = new Policy().setName(policyResourceName).setAssertions(newAssertions);
 
         auditDetails.append(", policy: ");
         if (!processPolicy(con, originalPolicy, tenantDomain, policyName, assumeRolePolicy,
@@ -2204,11 +2204,11 @@ public class DBService {
                 // we're going to create a separate role for each one of tenant roles returned
                 // based on its action and set the caller as a member in each role
                 
-                String principalYrn = getPrincipalYrn(ctx);
+                String principalName = getPrincipalName(ctx);
                 List<RoleMember> roleMembers = new ArrayList<>();
-                if (principalYrn != null) {
+                if (principalName != null) {
                     RoleMember roleMember = new RoleMember();
-                    roleMember.setMemberName(principalYrn);
+                    roleMember.setMemberName(principalName);
                     roleMembers.add(roleMember);
                 }
                 
@@ -2235,7 +2235,7 @@ public class DBService {
                     firstEntry = auditLogSeparator(auditDetails, firstEntry);
                     
                     addAssumeRolePolicy(con, rolePrefix, trustedRolePrefix, role, roleMembers,
-                        tenantDomain, principalYrn, auditRef, auditDetails, caller);
+                        tenantDomain, principalName, auditRef, auditDetails, caller);
                 }
                 
                 auditDetails.append("]}");

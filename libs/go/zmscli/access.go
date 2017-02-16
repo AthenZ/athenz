@@ -11,11 +11,11 @@ import (
 	"github.com/yahoo/athenz/clients/go/zms"
 )
 
-func (cli Zms) ShowAccess(dn string, action string, resource string, altIdent *string, altDomain *string) (*string, error) {
-	yrn := resource
+func (cli Zms) getAccessParameters(dn string, action string, resource string, altIdent *string, altDomain *string) (string, string, string, error) {
+	fullResourceName := resource
 	idx := strings.Index(resource, ":")
 	if idx < 0 {
-		yrn = dn + ":" + resource
+		fullResourceName = dn + ":" + resource
 	} else {
 		// special handling for assume_role case where the domain in
 		// the resource does not have to match the value specified
@@ -24,7 +24,7 @@ func (cli Zms) ShowAccess(dn string, action string, resource string, altIdent *s
 		if action != "assume_role" {
 			resDomain := resource[0:idx]
 			if resDomain != dn {
-				return nil, fmt.Errorf("Domain name mismatch. Expected " + dn + ", encountered in resource " + resDomain)
+				return "", "", "", fmt.Errorf("Domain name mismatch. Expected " + dn + ", encountered in resource " + resDomain)
 			}
 		}
 	}
@@ -39,7 +39,31 @@ func (cli Zms) ShowAccess(dn string, action string, resource string, altIdent *s
 	if altDomain != nil {
 		trustDomain = *altDomain
 	}
-	access, err := cli.Zms.GetAccess(zms.ActionName(action), zms.YRN(yrn), zms.DomainName(trustDomain), zms.EntityName(altPrincipal))
+	return fullResourceName, trustDomain, altPrincipal, nil
+}
+
+func (cli Zms) ShowAccess(dn string, action string, resource string, altIdent *string, altDomain *string) (*string, error) {
+	fullResourceName, trustDomain, altPrincipal, err := cli.getAccessParameters(dn, action, resource, altIdent, altDomain)
+	if err != nil {
+		return nil, err
+	}
+	access, err := cli.Zms.GetAccess(zms.ActionName(action), zms.ResourceName(fullResourceName), zms.DomainName(trustDomain), zms.EntityName(altPrincipal))
+	if err != nil {
+		return nil, err
+	}
+	s := "access: granted"
+	if !access.Granted {
+		s = "access: denied"
+	}
+	return &s, nil
+}
+
+func (cli Zms) ShowAccessExt(dn string, action string, resource string, altIdent *string, altDomain *string) (*string, error) {
+	fullResourceName, trustDomain, altPrincipal, err := cli.getAccessParameters(dn, action, resource, altIdent, altDomain)
+	if err != nil {
+		return nil, err
+	}
+	access, err := cli.Zms.GetAccessExt(zms.ActionName(action), fullResourceName, zms.DomainName(trustDomain), zms.EntityName(altPrincipal))
 	if err != nil {
 		return nil, err
 	}

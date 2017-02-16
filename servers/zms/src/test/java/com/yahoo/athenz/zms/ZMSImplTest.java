@@ -6040,11 +6040,14 @@ public class ZMSImplTest extends TestCase {
         // user1 and user3 have access to UPDATE/resource1
 
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
-        Principal principal1 = principalAuthority.authenticate("v=U1;d=user;n=user1;s=signature", "10.11.12.13", "GET", null);
+        Principal principal1 = principalAuthority.authenticate("v=U1;d=user;n=user1;s=signature",
+                "10.11.12.13", "GET", null);
         ResourceContext rsrcCtx1 = createResourceContext(principal1);
-        Principal principal2 = principalAuthority.authenticate("v=U1;d=user;n=user2;s=signature", "10.11.12.13", "GET", null);
+        Principal principal2 = principalAuthority.authenticate("v=U1;d=user;n=user2;s=signature",
+                "10.11.12.13", "GET", null);
         ResourceContext rsrcCtx2 = createResourceContext(principal2);
-        Principal principal3 = principalAuthority.authenticate("v=U1;d=user;n=user3;s=signature", "10.11.12.13", "GET", null);
+        Principal principal3 = principalAuthority.authenticate("v=U1;d=user;n=user3;s=signature",
+                "10.11.12.13", "GET", null);
         ResourceContext rsrcCtx3 = createResourceContext(principal3);
 
         Access access = zms.getAccess(rsrcCtx1, "UPDATE", "AccessDom1:resource1",
@@ -6235,11 +6238,14 @@ public class ZMSImplTest extends TestCase {
         // verify we have allow access for access resource
 
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
-        Principal principal1 = principalAuthority.authenticate("v=U1;d=user;n=user1;s=signature", "10.11.12.13", "GET", null);
+        Principal principal1 = principalAuthority.authenticate("v=U1;d=user;n=user1;s=signature",
+                "10.11.12.13", "GET", null);
         ResourceContext rsrcCtx1 = createResourceContext(principal1);
-        Principal principal2 = principalAuthority.authenticate("v=U1;d=user;n=user2;s=signature", "10.11.12.13", "GET", null);
+        Principal principal2 = principalAuthority.authenticate("v=U1;d=user;n=user2;s=signature",
+                "10.11.12.13", "GET", null);
         ResourceContext rsrcCtx2 = createResourceContext(principal2);
-        Principal principal3 = principalAuthority.authenticate("v=U1;d=user;n=user3;s=signature", "10.11.12.13", "GET", null);
+        Principal principal3 = principalAuthority.authenticate("v=U1;d=user;n=user3;s=signature",
+                "10.11.12.13", "GET", null);
         ResourceContext rsrcCtx3 = createResourceContext(principal3);
 
         // user1 and user3 have access to UPDATE/resource1
@@ -6403,7 +6409,8 @@ public class ZMSImplTest extends TestCase {
 
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
 
-        Principal pJane = principalAuthority.authenticate("v=U1;d=user;n=jane;s=signature", "10.11.12.13", "GET", null);
+        Principal pJane = principalAuthority.authenticate("v=U1;d=user;n=jane;s=signature",
+                "10.11.12.13", "GET", null);
         ResourceContext rsrcCtxJane = createResourceContext(pJane);
         
         Access access = zmsTest.getAccess(rsrcCtxJane, "READ", "user.jane:Resource1", null, null);
@@ -6415,9 +6422,10 @@ public class ZMSImplTest extends TestCase {
         access = zmsTest.getAccess(rsrcCtxJane, "UPDATE", "user.jane:Resource1", null, null);
         assertTrue(access.getGranted());
 
-        // user id does not match yrn domain - all should be failure
+        // user id does not match domain - all should be failure
         
-        Principal pJohn = principalAuthority.authenticate("v=U1;d=user;n=john;s=signature", "10.11.12.13", "GET", null);
+        Principal pJohn = principalAuthority.authenticate("v=U1;d=user;n=john;s=signature",
+                "10.11.12.13", "GET", null);
         ResourceContext rsrcCtxJohn = createResourceContext(pJohn);
         
         try {
@@ -6452,7 +6460,8 @@ public class ZMSImplTest extends TestCase {
 
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
 
-        Principal pJane = principalAuthority.authenticate("v=U1;d=user;n=jane;s=signature", "10.11.12.13", "GET", null);
+        Principal pJane = principalAuthority.authenticate("v=U1;d=user;n=jane;s=signature",
+                "10.11.12.13", "GET", null);
         ResourceContext rsrcCtxJane = createResourceContext(pJane);
 
         try {
@@ -6487,7 +6496,8 @@ public class ZMSImplTest extends TestCase {
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
         
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
-        Principal pJane = principalAuthority.authenticate("v=U1;d=user;n=jane;s=signature", "10.11.12.13", "GET", null);
+        Principal pJane = principalAuthority.authenticate("v=U1;d=user;n=jane;s=signature",
+                "10.11.12.13", "GET", null);
         
         AthenzDomain athenzDomain = zms.retrieveAccessDomain("accessdomain", pJane);
         assertNotNull(athenzDomain);
@@ -6598,12 +6608,14 @@ public class ZMSImplTest extends TestCase {
         Policy policy = createPolicyObject("CrossDomainAccessDom1", "tenancy.coretech.storage.writer",
                 "writer", "ASSUME_ROLE", "coretech:role.storage.tenant.CrossDomainAccessDom1.writer",
                 AssertionEffect.ALLOW);
-        zms.putPolicy(mockDomRsrcCtx, "CrossDomainAccessDom1", "tenancy.coretech.storage.writer", auditRef, policy);
+        zms.putPolicy(mockDomRsrcCtx, "CrossDomainAccessDom1", "tenancy.coretech.storage.writer",
+                auditRef, policy);
 
         policy = createPolicyObject("CrossDomainAccessDom1", "tenancy.coretech.storage.reader",
                 "reader", "ASSUME_ROLE", "coretech:role.storage.tenant.CrossDomainAccessDom1.reader",
                 AssertionEffect.ALLOW);
-        zms.putPolicy(mockDomRsrcCtx, "CrossDomainAccessDom1", "tenancy.coretech.storage.reader", auditRef, policy);
+        zms.putPolicy(mockDomRsrcCtx, "CrossDomainAccessDom1", "tenancy.coretech.storage.reader",
+                auditRef, policy);
 
         // verify the ASSUME_ROLE check - with trust domain specified it should work and
         // without trust domain it will not work since the resource is pointing to the
@@ -6619,88 +6631,109 @@ public class ZMSImplTest extends TestCase {
         
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
 
-        Principal pJane = principalAuthority.authenticate("v=U1;d=user;n=jane;s=signature", "10.11.12.13", "GET", null);
+        Principal pJane = principalAuthority.authenticate("v=U1;d=user;n=jane;s=signature",
+                "10.11.12.13", "GET", null);
         ResourceContext rsrcCtxJane = createResourceContext(pJane);
-        Principal pJohn = principalAuthority.authenticate("v=U1;d=user;n=john;s=signature", "10.11.12.13", "GET", null);
+        Principal pJohn = principalAuthority.authenticate("v=U1;d=user;n=john;s=signature",
+                "10.11.12.13", "GET", null);
         ResourceContext rsrcCtxJohn = createResourceContext(pJohn);
-        Principal pJoe = principalAuthority.authenticate("v=U1;d=user;n=joe;s=signature", "10.11.12.13", "GET", null);
+        Principal pJoe = principalAuthority.authenticate("v=U1;d=user;n=joe;s=signature",
+                "10.11.12.13", "GET", null);
         ResourceContext rsrcCtxJoe = createResourceContext(pJoe);
 
-        access = zms.getAccess(rsrcCtxJoe, "READ", "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+        access = zms.getAccess(rsrcCtxJoe, "READ",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
                 "CrossDomainAccessDom1", null);
         assertTrue(access.getGranted());
 
-        access = zms.getAccess(rsrcCtxJane, "READ", "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+        access = zms.getAccess(rsrcCtxJane, "READ",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
                 "CrossDomainAccessDom1", null);
         assertTrue(access.getGranted());
 
-        access = zms.getAccess(rsrcCtxJohn, "READ", "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+        access = zms.getAccess(rsrcCtxJohn, "READ",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
                 "CrossDomainAccessDom1", null);
         assertFalse(access.getGranted());
 
-        access = zms.getAccess(rsrcCtxJoe, "WRITE", "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+        access = zms.getAccess(rsrcCtxJoe, "WRITE",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
                 "CrossDomainAccessDom1", null);
         assertFalse(access.getGranted());
 
-        access = zms.getAccess(rsrcCtxJane, "WRITE", "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+        access = zms.getAccess(rsrcCtxJane, "WRITE",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
                 "CrossDomainAccessDom1", null);
         assertTrue(access.getGranted());
 
-        access = zms.getAccess(rsrcCtxJohn, "WRITE", "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+        access = zms.getAccess(rsrcCtxJohn, "WRITE",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
                 "CrossDomainAccessDom1", null);
         assertTrue(access.getGranted());
 
         // unknown action should always fail
 
-        access = zms.getAccess(rsrcCtxJoe, "UPDATE", "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+        access = zms.getAccess(rsrcCtxJoe, "UPDATE",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
                 "CrossDomainAccessDom1", null);
         assertFalse(access.getGranted());
 
-        access = zms.getAccess(rsrcCtxJane, "UPDATE", "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+        access = zms.getAccess(rsrcCtxJane, "UPDATE",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
                 "CrossDomainAccessDom1", null);
         assertFalse(access.getGranted());
 
-        access = zms.getAccess(rsrcCtxJohn, "UPDATE", "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+        access = zms.getAccess(rsrcCtxJohn, "UPDATE",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
                 "CrossDomainAccessDom1", null);
         assertFalse(access.getGranted());
 
         // same set as above without trust domain field
 
-        access = zms.getAccess(rsrcCtxJoe, "READ", "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+        access = zms.getAccess(rsrcCtxJoe, "READ",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
                 null, null);
         assertTrue(access.getGranted());
 
-        access = zms.getAccess(rsrcCtxJane, "READ", "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+        access = zms.getAccess(rsrcCtxJane, "READ",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
                 null, null);
         assertTrue(access.getGranted());
 
-        access = zms.getAccess(rsrcCtxJohn, "READ", "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+        access = zms.getAccess(rsrcCtxJohn, "READ",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
                 null, null);
         assertFalse(access.getGranted());
 
-        access = zms.getAccess(rsrcCtxJoe, "WRITE", "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+        access = zms.getAccess(rsrcCtxJoe, "WRITE",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
                 null, null);
         assertFalse(access.getGranted());
 
-        access = zms.getAccess(rsrcCtxJane, "WRITE", "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+        access = zms.getAccess(rsrcCtxJane, "WRITE",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
                 null, null);
         assertTrue(access.getGranted());
 
-        access = zms.getAccess(rsrcCtxJohn, "WRITE", "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+        access = zms.getAccess(rsrcCtxJohn, "WRITE",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
                 null, null);
         assertTrue(access.getGranted());
 
         // failure with different domain name
 
-        access = zms.getAccess(rsrcCtxJoe, "READ", "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+        access = zms.getAccess(rsrcCtxJoe, "READ",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
                 "CrossDomainAccessDom2", null);
         assertFalse(access.getGranted());
 
-        access = zms.getAccess(rsrcCtxJane, "READ", "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+        access = zms.getAccess(rsrcCtxJane, "READ",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
                 "CrossDomainAccessDom2", null);
         assertFalse(access.getGranted());
 
-        access = zms.getAccess(rsrcCtxJohn, "READ", "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+        access = zms.getAccess(rsrcCtxJohn, "READ",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
                 "CrossDomainAccessDom2", null);
         assertFalse(access.getGranted());
 
@@ -6774,19 +6807,22 @@ public class ZMSImplTest extends TestCase {
 
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
 
-        Principal pWeather = principalAuthority.authenticate("v=U1;d=user;n=weather_admin_user;s=signature", "10.11.12.13", "GET", null);
+        Principal pWeather = principalAuthority.authenticate("v=U1;d=user;n=weather_admin_user;s=signature",
+                "10.11.12.13", "GET", null);
         ResourceContext rsrcCtxWeather = createResourceContext(pWeather);
 
         Access access = zms.getAccess(rsrcCtxWeather, "NODE_SUDO", "weather:node.x", null, null);
         assertTrue(access.getGranted());
         
-        Principal pSiteOps = principalAuthority.authenticate("v=U1;d=user;n=siteops_user_1;s=signature", "10.11.12.13", "GET", null);
+        Principal pSiteOps = principalAuthority.authenticate("v=U1;d=user;n=siteops_user_1;s=signature",
+                "10.11.12.13", "GET", null);
         ResourceContext rsrcCtxSiteOps = createResourceContext(pSiteOps);
 
         access = zms.getAccess(rsrcCtxSiteOps, "NODE_SUDO", "weather:node.x", null, null);
         assertTrue(access.getGranted());
         
-        Principal pRandom = principalAuthority.authenticate("v=U1;d=user;n=random_user;s=signature", "10.11.12.13", "GET", null);
+        Principal pRandom = principalAuthority.authenticate("v=U1;d=user;n=random_user;s=signature",
+                "10.11.12.13", "GET", null);
         ResourceContext rsrcCtxRandom = createResourceContext(pRandom);
 
         access = zms.getAccess(rsrcCtxRandom, "NODE_SUDO", "weather:node.x", null, null);
@@ -6796,6 +6832,165 @@ public class ZMSImplTest extends TestCase {
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "netops", auditRef);
     }
 
+    @Test
+    public void testGetAccessExt() {
+
+        final String testDomainName = "AccessDomExt1";
+        
+        TopLevelDomain dom1 = createTopLevelDomainObject(testDomainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Role role1 = createRoleObject(testDomainName, "Role1", null, "user.user1",
+                "user.user3");
+        zms.putRole(mockDomRsrcCtx, testDomainName, "Role1", auditRef, role1);
+
+        Role role2 = createRoleObject(testDomainName, "Role2", null, "user.user2",
+                "user.user3");
+        zms.putRole(mockDomRsrcCtx, testDomainName, "Role2", auditRef, role2);
+
+        Policy policy1 = createPolicyObject(testDomainName, "Policy1", "Role1",
+                "UPDATE", testDomainName + ":resource1/resource2", AssertionEffect.ALLOW);
+        zms.putPolicy(mockDomRsrcCtx, testDomainName, "Policy1", auditRef, policy1);
+
+        Policy policy2 = createPolicyObject(testDomainName, "Policy2", "Role2",
+                "CREATE", testDomainName + ":resource2(resource3)", AssertionEffect.ALLOW);
+        zms.putPolicy(mockDomRsrcCtx, testDomainName, "Policy2", auditRef, policy2);
+
+        Policy policy3 = createPolicyObject(testDomainName, "Policy3", "Role2",
+                "*", testDomainName + ":resource3/*", AssertionEffect.ALLOW);
+        zms.putPolicy(mockDomRsrcCtx, testDomainName, "Policy3", auditRef, policy3);
+
+        Policy policy4 = createPolicyObject(testDomainName, "Policy4", "Role1",
+                "READ", testDomainName + ":resource4[*]/data1", AssertionEffect.ALLOW);
+        zms.putPolicy(mockDomRsrcCtx, testDomainName, "Policy4", auditRef, policy4);
+
+        Policy policy5 = createPolicyObject(testDomainName, "Policy5", "Role2",
+                "access", testDomainName + ":https://*.athenz.com/*", AssertionEffect.ALLOW);
+        zms.putPolicy(mockDomRsrcCtx, testDomainName, "Policy5", auditRef, policy5);
+        
+        // user1 and user3 have access to UPDATE/resource1
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        Principal principal1 = principalAuthority.authenticate("v=U1;d=user;n=user1;s=signature",
+                "10.11.12.13", "GET", null);
+        ResourceContext rsrcCtx1 = createResourceContext(principal1);
+        Principal principal2 = principalAuthority.authenticate("v=U1;d=user;n=user2;s=signature",
+                "10.11.12.13", "GET", null);
+        ResourceContext rsrcCtx2 = createResourceContext(principal2);
+        Principal principal3 = principalAuthority.authenticate("v=U1;d=user;n=user3;s=signature",
+                "10.11.12.13", "GET", null);
+        ResourceContext rsrcCtx3 = createResourceContext(principal3);
+
+        // user1 and user3 have update access to resource1/resource2
+        
+        Access access = zms.getAccessExt(rsrcCtx1, "UPDATE", testDomainName + ":resource1/resource2",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx1, "UPDATE", testDomainName + ":resource1/resource3",
+                testDomainName, null);
+        assertFalse(access.getGranted());
+        
+        access = zms.getAccessExt(rsrcCtx2, "UPDATE", testDomainName + ":resource1/resource2",
+                testDomainName, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx3, "UPDATE", testDomainName + ":resource1/resource2",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        // all three have no access to CREATE action on resource1/resource2
+
+        access = zms.getAccessExt(rsrcCtx1, "CREATE", testDomainName + ":resource1/resource2",
+                testDomainName, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx2, "CREATE", testDomainName + ":resource1/resource2",
+                testDomainName, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx3, "CREATE", testDomainName + ":resource1/resource2",
+                testDomainName, null);
+        assertFalse(access.getGranted());
+
+        // user2 and user3 have create access to resource2(resource3)
+        
+        access = zms.getAccessExt(rsrcCtx1, "CREATE", testDomainName + ":resource2(resource3)",
+                testDomainName, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx2, "CREATE", testDomainName + ":resource2(resource3)",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx3, "CREATE", testDomainName + ":resource2(resource3)",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        // user2 and user3 have access to CREATE(*)/resource3/*
+
+        access = zms.getAccessExt(rsrcCtx1, "CREATE", testDomainName + ":resource3",
+                testDomainName, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx2, "CREATE", testDomainName + ":resource3/test1",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx3, "CREATE", testDomainName + ":resource3/anothertest",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        // user2 and user3 have access to UPDATE(*)/resource3/*
+
+        access = zms.getAccessExt(rsrcCtx1, "UPDATE", testDomainName + ":resource3",
+                testDomainName, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx2, "UPDATE", testDomainName + ":resource3/(another value)",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx3, "UPDATE", testDomainName + ":resource3/a",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        // user1 and user3 have access to READ/resource6[*]/data1
+
+        access = zms.getAccessExt(rsrcCtx1, "read", testDomainName + ":resource4[test1]/data1",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx2, "read", testDomainName + ":resource4[test1]/data1",
+                testDomainName, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx3, "read", testDomainName + ":resource4[test another]/data1",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        // user2 and user3 have access to access/https://*.athenz.com/*
+
+        access = zms.getAccessExt(rsrcCtx1, "access", testDomainName + ":https://web.athenz.com/data",
+                testDomainName, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx2, "access", testDomainName + ":https://web.athenz.com/data",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+
+        access = zms.getAccessExt(rsrcCtx2, "access", testDomainName + ":https://web.athenz.org/data",
+                testDomainName, null);
+        assertFalse(access.getGranted());
+        
+        access = zms.getAccessExt(rsrcCtx3, "access", testDomainName + ":https://web-store.athenz.com/data/path",
+                testDomainName, null);
+        assertTrue(access.getGranted());
+        
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, testDomainName, auditRef);
+    }
+    
     @Test
     public void testValidateEntity() {
         int code = 400;
@@ -7495,7 +7690,7 @@ public class ZMSImplTest extends TestCase {
         String tenantDomain    = "testDeleteTenancy";
         String providerDomain  = "providerTestDeleteTenancy";
         String providerService = "storage";
-        String provServiceYRN = providerDomain + "." + providerService;
+        String provService = providerDomain + "." + providerService;
         
         // create tenant and provider domains
         //
@@ -7514,12 +7709,12 @@ public class ZMSImplTest extends TestCase {
 
         // setup tenancy
         //
-        Tenancy tenant = createTenantObject(tenantDomain, provServiceYRN);
+        Tenancy tenant = createTenantObject(tenantDomain, provService);
         ProviderMockClient.setReturnTenantRoles(true);
-        zms.putTenancy(mockDomRsrcCtx, tenantDomain, provServiceYRN, auditRef, tenant);
+        zms.putTenancy(mockDomRsrcCtx, tenantDomain, provService, auditRef, tenant);
 
         try {
-            zms.deleteTenancy(mockDomRsrcCtx, tenantDomain,  provServiceYRN, auditRef);
+            zms.deleteTenancy(mockDomRsrcCtx, tenantDomain,  provService, auditRef);
             
             // verify we didn't delete a role by mistake
             
@@ -7528,41 +7723,41 @@ public class ZMSImplTest extends TestCase {
             // verify that all roles and policies have been deleted
             
             try {
-                zms.getRole(mockDomRsrcCtx, tenantDomain, provServiceYRN + ".admin", false, false);
+                zms.getRole(mockDomRsrcCtx, tenantDomain, provService + ".admin", false, false);
                 fail();
             } catch (ResourceException ex) {
                 assertEquals(ex.getCode(), 404);
             }
             
             try {
-                zms.getRole(mockDomRsrcCtx, tenantDomain, provServiceYRN + ".reader", false, false);
+                zms.getRole(mockDomRsrcCtx, tenantDomain, provService + ".reader", false, false);
                 fail();
             } catch (ResourceException ex) {
                 assertEquals(ex.getCode(), 404);
             }
             try {
-                zms.getRole(mockDomRsrcCtx, tenantDomain, provServiceYRN + ".writer", false, false);
+                zms.getRole(mockDomRsrcCtx, tenantDomain, provService + ".writer", false, false);
                 fail();
             } catch (ResourceException ex) {
                 assertEquals(ex.getCode(), 404);
             }
 
             try {
-                zms.getPolicy(mockDomRsrcCtx, tenantDomain, "tenancy." + provServiceYRN + ".admin");
+                zms.getPolicy(mockDomRsrcCtx, tenantDomain, "tenancy." + provService + ".admin");
                 fail();
             } catch (ResourceException ex) {
                 assertEquals(ex.getCode(), 404);
             }
             
             try {
-                zms.getPolicy(mockDomRsrcCtx, tenantDomain, "tenancy." + provServiceYRN + ".reader");
+                zms.getPolicy(mockDomRsrcCtx, tenantDomain, "tenancy." + provService + ".reader");
                 fail();
             } catch (ResourceException ex) {
                 assertEquals(ex.getCode(), 404);
             }
             
             try {
-                zms.getPolicy(mockDomRsrcCtx, tenantDomain, "tenancy." + provServiceYRN + ".writer");
+                zms.getPolicy(mockDomRsrcCtx, tenantDomain, "tenancy." + provService + ".writer");
                 fail();
             } catch (ResourceException ex) {
                 assertEquals(ex.getCode(), 404);
@@ -7722,7 +7917,7 @@ public class ZMSImplTest extends TestCase {
         String tenantDomain    = "testDeleteTenancy";
         String providerDomain  = "providerTestDeleteTenancy";
         String providerService = "storage";
-        String provServiceYRN = providerDomain + "." + providerService;
+        String provService = providerDomain + "." + providerService;
 
         // create tenant and provider domains
         //
@@ -7737,16 +7932,16 @@ public class ZMSImplTest extends TestCase {
 
         // setup tenancy
         //
-        Tenancy tenant = createTenantObject(tenantDomain, provServiceYRN);
+        Tenancy tenant = createTenantObject(tenantDomain, provService);
         ProviderMockClient.setReturnTenantRoles(true);
-        zms.putTenancy(mockDomRsrcCtx, tenantDomain, provServiceYRN, auditRef, tenant);
+        zms.putTenancy(mockDomRsrcCtx, tenantDomain, provService, auditRef, tenant);
 
         // delete the provider service
         
         zms.deleteServiceIdentity(mockDomRsrcCtx, providerDomain, providerService, auditRef);
         
         try {
-            zms.deleteTenancy(mockDomRsrcCtx, tenantDomain, provServiceYRN, auditRef);
+            zms.deleteTenancy(mockDomRsrcCtx, tenantDomain, provService, auditRef);
             fail();
         } catch (ResourceException ex) {
             assertTrue(ex.getCode() == 400);
@@ -7775,7 +7970,7 @@ public class ZMSImplTest extends TestCase {
         String tenantDomain    = "testDeleteTenancyMissEnd";
         String providerDomain  = "providerTestDeleteTenancyMissEnd";
         String providerService = "storage";
-        String provServiceYRN = providerDomain + "." + providerService;
+        String provService = providerDomain + "." + providerService;
 
         // create tenant and provider domains
         //
@@ -7790,9 +7985,9 @@ public class ZMSImplTest extends TestCase {
 
         // setup tenancy
         //
-        Tenancy tenant = createTenantObject(tenantDomain, provServiceYRN);
+        Tenancy tenant = createTenantObject(tenantDomain, provService);
         ProviderMockClient.setReturnTenantRoles(true);
-        zmsImpl.putTenancy(mockDomRsrcCtx, tenantDomain, provServiceYRN, auditRef, tenant);
+        zmsImpl.putTenancy(mockDomRsrcCtx, tenantDomain, provService, auditRef, tenant);
 
         // delete the provider service endpoint
         
@@ -7803,7 +7998,7 @@ public class ZMSImplTest extends TestCase {
         zmsImpl.putServiceIdentity(mockDomRsrcCtx, providerDomain, providerService, auditRef, service);
         
         try {
-            zmsImpl.deleteTenancy(mockDomRsrcCtx, tenantDomain, provServiceYRN, auditRef);
+            zmsImpl.deleteTenancy(mockDomRsrcCtx, tenantDomain, provService, auditRef);
             fail();
         } catch (ResourceException ex) {
             assertTrue(ex.getCode() == 400);
@@ -8547,7 +8742,7 @@ public class ZMSImplTest extends TestCase {
     }
     
     @Test
-    public void testValidRoleTokenAccessMismatchYRNs() {
+    public void testValidRoleTokenAccessMismatchNames() {
         assertFalse(zms.validRoleTokenAccess(null, "Domain1", "Domain2"));
     }
     
@@ -12704,12 +12899,13 @@ public class ZMSImplTest extends TestCase {
     public void testRetrieveResourceDomainValidDomain() {
         assertEquals("domain1", zms.retrieveResourceDomain("domain1:resource", "read", null));
         assertEquals("domain1", zms.retrieveResourceDomain("domain1:resource", "read", "trustdomain"));
+        assertEquals("domain1", zms.retrieveResourceDomain("domain1:a:b:c:d:e", "read", "trustdomain"));
+
     }
     
     @Test
     public void testRetrieveResourceDomainInvalidResource() {
-        assertEquals(null, zms.retrieveResourceDomain("domain1:resource:invalid", "read", null));
-        assertEquals(null, zms.retrieveResourceDomain("domain1:a:b:c:d:e", "read", "trustdomain"));
+        assertEquals(null, zms.retrieveResourceDomain("domain1-invalid", "read", null));
     }
 
     @Test
@@ -12907,8 +13103,10 @@ public class ZMSImplTest extends TestCase {
     }
     
     @Test
-    public void testGetYrnDomain() {
-        assertEquals(zms.yrnDomain("yrn:service:location:domain:entity"), "domain");
+    public void testExtractDomainName() {
+        assertEquals(zms.extractDomainName("domain:entity"), "domain");
+        assertEquals(zms.extractDomainName("domain:entity:value2"), "domain");
+        assertEquals(zms.extractDomainName("domain:https://web.athenz.com/data"), "domain");
     }
     
     @Test
@@ -14105,8 +14303,6 @@ public class ZMSImplTest extends TestCase {
         
         Role role = new Role();
         
-        // yrn behavior
-        
         role.setName("domain1:role.role1");
         assertTrue(zms.isConsistentRoleName("domain1", "role1", role));
         
@@ -14129,8 +14325,6 @@ public class ZMSImplTest extends TestCase {
     public void testIsConsistentPolicyName() {
         
         Policy policy = new Policy();
-        
-        // yrn behavior
         
         policy.setName("domain1:policy.policy1");
         assertTrue(zms.isConsistentPolicyName("domain1", "policy1", policy));

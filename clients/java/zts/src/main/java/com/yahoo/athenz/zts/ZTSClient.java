@@ -635,7 +635,7 @@ public class ZTSClient implements Closeable {
         }
         
         // Athens uses lower case for all elements, so let's
-        // generate our dn which will be our role yrn
+        // generate our dn which will be our role resource value
         
         principalDomain = principalDomain.toLowerCase();
         principalService = principalService.toLowerCase();

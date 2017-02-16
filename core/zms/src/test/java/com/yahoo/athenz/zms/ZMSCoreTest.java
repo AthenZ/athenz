@@ -178,27 +178,39 @@ public class ZMSCoreTest {
     }
 
     @Test
-    public void testYRN() {
-        String[] goodYRNs = { "domain:role.test1_", "domain:role._test1_", "domain:role._-test1_", "domain:role._-----",
-                "domain:role._____", "3com:role.3role_-", "3com:entity", "_domain:3entity_", "domain:entity",
-                "my.domain:entity", "my.domain:entity.path", "yrn:::domain:entity", "yrn:::my.domain:my.entity",
-                "yrn:service::domain:entity", "yrn:my.service::domain:entity", "yrn:my.service::my.domain:my.entity",
-                "yrn:service:location:domain:entity", "yrn:some.service:some.location:my.domain:my.entity" };
+    public void testResourceNames() {
+        String[] goodResources = {
+                "domain:role.test1_",
+                "domain:role._test1_",
+                "domain:role._-test1_",
+                "domain:role._-----",
+                "domain:role._____",
+                "3com:role.3role_-",
+                "3com:entity",
+                "_domain:3entity_",
+                "domain:entity",
+                "my.domain:entity",
+                "my.domain:entity.path"
+        };
 
         Schema schema = ZMSSchema.instance();
         Validator validator = new Validator(schema);
 
-        for (String s : goodYRNs) {
-            Result result = validator.validate(s, "YRN");
+        for (String s : goodResources) {
+            Result result = validator.validate(s, "ResourceName");
             assertTrue(result.valid);
         }
 
-        String[] badYRNs = { "domain:role.-----", "-domain:role.role1", "Non_ascii:��", "cannot-start-with:-dash",
-                "cannot-use:Punctuation_except_underbar!", "yrn::location_only", "yrn:service:location_only",
-                "non_yrn_prefix:service:location:domain:entity", "missing_yrn_prefix_service:location:domain:entity" };
+        String[] badResources = {
+                "domain:role.-----",
+                "-domain:role.role1",
+                "Non_ascii:��",
+                "cannot-start-with:-dash",
+                "cannot-use:Punctuation_except_underbar!"
+        };
 
-        for (String s : badYRNs) {
-            Result result = validator.validate(s, "YRN");
+        for (String s : badResources) {
+            Result result = validator.validate(s, "ResourceName");
             assertFalse(result.valid);
         }
     }

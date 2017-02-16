@@ -99,7 +99,7 @@ func (auth zmsAuthorizer) Authorize(action string, resource string, principal rd
 		}
 		zmsClient := NewClient(auth.url, nil)
 		zmsClient.AddCredentials(principal.GetHTTPHeaderName(), principal.GetCredentials())
-		check, err := zmsClient.GetAccess(ActionName(action), YRN(resource), "", "")
+		check, err := zmsClient.GetAccess(ActionName(action), ResourceName(resource), "", "")
 		if err != nil {
 			return false, err
 		}

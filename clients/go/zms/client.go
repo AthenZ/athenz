@@ -2091,7 +2091,7 @@ func (client ZMSClient) DeleteProviderResourceGroupRoles(tenantDomain DomainName
 	}
 }
 
-func (client ZMSClient) GetAccess(action ActionName, resource YRN, domain DomainName, checkPrincipal EntityName) (*Access, error) {
+func (client ZMSClient) GetAccess(action ActionName, resource ResourceName, domain DomainName, checkPrincipal EntityName) (*Access, error) {
 	var data *Access
 	url := client.URL + "/access/" + fmt.Sprint(action) + "/" + fmt.Sprint(resource) + encodeParams(encodeStringParam("domain", string(domain), ""), encodeStringParam("principal", string(checkPrincipal), ""))
 	resp, err := client.httpGet(url, nil)

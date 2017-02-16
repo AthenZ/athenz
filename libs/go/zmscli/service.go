@@ -125,11 +125,11 @@ func (cli Zms) AddProviderService(dn string, sn string, keyId string, pubKey *st
 	// after our service has been created we are going to
 	// create a self_serve role for this provider
 	rn := shortName + "_self_serve"
-	yrn := dn + ":role." + rn
+	fullResourceName := dn + ":role." + rn
 	var role zms.Role
 	_, err = cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil)
 	if err == nil {
-		return nil, fmt.Errorf("Provider Service created but Self Serve Role already exists: %v", yrn)
+		return nil, fmt.Errorf("Provider Service created but Self Serve Role already exists: %v", fullResourceName)
 	} else {
 		switch v := err.(type) {
 		case rdl.ResourceError:
@@ -138,7 +138,7 @@ func (cli Zms) AddProviderService(dn string, sn string, keyId string, pubKey *st
 			}
 		}
 	}
-	role.Name = zms.ResourceName(yrn)
+	role.Name = zms.ResourceName(fullResourceName)
 	role.Members = make([]zms.ResourceName, 0)
 	role.Members = append(role.Members, zms.ResourceName(longName))
 	err = cli.Zms.PutRole(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &role)
@@ -149,10 +149,10 @@ func (cli Zms) AddProviderService(dn string, sn string, keyId string, pubKey *st
 	// going to create the self_serve policy for this
 	// provider that would give access to all tenants
 	pn := shortName + "_self_serve"
-	yrn = dn + ":policy." + pn
+	fullResourceName = dn + ":policy." + pn
 	_, err = cli.Zms.GetPolicy(zms.DomainName(dn), zms.EntityName(pn))
 	if err == nil {
-		return nil, fmt.Errorf("Provider Service created but Self Serve Policy already exists: %v", yrn)
+		return nil, fmt.Errorf("Provider Service created but Self Serve Policy already exists: %v", fullResourceName)
 	} else {
 		switch v := err.(type) {
 		case rdl.ResourceError:
@@ -162,7 +162,7 @@ func (cli Zms) AddProviderService(dn string, sn string, keyId string, pubKey *st
 		}
 	}
 	policy := zms.Policy{}
-	policy.Name = zms.ResourceName(yrn)
+	policy.Name = zms.ResourceName(fullResourceName)
 	assertion := make([]string, 0)
 	assertion = append(assertion, "grant")
 	assertion = append(assertion, "update")

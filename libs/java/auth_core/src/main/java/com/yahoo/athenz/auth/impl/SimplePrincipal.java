@@ -30,7 +30,7 @@ public class SimplePrincipal implements Principal {
     
     String domain = null;
     String name = null;
-    String yrn  = null;
+    String fullName  = null;
     String creds = null;
     String unsignedCreds = null;
     String ip = null;
@@ -190,23 +190,19 @@ public class SimplePrincipal implements Principal {
         return originalRequestor;
     }
     
-    public String getYRN() {
+    public String getFullName() {
         
-        if (yrn == null) {
+        if (fullName == null) {
             if (domain != null && name != null) {
-                StringBuilder str = new StringBuilder(256);
-                str.append(domain);
-                str.append(".");
-                str.append(name);
-                yrn = str.toString();
+                fullName = domain + "." + name;
             } else if (domain != null) {
-                yrn = domain;
+                fullName = domain;
             } else if (name != null) {
-                yrn = name;
+                fullName = name;
             }
         }
         
-        return yrn;
+        return fullName;
     }
     public String getCredentials() {
         return creds;

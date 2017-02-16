@@ -129,7 +129,7 @@ public class ZMSAuthorizer implements Authorizer, Closeable {
         
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("ZMSAuthorizer.access({}, {}, {}, {})", action, rn,
-                    principal != null ? principal.getYRN() : "null", trustDomain);
+                    principal != null ? principal.getFullName() : "null", trustDomain);
         }
         
         try {
