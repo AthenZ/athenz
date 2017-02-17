@@ -21,8 +21,6 @@ var greenBarColor = '#00cd7a';
 module.exports = {
   colorBlue10a: "#188fff",
   colorBlueviolet12a: "#003abc",
-  colorBlue10a: "#188fff",
-  colorBlueviolet12a: "#003abc",
   colorGrayJ: "#f7f8ff",
   colorGrayG: "#d8dade",
   colorGrayFg: "#b9bdc5",

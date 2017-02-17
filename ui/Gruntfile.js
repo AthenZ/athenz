@@ -76,6 +76,33 @@ module.exports = function(grunt) {
       }
     },
     jshint: {
+      options: {
+        globalstrict: true,
+        expr: true,
+        esversion: 6,
+        globals: {
+          "expect": true,
+          "assert": false,
+          "it": false,
+          "require": false,
+          "describe": false,
+          "beforeEach": false,
+          "afterEach": false,
+          "before": false,
+          "after": false,
+          "$": false,
+          "$$": false,
+          "browser": false,
+          "Buffer": false,
+          "module": false,
+          "global": false,
+          "exports": false,
+          "process": false,
+          "console": false,
+          "__dirname": false,
+          "Intl": false,
+        }
+      },
       files: ['Gruntfile.js', 'src/**/*.js', './*.js',  'test/**/*.js'],
     },
     postcss: {
