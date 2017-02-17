@@ -55,13 +55,12 @@ module.exports = function(grunt) {
       }
     },
     eslint: {
-      code: {
-        options: {
-          cache: true,
-          cacheFile: '.eslintcodecache'
-        },
-        src: ['public', 'src/**/*.js', './*.js', 'test/**/*.js']
-      }
+      options: {
+        cache: true,
+        cacheFile: '.eslintcodecache',
+        configFile: 'eslint.json'
+      },
+      target: ['public', 'src/**/*.js', './*.js', 'test/**/*.js']
     },
     filesize: {
       base: {

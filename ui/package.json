@@ -31,7 +31,7 @@
     "grunt-contrib-clean": "~0.7.0",
     "grunt-contrib-copy": "~0.8.2",
     "grunt-contrib-watch": "^0.6.1",
-    "grunt-eslint": "~17.3.1",
+    "grunt-eslint": "^19.0.0",
     "grunt-exec": "~0.4.6",
     "grunt-filesize": "0.0.7",
     "grunt-postcss": "^0.7.1",
@@ -76,9 +76,6 @@
     "url-pattern": "~1.0.1",
     "graceful-fs": "3.0.9",
     "base64url": "2.0.0"
-  },
-  "yhintConfig": {
-    "json": true
   },
   "jshintConfig": {
     "esnext": true,
