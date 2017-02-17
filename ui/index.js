@@ -117,11 +117,12 @@ app.use(function(req, res, next) {
 
 // Authenticate user and receive user token
 app.use(function(req, res, next) {
+    var username;
   if (req.cred) {
-    var username = req.cred.body.username;
+    username = req.cred.body.username;
     next();
   } else if (req.body.username && req.body.password) {
-    var username = req.body.username;
+    username = req.body.username;
     var password = req.body.password;
     var cred = Buffer.from(username + ':' + password).toString('base64');
     var options = {
