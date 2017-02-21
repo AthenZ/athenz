@@ -221,7 +221,7 @@ module.exports = function(grunt) {
     var files = grunt.template.process('build/<%= pkg.version %>/css/app.css');
     grunt.util.spawn({
       cmd: path.join(__dirname, 'node_modules/.bin/csslint'),
-      args: ['--ignore=adjoining-classes', files],
+      args: ['--ignore=adjoining-classes,order-alphabetical,unqualified-attributes,regex-selectors,important,unique-headings,qualified-headings,box-model,outline-none,box-sizing,bulletproof-font-face,duplicate-background-images,font-sizes', files],
       opts: { stdio: 'inherit' }
     }, done);
   });
