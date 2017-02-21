@@ -43,7 +43,7 @@
 
   .user-guidance-text {
     @extend %flex;
-    margin: 20px 20px 0px calc(20% + 10px);
+    margin: 20px 20px 0 calc(20% + 10px);
 
     div {
       width: 60%;
@@ -62,7 +62,6 @@
     margin: 20px 20px 0 20px;
 
     @mixin submit-form {
-      width: 100%;
     }
 
     @mixin submit-buttons {
@@ -73,7 +72,7 @@
       @mixin error-message;
     }
 
-    .hide-from-layout: {
+    .hide-from-layout {
       display: none;
     }
   }
