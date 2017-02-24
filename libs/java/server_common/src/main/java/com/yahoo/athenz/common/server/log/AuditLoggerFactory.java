@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Yahoo Inc.
+ * Copyright 2017 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.common.server.log.impl;
+package com.yahoo.athenz.common.server.log;
 
-import com.yahoo.athenz.common.server.log.impl.DefaultAuditLogMsgBuilder;
+public interface AuditLoggerFactory {
 
-/**
- * Test implementation for AuditLogMsgBuilder.
- */
-public class TestMsgBuilder extends DefaultAuditLogMsgBuilder {
+    /**
+     * Create and return a new AuditLogger instance
+     * @return AuditLogger instance
+     */
+    public AuditLogger create();
 }

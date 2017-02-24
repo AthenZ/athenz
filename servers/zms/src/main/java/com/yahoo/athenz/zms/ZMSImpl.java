@@ -34,9 +34,9 @@ import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.metrics.MetricFactory;
 import com.yahoo.athenz.common.server.db.DataSourceFactory;
 import com.yahoo.athenz.common.server.db.PoolableDataSource;
-import com.yahoo.athenz.common.server.log.AuditLogFactory;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
+import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
 import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
@@ -137,8 +137,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private static final String TYPE_TENANT_RESOURCE_GROUP_ROLES = "TenantResourceGroupRoles";
     private static final String TYPE_PROVIDER_RESOURCE_GROUP_ROLES = "ProviderResourceGroupRoles";
     private static final String TYPE_PUBLIC_KEY_ENTRY = "PublicKeyEntry";
+    private static final String TYPE_MEMBERSHIP = "Membership";
     
     public static Metric metric;
+    public static String serverHostName  = null;
+
     protected ObjectStore dbStore = null;
     protected DBService dbService = null;
     protected Class<? extends ProviderClient> providerClass = null;
@@ -150,7 +153,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected boolean productIdSupport = false;
     protected int virtualDomainLimit = 2;
     protected long signedPolicyTimeout;
-    protected static String serverHostName  = null;
     protected int domainNameMaxLen;
     protected AuthorizedServices serverAuthorizedServices = null;
     protected static SolutionTemplates serverSolutionTemplates = null;
@@ -597,24 +599,21 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     
     void loadAuditLogger() {
         
-        String auditFactoryName = System.getProperty(ZMSConsts.ZMS_PROP_AUDIT_LOGGER_FACTORY_CLASS);
-        String auditFactoryParam =
-                System.getProperty(ZMSConsts.ZMS_PROP_AUDIT_LOGGER_FACTORY_CLASS_PARAM);
-        AuditLogger auditLog = null;
+        String auditFactoryClass = System.getProperty(ZMSConsts.ZMS_PROP_AUDIT_LOGGER_FACTORY_CLASS,
+                ZMSConsts.ZMS_AUDIT_LOGGER_FACTORY_CLASS);
+        AuditLoggerFactory auditLogFactory = null;
+        
         try {
-            if (auditFactoryParam != null) {
-                auditLog = AuditLogFactory.getLogger(auditFactoryName, auditFactoryParam);
-            } else {
-                auditLog = AuditLogFactory.getLogger(auditFactoryName);
-            }
-        } catch (Exception exc) {
-            LOG.warn("Failed to create audit logger from class="
-                    + auditFactoryName + ", ZMS will use the default logger instead: "
-                    + exc.getMessage());
-            auditLog = AuditLogFactory.getLogger();
+            auditLogFactory = (AuditLoggerFactory) Class.forName(auditFactoryClass).newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            LOG.error("Invalid AuditLoggerFactory class: " + auditFactoryClass
+                    + " error: " + e.getMessage());
+            throw new IllegalArgumentException("Invalid audit logger class");
         }
         
-        auditLogger = auditLog;
+        // create our audit logger
+        
+        auditLogger = auditLogFactory.create();
     }
     
     void loadServerPublicKeys() {
@@ -754,47 +753,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
      */
     public Schema schema() {
         return schema;
-    }
-
-    /**
-     * Setup a new AuditLogMsgBuilder object with common values.
-    **/
-    static AuditLogMsgBuilder getAuditLogMsgBuilder(ResourceContext ctx, String domainName,
-            String auditRef, String caller, String method) {
-        
-        AuditLogMsgBuilder msgBldr = AuditLogFactory.getMsgBuilder();
-
-        // get the where - which means where this server is running
-        
-        msgBldr.whereIp(serverHostName);
-        msgBldr.whatDomain(domainName).why(auditRef).whatApi(caller).whatMethod(method);
-
-        // get the 'who' and set it
-        
-        if (ctx != null) {
-            Principal princ = ((RsrcCtxWrapper) ctx).principal();
-            if (princ != null) {
-                String unsignedCreds = princ.getUnsignedCredentials();
-                if (unsignedCreds == null) {
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("who-name=").append(princ.getName());
-                    sb.append(",who-domain=").append(princ.getDomain());
-                    sb.append(",who-fullname=").append(princ.getFullName());
-                    List<String> roles = princ.getRoles();
-                    if (roles != null && roles.size() > 0) {
-                        sb.append(",who-roles=").append(roles.toString());
-                    }
-                    unsignedCreds = sb.toString();
-                }
-                msgBldr.who(unsignedCreds);
-            }
-
-            // get the client IP
-            
-            msgBldr.clientIp(ServletRequestUtil.getRemoteAddress(ctx.request()));
-        }
-
-        return msgBldr;
     }
 
     // ----------------- the Domain interface {
@@ -2504,6 +2462,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             validate(domainName, TYPE_DOMAIN_NAME, caller);
             validate(roleName, TYPE_ENTITY_NAME, caller);
             validate(memberName, TYPE_RESOURCE_NAME, caller);
+            validate(membership, TYPE_MEMBERSHIP, caller);
             
             // for consistent handling of all requests, we're going to convert
             // all incoming object values into lower case (e.g. domain, role,
@@ -3057,7 +3016,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     void auditRequestFailure(ResourceContext ctx, Exception exc, String domainName, String resourceName,
             String caller, String method, String addlDetails, String auditRef) {
         
-        AuditLogMsgBuilder msgBldr = getAuditLogMsgBuilder(ctx, domainName, auditRef, caller, method);
+        AuditLogMsgBuilder msgBldr = ZMSUtils.getAuditLogMsgBuilder(ctx, auditLogger,
+                domainName, auditRef, caller, method);
         Timestamp when = Timestamp.fromCurrentTime();
         msgBldr.when(when.toString()).whatEntity(resourceName);
         StringBuilder sb = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
@@ -6420,67 +6380,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final Principal principal = ((RsrcCtxWrapper) ctx).principal();
         if (principal != null) {
             ctx.request().setAttribute(ZMS_REQUEST_PRINCIPAL, principal.getFullName());
-        }
-    }
-    
-    static class RsrcCtxWrapper implements ResourceContext {
-
-        com.yahoo.athenz.common.server.rest.ResourceContext ctx = null;
-
-        RsrcCtxWrapper(HttpServletRequest request,
-                       HttpServletResponse response,
-                       Http.AuthorityList authList, Authorizer authorizer) {
-            ctx = new com.yahoo.athenz.common.server.rest.ResourceContext(request,
-                    response, authList, authorizer);
-        }
-
-        com.yahoo.athenz.common.server.rest.ResourceContext context() {
-            return ctx;
-        }
-
-        Principal principal() {
-            return ctx.principal();
-        }
-
-        @Override
-        public HttpServletRequest request() {
-            return ctx.request();
-        }
-
-        @Override
-        public HttpServletResponse response() {
-            return ctx.response();
-        }
-
-        @Override
-        public void authenticate() {
-            try {
-                ctx.authenticate();
-            } catch (com.yahoo.athenz.common.server.rest.ResourceException restExc) {
-                throwZmsException(restExc);
-            }
-        }
-
-        @Override
-        public void authorize(String action, String resource, String trustedDomain) {
-            try {
-                ctx.authorize(action, resource, trustedDomain);
-            } catch (com.yahoo.athenz.common.server.rest.ResourceException restExc) {
-                throwZmsException(restExc);
-            }
-        }
-
-        void throwZmsException(com.yahoo.athenz.common.server.rest.ResourceException restExc) {
-            String msg  = null;
-            Object data = restExc.getData();
-            if (data instanceof String) {
-                msg = (String) data;
-            }
-            if (msg == null) {
-                msg = restExc.getMessage();
-            }
-            throw new com.yahoo.athenz.zms.ResourceException(restExc.getCode(),
-                    new ResourceError().code(restExc.getCode()).message(msg));
         }
     }
 

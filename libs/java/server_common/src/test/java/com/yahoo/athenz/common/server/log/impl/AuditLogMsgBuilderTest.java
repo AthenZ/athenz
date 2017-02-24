@@ -25,8 +25,9 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import com.yahoo.athenz.common.server.log.AuditLogFactory;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
+import com.yahoo.athenz.common.server.log.AuditLogger;
+import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
 import com.yahoo.athenz.common.server.log.impl.DefaultAuditLogMsgBuilder;
 import com.yahoo.rdl.*;
 
@@ -45,7 +46,9 @@ public class AuditLogMsgBuilderTest {
     static Array assertsNew  = null;
 
     DefaultAuditLogMsgBuilder starter(final String whatApi) {
-        AuditLogMsgBuilder msgBldr = AuditLogFactory.getMsgBuilder();
+        AuditLoggerFactory auditLoggerFactory = new DefaultAuditLoggerFactory();
+        AuditLogger logger = auditLoggerFactory.create();
+        AuditLogMsgBuilder msgBldr = logger.getMsgBuilder();
         msgBldr.who(TOKEN_STR).when(Timestamp.fromCurrentTime()).clientIp("12.12.12.12").whatApi(whatApi);
         return (DefaultAuditLogMsgBuilder)msgBldr;
     }
@@ -71,21 +74,6 @@ public class AuditLogMsgBuilderTest {
         assertsNew = new Array().with(assert1n).with(assert2n).with(assert3n);
     }
     
-    @Test
-    public void testGetMsgBuilderClassName() {
-        String auditLogMsgBuilderClassName = "com.yahoo.athenz.common.server.log.impl.TestMsgBuilder";
-        try {
-            AuditLogMsgBuilder msgBldr = AuditLogFactory.getMsgBuilder(auditLogMsgBuilderClassName);
-            String dataStr = "getMsgBuilder";
-            msgBldr.whatApi(dataStr);
-            Assert.assertTrue(msgBldr.whatApi().equals(dataStr), "whatApi string=" + msgBldr.whatApi());
-            dataStr = msgBldr.getClass().getName();
-            Assert.assertTrue(dataStr.equals(auditLogMsgBuilderClassName), "classname=" + dataStr);
-        } catch (Exception exc) {
-            Assert.fail("Should have created the AuditLogMsgBuilder=TestMsgBuilder", exc);
-        }
-    }
-
     @Test
     public void testWho() {
         DefaultAuditLogMsgBuilder msgBldr = starter("testWho");

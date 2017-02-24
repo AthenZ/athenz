@@ -79,12 +79,11 @@ public final class ZMSConsts {
     
     // properties used to over-ride default Audit logger
  
-    public static final String ZMS_PROP_AUDIT_LOGGER_FACTORY_CLASS       = "athenz.zms.audit_logger_factory_class";
-    public static final String ZMS_PROP_AUDIT_LOGGER_FACTORY_CLASS_PARAM = "athenz.zms.audit_logger_factory_class_param";
-
+    public static final String ZMS_PROP_AUDIT_LOGGER_FACTORY_CLASS      = "athenz.zms.audit_logger_factory_class";
     public static final String ZMS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS = "athenz.zms.private_key_store_factory_class";
     
-    public static final String ZMS_METRIC_FACTORY_CLASS         = "com.yahoo.athenz.common.metrics.impl.NoOpMetricFactory";
+    public static final String ZMS_METRIC_FACTORY_CLASS       = "com.yahoo.athenz.common.metrics.impl.NoOpMetricFactory";
+    public static final String ZMS_AUDIT_LOGGER_FACTORY_CLASS = "com.yahoo.athenz.common.server.log.impl.DefaultAuditLoggerFactory";
 
     public static final String ZMS_UNKNOWN_DOMAIN     = "unknown_domain";
     public static final String ZMS_INVALID_DOMAIN     = "invalid_domain";

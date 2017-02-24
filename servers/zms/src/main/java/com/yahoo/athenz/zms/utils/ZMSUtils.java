@@ -21,14 +21,20 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
+import com.yahoo.athenz.common.server.log.AuditLogger;
+import com.yahoo.athenz.common.server.util.ServletRequestUtil;
 import com.yahoo.athenz.common.server.util.StringUtils;
 import com.yahoo.athenz.zms.Assertion;
 import com.yahoo.athenz.zms.AssertionEffect;
 import com.yahoo.athenz.zms.Policy;
+import com.yahoo.athenz.zms.ResourceContext;
 import com.yahoo.athenz.zms.ResourceError;
 import com.yahoo.athenz.zms.ResourceException;
 import com.yahoo.athenz.zms.Role;
 import com.yahoo.athenz.zms.RoleMember;
+import com.yahoo.athenz.zms.RsrcCtxWrapper;
 import com.yahoo.athenz.zms.ZMSConsts;
 import com.yahoo.athenz.zms.ZMSImpl;
 
@@ -214,6 +220,48 @@ public class ZMSUtils {
             roleMemberList.add(new RoleMember().setMemberName(member));
         }
         return roleMemberList;
+    }
+    
+    /**
+     * Setup a new AuditLogMsgBuilder object with common values.
+    **/
+    public static AuditLogMsgBuilder getAuditLogMsgBuilder(ResourceContext ctx,
+            AuditLogger auditLogger, String domainName, String auditRef, String caller,
+            String method) {
+        
+        AuditLogMsgBuilder msgBldr = auditLogger.getMsgBuilder();
+
+        // get the where - which means where this server is running
+        
+        msgBldr.whereIp(ZMSImpl.serverHostName);
+        msgBldr.whatDomain(domainName).why(auditRef).whatApi(caller).whatMethod(method);
+
+        // get the 'who' and set it
+        
+        if (ctx != null) {
+            Principal princ = ((RsrcCtxWrapper) ctx).principal();
+            if (princ != null) {
+                String unsignedCreds = princ.getUnsignedCredentials();
+                if (unsignedCreds == null) {
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("who-name=").append(princ.getName());
+                    sb.append(",who-domain=").append(princ.getDomain());
+                    sb.append(",who-fullname=").append(princ.getFullName());
+                    List<String> roles = princ.getRoles();
+                    if (roles != null && roles.size() > 0) {
+                        sb.append(",who-roles=").append(roles.toString());
+                    }
+                    unsignedCreds = sb.toString();
+                }
+                msgBldr.who(unsignedCreds);
+            }
+
+            // get the client IP
+            
+            msgBldr.clientIp(ServletRequestUtil.getRemoteAddress(ctx.request()));
+        }
+
+        return msgBldr;
     }
     
     public static RuntimeException error(int code, String msg, String caller) {

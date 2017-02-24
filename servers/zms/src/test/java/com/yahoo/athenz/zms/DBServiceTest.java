@@ -60,7 +60,7 @@ public class DBServiceTest extends TestCase {
 
     // typically used when creating and deleting domains with all the tests
     //
-    @Mock ZMSImpl.RsrcCtxWrapper mockDomRsrcCtx;
+    @Mock RsrcCtxWrapper mockDomRsrcCtx;
     @Mock com.yahoo.athenz.common.server.rest.ResourceContext mockDomRestRsrcCtx;
     Principal rsrcPrince    = null; // used with the mockDomRestRsrcCtx
 
@@ -99,7 +99,7 @@ public class DBServiceTest extends TestCase {
         Mockito.when(rsrcCtx.request()).thenReturn(mockServletRequest);
         Mockito.when(rsrcCtx.response()).thenReturn(mockServletResponse);
 
-        ZMSImpl.RsrcCtxWrapper rsrcCtxWrapper = Mockito.mock(ZMSImpl.RsrcCtxWrapper.class);
+        RsrcCtxWrapper rsrcCtxWrapper = Mockito.mock(RsrcCtxWrapper.class);
         Mockito.when(rsrcCtxWrapper.context()).thenReturn(rsrcCtx);
         Mockito.when(rsrcCtxWrapper.principal()).thenReturn(prince);
         Mockito.when(rsrcCtxWrapper.request()).thenReturn(mockServletRequest);
@@ -117,7 +117,7 @@ public class DBServiceTest extends TestCase {
         Mockito.when(rsrcCtx.request()).thenReturn(request);
         Mockito.when(rsrcCtx.response()).thenReturn(mockServletResponse);
 
-        ZMSImpl.RsrcCtxWrapper rsrcCtxWrapper = Mockito.mock(ZMSImpl.RsrcCtxWrapper.class);
+        RsrcCtxWrapper rsrcCtxWrapper = Mockito.mock(RsrcCtxWrapper.class);
         Mockito.when(rsrcCtxWrapper.context()).thenReturn(rsrcCtx);
         Mockito.when(rsrcCtxWrapper.request()).thenReturn(request);
         Mockito.when(rsrcCtxWrapper.principal()).thenReturn(principal);
@@ -2280,13 +2280,13 @@ public class DBServiceTest extends TestCase {
     public void testGetPrincipalName() {
         
         Principal principal = SimplePrincipal.create("user", "user1", "creds", null);
-        ZMSImpl.RsrcCtxWrapper rsrcCtx = Mockito.mock(ZMSImpl.RsrcCtxWrapper.class);
+        RsrcCtxWrapper rsrcCtx = Mockito.mock(RsrcCtxWrapper.class);
         Mockito.when(rsrcCtx.principal()).thenReturn(principal);
         assertEquals(zms.dbService.getPrincipalName(rsrcCtx), "user.user1");
         
         assertNull(zms.dbService.getPrincipalName(null));
         
-        ZMSImpl.RsrcCtxWrapper rsrcCtx2 = Mockito.mock(ZMSImpl.RsrcCtxWrapper.class);
+        RsrcCtxWrapper rsrcCtx2 = Mockito.mock(RsrcCtxWrapper.class);
         Mockito.when(rsrcCtx2.principal()).thenReturn(null);
         assertNull(zms.dbService.getPrincipalName(rsrcCtx2));
     }
@@ -2305,7 +2305,8 @@ public class DBServiceTest extends TestCase {
     @Test
     public void testApplySolutionTemplateNullTemplat() {
         StringBuilder auditDetails = new StringBuilder();
-        assertTrue(zms.dbService.applySolutionTemplate(null, null, "template1", null, true, null, null, auditDetails));
+        assertTrue(zms.dbService.applySolutionTemplate(null, null, "template1",
+                null, true, null, null, auditDetails));
         assertEquals("{name: \"template1\"}", auditDetails.toString());
     }
 

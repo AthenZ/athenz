@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zms;
+package com.yahoo.athenz.common.server.log.impl;
 
-import org.glassfish.hk2.utilities.binding.AbstractBinder;
+import com.yahoo.athenz.common.server.log.AuditLogger;
+import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
 
-public class ZMSBinder extends AbstractBinder {
+public class DefaultAuditLoggerFactory implements AuditLoggerFactory {
 
     @Override
-    protected void configure() {
-        bind(new ZMSImpl()).to(ZMSHandler.class);
+    public AuditLogger create() {
+        return new DefaultAuditLogger();
     }
 }

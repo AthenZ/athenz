@@ -25,7 +25,7 @@ public interface AuditLogMsgBuilder {
      * Ex:  "VERS(athenz-2.1);"
      * @return version tag all ready to set in a log message
      */
-    public abstract String versionTag();
+    public String versionTag();
     
     /**
      * who made the authorization change
@@ -33,9 +33,9 @@ public interface AuditLogMsgBuilder {
      *        The calling client/user requesting the change.
      * @return this
      */
-    public abstract AuditLogMsgBuilder who(String whoVal);
+    public AuditLogMsgBuilder who(String whoVal);
 
-    public abstract String who();
+    public String who();
 
     /**
      * why was this change requested - justification via SOX ticket number
@@ -43,15 +43,15 @@ public interface AuditLogMsgBuilder {
      *        The SOX ticket number.
      * @return this
      */
-    public abstract AuditLogMsgBuilder why(String whyVal);
+    public AuditLogMsgBuilder why(String whyVal);
 
-    public abstract String why();
+    public String why();
 
-    public abstract AuditLogMsgBuilder when(Timestamp ts);
+    public AuditLogMsgBuilder when(Timestamp ts);
 
-    public abstract AuditLogMsgBuilder when(String whenVal);
+    public AuditLogMsgBuilder when(String whenVal);
 
-    public abstract String when();
+    public String when();
 
     /**
      * IP address of requesting client
@@ -59,9 +59,9 @@ public interface AuditLogMsgBuilder {
      *        The IP address of the calling client(who).
      * @return this
      */
-    public abstract AuditLogMsgBuilder clientIp(String clientIpAddr);
+    public AuditLogMsgBuilder clientIp(String clientIpAddr);
 
-    public abstract String clientIp();
+    public String clientIp();
 
     /**
      * This is where the change request was received - server endpoint.
@@ -71,14 +71,14 @@ public interface AuditLogMsgBuilder {
      *        Ex: '{"server-ip":"198.177.62.9","server-https-port":"4453","server-http-port":"10080"}'
      * @return this
      */
-    public abstract AuditLogMsgBuilder whereIp(String whereVal);
+    public AuditLogMsgBuilder whereIp(String whereVal);
 
-    public abstract AuditLogMsgBuilder whereHttpsPort(String whereVal);
+    public AuditLogMsgBuilder whereHttpsPort(String whereVal);
 
-    public abstract AuditLogMsgBuilder whereHttpPort(String whereVal);
+    public AuditLogMsgBuilder whereHttpPort(String whereVal);
 
     // Ex: '{"server-ip":"198.177.62.9","server-https-port":"4453","server-http-port":"10080"}'
-    public abstract String where();
+    public String where();
 
     /**
      * The REST methods required to be reported are PUT, POST, DELETE.
@@ -86,9 +86,9 @@ public interface AuditLogMsgBuilder {
      *        This is the REST method, ie. "PUT" or "POST", etc
      * @return this
      */
-    public abstract AuditLogMsgBuilder whatMethod(String whatMethodVal);
+    public AuditLogMsgBuilder whatMethod(String whatMethodVal);
 
-    public abstract String whatMethod();
+    public String whatMethod();
 
     /**
      * The publicly exported API receiving the change request.
@@ -96,9 +96,9 @@ public interface AuditLogMsgBuilder {
      *        This is the server public method serving the request, ex: "putRole"
      * @return this
      */
-    public abstract AuditLogMsgBuilder whatApi(String whatApiVal);
+    public AuditLogMsgBuilder whatApi(String whatApiVal);
 
-    public abstract String whatApi();
+    public String whatApi();
 
     /**
      * Name of the domain that is affected by the change.
@@ -106,9 +106,9 @@ public interface AuditLogMsgBuilder {
      *        This is the Athenz domain being changed, ex: "xobni"
      * @return this
      */
-    public abstract AuditLogMsgBuilder whatDomain(String whatDomainVal);
+    public AuditLogMsgBuilder whatDomain(String whatDomainVal);
 
-    public abstract String whatDomain();
+    public String whatDomain();
 
     /**
      * Name of the entity being changed. An entity is a policy, role, service, et al.
@@ -117,9 +117,9 @@ public interface AuditLogMsgBuilder {
      *        So for example, if the role called "admin" is changed, then entity is "admin".
      * @return this
      */
-    public abstract AuditLogMsgBuilder whatEntity(String whatEntityVal);
+    public AuditLogMsgBuilder whatEntity(String whatEntityVal);
 
-    public abstract String whatEntity();
+    public String whatEntity();
 
     /**
      * @param whatDetailsVal specific details of the changes
@@ -134,9 +134,9 @@ public interface AuditLogMsgBuilder {
      *        bldr         = bldr.whatDetails(oldAttrSet, newAttrSet);
      * @return this
      */
-    public abstract AuditLogMsgBuilder whatDetails(String whatDetailsVal);
+    public AuditLogMsgBuilder whatDetails(String whatDetailsVal);
 
-    public abstract String whatDetails();
+    public String whatDetails();
 
     /**
      * Performs 'diff' of the attributes and sets it in the details part of the
@@ -148,19 +148,18 @@ public interface AuditLogMsgBuilder {
      * @param newFields Set of replacement attributes
      * @return this
      */
-    public abstract AuditLogMsgBuilder whatDetails(String tag,
-            Struct origFields, Struct newFields);
+    public AuditLogMsgBuilder whatDetails(String tag, Struct origFields, Struct newFields);
 
     /**
      * Call this to build the string representation of the data fields set herein.
      * @return String representation of the message to be logged
      */
-    public abstract String build();
+    public String build();
 
     /**
      * Parse the given log message and return a Struct.
      * @param logMsgBldrMsg string returned from AuditLogMsgBuilder.build()
      * @return struct representation of the log message
      */
-    public abstract Struct parse(String logMsgBldrMsg);
+    public Struct parse(String logMsgBldrMsg);
 }
