@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.inject.Inject;
 
-@Path("/zms/v1")
+@Path("/v1")
 public class ZMSResources {
 
     @GET

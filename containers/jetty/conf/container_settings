@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+
+# ** list of authorities for authenticating principals
+CONTAINER_AUTHORITY_CLASSES="com.yahoo.athenz.auth.impl.PrincipalAuthority,com.yahoo.athenz.auth.impl.UserAuthority"
+
+# ** admin users for new installations - defaults to current user
+# ** the value is a comma separated list of users in the user
+# ** domain. e.g. user.joe,user.jack,user.john
+CONTAINER_ADMINUSER="user.${USER}"
+
+# ** private/public key pair for zms instance - must be generated
+# ** using with default key id of 0
+CONTAINER_PRIVKEY="${ROOT}/var/zms_server/keys/zms_private.pem"
+CONTAINER_PRIVKEY_ID="0"
+# CONTAINER_PRIVATE_KEY_STORE_FACTORY_CLASS=com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory
+
+# ** default ports for zms server. http support is disabled
+# ** https support enabled - must provide certificate for server
+CONTAINER_TLS_PORT="4443"
+CONTAINER_PORT="0"
+
+# ** logback configuration file
+CONTAINER_LOG_CONFIG="${ROOT}/conf/zms_server/logback.xml"
+
+# ** read only mode
+CONTAINER_READ_ONLY_MODE="false"
+
+# ** authorized service and solution template file names
+CONTAINER_AUTHZ_SERVICE_FNAME="${ROOT}/conf/zms_server/authorized_services.json"
+CONTAINER_SOLUTION_TEMPLATES_FNAME="${ROOT}/conf/zms_server/solution_templates.json"
+
+# ** setup the keystore in pkcs12 format that includes our
+# ** server's private key and x509 cert
+CONTAINER_SSL_KEYSTORE="file://${ROOT}/var/zms_server/certs/zms_keystore.pkcs12"
+CONTAINER_SSL_KEYSTORE_TYPE="PKCS12"
+CONTAINER_SSL_KEYSTORE_PASSWORD="athenz"
+
+# ** truststore settings
+# CONTAINER_SSL_TRUSTSTORE=
+# CONTAINER_SSL_TRUSTSTORE_TYPE=
+# CONTAINER_SSL_TRUSTSTORE_PASSWORD=
+
+# CONTAINER_SSL_KEYMANAGER_PASSWORD=
+# CONTAINER_SSL_EXCLUDED_CIPHER_SUITES=
+# CONTAINER_SSL_EXCLUDED_PROTOCOLS=
+
+# ** pam service name for user authority if we don't want to
+# ** use the default login service
+# CONTAINER_AUTH_PAM_SERVICE="login"
+
+# ** timeout settings
+# CONTAINER_CONFLICT_RETRY_TIMEOUT=
+# CONTAINER_RETRY_DELAY_TIMEOUT=
+# CONTAINER_USER_TOKEN_TIMEOUT=
+# CONTAINER_SIGNED_POLICY_TIMEOUT=
+
+# ** virtual domain support
+# CONTAINER_VIRTUAL_DOMAIN_SUPPORT=
+# CONTAINER_VIRTUAL_DOMAIN_LIMIT=
+
+# ** max supported domain name length
+# CONTAINER_DOMAIN_NAME_MAX_LEN="128"
+
+# ** jdbc settings
+# CONTAINER_JDBC_STORE="jdbc:mysql://localhost:3306/zms"
+# CONTAINER_JDBC_USER="zms_admin"
+# CONTAINER_JDBC_PASSWORD=
+# CONTAINER_DBPOOL_MAX_TOTAL=
+# CONTAINER_DBPOOL_MAX_IDLE=
+# CONTAINER_DBPOOL_MIN_IDLE=
+# CONTAINER_DBPOOL_MAX_WAIT=
+# CONTAINER_DBPOOL_EVICT_IDLE_TIMEOUT=
+# CONTAINER_DBPOOL_EVICT_IDLE_INTERVAL=
+# CONTAINER_DBPOOL_MAX_TTL=
+
+# ** file settings
+# CONTAINER_FILE_STORE="zms_root"
+
+# ** access log settings
+# CONTAINER_ACCESS_LOG_DIR="logs/zms_server"
+# CONTAINER_ACCESS_LOG_NAME=
+# CONTAINER_ACCESS_LOG_RETAIN_DAYS=

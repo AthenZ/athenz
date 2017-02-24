@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.common.server.filters;
+package com.yahoo.athenz.container.filter;
 
 import static org.testng.Assert.*;
 
@@ -27,7 +27,7 @@ import org.mockito.Mockito;
 
 import org.testng.annotations.Test;
 
-import com.yahoo.athenz.common.server.filters.ETagFilter;
+import com.yahoo.athenz.container.filter.ETagFilter;
 
 public class ETagFilterTest {
 
@@ -60,5 +60,16 @@ public class ETagFilterTest {
         eTagFilter.filter(null, containerResponse);
         EntityTag eTag = (EntityTag) containerResponse.getHeaders().getFirst(HttpHeaders.ETAG);
         assertNull(eTag);
+    }
+    
+    @Test
+    public void testRemoveLeadingAndTrailingQuotes() {
+        
+        ETagFilter eTagFilter = new ETagFilter();
+        assertEquals(eTagFilter.removeLeadingAndTrailingQuotes("abc"), "abc");
+        assertEquals(eTagFilter.removeLeadingAndTrailingQuotes("\"abc"), "abc");
+        assertEquals(eTagFilter.removeLeadingAndTrailingQuotes("abc\""), "abc");
+        assertEquals(eTagFilter.removeLeadingAndTrailingQuotes("\"abc\""), "abc");
+        assertEquals(eTagFilter.removeLeadingAndTrailingQuotes("\"a\"bc\""), "a\"bc");
     }
 }

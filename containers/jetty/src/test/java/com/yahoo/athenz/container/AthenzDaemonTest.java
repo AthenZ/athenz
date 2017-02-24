@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zms;
+package com.yahoo.athenz.container;
 
 import static org.testng.Assert.*;
 
@@ -21,18 +21,20 @@ import org.apache.commons.daemon.DaemonContext;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
-public class ZMSDaemonTest {
+import com.yahoo.athenz.container.AthenzDaemon;
+
+public class AthenzDaemonTest {
 
     @Test
     public void testInit() throws Exception {
         DaemonContext daemoncontext = Mockito.mock(DaemonContext.class);
-        ZMSDaemon daemon = new ZMSDaemon();
+        AthenzDaemon daemon = new AthenzDaemon();
         daemon.init(daemoncontext);
     }
 
     @Test
     public void testStart() {
-        ZMSDaemon daemon = new ZMSDaemon();
+        AthenzDaemon daemon = new AthenzDaemon();
         try {
             daemon.start();
         } catch (Exception ex) {
@@ -42,13 +44,13 @@ public class ZMSDaemonTest {
 
     @Test
     public void testStop() throws Exception {
-        ZMSDaemon daemon = new ZMSDaemon();
+        AthenzDaemon daemon = new AthenzDaemon();
         daemon.stop();
     }
 
     @Test
     public void testDestroy() throws Exception {
-        ZMSDaemon daemon = new ZMSDaemon();
+        AthenzDaemon daemon = new AthenzDaemon();
         daemon.destroy();
     }
 }

@@ -49,10 +49,6 @@ import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.impl.SimpleServiceIdentityProvider;
 import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.auth.util.Crypto;
-import com.yahoo.athenz.common.metrics.Metric;
-import com.yahoo.athenz.common.metrics.MetricFactory;
-import com.yahoo.athenz.common.server.log.AthenzRequestLog;
-import com.yahoo.athenz.common.server.log.AuditLogFactory;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.utils.SignUtils;
@@ -60,15 +56,16 @@ import com.yahoo.athenz.provider.ProviderMockClient;
 import com.yahoo.athenz.zms.ZMSImpl.AccessStatus;
 import com.yahoo.athenz.zms.ZMSImpl.AthenzObject;
 import com.yahoo.athenz.zms.store.AthenzDomain;
-import com.yahoo.athenz.zms.store.ObjectStore;
 import com.yahoo.athenz.zms.store.file.FileConnection;
-import com.yahoo.athenz.zms.store.file.FileObjectStore;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
 
 public class ZMSImplTest extends TestCase {
+
+    public static final String ZMS_PROP_PUBLIC_KEY = "athenz.zms.publickey";
+    private static final String ZMS_REQUEST_PRINCIPAL = "com.yahoo.athenz.auth.principal";
 
     ZMSImpl zms             = null;
     String adminUser        = null;
@@ -90,6 +87,8 @@ public class ZMSImplTest extends TestCase {
     @Mock com.yahoo.athenz.common.server.rest.ResourceContext mockDomRestRsrcCtx2;
 
     private static final String MOCKCLIENTADDR = "10.11.12.13";
+    private static final String ZMS_DATA_STORE_FILE = "zms_root";
+    
     @Mock HttpServletRequest mockServletRequest;
     @Mock HttpServletResponse mockServletResponse;
     
@@ -120,7 +119,7 @@ public class ZMSImplTest extends TestCase {
         System.setProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
                 "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory");
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zms_private.pem");
-        System.setProperty(ZMSTest.ZMS_PROP_PUBLIC_KEY, "src/test/resources/zms_public.pem");
+        System.setProperty(ZMS_PROP_PUBLIC_KEY, "src/test/resources/zms_public.pem");
         System.setProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN, "user.testadminuser");
         System.setProperty(ZMSConsts.ZMS_PROP_AUTHZ_SERVICE_FNAME,
                 "src/test/resources/authorized_services.json");
@@ -173,21 +172,6 @@ public class ZMSImplTest extends TestCase {
         return obj;
     }
 
-    private Metric createMetric() {
-        MetricFactory metricFactory = null;
-        Metric metric = null;
-        try {
-            metricFactory = (MetricFactory) 
-                Class.forName(System.getProperty(ZMSConsts.ZMS_PROP_METRIC_FACTORY_CLASS)).newInstance();
-            metric = metricFactory.create();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException exc) {
-            System.out.println("Invalid MetricFactory class: " + ZMSConsts.ZMS_METRIC_FACTORY_CLASS
-                    + " error: " + exc.getMessage());
-            metric = new com.yahoo.athenz.common.metrics.impl.NoOpMetric();
-        }
-        return metric;
-    }
-
     private ZMSImpl zmsInit() {
         // we want to make sure we start we clean dir structure
         FileConnection.deleteDirectory(new File(ZMS_DATA_STORE_PATH));
@@ -204,51 +188,44 @@ public class ZMSImplTest extends TestCase {
         Mockito.when(mockDomRsrcCtx.request()).thenReturn(mockServletRequest);
         Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcPrince);
 
-        ObjectStore store = new FileObjectStore(new File(ZMS_DATA_STORE_PATH));
-
-        String pubKeyName = System.getProperty(ZMSTest.ZMS_PROP_PUBLIC_KEY);
+        String pubKeyName = System.getProperty(ZMS_PROP_PUBLIC_KEY);
         File pubKeyFile = new File(pubKeyName);
         pubKey = Crypto.encodedFile(pubKeyFile);
         
         String privKeyName = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
         File privKeyFile = new File(privKeyName);
         privKey = Crypto.encodedFile(privKeyFile);
-        PrivateKey privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
-
-        String privKeyId = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY_ID, "0");
 
         adminUser = System.getProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN);
-
-        Metric metric = createMetric();
-        ZMSImpl zmsObj = new ZMSImpl("localhost", store, metric, privateKey,
-                privKeyId, AuditLogFactory.getLogger(), null);
         
-        ServiceIdentity service = createServiceObject("sys.auth",
-                        "zms", "http://localhost", "/usr/bin/java", "root",
-                        "users", "host1");
-
-        zmsObj.putServiceIdentity(mockDomRsrcCtx, "sys.auth", "zms", auditRef, service);
+        System.setProperty(ZMSConsts.ZMS_PROP_HOME, "/tmp/zms_core_unit_tests/");
+        System.clearProperty(ZMSConsts.ZMS_PROP_JDBC_STORE);
         
+        ZMSImpl zmsObj = new ZMSImpl();
+        zmsObj.serverPublicKeyMap.put("1", pubKeyK1);
+        zmsObj.serverPublicKeyMap.put("2", pubKeyK2);
+        ZMSImpl.serverHostName = "localhost";
+
         return zmsObj;
     }
     
-    ZMSImpl getZmsImpl(String storeDir, AuditLogger alogger) {
+    ZMSImpl getZmsImpl(String storeFile, AuditLogger alogger) {
         
-        FileConnection.deleteDirectory(new File(storeDir));
-        ObjectStore store = new FileObjectStore(new File(storeDir));
-        String privKeyName = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
-        File   privKeyFile = new File(privKeyName);
-        String privKey = Crypto.encodedFile(privKeyFile);
-        PrivateKey privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
+        
+        System.clearProperty(ZMSConsts.ZMS_PROP_JDBC_STORE);
+        System.setProperty(ZMSConsts.ZMS_PROP_FILE_STORE, storeFile);
+        System.setProperty(ZMSConsts.ZMS_PROP_HOME, "/tmp/zms_core_unit_tests/");
 
-        String privKeyId = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY_ID, "0");
-        ServiceIdentity service = createServiceObject("sys.auth",
-                        "zms", "http://localhost", "/usr/bin/java", "root",
-                        "users", "host1");
+        ZMSImpl zmsObj = new ZMSImpl();
+        zmsObj.auditLogger = alogger;
+        zmsObj.dbService.auditLogger = alogger;
+        
+        ZMSImpl.serverHostName = "localhost";
 
-        Metric metric = createMetric();
-        ZMSImpl zmsObj = new ZMSImpl("localhost", store, metric, privateKey,
-                privKeyId, alogger, null);
+        ServiceIdentity service = createServiceObject("sys.auth", "zms",
+                "http://localhost", "/usr/bin/java", "root", "users", "host1");
+        
         zmsObj.putServiceIdentity(mockDomRsrcCtx, "sys.auth", "zms", auditRef, service);
         zmsObj.setProviderClientClass(ProviderMockClient.class);
         return zmsObj;
@@ -1079,8 +1056,8 @@ public class ZMSImplTest extends TestCase {
                 aLogMsgs.add(msg);
             }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_posttopdomonceonly";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_posttopdomonceonly";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         TopLevelDomain dom1 = createTopLevelDomainObject("AddOnceTopDom1",
                 "Test Domain1", "testOrg", adminUser);
@@ -1434,8 +1411,8 @@ public class ZMSImplTest extends TestCase {
                 aLogMsgs.add(msg);
             }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_deltopdomhrowexc";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_deltopdomhrowexc";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         String caller = "deletetopleveldomain";
 
@@ -1470,7 +1447,7 @@ public class ZMSImplTest extends TestCase {
         
         zmsImpl.deleteSubDomain(mockDomRsrcCtx, "DelTopChildDom1", "DelSubDom2", auditRef);
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "DelTopChildDom1", auditRef);
-        FileConnection.deleteDirectory(new File(storeDir));
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
 
     @Test
@@ -1554,8 +1531,8 @@ public class ZMSImplTest extends TestCase {
                 aLogMsgs.add(msg);
             }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_delsubdomchildexist";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_delsubdomchildexist";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         String caller = "deletesubdomain";
 
@@ -1594,7 +1571,7 @@ public class ZMSImplTest extends TestCase {
         zmsImpl.deleteSubDomain(mockDomRsrcCtx, "DelSubChildDom1.DelSubDom2", "DelSubDom3", auditRef);
         zmsImpl.deleteSubDomain(mockDomRsrcCtx, "DelSubChildDom1", "DelSubDom2", auditRef);
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "DelSubChildDom1", auditRef);
-        FileConnection.deleteDirectory(new File(storeDir));
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
     
     @Test
@@ -1658,8 +1635,8 @@ public class ZMSImplTest extends TestCase {
                 aLogMsgs.add(msg);
             }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_putdommetathrowexc";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_putdommetathrowexc";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         String caller = "putdomainmeta";
         String domName = "wrongDomainName";
@@ -2022,8 +1999,8 @@ public class ZMSImplTest extends TestCase {
                 aLogMsgs.add(msg);
             }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_putrolethrowexc";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_putrolethrowexc";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         String domainName = "DomainName1";
         String roleName = "RoleName1";
@@ -2077,7 +2054,7 @@ public class ZMSImplTest extends TestCase {
         }
         assertTrue(foundError);
 
-        FileConnection.deleteDirectory(new File(storeDir));
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
 
     @Test
@@ -2507,8 +2484,8 @@ public class ZMSImplTest extends TestCase {
                 aLogMsgs.add(msg);
             }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_delrolethrowexc";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_delrolethrowexc";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         String caller = "deleterole";
         String domainName = "DomainName1";
@@ -2520,7 +2497,7 @@ public class ZMSImplTest extends TestCase {
             assertEquals(e.getCode(), 404);
         }
 
-        FileConnection.deleteDirectory(new File(storeDir));
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
         boolean foundError = false;
         for (String msg: aLogMsgs) {
             if (msg.indexOf("WHAT-api=(" + caller + ")") == -1) {
@@ -2777,8 +2754,8 @@ public class ZMSImplTest extends TestCase {
                 aLogMsgs.add(msg);
             }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_putmembershipmissauditref";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_putmembershipmissauditref";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         String domain = "testPutMembershipMissingAuditRef";
         TopLevelDomain dom = createTopLevelDomainObject(
@@ -3246,8 +3223,8 @@ public class ZMSImplTest extends TestCase {
                 aLogMsgs.add(msg);
             }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_delmembershipadminrsm";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_delmembershipadminrsm";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         String caller = "deletemembership";
         String domainName = "MbrGetRoleDom1";
@@ -3438,12 +3415,14 @@ public class ZMSImplTest extends TestCase {
                 aLogMsgs.add(msg);
             }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_getpol";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_getpol";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         TopLevelDomain dom1 = createTopLevelDomainObject("PolicyGetDom1",
                 "Test Domain1", "testOrg", adminUser);
         zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        System.err.println("*** creating policy...");
 
         Policy policy1 = createPolicyObject("PolicyGetDom1", "Policy1");
         zmsImpl.putPolicy(mockDomRsrcCtx, "PolicyGetDom1", "Policy1", auditRef, policy1);
@@ -3462,6 +3441,7 @@ public class ZMSImplTest extends TestCase {
         assertEquals(obj.getRole(), "PolicyGetDom1:role.Role1".toLowerCase());
 
         boolean foundError = false;
+        System.err.println("Number of lines: " + aLogMsgs.size());
         for (String msg: aLogMsgs) {
             if (msg.indexOf("WHAT-api=(putpolicy)") == -1) {
                 continue;
@@ -3487,7 +3467,7 @@ public class ZMSImplTest extends TestCase {
         }
 
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "PolicyGetDom1", auditRef);
-        FileConnection.deleteDirectory(new File(storeDir));
+        //FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
     
     @Test
@@ -3912,8 +3892,8 @@ public class ZMSImplTest extends TestCase {
                 aLogMsgs.add(msg);
             }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_delpolhrowexc";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_delpolhrowexc";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         String caller = "deletepolicy";
         String domainName = "WrongDomainName";
@@ -3925,7 +3905,7 @@ public class ZMSImplTest extends TestCase {
             assertEquals(e.getCode(), 404);
         }
 
-        FileConnection.deleteDirectory(new File(storeDir));
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
         boolean foundError = false;
         for (String msg: aLogMsgs) {
             if (msg.indexOf("WHAT-api=(" + caller + ")") == -1) {
@@ -4009,8 +3989,8 @@ public class ZMSImplTest extends TestCase {
                 aLogMsgs.add(msg);
             }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_createsvcidnosimplename";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_createsvcidnosimplename";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         TopLevelDomain dom1 = createTopLevelDomainObject("ServiceAddDom1NotSimpleName",
                 "Test Domain1", "testOrg", adminUser);
@@ -4045,7 +4025,7 @@ public class ZMSImplTest extends TestCase {
         assertTrue(foundError);
 
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "ServiceAddDom1NotSimpleName", auditRef);
-        FileConnection.deleteDirectory(new File(storeDir));
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
     
     @Test
@@ -4389,8 +4369,8 @@ public class ZMSImplTest extends TestCase {
                 aLogMsgs.add(msg);
             }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_delsvcidthrowexc";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_delsvcidthrowexc";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         String caller = "deleteserviceidentity";
         String domainName = "WrongDomainName";
@@ -4718,8 +4698,8 @@ public class ZMSImplTest extends TestCase {
                 aLogMsgs.add(msg);
             }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_delentitymissauditref";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_delentitymissauditref";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         String domain = "testDeleteEntityMissingAuditRef";
         TopLevelDomain dom = createTopLevelDomainObject(
@@ -4751,7 +4731,7 @@ public class ZMSImplTest extends TestCase {
             assertTrue(foundError);
         } finally {
             zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domain, auditRef);
-            FileConnection.deleteDirectory(new File(storeDir));
+            FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
         }
     }
 
@@ -5146,8 +5126,8 @@ public class ZMSImplTest extends TestCase {
                 aLogMsgs.add(msg);
             }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_deltenantrolesmissauditref";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_deltenantrolesmissauditref";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         String domain = "testDeleteTenantRolesMissingAuditRef";
         TopLevelDomain dom = createTopLevelDomainObject(
@@ -5196,7 +5176,7 @@ public class ZMSImplTest extends TestCase {
 
         } finally {
             zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domain, auditRef);
-            FileConnection.deleteDirectory(new File(storeDir));
+            FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
         }
     }
  
@@ -5281,8 +5261,8 @@ public class ZMSImplTest extends TestCase {
                 aLogMsgs.add(msg);
             }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_putdefaminsmissauditref";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_putdefaminsmissauditref";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         String domain = "testPutDefaultAdminsMissingAuditRef";
         TopLevelDomain dom = createTopLevelDomainObject(
@@ -5316,7 +5296,7 @@ public class ZMSImplTest extends TestCase {
             assertTrue(foundError);
         } finally {
             zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domain, auditRef);
-            FileConnection.deleteDirectory(new File(storeDir));
+            FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
         }
     }
     
@@ -7333,8 +7313,8 @@ public class ZMSImplTest extends TestCase {
                 aLogMsgs.add(msg);
             }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_puttenancywithauthsvcmism";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_puttenancywithauthsvcmism";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         String tenantDomain = "puttenancyauthorizedservicemismatch";
         String providerService  = "storage";
@@ -7394,7 +7374,7 @@ public class ZMSImplTest extends TestCase {
         
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, tenantDomain, auditRef);
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, providerDomain, auditRef);
-        FileConnection.deleteDirectory(new File(storeDir));
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
     
     @Test
@@ -7964,8 +7944,8 @@ public class ZMSImplTest extends TestCase {
                 aLogMsgs.add(msg);
             }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_deltenancymissendpoint";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_deltenancymissendpoint";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         String tenantDomain    = "testDeleteTenancyMissEnd";
         String providerDomain  = "providerTestDeleteTenancyMissEnd";
@@ -8025,7 +8005,7 @@ public class ZMSImplTest extends TestCase {
         } finally {
             zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, tenantDomain, auditRef);
             zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, providerDomain, auditRef);
-            FileConnection.deleteDirectory(new File(storeDir));
+            FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
         }
     }
     
@@ -8108,8 +8088,8 @@ public class ZMSImplTest extends TestCase {
                 aLogMsgs.add(msg);
             }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_puttenantrolesmissauditref";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_puttenantrolesmissauditref";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         String domain = "testPutTenantRoles";
         TopLevelDomain dom = createTopLevelDomainObject(
@@ -8148,7 +8128,7 @@ public class ZMSImplTest extends TestCase {
             assertTrue(foundError);
         } finally {
             zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domain, auditRef);
-            FileConnection.deleteDirectory(new File(storeDir));
+            FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
         }
     }
 
@@ -10242,8 +10222,8 @@ public class ZMSImplTest extends TestCase {
                 aLogMsgs.add(msg);
             }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_delpubkeyinvalidsvc";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_delpubkeyinvalidsvc";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         TopLevelDomain dom1 = createTopLevelDomainObject("ServiceDelPubKeyDom2InvalidService",
                 "Test Domain1", "testOrg", adminUser);
@@ -10277,7 +10257,7 @@ public class ZMSImplTest extends TestCase {
         assertTrue(foundError);
 
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "ServiceDelPubKeyDom2InvalidService", auditRef);
-        FileConnection.deleteDirectory(new File(storeDir));
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
     
     @Test
@@ -10519,8 +10499,8 @@ public class ZMSImplTest extends TestCase {
                 aLogMsgs.add(msg);
             }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_putpubkeyentrymissauditref";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_putpubkeyentrymissauditref";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         String domain = "testPutPublicKeyEntryMissingAuditRef";
         TopLevelDomain dom = createTopLevelDomainObject(
@@ -10559,7 +10539,7 @@ public class ZMSImplTest extends TestCase {
             assertTrue(foundError);
         } finally {
             zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domain, auditRef);
-            FileConnection.deleteDirectory(new File(storeDir));
+            FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
         }
     }
 
@@ -11795,8 +11775,8 @@ public class ZMSImplTest extends TestCase {
                 aLogMsgs.add(msg);
             }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_putprovrsrcdomnoaccess";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_putprovrsrcdomnoaccess";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         String tenantDomain = "provrscgrprolesauthorizedservicenoaccess";
         String providerService  = "index";
@@ -11872,7 +11852,7 @@ public class ZMSImplTest extends TestCase {
         
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, tenantDomain, auditRef);
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, providerDomain, auditRef);
-        FileConnection.deleteDirectory(new File(storeDir));
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
     
     @Test
@@ -12158,8 +12138,8 @@ public class ZMSImplTest extends TestCase {
                 aLogMsgs.add(msg);
             }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_putdomtempllistinvalid";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_putdomtempllistinvalid";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
         
         String domainName = "templatelist-invalid";
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
@@ -12194,7 +12174,7 @@ public class ZMSImplTest extends TestCase {
         assertTrue(foundError);
         
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
-        FileConnection.deleteDirectory(new File(storeDir));
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
     
     @Test
@@ -12695,8 +12675,8 @@ public class ZMSImplTest extends TestCase {
             }
         };
 
-        String storeDir = ZMS_DATA_STORE_PATH + "_al_noloop";
-        ZMSImpl zmsObj = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_al_noloop";
+        ZMSImpl zmsObj = getZmsImpl(storeFile, alogger);
 
         String userId = "user";
         Principal principal = SimplePrincipal.create("user", userId, "v=U1;d=user;n=user;s=signature", 0, null);
@@ -12715,7 +12695,7 @@ public class ZMSImplTest extends TestCase {
             assertEquals(e.getCode(), 404);
         }
         
-        FileConnection.deleteDirectory(new File(storeDir));
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
 
         boolean foundError = false;
         for (String msg: aLogMsgs) {
@@ -12746,8 +12726,8 @@ public class ZMSImplTest extends TestCase {
             }
         };
 
-        String storeDir = ZMS_DATA_STORE_PATH + "_al_loopback";
-        ZMSImpl zmsObj = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_al_loopback";
+        ZMSImpl zmsObj = getZmsImpl(storeFile, alogger);
 
         String userId = "user";
         Principal principal = SimplePrincipal.create("user", userId, "v=U1;d=user;n=user;s=signature", 0, null);
@@ -12765,7 +12745,7 @@ public class ZMSImplTest extends TestCase {
             assertEquals(e.getCode(), 400);
         }
         
-        FileConnection.deleteDirectory(new File(storeDir));
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
         
         boolean foundError = false;
         for (String msg: aLogMsgs) {
@@ -12797,8 +12777,8 @@ public class ZMSImplTest extends TestCase {
             }
         };
 
-        String storeDir = ZMS_DATA_STORE_PATH + "_al_loopbackXff";
-        ZMSImpl zmsObj = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_al_loopbackXff";
+        ZMSImpl zmsObj = getZmsImpl(storeFile, alogger);
 
         String userId = "user";
         Principal principal = SimplePrincipal.create("user", userId, "v=U1;d=user;n=user;s=signature", 0, null);
@@ -12816,7 +12796,7 @@ public class ZMSImplTest extends TestCase {
             assertEquals(e.getCode(), 400);
         }
         
-        FileConnection.deleteDirectory(new File(storeDir));
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
 
         boolean foundError = false;
         for (String msg: aLogMsgs) {
@@ -12849,8 +12829,8 @@ public class ZMSImplTest extends TestCase {
             }
         };
 
-        String storeDir = ZMS_DATA_STORE_PATH + "_al_loopbackXffMulti";
-        ZMSImpl zmsObj = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_al_loopbackXffMulti";
+        ZMSImpl zmsObj = getZmsImpl(storeFile, alogger);
 
         String userId = "user";
         Principal principal = SimplePrincipal.create("user", userId, "v=U1;d=user;n=user;s=signature", 0, null);
@@ -12868,7 +12848,7 @@ public class ZMSImplTest extends TestCase {
             assertEquals(e.getCode(), 400);
         }
         
-        FileConnection.deleteDirectory(new File(storeDir));
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
 
         boolean foundError = false;
         for (String msg: aLogMsgs) {
@@ -12913,7 +12893,7 @@ public class ZMSImplTest extends TestCase {
         // verify that the public keys were loaded during server startup
         assertFalse(zms.serverPublicKeyMap.isEmpty());
         String privKeyId = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY_ID, "0");
-        assertEquals(zms.serverPublicKeyMap.get(privKeyId), pubKey);
+        assertEquals(pubKey, zms.serverPublicKeyMap.get(privKeyId));
     }
     
     @Test
@@ -12966,18 +12946,9 @@ public class ZMSImplTest extends TestCase {
         
         System.setProperty(ZMSConsts.ZMS_PROP_READ_ONLY_MODE, "true");
         
-        ObjectStore store = new FileObjectStore(new File(ZMS_DATA_STORE_PATH));
-        String privKeyName = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
-        File privKeyFile = new File(privKeyName);
-        String privKey = Crypto.encodedFile(privKeyFile);
-        PrivateKey privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
+        zmsTest = new ZMSImpl();
+        ZMSImpl.serverHostName = "localhost";
 
-        String privKeyId = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY_ID, "0");
-
-        Metric metric = createMetric();
-        zmsTest = new ZMSImpl("localhost", store, metric, privateKey,
-                privKeyId, AuditLogFactory.getLogger(), null);
-        
         TopLevelDomain dom1 = createTopLevelDomainObject("ReadOnlyDom1",
                 "Test Domain1", "testOrg", adminUser);
         try {
@@ -14555,7 +14526,7 @@ public class ZMSImplTest extends TestCase {
                 0, principalAuthority);
         ResourceContext ctx2 = createResourceContext(principal, request);
         zms.logPrincipal(ctx2);
-        assertEquals((String) request.getAttribute(AthenzRequestLog.REQUEST_PRINCIPAL), "sports.nhl");
+        assertEquals((String) request.getAttribute(ZMS_REQUEST_PRINCIPAL), "sports.nhl");
     }
 }
 

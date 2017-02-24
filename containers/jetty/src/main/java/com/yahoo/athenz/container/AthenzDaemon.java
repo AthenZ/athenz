@@ -1,4 +1,4 @@
-package com.yahoo.athenz.zms;
+package com.yahoo.athenz.container;
 /**
  * Copyright 2016 Yahoo Inc.
  *
@@ -17,7 +17,7 @@ package com.yahoo.athenz.zms;
 import org.apache.commons.daemon.Daemon;
 import org.apache.commons.daemon.DaemonContext;
 
-public class ZMSDaemon implements Daemon {
+public class AthenzDaemon implements Daemon {
 
     private String[] args = null;
 
@@ -29,7 +29,7 @@ public class ZMSDaemon implements Daemon {
         if (args == null) {
             return;
         }
-        ZMS.main(args);
+        AthenzJettyContainer.main(args);
     }
 
     public void stop() throws Exception {

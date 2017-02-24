@@ -21,16 +21,6 @@ import org.testng.annotations.Test;
 import com.yahoo.athenz.common.server.util.StringUtils;
 
 public class StringUtilsTest {
-
-    @Test
-    public void testRemoveLeadingAndTrailingQuotes() {
-        
-        assertEquals(StringUtils.removeLeadingAndTrailingQuotes("abc"), "abc");
-        assertEquals(StringUtils.removeLeadingAndTrailingQuotes("\"abc"), "abc");
-        assertEquals(StringUtils.removeLeadingAndTrailingQuotes("abc\""), "abc");
-        assertEquals(StringUtils.removeLeadingAndTrailingQuotes("\"abc\""), "abc");
-        assertEquals(StringUtils.removeLeadingAndTrailingQuotes("\"a\"bc\""), "a\"bc");
-    }
     
     @Test
     public void testPatternFromGlob() {

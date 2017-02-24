@@ -21,18 +21,24 @@ import com.yahoo.rdl.Timestamp;
 import com.yahoo.rdl.Validator;
 import com.yahoo.rdl.Validator.Result;
 import com.yahoo.athenz.auth.Authority;
+import com.yahoo.athenz.auth.AuthorityKeyStore;
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.PrivateKeyStore;
+import com.yahoo.athenz.auth.PrivateKeyStoreFactory;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.metrics.Metric;
-import com.yahoo.athenz.common.server.log.AthenzRequestLog;
+import com.yahoo.athenz.common.metrics.MetricFactory;
+import com.yahoo.athenz.common.server.db.DataSourceFactory;
+import com.yahoo.athenz.common.server.db.PoolableDataSource;
 import com.yahoo.athenz.common.server.log.AuditLogFactory;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.rest.Http;
+import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
 import com.yahoo.athenz.common.server.util.StringUtils;
 import com.yahoo.athenz.common.utils.SignUtils;
@@ -45,6 +51,8 @@ import com.yahoo.athenz.zms.config.AuthorizedServices;
 import com.yahoo.athenz.zms.config.SolutionTemplates;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.athenz.zms.store.ObjectStore;
+import com.yahoo.athenz.zms.store.file.FileObjectStore;
+import com.yahoo.athenz.zms.store.jdbc.JDBCObjectStore;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 
 import java.util.HashSet;
@@ -65,6 +73,7 @@ import java.text.SimpleDateFormat;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -85,6 +94,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(ZMSImpl.class);
 
+    private static String ROOT_DIR;
+
+    private static final String ZMS_PRINCIPAL_AUTHORITY_CLASS = "com.yahoo.athenz.auth.impl.PrincipalAuthority";
+    private static final String ZMS_PKEY_STORE_FACTORY_CLASS = "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory";
+    private static final String ZMS_REQUEST_PRINCIPAL = "com.yahoo.athenz.auth.principal";
+    
     private static final String SERVICE_PREFIX = "service.";
     private static final String ROLE_PREFIX = "role.";
     private static final String POLICY_PREFIX = "policy.";
@@ -136,8 +151,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected int virtualDomainLimit = 2;
     protected long signedPolicyTimeout;
     protected static String serverHostName  = null;
-    protected static String serverHttpsPort = null;
-    protected static String serverHttpPort  = null;
     protected int domainNameMaxLen;
     protected AuthorizedServices serverAuthorizedServices = null;
     protected static SolutionTemplates serverSolutionTemplates = null;
@@ -148,7 +161,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected static String userDomainPrefix;
     protected Http.AuthorityList authorities = null;
     protected List<String> providerEndpoints = null;
-    
+    AuditLogger auditLogger = null;
+
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
 
@@ -362,77 +376,45 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         abstract void convertToLowerCase(Object obj);
     }
     
-    AuditLogger auditLogger = null;
-    static String auditLoggerMsgBldrClass = null;
-
-    public ZMSImpl(String serverHostName, ObjectStore dbStore, Metric metric,
-            PrivateKey privateKey, String privateKeyId, AuditLogger auditLog,
-            String auditLogMsgBldrClass) {
+    public ZMSImpl() {
         
-        auditLogger = auditLog;
-        auditLoggerMsgBldrClass = auditLogMsgBldrClass;
+        ZMSImpl.serverHostName = getServerHostName();
         
-        this.privateKey = privateKey;
-        this.privateKeyId = privateKeyId;
-        this.schema = ZMSSchema.instance();
-        validator = new Validator(schema);
-        userDomain = System.getProperty(ZMSConsts.ZMS_PROP_USER_DOMAIN, ZMSConsts.USER_DOMAIN);
-        userDomainPrefix = userDomain + ".";
+        // before we do anything we need to load our configuration
+        // settings
         
-        ZMSImpl.serverHostName = serverHostName;
-        ZMSImpl.metric = metric;
-        this.dbStore = dbStore;
-        dbService = new DBService(dbStore, auditLogger, userDomain);
-        userTokenTimeout = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_TIMEOUT, "3600"));
+        loadConfigurationSettings();
         
-        // check if we need to run in maintenance read only mode
+        // load our schema validator - we need this before we initialize
+        // our store, if necessary
         
-        readOnlyMode = Boolean.parseBoolean(System.getProperty(ZMSConsts.ZMS_PROP_READ_ONLY_MODE, "false"));
+        loadSchemaValidator();
         
-        // check to see if we need to support product ids as required
-        // for top level domains
+        // let's load our audit logger
         
-        productIdSupport = Boolean.parseBoolean(System.getProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT, "false"));
+        loadAuditLogger();
         
-        // get the list of valid provider endpoints
+        // load any configured authorities to authenticate principals
         
-        String endPoints = System.getProperty(ZMSConsts.ZMS_PROP_PROVIDER_ENDPOINTS);
-        if (endPoints != null) {
-            providerEndpoints = Arrays.asList(endPoints.split(","));
-        }
-        // retrieve virtual domain support and limit. If we're given an invalid negative
-        // value for limit, we'll default back to our configured value of 2
+        loadAuthorities();
         
-        virtualDomainSupport = Boolean.parseBoolean(System.getProperty(ZMSConsts.ZMS_PROP_VIRTUAL_DOMAIN, "true"));
-        virtualDomainLimit = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_VIRTUAL_DOMAIN_LIMIT, "2"));
-        if (virtualDomainLimit < 0) {
-            virtualDomainLimit = 2;
-        }
+        // we need a private key to sign any tokens and documents
         
-        // signedPolicyTimeout is in milliseconds but the config setting should be in seconds
-        // to be consistent with other configuration properties (Default 7 days)
+        loadServicePrivateKey();
         
-        signedPolicyTimeout = 1000 * Long.parseLong(System.getProperty(ZMSConsts.ZMS_PROP_SIGNED_POLICY_TIMEOUT, "604800"));
-        if (signedPolicyTimeout < 0) {
-            signedPolicyTimeout = 1000 * 604800;
-        }
+        // check if we need to load any metric support for stats
         
-        // get the ports the server is configured to listen on
-
-        serverHttpsPort = System.getProperty(ZMSConsts.ZMS_PROP_HTTPS_PORT, Integer.toString(ZMSConsts.ZMS_HTTPS_PORT_DEFAULT));
-        serverHttpPort  = System.getProperty(ZMSConsts.ZMS_PROP_HTTP_PORT, Integer.toString(ZMSConsts.ZMS_HTTP_PORT_DEFAULT));
-
-        // get the maximum length allowed for a top level domain name
-
-        domainNameMaxLen = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_DOMAIN_NAME_MAX_SIZE,
-                ZMSConsts.ZMS_DOMAIN_NAME_MAX_SIZE_DEFAULT));
-        if (domainNameMaxLen < 10) { // 10 is arbitrary
-            int domNameMaxDefault = Integer.parseInt(ZMSConsts.ZMS_DOMAIN_NAME_MAX_SIZE_DEFAULT);
-            LOG.warn("init: Warning: maximum domain name length specified is too small: " +
-                domainNameMaxLen + " : reverting to default: " + domNameMaxDefault);
-            domainNameMaxLen = domNameMaxDefault;
-        }
-        LOG.info("init: using maximum domain name length: " + domainNameMaxLen);
+        loadMetricObject();
+        
+        // our object store - either mysql or file based
+        
+        loadObjectStore();
+        
+        // initialize our store with default domains
+        // this should only happen when running ZMS in local/debug mode
+        // otherwise the store should have been initialized by now
+        
+        initObjectStore();
         
         // load the list of authorized services
         
@@ -442,16 +424,199 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         loadSolutionTemplates();
         
-        // this should only happen when running ZMS in local/debug mode
-        // otherwise the store should have been initialized by now
-        
-        initObjectStore();
-        
         // retrieve our public keys
         
         loadServerPublicKeys();
+        
+        // make sure to set the keystore for any instance that requires it
+        
+        setAuthorityKeyStore();
     }
+    
+    void setAuthorityKeyStore() {
+        for (Authority authority : authorities.getAuthorities()) {
+            if (AuthorityKeyStore.class.isInstance(authority)) {
+                ((AuthorityKeyStore) authority).setKeyStore(this);
+            }
+        }
+    }
+    
+    void loadSchemaValidator() {
+        schema = ZMSSchema.instance();
+        validator = new Validator(schema);
+    }
+    
+    void loadConfigurationSettings() {
+        
+        // retrieve the user domain we're supposed to use
+        
+        userDomain = System.getProperty(ZMSConsts.ZMS_PROP_USER_DOMAIN, ZMSConsts.USER_DOMAIN);
+        userDomainPrefix = userDomain + ".";
+        
+        // default token timeout for issued tokens
+        
+        userTokenTimeout = Integer.parseInt(
+                System.getProperty(ZMSConsts.ZMS_PROP_TIMEOUT, "3600"));
+        
+        // check if we need to run in maintenance read only mode
+        
+        readOnlyMode = Boolean.parseBoolean(
+                System.getProperty(ZMSConsts.ZMS_PROP_READ_ONLY_MODE, "false"));
+        
+        // check to see if we need to support product ids as required
+        // for top level domains
+        
+        productIdSupport = Boolean.parseBoolean(
+                System.getProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT, "false"));
+        
+        // get the list of valid provider endpoints
+        
+        String endPoints = System.getProperty(ZMSConsts.ZMS_PROP_PROVIDER_ENDPOINTS);
+        if (endPoints != null) {
+            providerEndpoints = Arrays.asList(endPoints.split(","));
+        }
+        
+        // retrieve virtual domain support and limit. If we're given an invalid negative
+        // value for limit, we'll default back to our configured value of 5
+        
+        virtualDomainSupport = Boolean.parseBoolean(
+                System.getProperty(ZMSConsts.ZMS_PROP_VIRTUAL_DOMAIN, "true"));
+        virtualDomainLimit = Integer.parseInt(
+                System.getProperty(ZMSConsts.ZMS_PROP_VIRTUAL_DOMAIN_LIMIT, "5"));
+        if (virtualDomainLimit < 0) {
+            virtualDomainLimit = 5;
+        }
+        
+        // signedPolicyTimeout is in milliseconds but the config setting should be in seconds
+        // to be consistent with other configuration properties (Default 7 days)
+        
+        signedPolicyTimeout = 1000 * Long.parseLong(
+                System.getProperty(ZMSConsts.ZMS_PROP_SIGNED_POLICY_TIMEOUT, "604800"));
+        if (signedPolicyTimeout < 0) {
+            signedPolicyTimeout = 1000 * 604800;
+        }
+        
+        // get the maximum length allowed for a top level domain name
 
+        domainNameMaxLen = Integer.parseInt(System.getProperty(
+                ZMSConsts.ZMS_PROP_DOMAIN_NAME_MAX_SIZE, ZMSConsts.ZMS_DOMAIN_NAME_MAX_SIZE_DEFAULT));
+        if (domainNameMaxLen < 10) { // 10 is arbitrary
+            int domNameMaxDefault = Integer.parseInt(ZMSConsts.ZMS_DOMAIN_NAME_MAX_SIZE_DEFAULT);
+            LOG.warn("init: Warning: maximum domain name length specified is too small: " +
+                domainNameMaxLen + " : reverting to default: " + domNameMaxDefault);
+            domainNameMaxLen = domNameMaxDefault;
+        }
+        LOG.info("init: using maximum domain name length: " + domainNameMaxLen);
+    }
+    
+    void loadObjectStore() {
+        
+        ObjectStore store = null;
+        String jdbcStore = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_STORE);
+        if (jdbcStore != null && jdbcStore.startsWith("jdbc:")) {
+            String userName = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_USER);
+            String password = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_PASSWORD, "");
+            PoolableDataSource src = DataSourceFactory.create(jdbcStore, userName, password);
+            store = new JDBCObjectStore(src);
+        } else {
+            String homeDir = System.getProperty(ZMSConsts.ZMS_PROP_HOME,
+                    getRootDir() + "/var/zms_server");
+            String fileDirName = System.getProperty(ZMSConsts.ZMS_PROP_FILE_STORE, "zms_root");
+            String path = getFileStructPath(homeDir, fileDirName);
+            store = new FileObjectStore(new File(path));
+        }
+        
+        dbService = new DBService(store, auditLogger, userDomain);
+    }
+    
+    void loadMetricObject() {
+        
+        String metricFactoryClass = System.getProperty(ZMSConsts.ZMS_PROP_METRIC_FACTORY_CLASS,
+                ZMSConsts.ZMS_METRIC_FACTORY_CLASS);
+        boolean statsEnabled = Boolean.parseBoolean(
+                System.getProperty(ZMSConsts.ZMS_PROP_STATS_ENABLED, "false"));
+        if (!statsEnabled && !metricFactoryClass.equals(ZMSConsts.ZMS_METRIC_FACTORY_CLASS)) {
+            LOG.warn("Override users metric factory property with default since stats are disabled");
+            metricFactoryClass = ZMSConsts.ZMS_METRIC_FACTORY_CLASS;
+        }
+
+        MetricFactory metricFactory = null;
+        try {
+            metricFactory = (MetricFactory) Class.forName(metricFactoryClass).newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            LOG.error("Invalid MetricFactory class: " + metricFactoryClass
+                    + " error: " + e.getMessage());
+            throw new IllegalArgumentException("Invalid metric class");
+        }
+        
+        // create our metric and increment our startup count
+        
+        ZMSImpl.metric = metricFactory.create();
+        metric.increment("zms_sa_startup");
+    }
+    
+    void loadServicePrivateKey() {
+        
+        String pkeyFactoryClass = System.getProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
+                ZMS_PKEY_STORE_FACTORY_CLASS);
+        PrivateKeyStoreFactory pkeyFactory = null;
+        try {
+            pkeyFactory = (PrivateKeyStoreFactory) Class.forName(pkeyFactoryClass).newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            LOG.error("Invalid PrivateKeyStoreFactory class: " + pkeyFactoryClass
+                    + " error: " + e.getMessage());
+            throw new IllegalArgumentException("Invalid private key store");
+        }
+        
+        // extract the private key and public keys for our service
+        
+        StringBuilder privKeyId = new StringBuilder(256);
+        PrivateKeyStore keyStore = pkeyFactory.create();
+        this.privateKey = keyStore.getPrivateKey(ZMSConsts.ZMS_SERVICE, serverHostName, privKeyId);
+        this.privateKeyId = privKeyId.toString();
+    }
+    
+    void loadAuthorities() {
+        
+        // get our authorities
+        
+        String authListConfig = System.getProperty(ZMSConsts.ZMS_PROP_AUTHORITY_CLASSES,
+                ZMS_PRINCIPAL_AUTHORITY_CLASS);
+        authorities = new AuthorityList();
+
+        String[] authorityList = authListConfig.split(",");
+        for (int idx = 0; idx < authorityList.length; idx++) {
+            Authority authority = getAuthority(authorityList[idx]);
+            if (authority == null) {
+                throw new IllegalArgumentException("Invalid authority");
+            }
+            authority.initialize();
+            authorities.add(authority);
+        }
+    }
+    
+    void loadAuditLogger() {
+        
+        String auditFactoryName = System.getProperty(ZMSConsts.ZMS_PROP_AUDIT_LOGGER_FACTORY_CLASS);
+        String auditFactoryParam =
+                System.getProperty(ZMSConsts.ZMS_PROP_AUDIT_LOGGER_FACTORY_CLASS_PARAM);
+        AuditLogger auditLog = null;
+        try {
+            if (auditFactoryParam != null) {
+                auditLog = AuditLogFactory.getLogger(auditFactoryName, auditFactoryParam);
+            } else {
+                auditLog = AuditLogFactory.getLogger(auditFactoryName);
+            }
+        } catch (Exception exc) {
+            LOG.warn("Failed to create audit logger from class="
+                    + auditFactoryName + ", ZMS will use the default logger instead: "
+                    + exc.getMessage());
+            auditLog = AuditLogFactory.getLogger();
+        }
+        
+        auditLogger = auditLog;
+    }
+    
     void loadServerPublicKeys() {
         
         // initialize our public key map
@@ -495,7 +660,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // get the configured path for the list of service templates
         
         String solutionTemplatesFname =  System.getProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME,
-                ZMS.getRootDir() + "/conf/zms_server/solution_templates.json");
+                getRootDir() + "/conf/zms_server/solution_templates.json");
         
         Path path = Paths.get(solutionTemplatesFname);
         try {
@@ -517,7 +682,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // those services are allowed to process
         
         String authzServiceFname =  System.getProperty(ZMSConsts.ZMS_PROP_AUTHZ_SERVICE_FNAME,
-                ZMS.getRootDir() + "/conf/zms_server/authorized_services.json");
+                getRootDir() + "/conf/zms_server/authorized_services.json");
         
         // let's read our authorized list into a local struct
         
@@ -597,18 +762,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     static AuditLogMsgBuilder getAuditLogMsgBuilder(ResourceContext ctx, String domainName,
             String auditRef, String caller, String method) {
         
-        AuditLogMsgBuilder msgBldr = null;
-        try {
-            msgBldr = AuditLogFactory.getMsgBuilder(auditLoggerMsgBldrClass);
-        } catch (Exception exc) {
-            LOG.error("getAuditLogMsgBuilder: Using default failed to get an AuditLogMsgBuilder: "
-                    + exc.getMessage());
-            msgBldr = AuditLogFactory.getMsgBuilder();
-        }
+        AuditLogMsgBuilder msgBldr = AuditLogFactory.getMsgBuilder();
 
         // get the where - which means where this server is running
         
-        msgBldr.whereIp(serverHostName).whereHttpsPort(serverHttpsPort).whereHttpPort(serverHttpPort);
+        msgBldr.whereIp(serverHostName);
         msgBldr.whatDomain(domainName).why(auditRef).whatApi(caller).whatMethod(method);
 
         // get the 'who' and set it
@@ -6261,7 +6419,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     void logPrincipal(ResourceContext ctx) {
         final Principal principal = ((RsrcCtxWrapper) ctx).principal();
         if (principal != null) {
-            ctx.request().setAttribute(AthenzRequestLog.REQUEST_PRINCIPAL, principal.getFullName());
+            ctx.request().setAttribute(ZMS_REQUEST_PRINCIPAL, principal.getFullName());
         }
     }
     
@@ -6334,5 +6492,60 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     @Override
     public Schema getRdlSchema(ResourceContext context) {
         return schema;
+    }
+    
+    static String getServerHostName() {
+        
+        String serverHostName = System.getProperty(ZMSConsts.ZMS_PROP_HOSTNAME);
+        if (serverHostName == null || serverHostName.isEmpty()) {
+            try {
+                InetAddress localhost = java.net.InetAddress.getLocalHost();
+                serverHostName = localhost.getCanonicalHostName();
+            } catch (java.net.UnknownHostException e) {
+                LOG.info("Unable to determine local hostname: " + e.getMessage());
+                serverHostName = "localhost";
+            }
+        }
+        
+        return serverHostName;
+    }
+    
+    Authority getAuthority(String className) {
+        
+        LOG.debug("Loading authority {}...", className);
+        
+        Authority authority = null;
+        try {
+            authority = (Authority) Class.forName(className).newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            LOG.error("Invalid Authority class: " + className + " error: " + e.getMessage());
+            return null;
+        }
+        return authority;
+    }
+    
+    String getFileStructPath(String db_context, String name) {
+        
+        String path = db_context;
+        if (path == null) {
+            path = name;
+        } else if (name != null) {
+            path = path + File.separator + name;
+        }
+        
+        return path;
+    }
+    
+    String getRootDir() {
+        
+        if (ROOT_DIR == null) {
+            ROOT_DIR = System.getenv(ZMSConsts.STR_ENV_ROOT);
+        }
+        
+        if (ROOT_DIR == null) {
+            ROOT_DIR = ZMSConsts.STR_DEF_ROOT;
+        }
+
+        return ROOT_DIR;
     }
 }

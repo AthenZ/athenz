@@ -79,9 +79,8 @@ public final class ZMSConsts {
     
     // properties used to over-ride default Audit logger
  
-    public static final String ZMS_PROP_AUDIT_LOGGER_CLASS       = "athenz.zms.audit_logger_class";
-    public static final String ZMS_PROP_AUDIT_LOGGER_CLASS_PARAM = "athenz.zms.audit_logger_class_param";
-    public static final String ZMS_PROP_AUDIT_LOG_MSG_BLDR_CLASS = "athenz.zms.audit_log_msg_builder_class";
+    public static final String ZMS_PROP_AUDIT_LOGGER_FACTORY_CLASS       = "athenz.zms.audit_logger_factory_class";
+    public static final String ZMS_PROP_AUDIT_LOGGER_FACTORY_CLASS_PARAM = "athenz.zms.audit_logger_factory_class_param";
 
     public static final String ZMS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS = "athenz.zms.private_key_store_factory_class";
     

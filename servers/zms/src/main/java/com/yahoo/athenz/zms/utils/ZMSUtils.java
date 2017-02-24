@@ -270,6 +270,9 @@ public class ZMSUtils {
             return false;
         }
         
+        if (ZMSImpl.metric == null) {
+            return false;
+        }
         // Set 3 scoreboard error metrics:
         // (1) cumulative "ERROR" (of all zms request and error types)
         // (2) cumulative granular zms request and error type (eg- "getdomainlist_error_400")

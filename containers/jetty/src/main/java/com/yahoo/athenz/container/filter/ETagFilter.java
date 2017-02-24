@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.common.server.filters;
+package com.yahoo.athenz.container.filter;
 
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.ext.Provider;
-
-import com.yahoo.athenz.common.server.util.StringUtils;
 
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;
@@ -59,8 +57,18 @@ public class ETagFilter implements ContainerResponseFilter {
             }
         }
         if (etagStr != null) {
-            etagStr = StringUtils.removeLeadingAndTrailingQuotes(etagStr);
+            etagStr = removeLeadingAndTrailingQuotes(etagStr);
             response.getHeaders().putSingle("ETag", new EntityTag(etagStr));
         }
+    }
+    
+    String removeLeadingAndTrailingQuotes(String value) {
+        if (value.startsWith("\"")) {
+            value = value.substring(1, value.length());
+        }
+        if (value.endsWith("\"")) {
+            value = value.substring(0, value.length() - 1);
+        }
+        return value;
     }
 }

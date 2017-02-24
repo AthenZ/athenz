@@ -25,9 +25,6 @@ import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.FilePrivateKeyStore;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.util.Crypto;
-import com.yahoo.athenz.common.metrics.Metric;
-import com.yahoo.athenz.common.server.log.AuditLogFactory;
-import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.provider.ProviderMockClient;
 import com.yahoo.athenz.zms.store.ObjectStore;
 import com.yahoo.athenz.zms.store.file.FileConnection;
@@ -40,7 +37,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.PrivateKey;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,10 +52,8 @@ public class DBServiceTest extends TestCase {
     
     ZMSImpl zms             = null;
     String adminUser        = null;
-    String pubKey           = null; // assume default is K0
     String pubKeyK1         = null;
     String pubKeyK2         = null;
-    String privKey          = null; // assume default is K0
     String privKeyK1        = null; 
     String privKeyK2        = null; 
     String auditRef         = "audittest";
@@ -91,6 +85,9 @@ public class DBServiceTest extends TestCase {
     @BeforeClass
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
+        System.setProperty(ZMSImplTest.ZMS_PROP_PUBLIC_KEY, "src/test/resources/zms_public.pem");
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zms_private.pem");
+        System.setProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN, "user.testadminuser");
 
         Mockito.when(mockServletRequest.getRemoteAddr()).thenReturn(MOCKCLIENTADDR);
         setupServiceId();
@@ -155,35 +152,16 @@ public class DBServiceTest extends TestCase {
         Mockito.when(mockDomRsrcCtx.request()).thenReturn(mockServletRequest);
         Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcPrince);
 
-        ObjectStore store = new FileObjectStore(new File(ZMS_DATA_STORE_PATH));
-
-        String pubKeyName = System.getProperty(ZMSTest.ZMS_PROP_PUBLIC_KEY);
-        File pubKeyFile = new File(pubKeyName);
-        pubKey = Crypto.encodedFile(pubKeyFile);
-        
-        String privKeyName = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
-        File privKeyFile = new File(privKeyName);
-        privKey = Crypto.encodedFile(privKeyFile);
-        PrivateKey privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
-        
-        String privKeyId = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY_ID, "0");
-
         adminUser = System.getProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN);
 
         // enable product id support
         System.setProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT, "true");
         System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, "src/test/resources/solution_templates.json");
 
-        Metric debugMetric = new com.yahoo.athenz.common.metrics.impl.NoOpMetric();
-        ZMSImpl zmsObj = new ZMSImpl("localhost", store, debugMetric, privateKey,
-                privKeyId, AuditLogFactory.getLogger(), null);
-        
-        ServiceIdentity service = createServiceObject("sys.auth",
-                        "zms", "http://localhost", "/usr/bin/java", "root",
-                        "users", "host1");
+        System.setProperty(ZMSConsts.ZMS_PROP_HOME, "/tmp/zms_core_unit_tests/");
+        System.clearProperty(ZMSConsts.ZMS_PROP_JDBC_STORE);
 
-        zmsObj.putServiceIdentity(mockDomRsrcCtx, "sys.auth", "zms", auditRef, service);
-        
+        ZMSImpl zmsObj = new ZMSImpl();
         return zmsObj;
     }
     
@@ -287,29 +265,6 @@ public class DBServiceTest extends TestCase {
         return service;
     }
     
-    ZMSImpl getZmsImpl(String storeDir, AuditLogger alogger) {
-        
-        FileConnection.deleteDirectory(new File(storeDir));
-        ObjectStore store = new FileObjectStore(new File(storeDir));
-        
-        String privKeyName = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
-        File   privKeyFile = new File(privKeyName);
-        String privKey = Crypto.encodedFile(privKeyFile);
-        PrivateKey privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
-
-        String privKeyId = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY_ID, "0");
-        ServiceIdentity service = createServiceObject("sys.auth",
-                        "zms", "http://localhost", "/usr/bin/java", "root",
-                        "users", "host1");
-
-        Metric debugMetric = new com.yahoo.athenz.common.metrics.impl.NoOpMetric();
-        ZMSImpl zmsObj = new ZMSImpl("localhost", store, debugMetric, privateKey,
-                privKeyId, alogger, null);
-        zmsObj.putServiceIdentity(mockDomRsrcCtx, "sys.auth", "zms", auditRef, service);
-        zmsObj.setProviderClientClass(ProviderMockClient.class);
-        return zmsObj;
-    }
-
     public void setupServiceId() throws IOException {
 
         Path path = Paths.get("./src/test/resources/zms_public_k1.pem");

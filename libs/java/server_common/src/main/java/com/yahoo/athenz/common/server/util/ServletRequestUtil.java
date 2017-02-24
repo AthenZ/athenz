@@ -17,9 +17,6 @@
 package com.yahoo.athenz.common.server.util;
 
 import javax.servlet.http.HttpServletRequest;
-import org.eclipse.jetty.server.Request;
-
-import com.yahoo.rdl.Timestamp;
 
 public class ServletRequestUtil {
 
@@ -42,14 +39,5 @@ public class ServletRequestUtil {
         }
         return addr;
     }
-
-    /**
-      * Returns RFC3339 based time stamp String.
-     **/
-    public static String getTimeStamp(final Request request) {
-        Timestamp ts = Timestamp.fromMillis(request.getTimeStamp());
-        return ts.toString();
-    }
-
 }
 

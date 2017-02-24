@@ -24,8 +24,9 @@ import java.util.regex.Matcher;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
 import com.yahoo.rdl.Value;
-import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.rdl.Array;
+
+import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 
 /*
  * Default implementation that can be inherited from.

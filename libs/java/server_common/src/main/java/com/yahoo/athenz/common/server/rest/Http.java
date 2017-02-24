@@ -24,6 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.common.server.util.ServletRequestUtil;
 
 public class Http {
 
@@ -83,23 +84,6 @@ public class Http {
         }
         return null;
     }
-
-    /**
-      * Return the remote client IP address.
-      * Detect if connection is from ATS by looking at XFF header.
-      * If XFF header, return the last address therein since it was added by ATS.
-     **/
-    static String getRemoteAddress(final HttpServletRequest request) {
-        String addr = request.getRemoteAddr();
-        if (addr.equals(LOOPBACK_ADDRESS)) {
-            String xff = request.getHeader(XFF_HEADER);
-            if (xff != null) {
-                String[] addrs = xff.split(",");
-                addr = addrs[addrs.length - 1].trim();
-            }
-        }
-        return addr;
-    }
     
     public static Principal authenticate(HttpServletRequest request,
             AuthorityList authorities) {
@@ -116,7 +100,8 @@ public class Http {
             case HEADER:
                 String creds = authenticatingCredentials(request, authority);
                 if (creds != null) {
-                    principal = authority.authenticate(creds, getRemoteAddress(request), request.getMethod(), errMsg);
+                    principal = authority.authenticate(creds, ServletRequestUtil.getRemoteAddress(request),
+                            request.getMethod(), errMsg);
                 }
                 break;
             case CERTIFICATE:
