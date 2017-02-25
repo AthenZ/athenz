@@ -15,9 +15,6 @@
  */
 package com.yahoo.athenz.common.server.log;
 
-import com.yahoo.rdl.Struct;
-import com.yahoo.rdl.Timestamp;
-
 public interface AuditLogMsgBuilder {
 
     /**
@@ -46,8 +43,6 @@ public interface AuditLogMsgBuilder {
     public AuditLogMsgBuilder why(String whyVal);
 
     public String why();
-
-    public AuditLogMsgBuilder when(Timestamp ts);
 
     public AuditLogMsgBuilder when(String whenVal);
 
@@ -139,27 +134,8 @@ public interface AuditLogMsgBuilder {
     public String whatDetails();
 
     /**
-     * Performs 'diff' of the attributes and sets it in the details part of the
-     * message accordingly.
-     * This method will sort out what attributes have been REMOVED, and which have
-     * been ADDED based on the old original attributes and the new set of attrs.
-     * @param tag used to label the details
-     * @param origFields Set of current attributes
-     * @param newFields Set of replacement attributes
-     * @return this
-     */
-    public AuditLogMsgBuilder whatDetails(String tag, Struct origFields, Struct newFields);
-
-    /**
      * Call this to build the string representation of the data fields set herein.
      * @return String representation of the message to be logged
      */
     public String build();
-
-    /**
-     * Parse the given log message and return a Struct.
-     * @param logMsgBldrMsg string returned from AuditLogMsgBuilder.build()
-     * @return struct representation of the log message
-     */
-    public Struct parse(String logMsgBldrMsg);
 }

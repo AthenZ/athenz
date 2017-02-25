@@ -267,8 +267,7 @@ public class AthenzJettyContainer {
         String jettyHome = System.getProperty(AthenzConsts.ATHENZ_PROP_JETTY_HOME, getRootDir());
         WebAppProvider webappProvider = new WebAppProvider();
         webappProvider.setMonitoredDirName(jettyHome + "/webapps");
-        //webappProvider.setDefaultsDescriptor(jettyHome + "/etc/webdefault.xml");
-        webappProvider.setScanInterval(1);
+        webappProvider.setScanInterval(60);
         webappProvider.setExtractWars(true);
         webappProvider.setConfigurationManager(new PropertiesConfigurationManager());
 

@@ -1056,7 +1056,7 @@ public class ZMSImplTest extends TestCase {
 
     @Test
     public void testCreateTopLevelDomainOnceOnly() {
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -1415,7 +1415,7 @@ public class ZMSImplTest extends TestCase {
     
     @Test
     public void testDeleteTopLevelDomainChildExist() {
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -1539,7 +1539,7 @@ public class ZMSImplTest extends TestCase {
 
     @Test
     public void testDeleteSubDomainChildExist() {
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -1647,7 +1647,7 @@ public class ZMSImplTest extends TestCase {
 
     @Test
     public void testPutDomainMetaThrowException() {
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -2015,7 +2015,7 @@ public class ZMSImplTest extends TestCase {
     @Test
     public void testPutRoleThrowException() {
 
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -2504,7 +2504,7 @@ public class ZMSImplTest extends TestCase {
 
     @Test
     public void testDeleteRoleThrowException() {
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -2778,7 +2778,7 @@ public class ZMSImplTest extends TestCase {
     @Test
     public void testPutMembershipMissingAuditRef() {
 
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -3270,7 +3270,7 @@ public class ZMSImplTest extends TestCase {
     
     @Test
     public void testDeleteMembershipAdminRoleSingleMember() {
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -3466,7 +3466,7 @@ public class ZMSImplTest extends TestCase {
     @Test
     public void testGetPolicy() {
 
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -3947,7 +3947,7 @@ public class ZMSImplTest extends TestCase {
     
     @Test
     public void testDeletePolicyThrowException() {
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -4048,7 +4048,7 @@ public class ZMSImplTest extends TestCase {
 
     @Test
     public void testCreateServiceIdentityNotSimpleName() {
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -4432,7 +4432,7 @@ public class ZMSImplTest extends TestCase {
 
     @Test
     public void testDeleteServiceIdentityThrowException() {
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -4765,7 +4765,7 @@ public class ZMSImplTest extends TestCase {
 
     @Test
     public void testDeleteEntityMissingAuditRef() {
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -5197,7 +5197,7 @@ public class ZMSImplTest extends TestCase {
     
     @Test
     public void testDeleteTenantRolesMissingAuditRef() {
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -5336,7 +5336,7 @@ public class ZMSImplTest extends TestCase {
 
     @Test
     public void testPutDefaultAdminsMissingAuditRef() {
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -7392,7 +7392,7 @@ public class ZMSImplTest extends TestCase {
     @Test
     public void testPutTenancyWithAuthorizedServiceMismatch() {
 
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -8027,7 +8027,7 @@ public class ZMSImplTest extends TestCase {
     
     @Test
     public void testDeleteTenancyMissingEndpoint() {
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -8175,7 +8175,7 @@ public class ZMSImplTest extends TestCase {
     @Test
     public void testPutTenantRolesMissingAuditRef() {
 
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -8780,12 +8780,6 @@ public class ZMSImplTest extends TestCase {
         assertFalse(isEmitMonmetricError);
 
         isEmitMonmetricError = ZMSUtils.emitMonmetricError(errorCode, new String());
-        assertFalse(isEmitMonmetricError);
-
-        isEmitMonmetricError = ZMSUtils.emitMonmetricError(errorCode, "invalidcharacterslike...$!?");
-        assertFalse(isEmitMonmetricError);
-
-        isEmitMonmetricError = ZMSUtils.emitMonmetricError(errorCode, "spaces are not allowed");
         assertFalse(isEmitMonmetricError);
 
         isEmitMonmetricError = ZMSUtils.emitMonmetricError(0, caller);
@@ -10313,7 +10307,7 @@ public class ZMSImplTest extends TestCase {
     @Test
     public void testDeletePublicKeyEntryInvalidService() {
         
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -10596,7 +10590,7 @@ public class ZMSImplTest extends TestCase {
 
     @Test
     public void testPutPublicKeyEntryMissingAuditRef() {
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -11876,7 +11870,7 @@ public class ZMSImplTest extends TestCase {
     @Test
     public void testProviderResourceGroupRolesWithAuthorizedServiceNoAccess() {
 
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -12243,7 +12237,7 @@ public class ZMSImplTest extends TestCase {
 
     @Test
     public void testPutDomainTemplateInvalidTemplate() {
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -12783,7 +12777,7 @@ public class ZMSImplTest extends TestCase {
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
         Mockito.when(servletRequest.getRemoteAddr()).thenReturn("10.10.10.11");
  
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -12838,7 +12832,7 @@ public class ZMSImplTest extends TestCase {
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
         Mockito.when(servletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
         
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -12893,7 +12887,7 @@ public class ZMSImplTest extends TestCase {
         Mockito.when(servletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
         Mockito.when(servletRequest.getHeader("X-Forwarded-For")).thenReturn("10.10.10.11");
         
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -12949,7 +12943,7 @@ public class ZMSImplTest extends TestCase {
         Mockito.when(servletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
         Mockito.when(servletRequest.getHeader("X-Forwarded-For")).thenReturn("10.10.10.11, 10.11.11.11, 10.12.12.12");
         
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);

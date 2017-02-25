@@ -153,7 +153,7 @@ public class DBService {
         
         AuditLogMsgBuilder msgBldr = ZMSUtils.getAuditLogMsgBuilder(ctx, auditLogger,
                 domainName, auditRef, caller, operation);
-        msgBldr.when(Timestamp.fromCurrentTime()).whatEntity(entityName);
+        msgBldr.when(Timestamp.fromCurrentTime().toString()).whatEntity(entityName);
         if (auditDetails != null) {
             msgBldr.whatDetails(auditDetails);
         }

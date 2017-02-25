@@ -1923,12 +1923,6 @@ public class ZTSImplTest {
         isEmitMonmetricError = ZTSUtils.emitMonmetricError(errorCode, new String(), null, metric);
         assertFalse(isEmitMonmetricError);
 
-        isEmitMonmetricError = ZTSUtils.emitMonmetricError(errorCode, "invalidcharacterslike...$!?", null, metric);
-        assertFalse(isEmitMonmetricError);
-
-        isEmitMonmetricError = ZTSUtils.emitMonmetricError(errorCode, "spaces are not allowed", ZTSConsts.ZTS_UNKNOWN_DOMAIN, metric);
-        assertFalse(isEmitMonmetricError);
-
         isEmitMonmetricError = ZTSUtils.emitMonmetricError(0, caller, null, metric);
         assertFalse(isEmitMonmetricError);
 
