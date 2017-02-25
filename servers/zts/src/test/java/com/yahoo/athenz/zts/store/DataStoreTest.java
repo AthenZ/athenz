@@ -114,7 +114,7 @@ public class DataStoreTest {
                 "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory");
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,
                 "src/test/resources/zts_private.pem");
-        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF,  "src/test/resources/athenz.conf");
+        System.setProperty(ZTSConsts.ATHENZ_PROP_ATHENZ_CONF,  "src/test/resources/athenz.conf");
     }
     
     @BeforeMethod
@@ -130,7 +130,7 @@ public class DataStoreTest {
         
         pkey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
         
-        userDomain = System.getProperty(ZTSConsts.ZTS_PROP_USER_DOMAIN, "user");
+        userDomain = System.getProperty(ZTSConsts.ATHENZ_PROP_USER_DOMAIN, "user");
     }
     
     @AfterMethod
@@ -207,7 +207,7 @@ public class DataStoreTest {
     @Test
     public void testLoadZMSPublicKeys() {
         
-        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
+        System.setProperty(ZTSConsts.ATHENZ_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);

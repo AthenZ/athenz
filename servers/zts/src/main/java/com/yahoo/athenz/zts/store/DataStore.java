@@ -135,7 +135,7 @@ public class DataStore implements DataCacheProvider {
             rootDir = ZTSConsts.STR_DEF_ROOT;
         }
         
-        String confFileName = System.getProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF,
+        String confFileName = System.getProperty(ZTSConsts.ATHENZ_PROP_ATHENZ_CONF,
                 rootDir + "/conf/athenz/athenz.conf");
         Path path = Paths.get(confFileName);
         AthenzConfig conf = null;

@@ -264,11 +264,10 @@ public class AthenzJettyContainer {
                 "org.eclipse.jetty.server.webapp.ContainerIncludeJarPattern",
                 ".*/servlet-api-[^/]*\\.jar$");
 
-        String jettyBase = "/tmp/jetty-home";
-        String jettyHome = "/tmp/jetty-home";
+        String jettyHome = System.getProperty(AthenzConsts.ATHENZ_PROP_JETTY_HOME, getRootDir());
         WebAppProvider webappProvider = new WebAppProvider();
-        webappProvider.setMonitoredDirName(jettyBase + "/webapps");
-        webappProvider.setDefaultsDescriptor(jettyHome + "/etc/webdefault.xml");
+        webappProvider.setMonitoredDirName(jettyHome + "/webapps");
+        //webappProvider.setDefaultsDescriptor(jettyHome + "/etc/webdefault.xml");
         webappProvider.setScanInterval(1);
         webappProvider.setExtractWars(true);
         webappProvider.setConfigurationManager(new PropertiesConfigurationManager());
@@ -417,7 +416,7 @@ public class AthenzJettyContainer {
         server.setHandler(handlers);
     }
     
-    public void run(String base) {
+    public void run() {
         try {
             server.start();
             System.out.println("Jetty server running at " + banner);
@@ -469,7 +468,7 @@ public class AthenzJettyContainer {
 
         try {
             AthenzJettyContainer container = createJettyContainer();
-            container.run(null);
+            container.run();
         } catch (Exception exc) {
             
             // log that we are shutting down, re-throw the exception

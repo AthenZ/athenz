@@ -96,8 +96,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     private static String ROOT_DIR;
 
-    private static final String ZMS_PRINCIPAL_AUTHORITY_CLASS = "com.yahoo.athenz.auth.impl.PrincipalAuthority";
-    private static final String ZMS_PKEY_STORE_FACTORY_CLASS = "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory";
     private static final String ZMS_REQUEST_PRINCIPAL = "com.yahoo.athenz.auth.principal";
     
     private static final String SERVICE_PREFIX = "service.";
@@ -452,7 +450,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         // retrieve the user domain we're supposed to use
         
-        userDomain = System.getProperty(ZMSConsts.ZMS_PROP_USER_DOMAIN, ZMSConsts.USER_DOMAIN);
+        userDomain = System.getProperty(ZMSConsts.ATHENZ_PROP_USER_DOMAIN, ZMSConsts.USER_DOMAIN);
         userDomainPrefix = userDomain + ".";
         
         // default token timeout for issued tokens
@@ -521,7 +519,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             PoolableDataSource src = DataSourceFactory.create(jdbcStore, userName, password);
             store = new JDBCObjectStore(src);
         } else {
-            String homeDir = System.getProperty(ZMSConsts.ZMS_PROP_HOME,
+            String homeDir = System.getProperty(ZMSConsts.ATHENZ_PROP_HOME,
                     getRootDir() + "/var/zms_server");
             String fileDirName = System.getProperty(ZMSConsts.ZMS_PROP_FILE_STORE, "zms_root");
             String path = getFileStructPath(homeDir, fileDirName);
@@ -560,7 +558,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     void loadServicePrivateKey() {
         
         String pkeyFactoryClass = System.getProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
-                ZMS_PKEY_STORE_FACTORY_CLASS);
+                ZMSConsts.ZMS_PKEY_STORE_FACTORY_CLASS);
         PrivateKeyStoreFactory pkeyFactory = null;
         try {
             pkeyFactory = (PrivateKeyStoreFactory) Class.forName(pkeyFactoryClass).newInstance();
@@ -583,7 +581,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // get our authorities
         
         String authListConfig = System.getProperty(ZMSConsts.ZMS_PROP_AUTHORITY_CLASSES,
-                ZMS_PRINCIPAL_AUTHORITY_CLASS);
+                ZMSConsts.ZMS_PRINCIPAL_AUTHORITY_CLASS);
         authorities = new AuthorityList();
 
         String[] authorityList = authListConfig.split(",");
@@ -6395,7 +6393,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     
     static String getServerHostName() {
         
-        String serverHostName = System.getProperty(ZMSConsts.ZMS_PROP_HOSTNAME);
+        String serverHostName = System.getProperty(ZMSConsts.ATHENZ_PROP_HOSTNAME);
         if (serverHostName == null || serverHostName.isEmpty()) {
             try {
                 InetAddress localhost = java.net.InetAddress.getLocalHost();

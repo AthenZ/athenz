@@ -92,9 +92,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected long signedPolicyTimeout;
     protected static String serverHostName = null;
     protected AuditLogger auditLogger = null;
-    protected String auditLoggerMsgBldrClass = null;
-    protected String serverHttpsPort = null;
-    protected String serverHttpPort  = null;
     protected String userDomain = "user";
     protected boolean leastPrivilegePrincipal = false;
     protected Set<String> authorizedProxyUsers = null;
@@ -196,7 +193,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // create our change log store
         
         if (implDataStore == null) {
-            String homeDir = System.getProperty(ZTSConsts.ZTS_PROP_HOME,
+            String homeDir = System.getProperty(ZTSConsts.ATHENZ_PROP_HOME,
                     getRootDir() + "/var/zts_server");
             ChangeLogStore clogStore = getChangeLogStore(homeDir);
     
@@ -272,11 +269,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         serviceTokenTimeOffset = Long.parseLong(
                 System.getProperty(ZTSConsts.ZTS_PROP_SERVICE_TOKEN_TIME_OFFSET, Long.toString(timeout)));
         
-        serverHttpsPort = System.getProperty(
-                ZTSConsts.ZTS_PROP_HTTPS_PORT, Integer.toString(ZTSConsts.ZTS_HTTPS_PORT_DEFAULT));
-        serverHttpPort  = System.getProperty(
-                ZTSConsts.ZTS_PROP_HTTP_PORT, Integer.toString(ZTSConsts.ZTS_HTTP_PORT_DEFAULT));
-        
         // retrieve the list of our authorized proxy users
         
         String authorizedProxyUserList = System.getProperty(ZTSConsts.ZTS_PROP_AUTHORIZED_PROXY_USERS);
@@ -284,12 +276,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             authorizedProxyUsers = new HashSet<>(Arrays.asList(authorizedProxyUserList.split(",")));
         }
         
-        userDomain = System.getProperty(ZTSConsts.ZTS_PROP_USER_DOMAIN, "user");
+        userDomain = System.getProperty(ZTSConsts.ATHENZ_PROP_USER_DOMAIN, "user");
     }
     
     static String getServerHostName() {
         
-        String serverHostName = System.getProperty(ZTSConsts.ZTS_PROP_HOSTNAME);
+        String serverHostName = System.getProperty(ZTSConsts.ATHENZ_PROP_HOSTNAME);
         if (serverHostName == null || serverHostName.isEmpty()) {
             try {
                 InetAddress localhost = java.net.InetAddress.getLocalHost();
@@ -462,7 +454,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         AuditLogMsgBuilder msgBldr = auditLogger.getMsgBuilder();
 
         // get the where - which means where this server is running
-        msgBldr.whereIp(serverHostName).whereHttpsPort(serverHttpsPort).whereHttpPort(serverHttpPort);
+        
+        msgBldr.whereIp(serverHostName);
 
         msgBldr.whatDomain(domainName).whatApi(caller).whatMethod(method);
 
@@ -487,7 +480,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             }
 
             // get the client IP
-            //
+            
             msgBldr.clientIp(ServletRequestUtil.getRemoteAddress(ctx.request()));
         }
 

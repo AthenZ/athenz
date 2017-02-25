@@ -143,6 +143,7 @@
   </profiles>
 
   <build>
+    <finalName>zms</finalName>
     <plugins>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>

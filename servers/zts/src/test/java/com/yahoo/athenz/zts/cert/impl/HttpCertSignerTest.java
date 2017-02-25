@@ -27,10 +27,16 @@ import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.api.Request;
 import org.mockito.Mockito;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 public class HttpCertSignerTest {
-
+    
+    @BeforeClass
+    public void stup() {
+        System.setProperty(HttpCertSigner.ZTS_PROP_CERTSIGN_BASE_URI, "https://localhost:443/certsign/v2");
+    }
+    
     @Test
     public void testHttpCertSignerFactory() {
         HttpCertSignerFactory certFactory = new HttpCertSignerFactory();

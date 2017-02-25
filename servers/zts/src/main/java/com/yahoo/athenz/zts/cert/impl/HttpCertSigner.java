@@ -37,12 +37,11 @@ import com.yahoo.rdl.JSON;
 public class HttpCertSigner implements CertSigner {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpCertSigner.class);
+    public static final String ZTS_PROP_CERTSIGN_BASE_URI = "athenz.zts.certsign_base_uri";
+    
     private HttpClient httpClient = null;
     String certUri = null;
-
-    private static final String ZTS_PROP_CERTSIGN_BASE_URI = "athenz.zts.certsign_base_uri";
-    private static final String DEFAULT_CERTSIGN_BASE_URI = "https://localhost:443/certsign/v2";
-
+    
     public HttpCertSigner() {
 
         // Instantiate and start our HttpClient
@@ -59,7 +58,12 @@ public class HttpCertSigner implements CertSigner {
 
         // generate our post and get certificate URIs
 
-        String serverBaseUri = System.getProperty(ZTS_PROP_CERTSIGN_BASE_URI, DEFAULT_CERTSIGN_BASE_URI);
+        String serverBaseUri = System.getProperty(ZTS_PROP_CERTSIGN_BASE_URI);
+        if (serverBaseUri == null) {
+            LOGGER.error("HttpCertSigner: no base uri specified");
+            throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
+                    "No CertSigner base uri specified: " + ZTS_PROP_CERTSIGN_BASE_URI);
+        }
         certUri = serverBaseUri + "/x509";
     }
 
@@ -70,7 +74,7 @@ public class HttpCertSigner implements CertSigner {
                 httpClient.stop();
             }
         } catch (Exception ex) {
-            LOGGER.error("close(): unable to stop httpClient" + ex.getMessage());
+            LOGGER.error("close: unable to stop httpClient" + ex.getMessage());
         }
     }
 

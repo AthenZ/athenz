@@ -158,7 +158,7 @@ public class DBServiceTest extends TestCase {
         System.setProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT, "true");
         System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, "src/test/resources/solution_templates.json");
 
-        System.setProperty(ZMSConsts.ZMS_PROP_HOME, "/tmp/zms_core_unit_tests/");
+        System.setProperty(ZMSConsts.ATHENZ_PROP_HOME, "/tmp/zms_core_unit_tests/");
         System.clearProperty(ZMSConsts.ZMS_PROP_JDBC_STORE);
 
         ZMSImpl zmsObj = new ZMSImpl();

@@ -309,12 +309,7 @@ public class ZMSUtils {
         if (errorCode < 1) {
             return false;
         }
-        if (caller == null || caller.length() == 0) {
-            return false;
-        }
-        caller = caller.trim();
-        String alphanum = "^[a-zA-Z0-9]*$";
-        if (!caller.matches(alphanum)) {
+        if (caller == null || caller.isEmpty()) {
             return false;
         }
         
