@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.zts;
 
+import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.util.ArrayList;
@@ -33,24 +34,32 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yahoo.athenz.auth.Authority;
+import com.yahoo.athenz.auth.AuthorityKeyStore;
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.PrivateKeyStore;
+import com.yahoo.athenz.auth.PrivateKeyStoreFactory;
 import com.yahoo.athenz.auth.impl.CertificateAuthority;
 import com.yahoo.athenz.auth.impl.PrincipalAuthority;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.metrics.Metric;
-import com.yahoo.athenz.common.server.log.AthenzRequestLog;
-import com.yahoo.athenz.common.server.log.AuditLogFactory;
+import com.yahoo.athenz.common.metrics.MetricFactory;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
+import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
 import com.yahoo.athenz.common.server.rest.Http;
+import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.cert.CertSigner;
+import com.yahoo.athenz.zts.cert.CertSignerFactory;
 import com.yahoo.athenz.zts.cert.InstanceIdentityStore;
+import com.yahoo.athenz.zts.cert.InstanceIdentityStoreFactory;
+import com.yahoo.athenz.zts.store.ChangeLogStore;
+import com.yahoo.athenz.zts.store.ChangeLogStoreFactory;
 import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.DataStore;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
@@ -66,6 +75,8 @@ import com.yahoo.rdl.Validator.Result;
  */
 public class ZTSImpl implements KeyStore, ZTSHandler {
 
+    private static String ROOT_DIR;
+
     protected DataStore dataStore;
     protected CloudStore cloudStore;
     protected InstanceIdentityStore instanceIdentityStore;
@@ -79,7 +90,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected long bootTimeOffset;
     protected boolean traceAccess = true;
     protected long signedPolicyTimeout;
-    protected String serverHostName = null;
+    protected static String serverHostName = null;
     protected AuditLogger auditLogger = null;
     protected String auditLoggerMsgBldrClass = null;
     protected String serverHttpsPort = null;
@@ -103,7 +114,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private static final String TYPE_ROLE_CERTIFICATE_REQUEST = "RoleCertificateRequest";
     
     private static final String ZTS_ROLE_TOKEN_VERSION = "Z1";
-    
+    private static final String ZTS_REQUEST_PRINCIPAL = "com.yahoo.athenz.auth.principal";
+
     private static final long ZTS_NTOKEN_DEFAULT_EXPIRY = TimeUnit.SECONDS.convert(2, TimeUnit.HOURS);
     private static final long ZTS_NTOKEN_MAX_EXPIRY = TimeUnit.SECONDS.convert(7, TimeUnit.DAYS);
     private static final long ZTS_ROLE_CERT_EXPIRY = TimeUnit.SECONDS.convert(30, TimeUnit.DAYS);
@@ -122,29 +134,106 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private final ZTSAuthorizer authorizer;
     protected static Validator validator;
     
-    public ZTSImpl(String serverHostName, DataStore dataStore, CloudStore cloudStore,
-            InstanceIdentityStore instanceIdentityStore, Metric metric, PrivateKey privateKey,
-            String privateKeyId, AuditLogger auditLog, String auditLogMsgBldrClass) {
-
-        this.schema = ZTSSchema.instance();
-        validator = new Validator(schema);
-
-        this.dataStore = dataStore;
-        this.cloudStore = cloudStore;
-        this.instanceIdentityStore = instanceIdentityStore;
-        this.metric = metric;
-        this.privateKey = privateKey;
-        this.privateKeyId = privateKeyId;
-        this.serverHostName = serverHostName;
-        this.userDomain = System.getProperty(ZTSConsts.ZTS_PROP_USER_DOMAIN, "user");
+    public ZTSImpl() {
+        this(null, null, null);
+    }
+    
+    public ZTSImpl(CloudStore implCloudStore, InstanceIdentityStore implInstanceIdentityStore,
+            DataStore implDataStore) {
         
-        auditLogger = auditLog;
-        auditLoggerMsgBldrClass = auditLogMsgBldrClass;
+        ZTSImpl.serverHostName = getServerHostName();
+        
+        // before we do anything we need to load our configuration
+        // settings
+        
+        loadConfigurationSettings();
+        
+        // load our schema validator - we need this before we initialize
+        // our store, if necessary
+        
+        loadSchemaValidator();
+        
+        // let's load our audit logger
+        
+        loadAuditLogger();
+        
+        // load any configured authorities to authenticate principals
+        
+        loadAuthorities();
+        
+        // we need a private key to sign any tokens and documents
+        
+        loadServicePrivateKey();
+        
+        // check if we need to load any metric support for stats
+        
+        loadMetricObject();
+        
+        // create our certsigner object only if either cloudstore
+        // or identity store are not provided to us
+        
+        CertSigner certSigner = null;
+        if (implCloudStore == null || implInstanceIdentityStore == null) {
+            certSigner = loadCertSigner();
+        }
+        
+       // create our cloud store if configured
+        
+        if (implCloudStore == null) {
+            cloudStore = new CloudStore(certSigner);
+        } else {
+            cloudStore = implCloudStore;
+        }
+        
+        // create our instance identity store
+
+        if (implInstanceIdentityStore == null) {
+            instanceIdentityStore = getInstanceIdentityStore(certSigner);
+        } else {
+            instanceIdentityStore = implInstanceIdentityStore;
+        }
+        
+        // create our change log store
+        
+        if (implDataStore == null) {
+            String homeDir = System.getProperty(ZTSConsts.ZTS_PROP_HOME,
+                    getRootDir() + "/var/zts_server");
+            ChangeLogStore clogStore = getChangeLogStore(homeDir);
+    
+            // create our data store. we must have our cloud store and private
+            // key details already retrieved at this point
+            
+            dataStore = new DataStore(clogStore, cloudStore);
+            
+            // Initialize our storage subsystem which would load all data into
+            // memory and if necessary retrieve the data from ZMS. It will also
+            // create the thread to monitor for changes from ZMS
+            
+            if (!dataStore.init()) {
+                metric.increment("zts_startup_fail_sum");
+                throw new ResourceException(500, "Unable to initialize storage subsystem");
+            }
+            
+        } else {
+            dataStore = implDataStore;
+        }
+        
+        // make sure to set the keystore for any instance that requires it
+        
+        setAuthorityKeyStore();
+        
+        // set our authorizer
+        
+        authorizer = new ZTSAuthorizer(dataStore, cloudStore);
+    }
+    
+    void loadConfigurationSettings() {
         
         // check to see if we want to disable allowing clients to ask for role
         // tokens without role name thus violating the least privilege principle
         
-        leastPrivilegePrincipal = Boolean.parseBoolean(System.getProperty(ZTSConsts.ZTS_PROP_LEAST_PRIVILEGE_PRINCIPLE, "false"));
+        leastPrivilegePrincipal = Boolean.parseBoolean(
+                System.getProperty(ZTSConsts.ZTS_PROP_LEAST_PRIVILEGE_PRINCIPLE, "false"));
         
         // Default Role Token timeout is 2 hours. If the client asks for role tokens
         // with a min expiry time of 1 hour, the setting of 2 hours allows the client
@@ -153,33 +242,40 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // an hour and 45 minutes.
         
         long timeout = TimeUnit.SECONDS.convert(2, TimeUnit.HOURS);
-        this.roleTokenDefaultTimeout = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_ROLE_TOKEN_DEFAULT_TIMEOUT, Long.toString(timeout)));
+        roleTokenDefaultTimeout = Integer.parseInt(
+                System.getProperty(ZTSConsts.ZTS_PROP_ROLE_TOKEN_DEFAULT_TIMEOUT, Long.toString(timeout)));
         
         // Max Timeout - 30 days
         
         timeout = TimeUnit.SECONDS.convert(30, TimeUnit.DAYS);
-        this.roleTokenMaxTimeout = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_ROLE_TOKEN_MAX_TIMEOUT, Long.toString(timeout)));
+        roleTokenMaxTimeout = Integer.parseInt(
+                System.getProperty(ZTSConsts.ZTS_PROP_ROLE_TOKEN_MAX_TIMEOUT, Long.toString(timeout)));
         
         // signedPolicyTimeout is in milliseconds but the config setting should be in seconds
         // to be consistent with other configuration properties
         
         timeout = TimeUnit.SECONDS.convert(7, TimeUnit.DAYS);
-        this.signedPolicyTimeout = 1000 * Long.parseLong(System.getProperty(ZTSConsts.ZTS_PROP_SIGNED_POLICY_TIMEOUT, Long.toString(timeout)));
+        signedPolicyTimeout = 1000 * Long.parseLong(
+                System.getProperty(ZTSConsts.ZTS_PROP_SIGNED_POLICY_TIMEOUT, Long.toString(timeout)));
 
         // bootTimeOffset is in milliseconds but the config setting should be in seconds
         // to be consistent with other configuration properties
         
         timeout = TimeUnit.SECONDS.convert(5, TimeUnit.MINUTES);
-        this.bootTimeOffset = 1000 * Long.parseLong(System.getProperty(ZTSConsts.ZTS_PROP_AWS_BOOT_TIME_OFFSET, Long.toString(timeout)));
+        bootTimeOffset = 1000 * Long.parseLong(
+                System.getProperty(ZTSConsts.ZTS_PROP_AWS_BOOT_TIME_OFFSET, Long.toString(timeout)));
         
         // when requesting service tokens on behalf of tenants, the provisioner's
         // token must be fresh and generated with specified number of seconds
         
         timeout = TimeUnit.SECONDS.convert(5, TimeUnit.MINUTES);
-        this.serviceTokenTimeOffset = Long.parseLong(System.getProperty(ZTSConsts.ZTS_PROP_SERVICE_TOKEN_TIME_OFFSET, Long.toString(timeout)));
+        serviceTokenTimeOffset = Long.parseLong(
+                System.getProperty(ZTSConsts.ZTS_PROP_SERVICE_TOKEN_TIME_OFFSET, Long.toString(timeout)));
         
-        serverHttpsPort = System.getProperty(ZTSConsts.ZTS_PROP_HTTPS_PORT, Integer.toString(ZTSConsts.ZTS_HTTPS_PORT_DEFAULT));
-        serverHttpPort  = System.getProperty(ZTSConsts.ZTS_PROP_HTTP_PORT, Integer.toString(ZTSConsts.ZTS_HTTP_PORT_DEFAULT));
+        serverHttpsPort = System.getProperty(
+                ZTSConsts.ZTS_PROP_HTTPS_PORT, Integer.toString(ZTSConsts.ZTS_HTTPS_PORT_DEFAULT));
+        serverHttpPort  = System.getProperty(
+                ZTSConsts.ZTS_PROP_HTTP_PORT, Integer.toString(ZTSConsts.ZTS_HTTP_PORT_DEFAULT));
         
         // retrieve the list of our authorized proxy users
         
@@ -188,22 +284,182 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             authorizedProxyUsers = new HashSet<>(Arrays.asList(authorizedProxyUserList.split(",")));
         }
         
-        this.authorizer = new ZTSAuthorizer(dataStore, cloudStore);
+        userDomain = System.getProperty(ZTSConsts.ZTS_PROP_USER_DOMAIN, "user");
     }
-
-    public void putAuthorityList(Http.AuthorityList authList) {
-        authorities = authList;
-    }
-
-    AuditLogMsgBuilder getAuditLogMsgBuilder(ResourceContext ctx, String domainName, String caller, String method) {
-        AuditLogMsgBuilder msgBldr;
-        try {
-            msgBldr = AuditLogFactory.getMsgBuilder(auditLoggerMsgBldrClass);
-        } catch (Exception exc) {
-            LOGGER.error("getAuditLogMsgBuilder: failed to get an AuditLogMsgBuilder. Get the default instead: "
-                    + exc.getMessage());
-            msgBldr = AuditLogFactory.getMsgBuilder();
+    
+    static String getServerHostName() {
+        
+        String serverHostName = System.getProperty(ZTSConsts.ZTS_PROP_HOSTNAME);
+        if (serverHostName == null || serverHostName.isEmpty()) {
+            try {
+                InetAddress localhost = java.net.InetAddress.getLocalHost();
+                serverHostName = localhost.getCanonicalHostName();
+            } catch (java.net.UnknownHostException e) {
+                LOGGER.info("Unable to determine local hostname: " + e.getMessage());
+                serverHostName = "localhost";
+            }
         }
+        
+        return serverHostName;
+    }
+    
+    void setAuthorityKeyStore() {
+        for (Authority authority : authorities.getAuthorities()) {
+            if (AuthorityKeyStore.class.isInstance(authority)) {
+                ((AuthorityKeyStore) authority).setKeyStore(this);
+            }
+        }
+    }
+    
+    void loadSchemaValidator() {
+        schema = ZTSSchema.instance();
+        validator = new Validator(schema);
+    }
+    
+    ChangeLogStore getChangeLogStore(String homeDir) {
+
+        String clogFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_DATA_CHANGE_LOG_STORE_FACTORY_CLASS,
+                ZTSConsts.ZTS_CHANGE_LOG_STORE_FACTORY_CLASS);
+        ChangeLogStoreFactory clogFactory = null;
+        try {
+            clogFactory = (ChangeLogStoreFactory) Class.forName(clogFactoryClass).newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            LOGGER.error("Invalid ChangeLogStoreFactory class: " + clogFactoryClass
+                    + " error: " + e.getMessage());
+            return null;
+        }
+        
+        // create our struct store
+        
+        return clogFactory.create(homeDir, privateKey, privateKeyId, cloudStore);
+    }
+    
+    CertSigner loadCertSigner() {
+        
+        String certSignerFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_FACTORY_CLASS,
+                ZTSConsts.ZTS_CERT_SIGNER_FACTORY_CLASS);
+        CertSignerFactory certSignerFactory = null;
+        try {
+            certSignerFactory = (CertSignerFactory) Class.forName(certSignerFactoryClass).newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            LOGGER.error("Invalid CertSigerFactory class: " + certSignerFactoryClass
+                    + " error: " + e.getMessage());
+            return null;
+        }
+
+        // create our cert signer instance
+        
+        return certSignerFactory.create();
+    }
+
+    static InstanceIdentityStore getInstanceIdentityStore(CertSigner certSigner) {
+
+        String instanceIdentityStoreFactoryClass = System.getProperty(
+                ZTSConsts.ZTS_PROP_INSTANCE_IDENTITY_STORE_FACTORY_CLASS,
+                ZTSConsts.ZTS_INSTANCE_IDENTITY_STORE_FACTORY_CLASS);
+        InstanceIdentityStoreFactory instanceIdentityStoreFactory = null;
+        try {
+            instanceIdentityStoreFactory = (InstanceIdentityStoreFactory)
+                    Class.forName(instanceIdentityStoreFactoryClass).newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            LOGGER.error("Invalid InstanceIdentityStoreFactory class: " + instanceIdentityStoreFactoryClass
+                    + " error: " + e.getMessage());
+            return null;
+        }
+
+        // create our instance identity store instance
+
+        return instanceIdentityStoreFactory.create(certSigner);
+    }
+    void loadMetricObject() {
+        
+        String metricFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_METRIC_FACTORY_CLASS,
+                ZTSConsts.ZTS_METRIC_FACTORY_CLASS);
+        boolean statsEnabled = Boolean.parseBoolean(
+                System.getProperty(ZTSConsts.ZTS_PROP_STATS_ENABLED, "false"));
+        if (!statsEnabled && !metricFactoryClass.equals(ZTSConsts.ZTS_METRIC_FACTORY_CLASS)) {
+            LOGGER.warn("Override users metric factory property with default since stats are disabled");
+            metricFactoryClass = ZTSConsts.ZTS_METRIC_FACTORY_CLASS;
+        }
+
+        MetricFactory metricFactory = null;
+        try {
+            metricFactory = (MetricFactory) Class.forName(metricFactoryClass).newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            LOGGER.error("Invalid MetricFactory class: " + metricFactoryClass
+                    + " error: " + e.getMessage());
+            throw new IllegalArgumentException("Invalid metric class");
+        }
+        
+        // create our metric and increment our startup count
+        
+        metric = metricFactory.create();
+        metric.increment("zms_sa_startup");
+    }
+    
+    void loadServicePrivateKey() {
+        
+        String pkeyFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
+                ZTSConsts.ZTS_PKEY_STORE_FACTORY_CLASS);
+        PrivateKeyStoreFactory pkeyFactory = null;
+        try {
+            pkeyFactory = (PrivateKeyStoreFactory) Class.forName(pkeyFactoryClass).newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            LOGGER.error("Invalid PrivateKeyStoreFactory class: " + pkeyFactoryClass
+                    + " error: " + e.getMessage());
+            throw new IllegalArgumentException("Invalid private key store");
+        }
+        
+        // extract the private key and public keys for our service
+        
+        StringBuilder privKeyId = new StringBuilder(256);
+        PrivateKeyStore keyStore = pkeyFactory.create();
+        privateKey = keyStore.getPrivateKey(ZTSConsts.ZTS_SERVICE, serverHostName, privKeyId);
+        privateKeyId = privKeyId.toString();
+    }
+    
+    void loadAuthorities() {
+        
+        // get our authorities
+        
+        String authListConfig = System.getProperty(ZTSConsts.ZTS_PROP_AUTHORITY_CLASSES,
+                ZTSConsts.ZTS_PRINCIPAL_AUTHORITY_CLASS);
+        authorities = new AuthorityList();
+
+        String[] authorityList = authListConfig.split(",");
+        for (int idx = 0; idx < authorityList.length; idx++) {
+            Authority authority = getAuthority(authorityList[idx]);
+            if (authority == null) {
+                throw new IllegalArgumentException("Invalid authority");
+            }
+            authority.initialize();
+            authorities.add(authority);
+        }
+    }
+    
+    void loadAuditLogger() {
+        
+        String auditFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_AUDIT_LOGGER_FACTORY_CLASS,
+                ZTSConsts.ZTS_AUDIT_LOGGER_FACTORY_CLASS);
+        AuditLoggerFactory auditLogFactory = null;
+        
+        try {
+            auditLogFactory = (AuditLoggerFactory) Class.forName(auditFactoryClass).newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            LOGGER.error("Invalid AuditLoggerFactory class: " + auditFactoryClass
+                    + " error: " + e.getMessage());
+            throw new IllegalArgumentException("Invalid audit logger class");
+        }
+        
+        // create our audit logger
+        
+        auditLogger = auditLogFactory.create();
+    }
+    
+    AuditLogMsgBuilder getAuditLogMsgBuilder(ResourceContext ctx, String domainName,
+            String caller, String method) {
+        
+        AuditLogMsgBuilder msgBldr = auditLogger.getMsgBuilder();
 
         // get the where - which means where this server is running
         msgBldr.whereIp(serverHostName).whereHttpsPort(serverHttpsPort).whereHttpPort(serverHttpPort);
@@ -1840,7 +2096,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     void logPrincipal(ResourceContext ctx) {
         final Principal principal = ((RsrcCtxWrapper) ctx).principal();
         if (principal != null) {
-            ctx.request().setAttribute(AthenzRequestLog.REQUEST_PRINCIPAL, principal.getFullName());
+            ctx.request().setAttribute(ZTS_REQUEST_PRINCIPAL, principal.getFullName());
         }
     }
     
@@ -1883,5 +2139,32 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
     public Authorizer getAuthorizer() {
         return authorizer;
+    }
+    
+    Authority getAuthority(String className) {
+        
+        LOGGER.debug("Loading authority {}...", className);
+        
+        Authority authority = null;
+        try {
+            authority = (Authority) Class.forName(className).newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            LOGGER.error("Invalid Authority class: " + className + " error: " + e.getMessage());
+            return null;
+        }
+        return authority;
+    }
+    
+    String getRootDir() {
+        
+        if (ROOT_DIR == null) {
+            ROOT_DIR = System.getenv(ZTSConsts.STR_ENV_ROOT);
+        }
+        
+        if (ROOT_DIR == null) {
+            ROOT_DIR = ZTSConsts.STR_DEF_ROOT;
+        }
+
+        return ROOT_DIR;
     }
 }

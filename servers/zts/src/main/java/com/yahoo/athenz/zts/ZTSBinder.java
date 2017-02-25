@@ -18,22 +18,9 @@ package com.yahoo.athenz.zts;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 
 public class ZTSBinder extends AbstractBinder  {
-    private final ZTSImpl ztsImpl;
-    
-    public ZTSBinder(final ZTSHandler ztsImpl) {
-        this.ztsImpl = (ZTSImpl) ztsImpl;
-    }
 
     @Override
     protected void configure() {
-        bind(ZTSHandler.class).in(javax.inject.Singleton.class);
-        bind(ZTSHandler.class.cast(ztsImpl)).to(ZTSHandler.class);
-    }
-    
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder(256);
-        sb.append("Binder: contains type=").append(ZTSHandler.class).append(" and object=").append(ztsImpl);
-        return sb.toString();
+        bind(new ZTSImpl()).to(ZTSHandler.class);
     }
 }

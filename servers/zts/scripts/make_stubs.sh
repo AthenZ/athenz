@@ -28,4 +28,4 @@ echo "Generate the ZTS server stubs"
 # rdl -s generate -o src/main/java java-server $RDL_FILE
 
 echo "Removing not needed ZTS Server file..."
-rm src/main/java/com/yahoo/athenz/zts/ZTSServer.java
+# rm src/main/java/com/yahoo/athenz/zts/ZTSServer.java
