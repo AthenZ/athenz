@@ -450,7 +450,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         // retrieve the user domain we're supposed to use
         
-        userDomain = System.getProperty(ZMSConsts.ATHENZ_PROP_USER_DOMAIN, ZMSConsts.USER_DOMAIN);
+        userDomain = System.getProperty(ZMSConsts.ZMS_PROP_USER_DOMAIN, ZMSConsts.USER_DOMAIN);
         userDomainPrefix = userDomain + ".";
         
         // default token timeout for issued tokens
@@ -519,7 +519,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             PoolableDataSource src = DataSourceFactory.create(jdbcStore, userName, password);
             store = new JDBCObjectStore(src);
         } else {
-            String homeDir = System.getProperty(ZMSConsts.ATHENZ_PROP_HOME,
+            String homeDir = System.getProperty(ZMSConsts.ZMS_PROP_HOME,
                     getRootDir() + "/var/zms_server");
             String fileDirName = System.getProperty(ZMSConsts.ZMS_PROP_FILE_STORE, "zms_root");
             String path = getFileStructPath(homeDir, fileDirName);
@@ -6393,7 +6393,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     
     static String getServerHostName() {
         
-        String serverHostName = System.getProperty(ZMSConsts.ATHENZ_PROP_HOSTNAME);
+        String serverHostName = System.getProperty(ZMSConsts.ZMS_PROP_HOSTNAME);
         if (serverHostName == null || serverHostName.isEmpty()) {
             try {
                 InetAddress localhost = java.net.InetAddress.getLocalHost();

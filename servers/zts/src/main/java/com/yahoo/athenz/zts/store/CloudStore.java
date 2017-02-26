@@ -58,9 +58,6 @@ import com.yahoo.rdl.Timestamp;
 public class CloudStore {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CloudStore.class);
-    public static final String ZTS_PROP_AWS_CREDS_UPDATE_TIMEOUT = "athns.zts.aws_creds_update_timeout";
-    public static final String ZTS_PROP_AWS_REGION_NAME = "athenz.zts.aws_region_name";
-    public static final String ZTS_PROP_AWS_PUBLIC_CERT = "athenz.zts.aws_public_cert";
 
     String awsRole = null;
     String awsCloud = null;
@@ -108,7 +105,7 @@ public class CloudStore {
         // let's retrieve our AWS public certificate which is posted here:
         // http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-identity-documents.html
         
-        String awsCertFileName = System.getProperty(ZTS_PROP_AWS_PUBLIC_CERT);
+        String awsCertFileName = System.getProperty(ZTSConsts.ZTS_PROP_AWS_PUBLIC_CERT);
         if (awsCertFileName != null && !awsCertFileName.isEmpty()) {
             File awsCertFile = new File(awsCertFileName);
             X509Certificate awsCert = Crypto.loadX509Certificate(awsCertFile);
@@ -117,12 +114,11 @@ public class CloudStore {
         
         // check to see if we are given region name
         
-        awsRegion = System.getProperty(ZTS_PROP_AWS_REGION_NAME);
+        awsRegion = System.getProperty(ZTSConsts.ZTS_PROP_AWS_REGION_NAME);
         
         // initialize aws support
         
-        awsEnabled = Boolean.parseBoolean(System.getProperty(
-                ZTSConsts.ZTS_PROP_AWS_ENABLED, "false"));
+        awsEnabled = Boolean.parseBoolean(System.getProperty(ZTSConsts.ZTS_PROP_AWS_ENABLED, "false"));
         initializeAwsSupport();
     }
     
@@ -174,7 +170,7 @@ public class CloudStore {
 
         // Start our thread to get aws temporary credentials
 
-        credsUpdateTime = ZTSUtils.retrieveConfigSetting(ZTS_PROP_AWS_CREDS_UPDATE_TIMEOUT, 900);
+        credsUpdateTime = ZTSUtils.retrieveConfigSetting(ZTSConsts.ZTS_PROP_AWS_CREDS_UPDATE_TIMEOUT, 900);
 
         scheduledThreadPool = Executors.newScheduledThreadPool(1);
         scheduledThreadPool.scheduleAtFixedRate(new RoleCredentialsFetcher(), credsUpdateTime,

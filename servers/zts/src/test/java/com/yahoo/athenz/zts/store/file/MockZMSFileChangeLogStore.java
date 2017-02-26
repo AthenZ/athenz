@@ -28,6 +28,7 @@ import com.yahoo.athenz.zms.DomainList;
 import com.yahoo.athenz.zms.SignedDomains;
 import com.yahoo.athenz.zms.ZMSClient;
 import com.yahoo.athenz.zms.ZMSClientException;
+import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.store.file.ZMSFileChangeLogStore;
 
 public class MockZMSFileChangeLogStore extends ZMSFileChangeLogStore {
@@ -36,8 +37,6 @@ public class MockZMSFileChangeLogStore extends ZMSFileChangeLogStore {
     DomainList domList = null;
     String tagHeader = null;
     String userDomain;
-    
-    private static final String ZMS_USER_DOMAIN = "yahoo.zms.user_domain";
     
     public MockZMSFileChangeLogStore(String rootDirectory, PrivateKey privateKey, String privateKeyId) {
         
@@ -48,7 +47,7 @@ public class MockZMSFileChangeLogStore extends ZMSFileChangeLogStore {
         // we're going to return on domain for local list and then another
         // for server list - thus ending up with initialized store with no domains
         
-        userDomain = System.getProperty(ZMS_USER_DOMAIN, "user");
+        userDomain = System.getProperty(ZTSConsts.ZTS_PROP_USER_DOMAIN, "user");
 
         DomainList localDomainList = new DomainList();
         List<String> localDomains = new ArrayList<>();

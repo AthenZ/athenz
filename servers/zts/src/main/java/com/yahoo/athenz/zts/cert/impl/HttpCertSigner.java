@@ -19,6 +19,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import com.yahoo.athenz.zts.ResourceException;
+import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.cert.CertSigner;
 import com.yahoo.athenz.zts.cert.X509CertSignObject;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
@@ -37,7 +38,6 @@ import com.yahoo.rdl.JSON;
 public class HttpCertSigner implements CertSigner {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpCertSigner.class);
-    public static final String ZTS_PROP_CERTSIGN_BASE_URI = "athenz.zts.certsign_base_uri";
     
     private HttpClient httpClient = null;
     String certUri = null;
@@ -58,11 +58,11 @@ public class HttpCertSigner implements CertSigner {
 
         // generate our post and get certificate URIs
 
-        String serverBaseUri = System.getProperty(ZTS_PROP_CERTSIGN_BASE_URI);
+        String serverBaseUri = System.getProperty(ZTSConsts.ZTS_PROP_CERTSIGN_BASE_URI);
         if (serverBaseUri == null) {
             LOGGER.error("HttpCertSigner: no base uri specified");
             throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
-                    "No CertSigner base uri specified: " + ZTS_PROP_CERTSIGN_BASE_URI);
+                    "No CertSigner base uri specified: " + ZTSConsts.ZTS_PROP_CERTSIGN_BASE_URI);
         }
         certUri = serverBaseUri + "/x509";
     }

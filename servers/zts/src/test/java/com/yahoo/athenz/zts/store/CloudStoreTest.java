@@ -44,6 +44,7 @@ import com.yahoo.athenz.zts.AWSInstanceInformation;
 import com.yahoo.athenz.zts.AWSTemporaryCredentials;
 import com.yahoo.athenz.zts.Identity;
 import com.yahoo.athenz.zts.ResourceException;
+import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.cert.CertSigner;
 import com.yahoo.athenz.zts.cert.impl.SelfCertSigner;
 import com.yahoo.athenz.zts.store.CloudStore;
@@ -206,14 +207,14 @@ public class CloudStoreTest {
         
         // now we're going to use the same doc with override
         
-        System.setProperty(CloudStore.ZTS_PROP_AWS_REGION_NAME, "us-west-3");
+        System.setProperty(ZTSConsts.ZTS_PROP_AWS_REGION_NAME, "us-west-3");
         store.close();
 
         store = new CloudStore(null);
         assertTrue(store.parseInstanceInfo("{\"accountId\":\"012345678901\"}"));
         assertEquals(store.awsAccount, "012345678901");
         assertEquals(store.awsRegion, "us-west-3");
-        System.clearProperty(CloudStore.ZTS_PROP_AWS_REGION_NAME);
+        System.clearProperty(ZTSConsts.ZTS_PROP_AWS_REGION_NAME);
         store.close();
     }
 

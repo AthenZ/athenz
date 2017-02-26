@@ -21,10 +21,10 @@ package com.yahoo.athenz.zts;
 public final class ZTSConsts {
     // System property names with defaults(where applicable)
     
-    public static final String ATHENZ_PROP_HOME        = "athenz.home";
-    public static final String ATHENZ_PROP_HOSTNAME    = "athenz.hostname";
-    public static final String ATHENZ_PROP_USER_DOMAIN = "athenz.user_domain";
-    public static final String ATHENZ_PROP_ATHENZ_CONF = "athenz.athenz_conf";
+    public static final String ZTS_PROP_HOME        = "athenz.zts.home";
+    public static final String ZTS_PROP_HOSTNAME    = "athenz.zts.hostname";
+    public static final String ZTS_PROP_USER_DOMAIN = "athenz.zts.user_domain";
+    public static final String ZTS_PROP_ATHENZ_CONF = "athenz.zts.athenz_conf";
     
     public static final String ZTS_PROP_CA_PRIVATE_KEY            = "athenz.zts.ca_privatekey";
     public static final String ZTS_PROP_CA_PRIVATE_KEY_PASSWORD   = "athenz.zts.ca_privatekey_password";
@@ -44,6 +44,8 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_DATASTORE_REGEX_CACHE  = "athenz.zts.cache.regex.size";
     public static final String ZTS_PROP_WANT_CLIENT_CERT       = "athenz.zts.want_client_cert";
     public static final String ZTS_PROP_AUTHORITY_CLASSES      = "athenz.zts.authority_classes";
+    public static final String ZTS_PROP_CERTSIGN_BASE_URI      = "athenz.zts.certsign_base_uri";
+    public static final String ZTS_PROP_ZMS_URL_OVERRIDE       = "athenz.zts.zms_url";
 
     public static final String ZTS_PROP_MAX_THREADS                 = "athenz.zts.http_max_threads";
     public static final String ZTS_PROP_LEAST_PRIVILEGE_PRINCIPLE   = "athenz.zts.least_privilege_principle";
@@ -70,7 +72,11 @@ public final class ZTSConsts {
     public static final String STR_DEF_ROOT = "/home/athenz";
     public static final String STR_ENV_ROOT = "ROOT";
     
-    public static final String ZTS_PROP_AWS_ENABLED     = "athenz.zts.aws_enabled";
+    public static final String ZTS_PROP_AWS_ENABLED              = "athenz.zts.aws_enabled";
+    public static final String ZTS_PROP_BUCKET_NAME              = "athenz.zts.aws_bucket_name";
+    public static final String ZTS_PROP_AWS_CREDS_UPDATE_TIMEOUT = "athns.zts.aws_creds_update_timeout";
+    public static final String ZTS_PROP_AWS_REGION_NAME          = "athenz.zts.aws_region_name";
+    public static final String ZTS_PROP_AWS_PUBLIC_CERT          = "athenz.zts.aws_public_cert";
     
     public static final String ZTS_PROP_METRIC_FACTORY_CLASS             = "athenz.zts.metric_factory_class";
     public static final String ZTS_PROP_CERT_SIGNER_FACTORY_CLASS        = "athenz.zts.cert_signer_factory_class";

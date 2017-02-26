@@ -281,7 +281,7 @@ public class ZTSImplTest {
                 "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory");
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,
                 "src/test/resources/zts_private.pem");
-        System.setProperty(ZTSConsts.ATHENZ_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
+        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
         
         auditLogger = new DefaultAuditLogger();
     }

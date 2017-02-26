@@ -19,6 +19,7 @@ import static org.testng.Assert.*;
 
 import java.util.concurrent.TimeoutException;
 
+import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.cert.CertSigner;
 import com.yahoo.athenz.zts.cert.impl.HttpCertSigner;
 import com.yahoo.athenz.zts.cert.impl.HttpCertSignerFactory;
@@ -34,7 +35,7 @@ public class HttpCertSignerTest {
     
     @BeforeClass
     public void stup() {
-        System.setProperty(HttpCertSigner.ZTS_PROP_CERTSIGN_BASE_URI, "https://localhost:443/certsign/v2");
+        System.setProperty(ZTSConsts.ZTS_PROP_CERTSIGN_BASE_URI, "https://localhost:443/certsign/v2");
     }
     
     @Test

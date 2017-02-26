@@ -202,7 +202,7 @@ public class ZMSImplTest extends TestCase {
 
         adminUser = System.getProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN);
         
-        System.setProperty(ZMSConsts.ATHENZ_PROP_HOME, "/tmp/zms_core_unit_tests/");
+        System.setProperty(ZMSConsts.ZMS_PROP_HOME, "/tmp/zms_core_unit_tests/");
         System.clearProperty(ZMSConsts.ZMS_PROP_JDBC_STORE);
         
         ZMSImpl zmsObj = new ZMSImpl();
@@ -219,7 +219,7 @@ public class ZMSImplTest extends TestCase {
         
         System.clearProperty(ZMSConsts.ZMS_PROP_JDBC_STORE);
         System.setProperty(ZMSConsts.ZMS_PROP_FILE_STORE, storeFile);
-        System.setProperty(ZMSConsts.ATHENZ_PROP_HOME, "/tmp/zms_core_unit_tests/");
+        System.setProperty(ZMSConsts.ZMS_PROP_HOME, "/tmp/zms_core_unit_tests/");
 
         ZMSImpl zmsObj = new ZMSImpl();
         zmsObj.auditLogger = alogger;

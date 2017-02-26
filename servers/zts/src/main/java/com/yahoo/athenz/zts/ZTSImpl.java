@@ -193,7 +193,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // create our change log store
         
         if (implDataStore == null) {
-            String homeDir = System.getProperty(ZTSConsts.ATHENZ_PROP_HOME,
+            String homeDir = System.getProperty(ZTSConsts.ZTS_PROP_HOME,
                     getRootDir() + "/var/zts_server");
             ChangeLogStore clogStore = getChangeLogStore(homeDir);
     
@@ -276,12 +276,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             authorizedProxyUsers = new HashSet<>(Arrays.asList(authorizedProxyUserList.split(",")));
         }
         
-        userDomain = System.getProperty(ZTSConsts.ATHENZ_PROP_USER_DOMAIN, "user");
+        userDomain = System.getProperty(ZTSConsts.ZTS_PROP_USER_DOMAIN, "user");
     }
     
     static String getServerHostName() {
         
-        String serverHostName = System.getProperty(ZTSConsts.ATHENZ_PROP_HOSTNAME);
+        String serverHostName = System.getProperty(ZTSConsts.ZTS_PROP_HOSTNAME);
         if (serverHostName == null || serverHostName.isEmpty()) {
             try {
                 InetAddress localhost = java.net.InetAddress.getLocalHost();
