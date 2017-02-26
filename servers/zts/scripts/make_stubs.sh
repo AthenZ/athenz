@@ -25,7 +25,7 @@ echo "Update the ZTS.rdl to define string type"
 RDL_FILE=src/main/rdl/ZTS.rdl
 
 echo "Generate the ZTS server stubs"
-# rdl -s generate -o src/main/java java-server $RDL_FILE
+rdl -s generate -b="/v1" -o="src/main/java" java-server $RDL_FILE
 
 echo "Removing not needed ZTS Server file..."
-# rm src/main/java/com/yahoo/athenz/zts/ZTSServer.java
+rm src/main/java/com/yahoo/athenz/zts/ZTSServer.java
