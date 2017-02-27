@@ -77,10 +77,13 @@ For example,
 
 If you're installing and running Athenz services using the binary
 packages provided, you can configure the private key store factory
-class in the conf/container_settings file (applies to both ZMS and ZTS):
+class in the conf/zms_server/zms.properties or conf/zts_server/zts.properties
+files for ZMS and ZTS servers respectively:
 
 ```
-CONTAINER_PRIVATE_KEY_STORE_FACTORY_CLASS="com.yahoo.athenz.zms.pkey.file.FilePrivateKeyStoreFactory"
+athenz.zms.private_key_store_factory_class=com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory
+
+athenz.zts.private_key_store_factory_class=com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory
 ```
 
 ## Provided Implementation

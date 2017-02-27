@@ -66,7 +66,8 @@ $ openssl genrsa -out zms_private.pem 2048
 Generate a self-signed X509 certificate for ZMS Server HTTPS
 support. After we generate the X509 certificate, we need to add
 that certificate along with its private key to a keystore for Jetty 
-use. From the `athenz-zms-X.Y` directory execute the following
+use. For the local environment steps, we're using default password
+of "athenz". From the `athenz-zms-X.Y` directory execute the following
 commands:
 
 ```shell
@@ -116,12 +117,12 @@ can configure the set of system administrators by following these steps:
 
 ```shell
 $ cd athenz-zms-X.Y
-$ vi conf/zms_server/container_settings
+$ vi conf/zms_server/zms.properties
 ```
 
-Modify the `CONTAINER_ADMINUSER="user.${USER}"` line and include comma
+Modify the `athenz.zms.domain_admin=user.${USER}` line and include comma
 separated list of unix user ids that should be set as Athenz system
-administrators. e.g. `CONTAINER_ADMINUSER="user.joe,user.john`
+administrators. e.g. `athenz.zms.domain_admin=user.joe,user.john`
 
 ## Start ZMS Server
 -------------------

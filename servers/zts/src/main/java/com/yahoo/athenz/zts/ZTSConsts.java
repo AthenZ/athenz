@@ -22,10 +22,10 @@ public final class ZTSConsts {
     // System property names with defaults(where applicable)
     
     public static final String ZTS_PROP_USER_DOMAIN = "athenz.user_domain";
+    public static final String ZTS_PROP_ATHENZ_CONF = "athenz.athenz_conf";
 
     public static final String ZTS_PROP_HOME        = "athenz.zts.home";
     public static final String ZTS_PROP_HOSTNAME    = "athenz.zts.hostname";
-    public static final String ZTS_PROP_ATHENZ_CONF = "athenz.zts.athenz_conf";
     public static final String ZTS_PROP_FILE_NAME   = "athenz.zts.prop_file";
     
     public static final String ZTS_PROP_KEYSTORE_PASSWORD      = "athenz.zts.ssl_key_store_password";

@@ -2148,7 +2148,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return authority;
     }
     
-    String getRootDir() {
+    public static String getRootDir() {
         
         if (ROOT_DIR == null) {
             ROOT_DIR = System.getenv(ZTSConsts.STR_ENV_ROOT);

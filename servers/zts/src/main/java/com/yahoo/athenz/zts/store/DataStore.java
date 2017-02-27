@@ -28,6 +28,7 @@ import com.yahoo.athenz.zms.SignedDomain;
 import com.yahoo.athenz.zms.SignedDomains;
 import com.yahoo.athenz.zts.HostServices;
 import com.yahoo.athenz.zts.ZTSConsts;
+import com.yahoo.athenz.zts.ZTSImpl;
 import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.cache.DataCacheProvider;
 import com.yahoo.athenz.zts.cache.MemberRole;
@@ -129,12 +130,8 @@ public class DataStore implements DataCacheProvider {
     }
     
     void loadZMSPublicKeys() {
-        
-        String rootDir = System.getenv(ZTSConsts.STR_ENV_ROOT);
-        if (rootDir == null) {
-            rootDir = ZTSConsts.STR_DEF_ROOT;
-        }
-        
+
+        final String rootDir = ZTSImpl.getRootDir();
         String confFileName = System.getProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF,
                 rootDir + "/conf/athenz/athenz.conf");
         Path path = Paths.get(confFileName);

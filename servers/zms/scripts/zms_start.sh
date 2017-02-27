@@ -14,4 +14,4 @@ CONTAINER_BOOTSTRAP_CLASS=com.yahoo.athenz.container.AthenzJettyContainer
 
 echo "Executing: java -classpath ${CONTAINER_CLASSPATH} ${JAVA_OPTS} ${CONTAINER_BOOTSTRAP_CLASS}"
 
-java -classpath ${CONTAINER_CLASSPATH} ${JAVA_OPTS} ${CONTAINER_BOOTSTRAP_CLASS} 2>&1 < /dev/null
+java -classpath "${CONTAINER_CLASSPATH}" ${JAVA_OPTS} ${CONTAINER_BOOTSTRAP_CLASS} 2>&1 < /dev/null
