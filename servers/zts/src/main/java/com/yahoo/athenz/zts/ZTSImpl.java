@@ -50,6 +50,7 @@ import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
 import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
+import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.zms.DomainData;
@@ -86,7 +87,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected String privateKeyId = "0";
     protected int roleTokenDefaultTimeout;
     protected int roleTokenMaxTimeout;
-    protected long serviceTokenTimeOffset;
     protected long bootTimeOffset;
     protected boolean traceAccess = true;
     protected long signedPolicyTimeout;
@@ -138,6 +138,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     public ZTSImpl(CloudStore implCloudStore, InstanceIdentityStore implInstanceIdentityStore,
             DataStore implDataStore) {
         
+        // before doing anything else we need to load our
+        // system properties from our config file
+        
+        loadSystemProperties();
+        
+        // let's first get our server hostname
+
         ZTSImpl.serverHostName = getServerHostName();
         
         // before we do anything we need to load our configuration
@@ -224,6 +231,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         authorizer = new ZTSAuthorizer(dataStore, cloudStore);
     }
     
+    void loadSystemProperties() {
+        String propFile = System.getProperty(ZTSConsts.ZTS_PROP_FILE_NAME,
+                getRootDir() + "/conf/zts_server/zts.properties");
+        ConfigProperties.loadProperties(propFile);
+    }
+    
     void loadConfigurationSettings() {
         
         // check to see if we want to disable allowing clients to ask for role
@@ -261,13 +274,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         timeout = TimeUnit.SECONDS.convert(5, TimeUnit.MINUTES);
         bootTimeOffset = 1000 * Long.parseLong(
                 System.getProperty(ZTSConsts.ZTS_PROP_AWS_BOOT_TIME_OFFSET, Long.toString(timeout)));
-        
-        // when requesting service tokens on behalf of tenants, the provisioner's
-        // token must be fresh and generated with specified number of seconds
-        
-        timeout = TimeUnit.SECONDS.convert(5, TimeUnit.MINUTES);
-        serviceTokenTimeOffset = Long.parseLong(
-                System.getProperty(ZTSConsts.ZTS_PROP_SERVICE_TOKEN_TIME_OFFSET, Long.toString(timeout)));
         
         // retrieve the list of our authorized proxy users
         
@@ -367,12 +373,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         String metricFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_METRIC_FACTORY_CLASS,
                 ZTSConsts.ZTS_METRIC_FACTORY_CLASS);
-        boolean statsEnabled = Boolean.parseBoolean(
-                System.getProperty(ZTSConsts.ZTS_PROP_STATS_ENABLED, "false"));
-        if (!statsEnabled && !metricFactoryClass.equals(ZTSConsts.ZTS_METRIC_FACTORY_CLASS)) {
-            LOGGER.warn("Override users metric factory property with default since stats are disabled");
-            metricFactoryClass = ZTSConsts.ZTS_METRIC_FACTORY_CLASS;
-        }
 
         MetricFactory metricFactory = null;
         try {

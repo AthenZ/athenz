@@ -22,12 +22,13 @@ public final class ZMSConsts {
 
     // System property names with defaults(where applicable)
     //
+    public static final String ZMS_PROP_USER_DOMAIN   = "athenz.user_domain";
+
     public static final String ZMS_PROP_HOME          = "athenz.zms.home";
-    public static final String ZMS_PROP_USER_DOMAIN   = "athenz.zms.user_domain";
     public static final String ZMS_PROP_HOSTNAME      = "athenz.zms.hostname";
     public static final String ZMS_PROP_DOMAIN_ADMIN  = "athenz.zms.domain_admin";
-
-    public static final String ZMS_PROP_STATS_ENABLED        = "athenz.zms.enable_stats";
+    public static final String ZMS_PROP_FILE_NAME     = "athenz.zms.prop_file";
+    
     public static final String ZMS_PROP_VIRTUAL_DOMAIN       = "athenz.zms.virtual_domain_support";
     public static final String ZMS_PROP_VIRTUAL_DOMAIN_LIMIT = "athenz.zms.virtual_domain_limit";
     public static final String ZMS_PROP_READ_ONLY_MODE       = "athenz.zms.read_only_mode";

@@ -53,6 +53,7 @@ import org.slf4j.LoggerFactory;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 
+import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.container.filter.HealthCheckFilter;
 import com.yahoo.athenz.container.log.AthenzRequestLog;
 
@@ -464,7 +465,10 @@ public class AthenzJettyContainer {
     public static void main(String [] args) throws Exception {
 
         System.getProperties().remove("socksProxyHost");
-
+        String propFile = System.getProperty(AthenzConsts.ATHENZ_PROP_FILE_NAME,
+                getRootDir() + "/conf/athenz/athenz.properties");
+        ConfigProperties.loadProperties(propFile);
+        
         try {
             AthenzJettyContainer container = createJettyContainer();
             container.run();

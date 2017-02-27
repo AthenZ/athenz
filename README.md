@@ -55,7 +55,6 @@ and often rely on network ACLs and manual updating.
         * [Go Client/Server Example](docs/example_go_centralized_access.md)
     * [Decentralized Access Control](docs/dev_decentralized_access.md)
         * [Java Client/Servlet Example](docs/example_java_decentralized_access.md)
-    * [System Properties](docs/system_properties.md)
 * Customizing Athenz
     * [Principal Authentication](docs/principal_authentication.md)
     * [Private Key Store](docs/private_key_store.md)

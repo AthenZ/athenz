@@ -50,7 +50,7 @@ public class S3ChangeLogStore implements ChangeLogStore {
     
     public S3ChangeLogStore(CloudStore cloudStore) {
         this.cloudStore = cloudStore;
-        s3BucketName = System.getProperty(ZTSConsts.ZTS_PROP_BUCKET_NAME, ZTS_BUCKET_DEFAULT);
+        s3BucketName = System.getProperty(ZTSConsts.ZTS_PROP_AWS_BUCKET_NAME, ZTS_BUCKET_DEFAULT);
         
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("AWSS3ChangeLog: S3 Bucket name: " + s3BucketName);

@@ -22,6 +22,7 @@ public final class AthenzConsts {
 
     // System property names with defaults(where applicable)
     
+    public static final String ATHENZ_PROP_FILE_NAME              = "athenz.prop_file";
     public static final String ATHENZ_PROP_ACCESS_LOG_RETAIN_DAYS = "athenz.access_log_retain_days";
     public static final String ATHENZ_PROP_ACCESS_LOG_NAME        = "athenz.access_log_name";
     public static final String ATHENZ_PROP_ACCESS_SLF4J_LOGGER    = "athenz.access_slf4j_logger";

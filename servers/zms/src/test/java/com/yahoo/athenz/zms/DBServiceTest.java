@@ -90,7 +90,8 @@ public class DBServiceTest extends TestCase {
         System.setProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN, "user.testadminuser");
 
         Mockito.when(mockServletRequest.getRemoteAddr()).thenReturn(MOCKCLIENTADDR);
-        setupServiceId();
+        System.setProperty(ZMSConsts.ZMS_PROP_FILE_NAME, "src/test/resources/zms.properties");
+        initializeZms();
     }
 
     ResourceContext createResourceContext(Principal prince) {
@@ -265,7 +266,7 @@ public class DBServiceTest extends TestCase {
         return service;
     }
     
-    public void setupServiceId() throws IOException {
+    public void initializeZms() throws IOException {
 
         Path path = Paths.get("./src/test/resources/zms_public_k1.pem");
         pubKeyK1 = Crypto.ybase64((new String(Files.readAllBytes(path))).getBytes());

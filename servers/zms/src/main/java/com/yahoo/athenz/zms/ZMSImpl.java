@@ -39,6 +39,7 @@ import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
 import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
+import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
 import com.yahoo.athenz.common.server.util.StringUtils;
 import com.yahoo.athenz.common.utils.SignUtils;
@@ -378,6 +379,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     
     public ZMSImpl() {
         
+        // before doing anything else we need to load our
+        // system properties from our config file
+        
+        loadSystemProperties();
+        
+        // let's first get our server hostname
+        
         ZMSImpl.serverHostName = getServerHostName();
         
         // before we do anything we need to load our configuration
@@ -431,6 +439,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // make sure to set the keystore for any instance that requires it
         
         setAuthorityKeyStore();
+    }
+    
+    void loadSystemProperties() {
+        String propFile = System.getProperty(ZMSConsts.ZMS_PROP_FILE_NAME,
+                getRootDir() + "/conf/zms_server/zms.properties");
+        ConfigProperties.loadProperties(propFile);
     }
     
     void setAuthorityKeyStore() {
@@ -533,13 +547,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         String metricFactoryClass = System.getProperty(ZMSConsts.ZMS_PROP_METRIC_FACTORY_CLASS,
                 ZMSConsts.ZMS_METRIC_FACTORY_CLASS);
-        boolean statsEnabled = Boolean.parseBoolean(
-                System.getProperty(ZMSConsts.ZMS_PROP_STATS_ENABLED, "false"));
-        if (!statsEnabled && !metricFactoryClass.equals(ZMSConsts.ZMS_METRIC_FACTORY_CLASS)) {
-            LOG.warn("Override users metric factory property with default since stats are disabled");
-            metricFactoryClass = ZMSConsts.ZMS_METRIC_FACTORY_CLASS;
-        }
-
         MetricFactory metricFactory = null;
         try {
             metricFactory = (MetricFactory) Class.forName(metricFactoryClass).newInstance();

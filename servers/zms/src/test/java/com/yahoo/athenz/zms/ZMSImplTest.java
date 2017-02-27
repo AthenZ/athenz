@@ -115,8 +115,8 @@ public class ZMSImplTest extends TestCase {
 
         Mockito.when(mockServletRequest.getRemoteAddr()).thenReturn(MOCKCLIENTADDR);
 
+        System.setProperty(ZMSConsts.ZMS_PROP_FILE_NAME, "src/test/resources/zms.properties");
         System.setProperty(ZMSConsts.ZMS_PROP_METRIC_FACTORY_CLASS, ZMSConsts.ZMS_METRIC_FACTORY_CLASS);
-        System.setProperty(ZMSConsts.ZMS_PROP_STATS_ENABLED, "true");
         System.setProperty(ZMSConsts.ZMS_PROP_PROVIDER_ENDPOINTS, ".athenzcompany.com");
         
         System.setProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
@@ -130,7 +130,7 @@ public class ZMSImplTest extends TestCase {
                 "src/test/resources/solution_templates.json");
         auditLogger = new DefaultAuditLogger();
         
-        setupServiceId();
+        initializeZms();
     }
 
     com.yahoo.athenz.zms.ResourceContext createResourceContext(Principal prince) {
@@ -147,7 +147,7 @@ public class ZMSImplTest extends TestCase {
         return rsrcCtxWrapper;
     }
     
-    com.yahoo.athenz.zms.ResourceContext createResourceContext(Principal principal, HttpServletRequest request) {
+    ResourceContext createResourceContext(Principal principal, HttpServletRequest request) {
         if (request == null) {
             return createResourceContext(principal);
         }
@@ -235,7 +235,7 @@ public class ZMSImplTest extends TestCase {
         return zmsObj;
     }
 
-    public void setupServiceId() throws IOException {
+    public void initializeZms() throws IOException {
 
         Path path = Paths.get("./src/test/resources/zms_public_k1.pem");
         pubKeyK1 = Crypto.ybase64((new String(Files.readAllBytes(path))).getBytes());

@@ -35,6 +35,14 @@
       </includes>
     </fileSet>
     <fileSet>
+      <directory>${basedir}/../../servers/zms/target</directory>
+      <outputDirectory>webapps</outputDirectory>
+      <fileMode>755</fileMode>
+      <includes>
+        <include>zms.war</include>
+      </includes>
+    </fileSet>
+    <fileSet>
       <directory>${basedir}/../../utils/zms-cli/target</directory>
       <outputDirectory>bin</outputDirectory>
     </fileSet>
