@@ -55,13 +55,12 @@ module.exports = function(grunt) {
       }
     },
     eslint: {
-      code: {
-        options: {
-          cache: true,
-          cacheFile: '.eslintcodecache'
-        },
-        src: ['public', 'src/**/*.js', './*.js', 'test/**/*.js']
-      }
+      options: {
+        cache: true,
+        cacheFile: '.eslintcodecache',
+        configFile: 'eslint.json'
+      },
+      target: ['public', 'src/**/*.js', './*.js', 'test/**/*.js']
     },
     filesize: {
       base: {
@@ -76,6 +75,33 @@ module.exports = function(grunt) {
       }
     },
     jshint: {
+      options: {
+        globalstrict: true,
+        expr: true,
+        esversion: 6,
+        globals: {
+          "expect": true,
+          "assert": false,
+          "it": false,
+          "require": false,
+          "describe": false,
+          "beforeEach": false,
+          "afterEach": false,
+          "before": false,
+          "after": false,
+          "$": false,
+          "$$": false,
+          "browser": false,
+          "Buffer": false,
+          "module": false,
+          "global": false,
+          "exports": false,
+          "process": false,
+          "console": false,
+          "__dirname": false,
+          "Intl": false,
+        }
+      },
       files: ['Gruntfile.js', 'src/**/*.js', './*.js',  'test/**/*.js'],
     },
     postcss: {
@@ -195,7 +221,7 @@ module.exports = function(grunt) {
     var files = grunt.template.process('build/<%= pkg.version %>/css/app.css');
     grunt.util.spawn({
       cmd: path.join(__dirname, 'node_modules/.bin/csslint'),
-      args: ['--ignore=adjoining-classes', files],
+      args: ['--ignore=adjoining-classes,order-alphabetical,unqualified-attributes,regex-selectors,important,unique-headings,qualified-headings,box-model,outline-none,box-sizing,bulletproof-font-face,duplicate-background-images,font-sizes', files],
       opts: { stdio: 'inherit' }
     }, done);
   });

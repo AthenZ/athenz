@@ -71,7 +71,7 @@
 
 @define-mixin relative-modal $height, $width, $containerDisatance {
   background-color: $lightBorderColor;
-  box-shadow: 0px 0px 8px 0px rgba(0,0,0,0.75);
+  box-shadow: 0 0 8px 0 rgba(0,0,0,0.75);
   display: none;
   margin-top: $containerDisatance;
   min-height: $height;
@@ -87,7 +87,7 @@
     top: -$containerDisatance;
     left: calc(3 * $containerDisatance);
 
-    text-shadow: 0px -4px 04px rgba(0, 0, 0, 0.5);
+    text-shadow: 0 -4px 04px rgba(0, 0, 0, 0.5);
     content: '▲';
   }
 
@@ -308,7 +308,7 @@
 
 @define-mixin breadcrumbs {
   .breadcrumbs {
-    margin: 0px 0 0 0px;
+    margin: 0 0 0 0;
     font-size: 0.8rem;
     @extend %flex;
 
