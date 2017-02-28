@@ -202,7 +202,7 @@ public class ZMSImplTest extends TestCase {
 
         adminUser = System.getProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN);
         
-        System.setProperty(ZMSConsts.ZMS_PROP_HOME, "/tmp/zms_core_unit_tests/");
+        System.setProperty(ZMSConsts.ZMS_PROP_FILE_STORE_PATH, "/tmp/zms_core_unit_tests/");
         System.clearProperty(ZMSConsts.ZMS_PROP_JDBC_STORE);
         
         ZMSImpl zmsObj = new ZMSImpl();
@@ -218,8 +218,8 @@ public class ZMSImplTest extends TestCase {
         FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
         
         System.clearProperty(ZMSConsts.ZMS_PROP_JDBC_STORE);
-        System.setProperty(ZMSConsts.ZMS_PROP_FILE_STORE, storeFile);
-        System.setProperty(ZMSConsts.ZMS_PROP_HOME, "/tmp/zms_core_unit_tests/");
+        System.setProperty(ZMSConsts.ZMS_PROP_FILE_STORE_NAME, storeFile);
+        System.setProperty(ZMSConsts.ZMS_PROP_FILE_STORE_PATH, "/tmp/zms_core_unit_tests/");
 
         ZMSImpl zmsObj = new ZMSImpl();
         zmsObj.auditLogger = alogger;
@@ -3532,7 +3532,7 @@ public class ZMSImplTest extends TestCase {
         }
 
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "PolicyGetDom1", auditRef);
-        //FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
     
     @Test

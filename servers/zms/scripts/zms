@@ -1,0 +1,106 @@
+#!/bin/bash
+
+usage() {
+    echo "Usage: zms (start | stop)"
+}
+
+if [ $# -ne 1 ]
+then
+    echo "Invalid number of arguments specified"
+    usage
+    exit 1
+fi
+
+# if we don't have ROOT variable defined we'll default
+# to the parent directory where the script is running from
+
+if [ -z "${ROOT}" ]; then
+    BINDIR=$(dirname "$0")
+    export ROOT=$(cd $BINDIR/..;pwd)
+    echo "Setting ZMS root directory to ${ROOT}"
+fi
+
+ZMS_STOP_TIMEOUT=${ZMS_STOP_TIMEOUT:-30}
+ZMS_PID_DIR=${ZMS_PID_DIR:-$ROOT/var/zms_server}
+ZMS_LOG_DIR=${ZMS_LOG_DIR:-$ROOT/logs/zms_server}
+
+# make sure our pid and log directories exist
+
+mkdir -p "${ZMS_PID_DIR}"
+mkdir -p "${ZMS_LOG_DIR}"
+
+# setup our required java attributes for startup
+
+JAVA_OPTS="${JAVA_OPTS} -Dathenz.prop_file=${ROOT}/conf/zms_server/athenz.properties"
+JAVA_OPTS="${JAVA_OPTS} -Dathenz.zms.prop_file=${ROOT}/conf/zms_server/zms.properties"
+JAVA_OPTS="${JAVA_OPTS} -Dlogback.configurationFile=${ROOT}/conf/zms_server/logback.xml"
+
+ZMS_CLASSPATH=${ROOT}/lib/jars/*
+ZMS_BOOTSTRAP_CLASS=com.yahoo.athenz.container.AthenzJettyContainer
+
+command=$1
+
+pid=${ZMS_PID_DIR}/zms.pid
+log=${ZMS_LOG_DIR}/zms.out
+
+case $command in
+    (start)
+        if [ -f $pid ]; then
+            ZMS_PID=$(cat $pid)
+            if kill -0 ${ZMS_PID} > /dev/null 2>&1; then
+                echo "ZMS already running as process ${ZMS_PID}"
+                exit 1
+            fi
+        fi
+    
+        echo "Starting ZMS..."
+        nohup java -classpath "${ZMS_CLASSPATH}" ${JAVA_OPTS} ${ZMS_BOOTSTRAP_CLASS} > "$log" 2>&1 < /dev/null &
+        echo $! > $pid
+        sleep 2;
+        if ! ps -p $! > /dev/null ; then
+            exit 1
+        fi
+    ;;
+
+    (stop)
+        if [ -f $pid ]; then
+            ZMS_PID=$(cat $pid)
+            if kill -0 $ZMS_PID > /dev/null 2>&1; then
+                echo "Stopping ZMS..."
+                kill $ZMS_PID
+        
+                count=0
+                while ps -p $ZMS_PID > /dev/null;
+                do
+                    echo "Shutdown is in progress... Please wait..."
+                    sleep 1
+                    count=`expr $count + 1`
+        
+                    if [ "$count" = "$ZMS_STOP_TIMEOUT" ]; then
+                        break
+                    fi
+                done
+        
+                if [ "$count" != "$ZMS_STOP_TIMEOUT" ]; then
+                    echo "Shutdown completed."
+                fi
+        
+                if kill -0 $ZMS_PID > /dev/null 2>&1; then
+                    echo "Forcefully stopping ZMS..."
+                    kill -9 $ZMS_PID >/dev/null 2>&1
+                    echo "Successfully stopped ZMS"
+                fi
+            else
+                echo "ZMS is not running"
+            fi
+            rm $pid
+        else
+            echo "ZMS is not running"
+        fi
+    ;;
+
+    (*)
+        usage
+        exit 1
+    ;;
+esac

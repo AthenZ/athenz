@@ -17,7 +17,7 @@ file based json documents.
     * [Server X509 Certificate](#server-x509-certificate)
     * [User Authentication](#user-authentication)
     * [System Administrators](#system-administrators)
-* [Start ZMS Server](#start-zms-server)
+* [Start/Stop ZMS Server](#startstop-zms-server)
 
 ## Requirements
 ---------------
@@ -191,15 +191,14 @@ Modify the `athenz.zms.domain_admin=user.${USER}` line and include comma
 separated list of unix user ids that should be set as Athenz system
 administrators. e.g. `athenz.zms.domain_admin=user.joe,user.john`
 
-## Start ZMS Server
--------------------
+## Start/Stop ZMS Server
+------------------------
 
-Set the required Athenz ROOT environment variable to the `athenz-zms-X.Y`
-directory and from there start the ZMS Server by executing:
+Start the ZMS Server by executing:
 
 ```shell
-$ export ROOT=<full-path-to-athenz-zms-X.Y>
-$ bin/zms_start.sh
+$ cd athenz-zms-X.Y
+$ bin/zms start
 ```
 
 Make sure the user that the ZMS Server process is running as has read
@@ -208,3 +207,10 @@ the `User Authentication` section above.
 
 Based on the sample configuration file provided, ZMS Server will be listening
 on port 4443.
+
+Stop the ZMS Server by executing:
+
+```shell
+$ cd athenz-zms-X.Y
+$ bin/zms stop
+```

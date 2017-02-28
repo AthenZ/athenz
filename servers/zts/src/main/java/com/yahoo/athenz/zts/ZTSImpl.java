@@ -200,7 +200,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // create our change log store
         
         if (implDataStore == null) {
-            String homeDir = System.getProperty(ZTSConsts.ZTS_PROP_HOME,
+            String homeDir = System.getProperty(ZTSConsts.ZTS_PROP_CHANGE_LOG_STORE_DIR,
                     getRootDir() + "/var/zts_server");
             ChangeLogStore clogStore = getChangeLogStore(homeDir);
     
@@ -316,7 +316,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     
     ChangeLogStore getChangeLogStore(String homeDir) {
 
-        String clogFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_DATA_CHANGE_LOG_STORE_FACTORY_CLASS,
+        String clogFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_CHANGE_LOG_STORE_FACTORY_CLASS,
                 ZTSConsts.ZTS_CHANGE_LOG_STORE_FACTORY_CLASS);
         ChangeLogStoreFactory clogFactory = null;
         try {

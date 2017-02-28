@@ -9,7 +9,7 @@
     * [Server X509 Certificate](#server-x509-certificate)
     * [Register ZTS Service](#register-zts-service)
     * [Generate Athenz Configuration File](#generate-athenz-configuration-file)
-* [Start ZTS Server](#start-zts-server)
+* [Start/Stop ZTS Server](#startstop-zts-server)
 
 ## Requirements
 ---------------
@@ -109,16 +109,22 @@ $ cd athenz-zts-X.Y
 $ bin/<platform>/athenz-conf -o conf/zts_server/athenz.conf -z https://<zms-server>:4443/ -t https://<zts-server>:8443/
 ```
 
-## Start ZTS Server
--------------------
+## Start/Stop ZTS Server
+------------------------
 
-Set the required Athenz ROOT environment variable to the `athenz-zts-X.Y`
-directory and from there start the ZTS Server by executing:
+Start the ZTS Server by executing:
 
 ```shell
-$ export ROOT=<full-path-to-athenz-zts-X.Y>
-$ bin/zts_start.sh
+$ cd athenz-zts-X.Y
+$ bin/zts start
 ```
 
 Based on the sample configuration file provided, ZTS Server will be listening
 on port 8443.
+
+Stop the ZTS Server by executing:
+
+```shell
+$ cd athenz-zts-X.Y
+$ bin/zts stop
+```

@@ -31,7 +31,7 @@
       <outputDirectory>bin</outputDirectory>
       <fileMode>755</fileMode>
       <includes>
-        <include>zms_start.sh</include>
+        <include>zms</include>
       </includes>
     </fileSet>
     <fileSet>

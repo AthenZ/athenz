@@ -24,7 +24,6 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_USER_DOMAIN = "athenz.user_domain";
     public static final String ZTS_PROP_ATHENZ_CONF = "athenz.athenz_conf";
 
-    public static final String ZTS_PROP_HOME        = "athenz.zts.home";
     public static final String ZTS_PROP_HOSTNAME    = "athenz.zts.hostname";
     public static final String ZTS_PROP_FILE_NAME   = "athenz.zts.prop_file";
     
@@ -41,6 +40,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_AUTHORITY_CLASSES      = "athenz.zts.authority_classes";
     public static final String ZTS_PROP_CERTSIGN_BASE_URI      = "athenz.zts.certsign_base_uri";
     public static final String ZTS_PROP_ZMS_URL_OVERRIDE       = "athenz.zts.zms_url";
+    public static final String ZTS_PROP_CHANGE_LOG_STORE_DIR   = "athenz.zts.change_log_store_dir";
 
     public static final String ZTS_PROP_LEAST_PRIVILEGE_PRINCIPLE  = "athenz.zts.least_privilege_principle";
     public static final String ZTS_PROP_ROLE_TOKEN_MAX_TIMEOUT     = "athenz.zts.role_token_max_timeout";
@@ -69,7 +69,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_METRIC_FACTORY_CLASS                  = "athenz.zts.metric_factory_class";
     public static final String ZTS_PROP_CERT_SIGNER_FACTORY_CLASS             = "athenz.zts.cert_signer_factory_class";
     public static final String ZTS_PROP_AUDIT_LOGGER_FACTORY_CLASS            = "athenz.zts.audit_logger_factory_class";
-    public static final String ZTS_PROP_DATA_CHANGE_LOG_STORE_FACTORY_CLASS   = "athenz.zts.data_change_log_store_factory_class";
+    public static final String ZTS_PROP_CHANGE_LOG_STORE_FACTORY_CLASS        = "athenz.zts.change_log_store_factory_class";
     public static final String ZTS_PROP_INSTANCE_IDENTITY_STORE_FACTORY_CLASS = "athenz.zts.instance_identity_store_factory_class";
     public static final String ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS       = "athenz.zts.private_key_store_factory_class";
     

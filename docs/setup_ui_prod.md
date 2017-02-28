@@ -8,7 +8,7 @@
     * [Private/Public Key Pair](#privatepublic-key-pair)
     * [X509 Certificate](#x509-certificate)
     * [Register UI Service](#register-ui-service)
-* [Start UI Server](#start-ui-server)
+* [Start/Stop UI Server](#startstop-ui-server)
 
 ## Requirements
 ---------------
@@ -95,16 +95,24 @@ $ bin/<platform>/zms-cli -z https://<zms-server>:4443/zms/v1 add-domain athenz
 $ bin/<platform>/zms-cli -z https://<zms-server>:4443/zms/v1 -d athenz add-service ui 0 keys/athenz.ui_pub.pem
 ```
 
-## Start UI Server
-------------------
+## Start/Stop UI Server
+-----------------------
 
-Set the following environment variables before starting the UI Server:
+Set the following environment variable before starting the UI Server:
 
 ```shell
-$ export ZMS_SERVER=<zms-server-name>
-$ export ZMS_SERVER_URL=https://<zms-server-name>:4443/zms/v1/
-$ bin/ui_start.sh
+$ export ZMS_SERVER=<zms-server-host-name>
+$ cd athenz-ui-X.Y
+$ bin/athenz_ui start
 ```
 
 Based on the sample configuration file provided, Athenz UI Server will be listening
 on port 9443.
+
+To stop the UI server, execute the following commands:
+
+```shell
+$ export ZMS_SERVER=<zms-server-host-name>
+$ cd athenz-ui-X.Y
+$ bin/athenz_ui stop
+```

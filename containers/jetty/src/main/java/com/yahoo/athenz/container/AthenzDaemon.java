@@ -1,6 +1,5 @@
-package com.yahoo.athenz.container;
 /**
- * Copyright 2016 Yahoo Inc.
+ * Copyright 2017 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +13,8 @@ package com.yahoo.athenz.container;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.yahoo.athenz.container;
+
 import org.apache.commons.daemon.Daemon;
 import org.apache.commons.daemon.DaemonContext;
 

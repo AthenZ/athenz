@@ -533,9 +533,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             PoolableDataSource src = DataSourceFactory.create(jdbcStore, userName, password);
             store = new JDBCObjectStore(src);
         } else {
-            String homeDir = System.getProperty(ZMSConsts.ZMS_PROP_HOME,
+            String homeDir = System.getProperty(ZMSConsts.ZMS_PROP_FILE_STORE_PATH,
                     getRootDir() + "/var/zms_server");
-            String fileDirName = System.getProperty(ZMSConsts.ZMS_PROP_FILE_STORE, "zms_root");
+            String fileDirName = System.getProperty(ZMSConsts.ZMS_PROP_FILE_STORE_NAME, "zms_root");
             String path = getFileStructPath(homeDir, fileDirName);
             store = new FileObjectStore(new File(path));
         }

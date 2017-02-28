@@ -24,7 +24,6 @@ public final class ZMSConsts {
     //
     public static final String ZMS_PROP_USER_DOMAIN   = "athenz.user_domain";
 
-    public static final String ZMS_PROP_HOME          = "athenz.zms.home";
     public static final String ZMS_PROP_HOSTNAME      = "athenz.zms.hostname";
     public static final String ZMS_PROP_DOMAIN_ADMIN  = "athenz.zms.domain_admin";
     public static final String ZMS_PROP_FILE_NAME     = "athenz.zms.prop_file";
@@ -40,7 +39,8 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_JDBC_STORE        = "athenz.zms.jdbc_store";
     public static final String ZMS_PROP_JDBC_USER         = "athenz.zms.jdbc_user";
     public static final String ZMS_PROP_JDBC_PASSWORD     = "athenz.zms.jdbc_password";
-    public static final String ZMS_PROP_FILE_STORE        = "athenz.zms.file_store";
+    public static final String ZMS_PROP_FILE_STORE_NAME   = "athenz.zms.file_store_name";
+    public static final String ZMS_PROP_FILE_STORE_PATH   = "athenz.zms.file_store_path";
     public static final String ZMS_PROP_MAX_THREADS       = "athenz.zms.http_max_threads";
     public static final String ZMS_PROP_AUTHORITY_CLASSES = "athenz.zms.authority_classes";
 
@@ -65,7 +65,6 @@ public final class ZMSConsts {
     public static final String ZMS_UNKNOWN_DOMAIN     = "unknown_domain";
     public static final String ZMS_INVALID_DOMAIN     = "invalid_domain";
     public static final String ZMS_SERVICE            = "zms";
-    public static final String ZMS_STATS_SCOREBOARD   = "zms_core";
     
     public static final String ZMS_DOMAIN_NAME_MAX_SIZE_DEFAULT = "128";
 
