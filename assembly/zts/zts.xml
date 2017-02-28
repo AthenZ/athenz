@@ -31,7 +31,15 @@
       <outputDirectory>bin</outputDirectory>
       <fileMode>755</fileMode>
       <includes>
-        <include>zts_start.sh</include>
+        <include>zts</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <directory>${basedir}/../../servers/zts/target</directory>
+      <outputDirectory>webapps</outputDirectory>
+      <fileMode>755</fileMode>
+      <includes>
+        <include>zts.war</include>
       </includes>
     </fileSet>
     <fileSet>

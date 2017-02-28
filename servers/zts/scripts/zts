@@ -1,0 +1,106 @@
+#!/bin/bash
+
+usage() {
+    echo "Usage: zts (start | stop)"
+}
+
+if [ $# -ne 1 ]
+then
+    echo "Invalid number of arguments specified"
+    usage
+    exit 1
+fi
+
+# if we don't have ROOT variable defined we'll default
+# to the parent directory where the script is running from
+
+if [ -z "${ROOT}" ]; then
+    BINDIR=$(dirname "$0")
+    export ROOT=$(cd $BINDIR/..;pwd)
+    echo "Setting ZTS root directory to ${ROOT}"
+fi
+
+ZTS_STOP_TIMEOUT=${ZTS_STOP_TIMEOUT:-30}
+ZTS_PID_DIR=${ZTS_PID_DIR:-$ROOT/var/zts_server}
+ZTS_LOG_DIR=${ZTS_LOG_DIR:-$ROOT/logs/zts_server}
+
+# make sure our pid and log directories exist
+
+mkdir -p "${ZTS_PID_DIR}"
+mkdir -p "${ZTS_LOG_DIR}"
+
+# setup our required java attributes for startup
+
+JAVA_OPTS="${JAVA_OPTS} -Dathenz.prop_file=${ROOT}/conf/zts_server/athenz.properties"
+JAVA_OPTS="${JAVA_OPTS} -Dathenz.zts.prop_file=${ROOT}/conf/zts_server/zts.properties"
+JAVA_OPTS="${JAVA_OPTS} -Dlogback.configurationFile=${ROOT}/conf/zts_server/logback.xml"
+
+ZTS_CLASSPATH=${ROOT}/lib/jars/*
+ZTS_BOOTSTRAP_CLASS=com.yahoo.athenz.container.AthenzJettyContainer
+
+command=$1
+
+pid=${ZTS_PID_DIR}/zts.pid
+log=${ZTS_LOG_DIR}/zts.out
+
+case $command in
+    (start)
+        if [ -f $pid ]; then
+            ZTS_PID=$(cat $pid)
+            if kill -0 ${ZTS_PID} > /dev/null 2>&1; then
+                echo "ZTS already running as process ${ZTS_PID}"
+                exit 1
+            fi
+        fi
+    
+        echo "Starting ZTS..."
+        nohup java -classpath "${ZTS_CLASSPATH}" ${JAVA_OPTS} ${ZTS_BOOTSTRAP_CLASS} > "$log" 2>&1 < /dev/null &
+        echo $! > $pid
+        sleep 2;
+        if ! ps -p $! > /dev/null ; then
+            exit 1
+        fi
+    ;;
+
+    (stop)
+        if [ -f $pid ]; then
+            ZTS_PID=$(cat $pid)
+            if kill -0 $ZTS_PID > /dev/null 2>&1; then
+                echo "Stopping ZTS..."
+                kill $ZTS_PID
+        
+                count=0
+                while ps -p $ZTS_PID > /dev/null;
+                do
+                    echo "Shutdown is in progress... Please wait..."
+                    sleep 1
+                    count=`expr $count + 1`
+        
+                    if [ "$count" = "$ZTS_STOP_TIMEOUT" ]; then
+                        break
+                    fi
+                done
+        
+                if [ "$count" != "$ZTS_STOP_TIMEOUT" ]; then
+                    echo "Shutdown completed."
+                fi
+        
+                if kill -0 $ZTS_PID > /dev/null 2>&1; then
+                    echo "Forcefully stopping ZTS..."
+                    kill -9 $ZTS_PID >/dev/null 2>&1
+                    echo "Successfully stopped ZTS"
+                fi
+            else
+                echo "ZTS is not running"
+            fi
+            rm $pid
+        else
+            echo "ZTS is not running"
+        fi
+    ;;
+
+    (*)
+        usage
+        exit 1
+    ;;
+esac

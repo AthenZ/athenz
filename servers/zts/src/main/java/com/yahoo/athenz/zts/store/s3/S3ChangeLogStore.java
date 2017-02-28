@@ -34,6 +34,7 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.yahoo.athenz.zms.SignedDomain;
 import com.yahoo.athenz.zms.SignedDomains;
+import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.store.ChangeLogStore;
 import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.rdl.JSON;
@@ -41,7 +42,6 @@ import com.yahoo.rdl.JSON;
 public class S3ChangeLogStore implements ChangeLogStore {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(S3ChangeLogStore.class);
-    private static final String ZTS_PROP_BUCKET_NAME = "athenz.zts.aws_bucket_name";
     private static final String ZTS_BUCKET_DEFAULT = "athenz-domain-sys.auth";
 
     long lastModTime = 0;
@@ -50,7 +50,7 @@ public class S3ChangeLogStore implements ChangeLogStore {
     
     public S3ChangeLogStore(CloudStore cloudStore) {
         this.cloudStore = cloudStore;
-        s3BucketName = System.getProperty(ZTS_PROP_BUCKET_NAME, ZTS_BUCKET_DEFAULT);
+        s3BucketName = System.getProperty(ZTSConsts.ZTS_PROP_AWS_BUCKET_NAME, ZTS_BUCKET_DEFAULT);
         
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("AWSS3ChangeLog: S3 Bucket name: " + s3BucketName);

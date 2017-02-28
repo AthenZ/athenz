@@ -19,6 +19,7 @@ import static org.testng.Assert.*;
 
 import java.util.concurrent.TimeoutException;
 
+import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.cert.CertSigner;
 import com.yahoo.athenz.zts.cert.impl.HttpCertSigner;
 import com.yahoo.athenz.zts.cert.impl.HttpCertSignerFactory;
@@ -27,10 +28,16 @@ import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.api.Request;
 import org.mockito.Mockito;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 public class HttpCertSignerTest {
-
+    
+    @BeforeClass
+    public void stup() {
+        System.setProperty(ZTSConsts.ZTS_PROP_CERTSIGN_BASE_URI, "https://localhost:443/certsign/v2");
+    }
+    
     @Test
     public void testHttpCertSignerFactory() {
         HttpCertSignerFactory certFactory = new HttpCertSignerFactory();

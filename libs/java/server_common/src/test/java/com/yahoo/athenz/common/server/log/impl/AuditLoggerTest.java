@@ -18,9 +18,9 @@ package com.yahoo.athenz.common.server.log.impl;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.yahoo.athenz.common.server.log.AuditLogFactory;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
+import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
 
 import org.testng.annotations.BeforeClass;
 
@@ -33,7 +33,7 @@ public class AuditLoggerTest {
     
     @BeforeClass
     public static synchronized void setUp() throws Exception {
-        auditLogger = new AuditLogger() {
+        auditLogger = new DefaultAuditLogger() {
             @Override
             public void log(String msg, String msgVersion) {
                 Assert.assertTrue(msg != null);
@@ -49,50 +49,11 @@ public class AuditLoggerTest {
 
     @Test
     public void testLogFactoryDefault() {
-        AuditLogger logger = AuditLogFactory.getLogger();
+        AuditLoggerFactory auditLoggerFactory = new DefaultAuditLoggerFactory();
+        AuditLogger logger = auditLoggerFactory.create();
         logger.log("Default logger succeeds", MSGVERS);
     }
-
-    @Test
-    public void testLogFactoryString() {
-        String auditLoggerClassName = "com.yahoo.athenz.common.server.log.impl.TestLogger";
-        try {
-            AuditLogger logger = AuditLogFactory.getLogger(auditLoggerClassName);
-            logger.log("TestLogger succeeds", null);
-            String dataStr = logger.getClass().getName();
-            Assert.assertTrue(dataStr.equals(auditLoggerClassName), "classname=" + dataStr);
-        } catch (Exception exc) {
-            Assert.fail("Should have created the Logger=TestLogger with default constructor", exc);
-        }
-    }
     
-    @Test
-    public void testLogFactoryFalseParam() {
-        String auditLoggerClassName = "com.yahoo.athenz.common.server.log.impl.TestLogger";
-        Object param = new Boolean(false);
-        try {
-            AuditLogger logger = AuditLogFactory.getLogger(auditLoggerClassName, param);
-            logger.log("TestLogger succeeds", MSGVERS);
-            String dataStr = logger.getClass().getName();
-            Assert.assertTrue(dataStr.equals(auditLoggerClassName), "classname=" + dataStr);
-        } catch (Exception exc) {
-            Assert.fail("Should have created the Logger=TestLogger with constructor taking param=" + param, exc);
-        }
-    }
-    
-    @Test
-    public void testLogFactoryTrueParam() {
-        String auditLoggerClassName = "com.yahoo.athenz.common.server.log.impl.TestLogger";
-        Object param = new Boolean(true);
-        try {
-            AuditLogger logger = AuditLogFactory.getLogger(auditLoggerClassName, param);
-            logger.log("TestLogger should not succeed", null);
-            Assert.fail("Should have thrown exception, Logger=TestLogger for  param=" + param);
-        } catch (Exception exc) {
-            Assert.assertTrue(exc.getMessage().contains("TestLogger should not succeed"), "Should have thrown exception, Logger=TestLogger with constructor taking param=" + param);
-        }
-    }
-
     @Test
     public void testLogString() {
         auditLogger.log("testLog", null);
@@ -100,7 +61,9 @@ public class AuditLoggerTest {
     
     @Test
     public void testLogMsgBuilder() {
-        AuditLogMsgBuilder msgBldr = AuditLogFactory.getMsgBuilder();
+        AuditLoggerFactory auditLoggerFactory = new DefaultAuditLoggerFactory();
+        AuditLogger logger = auditLoggerFactory.create();
+        AuditLogMsgBuilder msgBldr = logger.getMsgBuilder();
         auditLogger.log(msgBldr);
     }
 }

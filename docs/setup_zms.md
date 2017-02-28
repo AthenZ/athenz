@@ -9,7 +9,7 @@
     * [Self Signed X509 Certificate](#self-signed-x509-certificate)
     * [User Authentication](#user-authentication)
     * [System Administrators](#system-administrators)
-* [Start ZMS Server](#start-zms-server)
+* [Start/Stop ZMS Server](#startstop-zms-server)
 
 ## Requirements
 ---------------
@@ -66,7 +66,8 @@ $ openssl genrsa -out zms_private.pem 2048
 Generate a self-signed X509 certificate for ZMS Server HTTPS
 support. After we generate the X509 certificate, we need to add
 that certificate along with its private key to a keystore for Jetty 
-use. From the `athenz-zms-X.Y` directory execute the following
+use. For the local environment steps, we're using default password
+of "athenz". From the `athenz-zms-X.Y` directory execute the following
 commands:
 
 ```shell
@@ -116,22 +117,21 @@ can configure the set of system administrators by following these steps:
 
 ```shell
 $ cd athenz-zms-X.Y
-$ vi conf/zms_server/container_settings
+$ vi conf/zms_server/zms.properties
 ```
 
-Modify the `CONTAINER_ADMINUSER="user.${USER}"` line and include comma
+Modify the `athenz.zms.domain_admin=user.${USER}` line and include comma
 separated list of unix user ids that should be set as Athenz system
-administrators. e.g. `CONTAINER_ADMINUSER="user.joe,user.john`
+administrators. e.g. `athenz.zms.domain_admin=user.joe,user.john`
 
-## Start ZMS Server
--------------------
+## Start/Stop ZMS Server
+------------------------
 
-Set the required Athenz ROOT environment variable to the `athenz-zms-X.Y`
-directory and from there start the ZMS Server by executing:
+Start the ZMS Server by executing:
 
 ```shell
-$ export ROOT=<full-path-to-athenz-zms-X.Y>
-$ sudo -E bin/zms_start.sh
+$ cd athenz-zms-X.Y
+$ sudo -E bin/zms start
 ```
 
 See the `User Authentication` section above regarding an alternative
@@ -139,3 +139,10 @@ solution of starting ZMS Server without using sudo.
 
 Based on the sample configuration file provided, ZMS Server will be listening
 on port 4443.
+
+Stop the ZMS Server by executing:
+
+```shell
+$ cd athenz-zms-X.Y
+$ sudo bin/zms stop
+```

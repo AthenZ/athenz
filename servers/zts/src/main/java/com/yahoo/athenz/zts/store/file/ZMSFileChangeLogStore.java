@@ -66,8 +66,6 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
     private static final String LAST_MOD_FNAME = ".lastModTime";
     private static final String ATTR_LAST_MOD_TIME = "lastModTime";
     
-    private static final String ZTS_PROP_ZMS_URL_OVERRIDE = "athenz.zts.zms_url";
-    
     public ZMSFileChangeLogStore(String rootDirectory, PrivateKey privateKey, String privateKeyId) {
 
         // save our private key and authority
@@ -81,7 +79,7 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
         
         // check to see if we need to override the ZMS url from the config file
         
-        zmsUrl = System.getProperty(ZTS_PROP_ZMS_URL_OVERRIDE, System.getenv("ZMS_URL"));
+        zmsUrl = System.getProperty(ZTSConsts.ZTS_PROP_ZMS_URL_OVERRIDE, System.getenv("ZMS_URL"));
         
         // setup our directory for storing domain files
         

@@ -88,6 +88,7 @@
     <module>clients/java/zpe</module>
     <module>servers/zms</module>
     <module>servers/zts</module>
+    <module>containers/jetty</module>
     <module>utils/zpe_policy_updater</module>
     <module>clients/go/zms</module>
     <module>clients/go/zts</module>

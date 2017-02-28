@@ -15,17 +15,9 @@
  */
 package com.yahoo.athenz.common.server.log.impl;
 
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.regex.Pattern;
-import java.util.regex.Matcher;
 
-import com.yahoo.rdl.Struct;
-import com.yahoo.rdl.Timestamp;
-import com.yahoo.rdl.Value;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
-import com.yahoo.rdl.Array;
 
 /*
  * Default implementation that can be inherited from.
@@ -140,6 +132,7 @@ public class DefaultAuditLogMsgBuilder implements AuditLogMsgBuilder {
         this.who = whoVal;
         return this;
     }
+    
     /* (non-Javadoc)
      * @see com.yahoo.athenz.common.server.log.AuditLogMsgBuilder#who()
      */
@@ -159,6 +152,7 @@ public class DefaultAuditLogMsgBuilder implements AuditLogMsgBuilder {
         this.why = whyVal;
         return this;
     }
+    
     /* (non-Javadoc)
      * @see com.yahoo.athenz.common.server.log.AuditLogMsgBuilder#why()
      */
@@ -169,14 +163,7 @@ public class DefaultAuditLogMsgBuilder implements AuditLogMsgBuilder {
         }
         return why;
     }
-    
-    /* (non-Javadoc)
-     * @see com.yahoo.athenz.common.server.log.AuditLogMsgBuilder#when(com.yahoo.data.Timestamp)
-     */
-    @Override
-    public AuditLogMsgBuilder when(Timestamp ts) {
-        return when(ts.toString());
-    }
+
     /* (non-Javadoc)
      * @see com.yahoo.athenz.common.server.log.AuditLogMsgBuilder#when(java.lang.String)
      */
@@ -185,6 +172,7 @@ public class DefaultAuditLogMsgBuilder implements AuditLogMsgBuilder {
         this.when = whenVal;
         return this;
     }
+    
     /* (non-Javadoc)
      * @see com.yahoo.athenz.common.server.log.AuditLogMsgBuilder#when()
      */
@@ -204,6 +192,7 @@ public class DefaultAuditLogMsgBuilder implements AuditLogMsgBuilder {
         this.clientIp = clientIpAddr;
         return this;
     }
+    
     /* (non-Javadoc)
      * @see com.yahoo.athenz.common.server.log.AuditLogMsgBuilder#clientIp()
      */
@@ -223,6 +212,7 @@ public class DefaultAuditLogMsgBuilder implements AuditLogMsgBuilder {
         this.whereIp = whereVal;
         return this;
     }
+    
     /* (non-Javadoc)
      * @see com.yahoo.athenz.common.server.log.AuditLogMsgBuilder#whereHttpsPort(java.lang.String)
      */
@@ -231,6 +221,7 @@ public class DefaultAuditLogMsgBuilder implements AuditLogMsgBuilder {
         this.whereHttpsPort = whereVal;
         return this;
     }
+    
     /* (non-Javadoc)
      * @see com.yahoo.athenz.common.server.log.AuditLogMsgBuilder#whereHttpPort(java.lang.String)
      */
@@ -273,6 +264,7 @@ public class DefaultAuditLogMsgBuilder implements AuditLogMsgBuilder {
         this.whatMethod = whatMethodVal;
         return this;
     }
+    
     /* (non-Javadoc)
      * @see com.yahoo.athenz.common.server.log.AuditLogMsgBuilder#whatMethod()
      */
@@ -292,6 +284,7 @@ public class DefaultAuditLogMsgBuilder implements AuditLogMsgBuilder {
         this.whatApi = whatApiVal;
         return this;
     }
+    
     /* (non-Javadoc)
      * @see com.yahoo.athenz.common.server.log.AuditLogMsgBuilder#whatApi()
      */
@@ -311,6 +304,7 @@ public class DefaultAuditLogMsgBuilder implements AuditLogMsgBuilder {
         this.whatDomain = whatDomainVal;
         return this;
     }
+    
     /* (non-Javadoc)
      * @see com.yahoo.athenz.common.server.log.AuditLogMsgBuilder#whatDomain()
      */
@@ -330,6 +324,7 @@ public class DefaultAuditLogMsgBuilder implements AuditLogMsgBuilder {
         this.whatEntity = whatEntityVal;
         return this;
     }
+    
     /* (non-Javadoc)
      * @see com.yahoo.athenz.common.server.log.AuditLogMsgBuilder#whatEntity()
      */
@@ -350,6 +345,7 @@ public class DefaultAuditLogMsgBuilder implements AuditLogMsgBuilder {
         this.whatDetails = whatDetailsVal;
         return this;
     }
+    
     /* (non-Javadoc)
      * @see com.yahoo.athenz.common.server.log.AuditLogMsgBuilder#whatDetails()
      */
@@ -359,94 +355,6 @@ public class DefaultAuditLogMsgBuilder implements AuditLogMsgBuilder {
             return NULL_STR;
         }
         return whatDetails;
-    }
- 
-    /* (non-Javadoc)
-     * @see com.yahoo.athenz.common.server.log.AuditLogMsgBuilder#whatDetails(java.lang.String, com.yahoo.data.Struct, com.yahoo.data.Struct)
-     */   
-    @Override
-    public AuditLogMsgBuilder whatDetails(String tag, Struct origFields, Struct newFields) {
-        return whatDetails(whatSubDetails(tag, origFields, newFields));
-    }
-    
-    // Determines all differences between the Struct of original fields and the new one.
-    // If the Struct contains a Struct field, this method will recur into that field.
-    //
-    String whatSubDetails(String tag, Struct origFields, Struct newFields) {
-            
-        Set<String> setChanged  = origFields.keySet();
-        Set<String> setOldDiff  = new HashSet<String>(setChanged);
-        Set<String> setNew      = newFields.keySet();
-        Set<String> setNewDiff  = new HashSet<String>(setNew);
-        setOldDiff.removeAll(setNewDiff); // gets a diff - contains Removed elements
-        
-        Set<String> setOld     = origFields.keySet();
-        setNewDiff.removeAll(setOld); // gets a diff - contains Added elements
-        // HAVE: partial diff, all removed and added elements
-        
-        // for the intersection of set of keys, find any changes to the values
-        //
-        StringBuilder changedSb = new StringBuilder(SB_MED_SIZE_INIT);
-        changedSb.append(PARSE_DETAILS_CHANGED).append("=(");
-        setChanged.retainAll(setNew); // the intersection of the 2 sets
-        // if we have common keys, are the values different?
-        boolean changedValsFound = false;
-        for (Iterator<String> it = setChanged.iterator(); it != null && it.hasNext();) {
-            String key = it.next();
-            Object origVal = origFields.get(key);
-            if (origVal instanceof Timestamp) {
-                continue; // ignore timestamp fields
-            }
-            Object newVal  = newFields.get(key);
-            if (Value.equals(origVal, newVal) == false) {
-                // the values have changed for this key
-                changedValsFound = true;
-                if (origVal instanceof Array) {
-                    StringBuilder addedSetSb   = new StringBuilder(SB_MED_SIZE_INIT);
-                    addedSetSb.append(key + "=(").append(PARSE_DETAILS_ADDEDVALS).append("=(");
-                    StringBuilder removedSetSb = new StringBuilder(SB_MED_SIZE_INIT);
-                    removedSetSb.append(key + "=(").append(PARSE_DETAILS_REMOVEDVALS).append("=(");
-                    
-                    buildDiffArray((Array) origVal, (Array) newVal, addedSetSb, removedSetSb);
-                    addedSetSb.append("));"); // end-of-<key>=
-                    removedSetSb.append("));"); // end-of-<key>=
-                    changedSb.append(addedSetSb.toString());
-                    changedSb.append(removedSetSb.toString());
-                } else if (origVal instanceof Struct) {
-                    String subDetails = whatSubDetails(key, (Struct) origVal, (Struct) newVal);
-                    changedSb.append(subDetails);
-                } else {
-                    changedSb.append(key + "=(").append(PARSE_FROM).append("=(").append(origVal);
-                    changedSb.append(");").append(PARSE_TO).append("=(").append(newVal);
-                    changedSb.append("));");  // end-of-<key>=
-                }
-            }
-        }
-        // HAVE: full diff, elements with changed values, removed elements, added elements
-
-        // if user didnt specify a tag, we will use a default to keep syntax
-        // consistent in the built string
-        String prefix = tag == null ? "TAG=(" : tag + "=(";
-        StringBuilder sb = new StringBuilder(SB_MED_SIZE_INIT);
-        sb.append(prefix);
-        
-        if (setChanged.size() > 0) {  // HAVE: values were replaced
-            if (!changedValsFound) {
-                changedSb.append(NULL_STR);
-            }
-        }
-        changedSb.append(");");  // end-of-CHANGED=
-        sb.append(changedSb);
- 
-        sb.append(prefix).append(PARSE_DETAILS_REMOVED + "=(");
-        buildDiffKeys(setOldDiff, origFields, sb);
-        sb.append("));");
-
-        sb.append(prefix).append(PARSE_DETAILS_ADDED + "=(");
-        buildDiffKeys(setNewDiff, newFields, sb);
-        sb.append("));");
- 
-        return sb.toString();
     }
     
     /* (non-Javadoc)
@@ -465,219 +373,5 @@ public class DefaultAuditLogMsgBuilder implements AuditLogMsgBuilder {
         sb.append(whatEntity()).append(");").append(PARSE_WHAT_DETAILS).append("=(").append(whatDetails()).append(");");
         return sb.toString();
     }
- 
-    /* (non-Javadoc)
-     * @see com.yahoo.athenz.common.server.log.AuditLogMsgBuilder#parse(java.lang.String)
-     */
-    @Override
-    public Struct parse(String logMsgBldrMsg) {
-        // reverse what build() does, and pull out each component of the string
-        CharSequence charSeq = logMsgBldrMsg.subSequence(0, logMsgBldrMsg.length());
-        Struct msg = new Struct().with(PARSE_VERS, getMatchedGroup(PAT_VERS, 2, logMsgBldrMsg));
-        msg.with(PARSE_WHEN, getMatchedGroup(PAT_WHEN, 2, charSeq)).
-            with(PARSE_WHO, getMatchedGroup(PAT_WHO, 2, charSeq)).
-            with(PARSE_WHY, getMatchedGroup(PAT_WHY, 2, charSeq)).
-            with(PARSE_WHERE, getMatchedGroup(PAT_WHERE, 2, charSeq)).
-            with(PARSE_CLIENT_IP, getMatchedGroup(PAT_CLTIP, 2, charSeq)).
-            with(PARSE_WHAT_METH, getMatchedGroup(PAT_WHAT_METH, 2, charSeq)).
-            with(PARSE_WHAT_API, getMatchedGroup(PAT_WHAT_API, 2, charSeq)).
-            with(PARSE_WHAT_DOM, getMatchedGroup(PAT_WHAT_DOM, 2, charSeq)).
-            with(PARSE_WHAT_ENT, getMatchedGroup(PAT_WHAT_ENT, 2, charSeq));
-        
-        // now get the WHAT-details
-        int index = logMsgBldrMsg.indexOf(PARSE_WHAT_DETAILS + "=(");
-        if (index != -1) {
-            Struct details = new Struct();
-            msg.with(PARSE_WHAT_DETAILS, details);
-
-            String parseRemovedField = PARSE_DETAILS_REMOVED + "=(";
-            String parseAddedField   = PARSE_DETAILS_ADDED   + "=(";
-
-            // first level entities of WHAT-details are: CHANGED, REMOVED, ADDED
-            //
-            int removedIndex = logMsgBldrMsg.lastIndexOf(parseRemovedField);
-            int addedIndex   = logMsgBldrMsg.indexOf(parseAddedField, removedIndex);
-            if (removedIndex != -1) {
-                int removedValIndex = removedIndex + parseRemovedField.length();
-                int endOfRemIndex = addedIndex;
-                if (addedIndex == -1) {
-                    endOfRemIndex = logMsgBldrMsg.length();
-                }
-                endOfRemIndex  = logMsgBldrMsg.lastIndexOf(')', endOfRemIndex);
-                String removed = logMsgBldrMsg.substring(removedValIndex, addedIndex);
-                details.with(PARSE_DETAILS_REMOVED, removed);
-            }
-            
-            if (addedIndex != -1) {
-                String added = logMsgBldrMsg.substring(addedIndex + parseAddedField.length());
-                details.with(PARSE_DETAILS_ADDED, added);
-            }
-
-            // process the CHANGED section - which can contain embedded Struct's
-            //
-            int changedIndex = logMsgBldrMsg.indexOf(PARSE_DETAILS_CHANGED + "=", index);
-            if (changedIndex != -1) {
-                int endingIndex = removedIndex != -1 ?
-                    removedIndex : 
-                    (addedIndex != -1 ? addedIndex : logMsgBldrMsg.length());
-                String changed = logMsgBldrMsg.substring(changedIndex, endingIndex);
-                details.with(PARSE_DETAILS_CHANGED, changed);
-
-                // CHANGED can contain multiple ADDED-VALUES, REMOVED-VALUES, {FROM,TO} pairs
-                // make lists for each of these and add to details
-
-                Array addedValues = new Array();
-                findChangedValues(addedValues, changed, PARSE_DETAILS_ADDEDVALS + "=(", "));", true);
-                if (addedValues.size() > 0) {
-                    details.with(PARSE_DETAILS_ADDEDVALS, addedValues);
-                }
-
-                Array removedValues = new Array();
-                findChangedValues(removedValues, changed, PARSE_DETAILS_REMOVEDVALS + "=(", "));", true);
-                if (removedValues.size() > 0) {
-                    details.with(PARSE_DETAILS_REMOVEDVALS, removedValues);
-                }
-
-                // FROM/TO pairs
-                Array fromToValues = new Array();
-                findChangedValues(fromToValues, changed, PARSE_FROM + "=(", "));", true);
-                if (fromToValues.size() > 0) {
-                    details.with(PARSE_DETAILS_FROMTOVALS, fromToValues);
-                }
-
-                // look for embedded Struct - ADDED/REMOVED fields
-                // if there are embedded Struct's in the original entity, then
-                // due to recursion there can be multiple REMOVED and ADDED entries
-                // puttenantroles is one of those ZMS api that can cause this
-                Array removedFields = new Array();
-                findChangedValues(removedFields, changed, parseRemovedField, "));", true);
-                if (removedFields.size() > 0) {
-                    details.with(PARSE_DETAILS_EMB_REMOVEDVALS, removedFields);
-                }
-
-                Array addedFields = new Array();
-                findChangedValues(addedFields, changed, parseAddedField, "));", true);
-                if (addedFields.size() > 0) {
-                    details.with(PARSE_DETAILS_EMB_ADDEDVALS, addedFields);
-                }
-            }
-        }
-        return msg;
-    }
-
-    void findChangedValues(Array values, String changed, String fieldName, String endFieldStr, boolean wantPrefix) {
-        int endOfArrayIndex = 0;
-        for (int valIndex = changed.indexOf(fieldName, endOfArrayIndex);
-             valIndex != -1;
-             valIndex = changed.indexOf(fieldName, endOfArrayIndex)) {
-                     
-            endOfArrayIndex = changed.indexOf(endFieldStr, valIndex);
-            if (endOfArrayIndex == -1) {
-                break;
-            }
-
-            String value = "";
-            if (wantPrefix && (valIndex - 3 > 0)) {
-                // ex: ";org=(FROM=", "CHANGED=(modified=(FROM=("
-                // go backwards from valIndex to either ';', or '('
-                for (int cnt = valIndex - 2; cnt > -1; --cnt) {
-                    char endChar = changed.charAt(cnt) ;
-                    if (endChar == ';' || endChar == '(') {
-                        valIndex = cnt + 1;
-                        break;
-                    }
-                }
-            }
-
-            int addOffset = changed.length() > endOfArrayIndex ?  1 : 0;
-            value = changed.substring(valIndex, endOfArrayIndex + addOffset);
-            values.add(value);
-        }
-    }
-    
-    String getMatchedGroup(Pattern patty, int groupNum, CharSequence logMsg) {
-        Matcher pm = patty.matcher(logMsg);
-        if (pm.matches() && pm.groupCount() >= groupNum) {
-            return pm.group(groupNum);
-        }
-        return null;
-    }
-    
-    // Set the diff between the Arrays into the added set and/or the removed set StringBuilder.
-    // If the Array elements are Struct, it will set them appropriately but not recur into them.
-    //
-    void buildDiffArray(Array origVal, Array newVal, StringBuilder addedSetSb, StringBuilder removedSetSb) {
-
-        // create set for each Array of elements 
-        //
-        Set<String> origValSet = new HashSet<String>();
-        Iterator<Object> elems = origVal.iterator();
-        for (; elems != null && elems.hasNext(); ) {
-            Object obj = elems.next();
-            StringBuilder sb = new StringBuilder(SB_MIN_SIZE_INIT);
-            Value.appendToString(obj, sb, null);
-            origValSet.add(sb.toString());
-        }
-
-        Set<String> newValSet = new HashSet<String>();
-        for (elems = newVal.iterator(); elems != null && elems.hasNext(); ) {
-            Object obj = elems.next();
-            StringBuilder sb = new StringBuilder(SB_MIN_SIZE_INIT);
-            Value.appendToString(obj, sb, null);
-            newValSet.add(sb.toString());
-        }
-        // HAVE: set of serialized elements for original and new set of elements
-
-        // Build the diff sets now
-        //
-        Set<String> removedValSet = new HashSet<String>(origValSet);
-        removedValSet.removeAll(newValSet); // gets a diff - contains Removed elements
-        newValSet.removeAll(origValSet); // gets a diff - contains Added elements
-        // HAVE: set of serialized elements for added and removed elements
-
-        // print the set of removed elements
-        buildDiffValueSet(removedValSet, removedSetSb);
-        // print the set of added elements
-        buildDiffValueSet(newValSet, addedSetSb);
-    }
-
-    // Set all the elements of the value Set into the StringBuilder
-    //
-    void buildDiffValueSet(Set<String> valSet, StringBuilder sb) {
-        if (valSet.isEmpty()) {
-            sb.append(NULL_STR);
-            return;
-        }
-        for (Iterator<String> elems = valSet.iterator(); elems != null && elems.hasNext();) {
-            sb.append(elems.next());
-            if (elems.hasNext()) {
-                sb.append(",");
-            }
-        }
-    }
-    
-    // Set only the key/value pairs specified in the set of key names into the StringBuilder
-    //
-    void buildDiffKeys(Set<String> setDiffKeyNames, Struct dataStruct, StringBuilder sb) {
-        
-        if (setDiffKeyNames.isEmpty()) {
-            sb.append(NULL_STR);
-            return;
-        }
-        Iterator<String> it = setDiffKeyNames.iterator();
-        while (it != null && it.hasNext()) {
-            String key = it.next();
-            sb.append(key + "=");
-            Object val = dataStruct.get(key);
-            if (val == null) {
-                val = NULL_STR;
-            }
-            Value.appendToString(val, sb, null);
-            if (it.hasNext()) {
-                sb.append(",");
-            }
-        }
-    }
-
 }
 

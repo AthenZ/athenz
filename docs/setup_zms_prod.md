@@ -17,7 +17,7 @@ file based json documents.
     * [Server X509 Certificate](#server-x509-certificate)
     * [User Authentication](#user-authentication)
     * [System Administrators](#system-administrators)
-* [Start ZMS Server](#start-zms-server)
+* [Start/Stop ZMS Server](#startstop-zms-server)
 
 ## Requirements
 ---------------
@@ -96,26 +96,26 @@ ZMS with those access details:
 
 ```shell
 $ cd conf/zms_server
-$ vi container_settings
+$ vi zms.properties
 ```
 
 Make the following changes:
 
-1. Uncomment the CONTAINER_JDBC_STORE line and set it to point to your
+1. Uncomment the `#athenz.zms.jdbcstore=` line and set it to point to your
    MySQL Server instance. For example if your DB Server is running on
    a host called db1.athenz.com, then your line would be:
    
-   CONTAINER_JDBC_STORE="jdbc:mysql://db1.athenz.com:3306/zms_server"
+   athenz.zms.jdbcstore=jdbc:mysql://db1.athenz.com:3306/zms_server
 
-2. Uncomment the CONTAINER_JDBC_USER line and set it to the user
+2. Uncomment the `#athenz.zms.jdbc_user=` line and set it to the user
    configured to have full access over zms server database:
    
-   CONTAINER_JDBC_USER="zms_admin"
+   athenz.zms.jdbc_user=zms_admin
 
-3. Uncomment the CONTAINER_JDBC_PASSWORD lin and set it to the
+3. Uncomment the `#athenz.zms.jdbc_password=` line and set it to the
    configured password the for the jdbc user with full access:
    
-   CONTAINER_JDBC_PASSWORD="Athenz"
+   athenz.zms.jdbc_password=Athenz
 
 ### Private/Public Key Pair
 ---------------------------
@@ -184,22 +184,21 @@ can configure the set of system administrators by following these steps:
 
 ```shell
 $ cd athenz-zms-X.Y
-$ vi conf/zms_server/container_settings
+$ vi conf/zms_server/zms.properties
 ```
 
-Modify the `CONTAINER_ADMINUSER="user.${USER}"` line and include comma
+Modify the `athenz.zms.domain_admin=user.${USER}` line and include comma
 separated list of unix user ids that should be set as Athenz system
-administrators. e.g. `CONTAINER_ADMINUSER="user.joe,user.john`
+administrators. e.g. `athenz.zms.domain_admin=user.joe,user.john`
 
-## Start ZMS Server
--------------------
+## Start/Stop ZMS Server
+------------------------
 
-Set the required Athenz ROOT environment variable to the `athenz-zms-X.Y`
-directory and from there start the ZMS Server by executing:
+Start the ZMS Server by executing:
 
 ```shell
-$ export ROOT=<full-path-to-athenz-zms-X.Y>
-$ bin/zms_start.sh
+$ cd athenz-zms-X.Y
+$ bin/zms start
 ```
 
 Make sure the user that the ZMS Server process is running as has read
@@ -208,3 +207,10 @@ the `User Authentication` section above.
 
 Based on the sample configuration file provided, ZMS Server will be listening
 on port 4443.
+
+Stop the ZMS Server by executing:
+
+```shell
+$ cd athenz-zms-X.Y
+$ bin/zms stop
+```

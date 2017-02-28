@@ -59,10 +59,10 @@ import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.impl.UserAuthority;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.metrics.Metric;
-import com.yahoo.athenz.common.server.log.AthenzRequestLog;
-import com.yahoo.athenz.common.server.log.AuditLogFactory;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
+import com.yahoo.athenz.common.server.log.impl.DefaultAuditLogMsgBuilder;
+import com.yahoo.athenz.common.server.log.impl.DefaultAuditLogger;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.zms.Assertion;
 import com.yahoo.athenz.zms.AssertionEffect;
@@ -100,7 +100,10 @@ public class ZTSImplTest {
     DataStore store = null;
     PrivateKey privateKey = null;
     PublicKey publicKey = null;
-
+    AuditLogger auditLogger = null;
+    @Mock InstanceIdentityStore mockIdentityStore;
+    @Mock CloudStore mockCloudStore;
+    
     static final String ZTS_DATA_STORE_PATH = "/tmp/zts_server_unit_tests/zts_root";
     static final String ZTS_Y64_CERT0 = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlHZk1BMEdDU3FHU0liM0RR"
             + "RUJBUVVBQTRHTkFEQ0JpUUtCZ1FDMXRHU1ZDQTh3bDVldzVZNzZXajJySkFVRApZYW5FSmZLbUFseDVjUS84a"
@@ -273,12 +276,13 @@ public class ZTSImplTest {
         Mockito.when(mockServletRequest.getRemoteAddr()).thenReturn(MOCKCLIENTADDR);
         
         System.setProperty(ZTSConsts.ZTS_PROP_METRIC_FACTORY_CLASS, ZTSConsts.ZTS_METRIC_FACTORY_CLASS);
-        System.setProperty(ZTSConsts.ZTS_PROP_STATS_ENABLED, "true");
         System.setProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
                 "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory");
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,
                 "src/test/resources/zts_private.pem");
-        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF,  "src/test/resources/athenz.conf");
+        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
+        System.setProperty(ZTSConsts.ZTS_PROP_FILE_NAME, "src/test/resources/zts.properties");
+        auditLogger = new DefaultAuditLogger();
     }
     
     @BeforeMethod
@@ -321,9 +325,9 @@ public class ZTSImplTest {
 
         store = new DataStore(structStore, cloudStore);
 
-        com.yahoo.athenz.common.metrics.Metric metric = getMetric();
-        zts = new ZTSImpl("localhost", store, cloudStore, instanceIdentityStore, metric,
-                privateKey, "0", AuditLogFactory.getLogger(), null);
+        zts = new ZTSImpl(cloudStore, instanceIdentityStore, store);
+        ZTSImpl.serverHostName = "localhost";
+
         authorizer = (ZTSAuthorizer) zts.getAuthorizer();
     }
     
@@ -1918,12 +1922,6 @@ public class ZTSImplTest {
         isEmitMonmetricError = ZTSUtils.emitMonmetricError(errorCode, new String(), null, metric);
         assertFalse(isEmitMonmetricError);
 
-        isEmitMonmetricError = ZTSUtils.emitMonmetricError(errorCode, "invalidcharacterslike...$!?", null, metric);
-        assertFalse(isEmitMonmetricError);
-
-        isEmitMonmetricError = ZTSUtils.emitMonmetricError(errorCode, "spaces are not allowed", ZTSConsts.ZTS_UNKNOWN_DOMAIN, metric);
-        assertFalse(isEmitMonmetricError);
-
         isEmitMonmetricError = ZTSUtils.emitMonmetricError(0, caller, null, metric);
         assertFalse(isEmitMonmetricError);
 
@@ -1997,14 +1995,20 @@ public class ZTSImplTest {
                 String msg = msgBldr.build();
                 aLogMsgs.add(msg);
             }
+            @Override
+            public AuditLogMsgBuilder getMsgBuilder() {
+                return new DefaultAuditLogMsgBuilder();
+            }
         };
         
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        Metric debugMetric = new com.yahoo.athenz.common.metrics.impl.NoOpMetric();
         DataStore store = new DataStore(structStore, null);
-        zts = new ZTSImpl("localhost", store, null, null, debugMetric, privateKey, "0", alogger, null);
+        
+        zts = new ZTSImpl(mockCloudStore, mockIdentityStore, store);
+        zts.auditLogger = alogger;
+        ZTSImpl.serverHostName = "localhost";
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
@@ -2039,15 +2043,21 @@ public class ZTSImplTest {
                 String msg = msgBldr.build();
                 aLogMsgs.add(msg);
             }
+            @Override
+            public AuditLogMsgBuilder getMsgBuilder() {
+                return new DefaultAuditLogMsgBuilder();
+            }
         };
         
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
         
-        Metric debugMetric = new com.yahoo.athenz.common.metrics.impl.NoOpMetric();
         DataStore store = new DataStore(structStore, null);
-        zts = new ZTSImpl("localhost", store, null, null, debugMetric, privateKey, "0", alogger, null);
+        zts = new ZTSImpl(mockCloudStore, mockIdentityStore, store);
+        ZTSImpl.serverHostName = "localhost";
 
+        zts.auditLogger = alogger;
+        
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
         
@@ -2083,14 +2093,19 @@ public class ZTSImplTest {
                 String msg = msgBldr.build();
                 aLogMsgs.add(msg);
             }
+            @Override
+            public AuditLogMsgBuilder getMsgBuilder() {
+                return new DefaultAuditLogMsgBuilder();
+            }
         };
         
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
         
-        Metric debugMetric = new com.yahoo.athenz.common.metrics.impl.NoOpMetric();
         DataStore store = new DataStore(structStore, null);
-        zts = new ZTSImpl("localhost", store, null, null, debugMetric, privateKey, "0", alogger, null);
+        zts = new ZTSImpl(mockCloudStore, mockIdentityStore, store);
+        zts.auditLogger = alogger;
+        ZTSImpl.serverHostName = "localhost";
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
@@ -2126,14 +2141,20 @@ public class ZTSImplTest {
                 String msg = msgBldr.build();
                 aLogMsgs.add(msg);
             }
+            @Override
+            public AuditLogMsgBuilder getMsgBuilder() {
+                return new DefaultAuditLogMsgBuilder();
+            }
         };
         
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
         
-        Metric debugMetric = new com.yahoo.athenz.common.metrics.impl.NoOpMetric();
         DataStore store = new DataStore(structStore, null);
-        zts = new ZTSImpl("localhost", store, null, null, debugMetric, privateKey, "0", alogger, null);
+
+        zts = new ZTSImpl(mockCloudStore, mockIdentityStore, store);
+        zts.auditLogger = alogger;
+        ZTSImpl.serverHostName = "localhost";
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
@@ -2168,14 +2189,20 @@ public class ZTSImplTest {
                 String msg = msgBldr.build();
                 aLogMsgs.add(msg);
             }
+            @Override
+            public AuditLogMsgBuilder getMsgBuilder() {
+                return new DefaultAuditLogMsgBuilder();
+            }
         };
         
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
         
-        Metric debugMetric = new com.yahoo.athenz.common.metrics.impl.NoOpMetric();
         DataStore store = new DataStore(structStore, null);
-        zts = new ZTSImpl("localhost", store, null, null, debugMetric, privateKey, "0", alogger, null);
+
+        zts = new ZTSImpl(mockCloudStore, mockIdentityStore, store);
+        zts.auditLogger = alogger;
+        ZTSImpl.serverHostName = "localhost";
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
@@ -2214,14 +2241,20 @@ public class ZTSImplTest {
                 String msg = msgBldr.build();
                 aLogMsgs.add(msg);
             }
+            @Override
+            public AuditLogMsgBuilder getMsgBuilder() {
+                return new DefaultAuditLogMsgBuilder();
+            }
         };
         
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
         
-        Metric debugMetric = new com.yahoo.athenz.common.metrics.impl.NoOpMetric();
         DataStore store = new DataStore(structStore, null);
-        zts = new ZTSImpl("localhost", store, null, null, debugMetric, privateKey, "0", alogger, null);
+
+        zts = new ZTSImpl(mockCloudStore, mockIdentityStore, store);
+        zts.auditLogger = alogger;
+        ZTSImpl.serverHostName = "localhost";
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
@@ -3766,9 +3799,12 @@ public class ZTSImplTest {
         CertSigner certSigner = new SelfCertSignerFactory().create();
         InstanceIdentityStore instanceIdentityStore = new LocalInstanceIdentityStore(certSigner);
         ZtsMetricTester metric = new ZtsMetricTester();
-        ZTSImpl ztsImpl = new ZTSImpl("localhost", store, cloudStore, instanceIdentityStore, metric,
-                privateKey, "0", AuditLogFactory.getLogger(), null);
-
+        //ZTSImpl ztsImpl = new ZTSImpl("localhost", store, cloudStore, instanceIdentityStore, metric,
+        //        privateKey, "0", auditLogger, null);
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, instanceIdentityStore, store);
+        ZTSImpl.serverHostName = "localhost";
+        ztsImpl.metric = metric;
+        
         String testDomain = "coretech";
 
         // create some metrics
@@ -4136,6 +4172,6 @@ public class ZTSImplTest {
                 0, principalAuthority);
         ResourceContext ctx2 = createResourceContext(principal, request);
         zts.logPrincipal(ctx2);
-        assertEquals((String) request.getAttribute(AthenzRequestLog.REQUEST_PRINCIPAL), "sports.nhl");
+        assertEquals((String) request.getAttribute("com.yahoo.athenz.auth.principal"), "sports.nhl");
     }
 }

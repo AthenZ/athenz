@@ -31,7 +31,15 @@
       <outputDirectory>bin</outputDirectory>
       <fileMode>755</fileMode>
       <includes>
-        <include>zms_start.sh</include>
+        <include>zms</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <directory>${basedir}/../../servers/zms/target</directory>
+      <outputDirectory>webapps</outputDirectory>
+      <fileMode>755</fileMode>
+      <includes>
+        <include>zms.war</include>
       </includes>
     </fileSet>
     <fileSet>

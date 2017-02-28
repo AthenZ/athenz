@@ -18,7 +18,6 @@ package com.yahoo.athenz.common.server.log;
 /**
  * Interface to perform audit logging. 
  * See {@link com.yahoo.athenz.common.server.log.AuditLogFactory#getLogger()}
- *
  */
 public interface AuditLogger {
     /**
@@ -35,4 +34,10 @@ public interface AuditLogger {
      * @param msgBldr constructs message to be logged, contains version tag of the message
      */
     public void log(AuditLogMsgBuilder msgBldr);
+    
+    /**
+     * Get a log message builder
+     * @return default AuditLogMsgBuilder instance
+     */
+    public AuditLogMsgBuilder getMsgBuilder();
 }

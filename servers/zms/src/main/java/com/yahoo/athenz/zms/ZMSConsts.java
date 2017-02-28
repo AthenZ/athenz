@@ -22,19 +22,16 @@ public final class ZMSConsts {
 
     // System property names with defaults(where applicable)
     //
-    public static final String ZMS_PROP_HOME          = "athenz.zms.home";
+    public static final String ZMS_PROP_USER_DOMAIN   = "athenz.user_domain";
+
     public static final String ZMS_PROP_HOSTNAME      = "athenz.zms.hostname";
     public static final String ZMS_PROP_DOMAIN_ADMIN  = "athenz.zms.domain_admin";
-    public static final String ZMS_PROP_HTTPS_PORT    = "athenz.zms.tls_port";
-    public static final String ZMS_PROP_HTTP_PORT     = "athenz.zms.port";
-
-    public static final String ZMS_PROP_ACCESS_LOG_DIR       = "athenz.zms.access_log_dir";
-    public static final String ZMS_PROP_STATS_ENABLED        = "athenz.zms.enable_stats";
+    public static final String ZMS_PROP_FILE_NAME     = "athenz.zms.prop_file";
+    
     public static final String ZMS_PROP_VIRTUAL_DOMAIN       = "athenz.zms.virtual_domain_support";
     public static final String ZMS_PROP_VIRTUAL_DOMAIN_LIMIT = "athenz.zms.virtual_domain_limit";
     public static final String ZMS_PROP_READ_ONLY_MODE       = "athenz.zms.read_only_mode";
     public static final String ZMS_PROP_DOMAIN_NAME_MAX_SIZE = "athenz.zms.domain_name_max_len";
-    public static final String ZMS_PROP_METRIC_FACTORY_CLASS = "athenz.zms.metric_factory_class";
     
     public static final String ZMS_PROP_CONFLICT_RETRY_COUNT      = "athenz.zms.request_conflict_retry_count";
     public static final String ZMS_PROP_CONFLICT_RETRY_SLEEP_TIME = "athenz.zms.request_conflict_retry_sleep_time";
@@ -42,7 +39,8 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_JDBC_STORE        = "athenz.zms.jdbc_store";
     public static final String ZMS_PROP_JDBC_USER         = "athenz.zms.jdbc_user";
     public static final String ZMS_PROP_JDBC_PASSWORD     = "athenz.zms.jdbc_password";
-    public static final String ZMS_PROP_FILE_STORE        = "athenz.zms.file_store";
+    public static final String ZMS_PROP_FILE_STORE_NAME   = "athenz.zms.file_store_name";
+    public static final String ZMS_PROP_FILE_STORE_PATH   = "athenz.zms.file_store_path";
     public static final String ZMS_PROP_MAX_THREADS       = "athenz.zms.http_max_threads";
     public static final String ZMS_PROP_AUTHORITY_CLASSES = "athenz.zms.authority_classes";
 
@@ -50,50 +48,23 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_SIGNED_POLICY_TIMEOUT   = "athenz.zms.signed_policy_timeout";
     public static final String ZMS_PROP_AUTHZ_SERVICE_FNAME     = "athenz.zms.authz_service_fname";
     public static final String ZMS_PROP_SOLUTION_TEMPLATE_FNAME = "athenz.zms.solution_templates_fname";
-    
-    public static final String ZMS_PROP_USER_DOMAIN             = "athenz.user_domain";
-    
-    public static final String ZMS_PROP_ACCESS_LOG_RETAIN_DAYS = "athenz.zms.access_log_retain_days";
-    public static final String ZMS_PROP_ACCESS_LOG_NAME        = "athenz.zms.access_log_name";
-    public static final String ZMS_PROP_ACCESS_SLF4J_LOGGER    = "athenz.zms.access_slf4j_logger";
-
-    public static final String ZMS_PROP_KEYSTORE_PASSWORD      = "athenz.zms.ssl_key_store_password";
-    public static final String ZMS_PROP_KEYMANAGER_PASSWORD    = "athenz.zms.ssl_key_manager_password";
-    public static final String ZMS_PROP_TRUSTSTORE_PASSWORD    = "athenz.zms.ssl_trust_store_password";
-    public static final String ZMS_PROP_KEYSTORE_PATH          = "athenz.zms.ssl_key_store";
-    public static final String ZMS_PROP_KEYSTORE_TYPE          = "athenz.zms.ssl_key_store_type";
-    public static final String ZMS_PROP_TRUSTSTORE_PATH        = "athenz.zms.ssl_trust_store";
-    public static final String ZMS_PROP_TRUSTSTORE_TYPE        = "athenz.zms.ssl_trust_store_type";
-    public static final String ZMS_PROP_EXCLUDED_CIPHER_SUITES = "athenz.zms.ssl_excluded_cipher_suites";
-    public static final String ZMS_PROP_EXCLUDED_PROTOCOLS     = "athenz.zms.ssl_excluded_protocols";
-    public static final String ZMS_PROP_IDLE_TIMEOUT           = "athenz.zms.http_idle_timeout";
-    public static final String ZMS_PROP_SEND_SERVER_VERSION    = "athenz.zms.http_send_server_version";
-    public static final String ZMS_PROP_SEND_DATE_HEADER       = "athenz.zms.http_send_date_header";
-    public static final String ZMS_PROP_OUTPUT_BUFFER_SIZE     = "athenz.zms.http_output_buffer_size";
-    public static final String ZMS_PROP_REQUEST_HEADER_SIZE    = "athenz.zms.http_reqeust_header_size";
-    public static final String ZMS_PROP_RESPONSE_HEADER_SIZE   = "athenz.zms.http_response_header_size";
-    public static final String ZMS_PROP_LISTEN_HOST            = "athenz.zms.listen_host";
-    public static final String ZMS_PROP_KEEP_ALIVE             = "athenz.zms.keep_alive";
-    public static final String ZMS_PROP_PROVIDER_ENDPOINTS     = "athenz.zms.provider_endpoints";
-    public static final String ZMS_PROP_PRODUCT_ID_SUPPORT     = "athenz.zms.product_id_support";
+    public static final String ZMS_PROP_PROVIDER_ENDPOINTS      = "athenz.zms.provider_endpoints";
+    public static final String ZMS_PROP_PRODUCT_ID_SUPPORT      = "athenz.zms.product_id_support";
     
     // properties used to over-ride default Audit logger
  
-    public static final String ZMS_PROP_AUDIT_LOGGER_CLASS       = "athenz.zms.audit_logger_class";
-    public static final String ZMS_PROP_AUDIT_LOGGER_CLASS_PARAM = "athenz.zms.audit_logger_class_param";
-    public static final String ZMS_PROP_AUDIT_LOG_MSG_BLDR_CLASS = "athenz.zms.audit_log_msg_builder_class";
-
+    public static final String ZMS_PROP_METRIC_FACTORY_CLASS            = "athenz.zms.metric_factory_class";
+    public static final String ZMS_PROP_AUDIT_LOGGER_FACTORY_CLASS      = "athenz.zms.audit_logger_factory_class";
     public static final String ZMS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS = "athenz.zms.private_key_store_factory_class";
     
-    public static final String ZMS_METRIC_FACTORY_CLASS         = "com.yahoo.athenz.common.metrics.impl.NoOpMetricFactory";
+    public static final String ZMS_METRIC_FACTORY_CLASS       = "com.yahoo.athenz.common.metrics.impl.NoOpMetricFactory";
+    public static final String ZMS_AUDIT_LOGGER_FACTORY_CLASS = "com.yahoo.athenz.common.server.log.impl.DefaultAuditLoggerFactory";
+    public static final String ZMS_PRINCIPAL_AUTHORITY_CLASS  = "com.yahoo.athenz.auth.impl.PrincipalAuthority";
+    public static final String ZMS_PKEY_STORE_FACTORY_CLASS   = "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory";
 
     public static final String ZMS_UNKNOWN_DOMAIN     = "unknown_domain";
     public static final String ZMS_INVALID_DOMAIN     = "invalid_domain";
     public static final String ZMS_SERVICE            = "zms";
-
-    public static final int    ZMS_HTTPS_PORT_DEFAULT = 0;
-    public static final int    ZMS_HTTP_PORT_DEFAULT  = 10080;
-    public static final String ZMS_STATS_SCOREBOARD   = "zms_core";
     
     public static final String ZMS_DOMAIN_NAME_MAX_SIZE_DEFAULT = "128";
 

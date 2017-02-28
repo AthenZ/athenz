@@ -16,16 +16,6 @@
 package com.yahoo.athenz.common.server.util;
 
 public class StringUtils {
-
-    public static String removeLeadingAndTrailingQuotes(String value) {
-        if (value.startsWith("\"")) {
-            value = value.substring(1, value.length());
-        }
-        if (value.endsWith("\"")) {
-            value = value.substring(0, value.length() - 1);
-        }
-        return value;
-    }
     
     public static boolean isRegexMetaCharacter(char regexChar) {
         switch (regexChar) {

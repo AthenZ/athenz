@@ -28,20 +28,23 @@ import com.yahoo.athenz.common.server.log.AuditLogger;
  */
 public class DefaultAuditLogger implements AuditLogger {
 
-    // Configured logger named "AuditSoxLogger"
-    //
+    /**
+     * Configured logger named "AuditSoxLogger"
+     */
     private static Logger AUDITLOGGER = LoggerFactory.getLogger("AuditSoxLogger");
     
     public DefaultAuditLogger() {
     }
 
-    // Override the default logger with one named loggerName 
-    //
+    /**
+     *  Override the default logger with one named loggerName 
+     * @param loggerName
+     */
     public DefaultAuditLogger(String loggerName) {
         AUDITLOGGER = LoggerFactory.getLogger(loggerName);
     }
     
-    /* (non-Javadoc)
+    /**
      * @see com.yahoo.athenz.common.server.log.AuditLogger#log(java.lang.String, java.lang.String)
      */
     @Override
@@ -57,5 +60,13 @@ public class DefaultAuditLogger implements AuditLogger {
         if (msgBldr != null) {
             log(msgBldr.build(), msgBldr.versionTag());
         }
+    }
+    
+    /*
+     * Get the default AuditLogMsgBuilder implementation.
+     */
+    @Override
+    public AuditLogMsgBuilder getMsgBuilder() {
+        return new DefaultAuditLogMsgBuilder();
     }
 }

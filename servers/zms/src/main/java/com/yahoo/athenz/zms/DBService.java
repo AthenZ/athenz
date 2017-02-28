@@ -129,7 +129,7 @@ public class DBService {
         if (ctx == null) {
             return null;
         }
-        Principal principal = ((ZMSImpl.RsrcCtxWrapper) ctx).principal();
+        Principal principal = ((RsrcCtxWrapper) ctx).principal();
         if (principal == null) {
             return null;
         }
@@ -151,9 +151,9 @@ public class DBService {
     void auditLogRequest(ResourceContext ctx, String domainName, String auditRef,
             String caller, String operation, String entityName, String auditDetails) {
         
-        AuditLogMsgBuilder msgBldr = ZMSImpl.getAuditLogMsgBuilder(ctx, domainName, auditRef,
-                caller, operation);
-        msgBldr.when(Timestamp.fromCurrentTime()).whatEntity(entityName);
+        AuditLogMsgBuilder msgBldr = ZMSUtils.getAuditLogMsgBuilder(ctx, auditLogger,
+                domainName, auditRef, caller, operation);
+        msgBldr.when(Timestamp.fromCurrentTime().toString()).whatEntity(entityName);
         if (auditDetails != null) {
             msgBldr.whatDetails(auditDetails);
         }

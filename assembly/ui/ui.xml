@@ -63,7 +63,7 @@
       <outputDirectory>bin</outputDirectory>
       <fileMode>755</fileMode>
       <includes>
-        <include>ui_start.sh</include>
+        <include>athenz_ui</include>
       </includes>
     </fileSet>
     <fileSet>

@@ -49,26 +49,25 @@ import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.impl.SimpleServiceIdentityProvider;
 import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.auth.util.Crypto;
-import com.yahoo.athenz.common.metrics.Metric;
-import com.yahoo.athenz.common.metrics.MetricFactory;
-import com.yahoo.athenz.common.server.log.AthenzRequestLog;
-import com.yahoo.athenz.common.server.log.AuditLogFactory;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
+import com.yahoo.athenz.common.server.log.impl.DefaultAuditLogMsgBuilder;
+import com.yahoo.athenz.common.server.log.impl.DefaultAuditLogger;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.provider.ProviderMockClient;
 import com.yahoo.athenz.zms.ZMSImpl.AccessStatus;
 import com.yahoo.athenz.zms.ZMSImpl.AthenzObject;
 import com.yahoo.athenz.zms.store.AthenzDomain;
-import com.yahoo.athenz.zms.store.ObjectStore;
 import com.yahoo.athenz.zms.store.file.FileConnection;
-import com.yahoo.athenz.zms.store.file.FileObjectStore;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
 
 public class ZMSImplTest extends TestCase {
+
+    public static final String ZMS_PROP_PUBLIC_KEY = "athenz.zms.publickey";
+    private static final String ZMS_REQUEST_PRINCIPAL = "com.yahoo.athenz.auth.principal";
 
     ZMSImpl zms             = null;
     String adminUser        = null;
@@ -82,14 +81,17 @@ public class ZMSImplTest extends TestCase {
 
     // typically used when creating and deleting domains with all the tests
     //
-    @Mock ZMSImpl.RsrcCtxWrapper mockDomRsrcCtx;
+    @Mock RsrcCtxWrapper mockDomRsrcCtx;
     @Mock com.yahoo.athenz.common.server.rest.ResourceContext mockDomRestRsrcCtx;
     Principal rsrcPrince    = null; // used with the mockDomRestRsrcCtx
+    AuditLogger auditLogger = null; // default audit logger
     
-    @Mock ZMSImpl.RsrcCtxWrapper mockDomRsrcCtx2;
+    @Mock RsrcCtxWrapper mockDomRsrcCtx2;
     @Mock com.yahoo.athenz.common.server.rest.ResourceContext mockDomRestRsrcCtx2;
 
     private static final String MOCKCLIENTADDR = "10.11.12.13";
+    private static final String ZMS_DATA_STORE_FILE = "zms_root";
+    
     @Mock HttpServletRequest mockServletRequest;
     @Mock HttpServletResponse mockServletResponse;
     
@@ -113,21 +115,22 @@ public class ZMSImplTest extends TestCase {
 
         Mockito.when(mockServletRequest.getRemoteAddr()).thenReturn(MOCKCLIENTADDR);
 
+        System.setProperty(ZMSConsts.ZMS_PROP_FILE_NAME, "src/test/resources/zms.properties");
         System.setProperty(ZMSConsts.ZMS_PROP_METRIC_FACTORY_CLASS, ZMSConsts.ZMS_METRIC_FACTORY_CLASS);
-        System.setProperty(ZMSConsts.ZMS_PROP_STATS_ENABLED, "true");
         System.setProperty(ZMSConsts.ZMS_PROP_PROVIDER_ENDPOINTS, ".athenzcompany.com");
         
         System.setProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
                 "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory");
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zms_private.pem");
-        System.setProperty(ZMSTest.ZMS_PROP_PUBLIC_KEY, "src/test/resources/zms_public.pem");
+        System.setProperty(ZMS_PROP_PUBLIC_KEY, "src/test/resources/zms_public.pem");
         System.setProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN, "user.testadminuser");
         System.setProperty(ZMSConsts.ZMS_PROP_AUTHZ_SERVICE_FNAME,
                 "src/test/resources/authorized_services.json");
         System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME,
                 "src/test/resources/solution_templates.json");
-
-        setupServiceId();
+        auditLogger = new DefaultAuditLogger();
+        
+        initializeZms();
     }
 
     com.yahoo.athenz.zms.ResourceContext createResourceContext(Principal prince) {
@@ -136,7 +139,7 @@ public class ZMSImplTest extends TestCase {
         Mockito.when(rsrcCtx.request()).thenReturn(mockServletRequest);
         Mockito.when(rsrcCtx.response()).thenReturn(mockServletResponse);
 
-        ZMSImpl.RsrcCtxWrapper rsrcCtxWrapper = Mockito.mock(ZMSImpl.RsrcCtxWrapper.class);
+        RsrcCtxWrapper rsrcCtxWrapper = Mockito.mock(RsrcCtxWrapper.class);
         Mockito.when(rsrcCtxWrapper.context()).thenReturn(rsrcCtx);
         Mockito.when(rsrcCtxWrapper.principal()).thenReturn(prince);
         Mockito.when(rsrcCtxWrapper.request()).thenReturn(mockServletRequest);
@@ -144,7 +147,7 @@ public class ZMSImplTest extends TestCase {
         return rsrcCtxWrapper;
     }
     
-    com.yahoo.athenz.zms.ResourceContext createResourceContext(Principal principal, HttpServletRequest request) {
+    ResourceContext createResourceContext(Principal principal, HttpServletRequest request) {
         if (request == null) {
             return createResourceContext(principal);
         }
@@ -154,7 +157,7 @@ public class ZMSImplTest extends TestCase {
         Mockito.when(rsrcCtx.request()).thenReturn(request);
         Mockito.when(rsrcCtx.response()).thenReturn(mockServletResponse);
 
-        ZMSImpl.RsrcCtxWrapper rsrcCtxWrapper = Mockito.mock(ZMSImpl.RsrcCtxWrapper.class);
+        RsrcCtxWrapper rsrcCtxWrapper = Mockito.mock(RsrcCtxWrapper.class);
         Mockito.when(rsrcCtxWrapper.context()).thenReturn(rsrcCtx);
         Mockito.when(rsrcCtxWrapper.request()).thenReturn(request);
         Mockito.when(rsrcCtxWrapper.principal()).thenReturn(principal);
@@ -173,21 +176,6 @@ public class ZMSImplTest extends TestCase {
         return obj;
     }
 
-    private Metric createMetric() {
-        MetricFactory metricFactory = null;
-        Metric metric = null;
-        try {
-            metricFactory = (MetricFactory) 
-                Class.forName(System.getProperty(ZMSConsts.ZMS_PROP_METRIC_FACTORY_CLASS)).newInstance();
-            metric = metricFactory.create();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException exc) {
-            System.out.println("Invalid MetricFactory class: " + ZMSConsts.ZMS_METRIC_FACTORY_CLASS
-                    + " error: " + exc.getMessage());
-            metric = new com.yahoo.athenz.common.metrics.impl.NoOpMetric();
-        }
-        return metric;
-    }
-
     private ZMSImpl zmsInit() {
         // we want to make sure we start we clean dir structure
         FileConnection.deleteDirectory(new File(ZMS_DATA_STORE_PATH));
@@ -204,57 +192,50 @@ public class ZMSImplTest extends TestCase {
         Mockito.when(mockDomRsrcCtx.request()).thenReturn(mockServletRequest);
         Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcPrince);
 
-        ObjectStore store = new FileObjectStore(new File(ZMS_DATA_STORE_PATH));
-
-        String pubKeyName = System.getProperty(ZMSTest.ZMS_PROP_PUBLIC_KEY);
+        String pubKeyName = System.getProperty(ZMS_PROP_PUBLIC_KEY);
         File pubKeyFile = new File(pubKeyName);
         pubKey = Crypto.encodedFile(pubKeyFile);
         
         String privKeyName = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
         File privKeyFile = new File(privKeyName);
         privKey = Crypto.encodedFile(privKeyFile);
-        PrivateKey privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
-
-        String privKeyId = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY_ID, "0");
 
         adminUser = System.getProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN);
-
-        Metric metric = createMetric();
-        ZMSImpl zmsObj = new ZMSImpl("localhost", store, metric, privateKey,
-                privKeyId, AuditLogFactory.getLogger(), null);
         
-        ServiceIdentity service = createServiceObject("sys.auth",
-                        "zms", "http://localhost", "/usr/bin/java", "root",
-                        "users", "host1");
-
-        zmsObj.putServiceIdentity(mockDomRsrcCtx, "sys.auth", "zms", auditRef, service);
+        System.setProperty(ZMSConsts.ZMS_PROP_FILE_STORE_PATH, "/tmp/zms_core_unit_tests/");
+        System.clearProperty(ZMSConsts.ZMS_PROP_JDBC_STORE);
         
+        ZMSImpl zmsObj = new ZMSImpl();
+        zmsObj.serverPublicKeyMap.put("1", pubKeyK1);
+        zmsObj.serverPublicKeyMap.put("2", pubKeyK2);
+        ZMSImpl.serverHostName = "localhost";
+
         return zmsObj;
     }
     
-    ZMSImpl getZmsImpl(String storeDir, AuditLogger alogger) {
+    ZMSImpl getZmsImpl(String storeFile, AuditLogger alogger) {
         
-        FileConnection.deleteDirectory(new File(storeDir));
-        ObjectStore store = new FileObjectStore(new File(storeDir));
-        String privKeyName = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
-        File   privKeyFile = new File(privKeyName);
-        String privKey = Crypto.encodedFile(privKeyFile);
-        PrivateKey privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
+        
+        System.clearProperty(ZMSConsts.ZMS_PROP_JDBC_STORE);
+        System.setProperty(ZMSConsts.ZMS_PROP_FILE_STORE_NAME, storeFile);
+        System.setProperty(ZMSConsts.ZMS_PROP_FILE_STORE_PATH, "/tmp/zms_core_unit_tests/");
 
-        String privKeyId = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY_ID, "0");
-        ServiceIdentity service = createServiceObject("sys.auth",
-                        "zms", "http://localhost", "/usr/bin/java", "root",
-                        "users", "host1");
+        ZMSImpl zmsObj = new ZMSImpl();
+        zmsObj.auditLogger = alogger;
+        zmsObj.dbService.auditLogger = alogger;
+        
+        ZMSImpl.serverHostName = "localhost";
 
-        Metric metric = createMetric();
-        ZMSImpl zmsObj = new ZMSImpl("localhost", store, metric, privateKey,
-                privKeyId, alogger, null);
+        ServiceIdentity service = createServiceObject("sys.auth", "zms",
+                "http://localhost", "/usr/bin/java", "root", "users", "host1");
+        
         zmsObj.putServiceIdentity(mockDomRsrcCtx, "sys.auth", "zms", auditRef, service);
         zmsObj.setProviderClientClass(ProviderMockClient.class);
         return zmsObj;
     }
 
-    public void setupServiceId() throws IOException {
+    public void initializeZms() throws IOException {
 
         Path path = Paths.get("./src/test/resources/zms_public_k1.pem");
         pubKeyK1 = Crypto.ybase64((new String(Files.readAllBytes(path))).getBytes());
@@ -528,20 +509,23 @@ public class ZMSImplTest extends TestCase {
 
     @Test
     public void testGetAuditLogMsgBuilder() {
-        AuditLogMsgBuilder msgBldr = ZMSImpl.getAuditLogMsgBuilder(mockDomRsrcCtx, "mydomain", auditRef, "myapi", "PUT");
+        AuditLogMsgBuilder msgBldr = ZMSUtils.getAuditLogMsgBuilder(mockDomRsrcCtx, auditLogger,
+                "mydomain", auditRef, "myapi", "PUT");
         assertNotNull(msgBldr);
     }
 
     @Test
     public void testGetAuditLogMsgBuilderNullCtx() {
-        AuditLogMsgBuilder msgBldr = ZMSImpl.getAuditLogMsgBuilder(null, "mydomain", auditRef, "myapi", "PUT");
+        AuditLogMsgBuilder msgBldr = ZMSUtils.getAuditLogMsgBuilder(null, auditLogger,
+                "mydomain", auditRef, "myapi", "PUT");
         assertNotNull(msgBldr);
     }
 
     @Test
     public void testGetAuditLogMsgBuilderNullPrincipal() {
         ResourceContext ctx = createResourceContext(null);
-        AuditLogMsgBuilder msgBldr = ZMSImpl.getAuditLogMsgBuilder(ctx, "mydomain", auditRef, "myapi", "PUT");
+        AuditLogMsgBuilder msgBldr = ZMSUtils.getAuditLogMsgBuilder(ctx, auditLogger,
+                "mydomain", auditRef, "myapi", "PUT");
         assertNotNull(msgBldr);
     }
 
@@ -555,7 +539,8 @@ public class ZMSImplTest extends TestCase {
                 0, principalAuthority);
         ((SimplePrincipal) principal).setUnsignedCreds(unsignedCreds); // set unsigned creds
         ResourceContext ctx = createResourceContext(principal);
-        AuditLogMsgBuilder msgBldr = ZMSImpl.getAuditLogMsgBuilder(ctx, "mydomain", auditRef, "myapi", "PUT");
+        AuditLogMsgBuilder msgBldr = ZMSUtils.getAuditLogMsgBuilder(ctx, auditLogger,
+                "mydomain", auditRef, "myapi", "PUT");
         assertNotNull(msgBldr);
         String who = msgBldr.who();
         assertNotNull(who);
@@ -571,7 +556,8 @@ public class ZMSImplTest extends TestCase {
         Principal principal = SimplePrincipal.create("user", userId, unsignedCreds,
                 0, principalAuthority);
         ResourceContext ctx = createResourceContext(principal);
-        AuditLogMsgBuilder msgBldr = ZMSImpl.getAuditLogMsgBuilder(ctx, "mydomain", auditRef, "myapi", "PUT");
+        AuditLogMsgBuilder msgBldr = ZMSUtils.getAuditLogMsgBuilder(ctx, auditLogger,
+                "mydomain", auditRef, "myapi", "PUT");
         assertNotNull(msgBldr);
         String who = msgBldr.who();
         assertNotNull(who);
@@ -580,7 +566,8 @@ public class ZMSImplTest extends TestCase {
 
     @Test
     public void testGetAuditLogMsgBuilderNullParams() {
-        AuditLogMsgBuilder msgBldr = ZMSImpl.getAuditLogMsgBuilder(mockDomRsrcCtx, null, null, null, null);
+        AuditLogMsgBuilder msgBldr = ZMSUtils.getAuditLogMsgBuilder(mockDomRsrcCtx, auditLogger,
+                null, null, null, null);
         assertNotNull(msgBldr);
     }
 
@@ -1069,7 +1056,7 @@ public class ZMSImplTest extends TestCase {
 
     @Test
     public void testCreateTopLevelDomainOnceOnly() {
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -1078,9 +1065,13 @@ public class ZMSImplTest extends TestCase {
                 String msg = msgBldr.build();
                 aLogMsgs.add(msg);
             }
+            @Override
+            public AuditLogMsgBuilder getMsgBuilder() {
+                return new DefaultAuditLogMsgBuilder();
+            }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_posttopdomonceonly";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_posttopdomonceonly";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         TopLevelDomain dom1 = createTopLevelDomainObject("AddOnceTopDom1",
                 "Test Domain1", "testOrg", adminUser);
@@ -1424,7 +1415,7 @@ public class ZMSImplTest extends TestCase {
     
     @Test
     public void testDeleteTopLevelDomainChildExist() {
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -1433,9 +1424,13 @@ public class ZMSImplTest extends TestCase {
                 String msg = msgBldr.build();
                 aLogMsgs.add(msg);
             }
+            @Override
+            public AuditLogMsgBuilder getMsgBuilder() {
+                return new DefaultAuditLogMsgBuilder();
+            }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_deltopdomhrowexc";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_deltopdomhrowexc";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         String caller = "deletetopleveldomain";
 
@@ -1470,7 +1465,7 @@ public class ZMSImplTest extends TestCase {
         
         zmsImpl.deleteSubDomain(mockDomRsrcCtx, "DelTopChildDom1", "DelSubDom2", auditRef);
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "DelTopChildDom1", auditRef);
-        FileConnection.deleteDirectory(new File(storeDir));
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
 
     @Test
@@ -1544,7 +1539,7 @@ public class ZMSImplTest extends TestCase {
 
     @Test
     public void testDeleteSubDomainChildExist() {
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -1553,9 +1548,13 @@ public class ZMSImplTest extends TestCase {
                 String msg = msgBldr.build();
                 aLogMsgs.add(msg);
             }
+            @Override
+            public AuditLogMsgBuilder getMsgBuilder() {
+                return new DefaultAuditLogMsgBuilder();
+            }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_delsubdomchildexist";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_delsubdomchildexist";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         String caller = "deletesubdomain";
 
@@ -1594,7 +1593,7 @@ public class ZMSImplTest extends TestCase {
         zmsImpl.deleteSubDomain(mockDomRsrcCtx, "DelSubChildDom1.DelSubDom2", "DelSubDom3", auditRef);
         zmsImpl.deleteSubDomain(mockDomRsrcCtx, "DelSubChildDom1", "DelSubDom2", auditRef);
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "DelSubChildDom1", auditRef);
-        FileConnection.deleteDirectory(new File(storeDir));
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
     
     @Test
@@ -1648,7 +1647,7 @@ public class ZMSImplTest extends TestCase {
 
     @Test
     public void testPutDomainMetaThrowException() {
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -1657,9 +1656,13 @@ public class ZMSImplTest extends TestCase {
                 String msg = msgBldr.build();
                 aLogMsgs.add(msg);
             }
+            @Override
+            public AuditLogMsgBuilder getMsgBuilder() {
+                return new DefaultAuditLogMsgBuilder();
+            }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_putdommetathrowexc";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_putdommetathrowexc";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         String caller = "putdomainmeta";
         String domName = "wrongDomainName";
@@ -2012,7 +2015,7 @@ public class ZMSImplTest extends TestCase {
     @Test
     public void testPutRoleThrowException() {
 
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -2021,9 +2024,13 @@ public class ZMSImplTest extends TestCase {
                 String msg = msgBldr.build();
                 aLogMsgs.add(msg);
             }
+            @Override
+            public AuditLogMsgBuilder getMsgBuilder() {
+                return new DefaultAuditLogMsgBuilder();
+            }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_putrolethrowexc";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_putrolethrowexc";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         String domainName = "DomainName1";
         String roleName = "RoleName1";
@@ -2077,7 +2084,7 @@ public class ZMSImplTest extends TestCase {
         }
         assertTrue(foundError);
 
-        FileConnection.deleteDirectory(new File(storeDir));
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
 
     @Test
@@ -2497,7 +2504,7 @@ public class ZMSImplTest extends TestCase {
 
     @Test
     public void testDeleteRoleThrowException() {
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -2506,9 +2513,13 @@ public class ZMSImplTest extends TestCase {
                 String msg = msgBldr.build();
                 aLogMsgs.add(msg);
             }
+            @Override
+            public AuditLogMsgBuilder getMsgBuilder() {
+                return new DefaultAuditLogMsgBuilder();
+            }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_delrolethrowexc";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_delrolethrowexc";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         String caller = "deleterole";
         String domainName = "DomainName1";
@@ -2520,7 +2531,7 @@ public class ZMSImplTest extends TestCase {
             assertEquals(e.getCode(), 404);
         }
 
-        FileConnection.deleteDirectory(new File(storeDir));
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
         boolean foundError = false;
         for (String msg: aLogMsgs) {
             if (msg.indexOf("WHAT-api=(" + caller + ")") == -1) {
@@ -2767,7 +2778,7 @@ public class ZMSImplTest extends TestCase {
     @Test
     public void testPutMembershipMissingAuditRef() {
 
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -2776,9 +2787,13 @@ public class ZMSImplTest extends TestCase {
                 String msg = msgBldr.build();
                 aLogMsgs.add(msg);
             }
+            @Override
+            public AuditLogMsgBuilder getMsgBuilder() {
+                return new DefaultAuditLogMsgBuilder();
+            }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_putmembershipmissauditref";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_putmembershipmissauditref";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         String domain = "testPutMembershipMissingAuditRef";
         TopLevelDomain dom = createTopLevelDomainObject(
@@ -3083,6 +3098,25 @@ public class ZMSImplTest extends TestCase {
             assertEquals(e.getCode(), 404);
         }
         
+        // Tests the putMembership() condition : invalid membership object - null
+        try {
+            // Trying to add a wrong domain name.
+            zms.putMembership(mockDomRsrcCtx, wrongDomainName, roleName, memberName1, auditRef, null);
+            fail("notfounderror not thrown.");
+        } catch (ResourceException e) {
+            assertEquals(e.getCode(), 400);
+        }
+        
+        // Tests the putMembership() condition : invalid membership object - missing name
+        try {
+            // Trying to add a wrong domain name.
+            Membership mbr = new Membership();
+            zms.putMembership(mockDomRsrcCtx, wrongDomainName, roleName, memberName1, auditRef, mbr);
+            fail("notfounderror not thrown.");
+        } catch (ResourceException e) {
+            assertEquals(e.getCode(), 400);
+        }
+        
         // Tests the putMembership() condition: if (role == null)...
         try {
             String wrongRoleName = "Role2";
@@ -3236,7 +3270,7 @@ public class ZMSImplTest extends TestCase {
     
     @Test
     public void testDeleteMembershipAdminRoleSingleMember() {
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -3245,9 +3279,13 @@ public class ZMSImplTest extends TestCase {
                 String msg = msgBldr.build();
                 aLogMsgs.add(msg);
             }
+            @Override
+            public AuditLogMsgBuilder getMsgBuilder() {
+                return new DefaultAuditLogMsgBuilder();
+            }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_delmembershipadminrsm";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_delmembershipadminrsm";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         String caller = "deletemembership";
         String domainName = "MbrGetRoleDom1";
@@ -3428,7 +3466,7 @@ public class ZMSImplTest extends TestCase {
     @Test
     public void testGetPolicy() {
 
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -3437,13 +3475,19 @@ public class ZMSImplTest extends TestCase {
                 String msg = msgBldr.build();
                 aLogMsgs.add(msg);
             }
+            @Override
+            public AuditLogMsgBuilder getMsgBuilder() {
+                return new DefaultAuditLogMsgBuilder();
+            }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_getpol";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_getpol";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         TopLevelDomain dom1 = createTopLevelDomainObject("PolicyGetDom1",
                 "Test Domain1", "testOrg", adminUser);
         zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        System.err.println("*** creating policy...");
 
         Policy policy1 = createPolicyObject("PolicyGetDom1", "Policy1");
         zmsImpl.putPolicy(mockDomRsrcCtx, "PolicyGetDom1", "Policy1", auditRef, policy1);
@@ -3462,6 +3506,7 @@ public class ZMSImplTest extends TestCase {
         assertEquals(obj.getRole(), "PolicyGetDom1:role.Role1".toLowerCase());
 
         boolean foundError = false;
+        System.err.println("Number of lines: " + aLogMsgs.size());
         for (String msg: aLogMsgs) {
             if (msg.indexOf("WHAT-api=(putpolicy)") == -1) {
                 continue;
@@ -3487,7 +3532,7 @@ public class ZMSImplTest extends TestCase {
         }
 
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "PolicyGetDom1", auditRef);
-        FileConnection.deleteDirectory(new File(storeDir));
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
     
     @Test
@@ -3902,7 +3947,7 @@ public class ZMSImplTest extends TestCase {
     
     @Test
     public void testDeletePolicyThrowException() {
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -3911,9 +3956,13 @@ public class ZMSImplTest extends TestCase {
                 String msg = msgBldr.build();
                 aLogMsgs.add(msg);
             }
+            @Override
+            public AuditLogMsgBuilder getMsgBuilder() {
+                return new DefaultAuditLogMsgBuilder();
+            }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_delpolhrowexc";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_delpolhrowexc";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         String caller = "deletepolicy";
         String domainName = "WrongDomainName";
@@ -3925,7 +3974,7 @@ public class ZMSImplTest extends TestCase {
             assertEquals(e.getCode(), 404);
         }
 
-        FileConnection.deleteDirectory(new File(storeDir));
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
         boolean foundError = false;
         for (String msg: aLogMsgs) {
             if (msg.indexOf("WHAT-api=(" + caller + ")") == -1) {
@@ -3999,7 +4048,7 @@ public class ZMSImplTest extends TestCase {
 
     @Test
     public void testCreateServiceIdentityNotSimpleName() {
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -4008,9 +4057,13 @@ public class ZMSImplTest extends TestCase {
                 String msg = msgBldr.build();
                 aLogMsgs.add(msg);
             }
+            @Override
+            public AuditLogMsgBuilder getMsgBuilder() {
+                return new DefaultAuditLogMsgBuilder();
+            }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_createsvcidnosimplename";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_createsvcidnosimplename";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         TopLevelDomain dom1 = createTopLevelDomainObject("ServiceAddDom1NotSimpleName",
                 "Test Domain1", "testOrg", adminUser);
@@ -4045,7 +4098,7 @@ public class ZMSImplTest extends TestCase {
         assertTrue(foundError);
 
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "ServiceAddDom1NotSimpleName", auditRef);
-        FileConnection.deleteDirectory(new File(storeDir));
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
     
     @Test
@@ -4379,7 +4432,7 @@ public class ZMSImplTest extends TestCase {
 
     @Test
     public void testDeleteServiceIdentityThrowException() {
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -4388,9 +4441,13 @@ public class ZMSImplTest extends TestCase {
                 String msg = msgBldr.build();
                 aLogMsgs.add(msg);
             }
+            @Override
+            public AuditLogMsgBuilder getMsgBuilder() {
+                return new DefaultAuditLogMsgBuilder();
+            }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_delsvcidthrowexc";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_delsvcidthrowexc";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         String caller = "deleteserviceidentity";
         String domainName = "WrongDomainName";
@@ -4708,7 +4765,7 @@ public class ZMSImplTest extends TestCase {
 
     @Test
     public void testDeleteEntityMissingAuditRef() {
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -4717,9 +4774,13 @@ public class ZMSImplTest extends TestCase {
                 String msg = msgBldr.build();
                 aLogMsgs.add(msg);
             }
+            @Override
+            public AuditLogMsgBuilder getMsgBuilder() {
+                return new DefaultAuditLogMsgBuilder();
+            }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_delentitymissauditref";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_delentitymissauditref";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         String domain = "testDeleteEntityMissingAuditRef";
         TopLevelDomain dom = createTopLevelDomainObject(
@@ -4751,7 +4812,7 @@ public class ZMSImplTest extends TestCase {
             assertTrue(foundError);
         } finally {
             zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domain, auditRef);
-            FileConnection.deleteDirectory(new File(storeDir));
+            FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
         }
     }
 
@@ -5136,7 +5197,7 @@ public class ZMSImplTest extends TestCase {
     
     @Test
     public void testDeleteTenantRolesMissingAuditRef() {
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -5145,9 +5206,13 @@ public class ZMSImplTest extends TestCase {
                 String msg = msgBldr.build();
                 aLogMsgs.add(msg);
             }
+            @Override
+            public AuditLogMsgBuilder getMsgBuilder() {
+                return new DefaultAuditLogMsgBuilder();
+            }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_deltenantrolesmissauditref";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_deltenantrolesmissauditref";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         String domain = "testDeleteTenantRolesMissingAuditRef";
         TopLevelDomain dom = createTopLevelDomainObject(
@@ -5196,7 +5261,7 @@ public class ZMSImplTest extends TestCase {
 
         } finally {
             zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domain, auditRef);
-            FileConnection.deleteDirectory(new File(storeDir));
+            FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
         }
     }
  
@@ -5271,7 +5336,7 @@ public class ZMSImplTest extends TestCase {
 
     @Test
     public void testPutDefaultAdminsMissingAuditRef() {
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -5280,9 +5345,13 @@ public class ZMSImplTest extends TestCase {
                 String msg = msgBldr.build();
                 aLogMsgs.add(msg);
             }
+            @Override
+            public AuditLogMsgBuilder getMsgBuilder() {
+                return new DefaultAuditLogMsgBuilder();
+            }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_putdefaminsmissauditref";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_putdefaminsmissauditref";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         String domain = "testPutDefaultAdminsMissingAuditRef";
         TopLevelDomain dom = createTopLevelDomainObject(
@@ -5316,7 +5385,7 @@ public class ZMSImplTest extends TestCase {
             assertTrue(foundError);
         } finally {
             zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domain, auditRef);
-            FileConnection.deleteDirectory(new File(storeDir));
+            FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
         }
     }
     
@@ -7323,7 +7392,7 @@ public class ZMSImplTest extends TestCase {
     @Test
     public void testPutTenancyWithAuthorizedServiceMismatch() {
 
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -7332,9 +7401,13 @@ public class ZMSImplTest extends TestCase {
                 String msg = msgBldr.build();
                 aLogMsgs.add(msg);
             }
+            @Override
+            public AuditLogMsgBuilder getMsgBuilder() {
+                return new DefaultAuditLogMsgBuilder();
+            }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_puttenancywithauthsvcmism";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_puttenancywithauthsvcmism";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         String tenantDomain = "puttenancyauthorizedservicemismatch";
         String providerService  = "storage";
@@ -7394,7 +7467,7 @@ public class ZMSImplTest extends TestCase {
         
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, tenantDomain, auditRef);
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, providerDomain, auditRef);
-        FileConnection.deleteDirectory(new File(storeDir));
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
     
     @Test
@@ -7954,7 +8027,7 @@ public class ZMSImplTest extends TestCase {
     
     @Test
     public void testDeleteTenancyMissingEndpoint() {
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -7963,9 +8036,13 @@ public class ZMSImplTest extends TestCase {
                 String msg = msgBldr.build();
                 aLogMsgs.add(msg);
             }
+            @Override
+            public AuditLogMsgBuilder getMsgBuilder() {
+                return new DefaultAuditLogMsgBuilder();
+            }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_deltenancymissendpoint";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_deltenancymissendpoint";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         String tenantDomain    = "testDeleteTenancyMissEnd";
         String providerDomain  = "providerTestDeleteTenancyMissEnd";
@@ -8025,7 +8102,7 @@ public class ZMSImplTest extends TestCase {
         } finally {
             zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, tenantDomain, auditRef);
             zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, providerDomain, auditRef);
-            FileConnection.deleteDirectory(new File(storeDir));
+            FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
         }
     }
     
@@ -8098,7 +8175,7 @@ public class ZMSImplTest extends TestCase {
     @Test
     public void testPutTenantRolesMissingAuditRef() {
 
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -8107,9 +8184,13 @@ public class ZMSImplTest extends TestCase {
                 String msg = msgBldr.build();
                 aLogMsgs.add(msg);
             }
+            @Override
+            public AuditLogMsgBuilder getMsgBuilder() {
+                return new DefaultAuditLogMsgBuilder();
+            }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_puttenantrolesmissauditref";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_puttenantrolesmissauditref";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         String domain = "testPutTenantRoles";
         TopLevelDomain dom = createTopLevelDomainObject(
@@ -8148,7 +8229,7 @@ public class ZMSImplTest extends TestCase {
             assertTrue(foundError);
         } finally {
             zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domain, auditRef);
-            FileConnection.deleteDirectory(new File(storeDir));
+            FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
         }
     }
 
@@ -8699,12 +8780,6 @@ public class ZMSImplTest extends TestCase {
         assertFalse(isEmitMonmetricError);
 
         isEmitMonmetricError = ZMSUtils.emitMonmetricError(errorCode, new String());
-        assertFalse(isEmitMonmetricError);
-
-        isEmitMonmetricError = ZMSUtils.emitMonmetricError(errorCode, "invalidcharacterslike...$!?");
-        assertFalse(isEmitMonmetricError);
-
-        isEmitMonmetricError = ZMSUtils.emitMonmetricError(errorCode, "spaces are not allowed");
         assertFalse(isEmitMonmetricError);
 
         isEmitMonmetricError = ZMSUtils.emitMonmetricError(0, caller);
@@ -10232,7 +10307,7 @@ public class ZMSImplTest extends TestCase {
     @Test
     public void testDeletePublicKeyEntryInvalidService() {
         
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -10241,9 +10316,13 @@ public class ZMSImplTest extends TestCase {
                 String msg = msgBldr.build();
                 aLogMsgs.add(msg);
             }
+            @Override
+            public AuditLogMsgBuilder getMsgBuilder() {
+                return new DefaultAuditLogMsgBuilder();
+            }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_delpubkeyinvalidsvc";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_delpubkeyinvalidsvc";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         TopLevelDomain dom1 = createTopLevelDomainObject("ServiceDelPubKeyDom2InvalidService",
                 "Test Domain1", "testOrg", adminUser);
@@ -10253,11 +10332,13 @@ public class ZMSImplTest extends TestCase {
                 "Service1", "http://localhost", "/usr/bin/java", "root",
                 "users", "host1");
 
-        zmsImpl.putServiceIdentity(mockDomRsrcCtx, "ServiceDelPubKeyDom2InvalidService", "Service1", auditRef, service);
+        zmsImpl.putServiceIdentity(mockDomRsrcCtx, "ServiceDelPubKeyDom2InvalidService",
+                "Service1", auditRef, service);
 
         // this should throw an invalid request exception
         try {
-            zmsImpl.deletePublicKeyEntry(mockDomRsrcCtx, "ServiceDelPubKeyDom2InvalidService", "Service1.Service2", "1", auditRef);
+            zmsImpl.deletePublicKeyEntry(mockDomRsrcCtx, "ServiceDelPubKeyDom2InvalidService",
+                    "Service1.Service2", "1", auditRef);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -10277,7 +10358,7 @@ public class ZMSImplTest extends TestCase {
         assertTrue(foundError);
 
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "ServiceDelPubKeyDom2InvalidService", auditRef);
-        FileConnection.deleteDirectory(new File(storeDir));
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
     
     @Test
@@ -10509,7 +10590,7 @@ public class ZMSImplTest extends TestCase {
 
     @Test
     public void testPutPublicKeyEntryMissingAuditRef() {
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -10518,9 +10599,13 @@ public class ZMSImplTest extends TestCase {
                 String msg = msgBldr.build();
                 aLogMsgs.add(msg);
             }
+            @Override
+            public AuditLogMsgBuilder getMsgBuilder() {
+                return new DefaultAuditLogMsgBuilder();
+            }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_putpubkeyentrymissauditref";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_putpubkeyentrymissauditref";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         String domain = "testPutPublicKeyEntryMissingAuditRef";
         TopLevelDomain dom = createTopLevelDomainObject(
@@ -10559,7 +10644,7 @@ public class ZMSImplTest extends TestCase {
             assertTrue(foundError);
         } finally {
             zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domain, auditRef);
-            FileConnection.deleteDirectory(new File(storeDir));
+            FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
         }
     }
 
@@ -11785,7 +11870,7 @@ public class ZMSImplTest extends TestCase {
     @Test
     public void testProviderResourceGroupRolesWithAuthorizedServiceNoAccess() {
 
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -11794,9 +11879,13 @@ public class ZMSImplTest extends TestCase {
                 String msg = msgBldr.build();
                 aLogMsgs.add(msg);
             }
+            @Override
+            public AuditLogMsgBuilder getMsgBuilder() {
+                return new DefaultAuditLogMsgBuilder();
+            }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_putprovrsrcdomnoaccess";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_putprovrsrcdomnoaccess";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
         String tenantDomain = "provrscgrprolesauthorizedservicenoaccess";
         String providerService  = "index";
@@ -11872,7 +11961,7 @@ public class ZMSImplTest extends TestCase {
         
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, tenantDomain, auditRef);
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, providerDomain, auditRef);
-        FileConnection.deleteDirectory(new File(storeDir));
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
     
     @Test
@@ -11918,7 +12007,7 @@ public class ZMSImplTest extends TestCase {
     public void testOptionsUserToken() {
         HttpServletRequest servletRequest = new MockHttpServletRequest();
         HttpServletResponse servletResponse = new MockHttpServletResponse();
-        ResourceContext ctx = new ZMSImpl.RsrcCtxWrapper(servletRequest, servletResponse, null, null);
+        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, null);
         
         zms.optionsUserToken(ctx, "user", "coretech.storage");
         assertEquals("GET", servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_METHODS));
@@ -11935,7 +12024,7 @@ public class ZMSImplTest extends TestCase {
     public void testOptionsUserTokenRequestHeaders() {
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
         MockHttpServletResponse servletResponse = new MockHttpServletResponse();
-        ResourceContext ctx = new ZMSImpl.RsrcCtxWrapper(servletRequest, servletResponse, null, null);
+        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, null);
         
         String origin = "https://zms.origin.athenzcompany.com";
         String requestHeaders = "X-Forwarded-For,Content-Type";
@@ -11957,7 +12046,7 @@ public class ZMSImplTest extends TestCase {
     public void testSetStandardCORSHeaders() {
         HttpServletRequest servletRequest = new MockHttpServletRequest();
         HttpServletResponse servletResponse = new MockHttpServletResponse();
-        ResourceContext ctx = new ZMSImpl.RsrcCtxWrapper(servletRequest, servletResponse, null, null);
+        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, null);
         
         zms.setStandardCORSHeaders(ctx);
         assertEquals("true", servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_CREDENTIALS));
@@ -11972,7 +12061,7 @@ public class ZMSImplTest extends TestCase {
     public void testSetStandardCORSHeadersRequestHeaders() {
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
         MockHttpServletResponse servletResponse = new MockHttpServletResponse();
-        ResourceContext ctx = new ZMSImpl.RsrcCtxWrapper(servletRequest, servletResponse, null, null);
+        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, null);
         
         String origin = "https://zms.origin.athenzcompany.com";
         String requestHeaders = "X-Forwarded-For,Content-Type";
@@ -12148,7 +12237,7 @@ public class ZMSImplTest extends TestCase {
 
     @Test
     public void testPutDomainTemplateInvalidTemplate() {
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -12157,9 +12246,13 @@ public class ZMSImplTest extends TestCase {
                 String msg = msgBldr.build();
                 aLogMsgs.add(msg);
             }
+            @Override
+            public AuditLogMsgBuilder getMsgBuilder() {
+                return new DefaultAuditLogMsgBuilder();
+            }
         };
-        String storeDir = ZMS_DATA_STORE_PATH + "_putdomtempllistinvalid";
-        ZMSImpl zmsImpl = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_putdomtempllistinvalid";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
         
         String domainName = "templatelist-invalid";
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
@@ -12194,7 +12287,7 @@ public class ZMSImplTest extends TestCase {
         assertTrue(foundError);
         
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
-        FileConnection.deleteDirectory(new File(storeDir));
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
     
     @Test
@@ -12684,7 +12777,7 @@ public class ZMSImplTest extends TestCase {
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
         Mockito.when(servletRequest.getRemoteAddr()).thenReturn("10.10.10.11");
  
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -12693,10 +12786,14 @@ public class ZMSImplTest extends TestCase {
                 String msg = msgBldr.build();
                 aLogMsgs.add(msg);
             }
+            @Override
+            public AuditLogMsgBuilder getMsgBuilder() {
+                return new DefaultAuditLogMsgBuilder();
+            }
         };
 
-        String storeDir = ZMS_DATA_STORE_PATH + "_al_noloop";
-        ZMSImpl zmsObj = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_al_noloop";
+        ZMSImpl zmsObj = getZmsImpl(storeFile, alogger);
 
         String userId = "user";
         Principal principal = SimplePrincipal.create("user", userId, "v=U1;d=user;n=user;s=signature", 0, null);
@@ -12715,7 +12812,7 @@ public class ZMSImplTest extends TestCase {
             assertEquals(e.getCode(), 404);
         }
         
-        FileConnection.deleteDirectory(new File(storeDir));
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
 
         boolean foundError = false;
         for (String msg: aLogMsgs) {
@@ -12735,7 +12832,7 @@ public class ZMSImplTest extends TestCase {
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
         Mockito.when(servletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
         
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -12744,10 +12841,14 @@ public class ZMSImplTest extends TestCase {
                 String msg = msgBldr.build();
                 aLogMsgs.add(msg);
             }
+            @Override
+            public AuditLogMsgBuilder getMsgBuilder() {
+                return new DefaultAuditLogMsgBuilder();
+            }
         };
 
-        String storeDir = ZMS_DATA_STORE_PATH + "_al_loopback";
-        ZMSImpl zmsObj = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_al_loopback";
+        ZMSImpl zmsObj = getZmsImpl(storeFile, alogger);
 
         String userId = "user";
         Principal principal = SimplePrincipal.create("user", userId, "v=U1;d=user;n=user;s=signature", 0, null);
@@ -12765,7 +12866,7 @@ public class ZMSImplTest extends TestCase {
             assertEquals(e.getCode(), 400);
         }
         
-        FileConnection.deleteDirectory(new File(storeDir));
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
         
         boolean foundError = false;
         for (String msg: aLogMsgs) {
@@ -12786,7 +12887,7 @@ public class ZMSImplTest extends TestCase {
         Mockito.when(servletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
         Mockito.when(servletRequest.getHeader("X-Forwarded-For")).thenReturn("10.10.10.11");
         
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -12795,10 +12896,14 @@ public class ZMSImplTest extends TestCase {
                 String msg = msgBldr.build();
                 aLogMsgs.add(msg);
             }
+            @Override
+            public AuditLogMsgBuilder getMsgBuilder() {
+                return new DefaultAuditLogMsgBuilder();
+            }
         };
 
-        String storeDir = ZMS_DATA_STORE_PATH + "_al_loopbackXff";
-        ZMSImpl zmsObj = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_al_loopbackXff";
+        ZMSImpl zmsObj = getZmsImpl(storeFile, alogger);
 
         String userId = "user";
         Principal principal = SimplePrincipal.create("user", userId, "v=U1;d=user;n=user;s=signature", 0, null);
@@ -12816,7 +12921,7 @@ public class ZMSImplTest extends TestCase {
             assertEquals(e.getCode(), 400);
         }
         
-        FileConnection.deleteDirectory(new File(storeDir));
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
 
         boolean foundError = false;
         for (String msg: aLogMsgs) {
@@ -12838,7 +12943,7 @@ public class ZMSImplTest extends TestCase {
         Mockito.when(servletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
         Mockito.when(servletRequest.getHeader("X-Forwarded-For")).thenReturn("10.10.10.11, 10.11.11.11, 10.12.12.12");
         
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -12847,10 +12952,14 @@ public class ZMSImplTest extends TestCase {
                 String msg = msgBldr.build();
                 aLogMsgs.add(msg);
             }
+            @Override
+            public AuditLogMsgBuilder getMsgBuilder() {
+                return new DefaultAuditLogMsgBuilder();
+            }
         };
 
-        String storeDir = ZMS_DATA_STORE_PATH + "_al_loopbackXffMulti";
-        ZMSImpl zmsObj = getZmsImpl(storeDir, alogger);
+        String storeFile = ZMS_DATA_STORE_FILE + "_al_loopbackXffMulti";
+        ZMSImpl zmsObj = getZmsImpl(storeFile, alogger);
 
         String userId = "user";
         Principal principal = SimplePrincipal.create("user", userId, "v=U1;d=user;n=user;s=signature", 0, null);
@@ -12868,7 +12977,7 @@ public class ZMSImplTest extends TestCase {
             assertEquals(e.getCode(), 400);
         }
         
-        FileConnection.deleteDirectory(new File(storeDir));
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
 
         boolean foundError = false;
         for (String msg: aLogMsgs) {
@@ -12913,7 +13022,7 @@ public class ZMSImplTest extends TestCase {
         // verify that the public keys were loaded during server startup
         assertFalse(zms.serverPublicKeyMap.isEmpty());
         String privKeyId = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY_ID, "0");
-        assertEquals(zms.serverPublicKeyMap.get(privKeyId), pubKey);
+        assertEquals(pubKey, zms.serverPublicKeyMap.get(privKeyId));
     }
     
     @Test
@@ -12966,18 +13075,9 @@ public class ZMSImplTest extends TestCase {
         
         System.setProperty(ZMSConsts.ZMS_PROP_READ_ONLY_MODE, "true");
         
-        ObjectStore store = new FileObjectStore(new File(ZMS_DATA_STORE_PATH));
-        String privKeyName = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
-        File privKeyFile = new File(privKeyName);
-        String privKey = Crypto.encodedFile(privKeyFile);
-        PrivateKey privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
+        zmsTest = new ZMSImpl();
+        ZMSImpl.serverHostName = "localhost";
 
-        String privKeyId = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY_ID, "0");
-
-        Metric metric = createMetric();
-        zmsTest = new ZMSImpl("localhost", store, metric, privateKey,
-                privKeyId, AuditLogFactory.getLogger(), null);
-        
         TopLevelDomain dom1 = createTopLevelDomainObject("ReadOnlyDom1",
                 "Test Domain1", "testOrg", adminUser);
         try {
@@ -13038,7 +13138,7 @@ public class ZMSImplTest extends TestCase {
     @Test
     public void testResourceContext() {
         
-        ZMSImpl.RsrcCtxWrapper ctx = (ZMSImpl.RsrcCtxWrapper) zms.newResourceContext(mockServletRequest, mockServletResponse);
+        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zms.newResourceContext(mockServletRequest, mockServletResponse);
         assertNotNull(ctx);
         assertNotNull(ctx.context());
         assertNull(ctx.principal());
@@ -14555,7 +14655,7 @@ public class ZMSImplTest extends TestCase {
                 0, principalAuthority);
         ResourceContext ctx2 = createResourceContext(principal, request);
         zms.logPrincipal(ctx2);
-        assertEquals((String) request.getAttribute(AthenzRequestLog.REQUEST_PRINCIPAL), "sports.nhl");
+        assertEquals((String) request.getAttribute(ZMS_REQUEST_PRINCIPAL), "sports.nhl");
     }
 }
 

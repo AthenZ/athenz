@@ -75,10 +75,13 @@ of authority class names. For example,
 
 If you're installing and running Athenz services using the binary
 packages provided, you can configure the list of authorities in the
-conf/container_settings file (applies to both ZMS and ZTS):
+conf/zms_server/zms.properties or conf/zts_server/zts.properties files
+for ZMS and ZTS servers respectively:
 
 ```
-CONTAINER_AUTHORITY_CLASSES="com.yahoo.athenz.auth.impl.PrincipalAuthority,com.yahoo.athenz.auth.impl.UserAuthority"
+athenz.zms.authority_classes=com.yahoo.athenz.auth.impl.PrincipalAuthority,com.yahoo.athenz.auth.impl.UserAuthority
+
+athenz.zts.authority_classes=com.yahoo.athenz.auth.impl.PrincipalAuthority,com.yahoo.athenz.auth.impl.UserAuthority
 ```
 
 ## Provided Authorities

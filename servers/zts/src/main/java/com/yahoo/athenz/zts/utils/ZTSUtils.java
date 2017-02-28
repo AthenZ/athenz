@@ -132,24 +132,19 @@ public class ZTSUtils {
         return sslContextFactory;
     }
     
-    public static final boolean emitMonmetricError(int errorCode, String caller, String domainName, Metric metric) {
+    public static final boolean emitMonmetricError(int errorCode, String caller,
+            String domainName, Metric metric) {
 
         if (errorCode < 1) {
             return false;
         }
-        if (caller == null || caller.length() == 0) {
-            return false;
-        }
-        caller = caller.trim();
-        String alphanum = "^[a-zA-Z0-9]*$";
-        if (!caller.matches(alphanum)) {
+        if (caller == null || caller.isEmpty()) {
             return false;
         }
 
-        // Set 3 scoreboard error metrics:
+        // Set 3 error metrics:
         // (1) cumulative "ERROR" (of all zts request and error types)
-        // (2) cumulative granular zts request and error type (eg-
-        // "getdomainlist_error_400")
+        // (2) cumulative granular zts request and error type (eg- "getdomainlist_error_400")
         // (3) cumulative error type (of all zts requests) (eg- "error_404")
         String errCode = Integer.toString(errorCode);
         metric.increment("ERROR");
