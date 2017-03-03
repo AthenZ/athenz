@@ -115,7 +115,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     
     private static final String SYS_AUTH = "sys.auth";
     private static final String USER_TOKEN_DEFAULT_NAME = "_self_";
-
+    private static final String JDBC = "jdbc";
+    
     // data validation types
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_ENTITY_NAME = "EntityName";
@@ -162,6 +163,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected static String userDomainPrefix;
     protected Http.AuthorityList authorities = null;
     protected List<String> providerEndpoints = null;
+    protected PrivateKeyStore keyStore = null;
     AuditLogger auditLogger = null;
 
     // enum to represent our access response since in some cases we want to
@@ -408,7 +410,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         // we need a private key to sign any tokens and documents
         
-        loadServicePrivateKey();
+        loadPrivateKeyStore();
         
         // check if we need to load any metric support for stats
         
@@ -528,9 +530,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         ObjectStore store = null;
         String jdbcStore = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_STORE);
         if (jdbcStore != null && jdbcStore.startsWith("jdbc:")) {
-            String userName = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_USER);
+            String jdbcUser = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_USER);
             String password = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_PASSWORD, "");
-            PoolableDataSource src = DataSourceFactory.create(jdbcStore, userName, password);
+            String jdbcPassword = keyStore.getApplicationSecret(JDBC, password);
+            PoolableDataSource src = DataSourceFactory.create(jdbcStore, jdbcUser, jdbcPassword);
             store = new JDBCObjectStore(src);
         } else {
             String homeDir = System.getProperty(ZMSConsts.ZMS_PROP_FILE_STORE_PATH,
@@ -562,7 +565,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.increment("zms_sa_startup");
     }
     
-    void loadServicePrivateKey() {
+    void loadPrivateKeyStore() {
         
         String pkeyFactoryClass = System.getProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
                 ZMSConsts.ZMS_PKEY_STORE_FACTORY_CLASS);
@@ -578,9 +581,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // extract the private key and public keys for our service
         
         StringBuilder privKeyId = new StringBuilder(256);
-        PrivateKeyStore keyStore = pkeyFactory.create();
-        this.privateKey = keyStore.getPrivateKey(ZMSConsts.ZMS_SERVICE, serverHostName, privKeyId);
-        this.privateKeyId = privKeyId.toString();
+        keyStore = pkeyFactory.create();
+        
+        // now that we have our keystore let's load our private key
+        
+        privateKey = keyStore.getPrivateKey(ZMSConsts.ZMS_SERVICE, serverHostName, privKeyId);
+        privateKeyId = privKeyId.toString();
     }
     
     void loadAuthorities() {
@@ -669,14 +675,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         Path path = Paths.get(solutionTemplatesFname);
         try {
             serverSolutionTemplates = JSON.fromBytes(Files.readAllBytes(path), SolutionTemplates.class);
-        } catch (IOException e) {
-            LOG.info("Unable to parse service templates file " + solutionTemplatesFname);
-            return;
+        } catch (IOException ex) {
+            LOG.error("Unable to parse service templates file {}: {}",
+                    solutionTemplatesFname, ex.getMessage());
         }
-
+        
         if (serverSolutionTemplates == null) {
-            LOG.info("Unable to parse service templates file " + solutionTemplatesFname);
-            return;
+            LOG.error("Generating empty solution template list...");
+            serverSolutionTemplates = new SolutionTemplates();
+            serverSolutionTemplates.setTemplates(new HashMap<String, Template>());
         }
     }
     
@@ -688,19 +695,18 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         String authzServiceFname =  System.getProperty(ZMSConsts.ZMS_PROP_AUTHZ_SERVICE_FNAME,
                 getRootDir() + "/conf/zms_server/authorized_services.json");
         
-        // let's read our authorized list into a local struct
-        
-        File file = new File(authzServiceFname);
-        if (file.exists() == false) {
-            LOG.info("Authorized Service File " + authzServiceFname + " not found");
-            return;
-        }
-        
-        Path path = Paths.get(file.toURI());
+        Path path = Paths.get(authzServiceFname);
         try {
             serverAuthorizedServices = JSON.fromBytes(Files.readAllBytes(path), AuthorizedServices.class);
-        } catch (IOException e) {
-            LOG.info("Unable to parse authorized service file " + authzServiceFname);
+        } catch (IOException ex) {
+            LOG.error("Unable to parse authorized service file {}: {}",
+                    authzServiceFname, ex.getMessage());
+        }
+        
+        if (serverAuthorizedServices == null) {
+            LOG.error("Generating empty authorized service list...");
+            serverAuthorizedServices = new AuthorizedServices();
+            serverAuthorizedServices.setTemplates(new HashMap<String, AuthorizedService>());
         }
     }
     
@@ -1678,7 +1684,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // a different domain name we'll dynamically update the resource value
         
         if (!userDomain.equals(ZMSConsts.USER_DOMAIN) && resource.startsWith(ZMSConsts.USER_DOMAIN_PREFIX)) {
-            resource = userDomain + resource.substring(ZMSConsts.USER_DOMAIN_PREFIX.length());
+            resource = userDomainPrefix + resource.substring(ZMSConsts.USER_DOMAIN_PREFIX.length());
         }
         
         if (LOG.isDebugEnabled()) {
@@ -2077,6 +2083,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         Template template = serverSolutionTemplates.get(templateName);
         if (template == null) {
             throw ZMSUtils.notFoundError("getTemplate: Template not found: '" + templateName + "'", caller);
+        }
+        
+        List<Role> roles = template.getRoles();
+        if (roles != null && !roles.isEmpty()) {
+            for (Role role : roles) {
+                List<RoleMember> roleMembers = role.getRoleMembers();
+                if (roleMembers != null) {
+                    role.setMembers(ZMSUtils.convertRoleMembersToMembers(roleMembers));
+                }
+            }
         }
         
         metric.stopTiming(timerMetric);
@@ -3295,9 +3311,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     
     boolean verifyProviderEndpoint(String providerEndpoint) {
         
-        // verify that we have a valid endpoint that ends in
-        // yahoo domain. if it's not present or an empty
-        // value then there is no field to verify
+        // verify that we have a valid endpoint that ends in one of our
+        // configured domains. if it's not present or an empty value then
+        // there is no field to verify
         
         if (providerEndpoint == null) {
             return true;
@@ -4276,6 +4292,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 try {
                     ProviderClient prov = getProviderClient(url, tenantAdmin);
                     tenantWithRoles = prov.putTenant(provSvcName, tenantDomain, auditRef, tenant);
+                } catch (com.yahoo.athenz.provider.ResourceException ex) {
+                    throw new ResourceException(ex.getCode(), ex.getData());
                 } catch (Exception exc) {
                     throw ZMSUtils.requestError(logPrefix + "Failed to put tenant on provider service("
                             + provider + "): " + exc.getMessage(), caller);
@@ -4383,6 +4401,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 ProviderClient prov = getProviderClient(url, tenantAdmin);
                 tenantWithRoles = prov.putTenantResourceGroup(provSvcName, tenantDomain, resourceGroup,
                     auditRef, tenantResourceGroup);
+            } catch (com.yahoo.athenz.provider.ResourceException ex) {
+                throw new ResourceException(ex.getCode(), ex.getData());
             } catch (Exception exc) {
                 throw ZMSUtils.requestError("Failed to put tenant resource group(" + resourceGroup +
                     ") on provider service(" + provider + "): " + exc.getMessage(), caller);
@@ -4542,10 +4562,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         try {
             ProviderClient prov = getProviderClient(url, tenantAdmin);
             tenant = prov.getTenant(provSvcName, tenantDomain);
-        } catch (ResourceException exc) {
-            // if we have a ZMS ResourceException then let's throw it
-            // as is so that the client knows that the provider returned
-            throw exc;
+        } catch (com.yahoo.athenz.provider.ResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getData());
         } catch (Exception exc) {
             throw ZMSUtils.requestError("getTenancy: failed to get tenant on provider service("
                     + providerService + "): " + exc.getMessage(), caller);

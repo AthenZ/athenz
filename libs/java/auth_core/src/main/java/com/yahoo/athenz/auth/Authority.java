@@ -59,7 +59,6 @@ public interface Authority {
      * flag is true, then the principal must first get a ZMS UserToken and then
      * use that UserToken for subsequent operations.
      */
-    
     default public boolean allowAuthorization() {
         return true;
     }
