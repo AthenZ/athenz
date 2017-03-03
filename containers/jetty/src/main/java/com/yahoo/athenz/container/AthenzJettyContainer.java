@@ -271,6 +271,7 @@ public class AthenzJettyContainer {
         webappProvider.setScanInterval(60);
         webappProvider.setExtractWars(true);
         webappProvider.setConfigurationManager(new PropertiesConfigurationManager());
+        webappProvider.setParentLoaderPriority(true);
 
         deployer.addAppProvider(webappProvider);
         server.addBean(deployer);

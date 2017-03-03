@@ -13,7 +13,7 @@ file based json documents.
 * [Getting Software](#getting-software)
 * [Configuration](#configuration)
     * [DB Access](#db-access)
-    * [Private/Public Key Pair](#privatepublic-key-pair)
+    * [Private Key](#private-key)
     * [Server X509 Certificate](#server-x509-certificate)
     * [User Authentication](#user-authentication)
     * [System Administrators](#system-administrators)
@@ -105,7 +105,7 @@ Make the following changes:
    MySQL Server instance. For example if your DB Server is running on
    a host called db1.athenz.com, then your line would be:
    
-   athenz.zms.jdbcstore=jdbc:mysql://db1.athenz.com:3306/zms_server
+   athenz.zms.jdbc_store=jdbc:mysql://db1.athenz.com:3306/zms_server
 
 2. Uncomment the `#athenz.zms.jdbc_user=` line and set it to the user
    configured to have full access over zms server database:
@@ -117,17 +117,16 @@ Make the following changes:
    
    athenz.zms.jdbc_password=Athenz
 
-### Private/Public Key Pair
----------------------------
+### Private Key
+---------------
 
-Generate a unique private/public key pair that ZMS Server will use
+Generate a unique private key that ZMS Server will use
 to sign any NTokens it issues. From the `athenz-zms-X.Y` directory
 execute the following commands:
 
 ```shell
 $ cd var/zms_server/keys
 $ openssl genrsa -out zms_private.pem 2048
-$ openssl rsa -in zms_private.pem -pubout > zms_public.pem
 ```
 
 ### Server X509 Certificate

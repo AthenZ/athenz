@@ -74,7 +74,7 @@ public class ProviderSchema {
         sb.structType("Tenant")
             .field("service", "SimpleName", false, "name of the service")
             .field("name", "DomainName", false, "name of the tenant domain in this service. Must be a valid domain name the caller has rights to")
-            .field("state", "TenantState", false, "the state of the tenant", null)
+            .field("state", "TenantState", true, "the state of the tenant", TenantState.ACTIVE)
             .arrayField("roles", "EntityName", true, "the roles this tenant may assume. Determined by and returned by this service")
             .arrayField("resourceGroups", "EntityName", true, "registered resource groups for this tenant");
 

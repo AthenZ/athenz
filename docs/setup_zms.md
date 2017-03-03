@@ -49,7 +49,7 @@ To run ZMS Server, the system administrator must generate the keys
 and make necessary changes to the configuration settings.
 
 ### Private Key
----------------------------
+---------------
 
 Generate a unique private key that ZMS Server will use
 to sign any NTokens it issues. From the `athenz-zms-X.Y` directory
