@@ -4293,10 +4293,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     ProviderClient prov = getProviderClient(url, tenantAdmin);
                     tenantWithRoles = prov.putTenant(provSvcName, tenantDomain, auditRef, tenant);
                 } catch (com.yahoo.athenz.provider.ResourceException ex) {
-                    throw new ResourceException(ex.getCode(), ex.getData());
-                } catch (Exception exc) {
-                    throw ZMSUtils.requestError(logPrefix + "Failed to put tenant on provider service("
-                            + provider + "): " + exc.getMessage(), caller);
+                    throw ZMSUtils.error(ex.getCode(), ex.getMessage(), caller);
                 }
                 
                 if (LOG.isInfoEnabled()) {
@@ -4402,10 +4399,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 tenantWithRoles = prov.putTenantResourceGroup(provSvcName, tenantDomain, resourceGroup,
                     auditRef, tenantResourceGroup);
             } catch (com.yahoo.athenz.provider.ResourceException ex) {
-                throw new ResourceException(ex.getCode(), ex.getData());
-            } catch (Exception exc) {
-                throw ZMSUtils.requestError("Failed to put tenant resource group(" + resourceGroup +
-                    ") on provider service(" + provider + "): " + exc.getMessage(), caller);
+                throw ZMSUtils.error(ex.getCode(), ex.getMessage(), caller);
             }
             
             if (LOG.isInfoEnabled()) {
@@ -4563,10 +4557,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             ProviderClient prov = getProviderClient(url, tenantAdmin);
             tenant = prov.getTenant(provSvcName, tenantDomain);
         } catch (com.yahoo.athenz.provider.ResourceException ex) {
-            throw new ResourceException(ex.getCode(), ex.getData());
-        } catch (Exception exc) {
-            throw ZMSUtils.requestError("getTenancy: failed to get tenant on provider service("
-                    + providerService + "): " + exc.getMessage(), caller);
+            LOG.error("getTenancy: ProviderClient exception code: {} message: {}",
+                    ex.getCode(), ex.getMessage());
+            throw ZMSUtils.error(ex.getCode(), ex.getMessage(), caller);
         }
         
         if (tenant == null) {

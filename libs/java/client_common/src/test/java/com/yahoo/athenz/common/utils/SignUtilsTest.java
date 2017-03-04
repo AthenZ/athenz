@@ -41,29 +41,29 @@ public class SignUtilsTest {
     }
     
     @Test
-    public void testAsCanonicalStringPolicyData() {     
+    public void testAsCanonicalStringPolicyData() {
         Mockito.when(mockPolicy.getPolicies()).thenReturn(null);
         
         String check = SignUtils.asCanonicalString(mockPolicy);
         assertNotNull(check);
-        assertEquals(check,"{\"domain\":}");
+        assertEquals(check,"{\"policies\":[]}");
     }
     
     @Test
-    public void testAsCanonicalStringDomainData() {     
+    public void testAsCanonicalStringDomainData() {
         Mockito.when(mockDomain.getRoles()).thenReturn(null);
         Mockito.when(mockDomain.getServices()).thenReturn(null);
         
         String check = SignUtils.asCanonicalString(mockDomain);
         assertNotNull(check);
-        assertEquals(check,"{\"modified\":,\"ypmId\":\"0\"}");
+        assertEquals(check,"{\"roles\":[],\"services\":[],\"ypmId\":0}");
     }
     
     @Test
     public void testAsCanonicalStringDomainPolicies() {
         String check = SignUtils.asCanonicalString(mockPolicies);
         assertNotNull(check);
-        assertEquals(check,"{\"domain\":}");
+        assertEquals(check,"{\"policies\":[]}");
     }
     
     @Test
@@ -72,7 +72,7 @@ public class SignUtilsTest {
         
         String check = SignUtils.asCanonicalString(mockSignedPolicy);
         assertNotNull(check);
-        assertEquals(check,"{\"expires\":,\"modified\":,\"policyData\":{\"domain\":},\"zmsKeyId\":,\"zmsSignature\":}");
+        assertEquals(check,"{\"policyData\":{\"policies\":[]}}");
     }
     
     @Test
@@ -90,13 +90,13 @@ public class SignUtilsTest {
         
         String check = SignUtils.asCanonicalString(mockPolicies);
         assertNotNull(check);
-        assertEquals(check,"{\"domain\":,\"policies\":[{\"assertions\":[{\"action\":,\"resource\":,\"role\":}],\"modified\":,\"name\":}]}");
+        assertEquals(check,"{\"policies\":[{\"assertions\":[{}]}]}");
         
         Mockito.when(mPolicy.getAssertions()).thenReturn(null);
         
         check = SignUtils.asCanonicalString(mockPolicies);
         assertNotNull(check);
-        assertEquals(check,"{\"domain\":,\"policies\":[{\"modified\":,\"name\":}]}");
+        assertEquals(check,"{\"policies\":[{\"assertions\":[]}]}");
     }
     
     @Test
@@ -114,13 +114,13 @@ public class SignUtilsTest {
         
         String check = SignUtils.asCanonicalString(mockPolicy);
         assertNotNull(check);
-        assertEquals(check,"{\"domain\":,\"policies\":[{\"assertions\":[{\"action\":,\"resource\":,\"role\":}],\"modified\":,\"name\":}]}");
+        assertEquals(check,"{\"policies\":[{\"assertions\":[{}]}]}");
         
         Mockito.when(mPolicy.getAssertions()).thenReturn(null);
         
         check = SignUtils.asCanonicalString(mockPolicy);
         assertNotNull(check);
-        assertEquals(check,"{\"domain\":,\"policies\":[{\"modified\":,\"name\":}]}");
+        assertEquals(check,"{\"policies\":[{\"assertions\":[]}]}");
     }
     
     @Test
@@ -154,12 +154,12 @@ public class SignUtilsTest {
         
         String check = SignUtils.asCanonicalString(mockDomain);
         assertNotNull(check);
-        assertEquals(check,"{\"account\":\"chk_string\",\"modified\":,\"policies\":{\"contents\":{\"domain\":}},\"roles\":[{\"members\":[\"check_item\"],\"modified\":,\"name\":}],\"services\":[{\"modified\":,\"name\":,\"publicKeys\":[{\"id\":,\"key\":}]}],\"ypmId\":\"0\"}");
+        assertEquals(check,"{\"account\":\"chk_string\",\"policies\":{\"contents\":{\"policies\":[]}},\"roles\":[{\"members\":[\"check_item\"],\"roleMembers\":[]}],\"services\":[{\"publicKeys\":[{}]}],\"ypmId\":0}");
         
         Mockito.when(mService.getPublicKeys()).thenReturn(null);
         
         check = SignUtils.asCanonicalString(mockDomain);
         assertNotNull(check);
-        assertEquals(check,"{\"account\":\"chk_string\",\"modified\":,\"policies\":{\"contents\":{\"domain\":}},\"roles\":[{\"members\":[\"check_item\"],\"modified\":,\"name\":}],\"services\":[{\"modified\":,\"name\":}],\"ypmId\":\"0\"}");
+        assertEquals(check,"{\"account\":\"chk_string\",\"policies\":{\"contents\":{\"policies\":[]}},\"roles\":[{\"members\":[\"check_item\"],\"roleMembers\":[]}],\"services\":[{\"publicKeys\":[]}],\"ypmId\":0}");
     }
 }

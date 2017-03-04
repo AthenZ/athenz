@@ -50,7 +50,7 @@ public class SignUtils {
     private static final String ATTR_ID = "id";
     private static final String ATTR_PUBLIC_KEYS = "publicKeys";
     private static final String ATTR_ACCOUNT = "account";
-    private static final String ATTR_PRODUCT_ID = "ypmId";
+    private static final String ATTR_YPMID = "ypmId";
     private static final String ATTR_EFFECT = "effect";
     private static final String ATTR_ACTION = "action";
     private static final String ATTR_RESOURCE = "resource";
@@ -68,8 +68,10 @@ public class SignUtils {
     private static final String ATTR_CONTENTS = "contents";
 
     private static Struct asStruct(DomainPolicies domainPolicies) {
+        // all of our fields are in canonical order based
+        // on their attribute name
         Struct struct = new Struct();
-        struct.append(ATTR_DOMAIN, domainPolicies.getDomain());
+        appendObject(struct, ATTR_DOMAIN, domainPolicies.getDomain());
         Array policiesArray = new Array();
         for (Policy policy : domainPolicies.getPolicies()) {
             policiesArray.add(asStruct(policy));
@@ -79,86 +81,93 @@ public class SignUtils {
     }
     
     private static Struct asStruct(Policy policy) {
+        // all of our fields are in canonical order based
+        // on their attribute name
         Struct struct = new Struct();
-        struct.append(ATTR_NAME, policy.getName());
-        struct.append(ATTR_MODIFIED, policy.getModified());
         List<Assertion> assertions = policy.getAssertions();
+        Array assertionsArray = new Array();
         if (assertions != null) {
-            Array assertionsArray = new Array();
             for (Assertion assertion : assertions) {
                 Struct structAssertion = new Struct();
+                appendObject(structAssertion, ATTR_ACTION, assertion.getAction());
                 appendObject(structAssertion, ATTR_EFFECT, assertion.getEffect());
-                structAssertion.append(ATTR_ACTION, assertion.getAction());
-                structAssertion.append(ATTR_RESOURCE, assertion.getResource());
-                structAssertion.append(ATTR_ROLE, assertion.getRole());
+                appendObject(structAssertion, ATTR_RESOURCE, assertion.getResource());
+                appendObject(structAssertion, ATTR_ROLE, assertion.getRole());
                 assertionsArray.add(structAssertion);
             }
-            appendArray(struct, ATTR_ASSERTIONS, assertionsArray);
         }
+        appendArray(struct, ATTR_ASSERTIONS, assertionsArray);
+        appendObject(struct, ATTR_MODIFIED, policy.getModified());
+        appendObject(struct, ATTR_NAME, policy.getName());
         return struct;
     }
     
     private static Struct asStruct(com.yahoo.athenz.zts.Policy policy) {
+        // all of our fields are in canonical order based
+        // on their attribute name
         Struct struct = new Struct();
-        struct.append(ATTR_NAME, policy.getName());
-        struct.append(ATTR_MODIFIED, policy.getModified());
         List<com.yahoo.athenz.zts.Assertion> assertions = policy.getAssertions();
+        Array assertionsArray = new Array();
         if (assertions != null) {
-            Array assertionsArray = new Array();
             for (com.yahoo.athenz.zts.Assertion assertion : assertions) {
                 Struct structAssertion = new Struct();
+                appendObject(structAssertion, ATTR_ACTION, assertion.getAction());
                 appendObject(structAssertion, ATTR_EFFECT, assertion.getEffect());
-                structAssertion.append(ATTR_ACTION, assertion.getAction());
-                structAssertion.append(ATTR_RESOURCE, assertion.getResource());
-                structAssertion.append(ATTR_ROLE, assertion.getRole());
+                appendObject(structAssertion, ATTR_RESOURCE, assertion.getResource());
+                appendObject(structAssertion, ATTR_ROLE, assertion.getRole());
                 assertionsArray.add(structAssertion);
             }
-            appendArray(struct, ATTR_ASSERTIONS, assertionsArray);
         }
+        appendArray(struct, ATTR_ASSERTIONS, assertionsArray);
+        appendObject(struct, ATTR_MODIFIED, policy.getModified());
+        appendObject(struct, ATTR_NAME, policy.getName());
         return struct;
     }
     
     private static Struct asStruct(Role role) {
+        // all of our fields are in canonical order based
+        // on their attribute name
         Struct struct = new Struct();
-        struct.append(ATTR_NAME, role.getName());
-        struct.append(ATTR_MODIFIED, role.getModified());
-        appendObject(struct, ATTR_TRUST, role.getTrust());
         appendList(struct, ATTR_MEMBERS, role.getMembers());
+        appendObject(struct, ATTR_MODIFIED, role.getModified());
+        appendObject(struct, ATTR_NAME, role.getName());
         List<RoleMember> roleMembers = role.getRoleMembers();
         if (roleMembers != null) {
             Array roleMembersArray = new Array();
             for (RoleMember roleMember : roleMembers) {
                 Struct structRoleMember = new Struct();
-                structRoleMember.append(ATTR_MEMBER_NAME, roleMember.getMemberName());
-                appendObject(structRoleMember, ATTR_EXPIRATION,
-                        roleMember.getExpiration());
+                appendObject(structRoleMember, ATTR_EXPIRATION, roleMember.getExpiration());
+                appendObject(structRoleMember, ATTR_MEMBER_NAME, roleMember.getMemberName());
                 roleMembersArray.add(structRoleMember);
             }
             appendArray(struct, ATTR_ROLE_MEMBERS, roleMembersArray);
         }
+        appendObject(struct, ATTR_TRUST, role.getTrust());
         return struct;
     }
     
     private static Struct asStruct(ServiceIdentity service) {
+        // all of our fields are in canonical order based
+        // on their attribute name
         Struct struct = new Struct();
-        struct.append(ATTR_NAME, service.getName());
-        struct.append(ATTR_MODIFIED, service.getModified());
         appendObject(struct, ATTR_EXECUTABLE, service.getExecutable());
         appendObject(struct, ATTR_GROUP, service.getGroup());
-        appendObject(struct, ATTR_PROVIDER_ENDPOINT, service.getProviderEndpoint());
-        appendObject(struct, ATTR_USER, service.getUser());
         appendList(struct, ATTR_HOSTS, service.getHosts());
+        appendObject(struct, ATTR_MODIFIED, service.getModified());
+        appendObject(struct, ATTR_NAME, service.getName());
+        appendObject(struct, ATTR_PROVIDER_ENDPOINT, service.getProviderEndpoint());
         List<PublicKeyEntry> publicKeys = service.getPublicKeys();
+        Array publicKeysArray = new Array();
         if (publicKeys != null) {
-            Array publicKeysArray = new Array();
             for (PublicKeyEntry publicKey : publicKeys) {
                 Struct structPublicKey = new Struct();
-                structPublicKey.append(ATTR_ID, publicKey.getId());
-                structPublicKey.append(ATTR_KEY, publicKey.getKey());
+                appendObject(structPublicKey, ATTR_ID, publicKey.getId());
+                appendObject(structPublicKey, ATTR_KEY, publicKey.getKey());
                 publicKeysArray.add(structPublicKey);
             }
-            appendArray(struct, ATTR_PUBLIC_KEYS, publicKeysArray);
         }
+        appendArray(struct, ATTR_PUBLIC_KEYS, publicKeysArray);
+        appendObject(struct, ATTR_USER, service.getUser());
         return struct;
     }
     
@@ -181,68 +190,79 @@ public class SignUtils {
             struct.append(name, value);
         } else if (value instanceof String) {
             struct.append(name, value);
+        } else if (value instanceof Integer) {
+            struct.append(name, value);
+        } else if (value instanceof Long) {
+            struct.append(name, value);
         } else {
             struct.append(name, value.toString());
         }
     }
     
     private static void appendArray(Struct struct, String name, Array array) {
-        if (array != null && !array.isEmpty()) {
+        if (array != null) {
             struct.append(name, array);
         }
     }
     
     private static Object asStruct(PolicyData policyData) {
+        // all of our fields are in canonical order based
+        // on their attribute name
         Struct struct = new Struct();
-        struct.append(ATTR_DOMAIN, policyData.getDomain());
+        appendObject(struct, ATTR_DOMAIN, policyData.getDomain());
         List<com.yahoo.athenz.zts.Policy> policies = policyData.getPolicies();
+        Array policiesArray = new Array();
         if (policies != null) {
-            Array policiesArray = new Array();
             for (com.yahoo.athenz.zts.Policy policy : policies) {
                 policiesArray.add(asStruct(policy));
             }
-            appendArray(struct, ATTR_POLICIES, policiesArray);
         }
+        appendArray(struct, ATTR_POLICIES, policiesArray);
         return struct;
     }
     
     private static Object asStruct(SignedPolicyData signedPolicyData) {
+        // all of our fields are in canonical order based
+        // on their attribute name
         Struct struct = new Struct();
-        struct.append(ATTR_MODIFIED, signedPolicyData.getModified());
-        struct.append(ATTR_EXPIRES, signedPolicyData.getExpires());
-        struct.append(ATTR_ZMS_KEY_ID, signedPolicyData.getZmsKeyId());
-        struct.append(ATTR_ZMS_SIGNATURE, signedPolicyData.getZmsSignature());
-        struct.append(ATTR_POLICY_DATA, asStruct(signedPolicyData.getPolicyData()));
+        appendObject(struct, ATTR_EXPIRES, signedPolicyData.getExpires());
+        appendObject(struct, ATTR_MODIFIED, signedPolicyData.getModified());
+        appendObject(struct, ATTR_POLICY_DATA, asStruct(signedPolicyData.getPolicyData()));
+        appendObject(struct, ATTR_ZMS_KEY_ID, signedPolicyData.getZmsKeyId());
+        appendObject(struct, ATTR_ZMS_SIGNATURE, signedPolicyData.getZmsSignature());
         return struct;
     }
     
     private static Struct asStruct(DomainData domainData) {
+        // all of our fields are in canonical order based
+        // on their attribute name
         Struct struct = new Struct();
-        struct.append(ATTR_MODIFIED, domainData.getModified());
         appendObject(struct, ATTR_ACCOUNT, domainData.getAccount());
-        appendObject(struct, ATTR_PRODUCT_ID, domainData.getYpmId());
-        if (domainData.getRoles() != null) {
-            Array structRoles = new Array();
-            for (Role role : domainData.getRoles()) {
-                structRoles.add(asStruct(role));
-            }
-            appendArray(struct, ATTR_ROLES, structRoles);
-        }
-        if (domainData.getServices() != null) {
-            Array structServices = new Array();
-            for (ServiceIdentity service : domainData.getServices()) {
-                structServices.add(asStruct(service));
-            }
-            appendArray(struct, ATTR_SERVICES, structServices);
-        }
+        appendObject(struct, ATTR_MODIFIED, domainData.getModified());
+        appendObject(struct, ATTR_NAME, domainData.getName());
         SignedPolicies signedPolicies = domainData.getPolicies();
         if (signedPolicies != null) {
             Struct structSignedPolicies = new Struct();
-            appendObject(structSignedPolicies, ATTR_SIGNATURE, signedPolicies.getSignature());
-            appendObject(structSignedPolicies, ATTR_KEYID, signedPolicies.getKeyId());
             appendObject(structSignedPolicies, ATTR_CONTENTS, asStruct(signedPolicies.getContents()));
-            struct.append(ATTR_POLICIES, structSignedPolicies);
+            appendObject(structSignedPolicies, ATTR_KEYID, signedPolicies.getKeyId());
+            appendObject(struct, ATTR_POLICIES, structSignedPolicies);
+            appendObject(structSignedPolicies, ATTR_SIGNATURE, signedPolicies.getSignature());
         }
+        Array structRoles = new Array();
+        if (domainData.getRoles() != null) {
+            for (Role role : domainData.getRoles()) {
+                structRoles.add(asStruct(role));
+            }
+        }
+        appendArray(struct, ATTR_ROLES, structRoles);
+        Array structServices = new Array();
+        if (domainData.getServices() != null) {
+            for (ServiceIdentity service : domainData.getServices()) {
+                structServices.add(asStruct(service));
+            }
+        }
+        appendArray(struct, ATTR_SERVICES, structServices);
+        appendObject(struct, ATTR_YPMID, domainData.getYpmId());
         return struct;
     }
     
@@ -280,6 +300,10 @@ public class SignUtils {
             strBuffer.append('"');
             strBuffer.append(obj);
             strBuffer.append('"');
+        } else if (obj instanceof Integer) {
+            strBuffer.append(obj);
+        } else if (obj instanceof Long) {
+            strBuffer.append(obj);
         }
         return strBuffer.toString();
     }
