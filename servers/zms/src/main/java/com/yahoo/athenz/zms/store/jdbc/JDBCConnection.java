@@ -309,6 +309,20 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
     }
     
+    int executeUpdate(PreparedStatement ps, String caller) throws SQLException {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(caller + ": " + ps.toString());
+        }
+        return ps.executeUpdate();
+    }
+    
+    ResultSet executeQuery(PreparedStatement ps, String caller) throws SQLException {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(caller + ": " + ps.toString());
+        }
+        return ps.executeQuery();
+    }
+
     Domain saveDomainSettings(String domainName, ResultSet rs, String caller) {
         try {
             Domain domain = new Domain().setName(domainName)
@@ -332,12 +346,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         final String caller = "getDomain";
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN)) {
             ps.setString(1, domainName);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
                     return saveDomainSettings(domainName, rs, caller);
                 }
@@ -370,7 +379,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setBoolean(6, processInsertValue(domain.getAuditEnabled(), false));
             ps.setString(7, processInsertValue(domain.getAccount()));
             ps.setInt(8, processInsertValue(domain.getYpmId()));
-            affectedRows = ps.executeUpdate();
+            affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -425,7 +434,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(6, processInsertValue(domain.getAccount()));
             ps.setInt(7, processInsertValue(domain.getYpmId()));
             ps.setString(8, domain.getName());
-            affectedRows = ps.executeUpdate();
+            affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -440,7 +449,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_DOMAIN_MOD_TIMESTAMP)) {
             ps.setString(1, domainName);
-            affectedRows = ps.executeUpdate();
+            affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -455,12 +464,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_MOD_TIMESTAMP)) {
             ps.setString(1, domainName);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
                     modTime = rs.getTimestamp(1).getTime();
                 }
@@ -479,7 +483,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_DOMAIN)) {
             ps.setString(1, domainName);
-            affectedRows = ps.executeUpdate();
+            affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -548,12 +552,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         Set<String> uniqueDomains = new HashSet<>();
         try (PreparedStatement ps = prepareScanByRoleStatement(con, roleMember, roleName)) {
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     uniqueDomains.add(rs.getString(ZMSConsts.DB_COLUMN_NAME));
                 }
@@ -586,12 +585,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             } else {
                 ps.setInt(1, productId);
             }
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
                     domainName = rs.getString(1);
                 }
@@ -610,12 +604,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         List<String> domains = new ArrayList<>();
         try (PreparedStatement ps = prepareScanStatement(con, prefix, modifiedSince)) {
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     domains.add(rs.getString(ZMSConsts.DB_COLUMN_NAME));
                 }
@@ -640,7 +629,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         try (PreparedStatement ps = con.prepareStatement(SQL_INSERT_DOMAIN_TEMPLATE)) {
             ps.setInt(1, domainId);
             ps.setString(2, templateName);
-            affectedRows = ps.executeUpdate();
+            affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -660,7 +649,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_DOMAIN_TEMPLATE)) {
             ps.setInt(1, domainId);
             ps.setString(2, templateName);
-            affectedRows = ps.executeUpdate();
+            affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -675,12 +664,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         List<String> templates = new ArrayList<>();
         try (PreparedStatement ps = con.prepareStatement(SQL_LIST_DOMAIN_TEMPLATE)) {
             ps.setString(1, domainName);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     templates.add(rs.getString(1));
                 }
@@ -711,12 +695,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         int domainId = 0;
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_ID)) {
             ps.setString(1, domainName);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
                     domainId = rs.getInt(1);
                 }
@@ -755,12 +734,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_POLICY_ID)) {
             ps.setInt(1, domainId);
             ps.setString(2, policyName);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
                     policyId = rs.getInt(1);
                 }
@@ -799,12 +773,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_ROLE_ID)) {
             ps.setInt(1, domainId);
             ps.setString(2, roleName);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
                     roleId = rs.getInt(1);
                 }
@@ -843,12 +812,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_SERVICE_ID)) {
             ps.setInt(1, domainId);
             ps.setString(2, serviceName);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
                     serviceId = rs.getInt(1);
                 }
@@ -886,12 +850,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         int principalId = 0;
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_PRINCIPAL_ID)) {
             ps.setString(1, principal);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
                     principalId = rs.getInt(1);
                 }
@@ -930,12 +889,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         int hostId = 0;
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_HOST_ID)) {
             ps.setString(1, hostName);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
                     hostId = rs.getInt(1);
                 }
@@ -960,12 +914,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         final String caller = "getLastInsertId";
 
         try (PreparedStatement ps = con.prepareStatement(SQL_LAST_INSERT_ID)) {
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
                     lastInsertId = rs.getInt(1);
                 }
@@ -985,12 +934,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_ROLE)) {
             ps.setString(1, domainName);
             ps.setString(2, roleName);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
                     Role role = new Role().setName(ZMSUtils.roleResourceName(domainName, roleName))
                             .setModified(Timestamp.fromMillis(rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime()))
@@ -1049,7 +993,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(1, roleName);
             ps.setInt(2, domainId);
             ps.setString(3, processInsertValue(role.getTrust()));
-            affectedRows = ps.executeUpdate();
+            affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -1080,7 +1024,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_ROLE)) {
             ps.setString(1, processInsertValue(role.getTrust()));
             ps.setInt(2, roleId);
-            affectedRows = ps.executeUpdate();
+            affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -1105,7 +1049,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_ROLE_MOD_TIMESTAMP)) {
             ps.setInt(1, roleId);
-            affectedRows = ps.executeUpdate();
+            affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -1125,7 +1069,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_ROLE)) {
             ps.setInt(1, domainId);
             ps.setString(2, roleName);
-            affectedRows = ps.executeUpdate();
+            affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -1144,12 +1088,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         List<String> roles = new ArrayList<>();
         try (PreparedStatement ps = con.prepareStatement(SQL_LIST_ROLE)) {
             ps.setInt(1, domainId);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     roles.add(rs.getString(1));
                 }
@@ -1185,12 +1124,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         List<RoleMember> members = new ArrayList<>();
         try (PreparedStatement ps = con.prepareStatement(SQL_LIST_ROLE_MEMBERS)) {
             ps.setInt(1, roleId);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     RoleMember roleMember = new RoleMember();
                     roleMember.setMemberName(rs.getString(1));
@@ -1224,12 +1158,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         List<RoleAuditLog> logs = new ArrayList<>();
         try (PreparedStatement ps = con.prepareStatement(SQL_LIST_ROLE_AUDIT_LOGS)) {
             ps.setInt(1, roleId);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     RoleAuditLog log = new RoleAuditLog();
                     log.setAction(rs.getString(ZMSConsts.DB_COLUMN_ACTION));
@@ -1278,12 +1207,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_ROLE_MEMBER)) {
             ps.setInt(1, roleId);
             ps.setString(2, member);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
                     membership.setIsMember(true);
                     java.sql.Timestamp expiration = rs.getTimestamp(2);
@@ -1305,7 +1229,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         try (PreparedStatement ps = con.prepareStatement(SQL_INSERT_PRINCIPAL)) {
             ps.setString(1, principal);
-            affectedRows = ps.executeUpdate();
+            affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -1324,7 +1248,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         try (PreparedStatement ps = con.prepareStatement(SQL_INSERT_HOST)) {
             ps.setString(1, hostName);
-            affectedRows = ps.executeUpdate();
+            affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -1368,7 +1292,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_ROLE_MEMBER_EXISTS)) {
             ps.setInt(1, roleId);
             ps.setInt(2, principalId);
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
                     roleMemberExists = true;
                 }
@@ -1389,7 +1313,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                 ps.setTimestamp(1, expiration);
                 ps.setInt(2, roleId);
                 ps.setInt(3, principalId);
-                affectedRows = ps.executeUpdate();
+                affectedRows = executeUpdate(ps, caller);
            } catch (SQLException ex) {
                 throw sqlError(ex, caller);
            }
@@ -1406,7 +1330,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                 } else {
                     ps.setTimestamp(3, null);
                 }
-                affectedRows = ps.executeUpdate();
+                affectedRows = executeUpdate(ps, caller);
             } catch (SQLException ex) {
                 throw sqlError(ex, caller);
             }
@@ -1445,7 +1369,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_ROLE_MEMBER)) {
             ps.setInt(1, roleId);
             ps.setInt(2, principalId);
-            affectedRows = ps.executeUpdate();
+            affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -1474,7 +1398,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(3, member);
             ps.setString(4, action);
             ps.setString(5, processInsertValue(auditRef));
-            affectedRows = ps.executeUpdate();
+            affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -1491,12 +1415,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setInt(1, assertionId.intValue());
             ps.setString(2, domainName);
             ps.setString(3, policyName);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
                     assertion = new Assertion();
                     assertion.setRole(ZMSUtils.roleResourceName(domainName, rs.getString(ZMSConsts.DB_COLUMN_ROLE)));
@@ -1520,12 +1439,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_POLICY)) {
             ps.setString(1, domainName);
             ps.setString(2, policyName);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
                     Policy policy = new Policy().setName(ZMSUtils.policyResourceName(domainName, policyName))
                             .setModified(Timestamp.fromMillis(rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime()));
@@ -1557,7 +1471,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         try (PreparedStatement ps = con.prepareStatement(SQL_INSERT_POLICY)) {
             ps.setString(1, policyName);
             ps.setInt(2, domainId);
-            affectedRows = ps.executeUpdate();
+            affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -1587,7 +1501,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_POLICY)) {
             ps.setString(1, policyName);
             ps.setInt(2, policyId);
-            affectedRows = ps.executeUpdate();
+            affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -1611,7 +1525,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_POLICY_MOD_TIMESTAMP)) {
             ps.setInt(1, policyId);
-            affectedRows = ps.executeUpdate();
+            affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -1631,7 +1545,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_POLICY)) {
             ps.setInt(1, domainId);
             ps.setString(2, policyName);
-            affectedRows = ps.executeUpdate();
+            affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -1659,12 +1573,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             if (assertionRoleName != null) {
                 ps.setString(2, assertionRoleName);
             }
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     policies.add(rs.getString(1));
                 }
@@ -1705,12 +1614,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(3, assertion.getResource());
             ps.setString(4, assertion.getAction());
             ps.setString(5, processInsertValue(assertion.getEffect()));
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
                     return true;
                 }
@@ -1729,7 +1633,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(3, assertion.getResource());
             ps.setString(4, assertion.getAction());
             ps.setString(5, processInsertValue(assertion.getEffect()));
-            affectedRows = ps.executeUpdate();
+            affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -1760,7 +1664,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_ASSERTION)) {
             ps.setInt(1, policyId);
             ps.setInt(2, assertionId.intValue());
-            affectedRows = ps.executeUpdate();
+            affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -1783,12 +1687,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         List<Assertion> assertions = new ArrayList<>();
         try (PreparedStatement ps = con.prepareStatement(SQL_LIST_ASSERTION)) {
             ps.setInt(1, policyId);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     Assertion assertion = new Assertion();
                     assertion.setRole(ZMSUtils.roleResourceName(domainName, rs.getString(ZMSConsts.DB_COLUMN_ROLE)));
@@ -1821,12 +1720,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_SERVICE)) {
             ps.setString(1, domainName);
             ps.setString(2, serviceName);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
                     ServiceIdentity serviceIdentity = new ServiceIdentity()
                             .setName(ZMSUtils.serviceResourceName(domainName, serviceName))
@@ -1888,7 +1782,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(4, processInsertValue(service.getUser()));
             ps.setString(5, processInsertValue(service.getGroup()));
             ps.setInt(6, domainId);
-            affectedRows = ps.executeUpdate();
+            affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -1921,7 +1815,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(3, processInsertValue(service.getUser()));
             ps.setString(4, processInsertValue(service.getGroup()));
             ps.setInt(5, serviceId);
-            affectedRows = ps.executeUpdate();
+            affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -1941,7 +1835,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_SERVICE)) {
             ps.setInt(1, domainId);
             ps.setString(2, serviceName);
-            affectedRows = ps.executeUpdate();
+            affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -1960,12 +1854,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         List<String> services = new ArrayList<>();
         try (PreparedStatement ps = con.prepareStatement(SQL_LIST_SERVICE)) {
             ps.setInt(1, domainId);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     services.add(rs.getString(1));
                 }
@@ -1993,12 +1882,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         List<PublicKeyEntry> publicKeys = new ArrayList<>();
         try (PreparedStatement ps = con.prepareStatement(SQL_LIST_PUBLIC_KEY)) {
             ps.setInt(1, serviceId);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     PublicKeyEntry publicKey = new PublicKeyEntry()
                             .setId(rs.getString(ZMSConsts.DB_COLUMN_KEY_ID))
@@ -2028,12 +1912,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_PUBLIC_KEY)) {
             ps.setInt(1, serviceId);
             ps.setString(2, keyId);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
                     PublicKeyEntry publicKey = new PublicKeyEntry().setId(keyId)
                             .setKey(rs.getString(ZMSConsts.DB_COLUMN_KEY_VALUE));
@@ -2064,7 +1943,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setInt(1, serviceId);
             ps.setString(2, publicKey.getId());
             ps.setString(3, publicKey.getKey());
-            affectedRows = ps.executeUpdate();
+            affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -2089,7 +1968,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(1, publicKey.getKey());
             ps.setInt(2, serviceId);
             ps.setString(3, publicKey.getId());
-            affectedRows = ps.executeUpdate();
+            affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -2113,7 +1992,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_PUBLIC_KEY)) {
             ps.setInt(1, serviceId);
             ps.setString(2, keyId);
-            affectedRows = ps.executeUpdate();
+            affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -2136,12 +2015,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         List<String> hosts = new ArrayList<>();
         try (PreparedStatement ps = con.prepareStatement(SQL_LIST_SERVICE_HOST)) {
             ps.setInt(1, serviceId);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     hosts.add(rs.getString(ZMSConsts.DB_COLUMN_NAME));
                 }
@@ -2176,7 +2050,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         try (PreparedStatement ps = con.prepareStatement(SQL_INSERT_SERVICE_HOST)) {
             ps.setInt(1, serviceId);
             ps.setInt(2, hostId);
-            affectedRows = ps.executeUpdate();
+            affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -2204,7 +2078,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_SERVICE_HOST)) {
             ps.setInt(1, serviceId);
             ps.setInt(2, hostId);
-            affectedRows = ps.executeUpdate();
+            affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -2225,7 +2099,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setInt(1, domainId);
             ps.setString(2, entity.getName());
             ps.setString(3, JSON.string(entity.getValue()));
-            affectedRows = ps.executeUpdate();
+            affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -2246,7 +2120,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(1, JSON.string(entity.getValue()));
             ps.setInt(2, domainId);
             ps.setString(3, entity.getName());
-            affectedRows = ps.executeUpdate();
+            affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -2266,7 +2140,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_ENTITY)) {
             ps.setInt(1, domainId);
             ps.setString(2, entityName);
-            affectedRows = ps.executeUpdate();
+            affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -2285,12 +2159,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_ENTITY)) {
             ps.setInt(1, domainId);
             ps.setString(2, entityName);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
                     Entity entity = new Entity().setName(entityName)
                             .setValue(JSON.fromString(rs.getString(ZMSConsts.DB_COLUMN_VALUE), Struct.class));
@@ -2315,12 +2184,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         List<String> entities = new ArrayList<>();
         try (PreparedStatement ps = con.prepareStatement(SQL_LIST_ENTITY)) {
             ps.setInt(1, domainId);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     entities.add(rs.getString(1));
                 }
@@ -2337,12 +2201,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         Map<String, Role> roleMap = new HashMap<>();
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_ROLES)) {
             ps.setInt(1, domainId);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     String roleName = rs.getString(ZMSConsts.DB_COLUMN_NAME);
                     Role role = new Role().setName(ZMSUtils.roleResourceName(domainName, roleName))
@@ -2357,12 +2216,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_ROLE_MEMBERS)) {
             ps.setInt(1, domainId);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     String roleName = rs.getString(1);
                     Role role = roleMap.get(roleName);
@@ -2395,12 +2249,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         Map<String, Policy> policyMap = new HashMap<>();
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_POLICIES)) {
             ps.setInt(1, domainId);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     String policyName = rs.getString(ZMSConsts.DB_COLUMN_NAME);
                     Policy policy = new Policy().setName(ZMSUtils.policyResourceName(domainName, policyName))
@@ -2414,12 +2263,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_POLICY_ASSERTIONS)) {
             ps.setInt(1, domainId);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     String policyName = rs.getString(1);
                     Policy policy = policyMap.get(policyName);
@@ -2452,12 +2296,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         Map<String, ServiceIdentity> serviceMap = new HashMap<>();
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_SERVICES)) {
             ps.setInt(1, domainId);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     String serviceName = rs.getString(ZMSConsts.DB_COLUMN_NAME);
                     ServiceIdentity service = new ServiceIdentity()
@@ -2478,12 +2317,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_SERVICES_HOSTS)) {
             ps.setInt(1, domainId);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     String serviceName = rs.getString(1);
                     ServiceIdentity service = serviceMap.get(serviceName);
@@ -2504,12 +2338,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_SERVICES_PUBLIC_KEYS)) {
             ps.setInt(1, domainId);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     String serviceName = rs.getString(1);
                     ServiceIdentity service = serviceMap.get(serviceName);
@@ -2539,12 +2368,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN)) {
             ps.setString(1, domainName);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
                     Domain domain = saveDomainSettings(domainName, rs, caller);
                     athenzDomain.setDomain(domain);
@@ -2575,12 +2399,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         List<DomainModified> nameMods = new ArrayList<DomainModified>();
 
         try (PreparedStatement ps = prepareScanStatement(con, null, modifiedSince)) {
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     DomainModified dm = new DomainModified()
                             .setName(rs.getString(ZMSConsts.DB_COLUMN_NAME))
@@ -2630,12 +2449,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         Map<String, List<Assertion>> roleAssertions = new HashMap<>();
         try (PreparedStatement ps = prepareRoleAssertionsStatement(con, action)) {
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     Assertion assertion = new Assertion();
                     String domainName = rs.getString(ZMSConsts.DB_COLUMN_NAME);
@@ -2686,12 +2500,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         Map<String, List<String>> rolePrincipals = new HashMap<>();
         try (PreparedStatement ps = prepareRolePrincipalsStatement(con, principal, awsQuery)) {
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     String principalName = rs.getString(ZMSConsts.DB_COLUMN_NAME);
                     String roleName = rs.getString(ZMSConsts.DB_COLUMN_ROLE_NAME);
@@ -2721,12 +2530,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         Map<String, List<String>> trustedRoles = new HashMap<>();
         try (PreparedStatement ps = con.prepareStatement(SQL_LIST_TRUSTED_ROLES)) {
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     String trustDomainId = rs.getString(ZMSConsts.DB_COLUMN_DOMAIN_ID);
                     String trustRoleName = rs.getString(ZMSConsts.DB_COLUMN_NAME);
@@ -2760,12 +2564,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         Map<String, String> awsDomains = new HashMap<>();
         try (PreparedStatement ps = con.prepareStatement(SQL_LIST_DOMAIN_AWS)) {
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     awsDomains.put(rs.getString(ZMSConsts.DB_COLUMN_NAME), rs.getString(ZMSConsts.DB_COLUMN_ACCOUNT));
                 }
