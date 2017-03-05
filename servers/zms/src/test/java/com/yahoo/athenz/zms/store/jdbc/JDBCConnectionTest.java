@@ -4029,6 +4029,20 @@ public class JDBCConnectionTest extends TestCase {
     }
     
     @Test
+    public void testInsertPrincipalAlreadyExists() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("already exists", "state", 1062));
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.doReturn(101).when(mockResultSet).getInt(1);
+
+        int value = jdbcConn.insertPrincipal(mockConn, "domain.user1");
+        assertEquals(101, value);
+        jdbcConn.close();
+    }
+    
+    @Test
     public void testInsertPrincipalException() throws Exception {
         
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);

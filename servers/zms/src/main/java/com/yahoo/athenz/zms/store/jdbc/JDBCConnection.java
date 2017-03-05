@@ -1231,6 +1231,17 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(1, principal);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
+            
+            // it's possible that 2 threads try to add the same principal
+            // into different roles. so we're going to have a special
+            // handling here - if we get back entry already exists exception
+            // we're just going to lookup the principal id and return
+            // that instead of returning an exception
+            
+            if (ex.getErrorCode() == MYSQL_ER_OPTION_DUPLICATE_ENTRY) {
+                return getPrincipalId(con, principal);
+            }
+
             throw sqlError(ex, caller);
         }
         
