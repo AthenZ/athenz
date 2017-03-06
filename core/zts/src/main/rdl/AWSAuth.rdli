@@ -11,10 +11,11 @@ type AWSInstanceInformation Struct {
     CompoundName domain; //the domain of the instance
     SimpleName service; //the service this instance is supposed to run
     String csr; //return a certificate in the response
+    String ssh (optional); //if present, return an SSH host certificate. Format is JSON.
     CompoundName name; //the full service identity name (same as the EC2 instance profile name)
     SimpleName account; //the account id (as a string) for the instance. parsed from the instance profile ARN
     SimpleName cloud (optional); //the name of the cloud (namespace) within the account, parsed from the name
-    SimpleName subnet; //the name of the subnet this instance is expected to be running in, parsed from the name
+    SimpleName subnet (optional); //not used
     String access; //the AWS Access Key Id for the role
     String secret; //the AWS Secret Access Key for the role
     String token; //the AWS STS Token for the role
@@ -38,11 +39,12 @@ resource Identity POST "/aws/instance" {
 
 // AWSCertificateRequest - a certificate signing request
 type AWSCertificateRequest Struct {
-    String csr;
+    String csr (optional); //request an X.509 certificate
+    String ssh (optional); //request an SSH certificate
 }
 
 // Rotate certs. Make this request with previous cert, the result
-// is new cert for the same identity.
+// are new certs for the same identity.
 resource Identity POST "/aws/instance/{domain}/{service}/refresh" {
     CompoundName domain; //name of the domain requesting the refresh
     SimpleName service; //name of the service requesting the refresh

@@ -257,6 +257,70 @@ func encodeParams(objs ...string) string {
 	return "?" + s[1:]
 }
 
+func (client ZTSClient) GetResourceAccess(action ActionName, resource ResourceName, domain DomainName, checkPrincipal EntityName) (*ResourceAccess, error) {
+	var data *ResourceAccess
+	url := client.URL + "/access/" + fmt.Sprint(action) + "/" + fmt.Sprint(resource) + encodeParams(encodeStringParam("domain", string(domain), ""), encodeStringParam("principal", string(checkPrincipal), ""))
+	resp, err := client.httpGet(url, nil)
+	if err != nil {
+		return data, err
+	}
+	contentBytes, err := ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		return data, err
+	}
+	switch resp.StatusCode {
+	case 200:
+		err = json.Unmarshal(contentBytes, &data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
+func (client ZTSClient) GetResourceAccessExt(action ActionName, resource string, domain DomainName, checkPrincipal EntityName) (*ResourceAccess, error) {
+	var data *ResourceAccess
+	url := client.URL + "/access/" + fmt.Sprint(action) + encodeParams(encodeStringParam("resource", string(resource), ""), encodeStringParam("domain", string(domain), ""), encodeStringParam("principal", string(checkPrincipal), ""))
+	resp, err := client.httpGet(url, nil)
+	if err != nil {
+		return data, err
+	}
+	contentBytes, err := ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		return data, err
+	}
+	switch resp.StatusCode {
+	case 200:
+		err = json.Unmarshal(contentBytes, &data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
 func (client ZTSClient) GetServiceIdentity(domainName DomainName, serviceName ServiceName) (*ServiceIdentity, error) {
 	var data *ServiceIdentity
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName)
@@ -739,6 +803,78 @@ func (client ZTSClient) GetAWSTemporaryCredentials(domainName DomainName, role C
 		return data, err
 	}
 	contentBytes, err := ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		return data, err
+	}
+	switch resp.StatusCode {
+	case 200:
+		err = json.Unmarshal(contentBytes, &data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
+func (client ZTSClient) PostOSTKInstanceInformation(info *OSTKInstanceInformation) (*Identity, error) {
+	var data *Identity
+	url := client.URL + "/ostk/instance"
+	contentBytes, err := json.Marshal(info)
+	if err != nil {
+		return data, err
+	}
+	resp, err := client.httpPost(url, nil, contentBytes)
+	if err != nil {
+		return data, err
+	}
+	contentBytes, err = ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		return data, err
+	}
+	switch resp.StatusCode {
+	case 200:
+		err = json.Unmarshal(contentBytes, &data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
+func (client ZTSClient) PostOSTKInstanceRefreshRequest(domain CompoundName, service SimpleName, req *OSTKInstanceRefreshRequest) (*Identity, error) {
+	var data *Identity
+	url := client.URL + "/ostk/instance/" + fmt.Sprint(domain) + "/" + fmt.Sprint(service) + "/refresh"
+	contentBytes, err := json.Marshal(req)
+	if err != nil {
+		return data, err
+	}
+	resp, err := client.httpPost(url, nil, contentBytes)
+	if err != nil {
+		return data, err
+	}
+	contentBytes, err = ioutil.ReadAll(resp.Body)
 	resp.Body.Close()
 	if err != nil {
 		return data, err

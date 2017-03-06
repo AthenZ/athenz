@@ -76,9 +76,6 @@ import com.yahoo.athenz.zts.ZTSAuthorizer.AccessStatus;
 import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.cert.CertSigner;
 import com.yahoo.athenz.zts.cert.impl.SelfCertSigner;
-import com.yahoo.athenz.zts.cert.impl.SelfCertSignerFactory;
-import com.yahoo.athenz.zts.cert.InstanceIdentityStore;
-import com.yahoo.athenz.zts.cert.impl.LocalInstanceIdentityStore;
 import com.yahoo.athenz.zts.store.ChangeLogStore;
 import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.CloudStoreTest;
@@ -101,7 +98,6 @@ public class ZTSImplTest {
     PrivateKey privateKey = null;
     PublicKey publicKey = null;
     AuditLogger auditLogger = null;
-    @Mock InstanceIdentityStore mockIdentityStore;
     @Mock CloudStore mockCloudStore;
     
     static final String ZTS_DATA_STORE_PATH = "/tmp/zts_server_unit_tests/zts_root";
@@ -159,7 +155,67 @@ public class ZTSImplTest {
     private static final String MOCKCLIENTADDR = "10.11.12.13";
     @Mock HttpServletRequest  mockServletRequest;
     @Mock HttpServletResponse mockServletResponse;
+    
+    @BeforeClass
+    public void setUpClass() throws Exception {
+        MockitoAnnotations.initMocks(this);
+        Mockito.when(mockServletRequest.getRemoteAddr()).thenReturn(MOCKCLIENTADDR);
+        
+        System.setProperty(ZTSConsts.ZTS_PROP_METRIC_FACTORY_CLASS, ZTSConsts.ZTS_METRIC_FACTORY_CLASS);
+        System.setProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
+                "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory");
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_FACTORY_CLASS,
+                "com.yahoo.athenz.zts.cert.impl.SelfCertSignerFactory");
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,
+                "src/test/resources/zts_private.pem");
+        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
+        System.setProperty(ZTSConsts.ZTS_PROP_FILE_NAME, "src/test/resources/zts.properties");
+        auditLogger = new DefaultAuditLogger();
+    }
+    
+    @BeforeMethod
+    public void setup() {
 
+        // we want to make sure we start we clean dir structure
+
+        ZMSFileChangeLogStore.deleteDirectory(new File(ZTS_DATA_STORE_PATH));
+        
+        String privKeyName = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
+        File privKeyFile = new File(privKeyName);
+        String privKey = Crypto.encodedFile(privKeyFile);
+        
+        privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
+        
+        /* create our data store */
+        
+        roleTokenDefaultTimeout = 2400;
+        System.setProperty(ZTSConsts.ZTS_PROP_ROLE_TOKEN_DEFAULT_TIMEOUT,
+                Integer.toString(roleTokenDefaultTimeout));
+        
+        roleTokenMaxTimeout = 96000;
+        System.setProperty(ZTSConsts.ZTS_PROP_ROLE_TOKEN_MAX_TIMEOUT,
+                Integer.toString(roleTokenMaxTimeout));
+
+        System.setProperty(ZTSConsts.ZTS_PROP_AUTHORIZED_PROXY_USERS,
+                "user_domain.proxy-user1,user_domain.proxy-user2");
+        
+        ChangeLogStore structStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        CloudStore cloudStore = new CloudStore(null);
+        cloudStore.setHttpClient(null);
+        
+        System.setProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_FNAME,
+                "src/test/resources/private_encrypted.key");
+        System.setProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_PASSWORD, "athenz");
+        
+        store = new DataStore(structStore, cloudStore);
+        zts = new ZTSImpl(cloudStore, store);
+        ZTSImpl.serverHostName = "localhost";
+
+        authorizer = (ZTSAuthorizer) zts.getAuthorizer();
+    }
+    
     static class ZtsMetricTester extends com.yahoo.athenz.common.metrics.impl.NoOpMetric {
         Map<String, Integer> metrixMap = new HashMap<>();
 
@@ -268,67 +324,6 @@ public class ZTSImplTest {
 
         policy.setAssertions(assertList);
         return policy;
-    }
-    
-    @BeforeClass
-    public void setUpClass() throws Exception {
-        MockitoAnnotations.initMocks(this);
-        Mockito.when(mockServletRequest.getRemoteAddr()).thenReturn(MOCKCLIENTADDR);
-        
-        System.setProperty(ZTSConsts.ZTS_PROP_METRIC_FACTORY_CLASS, ZTSConsts.ZTS_METRIC_FACTORY_CLASS);
-        System.setProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
-                "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory");
-        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,
-                "src/test/resources/zts_private.pem");
-        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
-        System.setProperty(ZTSConsts.ZTS_PROP_FILE_NAME, "src/test/resources/zts.properties");
-        auditLogger = new DefaultAuditLogger();
-    }
-    
-    @BeforeMethod
-    public void setup() {
-
-        // we want to make sure we start we clean dir structure
-
-        ZMSFileChangeLogStore.deleteDirectory(new File(ZTS_DATA_STORE_PATH));
-        
-        String privKeyName = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
-        File privKeyFile = new File(privKeyName);
-        String privKey = Crypto.encodedFile(privKeyFile);
-        
-        privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
-        
-        /* create our data store */
-        
-        roleTokenDefaultTimeout = 2400;
-        System.setProperty(ZTSConsts.ZTS_PROP_ROLE_TOKEN_DEFAULT_TIMEOUT,
-                Integer.toString(roleTokenDefaultTimeout));
-        
-        roleTokenMaxTimeout = 96000;
-        System.setProperty(ZTSConsts.ZTS_PROP_ROLE_TOKEN_MAX_TIMEOUT,
-                Integer.toString(roleTokenMaxTimeout));
-
-        System.setProperty(ZTSConsts.ZTS_PROP_AUTHORIZED_PROXY_USERS,
-                "user_domain.proxy-user1,user_domain.proxy-user2");
-        
-        ChangeLogStore structStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
-                privateKey, "0");
-
-        CloudStore cloudStore = new CloudStore(null);
-        cloudStore.setHttpClient(null);
-        
-        System.setProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_FNAME,
-                "src/test/resources/private_encrypted.key");
-        System.setProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_PASSWORD, "athenz");
-        CertSigner certSigner = new SelfCertSignerFactory().create();
-        InstanceIdentityStore instanceIdentityStore = new LocalInstanceIdentityStore(certSigner);
-
-        store = new DataStore(structStore, cloudStore);
-
-        zts = new ZTSImpl(cloudStore, instanceIdentityStore, store);
-        ZTSImpl.serverHostName = "localhost";
-
-        authorizer = (ZTSAuthorizer) zts.getAuthorizer();
     }
     
     private Metric getMetric(){
@@ -2006,7 +2001,7 @@ public class ZTSImplTest {
 
         DataStore store = new DataStore(structStore, null);
         
-        zts = new ZTSImpl(mockCloudStore, mockIdentityStore, store);
+        zts = new ZTSImpl(mockCloudStore, store);
         zts.auditLogger = alogger;
         ZTSImpl.serverHostName = "localhost";
 
@@ -2053,7 +2048,7 @@ public class ZTSImplTest {
                 privateKey, "0");
         
         DataStore store = new DataStore(structStore, null);
-        zts = new ZTSImpl(mockCloudStore, mockIdentityStore, store);
+        zts = new ZTSImpl(mockCloudStore, store);
         ZTSImpl.serverHostName = "localhost";
 
         zts.auditLogger = alogger;
@@ -2103,7 +2098,7 @@ public class ZTSImplTest {
                 privateKey, "0");
         
         DataStore store = new DataStore(structStore, null);
-        zts = new ZTSImpl(mockCloudStore, mockIdentityStore, store);
+        zts = new ZTSImpl(mockCloudStore, store);
         zts.auditLogger = alogger;
         ZTSImpl.serverHostName = "localhost";
 
@@ -2152,7 +2147,7 @@ public class ZTSImplTest {
         
         DataStore store = new DataStore(structStore, null);
 
-        zts = new ZTSImpl(mockCloudStore, mockIdentityStore, store);
+        zts = new ZTSImpl(mockCloudStore, store);
         zts.auditLogger = alogger;
         ZTSImpl.serverHostName = "localhost";
 
@@ -2200,7 +2195,7 @@ public class ZTSImplTest {
         
         DataStore store = new DataStore(structStore, null);
 
-        zts = new ZTSImpl(mockCloudStore, mockIdentityStore, store);
+        zts = new ZTSImpl(mockCloudStore, store);
         zts.auditLogger = alogger;
         ZTSImpl.serverHostName = "localhost";
 
@@ -2252,7 +2247,7 @@ public class ZTSImplTest {
         
         DataStore store = new DataStore(structStore, null);
 
-        zts = new ZTSImpl(mockCloudStore, mockIdentityStore, store);
+        zts = new ZTSImpl(mockCloudStore, store);
         zts.auditLogger = alogger;
         ZTSImpl.serverHostName = "localhost";
 
@@ -3203,12 +3198,12 @@ public class ZTSImplTest {
                 "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
         ResourceContext context = createResourceContext(principal);
         
-        Identity identity = zts.postInstanceInformation(context, info);
-
-        assertNotNull(identity);
-
-        X509Certificate cert = Crypto.loadX509Certificate(identity.getCertificate());
-        assertNotNull(cert);
+        try {
+            zts.postInstanceInformation(context, info);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
     }
 
     @Test
@@ -3411,7 +3406,7 @@ public class ZTSImplTest {
             zts.postAWSInstanceInformation(context, info);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 403);
+            assertEquals(ex.getCode(), 400);
         }
     }
     
@@ -3683,6 +3678,55 @@ public class ZTSImplTest {
     }
     
     @Test
+    public void testResourceAccess() {
+
+        final String domainName = "coretechaccess";
+        
+        DataCache domain = new DataCache();
+        DomainData domainData = new DomainData();
+        domainData.setName(domainName);
+        domain.setDomainData(domainData);
+        domainData.setRoles(new ArrayList<Role>());
+        Role role1 = createRoleObject(domainName,  "role1", null, "user.user1", "user.user3");
+        Role role2 = createRoleObject(domainName,  "role2", null, "user.user2", null);
+        domainData.getRoles().add(role1);
+        domainData.getRoles().add(role2);
+
+        Policy policy = createPolicyObject(domainName, "access", domainName + ":role.role1",
+                false, "update", domainName + ":table1", AssertionEffect.ALLOW);
+        domainData.setPolicies(new com.yahoo.athenz.zms.SignedPolicies());
+        domainData.getPolicies().setContents(new com.yahoo.athenz.zms.DomainPolicies());
+        domainData.getPolicies().getContents().setPolicies(new ArrayList<Policy>());
+        domainData.getPolicies().getContents().getPolicies().add(policy);
+        store.getCacheStore().put(domainName, domain);
+        
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        Principal principal = SimplePrincipal.create("user", "user1", "v=U1;d=user;n=user1;s=signature",
+                0, principalAuthority);
+        ResourceContext ctx = createResourceContext(principal, null);
+
+        ResourceAccess access = zts.getResourceAccess(ctx, "update", domainName + ":table1", null, null);
+        assertTrue(access.getGranted());
+        
+        access = zts.getResourceAccess(ctx, "update", domainName + ":table2", null, null);
+        assertFalse(access.getGranted());
+        
+        access = zts.getResourceAccess(ctx, "delete", domainName + ":table1", null, null);
+        assertFalse(access.getGranted());
+        
+        access = zts.getResourceAccess(ctx, "update", domainName + ":table1", null, "user.user2");
+        assertFalse(access.getGranted());
+
+        access = zts.getResourceAccess(ctx, "update", domainName + ":table1", null, "user.user3");
+        assertTrue(access.getGranted());
+        
+        access = zts.getResourceAccess(ctx, "update", domainName + ":table2", null, "user.user3");
+        assertFalse(access.getGranted());
+
+        store.getCacheStore().invalidate(domainName);
+    }
+    
+    @Test
     public void testGetAccess() {
         
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
@@ -3794,20 +3838,18 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(principal);
 
         // create zts with a metric we can verify
+        
         CloudStore cloudStore = new CloudStore(null);
         cloudStore.setHttpClient(null);
-        CertSigner certSigner = new SelfCertSignerFactory().create();
-        InstanceIdentityStore instanceIdentityStore = new LocalInstanceIdentityStore(certSigner);
         ZtsMetricTester metric = new ZtsMetricTester();
-        //ZTSImpl ztsImpl = new ZTSImpl("localhost", store, cloudStore, instanceIdentityStore, metric,
-        //        privateKey, "0", auditLogger, null);
-        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, instanceIdentityStore, store);
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         ZTSImpl.serverHostName = "localhost";
         ztsImpl.metric = metric;
         
         String testDomain = "coretech";
 
         // create some metrics
+        
         List<DomainMetric> metricList = new ArrayList<>();
         metricList.add(
             new DomainMetric().
@@ -3822,9 +3864,11 @@ public class ZTSImplTest {
             setMetricList(metricList);
 
         // send the metrics
+        
         ztsImpl.postDomainMetrics(context, testDomain, req);
 
         // verify metrics were recorded
+        
         Map<String, Integer> metrixMap = metric.getMap();
         String key = "dom_metric_" + 
             DomainMetricType.ACCESS_ALLOWED_DENY_NO_MATCH.toString().toLowerCase() +
@@ -3840,9 +3884,11 @@ public class ZTSImplTest {
         assertEquals(val.intValue(), 27);
 
         // test - failure case - invalid domain
-        //
+        
         testDomain = "not_coretech";
+        
         // create some metrics
+        
         metricList = new ArrayList<>();
         metricList.add(
             new DomainMetric().
@@ -3857,6 +3903,7 @@ public class ZTSImplTest {
             setMetricList(metricList);
 
         // send the metrics
+        
         metrixMap.clear();
         String errMsg = "No such domain";
         try {
@@ -3867,12 +3914,15 @@ public class ZTSImplTest {
         }
 
         // verify no metrics were recorded
+        
         assertEquals(metrixMap.size(), 0);
 
         // test - failure case - missing domain name in metric data
-        //
+        
         testDomain = "coretech";
+        
         // create some metrics
+        
         metricList = new ArrayList<>();
         metricList.add(
             new DomainMetric().
@@ -3886,7 +3936,9 @@ public class ZTSImplTest {
             setMetricList(metricList);
 
         errMsg = "Missing required field: domainName";
+        
         // send the metrics
+        
         metrixMap.clear();
         try {
             ztsImpl.postDomainMetrics(context, testDomain, req);
@@ -3894,13 +3946,17 @@ public class ZTSImplTest {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains(errMsg), ex.getMessage());
         }
+        
         // verify no metrics were recorded
+        
         assertEquals(metrixMap.size(), 0);
 
         // test - failure case - mismatch domain in uri and metric data
-        //
+        
         testDomain = "coretech";
+        
         // create some metrics
+        
         metricList = new ArrayList<>();
         metricList.add(
             new DomainMetric().
@@ -3915,7 +3971,9 @@ public class ZTSImplTest {
             setMetricList(metricList);
 
         errMsg = "mismatched domain names";
+        
         // send the metrics
+        
         metrixMap.clear();
         try {
             ztsImpl.postDomainMetrics(context, testDomain, req);
@@ -3924,12 +3982,15 @@ public class ZTSImplTest {
             assertTrue(ex.getMessage().contains(errMsg), ex.getMessage());
         }
         // verify no metrics were recorded
+        
         assertEquals(metrixMap.size(), 0);
 
         // test - failure case - empty metric list
-        //
+
         testDomain = "coretech";
+        
         // create some metrics
+        
         metricList = new ArrayList<>();
         metricList.add(
             new DomainMetric().
@@ -3943,7 +4004,9 @@ public class ZTSImplTest {
             setDomainName(testDomain);
  
         errMsg = "Missing required field: metricList";
+        
         // send the metrics
+        
         metrixMap.clear();
         try {
             ztsImpl.postDomainMetrics(context, testDomain, req);
@@ -3951,13 +4014,17 @@ public class ZTSImplTest {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains(errMsg), ex.getMessage());
         }
+        
         // verify no metrics were recorded
+        
         assertEquals(metrixMap.size(), 0);
 
         // test - failure case - metric count is missing
-        //
+        
         testDomain = "coretech";
+        
         // create a single metric without a count
+        
         metricList = new ArrayList<>();
         metricList.add(
             new DomainMetric().
@@ -3968,6 +4035,7 @@ public class ZTSImplTest {
             setMetricList(metricList);
         
         // verify no metrics were recorded
+        
         metrixMap.clear();
         ztsImpl.postDomainMetrics(context, testDomain, req);
         assertEquals(metrixMap.size(), 0);

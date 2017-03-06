@@ -7,42 +7,30 @@ import com.yahoo.rdl.*;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
-// AWSCertificateRequest - AWSCertificateRequest - a certificate signing
+// OSTKInstanceRefreshRequest - OSTKCertificateRequest - a certificate signing
 // request
 //
 @JsonSerialize(include = JsonSerialize.Inclusion.NON_DEFAULT)
-public class AWSCertificateRequest {
+public class OSTKInstanceRefreshRequest {
     @RdlOptional
     public String csr;
-    @RdlOptional
-    public String ssh;
 
-    public AWSCertificateRequest setCsr(String csr) {
+    public OSTKInstanceRefreshRequest setCsr(String csr) {
         this.csr = csr;
         return this;
     }
     public String getCsr() {
         return csr;
     }
-    public AWSCertificateRequest setSsh(String ssh) {
-        this.ssh = ssh;
-        return this;
-    }
-    public String getSsh() {
-        return ssh;
-    }
 
     @Override
     public boolean equals(Object another) {
         if (this != another) {
-            if (another == null || another.getClass() != AWSCertificateRequest.class) {
+            if (another == null || another.getClass() != OSTKInstanceRefreshRequest.class) {
                 return false;
             }
-            AWSCertificateRequest a = (AWSCertificateRequest) another;
+            OSTKInstanceRefreshRequest a = (OSTKInstanceRefreshRequest) another;
             if (csr == null ? a.csr != null : !csr.equals(a.csr)) {
-                return false;
-            }
-            if (ssh == null ? a.ssh != null : !ssh.equals(a.ssh)) {
                 return false;
             }
         }

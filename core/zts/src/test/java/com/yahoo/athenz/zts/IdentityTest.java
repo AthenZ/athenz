@@ -43,12 +43,12 @@ public class IdentityTest {
         i.setName("sample");
         i.setCertificate("sample_cert");
         i.setCaCertBundle("sample_certbundle");
-        i.setSshServerCert("sample_sshcert");
+        i.setSshCertificate("sample_sshcert");
         i.setServiceToken("sample_token");
         i2.setName("sample");
         i2.setCertificate("sample_cert");
         i2.setCaCertBundle("sample_certbundle");
-        i2.setSshServerCert("sample_sshcert");
+        i2.setSshCertificate("sample_sshcert");
         i2.setServiceToken("sample_token");
         i.setAttributes(attr);
 
@@ -56,7 +56,7 @@ public class IdentityTest {
         assertEquals(i.getName(), "sample");
         assertEquals(i.getCertificate(), "sample_cert");
         assertEquals(i.getCaCertBundle(), "sample_certbundle");
-        assertEquals(i.getSshServerCert(), "sample_sshcert");
+        assertEquals(i.getSshCertificate(), "sample_sshcert");
         assertEquals(i.getServiceToken(), "sample_token");
         assertEquals(i.getAttributes(), attr);
 
@@ -65,7 +65,7 @@ public class IdentityTest {
         assertFalse(i2.equals(i));
         i2.setServiceToken(null);
         assertFalse(i2.equals(i));
-        i2.setSshServerCert(null);
+        i2.setSshCertificate(null);
         assertFalse(i2.equals(i));
         i2.setCaCertBundle(null);
         assertFalse(i2.equals(i));

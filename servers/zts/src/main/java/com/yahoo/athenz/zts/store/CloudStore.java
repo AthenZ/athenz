@@ -47,6 +47,8 @@ import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.zts.AWSInstanceInformation;
 import com.yahoo.athenz.zts.AWSTemporaryCredentials;
 import com.yahoo.athenz.zts.Identity;
+import com.yahoo.athenz.zts.InstanceInformation;
+import com.yahoo.athenz.zts.OSTKInstanceInformation;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.cert.CertSigner;
@@ -59,6 +61,13 @@ public class CloudStore {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CloudStore.class);
 
+    public static final String ZTS_SSH_HOST = "host";
+    public static final String ZTS_SSH_USER = "user";
+    public static final String ZTS_SSH_TYPE = "certtype";
+    
+    private static final String ATTR_ACCOUNT_ID = "accountId";
+    private static final String ATTR_PENDING_TIME = "pendingTime";
+    
     String awsRole = null;
     String awsCloud = null;
     String awsProfile = null;
@@ -71,9 +80,12 @@ public class CloudStore {
     BasicSessionCredentials credentials = null;
     Map<String, String> cloudAccountCache = null;
     int credsUpdateTime = 900;
-    String caPEMCertificate = null; // public key certificate of the certifying authority in PEM format
-    PublicKey awsPublicKey = null;  // AWS public key for validating instance documents
+    String x509CACertificate = null;  // public key certificate of the certifying authority in PEM format
+    String sshHostCertificate = null; // ssh host certificate signer certificate
+    String sshUserCertificate = null; // ssh user certificate signer certificate
+    PublicKey awsPublicKey = null;    // AWS public key for validating instance documents
     private HttpClient httpClient = null;
+    protected long bootTimeOffset;
 
     private static ScheduledExecutorService scheduledThreadPool;
     
@@ -83,7 +95,9 @@ public class CloudStore {
         
         this.certSigner = certSigner;
         if (certSigner != null) {
-            caPEMCertificate = certSigner.getCACertificate();
+            x509CACertificate = certSigner.getCACertificate();
+            sshHostCertificate = certSigner.getSSHCertificate(ZTS_SSH_HOST);
+            sshUserCertificate = certSigner.getSSHCertificate(ZTS_SSH_USER);
         }
         
         // initialize our account cache
@@ -115,6 +129,13 @@ public class CloudStore {
         // check to see if we are given region name
         
         awsRegion = System.getProperty(ZTSConsts.ZTS_PROP_AWS_REGION_NAME);
+        
+        // how long the instance must be booted in the past before we
+        // stop validating the instance requests
+        
+        long timeout = TimeUnit.SECONDS.convert(5, TimeUnit.MINUTES);
+        bootTimeOffset = 1000 * Long.parseLong(
+                System.getProperty(ZTSConsts.ZTS_PROP_AWS_BOOT_TIME_OFFSET, Long.toString(timeout)));
         
         // initialize aws support
         
@@ -521,20 +542,42 @@ public class CloudStore {
         }
     }
     
-    public boolean validateInstanceDocument(String document, String signature) {
+    public boolean verifyInstanceDocument(OSTKInstanceInformation info, String publicKey) {
+
+        // for now we're only validating the document signature
+
+        boolean verified = false;
+        try {
+            final PublicKey pub = Crypto.loadPublicKey(publicKey);
+            verified = Crypto.verify(info.getDocument(), pub, info.getSignature());
+            if (!verified) {
+                LOGGER.error("verifyInstanceDocument: OSTK document signature did not match");
+        } else if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("verifyInstanceDocument: OSTK document signature matched");
+        }
+        } catch (Exception ex) {
+            LOGGER.error("verifyInstanceDocument: Unable to verify signature: {}",
+                    ex.getMessage());
+        }
+        return verified;
+    }
+    
+    public boolean verifyInstanceDocument(AWSInstanceInformation info, String account) {
         
+        final String document = info.getDocument();
         if (document == null || document.isEmpty()) {
-            LOGGER.error("validateInstanceDocument: AWS instance document is empty");
+            LOGGER.error("verifyInstanceDocument: AWS instance document is empty");
             return false;
         }
         
+        final String signature = info.getSignature();
         if (signature == null || signature.isEmpty()) {
-            LOGGER.error("validateInstanceDocument: AWS instance document signature is empty");
+            LOGGER.error("verifyInstanceDocument: AWS instance document signature is empty");
             return false;
         }
         
         if (awsPublicKey == null) {
-            LOGGER.error("validateInstanceDocument: AWS Public key is not available");
+            LOGGER.error("verifyInstanceDocument: AWS Public key is not available");
             return false;
         }
         
@@ -542,10 +585,69 @@ public class CloudStore {
         try {
             valid = Crypto.validatePKCS7Signature(document, signature, awsPublicKey);
         } catch (CryptoException ex) {
-             LOGGER.error("validateInstanceDocument: unable to validate AWS instance document: "
-                     + ex.getMessage());
+             LOGGER.error("verifyInstanceDocument: unable to verify AWS instance document: {}",
+                     ex.getMessage());
         }
-        return valid;
+        
+        if (!valid) {
+            LOGGER.error("verifyInstanceDocument: AWS Instance document signature mismatch");
+            return false;
+        }
+        
+        // convert our document into a struct that we can extract data
+        
+        Struct instanceDocument = null;
+        try {
+            instanceDocument = JSON.fromString(info.getDocument(), Struct.class);
+        } catch (Exception ex) {
+            LOGGER.error("verifyInstanceDocument: failed to parse: {} error: {}",
+                    info.getDocument(), ex.getMessage());
+        }
+        
+        if (instanceDocument == null) {
+            LOGGER.error("verifyInstanceDocument: unable to parse instance document");
+            return false;
+        }
+        
+        // verify that the account lookup and the account in the document match
+        
+        final String docAccount = instanceDocument.getString(ATTR_ACCOUNT_ID);
+        if (!account.equalsIgnoreCase(docAccount)) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("verifyInstanceDocument: ZTS domain account lookup: " + account);
+                LOGGER.debug("verifyInstanceDocument: Instance document account: " + docAccount);
+            }
+            LOGGER.error("verifyInstanceDocument: mismatch between account values: "
+                    + " domain lookup: {} vs. instance document: {}", account, docAccount);
+            return false;
+        }
+        
+        // verify that the boot up time for the instance is now
+
+        Timestamp bootTime = instanceDocument.getTimestamp(ATTR_PENDING_TIME);
+        if (bootTime.millis() < System.currentTimeMillis() - bootTimeOffset) {
+            LOGGER.error("verifyInstanceDocument: instance boot time is not recent enough");
+            return false;
+        }
+        
+        // verify that the temporary credentials specified in the request
+        // can be used to assume the given role thus verifying the
+        // instance identity
+        
+        if (!verifyInstanceIdentity(info)) {
+            LOGGER.error("verifyInstanceDocument: unable to verify instance identity");
+            return false;
+        }
+        
+        return true;
+    }
+    
+    public boolean verifyInstanceDocument(InstanceInformation info, String publicKey) {
+        
+        // for now we don't have support for this api and we're just
+        // going to return false
+
+        return false;
     }
     
     class RoleCredentialsFetcher implements Runnable {
@@ -632,16 +734,97 @@ public class CloudStore {
         }
     }
 
-    public Identity generateIdentity(String csr, String cn) {
-        
+    public Identity generateIdentity(String cn, String csr, String ssh, String sshCertType) {
+
         // first verify that the cn in the certificate is valid
         
-        if (!ZTSUtils.verifyCertificateRequest(csr, cn, null)) {
+        csr = (csr != null && !csr.isEmpty()) ? csr : null;
+        ssh = (ssh != null && !ssh.isEmpty()) ? ssh : null;
+
+        // first verify that the cn in the certificate is valid
+        
+        if (csr != null) {
+            if (!ZTSUtils.verifyCertificateRequest(csr, cn, null)) {
+                return null;
+            }
+        }
+        
+        String sshReqType = null;
+        String sshCertificateSigner = null;
+        if (ssh != null) {
+            sshReqType = getSshKeyReqType(ssh);
+            if (sshReqType == null) {
+                return null;
+            }
+            
+            // check if we need to validate the type
+            
+            if (sshCertType != null && !sshReqType.equals(sshCertType)) {
+                LOGGER.error("generateIdentity: Unable to validate ssh cert type: request {} vs required {}",
+                        sshCertType, sshReqType);
+                return null;
+            }
+            
+            if (sshHostCertificate == null) {
+                sshHostCertificate = certSigner.getSSHCertificate(ZTS_SSH_HOST);
+            }
+            if (sshUserCertificate == null) {
+                sshUserCertificate = certSigner.getSSHCertificate(ZTS_SSH_USER);
+            }
+            sshCertificateSigner = sshReqType.equals(ZTS_SSH_HOST) ? sshHostCertificate : sshUserCertificate;
+        }
+
+        // generate a certificate for this certificate request
+
+        String x509Cert = null;
+        if (csr != null) {
+            x509Cert = certSigner.generateX509Certificate(csr);
+            if (x509Cert == null || x509Cert.isEmpty()) {
+                LOGGER.error("generateIdentity: CertSigner was unable to generate X509 certificate");
+                return null;
+            }
+            
+            if (x509CACertificate == null) {
+                x509CACertificate = certSigner.getCACertificate();
+            }
+        }
+        
+        String sshCert = null;
+        if (ssh != null) {
+            sshCert = certSigner.generateSSHCertificate(ssh);
+            if (sshCert == null || sshCert.isEmpty()) {
+                LOGGER.error("generateIdentity: CertSigner was unable to generate SSH certificate");
+                return null;
+            }
+        }
+        
+        return new Identity().setName(cn)
+                .setCertificate(x509Cert).setCaCertBundle(x509CACertificate)
+                .setSshCertificate(sshCert).setSshCertificateSigner(sshCertificateSigner);
+    }
+    
+    String getSshKeyReqType(String sshKeyReq) {
+        
+        Struct keyReq = null;
+        try {
+            keyReq = JSON.fromString(sshKeyReq, Struct.class);
+        } catch (Exception ex) {
+            LOGGER.error("getSshKeyReqType: Unable to parse json document: " + sshKeyReq);
             return null;
         }
         
-        return ZTSUtils.generateIdentity(certSigner, csr, cn, caPEMCertificate);
+        if (keyReq == null) {
+            LOGGER.error("getSshKeyReqType: Unable to parse ssh key req: " + sshKeyReq);
+            return null;
+        }
+        
+        String sshType = keyReq.getString(ZTS_SSH_TYPE);
+        if (sshType == null) {
+            LOGGER.error("getSshKeyReqType: SSH Key request does not have certtype: " + sshKeyReq);
+        }
+        return sshType;
     }
+
     
     public CertSigner getCertSigner() {
         return this.certSigner;

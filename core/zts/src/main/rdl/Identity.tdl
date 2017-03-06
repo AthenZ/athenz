@@ -9,7 +9,8 @@ type Identity Struct {
     CompoundName name; //name of the identity, fully qualified, i.e. my.domain.service1, or aws.1232321321312.myusername
     String certificate (optional); //a certificate usable for both client and server in TLS connections
     String caCertBundle (optional); //the CA certificate chain to use with all IMS-generated certs
-    String sshServerCert (optional); //the SSH server cert, signed by the CA
+    String sshCertificate (optional); //the SSH certificate, signed by the CA (user or host)
+    String sshCertificateSigner (optional); //the SSH CA's public key for the sshCertificate (user or host)
     SignedToken serviceToken (optional); //service token instead of TLS certificate
     Map<String,String> attributes (optional); //other config-like attributes determined at boot time
 }

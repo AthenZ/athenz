@@ -1,0 +1,50 @@
+// Copyright 2017 Yahoo Inc.
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+include "Names.tdl";
+
+//ResourceAccess can be checked and returned as this resource. (same as ZMS.Access)
+type ResourceAccess Struct {
+    Bool granted; //true (allowed) or false (denied)
+}
+
+//Check access for the specified operation on the specified resource
+//for the currently authenticated user. This is the slow centralized
+//access for control-plane purposes. Use distributed mechanisms for
+//decentralized (data-plane) access by fetching signed policies and
+//role tokens for users. With this endpoint the resource is part of
+//the uri and restricted to its strict definition of resource name.
+//If needed, you can use the GetAccessExt api that allows resource
+//name to be less restrictive.
+resource ResourceAccess GET "/access/{action}/{resource}?domain={domain}&principal={checkPrincipal}" {
+    ActionName action; //action as specified in the policy assertion, i.e. update or read
+    ResourceName resource; //the resource to check access against, i.e. "media.news:articles"
+    DomainName domain (optional); //usually null. If present, it specifies an alternate domain for cross-domain trust relation
+    EntityName checkPrincipal (optional); //usually null. If present, carry out the access check for this principal
+    authenticate;
+    expected OK;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError NOT_FOUND;
+    }
+}
+
+//Check access for the specified operation on the specified resource
+//for the currently authenticated user. This is the slow centralized
+//access for control-plane purposes.
+resource ResourceAccess GET "/access/{action}?resource={resource}&domain={domain}&principal={checkPrincipal}" (name=GetResourceAccessExt) {
+    ActionName action; //action as specified in the policy assertion, i.e. update or read
+    String resource; //the resource to check access against, i.e. "media.news:articles"
+    DomainName domain (optional); //usually null. If present, it specifies an alternate domain for cross-domain trust relation
+    EntityName checkPrincipal (optional); //usually null. If present, carry out the access check for this principal
+    authenticate;
+    expected OK;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError NOT_FOUND;
+    }
+}

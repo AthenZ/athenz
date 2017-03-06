@@ -49,6 +49,7 @@ public class ZTSUtils {
     public static final String ZTS_DEFAULT_EXCLUDED_PROTOCOLS = "SSLv2,SSLv3";
     
     private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
+    private static String CA_X509_CERTIFICATE = null;
     
     public static int retrieveConfigSetting(String property, int defaultValue) {
         
@@ -267,10 +268,8 @@ public class ZTSUtils {
         return true;
     }
     
-    public static Identity generateIdentity(CertSigner certSigner, String csr, String cn,
-                                            String caPEMCertificate) {
+    public static Identity generateIdentity(CertSigner certSigner, String csr, String cn) {
         
-
         // generate a certificate for this certificate request
 
         String pemCert = certSigner.generateX509Certificate(csr);
@@ -279,6 +278,14 @@ public class ZTSUtils {
             return null;
         }
         
-        return new Identity().setName(cn).setCertificate(pemCert).setCaCertBundle(caPEMCertificate);
+        if (CA_X509_CERTIFICATE == null) {
+            synchronized (ZTSUtils.class) {
+                if (CA_X509_CERTIFICATE == null) {
+                    CA_X509_CERTIFICATE = certSigner.getCACertificate();
+                }
+            }
+        }
+        
+        return new Identity().setName(cn).setCertificate(pemCert).setCaCertBundle(CA_X509_CERTIFICATE);
     }
 }

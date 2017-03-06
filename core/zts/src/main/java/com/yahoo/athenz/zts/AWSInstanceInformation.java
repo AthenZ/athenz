@@ -17,10 +17,13 @@ public class AWSInstanceInformation {
     public String domain;
     public String service;
     public String csr;
+    @RdlOptional
+    public String ssh;
     public String name;
     public String account;
     @RdlOptional
     public String cloud;
+    @RdlOptional
     public String subnet;
     public String access;
     public String secret;
@@ -63,6 +66,13 @@ public class AWSInstanceInformation {
     }
     public String getCsr() {
         return csr;
+    }
+    public AWSInstanceInformation setSsh(String ssh) {
+        this.ssh = ssh;
+        return this;
+    }
+    public String getSsh() {
+        return ssh;
     }
     public AWSInstanceInformation setName(String name) {
         this.name = name;
@@ -155,6 +165,9 @@ public class AWSInstanceInformation {
                 return false;
             }
             if (csr == null ? a.csr != null : !csr.equals(a.csr)) {
+                return false;
+            }
+            if (ssh == null ? a.ssh != null : !ssh.equals(a.ssh)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

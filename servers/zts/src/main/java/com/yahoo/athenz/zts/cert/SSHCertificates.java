@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Yahoo Inc.
+ * Copyright 2017 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,24 @@
  */
 package com.yahoo.athenz.zts.cert;
 
-public interface InstanceIdentityStoreFactory {
+import java.util.List;
 
-    /**
-     * Create and return a new instance identity store instance
-     * @param certSigner CertSigner client to use for signing
-     * @return InstanceIdentityStore instance
-     */
-    public InstanceIdentityStore create(CertSigner certSigner);
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+@JsonSerialize(include = JsonSerialize.Inclusion.NON_DEFAULT)
+public class SSHCertificates {
+
+    private List<SSHCertificate> certs;
+    
+    public SSHCertificates() {
+    }
+    
+    public List<SSHCertificate> getCerts() {
+        return certs;
+    }
+    
+    public SSHCertificates setCerts(List<SSHCertificate> certs) {
+        this.certs = certs;
+        return this;
+    }
 }

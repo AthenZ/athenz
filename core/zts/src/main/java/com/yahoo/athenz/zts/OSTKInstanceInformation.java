@@ -7,78 +7,69 @@ import com.yahoo.rdl.*;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
-// InstanceInformation - Instance object that includes requested service
-// details plus host document that is signed by provider as part of the host
+// OSTKInstanceInformation - Instance object that includes requested service
+// details plus host document that is signed by Openstack as part of the host
 // bootstrap process
 //
 @JsonSerialize(include = JsonSerialize.Inclusion.NON_DEFAULT)
-public class InstanceInformation {
+public class OSTKInstanceInformation {
     public String document;
     public String signature;
     public String keyId;
     public String domain;
     public String service;
     public String csr;
-    @RdlOptional
-    public String ssh;
 
-    public InstanceInformation setDocument(String document) {
+    public OSTKInstanceInformation setDocument(String document) {
         this.document = document;
         return this;
     }
     public String getDocument() {
         return document;
     }
-    public InstanceInformation setSignature(String signature) {
+    public OSTKInstanceInformation setSignature(String signature) {
         this.signature = signature;
         return this;
     }
     public String getSignature() {
         return signature;
     }
-    public InstanceInformation setKeyId(String keyId) {
+    public OSTKInstanceInformation setKeyId(String keyId) {
         this.keyId = keyId;
         return this;
     }
     public String getKeyId() {
         return keyId;
     }
-    public InstanceInformation setDomain(String domain) {
+    public OSTKInstanceInformation setDomain(String domain) {
         this.domain = domain;
         return this;
     }
     public String getDomain() {
         return domain;
     }
-    public InstanceInformation setService(String service) {
+    public OSTKInstanceInformation setService(String service) {
         this.service = service;
         return this;
     }
     public String getService() {
         return service;
     }
-    public InstanceInformation setCsr(String csr) {
+    public OSTKInstanceInformation setCsr(String csr) {
         this.csr = csr;
         return this;
     }
     public String getCsr() {
         return csr;
     }
-    public InstanceInformation setSsh(String ssh) {
-        this.ssh = ssh;
-        return this;
-    }
-    public String getSsh() {
-        return ssh;
-    }
 
     @Override
     public boolean equals(Object another) {
         if (this != another) {
-            if (another == null || another.getClass() != InstanceInformation.class) {
+            if (another == null || another.getClass() != OSTKInstanceInformation.class) {
                 return false;
             }
-            InstanceInformation a = (InstanceInformation) another;
+            OSTKInstanceInformation a = (OSTKInstanceInformation) another;
             if (document == null ? a.document != null : !document.equals(a.document)) {
                 return false;
             }
@@ -95,9 +86,6 @@ public class InstanceInformation {
                 return false;
             }
             if (csr == null ? a.csr != null : !csr.equals(a.csr)) {
-                return false;
-            }
-            if (ssh == null ? a.ssh != null : !ssh.equals(a.ssh)) {
                 return false;
             }
         }
