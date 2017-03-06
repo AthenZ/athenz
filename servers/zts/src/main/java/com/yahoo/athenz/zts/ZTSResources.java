@@ -15,6 +15,60 @@ import javax.inject.Inject;
 public class ZTSResources {
 
     @GET
+    @Path("/access/{action}/{resource}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public ResourceAccess getResourceAccess(@PathParam("action") String action, @PathParam("resource") String resource, @QueryParam("domain") String domain, @QueryParam("principal") String checkPrincipal) {
+        try {
+            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context.authenticate();
+            ResourceAccess e = this.delegate.getResourceAccess(context, action, resource, domain, checkPrincipal);
+            return e;
+        } catch (ResourceException e) {
+            int code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getResourceAccess");
+                throw typedException(code, e, ResourceError.class);
+            }
+        }
+    }
+
+    @GET
+    @Path("/access/{action}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public ResourceAccess getResourceAccessExt(@PathParam("action") String action, @QueryParam("resource") String resource, @QueryParam("domain") String domain, @QueryParam("principal") String checkPrincipal) {
+        try {
+            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context.authenticate();
+            ResourceAccess e = this.delegate.getResourceAccessExt(context, action, resource, domain, checkPrincipal);
+            return e;
+        } catch (ResourceException e) {
+            int code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getResourceAccessExt");
+                throw typedException(code, e, ResourceError.class);
+            }
+        }
+    }
+
+    @GET
     @Path("/domain/{domainName}/service/{serviceName}")
     @Produces(MediaType.APPLICATION_JSON)
     public ServiceIdentity getServiceIdentity(@PathParam("domainName") String domainName, @PathParam("serviceName") String serviceName) {
@@ -388,6 +442,59 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             default:
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getAWSTemporaryCredentials");
+                throw typedException(code, e, ResourceError.class);
+            }
+        }
+    }
+
+    @POST
+    @Path("/ostk/instance")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Identity postOSTKInstanceInformation(OSTKInstanceInformation info) {
+        try {
+            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            Identity e = this.delegate.postOSTKInstanceInformation(context, info);
+            return e;
+        } catch (ResourceException e) {
+            int code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource postOSTKInstanceInformation");
+                throw typedException(code, e, ResourceError.class);
+            }
+        }
+    }
+
+    @POST
+    @Path("/ostk/instance/{domain}/{service}/refresh")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Identity postOSTKInstanceRefreshRequest(@PathParam("domain") String domain, @PathParam("service") String service, OSTKInstanceRefreshRequest req) {
+        try {
+            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context.authenticate();
+            Identity e = this.delegate.postOSTKInstanceRefreshRequest(context, domain, service, req);
+            return e;
+        } catch (ResourceException e) {
+            int code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource postOSTKInstanceRefreshRequest");
                 throw typedException(code, e, ResourceError.class);
             }
         }

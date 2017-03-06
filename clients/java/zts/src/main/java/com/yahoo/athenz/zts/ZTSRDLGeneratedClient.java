@@ -42,6 +42,58 @@ public class ZTSRDLGeneratedClient {
         return this;
     }
 
+    public ResourceAccess getResourceAccess(String action, String resource, String domain, String checkPrincipal) {
+        WebTarget target = base.path("/access/{action}/{resource}")
+            .resolveTemplate("action", action)
+            .resolveTemplate("resource", resource);
+        if (domain != null) {
+            target = target.queryParam("domain", domain);
+        }
+        if (checkPrincipal != null) {
+            target = target.queryParam("principal", checkPrincipal);
+        }
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+        }
+        Response response = invocationBuilder.get();
+        int code = response.getStatus();
+        switch (code) {
+        case 200:
+            return response.readEntity(ResourceAccess.class);
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
+    public ResourceAccess getResourceAccessExt(String action, String resource, String domain, String checkPrincipal) {
+        WebTarget target = base.path("/access/{action}")
+            .resolveTemplate("action", action);
+        if (resource != null) {
+            target = target.queryParam("resource", resource);
+        }
+        if (domain != null) {
+            target = target.queryParam("domain", domain);
+        }
+        if (checkPrincipal != null) {
+            target = target.queryParam("principal", checkPrincipal);
+        }
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+        }
+        Response response = invocationBuilder.get();
+        int code = response.getStatus();
+        switch (code) {
+        case 200:
+            return response.readEntity(ResourceAccess.class);
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
     public ServiceIdentity getServiceIdentity(String domainName, String serviceName) {
         WebTarget target = base.path("/domain/{domainName}/service/{serviceName}")
             .resolveTemplate("domainName", domainName)
@@ -328,6 +380,39 @@ public class ZTSRDLGeneratedClient {
         switch (code) {
         case 200:
             return response.readEntity(AWSTemporaryCredentials.class);
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
+    public Identity postOSTKInstanceInformation(OSTKInstanceInformation info) {
+        WebTarget target = base.path("/ostk/instance");
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(info, "application/json"));
+        int code = response.getStatus();
+        switch (code) {
+        case 200:
+            return response.readEntity(Identity.class);
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
+    public Identity postOSTKInstanceRefreshRequest(String domain, String service, OSTKInstanceRefreshRequest req) {
+        WebTarget target = base.path("/ostk/instance/{domain}/{service}/refresh")
+            .resolveTemplate("domain", domain)
+            .resolveTemplate("service", service);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+        }
+        Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(req, "application/json"));
+        int code = response.getStatus();
+        switch (code) {
+        case 200:
+            return response.readEntity(Identity.class);
         default:
             throw new ResourceException(code, response.readEntity(ResourceError.class));
         }

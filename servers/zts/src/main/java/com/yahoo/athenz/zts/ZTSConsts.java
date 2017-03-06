@@ -38,9 +38,13 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_EXCLUDED_PROTOCOLS     = "athenz.zts.ssl_excluded_protocols";
     public static final String ZTS_PROP_WANT_CLIENT_CERT       = "athenz.zts.want_client_cert";
     public static final String ZTS_PROP_AUTHORITY_CLASSES      = "athenz.zts.authority_classes";
-    public static final String ZTS_PROP_CERTSIGN_BASE_URI      = "athenz.zts.certsign_base_uri";
     public static final String ZTS_PROP_ZMS_URL_OVERRIDE       = "athenz.zts.zms_url";
     public static final String ZTS_PROP_CHANGE_LOG_STORE_DIR   = "athenz.zts.change_log_store_dir";
+    
+    public static final String ZTS_PROP_CERTSIGN_BASE_URI        = "athenz.zts.certsign_base_uri";
+    public static final String ZTS_PROP_CERTSIGN_REQUEST_TIMEOUT = "athenz.zts.certsign_request_timeout";
+    public static final String ZTS_PROP_CERTSIGN_CONNECT_TIMEOUT = "athenz.zts.certsign_connect_timeout";
+    public static final String ZTS_PROP_CERTSIGN_RETRY_COUNT     = "athenz.zts.certsign_retry_count";
 
     public static final String ZTS_PROP_LEAST_PRIVILEGE_PRINCIPLE  = "athenz.zts.least_privilege_principle";
     public static final String ZTS_PROP_ROLE_TOKEN_MAX_TIMEOUT     = "athenz.zts.role_token_max_timeout";
@@ -51,11 +55,13 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_FNAME    = "athenz.zts.self_signer_private_key_fname";
     public static final String ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_PASSWORD = "athenz.zts.self_signer_private_key_password";
     public static final String ZTS_PROP_SELF_SIGNER_CERT_DN              = "athenz.zts.self_signer_cert_dn";
-
+    public static final String ZTS_PROP_OSTK_HOST_SIGNER_SERVICE         = "athenz.zts.ostk_host_signer_service";
+    
     public static final String ZTS_SERVICE            = "zts";
     public static final String ZTS_UNKNOWN_DOMAIN     = "unknown_domain";
     public static final String ATHENZ_SYS_DOMAIN      = "sys.auth";
-
+    public static final String ATHENZ_USER_DOMAIN     = "user";
+    
     public static final String STR_DEF_ROOT = "/home/athenz";
     public static final String STR_ENV_ROOT = "ROOT";
     
@@ -70,14 +76,12 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_CERT_SIGNER_FACTORY_CLASS             = "athenz.zts.cert_signer_factory_class";
     public static final String ZTS_PROP_AUDIT_LOGGER_FACTORY_CLASS            = "athenz.zts.audit_logger_factory_class";
     public static final String ZTS_PROP_CHANGE_LOG_STORE_FACTORY_CLASS        = "athenz.zts.change_log_store_factory_class";
-    public static final String ZTS_PROP_INSTANCE_IDENTITY_STORE_FACTORY_CLASS = "athenz.zts.instance_identity_store_factory_class";
     public static final String ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS       = "athenz.zts.private_key_store_factory_class";
     
     public static final String ZTS_METRIC_FACTORY_CLASS                  = "com.yahoo.athenz.common.metrics.impl.NoOpMetricFactory";
     public static final String ZTS_CHANGE_LOG_STORE_FACTORY_CLASS        = "com.yahoo.athenz.zts.store.file.ZMSFileChangeLogStoreFactory";
     public static final String ZTS_PKEY_STORE_FACTORY_CLASS              = "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory";
     public static final String ZTS_CERT_SIGNER_FACTORY_CLASS             = "com.yahoo.athenz.zts.cert.impl.HttpCertSignerFactory";
-    public static final String ZTS_INSTANCE_IDENTITY_STORE_FACTORY_CLASS = "com.yahoo.athenz.zts.cert.impl.LocalInstanceIdentityStoreFactory";
     public static final String ZTS_AUDIT_LOGGER_FACTORY_CLASS            = "com.yahoo.athenz.common.server.log.impl.DefaultAuditLoggerFactory";
     public static final String ZTS_PRINCIPAL_AUTHORITY_CLASS             = "com.yahoo.athenz.auth.impl.PrincipalAuthority";
 }

@@ -720,7 +720,7 @@ public class CloudStoreTest {
         Path path = Paths.get("src/test/resources/valid.csr");
         String certCsr = new String(Files.readAllBytes(path));
         
-        Identity identity = cloudStore.generateIdentity(certCsr, "athenz.syncer");
+        Identity identity = cloudStore.generateIdentity("athenz.syncer", certCsr, null, null);
         assertNotNull(identity);
         cloudStore.close();
     }
@@ -737,7 +737,7 @@ public class CloudStoreTest {
 
         CloudStore cloudStore = new CloudStore(certSigner);
         
-        Identity identity = cloudStore.generateIdentity("invalid-csr", "athenz.syncer");
+        Identity identity = cloudStore.generateIdentity("athenz.syncer", "invalid-csr", null, null);
         assertNull(identity);
         cloudStore.close();
     }
@@ -757,10 +757,10 @@ public class CloudStoreTest {
         Path path = Paths.get("src/test/resources/valid.csr");
         String certCsr = new String(Files.readAllBytes(path));
         
-        Identity identity = cloudStore.generateIdentity(certCsr, "athenz.backup");
+        Identity identity = cloudStore.generateIdentity("athenz.backup", certCsr, null, null);
         assertNull(identity);
         
-        identity = cloudStore.generateIdentity(certCsr, "athenz");
+        identity = cloudStore.generateIdentity("athenz", certCsr, null, null);
         assertNull(identity);
         cloudStore.close();
     }
@@ -925,5 +925,20 @@ public class CloudStoreTest {
         assertEquals(awsCreds.getAccessKeyId(), "accesskeyid");
         assertEquals(awsCreds.getSessionToken(), "sessiontoken");
         assertEquals(awsCreds.getSecretAccessKey(), "secretaccesskey");
+    }
+    
+    @Test
+    public void testGetSshKeyReqType() {
+        CloudStore cloudStore = new CloudStore(null);
+        final String req = "{\"principals\":[\"localhost\"],\"pubkey\":\"ssh-rsa AAAs\"" +
+                ",\"reqip\":\"10.10.10.10\",\"requser\":\"user\",\"certtype\":\"host\",\"transid\":\"0\"}";
+        assertEquals(cloudStore.getSshKeyReqType(req), "host");
+        
+        final String req2 = "{\"principals\":[\"localhost\"],\"pubkey\":\"ssh-rsa AAAs\"" +
+                ",\"reqip\":\"10.10.10.10\",\"requser\":\"user\",\"certtype2\":\"host\",\"transid\":\"0\"}";
+        assertNull(cloudStore.getSshKeyReqType(req2));
+        
+        final String req3 = "{invalid-json";
+        assertNull(cloudStore.getSshKeyReqType(req3));
     }
 }

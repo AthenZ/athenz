@@ -12,6 +12,8 @@ import javax.servlet.http.HttpServletResponse;
 // ZTSHandler is the interface that the service implementation must implement
 //
 public interface ZTSHandler { 
+    public ResourceAccess getResourceAccess(ResourceContext context, String action, String resource, String domain, String checkPrincipal);
+    public ResourceAccess getResourceAccessExt(ResourceContext context, String action, String resource, String domain, String checkPrincipal);
     public ServiceIdentity getServiceIdentity(ResourceContext context, String domainName, String serviceName);
     public ServiceIdentityList getServiceIdentityList(ResourceContext context, String domainName);
     public PublicKeyEntry getPublicKeyEntry(ResourceContext context, String domainName, String serviceName, String keyId);
@@ -27,6 +29,8 @@ public interface ZTSHandler {
     public Identity postAWSInstanceInformation(ResourceContext context, AWSInstanceInformation info);
     public Identity postAWSCertificateRequest(ResourceContext context, String domain, String service, AWSCertificateRequest req);
     public AWSTemporaryCredentials getAWSTemporaryCredentials(ResourceContext context, String domainName, String role);
+    public Identity postOSTKInstanceInformation(ResourceContext context, OSTKInstanceInformation info);
+    public Identity postOSTKInstanceRefreshRequest(ResourceContext context, String domain, String service, OSTKInstanceRefreshRequest req);
     public DomainMetrics postDomainMetrics(ResourceContext context, String domainName, DomainMetrics req);
     public Schema getRdlSchema(ResourceContext context);
     public ResourceContext newResourceContext(HttpServletRequest request, HttpServletResponse response);

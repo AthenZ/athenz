@@ -90,12 +90,7 @@ public class ZTSClientTest {
     
     @Test
     public void testGetHeader() {
-        
-        Principal principal = SimplePrincipal.create("user_domain", "user",
-                "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
-        ZTSClient client = new ZTSClient("http://localhost:4080/", principal);
-        assertEquals(client.getHeader(), "Athenz-Role-Auth");
-        client.close();
+        assertEquals(ZTSClient.getHeader(), "Athenz-Role-Auth");
     }
     
     @Test
@@ -2194,6 +2189,31 @@ public class ZTSClientTest {
         
         try {
             client.getAccess("exc", "match", "user_domain.user1");
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+        
+        client.close();
+    }
+    
+    @Test
+    public void testGetResourceAccess() {
+    
+        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+        
+        ResourceAccess access = client.getResourceAccess("access", "resource", null, null);
+        assertTrue(access.getGranted());
+        
+        access = client.getResourceAccess("access", "resource1", null, null);
+        assertFalse(access.getGranted());
+        
+        try {
+            client.getResourceAccess("exc", "resource", null, null);
             fail();
         } catch (ZTSClientException ex) {
             assertEquals(ex.getCode(), 400);

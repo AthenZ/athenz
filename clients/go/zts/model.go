@@ -83,6 +83,54 @@ type AuthorityName string
 type SignedToken string
 
 //
+// ResourceAccess - ResourceAccess can be checked and returned as this
+// resource. (same as ZMS.Access)
+//
+type ResourceAccess struct {
+
+	//
+	// true (allowed) or false (denied)
+	//
+	Granted bool `json:"granted"`
+}
+
+//
+// NewResourceAccess - creates an initialized ResourceAccess instance, returns a pointer to it
+//
+func NewResourceAccess(init ...*ResourceAccess) *ResourceAccess {
+	var o *ResourceAccess
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(ResourceAccess)
+	}
+	return o
+}
+
+type rawResourceAccess ResourceAccess
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a ResourceAccess
+//
+func (pTypeDef *ResourceAccess) UnmarshalJSON(b []byte) error {
+	var r rawResourceAccess
+	err := json.Unmarshal(b, &r)
+	if err == nil {
+		o := ResourceAccess(r)
+		*pTypeDef = o
+		err = pTypeDef.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (pTypeDef *ResourceAccess) Validate() error {
+	return nil
+}
+
+//
 // PublicKeyEntry - The representation of the public key in a service identity
 // object.
 //
@@ -1182,9 +1230,14 @@ type Identity struct {
 	CaCertBundle string `json:"caCertBundle,omitempty" rdl:"optional"`
 
 	//
-	// the SSH server cert, signed by the CA
+	// the SSH certificate, signed by the CA (user or host)
 	//
-	SshServerCert string `json:"sshServerCert,omitempty" rdl:"optional"`
+	SshCertificate string `json:"sshCertificate,omitempty" rdl:"optional"`
+
+	//
+	// the SSH CA's public key for the sshCertificate (user or host)
+	//
+	SshCertificateSigner string `json:"sshCertificateSigner,omitempty" rdl:"optional"`
 
 	//
 	// service token instead of TLS certificate
@@ -1278,6 +1331,11 @@ type InstanceInformation struct {
 	// return a certificate in the response
 	//
 	Csr string `json:"csr"`
+
+	//
+	// if present, return an SSH host certificate
+	//
+	Ssh string `json:"ssh,omitempty" rdl:"optional"`
 }
 
 //
@@ -1458,6 +1516,11 @@ type AWSInstanceInformation struct {
 	Csr string `json:"csr"`
 
 	//
+	// if present, return an SSH host certificate. Format is JSON.
+	//
+	Ssh string `json:"ssh,omitempty" rdl:"optional"`
+
+	//
 	// the full service identity name (same as the EC2 instance profile name)
 	//
 	Name CompoundName `json:"name"`
@@ -1474,10 +1537,9 @@ type AWSInstanceInformation struct {
 	Cloud SimpleName `json:"cloud,omitempty" rdl:"optional"`
 
 	//
-	// the name of the subnet this instance is expected to be running in, parsed
-	// from the name
+	// not used
 	//
-	Subnet SimpleName `json:"subnet"`
+	Subnet SimpleName `json:"subnet,omitempty" rdl:"optional"`
 
 	//
 	// the AWS Access Key Id for the role
@@ -1599,14 +1661,6 @@ func (pTypeDef *AWSInstanceInformation) Validate() error {
 			return fmt.Errorf("AWSInstanceInformation.account does not contain a valid SimpleName (%v)", val.Error)
 		}
 	}
-	if pTypeDef.Subnet == "" {
-		return fmt.Errorf("AWSInstanceInformation.subnet is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZTSSchema(), "SimpleName", pTypeDef.Subnet)
-		if !val.Valid {
-			return fmt.Errorf("AWSInstanceInformation.subnet does not contain a valid SimpleName (%v)", val.Error)
-		}
-	}
 	if pTypeDef.Access == "" {
 		return fmt.Errorf("AWSInstanceInformation.access is missing but is a required field")
 	} else {
@@ -1653,7 +1707,16 @@ func (pTypeDef *AWSInstanceInformation) Validate() error {
 // request
 //
 type AWSCertificateRequest struct {
-	Csr string `json:"csr"`
+
+	//
+	// request an X.509 certificate
+	//
+	Csr string `json:"csr,omitempty" rdl:"optional"`
+
+	//
+	// request an SSH certificate
+	//
+	Ssh string `json:"ssh,omitempty" rdl:"optional"`
 }
 
 //
@@ -1689,14 +1752,6 @@ func (pTypeDef *AWSCertificateRequest) UnmarshalJSON(b []byte) error {
 // Validate - checks for missing required fields, etc
 //
 func (pTypeDef *AWSCertificateRequest) Validate() error {
-	if pTypeDef.Csr == "" {
-		return fmt.Errorf("AWSCertificateRequest.csr is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZTSSchema(), "String", pTypeDef.Csr)
-		if !val.Valid {
-			return fmt.Errorf("AWSCertificateRequest.csr does not contain a valid String (%v)", val.Error)
-		}
-	}
 	return nil
 }
 
@@ -1770,6 +1825,177 @@ func (pTypeDef *AWSTemporaryCredentials) Validate() error {
 	if pTypeDef.Expiration.IsZero() {
 		return fmt.Errorf("AWSTemporaryCredentials: Missing required field: expiration")
 	}
+	return nil
+}
+
+//
+// OSTKInstanceInformation - Instance object that includes requested service
+// details plus host document that is signed by Openstack as part of the host
+// bootstrap process
+//
+type OSTKInstanceInformation struct {
+
+	//
+	// signed document containing attributes like IP address, instance-id,
+	// account#, etc.
+	//
+	Document string `json:"document"`
+
+	//
+	// the signature for the document
+	//
+	Signature string `json:"signature"`
+
+	//
+	// the keyid used to sign the document
+	//
+	KeyId string `json:"keyId"`
+
+	//
+	// the domain of the instance
+	//
+	Domain CompoundName `json:"domain"`
+
+	//
+	// the service this instance is supposed to run
+	//
+	Service SimpleName `json:"service"`
+
+	//
+	// return a certificate in the response
+	//
+	Csr string `json:"csr"`
+}
+
+//
+// NewOSTKInstanceInformation - creates an initialized OSTKInstanceInformation instance, returns a pointer to it
+//
+func NewOSTKInstanceInformation(init ...*OSTKInstanceInformation) *OSTKInstanceInformation {
+	var o *OSTKInstanceInformation
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(OSTKInstanceInformation)
+	}
+	return o
+}
+
+type rawOSTKInstanceInformation OSTKInstanceInformation
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a OSTKInstanceInformation
+//
+func (pTypeDef *OSTKInstanceInformation) UnmarshalJSON(b []byte) error {
+	var r rawOSTKInstanceInformation
+	err := json.Unmarshal(b, &r)
+	if err == nil {
+		o := OSTKInstanceInformation(r)
+		*pTypeDef = o
+		err = pTypeDef.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (pTypeDef *OSTKInstanceInformation) Validate() error {
+	if pTypeDef.Document == "" {
+		return fmt.Errorf("OSTKInstanceInformation.document is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", pTypeDef.Document)
+		if !val.Valid {
+			return fmt.Errorf("OSTKInstanceInformation.document does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if pTypeDef.Signature == "" {
+		return fmt.Errorf("OSTKInstanceInformation.signature is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", pTypeDef.Signature)
+		if !val.Valid {
+			return fmt.Errorf("OSTKInstanceInformation.signature does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if pTypeDef.KeyId == "" {
+		return fmt.Errorf("OSTKInstanceInformation.keyId is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", pTypeDef.KeyId)
+		if !val.Valid {
+			return fmt.Errorf("OSTKInstanceInformation.keyId does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if pTypeDef.Domain == "" {
+		return fmt.Errorf("OSTKInstanceInformation.domain is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "CompoundName", pTypeDef.Domain)
+		if !val.Valid {
+			return fmt.Errorf("OSTKInstanceInformation.domain does not contain a valid CompoundName (%v)", val.Error)
+		}
+	}
+	if pTypeDef.Service == "" {
+		return fmt.Errorf("OSTKInstanceInformation.service is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "SimpleName", pTypeDef.Service)
+		if !val.Valid {
+			return fmt.Errorf("OSTKInstanceInformation.service does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if pTypeDef.Csr == "" {
+		return fmt.Errorf("OSTKInstanceInformation.csr is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", pTypeDef.Csr)
+		if !val.Valid {
+			return fmt.Errorf("OSTKInstanceInformation.csr does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
+// OSTKInstanceRefreshRequest - OSTKCertificateRequest - a certificate signing
+// request
+//
+type OSTKInstanceRefreshRequest struct {
+
+	//
+	// request an X.509 certificate
+	//
+	Csr string `json:"csr,omitempty" rdl:"optional"`
+}
+
+//
+// NewOSTKInstanceRefreshRequest - creates an initialized OSTKInstanceRefreshRequest instance, returns a pointer to it
+//
+func NewOSTKInstanceRefreshRequest(init ...*OSTKInstanceRefreshRequest) *OSTKInstanceRefreshRequest {
+	var o *OSTKInstanceRefreshRequest
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(OSTKInstanceRefreshRequest)
+	}
+	return o
+}
+
+type rawOSTKInstanceRefreshRequest OSTKInstanceRefreshRequest
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a OSTKInstanceRefreshRequest
+//
+func (pTypeDef *OSTKInstanceRefreshRequest) UnmarshalJSON(b []byte) error {
+	var r rawOSTKInstanceRefreshRequest
+	err := json.Unmarshal(b, &r)
+	if err == nil {
+		o := OSTKInstanceRefreshRequest(r)
+		*pTypeDef = o
+		err = pTypeDef.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (pTypeDef *OSTKInstanceRefreshRequest) Validate() error {
 	return nil
 }
 

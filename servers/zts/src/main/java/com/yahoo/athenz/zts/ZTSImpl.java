@@ -42,6 +42,7 @@ import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.auth.PrivateKeyStoreFactory;
 import com.yahoo.athenz.auth.impl.CertificateAuthority;
 import com.yahoo.athenz.auth.impl.PrincipalAuthority;
+import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.metrics.MetricFactory;
@@ -57,14 +58,11 @@ import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.cert.CertSigner;
 import com.yahoo.athenz.zts.cert.CertSignerFactory;
-import com.yahoo.athenz.zts.cert.InstanceIdentityStore;
-import com.yahoo.athenz.zts.cert.InstanceIdentityStoreFactory;
 import com.yahoo.athenz.zts.store.ChangeLogStore;
 import com.yahoo.athenz.zts.store.ChangeLogStoreFactory;
 import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.DataStore;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
-import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
@@ -78,37 +76,39 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
     private static String ROOT_DIR;
 
-    protected DataStore dataStore;
-    protected CloudStore cloudStore;
-    protected InstanceIdentityStore instanceIdentityStore;
-    protected Metric metric;
-    protected Schema schema;
-    protected PrivateKey privateKey;
+    protected DataStore dataStore = null;
+    protected CloudStore cloudStore = null;
+    protected Metric metric = null;
+    protected Schema schema = null;
+    protected PrivateKey privateKey = null;
+    protected CertSigner certSigner = null;
     protected String privateKeyId = "0";
     protected int roleTokenDefaultTimeout;
     protected int roleTokenMaxTimeout;
-    protected long bootTimeOffset;
     protected boolean traceAccess = true;
     protected long signedPolicyTimeout;
     protected static String serverHostName = null;
+    protected String ostkHostSignerDomain = null;
+    protected String ostkHostSignerService = null;
     protected AuditLogger auditLogger = null;
     protected String userDomain = "user";
     protected boolean leastPrivilegePrincipal = false;
     protected Set<String> authorizedProxyUsers = null;
     
-    private static final String ATTR_ACCOUNT_ID = "accountId";
-    private static final String ATTR_PENDING_TIME = "pendingTime";
-
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
     private static final String TYPE_ENTITY_NAME = "EntityName";
     private static final String TYPE_SERVICE_NAME = "ServiceName";
     private static final String TYPE_INSTANCE_INFO = "InstanceInformation";
+    private static final String TYPE_INSTANCE_REFRESH_REQUEST = "InstanceRefreshRequest";
     private static final String TYPE_AWS_INSTANCE_INFO = "AWSInstanceInformation";
     private static final String TYPE_AWS_CERT_REQUEST = "AWSCertificateRequest";
-    private static final String TYPE_INSTANCE_REFRESH_REQUEST = "InstanceRefreshRequest";
+    private static final String TYPE_OSTK_INSTANCE_INFO = "OSTKInstanceInformation";
+    private static final String TYPE_OSTK_INSTANCE_REFRESH_REQUEST = "OSTKInstanceRefreshRequest";
     private static final String TYPE_DOMAIN_METRICS = "DomainMetrics";
     private static final String TYPE_ROLE_CERTIFICATE_REQUEST = "RoleCertificateRequest";
+    private static final String TYPE_COMPOUND_NAME = "CompoundName";
+    private static final String TYPE_RESOURCE_NAME = "ResourceName";
     
     private static final String ZTS_ROLE_TOKEN_VERSION = "Z1";
     private static final String ZTS_REQUEST_PRINCIPAL = "com.yahoo.athenz.auth.principal";
@@ -132,11 +132,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected static Validator validator;
     
     public ZTSImpl() {
-        this(null, null, null);
+        this(null, null);
     }
     
-    public ZTSImpl(CloudStore implCloudStore, InstanceIdentityStore implInstanceIdentityStore,
-            DataStore implDataStore) {
+    public ZTSImpl(CloudStore implCloudStore, DataStore implDataStore) {
         
         // before doing anything else we need to load our
         // system properties from our config file
@@ -173,13 +172,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         loadMetricObject();
         
-        // create our certsigner object only if either cloudstore
-        // or identity store are not provided to us
+        // create our certsigner object
         
-        CertSigner certSigner = null;
-        if (implCloudStore == null || implInstanceIdentityStore == null) {
-            certSigner = loadCertSigner();
-        }
+        loadCertSigner();
         
        // create our cloud store if configured
         
@@ -187,14 +182,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             cloudStore = new CloudStore(certSigner);
         } else {
             cloudStore = implCloudStore;
-        }
-        
-        // create our instance identity store
-
-        if (implInstanceIdentityStore == null) {
-            instanceIdentityStore = getInstanceIdentityStore(certSigner);
-        } else {
-            instanceIdentityStore = implInstanceIdentityStore;
         }
         
         // create our change log store
@@ -267,13 +254,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         timeout = TimeUnit.SECONDS.convert(7, TimeUnit.DAYS);
         signedPolicyTimeout = 1000 * Long.parseLong(
                 System.getProperty(ZTSConsts.ZTS_PROP_SIGNED_POLICY_TIMEOUT, Long.toString(timeout)));
-
-        // bootTimeOffset is in milliseconds but the config setting should be in seconds
-        // to be consistent with other configuration properties
-        
-        timeout = TimeUnit.SECONDS.convert(5, TimeUnit.MINUTES);
-        bootTimeOffset = 1000 * Long.parseLong(
-                System.getProperty(ZTSConsts.ZTS_PROP_AWS_BOOT_TIME_OFFSET, Long.toString(timeout)));
         
         // retrieve the list of our authorized proxy users
         
@@ -282,7 +262,20 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             authorizedProxyUsers = new HashSet<>(Arrays.asList(authorizedProxyUserList.split(",")));
         }
         
-        userDomain = System.getProperty(ZTSConsts.ZTS_PROP_USER_DOMAIN, "user");
+        userDomain = System.getProperty(ZTSConsts.ZTS_PROP_USER_DOMAIN, ZTSConsts.ATHENZ_USER_DOMAIN);
+        
+        // retrieve our temporary ostk host signer domain/service name
+        
+        String hostSignerService = System.getProperty(ZTSConsts.ZTS_PROP_OSTK_HOST_SIGNER_SERVICE);
+        if (hostSignerService != null) {
+            int idx = hostSignerService.lastIndexOf('.');
+            if (idx == -1) {
+                LOGGER.error("ZTSImpl: invalid singer service name: " + hostSignerService);
+            } else {
+                ostkHostSignerService = hostSignerService;
+                ostkHostSignerDomain = hostSignerService.substring(0, idx);
+            }
+        }
     }
     
     static String getServerHostName() {
@@ -332,7 +325,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return clogFactory.create(homeDir, privateKey, privateKeyId, cloudStore);
     }
     
-    CertSigner loadCertSigner() {
+    void loadCertSigner() {
         
         String certSignerFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_FACTORY_CLASS,
                 ZTSConsts.ZTS_CERT_SIGNER_FACTORY_CLASS);
@@ -342,33 +335,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
             LOGGER.error("Invalid CertSigerFactory class: " + certSignerFactoryClass
                     + " error: " + e.getMessage());
-            return null;
+            throw new IllegalArgumentException("Invalid certsigner class");
         }
 
         // create our cert signer instance
         
-        return certSignerFactory.create();
+        certSigner = certSignerFactory.create();
     }
-
-    static InstanceIdentityStore getInstanceIdentityStore(CertSigner certSigner) {
-
-        String instanceIdentityStoreFactoryClass = System.getProperty(
-                ZTSConsts.ZTS_PROP_INSTANCE_IDENTITY_STORE_FACTORY_CLASS,
-                ZTSConsts.ZTS_INSTANCE_IDENTITY_STORE_FACTORY_CLASS);
-        InstanceIdentityStoreFactory instanceIdentityStoreFactory = null;
-        try {
-            instanceIdentityStoreFactory = (InstanceIdentityStoreFactory)
-                    Class.forName(instanceIdentityStoreFactoryClass).newInstance();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOGGER.error("Invalid InstanceIdentityStoreFactory class: " + instanceIdentityStoreFactoryClass
-                    + " error: " + e.getMessage());
-            return null;
-        }
-
-        // create our instance identity store instance
-
-        return instanceIdentityStoreFactory.create(certSigner);
-    }
+    
     void loadMetricObject() {
         
         String metricFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_METRIC_FACTORY_CLASS,
@@ -1637,60 +1611,16 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // we need to validate the instance document
         
-        if (!cloudStore.validateInstanceDocument(info.getDocument(), info.getSignature())) {
+        if (!cloudStore.verifyInstanceDocument(info, account)) {
             throw requestError("postAWSInstanceInformation: unable to validate instance document",
-                    caller, info.getDomain());
-        }
-        
-        // convert our document into a struct that we can extract data
-        
-        Struct instanceDocument = null;
-        try {
-            instanceDocument = JSON.fromString(info.getDocument(), Struct.class);
-        } catch (Exception ex) {
-            LOGGER.error("postAWSInstanceInformation: failed to parse: " + info.getDocument()
-                + " error: " + ex.getMessage());
-        }
-        
-        if (instanceDocument == null) {
-            throw requestError("postAWSInstanceInformation: unable to parse instance document",
-                    caller, info.getDomain());
-        }
-        
-        // verify that the account lookup and the account in the document match
-        
-        String docAccount = instanceDocument.getString(ATTR_ACCOUNT_ID);
-        if (!account.equalsIgnoreCase(docAccount)) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("postAWSInstanceInformation: ZTS domain account lookup: " + account);
-                LOGGER.debug("postAWSInstanceInformation: Instance document account: " + docAccount);
-            }
-            throw requestError("postAWSInstanceInformation: mismatch between account values: "
-                    + " domain lookup: " + account + " vs. instance document: " + docAccount,
-                    caller, info.getDomain());
-        }
-        
-        // verify that the boot up time for the instance is now
-
-        Timestamp bootTime = instanceDocument.getTimestamp(ATTR_PENDING_TIME);
-        if (bootTime.millis() < System.currentTimeMillis() - bootTimeOffset) {
-            throw forbiddenError("postAWSInstanceInformation: instance boot time is not recent enough",
-                    caller, info.getDomain());
-        }
-        
-        // verify that the temporary credentials specified in the request
-        // can be used to assume the given role thus verifying the
-        // instance identity
-        
-        if (!cloudStore.verifyInstanceIdentity(info)) {
-            throw requestError("postAWSInstanceInformation: unable to verify instance identity",
                     caller, info.getDomain());
         }
         
         // now let's validate the csr given to us by the client
         // and generate certificate for the instance
         
-        Identity identity = cloudStore.generateIdentity(info.getCsr(), info.getName());
+        Identity identity = cloudStore.generateIdentity(info.getName(), info.getCsr(),
+                info.getSsh(), CloudStore.ZTS_SSH_HOST);
         if (identity == null) {
             throw requestError("postAWSInstanceInformation: unable to generate identity",
                     caller, info.getDomain());
@@ -1771,14 +1701,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // validate that the cn and public key (if required) match to
         // the provided details
         
-        if (!instanceIdentityStore.verifyCertificateRequest(req.getCsr(), principalName, publicKey)) {
+        if (!ZTSUtils.verifyCertificateRequest(req.getCsr(), principalName, publicKey)) {
             throw requestError("postInstanceRefreshRequest: invalid CSR - cn or public key mismatch",
                     caller, domain);
         }
         
         // generate identity with the certificate
         
-        Identity identity = instanceIdentityStore.generateIdentity(req.getCsr(), principalName);
+        Identity identity = ZTSUtils.generateIdentity(certSigner, req.getCsr(), principalName);
         if (identity == null) {
             throw requestError("postInstanceRefreshRequest: unable to generate identity",
                     caller, domain);
@@ -1815,26 +1745,158 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // now let's validate the request, and the csr, given to us by the client
 
-        if (!instanceIdentityStore.verifyInstanceIdentity(info)) {
-            throw requestError("postInstanceInformation: unable to generate identity, invalid request",
+        if (!cloudStore.verifyInstanceDocument(info, null)) {
+            throw requestError("postInstanceInformation: unable to verify identity document, invalid request",
                     caller, domain);
         }
 
         // validate the CSR
         
-        if (!instanceIdentityStore.verifyCertificateRequest(info.getCsr(), cn, null)) {
-            throw requestError("postInstanceInformation: unable to generate identity, invalid csr",
+        if (!ZTSUtils.verifyCertificateRequest(info.getCsr(), cn, null)) {
+            throw requestError("postInstanceInformation: unable to verify certificate request, invalid csr",
                     caller, domain);
         }
         
         // generate certificate for the instance
 
-        Identity identity = instanceIdentityStore.generateIdentity(info.getCsr(), cn);
+        Identity identity = ZTSUtils.generateIdentity(certSigner, info.getCsr(), cn);
         if (identity == null) {
             throw requestError("postInstanceInformation: unable to generate identity",
                     caller, domain);
         }
 
+        metric.stopTiming(timerMetric);
+        return identity;
+    }
+    
+    @Override
+    public Identity postOSTKInstanceInformation(ResourceContext ctx, OSTKInstanceInformation info) {
+
+        final String caller = "postostinstanceinformation";
+        final String callerTiming = "postostinstanceinformation_timing";
+        metric.increment(HTTP_POST);
+        logPrincipal(ctx);
+
+        String domain = info.getDomain();
+        String service = info.getService();
+
+        Object timerMetric = metric.startTiming(callerTiming, domain);
+        metric.increment(HTTP_REQUEST, domain);
+        metric.increment(caller, domain);
+
+        validate(info, TYPE_OSTK_INSTANCE_INFO, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domain = domain.toLowerCase();
+        service = service.toLowerCase();
+        final String cn = domain + "." + service;
+        
+        // Fetch the public key of ostk host signer service
+        
+        DataCache data = dataStore.getDataCache(ostkHostSignerDomain);
+        if (data == null) {
+            LOGGER.error("postOSTKInstanceInformation: No such domain: " + ostkHostSignerDomain);
+
+            throw notFoundError("postOSTKInstanceInformation: No such domain: "
+                    + ostkHostSignerDomain, caller, domain);
+        }
+
+        String keyId = info.getKeyId();
+        String publicKey = dataStore.getPublicKey(ostkHostSignerDomain, ostkHostSignerService, keyId);
+        if (publicKey == null) {
+            LOGGER.error("postOSTKInstanceInformation: No publicKey for service: {}.{} with keyId: {}",
+                    ostkHostSignerDomain, ostkHostSignerService, keyId);
+            throw notFoundError("postOSTKInstanceInformation: No publicKey for service: "
+                    + ostkHostSignerService, caller, domain);
+        }
+        
+        // now let's validate the request, and the csr, given to us by the client
+
+        if (!cloudStore.verifyInstanceDocument(info, publicKey)) {
+            throw requestError("postOSTKInstanceInformation: unable to validate instance document",
+                    caller, domain);
+        }
+
+        // validate the CSR
+        
+        if (!ZTSUtils.verifyCertificateRequest(info.getCsr(), cn, null)) {
+            throw requestError("postOSTKInstanceInformation: unable to verify certificate request, invalid csr",
+                    caller, domain);
+        }
+        
+        // generate certificate for the instance
+
+        Identity identity = ZTSUtils.generateIdentity(certSigner, info.getCsr(), cn);
+        if (identity == null) {
+            throw requestError("postOSTKInstanceInformation: unable to generate identity",
+                    caller, domain);
+        }
+
+        metric.stopTiming(timerMetric);
+        return identity;
+    }
+    
+    @Override
+    public Identity postOSTKInstanceRefreshRequest(ResourceContext ctx, String domain,
+            String service, OSTKInstanceRefreshRequest req) {
+
+        final String caller = "postostkinstancerefreshrequest";
+        final String callerTiming = "postostkinstancerefreshrequest_timing";
+        metric.increment(HTTP_POST);
+        logPrincipal(ctx);
+
+        validate(domain, TYPE_DOMAIN_NAME, caller);
+        validate(service, TYPE_SIMPLE_NAME, caller);
+        validate(req, TYPE_OSTK_INSTANCE_REFRESH_REQUEST, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        domain = domain.toLowerCase();
+        service = service.toLowerCase();
+        
+        Object timerMetric = metric.startTiming(callerTiming, domain);
+        metric.increment(HTTP_REQUEST, domain);
+        metric.increment(caller, domain);
+
+        // make sure the credentials match to whatever the request is
+
+        Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        String principalName = domain + "." + service;
+        if (!principalName.equals(principal.getFullName())) {
+            throw requestError("postOSTKInstanceRefreshRequest: Principal mismatch: "
+                    + principalName + " vs. " + principal.getFullName(), caller, domain);
+        }
+
+        Authority authority = principal.getAuthority();
+        
+        // currently we only support services that already have certificates
+        
+        if (!(authority instanceof CertificateAuthority)) {
+            throw requestError("postOSTKInstanceRefreshRequest: Unsupported authority for TLS Certs: " +
+                    authority.toString(), caller, domain);
+        }
+        
+        // validate that the cn and public key (if required) match to
+        // the provided details
+        
+        if (!ZTSUtils.verifyCertificateRequest(req.getCsr(), principalName, null)) {
+            throw requestError("postOSTKInstanceRefreshRequest: invalid CSR - cn mismatch",
+                    caller, domain);
+        }
+        
+        // generate identity with the certificate
+        
+        Identity identity = ZTSUtils.generateIdentity(certSigner, req.getCsr(), principalName);
+        if (identity == null) {
+            throw requestError("postInstanceRefreshRequest: unable to generate identity",
+                    caller, domain);
+        }
+        
         metric.stopTiming(timerMetric);
         return identity;
     }
@@ -1910,7 +1972,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // now let's validate the csr given to us by the client
         // and generate certificate for the instance
         
-        Identity identity = cloudStore.generateIdentity(req.getCsr(), principalName);
+        Identity identity = cloudStore.generateIdentity(principalName, req.getCsr(),
+                req.getSsh(), null);
         if (identity == null) {
             throw requestError("postAWSCertificateRequest: unable to generate identity",
                     caller, domain);
@@ -1918,6 +1981,85 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         metric.stopTiming(timerMetric);
         return identity;
+    }
+    
+    Principal createPrincipalForName(String principalName) {
+        
+        String domain = null;
+        String name = null;
+        
+        // if we have no . in the principal name we're going to default
+        // to our configured user domain
+        
+        int idx = principalName.lastIndexOf('.');
+        if (idx == -1) {
+            domain = userDomain;
+            name = principalName;
+        } else {
+            domain = principalName.substring(0, idx);
+            name = principalName.substring(idx + 1);
+        }
+        
+        return SimplePrincipal.create(domain, name, (String) null);
+    }
+    
+    @Override
+    public ResourceAccess getResourceAccessExt(ResourceContext ctx, String action, String resource,
+            String trustDomain, String checkPrincipal) {
+        
+        final String caller = "getaccessext";
+        metric.increment(HTTP_GET);
+        logPrincipal(ctx);
+
+        validate(action, TYPE_COMPOUND_NAME, caller);
+        
+        return getResourceAccessCheck(((RsrcCtxWrapper) ctx).principal(), action, resource,
+                trustDomain, checkPrincipal);
+    }
+    
+    @Override
+    public ResourceAccess getResourceAccess(ResourceContext ctx, String action, String resource,
+            String trustDomain, String checkPrincipal) {
+
+        final String caller = "getresourceaccess";
+        metric.increment(HTTP_GET);
+        logPrincipal(ctx);
+
+        validate(action, TYPE_COMPOUND_NAME, caller);
+        validate(resource, TYPE_RESOURCE_NAME, caller);
+
+        return getResourceAccessCheck(((RsrcCtxWrapper) ctx).principal(), action, resource,
+                trustDomain, checkPrincipal);
+    }
+    
+    ResourceAccess getResourceAccessCheck(Principal principal, String action, String resource,
+            String trustDomain, String checkPrincipal) {
+
+        final String caller = "getresourceaccess";
+        final String callerTiming = "getresourceaccess_timing";
+
+        final String domainName = principal.getDomain();
+        Object timerMetric = metric.startTiming(callerTiming, domainName);
+
+        /* if the check principal is given then we need to carry out the access
+         * check against that principal */
+        
+        if (checkPrincipal != null) {
+            principal = createPrincipalForName(checkPrincipal);
+            if (principal == null) {
+                throw requestError("getResourceAccess: Invalid check principal value specified: "
+                        + checkPrincipal, caller, domainName);
+            }
+        }
+        
+        // create our response object and set the flag whether
+        // or not the principal has access to the resource
+        
+        ResourceAccess access = new ResourceAccess();
+        access.setGranted(authorizer.access(action, resource, principal, trustDomain));
+        
+        metric.stopTiming(timerMetric);
+        return access;
     }
     
     @Override

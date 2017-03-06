@@ -62,6 +62,10 @@ public class ZTSSchema {
             .comment("A signed assertion if identity. i.e. the user cookie value. This token will only make sense to the authority that generated it, so it is beneficial to have something in the value that is cheaply recognized to quickly reject if it belongs to another authority. In addition to the YEncoded set our token includes ; to separate components and , to separate roles")
             .pattern("[a-zA-Z0-9\\._%=;,-]*");
 
+        sb.structType("ResourceAccess")
+            .comment("ResourceAccess can be checked and returned as this resource. (same as ZMS.Access)")
+            .field("granted", "Bool", false, "true (allowed) or false (denied)");
+
         sb.structType("PublicKeyEntry")
             .comment("The representation of the public key in a service identity object.")
             .field("key", "String", false, "the public key for the service")
@@ -149,7 +153,8 @@ public class ZTSSchema {
             .field("name", "CompoundName", false, "name of the identity, fully qualified, i.e. my.domain.service1, or aws.1232321321312.myusername")
             .field("certificate", "String", true, "a certificate usable for both client and server in TLS connections")
             .field("caCertBundle", "String", true, "the CA certificate chain to use with all IMS-generated certs")
-            .field("sshServerCert", "String", true, "the SSH server cert, signed by the CA")
+            .field("sshCertificate", "String", true, "the SSH certificate, signed by the CA (user or host)")
+            .field("sshCertificateSigner", "String", true, "the SSH CA's public key for the sshCertificate (user or host)")
             .field("serviceToken", "SignedToken", true, "service token instead of TLS certificate")
             .mapField("attributes", "String", "String", true, "other config-like attributes determined at boot time");
 
@@ -160,7 +165,8 @@ public class ZTSSchema {
             .field("keyId", "String", false, "the keyid used to sign the document")
             .field("domain", "CompoundName", false, "the domain of the instance")
             .field("service", "SimpleName", false, "the service this instance is supposed to run")
-            .field("csr", "String", false, "return a certificate in the response");
+            .field("csr", "String", false, "return a certificate in the response")
+            .field("ssh", "String", true, "if present, return an SSH host certificate");
 
         sb.structType("InstanceRefreshRequest")
             .comment("InstanceRefreshRequest - a certificate refresh request")
@@ -174,10 +180,11 @@ public class ZTSSchema {
             .field("domain", "CompoundName", false, "the domain of the instance")
             .field("service", "SimpleName", false, "the service this instance is supposed to run")
             .field("csr", "String", false, "return a certificate in the response")
+            .field("ssh", "String", true, "if present, return an SSH host certificate. Format is JSON.")
             .field("name", "CompoundName", false, "the full service identity name (same as the EC2 instance profile name)")
             .field("account", "SimpleName", false, "the account id (as a string) for the instance. parsed from the instance profile ARN")
             .field("cloud", "SimpleName", true, "the name of the cloud (namespace) within the account, parsed from the name")
-            .field("subnet", "SimpleName", false, "the name of the subnet this instance is expected to be running in, parsed from the name")
+            .field("subnet", "SimpleName", true, "not used")
             .field("access", "String", false, "the AWS Access Key Id for the role")
             .field("secret", "String", false, "the AWS Secret Access Key for the role")
             .field("token", "String", false, "the AWS STS Token for the role")
@@ -187,13 +194,27 @@ public class ZTSSchema {
 
         sb.structType("AWSCertificateRequest")
             .comment("AWSCertificateRequest - a certificate signing request")
-            .field("csr", "String", false, "");
+            .field("csr", "String", true, "request an X.509 certificate")
+            .field("ssh", "String", true, "request an SSH certificate");
 
         sb.structType("AWSTemporaryCredentials")
             .field("accessKeyId", "String", false, "")
             .field("secretAccessKey", "String", false, "")
             .field("sessionToken", "String", false, "")
             .field("expiration", "Timestamp", false, "");
+
+        sb.structType("OSTKInstanceInformation")
+            .comment("Instance object that includes requested service details plus host document that is signed by Openstack as part of the host bootstrap process")
+            .field("document", "String", false, "signed document containing attributes like IP address, instance-id, account#, etc.")
+            .field("signature", "String", false, "the signature for the document")
+            .field("keyId", "String", false, "the keyid used to sign the document")
+            .field("domain", "CompoundName", false, "the domain of the instance")
+            .field("service", "SimpleName", false, "the service this instance is supposed to run")
+            .field("csr", "String", false, "return a certificate in the response");
+
+        sb.structType("OSTKInstanceRefreshRequest")
+            .comment("OSTKCertificateRequest - a certificate signing request")
+            .field("csr", "String", true, "request an X.509 certificate");
 
         sb.enumType("DomainMetricType")
             .comment("zpe metric attributes")
@@ -224,6 +245,41 @@ public class ZTSSchema {
             .field("domainName", "DomainName", false, "name of the domain the metrics pertain to")
             .arrayField("metricList", "DomainMetric", false, "list of the domains metrics");
 
+
+        sb.resource("ResourceAccess", "GET", "/access/{action}/{resource}")
+            .comment("Check access for the specified operation on the specified resource for the currently authenticated user. This is the slow centralized access for control-plane purposes. Use distributed mechanisms for decentralized (data-plane) access by fetching signed policies and role tokens for users. With this endpoint the resource is part of the uri and restricted to its strict definition of resource name. If needed, you can use the GetAccessExt api that allows resource name to be less restrictive.")
+            .pathParam("action", "ActionName", "action as specified in the policy assertion, i.e. update or read")
+            .pathParam("resource", "ResourceName", "the resource to check access against, i.e. \"media.news:articles\"")
+            .queryParam("domain", "domain", "DomainName", null, "usually null. If present, it specifies an alternate domain for cross-domain trust relation")
+            .queryParam("principal", "checkPrincipal", "EntityName", null, "usually null. If present, carry out the access check for this principal")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("ResourceAccess", "GET", "/access/{action}")
+            .comment("Check access for the specified operation on the specified resource for the currently authenticated user. This is the slow centralized access for control-plane purposes.")
+            .name("GetResourceAccessExt")
+            .pathParam("action", "ActionName", "action as specified in the policy assertion, i.e. update or read")
+            .queryParam("resource", "resource", "String", null, "the resource to check access against, i.e. \"media.news:articles\"")
+            .queryParam("domain", "domain", "DomainName", null, "usually null. If present, it specifies an alternate domain for cross-domain trust relation")
+            .queryParam("principal", "checkPrincipal", "EntityName", null, "usually null. If present, carry out the access check for this principal")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
 
         sb.resource("ServiceIdentity", "GET", "/domain/{domainName}/service/{serviceName}")
             .comment("Get info for the specified ServiceIdentity.")
@@ -394,7 +450,7 @@ public class ZTSSchema {
 ;
 
         sb.resource("AWSCertificateRequest", "POST", "/aws/instance/{domain}/{service}/refresh")
-            .comment("Rotate certs. Make this request with previous cert, the result is new cert for the same identity.")
+            .comment("Rotate certs. Make this request with previous cert, the result are new certs for the same identity.")
             .pathParam("domain", "CompoundName", "name of the domain requesting the refresh")
             .pathParam("service", "SimpleName", "name of the service requesting the refresh")
             .input("req", "AWSCertificateRequest", "the refresh request")
@@ -411,6 +467,33 @@ public class ZTSSchema {
             .comment("perform an AWS AssumeRole of the target role and return the credentials. ZTS must have been granted the ability to assume the role in IAM, and granted the ability to ASSUME_AWS_ROLE in Athenz for this to succeed.")
             .pathParam("domainName", "DomainName", "name of the domain containing the role, which implies the target account")
             .pathParam("role", "CompoundName", "the target AWS role name in the domain account, in Athenz terms, i.e. \"the.role\"")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("OSTKInstanceInformation", "POST", "/ostk/instance")
+            .comment("Get a cert for service being bootstrapped by Openstack")
+            .input("info", "OSTKInstanceInformation", "")
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("OSTKInstanceRefreshRequest", "POST", "/ostk/instance/{domain}/{service}/refresh")
+            .comment("Refresh self identity if the original identity was issued by ZTS The token must include the original requestor's name and the server will verify that the service still has authorization to grant inception to the current service requesting to refresh its identity")
+            .pathParam("domain", "CompoundName", "name of the tenant domain")
+            .pathParam("service", "SimpleName", "name of the tenant service")
+            .input("req", "OSTKInstanceRefreshRequest", "the refresh request")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")

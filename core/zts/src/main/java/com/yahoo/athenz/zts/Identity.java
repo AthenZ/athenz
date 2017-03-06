@@ -20,7 +20,9 @@ public class Identity {
     @RdlOptional
     public String caCertBundle;
     @RdlOptional
-    public String sshServerCert;
+    public String sshCertificate;
+    @RdlOptional
+    public String sshCertificateSigner;
     @RdlOptional
     public String serviceToken;
     @RdlOptional
@@ -47,12 +49,19 @@ public class Identity {
     public String getCaCertBundle() {
         return caCertBundle;
     }
-    public Identity setSshServerCert(String sshServerCert) {
-        this.sshServerCert = sshServerCert;
+    public Identity setSshCertificate(String sshCertificate) {
+        this.sshCertificate = sshCertificate;
         return this;
     }
-    public String getSshServerCert() {
-        return sshServerCert;
+    public String getSshCertificate() {
+        return sshCertificate;
+    }
+    public Identity setSshCertificateSigner(String sshCertificateSigner) {
+        this.sshCertificateSigner = sshCertificateSigner;
+        return this;
+    }
+    public String getSshCertificateSigner() {
+        return sshCertificateSigner;
     }
     public Identity setServiceToken(String serviceToken) {
         this.serviceToken = serviceToken;
@@ -85,7 +94,10 @@ public class Identity {
             if (caCertBundle == null ? a.caCertBundle != null : !caCertBundle.equals(a.caCertBundle)) {
                 return false;
             }
-            if (sshServerCert == null ? a.sshServerCert != null : !sshServerCert.equals(a.sshServerCert)) {
+            if (sshCertificate == null ? a.sshCertificate != null : !sshCertificate.equals(a.sshCertificate)) {
+                return false;
+            }
+            if (sshCertificateSigner == null ? a.sshCertificateSigner != null : !sshCertificateSigner.equals(a.sshCertificateSigner)) {
                 return false;
             }
             if (serviceToken == null ? a.serviceToken != null : !serviceToken.equals(a.serviceToken)) {

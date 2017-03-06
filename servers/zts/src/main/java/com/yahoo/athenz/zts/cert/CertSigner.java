@@ -24,14 +24,36 @@ public interface CertSigner {
      * @param csr Certificate request
      * @return X509 Certificate in PEM format
      */
-    String generateX509Certificate(String csr);
+    default String generateX509Certificate(String csr) {
+        return null;
+    }
 
     /**
      * Retrieve the CA certificate in PEM format. This will be returned
      * along with the x509 certificate back to the client.
      * @return the CA Certificate in PEM format
      */
-    String getCACertificate();
+    default String getCACertificate() {
+        return null;
+    }
+
+    /**
+     * Generate an SSH Certificate based on the given request
+     * @param csr SSH Certificate Request
+     * @return SSH Certificate
+     */
+    default String generateSSHCertificate(String csr) {
+        return null;
+    }
+    
+    /**
+     * Retrieve the SSH Signer certificate for the given type
+     * @param type signer type user or host
+     * @return SSH Signer Certificate
+     */
+    default String getSSHCertificate(String type) {
+        return null;
+    }
 
     /**
      * Close the certSigner signer object and release all

@@ -327,6 +327,17 @@ public class ZTSClientMock extends ZTSRDLGeneratedClient implements java.io.Clos
     }
 
     @Override
+    public ResourceAccess getResourceAccess(String action, String resource,
+            String trustDomain, String principal) {
+        if (action.equals("exc")) {
+            throw new ResourceException(400, "Invalid request");
+        }
+        ResourceAccess access = new ResourceAccess();
+        access.setGranted(action.equals("access") && resource.equals("resource"));
+        return access;
+    }
+    
+    @Override
     public DomainMetrics postDomainMetrics(String domainName, DomainMetrics req) {
         if (domainName.equals("exc")) {
             throw new ResourceException(400, "Invalid request");

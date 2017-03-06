@@ -8,10 +8,12 @@ name ZTS;
 version 1;
 namespace com.yahoo.athenz.zts;
 
+include "Access.rdli";
 include "ServiceIdentity.rdli";
 include "SignedPolicies.rdli";
 include "Token.rdli";
 include "Tenancy.rdli";
 include "Identity.rdli";
 include "AWSAuth.rdli";
+include "OSTKAuth.rdli";
 include "DomainMetrics.rdli";

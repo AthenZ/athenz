@@ -68,8 +68,7 @@ public class MockCloudStore extends CloudStore {
     }
     
     @Override
-    public
-    boolean verifyInstanceIdentity(AWSInstanceInformation info) {
+    public boolean verifyInstanceIdentity(AWSInstanceInformation info) {
         boolean result = false;
         switch (identityCheck) {
             case 0:
@@ -86,12 +85,11 @@ public class MockCloudStore extends CloudStore {
     }
     
     @Override
-    public
-    boolean validateInstanceDocument(String document, String signature) {
+    public boolean verifyInstanceDocument(AWSInstanceInformation info, String account) {
         if (skipSigCheck) {
             return true;
         }
-        return super.validateInstanceDocument(document, signature);
+        return super.verifyInstanceDocument(info, account);
     }
     
     void setAssumeRoleResult(AssumeRoleResult assumeRoleResult) {
