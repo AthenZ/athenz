@@ -18,8 +18,10 @@ package com.yahoo.athenz.zts;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -58,6 +60,7 @@ import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.cert.CertSigner;
 import com.yahoo.athenz.zts.cert.CertSignerFactory;
+import com.yahoo.athenz.zts.cert.X509CertRecord;
 import com.yahoo.athenz.zts.store.ChangeLogStore;
 import com.yahoo.athenz.zts.store.ChangeLogStoreFactory;
 import com.yahoo.athenz.zts.store.CloudStore;
@@ -81,6 +84,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected Metric metric = null;
     protected Schema schema = null;
     protected PrivateKey privateKey = null;
+    protected PrivateKeyStore privateKeyStore = null;
     protected CertSigner certSigner = null;
     protected String privateKeyId = "0";
     protected int roleTokenDefaultTimeout;
@@ -180,7 +184,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
        // create our cloud store if configured
         
         if (implCloudStore == null) {
-            cloudStore = new CloudStore(certSigner);
+            cloudStore = new CloudStore(certSigner, privateKeyStore);
         } else {
             cloudStore = implCloudStore;
         }
@@ -384,8 +388,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // extract the private key and public keys for our service
         
         StringBuilder privKeyId = new StringBuilder(256);
-        PrivateKeyStore keyStore = pkeyFactory.create();
-        privateKey = keyStore.getPrivateKey(ZTSConsts.ZTS_SERVICE, serverHostName, privKeyId);
+        privateKeyStore = pkeyFactory.create();
+        privateKey = privateKeyStore.getPrivateKey(ZTSConsts.ZTS_SERVICE, serverHostName, privKeyId);
         privateKeyId = privKeyId.toString();
     }
     
@@ -1683,43 +1687,34 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         Authority authority = principal.getAuthority();
         
-        // currently we only support ServiceTokens being refreshed to
-        // certificates and services that already have certificates
+        // currently we only support ServiceTokens being refreshed to certificates
         
-        if (!(authority instanceof CertificateAuthority || authority instanceof PrincipalAuthority)) {
+        if (!(authority instanceof PrincipalAuthority)) {
             throw requestError("postInstanceRefreshRequest: Unsupported authority for TLS Certs: " +
                     authority.toString(), caller, domain);
         }
          
-        // if we're converting NTokens into TLS Certs, then we have two
-        // additional checks - need to verify it's not a user and the
-        // public key for the NToken must match what's in the CSR
-        
-        String publicKey = null;
-        if (authority instanceof PrincipalAuthority) {
+        // need to verify it's not a user and the public key for the NToken
+        // must match what's in the CSR. Personal domain user token as users
+        // should not get personal TLS certificates from ZTS
             
-            // if the authority is a principal authority, make sure it's not
-            // a personal domain user token as users should not get personal
-            // TLS certificates from ZTS
-            
-            if (userDomain.equalsIgnoreCase(principal.getDomain())) {
-                throw requestError("postInstanceRefreshRequest: TLS Certificates require ServiceTokens: " +
-                        principalName, caller, domain);
-            }
+        if (userDomain.equalsIgnoreCase(principal.getDomain())) {
+            throw requestError("postInstanceRefreshRequest: TLS Certificates require ServiceTokens: " +
+                    principalName, caller, domain);
+        }
 
-            // retrieve the public key for the principal
-            
-            publicKey = getPublicKey(domain, service, principal.getKeyId());
-            if (publicKey == null) {
-                throw requestError("postInstanceRefreshRequest: Unable to retrieve public key for " +
-                        principalName + " with key id: " + principal.getKeyId(), caller, domain);
-            }
+        // retrieve the public key for the principal
+        
+        String publicKey = getPublicKey(domain, service, principal.getKeyId());
+        if (publicKey == null) {
+            throw requestError("postInstanceRefreshRequest: Unable to retrieve public key for " +
+                    principalName + " with key id: " + principal.getKeyId(), caller, domain);
         }
         
         // validate that the cn and public key (if required) match to
         // the provided details
         
-        if (!ZTSUtils.verifyCertificateRequest(req.getCsr(), principalName, publicKey)) {
+        if (!ZTSUtils.verifyCertificateRequest(req.getCsr(), principalName, publicKey, null)) {
             throw requestError("postInstanceRefreshRequest: invalid CSR - cn or public key mismatch",
                     caller, domain);
         }
@@ -1772,7 +1767,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // validate the CSR
         
-        if (!ZTSUtils.verifyCertificateRequest(info.getCsr(), cn, null)) {
+        if (!ZTSUtils.verifyCertificateRequest(info.getCsr(), cn, null, null)) {
             throw requestError("postInstanceInformation: unable to verify certificate request, invalid csr",
                     caller, domain);
         }
@@ -1844,7 +1839,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // validate the CSR
         
-        if (!ZTSUtils.verifyCertificateRequest(info.getCsr(), cn, null)) {
+        if (!ZTSUtils.verifyCertificateRequest(info.getCsr(), cn, null, null)) {
             throw requestError("postOSTKInstanceInformation: unable to verify certificate request, invalid csr",
                     caller, domain);
         }
@@ -1857,6 +1852,27 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domain);
         }
 
+        // need to update our cert record with new certificate details
+        
+        X509CertRecord x509CertRecord = new X509CertRecord();
+
+        X509Certificate newCert = Crypto.loadX509Certificate(identity.getCertificate());
+        x509CertRecord.setCurrentSerial(newCert.getSerialNumber().toString());
+        x509CertRecord.setCurrentIP(ServletRequestUtil.getRemoteAddress(ctx.request()));
+        x509CertRecord.setCurrentTime(new Date());
+
+        x509CertRecord.setPrevSerial(x509CertRecord.getCurrentSerial());
+        x509CertRecord.setPrevIP(x509CertRecord.getCurrentIP());
+        x509CertRecord.setPrevTime(x509CertRecord.getCurrentTime());
+        
+        // we must be able to update our database otherwise we will not be
+        // able to validate the certificate during refresh operations
+        
+        if (!cloudStore.insertX509CertRecord(x509CertRecord)) {
+            throw serverError("postOSTKInstanceInformation: unable to update cert db",
+                    caller, domain);
+        }
+        
         metric.stopTiming(timerMetric);
         return identity;
     }
@@ -1907,8 +1923,49 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // validate that the cn and public key (if required) match to
         // the provided details
         
-        if (!ZTSUtils.verifyCertificateRequest(req.getCsr(), principalName, null)) {
+        X509Certificate cert = principal.getX509Certificate();
+        X509CertRecord x509CertRecord = cloudStore.getX509CertRecord(cert);
+        if (x509CertRecord == null) {
+            throw forbiddenError("postOSTKInstanceRefreshRequest: Unable to find certificate record",
+                    caller, domain);
+        }
+        
+        if (!ZTSUtils.verifyCertificateRequest(req.getCsr(), principalName, null, x509CertRecord)) {
             throw requestError("postOSTKInstanceRefreshRequest: invalid CSR - cn mismatch",
+                    caller, domain);
+        }
+        
+        // now we need to make sure the serial number for the certificate
+        // matches to what we had issued previously. If we have a mismatch
+        // then we're going to revoke this instance as it has been possibly
+        // compromised
+        
+        String serialNumber = cert.getSerialNumber().toString();
+        if (x509CertRecord.getCurrentSerial().equals(serialNumber)) {
+            
+            // update the record to mark current as previous
+            // and we'll update the current set with our existing
+            // details
+            
+            x509CertRecord.setPrevIP(x509CertRecord.getCurrentIP());
+            x509CertRecord.setPrevTime(x509CertRecord.getCurrentTime());
+            x509CertRecord.setPrevSerial(x509CertRecord.getCurrentSerial());
+
+        } else if (!x509CertRecord.getPrevSerial().equals(serialNumber)) {
+            
+            // we have a mismatch for both current and previous serial
+            // numbers so we're going to revoke it
+            
+            LOGGER.error("postOSTKInstanceRefreshRequest: Revoking certificate refresh for cn: {} " +
+                    "instance id: {}, current serial: {}, previous serial: {}, cert serial: {}",
+                    principalName, x509CertRecord.getInstanceId(), x509CertRecord.getCurrentSerial(),
+                    x509CertRecord.getPrevSerial(), serialNumber);
+            
+            x509CertRecord.setPrevSerial("-1");
+            x509CertRecord.setCurrentSerial("-1");
+            
+            cloudStore.updateX509CertRecord(x509CertRecord);
+            throw forbiddenError("postOSTKInstanceRefreshRequest: Certificate revoked",
                     caller, domain);
         }
         
@@ -1917,6 +1974,21 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         Identity identity = ZTSUtils.generateIdentity(certSigner, req.getCsr(), principalName);
         if (identity == null) {
             throw requestError("postInstanceRefreshRequest: unable to generate identity",
+                    caller, domain);
+        }
+        
+        // need to update our cert record with new certificate details
+        
+        X509Certificate newCert = Crypto.loadX509Certificate(identity.getCertificate());
+        x509CertRecord.setCurrentSerial(newCert.getSerialNumber().toString());
+        x509CertRecord.setCurrentIP(ServletRequestUtil.getRemoteAddress(ctx.request()));
+        x509CertRecord.setCurrentTime(new Date());
+        
+        // we must be able to update our record db otherwise we will
+        // not be able to validate the refresh request next time
+        
+        if (!cloudStore.updateX509CertRecord(x509CertRecord)) {
+            throw serverError("postOSTKInstanceRefreshRequest: unable to update cert db",
                     caller, domain);
         }
         

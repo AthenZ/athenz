@@ -58,8 +58,15 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_SELF_SIGNER_CERT_DN              = "athenz.zts.self_signer_cert_dn";
     public static final String ZTS_PROP_OSTK_HOST_SIGNER_SERVICE         = "athenz.zts.ostk_host_signer_service";
     
+    public static final String ZTS_PROP_CERT_JDBC_STORE     = "athenz.zts.cert_jdbc_store";
+    public static final String ZTS_PROP_CERT_JDBC_USER      = "athenz.zts.cert_jdbc_user";
+    public static final String ZTS_PROP_CERT_JDBC_PASSWORD  = "athenz.zts.cert_jdbc_password";
+    public static final String ZTS_PROP_CERT_UUID_PREFIX    = "athenz.zts.cert_uuid_prefix";
+    
     public static final String ZTS_SERVICE            = "zts";
     public static final String ZTS_UNKNOWN_DOMAIN     = "unknown_domain";
+    public static final String ZTS_CERT_UUID_PREFIX   = "athenz.uuid.";
+
     public static final String ATHENZ_SYS_DOMAIN      = "sys.auth";
     public static final String ATHENZ_USER_DOMAIN     = "user";
     

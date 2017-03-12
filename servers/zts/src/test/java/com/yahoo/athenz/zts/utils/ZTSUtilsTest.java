@@ -36,6 +36,7 @@ import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.zts.Identity;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.cert.CertSigner;
+import com.yahoo.athenz.zts.cert.X509CertRecord;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
 
 public class ZTSUtilsTest {
@@ -209,5 +210,60 @@ public class ZTSUtilsTest {
         
         assertTrue(ZTSUtils.validateCertReqPublicKey(certReq, ztsPublicKey1));
         assertTrue(ZTSUtils.validateCertReqPublicKey(certReq, ztsPublicKey2));
+    }
+    
+    @Test
+    public void testValidateCertReqInstanceId() throws IOException {
+        Path path = Paths.get("src/test/resources/athenz.uuid.csr");
+        String csr = new String(Files.readAllBytes(path));
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
+        
+        boolean result = ZTSUtils.validateCertReqInstanceId(certReq, "1001");
+        assertTrue(result);
+        
+        result = ZTSUtils.validateCertReqInstanceId(certReq, "10012");
+        assertFalse(result);
+    }
+    
+    @Test
+    public void testVerifyCertificateRequest() throws IOException {
+        
+        Path path = Paths.get("src/test/resources/athenz.uuid.csr");
+        String csr = new String(Files.readAllBytes(path));
+        
+        X509CertRecord certRecord = new X509CertRecord();
+        certRecord.setCn("athenz.production");
+        certRecord.setInstanceId("1001");
+        
+        boolean result = ZTSUtils.verifyCertificateRequest(csr, "athenz.production", null, certRecord);
+        assertTrue(result);
+        
+        certRecord.setCn("athenz.production");
+        certRecord.setInstanceId("1001");
+        result = ZTSUtils.verifyCertificateRequest(csr, "athenz2.production", null, certRecord);
+        assertFalse(result);
+        
+        certRecord.setCn("athenz2.production");
+        certRecord.setInstanceId("1001");
+        result = ZTSUtils.verifyCertificateRequest(csr, "athenz.production", null, certRecord);
+        assertFalse(result);
+        
+        certRecord.setCn("athenz.production");
+        certRecord.setInstanceId("1002");
+        result = ZTSUtils.verifyCertificateRequest(csr, "athenz.production", null, certRecord);
+        assertFalse(result);
+    }
+    
+    @Test
+    public void testVerifyCertificateRequestNoCertRecord() throws IOException {
+        
+        Path path = Paths.get("src/test/resources/athenz.uuid.csr");
+        String csr = new String(Files.readAllBytes(path));
+        
+        boolean result = ZTSUtils.verifyCertificateRequest(csr, "athenz.production", null, null);
+        assertTrue(result);
+        
+        result = ZTSUtils.verifyCertificateRequest(csr, "athenz2.production", null, null);
+        assertFalse(result);
     }
 }

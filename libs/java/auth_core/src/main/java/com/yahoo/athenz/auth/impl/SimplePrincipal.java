@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.auth.impl;
 
+import java.security.cert.X509Certificate;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -41,6 +42,7 @@ public class SimplePrincipal implements Principal {
     String originalRequestor = null;
     String keyService = null;
     String keyId = null;
+    X509Certificate x509Certificate = null;
     
     public static Principal create(String domain, String name, String creds) {
         return create(domain, name, creds, 0, null);
@@ -166,30 +168,41 @@ public class SimplePrincipal implements Principal {
         this.keyId = keyId;
     }
     
+    public void setX509Certificate(X509Certificate x509Certificate) {
+        this.x509Certificate = x509Certificate;
+    }
+    
+    @Override
     public String getIP() {
         return ip;
     }
     
+    @Override
     public String getUnsignedCredentials() {
         return unsignedCreds;
     }
     
+    @Override
     public Authority getAuthority() {
         return authority;
     }
 
+    @Override
     public String getDomain() {
         return domain;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public String getOriginalRequestor() {
         return originalRequestor;
     }
     
+    @Override
     public String getFullName() {
         
         if (fullName == null) {
@@ -204,14 +217,18 @@ public class SimplePrincipal implements Principal {
         
         return fullName;
     }
+    
+    @Override
     public String getCredentials() {
         return creds;
     }
     
+    @Override
     public List<String> getRoles() {
         return roles;
     }
 
+    @Override
     public long getIssueTime() {
         return issueTime;
     }
@@ -224,15 +241,23 @@ public class SimplePrincipal implements Principal {
         }
     }
 
+    @Override
     public String getAuthorizedService() {
         return authorizedService;
     }
     
+    @Override
     public String getKeyService() {
         return keyService;
     }
     
+    @Override
     public String getKeyId() {
         return keyId;
+    }
+
+    @Override
+    public X509Certificate getX509Certificate() {
+        return x509Certificate;
     }
 }

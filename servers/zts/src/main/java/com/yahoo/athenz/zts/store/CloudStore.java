@@ -17,8 +17,12 @@ package com.yahoo.athenz.zts.store;
 
 import java.io.File;
 import java.security.PublicKey;
+import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -42,8 +46,11 @@ import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
 import com.amazonaws.services.securitytoken.model.Credentials;
 import com.amazonaws.services.securitytoken.model.GetCallerIdentityRequest;
 import com.amazonaws.services.securitytoken.model.GetCallerIdentityResult;
+import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
+import com.yahoo.athenz.common.server.db.DataSourceFactory;
+import com.yahoo.athenz.common.server.db.PoolableDataSource;
 import com.yahoo.athenz.zts.AWSInstanceInformation;
 import com.yahoo.athenz.zts.AWSTemporaryCredentials;
 import com.yahoo.athenz.zts.Identity;
@@ -52,6 +59,10 @@ import com.yahoo.athenz.zts.OSTKInstanceInformation;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.cert.CertSigner;
+import com.yahoo.athenz.zts.cert.ObjectStore;
+import com.yahoo.athenz.zts.cert.ObjectStoreConnection;
+import com.yahoo.athenz.zts.cert.X509CertRecord;
+import com.yahoo.athenz.zts.cert.impl.JDBCObjectStore;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Struct;
@@ -64,6 +75,7 @@ public class CloudStore {
     public static final String ZTS_SSH_HOST = "host";
     public static final String ZTS_SSH_USER = "user";
     public static final String ZTS_SSH_TYPE = "certtype";
+    public static final String JDBC = "jdbc";
     
     private static final String ATTR_ACCOUNT_ID = "accountId";
     private static final String ATTR_PENDING_TIME = "pendingTime";
@@ -77,6 +89,7 @@ public class CloudStore {
     String awsRegion = null;
     boolean awsEnabled = false;
     CertSigner certSigner = null;
+    ObjectStore certStore = null;
     BasicSessionCredentials credentials = null;
     Map<String, String> cloudAccountCache = null;
     int credsUpdateTime = 900;
@@ -89,7 +102,7 @@ public class CloudStore {
 
     private static ScheduledExecutorService scheduledThreadPool;
     
-    public CloudStore(CertSigner certSigner) {
+    public CloudStore(CertSigner certSigner, PrivateKeyStore keyStore) {
         
         // save our cert signer and generate the PEM output of the certificate
         
@@ -141,6 +154,12 @@ public class CloudStore {
         
         awsEnabled = Boolean.parseBoolean(System.getProperty(ZTSConsts.ZTS_PROP_AWS_ENABLED, "false"));
         initializeAwsSupport();
+        
+        // if ZTS configured to issue certificate for services, it can
+        // track of serial and instance values to make sure the same
+        // certificate is not asked to be refreshed by multiple hosts
+        
+        loadCertificateObjectStore(keyStore);
     }
     
     void close() {
@@ -150,6 +169,19 @@ public class CloudStore {
             } catch (Exception e) {
             }
         }
+    }
+    
+    void loadCertificateObjectStore(PrivateKeyStore keyStore) {
+        
+        String jdbcStore = System.getProperty(ZTSConsts.ZTS_PROP_CERT_JDBC_STORE);
+        if (jdbcStore == null || !jdbcStore.startsWith("jdbc:")) {
+            return;
+        }
+        String jdbcUser = System.getProperty(ZTSConsts.ZTS_PROP_CERT_JDBC_USER);
+        String password = System.getProperty(ZTSConsts.ZTS_PROP_CERT_JDBC_PASSWORD, "");
+        String jdbcPassword = keyStore.getApplicationSecret(JDBC, password);
+        PoolableDataSource src = DataSourceFactory.create(jdbcStore, jdbcUser, jdbcPassword);
+        certStore = new JDBCObjectStore(src);
     }
     
     public void setHttpClient(HttpClient client) {
@@ -744,7 +776,7 @@ public class CloudStore {
         // first verify that the cn in the certificate is valid
         
         if (csr != null) {
-            if (!ZTSUtils.verifyCertificateRequest(csr, cn, null)) {
+            if (!ZTSUtils.verifyCertificateRequest(csr, cn, null, null)) {
                 return null;
             }
         }
@@ -829,5 +861,85 @@ public class CloudStore {
     public CertSigner getCertSigner() {
         return this.certSigner;
     }
-}
+    
+    public void setCertStore(ObjectStore certStore) {
+        this.certStore = certStore;
+    }
+    
+    public X509CertRecord getX509CertRecord(X509Certificate cert) {
 
+        if (certStore == null) {
+            return null;
+        }
+        
+        Collection<List<?>> certAttributes = null;
+        try {
+            certAttributes = cert.getSubjectAlternativeNames();
+        } catch (CertificateParsingException ex) {
+            LOGGER.error("getX509CertRecord: Unable to get cert SANS: {}", ex.getMessage());
+            return null;
+        }
+        
+        if (certAttributes == null) {
+            LOGGER.error("getX509CertRecord: Certificate does not have SANs");
+            return null;
+        }
+        
+        String instanceId = null;
+        Iterator<List<?>> certAttrs = certAttributes.iterator();
+        while (certAttrs.hasNext()) {
+            List<?> altName = (List<?>) certAttrs.next();
+            Integer nameType = (Integer) altName.get(0);
+            if (nameType == 2) {
+                final String dnsName = (String) altName.get(1);
+                if (dnsName.startsWith(ZTSUtils.ZTS_CERT_UUID_PREFIX)) {
+                    instanceId = dnsName.substring(ZTSUtils.ZTS_CERT_UUID_PREFIX.length());
+                    break;
+                }
+            }
+        }
+        
+        if (instanceId == null) {
+            LOGGER.error("getX509CertRecord: Certificate does not have instance id");
+            return null;
+        }
+
+        ObjectStoreConnection storeConnection = certStore.getConnection(false);
+        if (storeConnection == null) {
+            LOGGER.error("Unable to get certstore connection");
+            return null;
+        }
+        
+        return storeConnection.getX509CertRecord(instanceId);
+    }
+    
+    public boolean updateX509CertRecord(X509CertRecord certRecord) {
+        
+        if (certStore == null) {
+            return false;
+        }
+        
+        ObjectStoreConnection storeConnection = certStore.getConnection(true);
+        if (storeConnection == null) {
+            LOGGER.error("Unable to get certstore connection");
+            return false;
+        }
+        
+        return storeConnection.updateX509CertRecord(certRecord);
+    }
+    
+    public boolean insertX509CertRecord(X509CertRecord certRecord) {
+        
+        if (certStore == null) {
+            return false;
+        }
+        
+        ObjectStoreConnection storeConnection = certStore.getConnection(true);
+        if (storeConnection == null) {
+            LOGGER.error("Unable to get certstore connection");
+            return false;
+        }
+        
+        return storeConnection.insertX509CertRecord(certRecord);
+    }
+}

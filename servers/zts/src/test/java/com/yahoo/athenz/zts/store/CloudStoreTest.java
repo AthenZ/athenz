@@ -30,6 +30,7 @@ import java.util.concurrent.TimeoutException;
 
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
@@ -46,6 +47,9 @@ import com.yahoo.athenz.zts.Identity;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.cert.CertSigner;
+import com.yahoo.athenz.zts.cert.ObjectStore;
+import com.yahoo.athenz.zts.cert.ObjectStoreConnection;
+import com.yahoo.athenz.zts.cert.X509CertRecord;
 import com.yahoo.athenz.zts.cert.impl.SelfCertSigner;
 import com.yahoo.athenz.zts.store.CloudStore;
 
@@ -77,7 +81,7 @@ public class CloudStoreTest {
     
     @Test
     public void testGetS3ClientNullCreds() {
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         store.awsEnabled = true;
         store.credentials = null;
         try {
@@ -91,7 +95,7 @@ public class CloudStoreTest {
     
     @Test
     public void testGetS3ClientAWSNotEnabled() {
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         store.credentials = null;
         try {
             store.getS3Client();
@@ -105,7 +109,7 @@ public class CloudStoreTest {
     @Test
     public void testGetS3Client() {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         store.credentials = new BasicSessionCredentials("accessKey", "secretKey", "token");
         store.awsEnabled = true;
         assertNotNull(store.getS3Client());
@@ -117,7 +121,7 @@ public class CloudStoreTest {
     
     @Test
     public void testGetTokenServiceClient() {
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         store.credentials = new BasicSessionCredentials("accessKey", "secretKey", "token");
         store.awsEnabled = true;
         assertNotNull(store.getTokenServiceClient());
@@ -127,7 +131,7 @@ public class CloudStoreTest {
     @Test
     public void testUpdateAccountUpdate() {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         assertNull(store.getAWSAccount("iaas"));
         
         // set the account to 1234
@@ -145,7 +149,7 @@ public class CloudStoreTest {
     @Test
     public void testUpdateAccountDelete() {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         
         // set the account to 1234
         
@@ -172,7 +176,7 @@ public class CloudStoreTest {
     @Test
     public void testGetAssumeRoleRequest() {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         AssumeRoleRequest req = store.getAssumeRoleRequest("1234", "admin", "sys.auth.zts");
         assertEquals("arn:aws:iam::1234:role/admin", req.getRoleArn());
         assertEquals("sys.auth.zts", req.getRoleSessionName());
@@ -181,7 +185,7 @@ public class CloudStoreTest {
     
     @Test
     public void testParseInstanceInfo() {
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         assertTrue(store.parseInstanceInfo(AWS_INSTANCE_DOCUMENT));
         assertEquals(store.awsAccount, "111111111111");
         assertEquals(store.awsRegion, "us-west-2");
@@ -191,7 +195,7 @@ public class CloudStoreTest {
     @Test
     public void testParseInstanceInfoInvalid() {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         assertFalse(store.parseInstanceInfo("some_invalid_doc"));
         store.close();
     }
@@ -202,7 +206,7 @@ public class CloudStoreTest {
         // first this should fail since we have no region
         // override and the document has no region
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         assertFalse(store.parseInstanceInfo("{\"accountId\":\"012345678901\"}"));
         
         // now we're going to use the same doc with override
@@ -210,7 +214,7 @@ public class CloudStoreTest {
         System.setProperty(ZTSConsts.ZTS_PROP_AWS_REGION_NAME, "us-west-3");
         store.close();
 
-        store = new CloudStore(null);
+        store = new CloudStore(null, null);
         assertTrue(store.parseInstanceInfo("{\"accountId\":\"012345678901\"}"));
         assertEquals(store.awsAccount, "012345678901");
         assertEquals(store.awsRegion, "us-west-3");
@@ -221,7 +225,7 @@ public class CloudStoreTest {
     @Test
     public void testParseIamRoleInfoInvalid() {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         assertFalse(store.parseIamRoleInfo("some_invalid_doc"));
         store.close();
     }
@@ -229,7 +233,7 @@ public class CloudStoreTest {
     @Test
     public void testParseIamRoleInfoMissingInstanceProfile() {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         assertFalse(store.parseIamRoleInfo("{\"accountId\":\"012345678901\"}"));
         assertFalse(store.parseIamRoleInfo("{\"accountId\":\"012345678901\",\"InstanceProfileArn\":\"\"}"));
         store.close();
@@ -238,7 +242,7 @@ public class CloudStoreTest {
     @Test
     public void testParseIamRoleInfoInvalidInstanceProfile() {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         assertFalse(store.parseIamRoleInfo("{\"accountId\":\"012345678901\"}"));
         assertFalse(store.parseIamRoleInfo("{\"accountId\":\"012345678901\",\"InstanceProfileArn\":\"invalid\"}"));
         store.close();
@@ -246,7 +250,7 @@ public class CloudStoreTest {
     
     @Test
     public void testParseIamRoleInfo() {
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         assertTrue(store.parseIamRoleInfo(AWS_IAM_ROLE_INFO));
         assertEquals(store.awsAccount, "111111111111");
         assertEquals(store.awsCloud, "athenz");
@@ -260,7 +264,7 @@ public class CloudStoreTest {
     @Test
     public void testParseInstanceProfileArn() {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         assertTrue(store.parseInstanceProfileArn("arn:aws:iam::111111111111:instance-profile/athenz.zts,athenz"));
         assertEquals(store.awsAccount, "111111111111");
         assertEquals(store.awsCloud, "athenz");
@@ -274,7 +278,7 @@ public class CloudStoreTest {
     @Test
     public void testParseInstanceProfileArnInvalidPrefix() {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         
         // invalid starting prefix
         
@@ -287,7 +291,7 @@ public class CloudStoreTest {
     @Test
     public void testParseInstanceProfileArnInvalidProfile() {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         
         // missing instance-profile part
         
@@ -299,7 +303,7 @@ public class CloudStoreTest {
     @Test
     public void testParseInstanceProfileArnInvalidNoProfile() {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         
         // no profile name
         
@@ -310,7 +314,7 @@ public class CloudStoreTest {
     @Test
     public void testParseInstanceProfileArnInvalidAccount() {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         
         // missing account id
         
@@ -321,7 +325,7 @@ public class CloudStoreTest {
     @Test
     public void testParseInstanceProfileArnInvalidCloud() {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         
         // missing/invalid cloud name
         
@@ -333,7 +337,7 @@ public class CloudStoreTest {
     @Test
     public void testParseInstanceProfileArnInvalidDomain() {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         
         // invalid domain/service names
         
@@ -347,7 +351,7 @@ public class CloudStoreTest {
     @Test
     public void testGetMetaDataExceptions() throws InterruptedException, ExecutionException, TimeoutException {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         HttpClient httpClient = Mockito.mock(HttpClient.class);
         store.setHttpClient(httpClient);
         Mockito.when(httpClient.GET("http://169.254.169.254/latest/exc1")).thenThrow(InterruptedException.class);
@@ -363,7 +367,7 @@ public class CloudStoreTest {
     @Test
     public void testGetMetaDataFailureStatus() throws InterruptedException, ExecutionException, TimeoutException {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         HttpClient httpClient = Mockito.mock(HttpClient.class);
         ContentResponse response = Mockito.mock(ContentResponse.class);
         Mockito.when(response.getStatus()).thenReturn(404);
@@ -377,7 +381,7 @@ public class CloudStoreTest {
     @Test
     public void testGetMetaDataNullResponse() throws InterruptedException, ExecutionException, TimeoutException {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         HttpClient httpClient = Mockito.mock(HttpClient.class);
         ContentResponse response = Mockito.mock(ContentResponse.class);
         Mockito.when(response.getStatus()).thenReturn(200);
@@ -392,7 +396,7 @@ public class CloudStoreTest {
     @Test
     public void testGetMetaDataEmptyResponse() throws InterruptedException, ExecutionException, TimeoutException {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         HttpClient httpClient = Mockito.mock(HttpClient.class);
         ContentResponse response = Mockito.mock(ContentResponse.class);
         Mockito.when(response.getStatus()).thenReturn(200);
@@ -407,7 +411,7 @@ public class CloudStoreTest {
     @Test
     public void testGetMetaDataValidResponse() throws InterruptedException, ExecutionException, TimeoutException {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         HttpClient httpClient = Mockito.mock(HttpClient.class);
         ContentResponse response = Mockito.mock(ContentResponse.class);
         Mockito.when(response.getStatus()).thenReturn(200);
@@ -422,7 +426,7 @@ public class CloudStoreTest {
     @Test
     public void testLoadBootMetaDataInvalidDocumentGet() throws InterruptedException, ExecutionException, TimeoutException {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         HttpClient httpClient = Mockito.mock(HttpClient.class);
         ContentResponse response = Mockito.mock(ContentResponse.class);
         Mockito.when(response.getStatus()).thenReturn(404);
@@ -436,7 +440,7 @@ public class CloudStoreTest {
     @Test
     public void testLoadBootMetaDataInvalidDocumentParse() throws InterruptedException, ExecutionException, TimeoutException {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         HttpClient httpClient = Mockito.mock(HttpClient.class);
         ContentResponse response = Mockito.mock(ContentResponse.class);
         Mockito.when(response.getStatus()).thenReturn(200);
@@ -451,7 +455,7 @@ public class CloudStoreTest {
     @Test
     public void testLoadBootMetaDataInvalidDocumentException() throws InterruptedException, ExecutionException, TimeoutException {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         HttpClient httpClient = Mockito.mock(HttpClient.class);
         ContentResponse response = Mockito.mock(ContentResponse.class);
         Mockito.when(response.getStatus()).thenReturn(200);
@@ -466,7 +470,7 @@ public class CloudStoreTest {
     @Test
     public void testLoadBootMetaDataInvalidSignature() throws InterruptedException, ExecutionException, TimeoutException {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         HttpClient httpClient = Mockito.mock(HttpClient.class);
         ContentResponse responseDoc = Mockito.mock(ContentResponse.class);
         Mockito.when(responseDoc.getStatus()).thenReturn(200);
@@ -486,7 +490,7 @@ public class CloudStoreTest {
     @Test
     public void testLoadBootMetaDataInvalidIamInfoGet() throws InterruptedException, ExecutionException, TimeoutException {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         HttpClient httpClient = Mockito.mock(HttpClient.class);
         
         ContentResponse responseDoc = Mockito.mock(ContentResponse.class);
@@ -512,7 +516,7 @@ public class CloudStoreTest {
     @Test
     public void testLoadBootMetaDataInvalidIamInfoException() throws InterruptedException, ExecutionException, TimeoutException {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         HttpClient httpClient = Mockito.mock(HttpClient.class);
         
         ContentResponse responseDoc = Mockito.mock(ContentResponse.class);
@@ -539,7 +543,7 @@ public class CloudStoreTest {
     @Test
     public void testLoadBootMetaDataInvalidIamInfoParse() throws InterruptedException, ExecutionException, TimeoutException {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         HttpClient httpClient = Mockito.mock(HttpClient.class);
         
         ContentResponse responseDoc = Mockito.mock(ContentResponse.class);
@@ -566,7 +570,7 @@ public class CloudStoreTest {
     @Test
     public void testLoadBootMetaData() throws InterruptedException, ExecutionException, TimeoutException {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         HttpClient httpClient = Mockito.mock(HttpClient.class);
         
         ContentResponse responseDoc = Mockito.mock(ContentResponse.class);
@@ -600,7 +604,7 @@ public class CloudStoreTest {
     @Test
     public void testFetchRoleCredentialsNoRole() {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         
         store.awsRole = null;
         assertFalse(store.fetchRoleCredentials());
@@ -613,7 +617,7 @@ public class CloudStoreTest {
     @Test
     public void testFetchRoleCredentialsNoCreds() throws InterruptedException, ExecutionException, TimeoutException {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         store.awsRole = "athenz.zts";
         
         HttpClient httpClient = Mockito.mock(HttpClient.class);
@@ -629,7 +633,7 @@ public class CloudStoreTest {
     @Test
     public void testFetchRoleCredentialInvalidCreds() throws InterruptedException, ExecutionException, TimeoutException {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         store.awsRole = "athenz.zts";
         
         HttpClient httpClient = Mockito.mock(HttpClient.class);
@@ -647,7 +651,7 @@ public class CloudStoreTest {
     @Test
     public void testInitializeAwsSupportInvalidDocument()  throws InterruptedException, ExecutionException, TimeoutException {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         HttpClient httpClient = Mockito.mock(HttpClient.class);
         
         ContentResponse responseDoc = Mockito.mock(ContentResponse.class);
@@ -670,7 +674,7 @@ public class CloudStoreTest {
     @Test
     public void testInitializeAwsSupportInvalidCreds()  throws InterruptedException, ExecutionException, TimeoutException {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore(null, null);
         HttpClient httpClient = Mockito.mock(HttpClient.class);
         
         ContentResponse responseDoc = Mockito.mock(ContentResponse.class);
@@ -715,7 +719,7 @@ public class CloudStoreTest {
         PrivateKey caPrivateKey = Crypto.loadPrivateKey(caKey, "athenz");
         CertSigner certSigner = new SelfCertSigner(caPrivateKey, caCertificate);
         
-        CloudStore cloudStore = new CloudStore(certSigner);
+        CloudStore cloudStore = new CloudStore(certSigner, null);
         
         Path path = Paths.get("src/test/resources/valid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -735,7 +739,7 @@ public class CloudStoreTest {
         PrivateKey caPrivateKey = Crypto.loadPrivateKey(caKey, "athenz");
         CertSigner certSigner = new SelfCertSigner(caPrivateKey, caCertificate);
 
-        CloudStore cloudStore = new CloudStore(certSigner);
+        CloudStore cloudStore = new CloudStore(certSigner, null);
         
         Identity identity = cloudStore.generateIdentity("athenz.syncer", "invalid-csr", null, null);
         assertNull(identity);
@@ -752,7 +756,7 @@ public class CloudStoreTest {
         PrivateKey caPrivateKey = Crypto.loadPrivateKey(caKey, "athenz");
         CertSigner certSigner = new SelfCertSigner(caPrivateKey, caCertificate);
 
-        CloudStore cloudStore = new CloudStore(certSigner);
+        CloudStore cloudStore = new CloudStore(certSigner, null);
         
         Path path = Paths.get("src/test/resources/valid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -772,7 +776,7 @@ public class CloudStoreTest {
         info.setSecret("secret");
         info.setToken("token");
         
-        CloudStore cloudStore = new CloudStore(null);
+        CloudStore cloudStore = new CloudStore(null, null);
         AWSSecurityTokenServiceClient client = cloudStore.getInstanceClient(info);
         assertNotNull(client);
         cloudStore.close();
@@ -785,7 +789,7 @@ public class CloudStoreTest {
         info.setSecret("secret");
         info.setToken("token");
         
-        CloudStore cloudStore = new CloudStore(null);
+        CloudStore cloudStore = new CloudStore(null, null);
         assertNull(cloudStore.getInstanceClient(info));
         
         info = new AWSInstanceInformation();
@@ -803,7 +807,7 @@ public class CloudStoreTest {
         info.setSecret("");
         info.setToken("token");
         
-        CloudStore cloudStore = new CloudStore(null);
+        CloudStore cloudStore = new CloudStore(null, null);
         assertNull(cloudStore.getInstanceClient(info));
         
         info = new AWSInstanceInformation();
@@ -821,7 +825,7 @@ public class CloudStoreTest {
         info.setSecret("secret");
         info.setToken("");
         
-        CloudStore cloudStore = new CloudStore(null);
+        CloudStore cloudStore = new CloudStore(null, null);
         assertNull(cloudStore.getInstanceClient(info));
         
         info = new AWSInstanceInformation();
@@ -896,7 +900,7 @@ public class CloudStoreTest {
     
     @Test
     public void testAssumeAWSRoleAWSNotEnabled() {
-        CloudStore cloudStore = new CloudStore(null);
+        CloudStore cloudStore = new CloudStore(null, null);
         try {
             cloudStore.assumeAWSRole("account", "sycner", "athenz.syncer");
             fail();
@@ -929,7 +933,7 @@ public class CloudStoreTest {
     
     @Test
     public void testGetSshKeyReqType() {
-        CloudStore cloudStore = new CloudStore(null);
+        CloudStore cloudStore = new CloudStore(null, null);
         final String req = "{\"principals\":[\"localhost\"],\"pubkey\":\"ssh-rsa AAAs\"" +
                 ",\"reqip\":\"10.10.10.10\",\"requser\":\"user\",\"certtype\":\"host\",\"transid\":\"0\"}";
         assertEquals(cloudStore.getSshKeyReqType(req), "host");
@@ -940,5 +944,145 @@ public class CloudStoreTest {
         
         final String req3 = "{invalid-json";
         assertNull(cloudStore.getSshKeyReqType(req3));
+    }
+    
+    @Test
+    public void testGetX509CertRecord() throws IOException {
+        
+        CloudStore cloudStore = new CloudStore(null, null);
+
+        Path path = Paths.get("src/test/resources/athenz.uuid.pem");
+        String pem = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(pem);
+        
+        ObjectStore certStore = Mockito.mock(ObjectStore.class);
+        ObjectStoreConnection certConnection = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(certStore.getConnection(false)).thenReturn(certConnection);
+        
+        X509CertRecord x509CertRecord = new X509CertRecord();
+        Mockito.when(certConnection.getX509CertRecord("1001")).thenReturn(x509CertRecord);
+        cloudStore.setCertStore(certStore);
+        
+        X509CertRecord certRecord = cloudStore.getX509CertRecord(cert);
+        assertNotNull(certRecord);
+    }
+    
+    @Test
+    public void testGetX509CertRecordNoCertStore() {
+        CloudStore cloudStore = new CloudStore(null, null);
+        X509CertRecord certRecord = cloudStore.getX509CertRecord(null);
+        assertNull(certRecord);
+    }
+    
+    @Test
+    public void testGetX509CertRecordNoInstanceId() throws IOException {
+        
+        CloudStore cloudStore = new CloudStore(null, null);
+
+        Path path = Paths.get("src/test/resources/valid_cn_x509.cert");
+        String pem = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(pem);
+        
+        ObjectStore certStore = Mockito.mock(ObjectStore.class);
+        ObjectStoreConnection certConnection = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(certStore.getConnection(false)).thenReturn(certConnection);
+        
+        X509CertRecord x509CertRecord = new X509CertRecord();
+        Mockito.when(certConnection.getX509CertRecord("1001")).thenReturn(x509CertRecord);
+        cloudStore.setCertStore(certStore);
+
+        X509CertRecord certRecord = cloudStore.getX509CertRecord(cert);
+        assertNull(certRecord);
+    }
+    
+    @Test
+    public void testGetX509CertRecordNoConnection() throws IOException {
+        
+        CloudStore cloudStore = new CloudStore(null, null);
+
+        Path path = Paths.get("src/test/resources/athenz.uuid.pem");
+        String pem = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(pem);
+        
+        ObjectStore certStore = Mockito.mock(ObjectStore.class);
+        Mockito.when(certStore.getConnection(false)).thenReturn(null);
+        cloudStore.setCertStore(certStore);
+
+        X509CertRecord certRecord = cloudStore.getX509CertRecord(cert);
+        assertNull(certRecord);
+    }
+    
+    @Test
+    public void testUpdateX509CertRecord() {
+        CloudStore cloudStore = new CloudStore(null, null);
+
+        ObjectStore certStore = Mockito.mock(ObjectStore.class);
+        ObjectStoreConnection certConnection = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(certStore.getConnection(true)).thenReturn(certConnection);
+        
+        Mockito.when(certConnection.updateX509CertRecord(Matchers.isA(X509CertRecord.class))).thenReturn(true);
+        cloudStore.setCertStore(certStore);
+
+        X509CertRecord x509CertRecord = new X509CertRecord();
+        boolean result = cloudStore.updateX509CertRecord(x509CertRecord);
+        assertTrue(result);
+    }
+    
+    @Test
+    public void testUpdateX509CertRecordNoCertStore() {
+        CloudStore cloudStore = new CloudStore(null, null);
+        X509CertRecord x509CertRecord = new X509CertRecord();
+        boolean result = cloudStore.updateX509CertRecord(x509CertRecord);
+        assertFalse(result);
+    }
+    
+    @Test
+    public void testUpdateX509CertRecordNoConnection() {
+        CloudStore cloudStore = new CloudStore(null, null);
+
+        ObjectStore certStore = Mockito.mock(ObjectStore.class);
+        Mockito.when(certStore.getConnection(true)).thenReturn(null);
+        cloudStore.setCertStore(certStore);
+
+        X509CertRecord x509CertRecord = new X509CertRecord();
+        boolean result = cloudStore.updateX509CertRecord(x509CertRecord);
+        assertFalse(result);
+    }
+    
+    @Test
+    public void testInsertX509CertRecord() {
+        CloudStore cloudStore = new CloudStore(null, null);
+
+        ObjectStore certStore = Mockito.mock(ObjectStore.class);
+        ObjectStoreConnection certConnection = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(certStore.getConnection(true)).thenReturn(certConnection);
+        
+        Mockito.when(certConnection.insertX509CertRecord(Matchers.isA(X509CertRecord.class))).thenReturn(true);
+        cloudStore.setCertStore(certStore);
+
+        X509CertRecord x509CertRecord = new X509CertRecord();
+        boolean result = cloudStore.insertX509CertRecord(x509CertRecord);
+        assertTrue(result);
+    }
+    
+    @Test
+    public void testInsertX509CertRecordNoCertStore() {
+        CloudStore cloudStore = new CloudStore(null, null);
+        X509CertRecord x509CertRecord = new X509CertRecord();
+        boolean result = cloudStore.insertX509CertRecord(x509CertRecord);
+        assertFalse(result);
+    }
+    
+    @Test
+    public void testInsertX509CertRecordNoConnection() {
+        CloudStore cloudStore = new CloudStore(null, null);
+
+        ObjectStore certStore = Mockito.mock(ObjectStore.class);
+        Mockito.when(certStore.getConnection(true)).thenReturn(null);
+        cloudStore.setCertStore(certStore);
+
+        X509CertRecord x509CertRecord = new X509CertRecord();
+        boolean result = cloudStore.insertX509CertRecord(x509CertRecord);
+        assertFalse(result);
     }
 }

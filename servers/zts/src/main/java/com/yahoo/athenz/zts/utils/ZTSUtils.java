@@ -21,6 +21,13 @@ import java.security.PublicKey;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.bouncycastle.asn1.DERIA5String;
+import org.bouncycastle.asn1.pkcs.Attribute;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.Extensions;
+import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.openssl.PEMException;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
@@ -36,6 +43,7 @@ import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.zts.Identity;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.cert.CertSigner;
+import com.yahoo.athenz.zts.cert.X509CertRecord;
 import com.yahoo.athenz.zts.store.DataStore;
 
 public class ZTSUtils {
@@ -47,6 +55,8 @@ public class ZTSUtils {
             + "SSL_RSA_EXPORT_WITH_RC4_40_MD5,SSL_RSA_EXPORT_WITH_DES40_CBC_SHA,"
             + "SSL_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA,SSL_DHE_DSS_EXPORT_WITH_DES40_CBC_SHA";
     public static final String ZTS_DEFAULT_EXCLUDED_PROTOCOLS = "SSLv2,SSLv3";
+    public static final String ZTS_CERT_UUID_PREFIX =
+            System.getProperty(ZTSConsts.ZTS_PROP_CERT_UUID_PREFIX, ZTSConsts.ZTS_CERT_UUID_PREFIX);
     
     private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
     private static String CA_X509_CERTIFICATE = null;
@@ -159,7 +169,8 @@ public class ZTSUtils {
         return true;
     }
     
-    public static boolean verifyCertificateRequest(String csr, String cn, String publicKey) {
+    public static boolean verifyCertificateRequest(String csr, String cn, String publicKey,
+            X509CertRecord certRecord) {
         
         // verify that it contains the right common name
         // and the certificate matches to what we have
@@ -184,6 +195,26 @@ public class ZTSUtils {
                 }
             }
             
+            // if we have an instance id then we have to make sure the
+            // athenz uuid fields are identical
+            
+            if (certRecord != null) {
+                
+                // validate the cn matches first
+                
+                if (!cn.equals(certRecord.getCn())) {
+                    LOGGER.error("verifyCertificateRequest: unable to validate cn: {} vs. cert record data: {}",
+                            cn, certRecord.getCn());
+                    return false;
+                }
+                
+                // then validate instance ids
+                
+                if (!validateCertReqInstanceId(certReq, certRecord.getInstanceId())) {
+                    LOGGER.error("verifyCertificateRequest: unable to validate PKCS10 cert request instance id");
+                    return false;
+                }
+            }
         } catch (CryptoException ex) {
             LOGGER.error("validateCertificateRequest: unable to generate identity certificate: "
                     + ex.getMessage());
@@ -221,6 +252,41 @@ public class ZTSUtils {
         }
 
         return true;
+    }
+    
+    public static boolean validateCertReqInstanceId(PKCS10CertificationRequest certReq, String instanceId) {
+
+        Attribute[] certAttributes = certReq.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);
+        if (certAttributes == null) {
+            return false;
+        }
+        
+        String reqInstanceId = null;
+        for (Attribute attribute : certAttributes) {
+            Extensions extensions = Extensions.getInstance(attribute.getAttrValues().getObjectAt(0));
+            GeneralNames gns = GeneralNames.fromExtensions(extensions, Extension.subjectAlternativeName);
+            if (gns == null) {
+                continue;
+            }
+            GeneralName[] names = gns.getNames();
+            for (int i = 0; i < names.length; i++) {
+                if (names[i].getTagNo() == GeneralName.dNSName) {
+                    final String dnsName = (((DERIA5String) names[i].getName()).getString());
+                    if (dnsName.startsWith(ZTS_CERT_UUID_PREFIX)) {
+                        reqInstanceId = dnsName.substring(ZTS_CERT_UUID_PREFIX.length());
+                        break;
+                    }
+                }
+            }
+            if (reqInstanceId != null) {
+                break;
+            }
+        }
+        
+        if (reqInstanceId == null) {
+            return false;
+        }
+        return reqInstanceId.equals(instanceId);
     }
     
     public static boolean validateCertReqPublicKey(PKCS10CertificationRequest certReq,
