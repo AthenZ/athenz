@@ -94,7 +94,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected String userDomain = "user";
     protected boolean leastPrivilegePrincipal = false;
     protected Set<String> authorizedProxyUsers = null;
-    
+    protected boolean secureRequestsOnly = true;
+
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
     private static final String TYPE_ENTITY_NAME = "EntityName";
@@ -226,6 +227,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     
     void loadConfigurationSettings() {
         
+        // make sure all requests run in secure mode
+
+        secureRequestsOnly = Boolean.parseBoolean(System.getProperty(ZTSConsts.ZTS_PROP_SECURE_REQUESTS_ONLY, "true"));
+ 
         // check to see if we want to disable allowing clients to ask for role
         // tokens without role name thus violating the least privilege principle
         
@@ -551,6 +556,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_GET);
         logPrincipal(ctx);
 
+        validateRequest(ctx.request(), caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(serviceName, TYPE_SIMPLE_NAME, caller);
         
@@ -595,6 +601,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_GET);
         logPrincipal(ctx);
 
+        validateRequest(ctx.request(), caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(serviceName, TYPE_SIMPLE_NAME, caller);
 
@@ -640,6 +647,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_GET);
         logPrincipal(ctx);
 
+        validateRequest(ctx.request(), caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         
         // for consistent handling of all requests, we're going to convert
@@ -689,6 +697,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(caller);
         Object timerMetric = metric.startTiming(callerTiming, null);
         logPrincipal(ctx);
+
+        validateRequest(ctx.request(), caller);
 
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case since ZMS Server
@@ -758,6 +768,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_GET);
         logPrincipal(ctx);
 
+        validateRequest(ctx.request(), caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         
         // for consistent handling of all requests, we're going to convert
@@ -875,6 +886,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_GET);
         logPrincipal(ctx);
 
+        validateRequest(ctx.request(), caller);
         validate(providerDomainName, TYPE_DOMAIN_NAME, caller);
         validate(userName, TYPE_ENTITY_NAME, caller);
         if (roleName != null) {
@@ -1041,6 +1053,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_GET);
         logPrincipal(ctx);
 
+        validateRequest(ctx.request(), caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         if (roleName != null && !roleName.isEmpty()) {
             validate(roleName, TYPE_ENTITY_NAME, caller);
@@ -1217,6 +1230,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_GET);
         logPrincipal(ctx);
 
+        validateRequest(ctx.request(), caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(principal, TYPE_ENTITY_NAME, caller);
         
@@ -1277,6 +1291,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_POST);
         logPrincipal(ctx);
 
+        validateRequest(ctx.request(), caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(roleName, TYPE_ENTITY_NAME, caller);
         validate(req, TYPE_ROLE_CERTIFICATE_REQUEST, caller);
@@ -1465,6 +1480,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_GET);
         logPrincipal(ctx);
 
+        validateRequest(ctx.request(), caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(roleName, TYPE_ENTITY_NAME, caller);
         
@@ -1573,6 +1589,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_POST);
         logPrincipal(ctx);
 
+        validateRequest(ctx.request(), caller);
         validate(info, TYPE_AWS_INSTANCE_INFO, caller);
         
         Object timerMetric = metric.startTiming(callerTiming, info.getDomain());
@@ -1639,6 +1656,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_POST);
         logPrincipal(ctx);
 
+        validateRequest(ctx.request(), caller);
         validate(domain, TYPE_DOMAIN_NAME, caller);
         validate(service, TYPE_SIMPLE_NAME, caller);
         validate(req, TYPE_INSTANCE_REFRESH_REQUEST, caller);
@@ -1726,6 +1744,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_POST);
         logPrincipal(ctx);
 
+        validateRequest(ctx.request(), caller);
+        
         String domain = info.getDomain();
         String service = info.getService();
 
@@ -1777,6 +1797,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_POST);
         logPrincipal(ctx);
 
+        validateRequest(ctx.request(), caller);
+        
         String domain = info.getDomain();
         String service = info.getService();
 
@@ -1848,6 +1870,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_POST);
         logPrincipal(ctx);
 
+        validateRequest(ctx.request(), caller);
         validate(domain, TYPE_DOMAIN_NAME, caller);
         validate(service, TYPE_SIMPLE_NAME, caller);
         validate(req, TYPE_OSTK_INSTANCE_REFRESH_REQUEST, caller);
@@ -1922,6 +1945,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_POST);
         logPrincipal(ctx);
 
+        validateRequest(ctx.request(), caller);
         validate(domain, TYPE_DOMAIN_NAME, caller);
         validate(service, TYPE_SIMPLE_NAME, caller);
         validate(req, TYPE_AWS_CERT_REQUEST, caller);
@@ -2011,6 +2035,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_GET);
         logPrincipal(ctx);
 
+        validateRequest(ctx.request(), caller);
         validate(action, TYPE_COMPOUND_NAME, caller);
         
         return getResourceAccessCheck(((RsrcCtxWrapper) ctx).principal(), action, resource,
@@ -2025,6 +2050,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_GET);
         logPrincipal(ctx);
 
+        validateRequest(ctx.request(), caller);
         validate(action, TYPE_COMPOUND_NAME, caller);
         validate(resource, TYPE_RESOURCE_NAME, caller);
 
@@ -2071,6 +2097,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_GET);
         logPrincipal(ctx);
         
+        validateRequest(ctx.request(), caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(roleName, TYPE_ENTITY_NAME, caller);
         validate(principal, TYPE_ENTITY_NAME, caller);
@@ -2141,6 +2168,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_POST);
         logPrincipal(ctx);
 
+        validateRequest(ctx.request(), caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(req, TYPE_DOMAIN_METRICS, caller);
         domainName = domainName.toLowerCase();
@@ -2216,6 +2244,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return msg + ": " + v.getString("error") + " [" + v.getString("context") + "]";
     }
 
+    void validateRequest(HttpServletRequest request, String caller) {
+        if (secureRequestsOnly && !request.isSecure()) {
+            throw requestError(caller + "request must be over TLS", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+        }
+    }
+    
     void validate(Object val, String type, String caller) {
         if (val == null) {
             throw requestError("Missing or malformed " + type, caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);

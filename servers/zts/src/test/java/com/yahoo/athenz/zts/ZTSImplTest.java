@@ -231,7 +231,8 @@ public class ZTSImplTest {
         com.yahoo.athenz.common.server.rest.ResourceContext rsrcCtx = Mockito.mock(com.yahoo.athenz.common.server.rest.ResourceContext.class);
         Mockito.when(rsrcCtx.principal()).thenReturn(principal);
         Mockito.when(rsrcCtx.request()).thenReturn(mockServletRequest);
-
+        Mockito.when(mockServletRequest.isSecure()).thenReturn(true);
+        
         RsrcCtxWrapper rsrcCtxWrapper = Mockito.mock(RsrcCtxWrapper.class);
         Mockito.when(rsrcCtxWrapper.context()).thenReturn(rsrcCtx);
         Mockito.when(rsrcCtxWrapper.principal()).thenReturn(principal);
@@ -1980,7 +1981,8 @@ public class ZTSImplTest {
     public void testRoleTokenAddrNoLoopbackAuditLog() {
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
         Mockito.when(servletRequest.getRemoteAddr()).thenReturn("10.10.10.11");
-
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+        
         final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
@@ -2028,7 +2030,8 @@ public class ZTSImplTest {
     public void testGetRoleTokenAddrLoopbackNoXFFAuditLog() {
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
         Mockito.when(servletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
-        
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+
         final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
@@ -2078,7 +2081,8 @@ public class ZTSImplTest {
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
         Mockito.when(servletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
         Mockito.when(servletRequest.getHeader("X-Forwarded-For")).thenReturn("10.10.10.12");
-        
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+
         final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
@@ -2126,7 +2130,8 @@ public class ZTSImplTest {
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
         Mockito.when(servletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
         Mockito.when(servletRequest.getHeader("X-Forwarded-For")).thenReturn("10.10.10.11, 10.11.11.11, 10.12.12.12");
-        
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+
         final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
@@ -2174,7 +2179,8 @@ public class ZTSImplTest {
     public void testGetRoleTokenNoRoleMatchAuditLog() {
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
         Mockito.when(servletRequest.getRemoteAddr()).thenReturn("99.88.77.66");
-        
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+
         final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
@@ -2226,7 +2232,8 @@ public class ZTSImplTest {
     public void testGetRoleTokenInvalidDomainAuditLog() {
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
         Mockito.when(servletRequest.getRemoteAddr()).thenReturn("55.88.77.66");
-        
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+
         final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
@@ -3627,6 +3634,8 @@ public class ZTSImplTest {
         zts.dataStore.getPublicKeyCache().put(publicKeyName, ztsPublicKey);
 
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+
         ResourceContext context = createResourceContext(principal, servletRequest);
 
         Identity identity = zts.postInstanceRefreshRequest(context, "athenz", "syncer", req);
@@ -3646,6 +3655,8 @@ public class ZTSImplTest {
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("abc", "xyz",
                 "v=S1,d=abc;n=xyz;s=sig", 0, new PrincipalAuthority());
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+
         ResourceContext context = createResourceContext(principal, servletRequest);
 
         try {
@@ -3667,6 +3678,8 @@ public class ZTSImplTest {
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("abc", "xyz",
                 "v=S1,d=abc;n=xyz;s=sig", 0, null);
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+
         ResourceContext context = createResourceContext(principal, servletRequest);
 
         try {

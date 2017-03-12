@@ -114,7 +114,8 @@ public class ZMSImplTest extends TestCase {
         MockitoAnnotations.initMocks(this);
 
         Mockito.when(mockServletRequest.getRemoteAddr()).thenReturn(MOCKCLIENTADDR);
-
+        Mockito.when(mockServletRequest.isSecure()).thenReturn(true);
+        
         System.setProperty(ZMSConsts.ZMS_PROP_FILE_NAME, "src/test/resources/zms.properties");
         System.setProperty(ZMSConsts.ZMS_PROP_METRIC_FACTORY_CLASS, ZMSConsts.ZMS_METRIC_FACTORY_CLASS);
         System.setProperty(ZMSConsts.ZMS_PROP_PROVIDER_ENDPOINTS, ".athenzcompany.com");
@@ -12776,7 +12777,8 @@ public class ZMSImplTest extends TestCase {
     public void testPutPolicyNoLoopbackNoSuchDomainErrorAuditLog() {
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
         Mockito.when(servletRequest.getRemoteAddr()).thenReturn("10.10.10.11");
- 
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+        
         final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
@@ -12831,7 +12833,8 @@ public class ZMSImplTest extends TestCase {
     public void testPutPolicyLoopbackNoXFF_InconsistentNameErrorAuditLog() {
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
         Mockito.when(servletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
-        
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+
         final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
@@ -12886,7 +12889,8 @@ public class ZMSImplTest extends TestCase {
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
         Mockito.when(servletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
         Mockito.when(servletRequest.getHeader("X-Forwarded-For")).thenReturn("10.10.10.11");
-        
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+
         final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
@@ -12942,7 +12946,8 @@ public class ZMSImplTest extends TestCase {
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
         Mockito.when(servletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
         Mockito.when(servletRequest.getHeader("X-Forwarded-For")).thenReturn("10.10.10.11, 10.11.11.11, 10.12.12.12");
-        
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+
         final List<String> aLogMsgs = new ArrayList<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {

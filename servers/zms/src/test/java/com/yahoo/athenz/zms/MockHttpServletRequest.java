@@ -188,8 +188,7 @@ public class MockHttpServletRequest implements HttpServletRequest {
 
     @Override
     public boolean isSecure() {
-        // Auto-generated method stub
-        return false;
+        return true;
     }
 
     @Override

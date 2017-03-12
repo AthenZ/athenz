@@ -351,7 +351,8 @@ public class AthenzJettyContainer {
         if (excludedProtocols.length() != 0) {
             sslContextFactory.setExcludeProtocols(excludedProtocols.split(","));
         }
-
+        sslContextFactory.setWantClientAuth(true);
+        
         return sslContextFactory;
     }
     
