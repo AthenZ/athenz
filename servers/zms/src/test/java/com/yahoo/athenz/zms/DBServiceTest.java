@@ -90,6 +90,8 @@ public class DBServiceTest extends TestCase {
         System.setProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN, "user.testadminuser");
 
         Mockito.when(mockServletRequest.getRemoteAddr()).thenReturn(MOCKCLIENTADDR);
+        Mockito.when(mockServletRequest.isSecure()).thenReturn(true);
+        
         System.setProperty(ZMSConsts.ZMS_PROP_FILE_NAME, "src/test/resources/zms.properties");
         initializeZms();
     }

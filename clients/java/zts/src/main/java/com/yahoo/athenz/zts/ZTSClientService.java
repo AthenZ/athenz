@@ -46,7 +46,7 @@ public interface ZTSClientService {
     }
 
     /**
-     * ZTSClient calls to pre-load the Athens client token cache.
+     * ZTSClient calls to pre-load the Athenz client token cache.
      * @return collection of RoleTokenDescriptor objects that include
      *      the service retrieved role tokens. It can return either an
      *      empty set or null if there are no tokens to pre-load.

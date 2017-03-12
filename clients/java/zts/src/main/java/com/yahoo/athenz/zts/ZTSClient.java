@@ -634,7 +634,7 @@ public class ZTSClient implements Closeable {
             throw new IllegalArgumentException("Role DomainName and Name must be specified");
         }
         
-        // Athens uses lower case for all elements, so let's
+        // Athenz uses lower case for all elements, so let's
         // generate our dn which will be our role resource value
         
         principalDomain = principalDomain.toLowerCase();
