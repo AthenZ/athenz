@@ -106,8 +106,6 @@ module.exports = {
     switch (req.params.domainType) {
       case 'domain':
         var nodeRestClient = new NodeRestClient();
-        //set disable on the submit button
-        viewData.disabled = 'disabled';
         res.render('adddomains', viewData);
         break;
       case 'subdomain':
