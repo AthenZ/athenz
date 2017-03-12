@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.auth;
 
+import java.security.cert.X509Certificate;
 import java.util.List;
 
 /**
@@ -33,6 +34,12 @@ public interface Principal {
     
     /** @return the credentials token as a string */
     public String getCredentials();
+    
+    /** @return the client certificate that the principal
+     * was authenticated with if using the certificate authority */
+    default public X509Certificate getX509Certificate() {
+        return null;
+    }
     
     /** @return the credentials token as a string but will not contain a signature */
     public String getUnsignedCredentials();

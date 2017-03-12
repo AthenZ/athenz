@@ -99,9 +99,11 @@ public class CertificateAuthority implements Authority {
         // all the role members in Athenz are normalized to lower case so we need to make
         // sure our principal's name and domain are created with lower case as well
         
-        SimplePrincipal princ = (SimplePrincipal) SimplePrincipal.create(domain.toLowerCase(),
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create(domain.toLowerCase(),
                 name.toLowerCase(), x509Cert.toString(), this);
-        princ.setUnsignedCreds(x509Cert.getSubjectX500Principal().toString());
-        return princ;
+        principal.setUnsignedCreds(x509Cert.getSubjectX500Principal().toString());
+        principal.setX509Certificate(x509Cert);
+        
+        return principal;
     }
 }
