@@ -30,6 +30,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.slf4j.Logger;
@@ -49,6 +50,7 @@ import com.amazonaws.services.securitytoken.model.GetCallerIdentityResult;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
+import com.yahoo.athenz.common.server.cert.CertSigner;
 import com.yahoo.athenz.common.server.db.DataSourceFactory;
 import com.yahoo.athenz.common.server.db.PoolableDataSource;
 import com.yahoo.athenz.zts.AWSInstanceInformation;
@@ -58,11 +60,10 @@ import com.yahoo.athenz.zts.InstanceInformation;
 import com.yahoo.athenz.zts.OSTKInstanceInformation;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.cert.CertSigner;
-import com.yahoo.athenz.zts.cert.ObjectStore;
-import com.yahoo.athenz.zts.cert.ObjectStoreConnection;
+import com.yahoo.athenz.zts.cert.CertRecordStore;
+import com.yahoo.athenz.zts.cert.CertRecordStoreConnection;
 import com.yahoo.athenz.zts.cert.X509CertRecord;
-import com.yahoo.athenz.zts.cert.impl.JDBCObjectStore;
+import com.yahoo.athenz.zts.cert.impl.JDBCCertRecordStore;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Struct;
@@ -89,7 +90,7 @@ public class CloudStore {
     String awsRegion = null;
     boolean awsEnabled = false;
     CertSigner certSigner = null;
-    ObjectStore certStore = null;
+    CertRecordStore certStore = null;
     BasicSessionCredentials credentials = null;
     Map<String, String> cloudAccountCache = null;
     int credsUpdateTime = 900;
@@ -181,7 +182,7 @@ public class CloudStore {
         String password = System.getProperty(ZTSConsts.ZTS_PROP_CERT_JDBC_PASSWORD, "");
         String jdbcPassword = keyStore.getApplicationSecret(JDBC, password);
         PoolableDataSource src = DataSourceFactory.create(jdbcStore, jdbcUser, jdbcPassword);
-        certStore = new JDBCObjectStore(src);
+        certStore = new JDBCCertRecordStore(src);
     }
     
     public void setHttpClient(HttpClient client) {
@@ -776,7 +777,12 @@ public class CloudStore {
         // first verify that the cn in the certificate is valid
         
         if (csr != null) {
-            if (!ZTSUtils.verifyCertificateRequest(csr, cn, null, null)) {
+            PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
+            if (certReq == null) {
+                return null;
+            }
+            
+            if (!ZTSUtils.verifyCertificateRequest(certReq, cn, null, null)) {
                 return null;
             }
         }
@@ -862,7 +868,7 @@ public class CloudStore {
         return this.certSigner;
     }
     
-    public void setCertStore(ObjectStore certStore) {
+    public void setCertStore(CertRecordStore certStore) {
         this.certStore = certStore;
     }
     
@@ -904,13 +910,17 @@ public class CloudStore {
             return null;
         }
 
-        ObjectStoreConnection storeConnection = certStore.getConnection(false);
-        if (storeConnection == null) {
-            LOGGER.error("Unable to get certstore connection");
-            return null;
+        X509CertRecord certRecord = null;
+        try (CertRecordStoreConnection storeConnection = certStore.getConnection(true)) {
+            if (storeConnection == null) {
+                LOGGER.error("Unable to get certstore connection");
+                return null;
+            }
+        
+            certRecord = storeConnection.getX509CertRecord(instanceId);
         }
         
-        return storeConnection.getX509CertRecord(instanceId);
+        return certRecord;
     }
     
     public boolean updateX509CertRecord(X509CertRecord certRecord) {
@@ -919,13 +929,16 @@ public class CloudStore {
             return false;
         }
         
-        ObjectStoreConnection storeConnection = certStore.getConnection(true);
-        if (storeConnection == null) {
-            LOGGER.error("Unable to get certstore connection");
-            return false;
-        }
+        boolean result = false;
+        try (CertRecordStoreConnection storeConnection = certStore.getConnection(true)) {
+            if (storeConnection == null) {
+                LOGGER.error("Unable to get certstore connection");
+                return false;
+            }
         
-        return storeConnection.updateX509CertRecord(certRecord);
+            result = storeConnection.updateX509CertRecord(certRecord);
+        }
+        return result;
     }
     
     public boolean insertX509CertRecord(X509CertRecord certRecord) {
@@ -934,12 +947,16 @@ public class CloudStore {
             return false;
         }
         
-        ObjectStoreConnection storeConnection = certStore.getConnection(true);
-        if (storeConnection == null) {
-            LOGGER.error("Unable to get certstore connection");
-            return false;
+        boolean result = false;
+        try (CertRecordStoreConnection storeConnection = certStore.getConnection(true)) {
+            if (storeConnection == null) {
+                LOGGER.error("Unable to get certstore connection");
+                return false;
+            }
+        
+            result = storeConnection.insertX509CertRecord(certRecord);
         }
         
-        return storeConnection.insertX509CertRecord(certRecord);
+        return result;
     }
 }

@@ -41,14 +41,14 @@ import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
 import com.amazonaws.services.securitytoken.model.Credentials;
 import com.amazonaws.services.securitytoken.model.GetCallerIdentityResult;
 import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.common.server.cert.CertSigner;
 import com.yahoo.athenz.zts.AWSInstanceInformation;
 import com.yahoo.athenz.zts.AWSTemporaryCredentials;
 import com.yahoo.athenz.zts.Identity;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.cert.CertSigner;
-import com.yahoo.athenz.zts.cert.ObjectStore;
-import com.yahoo.athenz.zts.cert.ObjectStoreConnection;
+import com.yahoo.athenz.zts.cert.CertRecordStore;
+import com.yahoo.athenz.zts.cert.CertRecordStoreConnection;
 import com.yahoo.athenz.zts.cert.X509CertRecord;
 import com.yahoo.athenz.zts.cert.impl.SelfCertSigner;
 import com.yahoo.athenz.zts.store.CloudStore;
@@ -955,9 +955,9 @@ public class CloudStoreTest {
         String pem = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(pem);
         
-        ObjectStore certStore = Mockito.mock(ObjectStore.class);
-        ObjectStoreConnection certConnection = Mockito.mock(ObjectStoreConnection.class);
-        Mockito.when(certStore.getConnection(false)).thenReturn(certConnection);
+        CertRecordStore certStore = Mockito.mock(CertRecordStore.class);
+        CertRecordStoreConnection certConnection = Mockito.mock(CertRecordStoreConnection.class);
+        Mockito.when(certStore.getConnection(true)).thenReturn(certConnection);
         
         X509CertRecord x509CertRecord = new X509CertRecord();
         Mockito.when(certConnection.getX509CertRecord("1001")).thenReturn(x509CertRecord);
@@ -983,9 +983,9 @@ public class CloudStoreTest {
         String pem = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(pem);
         
-        ObjectStore certStore = Mockito.mock(ObjectStore.class);
-        ObjectStoreConnection certConnection = Mockito.mock(ObjectStoreConnection.class);
-        Mockito.when(certStore.getConnection(false)).thenReturn(certConnection);
+        CertRecordStore certStore = Mockito.mock(CertRecordStore.class);
+        CertRecordStoreConnection certConnection = Mockito.mock(CertRecordStoreConnection.class);
+        Mockito.when(certStore.getConnection(true)).thenReturn(certConnection);
         
         X509CertRecord x509CertRecord = new X509CertRecord();
         Mockito.when(certConnection.getX509CertRecord("1001")).thenReturn(x509CertRecord);
@@ -1004,8 +1004,8 @@ public class CloudStoreTest {
         String pem = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(pem);
         
-        ObjectStore certStore = Mockito.mock(ObjectStore.class);
-        Mockito.when(certStore.getConnection(false)).thenReturn(null);
+        CertRecordStore certStore = Mockito.mock(CertRecordStore.class);
+        Mockito.when(certStore.getConnection(true)).thenReturn(null);
         cloudStore.setCertStore(certStore);
 
         X509CertRecord certRecord = cloudStore.getX509CertRecord(cert);
@@ -1016,8 +1016,8 @@ public class CloudStoreTest {
     public void testUpdateX509CertRecord() {
         CloudStore cloudStore = new CloudStore(null, null);
 
-        ObjectStore certStore = Mockito.mock(ObjectStore.class);
-        ObjectStoreConnection certConnection = Mockito.mock(ObjectStoreConnection.class);
+        CertRecordStore certStore = Mockito.mock(CertRecordStore.class);
+        CertRecordStoreConnection certConnection = Mockito.mock(CertRecordStoreConnection.class);
         Mockito.when(certStore.getConnection(true)).thenReturn(certConnection);
         
         Mockito.when(certConnection.updateX509CertRecord(Matchers.isA(X509CertRecord.class))).thenReturn(true);
@@ -1040,7 +1040,7 @@ public class CloudStoreTest {
     public void testUpdateX509CertRecordNoConnection() {
         CloudStore cloudStore = new CloudStore(null, null);
 
-        ObjectStore certStore = Mockito.mock(ObjectStore.class);
+        CertRecordStore certStore = Mockito.mock(CertRecordStore.class);
         Mockito.when(certStore.getConnection(true)).thenReturn(null);
         cloudStore.setCertStore(certStore);
 
@@ -1053,8 +1053,8 @@ public class CloudStoreTest {
     public void testInsertX509CertRecord() {
         CloudStore cloudStore = new CloudStore(null, null);
 
-        ObjectStore certStore = Mockito.mock(ObjectStore.class);
-        ObjectStoreConnection certConnection = Mockito.mock(ObjectStoreConnection.class);
+        CertRecordStore certStore = Mockito.mock(CertRecordStore.class);
+        CertRecordStoreConnection certConnection = Mockito.mock(CertRecordStoreConnection.class);
         Mockito.when(certStore.getConnection(true)).thenReturn(certConnection);
         
         Mockito.when(certConnection.insertX509CertRecord(Matchers.isA(X509CertRecord.class))).thenReturn(true);
@@ -1077,7 +1077,7 @@ public class CloudStoreTest {
     public void testInsertX509CertRecordNoConnection() {
         CloudStore cloudStore = new CloudStore(null, null);
 
-        ObjectStore certStore = Mockito.mock(ObjectStore.class);
+        CertRecordStore certStore = Mockito.mock(CertRecordStore.class);
         Mockito.when(certStore.getConnection(true)).thenReturn(null);
         cloudStore.setCertStore(certStore);
 

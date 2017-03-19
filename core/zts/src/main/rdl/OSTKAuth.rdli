@@ -23,6 +23,7 @@ resource Identity POST "/ostk/instance" {
         ResourceError BAD_REQUEST;
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
+        ResourceError INTERNAL_SERVER_ERROR;
     }
 }
 
@@ -46,5 +47,6 @@ resource Identity POST "/ostk/instance/{domain}/{service}/refresh" {
         ResourceError FORBIDDEN;
         ResourceError NOT_FOUND;
         ResourceError UNAUTHORIZED;
+        ResourceError INTERNAL_SERVER_ERROR;
     }
 }

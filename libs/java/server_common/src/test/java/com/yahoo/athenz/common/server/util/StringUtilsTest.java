@@ -35,4 +35,21 @@ public class StringUtilsTest {
         assertEquals("^ab\\{\\|c\\+$", StringUtils.patternFromGlob("ab{|c+"));
         assertEquals("^\\^\\$\\[\\(\\)\\\\\\+\\{\\..*.\\|$", StringUtils.patternFromGlob("^$[()\\+{.*?|"));
     }
+    
+    @Test
+    public void testContainsMatchCharacter() {
+        assertTrue(StringUtils.containsMatchCharacter("abc*"));
+        assertTrue(StringUtils.containsMatchCharacter("*abc"));
+        assertTrue(StringUtils.containsMatchCharacter("abc*abc"));
+        assertTrue(StringUtils.containsMatchCharacter("*"));
+        assertTrue(StringUtils.containsMatchCharacter("?abc"));
+        assertTrue(StringUtils.containsMatchCharacter("abc?"));
+        assertTrue(StringUtils.containsMatchCharacter("abc?abc"));
+        assertTrue(StringUtils.containsMatchCharacter("?"));
+
+        assertFalse(StringUtils.containsMatchCharacter("abc"));
+        assertFalse(StringUtils.containsMatchCharacter("a.bc[ab]"));
+        assertFalse(StringUtils.containsMatchCharacter("a(ab)[ab]"));
+        assertFalse(StringUtils.containsMatchCharacter("domain:role.rolename"));
+    }
 }

@@ -19,9 +19,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.common.server.cert.CertSigner;
+import com.yahoo.athenz.common.server.cert.CertSignerFactory;
 import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.cert.CertSigner;
-import com.yahoo.athenz.zts.cert.CertSignerFactory;
 
 import java.io.File;
 import java.security.PrivateKey;

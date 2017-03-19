@@ -15,17 +15,8 @@
  */
 package com.yahoo.athenz.zts.cert;
 
-import java.io.Closeable;
+public interface CertRecordStore {
 
-public interface ObjectStoreConnection extends Closeable {
-    
-    // Transaction commands
-    
-    public void commitChanges();
-    public void rollbackChanges();
-    public void close();
-
-    X509CertRecord getX509CertRecord(String instanceId);
-    boolean updateX509CertRecord(X509CertRecord certRecord);
-    boolean insertX509CertRecord(X509CertRecord certRecord);
+    CertRecordStoreConnection getConnection(boolean autoCommit);
+    void clearConnections();
 }

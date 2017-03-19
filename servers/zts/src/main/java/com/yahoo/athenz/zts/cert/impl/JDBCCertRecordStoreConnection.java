@@ -25,12 +25,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yahoo.athenz.zts.ResourceException;
-import com.yahoo.athenz.zts.cert.ObjectStoreConnection;
+import com.yahoo.athenz.zts.cert.CertRecordStoreConnection;
 import com.yahoo.athenz.zts.cert.X509CertRecord;
 
-public class JDBCConnection implements ObjectStoreConnection {
+public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection {
 
-    private static final Logger LOG = LoggerFactory.getLogger(JDBCConnection.class);
+    private static final Logger LOG = LoggerFactory.getLogger(JDBCCertRecordStoreConnection.class);
 
     private static final String PREFIX = "ZTS-JDBCConnection: ";
     private static final int MYSQL_ER_OPTION_PREVENTS_STATEMENT = 1290;
@@ -55,7 +55,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     Connection con = null;
     boolean transactionCompleted = true;
     
-    public JDBCConnection(Connection con, boolean autoCommit) throws SQLException {
+    public JDBCCertRecordStoreConnection(Connection con, boolean autoCommit) throws SQLException {
         this.con = con;
         con.setAutoCommit(autoCommit);
         transactionCompleted = autoCommit;
@@ -135,6 +135,20 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
     }
     
+    int executeUpdate(PreparedStatement ps, String caller) throws SQLException {
+    if (LOG.isDebugEnabled()) {
+            LOG.debug(caller + ": " + ps.toString());
+        }
+        return ps.executeUpdate();
+    }
+
+    ResultSet executeQuery(PreparedStatement ps, String caller) throws SQLException {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(caller + ": " + ps.toString());
+        }
+        return ps.executeQuery();
+    }
+    
     @Override
     public X509CertRecord getX509CertRecord(String instanceId) {
         
@@ -144,11 +158,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_X509_RECORD)) {
             ps.setString(1, instanceId);
             
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(PREFIX + caller + ": " + ps.toString());
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
                     certRecord = new X509CertRecord();
                     certRecord.setInstanceId(instanceId);
@@ -181,7 +191,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setTimestamp(5, new java.sql.Timestamp(certRecord.getPrevTime().getTime()));
             ps.setString(6, certRecord.getPrevIP());
             ps.setString(7, certRecord.getInstanceId());
-            affectedRows = ps.executeUpdate();
+            affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -203,7 +213,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(6, certRecord.getPrevSerial());
             ps.setTimestamp(7, new java.sql.Timestamp(certRecord.getPrevTime().getTime()));
             ps.setString(8, certRecord.getPrevIP());
-            affectedRows = ps.executeUpdate();
+            affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -251,6 +261,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         } else {
             msg = ex.getMessage() + ", state: " + sqlState + ", code: " + ex.getErrorCode();
         }
+        LOG.error("SQLError: {}", msg);
         rollbackChanges();
         return new ResourceException(code, msg);
     }

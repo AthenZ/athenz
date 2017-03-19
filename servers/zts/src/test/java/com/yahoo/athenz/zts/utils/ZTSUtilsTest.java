@@ -33,9 +33,9 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.common.server.cert.CertSigner;
 import com.yahoo.athenz.zts.Identity;
 import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.cert.CertSigner;
 import com.yahoo.athenz.zts.cert.X509CertRecord;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
 
@@ -235,22 +235,23 @@ public class ZTSUtilsTest {
         certRecord.setCn("athenz.production");
         certRecord.setInstanceId("1001");
         
-        boolean result = ZTSUtils.verifyCertificateRequest(csr, "athenz.production", null, certRecord);
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
+        boolean result = ZTSUtils.verifyCertificateRequest(certReq, "athenz.production", null, certRecord);
         assertTrue(result);
         
         certRecord.setCn("athenz.production");
         certRecord.setInstanceId("1001");
-        result = ZTSUtils.verifyCertificateRequest(csr, "athenz2.production", null, certRecord);
+        result = ZTSUtils.verifyCertificateRequest(certReq, "athenz2.production", null, certRecord);
         assertFalse(result);
         
         certRecord.setCn("athenz2.production");
         certRecord.setInstanceId("1001");
-        result = ZTSUtils.verifyCertificateRequest(csr, "athenz.production", null, certRecord);
+        result = ZTSUtils.verifyCertificateRequest(certReq, "athenz.production", null, certRecord);
         assertFalse(result);
         
         certRecord.setCn("athenz.production");
         certRecord.setInstanceId("1002");
-        result = ZTSUtils.verifyCertificateRequest(csr, "athenz.production", null, certRecord);
+        result = ZTSUtils.verifyCertificateRequest(certReq, "athenz.production", null, certRecord);
         assertFalse(result);
     }
     
@@ -260,10 +261,11 @@ public class ZTSUtilsTest {
         Path path = Paths.get("src/test/resources/athenz.uuid.csr");
         String csr = new String(Files.readAllBytes(path));
         
-        boolean result = ZTSUtils.verifyCertificateRequest(csr, "athenz.production", null, null);
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
+        boolean result = ZTSUtils.verifyCertificateRequest(certReq, "athenz.production", null, null);
         assertTrue(result);
         
-        result = ZTSUtils.verifyCertificateRequest(csr, "athenz2.production", null, null);
+        result = ZTSUtils.verifyCertificateRequest(certReq, "athenz2.production", null, null);
         assertFalse(result);
     }
 }

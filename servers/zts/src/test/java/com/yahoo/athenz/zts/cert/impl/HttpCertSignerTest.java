@@ -19,8 +19,8 @@ import static org.testng.Assert.*;
 
 import java.util.concurrent.TimeoutException;
 
+import com.yahoo.athenz.common.server.cert.CertSigner;
 import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.cert.CertSigner;
 import com.yahoo.athenz.zts.cert.impl.HttpCertSigner;
 import com.yahoo.athenz.zts.cert.impl.HttpCertSignerFactory;
 

@@ -778,18 +778,7 @@ public class DataStore implements DataCacheProvider {
     
     // Internal
     boolean roleMatchInSet(String role, Set<MemberRole> memberRoles) {
-        
-        /* since most of the roles will not have wildcards we're
-         * going to carry out a simple contains check here and if
-         * that's successful then we're done and we don't have to
-         * do possibly more expensive regex checks */
 
-        if (memberRoles.contains(role)) {
-            return true;
-        }
-        
-        /* no match so let's try the regex pattern check */
-        
         String rolePattern = null;
         long currentTime = System.currentTimeMillis();
         for (MemberRole memberRole : memberRoles) {
@@ -801,9 +790,20 @@ public class DataStore implements DataCacheProvider {
             if (expiration != 0 && expiration < currentTime) {
                 continue;
             }
-            rolePattern = StringUtils.patternFromGlob(memberRole.getRole());
-            if (role.matches(rolePattern)) {
-                return true;
+            
+            // if the role does not contain any of our pattern
+            // characters then we can just a regular compare
+            
+            final String roleName = memberRole.getRole();
+            if (StringUtils.containsMatchCharacter(roleName)) {
+                rolePattern = StringUtils.patternFromGlob(roleName);
+                if (role.matches(rolePattern)) {
+                    return true;
+                }
+            } else {
+                if (role.equals(roleName)) {
+                    return true;
+                }
             }
         }
         

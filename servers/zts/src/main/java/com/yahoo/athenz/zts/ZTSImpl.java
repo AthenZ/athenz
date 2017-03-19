@@ -48,6 +48,8 @@ import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.metrics.MetricFactory;
+import com.yahoo.athenz.common.server.cert.CertSigner;
+import com.yahoo.athenz.common.server.cert.CertSignerFactory;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
@@ -58,8 +60,6 @@ import com.yahoo.athenz.common.server.util.ServletRequestUtil;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zts.cache.DataCache;
-import com.yahoo.athenz.zts.cert.CertSigner;
-import com.yahoo.athenz.zts.cert.CertSignerFactory;
 import com.yahoo.athenz.zts.cert.X509CertRecord;
 import com.yahoo.athenz.zts.store.ChangeLogStore;
 import com.yahoo.athenz.zts.store.ChangeLogStoreFactory;
@@ -1714,7 +1714,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // validate that the cn and public key (if required) match to
         // the provided details
         
-        if (!ZTSUtils.verifyCertificateRequest(req.getCsr(), principalName, publicKey, null)) {
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(req.getCsr());
+        if (certReq == null) {
+            throw requestError("postInstanceRefreshRequest: unable to parse PKCS10 certificate request",
+                    caller, domain);
+        }
+        
+        if (!ZTSUtils.verifyCertificateRequest(certReq, principalName, publicKey, null)) {
             throw requestError("postInstanceRefreshRequest: invalid CSR - cn or public key mismatch",
                     caller, domain);
         }
@@ -1767,7 +1773,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // validate the CSR
         
-        if (!ZTSUtils.verifyCertificateRequest(info.getCsr(), cn, null, null)) {
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(info.getCsr());
+        if (certReq == null) {
+            throw requestError("postInstanceInformation: unable to parse PKCS10 certificate request",
+                    caller, domain);
+        }
+        
+        if (!ZTSUtils.verifyCertificateRequest(certReq, cn, null, null)) {
             throw requestError("postInstanceInformation: unable to verify certificate request, invalid csr",
                     caller, domain);
         }
@@ -1792,6 +1804,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_POST);
         logPrincipal(ctx);
 
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("postOSTKInstanceInformation: " + info);
+        }
+        
         validateRequest(ctx.request(), caller);
         
         String domain = info.getDomain();
@@ -1839,8 +1855,20 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // validate the CSR
         
-        if (!ZTSUtils.verifyCertificateRequest(info.getCsr(), cn, null, null)) {
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(info.getCsr());
+        if (certReq == null) {
+            throw requestError("postOSTKInstanceInformation: unable to parse PKCS10 certificate request",
+                    caller, domain);
+        }
+        
+        if (!ZTSUtils.verifyCertificateRequest(certReq, cn, null, null)) {
             throw requestError("postOSTKInstanceInformation: unable to verify certificate request, invalid csr",
+                    caller, domain);
+        }
+        
+        final String instanceId = ZTSUtils.extractCertReqInstanceId(certReq);
+        if (instanceId == null) {
+            throw requestError("postOSTKInstanceInformation: unable to extract instance id",
                     caller, domain);
         }
         
@@ -1855,7 +1883,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // need to update our cert record with new certificate details
         
         X509CertRecord x509CertRecord = new X509CertRecord();
-
+        x509CertRecord.setCn(cn);
+        x509CertRecord.setInstanceId(instanceId);
+        
         X509Certificate newCert = Crypto.loadX509Certificate(identity.getCertificate());
         x509CertRecord.setCurrentSerial(newCert.getSerialNumber().toString());
         x509CertRecord.setCurrentIP(ServletRequestUtil.getRemoteAddress(ctx.request()));
@@ -1886,6 +1916,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_POST);
         logPrincipal(ctx);
 
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("postOSTKInstanceRefreshRequest: " + req);
+        }
+        
         validateRequest(ctx.request(), caller);
         validate(domain, TYPE_DOMAIN_NAME, caller);
         validate(service, TYPE_SIMPLE_NAME, caller);
@@ -1920,17 +1954,23 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     authority.toString(), caller, domain);
         }
         
-        // validate that the cn and public key (if required) match to
-        // the provided details
-        
         X509Certificate cert = principal.getX509Certificate();
         X509CertRecord x509CertRecord = cloudStore.getX509CertRecord(cert);
         if (x509CertRecord == null) {
             throw forbiddenError("postOSTKInstanceRefreshRequest: Unable to find certificate record",
                     caller, domain);
         }
+
+        // validate that the cn and public key (if required) match to
+        // the provided details
         
-        if (!ZTSUtils.verifyCertificateRequest(req.getCsr(), principalName, null, x509CertRecord)) {
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(req.getCsr());
+        if (certReq == null) {
+            throw requestError("postOSTKInstanceRefreshRequest: unable to parse PKCS10 certificate request",
+                    caller, domain);
+        }
+        
+        if (!ZTSUtils.verifyCertificateRequest(certReq, principalName, null, x509CertRecord)) {
             throw requestError("postOSTKInstanceRefreshRequest: invalid CSR - cn mismatch",
                     caller, domain);
         }

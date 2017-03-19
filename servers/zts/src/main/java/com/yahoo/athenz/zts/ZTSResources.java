@@ -332,6 +332,8 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.INTERNAL_SERVER_ERROR:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -357,6 +359,8 @@ public class ZTSResources {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.INTERNAL_SERVER_ERROR:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
@@ -463,6 +467,8 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.INTERNAL_SERVER_ERROR:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -488,6 +494,8 @@ public class ZTSResources {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.INTERNAL_SERVER_ERROR:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
