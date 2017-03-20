@@ -61,6 +61,7 @@ import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.impl.UserAuthority;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.metrics.Metric;
+import com.yahoo.athenz.common.server.cert.CertSigner;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.impl.DefaultAuditLogMsgBuilder;
@@ -76,9 +77,8 @@ import com.yahoo.athenz.zms.ServiceIdentity;
 import com.yahoo.athenz.zms.SignedDomain;
 import com.yahoo.athenz.zts.ZTSAuthorizer.AccessStatus;
 import com.yahoo.athenz.zts.cache.DataCache;
-import com.yahoo.athenz.zts.cert.CertSigner;
-import com.yahoo.athenz.zts.cert.ObjectStore;
-import com.yahoo.athenz.zts.cert.ObjectStoreConnection;
+import com.yahoo.athenz.zts.cert.CertRecordStore;
+import com.yahoo.athenz.zts.cert.CertRecordStoreConnection;
 import com.yahoo.athenz.zts.cert.X509CertRecord;
 import com.yahoo.athenz.zts.cert.impl.SelfCertSigner;
 import com.yahoo.athenz.zts.store.ChangeLogStore;
@@ -3577,10 +3577,9 @@ public class ZTSImplTest {
         certRecord.setCurrentSerial("15785671237685820082");
         certRecord.setPrevSerial("15785671237685820082");
         
-        ObjectStore certStore = Mockito.mock(ObjectStore.class);
-        ObjectStoreConnection certConnection = Mockito.mock(ObjectStoreConnection.class);
+        CertRecordStore certStore = Mockito.mock(CertRecordStore.class);
+        CertRecordStoreConnection certConnection = Mockito.mock(CertRecordStoreConnection.class);
         Mockito.when(certStore.getConnection(true)).thenReturn(certConnection);
-        Mockito.when(certStore.getConnection(false)).thenReturn(certConnection);
         Mockito.when(certConnection.getX509CertRecord("1001")).thenReturn(certRecord);
         Mockito.when(certConnection.updateX509CertRecord(Matchers.isA(X509CertRecord.class))).thenReturn(true);
         zts.cloudStore.setCertStore(certStore);
@@ -3622,10 +3621,9 @@ public class ZTSImplTest {
         certRecord.setCurrentSerial("12341324334");
         certRecord.setPrevSerial("15785671237685820082");
         
-        ObjectStore certStore = Mockito.mock(ObjectStore.class);
-        ObjectStoreConnection certConnection = Mockito.mock(ObjectStoreConnection.class);
+        CertRecordStore certStore = Mockito.mock(CertRecordStore.class);
+        CertRecordStoreConnection certConnection = Mockito.mock(CertRecordStoreConnection.class);
         Mockito.when(certStore.getConnection(true)).thenReturn(certConnection);
-        Mockito.when(certStore.getConnection(false)).thenReturn(certConnection);
         Mockito.when(certConnection.getX509CertRecord("1001")).thenReturn(certRecord);
         Mockito.when(certConnection.updateX509CertRecord(Matchers.isA(X509CertRecord.class))).thenReturn(true);
         zts.cloudStore.setCertStore(certStore);
@@ -3667,10 +3665,9 @@ public class ZTSImplTest {
         certRecord.setCurrentSerial("12341324334");
         certRecord.setPrevSerial("2342134323");
         
-        ObjectStore certStore = Mockito.mock(ObjectStore.class);
-        ObjectStoreConnection certConnection = Mockito.mock(ObjectStoreConnection.class);
+        CertRecordStore certStore = Mockito.mock(CertRecordStore.class);
+        CertRecordStoreConnection certConnection = Mockito.mock(CertRecordStoreConnection.class);
         Mockito.when(certStore.getConnection(true)).thenReturn(certConnection);
-        Mockito.when(certStore.getConnection(false)).thenReturn(certConnection);
         Mockito.when(certConnection.getX509CertRecord("1001")).thenReturn(certRecord);
         Mockito.when(certConnection.updateX509CertRecord(Matchers.isA(X509CertRecord.class))).thenReturn(true);
         zts.cloudStore.setCertStore(certStore);
@@ -3711,9 +3708,9 @@ public class ZTSImplTest {
         X509CertRecord certRecord = new X509CertRecord();
         certRecord.setCn("athenz2.production");
         
-        ObjectStore certStore = Mockito.mock(ObjectStore.class);
-        ObjectStoreConnection certConnection = Mockito.mock(ObjectStoreConnection.class);
-        Mockito.when(certStore.getConnection(false)).thenReturn(certConnection);
+        CertRecordStore certStore = Mockito.mock(CertRecordStore.class);
+        CertRecordStoreConnection certConnection = Mockito.mock(CertRecordStoreConnection.class);
+        Mockito.when(certStore.getConnection(true)).thenReturn(certConnection);
         Mockito.when(certConnection.getX509CertRecord("1001")).thenReturn(certRecord);
         zts.cloudStore.setCertStore(certStore);
         

@@ -328,7 +328,7 @@ public class ZTSSchema {
             .comment("Get a signed policy enumeration from the service, to transfer to a local store. An ETag is generated for the PolicyList that changes when any item in the list changes. If the If-None-Match header is provided, and it matches the ETag that would be returned, then a NOT_MODIFIED response is returned instead of the list.")
             .pathParam("domainName", "DomainName", "name of the domain")
             .headerParam("If-None-Match", "matchingTag", "String", null, "Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time")
-            .output("ETag", "tag", "String", "")
+            .output("ETag", "tag", "String", "The current latest modification timestamp is returned in this header")
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
 
@@ -419,6 +419,8 @@ public class ZTSSchema {
 
             .exception("FORBIDDEN", "ResourceError", "")
 
+            .exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
+
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
@@ -432,6 +434,8 @@ public class ZTSSchema {
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
 
             .exception("NOT_FOUND", "ResourceError", "")
 
@@ -486,6 +490,8 @@ public class ZTSSchema {
 
             .exception("FORBIDDEN", "ResourceError", "")
 
+            .exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
+
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
@@ -499,6 +505,8 @@ public class ZTSSchema {
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
 
             .exception("NOT_FOUND", "ResourceError", "")
 

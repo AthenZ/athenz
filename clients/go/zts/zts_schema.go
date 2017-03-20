@@ -107,7 +107,7 @@ func init() {
 
 	tAssertionEffect := rdl.NewEnumTypeBuilder("Enum", "AssertionEffect")
 	tAssertionEffect.Comment("Every assertion can have the effect of ALLOW or DENY.")
-	tAssertionEffect.Element("ALLOW", "Every assertion can have the effect of ALLOW or DENY.")
+	tAssertionEffect.Element("ALLOW", "")
 	tAssertionEffect.Element("DENY", "")
 	sb.AddType(tAssertionEffect.Build())
 
@@ -251,7 +251,7 @@ func init() {
 
 	tDomainMetricType := rdl.NewEnumTypeBuilder("Enum", "DomainMetricType")
 	tDomainMetricType.Comment("zpe metric attributes")
-	tDomainMetricType.Element("ACCESS_ALLOWED", "zpe metric attributes")
+	tDomainMetricType.Element("ACCESS_ALLOWED", "")
 	tDomainMetricType.Element("ACCESS_ALLOWED_DENY", "")
 	tDomainMetricType.Element("ACCESS_ALLOWED_DENY_NO_MATCH", "")
 	tDomainMetricType.Element("ACCESS_ALLOWED_ALLOW", "")
@@ -346,7 +346,7 @@ func init() {
 	rGetDomainSignedPolicyData.Comment("Get a signed policy enumeration from the service, to transfer to a local store. An ETag is generated for the PolicyList that changes when any item in the list changes. If the If-None-Match header is provided, and it matches the ETag that would be returned, then a NOT_MODIFIED response is returned instead of the list.")
 	rGetDomainSignedPolicyData.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
 	rGetDomainSignedPolicyData.Input("matchingTag", "String", false, "", "If-None-Match", false, nil, "Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time")
-	rGetDomainSignedPolicyData.Output("tag", "String", "ETag", false, "")
+	rGetDomainSignedPolicyData.Output("tag", "String", "ETag", false, "The current latest modification timestamp is returned in this header")
 	rGetDomainSignedPolicyData.Exception("BAD_REQUEST", "ResourceError", "")
 	rGetDomainSignedPolicyData.Exception("NOT_FOUND", "ResourceError", "")
 	sb.AddResource(rGetDomainSignedPolicyData.Build())
@@ -414,6 +414,7 @@ func init() {
 	rPostInstanceInformation.Input("info", "InstanceInformation", false, "", "", false, nil, "")
 	rPostInstanceInformation.Exception("BAD_REQUEST", "ResourceError", "")
 	rPostInstanceInformation.Exception("FORBIDDEN", "ResourceError", "")
+	rPostInstanceInformation.Exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
 	rPostInstanceInformation.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rPostInstanceInformation.Build())
 
@@ -425,6 +426,7 @@ func init() {
 	rPostInstanceRefreshRequest.Auth("", "", true, "")
 	rPostInstanceRefreshRequest.Exception("BAD_REQUEST", "ResourceError", "")
 	rPostInstanceRefreshRequest.Exception("FORBIDDEN", "ResourceError", "")
+	rPostInstanceRefreshRequest.Exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
 	rPostInstanceRefreshRequest.Exception("NOT_FOUND", "ResourceError", "")
 	rPostInstanceRefreshRequest.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rPostInstanceRefreshRequest.Build())
@@ -464,6 +466,7 @@ func init() {
 	rPostOSTKInstanceInformation.Input("info", "OSTKInstanceInformation", false, "", "", false, nil, "")
 	rPostOSTKInstanceInformation.Exception("BAD_REQUEST", "ResourceError", "")
 	rPostOSTKInstanceInformation.Exception("FORBIDDEN", "ResourceError", "")
+	rPostOSTKInstanceInformation.Exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
 	rPostOSTKInstanceInformation.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rPostOSTKInstanceInformation.Build())
 
@@ -475,6 +478,7 @@ func init() {
 	rPostOSTKInstanceRefreshRequest.Auth("", "", true, "")
 	rPostOSTKInstanceRefreshRequest.Exception("BAD_REQUEST", "ResourceError", "")
 	rPostOSTKInstanceRefreshRequest.Exception("FORBIDDEN", "ResourceError", "")
+	rPostOSTKInstanceRefreshRequest.Exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
 	rPostOSTKInstanceRefreshRequest.Exception("NOT_FOUND", "ResourceError", "")
 	rPostOSTKInstanceRefreshRequest.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rPostOSTKInstanceRefreshRequest.Build())

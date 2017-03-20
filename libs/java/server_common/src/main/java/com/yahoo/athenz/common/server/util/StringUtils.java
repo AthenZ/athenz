@@ -35,6 +35,13 @@ public class StringUtils {
         }
     }
     
+    public static boolean containsMatchCharacter(String name) {
+        if (name.indexOf('*') == -1 && name.indexOf('?') == -1) {
+            return false;
+        }
+        return true;
+    }
+    
     public static String patternFromGlob(String glob) {
         StringBuilder sb = new StringBuilder("^");
         int len = glob.length();

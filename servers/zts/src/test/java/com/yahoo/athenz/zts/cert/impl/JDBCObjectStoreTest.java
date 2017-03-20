@@ -32,7 +32,7 @@ public class JDBCObjectStoreTest {
         PoolableDataSource mockDataSrc = Mockito.mock(PoolableDataSource.class);
         Connection mockConn = Mockito.mock(Connection.class);
         Mockito.doReturn(mockConn).when(mockDataSrc).getConnection();
-        JDBCObjectStore store = new JDBCObjectStore(mockDataSrc);
+        JDBCCertRecordStore store = new JDBCCertRecordStore(mockDataSrc);
         assertNotNull(store.getConnection(true));
         store.clearConnections();
     }
@@ -42,7 +42,7 @@ public class JDBCObjectStoreTest {
         PoolableDataSource mockDataSrc = Mockito.mock(PoolableDataSource.class);
         Mockito.doThrow(new SQLException()).when(mockDataSrc).getConnection();
         try {
-            JDBCObjectStore store = new JDBCObjectStore(mockDataSrc);
+            JDBCCertRecordStore store = new JDBCCertRecordStore(mockDataSrc);
             store.getConnection(true);
             fail();
         } catch (RuntimeException ex) {

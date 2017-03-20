@@ -19,9 +19,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import com.yahoo.athenz.common.server.cert.CertSigner;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.cert.CertSigner;
 import com.yahoo.athenz.zts.cert.SSHCertificate;
 import com.yahoo.athenz.zts.cert.SSHCertificates;
 import com.yahoo.athenz.zts.cert.X509CertSignObject;

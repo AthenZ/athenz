@@ -43,9 +43,9 @@ public class JDBCConnectionTest extends TestCase {
     @Mock PreparedStatement mockPrepStmt;
     @Mock Connection mockConn;
     @Mock ResultSet mockResultSet;
-    @Mock JDBCConnection mockJDBCConn;
+    @Mock JDBCCertRecordStoreConnection mockJDBCConn;
     
-    JDBCObjectStore strStore;
+    JDBCCertRecordStore strStore;
     
     @Before
     public void setUp() throws Exception {
@@ -63,15 +63,15 @@ public class JDBCConnectionTest extends TestCase {
         Date now = new Date();
         Timestamp tstamp = new Timestamp(now.getTime());
         Mockito.when(mockResultSet.next()).thenReturn(true);
-        Mockito.doReturn("cn").when(mockResultSet).getString(JDBCConnection.DB_COLUMN_CN);
-        Mockito.doReturn("current-serial").when(mockResultSet).getString(JDBCConnection.DB_COLUMN_CURRENT_SERIAL);
-        Mockito.doReturn("current-ip").when(mockResultSet).getString(JDBCConnection.DB_COLUMN_CURRENT_IP);
-        Mockito.doReturn(tstamp).when(mockResultSet).getTimestamp(JDBCConnection.DB_COLUMN_CURRENT_TIME);
-        Mockito.doReturn("prev-serial").when(mockResultSet).getString(JDBCConnection.DB_COLUMN_PREV_SERIAL);
-        Mockito.doReturn("prev-ip").when(mockResultSet).getString(JDBCConnection.DB_COLUMN_PREV_IP);
-        Mockito.doReturn(tstamp).when(mockResultSet).getTimestamp(JDBCConnection.DB_COLUMN_PREV_TIME);
+        Mockito.doReturn("cn").when(mockResultSet).getString(JDBCCertRecordStoreConnection.DB_COLUMN_CN);
+        Mockito.doReturn("current-serial").when(mockResultSet).getString(JDBCCertRecordStoreConnection.DB_COLUMN_CURRENT_SERIAL);
+        Mockito.doReturn("current-ip").when(mockResultSet).getString(JDBCCertRecordStoreConnection.DB_COLUMN_CURRENT_IP);
+        Mockito.doReturn(tstamp).when(mockResultSet).getTimestamp(JDBCCertRecordStoreConnection.DB_COLUMN_CURRENT_TIME);
+        Mockito.doReturn("prev-serial").when(mockResultSet).getString(JDBCCertRecordStoreConnection.DB_COLUMN_PREV_SERIAL);
+        Mockito.doReturn("prev-ip").when(mockResultSet).getString(JDBCCertRecordStoreConnection.DB_COLUMN_PREV_IP);
+        Mockito.doReturn(tstamp).when(mockResultSet).getTimestamp(JDBCCertRecordStoreConnection.DB_COLUMN_PREV_TIME);
         
-        JDBCConnection jdbcConn = new JDBCConnection(mockConn, false);
+        JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn, false);
         X509CertRecord certRecord = jdbcConn.getX509CertRecord("instance-id");
         
         assertNotNull(certRecord);
@@ -92,7 +92,7 @@ public class JDBCConnectionTest extends TestCase {
 
         Mockito.when(mockResultSet.next()).thenReturn(false);
 
-        JDBCConnection jdbcConn = new JDBCConnection(mockConn, false);
+        JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn, false);
         X509CertRecord certRecord = jdbcConn.getX509CertRecord("instance-id-not-found");
         assertNull(certRecord);
         jdbcConn.close();
@@ -101,7 +101,7 @@ public class JDBCConnectionTest extends TestCase {
     @Test
     public void testInsertX509Record() throws Exception {
         
-        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn, true);
 
         X509CertRecord certRecord = new X509CertRecord();
         Date now = new Date();
@@ -133,7 +133,7 @@ public class JDBCConnectionTest extends TestCase {
     @Test
     public void testUpdateX509Record() throws Exception {
         
-        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn, true);
 
         X509CertRecord certRecord = new X509CertRecord();
         Date now = new Date();

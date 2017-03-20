@@ -1350,7 +1350,7 @@ public class ZMSSchema {
             .queryParam("domain", "domain", "DomainName", null, "filter the domain list only to the specified name")
             .queryParam("metaonly", "metaOnly", "String", null, "valid values are \"true\" or \"false\"")
             .headerParam("If-None-Match", "matchingTag", "String", null, "Retrieved from the previous request, this timestamp specifies to the server to return any domains modified since this time")
-            .output("ETag", "tag", "String", "")
+            .output("ETag", "tag", "String", "The current latest modification timestamp is returned in this header")
             .auth("", "", true)
             .expected("OK")
             .exception("FORBIDDEN", "ResourceError", "")

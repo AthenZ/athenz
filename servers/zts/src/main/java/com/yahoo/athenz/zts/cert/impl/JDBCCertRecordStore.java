@@ -17,24 +17,30 @@ package com.yahoo.athenz.zts.cert.impl;
 
 import java.sql.SQLException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.yahoo.athenz.common.server.db.PoolableDataSource;
 import com.yahoo.athenz.zts.ResourceException;
-import com.yahoo.athenz.zts.cert.ObjectStore;
-import com.yahoo.athenz.zts.cert.ObjectStoreConnection;
+import com.yahoo.athenz.zts.cert.CertRecordStore;
+import com.yahoo.athenz.zts.cert.CertRecordStoreConnection;
 
-public class JDBCObjectStore implements ObjectStore {
+public class JDBCCertRecordStore implements CertRecordStore {
+
+    private static final Logger LOG = LoggerFactory.getLogger(JDBCCertRecordStore.class);
 
     PoolableDataSource src;
     
-    public JDBCObjectStore(PoolableDataSource src) {
+    public JDBCCertRecordStore(PoolableDataSource src) {
         this.src = src;
     }
 
     @Override
-    public ObjectStoreConnection getConnection(boolean autoCommit) {
+    public CertRecordStoreConnection getConnection(boolean autoCommit) {
         try {
-            return new JDBCConnection(src.getConnection(), autoCommit);
+            return new JDBCCertRecordStoreConnection(src.getConnection(), autoCommit);
         } catch (SQLException ex) {
+            LOG.error("getConnection: {}", ex.getMessage());
             throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR, ex.getMessage());
         }
     }

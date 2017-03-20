@@ -2422,7 +2422,7 @@ public class ZTSClientTest {
         
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(req.getCsr());
         assertEquals("coretech.test", Crypto.extractX509CSRCommonName(certReq));
-        assertEquals("test.coretech.aws.athenz.cloud", Crypto.extractX509CSRDnsName(certReq));
+        assertEquals("test.coretech.aws.athenz.cloud", Crypto.extractX509CSRDnsNames(certReq).get(0));
     }
     
     @Test
@@ -2441,6 +2441,6 @@ public class ZTSClientTest {
         X500Name x500name = certReq.getSubject();
         RDN cnRdn = x500name.getRDNs(BCStyle.CN)[0];
         assertEquals("coretech.system.test", IETFUtils.valueToString(cnRdn.getFirst().getValue()));
-        assertEquals("test.coretech-system.aws.athenz.cloud", Crypto.extractX509CSRDnsName(certReq));
+        assertEquals("test.coretech-system.aws.athenz.cloud", Crypto.extractX509CSRDnsNames(certReq).get(0));
     }
 }

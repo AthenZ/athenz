@@ -18,16 +18,10 @@ package com.yahoo.athenz.zts.utils;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.security.PublicKey;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.bouncycastle.asn1.DERIA5String;
-import org.bouncycastle.asn1.pkcs.Attribute;
-import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
-import org.bouncycastle.asn1.x509.Extension;
-import org.bouncycastle.asn1.x509.Extensions;
-import org.bouncycastle.asn1.x509.GeneralName;
-import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.openssl.PEMException;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
@@ -40,9 +34,9 @@ import org.slf4j.LoggerFactory;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.common.metrics.Metric;
+import com.yahoo.athenz.common.server.cert.CertSigner;
 import com.yahoo.athenz.zts.Identity;
 import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.cert.CertSigner;
 import com.yahoo.athenz.zts.cert.X509CertRecord;
 import com.yahoo.athenz.zts.store.DataStore;
 
@@ -169,20 +163,14 @@ public class ZTSUtils {
         return true;
     }
     
-    public static boolean verifyCertificateRequest(String csr, String cn, String publicKey,
-            X509CertRecord certRecord) {
+    public static boolean verifyCertificateRequest(PKCS10CertificationRequest certReq, String cn,
+            String publicKey, X509CertRecord certRecord) {
         
         // verify that it contains the right common name
         // and the certificate matches to what we have
         // registered in ZMS
 
         try {
-            PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
-            if (certReq == null) {
-                LOGGER.error("validateCertificateRequest: unable to parse PKCS10 cert request");
-                return false;
-            }
-
             if (!validateCertReqCommonName(certReq, cn)) {
                 LOGGER.error("validateCertificateRequest: unable to validate PKCS10 cert request common name");
                 return false;
@@ -254,35 +242,20 @@ public class ZTSUtils {
         return true;
     }
     
-    public static boolean validateCertReqInstanceId(PKCS10CertificationRequest certReq, String instanceId) {
-
-        Attribute[] certAttributes = certReq.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);
-        if (certAttributes == null) {
-            return false;
-        }
-        
+    public static String extractCertReqInstanceId(PKCS10CertificationRequest certReq) {
+        List<String> dnsNames = Crypto.extractX509CSRDnsNames(certReq);
         String reqInstanceId = null;
-        for (Attribute attribute : certAttributes) {
-            Extensions extensions = Extensions.getInstance(attribute.getAttrValues().getObjectAt(0));
-            GeneralNames gns = GeneralNames.fromExtensions(extensions, Extension.subjectAlternativeName);
-            if (gns == null) {
-                continue;
-            }
-            GeneralName[] names = gns.getNames();
-            for (int i = 0; i < names.length; i++) {
-                if (names[i].getTagNo() == GeneralName.dNSName) {
-                    final String dnsName = (((DERIA5String) names[i].getName()).getString());
-                    if (dnsName.startsWith(ZTS_CERT_UUID_PREFIX)) {
-                        reqInstanceId = dnsName.substring(ZTS_CERT_UUID_PREFIX.length());
-                        break;
-                    }
-                }
-            }
-            if (reqInstanceId != null) {
+        for (String dnsName : dnsNames) {
+            if (dnsName.startsWith(ZTS_CERT_UUID_PREFIX)) {
+                reqInstanceId = dnsName.substring(ZTS_CERT_UUID_PREFIX.length());
                 break;
             }
         }
-        
+        return reqInstanceId;
+    }
+    
+    public static boolean validateCertReqInstanceId(PKCS10CertificationRequest certReq, String instanceId) {
+        final String reqInstanceId = extractCertReqInstanceId(certReq);
         if (reqInstanceId == null) {
             return false;
         }

@@ -139,7 +139,7 @@ func init() {
 
 	tAssertionEffect := rdl.NewEnumTypeBuilder("Enum", "AssertionEffect")
 	tAssertionEffect.Comment("Every assertion can have the effect of ALLOW or DENY.")
-	tAssertionEffect.Element("ALLOW", "Every assertion can have the effect of ALLOW or DENY.")
+	tAssertionEffect.Element("ALLOW", "")
 	tAssertionEffect.Element("DENY", "")
 	sb.AddType(tAssertionEffect.Build())
 
@@ -1182,7 +1182,7 @@ func init() {
 	rGetSignedDomains.Input("domain", "DomainName", false, "domain", "", true, nil, "filter the domain list only to the specified name")
 	rGetSignedDomains.Input("metaOnly", "String", false, "metaonly", "", true, nil, "valid values are \"true\" or \"false\"")
 	rGetSignedDomains.Input("matchingTag", "String", false, "", "If-None-Match", false, nil, "Retrieved from the previous request, this timestamp specifies to the server to return any domains modified since this time")
-	rGetSignedDomains.Output("tag", "String", "ETag", false, "")
+	rGetSignedDomains.Output("tag", "String", "ETag", false, "The current latest modification timestamp is returned in this header")
 	rGetSignedDomains.Auth("", "", true, "")
 	rGetSignedDomains.Exception("FORBIDDEN", "ResourceError", "")
 	rGetSignedDomains.Exception("NOT_FOUND", "ResourceError", "")

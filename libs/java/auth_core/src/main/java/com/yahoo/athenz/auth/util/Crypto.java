@@ -47,6 +47,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.security.auth.x500.X500Principal;
 
@@ -802,9 +803,9 @@ public class Crypto {
         return rfc822;
     }
     
-    public static String extractX509CSRDnsName(PKCS10CertificationRequest certReq) {
+    public static List<String> extractX509CSRDnsNames(PKCS10CertificationRequest certReq) {
         
-        String dnsName = null;
+        List<String> dnsNames = new ArrayList<>();
         Attribute[] attributes = certReq.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);
         for (Attribute attribute : attributes) {
             for (ASN1Encodable value : attribute.getAttributeValues()) {
@@ -812,13 +813,12 @@ public class Crypto {
                 GeneralNames gns = GeneralNames.fromExtensions(extensions, Extension.subjectAlternativeName);
                 for (GeneralName name : gns.getNames()) {
                     if (name.getTagNo() == GeneralName.dNSName) {
-                        dnsName = (((DERIA5String) name.getName()).getString());
-                        break;
+                        dnsNames.add(((DERIA5String) name.getName()).getString());
                     }
                 }
             }
         }
-        return dnsName;
+        return dnsNames;
     }
     
     public static String generateX509CSR(PrivateKey privateKey, String x500Principal,

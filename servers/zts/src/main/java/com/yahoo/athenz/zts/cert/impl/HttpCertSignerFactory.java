@@ -15,8 +15,8 @@
  */
 package com.yahoo.athenz.zts.cert.impl;
 
-import com.yahoo.athenz.zts.cert.CertSigner;
-import com.yahoo.athenz.zts.cert.CertSignerFactory;
+import com.yahoo.athenz.common.server.cert.CertSigner;
+import com.yahoo.athenz.common.server.cert.CertSignerFactory;
 
 public class HttpCertSignerFactory implements CertSignerFactory {
 

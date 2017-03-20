@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 
 import com.yahoo.athenz.auth.util.Crypto;
-import com.yahoo.athenz.zts.cert.CertSigner;
+import com.yahoo.athenz.common.server.cert.CertSigner;
 
 public class SelfCertSigner implements CertSigner {
 
