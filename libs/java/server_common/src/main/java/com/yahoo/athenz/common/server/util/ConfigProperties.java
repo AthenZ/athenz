@@ -63,8 +63,10 @@ public class ConfigProperties {
                 value = value.replace(CURRENT_USER, currentUser);
             }
             
-            System.setProperty(key, value);
-            LOGGER.info("property name={}, value={}", key, value);
+            if (!value.isEmpty()) {
+                System.setProperty(key, value);
+                LOGGER.info("property name={}, value={}", key, value);
+            }
         }
     }
 }

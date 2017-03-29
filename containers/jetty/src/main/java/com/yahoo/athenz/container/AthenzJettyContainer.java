@@ -478,7 +478,7 @@ public class AthenzJettyContainer {
             
             // log that we are shutting down, re-throw the exception
             
-            LOG.error("Startup failure. Shutting down: " + exc.getMessage());
+            LOG.error("Startup failure. Shutting down", exc);
             throw exc;
         }
     }
