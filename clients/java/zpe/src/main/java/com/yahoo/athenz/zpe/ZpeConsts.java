@@ -62,7 +62,4 @@ public final class ZpeConsts {
     public static final String ZPE_PROP_MON_TIMEOUT           = "athenz.zpe.monitor_timeout_secs";
     public static final String ZPE_PROP_MON_CLEANUP_TOKENS    = "athenz.zpe.cleanup_tokens_secs";
     public static final String ZPE_PROP_POLICY_DIR            = "athenz.zpe.policy_dir";
-
-    static final String ZPE_METRIC_FACTORY_CLASS = "com.yahoo.athenz.common.metrics.impl.NoOpMetricFactory";
-
 }

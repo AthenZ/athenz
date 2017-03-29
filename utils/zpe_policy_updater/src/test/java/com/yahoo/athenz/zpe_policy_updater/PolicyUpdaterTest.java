@@ -124,7 +124,6 @@ public class PolicyUpdaterTest {
     @Test
     public void TestVerifySignature() throws Exception {
         
-        System.setProperty(PolicyUpdaterConfiguration.ZPU_PROP_METRIC_FACTORY, "com.yahoo.athenz.zpe_policy_updater.MockMetricFactory");
         PolicyUpdaterConfiguration configuration = new PolicyUpdaterConfiguration();
         configuration.init(pathToAthenzConfigFile, pathToZPUConfigFile);
         
@@ -178,8 +177,6 @@ public class PolicyUpdaterTest {
             exceptionCaught = true;
         }
         Assert.assertTrue(exceptionCaught);
-        
-        System.clearProperty(PolicyUpdaterConfiguration.ZPU_PROP_METRIC_FACTORY);
     }
 
     @Test
@@ -222,8 +219,6 @@ public class PolicyUpdaterTest {
         long flen = polFile.length();
         long fmod = polFile.lastModified();
         Thread.sleep(1000);
-        
-        System.setProperty(PolicyUpdaterConfiguration.ZPU_PROP_METRIC_FACTORY, "com.yahoo.athenz.zpe_policy_updater.MockMetricFactory");
         
         PolicyUpdaterConfiguration config = new PolicyUpdaterConfiguration();
         config.init(pathToAthenzConfigFile, pathToZPUConfigFile);
@@ -279,8 +274,6 @@ public class PolicyUpdaterTest {
         Assert.assertTrue(exceptionCaught);
         
         Files.delete(path);
-
-        System.clearProperty(PolicyUpdaterConfiguration.ZPU_PROP_METRIC_FACTORY);
     }
 
     @Test
@@ -308,7 +301,6 @@ public class PolicyUpdaterTest {
         Map<String, String> newenv = new HashMap<String, String>();
         newenv.put("STARTUP_DELAY", Integer.toString(TEST_STARTUP_DELAY));
         setEnvironmentVar(newenv);
-        System.setProperty(PolicyUpdaterConfiguration.ZPU_PROP_METRIC_FACTORY, "com.yahoo.athenz.zpe_policy_updater.MockMetricFactory");
         
         PolicyUpdaterConfiguration configuration = new PolicyUpdaterConfiguration();
         configuration.init(pathToAthenzConfigFile, pathToZPUConfigFile);
@@ -318,8 +310,6 @@ public class PolicyUpdaterTest {
 
         matchingTag = PolicyUpdater.getEtagForExistingPolicy(null, configuration, "sys.auth");
         Assert.assertNull(matchingTag);
-        
-        System.clearProperty(PolicyUpdaterConfiguration.ZPU_PROP_METRIC_FACTORY);
     }
     
     @Test
@@ -367,8 +357,6 @@ public class PolicyUpdaterTest {
 
     @Test
     public void TestPolicyUpdater() throws Exception {
-        System.setProperty(PolicyUpdaterConfiguration.ZPU_PROP_METRIC_FACTORY,
-                "com.yahoo.athenz.zpe_policy_updater.MockMetricFactory");
         
         PolicyUpdaterConfiguration configuration = new PolicyUpdaterConfiguration();
         configuration.init(pathToAthenzConfigFile, pathToZPUTestConfigFile);
@@ -400,8 +388,6 @@ public class PolicyUpdaterTest {
                 domainPolicySignedData, "sys.auth.pol"));
         
         Files.delete(path);
-
-        System.clearProperty(PolicyUpdaterConfiguration.ZPU_PROP_METRIC_FACTORY);
     }
     
     @Test
@@ -420,8 +406,6 @@ public class PolicyUpdaterTest {
     
     @Test
     public void TestPolicyUpdaterZTSException() throws Exception {
-        System.setProperty(PolicyUpdaterConfiguration.ZPU_PROP_METRIC_FACTORY,
-                "com.yahoo.athenz.zpe_policy_updater.MockMetricFactory");
         
         PolicyUpdaterConfiguration configuration = new PolicyUpdaterConfiguration();
         configuration.init(pathToAthenzConfigFile, pathToZPUConfigFile);
@@ -465,7 +449,6 @@ public class PolicyUpdaterTest {
     
     @Test
     public void TestverifyTmpDirSetupUserNull() throws Exception {
-        System.setProperty(PolicyUpdaterConfiguration.ZPU_PROP_METRIC_FACTORY, "com.yahoo.athenz.zpe_policy_updater.MockMetricFactory");
         
         PolicyUpdaterConfiguration config = Mockito.mock(PolicyUpdaterConfiguration.class);
         Mockito.when(config.getPolicyFileTmpDir()).thenReturn(pupConfig.getRootDir() + TEST_POLICY_TEMP_DIR + "/tmpnon");

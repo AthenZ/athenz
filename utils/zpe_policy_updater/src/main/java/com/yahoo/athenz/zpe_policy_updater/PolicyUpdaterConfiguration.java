@@ -45,9 +45,6 @@ public class PolicyUpdaterConfiguration {
     private static final String ZPU_PROP_POLDIR      = "athenz.zpe_policy_updater.dir";
     private static final String ZPU_PROP_POL_TMP_DIR = "athenz.zpe_policy_updater.tmp_dir";
     static final String ZPU_PROP_TEST_ROOT_PATH      = "athenz.zpe_policy_updater.test_root_path";
-    static final String ZPU_PROP_METRIC_FACTORY      = "athenz.zpe_policy_updater.metric_factory_class";
-
-    static final String ZPU_METRIC_FACT_DEF_CLASS = "com.yahoo.athenz.common.metrics.impl.NoOpMetricFactory";
     
     private static final String ATHENZ_CONFIG_FILE = "/conf/athenz/athenz.conf";
     private static final String ZPU_CONFIG_FILE = "/conf/zpe_policy_updater/zpu.conf";
