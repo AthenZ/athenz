@@ -98,7 +98,7 @@ public class HealthCheckFilter implements javax.servlet.Filter {
                 HttpServletResponse response = (HttpServletResponse) servletResponse;
                 
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Healthcheck filter returning " + sc);
+                    LOGGER.debug("Healthcheck filter returning {} for file {}", sc, file.getAbsolutePath());
                 }
 
                 response.setStatus(sc);

@@ -238,7 +238,9 @@ public class AthenzJettyContainer {
         servletCtxHandler.setContextPath("/");
         
         FilterHolder filterHolder = new FilterHolder(HealthCheckFilter.class);
-        filterHolder.setInitParameter(AthenzConsts.ATHENZ_PROP_HEALTH_CHECK_PATH, getRootDir());
+        final String healthCheckPath = System.getProperty(AthenzConsts.ATHENZ_PROP_HEALTH_CHECK_PATH,
+                getRootDir());
+        filterHolder.setInitParameter(AthenzConsts.ATHENZ_PROP_HEALTH_CHECK_PATH, healthCheckPath);
 
         final String checkList = System.getProperty(AthenzConsts.ATHENZ_PROP_HEALTH_CHECK_URI_LIST);
 
