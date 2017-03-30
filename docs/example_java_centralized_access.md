@@ -203,7 +203,7 @@ $ mvn clean package
 Verify that the client is built successfully:
 
 ```shell
-$ java -cp target/example-client-ntoken-1.0.jar com.yahoo.athenz.example.ntoken.HttpExampleClient
+$ java -cp target/example-java-client-ntoken-1.0.jar com.yahoo.athenz.example.ntoken.HttpExampleClient
 Missing required options: d, s, p, k, u
 usage: http-example-client
  -d,--domain <arg>    domain name
@@ -367,7 +367,7 @@ Run the following test cases to verify authorization access
 for specific services. We're running jetty server on the local
 box so we're using localhost as the hostname.
 
-* Copy the `example-client-ntoken-1.0.jar` file from the client/target
+* Copy the `example-java-client-ntoken-1.0.jar` file from the client/target
 directory to the directory that includes the private keys for the test
 services we created in the section [Athenz Management Setup](#athenz-management-setup)
 above.
@@ -392,7 +392,7 @@ $ curl http://localhost:8080/athenz-control/rec/v1/movie
 Movie service can successfully access /rec/v1/movie endpoint:
 
 ```shell
-$ java -cp ./example-client-ntoken-1.0.jar com.yahoo.athenz.example.ntoken.HttpExampleClient -d editors -s movie -p ./movie_private.pem -k v0 -u http://localhost:8080/athenz-control/rec/v1/movie
+$ java -cp ./example-java-client-ntoken-1.0.jar com.yahoo.athenz.example.ntoken.HttpExampleClient -d editors -s movie -p ./movie_private.pem -k v0 -u http://localhost:8080/athenz-control/rec/v1/movie
 
 Successful response:
 Name: Slap Shot; Director: George Roy Hill
@@ -401,7 +401,7 @@ Name: Slap Shot; Director: George Roy Hill
 Movie service does not have access to /rec/v1/tvshow endpoint:
 
 ```shell
-$ java -cp ./example-client-ntoken-1.0.jar com.yahoo.athenz.example.ntoken.HttpExampleClient -d editors -s movie -p ./movie_private.pem -k v0 -u http://localhost:8080/athenz-control/rec/v1/tvshow
+$ java -cp ./example-java-client-ntoken-1.0.jar com.yahoo.athenz.example.ntoken.HttpExampleClient -d editors -s movie -p ./movie_private.pem -k v0 -u http://localhost:8080/athenz-control/rec/v1/tvshow
 
 Request was forbidden - not authorized
 ```
@@ -412,7 +412,7 @@ Request was forbidden - not authorized
 TvShow service can successfully access /rec/v1/tvshow endpoint:
 
 ```shell
-$ java -cp ./example-client-ntoken-1.0.jar com.yahoo.athenz.example.ntoken.HttpExampleClient -d editors -s tvshow -p ./tvshow_private.pem -k v0 -u http://localhost:8080/athenz-control/rec/v1/tvshow
+$ java -cp ./example-java-client-ntoken-1.0.jar com.yahoo.athenz.example.ntoken.HttpExampleClient -d editors -s tvshow -p ./tvshow_private.pem -k v0 -u http://localhost:8080/athenz-control/rec/v1/tvshow
 
 Successful response:
 Name: Middle; Channel: ABC
@@ -421,7 +421,7 @@ Name: Middle; Channel: ABC
 TvShow service does not have access to /rec/v1/movie endpoint:
 
 ```shell
-$ java -cp ./example-client-ntoken-1.0.jar com.yahoo.athenz.example.ntoken.HttpExampleClient -d editors -s tvshow -p ./tvshow_private.pem -k v0 -u http://localhost:8080/athenz-control/rec/v1/movie
+$ java -cp ./example-java-client-ntoken-1.0.jar com.yahoo.athenz.example.ntoken.HttpExampleClient -d editors -s tvshow -p ./tvshow_private.pem -k v0 -u http://localhost:8080/athenz-control/rec/v1/movie
 
 Request was forbidden - not authorized
 ```
@@ -432,12 +432,12 @@ Request was forbidden - not authorized
 Site service has access to both /rec/v1/tvshow and /rec/v1/movie endpoints:
 
 ```shell
-$ java -cp ./example-client-ntoken-1.0.jar com.yahoo.athenz.example.ntoken.HttpExampleClient -d editors -s site -p ./site_private.pem -k v0 -u http://localhost:8080/athenz-control/rec/v1/movie
+$ java -cp ./example-java-client-ntoken-1.0.jar com.yahoo.athenz.example.ntoken.HttpExampleClient -d editors -s site -p ./site_private.pem -k v0 -u http://localhost:8080/athenz-control/rec/v1/movie
 
 Successful response:
 Name: Slap Shot; Director: George Roy Hill
 
-$ java -cp ./example-client-ntoken-1.0.jar com.yahoo.athenz.example.ntoken.HttpExampleClient -d editors -s site -p ./site_private.pem -k v0 -u http://localhost:8080/athenz-control/rec/v1/tvshow
+$ java -cp ./example-java-client-ntoken-1.0.jar com.yahoo.athenz.example.ntoken.HttpExampleClient -d editors -s site -p ./site_private.pem -k v0 -u http://localhost:8080/athenz-control/rec/v1/tvshow
 
 Successful response:
 Name: Middle; Channel: ABC
