@@ -75,9 +75,7 @@ public class DefaultAuditLogMsgBuilder implements AuditLogMsgBuilder {
     protected String why = null;         // The audit reference or SOX ticket number.
     protected String clientIp = null;    // The IP address of the calling client(who).
     protected String when     = null;    // date-time in UTC
-    protected String whereIp  = null;     // The IP address and ports of the server where it receives the requests at.
-    protected String whereHttpsPort = null; // The server https port endpoint
-    protected String whereHttpPort  = null; // The server http port endpoint
+    protected String where    = null;    // The server hostname that received the requests
     protected String whatMethod  = null; // This is the REST method, ie. "PUT" or "POST", etc
     protected String whatApi     = null; // This is the server public method serving the request, ex: "putRole"
     protected String whatDomain  = null; // This is the Athenz domain being changed, ex: "xobni"
@@ -205,55 +203,23 @@ public class DefaultAuditLogMsgBuilder implements AuditLogMsgBuilder {
     }
 
     /* (non-Javadoc)
-     * @see com.yahoo.athenz.common.server.log.AuditLogMsgBuilder#whereIp(java.lang.String)
+     * @see com.yahoo.athenz.common.server.log.AuditLogMsgBuilder#where(java.lang.String)
      */
     @Override
-    public AuditLogMsgBuilder whereIp(String whereVal) {
-        this.whereIp = whereVal;
-        return this;
-    }
-    
-    /* (non-Javadoc)
-     * @see com.yahoo.athenz.common.server.log.AuditLogMsgBuilder#whereHttpsPort(java.lang.String)
-     */
-    @Override
-    public AuditLogMsgBuilder whereHttpsPort(String whereVal) {
-        this.whereHttpsPort = whereVal;
-        return this;
-    }
-    
-    /* (non-Javadoc)
-     * @see com.yahoo.athenz.common.server.log.AuditLogMsgBuilder#whereHttpPort(java.lang.String)
-     */
-    @Override
-    public AuditLogMsgBuilder whereHttpPort(String whereVal) {
-        this.whereHttpPort = whereVal;
+    public AuditLogMsgBuilder where(String whereVal) {
+        this.where = whereVal;
         return this;
     }
 
-    // Ex: '{"server-ip":"198.177.62.9","server-https-port":"4453","server-http-port":"10080"}'
     /* (non-Javadoc)
      * @see com.yahoo.athenz.common.server.log.AuditLogMsgBuilder#where()
      */
     @Override
     public String where() {
-        if (whereIp == null) {
-            whereIp = NULL_STR;
+        if (where == null) {
+            where = NULL_STR;
         }
-        StringBuilder sb = new StringBuilder(SB_MIN_SIZE_INIT);
-        sb.append("server-ip=").append(whereIp);
-        
-        if (whereHttpsPort == null) {
-            whereHttpsPort = NULL_STR;
-        }
-        sb.append(",server-https-port=").append(whereHttpsPort);
-        
-        if (whereHttpPort == null) {
-            whereHttpPort = NULL_STR;
-        }
-        sb.append(",server-http-port=").append(whereHttpPort);
-
-        return sb.toString();
+        return where;
     }
 
     /* (non-Javadoc)

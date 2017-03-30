@@ -60,19 +60,11 @@ public interface AuditLogMsgBuilder {
 
     /**
      * This is where the change request was received - server endpoint.
-     * @param whereVal is the server address where the request was received
-     *        The IP address and ports of the server where it receives the
-     *        requests at.
-     *        Ex: '{"server-ip":"198.177.62.9","server-https-port":"4453","server-http-port":"10080"}'
+     * @param whereVal is the server hostname where the request was received
      * @return this
      */
-    public AuditLogMsgBuilder whereIp(String whereVal);
+    public AuditLogMsgBuilder where(String whereVal);
 
-    public AuditLogMsgBuilder whereHttpsPort(String whereVal);
-
-    public AuditLogMsgBuilder whereHttpPort(String whereVal);
-
-    // Ex: '{"server-ip":"198.177.62.9","server-https-port":"4453","server-http-port":"10080"}'
     public String where();
 
     /**

@@ -438,7 +438,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // get the where - which means where this server is running
         
-        msgBldr.whereIp(serverHostName);
+        msgBldr.where(serverHostName);
 
         msgBldr.whatDomain(domainName).whatApi(caller).whatMethod(method);
 

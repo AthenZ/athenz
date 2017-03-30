@@ -233,7 +233,7 @@ public class ZMSUtils {
 
         // get the where - which means where this server is running
         
-        msgBldr.whereIp(ZMSImpl.serverHostName);
+        msgBldr.where(ZMSImpl.serverHostName);
         msgBldr.whatDomain(domainName).why(auditRef).whatApi(caller).whatMethod(method);
 
         // get the 'who' and set it

@@ -75,42 +75,11 @@ public class AuditLogMsgBuilderTest {
     }
 
     @Test
-    public void testWhereIp() {
-        DefaultAuditLogMsgBuilder msgBldr = starter("testWhereIp");
-        String dataStr = "128.33.42.76";
-        msgBldr.whereIp(dataStr);
-        Assert.assertTrue(msgBldr.where().contains("server-ip=" + dataStr), "whereIp string=" + msgBldr.where());
-    }
-    
-    @Test
-    public void testWhereHttpsPort() {
-        DefaultAuditLogMsgBuilder msgBldr = starter("testWhereHttpsPort");
-        String dataStr = "4443";
-        msgBldr.whereHttpsPort(dataStr);
-        Assert.assertTrue(msgBldr.where().contains("server-https-port=" + dataStr), "whereHttpsPort string=" + msgBldr.where());
-    }
-
-    @Test
-    public void testWhereHttpPort() {
-        DefaultAuditLogMsgBuilder msgBldr = starter("testWhereHttpPort");
-        String dataStr = "80";
-        msgBldr.whereHttpPort(dataStr);
-        Assert.assertTrue(msgBldr.where().contains("server-http-port=" + dataStr), "whereHttpPort string=" + msgBldr.where());
-    }
-    
-    @Test
-    public void testWhereIpPortHttpsPort() {
-        DefaultAuditLogMsgBuilder msgBldr = starter("testWhereIpPortHttpsPort");
-        String ipStr = "128.33.42.76";
-        msgBldr.whereIp(ipStr);
-        String httpsPortStr = "4443";
-        msgBldr.whereHttpsPort(httpsPortStr);
-        String httpPortStr = "80";
-        msgBldr.whereHttpPort(httpPortStr);
-        
-        Assert.assertTrue(msgBldr.where().contains("server-ip=" + ipStr), "where string=" + msgBldr.where());
-        Assert.assertTrue(msgBldr.where().contains("server-https-port=" + httpsPortStr), "where string=" + msgBldr.where());
-        Assert.assertTrue(msgBldr.where().contains("server-http-port=" + httpPortStr), "where string=" + msgBldr.where());
+    public void testWhere() {
+        DefaultAuditLogMsgBuilder msgBldr = starter("testWhere");
+        String dataStr = "host1.athenz.com";
+        msgBldr.where(dataStr);
+        Assert.assertTrue(msgBldr.where().equals(dataStr), "where string=" + msgBldr.where());
     }
 
     @Test
