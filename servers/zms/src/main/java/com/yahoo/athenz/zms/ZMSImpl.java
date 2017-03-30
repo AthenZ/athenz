@@ -1192,6 +1192,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // verify we're dealing with system administrator
         // authorize ("CREATE", "sys.auth:domain");
 
+        // first check - the domain must be the user domain
+        
+        if (!principal.getDomain().equals(userDomain)) {
+            return false;
+        }
+        
         AthenzDomain domain = getAthenzDomain(SYS_AUTH, true);
         if (domain == null) {
             return false;
@@ -1214,7 +1220,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     boolean isAllowedResourceLookForAllUsers(Principal principal) {
         
-        // the authorization policy resides in offical sys.auth domain
+        // the authorization policy resides in official sys.auth domain
 
         AthenzDomain domain = getAthenzDomain(SYS_AUTH, true);
         if (domain == null) {

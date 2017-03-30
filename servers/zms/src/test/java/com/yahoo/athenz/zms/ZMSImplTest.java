@@ -14662,5 +14662,13 @@ public class ZMSImplTest extends TestCase {
         zms.logPrincipal(ctx2);
         assertEquals((String) request.getAttribute(ZMS_REQUEST_PRINCIPAL), "sports.nhl");
     }
+    
+    @Test
+    public void testIsSysAdminUserInvalidDomain() {
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        Principal principal = SimplePrincipal.create("sports", "nhl", "v=S1;d=sports;n=nhl;s=signature",
+                0, principalAuthority);
+        assertFalse(zms.isSysAdminUser(principal));
+    }
 }
 
