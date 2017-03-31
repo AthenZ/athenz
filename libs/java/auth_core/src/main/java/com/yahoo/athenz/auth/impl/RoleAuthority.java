@@ -119,7 +119,7 @@ public class RoleAuthority implements Authority, AuthorityKeyStore {
         
         String publicKey = keyStore.getPublicKey(SYS_AUTH_DOMAIN, ZTS_SERVICE_NAME, roleToken.getKeyId());
 
-        if (roleToken.validate(publicKey, allowedOffset) == false) {
+        if (roleToken.validate(publicKey, allowedOffset, false) == false) {
                 errMsg.append("RoleAuthority:authenticate failed: validation was not successful: credential=").
                        append(Token.getUnsignedToken(signedToken));
             if (LOG.isWarnEnabled()) {

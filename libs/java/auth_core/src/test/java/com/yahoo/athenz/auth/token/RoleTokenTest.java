@@ -112,14 +112,14 @@ public class RoleTokenTest {
         assertEquals(rollTokenToValidate.getKeyId(), testKeyVersionK1);
 
         // Validate the signature and that expiration time had not elapsed
-        assertTrue(rollTokenToValidate.validate(ztsPublicKeyStringK1, 300));
+        assertTrue(rollTokenToValidate.validate(ztsPublicKeyStringK1, 300, false));
         
         // Create ServiceToken with null keyVersion which should default to 0
         rollTokenToValidate = createRoleTokenToValidate(roles);
         assertEquals(rollTokenToValidate.getKeyId(), "0");
         
         // Validate the signature using key(k0) and that expiration time had not elapsed
-        assertTrue(rollTokenToValidate.validate(ztsPublicKeyStringK0, 300));
+        assertTrue(rollTokenToValidate.validate(ztsPublicKeyStringK0, 300, false));
     }
 
     @Test
@@ -140,7 +140,7 @@ public class RoleTokenTest {
         Thread.sleep((expirationTime + 10) * 1000);
 
         // Validate that the expiration time has elapsed
-        assertFalse(rollTokenToValidate.validate(ztsPublicKeyStringK0, 300));
+        assertFalse(rollTokenToValidate.validate(ztsPublicKeyStringK0, 300, false));
     }
     
     @Test

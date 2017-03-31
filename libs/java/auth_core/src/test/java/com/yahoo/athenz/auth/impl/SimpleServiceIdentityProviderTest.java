@@ -65,7 +65,7 @@ public class SimpleServiceIdentityProviderTest {
         
         String token = user.getCredentials();
         PrincipalToken prToken = new PrincipalToken(token);
-        assertTrue(prToken.validate(servicePublicKeyStringK0, 0));
+        assertTrue(prToken.validate(servicePublicKeyStringK0, 0, false));
         assertEquals(prToken.getKeyId(), "0");
     }
 
@@ -81,7 +81,7 @@ public class SimpleServiceIdentityProviderTest {
         
         String token = user.getCredentials();
         PrincipalToken prToken = new PrincipalToken(token);
-        assertTrue(prToken.validate(servicePublicKeyStringK1, 0));
+        assertTrue(prToken.validate(servicePublicKeyStringK1, 0, false));
         assertEquals(prToken.getKeyId(), "1");
     }
 

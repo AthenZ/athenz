@@ -118,14 +118,14 @@ public class PrincipalTokenTest {
         assertEquals(serviceTokenToValidate.getKeyId(), testKeyVersionK1);
 
         // Validate the signature and that expiration time had not elapsed
-        assertTrue(serviceTokenToValidate.validate(servicePublicKeyStringK1, 300));
+        assertTrue(serviceTokenToValidate.validate(servicePublicKeyStringK1, 300, false));
         
         // Create ServiceToken with null keyVersion which should default to 0
         serviceTokenToValidate = createServiceToken();
         assertEquals(serviceTokenToValidate.getKeyId(), "0");
         
         // Validate the signature using key(k0) and that expiration time had not elapsed
-        assertTrue(serviceTokenToValidate.validate(servicePublicKeyStringK0, 300));
+        assertTrue(serviceTokenToValidate.validate(servicePublicKeyStringK0, 300, false));
 
         PrincipalToken svcToken2 = new PrincipalToken(serviceTokenToValidate.getSignedToken());
         assertEquals(svcToken2.getSignedToken(), serviceTokenToValidate.getSignedToken());
@@ -145,7 +145,7 @@ public class PrincipalTokenTest {
         assertEquals(userTokenToValidate.getSalt(), salt);
 
         // Validate the signature and that expiration time had not elapsed
-        assertTrue(userTokenToValidate.validate(servicePublicKeyStringK0, 300));
+        assertTrue(userTokenToValidate.validate(servicePublicKeyStringK0, 300, false));
     }
 
     @Test
@@ -181,7 +181,7 @@ public class PrincipalTokenTest {
         Thread.sleep(expirationTime * 1000);
 
         // Validate that the expiration time has elapsed
-        assertFalse(userTokenToValidate.validate(servicePublicKeyStringK0, 300));
+        assertFalse(userTokenToValidate.validate(servicePublicKeyStringK0, 300, false));
     }
 
     @Test
@@ -193,8 +193,7 @@ public class PrincipalTokenTest {
         Thread.sleep((expirationTime + 10) * 1000);
 
         // Validate that the expiration time has elapsed
-        assertFalse(serviceTokenToValidate
-                .validate(servicePublicKeyStringK0, 300));
+        assertFalse(serviceTokenToValidate.validate(servicePublicKeyStringK0, 300, false));
     }
     
     @Test

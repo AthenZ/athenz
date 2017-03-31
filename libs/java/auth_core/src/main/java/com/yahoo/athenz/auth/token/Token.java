@@ -46,6 +46,9 @@ public class Token {
     private static final String ATHENZ_PROP_TOKEN_MAX_EXPIRY = "athenz.token_max_expiry";
     private static final long ATHENZ_TOKEN_MAX_EXPIRY = Long.parseLong(
             System.getProperty(ATHENZ_PROP_TOKEN_MAX_EXPIRY, Long.toString(TimeUnit.SECONDS.convert(30, TimeUnit.DAYS))));
+    private static final String ATHENZ_PROP_TOKEN_NO_EXPIRY = "athenz.token_no_expiry";
+    static Boolean ATHENZ_TOKEN_NO_EXPIRY = Boolean.parseBoolean(
+            System.getProperty(ATHENZ_PROP_TOKEN_NO_EXPIRY, "false"));
 
     public void sign(String privKey) throws CryptoException {
         sign(Crypto.loadPrivateKey(privKey));
@@ -62,10 +65,15 @@ public class Token {
     }
 
     public boolean validate(String pubKey, int allowedOffset) {
-        return validate(pubKey, allowedOffset, null);
+        return validate(pubKey, allowedOffset, false, null);
+    }
+    
+    public boolean validate(String pubKey, int allowedOffset, boolean allowNoExpiry) {
+        return validate(pubKey, allowedOffset, allowNoExpiry, null);
     }
 
-    public boolean validate(String pubKey, int allowedOffset, StringBuilder errMsg) {
+    public boolean validate(String pubKey, int allowedOffset, boolean allowNoExpiry,
+            StringBuilder errMsg) {
 
         errMsg = errMsg == null ? new StringBuilder(512) : errMsg;
         if (pubKey == null) {
@@ -86,10 +94,11 @@ public class Token {
             return false;
         }
         
-        return validate(publicKey, allowedOffset, errMsg);
+        return validate(publicKey, allowedOffset, allowNoExpiry, errMsg);
     }
     
-    public boolean validate(PublicKey publicKey, int allowedOffset, StringBuilder errMsg) {
+    public boolean validate(PublicKey publicKey, int allowedOffset, boolean allowNoExpiry,
+            StringBuilder errMsg) {
         
         errMsg = errMsg == null ? new StringBuilder(512) : errMsg;
         if (unsignedToken == null || signature == null) {
@@ -120,25 +129,28 @@ public class Token {
             return false;
         }
 
-        // make sure we don't have unlimited tokens. by default
+        // make sure we don't have unlimited tokens unless we have
+        // explicitly enabled that option for our system. by default
         // they should have an expiration date of less than 30 days
         
-        if (expiryTime < now) {
-            errMsg.append("Token:validate: token=").append(unsignedToken).
-                   append(" : has expired time=").append(expiryTime).
-                   append(" : current time=").append(now);
-            LOG.error(errMsg.toString());
-            return false;
-        }
-
-        if (expiryTime > now + ATHENZ_TOKEN_MAX_EXPIRY + allowedOffset) {
-            errMsg.append("Token:validate: token=").append(unsignedToken).
-                append(" : expires too far in the future=").append(expiryTime).
-                append(" : current time=").append(now).
-                append(" : max expiry=").append(ATHENZ_TOKEN_MAX_EXPIRY).
-                append(" : allowed offset=").append(allowedOffset);
-            LOG.error(errMsg.toString());
-            return false;
+        if (expiryTime != 0 || !ATHENZ_TOKEN_NO_EXPIRY || !allowNoExpiry) {
+            if (expiryTime < now) {
+                errMsg.append("Token:validate: token=").append(unsignedToken).
+                       append(" : has expired time=").append(expiryTime).
+                       append(" : current time=").append(now);
+                LOG.error(errMsg.toString());
+                return false;
+            }
+    
+            if (expiryTime > now + ATHENZ_TOKEN_MAX_EXPIRY + allowedOffset) {
+                errMsg.append("Token:validate: token=").append(unsignedToken).
+                    append(" : expires too far in the future=").append(expiryTime).
+                    append(" : current time=").append(now).
+                    append(" : max expiry=").append(ATHENZ_TOKEN_MAX_EXPIRY).
+                    append(" : allowed offset=").append(allowedOffset);
+                LOG.error(errMsg.toString());
+                return false;
+            }
         }
         
         boolean verified = false; // fail safe

@@ -455,10 +455,10 @@ public class PrincipalAuthorityTest {
         serviceAuthority.ipCheckMode = IpCheckMode.OPS_ALL;
         
         PrincipalToken serviceToken = new PrincipalToken("v=S1;d=domain;n=service;i=10.11.12.23;s=sig");
-        assertTrue(serviceAuthority.remoteIpCheck("10.11.12.23", "GET", serviceToken, null));
-        assertTrue(serviceAuthority.remoteIpCheck("10.11.12.23", "PUT", serviceToken, null));
-        assertFalse(serviceAuthority.remoteIpCheck("10.11.12.22", "GET", serviceToken, null));
-        assertFalse(serviceAuthority.remoteIpCheck("10.11.12.22", "PUT", serviceToken, null));
+        assertTrue(serviceAuthority.remoteIpCheck("10.11.12.23", false, serviceToken, null));
+        assertTrue(serviceAuthority.remoteIpCheck("10.11.12.23", true, serviceToken, null));
+        assertFalse(serviceAuthority.remoteIpCheck("10.11.12.22", false, serviceToken, null));
+        assertFalse(serviceAuthority.remoteIpCheck("10.11.12.22", true, serviceToken, null));
     }
     
     @Test
@@ -470,17 +470,17 @@ public class PrincipalAuthorityTest {
         
         // first let's verify read operation with and without matches
        
-        assertTrue(serviceAuthority.remoteIpCheck("10.11.12.23", "GET", serviceToken, null));
-        assertTrue(serviceAuthority.remoteIpCheck("10.11.12.22", "GET", serviceToken, null));
+        assertTrue(serviceAuthority.remoteIpCheck("10.11.12.23", false, serviceToken, null));
+        assertTrue(serviceAuthority.remoteIpCheck("10.11.12.22", false, serviceToken, null));
         
         // now let's try write operations without authorized service
         
-        assertTrue(serviceAuthority.remoteIpCheck("10.11.12.23", "PUT", serviceToken, null));
-        assertFalse(serviceAuthority.remoteIpCheck("10.11.12.22", "PUT", serviceToken, null));
+        assertTrue(serviceAuthority.remoteIpCheck("10.11.12.23", true, serviceToken, null));
+        assertFalse(serviceAuthority.remoteIpCheck("10.11.12.22", true, serviceToken, null));
         
         // finally mismatch operation with authorized service
         
-        assertTrue(serviceAuthority.remoteIpCheck("10.11.12.22", "PUT", serviceToken, "authz_service"));
+        assertTrue(serviceAuthority.remoteIpCheck("10.11.12.22", true, serviceToken, "authz_service"));
     }
     
     @Test
@@ -494,17 +494,17 @@ public class PrincipalAuthorityTest {
         
         // first let's verify read operation with and without matches
        
-        assertTrue(serviceAuthority.remoteIpCheck("10.11.12.23", "GET", serviceToken, null));
-        assertTrue(serviceAuthority.remoteIpCheck("10.11.12.22", "GET", serviceToken, null));
+        assertTrue(serviceAuthority.remoteIpCheck("10.11.12.23", false, serviceToken, null));
+        assertTrue(serviceAuthority.remoteIpCheck("10.11.12.22", false, serviceToken, null));
         
         // now let's try write operations without authorized service
         
-        assertTrue(serviceAuthority.remoteIpCheck("10.11.12.23", "PUT", serviceToken, null));
-        assertTrue(serviceAuthority.remoteIpCheck("10.11.12.22", "PUT", serviceToken, null));
+        assertTrue(serviceAuthority.remoteIpCheck("10.11.12.23", true, serviceToken, null));
+        assertTrue(serviceAuthority.remoteIpCheck("10.11.12.22", true, serviceToken, null));
         
         // finally mismatch operation with authorized service
         
-        assertTrue(serviceAuthority.remoteIpCheck("10.11.12.22", "PUT", serviceToken, "authz_service"));
+        assertTrue(serviceAuthority.remoteIpCheck("10.11.12.22", true, serviceToken, "authz_service"));
     }
 
     @Test

@@ -80,7 +80,8 @@ public class PrincipalAuthority implements Authority, AuthorityKeyStore {
     }
 
     @Override
-    public Principal authenticate(String signedToken, String remoteAddr, String httpMethod, StringBuilder errMsg) {
+    public Principal authenticate(String signedToken, String remoteAddr, String httpMethod,
+            StringBuilder errMsg) {
 
         errMsg = errMsg == null ? new StringBuilder(512) : errMsg;
         if (LOG.isDebugEnabled()) {
@@ -123,7 +124,8 @@ public class PrincipalAuthority implements Authority, AuthorityKeyStore {
 
         /* the validate method logs all error messages */
         
-        if (serviceToken.validate(publicKey, allowedOffset, errDetail) == false) {
+        boolean writeOp = isWriteOperation(httpMethod);
+        if (serviceToken.validate(publicKey, allowedOffset, !writeOp, errDetail) == false) {
             errMsg.append("PrincipalAuthority:authenticate: service token validation failure: ");
             errMsg.append(errDetail).append(" : credential=").
                    append(Token.getUnsignedToken(signedToken));
@@ -148,7 +150,7 @@ public class PrincipalAuthority implements Authority, AuthorityKeyStore {
         /* if we have a usertoken and our remote ip check enabled, verify that the IP address
          * matches before allowing the operation go through */
         
-        if (userToken && !remoteIpCheck(remoteAddr, httpMethod, serviceToken, authorizedServiceName)) {
+        if (userToken && !remoteIpCheck(remoteAddr, writeOp, serviceToken, authorizedServiceName)) {
             errMsg.append("PrincipalAuthority:authenticate: IP Mismatch - token (").
                 append(serviceToken.getIP()).append(") request (").
                 append(remoteAddr).append(")");
@@ -170,7 +172,7 @@ public class PrincipalAuthority implements Authority, AuthorityKeyStore {
         return princ;
     }
 
-    boolean remoteIpCheck(String remoteAddr, String httpMethod, PrincipalToken serviceToken,
+    boolean remoteIpCheck(String remoteAddr, boolean writeOp, PrincipalToken serviceToken,
             String authorizedServiceName) {
         
         boolean checkResult = true;
@@ -185,7 +187,7 @@ public class PrincipalAuthority implements Authority, AuthorityKeyStore {
                  * mismatch then we'll allow this authenticate request to proceed only if it's
                  * been configured with authorized user only. */
                 
-                if (isWriteOperation(httpMethod) && !remoteAddr.equals(serviceToken.getIP())) {
+                if (writeOp && !remoteAddr.equals(serviceToken.getIP())) {
                     
                     if (authorizedServiceName == null) {
                         checkResult = false;

@@ -63,11 +63,11 @@ public class TokenTest {
         PrincipalToken token = new PrincipalToken.Builder(svcVersion, svcDomain, svcName)
             .host(host).salt(salt).expirationWindow(expirationTime).build();
         
-        assertFalse(token.validate(servicePublicKeyStringK0, 3600));
-        assertFalse(token.validate(servicePublicKeyStringK0, 3600, null));
+        assertFalse(token.validate(servicePublicKeyStringK0, 3600, false));
+        assertFalse(token.validate(servicePublicKeyStringK0, 3600, false, null));
 
         StringBuilder errMsg = new StringBuilder();
-        assertFalse(token.validate(servicePublicKeyStringK0, 3600, errMsg));
+        assertFalse(token.validate(servicePublicKeyStringK0, 3600, false, errMsg));
         assertTrue(!errMsg.toString().isEmpty());
     }
     
@@ -75,7 +75,7 @@ public class TokenTest {
     public void testTokenValidateNullData() throws CryptoException {
         
         Token token = new Token();
-        assertFalse(token.validate(servicePublicKeyStringK0, 3600));
+        assertFalse(token.validate(servicePublicKeyStringK0, 3600, false));
     }
     
     @Test
@@ -86,12 +86,12 @@ public class TokenTest {
             .host(host).salt(salt).issueTime(timestamp).expirationWindow(expirationTime).build();
         token.sign(servicePrivateKeyStringK0);
 
-        assertFalse(token.validate(servicePublicKeyStringK0, 3600));
+        assertFalse(token.validate(servicePublicKeyStringK0, 3600, false));
 
         timestamp = System.currentTimeMillis() + 1000000;
         token.setTimeStamp(timestamp,1000000);
         PublicKey pubkey = Mockito.mock(PublicKey.class);
-        assertFalse(token.validate(pubkey, 3600, null));
+        assertFalse(token.validate(pubkey, 3600, false, null));
     }
     
     @Test
@@ -103,8 +103,31 @@ public class TokenTest {
             .host(host).salt(salt).issueTime(timestamp).expirationWindow(expiration).build();
         token.sign(servicePrivateKeyStringK0);
 
+        assertFalse(token.validate(servicePublicKeyStringK0, 5, false));
+        assertTrue(token.validate(servicePublicKeyStringK0, 20, false));
+        
         assertFalse(token.validate(servicePublicKeyStringK0, 5));
         assertTrue(token.validate(servicePublicKeyStringK0, 20));
+    }
+    
+    @Test
+    public void testTokenValidateNoExpiryTimestamp() throws CryptoException {
+        
+        long timestamp = System.currentTimeMillis() / 1000;
+        PrincipalToken token = new PrincipalToken.Builder(svcVersion, svcDomain, svcName)
+            .host(host).salt(salt).issueTime(timestamp).build();
+        token.expiryTime = 0;
+        token.sign(servicePrivateKeyStringK0);
+
+        Token.ATHENZ_TOKEN_NO_EXPIRY = false;
+        assertFalse(token.validate(servicePublicKeyStringK0, 20, false));
+        assertFalse(token.validate(servicePublicKeyStringK0, 20, true));
+        
+        Token.ATHENZ_TOKEN_NO_EXPIRY = true;
+        assertFalse(token.validate(servicePublicKeyStringK0, 20, false));
+        assertTrue(token.validate(servicePublicKeyStringK0, 20, true));
+
+        Token.ATHENZ_TOKEN_NO_EXPIRY = false;
     }
     
     @Test
@@ -114,9 +137,9 @@ public class TokenTest {
             .host(host).salt(salt).expirationWindow(expirationTime).build();
         token.sign(servicePrivateKeyStringK0);
 
-        assertFalse(token.validate("InvalidPublicKey", 3600));
+        assertFalse(token.validate("InvalidPublicKey", 3600, false));
 
-        assertFalse(token.validate((PublicKey)null, 3600, null));
+        assertFalse(token.validate((PublicKey)null, 3600, false, null));
     }
     
     @Test
@@ -126,7 +149,7 @@ public class TokenTest {
             .host(host).salt(salt).expirationWindow(expirationTime).build();
         token.sign(servicePrivateKeyStringK0);
 
-        assertFalse(token.validate(null, 3600));
+        assertFalse(token.validate(null, 3600, false));
     }
     
     @Test
@@ -190,6 +213,6 @@ public class TokenTest {
     @Test
     public void testValidateFail() {
         Token token = new Token();
-        assertFalse(token.validate((PublicKey) null, 3600,null));
+        assertFalse(token.validate((PublicKey) null, 3600, false, null));
     }
 }

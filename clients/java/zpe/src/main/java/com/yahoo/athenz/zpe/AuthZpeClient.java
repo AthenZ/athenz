@@ -226,7 +226,7 @@ public class AuthZpeClient {
             rToken = new RoleToken(roleToken);
 
             // validate the token
-            if (rToken.validate(getZtsPublicKey(rToken.getKeyId()), allowedOffset, null) == false) {
+            if (rToken.validate(getZtsPublicKey(rToken.getKeyId()), allowedOffset, false, null) == false) {
                 LOG.error("allowAccess: Authorization denied. Authentication of token failed for token="
                         + rToken.getSignedToken());
                 zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_INVALID_TOKEN, rToken.getDomain());
@@ -378,7 +378,7 @@ public class AuthZpeClient {
             
             // validate the token
             
-            if (rToken.validate(getZtsPublicKey(rToken.getKeyId()), allowedOffset, null) == false) {
+            if (rToken.validate(getZtsPublicKey(rToken.getKeyId()), allowedOffset, false, null) == false) {
                 return null;
             }
 
