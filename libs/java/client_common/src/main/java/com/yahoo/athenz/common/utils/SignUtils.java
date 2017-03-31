@@ -85,8 +85,8 @@ public class SignUtils {
         // on their attribute name
         Struct struct = new Struct();
         List<Assertion> assertions = policy.getAssertions();
-        Array assertionsArray = new Array();
-        if (assertions != null) {
+        if (assertions != null && !assertions.isEmpty()) {
+            Array assertionsArray = new Array();
             for (Assertion assertion : assertions) {
                 Struct structAssertion = new Struct();
                 appendObject(structAssertion, ATTR_ACTION, assertion.getAction());
@@ -95,8 +95,8 @@ public class SignUtils {
                 appendObject(structAssertion, ATTR_ROLE, assertion.getRole());
                 assertionsArray.add(structAssertion);
             }
+            appendArray(struct, ATTR_ASSERTIONS, assertionsArray);
         }
-        appendArray(struct, ATTR_ASSERTIONS, assertionsArray);
         appendObject(struct, ATTR_MODIFIED, policy.getModified());
         appendObject(struct, ATTR_NAME, policy.getName());
         return struct;
@@ -107,8 +107,8 @@ public class SignUtils {
         // on their attribute name
         Struct struct = new Struct();
         List<com.yahoo.athenz.zts.Assertion> assertions = policy.getAssertions();
-        Array assertionsArray = new Array();
-        if (assertions != null) {
+        if (assertions != null && !assertions.isEmpty()) {
+            Array assertionsArray = new Array();
             for (com.yahoo.athenz.zts.Assertion assertion : assertions) {
                 Struct structAssertion = new Struct();
                 appendObject(structAssertion, ATTR_ACTION, assertion.getAction());
@@ -117,8 +117,8 @@ public class SignUtils {
                 appendObject(structAssertion, ATTR_ROLE, assertion.getRole());
                 assertionsArray.add(structAssertion);
             }
+            appendArray(struct, ATTR_ASSERTIONS, assertionsArray);
         }
-        appendArray(struct, ATTR_ASSERTIONS, assertionsArray);
         appendObject(struct, ATTR_MODIFIED, policy.getModified());
         appendObject(struct, ATTR_NAME, policy.getName());
         return struct;

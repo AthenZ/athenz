@@ -96,7 +96,7 @@ public class SignUtilsTest {
         
         check = SignUtils.asCanonicalString(mockPolicies);
         assertNotNull(check);
-        assertEquals(check,"{\"policies\":[{\"assertions\":[]}]}");
+        assertEquals(check,"{\"policies\":[{}]}");
     }
     
     @Test
@@ -120,7 +120,7 @@ public class SignUtilsTest {
         
         check = SignUtils.asCanonicalString(mockPolicy);
         assertNotNull(check);
-        assertEquals(check,"{\"policies\":[{\"assertions\":[]}]}");
+        assertEquals(check,"{\"policies\":[{}]}");
     }
     
     @Test
