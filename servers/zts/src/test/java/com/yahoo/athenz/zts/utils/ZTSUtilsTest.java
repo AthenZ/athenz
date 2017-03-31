@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
@@ -236,22 +237,22 @@ public class ZTSUtilsTest {
         certRecord.setInstanceId("1001");
         
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
-        boolean result = ZTSUtils.verifyCertificateRequest(certReq, "athenz.production", null, certRecord);
+        boolean result = ZTSUtils.verifyCertificateRequest(certReq, "athenz", "production", null, certRecord);
         assertTrue(result);
         
         certRecord.setCn("athenz.production");
         certRecord.setInstanceId("1001");
-        result = ZTSUtils.verifyCertificateRequest(certReq, "athenz2.production", null, certRecord);
+        result = ZTSUtils.verifyCertificateRequest(certReq, "athenz2", "production", null, certRecord);
         assertFalse(result);
         
         certRecord.setCn("athenz2.production");
         certRecord.setInstanceId("1001");
-        result = ZTSUtils.verifyCertificateRequest(certReq, "athenz.production", null, certRecord);
+        result = ZTSUtils.verifyCertificateRequest(certReq, "athenz", "production", null, certRecord);
         assertFalse(result);
         
         certRecord.setCn("athenz.production");
         certRecord.setInstanceId("1002");
-        result = ZTSUtils.verifyCertificateRequest(certReq, "athenz.production", null, certRecord);
+        result = ZTSUtils.verifyCertificateRequest(certReq, "athenz", "production", null, certRecord);
         assertFalse(result);
     }
     
@@ -262,10 +263,56 @@ public class ZTSUtilsTest {
         String csr = new String(Files.readAllBytes(path));
         
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
-        boolean result = ZTSUtils.verifyCertificateRequest(certReq, "athenz.production", null, null);
+        boolean result = ZTSUtils.verifyCertificateRequest(certReq, "athenz", "production", null, null);
         assertTrue(result);
         
-        result = ZTSUtils.verifyCertificateRequest(certReq, "athenz2.production", null, null);
+        result = ZTSUtils.verifyCertificateRequest(certReq, "athenz2", "production", null, null);
+        assertFalse(result);
+    }
+    
+    @Test
+    public void testValidateCertReqDNSNames() throws IOException {
+        Path path = Paths.get("src/test/resources/athenz.uuid.csr");
+        String csr = new String(Files.readAllBytes(path));
+        
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
+        boolean result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz", "production");
+        assertTrue(result);
+        
+        result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz2", "production");
+        assertFalse(result);
+        
+        result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz2", "productio2");
+        assertFalse(result);
+    }
+    
+    @Test
+    public void testValidateCertReqDNSNamesNoDNS() throws IOException {
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String csr = new String(Files.readAllBytes(path));
+        
+        // no dns names so all are valid
+        
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
+        boolean result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz", "production");
+        assertTrue(result);
+        
+        result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz2", "production");
+        assertTrue(result);
+        
+        result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz2", "productio2");
+        assertTrue(result);
+    }
+    
+    @Test
+    public void testValidateCertReqDNSNamesUnknown() throws IOException {
+        Path path = Paths.get("src/test/resources/invalid_dns.csr");
+        String csr = new String(Files.readAllBytes(path));
+        
+        // includes www.athenz.io as dns name so it should be rejected
+        
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
+        boolean result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz", "production");
         assertFalse(result);
     }
 }

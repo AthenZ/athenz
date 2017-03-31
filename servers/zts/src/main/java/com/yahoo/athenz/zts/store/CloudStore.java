@@ -782,7 +782,11 @@ public class CloudStore {
                 return null;
             }
             
-            if (!ZTSUtils.verifyCertificateRequest(certReq, cn, null, null)) {
+            int idx = cn.indexOf('.');
+            if (idx == -1) {
+                return null;
+            }
+            if (!ZTSUtils.verifyCertificateRequest(certReq, cn.substring(0, idx), cn.substring(idx + 1), null, null)) {
                 return null;
             }
         }

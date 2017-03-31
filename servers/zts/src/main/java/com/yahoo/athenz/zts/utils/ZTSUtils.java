@@ -51,6 +51,8 @@ public class ZTSUtils {
     public static final String ZTS_DEFAULT_EXCLUDED_PROTOCOLS = "SSLv2,SSLv3";
     public static final String ZTS_CERT_UUID_PREFIX =
             System.getProperty(ZTSConsts.ZTS_PROP_CERT_UUID_PREFIX, ZTSConsts.ZTS_CERT_UUID_PREFIX);
+    public static final String ZTS_CERT_DNS_SUFFIX =
+            System.getProperty(ZTSConsts.ZTS_PROP_CERT_DNS_SUFFIX, ZTSConsts.ZTS_CERT_DNS_SUFFIX);
     
     private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
     private static String CA_X509_CERTIFICATE = null;
@@ -163,19 +165,27 @@ public class ZTSUtils {
         return true;
     }
     
-    public static boolean verifyCertificateRequest(PKCS10CertificationRequest certReq, String cn,
-            String publicKey, X509CertRecord certRecord) {
+    public static boolean verifyCertificateRequest(PKCS10CertificationRequest certReq, String domain,
+            String service, String publicKey, X509CertRecord certRecord) {
         
         // verify that it contains the right common name
         // and the certificate matches to what we have
         // registered in ZMS
 
+        final String cn = domain + "." + service;
         try {
             if (!validateCertReqCommonName(certReq, cn)) {
                 LOGGER.error("validateCertificateRequest: unable to validate PKCS10 cert request common name");
                 return false;
             }
 
+            // verify we don't have invalid dnsnames in the csr
+            
+            if (!validateCertReqDNSNames(certReq, domain, service)) {
+                LOGGER.error("validateCertificateRequest: unable to validate PKCS10 cert request DNS Name");
+                return false;
+            }
+            
             if (publicKey != null) {
                 if (!validateCertReqPublicKey(certReq, publicKey)) {
                     LOGGER.error("validateCertificateRequest: unable to validate PKCS10 cert request public key");
@@ -239,6 +249,30 @@ public class ZTSUtils {
             return false;
         }
 
+        return true;
+    }
+    
+    public static boolean validateCertReqDNSNames(PKCS10CertificationRequest certReq,
+            String domain, String service) {
+        
+        List<String> dnsNames = Crypto.extractX509CSRDnsNames(certReq);
+        if (dnsNames.isEmpty()) {
+            return true;
+        }
+        // the only two formats we're allowed to have in the CSR are:
+        // 1) service.domain-with-dashes.<svc>.yahoo.cloud
+        // 2) athenz.uuid.<instance-id>
+        final String prefix = service + "." + domain.replace('.', '-');
+        for (String dnsName : dnsNames) {
+            if (dnsName.startsWith(prefix) && dnsName.endsWith(ZTS_CERT_DNS_SUFFIX)) {
+                continue;
+            }
+            if (dnsName.startsWith(ZTS_CERT_UUID_PREFIX)) {
+                continue;
+            }
+            LOGGER.error("validateCertReqDNSNames - Invalid dnsName SAN entry: {}", dnsName);
+            return false;
+        }
         return true;
     }
     

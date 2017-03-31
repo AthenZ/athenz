@@ -62,11 +62,13 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_CERT_JDBC_USER      = "athenz.zts.cert_jdbc_user";
     public static final String ZTS_PROP_CERT_JDBC_PASSWORD  = "athenz.zts.cert_jdbc_password";
     public static final String ZTS_PROP_CERT_UUID_PREFIX    = "athenz.zts.cert_uuid_prefix";
+    public static final String ZTS_PROP_CERT_DNS_SUFFIX     = "athenz.zts.cert_dns_suffix";
     
     public static final String ZTS_SERVICE            = "zts";
     public static final String ZTS_UNKNOWN_DOMAIN     = "unknown_domain";
     public static final String ZTS_CERT_UUID_PREFIX   = "athenz.uuid.";
-
+    public static final String ZTS_CERT_DNS_SUFFIX    = ".yahoo.cloud";
+    
     public static final String ATHENZ_SYS_DOMAIN      = "sys.auth";
     public static final String ATHENZ_USER_DOMAIN     = "user";
     

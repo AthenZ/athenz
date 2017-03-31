@@ -1469,7 +1469,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         if (email != null) {
             String emailPrefix = principal + "@";
-            if (!email.startsWith(emailPrefix) || !email.endsWith(".yahoo.cloud")) {
+            if (!email.startsWith(emailPrefix) || !email.endsWith(ZTSUtils.ZTS_CERT_DNS_SUFFIX)) {
                 return false;
             }
         }
@@ -1720,7 +1720,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domain);
         }
         
-        if (!ZTSUtils.verifyCertificateRequest(certReq, principalName, publicKey, null)) {
+        if (!ZTSUtils.verifyCertificateRequest(certReq, domain, service, publicKey, null)) {
             throw requestError("postInstanceRefreshRequest: invalid CSR - cn or public key mismatch",
                     caller, domain);
         }
@@ -1779,7 +1779,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domain);
         }
         
-        if (!ZTSUtils.verifyCertificateRequest(certReq, cn, null, null)) {
+        if (!ZTSUtils.verifyCertificateRequest(certReq, domain, service, null, null)) {
             throw requestError("postInstanceInformation: unable to verify certificate request, invalid csr",
                     caller, domain);
         }
@@ -1861,7 +1861,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domain);
         }
         
-        if (!ZTSUtils.verifyCertificateRequest(certReq, cn, null, null)) {
+        if (!ZTSUtils.verifyCertificateRequest(certReq, domain, service, null, null)) {
             throw requestError("postOSTKInstanceInformation: unable to verify certificate request, invalid csr",
                     caller, domain);
         }
@@ -1970,7 +1970,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domain);
         }
         
-        if (!ZTSUtils.verifyCertificateRequest(certReq, principalName, null, x509CertRecord)) {
+        if (!ZTSUtils.verifyCertificateRequest(certReq, domain, service, null, x509CertRecord)) {
             throw requestError("postOSTKInstanceRefreshRequest: invalid CSR - cn mismatch",
                     caller, domain);
         }
