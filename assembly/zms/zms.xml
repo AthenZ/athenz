@@ -35,6 +35,14 @@
       </includes>
     </fileSet>
     <fileSet>
+      <directory>${basedir}/../../servers/zms/scripts</directory>
+      <outputDirectory>bin</outputDirectory>
+      <fileMode>755</fileMode>
+      <includes>
+        <include>setup_dev_zms.sh</include>
+      </includes>
+    </fileSet>
+    <fileSet>
       <directory>${basedir}/../../servers/zms/target</directory>
       <outputDirectory>webapps</outputDirectory>
       <fileMode>755</fileMode>

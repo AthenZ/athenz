@@ -5,8 +5,6 @@
     * [JDK 8](#jdk-8)
 * [Getting Software](#getting-software)
 * [Configuration](#configuration)
-    * [Private Key](#private-key)
-    * [Self Signed X509 Certificate](#self-signed-x509-certificate)
     * [User Authentication](#user-authentication)
     * [System Administrators](#system-administrators)
 * [Start/Stop ZMS Server](#startstop-zms-server)
@@ -39,7 +37,6 @@ choose the latest version directory and then download the
 
 ```shell
 $ tar xvfz athenz-zms-X.Y-bin.tar.gz
-$ cd athenz-zms-X.Y
 ```
 
 ## Configuration
@@ -48,38 +45,15 @@ $ cd athenz-zms-X.Y
 To run ZMS Server, the system administrator must generate the keys
 and make necessary changes to the configuration settings.
 
-### Private Key
----------------
-
-Generate a unique private key that ZMS Server will use
-to sign any NTokens it issues. From the `athenz-zms-X.Y` directory
-execute the following commands:
-
 ```shell
-$ cd var/zms_server/keys
-$ openssl genrsa -out zms_private.pem 2048
+$ cd athenz-zms-X.Y
+$ bin/setup_dev_zms.sh
 ```
 
-### Self Signed X509 Certificate
---------------------------------
+Running this setup script completes the following two tasks:
 
-Generate a self-signed X509 certificate for ZMS Server HTTPS
-support. After we generate the X509 certificate, we need to add
-that certificate along with its private key to a keystore for Jetty 
-use. For the local environment steps, we're using default password
-of "athenz". From the `athenz-zms-X.Y` directory execute the following
-commands:
-
-```shell
-$ cd var/zms_server/certs
-$ openssl req -x509 -newkey rsa:2048 -keyout zms_key.pem -out zms_cert.pem -days 365
-```
-
-Generate a keystore in PKCS#12 format:
-
-```shell
-$ openssl pkcs12 -export -out zms_keystore.pkcs12 -in zms_cert.pem -inkey zms_key.pem
-```
+* Generate a unique private key that ZMS Server will use to sign any NTokens it issues
+* Generate a self-signed X509 certificate for ZMS Server HTTPS support
 
 ### User Authentication
 -----------------------
