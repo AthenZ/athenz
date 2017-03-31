@@ -905,6 +905,19 @@ public class FileConnection implements ObjectStoreConnection {
     }
 
     @Override
+    public boolean updateServiceIdentityModTimestamp(String domainName, String serviceName) {
+
+        DomainStruct domainStruct = getDomainStruct(domainName);
+        if (domainStruct == null) {
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "updateServiceIdentityModTimestamp");
+        }
+        ServiceIdentity service = getServiceObject(domainStruct, serviceName);
+        service.setModified(Timestamp.fromCurrentTime());
+        putDomainStruct(domainName, domainStruct);
+        return true;
+    }
+    
+    @Override
     public PublicKeyEntry getPublicKeyEntry(String domainName, String serviceName, String keyId) {
         DomainStruct domainStruct = getDomainStruct(domainName);
         if (domainStruct == null) {

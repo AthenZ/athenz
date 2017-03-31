@@ -149,6 +149,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "(name, provider_endpoint, executable, svc_user, svc_group, domain_id) VALUES (?,?,?,?,?,?);";
     private static final String SQL_UPDATE_SERVICE = "UPDATE service SET "
             + "provider_endpoint=?, executable=?, svc_user=?, svc_group=?  WHERE service_id=?;";
+    private static final String SQL_UPDATE_SERVICE_MOD_TIMESTAMP = "UPDATE service "
+            + "SET modified=CURRENT_TIMESTAMP(3) WHERE service_id=?;";
     private static final String SQL_DELETE_SERVICE = "DELETE FROM service WHERE domain_id=? AND name=?;";
     private static final String SQL_GET_SERVICE_ID = "SELECT service_id FROM service WHERE domain_id=? AND name=?;";
     private static final String SQL_LIST_SERVICE = "SELECT name FROM service WHERE domain_id=?;";
@@ -1049,6 +1051,30 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_ROLE_MOD_TIMESTAMP)) {
             ps.setInt(1, roleId);
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return (affectedRows > 0);
+    }
+    
+    @Override
+    public boolean updateServiceIdentityModTimestamp(String domainName, String serviceName) {
+        
+        int affectedRows = 0;
+        final String caller = "updateServiceIdentityModTimestamp";
+
+        int domainId = getDomainId(con, domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int serviceId = getServiceId(con, domainId, serviceName);
+        if (serviceId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_SERVICE, ZMSUtils.serviceResourceName(domainName, serviceName));
+        }
+        
+        try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_SERVICE_MOD_TIMESTAMP)) {
+            ps.setInt(1, serviceId);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);

@@ -97,7 +97,8 @@ public interface ObjectStoreConnection extends Closeable {
     boolean updateServiceIdentity(String domainName, ServiceIdentity service);
     boolean deleteServiceIdentity(String domainName, String serviceName);
     List<String> listServiceIdentities(String domainName);
-
+    boolean updateServiceIdentityModTimestamp(String domainName, String serviceName);
+    
     PublicKeyEntry getPublicKeyEntry(String domainName, String serviceName, String keyId);
     boolean insertPublicKeyEntry(String domainName, String serviceName, PublicKeyEntry publicKey);
     boolean updatePublicKeyEntry(String domainName, String serviceName, PublicKeyEntry publicKey);

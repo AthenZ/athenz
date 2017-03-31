@@ -826,8 +826,9 @@ public class DBService {
                             " in service " + ZMSUtils.serviceResourceName(domainName, serviceName), caller);
                 }
                 
-                // update our domain time-stamp and save changes
+                // update our service and domain time-stamp and save changes
                 
+                con.updateServiceIdentityModTimestamp(domainName, serviceName);
                 saveChanges(con, domainName);
 
                 // audit log the request
@@ -875,8 +876,9 @@ public class DBService {
                             " in service " + ZMSUtils.serviceResourceName(domainName, serviceName), caller);
                 }
                 
-                // update our domain time-stamp and save changes
+                // update our service and domain time-stamp and save changes
                 
+                con.updateServiceIdentityModTimestamp(domainName, serviceName);
                 saveChanges(con, domainName);
 
                 // audit log the request
