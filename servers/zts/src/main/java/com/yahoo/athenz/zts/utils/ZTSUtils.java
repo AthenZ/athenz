@@ -260,9 +260,9 @@ public class ZTSUtils {
             return true;
         }
         // the only two formats we're allowed to have in the CSR are:
-        // 1) service.domain-with-dashes.<svc>.yahoo.cloud
+        // 1) service.domain-with-dashes.<cloud>.yahoo.cloud
         // 2) athenz.uuid.<instance-id>
-        final String prefix = service + "." + domain.replace('.', '-');
+        final String prefix = service + "." + domain.replace('.', '-') + ".";
         for (String dnsName : dnsNames) {
             if (dnsName.startsWith(prefix) && dnsName.endsWith(ZTS_CERT_DNS_SUFFIX)) {
                 continue;

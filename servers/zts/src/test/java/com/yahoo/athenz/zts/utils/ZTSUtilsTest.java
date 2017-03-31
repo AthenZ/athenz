@@ -315,4 +315,24 @@ public class ZTSUtilsTest {
         boolean result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz", "production");
         assertFalse(result);
     }
+    
+    @Test
+    public void testValidateCertReqDNSNamesSubdomain() throws IOException {
+        Path path = Paths.get("src/test/resources/subdomain.csr");
+        String csr = new String(Files.readAllBytes(path));
+        
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
+        boolean result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz.domain", "production");
+        assertTrue(result);
+    }
+    
+    @Test
+    public void testValidateCertReqDNSNamesSubdomainInvalid() throws IOException {
+        Path path = Paths.get("src/test/resources/subdomain_invalid.csr");
+        String csr = new String(Files.readAllBytes(path));
+        
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
+        boolean result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz.domain", "production");
+        assertFalse(result);
+    }
 }
