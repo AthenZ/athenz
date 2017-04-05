@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 //
 // DomainModifiedList - A list of {domain, modified-timestamp} tuples.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_DEFAULT)
+@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class DomainModifiedList {
     public List<DomainModified> nameModList;
 

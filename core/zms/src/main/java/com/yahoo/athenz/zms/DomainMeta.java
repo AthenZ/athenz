@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 // DomainMeta - Set of metadata attributes that all domains may have and can be
 // changed.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_DEFAULT)
+@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class DomainMeta {
     @RdlOptional
     public String description;

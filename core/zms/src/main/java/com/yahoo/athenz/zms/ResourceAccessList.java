@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 //
 // ResourceAccessList -
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_DEFAULT)
+@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class ResourceAccessList {
     public List<ResourceAccess> resources;
 

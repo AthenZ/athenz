@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 //
 // TenantResourceGroup -
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_DEFAULT)
+@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class TenantResourceGroup {
     public String service;
     public String name;

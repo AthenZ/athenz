@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 // HostServices - The representation for an enumeration of services authorized
 // to run on a specific host.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_DEFAULT)
+@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class HostServices {
     public String host;
     public List<String> names;

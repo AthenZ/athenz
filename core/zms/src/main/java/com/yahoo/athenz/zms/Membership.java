@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 //
 // Membership - The representation for a role membership.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_DEFAULT)
+@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class Membership {
     public String memberName;
     @RdlOptional

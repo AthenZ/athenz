@@ -19,7 +19,7 @@ import java.util.ArrayList;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_DEFAULT)
+@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class AuthorizedService {
 
     private ArrayList<AllowedOperation> allowedOperations;

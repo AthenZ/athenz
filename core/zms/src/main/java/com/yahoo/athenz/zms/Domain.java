@@ -14,7 +14,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 // reverse-DNS namespaces). The top level domains are governed by the special
 // "sys.auth" domain.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_DEFAULT)
+@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class Domain {
     public String name;
     @RdlOptional

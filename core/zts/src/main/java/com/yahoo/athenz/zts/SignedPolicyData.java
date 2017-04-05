@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 // SignedPolicyData - A representation of policies object defined in a given
 // server.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_DEFAULT)
+@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class SignedPolicyData {
     public PolicyData policyData;
     public String zmsSignature;

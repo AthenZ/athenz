@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 // ProviderResourceGroupRoles - A representation of provider roles to be
 // provisioned.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_DEFAULT)
+@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class ProviderResourceGroupRoles {
     public String domain;
     public String service;

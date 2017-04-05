@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 // AWSCertificateRequest - AWSCertificateRequest - a certificate signing
 // request
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_DEFAULT)
+@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class AWSCertificateRequest {
     @RdlOptional
     public String csr;

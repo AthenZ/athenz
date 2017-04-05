@@ -20,7 +20,7 @@ import java.util.Set;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_DEFAULT)
+@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class AuthorizedServices {
     private HashMap<String, AuthorizedService> services;
 

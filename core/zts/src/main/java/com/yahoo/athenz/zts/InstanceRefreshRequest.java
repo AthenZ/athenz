@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 // InstanceRefreshRequest - InstanceRefreshRequest - a certificate refresh
 // request
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_DEFAULT)
+@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class InstanceRefreshRequest {
     public String csr;
     @RdlOptional

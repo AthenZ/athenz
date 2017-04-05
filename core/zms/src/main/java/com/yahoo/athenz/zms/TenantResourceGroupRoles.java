@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 // TenantResourceGroupRoles - A representation of tenant roles for resource
 // groups to be provisioned.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_DEFAULT)
+@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class TenantResourceGroupRoles {
     public String domain;
     public String service;

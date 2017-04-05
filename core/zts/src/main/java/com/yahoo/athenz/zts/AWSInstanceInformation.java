@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 // AWSInstanceInformation - AWSInstanceInformation - the information a booting
 // EC2 instance must provide to ZTS to authenticate.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_DEFAULT)
+@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class AWSInstanceInformation {
     public String document;
     public String signature;

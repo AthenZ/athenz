@@ -12,7 +12,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 // operation looking for dangling roles, policies and trust relationships that
 // are set either on tenant or provider side only
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_DEFAULT)
+@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class DomainDataCheck {
     @RdlOptional
     public List<String> danglingRoles;

@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 // names/prefixes are reserved (i.e. "role",  "policy", "meta", "domain",
 // "service")
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_DEFAULT)
+@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class Entity {
     public String name;
     public Struct value;

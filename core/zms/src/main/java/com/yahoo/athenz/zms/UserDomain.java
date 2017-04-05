@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 // UserDomain - A UserDomain is the user's own top level domain in user - e.g.
 // user.hga
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_DEFAULT)
+@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class UserDomain {
     @RdlOptional
     public String description;

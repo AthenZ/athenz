@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 // DomainSignedPolicyData - A signed bulk transfer of policies. The data is
 // signed with server's private key.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_DEFAULT)
+@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class DomainSignedPolicyData {
     public SignedPolicyData signedPolicyData;
     public String signature;

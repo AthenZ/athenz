@@ -12,7 +12,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 // response could be either a client certificate or just a regular NToken
 // (depending if the request contained a csr or not).
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_DEFAULT)
+@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class Identity {
     public String name;
     @RdlOptional

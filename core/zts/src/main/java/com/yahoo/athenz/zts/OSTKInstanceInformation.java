@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 // details plus host document that is signed by Openstack as part of the host
 // bootstrap process
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_DEFAULT)
+@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class OSTKInstanceInformation {
     public String document;
     public String signature;
