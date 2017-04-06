@@ -20,6 +20,7 @@
 'use strict';
 
 var _ = require('lodash');
+var config = require('../../config/config.js')();
 
 module.exports = {
   /**
@@ -63,7 +64,7 @@ module.exports = {
       name: member
     };
 
-    if (member.startsWith('user.')) {
+    if (member.startsWith(config.userDomain + '.')) {
       detail.userlink = 'http://localhost/user/' + member.substring(5);
     }
     return detail;

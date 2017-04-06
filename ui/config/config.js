@@ -15,7 +15,9 @@
  */
 var config = {
   development: {
-    zms: process.env.ZMS_SERVER_URL || 'https://localhost:4443/zms/v1/',
+    zmshost: process.env.ZMS_SERVER || 'localhost',
+    userDomain: 'user',
+    authHeader: 'Athenz-Principal-Auth',
     strictSSL: false,
     user: 'ui',
     serviceFQN: 'athenz.ui',
@@ -23,7 +25,9 @@ var config = {
     envLabel: ''
   },
   production: {
-    zms: process.env.ZMS_SERVER_URL || 'https://localhost:4443/zms/v1/',
+    zmshost: process.env.ZMS_SERVER || 'localhost',
+    userDomain: 'user',
+    authHeader: 'Athenz-Principal-Auth',
     strictSSL: true,
     user: 'ui',
     serviceFQN: 'athenz.ui',
@@ -36,9 +40,15 @@ var config = {
 module.exports = function() {
   var c = config[process.env.SERVICE_NAME || 'development'];
 
+  c.zmshost = c.zmshost || 'localhost';
+  c.zms = process.env.ZMS_SERVER_URL || 'https://' + c.zmshost + ':4443/zms/v1/',
+  c.userDomain = c.userDomain || 'user';
+  c.authHeader = c.authHeader || 'Athenz-Principal-Auth';
+  c.strictSSL = c.strictSSL || false;
   c.user = c.user || 'ui';
   c.serviceFQN = c.serviceFQN || process.env.DOMAIN_NAME + '.' + process.env.SERVICE_NAME;
   c.authKeyVersion = c.authKeyVersion || '0';
+  c.envLabel = c.envLabel || 'development';
 
   return c;
 };

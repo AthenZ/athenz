@@ -24,7 +24,7 @@
   <artifactId>athenz-conf</artifactId>
   <packaging>jar</packaging>
   <name>athenz-conf</name>
-  <description>AtheNZ Config File Utility</description>
+  <description>Athenz Config File Utility</description>
 
   <properties>
     <maven.install.skip>true</maven.install.skip>
