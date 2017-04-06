@@ -20,12 +20,8 @@ import java.io.IOException;
 import org.eclipse.jetty.server.NCSARequestLog;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
-import org.eclipse.jetty.util.log.Log;
-import org.eclipse.jetty.util.log.Logger;
 
 public class AthenzRequestLog extends NCSARequestLog {
-
-    protected static final Logger LOG = Log.getLogger(AthenzRequestLog.class);
 
     public static final String REQUEST_PRINCIPAL = "com.yahoo.athenz.auth.principal";
     
