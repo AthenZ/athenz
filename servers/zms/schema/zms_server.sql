@@ -37,7 +37,8 @@ CREATE TABLE IF NOT EXISTS `zms_server`.`domain` (
   INDEX `idx_modified` (`modified` ASC),
   INDEX `idx_account` (`account` ASC),
   INDEX `idx_ypmid` (`ypm_id` ASC))
-ENGINE = InnoDB;
+ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+-- Prevent ERROR 1709 (HY000)
 
 
 -- -----------------------------------------------------
@@ -57,7 +58,8 @@ CREATE TABLE IF NOT EXISTS `zms_server`.`role` (
     REFERENCES `zms_server`.`domain` (`domain_id`)
     ON DELETE CASCADE
     ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+-- Prevent ERROR 1709 (HY000)
 
 
 -- -----------------------------------------------------
@@ -68,7 +70,8 @@ CREATE TABLE IF NOT EXISTS `zms_server`.`principal` (
   `name` VARCHAR(512) NOT NULL,
   PRIMARY KEY (`principal_id`),
   UNIQUE INDEX `uq_name` (`name` ASC))
-ENGINE = InnoDB;
+ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+-- Prevent ERROR 1709 (HY000)
 
 
 -- -----------------------------------------------------
@@ -88,7 +91,8 @@ CREATE TABLE IF NOT EXISTS `zms_server`.`policy` (
     REFERENCES `zms_server`.`domain` (`domain_id`)
     ON DELETE CASCADE
     ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+-- Prevent ERROR 1709 (HY000)
 
 
 -- -----------------------------------------------------
@@ -112,7 +116,8 @@ CREATE TABLE IF NOT EXISTS `zms_server`.`assertion` (
     REFERENCES `zms_server`.`policy` (`policy_id`)
     ON DELETE CASCADE
     ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+-- Prevent ERROR 1709 (HY000)
 
 
 -- -----------------------------------------------------
@@ -136,7 +141,8 @@ CREATE TABLE IF NOT EXISTS `zms_server`.`service` (
     REFERENCES `zms_server`.`domain` (`domain_id`)
     ON DELETE CASCADE
     ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+-- Prevent ERROR 1709 (HY000)
 
 
 -- -----------------------------------------------------
@@ -152,7 +158,8 @@ CREATE TABLE IF NOT EXISTS `zms_server`.`public_key` (
     REFERENCES `zms_server`.`service` (`service_id`)
     ON DELETE CASCADE
     ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+-- Prevent ERROR 1709 (HY000)
 
 
 -- -----------------------------------------------------
@@ -163,7 +170,8 @@ CREATE TABLE IF NOT EXISTS `zms_server`.`host` (
   `name` VARCHAR(512) NOT NULL,
   PRIMARY KEY (`host_id`),
   UNIQUE INDEX `uq_name` (`name` ASC))
-ENGINE = InnoDB;
+ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+-- Prevent ERROR 1709 (HY000)
 
 
 -- -----------------------------------------------------
@@ -184,7 +192,8 @@ CREATE TABLE IF NOT EXISTS `zms_server`.`service_host` (
     REFERENCES `zms_server`.`service` (`service_id`)
     ON DELETE CASCADE
     ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+-- Prevent ERROR 1709 (HY000)
 
 
 -- -----------------------------------------------------
@@ -202,7 +211,8 @@ CREATE TABLE IF NOT EXISTS `zms_server`.`entity` (
     REFERENCES `zms_server`.`domain` (`domain_id`)
     ON DELETE CASCADE
     ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+-- Prevent ERROR 1709 (HY000)
 
 
 -- -----------------------------------------------------
@@ -224,7 +234,8 @@ CREATE TABLE IF NOT EXISTS `zms_server`.`role_member` (
     REFERENCES `zms_server`.`principal` (`principal_id`)
     ON DELETE CASCADE
     ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+-- Prevent ERROR 1709 (HY000)
 
 
 -- -----------------------------------------------------
@@ -240,7 +251,8 @@ CREATE TABLE IF NOT EXISTS `zms_server`.`domain_template` (
     REFERENCES `zms_server`.`domain` (`domain_id`)
     ON DELETE CASCADE
     ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+-- Prevent ERROR 1709 (HY000)
 
 
 -- -----------------------------------------------------
@@ -259,7 +271,8 @@ CREATE TABLE IF NOT EXISTS `zms_server`.`role_audit_log` (
     REFERENCES `zms_server`.`role` (`role_id`)
     ON DELETE CASCADE
     ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+-- Prevent ERROR 1709 (HY000)
 
 
 SET SQL_MODE=@OLD_SQL_MODE;

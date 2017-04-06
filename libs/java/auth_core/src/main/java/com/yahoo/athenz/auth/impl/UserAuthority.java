@@ -36,6 +36,7 @@ public class UserAuthority implements Authority {
     private static final Logger LOG = LoggerFactory.getLogger(UserAuthority.class);
     static final String ATHENZ_PROP_PAM_SERVICE_NAME = "athenz.auth.user.pam_service_name";
 
+    final String userDomain = System.getProperty("athenz.user_domain", "user");
     final String serviceName = System.getProperty(ATHENZ_PROP_PAM_SERVICE_NAME, "login");
     private PAM pam = null;
     
@@ -48,7 +49,7 @@ public class UserAuthority implements Authority {
 
     @Override
     public String getDomain() {
-        return "user";
+        return userDomain;
     }
 
     @Override
