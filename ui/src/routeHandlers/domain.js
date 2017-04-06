@@ -31,6 +31,8 @@ var rolesHandler = require('../api/roles');
 var servicesHandler = require('../api/services');
 var policiesHandler = require('../api/policies');
 
+var config = require('../../config/config.js')();
+
 var isEmpty = function(result) {
   if(Array.isArray(result) && result.length) {
     return false;
@@ -112,7 +114,7 @@ module.exports = {
         res.render('adddomains', viewData);
         break;
       case 'userdomain':
-        var userDomainId = 'user.' + req.userCred;
+        var userDomainId = config.userDomain + '.' + req.userCred;
         domainHandler.fetchDomainMetadata({
           domainId: userDomainId
         },
@@ -142,7 +144,7 @@ module.exports = {
   },
   addDomain: function(req, res) {
     var domainData = {
-      adminUsers: ['user.' + req.userCred],
+      adminUsers: [config.userDomain + '.' + req.userCred],
       name: req.body.name,
       parent: req.body.parent
     };

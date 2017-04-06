@@ -39,6 +39,11 @@ function notLogged(req, res) {
       pageTitle: '401 Unauthorized',
       url: req.originalUrl
     });
+  } else if(req.method === 'POST' && req.originalUrl.indexOf('ajax') === -1) {
+    return res.render('login', {
+      pageTitle: '401 Unauthorized',
+      url: req.originalUrl
+    });
   }
   res.status(401).send('');
 }
