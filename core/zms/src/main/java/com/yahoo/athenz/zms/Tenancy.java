@@ -4,17 +4,17 @@
 
 package com.yahoo.athenz.zms;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // Tenancy - A representation of tenant.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class Tenancy {
     public String domain;
     public String service;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public List<String> resourceGroups;
 
     public Tenancy setDomain(String domain) {

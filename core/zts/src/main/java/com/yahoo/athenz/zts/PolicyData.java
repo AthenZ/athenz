@@ -5,12 +5,10 @@
 package com.yahoo.athenz.zts;
 import java.util.List;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // PolicyData -
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class PolicyData {
     public String domain;
     public List<Policy> policies;

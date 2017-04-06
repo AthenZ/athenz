@@ -4,13 +4,11 @@
 
 package com.yahoo.athenz.zts;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // SignedPolicyData - A representation of policies object defined in a given
 // server.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class SignedPolicyData {
     public PolicyData policyData;
     public String zmsSignature;

@@ -4,12 +4,10 @@
 
 package com.yahoo.athenz.zms;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // TenantRoleAction - A representation of tenant role action.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class TenantRoleAction {
     public String role;
     public String action;

@@ -4,12 +4,10 @@
 
 package com.yahoo.athenz.zts;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // Access - Access can be checked and returned as this resource.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class Access {
     public boolean granted;
 

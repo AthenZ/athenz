@@ -5,7 +5,6 @@
 package com.yahoo.athenz.zms;
 import java.util.List;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // DomainPolicies - We need to include the name of the domain in this struct
@@ -13,7 +12,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 // only the list of policies but also the corresponding domain name that the
 // policies belong to.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class DomainPolicies {
     public String domain;
     public List<Policy> policies;

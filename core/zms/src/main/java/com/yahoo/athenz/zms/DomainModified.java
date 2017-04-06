@@ -4,14 +4,12 @@
 
 package com.yahoo.athenz.zms;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // DomainModified - Tuple of domain-name and modification time-stamps. This
 // object is returned when the caller has requested list of domains modified
 // since a specific timestamp.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class DomainModified {
     public String name;
     public long modified;

@@ -3,8 +3,8 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // Domain - A domain is an independent partition of users, roles, and
@@ -14,24 +14,31 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 // reverse-DNS namespaces). The top level domains are governed by the special
 // "sys.auth" domain.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class Domain {
     public String name;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Timestamp modified;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public UUID id;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String description;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String org;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean enabled;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean auditEnabled;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String account;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer ypmId;
 
     public Domain setName(String name) {

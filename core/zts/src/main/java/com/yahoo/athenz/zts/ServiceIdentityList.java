@@ -5,13 +5,11 @@
 package com.yahoo.athenz.zts;
 import java.util.List;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // ServiceIdentityList - The representation for an enumeration of services in
 // the namespace.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class ServiceIdentityList {
     public List<String> names;
 

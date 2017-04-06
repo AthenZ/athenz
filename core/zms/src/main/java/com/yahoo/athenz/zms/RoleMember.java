@@ -3,16 +3,16 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // RoleMember -
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class RoleMember {
     public String memberName;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Timestamp expiration;
 
     public RoleMember setMemberName(String memberName) {

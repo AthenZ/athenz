@@ -5,12 +5,10 @@
 package com.yahoo.athenz.zms;
 import java.util.List;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // ServiceIdentities - The representation of list of services
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class ServiceIdentities {
     public List<ServiceIdentity> list;
 

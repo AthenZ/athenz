@@ -3,17 +3,17 @@
 //
 
 package com.yahoo.athenz.zts;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // InstanceRefreshRequest - InstanceRefreshRequest - a certificate refresh
 // request
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class InstanceRefreshRequest {
     public String csr;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer expiryTime;
 
     public InstanceRefreshRequest setCsr(String csr) {

@@ -4,17 +4,17 @@
 
 package com.yahoo.athenz.zms;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // PolicyList - The representation for an enumeration of policies in the
 // namespace, with pagination.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class PolicyList {
     public List<String> names;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String next;
 
     public PolicyList setNames(List<String> names) {

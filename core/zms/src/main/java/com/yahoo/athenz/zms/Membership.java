@@ -3,20 +3,22 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // Membership - The representation for a role membership.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class Membership {
     public String memberName;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean isMember;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String roleName;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Timestamp expiration;
 
     public Membership setMemberName(String memberName) {

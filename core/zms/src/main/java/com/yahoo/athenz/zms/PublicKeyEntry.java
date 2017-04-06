@@ -4,13 +4,11 @@
 
 package com.yahoo.athenz.zms;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // PublicKeyEntry - The representation of the public key in a service identity
 // object.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class PublicKeyEntry {
     public String key;
     public String id;

@@ -3,31 +3,37 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // TopLevelDomain - Top Level Domain object. The required attributes include
 // the name of the domain and list of domain administrators.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class TopLevelDomain {
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String description;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String org;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean enabled;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean auditEnabled;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String account;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer ypmId;
     public String name;
     public List<String> adminUsers;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public DomainTemplateList templates;
 
     public TopLevelDomain setDescription(String description) {

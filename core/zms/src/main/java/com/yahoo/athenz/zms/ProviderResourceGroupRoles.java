@@ -5,13 +5,11 @@
 package com.yahoo.athenz.zms;
 import java.util.List;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // ProviderResourceGroupRoles - A representation of provider roles to be
 // provisioned.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class ProviderResourceGroupRoles {
     public String domain;
     public String service;

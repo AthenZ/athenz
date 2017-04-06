@@ -3,16 +3,16 @@
 //
 
 package com.yahoo.athenz.zts;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // OSTKInstanceRefreshRequest - OSTKCertificateRequest - a certificate signing
 // request
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class OSTKInstanceRefreshRequest {
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String csr;
 
     public OSTKInstanceRefreshRequest setCsr(String csr) {

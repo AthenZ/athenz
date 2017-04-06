@@ -5,12 +5,10 @@
 package com.yahoo.athenz.zms;
 import java.util.List;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // ResourceAccess -
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class ResourceAccess {
     public String principal;
     public List<Assertion> assertions;

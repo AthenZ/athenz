@@ -4,12 +4,10 @@
 
 package com.yahoo.athenz.zts;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // RoleToken - A representation of a signed RoleToken
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class RoleToken {
     public String token;
     public long expiryTime;

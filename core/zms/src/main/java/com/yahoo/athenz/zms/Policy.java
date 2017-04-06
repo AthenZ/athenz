@@ -3,17 +3,17 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // Policy - The representation for a Policy with set of assertions.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class Policy {
     public String name;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Timestamp modified;
     public List<Assertion> assertions;
 

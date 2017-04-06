@@ -3,29 +3,35 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // UserDomain - A UserDomain is the user's own top level domain in user - e.g.
 // user.hga
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class UserDomain {
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String description;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String org;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean enabled;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean auditEnabled;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String account;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer ypmId;
     public String name;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public DomainTemplateList templates;
 
     public UserDomain setDescription(String description) {

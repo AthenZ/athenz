@@ -3,18 +3,19 @@
 //
 
 package com.yahoo.athenz.zts;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // AWSCertificateRequest - AWSCertificateRequest - a certificate signing
 // request
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class AWSCertificateRequest {
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String csr;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String ssh;
 
     public AWSCertificateRequest setCsr(String csr) {

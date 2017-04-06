@@ -4,28 +4,33 @@
 
 package com.yahoo.athenz.zts;
 import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // Identity - Identity - a signed assertion of service or human identity, the
 // response could be either a client certificate or just a regular NToken
 // (depending if the request contained a csr or not).
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class Identity {
     public String name;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String certificate;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String caCertBundle;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String sshCertificate;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String sshCertificateSigner;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String serviceToken;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Map<String, String> attributes;
 
     public Identity setName(String name) {

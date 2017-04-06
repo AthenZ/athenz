@@ -4,13 +4,11 @@
 
 package com.yahoo.athenz.zms;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // SignedPolicies - A signed bulk transfer of policies. The data is signed with
 // server's private key.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class SignedPolicies {
     public DomainPolicies contents;
     public String signature;

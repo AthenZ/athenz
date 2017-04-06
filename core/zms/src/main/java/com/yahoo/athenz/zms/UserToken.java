@@ -4,12 +4,10 @@
 
 package com.yahoo.athenz.zms;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // UserToken - A user token generated based on user's credentials
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class UserToken {
     public String token;
 

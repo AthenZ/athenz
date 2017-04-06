@@ -3,19 +3,19 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // RoleAuditLog - An audit log entry for role membership change.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class RoleAuditLog {
     public String member;
     public String admin;
     public Timestamp created;
     public String action;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String auditRef;
 
     public RoleAuditLog setMember(String member) {

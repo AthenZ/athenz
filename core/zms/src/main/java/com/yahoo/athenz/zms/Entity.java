@@ -4,14 +4,12 @@
 
 package com.yahoo.athenz.zms;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // Entity - An entity is a name and a structured value. some entity
 // names/prefixes are reserved (i.e. "role",  "policy", "meta", "domain",
 // "service")
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class Entity {
     public String name;
     public Struct value;

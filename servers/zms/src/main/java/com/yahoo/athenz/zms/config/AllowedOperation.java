@@ -18,9 +18,6 @@ package com.yahoo.athenz.zms.config;
 import java.util.Set;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class AllowedOperation {
     private String name;
     private Map<String, Set<String>> items;

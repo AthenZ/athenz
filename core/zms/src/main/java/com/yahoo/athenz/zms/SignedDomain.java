@@ -4,12 +4,10 @@
 
 package com.yahoo.athenz.zms;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // SignedDomain - A domain object signed with server's private key
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class SignedDomain {
     public DomainData domain;
     public String signature;

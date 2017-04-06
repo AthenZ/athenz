@@ -17,11 +17,8 @@ package com.yahoo.athenz.zms.config;
 
 import java.util.HashMap;
 import java.util.Set;
-
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.yahoo.athenz.zms.Template;
 
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class SolutionTemplates {
     private HashMap<String, Template> templates;
 

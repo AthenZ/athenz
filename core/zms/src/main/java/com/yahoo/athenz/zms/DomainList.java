@@ -4,16 +4,16 @@
 
 package com.yahoo.athenz.zms;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // DomainList - A paginated list of domains.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class DomainList {
     public List<String> names;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String next;
 
     public DomainList setNames(List<String> names) {

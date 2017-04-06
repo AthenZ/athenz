@@ -5,12 +5,10 @@
 package com.yahoo.athenz.zms;
 import java.util.List;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // TenantRoles - A representation of tenant roles to be provisioned.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class TenantRoles {
     public String domain;
     public String service;

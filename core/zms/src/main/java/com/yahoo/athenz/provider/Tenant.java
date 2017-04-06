@@ -3,22 +3,24 @@
 //
 
 package com.yahoo.athenz.provider;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // Tenant -
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class Tenant {
     public String service;
     public String name;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public TenantState state;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public List<String> roles;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public List<String> resourceGroups;
 
     public Tenant setService(String service) {

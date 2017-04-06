@@ -3,15 +3,14 @@
 //
 
 package com.yahoo.athenz.zts;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // InstanceInformation - Instance object that includes requested service
 // details plus host document that is signed by provider as part of the host
 // bootstrap process
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class InstanceInformation {
     public String document;
     public String signature;
@@ -20,6 +19,7 @@ public class InstanceInformation {
     public String service;
     public String csr;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String ssh;
 
     public InstanceInformation setDocument(String document) {

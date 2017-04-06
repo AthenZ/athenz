@@ -5,13 +5,11 @@
 package com.yahoo.athenz.zms;
 import java.util.List;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // TemplateList - List of template names that is the base struct for server and
 // domain templates
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class TemplateList {
     public List<String> templateNames;
 

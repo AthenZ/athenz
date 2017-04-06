@@ -4,12 +4,10 @@
 
 package com.yahoo.athenz.zts;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // DomainMetric -
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class DomainMetric {
     public DomainMetricType metricType;
     public int metricVal;

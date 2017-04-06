@@ -18,9 +18,6 @@ package com.yahoo.athenz.zms.config;
 import java.util.HashMap;
 import java.util.Set;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class AuthorizedServices {
     private HashMap<String, AuthorizedService> services;
 

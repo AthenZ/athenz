@@ -3,14 +3,13 @@
 //
 
 package com.yahoo.athenz.zts;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // AWSInstanceInformation - AWSInstanceInformation - the information a booting
 // EC2 instance must provide to ZTS to authenticate.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class AWSInstanceInformation {
     public String document;
     public String signature;
@@ -18,12 +17,15 @@ public class AWSInstanceInformation {
     public String service;
     public String csr;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String ssh;
     public String name;
     public String account;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String cloud;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String subnet;
     public String access;
     public String secret;

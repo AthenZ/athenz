@@ -5,12 +5,10 @@
 package com.yahoo.athenz.zms;
 import java.util.List;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // Roles - The representation for a list of roles with full details
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class Roles {
     public List<Role> list;
 

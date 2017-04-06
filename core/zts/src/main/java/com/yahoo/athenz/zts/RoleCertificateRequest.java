@@ -4,13 +4,11 @@
 
 package com.yahoo.athenz.zts;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // RoleCertificateRequest - RoleCertificateRequest - a certificate signing
 // request
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class RoleCertificateRequest {
     public String csr;
     public long expiryTime;

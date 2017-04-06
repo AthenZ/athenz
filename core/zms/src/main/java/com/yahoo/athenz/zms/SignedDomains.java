@@ -5,12 +5,10 @@
 package com.yahoo.athenz.zms;
 import java.util.List;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // SignedDomains - A list of signed domain objects
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class SignedDomains {
     public List<SignedDomain> domains;
 

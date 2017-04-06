@@ -3,25 +3,29 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // Role - The representation for a Role with set of members.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class Role {
     public String name;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Timestamp modified;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public List<String> members;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public List<RoleMember> roleMembers;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String trust;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public List<RoleAuditLog> auditLog;
 
     public Role setName(String name) {

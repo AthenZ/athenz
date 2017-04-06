@@ -3,29 +3,35 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // ServiceIdentity - The representation of the service identity object.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class ServiceIdentity {
     public String name;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public List<PublicKeyEntry> publicKeys;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String providerEndpoint;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Timestamp modified;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String executable;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public List<String> hosts;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String user;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String group;
 
     public ServiceIdentity setName(String name) {

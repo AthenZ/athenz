@@ -5,13 +5,11 @@
 package com.yahoo.athenz.zts;
 import java.util.List;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // HostServices - The representation for an enumeration of services authorized
 // to run on a specific host.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class HostServices {
     public String host;
     public List<String> names;

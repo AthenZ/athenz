@@ -4,13 +4,11 @@
 
 package com.yahoo.athenz.zts;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // ResourceAccess - ResourceAccess can be checked and returned as this
 // resource. (same as ZMS.Access)
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class ResourceAccess {
     public boolean granted;
 

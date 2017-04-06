@@ -3,27 +3,30 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // DomainDataCheck - Domain data object representing the results of a check
 // operation looking for dangling roles, policies and trust relationships that
 // are set either on tenant or provider side only
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class DomainDataCheck {
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public List<String> danglingRoles;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public List<DanglingPolicy> danglingPolicies;
     public int policyCount;
     public int assertionCount;
     public int roleWildCardCount;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public List<String> providersWithoutTrust;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public List<String> tenantsWithoutAssumeRole;
 
     public DomainDataCheck setDanglingRoles(List<String> danglingRoles) {

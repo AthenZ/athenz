@@ -3,21 +3,22 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // Assertion - A representation for the encapsulation of an action to be
 // performed on a resource by a principal.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class Assertion {
     public String role;
     public String resource;
     public String action;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public AssertionEffect effect;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Long id;
 
     public Assertion setRole(String role) {

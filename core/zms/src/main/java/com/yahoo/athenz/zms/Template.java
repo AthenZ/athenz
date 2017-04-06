@@ -5,12 +5,10 @@
 package com.yahoo.athenz.zms;
 import java.util.List;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // Template - Solution Template object defined on the server
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class Template {
     public List<Role> roles;
     public List<Policy> policies;

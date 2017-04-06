@@ -3,19 +3,20 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // DomainData - A domain object that includes its roles, policies and services.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class DomainData {
     public String name;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String account;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer ypmId;
     public List<Role> roles;
     public SignedPolicies policies;

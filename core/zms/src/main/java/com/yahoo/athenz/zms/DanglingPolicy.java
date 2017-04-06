@@ -4,13 +4,11 @@
 
 package com.yahoo.athenz.zms;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // DanglingPolicy - A dangling policy where the assertion is referencing a role
 // name that doesn't exist in the domain
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class DanglingPolicy {
     public String policyName;
     public String roleName;

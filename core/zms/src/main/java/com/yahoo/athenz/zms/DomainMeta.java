@@ -3,26 +3,31 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 //
 // DomainMeta - Set of metadata attributes that all domains may have and can be
 // changed.
 //
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class DomainMeta {
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String description;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String org;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean enabled;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean auditEnabled;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String account;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer ypmId;
 
     public DomainMeta setDescription(String description) {
