@@ -493,7 +493,7 @@ Name: Middle; Channel: ABC
 TvShow service does not have access to /rec/v1/movie endpoint:
 
 ```shell
-$ java -Djavax.net.ssl.trustStore=./zts_truststore.jks -cp ./example-java-client-ztoken-1.0.jar com.yahoo.athenz.example.ztoken.HttpExampleClient -d editors -s tvshow -p ./tvshow_private.pem -k v0 -pd recommend -pr tvshow_editors -z https://<zts-server>:8443/zts/v1 -u http://localhost:8080/athenz-data/rec/v1/tvshow
+$ java -Djavax.net.ssl.trustStore=./zts_truststore.jks -cp ./example-java-client-ztoken-1.0.jar com.yahoo.athenz.example.ztoken.HttpExampleClient -d editors -s tvshow -p ./tvshow_private.pem -k v0 -pd recommend -pr tvshow_editors -z https://<zts-server>:8443/zts/v1 -u http://localhost:8080/athenz-data/rec/v1/movie
 
 Request was forbidden - not authorized
 ```
