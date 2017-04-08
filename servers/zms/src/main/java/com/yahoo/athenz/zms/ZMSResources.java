@@ -122,7 +122,8 @@ public class ZMSResources {
     public Domain postUserDomain(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef, UserDomain detail) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
-            context.authorize("create", "user." + name + ":domain", null);
+            String userDomainPrefix = System.getProperty(ZMSConsts.ZMS_PROP_USER_DOMAIN, ZMSConsts.USER_DOMAIN) + ".";
+            context.authorize("create", userDomainPrefix + name + ":domain", null);
             Domain e = this.delegate.postUserDomain(context, name, auditRef, detail);
             return e;
         } catch (ResourceException e) {
@@ -203,7 +204,8 @@ public class ZMSResources {
     public UserDomain deleteUserDomain(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
-            context.authorize("delete", "user." + name + ":domain", null);
+            String userDomainPrefix = System.getProperty(ZMSConsts.ZMS_PROP_USER_DOMAIN, ZMSConsts.USER_DOMAIN) + ".";
+            context.authorize("delete", userDomainPrefix + name + ":domain", null);
             UserDomain e = this.delegate.deleteUserDomain(context, name, auditRef);
             return null;
         } catch (ResourceException e) {

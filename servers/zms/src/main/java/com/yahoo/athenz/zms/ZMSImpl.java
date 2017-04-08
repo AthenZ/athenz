@@ -740,10 +740,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             adminUsers.add(adminUser);
         }
         
-        if (!ZMSConsts.USER_DOMAIN.equals(userDomain)) {
-            createTopLevelDomain(null, userDomain, "The reserved domain for user authentication",
-                    null, null, adminUsers, null, 0, null, null);
-        }
         createTopLevelDomain(null, userDomain, "The reserved domain for user authentication",
                 null, null, adminUsers, null, 0, null, null);
         createTopLevelDomain(null, "sys", "The reserved domain for system related information",
@@ -1714,8 +1710,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // if the resource starts with the user domain and the environment is using
         // a different domain name we'll dynamically update the resource value
         
-        if (!userDomain.equals(ZMSConsts.USER_DOMAIN) && resource.startsWith(ZMSConsts.USER_DOMAIN_PREFIX)) {
-            resource = userDomainPrefix + resource.substring(ZMSConsts.USER_DOMAIN_PREFIX.length());
+        if (!userDomain.equals(ZMSConsts.USER_DOMAIN) && resource.startsWith(userDomainPrefix)) {
+            resource = userDomainPrefix + resource.substring(userDomainPrefix.length());
         }
         
         if (LOG.isDebugEnabled()) {

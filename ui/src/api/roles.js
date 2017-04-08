@@ -18,6 +18,7 @@
 var paginationUtils = require('../utils/pagination');
 var viewUtils = require('../utils/view');
 var reqUtils = require('../utils/req');
+var config = require('../../config/config.js')();
 
 function getModifyRoleMemberHandlerCb(inputRoles, cb) {
   var count = Array.isArray(inputRoles) ? inputRoles.length : 0;
@@ -62,7 +63,7 @@ module.exports = {
       var members = [];
       if (!err && roleData && Array.isArray(roleData.members)) {
         members = roleData.members.map(function(member) {
-          if (member.startsWith('user.')){
+          if (member.startsWith(config.userDomain + '.')){
             member = member.substring(5);
           }
           return member;

@@ -1,7 +1,7 @@
 athenz-conf
 ===========
 
-AtheNZ Go Client application to generate an athenz.conf file based
+Athenz Go Client application to generate an athenz.conf file based
 on service details stored in ZMS Server.
 
 ## License
