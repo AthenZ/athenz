@@ -6,7 +6,7 @@ BINDIR=$(dirname "$0")
 ROOT=$(cd $BINDIR/..;pwd)
 
 if [ $# != 2 ] ; then
-  echo "usage: setup_dev.zts.sh <zms-hostname> <zms-public-cert-path>"
+  echo "usage: setup_dev_zts.sh <zms-hostname> <zms-public-cert-path>"
   exit 1
 fi
 

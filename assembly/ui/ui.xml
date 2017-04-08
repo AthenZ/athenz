@@ -64,14 +64,15 @@
       <fileMode>755</fileMode>
       <includes>
         <include>athenz_ui</include>
+        <include>setup_dev_ui.sh</include>
       </includes>
     </fileSet>
     <fileSet>
-      <directory>.</directory>
+      <directory>${basedir}/../../ui/keys</directory>
       <outputDirectory>keys</outputDirectory>
-      <excludes>
-        <exclude>*/**</exclude>
-      </excludes>
+      <includes>
+        <include>dev_x509_cert.cnf</include>
+      </includes>
     </fileSet>
     <fileSet>
       <directory>${basedir}/../../utils/zms-cli/target</directory>

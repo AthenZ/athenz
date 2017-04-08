@@ -5,10 +5,6 @@
     * [Node.JS](#nodejs)
 * [Getting Software](#getting-software)
 * [Configuration](#configuration)
-    * [Private/Public Key Pair](#privatepublic-key-pair)
-    * [Self Signed X509 Certificate](#self-signed-x509-certificate)
-    * [ZMS Certificate](#zms-certificate)
-    * [Register UI Service](#register-ui-service)
 * [Start/Stop UI Server](#startstop-ui-server)
 
 ## Requirements
@@ -52,68 +48,29 @@ $ cd athenz-ui-X.Y
 ## Configuration
 ----------------
 
-To run UI Server, the system administrator must generate the keys
-and make necessary changes to the configuration settings.
-
-### Private/Public Key Pair
----------------------------
-
-Generate a unique private/public key pair that UI Server will use
-to sign user's authorized service tokens. The UI has already been
-authorized to be allowed to carry out the users' requested
-operations. From the `athenz-ui-X.Y` directory execute the following
-commands:
-
-```shell
-$ cd keys
-$ openssl genrsa -out athenz.ui.pem 2048
-$ openssl rsa -in athenz.ui.pem -pubout > athenz.ui_pub.pem
-```
-
-### Self Signed X509 Certificate
---------------------------------
-
-Unlike ZMS/ZTS Servers, for UI server it is strongly recommended
-to purchase a certificate for HTTPS access from a well known
-certificate authority. When using a self-signed certificate,
-the user's browser will not able to recognize the UI Server's
-certificate and the user must add an exception to allow
-communication with the UI server.
-
-If necessary, the following steps can be followed to generate
-a self-signed X509 certificate for UI Server HTTPS support.
-From the `athenz-ui-X.Y` directory execute the following
-commands. When prompted for a PEM passpharse, enter `athenz`:
-
-```shell
-$ cd keys
-$ openssl req -x509 -newkey rsa:2048 -keyout ui_key.pem -out ui_cert.pem -days 365
-```
-
-### ZMS Certificate
--------------------
-
-UI Server needs to access ZMS Server to executed the user's requested
-operations. Since ZMS Server is running with a self-signed certificate,
-we need to configure the UI server with a copy of the ZMS Server's
-public certificate. From your ZMS Server installation, copy the
-`zms_cert.pem` file from the `athenz-zms-X.Y/var/zms_server/certs` directory
-to the `athenz-ui-X.Y/keys` directory.
-
-### Register UI Service
-------------------------
-
-In order for UI to access ZMS domain data, it must identify itself
-as a registered service in ZMS. Using the `zms-cli` utility, we will
-register a new service in `athenz` domain. For this step, we also
-need to reference the zms_cert.pem certificate file in order to
-successfully validate ZMS Server's certificate.
+To run UI Server, the system administrator must generate the keys,
+certificates and make necessary changes to the configuration settings.
+For our configuration script we need the ZMS server hostname and a
+copy of the server certificate file since ZMS Server is
+running with a self-signed certificate. From your ZMS Server
+installation, copy the `zms_cert.pem` file from the
+`athenz-zms-X.Y/var/zms_server/certs` directory to a local directory on the
+host that will be running the UI Server. For the `zms-public-cert-path`
+argument below pass the full path of the zms_cert.pem.
 
 ```shell
 $ cd athenz-ui-X.Y
-$ bin/<platform>/zms-cli -c keys/zms_cert.pem -z https://<zms-server>:4443/zms/v1 add-domain athenz
-$ bin/<platform>/zms-cli -c keys/zms_cert.pem -z https://<zms-server>:4443/zms/v1 -d athenz add-service ui 0 keys/athenz.ui_pub.pem
+$ bin/setup_dev_ui.sh <zms-hostname> <zms-public-cert-path>
 ```
+
+Running this setup script completes the following tasks:
+
+* Generate a unique public/private key pair that UI Server will use
+  to sign user's authorized service tokens. The UI has already been
+  authorized to be allowed to carry out the users' requested
+  operations.
+* Generate a self-signed X509 certificate for ZTS Server HTTPS support
+* Create a new domain called athenz and register the ui service in that domain
 
 ## Start/Stop UI Server
 -----------------------
