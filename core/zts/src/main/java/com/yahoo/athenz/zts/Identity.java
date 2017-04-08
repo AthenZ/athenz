@@ -3,8 +3,8 @@
 //
 
 package com.yahoo.athenz.zts;
-import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import java.util.Map;
 import com.yahoo.rdl.*;
 
 //
