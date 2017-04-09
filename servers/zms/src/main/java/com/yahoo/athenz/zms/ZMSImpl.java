@@ -741,7 +741,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         
         if (!ZMSConsts.USER_DOMAIN.equals(userDomain)) {
-            createTopLevelDomain(null, userDomain, "The reserved domain for user authentication",
+            createTopLevelDomain(null, ZMSConsts.USER_DOMAIN, "The reserved domain for user authentication",
                     null, null, adminUsers, null, 0, null, null);
         }
         createTopLevelDomain(null, userDomain, "The reserved domain for user authentication",
