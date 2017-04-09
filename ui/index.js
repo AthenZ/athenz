@@ -127,7 +127,7 @@ app.use(function(req, res, next) {
     var cred = Buffer.from(username + ':' + password).toString('base64');
     var options = {
       ca: fs.readFileSync('keys/zms_cert.pem'),
-      host: process.env.ZMS_SERVER,
+      host: req.config.zmshost,
       port: 4443,
       path: '/zms/v1/user/_self_/token?services=' + req.config.serviceFQN,
       headers: {'Authorization': 'Basic '+cred}
@@ -139,13 +139,23 @@ app.use(function(req, res, next) {
       response.on('data',function(d) {
         json += d;
       }).on('end',function() {
-        req.cred = {};
-        req.cred.body = {
-          username: username,
-          'Athenz-Principal-Auth': JSON.parse(json).token
-        };
-        req.cred.encoded = Buffer.from(JSON.stringify(req.cred.body)).toString('base64');
-        next();
+        try {
+          if (JSON.parse(json).token) {
+            req.cred = {};
+            req.cred.body = {
+              username: username,
+              [req.config.authHeader]: JSON.parse(json).token
+            };
+            req.cred.encoded = Buffer.from(JSON.stringify(req.cred.body)).toString('base64');
+            next();
+          } else {
+            throw new Error('Could not find token in response');
+          }
+        } catch (err) {
+          console.log(err);
+          console.log('Response: "' + json + '"');
+          routeHandlers.notLogged(req, res);
+        }
       });
     }).on('error',function(err) {
       console.log(err);
@@ -158,8 +168,8 @@ app.use(function(req, res, next) {
 
 // Sign user token with service key
 app.use(function(req, res, next){
-  if (req.cred && req.cred.body && req.cred.body['Athenz-Principal-Auth']) {
-    var token = req.cred.body['Athenz-Principal-Auth'];
+  if (req.cred && req.cred.body && req.cred.body[req.config.authHeader]) {
+    var token = req.cred.body[req.config.authHeader];
     var key = './keys/' + req.config.serviceFQN + '.pem';
     var keyVersion = req.config.authKeyVersion;
     req.authSvcToken = userRoutes.signToken(token, key, keyVersion);
@@ -184,7 +194,7 @@ app.use(function(req, res, next){
       signature: signature
     };
     res.cookie('cred', cred, {
-      maxAge : 60000,
+      maxAge : 60*60*1000,
       httpOnly : false
     });
     next();
@@ -194,13 +204,13 @@ app.use(function(req, res, next){
 app.use(function(req, res, next) {
   req.userCred = req.cred ? req.cred.body.username : req.config.user;
   req.user = {
-    userDomain: 'user.' + req.userCred,
+    userDomain: req.config.userDomain + '.' + req.userCred,
     login: req.userCred
   };
 
   req.cookiesForwardCheck = {};
   req.restClient = client(req, {
-    'Athenz-Principal-Auth': function(currentReq) {
+    [req.config.authHeader]: function(currentReq) {
       if (currentReq.authSvcToken) {
         return currentReq.authSvcToken;
       }

@@ -20,6 +20,7 @@
 'use strict';
 
 var addToUriQuery = require('./handlebarHelpers').addToUriQuery;
+var config = require('../../config/config.js')();
 
 function getErrorMessage(err) {
   if (err && err.message) {
@@ -61,7 +62,7 @@ module.exports = {
     if (domain) {
       var splits = domain.split('.');
 
-      if (splits.length === 2 && domain.indexOf('user.') === 0) {
+      if (splits.length === 2 && domain.indexOf(config.userDomain + '.') === 0) {
         domainData.domainType = 'userdomain';
         domainData.name = splits[1];
       } else if (splits.length >= 2) {
