@@ -24,6 +24,8 @@ import com.yahoo.athenz.common.server.rest.Http;
 
 public class RsrcCtxWrapper implements ResourceContext {
 
+    private static final String ZMS_REQUEST_PRINCIPAL = "com.yahoo.athenz.auth.principal";
+
     com.yahoo.athenz.common.server.rest.ResourceContext ctx = null;
 
     RsrcCtxWrapper(HttpServletRequest request,
@@ -65,10 +67,18 @@ public class RsrcCtxWrapper implements ResourceContext {
         try {
             ctx.authorize(action, resource, trustedDomain);
         } catch (com.yahoo.athenz.common.server.rest.ResourceException restExc) {
+            logPrincipal();
             throwZmsException(restExc);
         }
     }
 
+    public void logPrincipal() {
+        final Principal principal = ctx.principal();
+        if (principal != null) {
+            ctx.request().setAttribute(ZMS_REQUEST_PRINCIPAL, principal.getFullName());
+        }
+    }
+    
     void throwZmsException(com.yahoo.athenz.common.server.rest.ResourceException restExc) {
         String msg  = null;
         Object data = restExc.getData();

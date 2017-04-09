@@ -28,6 +28,7 @@ public class RsrcCtxWrapper implements ResourceContext {
     static final String HEADER_NAME_KRB_AUTH = "Authorization";
     static final String HEADER_NAME_WWW_AUTHENTICATE = "WWW-Authenticate";
     static final String HEADER_VALUE_NEGOTIATE = "negotiate";
+    private static final String ZTS_REQUEST_PRINCIPAL = "com.yahoo.athenz.auth.principal";
 
     com.yahoo.athenz.common.server.rest.ResourceContext ctx = null;
 
@@ -91,10 +92,18 @@ public class RsrcCtxWrapper implements ResourceContext {
         try {
             ctx.authorize(action, resource, trustedDomain);
         } catch (com.yahoo.athenz.common.server.rest.ResourceException restExc) {
+            logPrincipal();
             throwZtsException(restExc);
         }
     }
 
+    public void logPrincipal() {
+        final Principal principal = ctx.principal();
+        if (principal != null) {
+            ctx.request().setAttribute(ZTS_REQUEST_PRINCIPAL, principal.getFullName());
+        }
+    }
+    
     public void throwZtsException(com.yahoo.athenz.common.server.rest.ResourceException restExc) {
         String msg = null;
         Object data = restExc.getData();

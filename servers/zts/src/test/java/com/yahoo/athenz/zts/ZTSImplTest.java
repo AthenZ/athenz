@@ -4472,17 +4472,10 @@ public class ZTSImplTest {
     }
     
     @Test
-    public void testLogPrincipal() {
+    public void testLogPrincipalEmpty() {
         MockHttpServletRequest request = new MockHttpServletRequest();
         ResourceContext ctx = zts.newResourceContext(request, null);
         zts.logPrincipal(ctx);
         assertTrue(request.attributes.isEmpty());
-        
-        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
-        Principal principal = SimplePrincipal.create("sports", "nhl", "v=S1;d=sports;n=nhl;s=signature",
-                0, principalAuthority);
-        ResourceContext ctx2 = createResourceContext(principal, request);
-        zts.logPrincipal(ctx2);
-        assertEquals((String) request.getAttribute("com.yahoo.athenz.auth.principal"), "sports.nhl");
     }
 }

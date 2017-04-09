@@ -116,7 +116,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private static final String TYPE_RESOURCE_NAME = "ResourceName";
     
     private static final String ZTS_ROLE_TOKEN_VERSION = "Z1";
-    private static final String ZTS_REQUEST_PRINCIPAL = "com.yahoo.athenz.auth.principal";
 
     private static final long ZTS_NTOKEN_DEFAULT_EXPIRY = TimeUnit.SECONDS.convert(2, TimeUnit.HOURS);
     private static final long ZTS_NTOKEN_MAX_EXPIRY = TimeUnit.SECONDS.convert(7, TimeUnit.DAYS);
@@ -2375,10 +2374,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     void logPrincipal(ResourceContext ctx) {
-        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
-        if (principal != null) {
-            ctx.request().setAttribute(ZTS_REQUEST_PRINCIPAL, principal.getFullName());
-        }
+        ((RsrcCtxWrapper) ctx).logPrincipal();
     }
     
     protected RuntimeException error(int code, String msg, String caller, String domainName) {

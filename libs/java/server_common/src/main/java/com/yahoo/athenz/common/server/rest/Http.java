@@ -112,14 +112,26 @@ public class Http {
                 break;
             }
             
+            // if we got a valid principal then we're done with our
+            // authentication process and we'll return right away
+            
             if (principal != null) {
                 return principal;
-            } else {
+            }
+            
+            // otherwise if we have a specific error message from an authority
+            // then we'll keep it in case all other authorities also fail and
+            // we need to log the reason for failure
+            
+            if (errMsg.length() > 0) {
                 authErrMsg.append(":error: ").append(errMsg);
             }
         }
-        // set the error message as a request attribute
-        request.setAttribute(INVALID_CRED_ATTR, authErrMsg.toString());
+        
+        // set the error message as a request attribute - if our error string
+        // is empty then we had no credentials provided
+        request.setAttribute(INVALID_CRED_ATTR,
+                authErrMsg.length() > 0 ? authErrMsg.toString() : "No credentials provided");
         throw new ResourceException (ResourceException.UNAUTHORIZED, "Invalid credentials");
     }
 

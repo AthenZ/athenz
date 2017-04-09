@@ -96,8 +96,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private static final Logger LOG = LoggerFactory.getLogger(ZMSImpl.class);
 
     private static String ROOT_DIR;
-
-    private static final String ZMS_REQUEST_PRINCIPAL = "com.yahoo.athenz.auth.principal";
     
     private static final String SERVICE_PREFIX = "service.";
     private static final String ROLE_PREFIX = "role.";
@@ -6519,10 +6517,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     void logPrincipal(ResourceContext ctx) {
-        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
-        if (principal != null) {
-            ctx.request().setAttribute(ZMS_REQUEST_PRINCIPAL, principal.getFullName());
-        }
+        ((RsrcCtxWrapper) ctx).logPrincipal();
     }
 
     public ResourceContext newResourceContext(HttpServletRequest request,

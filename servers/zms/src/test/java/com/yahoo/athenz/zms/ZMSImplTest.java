@@ -135,7 +135,8 @@ public class ZMSImplTest extends TestCase {
     }
 
     com.yahoo.athenz.zms.ResourceContext createResourceContext(Principal prince) {
-        com.yahoo.athenz.common.server.rest.ResourceContext rsrcCtx = Mockito.mock(com.yahoo.athenz.common.server.rest.ResourceContext.class);
+        com.yahoo.athenz.common.server.rest.ResourceContext rsrcCtx =
+                Mockito.mock(com.yahoo.athenz.common.server.rest.ResourceContext.class);
         Mockito.when(rsrcCtx.principal()).thenReturn(prince);
         Mockito.when(rsrcCtx.request()).thenReturn(mockServletRequest);
         Mockito.when(rsrcCtx.response()).thenReturn(mockServletResponse);
@@ -153,7 +154,8 @@ public class ZMSImplTest extends TestCase {
             return createResourceContext(principal);
         }
 
-        com.yahoo.athenz.common.server.rest.ResourceContext rsrcCtx = Mockito.mock(com.yahoo.athenz.common.server.rest.ResourceContext.class);
+        com.yahoo.athenz.common.server.rest.ResourceContext rsrcCtx =
+                Mockito.mock(com.yahoo.athenz.common.server.rest.ResourceContext.class);
         Mockito.when(rsrcCtx.principal()).thenReturn(principal);
         Mockito.when(rsrcCtx.request()).thenReturn(request);
         Mockito.when(rsrcCtx.response()).thenReturn(mockServletResponse);
@@ -163,6 +165,7 @@ public class ZMSImplTest extends TestCase {
         Mockito.when(rsrcCtxWrapper.request()).thenReturn(request);
         Mockito.when(rsrcCtxWrapper.principal()).thenReturn(principal);
         Mockito.when(rsrcCtxWrapper.response()).thenReturn(mockServletResponse);
+        
         return rsrcCtxWrapper;
     }
 
@@ -14647,20 +14650,13 @@ public class ZMSImplTest extends TestCase {
     }
     
     @Test
-    public void testLogPrincipal() {
+    public void testLogPrincipalEmpty() {
         
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
         ResourceContext ctx = zms.newResourceContext(request, response);
         zms.logPrincipal(ctx);
         assertTrue(request.attributes.isEmpty());
-        
-        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
-        Principal principal = SimplePrincipal.create("sports", "nhl", "v=S1;d=sports;n=nhl;s=signature",
-                0, principalAuthority);
-        ResourceContext ctx2 = createResourceContext(principal, request);
-        zms.logPrincipal(ctx2);
-        assertEquals((String) request.getAttribute(ZMS_REQUEST_PRINCIPAL), "sports.nhl");
     }
     
     @Test
