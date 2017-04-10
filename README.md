@@ -41,6 +41,7 @@ and often rely on network ACLs and manual updating.
         * [ZMS Server](docs/setup_zms.md)
         * [ZTS Server](docs/setup_zts.md)
         * [UI Server](docs/setup_ui.md)
+        * [Amazon AWS](docs/setup_aws.md)
     * Production Environment Setup
         * [ZMS Server](docs/setup_zms_prod.md)
         * [ZTS Server](docs/setup_zts_prod.md)
