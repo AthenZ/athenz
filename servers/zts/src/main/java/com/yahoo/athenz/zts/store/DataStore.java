@@ -268,18 +268,15 @@ public class DataStore implements DataCacheProvider {
         
         PublicKey zmsKey = zmsPublicKeyCache.getIfPresent(keyId == null ? "0" : keyId);
         if (zmsKey == null) {
-            
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("ZMS Public Key (id: " + keyId + ") not available");
-            }
-            
+            LOGGER.error("validateSignedDomain: ZMS Public Key id={} not available", keyId);
             return false;
         }
 
         boolean result = Crypto.verify(SignUtils.asCanonicalString(domainData), zmsKey, signature);
         
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Domain '" + domainData.getName() + "' signature validation: " + result);
+        if (!result) {
+            LOGGER.error("validateSignedDomain: Domain={} signature validation failed", domainData.getName());
+            LOGGER.error("validateSignedDomain: Signed Domain Data: {}", SignUtils.asCanonicalString(domainData));
         }
         
         return result;
