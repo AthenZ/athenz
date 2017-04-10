@@ -265,19 +265,13 @@ public class ZMSUtils {
     }
     
     public static RuntimeException error(int code, String msg, String caller) {
+
+        LOG.error("Error: {} code: {} message: {}", caller, code, msg);
         
-        if (LOG.isDebugEnabled()) {
-            LOG.debug(msg);
-        }
+        // emit our metrics if configured. the method will automatically
+        // return from the caller if caller is null
         
-        // If caller is null, we do not want to emit any error metrics.
-        // Otherwise, the caller name should be from the method that threw
-        // the specific runtime exception.
-        
-        if (caller != null && !emitMonmetricError(code, caller)) {
-            LOG.error("Unable to emit error metric for caller: " + caller +
-                    " with message: " + msg);
-        }
+        emitMonmetricError(code, caller);
         return new ResourceException(code, new ResourceError().code(code).message(msg));
     }
 

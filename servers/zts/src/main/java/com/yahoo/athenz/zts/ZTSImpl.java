@@ -2379,18 +2379,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     
     protected RuntimeException error(int code, String msg, String caller, String domainName) {
         
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(msg);
-        }
+        LOGGER.error("Error: {} domain: {} code: {} message: {}", caller, domainName, code, msg);
         
-        // If caller is null, we do not want to emit any error metrics.
-        // Otherwise, the caller name should be from the method that threw
-        // the specific runtime exception.
+        // emit our metrics if configured. the method will automatically
+        // return from the caller if caller is null
         
-        if (caller != null && !ZTSUtils.emitMonmetricError(code, caller, domainName, this.metric)) {
-            LOGGER.error("ZTS Error: unable to emit error metric for caller: " + caller +
-                    " with message: " + msg);
-        }
+        ZTSUtils.emitMonmetricError(code, caller, domainName, this.metric);
         return new ResourceException(code, new ResourceError().code(code).message(msg));
     }
 
