@@ -15,21 +15,11 @@
  */
 'use strict';
 
-var fs = require('fs');
+var routeHandlers = require('../routeHandlers/login');
+var config = require('../../config/config.js')();
 
-module.exports = function() {
-  var defaultConfig = require(process.cwd() + '/config/default-config.js')();
-  try {
-    fs.statSync(process.cwd() + '/config/extended-config.js');
-    var extendedConfig = require(process.cwd() + '/config/extended-config.js')();
-  } catch(err) {
-    if (err.code !== 'ENOENT') {
-      console.log(err);
-    }
-    var extendedConfig = {};
+module.exports = {
+  add: function(app) {
+    app.get(config.loginPath, routeHandlers.notLogged);
   }
-
-  var c = Object.assign(defaultConfig, extendedConfig);
-
-  return c;
 };
