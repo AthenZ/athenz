@@ -20,6 +20,7 @@ var domainHandler = require('../../../src/api/domain');
 var rolesHandler = require('../../../src/api/roles');
 var servicesHandler = require('../../../src/api/services');
 var policiesHandler = require('../../../src/api/policies');
+var config = require('../../../config/config.js')();
 
 var req = require('../../config/helpers').req;
 var res = require('../../config/helpers').res;
@@ -48,7 +49,7 @@ describe('domain routes', function() {
 
     beforeEach(function() {
       domainData = {
-        adminUsers: 'user.falafel',
+        adminUsers: config.userDomain + '.falafel',
         name: 'kabob',
         parent: 'babaganoush'
       },
@@ -542,7 +543,7 @@ describe('domain routes', function() {
     });
 
     it('should test deleteUserDomain', function() {
-      req.params = {domainId: 'user.me'};
+      req.params = {domainId: config.userDomain + '.me'};
 
       var resMock = sandbox.mock(res);
       resMock.expects('status').withArgs(200).returns(res);
@@ -571,7 +572,7 @@ describe('domain routes', function() {
   });
   describe('editDomain', function() {
     it('should test success case', function() {
-      req.params = {domainId: 'user.me'};
+      req.params = {domainId: config.userDomain + '.me'};
       req.body = {accountid: 'new blah'};
 
       var resMock = sandbox.mock(res);
@@ -589,7 +590,7 @@ describe('domain routes', function() {
     });
 
     it('should test fetch domain failure case', function() {
-      req.params = {domainId: 'user.me'};
+      req.params = {domainId: config.userDomain + '.me'};
       req.body = {accountid: 'new blah'};
 
       var resMock = sandbox.mock(res);

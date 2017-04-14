@@ -16,6 +16,7 @@
 'use strict';
 
 var viewUtils = require('../../../src/utils/view');
+var config = require('../../../config/config.js')();
 
 var sinon = require('sinon');
 var expect = require('chai').expect;
@@ -75,8 +76,8 @@ describe('view utils', function() {
     expect(viewUtils.populateRoleData({
       name: 'role',
       domainId: 'domainId',
-      members: ['a', 'user.b'],
-      auditLog: [{action: 'ADD', admin: 'user.a', created: '2016-06-28T23:28:29.000Z', member: 'user.b'}]
+      members: ['a', config.userDomain + '.b'],
+      auditLog: [{action: 'ADD', admin: config.userDomain + '.a', created: '2016-06-28T23:28:29.000Z', member: config.userDomain + '.b'}]
     }))
       .to.deep.equal({
         'domainId': 'domainId',
@@ -84,12 +85,12 @@ describe('view utils', function() {
         'fullName': 'role',
         'name': 'role',
         'type': 'Regular',
-        'members': [{'name': 'a'}, {'name': 'user.b', 'userlink': 'http://localhost/user/b'}],
+        'members': [{'name': 'a'}, {'name': config.userDomain + '.b', 'userlink': 'https://localhost:9443/athenz/domain/create/userdomain'}],
         'auditLog': [{
           'action': 'ADD',
-          'admin': {'name': 'user.a', 'userlink': 'http://localhost/user/a'},
+          'admin': {'name': config.userDomain + '.a', 'userlink': 'https://localhost:9443/athenz/domain/create/userdomain'},
           'created': '2016-06-28T23:28:29.000Z',
-          'member': {'name': 'user.b', 'userlink': 'http://localhost/user/b'}
+          'member': {'name': config.userDomain + '.b', 'userlink': 'https://localhost:9443/athenz/domain/create/userdomain'}
         }]
       }
     );

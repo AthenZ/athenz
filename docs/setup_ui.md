@@ -69,7 +69,7 @@ Running this setup script completes the following tasks:
   to sign user's authorized service tokens. The UI has already been
   authorized to be allowed to carry out the users' requested
   operations.
-* Generate a self-signed X509 certificate for ZTS Server HTTPS support
+* Generate a self-signed X509 certificate for UI Server HTTPS support
 * Create a new domain called athenz and register the ui service in that domain
 
 ## Start/Stop UI Server
@@ -78,7 +78,7 @@ Running this setup script completes the following tasks:
 Set the following environment variable before starting the UI Server:
 
 ```shell
-$ export ZMS_SERVER=<zms-server-host-name>
+$ export UI_SERVER=<ui-server-host-name> ZMS_SERVER=<zms-server-host-name>
 $ cd athenz-ui-X.Y
 $ bin/athenz_ui start
 ```
@@ -89,7 +89,16 @@ on port 9443.
 To stop the UI server, execute the following commands:
 
 ```shell
-$ export ZMS_SERVER=<zms-server-host-name>
+$ export UI_SERVER=<ui-server-host-name> ZMS_SERVER=<zms-server-host-name>
 $ cd athenz-ui-X.Y
 $ bin/athenz_ui stop
 ```
+
+## Befor accessing to UI
+-----------------------
+
+Install self-signed X509 certificates into your own web browser in order to have HTTPS support for ZMS Server and UI Server:
+
+To access UI we need the self-signed certificates for ZMS Server and UI Server.
+From your ZMS Server installation, copy the `zms_cert.pem` file from the `athenz-zms-X.Y/var/zms_server/certs` directory to a local directory on the host that will be running web browser.
+From your UI Server installation, copy the `ui_cert.pem` file from the `athenz-ui-X.Y/keys` directory to a local directory on the host that will be running web browser.

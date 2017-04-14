@@ -16,6 +16,7 @@
 'use strict';
 
 var reqUtils = require('../../../src/utils/req');
+var config = require('../../../config/config.js')();
 
 var sinon = require('sinon');
 var expect = require('chai').expect;
@@ -119,13 +120,13 @@ describe('req utils', function() {
   });
 
   it('should test ascertainDomainType for userdomain', function() {
-    var type = reqUtils.ascertainDomainType('user.beezlebub');
+    var type = reqUtils.ascertainDomainType(config.userDomain + '.beezlebub');
     expect(type).to.deep.equal({domainType: 'userdomain', name: 'beezlebub'});
   });
 
   it('should test ascertainDomainType for subdomain', function() {
-    var type = reqUtils.ascertainDomainType('user.beezlebub.oog');
-    expect(type).to.deep.equal({domainType: 'subdomain', name: 'oog', parent: 'user.beezlebub'});
+    var type = reqUtils.ascertainDomainType(config.userDomain + '.beezlebub.oog');
+    expect(type).to.deep.equal({domainType: 'subdomain', name: 'oog', parent: config.userDomain + '.beezlebub'});
   });
 
   it('should test ascertainDomainType for domain', function() {

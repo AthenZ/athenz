@@ -20,6 +20,10 @@ containers/jetty/zms_logs/
 ui/build/
 ui/node_modules/
 ui/artifacts/
+ui/keys/
+ui/local_modules/auth_core/.nyc_output/
+ui/local_modules/auth_core/artifacts/
+ui/local_modules/auth_core/node_modules/
 core/zms/bin/
 core/zts/bin/
 clients/go/zms/pkg/

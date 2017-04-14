@@ -1,6 +1,4 @@
 /**
- * Copyright 2016 Yahoo Inc.
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,16 +13,12 @@
  */
 'use strict';
 
+var routeHandlers = require('../routeHandlers/login');
 var config = require('../../config/config.js')();
 
-var dateFormatter = new Intl.DateTimeFormat(config.language, {
-  year: 'numeric', month: 'numeric', day: 'numeric',
-  hour: 'numeric', minute: 'numeric', hour12: false,
-  timeZone: config.timeZone, timeZoneName: 'short'
-});
-
 module.exports = {
-  formatDate: function(timeStamp) {
-    return timeStamp ? dateFormatter.format(timeStamp) : '';
+  add: function(app) {
+    app.get(config.loginPath, routeHandlers.notLogged);
+    app.post(config.loginPath, routeHandlers.notLogged);
   }
 };
