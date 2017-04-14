@@ -34,8 +34,10 @@ if [ ! -f "./athenz.ui.pem" ]; then
     echo "---creating private/public key for ui---"
     openssl genrsa -out athenz.ui.pem 2048
     openssl rsa -in athenz.ui.pem -pubout > athenz.ui_pub.pem
-    sed s/__athenz_hostname__/$hostname/g ./dev_x509_cert.cnf > ./dev_ui_x509_cert.cnf
-    openssl req -x509 -nodes -newkey rsa:2048 -keyout ui_key.pem -out ui_cert.pem -days 365 -config ./dev_ui_x509_cert.cnf
+    echo "---copying zms X509 Certificate as ui X509 Certificate---"
+    cp /opt/athenz/athenz-zms*/var/zms_server/certs/zms_key.pem ui_key.pem
+    cp /opt/athenz/athenz-zms*/var/zms_server/certs/zms_cert.pem ui_cert.pem
+    echo "---copying zms X509 Certificate for ui---"
     cp /opt/athenz/athenz-zms*/var/zms_server/certs/zms_cert.pem .
 fi
 
@@ -78,9 +80,9 @@ if [ ! -f "./zts_private.pem" ]; then
 fi
 cd /opt/athenz/athenz-zts*/var/zts_server/certs
 if [ ! -f "./zts_key.pem" ]; then
-    echo "---creating X509 Certificate for zts---"
-    sed s/__athenz_hostname__/$hostname/g /opt/athenz/athenz-zts*/conf/zts_server/dev_x509_cert.cnf > ./dev_x509_cert.cnf
-    openssl req -x509 -nodes -newkey rsa:2048 -keyout zts_key.pem -out zts_cert.pem -days 365 -config ./dev_x509_cert.cnf
+    echo "---copying zms X509 Certificate as zts X509 Certificate---"
+    cp /opt/athenz/athenz-zms*/var/zms_server/certs/zms_key.pem zts_key.pem
+    cp /opt/athenz/athenz-zms*/var/zms_server/certs/zms_cert.pem zts_cert.pem
 fi
 
 if [ ! -f "./zts_keystore.pkcs12" ]; then

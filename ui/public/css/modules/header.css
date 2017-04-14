@@ -30,6 +30,32 @@
     color: white;
   }
 
+  .home {
+    padding: 0 15px 0 15px;
+    margin: 5px 0 5px 0;
+    .athenz-logo {
+      @extend %flex;
+      color: white;
+
+      h2 + span {
+        font-size: 0.8rem;
+        margin-left: 5px;
+      }
+
+      &::before {
+        content: '';
+        display: inline-block;
+        background-image: url("/imgs/welcome_to_athenz.gif");
+        background-size: cover;
+        background-clip: border-box;
+        background-repeat: no-repeat;
+        height: 50px;
+        width: 55px;
+        margin-right: 10px;
+      }
+    }
+  }
+
   .logo-container {
     padding-left: 20px;
     width: 20%;

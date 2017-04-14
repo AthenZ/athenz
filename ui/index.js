@@ -35,6 +35,9 @@ var policyRoutes = require('./src/routeHandlers/policy');
 var userRoutes = require('./src/routeHandlers/user');
 var config = require('./config/config.js')();
 
+var loginUtils = require(config.loginUtils);
+var routesUtils = require(config.routesUtils);
+
 module.exports = app;
 
 var busboy = require('express-busboy');
@@ -88,128 +91,19 @@ app.use(function(req, res, next) {
   }
 });
 
-// Verify user token
-app.use(function(req, res, next) {
-  if (req.cookies.cred && req.cookies.cred.body && req.cookies.cred.signature) {
-    var pubkey = './keys/' + req.config.serviceFQN + '_pub.pem';
-    fs.readFile(pubkey, 'utf8', function (err, publicKey) {
-      if (err) {
-        console.error('Failed load publicKey');
-        next();
-        return;
-      }
-      var verify = crypto.createVerify('sha256');
-      verify.update(req.cookies.cred.body);
-      verify.end();
-      if (verify.verify(publicKey, req.cookies.cred.signature, 'base64')) {
-        var cred = req.cookies.cred.body;
-        req.cred = {};
-        req.cred.body = JSON.parse(Buffer.from(cred, 'base64').toString());
-        req.cred.encoded = cred;
-        req.cred.signature = req.cookies.cred.signature;
-      }
-      next();
-    });
-  } else {
-    next();
-  }
-});
-
-// Authenticate user and receive user token
-app.use(function(req, res, next) {
-    var username;
-  if (req.cred) {
-    username = req.cred.body.username;
-    next();
-  } else if (req.body.username && req.body.password) {
-    username = req.body.username;
-    var password = req.body.password;
-    var cred = Buffer.from(username + ':' + password).toString('base64');
-    var options = {
-      ca: fs.readFileSync('keys/zms_cert.pem'),
-      host: req.config.zmshost,
-      port: 4443,
-      path: '/zms/v1/user/_self_/token?services=' + req.config.serviceFQN,
-      headers: {'Authorization': 'Basic '+cred}
-    };
-    var result = {};
-    https.get(options, function(response) {
-      response.setEncoding('utf8');
-      var json = "";
-      response.on('data',function(d) {
-        json += d;
-      }).on('end',function() {
-        try {
-          if (JSON.parse(json).token) {
-            req.cred = {};
-            req.cred.body = {
-              username: username,
-              [req.config.authHeader]: JSON.parse(json).token
-            };
-            req.cred.encoded = Buffer.from(JSON.stringify(req.cred.body)).toString('base64');
-            next();
-          } else {
-            throw new Error('Could not find token in response');
-          }
-        } catch (err) {
-          console.log(err);
-          console.log('Response: "' + json + '"');
-          routeHandlers.notLogged(req, res);
-        }
-      });
-    }).on('error',function(err) {
-      console.log(err);
-      routeHandlers.notLogged(req, res);
-    });
-  } else {
-    routeHandlers.notLogged(req, res);
-  }
-});
-
-// Sign user token with service key
-app.use(function(req, res, next){
-  if (req.cred && req.cred.body && req.cred.body[req.config.authHeader]) {
-    var token = req.cred.body[req.config.authHeader];
-    var key = './keys/' + req.config.serviceFQN + '.pem';
-    var keyVersion = req.config.authKeyVersion;
-    req.authSvcToken = userRoutes.signToken(token, key, keyVersion);
-  }
-  next();
-});
-
-// Sign user token
-app.use(function(req, res, next){
-  var key = './keys/' + req.config.serviceFQN + '.pem';
-  fs.readFile(key, 'utf8', function (err, privateKey) {
-    if (err) {
-      console.error('Failed load privateKey');
-      next();
-      return;
-    }
-    var sign = crypto.createSign('sha256');
-    sign.update(req.cred.encoded);
-    var signature = sign.sign(privateKey, 'base64');
-    var cred = {
-      body: req.cred.encoded,
-      signature: signature
-    };
-    res.cookie('cred', cred, {
-      maxAge : 60*60*1000,
-      httpOnly : false
-    });
-    next();
-  });
-});
+loginUtils.authenticateUser(app);
+loginUtils.signUserToken(app);
+loginUtils.saveCookie(app);
 
 app.use(function(req, res, next) {
-  req.userCred = req.cred ? req.cred.body.username : req.config.user;
-  req.user = {
-    userDomain: req.config.userDomain + '.' + req.userCred,
-    login: req.userCred
-  };
-
   req.cookiesForwardCheck = {};
   req.restClient = client(req, {
+    cookie: function(currentReq) {
+      if (currentReq.cookiesForwardCheck[currentReq.currentMethod]) {
+        return currentReq.headers.cookie;
+      }
+      return null;
+    },
     [req.config.authHeader]: function(currentReq) {
       if (currentReq.authSvcToken) {
         return currentReq.authSvcToken;
@@ -219,13 +113,17 @@ app.use(function(req, res, next) {
   });
 
   res.locals.user = {
-    name: req.userCred,
-    icon: '/imgs/welcome_to_athenz.gif'
+    name: req.username,
+    icon: req.config.userIcon(req.username),
+    link: req.config.userLink(req.username)
   };
   res.locals.originalUrl = pageUtils.cleanupOriginalUrl(req.originalUrl || '');
   res.locals.msg = [];
   res.locals.zms = req.config.zms;
   res.locals.serviceFQN = req.config.serviceFQN;
+  res.locals.athenzScript = req.config.athenzScript;
+  res.locals.headerLinks = req.config.headerLinks;
+  res.locals.userDomain = req.config.userDomain;
 
   next();
 });
@@ -268,5 +166,8 @@ app.get('/athenz/ajax/domain/:domainId/role/:role/info', roleRoutes.getRoleRow);
 app.get('/athenz/ajax/domain/:domainId/service/:service/info', serviceRoutes.getServiceRow);
 app.get('/athenz/ajax/domain/:domainId/policy/:policy/info', policyRoutes.getPolicyRow);
 app.get('/athenz/ajax/domain', domainRoutes.allDomains);
+
+// Additional routes
+routesUtils.add(app);
 
 app.all('*', routeHandlers.notFound);

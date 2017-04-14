@@ -10,3 +10,6 @@ ST = CA
 O = Athenz
 OU = Testing Domain
 CN = __athenz_hostname__
+
+[alt_names]
+DNS.1 = __athenz_hostname__
