@@ -15,16 +15,12 @@
  */
 'use strict';
 
+var routeHandlers = require('../routeHandlers/login');
 var config = require('../../config/config.js')();
 
-var dateFormatter = new Intl.DateTimeFormat(config.language, {
-  year: 'numeric', month: 'numeric', day: 'numeric',
-  hour: 'numeric', minute: 'numeric', hour12: false,
-  timeZone: config.timeZone, timeZoneName: 'short'
-});
-
 module.exports = {
-  formatDate: function(timeStamp) {
-    return timeStamp ? dateFormatter.format(timeStamp) : '';
+  add: function(app) {
+    app.get(config.loginPath, routeHandlers.notLogged);
+    app.post(config.loginPath, routeHandlers.notLogged);
   }
 };

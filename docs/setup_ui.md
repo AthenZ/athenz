@@ -78,7 +78,7 @@ Running this setup script completes the following tasks:
 Set the following environment variable before starting the UI Server:
 
 ```shell
-$ export ZMS_SERVER=<zms-server-host-name>
+$ export UI_SERVER=<ui-server-host-name> ZMS_SERVER=<zms-server-host-name>
 $ cd athenz-ui-X.Y
 $ bin/athenz_ui start
 ```
@@ -89,7 +89,7 @@ on port 9443.
 To stop the UI server, execute the following commands:
 
 ```shell
-$ export ZMS_SERVER=<zms-server-host-name>
+$ export UI_SERVER=<ui-server-host-name> ZMS_SERVER=<zms-server-host-name>
 $ cd athenz-ui-X.Y
 $ bin/athenz_ui stop
 ```

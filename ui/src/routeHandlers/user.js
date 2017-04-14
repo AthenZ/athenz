@@ -19,24 +19,18 @@ const fs = require('fs');
 const crypto = require('crypto');
 
 module.exports = {
-  signToken: function(token, key, version) {
-      // Typically key is serviceFQN (ex: athenz.ui)
-    var authKey = fs.readFileSync(key, 'utf8');
-    if (authKey) {
-      var data = token + ';bk=' + version;
-      var pk = crypto.createSign('sha256');
-      pk.update(data);
-      var sig = pk.sign(authKey, 'base64', 'base64');
+  signToken: function(token, authKey, version) {
+    var data = token + ';bk=' + version;
+    var pk = crypto.createSign('sha256');
+    pk.update(data);
+    var sig = pk.sign(authKey, 'base64', 'base64');
 
-      // This is to put the 'y' in 'ybase64'
-      sig = sig.replace(/\+/g, '.');
-      sig = sig.replace(/\//g, '_');
-      sig = sig.replace(/=/g, '-');
+    // This is to put the 'y' in 'ybase64'
+    sig = sig.replace(/\+/g, '.');
+    sig = sig.replace(/\//g, '_');
+    sig = sig.replace(/=/g, '-');
 
-      var result = data + ';bs=' + sig;
-      return result;
-    } else {
-      console.error('Failed to sign user token, authKey not found');
-    }
+    var result = data + ';bs=' + sig;
+    return result;
   }
 };
