@@ -26,6 +26,11 @@ command -v nodemon >/dev/null 2>&1 || {
 # make sure we have our required environment variables
 # defined before starting the ui server
 
+if [ -z "${UI_SERVER}" ]; then
+    echo "Please export UI_SERVER environment variable pointing to your UI Server Hostname"
+    exit 1
+fi
+
 if [ -z "${ZMS_SERVER}" ]; then
     echo "Please export ZMS_SERVER environment variable pointing to your ZMS Server Hostname"
     exit 1

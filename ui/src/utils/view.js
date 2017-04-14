@@ -65,7 +65,7 @@ module.exports = {
     };
 
     if (member.startsWith(config.userDomain + '.')) {
-      detail.userlink = 'http://localhost/user/' + member.substring(5);
+      detail.userlink = config.userLink(member.substring(config.userDomain.length + 1));
     }
     return detail;
   },

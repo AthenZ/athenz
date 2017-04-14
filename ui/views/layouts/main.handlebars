@@ -21,6 +21,7 @@
         {{/if}}
         <script type="text/javascript">
           athenzParams = {{{json allParams}}}
+          athenzScript = '{{athenzScript}}';
           zms = '{{zms}}';
           serviceFQN = '{{serviceFQN}}';
           userId = '{{user.name}}';
@@ -28,14 +29,14 @@
         <script type="text/javascript" src="/assets/js/bundle.js"></script>
         <script type="text/javascript">
           if (!window.athenzScriptsLoaded) {
-	    alert('Athenz Javascript scripts failed to load. Plese check your network connection or settings');
-	    document.body.classList.add('no-js');
-	    /* Reset form input elements so that they are usable */
-	    var nodes = document.body.querySelectorAll('form input[disabled], form textarea[disabled]')
-	      for(var i = 0; i < nodes.length; i++) {
-		nodes[i].removeAttribute("disabled");
-		nodes[i].removeAttribute("required");
-	      }
+            alert('Athenz Javascript scripts failed to load. Plese check your network connection or settings');
+            document.body.classList.add('no-js');
+            /* Reset form input elements so that they are usable */
+            var nodes = document.body.querySelectorAll('form input[disabled], form textarea[disabled]');
+            for(var i = 0; i < nodes.length; i++) {
+              nodes[i].removeAttribute("disabled");
+              nodes[i].removeAttribute("required");
+            }
           }
         </script>
     </body>
