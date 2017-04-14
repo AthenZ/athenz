@@ -114,7 +114,7 @@ module.exports = {
         res.render('adddomains', viewData);
         break;
       case 'userdomain':
-        var userDomainId = config.userDomain + '.' + req.userCred;
+        var userDomainId = config.userDomain + '.' + req.username;
         domainHandler.fetchDomainMetadata({
           domainId: userDomainId
         },
@@ -144,7 +144,7 @@ module.exports = {
   },
   addDomain: function(req, res) {
     var domainData = {
-      adminUsers: [config.userDomain + '.' + req.userCred],
+      adminUsers: [config.userDomain + '.' + req.username],
       name: req.body.name,
       parent: req.body.parent
     };
@@ -172,7 +172,7 @@ module.exports = {
         domainHandler.addSubDomain(domainData, req.restClient, cb);
         break;
       case 'userdomain':
-        domainData.name = req.userCred;
+        domainData.name = req.username;
         domainHandler.addUserDomain(domainData, req.restClient, cb);
         break;
       default:
