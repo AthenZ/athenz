@@ -16,4 +16,5 @@ include "Tenancy.rdli";
 include "Identity.rdli";
 include "AWSAuth.rdli";
 include "OSTKAuth.rdli";
+include "Instance.rdli"
 include "DomainMetrics.rdli";

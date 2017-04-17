@@ -1358,6 +1358,68 @@ public class ZTSClient implements Closeable {
         }
     }
     
+    /**
+     * Request by an instance to register itself based on its provider
+     * attestation.
+     * @param info InstanceRegisterInformation object for the request
+     * @param responseHeaders contains the "location" returned for post refresh requests
+     *   List should contain a single value
+     * @return InstanceIdentity object that includes a x509 certificate for the service
+     */
+    public InstanceIdentity postInstanceRegisterInformation(InstanceRegisterInformation info,
+            Map<String, List<String>> responseHeaders) {
+        updateServicePrincipal();
+        try {
+            return ztsClient.postInstanceRegisterInformation(info, responseHeaders);
+        } catch (ResourceException ex) {
+            throw new ZTSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZTSClientException(ZTSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+    
+    /**
+     * Request by an instance to refresh its certificate. The instance must
+     * authenticate itself using the certificate it has received from the
+     * postInstanceRegisterInformation call.
+     * @param provider Provider Service name
+     * @param domain instance domain name
+     * @param service instance service name
+     * @param instanceId instance id as provided in the CSR
+     * @param info InstanceRegisterInformation object for the request
+     * @return InstanceIdentity object that includes a x509 certificate for the service
+     */
+    public InstanceIdentity postInstanceRefreshInformation(String provider, String domain,
+            String service, String instanceId, InstanceRefreshInformation info) {
+        updateServicePrincipal();
+        try {
+            return ztsClient.postInstanceRefreshInformation(provider, domain, service, instanceId, info);
+        } catch (ResourceException ex) {
+            throw new ZTSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZTSClientException(ZTSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+    
+    /**
+     * Revoke an instance from refreshing its certificates.
+     * @param provider Provider Service name
+     * @param domain instance domain name
+     * @param service instance service name
+     * @param instanceId instance id as provided in the CSR
+     */
+    public void deleteInstanceIdentity(String provider, String domain,
+            String service, String instanceId) {
+        updateServicePrincipal();
+        try {
+            ztsClient.deleteInstanceIdentity(provider, domain, service, instanceId);
+        } catch (ResourceException ex) {
+            throw new ZTSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZTSClientException(ZTSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+    
     static class PrefetchRoleTokenScheduledItem {
         
         boolean isRoleToken = true;

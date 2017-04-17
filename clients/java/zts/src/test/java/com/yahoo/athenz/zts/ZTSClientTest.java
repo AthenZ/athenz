@@ -2362,7 +2362,6 @@ public class ZTSClientTest {
         SSLSession session = Mockito.mock(SSLSession.class);
         Mockito.when(session.getPeerCertificates()).thenReturn(certs);
         
-        
         assertFalse(hostnameVerifier.verify("unknown", session));
         client.close();
     }
@@ -2442,5 +2441,121 @@ public class ZTSClientTest {
         RDN cnRdn = x500name.getRDNs(BCStyle.CN)[0];
         assertEquals("coretech.system.test", IETFUtils.valueToString(cnRdn.getFirst().getValue()));
         assertEquals("test.coretech-system.aws.athenz.cloud", Crypto.extractX509CSRDnsNames(certReq).get(0));
+    }
+    
+    @Test
+    public void testPostInstanceRegisterInformationRequest() {
+        
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+        
+        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        InstanceRegisterInformation info = new InstanceRegisterInformation()
+                .setAttestationData("good-instance-document")
+                .setCsr("x509-csr").setDomain("athenz")
+                .setProvider("openstack.provider")
+                .setService("storage").setToken(false);
+        Map<String, List<String>> responseHeaders = new HashMap<>();
+        InstanceIdentity identity = client.postInstanceRegisterInformation(info, responseHeaders);
+        assertNotNull(identity);
+        assertNotNull(identity.getX509Certificate(), "x509");
+        assertEquals(identity.getName(), "athenz.storage");
+        
+        client.close();
+    }
+    
+    @Test
+    public void testPostInstanceRegisterInformationRequestException() {
+        
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+        
+        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        InstanceRegisterInformation info = new InstanceRegisterInformation()
+                .setAttestationData("bad-instance-document")
+                .setCsr("x509-csr").setDomain("athenz")
+                .setProvider("openstack.provider")
+                .setService("storage").setToken(false);
+        Map<String, List<String>> responseHeaders = new HashMap<>();
+        try {
+            client.postInstanceRegisterInformation(info, responseHeaders);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+        
+        client.close();
+    }
+    
+    @Test
+    public void testPostInstanceRefreshInformationRequest() {
+        
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+        
+        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        InstanceRefreshInformation info = new InstanceRefreshInformation()
+                .setCsr("good-x509-csr").setToken(false);
+        InstanceIdentity identity = client.postInstanceRefreshInformation("openstack.provider",
+                "athenz", "storage", "instance-id", info);
+        assertNotNull(identity);
+        assertNotNull(identity.getX509Certificate(), "x509");
+        assertEquals(identity.getName(), "athenz.storage");
+        
+        client.close();
+    }
+    
+    @Test
+    public void testPostInstanceRefreshInformationRequestException() {
+        
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+        
+        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        InstanceRefreshInformation info = new InstanceRefreshInformation()
+                .setCsr("bad-x509-csr").setToken(false);
+        try {
+            client.postInstanceRefreshInformation("openstack.provider",
+                    "athenz", "storage", "instance-id", info);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+        
+        client.close();
+    }
+    
+    @Test
+    public void testDeleteInstanceIdentity() {
+        
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+        
+        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        client.deleteInstanceIdentity("openstack.provider", "athenz", "storage", "instance-id");
+        
+        try {
+            client.deleteInstanceIdentity("openstack.provider", "athenz", "storage", "bad-instance-id");
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        client.close();
     }
 }

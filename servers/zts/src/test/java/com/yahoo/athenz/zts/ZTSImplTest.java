@@ -2953,7 +2953,7 @@ public class ZTSImplTest {
         try {
             authorizer.access("update", "coretechtrust:table1:test3", principal1, null);
             fail();
-        } catch (com.yahoo.athenz.zts.ResourceException ex) {
+        } catch (ResourceException ex) {
             assertEquals(404, ex.getCode());
         }
     }
@@ -2966,7 +2966,7 @@ public class ZTSImplTest {
         try {
             authorizer.access("update", "unknowndoamin:table1", principal1, null);
             fail();
-        } catch (com.yahoo.athenz.zts.ResourceException ex) {
+        } catch (ResourceException ex) {
             assertEquals(404, ex.getCode());
         }
     }

@@ -1,0 +1,23 @@
+// Copyright 2017 Yahoo Inc.
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+include "Names.tdl";
+
+type InstanceConfirmation Struct {
+    ServiceName provider; //provider service name
+    DomainName domain; //the domain of the instance
+    SimpleName service; //the service this instance is supposed to run
+    String attestationData; //identity attestation data including document with its signature containing attributes like IP address, instance-id, account#, etc.
+    Map<String,String> attributes (optional); //additional non-signed attributes that assist in attestation. I.e. "keyId", "accessKey", etc
+}
+
+resource InstanceConfirmation POST "/instance" {
+    InstanceConfirmation confirmation;
+    authenticate;
+    expected OK;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+    }
+}

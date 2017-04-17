@@ -1,0 +1,77 @@
+// Copyright 2017 Yahoo Inc.
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+include "Names.tdl";
+
+type InstanceRegisterInformation Struct {
+    ServiceName provider; //the provider service name (i.e. "aws.us-west-2", "sys.openstack.cluster1")
+    DomainName domain; //the domain of the instance
+    SimpleName service; //the service this instance is supposed to run
+    String attestationData; //identity attestation data including document with its signature containing attributes like IP address, instance-id, account#, etc.
+    String csr; //the Certificate Signing Request for the expected X.509 certificate in the response
+    String ssh (optional); //if present, return an SSH host certificate. Format is JSON.
+    Bool token (optional); //if true, return a service token signed by ZTS for this service
+}
+
+type InstanceRefreshInformation Struct {
+    String csr (optional); //the Certificate Signing Request for the expected X.509 certificate in the response
+    String ssh (optional); //if present, return an SSH host certificate. Format is JSON.
+    Bool token (optional); //if true, return a service token signed by ZTS for this service
+}
+
+type InstanceIdentity Struct {
+    ServiceName provider; //the provider service name (i.e. "aws.us-west-2", "sys.openstack.cluster1")
+    ServiceName name; //name of the identity, fully qualified, i.e. my.domain.service1
+    PathElement instanceId; //unique instance id within provider's namespace
+    String x509Certificate (optional); //an X.509 certificate usable for both client and server in TLS connections
+    String x509CertificateSigner (optional); //the CA certificate chain to verify all generated X.509 certs
+    String sshCertificate (optional); //the SSH certificate, signed by the CA (user or host)
+    String sshCertificateSigner (optional); //the SSH CA's public key for the sshCertificate (user or host)
+    SignedToken serviceToken (optional); //service token instead of TLS certificate
+    Map<String,String> attributes (optional); //other config-like attributes determined at boot time
+}
+
+resource InstanceIdentity POST "/instance" {
+    InstanceRegisterInformation info;
+    String location (header="Location", out); //return location for subsequent patch requests
+    expected OK;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError INTERNAL_SERVER_ERROR;
+    }
+}
+
+resource InstanceIdentity POST "/instance/{provider}/{domain}/{service}/{instanceId}" {
+    ServiceName provider; //the provider service name (i.e. "aws.us-west-2", "paas.manhattan.corp-gq1")
+    DomainName domain; //the domain of the instance
+    SimpleName service; //the service this instance is supposed to run
+    PathElement instanceId; //unique instance id within provider's namespace
+    InstanceRefreshInformation info; //the refresh request
+    authorize("deploy", "{domain}:provider.{provider}"); //only TLS authentication is allowed
+    expected OK;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+        ResourceError INTERNAL_SERVER_ERROR;
+    }
+}
+
+resource InstanceIdentity DELETE "/instance/{provider}/{domain}/{service}/{instanceId}" {
+    ServiceName provider; //the provider service name (i.e. "aws.us-west-2", "paas.manhattan.corp-gq1")
+    DomainName domain; //the domain of the instance
+    SimpleName service; //the service this instance is supposed to run
+    PathElement instanceId; //unique instance id within provider's namespace
+    authorize("delete", "{domain}:instance.{instanceId}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+        ResourceError INTERNAL_SERVER_ERROR;
+    }
+}

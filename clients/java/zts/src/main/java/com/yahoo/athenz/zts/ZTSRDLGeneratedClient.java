@@ -419,6 +419,65 @@ public class ZTSRDLGeneratedClient {
 
     }
 
+    public InstanceIdentity postInstanceRegisterInformation(InstanceRegisterInformation info, java.util.Map<String, java.util.List<String>> headers) {
+        WebTarget target = base.path("/instance");
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(info, "application/json"));
+        int code = response.getStatus();
+        switch (code) {
+        case 200:
+            if (headers != null) {
+                headers.put("location", java.util.Arrays.asList((String) response.getHeaders().getFirst("Location")));
+            }
+            return response.readEntity(InstanceIdentity.class);
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
+    public InstanceIdentity postInstanceRefreshInformation(String provider, String domain, String service, String instanceId, InstanceRefreshInformation info) {
+        WebTarget target = base.path("/instance/{provider}/{domain}/{service}/{instanceId}")
+            .resolveTemplate("provider", provider)
+            .resolveTemplate("domain", domain)
+            .resolveTemplate("service", service)
+            .resolveTemplate("instanceId", instanceId);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+        }
+        Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(info, "application/json"));
+        int code = response.getStatus();
+        switch (code) {
+        case 200:
+            return response.readEntity(InstanceIdentity.class);
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
+    public InstanceIdentity deleteInstanceIdentity(String provider, String domain, String service, String instanceId) {
+        WebTarget target = base.path("/instance/{provider}/{domain}/{service}/{instanceId}")
+            .resolveTemplate("provider", provider)
+            .resolveTemplate("domain", domain)
+            .resolveTemplate("service", service)
+            .resolveTemplate("instanceId", instanceId);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+        }
+        Response response = invocationBuilder.delete();
+        int code = response.getStatus();
+        switch (code) {
+        case 204:
+            return null;
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
     public DomainMetrics postDomainMetrics(String domainName, DomainMetrics req) {
         WebTarget target = base.path("/metrics/{domainName}")
             .resolveTemplate("domainName", domainName);

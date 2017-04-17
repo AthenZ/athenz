@@ -782,7 +782,7 @@ public class CloudStore {
                 return null;
             }
             
-            int idx = cn.indexOf('.');
+            int idx = cn.lastIndexOf('.');
             if (idx == -1) {
                 return null;
             }

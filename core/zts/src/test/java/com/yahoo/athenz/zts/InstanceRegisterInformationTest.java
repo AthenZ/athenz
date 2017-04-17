@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Yahoo Inc.
+ * Copyright 2017 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,33 +22,39 @@ import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
 
-public class InstanceInformationTest {
+public class InstanceRegisterInformationTest {
 
     @Test
-    public void testInstanceInformation() {
-        InstanceInformation i = new InstanceInformation();
-        InstanceInformation i2 = new InstanceInformation();
+    public void testInstanceRegisterInformation() {
+        InstanceRegisterInformation i = new InstanceRegisterInformation();
+        InstanceRegisterInformation i2 = new InstanceRegisterInformation();
 
         // set
-        i.setDocument("doc");
-        i.setSignature("sig");
+        i.setAttestationData("doc");
+        i.setProvider("provider");
         i.setDomain("sample.com");
         i.setService("sample.service");
         i.setCsr("sample_csr");
-        i2.setDocument("doc");
-        i2.setSignature("sig");
+        i.setSsh("ssh");
+        i.setToken(false);
+        i2.setProvider("provider");
+        i2.setAttestationData("doc");
         i2.setDomain("sample.com");
         i2.setService("sample.service");
         i2.setCsr("sample_csr");
+        i2.setSsh("ssh");
+        i2.setToken(false);
 
         // getter assertion
-        assertEquals(i.getDocument(), "doc");
-        assertEquals(i.getSignature(), "sig");
+        assertEquals(i.getAttestationData(), "doc");
         assertEquals(i.getDomain(), "sample.com");
         assertEquals(i.getService(), "sample.service");
         assertEquals(i.getCsr(), "sample_csr");
-
-        assertTrue(i2.equals(i));
+        assertEquals(i.getProvider(), "provider");
+        assertEquals(i.getSsh(), "ssh");
+        assertEquals(i.getToken(), Boolean.FALSE);
+        
+        assertTrue(i.equals(i2));
         
         i2.setService(null);
         assertFalse(i2.equals(i));
@@ -58,13 +64,11 @@ public class InstanceInformationTest {
         assertFalse(i2.equals(i));
         i2.setDomain("sample.com");
 
-        i2.setSignature(null);
+        i2.setProvider(null);
         assertFalse(i2.equals(i));
-        
-        i2.setDocument(null);
-        assertFalse(i2.equals(i));
+        i2.setProvider("provider");
 
-        assertFalse(i.equals(new String()));
+        i2.setAttestationData(null);
+        assertFalse(i2.equals(i));
     }
-
 }
