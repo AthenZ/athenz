@@ -48,3 +48,5 @@ type AuthorityName String (pattern="{CompoundName}");
 //and , to separate roles
 type SignedToken String (pattern="[a-zA-Z0-9\\._%=;,-]*");
 
+//A uri-safe path element
+type PathElement String (pattern="[a-zA-Z0-9-._~=+@$,:]*");

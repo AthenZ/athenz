@@ -509,6 +509,92 @@ public class ZTSResources {
     }
 
     @POST
+    @Path("/instance")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void postInstanceRegisterInformation(InstanceRegisterInformation info) {
+        try {
+            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            PostInstanceRegisterInformationResult result = new PostInstanceRegisterInformationResult(context);
+            this.delegate.postInstanceRegisterInformation(context, info, result);
+        } catch (ResourceException e) {
+            int code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.INTERNAL_SERVER_ERROR:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource postInstanceRegisterInformation");
+                throw typedException(code, e, ResourceError.class);
+            }
+        }
+    }
+
+    @POST
+    @Path("/instance/{provider}/{domain}/{service}/{instanceId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public InstanceIdentity postInstanceRefreshInformation(@PathParam("provider") String provider, @PathParam("domain") String domain, @PathParam("service") String service, @PathParam("instanceId") String instanceId, InstanceRefreshInformation info) {
+        try {
+            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context.authorize("deploy", "" + domain + ":provider." + provider + "", null);
+            InstanceIdentity e = this.delegate.postInstanceRefreshInformation(context, provider, domain, service, instanceId, info);
+            return e;
+        } catch (ResourceException e) {
+            int code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.INTERNAL_SERVER_ERROR:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource postInstanceRefreshInformation");
+                throw typedException(code, e, ResourceError.class);
+            }
+        }
+    }
+
+    @DELETE
+    @Path("/instance/{provider}/{domain}/{service}/{instanceId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public InstanceIdentity deleteInstanceIdentity(@PathParam("provider") String provider, @PathParam("domain") String domain, @PathParam("service") String service, @PathParam("instanceId") String instanceId) {
+        try {
+            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context.authorize("delete", "" + domain + ":instance." + instanceId + "", null);
+            InstanceIdentity e = this.delegate.deleteInstanceIdentity(context, provider, domain, service, instanceId);
+            return null;
+        } catch (ResourceException e) {
+            int code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.INTERNAL_SERVER_ERROR:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteInstanceIdentity");
+                throw typedException(code, e, ResourceError.class);
+            }
+        }
+    }
+
+    @POST
     @Path("/metrics/{domainName}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)

@@ -31,6 +31,9 @@ public interface ZTSHandler {
     public AWSTemporaryCredentials getAWSTemporaryCredentials(ResourceContext context, String domainName, String role);
     public Identity postOSTKInstanceInformation(ResourceContext context, OSTKInstanceInformation info);
     public Identity postOSTKInstanceRefreshRequest(ResourceContext context, String domain, String service, OSTKInstanceRefreshRequest req);
+    public void postInstanceRegisterInformation(ResourceContext context, InstanceRegisterInformation info, PostInstanceRegisterInformationResult result);
+    public InstanceIdentity postInstanceRefreshInformation(ResourceContext context, String provider, String domain, String service, String instanceId, InstanceRefreshInformation info);
+    public InstanceIdentity deleteInstanceIdentity(ResourceContext context, String provider, String domain, String service, String instanceId);
     public DomainMetrics postDomainMetrics(ResourceContext context, String domainName, DomainMetrics req);
     public Schema getRdlSchema(ResourceContext context);
     public ResourceContext newResourceContext(HttpServletRequest request, HttpServletResponse response);

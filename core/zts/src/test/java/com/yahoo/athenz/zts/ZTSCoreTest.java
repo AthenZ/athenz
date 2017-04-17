@@ -71,4 +71,38 @@ public class ZTSCoreTest {
             assertFalse(result.valid);
         }
     }
+
+    @Test
+    public void testPathElement() {
+        String [] goodPathElements = {
+            "i-132432432143",
+            "a-zA-Z0-9-._~=+@$,:",
+            "a-23434$asdfdf-343",
+            "abc:test-asdfdsf,234333",
+            "abc~test"
+        };
+        
+        Schema schema = ZTSSchema.instance();
+        Validator validator = new Validator(schema);
+        
+        for (String s : goodPathElements) {
+            Result result = validator.validate(s, "PathElement");
+            assertTrue(result.valid);
+        }
+
+        String [] badPathElements = {
+            "abc/test/atest",
+            "abc%asdfadsfd",
+            "Non_ascii:��",
+            "asdf;test",
+            "great!test",
+            "query&element",
+            "query?element"
+        };
+
+        for (String s : badPathElements) {
+            Result result = validator.validate(s, "PathElement");
+            assertFalse(result.valid);
+        }
+    }
 }

@@ -83,6 +83,11 @@ type AuthorityName string
 type SignedToken string
 
 //
+// PathElement - A uri-safe path element
+//
+type PathElement string
+
+//
 // ResourceAccess - ResourceAccess can be checked and returned as this
 // resource. (same as ZMS.Access)
 //
@@ -1996,6 +2001,294 @@ func (self *OSTKInstanceRefreshRequest) UnmarshalJSON(b []byte) error {
 // Validate - checks for missing required fields, etc
 //
 func (self *OSTKInstanceRefreshRequest) Validate() error {
+	return nil
+}
+
+//
+// InstanceRegisterInformation -
+//
+type InstanceRegisterInformation struct {
+
+	//
+	// the provider service name (i.e. "aws.us-west-2", "sys.openstack.cluster1")
+	//
+	Provider ServiceName `json:"provider"`
+
+	//
+	// the domain of the instance
+	//
+	Domain DomainName `json:"domain"`
+
+	//
+	// the service this instance is supposed to run
+	//
+	Service SimpleName `json:"service"`
+
+	//
+	// identity attestation data including document with its signature containing
+	// attributes like IP address, instance-id, account#, etc.
+	//
+	AttestationData string `json:"attestationData"`
+
+	//
+	// the Certificate Signing Request for the expected X.509 certificate in the
+	// response
+	//
+	Csr string `json:"csr"`
+
+	//
+	// if present, return an SSH host certificate. Format is JSON.
+	//
+	Ssh string `json:"ssh,omitempty" rdl:"optional"`
+
+	//
+	// if true, return a service token signed by ZTS for this service
+	//
+	Token *bool `json:"token,omitempty" rdl:"optional"`
+}
+
+//
+// NewInstanceRegisterInformation - creates an initialized InstanceRegisterInformation instance, returns a pointer to it
+//
+func NewInstanceRegisterInformation(init ...*InstanceRegisterInformation) *InstanceRegisterInformation {
+	var o *InstanceRegisterInformation
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(InstanceRegisterInformation)
+	}
+	return o
+}
+
+type rawInstanceRegisterInformation InstanceRegisterInformation
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a InstanceRegisterInformation
+//
+func (self *InstanceRegisterInformation) UnmarshalJSON(b []byte) error {
+	var r rawInstanceRegisterInformation
+	err := json.Unmarshal(b, &r)
+	if err == nil {
+		o := InstanceRegisterInformation(r)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *InstanceRegisterInformation) Validate() error {
+	if self.Provider == "" {
+		return fmt.Errorf("InstanceRegisterInformation.provider is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "ServiceName", self.Provider)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRegisterInformation.provider does not contain a valid ServiceName (%v)", val.Error)
+		}
+	}
+	if self.Domain == "" {
+		return fmt.Errorf("InstanceRegisterInformation.domain is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "DomainName", self.Domain)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRegisterInformation.domain does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	if self.Service == "" {
+		return fmt.Errorf("InstanceRegisterInformation.service is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "SimpleName", self.Service)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRegisterInformation.service does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.AttestationData == "" {
+		return fmt.Errorf("InstanceRegisterInformation.attestationData is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.AttestationData)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRegisterInformation.attestationData does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Csr == "" {
+		return fmt.Errorf("InstanceRegisterInformation.csr is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Csr)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRegisterInformation.csr does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
+// InstanceRefreshInformation -
+//
+type InstanceRefreshInformation struct {
+
+	//
+	// the Certificate Signing Request for the expected X.509 certificate in the
+	// response
+	//
+	Csr string `json:"csr,omitempty" rdl:"optional"`
+
+	//
+	// if present, return an SSH host certificate. Format is JSON.
+	//
+	Ssh string `json:"ssh,omitempty" rdl:"optional"`
+
+	//
+	// if true, return a service token signed by ZTS for this service
+	//
+	Token *bool `json:"token,omitempty" rdl:"optional"`
+}
+
+//
+// NewInstanceRefreshInformation - creates an initialized InstanceRefreshInformation instance, returns a pointer to it
+//
+func NewInstanceRefreshInformation(init ...*InstanceRefreshInformation) *InstanceRefreshInformation {
+	var o *InstanceRefreshInformation
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(InstanceRefreshInformation)
+	}
+	return o
+}
+
+type rawInstanceRefreshInformation InstanceRefreshInformation
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a InstanceRefreshInformation
+//
+func (self *InstanceRefreshInformation) UnmarshalJSON(b []byte) error {
+	var r rawInstanceRefreshInformation
+	err := json.Unmarshal(b, &r)
+	if err == nil {
+		o := InstanceRefreshInformation(r)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *InstanceRefreshInformation) Validate() error {
+	return nil
+}
+
+//
+// InstanceIdentity -
+//
+type InstanceIdentity struct {
+
+	//
+	// the provider service name (i.e. "aws.us-west-2", "sys.openstack.cluster1")
+	//
+	Provider ServiceName `json:"provider"`
+
+	//
+	// name of the identity, fully qualified, i.e. my.domain.service1
+	//
+	Name ServiceName `json:"name"`
+
+	//
+	// unique instance id within provider's namespace
+	//
+	InstanceId PathElement `json:"instanceId"`
+
+	//
+	// an X.509 certificate usable for both client and server in TLS connections
+	//
+	X509Certificate string `json:"x509Certificate,omitempty" rdl:"optional"`
+
+	//
+	// the CA certificate chain to verify all generated X.509 certs
+	//
+	X509CertificateSigner string `json:"x509CertificateSigner,omitempty" rdl:"optional"`
+
+	//
+	// the SSH certificate, signed by the CA (user or host)
+	//
+	SshCertificate string `json:"sshCertificate,omitempty" rdl:"optional"`
+
+	//
+	// the SSH CA's public key for the sshCertificate (user or host)
+	//
+	SshCertificateSigner string `json:"sshCertificateSigner,omitempty" rdl:"optional"`
+
+	//
+	// service token instead of TLS certificate
+	//
+	ServiceToken SignedToken `json:"serviceToken,omitempty" rdl:"optional"`
+
+	//
+	// other config-like attributes determined at boot time
+	//
+	Attributes map[string]string `json:"attributes,omitempty" rdl:"optional"`
+}
+
+//
+// NewInstanceIdentity - creates an initialized InstanceIdentity instance, returns a pointer to it
+//
+func NewInstanceIdentity(init ...*InstanceIdentity) *InstanceIdentity {
+	var o *InstanceIdentity
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(InstanceIdentity)
+	}
+	return o
+}
+
+type rawInstanceIdentity InstanceIdentity
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a InstanceIdentity
+//
+func (self *InstanceIdentity) UnmarshalJSON(b []byte) error {
+	var r rawInstanceIdentity
+	err := json.Unmarshal(b, &r)
+	if err == nil {
+		o := InstanceIdentity(r)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *InstanceIdentity) Validate() error {
+	if self.Provider == "" {
+		return fmt.Errorf("InstanceIdentity.provider is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "ServiceName", self.Provider)
+		if !val.Valid {
+			return fmt.Errorf("InstanceIdentity.provider does not contain a valid ServiceName (%v)", val.Error)
+		}
+	}
+	if self.Name == "" {
+		return fmt.Errorf("InstanceIdentity.name is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "ServiceName", self.Name)
+		if !val.Valid {
+			return fmt.Errorf("InstanceIdentity.name does not contain a valid ServiceName (%v)", val.Error)
+		}
+	}
+	if self.InstanceId == "" {
+		return fmt.Errorf("InstanceIdentity.instanceId is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "PathElement", self.InstanceId)
+		if !val.Valid {
+			return fmt.Errorf("InstanceIdentity.instanceId does not contain a valid PathElement (%v)", val.Error)
+		}
+	}
 	return nil
 }
 

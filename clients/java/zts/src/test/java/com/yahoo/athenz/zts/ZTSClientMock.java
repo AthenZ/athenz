@@ -297,6 +297,41 @@ public class ZTSClientMock extends ZTSRDLGeneratedClient implements java.io.Clos
     }
 
     @Override
+    public InstanceIdentity postInstanceRegisterInformation(InstanceRegisterInformation info,
+            Map<String, List<String>> headers) {
+
+        if (!info.getAttestationData().equals("good-instance-document")) {
+            throw new ResourceException(400, "Invalid request");
+        }
+        InstanceIdentity identity = new InstanceIdentity().setProvider("provider")
+                .setName(info.getDomain() + "." + info.getService())
+                .setX509Certificate("x509");
+        return identity;
+    }
+    
+    @Override
+    public InstanceIdentity postInstanceRefreshInformation(String provider, String domain,
+            String service, String instanceId, InstanceRefreshInformation info) {
+        
+        if (!info.getCsr().equals("good-x509-csr")) {
+            throw new ResourceException(400, "Invalid request");
+        }
+        InstanceIdentity identity = new InstanceIdentity().setProvider(provider)
+                .setName(domain + "." + service).setX509Certificate("x509");
+        return identity;
+    }
+    
+    @Override
+    public InstanceIdentity deleteInstanceIdentity(String provider, String domain, String service,
+            String instanceId) {
+        
+        if (instanceId.startsWith("bad")) {
+            throw new ResourceException(400, "Invalid delete request");
+        }
+        return new InstanceIdentity();
+    }
+    
+    @Override
     public Identity postInstanceRefreshRequest(String domain, String service, InstanceRefreshRequest req) {
         if (domain.equals("exc")) {
             throw new ResourceException(400, "Invalid request");

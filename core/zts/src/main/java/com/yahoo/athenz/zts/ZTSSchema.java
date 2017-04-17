@@ -62,6 +62,10 @@ public class ZTSSchema {
             .comment("A signed assertion if identity. i.e. the user cookie value. This token will only make sense to the authority that generated it, so it is beneficial to have something in the value that is cheaply recognized to quickly reject if it belongs to another authority. In addition to the YEncoded set our token includes ; to separate components and , to separate roles")
             .pattern("[a-zA-Z0-9\\._%=;,-]*");
 
+        sb.stringType("PathElement")
+            .comment("A uri-safe path element")
+            .pattern("[a-zA-Z0-9-._~=+@$,:]*");
+
         sb.structType("ResourceAccess")
             .comment("ResourceAccess can be checked and returned as this resource. (same as ZMS.Access)")
             .field("granted", "Bool", false, "true (allowed) or false (denied)");
@@ -215,6 +219,31 @@ public class ZTSSchema {
         sb.structType("OSTKInstanceRefreshRequest")
             .comment("OSTKCertificateRequest - a certificate signing request")
             .field("csr", "String", true, "request an X.509 certificate");
+
+        sb.structType("InstanceRegisterInformation")
+            .field("provider", "ServiceName", false, "the provider service name (i.e. \"aws.us-west-2\", \"sys.openstack.cluster1\")")
+            .field("domain", "DomainName", false, "the domain of the instance")
+            .field("service", "SimpleName", false, "the service this instance is supposed to run")
+            .field("attestationData", "String", false, "identity attestation data including document with its signature containing attributes like IP address, instance-id, account#, etc.")
+            .field("csr", "String", false, "the Certificate Signing Request for the expected X.509 certificate in the response")
+            .field("ssh", "String", true, "if present, return an SSH host certificate. Format is JSON.")
+            .field("token", "Bool", true, "if true, return a service token signed by ZTS for this service");
+
+        sb.structType("InstanceRefreshInformation")
+            .field("csr", "String", true, "the Certificate Signing Request for the expected X.509 certificate in the response")
+            .field("ssh", "String", true, "if present, return an SSH host certificate. Format is JSON.")
+            .field("token", "Bool", true, "if true, return a service token signed by ZTS for this service");
+
+        sb.structType("InstanceIdentity")
+            .field("provider", "ServiceName", false, "the provider service name (i.e. \"aws.us-west-2\", \"sys.openstack.cluster1\")")
+            .field("name", "ServiceName", false, "name of the identity, fully qualified, i.e. my.domain.service1")
+            .field("instanceId", "PathElement", false, "unique instance id within provider's namespace")
+            .field("x509Certificate", "String", true, "an X.509 certificate usable for both client and server in TLS connections")
+            .field("x509CertificateSigner", "String", true, "the CA certificate chain to verify all generated X.509 certs")
+            .field("sshCertificate", "String", true, "the SSH certificate, signed by the CA (user or host)")
+            .field("sshCertificateSigner", "String", true, "the SSH CA's public key for the sshCertificate (user or host)")
+            .field("serviceToken", "SignedToken", true, "service token instead of TLS certificate")
+            .mapField("attributes", "String", "String", true, "other config-like attributes determined at boot time");
 
         sb.enumType("DomainMetricType")
             .comment("zpe metric attributes")
@@ -502,6 +531,57 @@ public class ZTSSchema {
             .input("req", "OSTKInstanceRefreshRequest", "the refresh request")
             .auth("", "", true)
             .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("InstanceRegisterInformation", "POST", "/instance")
+            .input("info", "InstanceRegisterInformation", "")
+            .output("Location", "location", "String", "return location for subsequent patch requests")
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("InstanceRefreshInformation", "POST", "/instance/{provider}/{domain}/{service}/{instanceId}")
+            .comment("only TLS authentication is allowed")
+            .pathParam("provider", "ServiceName", "the provider service name (i.e. \"aws.us-west-2\", \"paas.manhattan.corp-gq1\")")
+            .pathParam("domain", "DomainName", "the domain of the instance")
+            .pathParam("service", "SimpleName", "the service this instance is supposed to run")
+            .pathParam("instanceId", "PathElement", "unique instance id within provider's namespace")
+            .input("info", "InstanceRefreshInformation", "the refresh request")
+            .auth("deploy", "{domain}:provider.{provider}")
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("InstanceIdentity", "DELETE", "/instance/{provider}/{domain}/{service}/{instanceId}")
+            .pathParam("provider", "ServiceName", "the provider service name (i.e. \"aws.us-west-2\", \"paas.manhattan.corp-gq1\")")
+            .pathParam("domain", "DomainName", "the domain of the instance")
+            .pathParam("service", "SimpleName", "the service this instance is supposed to run")
+            .pathParam("instanceId", "PathElement", "unique instance id within provider's namespace")
+            .auth("delete", "{domain}:instance.{instanceId}")
+            .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("FORBIDDEN", "ResourceError", "")

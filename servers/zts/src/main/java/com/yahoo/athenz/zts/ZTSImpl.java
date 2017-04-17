@@ -104,6 +104,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
     private static final String TYPE_ENTITY_NAME = "EntityName";
     private static final String TYPE_SERVICE_NAME = "ServiceName";
+    private static final String TYPE_INSTANCE_REGISTER_INFO = "InstanceRegisterInformation";
+    private static final String TYPE_INSTANCE_REFRESH_INFO = "InstanceRefreshInformation";
     private static final String TYPE_INSTANCE_INFO = "InstanceInformation";
     private static final String TYPE_INSTANCE_REFRESH_REQUEST = "InstanceRefreshRequest";
     private static final String TYPE_AWS_INSTANCE_INFO = "AWSInstanceInformation";
@@ -114,6 +116,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private static final String TYPE_ROLE_CERTIFICATE_REQUEST = "RoleCertificateRequest";
     private static final String TYPE_COMPOUND_NAME = "CompoundName";
     private static final String TYPE_RESOURCE_NAME = "ResourceName";
+    private static final String TYPE_PATH_ELEMENT = "PathElement";
     
     private static final String ZTS_ROLE_TOKEN_VERSION = "Z1";
 
@@ -134,6 +137,19 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected Http.AuthorityList authorities = null;
     private final ZTSAuthorizer authorizer;
     protected static Validator validator;
+    
+    enum AthenzObject {
+        INSTANCE_REGISTER_INFO {
+            void convertToLowerCase(Object obj) {
+                InstanceRegisterInformation info = (InstanceRegisterInformation) obj;
+                info.setDomain(info.getDomain().toLowerCase());
+                info.setService(info.getService().toLowerCase());
+                info.setProvider(info.getProvider().toLowerCase());
+            }
+        };
+
+        abstract void convertToLowerCase(Object obj);
+    }
     
     public ZTSImpl() {
         this(null, null);
@@ -1584,6 +1600,129 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return false;
     }
 
+
+    @Override
+    public void postInstanceRegisterInformation(ResourceContext ctx,
+            InstanceRegisterInformation info, PostInstanceRegisterInformationResult instanceResult) {
+        
+        final String caller = "postinstanceregisterinformation";
+        final String callerTiming = "postinstanceregisterinformation_timing";
+        metric.increment(HTTP_POST);
+        logPrincipal(ctx);
+
+        validateRequest(ctx.request(), caller);
+        validate(info, TYPE_INSTANCE_REGISTER_INFO, caller);
+        
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        AthenzObject.INSTANCE_REGISTER_INFO.convertToLowerCase(info);
+        
+        final String domain = info.getDomain();
+        
+        Object timerMetric = metric.startTiming(callerTiming, domain);
+        metric.increment(HTTP_REQUEST, domain);
+        metric.increment(caller, domain);
+
+        // validate authorization checks
+        
+        
+        // validate request/csr details
+        
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(info.getCsr());
+        if (certReq == null) {
+            throw requestError("postInstanceRegisterInformation: unable to parse PKCS10 certificate request",
+                    caller, domain);
+        }
+        
+        // validate request with the provider
+
+        
+        // generate certificate for the instance
+
+        
+        metric.stopTiming(timerMetric);
+    }
+
+    @Override
+    public InstanceIdentity postInstanceRefreshInformation(ResourceContext ctx, String provider,
+            String domain, String service, String instanceId, InstanceRefreshInformation info) {
+
+        final String caller = "postinstancerefreshinformation";
+        final String callerTiming = "postinstancerefreshinformation_timing";
+        metric.increment(HTTP_POST);
+        logPrincipal(ctx);
+
+        validateRequest(ctx.request(), caller);
+        validate(provider, TYPE_SERVICE_NAME, caller);
+        validate(domain, TYPE_DOMAIN_NAME, caller);
+        validate(service, TYPE_SIMPLE_NAME, caller);
+        validate(instanceId, TYPE_PATH_ELEMENT, caller);
+        validate(info, TYPE_INSTANCE_REFRESH_INFO, caller);
+        
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        provider = provider.toLowerCase();
+        domain = domain.toLowerCase();
+        service = service.toLowerCase();
+        
+        Object timerMetric = metric.startTiming(callerTiming, domain);
+        metric.increment(HTTP_REQUEST, domain);
+        metric.increment(caller, domain);
+
+        // validate authorization checks
+        
+        // validate request/csr details
+        
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(info.getCsr());
+        if (certReq == null) {
+            throw requestError("postInstanceRefreshInformation: unable to parse PKCS10 certificate request",
+                    caller, domain);
+        }
+        
+        // generate certificate for the instance
+
+        InstanceIdentity identity = null;
+        
+        metric.stopTiming(timerMetric);
+        return identity;
+    }
+
+    @Override
+    public InstanceIdentity deleteInstanceIdentity(ResourceContext ctx, String provider,
+            String domain, String service, String instanceId) {
+        
+        final String caller = "postinstancerevokeinformation";
+        final String callerTiming = "postinstancerevokeinformation_timing";
+        metric.increment(HTTP_POST);
+        logPrincipal(ctx);
+
+        validateRequest(ctx.request(), caller);
+        validate(provider, TYPE_SERVICE_NAME, caller);
+        validate(domain, TYPE_DOMAIN_NAME, caller);
+        validate(service, TYPE_SIMPLE_NAME, caller);
+        validate(instanceId, TYPE_PATH_ELEMENT, caller);
+        
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        provider = provider.toLowerCase();
+        domain = domain.toLowerCase();
+        service = service.toLowerCase();
+        
+        
+        Object timerMetric = metric.startTiming(callerTiming, domain);
+        metric.increment(HTTP_REQUEST, domain);
+        metric.increment(caller, domain);
+        
+        metric.stopTiming(timerMetric);
+        return null;
+    }
+    
     @Override
     public Identity postAWSInstanceInformation(ResourceContext ctx, AWSInstanceInformation info) {
         

@@ -899,6 +899,106 @@ func (client ZTSClient) PostOSTKInstanceRefreshRequest(domain CompoundName, serv
 	}
 }
 
+func (client ZTSClient) PostInstanceRegisterInformation(info *InstanceRegisterInformation) (*InstanceIdentity, string, error) {
+	var data *InstanceIdentity
+	url := client.URL + "/instance"
+	contentBytes, err := json.Marshal(info)
+	if err != nil {
+		return nil, "", err
+	}
+	resp, err := client.httpPost(url, nil, contentBytes)
+	if err != nil {
+		return nil, "", err
+	}
+	contentBytes, err = ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		return nil, "", err
+	}
+	switch resp.StatusCode {
+	case 200:
+		err = json.Unmarshal(contentBytes, &data)
+		if err != nil {
+			return nil, "", err
+		}
+		location := resp.Header.Get(rdl.FoldHttpHeaderName("Location"))
+		return data, location, nil
+	default:
+		var errobj rdl.ResourceError
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return nil, "", errobj
+	}
+}
+
+func (client ZTSClient) PostInstanceRefreshInformation(provider ServiceName, domain DomainName, service SimpleName, instanceId PathElement, info *InstanceRefreshInformation) (*InstanceIdentity, error) {
+	var data *InstanceIdentity
+	url := client.URL + "/instance/" + fmt.Sprint(provider) + "/" + fmt.Sprint(domain) + "/" + fmt.Sprint(service) + "/" + fmt.Sprint(instanceId)
+	contentBytes, err := json.Marshal(info)
+	if err != nil {
+		return data, err
+	}
+	resp, err := client.httpPost(url, nil, contentBytes)
+	if err != nil {
+		return data, err
+	}
+	contentBytes, err = ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		return data, err
+	}
+	switch resp.StatusCode {
+	case 200:
+		err = json.Unmarshal(contentBytes, &data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
+func (client ZTSClient) DeleteInstanceIdentity(provider ServiceName, domain DomainName, service SimpleName, instanceId PathElement) error {
+	url := client.URL + "/instance/" + fmt.Sprint(provider) + "/" + fmt.Sprint(domain) + "/" + fmt.Sprint(service) + "/" + fmt.Sprint(instanceId)
+	resp, err := client.httpDelete(url, nil)
+	if err != nil {
+		return err
+	}
+	contentBytes, err := ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		return err
+	}
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
 func (client ZTSClient) PostDomainMetrics(domainName DomainName, req *DomainMetrics) (*DomainMetrics, error) {
 	var data *DomainMetrics
 	url := client.URL + "/metrics/" + fmt.Sprint(domainName)

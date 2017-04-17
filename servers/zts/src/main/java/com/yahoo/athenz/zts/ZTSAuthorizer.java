@@ -90,11 +90,13 @@ public class ZTSAuthorizer implements Authorizer {
         
         String domainName = retrieveResourceDomain(resource, op, trustDomain);
         if (domainName == null) {
-            throw new com.yahoo.athenz.zts.ResourceException(ResourceException.NOT_FOUND, "Domain not found");
+            throw new ResourceException(ResourceException.NOT_FOUND,
+                    new ResourceError().code(ResourceException.NOT_FOUND).message("Domain not found"));
         }
         DataCache domain = dataStore.getDataCache(domainName);
         if (domain == null) {
-            throw new com.yahoo.athenz.zts.ResourceException(ResourceException.NOT_FOUND, "Domain not found");
+            throw new ResourceException(ResourceException.NOT_FOUND,
+                    new ResourceError().code(ResourceException.NOT_FOUND).message("Domain not found"));
         }
         
         AccessStatus accessStatus = evaluateAccess(domain, principal.getFullName(), op, resource, trustDomain);
