@@ -52,4 +52,22 @@ public class StringUtilsTest {
         assertFalse(StringUtils.containsMatchCharacter("a(ab)[ab]"));
         assertFalse(StringUtils.containsMatchCharacter("domain:role.rolename"));
     }
+    
+    @Test
+    public void testContainsControlCharacter() {
+        assertFalse(StringUtils.containsControlCharacter("abcd"));
+        assertFalse(StringUtils.containsControlCharacter("abc td"));
+        assertFalse(StringUtils.containsControlCharacter("abc2345423540908d"));
+        assertFalse(StringUtils.containsControlCharacter("abcd!@#$#@%$$^%&%*()_+=="));
+        assertFalse(StringUtils.containsControlCharacter("abc\\][\\|}{|}d"));
+        assertFalse(StringUtils.containsControlCharacter("abc\":\":\";;';';;d"));
+        assertFalse(StringUtils.containsControlCharacter("ab,./<>?cd"));
+        assertFalse(StringUtils.containsControlCharacter("abcd`~!@#$%^&*()_+-="));
+        
+        assertTrue(StringUtils.containsControlCharacter("abc\t"));
+        assertTrue(StringUtils.containsControlCharacter("abc\n"));
+        assertTrue(StringUtils.containsControlCharacter("abc\b"));
+        assertTrue(StringUtils.containsControlCharacter("abc\r"));
+        assertTrue(StringUtils.containsControlCharacter("abc\t\r\b\t\n"));
+    }
 }

@@ -61,4 +61,19 @@ public class StringUtils {
         sb.append("$");
         return sb.toString();
     }
+    
+    public static boolean containsControlCharacter(String value) {
+        
+        // we're going to check if the string contains
+        // any characters in the '00' through '1F' range
+        // so anything smaller than a space
+        
+        int length = value.length();
+        for (int i = 0; i < length; i++) {
+            if (value.charAt(i) < ' ') {
+                return true;
+            }
+        }
+        return false;
+    }
 }

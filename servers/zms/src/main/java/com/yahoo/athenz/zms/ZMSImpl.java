@@ -2989,6 +2989,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (!domainName.equals("*")) {
             validate(domainName, TYPE_DOMAIN_NAME, caller);
         }
+        
+        // we'll also verify that the resource does not contain
+        // any control characters since those cause issues when
+        // data is serialized/deserialized and signature is generated
+        
+        if (StringUtils.containsControlCharacter(resource)) {
+            throw ZMSUtils.requestError("Assertion resource contains control characters: "
+                    + resource, caller);
+        }
     }
     
     boolean isConsistentPolicyName(final String domainName, final String policyName, Policy policy) {
@@ -3032,6 +3041,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             validate(policy, TYPE_POLICY, caller);
 
             // verify that request is properly authenticated for this request
+            
             verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
             
             // for consistent handling of all requests, we're going to convert

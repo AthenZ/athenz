@@ -13335,6 +13335,21 @@ public class ZMSImplTest extends TestCase {
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
         }
+        
+        // assertion with invalid resource name
+        
+        assertion = new Assertion();
+        assertion.setAction("update");
+        assertion.setEffect(AssertionEffect.ALLOW);
+        assertion.setResource("domain1:resource\t\ntest");
+        assertion.setRole(ZMSUtils.roleResourceName("domain1", "role1"));
+        
+        try {
+            zms.validatePolicyAssertion(assertion, "unitTest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(400, ex.getCode());
+        }
     }
     
     @Test
