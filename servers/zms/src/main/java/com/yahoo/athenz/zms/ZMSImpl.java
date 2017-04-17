@@ -1432,6 +1432,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateRequest(ctx.request(), caller);
 
         try {
+            validate(domainName, TYPE_DOMAIN_NAME, caller);
             validate(templates, TYPE_DOMAIN_TEMPLATE, caller);
             
             // for consistent handling of all requests, we're going to convert
@@ -1488,34 +1489,33 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateRequest(ctx.request(), caller);
 
         try {
-            // verify that request is properly authenticated for this request
-        
-            verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
-        
+            validate(domainName, TYPE_DOMAIN_NAME, caller);
+            validate(templateName, TYPE_SIMPLE_NAME, caller);
+            
             // for consistent handling of all requests, we're going to convert
             // all incoming object values into lower case (e.g. domain, role,
             // policy, service, etc name)
-        
+
             domainName = domainName.toLowerCase();
+            templateName = templateName.toLowerCase();
+            
             metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
             metric.increment(caller, domainName);
             Object timerMetric = metric.startTiming("deletedomaintemplate_timing", domainName);
-
+            
             if (LOG.isDebugEnabled()) {
                 LOG.debug("deleteDomainTemplate: domain=" + domainName + ", template=" + templateName);
             }
+            
+            // verify that request is properly authenticated for this request
 
-            // verify the template name is valid
-        
-            if (templateName == null || templateName.length() == 0) {
-                throw ZMSUtils.requestError("deleteDomainTemplate: No template specified", caller);
-            }
+            verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(),
+                    caller, "name", templateName);
 
-            templateName = templateName.toLowerCase();
             List<String> templateNames = new ArrayList<String>();
             templateNames.add(templateName);
             validateSolutionTemplates(templateNames, caller);
-        
+
             dbService.executeDeleteDomainTemplate(ctx, domainName, templateName, auditRef, caller);
             metric.stopTiming(timerMetric);
 
