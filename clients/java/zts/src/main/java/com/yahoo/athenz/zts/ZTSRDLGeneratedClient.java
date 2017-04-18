@@ -301,20 +301,6 @@ public class ZTSRDLGeneratedClient {
 
     }
 
-    public Identity postInstanceInformation(InstanceInformation info) {
-        WebTarget target = base.path("/instance");
-        Invocation.Builder invocationBuilder = target.request("application/json");
-        Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(info, "application/json"));
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-            return response.readEntity(Identity.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
-        }
-
-    }
-
     public Identity postInstanceRefreshRequest(String domain, String service, InstanceRefreshRequest req) {
         WebTarget target = base.path("/instance/{domain}/{service}/refresh")
             .resolveTemplate("domain", domain)

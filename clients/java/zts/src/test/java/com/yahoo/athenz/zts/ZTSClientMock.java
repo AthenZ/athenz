@@ -287,11 +287,6 @@ public class ZTSClientMock extends ZTSRDLGeneratedClient implements java.io.Clos
     }
 
     @Override
-    public Identity postInstanceInformation(InstanceInformation info) {
-        return null;
-    }
-
-    @Override
     public Identity postAWSInstanceInformation(AWSInstanceInformation info) {
         return null;
     }

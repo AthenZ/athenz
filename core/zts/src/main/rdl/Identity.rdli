@@ -16,25 +16,13 @@ type InstanceInformation Struct {
     String ssh (optional); //if present, return an SSH host certificate
 }
 
-// Get a cert for service being bootstrapped by supported service
-resource Identity POST "/instance" {
-    InstanceInformation info;
-    expected OK;
-    exceptions {
-        ResourceError BAD_REQUEST;
-        ResourceError FORBIDDEN;
-        ResourceError UNAUTHORIZED;
-        ResourceError INTERNAL_SERVER_ERROR;
-    }
-}
-
 // InstanceRefreshRequest - a certificate refresh request
 type InstanceRefreshRequest Struct {
-     String csr; // Cert CSR if requesting TLS certificate
+     String csr; //Cert CSR signed by the service's private key (public key registered in ZMS)
      Int32 expiryTime (optional); //in seconds how long token should be valid for
 }
 
-// Refresh self identity if the original identity was issued by ZTS
+// Refresh Service NToken into TLS Certificate
 resource Identity POST "/instance/{domain}/{service}/refresh" {
     CompoundName domain; //name of the domain requesting the refresh
     SimpleName service; //name of the service requesting the refresh

@@ -1874,65 +1874,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.stopTiming(timerMetric);
         return identity;
     }
-
-    @Override
-    public Identity postInstanceInformation(ResourceContext ctx, InstanceInformation info) {
-
-        final String caller = "postinstanceinformation";
-        final String callerTiming = "postinstanceinformation_timing";
-        metric.increment(HTTP_POST);
-        logPrincipal(ctx);
-
-        validateRequest(ctx.request(), caller);
-        
-        String domain = info.getDomain();
-        String service = info.getService();
-
-        Object timerMetric = metric.startTiming(callerTiming, domain);
-        metric.increment(HTTP_REQUEST, domain);
-        metric.increment(caller, domain);
-
-        validate(info, TYPE_INSTANCE_INFO, caller);
-
-        // for consistent handling of all requests, we're going to convert
-        // all incoming object values into lower case (e.g. domain, role,
-        // policy, service, etc name)
-
-        domain = domain.toLowerCase();
-        service = service.toLowerCase();
-        final String cn = domain + "." + service;
-        
-        // now let's validate the request, and the csr, given to us by the client
-
-        if (!cloudStore.verifyInstanceDocument(info, null)) {
-            throw requestError("postInstanceInformation: unable to verify identity document, invalid request",
-                    caller, domain);
-        }
-
-        // validate the CSR
-        
-        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(info.getCsr());
-        if (certReq == null) {
-            throw requestError("postInstanceInformation: unable to parse PKCS10 certificate request",
-                    caller, domain);
-        }
-        
-        if (!ZTSUtils.verifyCertificateRequest(certReq, domain, service, null, null)) {
-            throw requestError("postInstanceInformation: unable to verify certificate request, invalid csr",
-                    caller, domain);
-        }
-        
-        // generate certificate for the instance
-
-        Identity identity = ZTSUtils.generateIdentity(certSigner, info.getCsr(), cn);
-        if (identity == null) {
-            throw requestError("postInstanceInformation: unable to generate identity",
-                    caller, domain);
-        }
-
-        metric.stopTiming(timerMetric);
-        return identity;
-    }
     
     @Override
     public Identity postOSTKInstanceInformation(ResourceContext ctx, OSTKInstanceInformation info) {

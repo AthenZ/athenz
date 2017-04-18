@@ -3194,52 +3194,6 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceInformation() throws IOException  {
-        Path path = Paths.get("src/test/resources/valid.csr");
-        String certCsr = new String(Files.readAllBytes(path));
-
-        InstanceInformation info = new InstanceInformation()
-                .setCsr(certCsr)
-                .setDocument("Test Document")
-                .setSignature("Test Signature")
-                .setDomain("athenz")
-                .setService("syncer")
-                .setKeyId("0");
-
-        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
-                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
-        ResourceContext context = createResourceContext(principal);
-        
-        try {
-            zts.postInstanceInformation(context, info);
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
-        }
-    }
-
-    @Test
-    public void testPostInstanceInformationInvalidCsr() throws IOException  {
-        InstanceInformation info = new InstanceInformation()
-                .setCsr("invalid-csr")
-                .setDocument("Test Document")
-                .setSignature("Test Signature")
-                .setDomain("iaas.athenz")
-                .setService("syncer");
-
-        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
-                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
-        ResourceContext context = createResourceContext(principal);
-        
-        try {
-            zts.postInstanceInformation(context, info);
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
-        }
-    }
-
-    @Test
     public void testPostAWSInstanceInformationNoAwsAccount() {
 
         CloudStore cloudStore = new MockCloudStore();

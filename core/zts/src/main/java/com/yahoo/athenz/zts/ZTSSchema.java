@@ -174,7 +174,7 @@ public class ZTSSchema {
 
         sb.structType("InstanceRefreshRequest")
             .comment("InstanceRefreshRequest - a certificate refresh request")
-            .field("csr", "String", false, "Cert CSR if requesting TLS certificate")
+            .field("csr", "String", false, "Cert CSR signed by the service's private key (public key registered in ZMS)")
             .field("expiryTime", "Int32", true, "in seconds how long token should be valid for");
 
         sb.structType("AWSInstanceInformation")
@@ -440,21 +440,8 @@ public class ZTSSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
-        sb.resource("InstanceInformation", "POST", "/instance")
-            .comment("Get a cert for service being bootstrapped by supported service")
-            .input("info", "InstanceInformation", "")
-            .expected("OK")
-            .exception("BAD_REQUEST", "ResourceError", "")
-
-            .exception("FORBIDDEN", "ResourceError", "")
-
-            .exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
-
-            .exception("UNAUTHORIZED", "ResourceError", "")
-;
-
         sb.resource("InstanceRefreshRequest", "POST", "/instance/{domain}/{service}/refresh")
-            .comment("Refresh self identity if the original identity was issued by ZTS")
+            .comment("Refresh Service NToken into TLS Certificate")
             .pathParam("domain", "CompoundName", "name of the domain requesting the refresh")
             .pathParam("service", "SimpleName", "name of the service requesting the refresh")
             .input("req", "InstanceRefreshRequest", "the refresh request")

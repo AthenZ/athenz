@@ -202,7 +202,7 @@ func init() {
 
 	tInstanceRefreshRequest := rdl.NewStructTypeBuilder("Struct", "InstanceRefreshRequest")
 	tInstanceRefreshRequest.Comment("InstanceRefreshRequest - a certificate refresh request")
-	tInstanceRefreshRequest.Field("csr", "String", false, nil, "Cert CSR if requesting TLS certificate")
+	tInstanceRefreshRequest.Field("csr", "String", false, nil, "Cert CSR signed by the service's private key (public key registered in ZMS)")
 	tInstanceRefreshRequest.Field("expiryTime", "Int32", true, nil, "in seconds how long token should be valid for")
 	sb.AddType(tInstanceRefreshRequest.Build())
 
@@ -442,17 +442,8 @@ func init() {
 	rGetTenantDomains.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rGetTenantDomains.Build())
 
-	rPostInstanceInformation := rdl.NewResourceBuilder("Identity", "POST", "/instance")
-	rPostInstanceInformation.Comment("Get a cert for service being bootstrapped by supported service")
-	rPostInstanceInformation.Input("info", "InstanceInformation", false, "", "", false, nil, "")
-	rPostInstanceInformation.Exception("BAD_REQUEST", "ResourceError", "")
-	rPostInstanceInformation.Exception("FORBIDDEN", "ResourceError", "")
-	rPostInstanceInformation.Exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
-	rPostInstanceInformation.Exception("UNAUTHORIZED", "ResourceError", "")
-	sb.AddResource(rPostInstanceInformation.Build())
-
 	rPostInstanceRefreshRequest := rdl.NewResourceBuilder("Identity", "POST", "/instance/{domain}/{service}/refresh")
-	rPostInstanceRefreshRequest.Comment("Refresh self identity if the original identity was issued by ZTS")
+	rPostInstanceRefreshRequest.Comment("Refresh Service NToken into TLS Certificate")
 	rPostInstanceRefreshRequest.Input("domain", "CompoundName", true, "", "", false, nil, "name of the domain requesting the refresh")
 	rPostInstanceRefreshRequest.Input("service", "SimpleName", true, "", "", false, nil, "name of the service requesting the refresh")
 	rPostInstanceRefreshRequest.Input("req", "InstanceRefreshRequest", false, "", "", false, nil, "the refresh request")

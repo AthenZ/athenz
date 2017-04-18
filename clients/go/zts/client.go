@@ -651,42 +651,6 @@ func (client ZTSClient) GetTenantDomains(providerDomainName DomainName, userName
 	}
 }
 
-func (client ZTSClient) PostInstanceInformation(info *InstanceInformation) (*Identity, error) {
-	var data *Identity
-	url := client.URL + "/instance"
-	contentBytes, err := json.Marshal(info)
-	if err != nil {
-		return data, err
-	}
-	resp, err := client.httpPost(url, nil, contentBytes)
-	if err != nil {
-		return data, err
-	}
-	contentBytes, err = ioutil.ReadAll(resp.Body)
-	resp.Body.Close()
-	if err != nil {
-		return data, err
-	}
-	switch resp.StatusCode {
-	case 200:
-		err = json.Unmarshal(contentBytes, &data)
-		if err != nil {
-			return data, err
-		}
-		return data, nil
-	default:
-		var errobj rdl.ResourceError
-		json.Unmarshal(contentBytes, &errobj)
-		if errobj.Code == 0 {
-			errobj.Code = resp.StatusCode
-		}
-		if errobj.Message == "" {
-			errobj.Message = string(contentBytes)
-		}
-		return data, errobj
-	}
-}
-
 func (client ZTSClient) PostInstanceRefreshRequest(domain CompoundName, service SimpleName, req *InstanceRefreshRequest) (*Identity, error) {
 	var data *Identity
 	url := client.URL + "/instance/" + fmt.Sprint(domain) + "/" + fmt.Sprint(service) + "/refresh"

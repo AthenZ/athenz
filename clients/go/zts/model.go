@@ -1434,7 +1434,7 @@ func (self *InstanceInformation) Validate() error {
 type InstanceRefreshRequest struct {
 
 	//
-	// Cert CSR if requesting TLS certificate
+	// Cert CSR signed by the service's private key (public key registered in ZMS)
 	//
 	Csr string `json:"csr"`
 

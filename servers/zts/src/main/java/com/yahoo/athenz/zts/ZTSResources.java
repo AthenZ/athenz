@@ -317,33 +317,6 @@ public class ZTSResources {
     }
 
     @POST
-    @Path("/instance")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Identity postInstanceInformation(InstanceInformation info) {
-        try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
-            Identity e = this.delegate.postInstanceInformation(context, info);
-            return e;
-        } catch (ResourceException e) {
-            int code = e.getCode();
-            switch (code) {
-            case ResourceException.BAD_REQUEST:
-                throw typedException(code, e, ResourceError.class);
-            case ResourceException.FORBIDDEN:
-                throw typedException(code, e, ResourceError.class);
-            case ResourceException.INTERNAL_SERVER_ERROR:
-                throw typedException(code, e, ResourceError.class);
-            case ResourceException.UNAUTHORIZED:
-                throw typedException(code, e, ResourceError.class);
-            default:
-                System.err.println("*** Warning: undeclared exception (" + code + ") for resource postInstanceInformation");
-                throw typedException(code, e, ResourceError.class);
-            }
-        }
-    }
-
-    @POST
     @Path("/instance/{domain}/{service}/refresh")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)

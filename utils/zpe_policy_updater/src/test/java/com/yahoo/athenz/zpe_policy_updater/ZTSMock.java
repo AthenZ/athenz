@@ -27,18 +27,10 @@ import java.util.Map;
 import com.yahoo.rdl.Timestamp;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.utils.SignUtils;
-import com.yahoo.athenz.zts.AWSCertificateRequest;
-import com.yahoo.athenz.zts.AWSInstanceInformation;
-import com.yahoo.athenz.zts.AWSTemporaryCredentials;
-import com.yahoo.athenz.zts.Access;
 import com.yahoo.athenz.zts.Assertion;
 import com.yahoo.athenz.zts.AssertionEffect;
 import com.yahoo.athenz.zts.DomainMetrics;
 import com.yahoo.athenz.zts.DomainSignedPolicyData;
-import com.yahoo.athenz.zts.HostServices;
-import com.yahoo.athenz.zts.Identity;
-import com.yahoo.athenz.zts.InstanceInformation;
-import com.yahoo.athenz.zts.InstanceRefreshRequest;
 import com.yahoo.athenz.zts.Policy;
 import com.yahoo.athenz.zts.PolicyData;
 import com.yahoo.athenz.zts.PublicKeyEntry;
@@ -46,7 +38,6 @@ import com.yahoo.athenz.zts.RoleToken;
 import com.yahoo.athenz.zts.ServiceIdentity;
 import com.yahoo.athenz.zts.ServiceIdentityList;
 import com.yahoo.athenz.zts.SignedPolicyData;
-import com.yahoo.athenz.zts.TenantDomains;
 import com.yahoo.athenz.zts.ZTSClientException;
 import com.yahoo.athenz.zts.ZTSRDLGeneratedClient;
 
@@ -157,11 +148,6 @@ public class ZTSMock extends ZTSRDLGeneratedClient {
     }
 
     @Override
-    public HostServices getHostServices(String arg0) {
-        return null;
-    }
-
-    @Override
     public RoleToken getRoleToken(String domainName, String role,
             Integer minExpiryTime, Integer maxExpiryTime, String proxyForPrincipal) {
         return null;
@@ -196,42 +182,9 @@ public class ZTSMock extends ZTSRDLGeneratedClient {
             return keyEntry;
         }
     }
-    
-    @Override
-    public AWSTemporaryCredentials getAWSTemporaryCredentials(String domainName, String roleName) {
-        return null;
-    }
-    @Override
-    public Identity postInstanceInformation(InstanceInformation info) {
-        return null;
-    }
-    @Override
-    public TenantDomains getTenantDomains(String providerDomainName, String userName, String roleName, String serviceName) {
-        return null;
-    }
-
-    @Override
-    public Access getAccess(String arg0, String arg1, String arg2) {
-        return null;
-    }
-
-    @Override
-    public Identity postAWSCertificateRequest(String arg0, String arg1, AWSCertificateRequest arg2) {
-        return null;
-    }
-
-    @Override
-    public Identity postAWSInstanceInformation(AWSInstanceInformation arg0) {
-        return null;
-    }
 
     @Override
     public DomainMetrics postDomainMetrics(String arg0, DomainMetrics arg1) {
-        return null;
-    }
-
-    @Override
-    public Identity postInstanceRefreshRequest(String arg0, String arg1, InstanceRefreshRequest arg2) {
         return null;
     }
 }
