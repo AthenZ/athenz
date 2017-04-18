@@ -4432,4 +4432,18 @@ public class ZTSImplTest {
         zts.logPrincipal(ctx);
         assertTrue(request.attributes.isEmpty());
     }
+    
+    
+    @Test
+    public void testMemberNameMatch() {
+        assertTrue(authorizer.memberNameMatch("*", "user.joe"));
+        assertTrue(authorizer.memberNameMatch("*", "athenz.service.storage"));
+        assertTrue(authorizer.memberNameMatch("user.*", "user.joe"));
+        assertTrue(authorizer.memberNameMatch("athenz.*", "athenz.service.storage"));
+        assertTrue(authorizer.memberNameMatch("user.joe", "user.joe"));
+        
+        assertFalse(authorizer.memberNameMatch("user.*", "athenz.joe"));
+        assertFalse(authorizer.memberNameMatch("athenz.*", "athenztest.joe"));
+        assertFalse(authorizer.memberNameMatch("user.joe", "user.joel"));
+    }
 }

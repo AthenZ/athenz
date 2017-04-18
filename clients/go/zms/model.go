@@ -89,6 +89,12 @@ type AuthorityName string
 type SignedToken string
 
 //
+// MemberName - Role Member name - could be one of three values, either *,
+// DomainName.* or ResourceName
+//
+type MemberName string
+
+//
 // Domain - A domain is an independent partition of users, roles, and
 // resources. Its name represents the definition of a namespace; the only way a
 // new namespace can be created, from the top, is by creating Domains.
@@ -281,7 +287,7 @@ type RoleAuditLog struct {
 	//
 	// name of the role member
 	//
-	Member ResourceName `json:"member"`
+	Member MemberName `json:"member"`
 
 	//
 	// name of the principal executing the change
@@ -340,9 +346,9 @@ func (self *RoleAuditLog) Validate() error {
 	if self.Member == "" {
 		return fmt.Errorf("RoleAuditLog.member is missing but is a required field")
 	} else {
-		val := rdl.Validate(ZMSSchema(), "ResourceName", self.Member)
+		val := rdl.Validate(ZMSSchema(), "MemberName", self.Member)
 		if !val.Valid {
-			return fmt.Errorf("RoleAuditLog.member does not contain a valid ResourceName (%v)", val.Error)
+			return fmt.Errorf("RoleAuditLog.member does not contain a valid MemberName (%v)", val.Error)
 		}
 	}
 	if self.Admin == "" {
@@ -375,7 +381,7 @@ type RoleMember struct {
 	//
 	// name of the member
 	//
-	MemberName ResourceName `json:"memberName"`
+	MemberName MemberName `json:"memberName"`
 
 	//
 	// the expiration timestamp
@@ -419,9 +425,9 @@ func (self *RoleMember) Validate() error {
 	if self.MemberName == "" {
 		return fmt.Errorf("RoleMember.memberName is missing but is a required field")
 	} else {
-		val := rdl.Validate(ZMSSchema(), "ResourceName", self.MemberName)
+		val := rdl.Validate(ZMSSchema(), "MemberName", self.MemberName)
 		if !val.Valid {
-			return fmt.Errorf("RoleMember.memberName does not contain a valid ResourceName (%v)", val.Error)
+			return fmt.Errorf("RoleMember.memberName does not contain a valid MemberName (%v)", val.Error)
 		}
 	}
 	return nil
@@ -445,7 +451,7 @@ type Role struct {
 	//
 	// an explicit list of members. Might be empty or null, if trust is set
 	//
-	Members []ResourceName `json:"members,omitempty" rdl:"optional"`
+	Members []MemberName `json:"members,omitempty" rdl:"optional"`
 
 	//
 	// members with expiration
@@ -575,7 +581,7 @@ type Membership struct {
 	//
 	// name of the member
 	//
-	MemberName ResourceName `json:"memberName"`
+	MemberName MemberName `json:"memberName"`
 
 	//
 	// flag to indicate whether or the user is a member or not
@@ -640,9 +646,9 @@ func (self *Membership) Validate() error {
 	if self.MemberName == "" {
 		return fmt.Errorf("Membership.memberName is missing but is a required field")
 	} else {
-		val := rdl.Validate(ZMSSchema(), "ResourceName", self.MemberName)
+		val := rdl.Validate(ZMSSchema(), "MemberName", self.MemberName)
 		if !val.Valid {
-			return fmt.Errorf("Membership.memberName does not contain a valid ResourceName (%v)", val.Error)
+			return fmt.Errorf("Membership.memberName does not contain a valid MemberName (%v)", val.Error)
 		}
 	}
 	return nil

@@ -28,8 +28,7 @@ public class RsrcCtxWrapper implements ResourceContext {
 
     com.yahoo.athenz.common.server.rest.ResourceContext ctx = null;
 
-    RsrcCtxWrapper(HttpServletRequest request,
-                   HttpServletResponse response,
+    RsrcCtxWrapper(HttpServletRequest request, HttpServletResponse response,
                    Http.AuthorityList authList, Authorizer authorizer) {
         ctx = new com.yahoo.athenz.common.server.rest.ResourceContext(request,
                 response, authList, authorizer);

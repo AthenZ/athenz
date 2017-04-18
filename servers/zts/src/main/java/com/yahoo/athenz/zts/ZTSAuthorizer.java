@@ -22,7 +22,6 @@ import com.yahoo.athenz.common.server.util.StringUtils;
 import com.yahoo.athenz.zms.Role;
 import com.yahoo.athenz.zms.RoleMember;
 import com.yahoo.athenz.zts.cache.DataCache;
-import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.DataStore;
 import com.yahoo.rdl.Timestamp;
 
@@ -35,7 +34,6 @@ public class ZTSAuthorizer implements Authorizer {
     private static final Logger LOGGER = LoggerFactory.getLogger(ZTSAuthorizer.class);
     private static final String ASSUME_ROLE = "assume_role";
     final protected DataStore dataStore;
-    final protected CloudStore cloudStore;
     
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
@@ -47,9 +45,8 @@ public class ZTSAuthorizer implements Authorizer {
         DENIED_INVALID_ROLE_TOKEN
     }
     
-    public ZTSAuthorizer(final DataStore dataStore, final CloudStore cloudStore) {
+    public ZTSAuthorizer(final DataStore dataStore) {
         this.dataStore = dataStore;
-        this.cloudStore = cloudStore;
     }
 
     @Override
@@ -284,14 +281,25 @@ public class ZTSAuthorizer implements Authorizer {
         return checkRoleMemberExpiration(members, member);
     }
     
+    boolean memberNameMatch(String memberName, String matchName) {
+        // we are supporting 3 formats for role members
+        // *, <domain>.* and <domain>.<user>
+        if (memberName.equals("*")) {
+            return true;
+        } else if (memberName.endsWith(".*")) {
+            return matchName.startsWith(memberName.substring(0, memberName.length() - 1));
+        } else {
+            return memberName.equals(matchName);
+        }
+    }
+    
     boolean checkRoleMemberExpiration(List<RoleMember> roleMembers, String member) {
         
         boolean isMember = false;
         for (RoleMember memberInfo: roleMembers) {
-            if (member.equals(memberInfo.getMemberName())) {
-
+            final String memberName = memberInfo.getMemberName();
+            if (memberNameMatch(memberName, member)) {
                 // check expiration, if it's not defined, it's not expired.
-
                 Timestamp expiration = memberInfo.getExpiration();
                 if (expiration != null) {
                     isMember = !(expiration.millis() < System.currentTimeMillis());

@@ -1420,4 +1420,36 @@ public class ZMSCoreTest {
         assertFalse(trgr.equals(new String()));
     }
 
+    @Test
+    public void testMemberNames() {
+        String[] goodMemberNames = {
+                "user.joe",
+                "user.*",
+                "athenz.storage.*",
+                "athenz.storage.test-test",
+                "user.3sets",
+                "athenz.great-service",
+                "*"
+        };
+
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+
+        for (String s : goodMemberNames) {
+            Result result = validator.validate(s, "MemberName");
+            assertTrue(result.valid, s);
+        }
+
+        String[] badMemberNames = {
+                "user.*joe",
+                "*test",
+                "test.joe*",
+                "user.joe*test"
+        };
+
+        for (String s : badMemberNames) {
+            Result result = validator.validate(s, "MemberName");
+            assertFalse(result.valid, s);
+        }
+    }
 }

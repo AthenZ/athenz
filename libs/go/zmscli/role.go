@@ -161,10 +161,10 @@ func (cli Zms) AddRoleMembers(dn string, rn string, members []*zms.RoleMember) (
 	var outputLine string
 	for idx, mbr := range members {
 		var member zms.Membership
-		member.MemberName = zms.ResourceName(mbr.MemberName)
+		member.MemberName = zms.MemberName(mbr.MemberName)
 		member.RoleName = zms.ResourceName(rn)
 		member.Expiration = mbr.Expiration
-		err := cli.Zms.PutMembership(zms.DomainName(dn), zms.EntityName(rn), zms.ResourceName(mbr.MemberName), cli.AuditRef, &member)
+		err := cli.Zms.PutMembership(zms.DomainName(dn), zms.EntityName(rn), zms.MemberName(mbr.MemberName), cli.AuditRef, &member)
 		if err != nil {
 			return nil, err
 		}
@@ -187,9 +187,9 @@ func (cli Zms) AddMembers(dn string, rn string, members []string) (*string, erro
 	ms := cli.validatedUsers(members, false)
 	for _, m := range ms {
 		var member zms.Membership
-		member.MemberName = zms.ResourceName(m)
+		member.MemberName = zms.MemberName(m)
 		member.RoleName = zms.ResourceName(rn)
-		err := cli.Zms.PutMembership(zms.DomainName(dn), zms.EntityName(rn), zms.ResourceName(m), cli.AuditRef, &member)
+		err := cli.Zms.PutMembership(zms.DomainName(dn), zms.EntityName(rn), zms.MemberName(m), cli.AuditRef, &member)
 		if err != nil {
 			return nil, err
 		}
@@ -208,10 +208,10 @@ func (cli Zms) AddTemporaryMember(dn string, rn string, member string, expiratio
 	validatedUser := cli.validatedUser(member)
 
 	var memberShip zms.Membership
-	memberShip.MemberName = zms.ResourceName(validatedUser)
+	memberShip.MemberName = zms.MemberName(validatedUser)
 	memberShip.RoleName = zms.ResourceName(rn)
 	memberShip.Expiration = &expiration
-	err := cli.Zms.PutMembership(zms.DomainName(dn), zms.EntityName(rn), zms.ResourceName(validatedUser), cli.AuditRef, &memberShip)
+	err := cli.Zms.PutMembership(zms.DomainName(dn), zms.EntityName(rn), zms.MemberName(validatedUser), cli.AuditRef, &memberShip)
 	if err != nil {
 		return nil, err
 	}
@@ -228,7 +228,7 @@ func (cli Zms) DeleteMembers(dn string, rn string, members []string) (*string, e
 	fullResourceName := dn + ":role." + rn
 	ms := cli.validatedUsers(members, false)
 	for _, m := range ms {
-		err := cli.Zms.DeleteMembership(zms.DomainName(dn), zms.EntityName(rn), zms.ResourceName(m), cli.AuditRef)
+		err := cli.Zms.DeleteMembership(zms.DomainName(dn), zms.EntityName(rn), zms.MemberName(m), cli.AuditRef)
 		if err != nil {
 			return nil, err
 		}
@@ -246,7 +246,7 @@ func (cli Zms) CheckMembers(dn string, rn string, members []string) (*string, er
 	var buf bytes.Buffer
 	ms := cli.validatedUsers(members, false)
 	for _, m := range ms {
-		member, err := cli.Zms.GetMembership(zms.DomainName(dn), zms.EntityName(rn), zms.ResourceName(m))
+		member, err := cli.Zms.GetMembership(zms.DomainName(dn), zms.EntityName(rn), zms.MemberName(m))
 		cli.dumpRoleMembership(&buf, *member)
 		if err != nil {
 			return nil, err

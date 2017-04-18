@@ -16,7 +16,7 @@ import (
 func parseRoleMember(memberLine string) *zms.RoleMember {
 	memberFields := strings.Split(memberLine, " ")
 	roleMember := zms.NewRoleMember()
-	roleMember.MemberName = zms.ResourceName(memberFields[0])
+	roleMember.MemberName = zms.MemberName(memberFields[0])
 	if len(memberFields) > 1 {
 		expiration, err := rdl.TimestampParse(memberFields[1])
 		if err != nil {
@@ -52,7 +52,7 @@ func (cli Zms) importRoles(dn string, lstRoles []interface{}, validatedAdmins []
 				}
 				for _, admin := range validatedAdmins {
 					roleMember := zms.NewRoleMember()
-					roleMember.MemberName = zms.ResourceName(admin)
+					roleMember.MemberName = zms.MemberName(admin)
 					if !cli.containsMember(roleMembers, admin) && !cli.containsMember(role.RoleMembers, admin) {
 						roleMembers = append(roleMembers, roleMember)
 					}

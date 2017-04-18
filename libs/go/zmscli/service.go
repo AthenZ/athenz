@@ -139,8 +139,8 @@ func (cli Zms) AddProviderService(dn string, sn string, keyId string, pubKey *st
 		}
 	}
 	role.Name = zms.ResourceName(fullResourceName)
-	role.Members = make([]zms.ResourceName, 0)
-	role.Members = append(role.Members, zms.ResourceName(longName))
+	role.Members = make([]zms.MemberName, 0)
+	role.Members = append(role.Members, zms.MemberName(longName))
 	err = cli.Zms.PutRole(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &role)
 	if err != nil {
 		return nil, err

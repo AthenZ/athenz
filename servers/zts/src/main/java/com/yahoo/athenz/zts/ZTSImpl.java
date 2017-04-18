@@ -235,7 +235,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // set our authorizer
         
-        authorizer = new ZTSAuthorizer(dataStore, cloudStore);
+        authorizer = new ZTSAuthorizer(dataStore);
     }
     
     void loadSystemProperties() {

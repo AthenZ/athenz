@@ -87,10 +87,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * A reference implementation of ZMS. Uses a StructStore for domain information.
- * This class is not public - use the ZMSCore class to access it.
- */
 public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(ZMSImpl.class);
@@ -119,6 +115,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_ENTITY_NAME = "EntityName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
+    private static final String TYPE_MEMBER_NAME = "MemberName";
     private static final String TYPE_COMPOUND_NAME = "CompoundName";
     private static final String TYPE_RESOURCE_NAME = "ResourceName";
     private static final String TYPE_SERVICE_NAME = "ServiceName";
@@ -1741,11 +1738,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         String domainName = retrieveResourceDomain(resource, action, trustDomain);
         if (domainName == null) {
-            throw new com.yahoo.athenz.common.server.rest.ResourceException(ResourceException.NOT_FOUND, "Domain not found");
+            throw new com.yahoo.athenz.common.server.rest.ResourceException(
+                    ResourceException.NOT_FOUND, "Domain not found");
         }
         AthenzDomain domain = retrieveAccessDomain(domainName, principal);
         if (domain == null) {
-            throw new com.yahoo.athenz.common.server.rest.ResourceException(ResourceException.NOT_FOUND, "Domain not found");
+            throw new com.yahoo.athenz.common.server.rest.ResourceException(
+                    ResourceException.NOT_FOUND, "Domain not found");
         }
         
         AccessStatus accessStatus = hasAccess(domain, action, resource, principal, trustDomain);
@@ -2459,14 +2458,26 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return null;
     }
 
+    boolean memberNameMatch(String memberName, String matchName) {
+        // we are supporting 3 formats for role members
+        // *, <domain>.* and <domain>.<user>
+        if (memberName.equals("*")) {
+            return true;
+        } else if (memberName.endsWith(".*")) {
+            return matchName.startsWith(memberName.substring(0, memberName.length() - 1));
+        } else {
+            return memberName.equals(matchName);
+        }
+    }
+    
     boolean checkRoleMemberExpiration(List<RoleMember> roleMembers, String member) {
         
         boolean isMember = false;
         for (RoleMember memberInfo: roleMembers) {
-            String memberName = memberInfo.getMemberName();
-            Timestamp expiration = memberInfo.getExpiration();
-            if (memberName.equals(member)) {
+            final String memberName = memberInfo.getMemberName();
+            if (memberNameMatch(memberName, member)) {
                 // check expiration, if is not defined, its not expired.
+                Timestamp expiration = memberInfo.getExpiration();
                 if (expiration != null) {
                     isMember = !(expiration.millis() < System.currentTimeMillis());
                 } else {
@@ -2496,7 +2507,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateRequest(ctx.request(), caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(roleName, TYPE_ENTITY_NAME, caller);
-        validate(memberName, TYPE_RESOURCE_NAME, caller);
+        validate(memberName, TYPE_MEMBER_NAME, caller);
 
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
@@ -2532,7 +2543,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         try {
             validate(domainName, TYPE_DOMAIN_NAME, caller);
             validate(roleName, TYPE_ENTITY_NAME, caller);
-            validate(memberName, TYPE_RESOURCE_NAME, caller);
+            validate(memberName, TYPE_MEMBER_NAME, caller);
             validate(membership, TYPE_MEMBERSHIP, caller);
             
             // for consistent handling of all requests, we're going to convert
@@ -2603,7 +2614,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         try {
             validate(domainName, TYPE_DOMAIN_NAME, caller);
             validate(roleName, TYPE_ENTITY_NAME, caller);
-            validate(memberName, TYPE_RESOURCE_NAME, caller);
+            validate(memberName, TYPE_MEMBER_NAME, caller);
 
             // for consistent handling of all requests, we're going to convert
             // all incoming object values into lower case (e.g. domain, role,

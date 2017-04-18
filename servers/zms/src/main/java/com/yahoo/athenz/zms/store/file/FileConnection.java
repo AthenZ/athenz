@@ -52,6 +52,8 @@ import com.yahoo.rdl.Timestamp;
 
 public class FileConnection implements ObjectStoreConnection {
 
+    private static final String ALL_PRINCIPALS  = "*";
+    
     File rootDir;
     public FileConnection(File rootDir) {
         this.rootDir = rootDir;
@@ -617,6 +619,10 @@ public class FileConnection implements ObjectStoreConnection {
     }
 
     boolean validatePrincipalDomain(String principal) {
+        // special case for all principals
+        if (ALL_PRINCIPALS.equals(principal)) {
+            return true;
+        }
         int idx = principal.lastIndexOf('.');
         if (idx == -1 || idx == 0 || idx == principal.length() - 1) {
             return false;
