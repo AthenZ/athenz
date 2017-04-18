@@ -85,7 +85,7 @@ public class RecServlet extends HttpServlet {
         AccessCheckStatus status = AuthZpeClient.allowAccess(athenzRoleToken,
                 athenzResource, athenzAction);
         if (status != AccessCheckStatus.ALLOW) {
-            response.sendError(403, "Forbidden - Athenz Authorization Rejected");
+            response.sendError(403, "Forbidden - Athenz Authorization Rejected: " + status.toString());
             return;
         }
         

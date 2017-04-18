@@ -80,7 +80,7 @@ public class HttpExampleClient {
         int responseCode = con.getResponseCode();
         switch (responseCode) {
         case HttpURLConnection.HTTP_FORBIDDEN:
-            System.out.println("Request was forbidden - not authorized");
+            System.out.println("Request was forbidden - not authorized: " + con.getResponseMessage());
             break;
         case HttpURLConnection.HTTP_OK:
             System.out.println("Successful response: ");
