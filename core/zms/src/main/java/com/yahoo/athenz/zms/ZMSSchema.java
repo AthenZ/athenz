@@ -66,6 +66,10 @@ public class ZMSSchema {
             .comment("A signed assertion if identity. i.e. the user cookie value. This token will only make sense to the authority that generated it, so it is beneficial to have something in the value that is cheaply recognized to quickly reject if it belongs to another authority. In addition to the YEncoded set our token includes ; to separate components and , to separate roles and : for IPv6 addresses")
             .pattern("[a-zA-Z0-9\\._%=:;,-]*");
 
+        sb.stringType("MemberName")
+            .comment("Role Member name - could be one of three values, either *, DomainName.* or ResourceName")
+            .pattern("\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*\\.\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(:([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?");
+
         sb.structType("Domain")
             .comment("A domain is an independent partition of users, roles, and resources. Its name represents the definition of a namespace; the only way a new namespace can be created, from the top, is by creating Domains. Administration of a domain is governed by the parent domain (using reverse-DNS namespaces). The top level domains are governed by the special \"sys.auth\" domain.")
             .field("name", "DomainName", false, "the common name to be referred to, the symbolic id. It is immutable")
@@ -85,21 +89,21 @@ public class ZMSSchema {
 
         sb.structType("RoleAuditLog")
             .comment("An audit log entry for role membership change.")
-            .field("member", "ResourceName", false, "name of the role member")
+            .field("member", "MemberName", false, "name of the role member")
             .field("admin", "ResourceName", false, "name of the principal executing the change")
             .field("created", "Timestamp", false, "timestamp of the entry")
             .field("action", "String", false, "log action - either add or delete")
             .field("auditRef", "String", true, "audit reference string for the change as supplied by admin");
 
         sb.structType("RoleMember")
-            .field("memberName", "ResourceName", false, "name of the member")
+            .field("memberName", "MemberName", false, "name of the member")
             .field("expiration", "Timestamp", true, "the expiration timestamp");
 
         sb.structType("Role")
             .comment("The representation for a Role with set of members.")
             .field("name", "ResourceName", false, "name of the role")
             .field("modified", "Timestamp", true, "last modification timestamp of the role")
-            .arrayField("members", "ResourceName", true, "an explicit list of members. Might be empty or null, if trust is set")
+            .arrayField("members", "MemberName", true, "an explicit list of members. Might be empty or null, if trust is set")
             .arrayField("roleMembers", "RoleMember", true, "members with expiration")
             .field("trust", "DomainName", true, "a trusted domain to delegate membership decisions to")
             .arrayField("auditLog", "RoleAuditLog", true, "an audit log for role membership changes");
@@ -110,7 +114,7 @@ public class ZMSSchema {
 
         sb.structType("Membership")
             .comment("The representation for a role membership.")
-            .field("memberName", "ResourceName", false, "name of the member")
+            .field("memberName", "MemberName", false, "name of the member")
             .field("isMember", "Bool", true, "flag to indicate whether or the user is a member or not", true)
             .field("roleName", "ResourceName", true, "name of the role")
             .field("expiration", "Timestamp", true, "the expiration timestamp");
@@ -694,7 +698,7 @@ public class ZMSSchema {
             .comment("Get the membership status for a specified user in a role.")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("roleName", "EntityName", "name of the role")
-            .pathParam("memberName", "ResourceName", "user name to be checked for membership")
+            .pathParam("memberName", "MemberName", "user name to be checked for membership")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
@@ -710,7 +714,7 @@ public class ZMSSchema {
             .comment("Add the specified user to the role's member list.")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("roleName", "EntityName", "name of the role")
-            .pathParam("memberName", "ResourceName", "name of the user to be added as a member")
+            .pathParam("memberName", "MemberName", "name of the user to be added as a member")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .input("membership", "Membership", "Membership object (must contain role/member names as specified in the URI)")
             .auth("update", "{domainName}:role.{roleName}")
@@ -730,7 +734,7 @@ public class ZMSSchema {
             .comment("Delete the specified role membership. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("roleName", "EntityName", "name of the role")
-            .pathParam("memberName", "ResourceName", "name of the user to be removed as a member")
+            .pathParam("memberName", "MemberName", "name of the user to be removed as a member")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .auth("update", "{domainName}:role.{roleName}")
             .expected("NO_CONTENT")

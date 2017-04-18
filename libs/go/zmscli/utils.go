@@ -117,7 +117,7 @@ func (cli Zms) containsMember(roleMembers []*zms.RoleMember, member string) bool
 
 func (cli Zms) validateRoleMembers(users []*zms.RoleMember) {
 	for _, v := range users {
-		v.MemberName = zms.ResourceName(cli.validatedUser(string(v.MemberName)))
+		v.MemberName = zms.MemberName(cli.validatedUser(string(v.MemberName)))
 	}
 }
 
@@ -126,9 +126,9 @@ func (cli Zms) convertRoleMembers(users []string) []*zms.RoleMember {
 	for _, v := range users {
 		roleMember := zms.NewRoleMember()
 		if strings.Index(v, ".") < 0 {
-			roleMember.MemberName = zms.ResourceName(cli.UserDomain + "." + v)
+			roleMember.MemberName = zms.MemberName(cli.UserDomain + "." + v)
 		} else {
-			roleMember.MemberName = zms.ResourceName(v)
+			roleMember.MemberName = zms.MemberName(v)
 		}
 		roleMembers = append(roleMembers, roleMember)
 	}

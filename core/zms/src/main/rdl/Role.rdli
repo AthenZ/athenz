@@ -85,7 +85,7 @@ resource Role DELETE "/domain/{domainName}/role/{roleName}" {
 resource Membership GET "/domain/{domainName}/role/{roleName}/member/{memberName}" {
     DomainName domainName; //name of the domain
     EntityName roleName; //name of the role
-    ResourceName memberName; //user name to be checked for membership
+    MemberName memberName; //user name to be checked for membership
     authenticate;
     exceptions {
         ResourceError BAD_REQUEST;
@@ -99,7 +99,7 @@ resource Membership GET "/domain/{domainName}/role/{roleName}/member/{memberName
 resource Membership PUT "/domain/{domainName}/role/{roleName}/member/{memberName}" {
     DomainName domainName; //name of the domain
     EntityName roleName; //name of the role
-    ResourceName memberName; //name of the user to be added as a member
+    MemberName memberName; //name of the user to be added as a member
     String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     Membership membership; //Membership object (must contain role/member names as specified in the URI)
     authorize ("update", "{domainName}:role.{roleName}");
@@ -119,7 +119,7 @@ resource Membership PUT "/domain/{domainName}/role/{roleName}/member/{memberName
 resource Membership DELETE "/domain/{domainName}/role/{roleName}/member/{memberName}" {
     DomainName domainName; //name of the domain
     EntityName roleName; //name of the role
-    ResourceName memberName; //name of the user to be removed as a member
+    MemberName memberName; //name of the user to be removed as a member
     String       auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     authorize ("update", "{domainName}:role.{roleName}");
     expected NO_CONTENT;

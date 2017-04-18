@@ -225,6 +225,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String CACHE_SERVICE   = "s:";
     private static final String CACHE_PRINCIPAL = "u:";
     private static final String CACHE_HOST      = "h:";
+    private static final String ALL_PRINCIPALS  = "*";
 
     Connection con = null;
     boolean transactionCompleted = true;
@@ -2453,6 +2454,10 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
     
     boolean validatePrincipalDomain(String principal) {
+        // special case for all principals
+        if (ALL_PRINCIPALS.equals(principal)) {
+            return true;
+        }
         int idx = principal.lastIndexOf('.');
         if (idx == -1 || idx == 0 || idx == principal.length() - 1) {
             return false;

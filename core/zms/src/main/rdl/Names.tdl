@@ -52,3 +52,7 @@ type AuthorityName String (pattern="{CompoundName}"); //i.e. "user"
 //YEncoded set our token includes ; to separate components
 //and , to separate roles and : for IPv6 addresses
 type SignedToken String (pattern="[a-zA-Z0-9\\._%=:;,-]*");
+
+//Role Member name - could be one of three values, either *,
+//DomainName.* or ResourceName
+type MemberName String (pattern="\\*|{DomainName}\\.\\*|{ResourceName}");

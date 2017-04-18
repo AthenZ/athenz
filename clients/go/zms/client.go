@@ -981,7 +981,7 @@ func (client ZMSClient) DeleteRole(domainName DomainName, roleName EntityName, a
 	}
 }
 
-func (client ZMSClient) GetMembership(domainName DomainName, roleName EntityName, memberName ResourceName) (*Membership, error) {
+func (client ZMSClient) GetMembership(domainName DomainName, roleName EntityName, memberName MemberName) (*Membership, error) {
 	var data *Membership
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/role/" + fmt.Sprint(roleName) + "/member/" + fmt.Sprint(memberName)
 	resp, err := client.httpGet(url, nil)
@@ -1013,7 +1013,7 @@ func (client ZMSClient) GetMembership(domainName DomainName, roleName EntityName
 	}
 }
 
-func (client ZMSClient) PutMembership(domainName DomainName, roleName EntityName, memberName ResourceName, auditRef string, membership *Membership) error {
+func (client ZMSClient) PutMembership(domainName DomainName, roleName EntityName, memberName MemberName, auditRef string, membership *Membership) error {
 	headers := map[string]string{
 		"Y-Audit-Ref": auditRef,
 	}
@@ -1047,7 +1047,7 @@ func (client ZMSClient) PutMembership(domainName DomainName, roleName EntityName
 	}
 }
 
-func (client ZMSClient) DeleteMembership(domainName DomainName, roleName EntityName, memberName ResourceName, auditRef string) error {
+func (client ZMSClient) DeleteMembership(domainName DomainName, roleName EntityName, memberName MemberName, auditRef string) error {
 	headers := map[string]string{
 		"Y-Audit-Ref": auditRef,
 	}
