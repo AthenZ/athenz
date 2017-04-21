@@ -1718,7 +1718,6 @@ public class ZMSResources {
 
     @OPTIONS
     @Path("/user/{userName}/token")
-    @Produces(MediaType.APPLICATION_JSON)
     public UserToken optionsUserToken(@PathParam("userName") String userName, @QueryParam("services") String serviceNames) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
