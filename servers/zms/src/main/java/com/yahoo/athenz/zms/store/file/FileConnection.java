@@ -70,6 +70,10 @@ public class FileConnection implements ObjectStoreConnection {
     @Override
     public void close() {
     }
+    
+    @Override
+    public void setOperationTimeout(int opTimeout) {
+    }
 
     @Override
     public Domain getDomain(String domainName) {

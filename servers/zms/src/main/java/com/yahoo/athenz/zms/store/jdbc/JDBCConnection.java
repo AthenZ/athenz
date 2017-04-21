@@ -229,6 +229,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
     Connection con = null;
     boolean transactionCompleted = true;
+    int queryTimeout = 60;
     Map<String, Integer> objectMap = null;
     
     public JDBCConnection(Connection con, boolean autoCommit) throws SQLException {
@@ -238,6 +239,11 @@ public class JDBCConnection implements ObjectStoreConnection {
         objectMap = new HashMap<>();
     }
 
+    @Override
+    public void setOperationTimeout(int queryTimeout) {
+        this.queryTimeout = queryTimeout;
+    }
+    
     @Override
     public void close() {
         
@@ -316,6 +322,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         if (LOG.isDebugEnabled()) {
             LOG.debug(caller + ": " + ps.toString());
         }
+        ps.setQueryTimeout(queryTimeout);
         return ps.executeUpdate();
     }
     
@@ -323,6 +330,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         if (LOG.isDebugEnabled()) {
             LOG.debug(caller + ": " + ps.toString());
         }
+        ps.setQueryTimeout(queryTimeout);
         return ps.executeQuery();
     }
 
