@@ -38,7 +38,8 @@ public interface ObjectStoreConnection extends Closeable {
     void commitChanges();
     void rollbackChanges();
     void close();
-
+    void setOperationTimeout(int opTimout);
+    
     // Domain commands
     
     Domain getDomain(String domainName);

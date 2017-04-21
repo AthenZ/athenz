@@ -26,19 +26,27 @@ import com.yahoo.athenz.zms.utils.ZMSUtils;
 public class JDBCObjectStore implements ObjectStore {
 
     PoolableDataSource src;
+    private int opTimeout = 60; //in seconds
     
     public JDBCObjectStore(PoolableDataSource src) {
         this.src = src;
     }
-
+    
     @Override
     public ObjectStoreConnection getConnection(boolean autoCommit) {
         final String caller = "getConnection";
         try {
-            return new JDBCConnection(src.getConnection(), autoCommit);
+            JDBCConnection jdbcConn = new JDBCConnection(src.getConnection(), autoCommit);
+            jdbcConn.setOperationTimeout(opTimeout);
+            return jdbcConn;
         } catch (SQLException ex) {
             throw ZMSUtils.error(ResourceException.INTERNAL_SERVER_ERROR, caller, ex.getMessage());
         }
+    }
+    
+    @Override
+    public void setOperationTimeout(int opTimeout) {
+        this.opTimeout = opTimeout;
     }
     
     @Override

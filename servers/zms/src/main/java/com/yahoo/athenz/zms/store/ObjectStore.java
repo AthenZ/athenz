@@ -17,6 +17,12 @@ package com.yahoo.athenz.zms.store;
 
 public interface ObjectStore {
 
+    // get a new connection with the specified auto commit state
     ObjectStoreConnection getConnection(boolean autoCommit);
+    
+    // operation timeout in seconds
+    void setOperationTimeout(int opTimeout);
+    
+    // clear all connections to the object store
     void clearConnections();
 }

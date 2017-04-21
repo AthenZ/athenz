@@ -50,6 +50,7 @@ public class DBService {
     Cache<String, DataCache> cacheStore;
     int retrySleepTime = 250;
     int defaultRetryCount = 120;
+    int defaultOpTimeout = 60;
     
     private static final Logger LOG = LoggerFactory.getLogger(DBService.class);
 
@@ -64,6 +65,16 @@ public class DBService {
         this.auditLogger = auditLogger;
         cacheStore = CacheBuilder.newBuilder().concurrencyLevel(25).build();
 
+        // default timeout in seconds for object store commands
+        
+        defaultOpTimeout = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_STORE_OP_TIMEOUT, "60"));
+        if (defaultOpTimeout < 0) {
+            defaultOpTimeout = 60;
+        }
+        if (store != null) {
+            store.setOperationTimeout(defaultOpTimeout);
+        }
+        
         // retrieve the concurrent update retry count. If we're given an invalid negative
         // value for count, we'll default back to our default configured value of 120 retries
         // which would result up to 30 seconds sleeping 250ms each time
@@ -1322,7 +1333,13 @@ public class DBService {
     }
     
     public ResourceAccessList getResourceAccessList(String principal, String action) {
+        
+        // this commands takes a quite a bit of time due to joining tables
+        // and needs to be optimized. For now we'll configure it with
+        // default timeout of 30 minutes to avoid any issues
+        
         try (ObjectStoreConnection con = store.getConnection(true)) {
+            con.setOperationTimeout(1800);
             return con.listResourceAccess(principal, action, userDomain);
         }
     }

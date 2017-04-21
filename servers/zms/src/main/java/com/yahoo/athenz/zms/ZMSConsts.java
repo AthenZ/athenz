@@ -43,6 +43,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_FILE_STORE_PATH   = "athenz.zms.file_store_path";
     public static final String ZMS_PROP_MAX_THREADS       = "athenz.zms.http_max_threads";
     public static final String ZMS_PROP_AUTHORITY_CLASSES = "athenz.zms.authority_classes";
+    public static final String ZMS_PROP_STORE_OP_TIMEOUT  = "athenz.zms.store_operation_timeout";
 
     public static final String ZMS_PROP_TIMEOUT                 = "athenz.zms.user_token_timeout";
     public static final String ZMS_PROP_SIGNED_POLICY_TIMEOUT   = "athenz.zms.signed_policy_timeout";

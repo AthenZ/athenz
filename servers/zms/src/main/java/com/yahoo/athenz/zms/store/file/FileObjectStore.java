@@ -43,6 +43,10 @@ public class FileObjectStore implements ObjectStore {
     }
     
     @Override
+    public void setOperationTimeout(int opTimeout) {
+    }
+    
+    @Override
     public void clearConnections() {
     }
 
