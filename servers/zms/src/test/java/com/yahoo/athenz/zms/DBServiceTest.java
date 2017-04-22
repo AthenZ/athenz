@@ -26,6 +26,8 @@ import com.yahoo.athenz.auth.impl.FilePrivateKeyStore;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.provider.ProviderMockClient;
+import com.yahoo.athenz.zms.DBService.DataCache;
+import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.athenz.zms.store.ObjectStore;
 import com.yahoo.athenz.zms.store.file.FileConnection;
 import com.yahoo.athenz.zms.store.file.FileObjectStore;
@@ -2483,5 +2485,70 @@ public class DBServiceTest extends TestCase {
         
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName1, auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName2, auditRef);
+    }
+    
+    @Test
+    public void testGetPublicKeyFromCache() {
+        
+        final String domainName1 = "getcachepublickey";
+        final String domainName2 = "getcachepublickey2";
+        AthenzDomain athenzDomain1 = new AthenzDomain(domainName1);
+        
+        ServiceIdentity service1 = createServiceObject(domainName1,
+                "service1", "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+        
+        ServiceIdentity service2 = createServiceObject(domainName1,
+                "service2", "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+        
+        ServiceIdentity service3 = new ServiceIdentity();
+        service3.setName(ZMSUtils.serviceResourceName(domainName1, "service3"));
+        
+        List<ServiceIdentity> services = new ArrayList<>();
+        services.add(service1);
+        services.add(service2);
+        services.add(service3);
+        athenzDomain1.setServices(services);
+        DataCache dataCache1 = new DataCache(athenzDomain1, 101);
+
+        AthenzDomain athenzDomain2 = new AthenzDomain(domainName2);
+        DataCache dataCache2 = new DataCache(athenzDomain2, 101);
+
+        zms.dbService.cacheStore.put(domainName1, dataCache1);
+        zms.dbService.cacheStore.put(domainName2, dataCache2);
+        
+        PublicKeyEntry key = zms.dbService.getPublicKeyFromCache(domainName1, "service1", "1");
+        assertNotNull(key);
+        
+        key = zms.dbService.getPublicKeyFromCache(domainName1, "service1", "2");
+        assertNotNull(key);
+
+        key = zms.dbService.getPublicKeyFromCache(domainName1, "service2", "1");
+        assertNotNull(key);
+        
+        key = zms.dbService.getPublicKeyFromCache(domainName1, "service2", "2");
+        assertNotNull(key);
+        
+        key = zms.dbService.getPublicKeyFromCache(domainName1, "service1", "3");
+        assertNull(key);
+        
+        key = zms.dbService.getPublicKeyFromCache(domainName1, "service2", "3");
+        assertNull(key);
+        
+        key = zms.dbService.getPublicKeyFromCache(domainName1, "service3", "1");
+        assertNull(key);
+        
+        key = zms.dbService.getPublicKeyFromCache(domainName1, "service4", "1");
+        assertNull(key);
+        
+        key = zms.dbService.getPublicKeyFromCache(domainName1, "service5", "2");
+        assertNull(key);
+        
+        key = zms.dbService.getPublicKeyFromCache(domainName2, "service1", "1");
+        assertNull(key);
+        
+        key = zms.dbService.getPublicKeyFromCache(domainName2, "service2", "1");
+        assertNull(key);
     }
 }
