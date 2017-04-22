@@ -15,8 +15,6 @@
  */
 package com.yahoo.athenz.zms.store.jdbc;
 
-import java.sql.SQLException;
-
 import com.yahoo.athenz.common.server.db.PoolableDataSource;
 import com.yahoo.athenz.zms.ResourceException;
 import com.yahoo.athenz.zms.store.ObjectStore;
@@ -39,8 +37,8 @@ public class JDBCObjectStore implements ObjectStore {
             JDBCConnection jdbcConn = new JDBCConnection(src.getConnection(), autoCommit);
             jdbcConn.setOperationTimeout(opTimeout);
             return jdbcConn;
-        } catch (SQLException ex) {
-            throw ZMSUtils.error(ResourceException.INTERNAL_SERVER_ERROR, caller, ex.getMessage());
+        } catch (Exception ex) {
+            throw ZMSUtils.error(ResourceException.SERVICE_UNAVAILABLE, ex.getMessage(), caller);
         }
     }
     

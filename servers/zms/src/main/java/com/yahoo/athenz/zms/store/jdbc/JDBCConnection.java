@@ -19,6 +19,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLTimeoutException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -2897,6 +2898,9 @@ public class JDBCConnection implements ObjectStoreConnection {
         } else if (ex.getErrorCode() == MYSQL_ER_OPTION_DUPLICATE_ENTRY) {
             code = ResourceException.BAD_REQUEST;
             msg = "Entry already exists";
+        } else if (ex instanceof SQLTimeoutException) {
+            code = ResourceException.SERVICE_UNAVAILABLE;
+            msg = "Statement cancelled due to timeout";
         } else {
             msg = ex.getMessage() + ", state: " + sqlState + ", code: " + ex.getErrorCode();
         }

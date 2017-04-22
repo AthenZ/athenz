@@ -90,7 +90,7 @@ public class DBService {
         }
     }
 
-    private static class DataCache {
+    static class DataCache {
         AthenzDomain athenzDomain;
         long modTime;
         
@@ -125,7 +125,24 @@ public class DBService {
         
         long modTime = 0;
         try (ObjectStoreConnection con = store.getConnection(true)) {
+            
+            // we expect this response to come back immediately from
+            // object store so we're going to use a smaller timeout
+            // so we should know right away to use our cache
+            
+            con.setOperationTimeout(10);
             modTime = con.getDomainModTimestamp(domainName);
+            
+        } catch (ResourceException ex) {
+            
+            // if the exception is due to timeout or we were not able
+            // to get a connection to the object store then we're
+            // going to use our cache as is instead of rejecting
+            // the operation
+            
+            if (ex.getCode() == ResourceException.SERVICE_UNAVAILABLE) {
+                return data.getAthenzDomain();
+            }
         }
         
         if (modTime == data.getModTime()) {
@@ -1325,11 +1342,62 @@ public class DBService {
         return service;
     }
     
+    PublicKeyEntry getPublicKeyFromCache(String domainName, String serviceName, String keyId) {
+        
+        DataCache data = cacheStore.getIfPresent(domainName);
+        if (data == null) {
+            return null;
+        }
+            
+        AthenzDomain athenzDomain = data.getAthenzDomain();
+        if (athenzDomain == null) {
+            return null;
+        }
+        
+        List<ServiceIdentity> services = athenzDomain.getServices();
+        if (services == null) {
+            return null;
+        }
+        
+        final String fullServiceName = ZMSUtils.serviceResourceName(domainName, serviceName);
+        for (ServiceIdentity service : services) {
+            if (fullServiceName.equals(service.getName())) {
+                List<PublicKeyEntry> publicKeys = service.getPublicKeys();
+                if (publicKeys != null) {
+                    for (PublicKeyEntry publicKey : publicKeys) {
+                        if (keyId.equals(publicKey.getId())) {
+                            return publicKey;
+                        }
+                    }
+                }
+                break;
+            }
+        }
+        
+        return null;
+    }
+    
     PublicKeyEntry getServicePublicKeyEntry(String domainName, String serviceName, String keyId) {
 
         try (ObjectStoreConnection con = store.getConnection(true)) {
             return con.getPublicKeyEntry(domainName, serviceName, keyId);
+        } catch (ResourceException ex) {
+            if (ex.getCode() != ResourceException.SERVICE_UNAVAILABLE) {
+                throw ex;
+            }
         }
+        
+        // if we got this far it means we couldn't get our public key
+        // from our DB store either due to timeout or communication
+        // error so we're going to see if we have the public key in
+        // our cache and use that for our requests
+        
+        PublicKeyEntry keyEntry = getPublicKeyFromCache(domainName, serviceName, keyId);
+        if (keyEntry == null) {
+            throw new ResourceException(ResourceException.SERVICE_UNAVAILABLE,
+                    "Unable to retrieve public key from DB store");
+        }
+        return keyEntry;
     }
     
     public ResourceAccessList getResourceAccessList(String principal, String action) {
