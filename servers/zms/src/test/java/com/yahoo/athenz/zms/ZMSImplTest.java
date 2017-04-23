@@ -67,7 +67,6 @@ import com.yahoo.rdl.Timestamp;
 public class ZMSImplTest extends TestCase {
 
     public static final String ZMS_PROP_PUBLIC_KEY = "athenz.zms.publickey";
-    private static final String ZMS_REQUEST_PRINCIPAL = "com.yahoo.athenz.auth.principal";
 
     ZMSImpl zms             = null;
     String adminUser        = null;
@@ -1091,22 +1090,6 @@ public class ZMSImplTest extends TestCase {
             assertTrue(true);
         }
 
-        String caller = "posttopleveldomain";
-        boolean foundError = false;
-        for (String msg: aLogMsgs) {
-            if (msg.indexOf("WHAT-api=(" + caller + ")") == -1) {
-                continue;
-            }
-            if (msg.indexOf("ERROR=(") == -1) {
-                continue;
-            }
-            assertTrue(msg, msg.indexOf("CLIENT-IP=(" + MOCKCLIENTADDR + ")") != -1);
-            assertTrue(msg, msg.indexOf("WHAT-details=(ERROR=(makeDomain: Cannot create domain: addoncetopdom1 - already exists)") != -1);
-            foundError = true;
-            break;
-        }
-        assertTrue(foundError);
-
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "AddOnceTopDom1", auditRef);
     }
 
@@ -1436,8 +1419,6 @@ public class ZMSImplTest extends TestCase {
         String storeFile = ZMS_DATA_STORE_FILE + "_deltopdomhrowexc";
         ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
-        String caller = "deletetopleveldomain";
-
         TopLevelDomain dom1 = createTopLevelDomainObject("DelTopChildDom1",
                 "Test Domain1", "testOrg", adminUser);
         zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
@@ -1454,18 +1435,6 @@ public class ZMSImplTest extends TestCase {
         } catch (ResourceException ex) {
             assertTrue(ex.getCode() == 400);
         }
-
-        boolean foundError = false;
-        for (String msg: aLogMsgs) {
-            if (msg.indexOf("WHAT-api=(" + caller + ")") == -1) {
-                continue;
-            }
-            assertTrue(msg, msg.indexOf("CLIENT-IP=(" + MOCKCLIENTADDR + ")") != -1);
-            assertTrue(msg, msg.indexOf("WHAT-details=(ERROR=(deletetopleveldomain: Cannot delete domain deltopchilddom1: 1 subdomains of it exist))") != -1);
-            foundError = true;
-            break;
-        }
-        assertTrue(foundError);
         
         zmsImpl.deleteSubDomain(mockDomRsrcCtx, "DelTopChildDom1", "DelSubDom2", auditRef);
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "DelTopChildDom1", auditRef);
@@ -1560,8 +1529,6 @@ public class ZMSImplTest extends TestCase {
         String storeFile = ZMS_DATA_STORE_FILE + "_delsubdomchildexist";
         ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
-        String caller = "deletesubdomain";
-
         TopLevelDomain dom1 = createTopLevelDomainObject("DelSubChildDom1",
                 "Test Domain1", "testOrg", adminUser);
         zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
@@ -1581,18 +1548,6 @@ public class ZMSImplTest extends TestCase {
         } catch (ResourceException ex) {
             assertTrue(ex.getCode() == 400);
         }
-
-        boolean foundError = false;
-        for (String msg: aLogMsgs) {
-            if (msg.indexOf("WHAT-api=(" + caller + ")") == -1) {
-                continue;
-            }
-            assertTrue(msg, msg.indexOf("CLIENT-IP=(" + MOCKCLIENTADDR + ")") != -1);
-            assertTrue(msg, msg.indexOf("WHAT-details=(ERROR=(deletesubdomain: Cannot delete domain delsubchilddom1.delsubdom2: 1 subdomains of it exist))") != -1);
-            foundError = true;
-            break;
-        }
-        assertTrue(foundError);
 
         zmsImpl.deleteSubDomain(mockDomRsrcCtx, "DelSubChildDom1.DelSubDom2", "DelSubDom3", auditRef);
         zmsImpl.deleteSubDomain(mockDomRsrcCtx, "DelSubChildDom1", "DelSubDom2", auditRef);
@@ -1668,7 +1623,6 @@ public class ZMSImplTest extends TestCase {
         String storeFile = ZMS_DATA_STORE_FILE + "_putdommetathrowexc";
         ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
-        String caller = "putdomainmeta";
         String domName = "wrongDomainName";
         DomainMeta meta = new DomainMeta();
         meta.setYpmId(getRandomProductId());
@@ -1678,18 +1632,6 @@ public class ZMSImplTest extends TestCase {
         } catch (ResourceException e) {
             assertEquals(404, e.getCode());
         }
-
-        boolean foundError = false;
-        for (String msg: aLogMsgs) {
-            if (msg.indexOf("WHAT-api=(" + caller + ")") == -1) {
-                continue;
-            }
-            assertTrue(msg, msg.indexOf("CLIENT-IP=(" + MOCKCLIENTADDR + ")") != -1);
-            assertTrue(msg, msg.indexOf("WHAT-details=(ERROR=(putdomainmeta: Unknown domain: wrongdomainname))") != -1);
-            foundError = true;
-            break;
-        }
-        assertTrue(foundError);
     }
 
     @Test(groups="post-domain-tests")
@@ -2051,19 +1993,7 @@ public class ZMSImplTest extends TestCase {
         } catch (ResourceException e) {
             assertEquals(e.getCode(), 400);
         }
-        boolean foundError = false;
-        for (String msg: aLogMsgs) {
-            if (!msg.contains("WHAT-api=(putrole)")) {
-                continue;
-            }
-            assertTrue(msg, msg.indexOf("CLIENT-IP=(" + MOCKCLIENTADDR + ")") != -1);
-            assertTrue(msg, msg.contains("WHAT-details=(ERROR=(putRole: Inconsistent role names - expected: domainname1:role.rolename1, actual: inconsistentrolename1))"));
-            foundError = true;
-            break;
-        }
-        assertTrue(foundError);
         
-        aLogMsgs.clear();
         // Tests the getRole() condition : if (domain == null)...
         try {
             String roleRoleName = "DomainName1:role.RoleName1";
@@ -2075,18 +2005,6 @@ public class ZMSImplTest extends TestCase {
         } catch (ResourceException e) {
             assertEquals(e.getCode(), 404);
         }
-
-        foundError = false;
-        for (String msg: aLogMsgs) {
-            if (msg.indexOf("WHAT-api=(putrole)") == -1) {
-                continue;
-            }
-            assertTrue(msg, msg.indexOf("CLIENT-IP=(" + MOCKCLIENTADDR + ")") != -1);
-            assertTrue(msg, msg.indexOf("WHAT-details=(ERROR=(putrole: Unknown domain: domainname1))") != -1);
-            foundError = true;
-            break;
-        }
-        assertTrue(foundError);
 
         FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
@@ -2525,7 +2443,6 @@ public class ZMSImplTest extends TestCase {
         String storeFile = ZMS_DATA_STORE_FILE + "_delrolethrowexc";
         ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
-        String caller = "deleterole";
         String domainName = "DomainName1";
         String roleName = "RoleName1";
         try {
@@ -2536,17 +2453,6 @@ public class ZMSImplTest extends TestCase {
         }
 
         FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
-        boolean foundError = false;
-        for (String msg: aLogMsgs) {
-            if (msg.indexOf("WHAT-api=(" + caller + ")") == -1) {
-                continue;
-            }
-            assertTrue(msg, msg.indexOf("CLIENT-IP=(" + MOCKCLIENTADDR + ")") != -1);
-            assertTrue(msg, msg.indexOf("WHAT-details=(ERROR=(deleterole: Unknown domain: domainname1))") != -1);
-            foundError = true;
-            break;
-        }
-        assertTrue(foundError);
     }
         
     @Test
@@ -2819,19 +2725,6 @@ public class ZMSImplTest extends TestCase {
         } finally {
             zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domain, auditRef);
         }
-
-        String caller = "putmembership";
-        boolean foundError = false;
-        for (String msg: aLogMsgs) {
-            if (msg.indexOf("WHAT-api=(" + caller + ")") == -1) {
-                continue;
-            }
-            assertTrue(msg, msg.indexOf("CLIENT-IP=(" + MOCKCLIENTADDR + ")") != -1);
-            assertTrue(msg, msg.indexOf("WHAT-details=(ERROR=(putmembership: Audit reference required for domain: testputmembershipmissingauditref);:caller specified memberName=(user.john))") != -1);
-            foundError = true;
-            break;
-        }
-        assertTrue(foundError);
     }
 
     @Test
@@ -3291,7 +3184,6 @@ public class ZMSImplTest extends TestCase {
         String storeFile = ZMS_DATA_STORE_FILE + "_delmembershipadminrsm";
         ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
-        String caller = "deletemembership";
         String domainName = "MbrGetRoleDom1";
         String memberName1 = "user.john";
         
@@ -3314,18 +3206,6 @@ public class ZMSImplTest extends TestCase {
         } catch (ResourceException e) {
             assertEquals(e.getCode(), 403);
         }
-
-        boolean foundError = false;
-        for (String msg: aLogMsgs) {
-            if (msg.indexOf("WHAT-api=(" + caller + ")") == -1) {
-                continue;
-            }
-            assertTrue(msg, msg.indexOf("CLIENT-IP=(" + MOCKCLIENTADDR + ")") != -1);
-            assertTrue(msg, msg.indexOf("WHAT-details=(ERROR=(deletemembership: Cannot delete last member of 'admin' role);:caller specified memberName=(user.john))") != -1);
-            foundError = true;
-            break;
-        }
-        assertTrue(foundError);
         
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
@@ -3490,8 +3370,6 @@ public class ZMSImplTest extends TestCase {
         TopLevelDomain dom1 = createTopLevelDomainObject("PolicyGetDom1",
                 "Test Domain1", "testOrg", adminUser);
         zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
-
-        System.err.println("*** creating policy...");
 
         Policy policy1 = createPolicyObject("PolicyGetDom1", "Policy1");
         zmsImpl.putPolicy(mockDomRsrcCtx, "PolicyGetDom1", "Policy1", auditRef, policy1);
@@ -3968,7 +3846,6 @@ public class ZMSImplTest extends TestCase {
         String storeFile = ZMS_DATA_STORE_FILE + "_delpolhrowexc";
         ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
-        String caller = "deletepolicy";
         String domainName = "WrongDomainName";
         String policyName = "WrongPolicyName";
         try {
@@ -3979,17 +3856,6 @@ public class ZMSImplTest extends TestCase {
         }
 
         FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
-        boolean foundError = false;
-        for (String msg: aLogMsgs) {
-            if (msg.indexOf("WHAT-api=(" + caller + ")") == -1) {
-                continue;
-            }
-            assertTrue(msg, msg.indexOf("CLIENT-IP=(" + MOCKCLIENTADDR + ")") != -1);
-            assertTrue(msg, msg.indexOf("WHAT-details=(ERROR=(deletepolicy: Unknown domain: wrongdomainname))") != -1);
-            foundError = true;
-            break;
-        }
-        assertTrue(foundError);
     }
 
     @Test
@@ -4083,23 +3949,6 @@ public class ZMSImplTest extends TestCase {
         } catch (ResourceException ex) {
             assertTrue(ex.getCode() == 400);
         }
-
-        String caller = "putserviceidentity";
-        boolean foundError = false;
-        for (String msg: aLogMsgs) {
-            if (msg.indexOf("WHAT-api=(" + caller + ")") == -1) {
-                continue;
-            }
-            if (msg.indexOf("ERROR") == -1) {
-                continue;
-            }
-            assertTrue(msg.indexOf("CLIENT-IP=(" + MOCKCLIENTADDR + ")") != -1);
-            int index = msg.indexOf("WHAT-details=(ERROR=(Invalid SimpleName error: String pattern mismatch (expected \"[a-zA-Z0-9_][a-zA-Z0-9_-]*\")  for type SimpleName in data)");
-            assertTrue(index != -1);
-            foundError = true;
-            break;
-        }
-        assertTrue(foundError);
 
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "ServiceAddDom1NotSimpleName", auditRef);
         FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
@@ -4453,7 +4302,6 @@ public class ZMSImplTest extends TestCase {
         String storeFile = ZMS_DATA_STORE_FILE + "_delsvcidthrowexc";
         ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
-        String caller = "deleteserviceidentity";
         String domainName = "WrongDomainName";
         String serviceName = "WrongServiceName";
         try {
@@ -4462,18 +4310,6 @@ public class ZMSImplTest extends TestCase {
         } catch (ResourceException e) {
             assertEquals(e.getCode(), 404);
         }
-
-        boolean foundError = false;
-        for (String msg: aLogMsgs) {
-            if (msg.indexOf("WHAT-api=(" + caller + ")") == -1) {
-                continue;
-            }
-            assertTrue(msg, msg.indexOf("CLIENT-IP=(" + MOCKCLIENTADDR + ")") != -1);
-            assertTrue(msg, msg.indexOf("WHAT-details=(ERROR=(deleteserviceidentity: Unknown domain: wrongdomainname))") != -1);
-            foundError = true;
-            break;
-        }
-        assertTrue(foundError);
     }
 
     @Test
@@ -4801,19 +4637,6 @@ public class ZMSImplTest extends TestCase {
         } catch (ResourceException ex) {
             assertTrue(ex.getCode() == 400);
             assertTrue(ex.getMessage().contains("Audit reference required"));
-
-            String caller = "deleteentity";
-            boolean foundError = false;
-            for (String msg: aLogMsgs) {
-                if (msg.indexOf("WHAT-api=(" + caller + ")") == -1) {
-                    continue;
-                }
-                assertTrue(msg, msg.indexOf("CLIENT-IP=(" + MOCKCLIENTADDR + ")") != -1);
-                assertTrue(msg, msg.indexOf("WHAT-details=(ERROR=(deleteentity: Audit reference required for domain: testdeleteentitymissingauditref))") != -1);
-                foundError = true;
-                break;
-            }
-            assertTrue(foundError);
         } finally {
             zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domain, auditRef);
             FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
@@ -5250,19 +5073,6 @@ public class ZMSImplTest extends TestCase {
             assertTrue(ex.getCode() == 400);
             assertTrue(ex.getMessage().contains("Audit reference required"));
 
-            String caller = "deletetenantroles";
-            boolean foundError = false;
-            for (String msg: aLogMsgs) {
-                if (msg.indexOf("WHAT-api=(" + caller + ")") == -1) {
-                    continue;
-                }
-                assertTrue(msg, msg.indexOf("CLIENT-IP=(" + MOCKCLIENTADDR + ")") != -1);
-                assertTrue(msg, msg.indexOf("WHAT-details=(ERROR=(deletetenantroles: Audit reference required for domain: testdeletetenantrolesmissingauditref);:caller specified provider-service=(storage))") != -1);
-                foundError = true;
-                break;
-            }
-            assertTrue(foundError);
-
         } finally {
             zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domain, auditRef);
             FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
@@ -5374,19 +5184,6 @@ public class ZMSImplTest extends TestCase {
         } catch (ResourceException ex) {
             assertTrue(ex.getCode() == 400);
             assertTrue(ex.getMessage().contains("Audit reference required"));
-
-            String caller = "putdefaultadmins";
-            boolean foundError = false;
-            for (String msg: aLogMsgs) {
-                if (msg.indexOf("WHAT-api=(" + caller + ")") == -1) {
-                    continue;
-                }
-                assertTrue(msg, msg.indexOf("CLIENT-IP=(" + MOCKCLIENTADDR + ")") != -1);
-                assertTrue(msg, msg.indexOf("WHAT-details=(ERROR=(putdefaultadmins: Audit reference required for domain: testputdefaultadminsmissingauditref);:caller specified default-admins=(\"user.sports_admin\",\"sports.fantasy\"))") != -1);
-                foundError = true;
-                break;
-            }
-            assertTrue(foundError);
         } finally {
             zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domain, auditRef);
             FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
@@ -7556,19 +7353,6 @@ public class ZMSImplTest extends TestCase {
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
         }
-
-        String caller = "puttenancy";
-        boolean foundError = false;
-        for (String msg: aLogMsgs) {
-            if (msg.indexOf("WHAT-api=(" + caller + ")") == -1) {
-                continue;
-            }
-            assertTrue(msg.indexOf("CLIENT-IP=(" + MOCKCLIENTADDR + ")") != -1);
-            assertTrue(msg.indexOf("WHAT-details=(ERROR=(putTenancy: tenant domain(puttenancyauthorizedservicemismatch): Cannot put tenancy on provider service=coretech-test.storage -- not a provider service)") != -1);
-            foundError = true;
-            break;
-        }
-        assertTrue(foundError);
         
         // clean up our domains
         
@@ -8187,25 +7971,6 @@ public class ZMSImplTest extends TestCase {
         } catch (ResourceException ex) {
             assertTrue(ex.getCode() == 400);
             assertTrue(ex.getMessage().contains("service does not have endpoint configured"));
-
-            String caller = "deletetenancy";
-            boolean foundError = false;
-            for (String msg: aLogMsgs) {
-                if (msg.indexOf("WHAT-api=(" + caller + ")") == -1) {
-                    continue;
-                }
-                if (msg.indexOf("(ERROR=(deleteTenancy") == -1) {
-                    continue;
-                }
-                assertTrue(msg.indexOf("CLIENT-IP=(" + MOCKCLIENTADDR + ")") != -1);
-                String errMsg = "WHAT-details=(ERROR=(deleteTenancy: Tenant cleanup in(testdeletetenancymissend): completed successfully. However, there was an error when contacting the Provider Service: providertestdeletetenancymissend.storage:service does not have endpoint configured";
-                int index = msg.indexOf(errMsg);
-                assertTrue(index != -1);
-                foundError = true;
-                break;
-            }
-            assertTrue(foundError);
-
         } finally {
             zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, tenantDomain, auditRef);
             zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, providerDomain, auditRef);
@@ -8321,19 +8086,6 @@ public class ZMSImplTest extends TestCase {
         } catch (ResourceException ex) {
             assertTrue(ex.getCode() == 400);
             assertTrue(ex.getMessage().contains("Audit reference required"));
-
-            String caller = "puttenantroles";
-            boolean foundError = false;
-            for (String msg: aLogMsgs) {
-                if (msg.indexOf("WHAT-api=(" + caller + ")") == -1) {
-                    continue;
-                }
-                assertTrue(msg, msg.indexOf("CLIENT-IP=(" + MOCKCLIENTADDR + ")") != -1);
-                assertTrue(msg, msg.indexOf("WHAT-details=(ERROR=(puttenantroles: Audit reference required for domain: testputtenantroles);:caller specified provider-service=(storage))") != -1);
-                foundError = true;
-                break;
-            }
-            assertTrue(foundError);
         } finally {
             zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domain, auditRef);
             FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
@@ -10451,19 +10203,6 @@ public class ZMSImplTest extends TestCase {
             assertEquals(ex.getCode(), 400);
         }
 
-        String caller = "deletepublickeyentry";
-        boolean foundError = false;
-        for (String msg: aLogMsgs) {
-            if (msg.indexOf("WHAT-api=(" + caller + ")") == -1) {
-                continue;
-            }
-            assertTrue(msg, msg.indexOf("CLIENT-IP=(" + MOCKCLIENTADDR + ")") != -1);
-            assertTrue(msg, msg.indexOf("WHAT-details=(ERROR=(Invalid SimpleName error: String pattern mismatch (expected \"[a-zA-Z0-9_][a-zA-Z0-9_-]*\")  for type SimpleName in data);:caller specified keyId=(1)") != -1);
-            foundError = true;
-            break;
-        }
-        assertTrue(foundError);
-
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "ServiceDelPubKeyDom2InvalidService", auditRef);
         FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
@@ -10736,19 +10475,6 @@ public class ZMSImplTest extends TestCase {
         } catch (ResourceException ex) {
             assertTrue(ex.getCode() == 400);
             assertTrue(ex.getMessage().contains("Audit reference required"));
-
-            String caller = "putpublickeyentry";
-            boolean foundError = false;
-            for (String msg: aLogMsgs) {
-                if (msg.indexOf("WHAT-api=(" + caller + ")") == -1) {
-                    continue;
-                }
-                assertTrue(msg, msg.indexOf("CLIENT-IP=(" + MOCKCLIENTADDR + ")") != -1);
-                assertTrue(msg, msg.indexOf("WHAT-details=(ERROR=(putpublickeyentry: Audit reference required for domain: testputpublickeyentrymissingauditref)") != -1);
-                foundError = true;
-                break;
-            }
-            assertTrue(foundError);
         } finally {
             zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domain, auditRef);
             FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
@@ -12051,19 +11777,6 @@ public class ZMSImplTest extends TestCase {
             assertEquals(403, ex.getCode());
         }
 
-        String caller = "putproviderresourcegrouproles";
-        boolean foundError = false;
-        for (String msg: aLogMsgs) {
-            if (msg.indexOf("WHAT-api=(" + caller + ")") == -1) {
-                continue;
-            }
-            assertTrue(msg.indexOf("CLIENT-IP=(" + MOCKCLIENTADDR + ")") != -1);
-            assertTrue(msg.indexOf("WHAT-details=(ERROR=(Unauthorized Operation (putproviderresourcegrouproles) for Service coretech.index)") != -1);
-            foundError = true;
-            break;
-        }
-        assertTrue(foundError);
-
         // clean up our domains
         
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, tenantDomain, auditRef);
@@ -12376,22 +12089,6 @@ public class ZMSImplTest extends TestCase {
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
         }
-
-        String caller = "putdomaintemplate";
-        boolean foundError = false;
-        for (String msg: aLogMsgs) {
-            if (msg.indexOf("WHAT-api=(" + caller + ")") == -1) {
-                continue;
-            }
-            assertTrue(msg.indexOf("CLIENT-IP=(" + MOCKCLIENTADDR + ")") != -1);
-            int index = msg.indexOf("WHAT-details=(ERROR=(Invalid DomainTemplate error: String pattern mismatch (expected \"[a-zA-Z0-9_][a-zA-Z0-9_-]*\")  for type SimpleName in data[0]"); 
-            assertTrue(index != -1);
-            int index2 = msg.indexOf("templates=(\"test validate\"))");
-            assertTrue(index < index2);
-            foundError = true;
-            break;
-        }
-        assertTrue(foundError);
         
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
         FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
@@ -12880,7 +12577,7 @@ public class ZMSImplTest extends TestCase {
     }
     
     @Test
-    public void testPutPolicyNoLoopbackNoSuchDomainErrorAuditLog() {
+    public void testPutPolicyNoLoopbackNoSuchDomainError() {
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
         Mockito.when(servletRequest.getRemoteAddr()).thenReturn("10.10.10.11");
         Mockito.when(servletRequest.isSecure()).thenReturn(true);
@@ -12921,22 +12618,10 @@ public class ZMSImplTest extends TestCase {
         }
         
         FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
-
-        boolean foundError = false;
-        for (String msg: aLogMsgs) {
-            if (msg.indexOf("WHAT-api=(putpolicy)") == -1) {
-                continue;
-            }
-            assertTrue(msg, msg.indexOf("CLIENT-IP=(10.10.10.11)") != -1);
-            assertTrue(msg, msg.indexOf("WHAT-details=(ERROR=(putpolicy: Unknown domain: domainname))") != -1);
-            foundError = true;
-            break;
-        }
-        assertTrue(foundError);
     }
     
     @Test
-    public void testPutPolicyLoopbackNoXFF_InconsistentNameErrorAuditLog() {
+    public void testPutPolicyLoopbackNoXFF_InconsistentNameError() {
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
         Mockito.when(servletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
         Mockito.when(servletRequest.isSecure()).thenReturn(true);
@@ -12976,22 +12661,10 @@ public class ZMSImplTest extends TestCase {
         }
         
         FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
-        
-        boolean foundError = false;
-        for (String msg: aLogMsgs) {
-            if (!msg.contains("WHAT-api=(putpolicy)")) {
-                continue;
-            }
-            assertTrue(msg, msg.contains("CLIENT-IP=(127.0.0.1)"));
-            assertTrue(msg, msg.contains("WHAT-details=(ERROR=(putPolicy: Inconsistent policy names - expected: domainname:policy.badpolicyname, actual: domainname:policy.policyname)"));
-            foundError = true;
-            break;
-        }
-        assertTrue(foundError);
     }
     
     @Test
-    public void testPutPolicyLoopbackXFFSingleValueAuditLog() {
+    public void testPutPolicyLoopbackXFFSingleValue() {
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
         Mockito.when(servletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
         Mockito.when(servletRequest.getHeader("X-Forwarded-For")).thenReturn("10.10.10.11");
@@ -13032,23 +12705,10 @@ public class ZMSImplTest extends TestCase {
         }
         
         FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
-
-        boolean foundError = false;
-        for (String msg: aLogMsgs) {
-            if (!msg.contains("WHAT-api=(putpolicy)")) {
-                continue;
-            }
-            assertTrue(msg, msg.contains("CLIENT-IP=(10.10.10.11)"));
-            assertTrue(msg, msg.contains("WHAT-entity=(badpolicyname)"));
-            assertTrue(msg, msg.contains("WHAT-details=(ERROR=(putPolicy: Inconsistent policy names - expected: domainname:policy.badpolicyname, actual: domainname:policy.policyname))"));
-            foundError = true;
-            break;
-        }
-        assertTrue(foundError);
     }
     
     @Test
-    public void testPutPolicyLoopbackXFFMultipleValuesAuditLog() {
+    public void testPutPolicyLoopbackXFFMultipleValues() {
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
         Mockito.when(servletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
         Mockito.when(servletRequest.getHeader("X-Forwarded-For")).thenReturn("10.10.10.11, 10.11.11.11, 10.12.12.12");
@@ -13089,20 +12749,6 @@ public class ZMSImplTest extends TestCase {
         }
         
         FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
-
-        boolean foundError = false;
-        for (String msg: aLogMsgs) {
-            if (!msg.contains("WHAT-api=(putpolicy)")) {
-                continue;
-            }
-            assertTrue(msg, msg.contains("CLIENT-IP=(10.12.12.12)"));
-            assertTrue(msg, msg.contains("WHAT-entity=(badpolicyname)"));
-            int index = msg.indexOf("WHAT-details=(ERROR=(putPolicy: Inconsistent policy names - expected: domainname:policy.badpolicyname, actual: domainname:policy.policyname))");
-            assertTrue(index != -1);
-            foundError = true;
-            break;
-        }
-        assertTrue(foundError);
     }
     
     @Test
