@@ -15,39 +15,24 @@
  */
 package com.yahoo.athenz.zts.cert;
 
-public class SSHCertificate {
+import org.testng.annotations.Test;
+import static org.testng.Assert.*;
 
-    private String pem;
-    private String cn;
-    private String type;
+public class SSHCertificateTest {
 
-    public SSHCertificate() {
-    }
-    
-    public String getPem() {
-        return pem;
-    }
-    
-    public SSHCertificate setPem(String pem) {
-        this.pem = pem;
-        return this;
-    }
-    
-    public String getCn() {
-        return cn;
-    }
-
-    public SSHCertificate setCn(String cn) {
-        this.cn = cn;
-        return this;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public SSHCertificate setType(String type) {
-        this.type = type;
-        return this;
+    @Test
+    public void testSSHCertificate() {
+        
+        SSHCertificate cert = new SSHCertificate();
+        assertNotNull(cert);
+        assertNull(cert.getCn());
+        assertNull(cert.getPem());
+        assertNull(cert.getType());
+        
+        SSHCertificate cert2 = new SSHCertificate().setCn("cn")
+                .setPem("pem").setType("type");
+        assertEquals(cert2.getCn(), "cn");
+        assertEquals(cert2.getPem(), "pem");
+        assertEquals(cert2.getType(), "type");
     }
 }
