@@ -63,8 +63,8 @@ public class ZMSResources {
 
     @POST
     @Path("/domain")
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Domain postTopLevelDomain(@HeaderParam("Y-Audit-Ref") String auditRef, TopLevelDomain detail) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -89,8 +89,8 @@ public class ZMSResources {
 
     @POST
     @Path("/subdomain/{parent}")
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Domain postSubDomain(@PathParam("parent") String parent, @HeaderParam("Y-Audit-Ref") String auditRef, SubDomain detail) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -117,8 +117,8 @@ public class ZMSResources {
 
     @POST
     @Path("/userdomain/{name}")
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Domain postUserDomain(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef, UserDomain detail) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -226,8 +226,8 @@ public class ZMSResources {
 
     @PUT
     @Path("/domain/{name}/meta")
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Domain putDomainMeta(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef, DomainMeta detail) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -256,8 +256,8 @@ public class ZMSResources {
 
     @PUT
     @Path("/domain/{name}/template")
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public DomainTemplate putDomainTemplate(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef, DomainTemplate template) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -365,8 +365,8 @@ public class ZMSResources {
 
     @PUT
     @Path("/domain/{domainName}/entity/{entityName}")
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Entity putEntity(@PathParam("domainName") String domainName, @PathParam("entityName") String entityName, @HeaderParam("Y-Audit-Ref") String auditRef, Entity entity) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -555,8 +555,8 @@ public class ZMSResources {
 
     @PUT
     @Path("/domain/{domainName}/role/{roleName}")
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Role putRole(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @HeaderParam("Y-Audit-Ref") String auditRef, Role role) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -641,8 +641,8 @@ public class ZMSResources {
 
     @PUT
     @Path("/domain/{domainName}/role/{roleName}/member/{memberName}")
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Membership putMembership(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @PathParam("memberName") String memberName, @HeaderParam("Y-Audit-Ref") String auditRef, Membership membership) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -700,8 +700,8 @@ public class ZMSResources {
 
     @PUT
     @Path("/domain/{domainName}/admins")
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public DefaultAdmins putDefaultAdmins(@PathParam("domainName") String domainName, @HeaderParam("Y-Audit-Ref") String auditRef, DefaultAdmins defaultAdmins) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -807,8 +807,8 @@ public class ZMSResources {
 
     @PUT
     @Path("/domain/{domainName}/policy/{policyName}")
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Policy putPolicy(@PathParam("domainName") String domainName, @PathParam("policyName") String policyName, @HeaderParam("Y-Audit-Ref") String auditRef, Policy policy) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -893,8 +893,8 @@ public class ZMSResources {
 
     @PUT
     @Path("/domain/{domainName}/policy/{policyName}/assertion")
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Assertion putAssertion(@PathParam("domainName") String domainName, @PathParam("policyName") String policyName, @HeaderParam("Y-Audit-Ref") String auditRef, Assertion assertion) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -954,8 +954,8 @@ public class ZMSResources {
 
     @PUT
     @Path("/domain/{domain}/service/{service}")
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public ServiceIdentity putServiceIdentity(@PathParam("domain") String domain, @PathParam("service") String service, @HeaderParam("Y-Audit-Ref") String auditRef, ServiceIdentity detail) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -1119,8 +1119,8 @@ public class ZMSResources {
 
     @PUT
     @Path("/domain/{domain}/service/{service}/publickey/{id}")
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public PublicKeyEntry putPublicKeyEntry(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("id") String id, @HeaderParam("Y-Audit-Ref") String auditRef, PublicKeyEntry publicKeyEntry) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -1178,8 +1178,8 @@ public class ZMSResources {
 
     @PUT
     @Path("/domain/{domain}/tenancy/{service}")
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Tenancy putTenancy(@PathParam("domain") String domain, @PathParam("service") String service, @HeaderParam("Y-Audit-Ref") String auditRef, Tenancy detail) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -1264,8 +1264,8 @@ public class ZMSResources {
 
     @PUT
     @Path("/domain/{domain}/tenancy/{service}/resourceGroup/{resourceGroup}")
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public TenancyResourceGroup putTenancyResourceGroup(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("resourceGroup") String resourceGroup, @HeaderParam("Y-Audit-Ref") String auditRef, TenancyResourceGroup detail) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -1323,8 +1323,8 @@ public class ZMSResources {
 
     @PUT
     @Path("/domain/{domain}/service/{service}/tenant/{tenantDomain}")
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public TenantRoles putTenantRoles(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("tenantDomain") String tenantDomain, @HeaderParam("Y-Audit-Ref") String auditRef, TenantRoles detail) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -1411,8 +1411,8 @@ public class ZMSResources {
 
     @PUT
     @Path("/domain/{domain}/service/{service}/tenant/{tenantDomain}/resourceGroup/{resourceGroup}")
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public TenantResourceGroupRoles putTenantResourceGroupRoles(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("tenantDomain") String tenantDomain, @PathParam("resourceGroup") String resourceGroup, @HeaderParam("Y-Audit-Ref") String auditRef, TenantResourceGroupRoles detail) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -1499,8 +1499,8 @@ public class ZMSResources {
 
     @PUT
     @Path("/domain/{tenantDomain}/provDomain/{provDomain}/provService/{provService}/resourceGroup/{resourceGroup}")
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public ProviderResourceGroupRoles putProviderResourceGroupRoles(@PathParam("tenantDomain") String tenantDomain, @PathParam("provDomain") String provDomain, @PathParam("provService") String provService, @PathParam("resourceGroup") String resourceGroup, @HeaderParam("Y-Audit-Ref") String auditRef, ProviderResourceGroupRoles detail) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
