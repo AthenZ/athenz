@@ -34,7 +34,6 @@ import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.metrics.MetricFactory;
 import com.yahoo.athenz.common.server.db.DataSourceFactory;
 import com.yahoo.athenz.common.server.db.PoolableDataSource;
-import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
 import com.yahoo.athenz.common.server.rest.Http;
@@ -885,76 +884,65 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         validateRequest(ctx.request(), caller);
 
-        Domain domain = null;
-        try {
-            validate(detail, TYPE_TOP_LEVEL_DOMAIN, caller);
-            
-            String domainName = detail.getName();
-            validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(detail, TYPE_TOP_LEVEL_DOMAIN, caller);
+        
+        String domainName = detail.getName();
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
 
-            domainName = domainName.toLowerCase();
-            metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-            metric.increment(caller, domainName);
-            Object timerMetric = metric.startTiming("posttopleveldomain_timing", domainName);
-            
-            if (domainName.indexOf('_') != -1 && !isSysAdminUser(((RsrcCtxWrapper) ctx).principal())) {
-                throw ZMSUtils.requestError("Domain name cannot contain underscores", caller);
-            }
-            
-            // verify length of domain name
-            
-            if (domainName.length() > domainNameMaxLen) {
-                throw ZMSUtils.requestError("Invalid Domain name: " + domainName
-                        + " : name length cannot exceed: " + domainNameMaxLen, caller);
-            } 
-
-            // verify that request is properly authenticated for this request
-            
-            Principal principal = ((RsrcCtxWrapper) ctx).principal();
-            verifyAuthorizedServiceOperation(principal.getAuthorizedService(), caller);
-            
-            // for consistent handling of all requests, we're going to convert
-            // all incoming object values into lower case (e.g. domain, role,
-            // policy, service, etc name)
-            
-            AthenzObject.TOP_LEVEL_DOMAIN.convertToLowerCase(detail);
-            
-            List<String> solutionTemplates = null;
-            DomainTemplateList templates = detail.getTemplates();
-            if (templates != null) {
-                solutionTemplates = templates.getTemplateNames();
-                validateSolutionTemplates(solutionTemplates, caller);
-            }
-            
-            // check to see if we need to validate our product id for the top
-            // level domains. The server code assumes that product id with
-            // 0 indicates no enforcement
-            
-            int productId = 0;
-            if (productIdSupport) {
-                if (detail.getYpmId() != null) {
-                    if ((productId = detail.getYpmId().intValue()) <= 0) {
-                        throw ZMSUtils.requestError("Product Id must be a positive integer", caller);
-                    }
-                } else {
-                    throw ZMSUtils.requestError("Product Id is required when creating top level domain", caller);
-                }
-            }
-            
-            domain = createTopLevelDomain(ctx, domainName, detail.getDescription(),
-                detail.getOrg(), detail.getAuditEnabled(), detail.getAdminUsers(),
-                detail.getAccount(), productId, solutionTemplates, auditRef);
-
-            metric.stopTiming(timerMetric);
-
-        } catch (Exception exc) {
-            
-            String domainName = (detail != null) ? detail.getName() : null;
-            auditRequestFailure(ctx, exc, domainName, domainName, caller,
-                    ZMSConsts.HTTP_POST, null, auditRef);
-            throw exc;
+        domainName = domainName.toLowerCase();
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
+        metric.increment(caller, domainName);
+        Object timerMetric = metric.startTiming("posttopleveldomain_timing", domainName);
+        
+        if (domainName.indexOf('_') != -1 && !isSysAdminUser(((RsrcCtxWrapper) ctx).principal())) {
+            throw ZMSUtils.requestError("Domain name cannot contain underscores", caller);
+        }
+        
+        // verify length of domain name
+        
+        if (domainName.length() > domainNameMaxLen) {
+            throw ZMSUtils.requestError("Invalid Domain name: " + domainName
+                    + " : name length cannot exceed: " + domainNameMaxLen, caller);
         }
 
+        // verify that request is properly authenticated for this request
+        
+        Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        verifyAuthorizedServiceOperation(principal.getAuthorizedService(), caller);
+        
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        AthenzObject.TOP_LEVEL_DOMAIN.convertToLowerCase(detail);
+        
+        List<String> solutionTemplates = null;
+        DomainTemplateList templates = detail.getTemplates();
+        if (templates != null) {
+            solutionTemplates = templates.getTemplateNames();
+            validateSolutionTemplates(solutionTemplates, caller);
+        }
+        
+        // check to see if we need to validate our product id for the top
+        // level domains. The server code assumes that product id with
+        // 0 indicates no enforcement
+        
+        int productId = 0;
+        if (productIdSupport) {
+            if (detail.getYpmId() != null) {
+                if ((productId = detail.getYpmId().intValue()) <= 0) {
+                    throw ZMSUtils.requestError("Product Id must be a positive integer", caller);
+                }
+            } else {
+                throw ZMSUtils.requestError("Product Id is required when creating top level domain", caller);
+            }
+        }
+        
+        Domain domain = createTopLevelDomain(ctx, domainName, detail.getDescription(),
+            detail.getOrg(), detail.getAuditEnabled(), detail.getAdminUsers(),
+            detail.getAccount(), productId, solutionTemplates, auditRef);
+
+        metric.stopTiming(timerMetric);
         return domain;
     }
     
@@ -970,30 +958,23 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
 
-        try {
-            validate(domainName, TYPE_DOMAIN_NAME, caller);
-            domainName = domainName.toLowerCase();
-            metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-            metric.increment(caller, domainName);
-            Object timerMetric = metric.startTiming("deletetopleveldomain_timing", domainName);
-            
-            // verify that request is properly authenticated for this request
-            
-            verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
-            
-            // for consistent handling of all requests, we're going to convert
-            // all incoming object values into lower case (e.g. domain, role,
-            // policy, service, etc name)
-            
-            deleteDomain(ctx, auditRef, domainName, caller);
-            metric.stopTiming(timerMetric);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
 
-        } catch (Exception exc) {
-            
-            auditRequestFailure(ctx, exc, domainName, domainName, caller, ZMSConsts.HTTP_DELETE, null, auditRef);
-            throw exc;
-        }
-
+        domainName = domainName.toLowerCase();
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
+        metric.increment(caller, domainName);
+        Object timerMetric = metric.startTiming("deletetopleveldomain_timing", domainName);
+        
+        // verify that request is properly authenticated for this request
+        
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+        
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        deleteDomain(ctx, auditRef, domainName, caller);
+        metric.stopTiming(timerMetric);
         return null;
     }
 
@@ -1261,22 +1242,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.increment(caller, parent);
         Object timerMetric = metric.startTiming("deletesubdomain_timing", parent);
 
-        try {
-            validate(parent, TYPE_DOMAIN_NAME, caller);
-            validate(name, TYPE_SIMPLE_NAME, caller);
+        validate(parent, TYPE_DOMAIN_NAME, caller);
+        validate(name, TYPE_SIMPLE_NAME, caller);
 
-            // verify that request is properly authenticated for this request
-            
-            verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
-            
-            deleteDomain(ctx, auditRef, domainName, caller);
-
-        } catch (Exception exc) {
-            
-            auditRequestFailure(ctx, exc, domainName, domainName, caller, ZMSConsts.HTTP_DELETE, null, auditRef);
-            throw exc;
-        }
-
+        // verify that request is properly authenticated for this request
+        
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+        
+        deleteDomain(ctx, auditRef, domainName, caller);
         metric.stopTiming(timerMetric);
         return null;
     }
@@ -1293,32 +1266,24 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
 
-        try {
-            validate(name, TYPE_SIMPLE_NAME, caller);
+        validate(name, TYPE_SIMPLE_NAME, caller);
 
-            // for consistent handling of all requests, we're going to convert
-            // all incoming object values into lower case (e.g. domain, role,
-            // policy, service, etc name)
-            
-            name = name.toLowerCase();
-            metric.increment(ZMSConsts.HTTP_REQUEST, name);
-            metric.increment(caller, name);
-            Object timerMetric = metric.startTiming("deleteuserdomain_timing", name);
-            
-            // verify that request is properly authenticated for this request
-            
-            verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
-            
-            String domainName = userDomainPrefix + name;
-            deleteDomain(ctx, auditRef, domainName, caller);
-            metric.stopTiming(timerMetric);
-
-        } catch (Exception exc) {
-            
-            auditRequestFailure(ctx, exc, name, name, caller, ZMSConsts.HTTP_DELETE, null, auditRef);
-            throw exc;
-        }
-
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        name = name.toLowerCase();
+        metric.increment(ZMSConsts.HTTP_REQUEST, name);
+        metric.increment(caller, name);
+        Object timerMetric = metric.startTiming("deleteuserdomain_timing", name);
+        
+        // verify that request is properly authenticated for this request
+        
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+        
+        String domainName = userDomainPrefix + name;
+        deleteDomain(ctx, auditRef, domainName, caller);
+        metric.stopTiming(timerMetric);
         return null;
     }
     
@@ -1334,48 +1299,41 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
 
-        try {
-            validate(meta, TYPE_DOMAIN_META, caller);
+        validate(meta, TYPE_DOMAIN_META, caller);
 
-            // for consistent handling of all requests, we're going to convert
-            // all incoming object values into lower case (e.g. domain, role,
-            // policy, service, etc name)
-            
-            domainName = domainName.toLowerCase();
-            metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-            metric.increment(caller, domainName);
-            Object timerMetric = metric.startTiming("putdomainmeta_timing", domainName);
-            
-            // verify that request is properly authenticated for this request
-            
-            verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("putDomainMeta: name=" + domainName + ", meta=" + meta);
-            }
-
-            // for top level domains, verify the meta data has a product id and that it is not used by
-            // any other domain(other than this one)
-
-            if (productIdSupport && domainName.indexOf('.') == -1) {
-                    
-                // if this productId is already used by any domain it will be
-                // seen in dbService and exception thrown
-                
-                Integer productId = meta.getYpmId();
-                if (productId == null) {
-                    throw ZMSUtils.requestError("Unique Product Id must be specified for top level domain", caller);
-                }
-            }
-
-            dbService.executePutDomainMeta(ctx, domainName, meta, auditRef, caller);
-            metric.stopTiming(timerMetric);
-
-        } catch (Exception exc) {
-            
-            auditRequestFailure(ctx, exc, domainName, domainName, caller, ZMSConsts.HTTP_PUT, null, auditRef);
-            throw exc;
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        domainName = domainName.toLowerCase();
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
+        metric.increment(caller, domainName);
+        Object timerMetric = metric.startTiming("putdomainmeta_timing", domainName);
+        
+        // verify that request is properly authenticated for this request
+        
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+        
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("putDomainMeta: name=" + domainName + ", meta=" + meta);
         }
+
+        // for top level domains, verify the meta data has a product id and that it is not used by
+        // any other domain(other than this one)
+
+        if (productIdSupport && domainName.indexOf('.') == -1) {
+                
+            // if this productId is already used by any domain it will be
+            // seen in dbService and exception thrown
+            
+            Integer productId = meta.getYpmId();
+            if (productId == null) {
+                throw ZMSUtils.requestError("Unique Product Id must be specified for top level domain", caller);
+            }
+        }
+
+        dbService.executePutDomainMeta(ctx, domainName, meta, auditRef, caller);
+        metric.stopTiming(timerMetric);
 
         return null;
     }
@@ -1428,48 +1386,38 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
 
-        try {
-            validate(domainName, TYPE_DOMAIN_NAME, caller);
-            validate(templates, TYPE_DOMAIN_TEMPLATE, caller);
-            
-            // for consistent handling of all requests, we're going to convert
-            // all incoming object values into lower case (e.g. domain, role,
-            // policy, service, etc name)
-            
-            domainName = domainName.toLowerCase();
-            AthenzObject.DOMAIN_TEMPLATE.convertToLowerCase(templates);
-            
-            metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-            metric.increment(caller, domainName);
-            Object timerMetric = metric.startTiming("putdomaintemplate_timing", domainName);
-            
-            // verify that all template names are valid
-            
-            List<String> templateNames = templates.getTemplateNames();
-            if (templateNames == null || templateNames.size() == 0) {
-                throw ZMSUtils.requestError("putDomainTemplate: No templates specified", caller);
-            }
-            validateSolutionTemplates(templateNames, caller);
-            
-            // verify that request is properly authenticated for this request
-            // Make sure each template name is verified
-            
-            for (String templateName : templates.getTemplateNames()) {
-                verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(),
-                        caller, "name", templateName);
-            }
-
-            dbService.executePutDomainTemplate(ctx, domainName, templateNames, auditRef, caller);
-            metric.stopTiming(timerMetric);
-
-        } catch (Exception exc) {
-            
-            String auditDetails = auditListItems("caller specified templates", templates.getTemplateNames());
-            auditRequestFailure(ctx, exc, domainName, domainName, caller, ZMSConsts.HTTP_PUT,
-                    auditDetails, auditRef);
-            throw exc;
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(templates, TYPE_DOMAIN_TEMPLATE, caller);
+        
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        domainName = domainName.toLowerCase();
+        AthenzObject.DOMAIN_TEMPLATE.convertToLowerCase(templates);
+        
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
+        metric.increment(caller, domainName);
+        Object timerMetric = metric.startTiming("putdomaintemplate_timing", domainName);
+        
+        // verify that all template names are valid
+        
+        List<String> templateNames = templates.getTemplateNames();
+        if (templateNames == null || templateNames.size() == 0) {
+            throw ZMSUtils.requestError("putDomainTemplate: No templates specified", caller);
+        }
+        validateSolutionTemplates(templateNames, caller);
+        
+        // verify that request is properly authenticated for this request
+        // Make sure each template name is verified
+        
+        for (String templateName : templates.getTemplateNames()) {
+            verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(),
+                    caller, "name", templateName);
         }
 
+        dbService.executePutDomainTemplate(ctx, domainName, templateNames, auditRef, caller);
+        metric.stopTiming(timerMetric);
         return null;
     }
 
@@ -1485,46 +1433,35 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         validateRequest(ctx.request(), caller);
 
-        try {
-            validate(domainName, TYPE_DOMAIN_NAME, caller);
-            validate(templateName, TYPE_SIMPLE_NAME, caller);
-            
-            // for consistent handling of all requests, we're going to convert
-            // all incoming object values into lower case (e.g. domain, role,
-            // policy, service, etc name)
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(templateName, TYPE_SIMPLE_NAME, caller);
+        
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
 
-            domainName = domainName.toLowerCase();
-            templateName = templateName.toLowerCase();
-            
-            metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-            metric.increment(caller, domainName);
-            Object timerMetric = metric.startTiming("deletedomaintemplate_timing", domainName);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("deleteDomainTemplate: domain=" + domainName + ", template=" + templateName);
-            }
-            
-            // verify that request is properly authenticated for this request
-
-            verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(),
-                    caller, "name", templateName);
-
-            List<String> templateNames = new ArrayList<String>();
-            templateNames.add(templateName);
-            validateSolutionTemplates(templateNames, caller);
-
-            dbService.executeDeleteDomainTemplate(ctx, domainName, templateName, auditRef, caller);
-            metric.stopTiming(timerMetric);
-
-        } catch (Exception exc) {
-            
-            StringBuilder sb = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-            sb.append(":caller specified templatename=(").append(templateName).append(")");
-            auditRequestFailure(ctx, exc, domainName, domainName, caller, ZMSConsts.HTTP_DELETE,
-                    sb.toString(), auditRef);
-            throw exc;
+        domainName = domainName.toLowerCase();
+        templateName = templateName.toLowerCase();
+        
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
+        metric.increment(caller, domainName);
+        Object timerMetric = metric.startTiming("deletedomaintemplate_timing", domainName);
+        
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("deleteDomainTemplate: domain=" + domainName + ", template=" + templateName);
         }
+        
+        // verify that request is properly authenticated for this request
 
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(),
+                caller, "name", templateName);
+
+        List<String> templateNames = new ArrayList<String>();
+        templateNames.add(templateName);
+        validateSolutionTemplates(templateNames, caller);
+
+        dbService.executeDeleteDomainTemplate(ctx, domainName, templateName, auditRef, caller);
+        metric.stopTiming(timerMetric);
         return null;
     }
     
@@ -1948,37 +1885,29 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
 
-        try {
-            validate(domainName, TYPE_DOMAIN_NAME, caller);
-            validate(entityName, TYPE_ENTITY_NAME, caller);
-            checkReservedEntityName(entityName);
-            validateEntity(entityName, resource);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(entityName, TYPE_ENTITY_NAME, caller);
+        checkReservedEntityName(entityName);
+        validateEntity(entityName, resource);
 
-            // for consistent handling of all requests, we're going to convert
-            // all incoming object values into lower case (e.g. domain, role,
-            // policy, service, etc name)
-            
-            domainName = domainName.toLowerCase();
-            entityName = entityName.toLowerCase();
-            AthenzObject.ENTITY.convertToLowerCase(resource);
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        domainName = domainName.toLowerCase();
+        entityName = entityName.toLowerCase();
+        AthenzObject.ENTITY.convertToLowerCase(resource);
 
-            metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-            metric.increment(caller, domainName);
-            Object timerMetric = metric.startTiming("putentity_timing", domainName);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
+        metric.increment(caller, domainName);
+        Object timerMetric = metric.startTiming("putentity_timing", domainName);
 
-            // verify that request is properly authenticated for this request
-            
-            verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
-            
-            dbService.executePutEntity(ctx, domainName, entityName, resource, auditRef, caller);
-            metric.stopTiming(timerMetric);
-
-        } catch (Exception exc) {
-            
-            auditRequestFailure(ctx, exc, domainName, entityName, caller, ZMSConsts.HTTP_PUT, null, auditRef);
-            throw exc;
-        }
-
+        // verify that request is properly authenticated for this request
+        
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+        
+        dbService.executePutEntity(ctx, domainName, entityName, resource, auditRef, caller);
+        metric.stopTiming(timerMetric);
         return null;
     }
 
@@ -2053,34 +1982,28 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         validateRequest(ctx.request(), caller);
 
-        try {
-            validate(domainName, TYPE_DOMAIN_NAME, caller);
-            validate(entityName, TYPE_ENTITY_NAME, caller);
-            checkReservedEntityName(entityName);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(entityName, TYPE_ENTITY_NAME, caller);
+        checkReservedEntityName(entityName);
 
-            // for consistent handling of all requests, we're going to convert
-            // all incoming object values into lower case (e.g. domain, role,
-            // policy, service, etc name)
-            
-            domainName = domainName.toLowerCase();
-            entityName = entityName.toLowerCase();
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        domainName = domainName.toLowerCase();
+        entityName = entityName.toLowerCase();
 
-            metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-            metric.increment(caller, domainName);
-            Object timerMetric = metric.startTiming("deleteentity_timing", null);
-            
-            // verify that request is properly authenticated for this request
-            
-            verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
-            
-            dbService.executeDeleteEntity(ctx, domainName, entityName, auditRef, caller);
-            metric.stopTiming(timerMetric);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
+        metric.increment(caller, domainName);
+        Object timerMetric = metric.startTiming("deleteentity_timing", null);
+        
+        // verify that request is properly authenticated for this request
+        
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+        
+        dbService.executeDeleteEntity(ctx, domainName, entityName, auditRef, caller);
+        metric.stopTiming(timerMetric);
 
-        } catch (Exception exc) {
-            
-            auditRequestFailure(ctx, exc, domainName, entityName, caller, ZMSConsts.HTTP_DELETE, null, auditRef);
-            throw exc;
-        }
         return null;
     }
 
@@ -2356,54 +2279,46 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
 
-        try {
-            validate(domainName, TYPE_DOMAIN_NAME, caller);
-            validate(roleName, TYPE_ENTITY_NAME, caller);
-            validate(role, TYPE_ROLE, caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(roleName, TYPE_ENTITY_NAME, caller);
+        validate(role, TYPE_ROLE, caller);
 
-            // for consistent handling of all requests, we're going to convert
-            // all incoming object values into lower case (e.g. domain, role,
-            // policy, service, etc name)
-            
-            domainName = domainName.toLowerCase();
-            roleName = roleName.toLowerCase();
-            AthenzObject.ROLE.convertToLowerCase(role);
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        domainName = domainName.toLowerCase();
+        roleName = roleName.toLowerCase();
+        AthenzObject.ROLE.convertToLowerCase(role);
 
-            metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-            metric.increment(caller, domainName);
-            Object timerMetric = metric.startTiming("putrole_timing", domainName);
-            
-            // verify that request is properly authenticated for this request
-            
-            verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
-            
-            // verify the role name in the URI and request are consistent
-            
-            if (!isConsistentRoleName(domainName, roleName, role)) {
-                throw ZMSUtils.requestError("putRole: Inconsistent role names - expected: "
-                        + ZMSUtils.roleResourceName(domainName, roleName) + ", actual: "
-                        + role.getName(), caller);
-            }
-            
-            // validate role and trust settings are as expected
-            
-            ZMSUtils.validateRoleMembers(role, caller, domainName);
-            
-            // normalize and remove duplicate members
-            
-            normalizeRoleMembers(role);
-            
-            // process our request
-            
-            dbService.executePutRole(ctx, domainName, roleName, role, auditRef, caller);
-            metric.stopTiming(timerMetric);
-            
-        } catch (Exception exc) {
-
-            auditRequestFailure(ctx, exc, domainName, roleName, caller, ZMSConsts.HTTP_PUT, null, auditRef);
-            throw exc;
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
+        metric.increment(caller, domainName);
+        Object timerMetric = metric.startTiming("putrole_timing", domainName);
+        
+        // verify that request is properly authenticated for this request
+        
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+        
+        // verify the role name in the URI and request are consistent
+        
+        if (!isConsistentRoleName(domainName, roleName, role)) {
+            throw ZMSUtils.requestError("putRole: Inconsistent role names - expected: "
+                    + ZMSUtils.roleResourceName(domainName, roleName) + ", actual: "
+                    + role.getName(), caller);
         }
-
+        
+        // validate role and trust settings are as expected
+        
+        ZMSUtils.validateRoleMembers(role, caller, domainName);
+        
+        // normalize and remove duplicate members
+        
+        normalizeRoleMembers(role);
+        
+        // process our request
+        
+        dbService.executePutRole(ctx, domainName, roleName, role, auditRef, caller);
+        metric.stopTiming(timerMetric);
         return null;
     }
     
@@ -2419,42 +2334,34 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
 
-        try {
-            validate(domainName, TYPE_DOMAIN_NAME, caller);
-            validate(roleName, TYPE_ENTITY_NAME, caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(roleName, TYPE_ENTITY_NAME, caller);
 
-            // for consistent handling of all requests, we're going to convert
-            // all incoming object values into lower case (e.g. domain, role,
-            // policy, service, etc name)
-            
-            domainName = domainName.toLowerCase();
-            roleName = roleName.toLowerCase();
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        domainName = domainName.toLowerCase();
+        roleName = roleName.toLowerCase();
 
-            metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-            metric.increment(caller, domainName);
-            Object timerMetric = metric.startTiming("deleterole_timing", domainName);
-            
-            // verify that request is properly authenticated for this request
-            
-            verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
-            
-            /* we are not going to allow any user to delete
-             * the admin role and policy since those are required
-             * for standard domain operations */
-            
-            if (roleName.equalsIgnoreCase(ADMIN_ROLE_NAME)) {
-                throw ZMSUtils.requestError("deleteRole: admin role cannot be deleted", caller);
-            }
-            
-            dbService.executeDeleteRole(ctx, domainName, roleName, auditRef, caller);
-            metric.stopTiming(timerMetric);
-
-        } catch (Exception exc) {
-            
-            auditRequestFailure(ctx, exc, domainName, roleName, caller, ZMSConsts.HTTP_DELETE, null, auditRef);
-            throw exc;
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
+        metric.increment(caller, domainName);
+        Object timerMetric = metric.startTiming("deleterole_timing", domainName);
+        
+        // verify that request is properly authenticated for this request
+        
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+        
+        /* we are not going to allow any user to delete
+         * the admin role and policy since those are required
+         * for standard domain operations */
+        
+        if (roleName.equalsIgnoreCase(ADMIN_ROLE_NAME)) {
+            throw ZMSUtils.requestError("deleteRole: admin role cannot be deleted", caller);
         }
-
+        
+        dbService.executeDeleteRole(ctx, domainName, roleName, auditRef, caller);
+        metric.stopTiming(timerMetric);
         return null;
     }
 
@@ -2540,61 +2447,50 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
 
-        try {
-            validate(domainName, TYPE_DOMAIN_NAME, caller);
-            validate(roleName, TYPE_ENTITY_NAME, caller);
-            validate(memberName, TYPE_MEMBER_NAME, caller);
-            validate(membership, TYPE_MEMBERSHIP, caller);
-            
-            // for consistent handling of all requests, we're going to convert
-            // all incoming object values into lower case (e.g. domain, role,
-            // policy, service, etc name)
-            
-            domainName = domainName.toLowerCase();
-            roleName = roleName.toLowerCase();
-            memberName = memberName.toLowerCase();
-            AthenzObject.MEMBERSHIP.convertToLowerCase(membership);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(roleName, TYPE_ENTITY_NAME, caller);
+        validate(memberName, TYPE_MEMBER_NAME, caller);
+        validate(membership, TYPE_MEMBERSHIP, caller);
+        
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        domainName = domainName.toLowerCase();
+        roleName = roleName.toLowerCase();
+        memberName = memberName.toLowerCase();
+        AthenzObject.MEMBERSHIP.convertToLowerCase(membership);
 
-            metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-            metric.increment(caller, domainName);
-            Object timerMetric = metric.startTiming("putmembership_timing", domainName);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
+        metric.increment(caller, domainName);
+        Object timerMetric = metric.startTiming("putmembership_timing", domainName);
 
-            // verify that request is properly authenticated for this request
-            
-            verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(),
-                    caller, "role", roleName);
-            
-            // verify that the member name in the URI and object provided match
-            
-            if (!memberName.equals(membership.getMemberName())) {
-                throw ZMSUtils.requestError("putMembership: Member name in URI and Membership object do not match", caller);
-            }
-            
-            // role name is optional so we'll verify only if the value is present in the object
-            
-            if (membership.getRoleName() != null && !roleName.equals(membership.getRoleName())) {
-                throw ZMSUtils.requestError("putMembership: Role name in URI and Membership object do not match", caller);
-            }
-            
-            // add the member to the specified role
-            
-            RoleMember roleMember = new RoleMember();
-            roleMember.setMemberName(memberName);
-            roleMember.setExpiration(membership.getExpiration());
-
-            dbService.executePutMembership(ctx, domainName, roleName,
-                    getNormalizedMember(roleMember), auditRef, caller);
-            metric.stopTiming(timerMetric);
-
-        } catch (Exception exc) {
-            
-            StringBuilder sb = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-            sb.append(":caller specified memberName=(").append(memberName).append(')');
-            auditRequestFailure(ctx, exc, domainName, roleName, caller, ZMSConsts.HTTP_PUT,
-                    sb.toString(), auditRef);
-            throw exc;
+        // verify that request is properly authenticated for this request
+        
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(),
+                caller, "role", roleName);
+        
+        // verify that the member name in the URI and object provided match
+        
+        if (!memberName.equals(membership.getMemberName())) {
+            throw ZMSUtils.requestError("putMembership: Member name in URI and Membership object do not match", caller);
         }
+        
+        // role name is optional so we'll verify only if the value is present in the object
+        
+        if (membership.getRoleName() != null && !roleName.equals(membership.getRoleName())) {
+            throw ZMSUtils.requestError("putMembership: Role name in URI and Membership object do not match", caller);
+        }
+        
+        // add the member to the specified role
+        
+        RoleMember roleMember = new RoleMember();
+        roleMember.setMemberName(memberName);
+        roleMember.setExpiration(membership.getExpiration());
 
+        dbService.executePutMembership(ctx, domainName, roleName,
+                getNormalizedMember(roleMember), auditRef, caller);
+        metric.stopTiming(timerMetric);
         return null;
     }
 
@@ -2611,42 +2507,31 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
 
-        try {
-            validate(domainName, TYPE_DOMAIN_NAME, caller);
-            validate(roleName, TYPE_ENTITY_NAME, caller);
-            validate(memberName, TYPE_MEMBER_NAME, caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(roleName, TYPE_ENTITY_NAME, caller);
+        validate(memberName, TYPE_MEMBER_NAME, caller);
 
-            // for consistent handling of all requests, we're going to convert
-            // all incoming object values into lower case (e.g. domain, role,
-            // policy, service, etc name)
-            
-            domainName = domainName.toLowerCase();
-            roleName = roleName.toLowerCase();
-            memberName = memberName.toLowerCase();
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        domainName = domainName.toLowerCase();
+        roleName = roleName.toLowerCase();
+        memberName = memberName.toLowerCase();
 
-            metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-            metric.increment(caller, domainName);
-            Object timerMetric = metric.startTiming("deletemembership_timing", domainName);
-            
-            // verify that request is properly authenticated for this request
-            
-            verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
-            
-            RoleMember roleMember = new RoleMember();
-            roleMember.setMemberName(memberName);
-            String normalizedMember = getNormalizedMember(roleMember).getMemberName();
-            dbService.executeDeleteMembership(ctx, domainName, roleName, normalizedMember, auditRef, caller);
-            metric.stopTiming(timerMetric);
-
-        } catch (Exception exc) {
-            
-            StringBuilder sb = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-            sb.append(":caller specified memberName=(").append(memberName).append(')');
-            auditRequestFailure(ctx, exc, domainName, roleName, caller, ZMSConsts.HTTP_DELETE,
-                    sb.toString(), auditRef);
-            throw exc;
-        }
-
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
+        metric.increment(caller, domainName);
+        Object timerMetric = metric.startTiming("deletemembership_timing", domainName);
+        
+        // verify that request is properly authenticated for this request
+        
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+        
+        RoleMember roleMember = new RoleMember();
+        roleMember.setMemberName(memberName);
+        String normalizedMember = getNormalizedMember(roleMember).getMemberName();
+        dbService.executeDeleteMembership(ctx, domainName, roleName, normalizedMember, auditRef, caller);
+        metric.stopTiming(timerMetric);
         return null;
     }
 
@@ -2871,48 +2756,40 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
 
-        try {
-            validate(domainName, TYPE_DOMAIN_NAME, caller);
-            validate(policyName, TYPE_COMPOUND_NAME, caller);
-            validate(assertion, TYPE_ASSERTION, caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(policyName, TYPE_COMPOUND_NAME, caller);
+        validate(assertion, TYPE_ASSERTION, caller);
 
-            // verify that request is properly authenticated for this request
-            
-            verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
-            
-            // for consistent handling of all requests, we're going to convert
-            // all incoming object values into lower case (e.g. domain, role,
-            // policy, service, etc name)
-            
-            domainName = domainName.toLowerCase();
-            policyName = policyName.toLowerCase();
-            AthenzObject.ASSERTION.convertToLowerCase(assertion);
+        // verify that request is properly authenticated for this request
+        
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+        
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        domainName = domainName.toLowerCase();
+        policyName = policyName.toLowerCase();
+        AthenzObject.ASSERTION.convertToLowerCase(assertion);
 
-            metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-            metric.increment(caller, domainName);
-            Object timerMetric = metric.startTiming("putassertion_timing", domainName);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
+        metric.increment(caller, domainName);
+        Object timerMetric = metric.startTiming("putassertion_timing", domainName);
 
-            // we are not going to allow any user to update
-            // the admin policy since that is required
-            // for standard domain operations */
-            
-            if (policyName.equalsIgnoreCase(ADMIN_POLICY_NAME)) {
-                throw ZMSUtils.requestError("putAssertion: admin policy cannot be modified", caller);
-            }
-            
-            // validate to make sure we have expected values for assertion fields
-            
-            validatePolicyAssertion(assertion, caller);
-            
-            dbService.executePutAssertion(ctx, domainName, policyName, assertion, auditRef, caller);
-            metric.stopTiming(timerMetric);
-
-        } catch (Exception exc) {
-            
-            auditRequestFailure(ctx, exc, domainName, policyName, caller, ZMSConsts.HTTP_PUT, null, auditRef);
-            throw exc;
+        // we are not going to allow any user to update
+        // the admin policy since that is required
+        // for standard domain operations */
+        
+        if (policyName.equalsIgnoreCase(ADMIN_POLICY_NAME)) {
+            throw ZMSUtils.requestError("putAssertion: admin policy cannot be modified", caller);
         }
-
+        
+        // validate to make sure we have expected values for assertion fields
+        
+        validatePolicyAssertion(assertion, caller);
+        
+        dbService.executePutAssertion(ctx, domainName, policyName, assertion, auditRef, caller);
+        metric.stopTiming(timerMetric);
         return assertion;
     }
     
@@ -2929,45 +2806,34 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
 
-        try {
-            validate(domainName, TYPE_DOMAIN_NAME, caller);
-            validate(policyName, TYPE_ENTITY_NAME, caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(policyName, TYPE_ENTITY_NAME, caller);
 
-            // for consistent handling of all requests, we're going to convert
-            // all incoming object values into lower case (e.g. domain, role,
-            // policy, service, etc name)
-            
-            domainName = domainName.toLowerCase();
-            policyName = policyName.toLowerCase();
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        domainName = domainName.toLowerCase();
+        policyName = policyName.toLowerCase();
 
-            metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-            metric.increment(caller, domainName);
-            Object timerMetric = metric.startTiming("deleteassertion_timing", domainName);
-            
-            // we are not going to allow any user to update
-            // the admin policy since that is required
-            // for standard domain operations */
-            
-            if (policyName.equalsIgnoreCase(ADMIN_POLICY_NAME)) {
-                throw ZMSUtils.requestError("deleteAssertion: admin policy cannot be modified", caller);
-            }
-            
-            // verify that request is properly authenticated for this request
-            
-            verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
-            
-            dbService.executeDeleteAssertion(ctx, domainName, policyName, assertionId, auditRef, caller);
-            metric.stopTiming(timerMetric);
-
-        } catch (Exception exc) {
-            
-            StringBuilder sb = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-            sb.append("assertionId=(").append(assertionId).append(')');
-            auditRequestFailure(ctx, exc, domainName, policyName, caller, ZMSConsts.HTTP_DELETE,
-                    sb.toString(), auditRef);
-            throw exc;
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
+        metric.increment(caller, domainName);
+        Object timerMetric = metric.startTiming("deleteassertion_timing", domainName);
+        
+        // we are not going to allow any user to update
+        // the admin policy since that is required
+        // for standard domain operations */
+        
+        if (policyName.equalsIgnoreCase(ADMIN_POLICY_NAME)) {
+            throw ZMSUtils.requestError("deleteAssertion: admin policy cannot be modified", caller);
         }
-
+        
+        // verify that request is properly authenticated for this request
+        
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+        
+        dbService.executeDeleteAssertion(ctx, domainName, policyName, assertionId, auditRef, caller);
+        metric.stopTiming(timerMetric);
         return null;
     }
     
@@ -3046,56 +2912,48 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
 
-        try {
-            validate(domainName, TYPE_DOMAIN_NAME, caller);
-            validate(policyName, TYPE_COMPOUND_NAME, caller);
-            validate(policy, TYPE_POLICY, caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(policyName, TYPE_COMPOUND_NAME, caller);
+        validate(policy, TYPE_POLICY, caller);
 
-            // verify that request is properly authenticated for this request
-            
-            verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
-            
-            // for consistent handling of all requests, we're going to convert
-            // all incoming object values into lower case (e.g. domain, role,
-            // policy, service, etc name)
-            
-            domainName = domainName.toLowerCase();
-            policyName = policyName.toLowerCase();
-            AthenzObject.POLICY.convertToLowerCase(policy);
+        // verify that request is properly authenticated for this request
+        
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+        
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        domainName = domainName.toLowerCase();
+        policyName = policyName.toLowerCase();
+        AthenzObject.POLICY.convertToLowerCase(policy);
 
-            metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-            metric.increment(caller, domainName);
-            Object timerMetric = metric.startTiming("putpolicy_timing", domainName);
-            
-            // we are not going to allow any user to update
-            // the admin policy since that is required
-            // for standard domain operations */
-            
-            if (policyName.equalsIgnoreCase(ADMIN_POLICY_NAME)) {
-                throw ZMSUtils.requestError("putPolicy: admin policy cannot be modified", caller);
-            }
-            
-            // verify the policy name in the URI and request are consistent
-            
-            if (!isConsistentPolicyName(domainName, policyName, policy)) {
-                throw ZMSUtils.requestError("putPolicy: Inconsistent policy names - expected: "
-                        + ZMSUtils.policyResourceName(domainName, policyName) + ", actual: "
-                        + policy.getName(), caller);
-            }
-            
-            // validate to make sure we have expected values for assertion fields
-            
-            validatePolicyAssertions(policy.getAssertions(), caller);
-            
-            dbService.executePutPolicy(ctx, domainName, policyName, policy, auditRef, caller);
-            metric.stopTiming(timerMetric);
-
-        } catch (Exception exc) {
-            
-            auditRequestFailure(ctx, exc, domainName, policyName, caller, ZMSConsts.HTTP_PUT, null, auditRef);
-            throw exc;
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
+        metric.increment(caller, domainName);
+        Object timerMetric = metric.startTiming("putpolicy_timing", domainName);
+        
+        // we are not going to allow any user to update
+        // the admin policy since that is required
+        // for standard domain operations */
+        
+        if (policyName.equalsIgnoreCase(ADMIN_POLICY_NAME)) {
+            throw ZMSUtils.requestError("putPolicy: admin policy cannot be modified", caller);
         }
-
+        
+        // verify the policy name in the URI and request are consistent
+        
+        if (!isConsistentPolicyName(domainName, policyName, policy)) {
+            throw ZMSUtils.requestError("putPolicy: Inconsistent policy names - expected: "
+                    + ZMSUtils.policyResourceName(domainName, policyName) + ", actual: "
+                    + policy.getName(), caller);
+        }
+        
+        // validate to make sure we have expected values for assertion fields
+        
+        validatePolicyAssertions(policy.getAssertions(), caller);
+        
+        dbService.executePutPolicy(ctx, domainName, policyName, policy, auditRef, caller);
+        metric.stopTiming(timerMetric);
         return null;
     }
     
@@ -3117,29 +2975,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return sb.toString();
     }
     
-    void auditRequestFailure(ResourceContext ctx, Exception exc, String domainName, String resourceName,
-            String caller, String method, String addlDetails, String auditRef) {
-        
-        AuditLogMsgBuilder msgBldr = ZMSUtils.getAuditLogMsgBuilder(ctx, auditLogger,
-                domainName, auditRef, caller, method);
-        Timestamp when = Timestamp.fromCurrentTime();
-        msgBldr.when(when.toString()).whatEntity(resourceName);
-        StringBuilder sb = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-        sb.append("ERROR=(");
-        if (exc instanceof ResourceException) {
-            ResourceError err = (ResourceError) ((ResourceException) exc).getData();
-            sb.append(err.message);
-        } else {
-            sb.append(exc.getMessage());
-        }
-        sb.append(')');
-        if (addlDetails != null) {
-            sb.append(';').append(addlDetails);
-        }
-        msgBldr.whatDetails(sb.toString());
-        auditLogger.log(msgBldr);
-    }
-    
     public Policy deletePolicy(ResourceContext ctx, String domainName, String policyName, String auditRef) {
         
         final String caller = "deletepolicy";
@@ -3152,42 +2987,34 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
 
-        try {
-            validate(domainName, TYPE_DOMAIN_NAME, caller);
-            validate(policyName, TYPE_ENTITY_NAME, caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(policyName, TYPE_ENTITY_NAME, caller);
 
-            // verify that request is properly authenticated for this request
+        // verify that request is properly authenticated for this request
 
-            verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
-            
-            // for consistent handling of all requests, we're going to convert
-            // all incoming object values into lower case (e.g. domain, role,
-            // policy, service, etc name)
-            
-            domainName = domainName.toLowerCase();
-            policyName = policyName.toLowerCase();
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+        
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        domainName = domainName.toLowerCase();
+        policyName = policyName.toLowerCase();
 
-            metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-            metric.increment(caller, domainName);
-            Object timerMetric = metric.startTiming("deletepolicy_timing", domainName);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
+        metric.increment(caller, domainName);
+        Object timerMetric = metric.startTiming("deletepolicy_timing", domainName);
 
-            // we are not going to allow any user to delete
-            // the admin role and policy since those are required
-            // for standard domain operations */
-            
-            if (policyName.equalsIgnoreCase(ADMIN_POLICY_NAME)) {
-                throw ZMSUtils.requestError("deletePolicy: admin policy cannot be deleted", caller);
-            }
-            
-            dbService.executeDeletePolicy(ctx, domainName, policyName, auditRef, caller);
-            metric.stopTiming(timerMetric);
-
-        } catch (Exception exc) {
-            
-            auditRequestFailure(ctx, exc, domainName, policyName, caller, ZMSConsts.HTTP_DELETE, null, auditRef);
-            throw exc;
+        // we are not going to allow any user to delete
+        // the admin role and policy since those are required
+        // for standard domain operations */
+        
+        if (policyName.equalsIgnoreCase(ADMIN_POLICY_NAME)) {
+            throw ZMSUtils.requestError("deletePolicy: admin policy cannot be deleted", caller);
         }
-
+        
+        dbService.executeDeletePolicy(ctx, domainName, policyName, auditRef, caller);
+        metric.stopTiming(timerMetric);
         return null;
     }
 
@@ -3499,49 +3326,41 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
 
-        try {
-            validate(domainName, TYPE_DOMAIN_NAME, caller);
-            validate(serviceName, TYPE_SIMPLE_NAME, caller);
-            validate(service, TYPE_SERVICE_IDENTITY, caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(serviceName, TYPE_SIMPLE_NAME, caller);
+        validate(service, TYPE_SERVICE_IDENTITY, caller);
 
-            // for consistent handling of all requests, we're going to convert
-            // all incoming object values into lower case (e.g. domain, role,
-            // policy, service, etc name)
-            
-            domainName = domainName.toLowerCase();
-            serviceName = serviceName.toLowerCase();
-            AthenzObject.SERVICE_IDENTITY.convertToLowerCase(service);
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        domainName = domainName.toLowerCase();
+        serviceName = serviceName.toLowerCase();
+        AthenzObject.SERVICE_IDENTITY.convertToLowerCase(service);
 
-            metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-            metric.increment(caller, domainName);
-            Object timerMetric = metric.startTiming("putserviceidentity_timing", domainName);
-            
-            // verify that request is properly authenticated for this request
-            
-            verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
-            
-            if (!ZMSUtils.serviceResourceName(domainName, serviceName).equals(service.getName())) {
-                throw ZMSUtils.requestError("putServiceIdentity: Inconsistent service/domain names", caller);
-            }
-            
-            if (!verifyServicePublicKeys(service)) {
-                throw ZMSUtils.requestError("putServiceIdentity: No valid public key found or provided public key is invalid", caller);
-            }
-
-            if (!verifyProviderEndpoint(service.getProviderEndpoint())) {
-                throw ZMSUtils.requestError("putServiceIdentity: Invalid endpoint: "
-                    + service.getProviderEndpoint() + " - must be http/https and in yahoo domain", caller);
-            }
-            
-            dbService.executePutServiceIdentity(ctx, domainName, serviceName, service, auditRef, caller);
-            metric.stopTiming(timerMetric);
-
-        } catch (Exception exc) {
-            
-            auditRequestFailure(ctx, exc, domainName, serviceName, caller, ZMSConsts.HTTP_PUT, null, auditRef);
-            throw exc;
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
+        metric.increment(caller, domainName);
+        Object timerMetric = metric.startTiming("putserviceidentity_timing", domainName);
+        
+        // verify that request is properly authenticated for this request
+        
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+        
+        if (!ZMSUtils.serviceResourceName(domainName, serviceName).equals(service.getName())) {
+            throw ZMSUtils.requestError("putServiceIdentity: Inconsistent service/domain names", caller);
+        }
+        
+        if (!verifyServicePublicKeys(service)) {
+            throw ZMSUtils.requestError("putServiceIdentity: No valid public key found or provided public key is invalid", caller);
         }
 
+        if (!verifyProviderEndpoint(service.getProviderEndpoint())) {
+            throw ZMSUtils.requestError("putServiceIdentity: Invalid endpoint: "
+                + service.getProviderEndpoint() + " - must be http/https and in yahoo domain", caller);
+        }
+        
+        dbService.executePutServiceIdentity(ctx, domainName, serviceName, service, auditRef, caller);
+        metric.stopTiming(timerMetric);
         return null;
     }
     
@@ -3589,34 +3408,26 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
 
-        try {
-            validate(domainName, TYPE_DOMAIN_NAME, caller);
-            validate(serviceName, TYPE_SIMPLE_NAME, caller);
-            
-            // for consistent handling of all requests, we're going to convert
-            // all incoming object values into lower case (e.g. domain, role,
-            // policy, service, etc name)
-            
-            domainName = domainName.toLowerCase();
-            serviceName = serviceName.toLowerCase();
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(serviceName, TYPE_SIMPLE_NAME, caller);
+        
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        domainName = domainName.toLowerCase();
+        serviceName = serviceName.toLowerCase();
 
-            metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-            metric.increment(caller, domainName);
-            Object timerMetric = metric.startTiming("deleteserviceidentity_timing", domainName);
-            
-            // verify that request is properly authenticated for this request
-            
-            verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
-            
-            dbService.executeDeleteServiceIdentity(ctx, domainName, serviceName, auditRef, caller);
-            metric.stopTiming(timerMetric);
-
-        } catch (Exception exc) {
-            
-            auditRequestFailure(ctx, exc, domainName, serviceName, caller, ZMSConsts.HTTP_DELETE, null, auditRef);
-            throw exc;
-        }
-
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
+        metric.increment(caller, domainName);
+        Object timerMetric = metric.startTiming("deleteserviceidentity_timing", domainName);
+        
+        // verify that request is properly authenticated for this request
+        
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+        
+        dbService.executeDeleteServiceIdentity(ctx, domainName, serviceName, auditRef, caller);
+        metric.stopTiming(timerMetric);
         return null;
     }
 
@@ -3762,38 +3573,27 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         validateRequest(ctx.request(), caller);
 
-        try {
-            validate(domainName, TYPE_DOMAIN_NAME, caller);
-            validate(serviceName, TYPE_SIMPLE_NAME, caller);
-            
-            // for consistent handling of all requests, we're going to convert
-            // all incoming object values into lower case (e.g. domain, role,
-            // policy, service, etc name)
-            
-            domainName = domainName.toLowerCase();
-            serviceName = serviceName.toLowerCase();
-            keyId = keyId.toLowerCase();
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(serviceName, TYPE_SIMPLE_NAME, caller);
+        
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        domainName = domainName.toLowerCase();
+        serviceName = serviceName.toLowerCase();
+        keyId = keyId.toLowerCase();
 
-            metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-            metric.increment(caller, domainName);
-            Object timerMetric = metric.startTiming("deletepublickeyentry_timing", domainName);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
+        metric.increment(caller, domainName);
+        Object timerMetric = metric.startTiming("deletepublickeyentry_timing", domainName);
 
-            // verify that request is properly authenticated for this request
-            
-            verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+        // verify that request is properly authenticated for this request
+        
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
 
-            dbService.executeDeletePublicKeyEntry(ctx, domainName, serviceName, keyId, auditRef, caller);
-            metric.stopTiming(timerMetric);
-
-        } catch (Exception exc) {
-            
-            StringBuilder sb = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-            sb.append(":caller specified keyId=(").append(keyId).append(')');
-            auditRequestFailure(ctx, exc, domainName, serviceName, caller, ZMSConsts.HTTP_DELETE,
-                    sb.toString(), auditRef);
-            throw exc;
-        }
-
+        dbService.executeDeletePublicKeyEntry(ctx, domainName, serviceName, keyId, auditRef, caller);
+        metric.stopTiming(timerMetric);
         return null;
     }
     
@@ -3810,52 +3610,41 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
 
-        try {
-            validate(domainName, TYPE_DOMAIN_NAME, caller);
-            validate(serviceName, TYPE_SIMPLE_NAME, caller);
-            validate(keyEntry, TYPE_PUBLIC_KEY_ENTRY, caller);
-            
-            // for consistent handling of all requests, we're going to convert
-            // all incoming object values into lower case (e.g. domain, role,
-            // policy, service, etc name)
-            
-            domainName = domainName.toLowerCase();
-            serviceName = serviceName.toLowerCase();
-            keyId = keyId.toLowerCase();
-            AthenzObject.PUBLIC_KEY_ENTRY.convertToLowerCase(keyEntry);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(serviceName, TYPE_SIMPLE_NAME, caller);
+        validate(keyEntry, TYPE_PUBLIC_KEY_ENTRY, caller);
+        
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        domainName = domainName.toLowerCase();
+        serviceName = serviceName.toLowerCase();
+        keyId = keyId.toLowerCase();
+        AthenzObject.PUBLIC_KEY_ENTRY.convertToLowerCase(keyEntry);
 
-            metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-            metric.increment(caller, domainName);
-            Object timerMetric = metric.startTiming("putpublickeyentry_timing", domainName);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
+        metric.increment(caller, domainName);
+        Object timerMetric = metric.startTiming("putpublickeyentry_timing", domainName);
 
-            // verify that request is properly authenticated for this request
-            
-            verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+        // verify that request is properly authenticated for this request
+        
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
 
-            // verify that key id specified in request and object do match
-            
-            if (!keyId.equals(keyEntry.getId())) {
-                throw ZMSUtils.requestError("putPublicKeyEntry: keyId in URI and PublicKeyEntry object do not match", caller);
-            }
-            
-            // verify we have a valid public key specified
-            
-            if (!verifyServicePublicKey(keyEntry.getKey())) {
-                throw ZMSUtils.requestError("putPublicKeyEntry: Invalid public key", caller);
-            }
-            
-            dbService.executePutPublicKeyEntry(ctx, domainName, serviceName, keyEntry, auditRef, caller);
-            metric.stopTiming(timerMetric);
-
-        } catch (Exception exc) {
-            
-            StringBuilder sb = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-            sb.append(":caller specified keyId=(").append(keyId).append(')');
-            auditRequestFailure(ctx, exc, domainName, serviceName, caller, ZMSConsts.HTTP_PUT,
-                    sb.toString(), auditRef);
-            throw exc;
+        // verify that key id specified in request and object do match
+        
+        if (!keyId.equals(keyEntry.getId())) {
+            throw ZMSUtils.requestError("putPublicKeyEntry: keyId in URI and PublicKeyEntry object do not match", caller);
         }
-
+        
+        // verify we have a valid public key specified
+        
+        if (!verifyServicePublicKey(keyEntry.getKey())) {
+            throw ZMSUtils.requestError("putPublicKeyEntry: Invalid public key", caller);
+        }
+        
+        dbService.executePutPublicKeyEntry(ctx, domainName, serviceName, keyEntry, auditRef, caller);
+        metric.stopTiming(timerMetric);
         return null;
     }
 
@@ -4303,138 +4092,127 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
 
-        try {
-            validate(tenantDomain, TYPE_DOMAIN_NAME, caller);
-            validate(provider, TYPE_SERVICE_NAME, caller); //the fully qualified service name to provision on
+        validate(tenantDomain, TYPE_DOMAIN_NAME, caller);
+        validate(provider, TYPE_SERVICE_NAME, caller); //the fully qualified service name to provision on
 
-            // for consistent handling of all requests, we're going to convert
-            // all incoming object values into lower case (e.g. domain, role,
-            // policy, service, etc name)
-            
-            tenantDomain = tenantDomain.toLowerCase();
-            provider = provider.toLowerCase();
-            AthenzObject.TENANCY.convertToLowerCase(detail);
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        tenantDomain = tenantDomain.toLowerCase();
+        provider = provider.toLowerCase();
+        AthenzObject.TENANCY.convertToLowerCase(detail);
 
-            metric.increment(ZMSConsts.HTTP_REQUEST, tenantDomain);
-            metric.increment(caller, tenantDomain);
-            Object timerMetric = metric.startTiming("puttenancy_timing", tenantDomain);
+        metric.increment(ZMSConsts.HTTP_REQUEST, tenantDomain);
+        metric.increment(caller, tenantDomain);
+        Object timerMetric = metric.startTiming("puttenancy_timing", tenantDomain);
 
-            // verify that request is properly authenticated for this request
-            
-            String authorizedService = ((RsrcCtxWrapper) ctx).principal().getAuthorizedService();
-            verifyAuthorizedServiceOperation(authorizedService, caller);
+        // verify that request is properly authenticated for this request
+        
+        String authorizedService = ((RsrcCtxWrapper) ctx).principal().getAuthorizedService();
+        verifyAuthorizedServiceOperation(authorizedService, caller);
 
-            final String logPrefix = "putTenancy: tenant domain(" + tenantDomain + "): ";
-            
-            if (LOG.isInfoEnabled()) {
-                LOG.info("---- BEGIN put Tenant on provider(" + provider + ", ...)");
-            }
-            
-            String provSvcDomain = providerServiceDomain(provider); // provider service domain
-            String provSvcName = providerServiceName(provider); // provider service name
-
-            ServiceIdentity ent = dbService.getServiceIdentity(provSvcDomain, provSvcName);
-            if (ent == null) {
-                throw ZMSUtils.requestError(logPrefix + "Unable to retrieve service=" + provider, caller);
-            }
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("serviceIdentity: provider=" + ent);
-            }
-            
-            // we are going to allow the authorize service token owner to call
-            // put tenancy on its own service without configuring a controller
-            // end point
-            
-            boolean authzServiceTokenOperation = isAuthorizedProviderService(authorizedService,
-                provSvcDomain, provSvcName, tenantDomain, auditRef);
-            
-            String url = ent.getProviderEndpoint();
-            if ((url == null || url.isEmpty()) && !authzServiceTokenOperation) {
-                throw ZMSUtils.requestError(logPrefix + "Cannot put tenancy on provider service=" +
-                    provider + " -- not a provider service", caller);
-            }
-            
-            if (LOG.isInfoEnabled()) {
-                LOG.info("let's talk to the provider on this endpoint: " + url);
-            }
-
-            //ok, set up the policy for trust so the provider can check it
-            
-            if (LOG.isInfoEnabled()) {
-                LOG.info("---- set up the ASSUME_ROLE for admin, so provider can check I'm an admin");
-            }
-            
-            // set up our tenant admin policy so provider can check admin's access
-            
-            dbService.setupTenantAdminPolicy(ctx, tenantDomain, provSvcDomain,
-                    provSvcName, auditRef, caller);
-            
-            // if this is an authorized service token request then we're going to create
-            // the corresponding admin role in the provider domain since that's been
-            // authenticated already. otherwise, we're going to continue and process
-            // a standard provider controller based implementation when we contact the
-            // controller to complete the tenancy request
-            
-            if (authzServiceTokenOperation) {
-                
-                List<TenantRoleAction> roles = new ArrayList<>();
-                TenantRoleAction roleAction = new TenantRoleAction().setAction("*").setRole(ADMIN_ROLE_NAME);
-                roles.add(roleAction);
-                dbService.executePutTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain, null,
-                    roles, auditRef, caller);
-                
-            } else {
-                
-                Principal tenantAdmin = ((RsrcCtxWrapper) ctx).principal();
-                if (LOG.isInfoEnabled()) {
-                    LOG.info("---- now tell the provider to setTenant, as " + tenantAdmin.getFullName()
-                        + ", creds = " + tenantAdmin.getCredentials());
-                }
-                
-                Tenant tenant = new Tenant().setService(provSvcName).setName(tenantDomain);
-                Tenant tenantWithRoles = null;
-                try {
-                    ProviderClient prov = getProviderClient(url, tenantAdmin);
-                    tenantWithRoles = prov.putTenant(provSvcName, tenantDomain, auditRef, tenant);
-                } catch (com.yahoo.athenz.provider.ResourceException ex) {
-                    throw ZMSUtils.error(ex.getCode(), ex.getMessage(), caller);
-                }
-                
-                if (LOG.isInfoEnabled()) {
-                    LOG.info("---- result of provider.putTenant: " + tenantWithRoles);
-                }
-                
-                // now set up the roles and policies for all the provider roles returned
-                // if the provider supports resource groups, during the putTenant call
-                // we're just setting up tenancy and as such we won't get back any roles
-                
-                List<String> providerRoles = tenantWithRoles.getRoles();
-                if (providerRoles != null && !providerRoles.isEmpty()) {
-                    
-                    // we're going to create a separate role for each one of tenant roles returned
-                    // based on its action and set the caller as a member in each role
-                    
-                    dbService.executePutProviderRoles(ctx, tenantDomain, provSvcDomain, provSvcName, null,
-                        providerRoles, auditRef, caller);
-                }
-            }
-            
-            if (LOG.isInfoEnabled()) {
-                LOG.info("---- END put Tenant -> " + detail);
-            }
-
-            metric.stopTiming(timerMetric);
-            
-        } catch (Exception exc) {
-            
-            StringBuilder sb = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-            sb.append(":caller specified tenant-domain-(").append(tenantDomain).append(')');
-            auditRequestFailure(ctx, exc, tenantDomain, provider, caller, ZMSConsts.HTTP_PUT,
-                    sb.toString(), auditRef);
-            throw exc;
+        final String logPrefix = "putTenancy: tenant domain(" + tenantDomain + "): ";
+        
+        if (LOG.isInfoEnabled()) {
+            LOG.info("---- BEGIN put Tenant on provider(" + provider + ", ...)");
         }
         
+        String provSvcDomain = providerServiceDomain(provider); // provider service domain
+        String provSvcName = providerServiceName(provider); // provider service name
+
+        ServiceIdentity ent = dbService.getServiceIdentity(provSvcDomain, provSvcName);
+        if (ent == null) {
+            throw ZMSUtils.requestError(logPrefix + "Unable to retrieve service=" + provider, caller);
+        }
+        
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("serviceIdentity: provider=" + ent);
+        }
+        
+        // we are going to allow the authorize service token owner to call
+        // put tenancy on its own service without configuring a controller
+        // end point
+        
+        boolean authzServiceTokenOperation = isAuthorizedProviderService(authorizedService,
+            provSvcDomain, provSvcName, tenantDomain, auditRef);
+        
+        String url = ent.getProviderEndpoint();
+        if ((url == null || url.isEmpty()) && !authzServiceTokenOperation) {
+            throw ZMSUtils.requestError(logPrefix + "Cannot put tenancy on provider service=" +
+                provider + " -- not a provider service", caller);
+        }
+        
+        if (LOG.isInfoEnabled()) {
+            LOG.info("let's talk to the provider on this endpoint: " + url);
+        }
+
+        //ok, set up the policy for trust so the provider can check it
+        
+        if (LOG.isInfoEnabled()) {
+            LOG.info("---- set up the ASSUME_ROLE for admin, so provider can check I'm an admin");
+        }
+        
+        // set up our tenant admin policy so provider can check admin's access
+        
+        dbService.setupTenantAdminPolicy(ctx, tenantDomain, provSvcDomain,
+                provSvcName, auditRef, caller);
+        
+        // if this is an authorized service token request then we're going to create
+        // the corresponding admin role in the provider domain since that's been
+        // authenticated already. otherwise, we're going to continue and process
+        // a standard provider controller based implementation when we contact the
+        // controller to complete the tenancy request
+        
+        if (authzServiceTokenOperation) {
+            
+            List<TenantRoleAction> roles = new ArrayList<>();
+            TenantRoleAction roleAction = new TenantRoleAction().setAction("*").setRole(ADMIN_ROLE_NAME);
+            roles.add(roleAction);
+            dbService.executePutTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain, null,
+                roles, auditRef, caller);
+            
+        } else {
+            
+            Principal tenantAdmin = ((RsrcCtxWrapper) ctx).principal();
+            if (LOG.isInfoEnabled()) {
+                LOG.info("---- now tell the provider to setTenant, as " + tenantAdmin.getFullName()
+                    + ", creds = " + tenantAdmin.getCredentials());
+            }
+            
+            Tenant tenant = new Tenant().setService(provSvcName).setName(tenantDomain);
+            Tenant tenantWithRoles = null;
+            try {
+                ProviderClient prov = getProviderClient(url, tenantAdmin);
+                tenantWithRoles = prov.putTenant(provSvcName, tenantDomain, auditRef, tenant);
+            } catch (com.yahoo.athenz.provider.ResourceException ex) {
+                throw ZMSUtils.error(ex.getCode(), ex.getMessage(), caller);
+            }
+            
+            if (LOG.isInfoEnabled()) {
+                LOG.info("---- result of provider.putTenant: " + tenantWithRoles);
+            }
+            
+            // now set up the roles and policies for all the provider roles returned
+            // if the provider supports resource groups, during the putTenant call
+            // we're just setting up tenancy and as such we won't get back any roles
+            
+            List<String> providerRoles = tenantWithRoles.getRoles();
+            if (providerRoles != null && !providerRoles.isEmpty()) {
+                
+                // we're going to create a separate role for each one of tenant roles returned
+                // based on its action and set the caller as a member in each role
+                
+                dbService.executePutProviderRoles(ctx, tenantDomain, provSvcDomain, provSvcName, null,
+                    providerRoles, auditRef, caller);
+            }
+        }
+        
+        if (LOG.isInfoEnabled()) {
+            LOG.info("---- END put Tenant -> " + detail);
+        }
+
+        metric.stopTiming(timerMetric);
         return null;
     }
     
@@ -4451,94 +4229,83 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
 
-        try {
-            validate(tenantDomain, TYPE_DOMAIN_NAME, caller);
-            validate(provider, TYPE_SERVICE_NAME, caller); //the fully qualified service name to provision on
-            validate(resourceGroup, TYPE_COMPOUND_NAME, caller);
-            
-            // for consistent handling of all requests, we're going to convert
-            // all incoming object values into lower case (e.g. domain, role,
-            // policy, service, etc name)
-            
-            tenantDomain = tenantDomain.toLowerCase();
-            provider = provider.toLowerCase();
-            resourceGroup = resourceGroup.toLowerCase();
-            AthenzObject.TENANCY_RESOURCE_GROUP.convertToLowerCase(detail);
+        validate(tenantDomain, TYPE_DOMAIN_NAME, caller);
+        validate(provider, TYPE_SERVICE_NAME, caller); //the fully qualified service name to provision on
+        validate(resourceGroup, TYPE_COMPOUND_NAME, caller);
+        
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        tenantDomain = tenantDomain.toLowerCase();
+        provider = provider.toLowerCase();
+        resourceGroup = resourceGroup.toLowerCase();
+        AthenzObject.TENANCY_RESOURCE_GROUP.convertToLowerCase(detail);
 
-            metric.increment(ZMSConsts.HTTP_REQUEST, tenantDomain);
-            metric.increment(caller, tenantDomain);
-            Object timerMetric = metric.startTiming("puttenancyresourcegroup_timing", tenantDomain);
-            
-            // verify that request is properly authenticated for this request
-            
-            verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("putTenancyResourceGroup: tenant domain(" + tenantDomain
-                        + ") resourceGroup(" + resourceGroup + ")");
-            }
-            
-            String provSvcDomain = providerServiceDomain(provider); // provider service domain
-            String provSvcName = providerServiceName(provider); // provider service name
-
-            ServiceIdentity ent = dbService.getServiceIdentity(provSvcDomain, provSvcName);
-            if (ent == null) {
-                throw ZMSUtils.requestError("Unable to retrieve service=" + provider, caller);
-            }
-            
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("serviceIdentity: provider=" + ent);
-            }
-            String url = ent.getProviderEndpoint();
-            if (url == null || url.isEmpty()) {
-                throw ZMSUtils.requestError("Cannot put tenancy resource group on provider service="
-                    + provider + " -- not a provider service", caller);
-            }
-            
-            Principal tenantAdmin = ((RsrcCtxWrapper) ctx).principal();
-            
-            TenantResourceGroup tenantResourceGroup = new TenantResourceGroup();
-            tenantResourceGroup.setService(provSvcName).setName(tenantDomain).setResourceGroup(resourceGroup);
-            
-            TenantResourceGroup tenantWithRoles = null;
-            try {
-                ProviderClient prov = getProviderClient(url, tenantAdmin);
-                tenantWithRoles = prov.putTenantResourceGroup(provSvcName, tenantDomain, resourceGroup,
-                    auditRef, tenantResourceGroup);
-            } catch (com.yahoo.athenz.provider.ResourceException ex) {
-                throw ZMSUtils.error(ex.getCode(), ex.getMessage(), caller);
-            }
-            
-            if (LOG.isInfoEnabled()) {
-                LOG.info("---- result of provider.putTenantResourceGroup: " + tenantWithRoles);
-            }
-
-            List<String> providerRoles = tenantWithRoles.getRoles();
-            if (providerRoles == null || providerRoles.isEmpty()) {
-                throw ZMSUtils.requestError("Provider Controller did not return any roles to provision", caller);
-            }
-            
-            // we're going to create a separate role for each one of tenant roles returned
-            // based on its action and set the caller as a member in each role
-            
-            dbService.executePutProviderRoles(ctx, tenantDomain, provSvcDomain, provSvcName, resourceGroup,
-                providerRoles, auditRef, caller);
-            
-            if (LOG.isInfoEnabled()) {
-                LOG.info("---- END put Tenant Resource Group -> " + detail);
-            }
-            
-            metric.stopTiming(timerMetric);
-            
-        } catch (Exception exc) {
-            
-            StringBuilder sb = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-            sb.append(":caller specified resource-group=(").append(resourceGroup).append(')');
-            auditRequestFailure(ctx, exc, tenantDomain, provider, caller, ZMSConsts.HTTP_PUT,
-                    sb.toString(), auditRef);
-            throw exc;
+        metric.increment(ZMSConsts.HTTP_REQUEST, tenantDomain);
+        metric.increment(caller, tenantDomain);
+        Object timerMetric = metric.startTiming("puttenancyresourcegroup_timing", tenantDomain);
+        
+        // verify that request is properly authenticated for this request
+        
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+        
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("putTenancyResourceGroup: tenant domain(" + tenantDomain
+                    + ") resourceGroup(" + resourceGroup + ")");
         }
         
+        String provSvcDomain = providerServiceDomain(provider); // provider service domain
+        String provSvcName = providerServiceName(provider); // provider service name
+
+        ServiceIdentity ent = dbService.getServiceIdentity(provSvcDomain, provSvcName);
+        if (ent == null) {
+            throw ZMSUtils.requestError("Unable to retrieve service=" + provider, caller);
+        }
+        
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("serviceIdentity: provider=" + ent);
+        }
+        String url = ent.getProviderEndpoint();
+        if (url == null || url.isEmpty()) {
+            throw ZMSUtils.requestError("Cannot put tenancy resource group on provider service="
+                + provider + " -- not a provider service", caller);
+        }
+        
+        Principal tenantAdmin = ((RsrcCtxWrapper) ctx).principal();
+        
+        TenantResourceGroup tenantResourceGroup = new TenantResourceGroup();
+        tenantResourceGroup.setService(provSvcName).setName(tenantDomain).setResourceGroup(resourceGroup);
+        
+        TenantResourceGroup tenantWithRoles = null;
+        try {
+            ProviderClient prov = getProviderClient(url, tenantAdmin);
+            tenantWithRoles = prov.putTenantResourceGroup(provSvcName, tenantDomain, resourceGroup,
+                auditRef, tenantResourceGroup);
+        } catch (com.yahoo.athenz.provider.ResourceException ex) {
+            throw ZMSUtils.error(ex.getCode(), ex.getMessage(), caller);
+        }
+        
+        if (LOG.isInfoEnabled()) {
+            LOG.info("---- result of provider.putTenantResourceGroup: " + tenantWithRoles);
+        }
+
+        List<String> providerRoles = tenantWithRoles.getRoles();
+        if (providerRoles == null || providerRoles.isEmpty()) {
+            throw ZMSUtils.requestError("Provider Controller did not return any roles to provision", caller);
+        }
+        
+        // we're going to create a separate role for each one of tenant roles returned
+        // based on its action and set the caller as a member in each role
+        
+        dbService.executePutProviderRoles(ctx, tenantDomain, provSvcDomain, provSvcName, resourceGroup,
+            providerRoles, auditRef, caller);
+        
+        if (LOG.isInfoEnabled()) {
+            LOG.info("---- END put Tenant Resource Group -> " + detail);
+        }
+        
+        metric.stopTiming(timerMetric);
         return null;
     }
     
@@ -4721,113 +4488,106 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
 
-        try {
-            validate(tenantDomain, TYPE_DOMAIN_NAME, caller);
-            validate(provider, TYPE_SERVICE_NAME, caller); // fully qualified provider's service name
+        validate(tenantDomain, TYPE_DOMAIN_NAME, caller);
+        validate(provider, TYPE_SERVICE_NAME, caller); // fully qualified provider's service name
 
-            // for consistent handling of all requests, we're going to convert
-            // all incoming object values into lower case (e.g. domain, role,
-            // policy, service, etc name)
-            
-            tenantDomain = tenantDomain.toLowerCase();
-            provider = provider.toLowerCase();
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        tenantDomain = tenantDomain.toLowerCase();
+        provider = provider.toLowerCase();
 
-            metric.increment(ZMSConsts.HTTP_REQUEST, tenantDomain);
-            metric.increment(caller, tenantDomain);
-            Object timerMetric = metric.startTiming("deletetenancy_timing", tenantDomain);
+        metric.increment(ZMSConsts.HTTP_REQUEST, tenantDomain);
+        metric.increment(caller, tenantDomain);
+        Object timerMetric = metric.startTiming("deletetenancy_timing", tenantDomain);
 
-            // verify that request is properly authenticated for this request
-            
-            String authorizedService = ((RsrcCtxWrapper) ctx).principal().getAuthorizedService();
-            verifyAuthorizedServiceOperation(authorizedService, caller);
-            
-            // for delete tenant operation we're going to go through the steps of
-            // lookup up provider's service object and make sure it has an endpoint
-            // configured and we can talk to it and request the tenant to be deleted
-            // if any of these operations fail, we're not going to reject the request
-            // but rather continue on and do the local cleanup. However, at the end
-            // we're going to return an exception with an error message stating exactly
-            // what failed so the administrator can go ahead and contact the provider
-            // manually, if necessary, to complete the delete tenancy process
+        // verify that request is properly authenticated for this request
+        
+        String authorizedService = ((RsrcCtxWrapper) ctx).principal().getAuthorizedService();
+        verifyAuthorizedServiceOperation(authorizedService, caller);
+        
+        // for delete tenant operation we're going to go through the steps of
+        // lookup up provider's service object and make sure it has an endpoint
+        // configured and we can talk to it and request the tenant to be deleted
+        // if any of these operations fail, we're not going to reject the request
+        // but rather continue on and do the local cleanup. However, at the end
+        // we're going to return an exception with an error message stating exactly
+        // what failed so the administrator can go ahead and contact the provider
+        // manually, if necessary, to complete the delete tenancy process
 
-            String errorMessage = null;
+        String errorMessage = null;
 
-            // before local clean-up, we're going to contact the provider at their
-            // configured endpoint and request the tenant to be deleted. We need
-            // to do this before the local cleanup in ZMS because provider rdl
-            // has an authorize statement to validate that the specified domain
-            // is a valid tenant for the given provider.
-            
-            String provSvcDomain = providerServiceDomain(provider);
-            String provSvcName   = providerServiceName(provider);
+        // before local clean-up, we're going to contact the provider at their
+        // configured endpoint and request the tenant to be deleted. We need
+        // to do this before the local cleanup in ZMS because provider rdl
+        // has an authorize statement to validate that the specified domain
+        // is a valid tenant for the given provider.
+        
+        String provSvcDomain = providerServiceDomain(provider);
+        String provSvcName   = providerServiceName(provider);
 
-            // we are going to allow the authorize service token owner to call
-            // delete tenancy on its own service without configuring a controller
-            // end point
-            
-            boolean authzServiceTokenOperation = isAuthorizedProviderService(authorizedService,
-                provSvcDomain, provSvcName, tenantDomain, auditRef);
-            
-            // if this is an authorized service token operation there is no
-            // need to go through the provider check since the provider
-            // already handled that part
-            
-            if (authzServiceTokenOperation) {
+        // we are going to allow the authorize service token owner to call
+        // delete tenancy on its own service without configuring a controller
+        // end point
+        
+        boolean authzServiceTokenOperation = isAuthorizedProviderService(authorizedService,
+            provSvcDomain, provSvcName, tenantDomain, auditRef);
+        
+        // if this is an authorized service token operation there is no
+        // need to go through the provider check since the provider
+        // already handled that part
+        
+        if (authzServiceTokenOperation) {
 
-                dbService.executeDeleteTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain, null,
-                    auditRef, caller);
-                
+            dbService.executeDeleteTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain, null,
+                auditRef, caller);
+            
+        } else {
+            
+            ServiceIdentity provSvcId = dbService.getServiceIdentity(provSvcDomain, provSvcName);
+            if (provSvcId == null) {
+                errorMessage = "service does not exist";
             } else {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("provider serviceIdentity(" + provSvcId + ")");
+                }
                 
-                ServiceIdentity provSvcId = dbService.getServiceIdentity(provSvcDomain, provSvcName);
-                if (provSvcId == null) {
-                    errorMessage = "service does not exist";
+                String url = provSvcId.getProviderEndpoint();
+                if (url == null || url.isEmpty()) {
+                    errorMessage = "service does not have endpoint configured";
                 } else {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("provider serviceIdentity(" + provSvcId + ")");
+                    if (LOG.isInfoEnabled()) {
+                    LOG.info("Tenant will contact provider at endpoint: " + url);
                     }
                     
-                    String url = provSvcId.getProviderEndpoint();
-                    if (url == null || url.isEmpty()) {
-                        errorMessage = "service does not have endpoint configured";
-                    } else {
-                        if (LOG.isInfoEnabled()) {
-                        LOG.info("Tenant will contact provider at endpoint: " + url);
-                        }
-                        
-                        try {
-                            Principal tenantAdmin = ((RsrcCtxWrapper) ctx).principal();
-                            ProviderClient prov = getProviderClient(url, tenantAdmin);
-                            prov.deleteTenant(provSvcName, tenantDomain, auditRef);
-                        } catch (Exception exc) {
-                            errorMessage = "failed to delete tenant. Error: " + exc.getMessage();
-                        }
+                    try {
+                        Principal tenantAdmin = ((RsrcCtxWrapper) ctx).principal();
+                        ProviderClient prov = getProviderClient(url, tenantAdmin);
+                        prov.deleteTenant(provSvcName, tenantDomain, auditRef);
+                    } catch (Exception exc) {
+                        errorMessage = "failed to delete tenant. Error: " + exc.getMessage();
                     }
                 }
             }
+        }
 
-            // now clean-up local domain roles and policies for this tenant
-            
-            dbService.executeDeleteTenancy(ctx, tenantDomain, provSvcDomain, provSvcName,
-                    null, auditRef, caller);
+        // now clean-up local domain roles and policies for this tenant
+        
+        dbService.executeDeleteTenancy(ctx, tenantDomain, provSvcDomain, provSvcName,
+                null, auditRef, caller);
 
-            metric.stopTiming(timerMetric);
-            
-            // so if we have an error message then we're going to throw an exception
-            // otherwise the operation was completed successfully
-            
-            if (errorMessage != null) {
-                final String tenantCleanupMsg = "deleteTenancy: Tenant cleanup in(" + tenantDomain + "): ";
-                throw ZMSUtils.requestError(tenantCleanupMsg + "completed successfully. However, there "
-                    + "was an error when contacting the Provider Service: " + provider + ":"
-                    + errorMessage + ". Please contact the Provider administrator directly "
-                    + "to complete this delete tenancy request", caller);
-            }
-            
-        } catch (Exception exc) {
-            
-            auditRequestFailure(ctx, exc, tenantDomain, provider, caller, ZMSConsts.HTTP_DELETE, null, auditRef);
-            throw exc;
+        metric.stopTiming(timerMetric);
+        
+        // so if we have an error message then we're going to throw an exception
+        // otherwise the operation was completed successfully
+        
+        if (errorMessage != null) {
+            final String tenantCleanupMsg = "deleteTenancy: Tenant cleanup in(" + tenantDomain + "): ";
+            throw ZMSUtils.requestError(tenantCleanupMsg + "completed successfully. However, there "
+                + "was an error when contacting the Provider Service: " + provider + ":"
+                + errorMessage + ". Please contact the Provider administrator directly "
+                + "to complete this delete tenancy request", caller);
         }
         
         return null;
@@ -4846,98 +4606,88 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
 
-        try {
-            validate(tenantDomain, TYPE_DOMAIN_NAME, caller);
-            validate(provider, TYPE_SERVICE_NAME, caller); // fully qualified provider's service name
-            validate(resourceGroup, TYPE_COMPOUND_NAME, caller);
-            
-            // for consistent handling of all requests, we're going to convert
-            // all incoming object values into lower case (e.g. domain, role,
-            // policy, service, etc name)
-            
-            tenantDomain = tenantDomain.toLowerCase();
-            provider = provider.toLowerCase();
-            resourceGroup = resourceGroup.toLowerCase();
-
-            metric.increment(ZMSConsts.HTTP_REQUEST, tenantDomain);
-            metric.increment(caller, tenantDomain);
-            Object timerMetric = metric.startTiming("deletetenancyresourcegroup_timing", tenantDomain);
-
-            // verify that request is properly authenticated for this request
-            
-            verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
-            
-            // for delete tenant resource group operation we're going to go through
-            // the steps of lookup up provider's service object and make sure it has
-            // an endpoint configured and we can talk to it and request the tenant
-            // resource group to be deleted. if any of these operations fail, we're not
-            // going to reject the request but rather continue on and do the local cleanup.
-            // However, at the end we're going to return an exception with an error message
-            // stating exactly what failed so the administrator can go ahead and contact
-            // the provider manually, if necessary, to complete the delete tenancy
-            // resource group process
-
-            String errorMessage = null;
-            
-            // before local clean-up, we're going to contact the provider at their
-            // configured endpoint and request the tenant resource group to be deleted.
-            
-            String provSvcDomain = providerServiceDomain(provider);
-            String provSvcName   = providerServiceName(provider);
-
-            ServiceIdentity provSvcId = dbService.getServiceIdentity(provSvcDomain, provSvcName);
-            if (provSvcId == null) {
-                errorMessage = "service does not exist";
-            } else {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("provider serviceIdentity(" + provSvcId + ")");
-                }
-
-                String url = provSvcId.getProviderEndpoint();
-                if (url == null) {
-                    errorMessage = "service does not have endpoint configured";
-                } else {
-                    if (LOG.isInfoEnabled()) {
-                        LOG.info("Tenant will contact provider at endpoint: " + url);
-                    }
-
-                    try {
-                        Principal tenantAdmin = ((RsrcCtxWrapper) ctx).principal();
-                        ProviderClient prov = getProviderClient(url, tenantAdmin);
-                        prov.deleteTenantResourceGroup(provSvcName, tenantDomain, resourceGroup, auditRef);
-                    } catch (Exception exc) {
-                        errorMessage = "failed to delete tenant resource group. Error: " + exc.getMessage();
-                    }
-                }
-            }
-
-            // now clean-up local domain roles and policies for this tenant
-            
-            dbService.executeDeleteTenancy(ctx, tenantDomain, provSvcDomain, provSvcName,
-                    resourceGroup, auditRef, caller);
-
-            metric.stopTiming(timerMetric);
-            
-            // so if we have an error message then we're going to throw an exception
-            // otherwise the operation was completed successfully
-            
-            if (errorMessage != null) {
-                final String tenantCleanupMsg = "Tenant cleanup in(" + tenantDomain + "): ";
-                throw ZMSUtils.requestError(tenantCleanupMsg + "completed successfully. However, there "
-                    + "was an error when contacting the Provider Service: " + provider + ":"
-                    + errorMessage + ". Please contact the Provider administrator directly "
-                    + "to complete this delete tenancy resource group request", caller);
-            }
-
-        } catch (Exception exc) {
-            
-            StringBuilder sb = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-            sb.append(":caller specified resource-group=(").append(resourceGroup).append(')');
-            auditRequestFailure(ctx, exc, tenantDomain, provider, caller, ZMSConsts.HTTP_DELETE,
-                    sb.toString(), auditRef);
-            throw exc;
-        }
+        validate(tenantDomain, TYPE_DOMAIN_NAME, caller);
+        validate(provider, TYPE_SERVICE_NAME, caller); // fully qualified provider's service name
+        validate(resourceGroup, TYPE_COMPOUND_NAME, caller);
         
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        tenantDomain = tenantDomain.toLowerCase();
+        provider = provider.toLowerCase();
+        resourceGroup = resourceGroup.toLowerCase();
+
+        metric.increment(ZMSConsts.HTTP_REQUEST, tenantDomain);
+        metric.increment(caller, tenantDomain);
+        Object timerMetric = metric.startTiming("deletetenancyresourcegroup_timing", tenantDomain);
+
+        // verify that request is properly authenticated for this request
+        
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+        
+        // for delete tenant resource group operation we're going to go through
+        // the steps of lookup up provider's service object and make sure it has
+        // an endpoint configured and we can talk to it and request the tenant
+        // resource group to be deleted. if any of these operations fail, we're not
+        // going to reject the request but rather continue on and do the local cleanup.
+        // However, at the end we're going to return an exception with an error message
+        // stating exactly what failed so the administrator can go ahead and contact
+        // the provider manually, if necessary, to complete the delete tenancy
+        // resource group process
+
+        String errorMessage = null;
+        
+        // before local clean-up, we're going to contact the provider at their
+        // configured endpoint and request the tenant resource group to be deleted.
+        
+        String provSvcDomain = providerServiceDomain(provider);
+        String provSvcName   = providerServiceName(provider);
+
+        ServiceIdentity provSvcId = dbService.getServiceIdentity(provSvcDomain, provSvcName);
+        if (provSvcId == null) {
+            errorMessage = "service does not exist";
+        } else {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("provider serviceIdentity(" + provSvcId + ")");
+            }
+
+            String url = provSvcId.getProviderEndpoint();
+            if (url == null) {
+                errorMessage = "service does not have endpoint configured";
+            } else {
+                if (LOG.isInfoEnabled()) {
+                    LOG.info("Tenant will contact provider at endpoint: " + url);
+                }
+
+                try {
+                    Principal tenantAdmin = ((RsrcCtxWrapper) ctx).principal();
+                    ProviderClient prov = getProviderClient(url, tenantAdmin);
+                    prov.deleteTenantResourceGroup(provSvcName, tenantDomain, resourceGroup, auditRef);
+                } catch (Exception exc) {
+                    errorMessage = "failed to delete tenant resource group. Error: " + exc.getMessage();
+                }
+            }
+        }
+
+        // now clean-up local domain roles and policies for this tenant
+        
+        dbService.executeDeleteTenancy(ctx, tenantDomain, provSvcDomain, provSvcName,
+                resourceGroup, auditRef, caller);
+
+        metric.stopTiming(timerMetric);
+        
+        // so if we have an error message then we're going to throw an exception
+        // otherwise the operation was completed successfully
+        
+        if (errorMessage != null) {
+            final String tenantCleanupMsg = "Tenant cleanup in(" + tenantDomain + "): ";
+            throw ZMSUtils.requestError(tenantCleanupMsg + "completed successfully. However, there "
+                + "was an error when contacting the Provider Service: " + provider + ":"
+                + errorMessage + ". Please contact the Provider administrator directly "
+                + "to complete this delete tenancy resource group request", caller);
+        }
+
         return null;
     }
     
@@ -4984,52 +4734,41 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         validateRequest(ctx.request(), caller);
 
-        try {
-            validate(provSvcDomain, TYPE_DOMAIN_NAME, caller);
-            validate(provSvcName, TYPE_SIMPLE_NAME, caller); //not including the domain, this is the domain's service
-            validate(tenantDomain, TYPE_DOMAIN_NAME, caller);
-            validate(detail, TYPE_TENANT_ROLES, caller);
+        validate(provSvcDomain, TYPE_DOMAIN_NAME, caller);
+        validate(provSvcName, TYPE_SIMPLE_NAME, caller); //not including the domain, this is the domain's service
+        validate(tenantDomain, TYPE_DOMAIN_NAME, caller);
+        validate(detail, TYPE_TENANT_ROLES, caller);
 
-            // for consistent handling of all requests, we're going to convert
-            // all incoming object values into lower case (e.g. domain, role,
-            // policy, service, etc name)
-            
-            provSvcDomain = provSvcDomain.toLowerCase();
-            provSvcName = provSvcName.toLowerCase();
-            tenantDomain = tenantDomain.toLowerCase();
-            AthenzObject.TENANT_ROLES.convertToLowerCase(detail);
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        provSvcDomain = provSvcDomain.toLowerCase();
+        provSvcName = provSvcName.toLowerCase();
+        tenantDomain = tenantDomain.toLowerCase();
+        AthenzObject.TENANT_ROLES.convertToLowerCase(detail);
 
-            metric.increment(ZMSConsts.HTTP_REQUEST, provSvcDomain);
-            metric.increment(caller, provSvcDomain);
-            Object timerMetric = metric.startTiming("puttenantroles_timing", provSvcDomain);
+        metric.increment(ZMSConsts.HTTP_REQUEST, provSvcDomain);
+        metric.increment(caller, provSvcDomain);
+        Object timerMetric = metric.startTiming("puttenantroles_timing", provSvcDomain);
 
-            // verify that request is properly authenticated for this request
-            
-            verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
-            
-            if (LOG.isInfoEnabled()) {
-                LOG.info("putTenantRoles: ==== putTenantRoles(domain=" + provSvcDomain + ", service=" +
-                provSvcName + ", tenant-domain=" + tenantDomain + ", detail=" + detail + ")");
-            }
-            
-            List<TenantRoleAction> roles = detail.getRoles();
-            if (roles == null || roles.size() == 0) {
-                throw ZMSUtils.requestError("putTenantRoles: must include at least one role", caller);
-            }
-            
-            dbService.executePutTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain, null,
-                roles, auditRef, caller);
-            metric.stopTiming(timerMetric);
-
-        } catch (Exception exc) {
-            
-            StringBuilder sb = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-            sb.append(":caller specified provider-service=(").append(provSvcName).append(')');
-            auditRequestFailure(ctx, exc, provSvcDomain, tenantDomain, caller, ZMSConsts.HTTP_PUT,
-                    sb.toString(), auditRef);
-            throw exc;
+        // verify that request is properly authenticated for this request
+        
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+        
+        if (LOG.isInfoEnabled()) {
+            LOG.info("putTenantRoles: ==== putTenantRoles(domain=" + provSvcDomain + ", service=" +
+            provSvcName + ", tenant-domain=" + tenantDomain + ", detail=" + detail + ")");
         }
         
+        List<TenantRoleAction> roles = detail.getRoles();
+        if (roles == null || roles.size() == 0) {
+            throw ZMSUtils.requestError("putTenantRoles: must include at least one role", caller);
+        }
+        
+        dbService.executePutTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain, null,
+            roles, auditRef, caller);
+        metric.stopTiming(timerMetric);
         return detail;
     }
      
@@ -5049,55 +4788,44 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
 
-        try {
-            validate(provSvcDomain, TYPE_DOMAIN_NAME, caller);
-            validate(provSvcName, TYPE_SIMPLE_NAME, caller); //not including the domain, this is the domain's service
-            validate(tenantDomain, TYPE_DOMAIN_NAME, caller);
-            validate(detail, TYPE_TENANT_RESOURCE_GROUP_ROLES, caller);
-            validate(resourceGroup, TYPE_COMPOUND_NAME, caller);
-            
-            // for consistent handling of all requests, we're going to convert
-            // all incoming object values into lower case (e.g. domain, role,
-            // policy, service, etc name)
-            
-            provSvcDomain = provSvcDomain.toLowerCase();
-            provSvcName = provSvcName.toLowerCase();
-            tenantDomain = tenantDomain.toLowerCase();
-            resourceGroup = resourceGroup.toLowerCase();
-            AthenzObject.TENANT_RESOURCE_GROUP_ROLES.convertToLowerCase(detail);
+        validate(provSvcDomain, TYPE_DOMAIN_NAME, caller);
+        validate(provSvcName, TYPE_SIMPLE_NAME, caller); //not including the domain, this is the domain's service
+        validate(tenantDomain, TYPE_DOMAIN_NAME, caller);
+        validate(detail, TYPE_TENANT_RESOURCE_GROUP_ROLES, caller);
+        validate(resourceGroup, TYPE_COMPOUND_NAME, caller);
+        
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        provSvcDomain = provSvcDomain.toLowerCase();
+        provSvcName = provSvcName.toLowerCase();
+        tenantDomain = tenantDomain.toLowerCase();
+        resourceGroup = resourceGroup.toLowerCase();
+        AthenzObject.TENANT_RESOURCE_GROUP_ROLES.convertToLowerCase(detail);
 
-            metric.increment(ZMSConsts.HTTP_REQUEST, provSvcDomain);
-            metric.increment(caller, provSvcDomain);
-            Object timerMetric = metric.startTiming("puttenantresourcegrouproles_timing", provSvcDomain);
-            
-            // verify that request is properly authenticated for this request
-            
-            verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
-            
-            if (LOG.isInfoEnabled()) {
-                LOG.info("putTenantResourceGroupRoles: ==== putTenantRoles(domain=" + provSvcDomain + ", service=" +
-                    provSvcName + ", tenant-domain=" + tenantDomain + ", resource-group=" + resourceGroup +
-                    ", detail=" + detail + ")");
-            }
-            
-            List<TenantRoleAction> roles = detail.getRoles();
-            if (roles == null || roles.size() == 0) {
-                throw ZMSUtils.requestError("putTenantResourceGroupRoles: must include at least one role", caller);
-            }
-            
-            dbService.executePutTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain,
-                    resourceGroup, roles, auditRef, caller);
-            metric.stopTiming(timerMetric);
-
-        } catch (Exception exc) {
-            
-            StringBuilder sb = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-            sb.append(":caller specified resource-group=(").append(resourceGroup).append(')');
-            auditRequestFailure(ctx, exc, provSvcDomain, tenantDomain, caller, ZMSConsts.HTTP_PUT,
-                    sb.toString(), auditRef);
-            throw exc;
+        metric.increment(ZMSConsts.HTTP_REQUEST, provSvcDomain);
+        metric.increment(caller, provSvcDomain);
+        Object timerMetric = metric.startTiming("puttenantresourcegrouproles_timing", provSvcDomain);
+        
+        // verify that request is properly authenticated for this request
+        
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+        
+        if (LOG.isInfoEnabled()) {
+            LOG.info("putTenantResourceGroupRoles: ==== putTenantRoles(domain=" + provSvcDomain + ", service=" +
+                provSvcName + ", tenant-domain=" + tenantDomain + ", resource-group=" + resourceGroup +
+                ", detail=" + detail + ")");
         }
-
+        
+        List<TenantRoleAction> roles = detail.getRoles();
+        if (roles == null || roles.size() == 0) {
+            throw ZMSUtils.requestError("putTenantResourceGroupRoles: must include at least one role", caller);
+        }
+        
+        dbService.executePutTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain,
+                resourceGroup, roles, auditRef, caller);
+        metric.stopTiming(timerMetric);
         return detail;
     }
 
@@ -5405,58 +5133,46 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         validateRequest(ctx.request(), caller);
 
-        try {
-            validate(provSvcDomain, TYPE_DOMAIN_NAME, caller);
-            validate(provSvcName, TYPE_SIMPLE_NAME, caller);
-            validate(tenantDomain, TYPE_DOMAIN_NAME, caller);
-            validate(resourceGroup, TYPE_COMPOUND_NAME, caller);
-            
-            // for consistent handling of all requests, we're going to convert
-            // all incoming object values into lower case (e.g. domain, role,
-            // policy, service, etc name)
-            
-            provSvcDomain = provSvcDomain.toLowerCase();
-            provSvcName = provSvcName.toLowerCase();
-            tenantDomain = tenantDomain.toLowerCase();
-            resourceGroup = resourceGroup.toLowerCase();
+        validate(provSvcDomain, TYPE_DOMAIN_NAME, caller);
+        validate(provSvcName, TYPE_SIMPLE_NAME, caller);
+        validate(tenantDomain, TYPE_DOMAIN_NAME, caller);
+        validate(resourceGroup, TYPE_COMPOUND_NAME, caller);
+        
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        provSvcDomain = provSvcDomain.toLowerCase();
+        provSvcName = provSvcName.toLowerCase();
+        tenantDomain = tenantDomain.toLowerCase();
+        resourceGroup = resourceGroup.toLowerCase();
 
-            metric.increment(ZMSConsts.HTTP_REQUEST, provSvcDomain);
-            metric.increment(caller, provSvcDomain);
-            Object timerMetric = metric.startTiming("deleteproviderresourcegrouproles_timing", provSvcDomain);
-            
-            // verify that request is properly authenticated for this request
-            
-            verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
-            
-            // first clean-up local domain roles and policies for this tenant
-            
-            dbService.executeDeleteTenancy(ctx, tenantDomain, provSvcDomain, provSvcName,
-                 resourceGroup, auditRef, caller);
+        metric.increment(ZMSConsts.HTTP_REQUEST, provSvcDomain);
+        metric.increment(caller, provSvcDomain);
+        Object timerMetric = metric.startTiming("deleteproviderresourcegrouproles_timing", provSvcDomain);
+        
+        // verify that request is properly authenticated for this request
+        
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+        
+        // first clean-up local domain roles and policies for this tenant
+        
+        dbService.executeDeleteTenancy(ctx, tenantDomain, provSvcDomain, provSvcName,
+             resourceGroup, auditRef, caller);
 
-            // at this point the tenant side is complete. If the token was a chained
-            // token signed by the provider service then we're going to process the
-            // provider side as well thus complete the tenancy delete process
-            
-            String authorizedService = ((RsrcCtxWrapper) ctx).principal().getAuthorizedService();
-            if (isAuthorizedProviderService(authorizedService, provSvcDomain, provSvcName,
-                tenantDomain, auditRef)) {
-             
-                dbService.executeDeleteTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain,
-                    resourceGroup, auditRef, caller);
-            }
-
-            metric.stopTiming(timerMetric);
-            
-        } catch (Exception exc) {
-            
-            StringBuilder sb = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-            sb.append(":caller specified provider-service=(").append(provSvcName)
-                .append(");resource-group=(").append(resourceGroup).append(")");
-            auditRequestFailure(ctx, exc, tenantDomain, provSvcDomain, caller, ZMSConsts.HTTP_DELETE,
-                    sb.toString(), auditRef);
-            throw exc;
-        }
+        // at this point the tenant side is complete. If the token was a chained
+        // token signed by the provider service then we're going to process the
+        // provider side as well thus complete the tenancy delete process
+        
+        String authorizedService = ((RsrcCtxWrapper) ctx).principal().getAuthorizedService();
+        if (isAuthorizedProviderService(authorizedService, provSvcDomain, provSvcName,
+            tenantDomain, auditRef)) {
          
+            dbService.executeDeleteTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain,
+                resourceGroup, auditRef, caller);
+        }
+
+        metric.stopTiming(timerMetric);
         return null;
     }
 
@@ -5580,83 +5296,71 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
 
-        try {
-            validate(provSvcDomain, TYPE_DOMAIN_NAME, caller);
-            validate(provSvcName, TYPE_SIMPLE_NAME, caller); //not including the domain, this is the domain's service
-            validate(tenantDomain, TYPE_DOMAIN_NAME, caller);
-            validate(detail, TYPE_PROVIDER_RESOURCE_GROUP_ROLES, caller);
-            validate(resourceGroup, TYPE_COMPOUND_NAME, caller);
+        validate(provSvcDomain, TYPE_DOMAIN_NAME, caller);
+        validate(provSvcName, TYPE_SIMPLE_NAME, caller); //not including the domain, this is the domain's service
+        validate(tenantDomain, TYPE_DOMAIN_NAME, caller);
+        validate(detail, TYPE_PROVIDER_RESOURCE_GROUP_ROLES, caller);
+        validate(resourceGroup, TYPE_COMPOUND_NAME, caller);
 
-            // for consistent handling of all requests, we're going to convert
-            // all incoming object values into lower case (e.g. domain, role,
-            // policy, service, etc name)
-            
-            provSvcDomain = provSvcDomain.toLowerCase();
-            provSvcName = provSvcName.toLowerCase();
-            tenantDomain = tenantDomain.toLowerCase();
-            resourceGroup = resourceGroup.toLowerCase();
-            AthenzObject.PROVIDER_RESOURCE_GROUP_ROLES.convertToLowerCase(detail);
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        provSvcDomain = provSvcDomain.toLowerCase();
+        provSvcName = provSvcName.toLowerCase();
+        tenantDomain = tenantDomain.toLowerCase();
+        resourceGroup = resourceGroup.toLowerCase();
+        AthenzObject.PROVIDER_RESOURCE_GROUP_ROLES.convertToLowerCase(detail);
 
-            metric.increment(ZMSConsts.HTTP_REQUEST, provSvcDomain);
-            metric.increment(caller, provSvcDomain);
-            Object timerMetric = metric.startTiming("putproviderresourcegrouproles_timing", provSvcDomain);
+        metric.increment(ZMSConsts.HTTP_REQUEST, provSvcDomain);
+        metric.increment(caller, provSvcDomain);
+        Object timerMetric = metric.startTiming("putproviderresourcegrouproles_timing", provSvcDomain);
+        
+        // verify that request is properly authenticated for this request
+        
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+        
+        if (LOG.isInfoEnabled()) {
+            LOG.info("putProviderResourceGroupRoles: domain=" + provSvcDomain + ", service=" +
+                provSvcName + ", tenant-domain=" + tenantDomain + ", resource-group=" + resourceGroup +
+                ", detail=" + detail);
+        }
+        
+        // set up our tenant admin policy so provider can check admin's access
+        
+        dbService.setupTenantAdminPolicy(ctx, tenantDomain, provSvcDomain, provSvcName, auditRef, caller);
+        
+        // now we're going to setup our roles
+        
+        List<TenantRoleAction> roleActions = detail.getRoles();
+        if (roleActions == null || roleActions.size() == 0) {
+            throw ZMSUtils.requestError("putProviderResourceGroupRoles: must include at least one role", caller);
+        }
+        
+        List<String> roles = new ArrayList<>();
+        for (TenantRoleAction roleAction : roleActions) {
+            roles.add(roleAction.getRole());
+        }
+        
+        // we're going to create a separate role for each one of tenant roles returned
+        // based on its action and set the caller as a member in each role
+        
+        dbService.executePutProviderRoles(ctx, tenantDomain, provSvcDomain, provSvcName, resourceGroup,
+            roles, auditRef, caller);
+        
+        // at this point the tenant side is complete. If the token was a chained
+        // token signed by the provider service then we're going to process the
+        // provider side as well thus complete the tenancy on-boarding process
+        
+        String authorizedService = ((RsrcCtxWrapper) ctx).principal().getAuthorizedService();
+        if (isAuthorizedProviderService(authorizedService, provSvcDomain, provSvcName,
+            tenantDomain, auditRef)) {
             
-            // verify that request is properly authenticated for this request
-            
-            verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
-            
-            if (LOG.isInfoEnabled()) {
-                LOG.info("putProviderResourceGroupRoles: domain=" + provSvcDomain + ", service=" +
-                    provSvcName + ", tenant-domain=" + tenantDomain + ", resource-group=" + resourceGroup +
-                    ", detail=" + detail);
-            }
-            
-            // set up our tenant admin policy so provider can check admin's access
-            
-            dbService.setupTenantAdminPolicy(ctx, tenantDomain, provSvcDomain, provSvcName, auditRef, caller);
-            
-            // now we're going to setup our roles
-            
-            List<TenantRoleAction> roleActions = detail.getRoles();
-            if (roleActions == null || roleActions.size() == 0) {
-                throw ZMSUtils.requestError("putProviderResourceGroupRoles: must include at least one role", caller);
-            }
-            
-            List<String> roles = new ArrayList<>();
-            for (TenantRoleAction roleAction : roleActions) {
-                roles.add(roleAction.getRole());
-            }
-            
-            // we're going to create a separate role for each one of tenant roles returned
-            // based on its action and set the caller as a member in each role
-            
-            dbService.executePutProviderRoles(ctx, tenantDomain, provSvcDomain, provSvcName, resourceGroup,
-                roles, auditRef, caller);
-            
-            // at this point the tenant side is complete. If the token was a chained
-            // token signed by the provider service then we're going to process the
-            // provider side as well thus complete the tenancy on-boarding process
-            
-            String authorizedService = ((RsrcCtxWrapper) ctx).principal().getAuthorizedService();
-            if (isAuthorizedProviderService(authorizedService, provSvcDomain, provSvcName,
-                tenantDomain, auditRef)) {
-                
-                dbService.executePutTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain,
-                        resourceGroup, roleActions, auditRef, caller);
-            }
-
-            metric.stopTiming(timerMetric);
-            
-        } catch (Exception exc) {
-            
-            StringBuilder sb = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-            sb.append(":caller specified provider-service=(").append(provSvcName)
-                .append(");resource-group=(").append(resourceGroup).append(")");
-            auditRequestFailure(ctx, exc, tenantDomain, provSvcDomain, caller, ZMSConsts.HTTP_PUT,
-                    sb.toString(), auditRef);
-            throw exc;
+            dbService.executePutTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain,
+                    resourceGroup, roleActions, auditRef, caller);
         }
 
+        metric.stopTiming(timerMetric);
         return detail;
     }
      
@@ -5823,40 +5527,29 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
 
-        try {
-            validate(provSvcDomain, TYPE_DOMAIN_NAME, caller);
-            validate(provSvcName, TYPE_SIMPLE_NAME, caller); // not including the domain, this is the domain's service type
-            validate(tenantDomain, TYPE_DOMAIN_NAME, caller);
-            
-            // for consistent handling of all requests, we're going to convert
-            // all incoming object values into lower case (e.g. domain, role,
-            // policy, service, etc name)
-            
-            provSvcDomain = provSvcDomain.toLowerCase();
-            provSvcName = provSvcName.toLowerCase();
-            tenantDomain = tenantDomain.toLowerCase();
+        validate(provSvcDomain, TYPE_DOMAIN_NAME, caller);
+        validate(provSvcName, TYPE_SIMPLE_NAME, caller); // not including the domain, this is the domain's service type
+        validate(tenantDomain, TYPE_DOMAIN_NAME, caller);
+        
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        provSvcDomain = provSvcDomain.toLowerCase();
+        provSvcName = provSvcName.toLowerCase();
+        tenantDomain = tenantDomain.toLowerCase();
 
-            metric.increment(ZMSConsts.HTTP_REQUEST, provSvcDomain);
-            metric.increment(caller, provSvcDomain);
-            Object timerMetric = metric.startTiming("deletetenantroles_timing", provSvcDomain);
+        metric.increment(ZMSConsts.HTTP_REQUEST, provSvcDomain);
+        metric.increment(caller, provSvcDomain);
+        Object timerMetric = metric.startTiming("deletetenantroles_timing", provSvcDomain);
 
-            // verify that request is properly authenticated for this request
-            
-            verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
-            
-            dbService.executeDeleteTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain,
-                    null, auditRef, caller);
-            metric.stopTiming(timerMetric);
-
-        } catch (Exception exc) {
-            
-            StringBuilder sb = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-            sb.append(":caller specified provider-service=(").append(provSvcName).append(')');
-            auditRequestFailure(ctx, exc, provSvcDomain, tenantDomain, caller, ZMSConsts.HTTP_DELETE,
-                    sb.toString(), auditRef);
-            throw exc;
-        }
-
+        // verify that request is properly authenticated for this request
+        
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+        
+        dbService.executeDeleteTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain,
+                null, auditRef, caller);
+        metric.stopTiming(timerMetric);
         return null;
     }
 
@@ -5873,42 +5566,31 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
 
-        try {
-            validate(provSvcDomain, TYPE_DOMAIN_NAME, caller);
-            validate(provSvcName, TYPE_SIMPLE_NAME, caller); // not including the domain, this is the domain's service type
-            validate(tenantDomain, TYPE_DOMAIN_NAME, caller);
-            validate(resourceGroup, TYPE_COMPOUND_NAME, caller);
-            
-            // for consistent handling of all requests, we're going to convert
-            // all incoming object values into lower case (e.g. domain, role,
-            // policy, service, etc name)
-            
-            provSvcDomain = provSvcDomain.toLowerCase();
-            provSvcName = provSvcName.toLowerCase();
-            tenantDomain = tenantDomain.toLowerCase();
-            resourceGroup = resourceGroup.toLowerCase();
+        validate(provSvcDomain, TYPE_DOMAIN_NAME, caller);
+        validate(provSvcName, TYPE_SIMPLE_NAME, caller); // not including the domain, this is the domain's service type
+        validate(tenantDomain, TYPE_DOMAIN_NAME, caller);
+        validate(resourceGroup, TYPE_COMPOUND_NAME, caller);
+        
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        provSvcDomain = provSvcDomain.toLowerCase();
+        provSvcName = provSvcName.toLowerCase();
+        tenantDomain = tenantDomain.toLowerCase();
+        resourceGroup = resourceGroup.toLowerCase();
 
-            metric.increment(ZMSConsts.HTTP_REQUEST, provSvcDomain);
-            metric.increment(caller, provSvcDomain);
-            Object timerMetric = metric.startTiming("deletetenantresourcegrouproles_timing", provSvcDomain);
+        metric.increment(ZMSConsts.HTTP_REQUEST, provSvcDomain);
+        metric.increment(caller, provSvcDomain);
+        Object timerMetric = metric.startTiming("deletetenantresourcegrouproles_timing", provSvcDomain);
 
-            // verify that request is properly authenticated for this request
-            
-            verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
-            
-            dbService.executeDeleteTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain,
-                    resourceGroup, auditRef, caller);
-            metric.stopTiming(timerMetric);
-
-        } catch (Exception exc) {
-            
-            StringBuilder sb = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-            sb.append(":caller specified provider-service=(").append(provSvcName).append(')');
-            auditRequestFailure(ctx, exc, provSvcDomain, tenantDomain, caller, ZMSConsts.HTTP_DELETE,
-                    sb.toString(), auditRef);
-            throw exc;
-        }
-
+        // verify that request is properly authenticated for this request
+        
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+        
+        dbService.executeDeleteTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain,
+                resourceGroup, auditRef, caller);
+        metric.stopTiming(timerMetric);
         return null;
     }
     
@@ -6131,81 +5813,71 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
 
-        try {
-            validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
 
-            // verify that request is properly authenticated for this request
-            
-            verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
-            
-            // for consistent handling of all requests, we're going to convert
-            // all incoming object values into lower case (e.g. domain, role,
-            // policy, service, etc name)
-            
-            domainName = domainName.toLowerCase();
-            AthenzObject.DEFAULT_ADMINS.convertToLowerCase(defaultAdmins);
-            
-            AthenzDomain domain = getAthenzDomain(domainName, false);
-            if (domain == null) {
-                throw ZMSUtils.notFoundError("putDefaultAdmins: Domain not found: '" + domainName + "'", caller);
-            }
-            
-            Role adminRole = null;
-            for (Role role : domain.getRoles()) {
-                if (ADMIN_ROLE_NAME.equals(ZMSUtils.removeDomainPrefix(role.getName(), domainName, ROLE_PREFIX))) {
-                    adminRole = role;
-                    break;
-                }
-            }
-            if (adminRole == null) {
-                // if the admin role does not exist in the role section then add it
-                // this typically should never happen since we have added the
-                // check to disallow deletion of the admin role but we'll keep
-                // the logic in place
-            
-                if (LOG.isInfoEnabled()) {
-                    LOG.info("putDefaultAdmins: Adding domain admin role because no domain admin role was found for domain: " + domainName);
-                }
-                adminRole = ZMSUtils.makeAdminRole(domainName, new ArrayList<String>());
-                dbService.executePutRole(ctx, domainName, ADMIN_ROLE_NAME, adminRole, auditRef, caller);
-            }
-                
-            Policy adminPolicy = null;
-            for (Policy policy : domain.getPolicies()) {
-                if (ADMIN_POLICY_NAME.equals(ZMSUtils.removeDomainPrefix(policy.getName(), domainName, POLICY_PREFIX))) {
-                    adminPolicy = policy;
-                    break;
-                }
-            }
-            if (adminPolicy == null) {
-                // if the admin policy does not exist in the policy section then add it
-                // this typically should never happen since we have added the
-                // check to disallow deletion of the admin policy but we'll keep
-                // the logic in place
-                
-                if (LOG.isInfoEnabled()) {
-                    LOG.info("putDefaultAdmins: Adding domain admin policy  because no domain admin policy  was found for domain: " + domainName);
-                }
-                //Create and add the admin policy
-                adminPolicy = ZMSUtils.makeAdminPolicy(domainName, adminRole);
-                dbService.executePutPolicy(ctx, domainName, ADMIN_POLICY_NAME, adminPolicy, auditRef, caller);
-            }
-            
-            addDefaultAdminAssertion(ctx, domainName, adminPolicy, auditRef, caller);
-            
-            removeAdminDenyAssertions(ctx, domainName, domain.getPolicies(), domain.getRoles(), adminRole,
-                    defaultAdmins, auditRef, caller);
-            
-            addDefaultAdminMembers(ctx, domainName, adminRole, defaultAdmins, auditRef, caller);
-
-        } catch (Exception exc) {
-            
-            String auditDetails = auditListItems("caller specified default-admins", defaultAdmins.getAdmins());
-            auditRequestFailure(ctx, exc, domainName, domainName, caller, ZMSConsts.HTTP_PUT,
-                    auditDetails, auditRef);
-            throw exc;
+        // verify that request is properly authenticated for this request
+        
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+        
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        domainName = domainName.toLowerCase();
+        AthenzObject.DEFAULT_ADMINS.convertToLowerCase(defaultAdmins);
+        
+        AthenzDomain domain = getAthenzDomain(domainName, false);
+        if (domain == null) {
+            throw ZMSUtils.notFoundError("putDefaultAdmins: Domain not found: '" + domainName + "'", caller);
         }
-
+        
+        Role adminRole = null;
+        for (Role role : domain.getRoles()) {
+            if (ADMIN_ROLE_NAME.equals(ZMSUtils.removeDomainPrefix(role.getName(), domainName, ROLE_PREFIX))) {
+                adminRole = role;
+                break;
+            }
+        }
+        if (adminRole == null) {
+            // if the admin role does not exist in the role section then add it
+            // this typically should never happen since we have added the
+            // check to disallow deletion of the admin role but we'll keep
+            // the logic in place
+        
+            if (LOG.isInfoEnabled()) {
+                LOG.info("putDefaultAdmins: Adding domain admin role because no domain admin role was found for domain: " + domainName);
+            }
+            adminRole = ZMSUtils.makeAdminRole(domainName, new ArrayList<String>());
+            dbService.executePutRole(ctx, domainName, ADMIN_ROLE_NAME, adminRole, auditRef, caller);
+        }
+            
+        Policy adminPolicy = null;
+        for (Policy policy : domain.getPolicies()) {
+            if (ADMIN_POLICY_NAME.equals(ZMSUtils.removeDomainPrefix(policy.getName(), domainName, POLICY_PREFIX))) {
+                adminPolicy = policy;
+                break;
+            }
+        }
+        if (adminPolicy == null) {
+            // if the admin policy does not exist in the policy section then add it
+            // this typically should never happen since we have added the
+            // check to disallow deletion of the admin policy but we'll keep
+            // the logic in place
+            
+            if (LOG.isInfoEnabled()) {
+                LOG.info("putDefaultAdmins: Adding domain admin policy  because no domain admin policy  was found for domain: " + domainName);
+            }
+            //Create and add the admin policy
+            adminPolicy = ZMSUtils.makeAdminPolicy(domainName, adminRole);
+            dbService.executePutPolicy(ctx, domainName, ADMIN_POLICY_NAME, adminPolicy, auditRef, caller);
+        }
+        
+        addDefaultAdminAssertion(ctx, domainName, adminPolicy, auditRef, caller);
+        
+        removeAdminDenyAssertions(ctx, domainName, domain.getPolicies(), domain.getRoles(), adminRole,
+                defaultAdmins, auditRef, caller);
+        
+        addDefaultAdminMembers(ctx, domainName, adminRole, defaultAdmins, auditRef, caller);
         metric.stopTiming(timerMetric);
         return null;
     }
