@@ -224,6 +224,9 @@
   <profiles>
     <profile>
       <id>coverage</id>
+      <properties>
+        <checkstyle.skip>true</checkstyle.skip>
+      </properties>
       <activation>
         <property>
           <name>coverage</name>
