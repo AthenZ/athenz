@@ -19,8 +19,9 @@ import java.util.Date;
 
 public class X509CertRecord {
 
+    private String provider;
     private String instanceId;
-    private String cn;
+    private String service;
     private String currentSerial;
     private Date currentTime;
     private String currentIP;
@@ -39,14 +40,22 @@ public class X509CertRecord {
         this.instanceId = instanceId;
     }
 
-    public String getCn() {
-        return cn;
+    public String getService() {
+        return service;
     }
 
-    public void setCn(String cn) {
-        this.cn = cn;
+    public void setService(String service) {
+        this.service = service;
     }
 
+    public String getProvider() {
+        return provider;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
+    }
+    
     public String getCurrentSerial() {
         return currentSerial;
     }

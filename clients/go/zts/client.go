@@ -880,7 +880,7 @@ func (client ZTSClient) PostInstanceRegisterInformation(info *InstanceRegisterIn
 		return nil, "", err
 	}
 	switch resp.StatusCode {
-	case 200:
+	case 201:
 		err = json.Unmarshal(contentBytes, &data)
 		if err != nil {
 			return nil, "", err

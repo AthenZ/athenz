@@ -75,6 +75,7 @@ import com.yahoo.athenz.zms.Role;
 import com.yahoo.athenz.zms.RoleMember;
 import com.yahoo.athenz.zms.ServiceIdentity;
 import com.yahoo.athenz.zms.SignedDomain;
+import com.yahoo.athenz.zts.ZTSImpl.AthenzObject;
 import com.yahoo.athenz.zts.ZTSAuthorizer.AccessStatus;
 import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.cert.CertRecordStore;
@@ -207,7 +208,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        CloudStore cloudStore = new CloudStore(null, null);
+        CloudStore cloudStore = new CloudStore(null);
         cloudStore.setHttpClient(null);
         
         System.setProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_FNAME,
@@ -218,7 +219,7 @@ public class ZTSImplTest {
         zts = new ZTSImpl(cloudStore, store);
         ZTSImpl.serverHostName = "localhost";
 
-        authorizer = (ZTSAuthorizer) zts.getAuthorizer();
+        authorizer = new ZTSAuthorizer(store);
     }
     
     static class ZtsMetricTester extends com.yahoo.athenz.common.metrics.impl.NoOpMetric {
@@ -3526,17 +3527,17 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(principal, servletRequest);
 
         X509CertRecord certRecord = new X509CertRecord();
-        certRecord.setCn("athenz.production");
+        certRecord.setService("athenz.production");
         certRecord.setInstanceId("1001");
-        certRecord.setCurrentSerial("15785671237685820082");
-        certRecord.setPrevSerial("15785671237685820082");
+        certRecord.setCurrentSerial("12529712310599440388");
+        certRecord.setPrevSerial("12529712310599440388");
         
         CertRecordStore certStore = Mockito.mock(CertRecordStore.class);
         CertRecordStoreConnection certConnection = Mockito.mock(CertRecordStoreConnection.class);
         Mockito.when(certStore.getConnection(true)).thenReturn(certConnection);
-        Mockito.when(certConnection.getX509CertRecord("1001")).thenReturn(certRecord);
+        Mockito.when(certConnection.getX509CertRecord("ostk", "1001")).thenReturn(certRecord);
         Mockito.when(certConnection.updateX509CertRecord(Matchers.isA(X509CertRecord.class))).thenReturn(true);
-        zts.cloudStore.setCertStore(certStore);
+        zts.instanceManager.setCertStore(certStore);
         
         Identity identity = zts.postOSTKInstanceRefreshRequest(context, "athenz", "production", req);
         assertNotNull(identity);
@@ -3570,17 +3571,18 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(principal, servletRequest);
 
         X509CertRecord certRecord = new X509CertRecord();
-        certRecord.setCn("athenz.production");
+        certRecord.setService("athenz.production");
+        certRecord.setProvider("ostk");
         certRecord.setInstanceId("1001");
         certRecord.setCurrentSerial("12341324334");
-        certRecord.setPrevSerial("15785671237685820082");
+        certRecord.setPrevSerial("12529712310599440388");
         
         CertRecordStore certStore = Mockito.mock(CertRecordStore.class);
         CertRecordStoreConnection certConnection = Mockito.mock(CertRecordStoreConnection.class);
         Mockito.when(certStore.getConnection(true)).thenReturn(certConnection);
-        Mockito.when(certConnection.getX509CertRecord("1001")).thenReturn(certRecord);
+        Mockito.when(certConnection.getX509CertRecord("ostk", "1001")).thenReturn(certRecord);
         Mockito.when(certConnection.updateX509CertRecord(Matchers.isA(X509CertRecord.class))).thenReturn(true);
-        zts.cloudStore.setCertStore(certStore);
+        zts.instanceManager.setCertStore(certStore);
         
         Identity identity = zts.postOSTKInstanceRefreshRequest(context, "athenz", "production", req);
         assertNotNull(identity);
@@ -3614,7 +3616,8 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(principal, servletRequest);
 
         X509CertRecord certRecord = new X509CertRecord();
-        certRecord.setCn("athenz.production");
+        certRecord.setService("athenz.production");
+        certRecord.setProvider("ostk");
         certRecord.setInstanceId("1001");
         certRecord.setCurrentSerial("12341324334");
         certRecord.setPrevSerial("2342134323");
@@ -3622,9 +3625,9 @@ public class ZTSImplTest {
         CertRecordStore certStore = Mockito.mock(CertRecordStore.class);
         CertRecordStoreConnection certConnection = Mockito.mock(CertRecordStoreConnection.class);
         Mockito.when(certStore.getConnection(true)).thenReturn(certConnection);
-        Mockito.when(certConnection.getX509CertRecord("1001")).thenReturn(certRecord);
+        Mockito.when(certConnection.getX509CertRecord("ostk", "1001")).thenReturn(certRecord);
         Mockito.when(certConnection.updateX509CertRecord(Matchers.isA(X509CertRecord.class))).thenReturn(true);
-        zts.cloudStore.setCertStore(certStore);
+        zts.instanceManager.setCertStore(certStore);
         
         try {
             zts.postOSTKInstanceRefreshRequest(context, "athenz", "production", req);
@@ -3660,13 +3663,14 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(principal, servletRequest);
 
         X509CertRecord certRecord = new X509CertRecord();
-        certRecord.setCn("athenz2.production");
-        
+        certRecord.setService("athenz2.production");
+        certRecord.setProvider("ostk");
+
         CertRecordStore certStore = Mockito.mock(CertRecordStore.class);
         CertRecordStoreConnection certConnection = Mockito.mock(CertRecordStoreConnection.class);
         Mockito.when(certStore.getConnection(true)).thenReturn(certConnection);
-        Mockito.when(certConnection.getX509CertRecord("1001")).thenReturn(certRecord);
-        zts.cloudStore.setCertStore(certStore);
+        Mockito.when(certConnection.getX509CertRecord("ostk", "1001")).thenReturn(certRecord);
+        zts.instanceManager.setCertStore(certStore);
         
         // we'll get back 400 mismatch cn error message
         
@@ -4036,7 +4040,7 @@ public class ZTSImplTest {
 
         // create zts with a metric we can verify
         
-        CloudStore cloudStore = new CloudStore(null, null);
+        CloudStore cloudStore = new CloudStore(null);
         cloudStore.setHttpClient(null);
         ZtsMetricTester metric = new ZtsMetricTester();
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
@@ -4433,7 +4437,6 @@ public class ZTSImplTest {
         assertTrue(request.attributes.isEmpty());
     }
     
-    
     @Test
     public void testMemberNameMatch() {
         assertTrue(authorizer.memberNameMatch("*", "user.joe"));
@@ -4445,5 +4448,17 @@ public class ZTSImplTest {
         assertFalse(authorizer.memberNameMatch("user.*", "athenz.joe"));
         assertFalse(authorizer.memberNameMatch("athenz.*", "athenztest.joe"));
         assertFalse(authorizer.memberNameMatch("user.joe", "user.joel"));
+    }
+    
+    @Test
+    public void testConverToLowerCaseInstanceRegisterInformation() {
+        
+        InstanceRegisterInformation info = new InstanceRegisterInformation()
+                .setDomain("Domain").setService("Service").setProvider("Provider.Service");
+        
+        AthenzObject.INSTANCE_REGISTER_INFO.convertToLowerCase(info);
+        assertEquals(info.getService(), "service");
+        assertEquals(info.getDomain(), "domain");
+        assertEquals(info.getProvider(), "provider.service");
     }
 }

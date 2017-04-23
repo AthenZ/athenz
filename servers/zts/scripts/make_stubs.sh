@@ -33,9 +33,13 @@ command -v rdl >/dev/null 2>&1 || {
 
 echo "Update the ZTS.rdl to define string type"
 RDL_FILE=src/main/rdl/ZTS.rdl
+RDL_PROVIDER_FILE=../../core/zts/src/main/rdl/InstanceProvider.rdl
 
 echo "Generate the ZTS server stubs"
 rdl -s generate -b="/v1" -o="src/main/java" java-server $RDL_FILE
+
+echo "Generate the provider client library"
+rdl -s generate -o="src/main/java" java-client $RDL_PROVIDER_FILE
 
 echo "Removing not needed ZTS Server file..."
 rm src/main/java/com/yahoo/athenz/zts/ZTSServer.java

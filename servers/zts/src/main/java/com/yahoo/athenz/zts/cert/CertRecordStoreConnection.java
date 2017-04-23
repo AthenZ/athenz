@@ -25,7 +25,8 @@ public interface CertRecordStoreConnection extends Closeable {
     public void rollbackChanges();
     public void close();
 
-    X509CertRecord getX509CertRecord(String instanceId);
+    X509CertRecord getX509CertRecord(String provider, String instanceId);
     boolean updateX509CertRecord(X509CertRecord certRecord);
     boolean insertX509CertRecord(X509CertRecord certRecord);
+    boolean deleteX509CertRecord(String provider, String instanceId);
 }

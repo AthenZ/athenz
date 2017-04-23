@@ -38,19 +38,16 @@ import com.yahoo.athenz.common.server.cert.CertSigner;
 import com.yahoo.athenz.zts.Identity;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.cert.X509CertRecord;
-import com.yahoo.athenz.zts.store.DataStore;
 
 public class ZTSUtils {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DataStore.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ZTSUtils.class);
 
     public static final String ZTS_DEFAULT_EXCLUDED_CIPHER_SUITES = "SSL_RSA_WITH_DES_CBC_SHA,"
             + "SSL_DHE_RSA_WITH_DES_CBC_SHA,SSL_DHE_DSS_WITH_DES_CBC_SHA,"
             + "SSL_RSA_EXPORT_WITH_RC4_40_MD5,SSL_RSA_EXPORT_WITH_DES40_CBC_SHA,"
             + "SSL_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA,SSL_DHE_DSS_EXPORT_WITH_DES40_CBC_SHA";
     public static final String ZTS_DEFAULT_EXCLUDED_PROTOCOLS = "SSLv2,SSLv3";
-    public static final String ZTS_CERT_UUID_PREFIX =
-            System.getProperty(ZTSConsts.ZTS_PROP_CERT_UUID_PREFIX, ZTSConsts.ZTS_CERT_UUID_PREFIX);
     public static final String ZTS_CERT_DNS_SUFFIX =
             System.getProperty(ZTSConsts.ZTS_PROP_CERT_DNS_SUFFIX, ZTSConsts.ZTS_CERT_DNS_SUFFIX);
     
@@ -194,15 +191,15 @@ public class ZTSUtils {
             }
             
             // if we have an instance id then we have to make sure the
-            // athenz uuid fields are identical
+            // athenz instance id fields are identical
             
             if (certRecord != null) {
                 
-                // validate the cn matches first
+                // validate the service name matches first
                 
-                if (!cn.equals(certRecord.getCn())) {
+                if (!cn.equals(certRecord.getService())) {
                     LOGGER.error("verifyCertificateRequest: unable to validate cn: {} vs. cert record data: {}",
-                            cn, certRecord.getCn());
+                            cn, certRecord.getService());
                     return false;
                 }
                 
@@ -261,13 +258,13 @@ public class ZTSUtils {
         }
         // the only two formats we're allowed to have in the CSR are:
         // 1) service.domain-with-dashes.<cloud>.yahoo.cloud
-        // 2) athenz.uuid.<instance-id>
+        // 2) athenz.instanceid.<instance-id>
         final String prefix = service + "." + domain.replace('.', '-') + ".";
         for (String dnsName : dnsNames) {
             if (dnsName.startsWith(prefix) && dnsName.endsWith(ZTS_CERT_DNS_SUFFIX)) {
                 continue;
             }
-            if (dnsName.startsWith(ZTS_CERT_UUID_PREFIX)) {
+            if (dnsName.startsWith(ZTSConsts.ZTS_CERT_INSTANCE_ID_PREFIX)) {
                 continue;
             }
             LOGGER.error("validateCertReqDNSNames - Invalid dnsName SAN entry: {}", dnsName);
@@ -280,8 +277,8 @@ public class ZTSUtils {
         List<String> dnsNames = Crypto.extractX509CSRDnsNames(certReq);
         String reqInstanceId = null;
         for (String dnsName : dnsNames) {
-            if (dnsName.startsWith(ZTS_CERT_UUID_PREFIX)) {
-                reqInstanceId = dnsName.substring(ZTS_CERT_UUID_PREFIX.length());
+            if (dnsName.startsWith(ZTSConsts.ZTS_CERT_INSTANCE_ID_PREFIX)) {
+                reqInstanceId = dnsName.substring(ZTSConsts.ZTS_CERT_INSTANCE_ID_PREFIX.length());
                 break;
             }
         }

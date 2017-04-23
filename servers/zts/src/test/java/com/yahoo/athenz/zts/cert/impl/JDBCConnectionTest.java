@@ -63,7 +63,7 @@ public class JDBCConnectionTest extends TestCase {
         Date now = new Date();
         Timestamp tstamp = new Timestamp(now.getTime());
         Mockito.when(mockResultSet.next()).thenReturn(true);
-        Mockito.doReturn("cn").when(mockResultSet).getString(JDBCCertRecordStoreConnection.DB_COLUMN_CN);
+        Mockito.doReturn("cn").when(mockResultSet).getString(JDBCCertRecordStoreConnection.DB_COLUMN_SERVICE);
         Mockito.doReturn("current-serial").when(mockResultSet).getString(JDBCCertRecordStoreConnection.DB_COLUMN_CURRENT_SERIAL);
         Mockito.doReturn("current-ip").when(mockResultSet).getString(JDBCCertRecordStoreConnection.DB_COLUMN_CURRENT_IP);
         Mockito.doReturn(tstamp).when(mockResultSet).getTimestamp(JDBCCertRecordStoreConnection.DB_COLUMN_CURRENT_TIME);
@@ -72,10 +72,10 @@ public class JDBCConnectionTest extends TestCase {
         Mockito.doReturn(tstamp).when(mockResultSet).getTimestamp(JDBCCertRecordStoreConnection.DB_COLUMN_PREV_TIME);
         
         JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn, false);
-        X509CertRecord certRecord = jdbcConn.getX509CertRecord("instance-id");
+        X509CertRecord certRecord = jdbcConn.getX509CertRecord("ostk", "instance-id");
         
         assertNotNull(certRecord);
-        assertEquals(certRecord.getCn(), "cn");
+        assertEquals(certRecord.getService(), "cn");
         assertEquals(certRecord.getCurrentIP(), "current-ip");
         assertEquals(certRecord.getCurrentSerial(), "current-serial");
         assertEquals(certRecord.getCurrentTime(), now);
@@ -93,7 +93,7 @@ public class JDBCConnectionTest extends TestCase {
         Mockito.when(mockResultSet.next()).thenReturn(false);
 
         JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn, false);
-        X509CertRecord certRecord = jdbcConn.getX509CertRecord("instance-id-not-found");
+        X509CertRecord certRecord = jdbcConn.getX509CertRecord("ostk", "instance-id-not-found");
         assertNull(certRecord);
         jdbcConn.close();
     }
@@ -106,7 +106,8 @@ public class JDBCConnectionTest extends TestCase {
         X509CertRecord certRecord = new X509CertRecord();
         Date now = new Date();
 
-        certRecord.setCn("cn");
+        certRecord.setService("cn");
+        certRecord.setProvider("ostk");
         certRecord.setInstanceId("instance-id");
         certRecord.setCurrentIP("current-ip");
         certRecord.setCurrentSerial("current-serial");
@@ -119,14 +120,15 @@ public class JDBCConnectionTest extends TestCase {
         boolean requestSuccess = jdbcConn.insertX509CertRecord(certRecord);
         assertTrue(requestSuccess);
         
-        Mockito.verify(mockPrepStmt, times(1)).setString(1, "instance-id");
-        Mockito.verify(mockPrepStmt, times(1)).setString(2, "cn");
-        Mockito.verify(mockPrepStmt, times(1)).setString(3, "current-serial");
-        Mockito.verify(mockPrepStmt, times(1)).setTimestamp(4, new java.sql.Timestamp(now.getTime()));
-        Mockito.verify(mockPrepStmt, times(1)).setString(5, "current-ip");
-        Mockito.verify(mockPrepStmt, times(1)).setString(6, "prev-serial");
-        Mockito.verify(mockPrepStmt, times(1)).setTimestamp(7, new java.sql.Timestamp(now.getTime()));
-        Mockito.verify(mockPrepStmt, times(1)).setString(8, "prev-ip");
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "ostk");
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "instance-id");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "cn");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "current-serial");
+        Mockito.verify(mockPrepStmt, times(1)).setTimestamp(5, new java.sql.Timestamp(now.getTime()));
+        Mockito.verify(mockPrepStmt, times(1)).setString(6, "current-ip");
+        Mockito.verify(mockPrepStmt, times(1)).setString(7, "prev-serial");
+        Mockito.verify(mockPrepStmt, times(1)).setTimestamp(8, new java.sql.Timestamp(now.getTime()));
+        Mockito.verify(mockPrepStmt, times(1)).setString(9, "prev-ip");
         jdbcConn.close();
     }
     
@@ -138,7 +140,8 @@ public class JDBCConnectionTest extends TestCase {
         X509CertRecord certRecord = new X509CertRecord();
         Date now = new Date();
         
-        certRecord.setCn("cn");
+        certRecord.setProvider("ostk");
+        certRecord.setService("cn");
         certRecord.setInstanceId("instance-id");
         certRecord.setCurrentIP("current-ip");
         certRecord.setCurrentSerial("current-serial");
@@ -157,7 +160,8 @@ public class JDBCConnectionTest extends TestCase {
         Mockito.verify(mockPrepStmt, times(1)).setString(4, "prev-serial");
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(5, new java.sql.Timestamp(now.getTime()));
         Mockito.verify(mockPrepStmt, times(1)).setString(6, "prev-ip");
-        Mockito.verify(mockPrepStmt, times(1)).setString(7, "instance-id");
+        Mockito.verify(mockPrepStmt, times(1)).setString(7, "ostk");
+        Mockito.verify(mockPrepStmt, times(1)).setString(8, "instance-id");
 
         jdbcConn.close();
     }

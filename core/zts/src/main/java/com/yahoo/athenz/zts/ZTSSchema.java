@@ -532,7 +532,7 @@ public class ZTSSchema {
         sb.resource("InstanceRegisterInformation", "POST", "/instance")
             .input("info", "InstanceRegisterInformation", "")
             .output("Location", "location", "String", "return location for subsequent patch requests")
-            .expected("OK")
+            .expected("CREATED")
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("FORBIDDEN", "ResourceError", "")
@@ -549,7 +549,7 @@ public class ZTSSchema {
             .pathParam("service", "SimpleName", "the service this instance is supposed to run")
             .pathParam("instanceId", "PathElement", "unique instance id within provider's namespace")
             .input("info", "InstanceRefreshInformation", "the refresh request")
-            .auth("deploy", "{domain}:provider.{provider}")
+            .auth("launch", "{domain}:provider.{provider}")
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
 

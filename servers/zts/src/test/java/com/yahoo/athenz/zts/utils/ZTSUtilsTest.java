@@ -233,24 +233,24 @@ public class ZTSUtilsTest {
         String csr = new String(Files.readAllBytes(path));
         
         X509CertRecord certRecord = new X509CertRecord();
-        certRecord.setCn("athenz.production");
+        certRecord.setService("athenz.production");
         certRecord.setInstanceId("1001");
         
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
         boolean result = ZTSUtils.verifyCertificateRequest(certReq, "athenz", "production", null, certRecord);
         assertTrue(result);
         
-        certRecord.setCn("athenz.production");
+        certRecord.setService("athenz.production");
         certRecord.setInstanceId("1001");
         result = ZTSUtils.verifyCertificateRequest(certReq, "athenz2", "production", null, certRecord);
         assertFalse(result);
         
-        certRecord.setCn("athenz2.production");
+        certRecord.setService("athenz2.production");
         certRecord.setInstanceId("1001");
         result = ZTSUtils.verifyCertificateRequest(certReq, "athenz", "production", null, certRecord);
         assertFalse(result);
         
-        certRecord.setCn("athenz.production");
+        certRecord.setService("athenz.production");
         certRecord.setInstanceId("1002");
         result = ZTSUtils.verifyCertificateRequest(certReq, "athenz", "production", null, certRecord);
         assertFalse(result);
