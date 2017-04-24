@@ -59,6 +59,7 @@ import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
+import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.instance.provider.InstanceProviderClient;
 import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zts.cache.DataCache;
@@ -86,6 +87,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected DataStore dataStore = null;
     protected CloudStore cloudStore = null;
     protected InstanceManager instanceManager = null;
+    protected InstanceProvider instanceProvider = null;
     protected Metric metric = null;
     protected Schema schema = null;
     protected PrivateKey privateKey = null;
@@ -208,10 +210,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             cloudStore = implCloudStore;
         }
         
-        // create our instance manager
-        
-        instanceManager = new InstanceManager(privateKeyStore);
-        
         // create our change log store
         
         if (implDataStore == null) {
@@ -236,6 +234,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         } else {
             dataStore = implDataStore;
         }
+        
+        // create our instance manager and provider
+        
+        instanceManager = new InstanceManager(privateKeyStore);
+        instanceProvider = new InstanceProvider(dataStore);
         
         // make sure to set the keystore for any instance that requires it
         
@@ -1638,11 +1641,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // next we need to verify that the service has authorized
         // the provider to bootstrap/launch an instance
         
-        Principal tenantService =  SimplePrincipal.create(domain, service, (String) null);
+        Principal tenantService = SimplePrincipal.create(domain, service, (String) null);
         final String providerResource = domain + ":provider." + provider;
         if (!authorizer.access(ZTSConsts.ZTS_ACTION_LAUNCH, providerResource,
                 tenantService, null)) {
-            throw forbiddenError("postInstanceRegisterInformation: provider ':" + provider
+            throw forbiddenError("postInstanceRegisterInformation: provider: '" + provider
                     + "' not authorized to launch " + cn + " instances", caller, domain);
         }
         
@@ -1656,47 +1659,17 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     + ex.getMessage(), caller, domain);
         }
         
-        // the csr must only have 2 SAN dnsName attributes. one with the provider
-        // dns suffix and the second one with instance id. If we have any additional
-        // dns names then we'll reject the request right away
-        
-        if (!certReq.parseDnsNames(domain, service)) {
-            throw requestError("postInstanceRegisterInformation: invalid dnsName attributes in CSR",
+        StringBuilder errorMsg = new StringBuilder(256);
+        if (!certReq.validate(providerService, domain, service, null, authorizer, errorMsg)) {
+            throw requestError("postInstanceRegisterInformation: " + errorMsg.toString(),
                     caller, domain);
         }
-        
-        // we need to make sure that instance id is provided and is non-empty
         
         final String certReqInstanceId = certReq.getInstanceId();
-        if (certReqInstanceId == null || certReqInstanceId.isEmpty()) {
-            throw requestError("postInstanceRegisterInformation: CSR does not contain required instance id dnsName",
-                    caller, domain);
-        }
-        
-        // validate that the dnsSuffix used in the dnsName attribute has
-        // been authorized to be used by the given provider
-        
-        final String dnsSuffix = certReq.getDnsSuffix();
-        if (dnsSuffix != null) {
-            final String dnsResource = "sys.provider:dns." + dnsSuffix;
-            //TODO possibly different action than launch
-            if (!authorizer.access(ZTSConsts.ZTS_ACTION_LAUNCH, dnsResource, providerService, null)) {
-                throw forbiddenError("postInstanceRegisterInformation: provider ':" + provider
-                        + "' not authorized to handle " + dnsSuffix + " dns entries", caller, domain);
-            }
-        }
-        
-        // validate the common name in CSR and make sure it
-        // matches to the values specified in the info object
-        
-        if (!certReq.validateCommonName(cn)) {
-            throw requestError("postInstanceRegisterInformation: Unable to validate CSR common name",
-                    caller, domain);
-        }
-        
+
         // validate attestation data is included in the request
         
-        InstanceProviderClient providerClient = getProviderClient(provider);
+        InstanceProviderClient providerClient = instanceProvider.getProviderClient(provider);
         if (providerClient == null) {
             throw requestError("postInstanceRegisterInformation: unable to get client for provider: "
                     + provider, caller, domain);
@@ -1747,7 +1720,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // able to validate the certificate during refresh operations
         
         if (!instanceManager.insertX509CertRecord(x509CertRecord)) {
-            throw serverError("postOSTKInstanceInformation: unable to update cert db",
+            throw serverError("postInstanceRegisterInformation: unable to update cert db",
                     caller, domain);
         }
         
@@ -1788,7 +1761,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // make sure the credentials match to whatever the request is
 
         Principal principal = ((RsrcCtxWrapper) ctx).principal();
-        String principalName = domain + "." + service;
+        final String principalName = domain + "." + service;
         if (!principalName.equals(principal.getFullName())) {
             throw requestError("postInstanceRefreshInformation: Principal mismatch: "
                     + principalName + " vs. " + principal.getFullName(), caller, domain);
@@ -1830,20 +1803,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domain);
         }
         
-        // the csr must only have 2 SAN dnsName attributes. one with the provider
-        // dns suffix and the second one with instance id. If we have any additional
-        // dns names then we'll reject the request right away
-        
-        if (!certReq.parseDnsNames(domain, service)) {
-            throw requestError("postInstanceRefreshInformation: invalid dnsName attributes in CSR",
-                    caller, domain);
-        }
-
-        // we need to make sure that instance id is provided and is non-empty
-
-        final String certReqInstanceId = certReq.getInstanceId();
-        if (certReqInstanceId == null || certReqInstanceId.isEmpty()) {
-            throw requestError("postInstanceRefreshInformation: CSR does not contain required instance id dnsName",
+        StringBuilder errorMsg = new StringBuilder(256);
+        if (!certReq.validate(providerService, domain, service, instanceId, authorizer, errorMsg)) {
+            throw requestError("postInstanceRegisterInformation: " + errorMsg.toString(),
                     caller, domain);
         }
         
@@ -1857,28 +1819,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domain);
         }
         
-        // validate the common name in CSR and make sure it
-        // matches to the values specified in the info object
-        
-        if (!certReq.validateCommonName(principalName)) {
-            throw requestError("postInstanceRefreshInformation: Unable to validate CSR common name",
-                    caller, domain);
-        }
-        
         // extract our instance certificate record to make sure it
         // hasn't been revoked already
         
-        X509CertRecord x509CertRecord = instanceManager.getX509CertRecord(provider, certReq.getInstanceId());
+        X509CertRecord x509CertRecord = instanceManager.getX509CertRecord(provider, instanceId);
         if (x509CertRecord == null) {
             throw forbiddenError("postInstanceRefreshInformation: Unable to find certificate record",
                     caller, domain);
-        }
-
-        // validate the instance id in uri matches to the cert/csr
-        
-        if (!instanceId.equals(certReqInstanceId)) {
-            throw requestError("postInstanceRefreshInformation: instance id mismatch - csr: "
-                    + certReqInstanceId + " uri: " + instanceId, caller, domain);
         }
         
         // validate that the tenant domain/service matches to the values
@@ -2680,50 +2627,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         metric.stopTiming(timerMetric);
         return req;
-    }
-    
-    InstanceProviderClient getProviderClient(String provider) {
-        
-        int idx = provider.lastIndexOf('.');
-        if (idx == -1) {
-            LOGGER.error("getProviderClient: Invalid provider service name: {}", provider);
-            return null;
-        }
-        
-        final String domainName = provider.substring(0, idx);
-        DataCache dataCache = dataStore.getDataCache(domainName);
-        if (dataCache == null) {
-            LOGGER.error("getProviderClient: Unknown domain: {}", domainName);
-            return null;
-        }
-        
-        String providerEndpoint = null;
-        boolean validProviderName = false;
-        List<com.yahoo.athenz.zms.ServiceIdentity> services = dataCache.getDomainData().getServices();
-        final String serviceName = provider.substring(idx + 1);
-        for (com.yahoo.athenz.zms.ServiceIdentity service : services) {
-            if (service.getName().equals(serviceName)) {
-                providerEndpoint = service.getProviderEndpoint();
-                validProviderName = true;
-                break;
-            }
-        }
-
-        // if we don't have an endpoint then we have an invalid and/or no service
-        
-        if (providerEndpoint == null) {
-            if (validProviderName) {
-                LOGGER.error("getProviderClient: Unknown service name: {} in domain: {}",
-                        serviceName, domainName);
-            } else {
-                LOGGER.error("getProviderClient: Provider service {} does not have endpoint defined",
-                        provider);
-            }
-            return null;
-        }
-
-        ProviderHostnameVerifier hostnameVerifier = new ProviderHostnameVerifier(provider);
-        return new InstanceProviderClient(providerEndpoint, hostnameVerifier);
     }
     
     @Override

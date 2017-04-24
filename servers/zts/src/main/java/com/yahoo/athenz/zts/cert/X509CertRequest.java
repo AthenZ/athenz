@@ -11,6 +11,8 @@ import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.yahoo.athenz.auth.Authorizer;
+import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.zts.ZTSConsts;
@@ -96,7 +98,7 @@ public class X509CertRequest {
         return true;
     }
     
-    public boolean validateCommonName(String reqCommonName) {
+    public boolean compareCommonName(String reqCommonName) {
         
         try {
             cn = Crypto.extractX509CSRCommonName(certReq);
@@ -106,15 +108,68 @@ public class X509CertRequest {
             // handle all the errors and not let container to return
             // standard server error
             
-            LOGGER.error("validateCommonName: unable to extract csr cn: " + ex.getMessage());
+            LOGGER.error("compareCommonName: unable to extract csr cn: " + ex.getMessage());
             return false;
         }
         
         if (!reqCommonName.equalsIgnoreCase(cn)) {
-            LOGGER.error("validateCommonName - cn mismatch: {} vs. {}", reqCommonName, cn);
+            LOGGER.error("compareCommonName - cn mismatch: {} vs. {}", reqCommonName, cn);
             return false;
         }
 
+        return true;
+    }
+    
+    public boolean validate(Principal providerService, String domain, String service,
+            String reqInstanceId, Authorizer authorizer, StringBuilder errorMsg) {
+        
+        // the csr must only have 2 SAN dnsName attributes. one with the provider
+        // dns suffix and the second one with instance id. If we have any additional
+        // dns names then we'll reject the request right away
+        
+        if (!parseDnsNames(domain, service)) {
+            errorMsg.append("Invalid dnsName attributes in CSR");
+            return false;
+        }
+        
+        // we need to make sure that instance id is provided and is non-empty
+        
+        if (instanceId == null || instanceId.isEmpty()) {
+            errorMsg.append("CSR does not contain required instance id dnsName");
+            return false;
+        }
+        
+        // if specified, we must mak sure it matches to the given value
+        
+        if (reqInstanceId != null && !instanceId.equals(reqInstanceId)) {
+            errorMsg.append("Instance id mismatch - URI: ").append(reqInstanceId)
+                .append(" CSR: ").append(instanceId);
+            return false;
+        }
+        
+        // validate the common name in CSR and make sure it
+        // matches to the values specified in the info object
+        
+        final String infoCommonName = domain + "." + service;
+        if (!compareCommonName(infoCommonName)) {
+            errorMsg.append("Unable to validate CSR common name");
+            return false;
+        }
+        
+        // validate that the dnsSuffix used in the dnsName attribute has
+        // been authorized to be used by the given provider
+        
+        if (dnsSuffix != null) {
+            final String dnsResource = "sys.provider:dns." + dnsSuffix;
+            //TODO possibly different action than launch
+            if (!authorizer.access(ZTSConsts.ZTS_ACTION_LAUNCH, dnsResource, providerService, null)) {
+                errorMsg.append("Provider '").append(providerService.getFullName())
+                    .append("' not authorized to handle ").append(dnsSuffix).append(" dns entries");
+                return false;
+            }
+        }
+
+        
         return true;
     }
     
