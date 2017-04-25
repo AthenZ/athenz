@@ -72,7 +72,7 @@ public final class ZTSConsts {
     public static final String ATHENZ_ROOT_DIR      = "/home/athenz";
     public static final String ATHENZ_ENV_ROOT_DIR  = "ROOT";
     
-    public static final String ZTS_CERT_INSTANCE_ID_PREFIX = "athenz.instanceid.";
+    public static final String ZTS_CERT_INSTANCE_ID_SUFFIX = ".instanceid.athenz";
     public static final String ZTS_CERT_DNS_SUFFIX         = ".athenz.cloud";
     public static final String ZTS_ACTION_LAUNCH           = "launch";
     public static final String ZTS_RESOURCE_INSTANCE       = "sys.provider:instance";

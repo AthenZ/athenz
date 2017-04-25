@@ -17,6 +17,6 @@ package com.yahoo.athenz.zts.cert;
 
 public interface CertRecordStore {
 
-    CertRecordStoreConnection getConnection(boolean autoCommit);
+    CertRecordStoreConnection getConnection();
     void clearConnections();
 }

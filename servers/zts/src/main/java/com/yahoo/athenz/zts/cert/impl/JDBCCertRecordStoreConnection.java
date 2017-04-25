@@ -55,12 +55,10 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
     public static final String DB_COLUMN_PREV_TIME      = "prevTime";
 
     Connection con = null;
-    boolean transactionCompleted = true;
     
-    public JDBCCertRecordStoreConnection(Connection con, boolean autoCommit) throws SQLException {
+    public JDBCCertRecordStoreConnection(Connection con) throws SQLException {
         this.con = con;
-        con.setAutoCommit(autoCommit);
-        transactionCompleted = autoCommit;
+        con.setAutoCommit(true);
     }
 
     @Override
@@ -68,18 +66,6 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
         
         if (con == null) {
             return;
-        }
-        
-        // the client is always responsible for properly committing
-        // all changes before closing the connection, but in case
-        // we missed it, we're going to be safe and commit all
-        // changes before closing the connection
-        
-        try {
-            commitChanges();
-        } catch (Exception ex) {
-            // error is already logged but we have to continue
-            // processing so we can close our connection
         }
         
         try {
@@ -90,55 +76,9 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
                     ", code - " + ex.getErrorCode() + ", message - " + ex.getMessage());
         }
     }
-
-    @Override
-    public void rollbackChanges() {
-        
-        if (LOG.isDebugEnabled()) {
-            LOG.debug(PREFIX + "rollback transaction changes...");
-        }
-        
-        if (transactionCompleted) {
-            return;
-        }
-        
-        try {
-            con.rollback();
-        } catch (SQLException ex) {
-            LOG.error(PREFIX + "rollbackChanges: state - " + ex.getSQLState() +
-                    ", code - " + ex.getErrorCode() + ", message - " + ex.getMessage());
-        }
-        transactionCompleted = true;
-        try {
-            con.setAutoCommit(true);
-        } catch (SQLException ex) {
-            LOG.error(PREFIX + "rollback auto-commit after failure: state - " + ex.getSQLState() +
-                    ", code - " + ex.getErrorCode() + ", message - " + ex.getMessage());
-        }
-    }
-    
-    @Override
-    public void commitChanges() {
-        
-        final String caller = "commitChanges";
-        if (transactionCompleted) {
-            return;
-        }
-        
-        try {
-            con.commit();
-            transactionCompleted = true;
-            con.setAutoCommit(true);
-        } catch (SQLException ex) {
-            LOG.error(PREFIX + "commitChanges: state - " + ex.getSQLState() +
-                    ", code - " + ex.getErrorCode() + ", message - " + ex.getMessage());
-            transactionCompleted = true;
-            throw sqlError(ex, caller);
-        }
-    }
     
     int executeUpdate(PreparedStatement ps, String caller) throws SQLException {
-    if (LOG.isDebugEnabled()) {
+        if (LOG.isDebugEnabled()) {
             LOG.debug(caller + ": " + ps.toString());
         }
         return ps.executeUpdate();
@@ -241,22 +181,6 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
         return (affectedRows > 0);
     }
     
-    RuntimeException notFoundError(String caller, String objectType, String objectName) {
-        rollbackChanges();
-        String message = "unknown " + objectType + " - " + objectName;
-        return new ResourceException(ResourceException.NOT_FOUND, message);
-    }
-    
-    RuntimeException requestError(String caller, String message) {
-        rollbackChanges();
-        return new ResourceException(ResourceException.BAD_REQUEST, message);
-    }
-    
-    RuntimeException internalServerError(String caller, String message) {
-        rollbackChanges();
-        return new ResourceException(ResourceException.INTERNAL_SERVER_ERROR, message);
-    }
-    
     RuntimeException sqlError(SQLException ex, String caller) {
         
         // check to see if this is a conflict error in which case
@@ -283,7 +207,6 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
             msg = ex.getMessage() + ", state: " + sqlState + ", code: " + ex.getErrorCode();
         }
         LOG.error("SQLError: {}", msg);
-        rollbackChanges();
         return new ResourceException(code, msg);
     }
 }

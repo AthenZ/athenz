@@ -264,7 +264,7 @@ public class ZTSUtils {
             if (dnsName.startsWith(prefix) && dnsName.endsWith(ZTS_CERT_DNS_SUFFIX)) {
                 continue;
             }
-            if (dnsName.startsWith(ZTSConsts.ZTS_CERT_INSTANCE_ID_PREFIX)) {
+            if (dnsName.endsWith(ZTSConsts.ZTS_CERT_INSTANCE_ID_SUFFIX)) {
                 continue;
             }
             LOGGER.error("validateCertReqDNSNames - Invalid dnsName SAN entry: {}", dnsName);
@@ -277,8 +277,8 @@ public class ZTSUtils {
         List<String> dnsNames = Crypto.extractX509CSRDnsNames(certReq);
         String reqInstanceId = null;
         for (String dnsName : dnsNames) {
-            if (dnsName.startsWith(ZTSConsts.ZTS_CERT_INSTANCE_ID_PREFIX)) {
-                reqInstanceId = dnsName.substring(ZTSConsts.ZTS_CERT_INSTANCE_ID_PREFIX.length());
+            if (dnsName.endsWith(ZTSConsts.ZTS_CERT_INSTANCE_ID_SUFFIX)) {
+                reqInstanceId = dnsName.substring(0, dnsName.length() - ZTSConsts.ZTS_CERT_INSTANCE_ID_SUFFIX.length());
                 break;
             }
         }

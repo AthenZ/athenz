@@ -20,6 +20,7 @@ import static org.mockito.Mockito.times;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.Date;
@@ -32,6 +33,7 @@ import org.mockito.MockitoAnnotations;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.common.server.db.PoolableDataSource;
+import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.cert.X509CertRecord;
 
 import junit.framework.TestCase;
@@ -71,7 +73,7 @@ public class JDBCConnectionTest extends TestCase {
         Mockito.doReturn("prev-ip").when(mockResultSet).getString(JDBCCertRecordStoreConnection.DB_COLUMN_PREV_IP);
         Mockito.doReturn(tstamp).when(mockResultSet).getTimestamp(JDBCCertRecordStoreConnection.DB_COLUMN_PREV_TIME);
         
-        JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn, false);
+        JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn);
         X509CertRecord certRecord = jdbcConn.getX509CertRecord("ostk", "instance-id");
         
         assertNotNull(certRecord);
@@ -92,7 +94,7 @@ public class JDBCConnectionTest extends TestCase {
 
         Mockito.when(mockResultSet.next()).thenReturn(false);
 
-        JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn, false);
+        JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn);
         X509CertRecord certRecord = jdbcConn.getX509CertRecord("ostk", "instance-id-not-found");
         assertNull(certRecord);
         jdbcConn.close();
@@ -101,7 +103,7 @@ public class JDBCConnectionTest extends TestCase {
     @Test
     public void testInsertX509Record() throws Exception {
         
-        JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn, true);
+        JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn);
 
         X509CertRecord certRecord = new X509CertRecord();
         Date now = new Date();
@@ -135,7 +137,7 @@ public class JDBCConnectionTest extends TestCase {
     @Test
     public void testUpdateX509Record() throws Exception {
         
-        JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn, true);
+        JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn);
 
         X509CertRecord certRecord = new X509CertRecord();
         Date now = new Date();
@@ -163,6 +165,43 @@ public class JDBCConnectionTest extends TestCase {
         Mockito.verify(mockPrepStmt, times(1)).setString(7, "ostk");
         Mockito.verify(mockPrepStmt, times(1)).setString(8, "instance-id");
 
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testDeleteX509Record() throws Exception {
+        
+        JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn);
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+        boolean requestSuccess = jdbcConn.deleteX509CertRecord("ostk", "instance-id");
+        assertTrue(requestSuccess);
+        
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "ostk");
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "instance-id");
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testSqlError() throws SQLException {
+        
+        JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn);
+
+        SQLException ex = new SQLException("sql-reason", "08S01", 9999);
+        ResourceException rEx = (ResourceException) jdbcConn.sqlError(ex, "sqlError");
+        assertEquals(ResourceException.CONFLICT, rEx.getCode());
+        
+        ex = new SQLException("sql-reason", "40001", 9999);
+        rEx = (ResourceException) jdbcConn.sqlError(ex, "sqlError");
+        assertEquals(ResourceException.CONFLICT, rEx.getCode());
+        
+        ex = new SQLException("sql-reason", "sql-state", 1290);
+        rEx = (ResourceException) jdbcConn.sqlError(ex, "sqlError");
+        assertEquals(ResourceException.GONE, rEx.getCode());
+        
+        ex = new SQLException("sql-reason", "sql-state", 1062);
+        rEx = (ResourceException) jdbcConn.sqlError(ex, "sqlError");
+        assertEquals(ResourceException.BAD_REQUEST, rEx.getCode());
         jdbcConn.close();
     }
 }

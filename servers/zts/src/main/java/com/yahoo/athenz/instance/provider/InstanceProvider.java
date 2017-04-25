@@ -55,9 +55,8 @@ public class InstanceProvider {
             return null;
         }
         
-        final String serviceName = provider.substring(idx + 1);
         for (com.yahoo.athenz.zms.ServiceIdentity service : services) {
-            if (service.getName().equals(serviceName)) {
+            if (service.getName().equals(provider)) {
                 providerEndpoint = service.getProviderEndpoint();
                 validProviderName = true;
                 break;
@@ -68,8 +67,8 @@ public class InstanceProvider {
         
         if (providerEndpoint == null) {
             if (validProviderName) {
-                LOGGER.error("getProviderClient: Unknown service name: {} in domain: {}",
-                        serviceName, domainName);
+                LOGGER.error("getProviderClient: Unknown provider service name: {}",
+                        provider);
             } else {
                 LOGGER.error("getProviderClient: Provider service {} does not have endpoint defined",
                         provider);

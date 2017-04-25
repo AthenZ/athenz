@@ -40,8 +40,8 @@ public class X509CertRequest {
         final String prefix = service + "." + domain.replace('.', '-') + ".";
         dnsNames = Crypto.extractX509CSRDnsNames(certReq);
         for (String dnsName : dnsNames) {
-            if (dnsName.startsWith(ZTSConsts.ZTS_CERT_INSTANCE_ID_PREFIX)) {
-                instanceId = dnsName.substring(ZTSConsts.ZTS_CERT_INSTANCE_ID_PREFIX.length());
+            if (dnsName.endsWith(ZTSConsts.ZTS_CERT_INSTANCE_ID_SUFFIX)) {
+                instanceId = dnsName.substring(0, dnsName.length() - ZTSConsts.ZTS_CERT_INSTANCE_ID_SUFFIX.length());
             } else if (dnsName.startsWith(prefix)) {
                 dnsSuffix = dnsName.substring(prefix.length());
             } else {

@@ -516,13 +516,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return dataStore.getPublicKey(domain, service, keyId);
     }
     
-    /**
-     * @return the ZTS Schema object, describing its API and types.
-     */
-    public Schema schema() {
-        return schema;
-    }
-    
     ServiceIdentity generateZTSServiceIdentity(com.yahoo.athenz.zms.ServiceIdentity zmsService) {
         
         // zms and zts are using the same definition for service identities but
@@ -1627,11 +1620,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         final String provider = info.getProvider();
         Principal providerService = createPrincipalForName(provider);
-        if (providerService == null) {
-            throw requestError("postInstanceRegisterInformation: Invalid provider service specified: "
-                    + provider, caller, domain);
-        }
-        
         if (!authorizer.access(ZTSConsts.ZTS_ACTION_LAUNCH, ZTSConsts.ZTS_RESOURCE_INSTANCE,
                 providerService, null)) {
             throw forbiddenError("postInstanceRegisterInformation: provider ':" + provider
@@ -1661,8 +1649,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         StringBuilder errorMsg = new StringBuilder(256);
         if (!certReq.validate(providerService, domain, service, null, authorizer, errorMsg)) {
-            throw requestError("postInstanceRegisterInformation: " + errorMsg.toString(),
-                    caller, domain);
+            throw requestError("postInstanceRegisterInformation: CSR validation failed - "
+                    + errorMsg.toString(), caller, domain);
         }
         
         final String certReqInstanceId = certReq.getInstanceId();
@@ -1683,7 +1671,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             instance = providerClient.postInstanceConfirmation(instance);
         } catch (Exception ex) {
             providerClient.close();
-            throw forbiddenError("postInstanceRegisterInformation: unable to verify attestatio data: "
+            throw forbiddenError("postInstanceRegisterInformation: unable to verify attestation data: "
                     + ex.getMessage(), caller, domain);
         }
         
@@ -1693,10 +1681,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // generate certificate for the instance
 
-        InstanceIdentity identity = InstanceManager.generateIdentity(certSigner, info.getCsr(),
+        InstanceIdentity identity = instanceManager.generateIdentity(certSigner, info.getCsr(),
                 cn, instance.getAttributes());
         if (identity == null) {
-            throw requestError("postInstanceRegisterInformation: unable to generate identity",
+            throw serverError("postInstanceRegisterInformation: unable to generate identity",
                     caller, domain);
         }
         
@@ -1782,11 +1770,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // authorized in Athenz to bootstrap/launch instances
         
         Principal providerService = createPrincipalForName(provider);
-        if (providerService == null) {
-            throw requestError("postInstanceRefreshInformation: Invalid provider service specified: "
-                    + provider, caller, domain);
-        }
-        
         if (!authorizer.access(ZTSConsts.ZTS_ACTION_LAUNCH, ZTSConsts.ZTS_RESOURCE_INSTANCE,
                 providerService, null)) {
             throw forbiddenError("postInstanceRefreshInformation: provider ':" + provider
@@ -1805,8 +1788,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         StringBuilder errorMsg = new StringBuilder(256);
         if (!certReq.validate(providerService, domain, service, instanceId, authorizer, errorMsg)) {
-            throw requestError("postInstanceRegisterInformation: " + errorMsg.toString(),
-                    caller, domain);
+            throw requestError("postInstanceRefreshInformation: CSR validation failed - "
+                    + errorMsg.toString(), caller, domain);
         }
         
         // retrieve the certificate that was used for authentication
@@ -1872,10 +1855,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // generate identity with the certificate
         
-        InstanceIdentity identity = InstanceManager.generateIdentity(certSigner, info.getCsr(),
+        InstanceIdentity identity = instanceManager.generateIdentity(certSigner, info.getCsr(),
                 principalName, null);
         if (identity == null) {
-            throw requestError("postInstanceRefreshInformation: unable to generate identity",
+            throw serverError("postInstanceRefreshInformation: unable to generate identity",
                     caller, domain);
         }
         
@@ -1890,7 +1873,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // not be able to validate the refresh request next time
         
         if (!instanceManager.updateX509CertRecord(x509CertRecord)) {
-            throw serverError("postOSTKInstanceRefreshRequest: unable to update cert db",
+            throw serverError("postInstanceRefreshInformation: unable to update cert db",
                     caller, domain);
         }
         
@@ -1902,8 +1885,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     public InstanceIdentity deleteInstanceIdentity(ResourceContext ctx, String provider,
             String domain, String service, String instanceId) {
         
-        final String caller = "postinstancerevokeinformation";
-        final String callerTiming = "postinstancerevokeinformation_timing";
+        final String caller = "deleteinstanceidentity";
+        final String callerTiming = "deleteinstanceidentity_timing";
         metric.increment(HTTP_POST);
         logPrincipal(ctx);
 
@@ -2460,7 +2443,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     ResourceAccess getResourceAccessCheck(Principal principal, String action, String resource,
             String trustDomain, String checkPrincipal) {
 
-        final String caller = "getresourceaccess";
         final String callerTiming = "getresourceaccess_timing";
 
         final String domainName = principal.getDomain();
@@ -2471,10 +2453,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         if (checkPrincipal != null) {
             principal = createPrincipalForName(checkPrincipal);
-            if (principal == null) {
-                throw requestError("getResourceAccess: Invalid check principal value specified: "
-                        + checkPrincipal, caller, domainName);
-            }
         }
         
         // create our response object and set the flag whether

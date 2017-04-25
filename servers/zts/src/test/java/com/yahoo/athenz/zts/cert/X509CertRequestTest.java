@@ -42,7 +42,7 @@ public class X509CertRequestTest {
     
     @Test
     public void testParseDnsNames() throws IOException {
-        Path path = Paths.get("src/test/resources/athenz.uuid.csr");
+        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
         
         X509CertRequest certReq = new X509CertRequest(csr);
@@ -66,7 +66,7 @@ public class X509CertRequestTest {
     
     @Test
     public void testCompareCommonName() throws IOException {
-        Path path = Paths.get("src/test/resources/athenz.uuid.csr");
+        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
         
         X509CertRequest certReq = new X509CertRequest(csr);
@@ -82,7 +82,7 @@ public class X509CertRequestTest {
     
     @Test
     public void testInstanceId() throws IOException {
-        Path path = Paths.get("src/test/resources/athenz.uuid.csr");
+        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
         
         X509CertRequest certReq = new X509CertRequest(csr);
@@ -94,7 +94,7 @@ public class X509CertRequestTest {
     
     @Test
     public void testDnsSuffix() throws IOException {
-        Path path = Paths.get("src/test/resources/athenz.uuid.csr");
+        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
         
         X509CertRequest certReq = new X509CertRequest(csr);
@@ -107,14 +107,14 @@ public class X509CertRequestTest {
     @Test
     public void testCompareDnsNames() throws IOException {
         
-        Path path = Paths.get("src/test/resources/athenz.uuid.csr");
+        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
         
         X509CertRequest certReq = new X509CertRequest(csr);
         assertNotNull(certReq);
         certReq.parseDnsNames("athenz", "production");
         
-        path = Paths.get("src/test/resources/athenz.uuid.pem");
+        path = Paths.get("src/test/resources/athenz.instanceid.pem");
         String pem = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(pem);
         
@@ -124,7 +124,7 @@ public class X509CertRequestTest {
     @Test
     public void testCompareDnsNamesMismatch() throws IOException {
         
-        Path path = Paths.get("src/test/resources/athenz.uuid.csr");
+        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
         
         X509CertRequest certReq = new X509CertRequest(csr);
@@ -141,7 +141,7 @@ public class X509CertRequestTest {
     @Test
     public void testValidateInvalidDnsNames() throws IOException {
         
-        Path path = Paths.get("src/test/resources/athenz.uuid.csr");
+        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
         
         X509CertRequest certReq = new X509CertRequest(csr);
@@ -167,7 +167,7 @@ public class X509CertRequestTest {
     @Test
     public void testValidateInstanceIdMismatch() throws IOException {
         
-        Path path = Paths.get("src/test/resources/athenz.uuid.csr");
+        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
         
         X509CertRequest certReq = new X509CertRequest(csr);
@@ -194,7 +194,7 @@ public class X509CertRequestTest {
     @Test
     public void testValidateDnsSuffixNotAuthorized() throws IOException {
         
-        Path path = Paths.get("src/test/resources/athenz.uuid.csr");
+        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
         
         X509CertRequest certReq = new X509CertRequest(csr);
@@ -213,7 +213,7 @@ public class X509CertRequestTest {
     @Test
     public void testValidate() throws IOException {
         
-        Path path = Paths.get("src/test/resources/athenz.uuid.csr");
+        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
         
         X509CertRequest certReq = new X509CertRequest(csr);

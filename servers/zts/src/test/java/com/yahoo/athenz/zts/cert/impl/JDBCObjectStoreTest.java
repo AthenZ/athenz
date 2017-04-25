@@ -33,7 +33,7 @@ public class JDBCObjectStoreTest {
         Connection mockConn = Mockito.mock(Connection.class);
         Mockito.doReturn(mockConn).when(mockDataSrc).getConnection();
         JDBCCertRecordStore store = new JDBCCertRecordStore(mockDataSrc);
-        assertNotNull(store.getConnection(true));
+        assertNotNull(store.getConnection());
         store.clearConnections();
     }
     
@@ -43,7 +43,7 @@ public class JDBCObjectStoreTest {
         Mockito.doThrow(new SQLException()).when(mockDataSrc).getConnection();
         try {
             JDBCCertRecordStore store = new JDBCCertRecordStore(mockDataSrc);
-            store.getConnection(true);
+            store.getConnection();
             fail();
         } catch (RuntimeException ex) {
             assertTrue(true);

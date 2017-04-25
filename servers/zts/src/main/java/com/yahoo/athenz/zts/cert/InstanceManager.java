@@ -78,8 +78,8 @@ public class InstanceManager {
             Integer nameType = (Integer) altName.get(0);
             if (nameType == 2) {
                 final String dnsName = (String) altName.get(1);
-                if (dnsName.startsWith(ZTSConsts.ZTS_CERT_INSTANCE_ID_PREFIX)) {
-                    instanceId = dnsName.substring(ZTSConsts.ZTS_CERT_INSTANCE_ID_PREFIX.length());
+                if (dnsName.endsWith(ZTSConsts.ZTS_CERT_INSTANCE_ID_SUFFIX)) {
+                    instanceId = dnsName.substring(0, dnsName.length() - ZTSConsts.ZTS_CERT_INSTANCE_ID_SUFFIX.length());
                     break;
                 }
             }
@@ -91,7 +91,7 @@ public class InstanceManager {
         }
 
         X509CertRecord certRecord = null;
-        try (CertRecordStoreConnection storeConnection = certStore.getConnection(true)) {
+        try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
             if (storeConnection == null) {
                 LOGGER.error("getX509CertRecord: Unable to get certstore connection");
                 return null;
@@ -110,7 +110,7 @@ public class InstanceManager {
         }
 
         X509CertRecord certRecord = null;
-        try (CertRecordStoreConnection storeConnection = certStore.getConnection(true)) {
+        try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
             if (storeConnection == null) {
                 LOGGER.error("getX509CertRecord: Unable to get certstore connection");
                 return null;
@@ -129,7 +129,7 @@ public class InstanceManager {
         }
         
         boolean result = false;
-        try (CertRecordStoreConnection storeConnection = certStore.getConnection(true)) {
+        try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
             if (storeConnection == null) {
                 LOGGER.error("Unable to get certstore connection");
                 return false;
@@ -147,7 +147,7 @@ public class InstanceManager {
         }
         
         boolean result = false;
-        try (CertRecordStoreConnection storeConnection = certStore.getConnection(true)) {
+        try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
             if (storeConnection == null) {
                 LOGGER.error("Unable to get certstore connection");
                 return false;
@@ -165,7 +165,7 @@ public class InstanceManager {
         }
         
         boolean result = false;
-        try (CertRecordStoreConnection storeConnection = certStore.getConnection(true)) {
+        try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
             if (storeConnection == null) {
                 LOGGER.error("Unable to get certstore connection");
                 return false;
@@ -177,7 +177,7 @@ public class InstanceManager {
         return result;
     }
     
-    public static InstanceIdentity generateIdentity(CertSigner certSigner, String csr,
+    public InstanceIdentity generateIdentity(CertSigner certSigner, String csr,
             String cn, Map<String, String> attributes) {
         
         // generate a certificate for this certificate request

@@ -36,9 +36,9 @@ public class JDBCCertRecordStore implements CertRecordStore {
     }
 
     @Override
-    public CertRecordStoreConnection getConnection(boolean autoCommit) {
+    public CertRecordStoreConnection getConnection() {
         try {
-            return new JDBCCertRecordStoreConnection(src.getConnection(), autoCommit);
+            return new JDBCCertRecordStoreConnection(src.getConnection());
         } catch (SQLException ex) {
             LOG.error("getConnection: {}", ex.getMessage());
             throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR, ex.getMessage());

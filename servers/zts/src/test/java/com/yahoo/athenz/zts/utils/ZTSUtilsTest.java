@@ -215,7 +215,7 @@ public class ZTSUtilsTest {
     
     @Test
     public void testValidateCertReqInstanceId() throws IOException {
-        Path path = Paths.get("src/test/resources/athenz.uuid.csr");
+        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
         
@@ -229,7 +229,7 @@ public class ZTSUtilsTest {
     @Test
     public void testVerifyCertificateRequest() throws IOException {
         
-        Path path = Paths.get("src/test/resources/athenz.uuid.csr");
+        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
         
         X509CertRecord certRecord = new X509CertRecord();
@@ -259,7 +259,7 @@ public class ZTSUtilsTest {
     @Test
     public void testVerifyCertificateRequestNoCertRecord() throws IOException {
         
-        Path path = Paths.get("src/test/resources/athenz.uuid.csr");
+        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
         
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
@@ -272,7 +272,7 @@ public class ZTSUtilsTest {
     
     @Test
     public void testValidateCertReqDNSNames() throws IOException {
-        Path path = Paths.get("src/test/resources/athenz.uuid.csr");
+        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
         
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
