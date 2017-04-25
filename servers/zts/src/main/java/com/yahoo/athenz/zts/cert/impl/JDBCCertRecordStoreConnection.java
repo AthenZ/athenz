@@ -19,6 +19,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLTimeoutException;
 import java.util.Date;
 
 import org.slf4j.Logger;
@@ -33,8 +34,6 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
     private static final Logger LOG = LoggerFactory.getLogger(JDBCCertRecordStoreConnection.class);
 
     private static final String PREFIX = "ZTS-JDBCConnection: ";
-    private static final int MYSQL_ER_OPTION_PREVENTS_STATEMENT = 1290;
-    private static final int MYSQL_ER_OPTION_DUPLICATE_ENTRY = 1062;
 
     private static final String SQL_GET_X509_RECORD = "SELECT * FROM certificates WHERE provider=? AND instanceId=?;";
     private static final String SQL_INSERT_X509_RECORD = "INSERT INTO certificates " +
@@ -55,12 +54,18 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
     public static final String DB_COLUMN_PREV_TIME      = "prevTime";
 
     Connection con = null;
-    
+    int queryTimeout = 10;
+
     public JDBCCertRecordStoreConnection(Connection con) throws SQLException {
         this.con = con;
         con.setAutoCommit(true);
     }
 
+    @Override
+    public void setOperationTimeout(int queryTimeout) {
+        this.queryTimeout = queryTimeout;
+    }
+    
     @Override
     public void close() {
         
@@ -81,6 +86,7 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
         if (LOG.isDebugEnabled()) {
             LOG.debug(caller + ": " + ps.toString());
         }
+        ps.setQueryTimeout(queryTimeout);
         return ps.executeUpdate();
     }
 
@@ -88,6 +94,7 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
         if (LOG.isDebugEnabled()) {
             LOG.debug(caller + ": " + ps.toString());
         }
+        ps.setQueryTimeout(queryTimeout);
         return ps.executeQuery();
     }
     
@@ -183,26 +190,12 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
     
     RuntimeException sqlError(SQLException ex, String caller) {
         
-        // check to see if this is a conflict error in which case
-        // we're going to let the server to retry the caller
-        // The two SQL states that are 'retry-able' are 08S01
-        // for a communications error, and 40001 for deadlock.
-        // also check for the error code where the mysql server is
-        // in read-mode which could happen if we had a failover
-        // and the connections are still going to the old master
-        
         String sqlState = ex.getSQLState();
         int code = ResourceException.INTERNAL_SERVER_ERROR;
         String msg = null;
-        if ("08S01".equals(sqlState) || "40001".equals(sqlState)) {
-            code = ResourceException.CONFLICT;
-            msg = "Concurrent update conflict, please retry your operation later.";
-        } else if (ex.getErrorCode() == MYSQL_ER_OPTION_PREVENTS_STATEMENT) {
-            code = ResourceException.GONE;
-            msg = "MySQL Database running in read-only mode";
-        } else if (ex.getErrorCode() == MYSQL_ER_OPTION_DUPLICATE_ENTRY) {
-            code = ResourceException.BAD_REQUEST;
-            msg = "Entry already exists";
+        if (ex instanceof SQLTimeoutException) {
+            code = ResourceException.SERVICE_UNAVAILABLE;
+            msg = "Statement cancelled due to timeout";
         } else {
             msg = ex.getMessage() + ", state: " + sqlState + ", code: " + ex.getErrorCode();
         }

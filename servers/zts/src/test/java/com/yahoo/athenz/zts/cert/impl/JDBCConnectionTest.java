@@ -21,6 +21,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLTimeoutException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.Date;
@@ -189,19 +190,23 @@ public class JDBCConnectionTest extends TestCase {
 
         SQLException ex = new SQLException("sql-reason", "08S01", 9999);
         ResourceException rEx = (ResourceException) jdbcConn.sqlError(ex, "sqlError");
-        assertEquals(ResourceException.CONFLICT, rEx.getCode());
+        assertEquals(ResourceException.INTERNAL_SERVER_ERROR, rEx.getCode());
         
         ex = new SQLException("sql-reason", "40001", 9999);
         rEx = (ResourceException) jdbcConn.sqlError(ex, "sqlError");
-        assertEquals(ResourceException.CONFLICT, rEx.getCode());
-        
-        ex = new SQLException("sql-reason", "sql-state", 1290);
-        rEx = (ResourceException) jdbcConn.sqlError(ex, "sqlError");
-        assertEquals(ResourceException.GONE, rEx.getCode());
-        
-        ex = new SQLException("sql-reason", "sql-state", 1062);
-        rEx = (ResourceException) jdbcConn.sqlError(ex, "sqlError");
-        assertEquals(ResourceException.BAD_REQUEST, rEx.getCode());
+        assertEquals(ResourceException.INTERNAL_SERVER_ERROR, rEx.getCode());
+
+        SQLTimeoutException tex = new SQLTimeoutException();
+        rEx = (ResourceException) jdbcConn.sqlError(tex, "sqlError");
+        assertEquals(ResourceException.SERVICE_UNAVAILABLE, rEx.getCode());
+
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testConnectionNullClose() throws SQLException {
+        JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn);
+        jdbcConn.con = null;
         jdbcConn.close();
     }
 }

@@ -17,6 +17,12 @@ package com.yahoo.athenz.zts.cert;
 
 public interface CertRecordStore {
 
+    // get a new connection to the cert record store
     CertRecordStoreConnection getConnection();
+    
+    // operation timeout in seconds
+    void setOperationTimeout(int opTimeout);
+    
+    // clear all connections to the cert record store
     void clearConnections();
 }

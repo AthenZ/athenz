@@ -20,6 +20,7 @@ import java.io.Closeable;
 public interface CertRecordStoreConnection extends Closeable {
 
     void close();
+    void setOperationTimeout(int opTimout);
 
     X509CertRecord getX509CertRecord(String provider, String instanceId);
     boolean updateX509CertRecord(X509CertRecord certRecord);

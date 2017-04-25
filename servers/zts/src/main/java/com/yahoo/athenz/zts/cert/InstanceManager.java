@@ -46,6 +46,16 @@ public class InstanceManager {
         String jdbcPassword = keyStore.getApplicationSecret(JDBC, password);
         PoolableDataSource src = DataSourceFactory.create(jdbcStore, jdbcUser, jdbcPassword);
         certStore = new JDBCCertRecordStore(src);
+        
+        // default timeout in seconds for certificate store commands
+        
+        if (certStore != null) {
+            int opTimeout = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_CERT_OP_TIMEOUT, "10"));
+            if (opTimeout < 0) {
+                opTimeout = 10;
+            }
+            certStore.setOperationTimeout(opTimeout);
+        }
     }
     
     public void setCertStore(CertRecordStore certStore) {
