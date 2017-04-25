@@ -1615,28 +1615,20 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_REQUEST, domain);
         metric.increment(caller, domain);
 
-        // first we need to make sure that the provider has been
-        // authorized in Athenz to bootstrap/launch instances
+        // run the authorization checks to make sure the provider has been
+        // authorized to launch instances in Athenz and the service has
+        // authorized this provider to launch its instances
         
         final String provider = info.getProvider();
         Principal providerService = createPrincipalForName(provider);
-        if (!authorizer.access(ZTSConsts.ZTS_ACTION_LAUNCH, ZTSConsts.ZTS_RESOURCE_INSTANCE,
-                providerService, null)) {
-            throw forbiddenError("postInstanceRegisterInformation: provider ':" + provider
-                    + "' not authorized to launch instances in Athenz", caller, domain);
+        StringBuilder errorMsg = new StringBuilder(256);
+
+        if (!instanceManager.authorizeLaunch(providerService, domain, service,
+                authorizer, errorMsg)) {
+            throw forbiddenError("postInstanceRegisterInformation: " + errorMsg.toString(),
+                    caller, domain);
         }
-        
-        // next we need to verify that the service has authorized
-        // the provider to bootstrap/launch an instance
-        
-        Principal tenantService = SimplePrincipal.create(domain, service, (String) null);
-        final String providerResource = domain + ":provider." + provider;
-        if (!authorizer.access(ZTSConsts.ZTS_ACTION_LAUNCH, providerResource,
-                tenantService, null)) {
-            throw forbiddenError("postInstanceRegisterInformation: provider: '" + provider
-                    + "' not authorized to launch " + cn + " instances", caller, domain);
-        }
-        
+
         // validate request/csr details
         
         X509CertRequest certReq = null;
@@ -1647,7 +1639,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     + ex.getMessage(), caller, domain);
         }
         
-        StringBuilder errorMsg = new StringBuilder(256);
         if (!certReq.validate(providerService, domain, service, null, authorizer, errorMsg)) {
             throw requestError("postInstanceRegisterInformation: CSR validation failed - "
                     + errorMsg.toString(), caller, domain);
@@ -1764,16 +1755,16 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     authority.toString(), caller, domain);
         }
         
-        // Athenz has already verified that the service still
-        // authorizes the provider to launch its services so we
-        // only need to make sure that the provider is still
+        // first we need to make sure that the provider has been
         // authorized in Athenz to bootstrap/launch instances
         
         Principal providerService = createPrincipalForName(provider);
-        if (!authorizer.access(ZTSConsts.ZTS_ACTION_LAUNCH, ZTSConsts.ZTS_RESOURCE_INSTANCE,
-                providerService, null)) {
-            throw forbiddenError("postInstanceRefreshInformation: provider ':" + provider
-                    + "' not authorized to launch instances in Athenz", caller, domain);
+        StringBuilder errorMsg = new StringBuilder(256);
+
+        if (!instanceManager.authorizeLaunch(providerService, domain, service,
+                authorizer, errorMsg)) {
+            throw forbiddenError("postInstanceRefreshInformation: " + errorMsg.toString(),
+                    caller, domain);
         }
         
         // parse and validate our CSR
@@ -1786,7 +1777,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domain);
         }
         
-        StringBuilder errorMsg = new StringBuilder(256);
         if (!certReq.validate(providerService, domain, service, instanceId, authorizer, errorMsg)) {
             throw requestError("postInstanceRefreshInformation: CSR validation failed - "
                     + errorMsg.toString(), caller, domain);

@@ -49,7 +49,7 @@ resource InstanceIdentity POST "/instance/{provider}/{domain}/{service}/{instanc
     SimpleName service; //the service this instance is supposed to run
     PathElement instanceId; //unique instance id within provider's namespace
     InstanceRefreshInformation info; //the refresh request
-    authorize("launch", "{domain}:provider.{provider}"); //only TLS authentication is allowed
+    authenticate; //only TLS Certificate authentication is allowed
     expected OK;
     exceptions {
         ResourceError BAD_REQUEST;

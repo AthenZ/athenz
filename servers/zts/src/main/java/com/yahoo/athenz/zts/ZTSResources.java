@@ -515,7 +515,7 @@ public class ZTSResources {
     public InstanceIdentity postInstanceRefreshInformation(@PathParam("provider") String provider, @PathParam("domain") String domain, @PathParam("service") String service, @PathParam("instanceId") String instanceId, InstanceRefreshInformation info) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
-            context.authorize("launch", "" + domain + ":provider." + provider + "", null);
+            context.authenticate();
             InstanceIdentity e = this.delegate.postInstanceRefreshInformation(context, provider, domain, service, instanceId, info);
             return e;
         } catch (ResourceException e) {

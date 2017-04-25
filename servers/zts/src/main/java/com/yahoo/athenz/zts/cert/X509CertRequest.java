@@ -161,7 +161,6 @@ public class X509CertRequest {
         
         if (dnsSuffix != null) {
             final String dnsResource = "sys.provider:dns." + dnsSuffix;
-            //TODO possibly different action than launch
             if (!authorizer.access(ZTSConsts.ZTS_ACTION_LAUNCH, dnsResource, providerService, null)) {
                 errorMsg.append("Provider '").append(providerService.getFullName())
                     .append("' not authorized to handle ").append(dnsSuffix).append(" dns entries");

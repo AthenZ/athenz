@@ -10,6 +10,8 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.yahoo.athenz.auth.Authorizer;
+import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.cert.CertSigner;
 import com.yahoo.athenz.common.server.db.DataSourceFactory;
@@ -209,5 +211,33 @@ public class InstanceManager {
         return new InstanceIdentity().setName(cn).setX509Certificate(pemCert)
                 .setX509CertificateSigner(CA_X509_CERTIFICATE)
                 .setAttributes(attributes);
+    }
+    
+    public boolean authorizeLaunch(Principal providerService, String domain, String service,
+            Authorizer authorizer, StringBuilder errorMsg) {
+        
+        // first we need to make sure that the provider has been
+        // authorized in Athenz to bootstrap/launch instances
+        
+        if (!authorizer.access(ZTSConsts.ZTS_ACTION_LAUNCH, ZTSConsts.ZTS_RESOURCE_INSTANCE,
+                providerService, null)) {
+            errorMsg.append("provider '").append(providerService.getFullName())
+                .append("' not authorized to launch instances in Athenz");
+            return false;
+        }
+        
+        // next we need to verify that the service has authorized
+        // the provider to bootstrap/launch an instance
+        
+        final String tenantResource = domain + ":service." + service;
+        if (!authorizer.access(ZTSConsts.ZTS_ACTION_LAUNCH, tenantResource,
+                providerService, null)) {
+            errorMsg.append("provider '").append(providerService.getFullName())
+                .append("' not authorized to launch ").append(domain).append('.')
+                .append(service).append(" instances");
+            return false;
+        }
+        
+        return true;
     }
 }

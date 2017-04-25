@@ -543,13 +543,13 @@ public class ZTSSchema {
 ;
 
         sb.resource("InstanceRefreshInformation", "POST", "/instance/{provider}/{domain}/{service}/{instanceId}")
-            .comment("only TLS authentication is allowed")
+            .comment("only TLS Certificate authentication is allowed")
             .pathParam("provider", "ServiceName", "the provider service name (i.e. \"aws.us-west-2\", \"paas.manhattan.corp-gq1\")")
             .pathParam("domain", "DomainName", "the domain of the instance")
             .pathParam("service", "SimpleName", "the service this instance is supposed to run")
             .pathParam("instanceId", "PathElement", "unique instance id within provider's namespace")
             .input("info", "InstanceRefreshInformation", "the refresh request")
-            .auth("launch", "{domain}:provider.{provider}")
+            .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
 
