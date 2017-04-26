@@ -49,7 +49,6 @@ import com.yahoo.athenz.common.server.cert.CertSigner;
 import com.yahoo.athenz.zts.AWSInstanceInformation;
 import com.yahoo.athenz.zts.AWSTemporaryCredentials;
 import com.yahoo.athenz.zts.Identity;
-import com.yahoo.athenz.zts.InstanceInformation;
 import com.yahoo.athenz.zts.OSTKInstanceInformation;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSConsts;
@@ -641,14 +640,6 @@ public class CloudStore {
         }
         
         return true;
-    }
-    
-    public boolean verifyInstanceDocument(InstanceInformation info, String publicKey) {
-        
-        // for now we don't have support for this api and we're just
-        // going to return false
-
-        return false;
     }
     
     class RoleCredentialsFetcher implements Runnable {

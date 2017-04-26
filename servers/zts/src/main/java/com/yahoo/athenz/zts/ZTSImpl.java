@@ -464,35 +464,25 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // get the where - which means where this server is running
         
-        msgBldr.where(serverHostName);
-
-        msgBldr.whatDomain(domainName).whatApi(caller).whatMethod(method);
+        msgBldr.where(serverHostName).whatDomain(domainName)
+            .whatApi(caller).whatMethod(method)
+            .when(Timestamp.fromCurrentTime().toString());
 
         // get the 'who' and set it
-        //
-        if (ctx != null) {
-            Principal princ = ((RsrcCtxWrapper) ctx).principal();
-            if (princ != null) {
-                String unsignedCreds = princ.getUnsignedCredentials();
-                if (unsignedCreds == null) {
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("who-name=").append(princ.getName());
-                    sb.append(",who-domain=").append(princ.getDomain());
-                    sb.append(",who-fullname=").append(princ.getFullName());
-                    List<String> roles = princ.getRoles();
-                    if (roles != null && roles.size() > 0) {
-                        sb.append(",who-roles=").append(roles.toString());
-                    }
-                    unsignedCreds = sb.toString();
-                }
+        
+        Principal princ = ((RsrcCtxWrapper) ctx).principal();
+        if (princ != null) {
+            String unsignedCreds = princ.getUnsignedCredentials();
+            if (unsignedCreds == null) {
+                msgBldr.who(princ.getFullName());
+            } else {
                 msgBldr.who(unsignedCreds);
             }
-
-            // get the client IP
-            
-            msgBldr.clientIp(ServletRequestUtil.getRemoteAddress(ctx.request()));
         }
 
+        // get the client IP
+        
+        msgBldr.clientIp(ServletRequestUtil.getRemoteAddress(ctx.request()));
         return msgBldr;
     }
 
@@ -1140,15 +1130,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             metric.increment(HTTP_REQUEST, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
             metric.increment(caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
             
-            // create our audit log entry
-            
-            auditLogDetails.append(",ERROR=(No Such Domain)");
-            msgBldr.whatDetails(auditLogDetails.toString());
-            if (auditLogger != null) {
-                auditLogger.log(msgBldr);
-            } else {
-                LOGGER.error(msgBldr.toString());
-            }
             throw notFoundError("getRoleToken: No such domain: " + domainName, caller,
                     ZTSConsts.ZTS_UNKNOWN_DOMAIN);
         }
@@ -1168,13 +1149,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 roles, false);
         
         if (roles.isEmpty()) {
-            auditLogDetails.append(",ERROR=(Principal Has No Access to Domain)");
-            msgBldr.whatDetails(auditLogDetails.toString());
-            if (auditLogger != null) {
-                auditLogger.log(msgBldr);
-            } else {
-                LOGGER.error(msgBldr.toString());
-            }
             throw forbiddenError("getRoleToken: No access to any roles in domain: " + domainName,
                     caller, domainName);
         }
@@ -1210,14 +1184,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         RoleToken roleToken = new RoleToken();
         roleToken.setToken(token.getSignedToken());
         roleToken.setExpiryTime(token.getExpiryTime());
-        
-        auditLogDetails.append(",SUCCESS ROLETOKEN=(").append(token.getUnsignedToken()).append(")"); 
-        msgBldr.whatDetails(auditLogDetails.toString());
-        if (auditLogger != null) {
-            auditLogger.log(msgBldr);
-        } else {
-            LOGGER.error(msgBldr.toString());
-        }
 
         metric.stopTiming(timerMetric);
         return roleToken;
@@ -1329,11 +1295,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     + principal + ", role: " + roleName + ")");
         }
         
-        StringBuilder auditLogDetails = new StringBuilder(512);
-        AuditLogMsgBuilder msgBldr = getAuditLogMsgBuilder(ctx, domainName, caller, HTTP_GET);
-        msgBldr.when(Timestamp.fromCurrentTime().toString()).
-                whatEntity("RoleCertificate").why("zts-audit");
-
         // first retrieve our domain data object from the cache
 
         DataCache data = dataStore.getDataCache(domainName);
@@ -1343,16 +1304,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
             metric.increment(HTTP_REQUEST, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
             metric.increment(caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
-            
-            // create our audit log entry
-            
-            auditLogDetails.append(",ERROR=(No Such Domain)");
-            msgBldr.whatDetails(auditLogDetails.toString());
-            if (auditLogger != null) {
-                auditLogger.log(msgBldr);
-            } else {
-                LOGGER.error(msgBldr.toString());
-            }
+
             throw notFoundError("postRoleCertificateRequest: No such domain: " + domainName,
                     caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
         }
@@ -1372,13 +1324,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 roles, false);
         
         if (roles.isEmpty()) {
-            auditLogDetails.append(",ERROR=(Principal Has No Access to Domain)");
-            msgBldr.whatDetails(auditLogDetails.toString());
-            if (auditLogger != null) {
-                auditLogger.log(msgBldr);
-            } else {
-                LOGGER.error(msgBldr.toString());
-            }
             throw forbiddenError("postRoleCertificateRequest: No access to any roles in domain: "
                     + domainName, caller, domainName);
         }
@@ -1405,14 +1350,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
         RoleToken roleToken = new RoleToken().setToken(x509Cert).setExpiryTime(ZTS_ROLE_CERT_EXPIRY);
         
-        auditLogDetails.append(",SUCCESS ROLE-CERTIFICATE");
-        msgBldr.whatDetails(auditLogDetails.toString());
-        if (auditLogger != null) {
-            auditLogger.log(msgBldr);
-        } else {
-            LOGGER.error(msgBldr.toString());
-        }
-
         metric.stopTiming(timerMetric);
         return roleToken;
     }
@@ -1703,6 +1640,20 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domain);
         }
         
+        // create our audit log entry
+        
+        AuditLogMsgBuilder msgBldr = getAuditLogMsgBuilder(ctx, domain, caller, HTTP_POST);
+        msgBldr.whatEntity(certReqInstanceId);
+        
+        StringBuilder auditLogDetails = new StringBuilder(512);
+        auditLogDetails.append("Provider: ").append(provider)
+            .append(" Domain: ").append(domain)
+            .append(" Service: ").append(service)
+            .append(" InstanceId: ").append(certReqInstanceId)
+            .append(" Serial: ").append(x509CertRecord.getCurrentSerial());
+        msgBldr.whatDetails(auditLogDetails.toString());
+        auditLogger.log(msgBldr);
+        
         final String location = "/zts/v1/instance/" + provider + "/" + domain
                 + "/" + service + "/" + certReqInstanceId;
         metric.stopTiming(timerMetric);
@@ -1867,6 +1818,20 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domain);
         }
         
+        // create our audit log entry
+        
+        AuditLogMsgBuilder msgBldr = getAuditLogMsgBuilder(ctx, domain, caller, HTTP_POST);
+        msgBldr.whatEntity(instanceId);
+        
+        StringBuilder auditLogDetails = new StringBuilder(512);
+        auditLogDetails.append("Provider: ").append(provider)
+            .append(" Domain: ").append(domain)
+            .append(" Service: ").append(service)
+            .append(" InstanceId: ").append(instanceId)
+            .append(" Serial: ").append(x509CertRecord.getCurrentSerial());
+        msgBldr.whatDetails(auditLogDetails.toString());
+        auditLogger.log(msgBldr);
+        
         metric.stopTiming(timerMetric);
         return identity;
     }
@@ -1901,6 +1866,19 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // remove the cert record for this instance
 
         instanceManager.deleteX509CertRecord(provider, instanceId);
+        
+        // create our audit log entry
+        
+        AuditLogMsgBuilder msgBldr = getAuditLogMsgBuilder(ctx, domain, caller, HTTP_POST);
+        msgBldr.whatEntity(instanceId);
+            
+        StringBuilder auditLogDetails = new StringBuilder(512);
+        auditLogDetails.append("Provider: ").append(provider)
+            .append(" Domain: ").append(domain)
+            .append(" Service: ").append(service)
+            .append(" InstanceId: ").append(instanceId);
+        msgBldr.whatDetails(auditLogDetails.toString());
+        auditLogger.log(msgBldr);
         
         metric.stopTiming(timerMetric);
         return null;

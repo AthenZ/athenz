@@ -5739,7 +5739,7 @@ public class ZTSImplTest {
     }
     
     @Test
-    public void testCreatePrincpalForTest() {
+    public void testCreatePrincpalForName() {
         Principal principal = zts.createPrincipalForName("athenz.provider");
         assertEquals(principal.getDomain(), "athenz");
         assertEquals(principal.getName(), "provider");
