@@ -136,6 +136,55 @@ public class JDBCConnectionTest extends TestCase {
     }
     
     @Test
+    public void testInsertX509RecordAlreadyExists() throws Exception {
+        
+        JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn);
+
+        X509CertRecord certRecord = new X509CertRecord();
+        Date now = new Date();
+
+        certRecord.setService("cn");
+        certRecord.setProvider("ostk");
+        certRecord.setInstanceId("instance-id");
+        certRecord.setCurrentIP("current-ip");
+        certRecord.setCurrentSerial("current-serial");
+        certRecord.setCurrentTime(now);
+        certRecord.setPrevIP("prev-ip");
+        certRecord.setPrevSerial("prev-serial");
+        certRecord.setPrevTime(now);
+
+        Mockito.doThrow(new SQLException("entry already exits", "state", 1062))
+            .doReturn(1).when(mockPrepStmt).executeUpdate();
+        
+        boolean requestSuccess = jdbcConn.insertX509CertRecord(certRecord);
+        assertTrue(requestSuccess);
+        
+        // we should have all operation done once for insert and one for update
+        
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "ostk");
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "instance-id");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "cn");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "current-serial");
+        Mockito.verify(mockPrepStmt, times(1)).setString(6, "current-ip");
+        Mockito.verify(mockPrepStmt, times(1)).setString(7, "prev-serial");
+        Mockito.verify(mockPrepStmt, times(1)).setTimestamp(8, new java.sql.Timestamp(now.getTime()));
+        Mockito.verify(mockPrepStmt, times(1)).setString(9, "prev-ip");
+        
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "current-serial");
+        Mockito.verify(mockPrepStmt, times(1)).setTimestamp(2, new java.sql.Timestamp(now.getTime()));
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "current-ip");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "prev-serial");
+        Mockito.verify(mockPrepStmt, times(1)).setString(6, "prev-ip");
+        Mockito.verify(mockPrepStmt, times(1)).setString(7, "ostk");
+        Mockito.verify(mockPrepStmt, times(1)).setString(8, "instance-id");
+        
+        // common between insert/update so count is 2 times
+        Mockito.verify(mockPrepStmt, times(2)).setTimestamp(5, new java.sql.Timestamp(now.getTime()));
+        
+        jdbcConn.close();
+    }
+    
+    @Test
     public void testUpdateX509Record() throws Exception {
         
         JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn);

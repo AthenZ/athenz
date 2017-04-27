@@ -34,6 +34,7 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
     private static final Logger LOG = LoggerFactory.getLogger(JDBCCertRecordStoreConnection.class);
 
     private static final String PREFIX = "ZTS-JDBCConnection: ";
+    private static final int MYSQL_ER_OPTION_DUPLICATE_ENTRY = 1062;
 
     private static final String SQL_GET_X509_RECORD = "SELECT * FROM certificates WHERE provider=? AND instanceId=?;";
     private static final String SQL_INSERT_X509_RECORD = "INSERT INTO certificates " +
@@ -166,7 +167,20 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
             ps.setTimestamp(8, new java.sql.Timestamp(certRecord.getPrevTime().getTime()));
             ps.setString(9, certRecord.getPrevIP());
             affectedRows = executeUpdate(ps, caller);
+            
         } catch (SQLException ex) {
+            
+            // if the record already exists, we're going to reset
+            // the state and convert this into an update operation
+            
+            if (ex.getErrorCode() == MYSQL_ER_OPTION_DUPLICATE_ENTRY) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug(caller + ": Resetting state for instance {} - {}",
+                            certRecord.getProvider(), certRecord.getInstanceId());
+                }
+                return updateX509CertRecord(certRecord);
+            }
+            
             throw sqlError(ex, caller);
         }
         return (affectedRows > 0);
