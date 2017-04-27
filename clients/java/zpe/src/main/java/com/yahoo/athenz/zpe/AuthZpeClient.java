@@ -114,6 +114,20 @@ public class AuthZpeClient {
     
     static {
 
+        // load public keys
+
+        String pkeyFactoryClass = System.getProperty(ZpeConsts.ZPE_PROP_PUBLIC_KEY_CLASS, ZPE_PKEY_CLASS);
+
+        PublicKeyStoreFactory publicKeyStoreFactory = null;
+        try {
+            publicKeyStoreFactory = (PublicKeyStoreFactory) Class.forName(pkeyFactoryClass).newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
+            LOG.error("Invalid PublicKeyStore class: " + pkeyFactoryClass
+                    + ", error: " + ex.getMessage());
+            throw new RuntimeException(ex);
+        }
+        publicKeyStore = publicKeyStoreFactory.create();
+
         // instantiate implementation classes
         
         zpeClientImplName = System.getProperty(ZpeConsts.ZPE_PROP_CLIENT_IMPL, ZPE_UPDATER_CLASS);
@@ -133,18 +147,6 @@ public class AuthZpeClient {
         if (allowedOffset < 0) {
             allowedOffset = 300;
         }
-        
-        String pkeyFactoryClass = System.getProperty(ZpeConsts.ZPE_PROP_PUBLIC_KEY_CLASS, ZPE_PKEY_CLASS);
-
-        PublicKeyStoreFactory publicKeyStoreFactory = null;
-        try {
-            publicKeyStoreFactory = (PublicKeyStoreFactory) Class.forName(pkeyFactoryClass).newInstance();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
-            LOG.error("Invalid PublicKeyStore class: " + pkeyFactoryClass
-                    + ", error: " + ex.getMessage());
-            throw new RuntimeException(ex);
-        }
-        publicKeyStore = publicKeyStoreFactory.create();
     }
     
     public static void init() {
