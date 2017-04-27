@@ -90,8 +90,9 @@ public class InstanceManager {
             Integer nameType = (Integer) altName.get(0);
             if (nameType == 2) {
                 final String dnsName = (String) altName.get(1);
-                if (dnsName.endsWith(ZTSConsts.ZTS_CERT_INSTANCE_ID_SUFFIX)) {
-                    instanceId = dnsName.substring(0, dnsName.length() - ZTSConsts.ZTS_CERT_INSTANCE_ID_SUFFIX.length());
+                int idx = dnsName.indexOf(ZTSConsts.ZTS_CERT_INSTANCE_ID);
+                if (idx != -1) {
+                    instanceId = dnsName.substring(0, idx);
                     break;
                 }
             }

@@ -257,14 +257,14 @@ public class ZTSUtils {
             return true;
         }
         // the only two formats we're allowed to have in the CSR are:
-        // 1) service.domain-with-dashes.<cloud>.yahoo.cloud
-        // 2) athenz.instanceid.<instance-id>
+        // 1) <service>.<domain-with-dashes>.<cloud>.athenz.cloud
+        // 2) <service>.<domain-with-dashes>.instanceid.athenz.<provider-dns-suffix>
         final String prefix = service + "." + domain.replace('.', '-') + ".";
         for (String dnsName : dnsNames) {
             if (dnsName.startsWith(prefix) && dnsName.endsWith(ZTS_CERT_DNS_SUFFIX)) {
                 continue;
             }
-            if (dnsName.endsWith(ZTSConsts.ZTS_CERT_INSTANCE_ID_SUFFIX)) {
+            if (dnsName.indexOf(ZTSConsts.ZTS_CERT_INSTANCE_ID) != -1) {
                 continue;
             }
             LOGGER.error("validateCertReqDNSNames - Invalid dnsName SAN entry: {}", dnsName);
@@ -277,8 +277,9 @@ public class ZTSUtils {
         List<String> dnsNames = Crypto.extractX509CSRDnsNames(certReq);
         String reqInstanceId = null;
         for (String dnsName : dnsNames) {
-            if (dnsName.endsWith(ZTSConsts.ZTS_CERT_INSTANCE_ID_SUFFIX)) {
-                reqInstanceId = dnsName.substring(0, dnsName.length() - ZTSConsts.ZTS_CERT_INSTANCE_ID_SUFFIX.length());
+            int idx = dnsName.indexOf(ZTSConsts.ZTS_CERT_INSTANCE_ID);
+            if (idx != -1) {
+                reqInstanceId = dnsName.substring(0, idx);
                 break;
             }
         }

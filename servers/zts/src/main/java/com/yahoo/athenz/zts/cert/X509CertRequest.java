@@ -35,19 +35,30 @@ public class X509CertRequest {
         }
     }
     
-    public boolean parseDnsNames(String domain, String service) {
+    public boolean parseDnsNames(String domain, String service, StringBuilder errorMsg) {
         
         final String prefix = service + "." + domain.replace('.', '-') + ".";
         dnsNames = Crypto.extractX509CSRDnsNames(certReq);
+        String checkDnsSuffix = null;
         for (String dnsName : dnsNames) {
-            if (dnsName.endsWith(ZTSConsts.ZTS_CERT_INSTANCE_ID_SUFFIX)) {
-                instanceId = dnsName.substring(0, dnsName.length() - ZTSConsts.ZTS_CERT_INSTANCE_ID_SUFFIX.length());
-            } else if (dnsName.startsWith(prefix)) {
+            int idx = dnsName.indexOf(ZTSConsts.ZTS_CERT_INSTANCE_ID);
+            if (instanceId == null && idx != -1) {
+                instanceId = dnsName.substring(0, idx);
+                checkDnsSuffix = dnsName.substring(idx + ZTSConsts.ZTS_CERT_INSTANCE_ID.length());
+            } else if (dnsSuffix == null && dnsName.startsWith(prefix)) {
                 dnsSuffix = dnsName.substring(prefix.length());
             } else {
-                LOGGER.error("parseDnsNames - Invalid dnsName SAN entry: {}", dnsName);
+                errorMsg.append("Invalid SAN dnsName entry: ").append(dnsName);
                 return false;
             }
+        }
+        
+        // verify that our dns name suffixes match before returning success
+        
+        if (dnsSuffix != null && checkDnsSuffix != null && !dnsSuffix.equals(checkDnsSuffix)) {
+            errorMsg.append("Mismatch DNS suffixes: ").append(dnsSuffix)
+                .append(" vs. ").append(checkDnsSuffix);
+            return false;
         }
         
         return true;
@@ -127,8 +138,7 @@ public class X509CertRequest {
         // dns suffix and the second one with instance id. If we have any additional
         // dns names then we'll reject the request right away
         
-        if (!parseDnsNames(domain, service)) {
-            errorMsg.append("Invalid dnsName attributes in CSR");
+        if (!parseDnsNames(domain, service, errorMsg)) {
             return false;
         }
         
