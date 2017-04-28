@@ -22,7 +22,10 @@ import java.util.List;
 
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.assertFalse;
 
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -34,6 +37,7 @@ import com.yahoo.athenz.zms.Role;
 import com.yahoo.athenz.zms.RoleMember;
 import com.yahoo.athenz.zms.ServiceIdentity;
 import com.yahoo.athenz.zms.SignedDomain;
+import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.store.ChangeLogStore;
 import com.yahoo.athenz.zts.store.DataStore;
 import com.yahoo.athenz.zts.store.file.MockZMSFileChangeLogStore;
@@ -63,11 +67,25 @@ public class InstanceProviderTest {
         ChangeLogStore structStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
         
+        System.setProperty(ZTSConsts.ZTS_PROP_PROVIDER_ENDPOINTS, ".athenz2.com,.athenz.com");
+        
         store = new DataStore(structStore, null);
     }
 
+    @AfterMethod
+    public void shutdown() {
+        ZMSFileChangeLogStore.deleteDirectory(new File(ZTS_DATA_STORE_PATH));
+        System.clearProperty(ZTSConsts.ZTS_PROP_PROVIDER_ENDPOINTS);
+    }
+    
     private SignedDomain createSignedDomain(String domainName, String serviceName,
-            boolean includeEndPoint) {
+            boolean includeService, boolean includeEndPoint) {
+        return createSignedDomain(domainName, serviceName, includeService,
+                includeEndPoint, "https://provider.athenz.com:4443");
+    }
+    
+    private SignedDomain createSignedDomain(String domainName, String serviceName,
+            boolean includeService, boolean includeEndPoint, String endPoint) {
         
         SignedDomain signedDomain = new SignedDomain();
         
@@ -85,7 +103,7 @@ public class InstanceProviderTest {
         service.setName(domainName + "." + serviceName);
             
         if (includeEndPoint) {
-            service.setProviderEndpoint("https://localhost:4443");
+            service.setProviderEndpoint(endPoint);
         }
         services.add(service);
         
@@ -116,7 +134,9 @@ public class InstanceProviderTest {
         DomainData domain = new DomainData();
         domain.setName(domainName);
         domain.setRoles(roles);
-        domain.setServices(services);
+        if (includeService) {
+            domain.setServices(services);
+        }
         domain.setPolicies(signedPolicies);
         domain.setModified(Timestamp.fromCurrentTime());
         
@@ -131,7 +151,7 @@ public class InstanceProviderTest {
     @Test
     public void testGetProviderClient() {
 
-        SignedDomain signedDomain = createSignedDomain("coretech", "weather", true);
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", true, true);
         store.processDomain(signedDomain, false);
         
         InstanceProvider provider = new InstanceProvider(store);
@@ -143,18 +163,21 @@ public class InstanceProviderTest {
     @Test
     public void testGetProviderClientInvalidDomain() {
 
-        SignedDomain signedDomain = createSignedDomain("coretech", "weather", true);
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", true, true);
         store.processDomain(signedDomain, false);
         
         InstanceProvider provider = new InstanceProvider(store);
         InstanceProviderClient client = provider.getProviderClient("coretech2.weather");
+        assertNull(client);
+        
+        client = provider.getProviderClient("coretech2");
         assertNull(client);
     }
     
     @Test
     public void testGetProviderClientInvalidService() {
 
-        SignedDomain signedDomain = createSignedDomain("coretech", "weather", true);
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", true, true);
         store.processDomain(signedDomain, false);
         
         InstanceProvider provider = new InstanceProvider(store);
@@ -165,7 +188,30 @@ public class InstanceProviderTest {
     @Test
     public void testGetProviderClientNoEndpoint() {
 
-        SignedDomain signedDomain = createSignedDomain("coretech", "weather", false);
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", true, false);
+        store.processDomain(signedDomain, false);
+        
+        InstanceProvider provider = new InstanceProvider(store);
+        InstanceProviderClient client = provider.getProviderClient("coretech.weather");
+        assertNull(client);
+    }
+    
+    @Test
+    public void testGetProviderClientInvalidEndpoint() {
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather",
+                true, true, "http://invalid");
+        store.processDomain(signedDomain, false);
+        
+        InstanceProvider provider = new InstanceProvider(store);
+        InstanceProviderClient client = provider.getProviderClient("coretech.weather");
+        assertNull(client);
+    }
+    
+    @Test
+    public void testGetProviderClientNoServices() {
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", false, true);
         store.processDomain(signedDomain, false);
         
         InstanceProvider provider = new InstanceProvider(store);
@@ -185,5 +231,32 @@ public class InstanceProviderTest {
         assertNotNull(client);
         
         client.close();
+    }
+    
+    @Test
+    public void testVerifyProviderEndpoint() {
+        
+        InstanceProvider provider = new InstanceProvider(null);
+        assertTrue(provider.verifyProviderEndpoint("https://test.athenz2.com/"));
+        assertTrue(provider.verifyProviderEndpoint("https://test.athenz2.com:4443/"));
+        assertTrue(provider.verifyProviderEndpoint("https://test.athenz2.com:4443/test1"));
+        
+        assertFalse(provider.verifyProviderEndpoint("http://test.athenz.com/"));
+        assertFalse(provider.verifyProviderEndpoint("http://test.athenz.com:4443/"));
+        assertFalse(provider.verifyProviderEndpoint("http://test.athenz.com:4443/test1"));
+        
+        assertFalse(provider.verifyProviderEndpoint("\ninvalid\turi-format"));
+        assertFalse(provider.verifyProviderEndpoint("http://:4443?key=value"));
+
+        assertFalse(provider.verifyProviderEndpoint("http://test.athenz3.com/"));
+        assertFalse(provider.verifyProviderEndpoint("http://test.athenz3.com:4443/"));
+        assertFalse(provider.verifyProviderEndpoint("http://test.athenz3.com:4443/test1"));
+        
+        assertFalse(provider.verifyProviderEndpoint("test.athenz.com/"));
+        assertFalse(provider.verifyProviderEndpoint("file://test.athenz.com/"));
+        assertFalse(provider.verifyProviderEndpoint("://test.athenz.com/"));
+        assertFalse(provider.verifyProviderEndpoint("//test.athenz.com/"));
+        assertFalse(provider.verifyProviderEndpoint("test://test.athenz.com:4443/"));
+        assertFalse(provider.verifyProviderEndpoint("uri://test.athenz.com:4443/test1"));
     }
 }

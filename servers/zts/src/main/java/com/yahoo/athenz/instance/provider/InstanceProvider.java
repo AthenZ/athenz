@@ -15,22 +15,36 @@
  */
 package com.yahoo.athenz.instance.provider;
 
+import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.store.DataStore;
 
 public class InstanceProvider {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceProvider.class);
+    private static final String HTTPS_SCHEME = "https";
 
     private DataStore dataStore;
-    
+    private List<String> providerEndpoints = Collections.emptyList();
+
     public InstanceProvider(DataStore dataStore) {
+        
         this.dataStore = dataStore;
+        
+        // get the list of valid provider endpoints
+        
+        String endPoints = System.getProperty(ZTSConsts.ZTS_PROP_PROVIDER_ENDPOINTS);
+        if (endPoints != null) {
+            providerEndpoints = Arrays.asList(endPoints.split(","));
+        }
     }
     
     public InstanceProviderClient getProviderClient(String provider) {
@@ -65,7 +79,7 @@ public class InstanceProvider {
 
         // if we don't have an endpoint then we have an invalid and/or no service
         
-        if (providerEndpoint == null) {
+        if (providerEndpoint == null || providerEndpoint.isEmpty()) {
             if (validProviderName) {
                 LOGGER.error("getProviderClient: Unknown provider service name: {}",
                         provider);
@@ -76,7 +90,66 @@ public class InstanceProvider {
             return null;
         }
 
+        // before using our endpoint we need to make sure
+        // it's valid according to configuration settings
+        
+        if (!verifyProviderEndpoint(providerEndpoint)) {
+            return null;
+        }
+        
         ProviderHostnameVerifier hostnameVerifier = new ProviderHostnameVerifier(provider);
         return new InstanceProviderClient(providerEndpoint, hostnameVerifier);
+    }
+    
+    boolean verifyProviderEndpoint(String providerEndpoint) {
+        
+        // verify that we have a valid endpoint that ends in one of our
+        // configured domains.
+        
+        java.net.URI uri = null;
+        try {
+            uri = new java.net.URI(providerEndpoint);
+        } catch (URISyntaxException ex) {
+            LOGGER.error("verifyProviderEndpoint: Unable to verify {}: {}", providerEndpoint,
+                    ex.getMessage());
+            return false;
+        }
+        
+        String host = uri.getHost();
+        if (host == null) {
+            LOGGER.error("verifyProviderEndpoint: Provider endpoint {} has no host component",
+                    providerEndpoint);
+            return false;
+        }
+        host = host.toLowerCase();
+        
+        boolean valid = false;
+        for (String endpoint : providerEndpoints) {
+            valid = host.endsWith(endpoint);
+            if (valid) {
+                break;
+            }
+        }
+        
+        if (!valid) {
+            LOGGER.error("verifyProviderEndpoint: Provider host {} does not match with any of the configured domains",
+                    host);
+            return false;
+        }
+            
+        String scheme = uri.getScheme();
+        if (scheme == null) {
+            LOGGER.error("verifyProviderEndpoint: Provider endpoint {} has no scheme component",
+                    providerEndpoint);
+            return false;
+        }
+        
+        scheme = scheme.toLowerCase();
+        if (!(HTTPS_SCHEME.equalsIgnoreCase(scheme))) {
+            LOGGER.error("verifyProviderEndpoint: Provider scheme {} is not https", scheme);
+            return false;
+        }
+        
+        return true;
     }
 }
