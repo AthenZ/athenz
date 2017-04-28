@@ -15,21 +15,28 @@
  */
 package com.yahoo.athenz.zts.cert;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class SSHCertificates {
+import org.testng.annotations.Test;
+import static org.testng.Assert.*;
 
-    private List<SSHCertificate> certs;
-    
-    public SSHCertificates() {
-    }
-    
-    public List<SSHCertificate> getCerts() {
-        return certs;
-    }
-    
-    public SSHCertificates setCerts(List<SSHCertificate> certs) {
-        this.certs = certs;
-        return this;
+public class SSHCertificatesTest {
+
+    @Test
+    public void testSSHCertificates() {
+        
+        SSHCertificates certs = new SSHCertificates();
+        assertNotNull(certs);
+        assertNull(certs.getCerts());
+        
+        SSHCertificate cert = new SSHCertificate();
+        List<SSHCertificate> list = new ArrayList<>();
+        list.add(cert);
+        
+        certs.setCerts(list);
+        List<SSHCertificate> newList = certs.getCerts();
+        assertNotNull(newList);
+        assertEquals(newList.size(), 1);
     }
 }

@@ -213,8 +213,8 @@ public class ZTSResources {
 
     @POST
     @Path("/domain/{domainName}/role/{roleName}/token")
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public RoleToken postRoleCertificateRequest(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, RoleCertificateRequest req) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -318,8 +318,8 @@ public class ZTSResources {
 
     @POST
     @Path("/instance/{domain}/{service}/refresh")
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Identity postInstanceRefreshRequest(@PathParam("domain") String domain, @PathParam("service") String service, InstanceRefreshRequest req) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -348,8 +348,8 @@ public class ZTSResources {
 
     @POST
     @Path("/aws/instance")
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Identity postAWSInstanceInformation(AWSInstanceInformation info) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -373,8 +373,8 @@ public class ZTSResources {
 
     @POST
     @Path("/aws/instance/{domain}/{service}/refresh")
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Identity postAWSCertificateRequest(@PathParam("domain") String domain, @PathParam("service") String service, AWSCertificateRequest req) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -426,8 +426,8 @@ public class ZTSResources {
 
     @POST
     @Path("/ostk/instance")
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Identity postOSTKInstanceInformation(OSTKInstanceInformation info) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -453,8 +453,8 @@ public class ZTSResources {
 
     @POST
     @Path("/ostk/instance/{domain}/{service}/refresh")
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Identity postOSTKInstanceRefreshRequest(@PathParam("domain") String domain, @PathParam("service") String service, OSTKInstanceRefreshRequest req) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -483,8 +483,8 @@ public class ZTSResources {
 
     @POST
     @Path("/instance")
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public void postInstanceRegisterInformation(InstanceRegisterInformation info) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -510,12 +510,12 @@ public class ZTSResources {
 
     @POST
     @Path("/instance/{provider}/{domain}/{service}/{instanceId}")
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public InstanceIdentity postInstanceRefreshInformation(@PathParam("provider") String provider, @PathParam("domain") String domain, @PathParam("service") String service, @PathParam("instanceId") String instanceId, InstanceRefreshInformation info) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
-            context.authorize("deploy", "" + domain + ":provider." + provider + "", null);
+            context.authenticate();
             InstanceIdentity e = this.delegate.postInstanceRefreshInformation(context, provider, domain, service, instanceId, info);
             return e;
         } catch (ResourceException e) {
@@ -569,8 +569,8 @@ public class ZTSResources {
 
     @POST
     @Path("/metrics/{domainName}")
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public DomainMetrics postDomainMetrics(@PathParam("domainName") String domainName, DomainMetrics req) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);

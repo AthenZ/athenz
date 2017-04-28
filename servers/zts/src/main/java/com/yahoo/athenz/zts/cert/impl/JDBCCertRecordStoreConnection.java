@@ -19,6 +19,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLTimeoutException;
 import java.util.Date;
 
 import org.slf4j.Logger;
@@ -33,18 +34,19 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
     private static final Logger LOG = LoggerFactory.getLogger(JDBCCertRecordStoreConnection.class);
 
     private static final String PREFIX = "ZTS-JDBCConnection: ";
-    private static final int MYSQL_ER_OPTION_PREVENTS_STATEMENT = 1290;
     private static final int MYSQL_ER_OPTION_DUPLICATE_ENTRY = 1062;
 
-    private static final String SQL_GET_X509_RECORD = "SELECT * FROM certificates WHERE instanceId=?;";
+    private static final String SQL_GET_X509_RECORD = "SELECT * FROM certificates WHERE provider=? AND instanceId=?;";
     private static final String SQL_INSERT_X509_RECORD = "INSERT INTO certificates " +
-            "(instanceId, cn, currentSerial, currentTime, currentIP, prevSerial, prevTime, prevIP) " +
-            "VALUES (?,?,?,?,?,?,?,?);";
+            "(provider, instanceId, service, currentSerial, currentTime, currentIP, prevSerial, prevTime, prevIP) " +
+            "VALUES (?, ?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_X509_RECORD = "UPDATE certificates SET " +
             "currentSerial=?, currentTime=?, currentIP=?, prevSerial=?, prevTime=?, prevIP=? " +
-            "WHERE instanceId=?;";
-
-    public static final String DB_COLUMN_CN             = "cn";
+            "WHERE provider=? AND instanceId=?;";
+    private static final String SQL_DELETE_X509_RECORD = "DELETE from certificates " +
+            "WHERE provider=? AND instanceId=?;";
+    
+    public static final String DB_COLUMN_SERVICE        = "service";
     public static final String DB_COLUMN_CURRENT_IP     = "currentIP";
     public static final String DB_COLUMN_CURRENT_SERIAL = "currentSerial";
     public static final String DB_COLUMN_CURRENT_TIME   = "currentTime";
@@ -53,31 +55,23 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
     public static final String DB_COLUMN_PREV_TIME      = "prevTime";
 
     Connection con = null;
-    boolean transactionCompleted = true;
-    
-    public JDBCCertRecordStoreConnection(Connection con, boolean autoCommit) throws SQLException {
+    int queryTimeout = 10;
+
+    public JDBCCertRecordStoreConnection(Connection con) throws SQLException {
         this.con = con;
-        con.setAutoCommit(autoCommit);
-        transactionCompleted = autoCommit;
+        con.setAutoCommit(true);
     }
 
+    @Override
+    public void setOperationTimeout(int queryTimeout) {
+        this.queryTimeout = queryTimeout;
+    }
+    
     @Override
     public void close() {
         
         if (con == null) {
             return;
-        }
-        
-        // the client is always responsible for properly committing
-        // all changes before closing the connection, but in case
-        // we missed it, we're going to be safe and commit all
-        // changes before closing the connection
-        
-        try {
-            commitChanges();
-        } catch (Exception ex) {
-            // error is already logged but we have to continue
-            // processing so we can close our connection
         }
         
         try {
@@ -88,57 +82,12 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
                     ", code - " + ex.getErrorCode() + ", message - " + ex.getMessage());
         }
     }
-
-    @Override
-    public void rollbackChanges() {
-        
-        if (LOG.isDebugEnabled()) {
-            LOG.debug(PREFIX + "rollback transaction changes...");
-        }
-        
-        if (transactionCompleted) {
-            return;
-        }
-        
-        try {
-            con.rollback();
-        } catch (SQLException ex) {
-            LOG.error(PREFIX + "rollbackChanges: state - " + ex.getSQLState() +
-                    ", code - " + ex.getErrorCode() + ", message - " + ex.getMessage());
-        }
-        transactionCompleted = true;
-        try {
-            con.setAutoCommit(true);
-        } catch (SQLException ex) {
-            LOG.error(PREFIX + "rollback auto-commit after failure: state - " + ex.getSQLState() +
-                    ", code - " + ex.getErrorCode() + ", message - " + ex.getMessage());
-        }
-    }
-    
-    @Override
-    public void commitChanges() {
-        
-        final String caller = "commitChanges";
-        if (transactionCompleted) {
-            return;
-        }
-        
-        try {
-            con.commit();
-            transactionCompleted = true;
-            con.setAutoCommit(true);
-        } catch (SQLException ex) {
-            LOG.error(PREFIX + "commitChanges: state - " + ex.getSQLState() +
-                    ", code - " + ex.getErrorCode() + ", message - " + ex.getMessage());
-            transactionCompleted = true;
-            throw sqlError(ex, caller);
-        }
-    }
     
     int executeUpdate(PreparedStatement ps, String caller) throws SQLException {
-    if (LOG.isDebugEnabled()) {
+        if (LOG.isDebugEnabled()) {
             LOG.debug(caller + ": " + ps.toString());
         }
+        ps.setQueryTimeout(queryTimeout);
         return ps.executeUpdate();
     }
 
@@ -146,11 +95,12 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
         if (LOG.isDebugEnabled()) {
             LOG.debug(caller + ": " + ps.toString());
         }
+        ps.setQueryTimeout(queryTimeout);
         return ps.executeQuery();
     }
     
     @Override
-    public X509CertRecord getX509CertRecord(String instanceId) {
+    public X509CertRecord getX509CertRecord(String provider, String instanceId) {
         
         final String caller = "getX509CertRecord";
 
@@ -161,8 +111,9 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
             try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
                     certRecord = new X509CertRecord();
+                    certRecord.setProvider(provider);
                     certRecord.setInstanceId(instanceId);
-                    certRecord.setCn(rs.getString(DB_COLUMN_CN));
+                    certRecord.setService(rs.getString(DB_COLUMN_SERVICE));
                     certRecord.setCurrentIP(rs.getString(DB_COLUMN_CURRENT_IP));
                     certRecord.setCurrentSerial(rs.getString(DB_COLUMN_CURRENT_SERIAL));
                     certRecord.setCurrentTime(new Date(rs.getTimestamp(DB_COLUMN_CURRENT_TIME).getTime()));
@@ -190,13 +141,14 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
             ps.setString(4, certRecord.getPrevSerial());
             ps.setTimestamp(5, new java.sql.Timestamp(certRecord.getPrevTime().getTime()));
             ps.setString(6, certRecord.getPrevIP());
-            ps.setString(7, certRecord.getInstanceId());
+            ps.setString(7, certRecord.getProvider());
+            ps.setString(8, certRecord.getInstanceId());
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
         return (affectedRows > 0);
-    } 
+    }
     
     @Override
     public boolean insertX509CertRecord(X509CertRecord certRecord) {
@@ -205,14 +157,44 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
         final String caller = "insertX509CertRecord";
 
         try (PreparedStatement ps = con.prepareStatement(SQL_INSERT_X509_RECORD)) {
-            ps.setString(1, certRecord.getInstanceId());
-            ps.setString(2, certRecord.getCn());
-            ps.setString(3, certRecord.getCurrentSerial());
-            ps.setTimestamp(4, new java.sql.Timestamp(certRecord.getCurrentTime().getTime()));
-            ps.setString(5, certRecord.getCurrentIP());
-            ps.setString(6, certRecord.getPrevSerial());
-            ps.setTimestamp(7, new java.sql.Timestamp(certRecord.getPrevTime().getTime()));
-            ps.setString(8, certRecord.getPrevIP());
+            ps.setString(1, certRecord.getProvider());
+            ps.setString(2, certRecord.getInstanceId());
+            ps.setString(3, certRecord.getService());
+            ps.setString(4, certRecord.getCurrentSerial());
+            ps.setTimestamp(5, new java.sql.Timestamp(certRecord.getCurrentTime().getTime()));
+            ps.setString(6, certRecord.getCurrentIP());
+            ps.setString(7, certRecord.getPrevSerial());
+            ps.setTimestamp(8, new java.sql.Timestamp(certRecord.getPrevTime().getTime()));
+            ps.setString(9, certRecord.getPrevIP());
+            affectedRows = executeUpdate(ps, caller);
+            
+        } catch (SQLException ex) {
+            
+            // if the record already exists, we're going to reset
+            // the state and convert this into an update operation
+            
+            if (ex.getErrorCode() == MYSQL_ER_OPTION_DUPLICATE_ENTRY) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug(caller + ": Resetting state for instance {} - {}",
+                            certRecord.getProvider(), certRecord.getInstanceId());
+                }
+                return updateX509CertRecord(certRecord);
+            }
+            
+            throw sqlError(ex, caller);
+        }
+        return (affectedRows > 0);
+    }
+    
+    @Override
+    public boolean deleteX509CertRecord(String provider, String instanceId) {
+        
+        int affectedRows = 0;
+        final String caller = "deleteX509CertRecord";
+
+        try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_X509_RECORD)) {
+            ps.setString(1, provider);
+            ps.setString(2, instanceId);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -220,49 +202,18 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
         return (affectedRows > 0);
     }
     
-    RuntimeException notFoundError(String caller, String objectType, String objectName) {
-        rollbackChanges();
-        String message = "unknown " + objectType + " - " + objectName;
-        return new ResourceException(ResourceException.NOT_FOUND, message);
-    }
-    
-    RuntimeException requestError(String caller, String message) {
-        rollbackChanges();
-        return new ResourceException(ResourceException.BAD_REQUEST, message);
-    }
-    
-    RuntimeException internalServerError(String caller, String message) {
-        rollbackChanges();
-        return new ResourceException(ResourceException.INTERNAL_SERVER_ERROR, message);
-    }
-    
     RuntimeException sqlError(SQLException ex, String caller) {
-        
-        // check to see if this is a conflict error in which case
-        // we're going to let the server to retry the caller
-        // The two SQL states that are 'retry-able' are 08S01
-        // for a communications error, and 40001 for deadlock.
-        // also check for the error code where the mysql server is
-        // in read-mode which could happen if we had a failover
-        // and the connections are still going to the old master
         
         String sqlState = ex.getSQLState();
         int code = ResourceException.INTERNAL_SERVER_ERROR;
         String msg = null;
-        if ("08S01".equals(sqlState) || "40001".equals(sqlState)) {
-            code = ResourceException.CONFLICT;
-            msg = "Concurrent update conflict, please retry your operation later.";
-        } else if (ex.getErrorCode() == MYSQL_ER_OPTION_PREVENTS_STATEMENT) {
-            code = ResourceException.GONE;
-            msg = "MySQL Database running in read-only mode";
-        } else if (ex.getErrorCode() == MYSQL_ER_OPTION_DUPLICATE_ENTRY) {
-            code = ResourceException.BAD_REQUEST;
-            msg = "Entry already exists";
+        if (ex instanceof SQLTimeoutException) {
+            code = ResourceException.SERVICE_UNAVAILABLE;
+            msg = "Statement cancelled due to timeout";
         } else {
             msg = ex.getMessage() + ", state: " + sqlState + ", code: " + ex.getErrorCode();
         }
         LOG.error("SQLError: {}", msg);
-        rollbackChanges();
         return new ResourceException(code, msg);
     }
 }

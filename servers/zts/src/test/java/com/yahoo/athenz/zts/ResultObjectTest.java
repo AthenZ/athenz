@@ -28,7 +28,7 @@ public class ResultObjectTest {
         GetDomainSignedPolicyDataResult object = new GetDomainSignedPolicyDataResult(null);
         assertFalse(object.isAsync());
 
-        try { 
+        try {
             object.done(101);
             fail();
         } catch (WebApplicationException ex) {
@@ -36,7 +36,7 @@ public class ResultObjectTest {
     }
     
     @Test
-    public void testDoneException() {
+    public void testDomainSignedPolicyDataResultException() {
         GetDomainSignedPolicyDataResult object = new GetDomainSignedPolicyDataResult(null);
         DomainSignedPolicyData data = new DomainSignedPolicyData().setKeyId("test");
         try {
@@ -47,8 +47,48 @@ public class ResultObjectTest {
     }
     
     @Test
-    public void testDoneException2() {
+    public void testDomainSignedPolicyDataResultException2() {
         GetDomainSignedPolicyDataResult object = new GetDomainSignedPolicyDataResult(null);
+        try {
+            object.done(101, "test");
+            fail();
+        } catch (WebApplicationException ex) {
+        }
+    }
+    
+    @Test
+    public void testPostInstanceeRegisterInformationResult() {
+        PostInstanceRegisterInformationResult object = new PostInstanceRegisterInformationResult(null);
+        assertFalse(object.isAsync());
+
+        try {
+            object.done(101);
+            fail();
+        } catch (WebApplicationException ex) {
+        }
+        
+        try {
+            InstanceIdentity identity = new InstanceIdentity();
+            object.done(101, identity, "/zts/v1/instance/provider/domain/service/instanceid");
+            fail();
+        } catch (WebApplicationException ex) {
+        }
+    }
+    
+    @Test
+    public void testPostInstanceeRegisterInformationResultException() {
+        PostInstanceRegisterInformationResult object = new PostInstanceRegisterInformationResult(null);
+        DomainSignedPolicyData data = new DomainSignedPolicyData().setKeyId("test");
+        try {
+            object.done(101, data, "test");
+            fail();
+        } catch (WebApplicationException ex) {
+        }
+    }
+    
+    @Test
+    public void testPostInstanceeRegisterInformationResultException2() {
+        PostInstanceRegisterInformationResult object = new PostInstanceRegisterInformationResult(null);
         try {
             object.done(101, "test");
             fail();

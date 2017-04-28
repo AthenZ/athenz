@@ -30,19 +30,27 @@ public class JDBCCertRecordStore implements CertRecordStore {
     private static final Logger LOG = LoggerFactory.getLogger(JDBCCertRecordStore.class);
 
     PoolableDataSource src;
-    
+    private int opTimeout = 10; //in seconds
+
     public JDBCCertRecordStore(PoolableDataSource src) {
         this.src = src;
     }
 
     @Override
-    public CertRecordStoreConnection getConnection(boolean autoCommit) {
+    public CertRecordStoreConnection getConnection() {
         try {
-            return new JDBCCertRecordStoreConnection(src.getConnection(), autoCommit);
+            JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(src.getConnection());
+            jdbcConn.setOperationTimeout(opTimeout);
+            return jdbcConn;
         } catch (SQLException ex) {
             LOG.error("getConnection: {}", ex.getMessage());
-            throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR, ex.getMessage());
+            throw new ResourceException(ResourceException.SERVICE_UNAVAILABLE, ex.getMessage());
         }
+    }
+    
+    @Override
+    public void setOperationTimeout(int opTimeout) {
+        this.opTimeout = opTimeout;
     }
     
     @Override

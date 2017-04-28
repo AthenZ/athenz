@@ -15,7 +15,7 @@
  */
 package com.yahoo.athenz.zts.cert;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
 
 import java.util.Date;
 
@@ -29,7 +29,8 @@ public class X509CertRecordTest {
         X509CertRecord certRecord = new X509CertRecord();
         Date now = new Date();
         
-        certRecord.setCn("cn");
+        certRecord.setService("cn");
+        certRecord.setProvider("ostk");
         certRecord.setInstanceId("instance-id");
         certRecord.setCurrentIP("current-ip");
         certRecord.setCurrentSerial("current-serial");
@@ -38,7 +39,8 @@ public class X509CertRecordTest {
         certRecord.setPrevSerial("prev-serial");
         certRecord.setPrevTime(now);
         
-        assertEquals(certRecord.getCn(), "cn");
+        assertEquals(certRecord.getService(), "cn");
+        assertEquals(certRecord.getProvider(), "ostk");
         assertEquals(certRecord.getCurrentIP(), "current-ip");
         assertEquals(certRecord.getCurrentSerial(), "current-serial");
         assertEquals(certRecord.getCurrentTime(), now);

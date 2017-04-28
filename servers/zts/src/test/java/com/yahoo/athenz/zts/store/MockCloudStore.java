@@ -22,7 +22,6 @@ import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
 import com.amazonaws.services.securitytoken.model.GetCallerIdentityRequest;
 import com.amazonaws.services.securitytoken.model.GetCallerIdentityResult;
-import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.cert.CertSigner;
 import com.yahoo.athenz.zts.AWSInstanceInformation;
 import com.yahoo.athenz.zts.AWSTemporaryCredentials;
@@ -41,15 +40,11 @@ public class MockCloudStore extends CloudStore {
     private GetCallerIdentityResult callerIdentityResult = null;
     
     public MockCloudStore() {
-        super(null, null);
+        super(null);
     }
     
     public MockCloudStore(CertSigner certSigner) {
-        super(certSigner, null);
-    }
-    
-    public MockCloudStore(CertSigner certSigner, PrivateKeyStore privateKeyStore) {
-        super(certSigner, privateKeyStore);
+        super(certSigner);
     }
 
     @Override

@@ -402,5 +402,4 @@ public class ZTSAuthorizer implements Authorizer {
         }
         return resource.substring(0, idx);
     }
-    
 }

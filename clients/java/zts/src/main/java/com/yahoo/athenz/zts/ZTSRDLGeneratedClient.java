@@ -411,7 +411,7 @@ public class ZTSRDLGeneratedClient {
         Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(info, "application/json"));
         int code = response.getStatus();
         switch (code) {
-        case 200:
+        case 201:
             if (headers != null) {
                 headers.put("location", java.util.Arrays.asList((String) response.getHeaders().getFirst("Location")));
             }

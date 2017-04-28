@@ -15,9 +15,6 @@
  */
 package com.yahoo.athenz.zts.cert;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class SSHCertificate {
 
     private String pem;

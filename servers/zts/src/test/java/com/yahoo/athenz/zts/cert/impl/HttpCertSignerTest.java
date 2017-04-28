@@ -269,4 +269,43 @@ public class HttpCertSignerTest {
         Mockito.when(response.getContentAsString()).thenReturn("invalid-json");
         assertNull(certSigner.getCACertificate());
     }
+    
+    @Test
+    public void testGenerateSSHCertificate() throws Exception {
+
+        HttpClient httpClient = Mockito.mock(HttpClient.class);
+
+        HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
+        HttpCertSigner certSigner = (HttpCertSigner) certFactory.create();
+        certSigner.setHttpClient(httpClient);
+
+        Request request = Mockito.mock(Request.class);
+        Mockito.when(httpClient.POST("https://localhost:443/certsign/v2/ssh")).thenReturn(request);
+
+        ContentResponse response = Mockito.mock(ContentResponse.class);
+        Mockito.when(request.send()).thenReturn(response);
+        Mockito.when(response.getStatus()).thenReturn(201);
+        Mockito.when(response.getContentAsString()).thenReturn("{\"pem\": \"pem-value\"}");
+
+        String pem = certSigner.generateSSHCertificate("ssh-key-req");
+        assertEquals(pem, "pem-value");
+    }
+    
+    @Test
+    public void testGetSSHCertificate() throws Exception {
+
+        HttpClient httpClient = Mockito.mock(HttpClient.class);
+
+        HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
+        HttpCertSigner certSigner = (HttpCertSigner) certFactory.create();
+        certSigner.setHttpClient(httpClient);
+
+        ContentResponse response = Mockito.mock(ContentResponse.class);
+        Mockito.when(httpClient.GET("https://localhost:443/certsign/v2/ssh")).thenReturn(response);
+        Mockito.when(response.getStatus()).thenReturn(200);
+        Mockito.when(response.getContentAsString()).thenReturn("{\"certs\": [{\"type\":\"user\",\"cn\":\"name\",\"pem\":\"pem-value\"}]}");
+
+        String pem = certSigner.getSSHCertificate("user");
+        assertNotNull(pem);
+    }
 }

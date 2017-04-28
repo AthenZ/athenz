@@ -15,14 +15,24 @@
  */
 package com.yahoo.athenz.zts.cert;
 
-public interface CertRecordStore {
+import org.testng.annotations.Test;
+import static org.testng.Assert.*;
 
-    // get a new connection to the cert record store
-    CertRecordStoreConnection getConnection();
-    
-    // operation timeout in seconds
-    void setOperationTimeout(int opTimeout);
-    
-    // clear all connections to the cert record store
-    void clearConnections();
+public class SSHCertificateTest {
+
+    @Test
+    public void testSSHCertificate() {
+        
+        SSHCertificate cert = new SSHCertificate();
+        assertNotNull(cert);
+        assertNull(cert.getCn());
+        assertNull(cert.getPem());
+        assertNull(cert.getType());
+        
+        SSHCertificate cert2 = new SSHCertificate().setCn("cn")
+                .setPem("pem").setType("type");
+        assertEquals(cert2.getCn(), "cn");
+        assertEquals(cert2.getPem(), "pem");
+        assertEquals(cert2.getType(), "type");
+    }
 }
