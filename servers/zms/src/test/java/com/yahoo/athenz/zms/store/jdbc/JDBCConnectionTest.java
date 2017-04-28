@@ -5115,7 +5115,8 @@ public class JDBCConnectionTest extends TestCase {
             .thenReturn(true)
             .thenReturn(true)
             .thenReturn(true)
-            .thenReturn(false) // up to here trusted roles
+            .thenReturn(false) // up to here standard trusted roles
+            .thenReturn(false) // up to here wildcard trusted roles
             .thenReturn(true)
             .thenReturn(false); // up to here is aws domains
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_NAME))
