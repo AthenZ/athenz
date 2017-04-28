@@ -213,13 +213,19 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN role ON role_member.role_id=role.role_id";
     private static final String SQL_LIST_ROLE_PRINCIPALS_YBY_ONLY = " WHERE principal.name LIKE 'yby.%';";
     private static final String SQL_LIST_ROLE_PRINCIPALS_QUERY = " WHERE principal.name=?;";
-    private static final String SQL_LIST_TRUSTED_ROLES = "SELECT role.domain_id, role.name, "
+    private static final String SQL_LIST_TRUSTED_STANDARD_ROLES = "SELECT role.domain_id, role.name, "
             + "policy.domain_id AS assert_domain_id, assertion.role FROM role "
             + "JOIN domain ON domain.domain_id=role.domain_id "
-            + "JOIN assertion ON (assertion.resource=CONCAT(domain.name, \":role.\", role.name) OR assertion.resource=CONCAT(\"*:role.\", role.name)) "
+            + "JOIN assertion ON assertion.resource=CONCAT(domain.name, \":role.\", role.name) "
             + "JOIN policy ON policy.policy_id=assertion.policy_id "
             + "WHERE assertion.action='assume_role';";
-
+    private static final String SQL_LIST_TRUSTED_WILDCARD_ROLES = "SELECT role.domain_id, role.name, "
+            + "policy.domain_id AS assert_domain_id, assertion.role FROM role "
+            + "JOIN domain ON domain.domain_id=role.domain_id "
+            + "JOIN assertion ON assertion.resource=CONCAT(\"*:role.\", role.name) "
+            + "JOIN policy ON policy.policy_id=assertion.policy_id "
+            + "WHERE assertion.action='assume_role';";
+    
     private static final String CACHE_DOMAIN    = "d:";
     private static final String CACHE_ROLE      = "r:";
     private static final String CACHE_POLICY    = "p:";
@@ -2577,10 +2583,10 @@ public class JDBCConnection implements ObjectStoreConnection {
         return rolePrincipals;
     }
     
-    Map<String, List<String>> getTrustedRoles(String caller) {
+    void getTrustedSubTypeRoles(String sqlCommand, Map<String, List<String>> trustedRoles,
+            String caller) {
         
-        Map<String, List<String>> trustedRoles = new HashMap<>();
-        try (PreparedStatement ps = con.prepareStatement(SQL_LIST_TRUSTED_ROLES)) {
+        try (PreparedStatement ps = con.prepareStatement(sqlCommand)) {
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     String trustDomainId = rs.getString(ZMSConsts.DB_COLUMN_DOMAIN_ID);
@@ -2596,18 +2602,19 @@ public class JDBCConnection implements ObjectStoreConnection {
                     }
                     
                     String tRoleName = roleIndex(trustDomainId, trustRoleName);
-                    
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug(caller + ": adding trusted role " + tRoleName + " for " + index);
-                    }
-                    
                     roles.add(tRoleName);
                 }
             }
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
+    }
+    
+    Map<String, List<String>> getTrustedRoles(String caller) {
         
+        Map<String, List<String>> trustedRoles = new HashMap<>();
+        getTrustedSubTypeRoles(SQL_LIST_TRUSTED_STANDARD_ROLES, trustedRoles, caller);
+        getTrustedSubTypeRoles(SQL_LIST_TRUSTED_WILDCARD_ROLES, trustedRoles, caller);
         return trustedRoles;
     }
     
