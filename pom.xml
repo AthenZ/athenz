@@ -69,7 +69,7 @@
   </ciManagement>
 
   <properties>
-    <jetty.version>9.3.18.v20170406</jetty.version>
+    <jetty.version>9.4.4.v20170414</jetty.version>
     <jersey.version>2.23.2</jersey.version>
     <jackson.version>2.5.4</jackson.version>
     <bouncycastle.version>1.55</bouncycastle.version>
