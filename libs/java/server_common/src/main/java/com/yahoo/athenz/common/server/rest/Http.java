@@ -21,12 +21,17 @@ import java.security.cert.X509Certificate;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
 
 public class Http {
+
+    private static final Logger LOG = LoggerFactory.getLogger(Http.class);
 
     public static final String INVALID_CRED_ATTR = "com.yahoo.athenz.auth.credential.error";
     public static final String LOOPBACK_ADDRESS  = "127.0.0.1";
@@ -88,6 +93,7 @@ public class Http {
     public static Principal authenticate(HttpServletRequest request,
             AuthorityList authorities) {
         if (authorities == null) {
+            LOG.error("authenticate: No authorites configured");
             throw new ResourceException (ResourceException.INTERNAL_SERVER_ERROR,
                     "No authorities configured");
         }
@@ -130,8 +136,15 @@ public class Http {
         
         // set the error message as a request attribute - if our error string
         // is empty then we had no credentials provided
-        request.setAttribute(INVALID_CRED_ATTR,
-                authErrMsg.length() > 0 ? authErrMsg.toString() : "No credentials provided");
+        
+        if (authErrMsg.length() > 0) {
+            request.setAttribute(INVALID_CRED_ATTR, authErrMsg.toString());
+            LOG.error("authenticate: {}", authErrMsg.toString());
+        } else {
+            request.setAttribute(INVALID_CRED_ATTR, "No credentials provided");
+            LOG.error("authenticate: No credentials provided");
+        }
+
         throw new ResourceException (ResourceException.UNAUTHORIZED, "Invalid credentials");
     }
 
