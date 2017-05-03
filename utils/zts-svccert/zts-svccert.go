@@ -24,7 +24,7 @@ type signer struct {
 
 func main() {
 
-	var ztsUrl, privateKeyFile, domain, service, keyVersion, certFile, dnsDomain string
+	var ztsUrl, privateKeyFile, domain, service, keyVersion, certFile, dnsDomain, hdr string
 	flag.StringVar(&certFile, "cert-file", "", "output certificate file")
 	flag.StringVar(&privateKeyFile, "private-key", "", "private key file")
 	flag.StringVar(&domain, "domain", "", "domain of service")
