@@ -22,7 +22,7 @@ func main() {
 	flag.Parse()
 
 	if domain == "" || ntoken == "" || ztsUrl == "" {
-		log.Fatalln("usage: zts-roletoken -domain <domain> -role <role> -ntoken <ntoken> -zts <ZTS url>")
+		log.Fatalln("usage: zts-roletoken -domain <domain> [-role <role>] -ntoken <ntoken> -zts <zts-server-url> [-hdr <auth-header-name>]")
 	}
 
 	// use the ntoken to talk to Athenz
