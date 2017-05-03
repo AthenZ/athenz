@@ -18,8 +18,6 @@ import (
 	"github.com/yahoo/athenz/libs/go/zmssvctoken"
 )
 
-const authHeader = "Athenz-Principal-Auth"
-
 type signer struct {
 	key crypto.Signer
 }
@@ -34,6 +32,7 @@ func main() {
 	flag.StringVar(&keyVersion, "key-version", "", "key version")
 	flag.StringVar(&ztsUrl, "zts", "", "url of the ZTS Service")
 	flag.StringVar(&dnsDomain, "dns-domain", "", "dns domain suffix to be included in the csr")
+	flag.StringVar(&hdr, "hdr", "Athenz-Principal-Auth", "Header name")
 	flag.Parse()
 
 	if privateKeyFile == "" || domain == "" || service == "" ||
@@ -68,7 +67,7 @@ func main() {
 
 	// use the ntoken to talk to Athenz
 	client := zts.NewClient(ztsUrl, nil)
-	client.AddCredentials(authHeader, ntoken)
+	client.AddCredentials(hdr, ntoken)
 
 	// get our private key signer for csr
 	pkSigner, err := newSigner(bytes)
