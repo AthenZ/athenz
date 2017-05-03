@@ -123,20 +123,6 @@ public class InstanceProvider {
         }
         host = host.toLowerCase();
         
-        boolean valid = false;
-        for (String endpoint : providerEndpoints) {
-            valid = host.endsWith(endpoint);
-            if (valid) {
-                break;
-            }
-        }
-        
-        if (!valid) {
-            LOGGER.error("verifyProviderEndpoint: Provider host {} does not match with any of the configured domains",
-                    host);
-            return false;
-        }
-            
         String scheme = uri.getScheme();
         if (scheme == null) {
             LOGGER.error("verifyProviderEndpoint: Provider endpoint {} has no scheme component",
@@ -150,6 +136,24 @@ public class InstanceProvider {
             return false;
         }
         
+        if (providerEndpoints.isEmpty()) {
+            return true;
+        }
+        
+        boolean valid = false;
+        for (String endpoint : providerEndpoints) {
+            valid = host.endsWith(endpoint);
+            if (valid) {
+                break;
+            }
+        }
+        
+        if (!valid) {
+            LOGGER.error("verifyProviderEndpoint: Provider host {} does not match with any of the configured domains",
+                    host);
+            return false;
+        }
+
         return true;
     }
 }

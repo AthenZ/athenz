@@ -3250,14 +3250,31 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             LOG.debug("verifyProviderEndpoint: host: " + uri.getHost() + " scheme: " + uri.getScheme());
         }
         
-        // we're going to allow localhost as a special case since
-        // that's often used for dev testing
+        String scheme = uri.getScheme();
+        if (scheme == null) {
+            return false;
+        }
+        
+        scheme = scheme.toLowerCase();
+        if (!(scheme.equalsIgnoreCase(ZMSConsts.HTTP_SCHEME) || scheme.equalsIgnoreCase(ZMSConsts.HTTPS_SCHEME))) {
+            return false;
+        }
         
         String host = uri.getHost();
         if (host == null) {
             return false;
         }
         host = host.toLowerCase();
+        
+        // if we have no endpoint configured then we should
+        // allow all hostnames
+        
+        if (providerEndpoints == null || providerEndpoints.isEmpty()) {
+            return true;
+        }
+        
+        // we're going to allow localhost as a special case since
+        // that's often used for dev testing
         
         boolean valid = host.equals(ZMSConsts.LOCALHOST);
         if (!valid && providerEndpoints != null) {
@@ -3268,16 +3285,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 }
             }
         }
-        
-        if (valid) {
-            String scheme = uri.getScheme();
-            if (scheme == null) {
-                return false;
-            }
-            valid = scheme.equalsIgnoreCase(ZMSConsts.HTTP_SCHEME) ||
-                    scheme.equalsIgnoreCase(ZMSConsts.HTTPS_SCHEME);
-        }
-        
+
         return valid;
     }
     
@@ -3356,7 +3364,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (!verifyProviderEndpoint(service.getProviderEndpoint())) {
             throw ZMSUtils.requestError("putServiceIdentity: Invalid endpoint: "
-                + service.getProviderEndpoint() + " - must be http/https and in yahoo domain", caller);
+                + service.getProviderEndpoint() + " - must be http(s) and in configured domain", caller);
         }
         
         dbService.executePutServiceIdentity(ctx, domainName, serviceName, service, auditRef, caller);
