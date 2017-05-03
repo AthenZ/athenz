@@ -20,7 +20,7 @@ before_install:
 script: mvn install -DargLine="-Dlogback.configurationFile=src/test/resources/travis_logback.xml"
 after_success:
 - test "${TRAVIS_PULL_REQUEST}" == "false" && test "${TRAVIS_TAG}" != "" && ./travis/publish_to_bintray.sh
-  && ./aws/create_aws_ami.sh && ./docker/publish_docker.sh
+  && ./docker/publish_docker.sh && ./aws/create_aws_ami.sh
 env:
   global:
   - secure: fqS3OabyL+omMi6eCwajizY6uVq9sXVFmpECPtAfMNsTDh3mh4I2zo6puSZszMWp1+Oc9I1ZO1TvJjrrbEuhfuONT7SMd8U2L8jmtXXLwv1AKn/3IpmAF9PvU723hO9oO5SZDU79dRrlaEDRnoJHeJh1PG2j2vtCEGNZCZ2btNGP5g00yHcMjMUU5kSI113iuRMQLyZuT7WaoCJO8GXXJfTx37seiW4c77Kj+1J/icVhcx4eF/ZOQRXgGAkZo7sPcmuKmBb95eUjgx3guiK2M1pU+oaivaOp1Qm4mkVE9W9p7zYThmrTvIElFHXbGEI9ATDYC+lhi764hj9IIicKF4c6Nghtl6rlrazbJvxYPbyMbURjnVEmzUFn0hhq8vwwBsoqbxJ07Vn0IAoYaAWq0pP9wWUuTYq0yD/BsiFbek4ewwki2QXjr5ZpMFiRymnyn4dqcKXApHL6wDSMmJZ/9ZSadHkOF4b4T3exNd4h6JA6OioErstlPimPjsi7rtR2IkedOYwcYmUKsJ2Wn5fOfNxI6Rg9HfGrtlM1wiIIMbxTxJduwPluuqsPQsu2gHPEXrjqyyE+A9fP1fQPF41vZXnSY+7iCzPn/bZsjSUohHS9GJQvfQ2Np6r2zAbhBo9zFaP7PVBh6IGpAMWYIFg7CQportIjv46pn6cP2e1MMhc=
