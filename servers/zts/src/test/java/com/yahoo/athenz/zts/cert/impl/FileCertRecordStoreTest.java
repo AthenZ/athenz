@@ -15,38 +15,41 @@
  */
 package com.yahoo.athenz.zts.cert.impl;
 
-import java.sql.Connection;
-import java.sql.SQLException;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
-import org.mockito.Mockito;
 import org.testng.annotations.Test;
-
-import com.yahoo.athenz.common.server.db.PoolableDataSource;
 
 import static org.testng.Assert.*;
 
-public class JDBCObjectStoreTest {
+public class FileCertRecordStoreTest {
 
     @Test
-    public void testGetConnection() throws SQLException {
-        PoolableDataSource mockDataSrc = Mockito.mock(PoolableDataSource.class);
-        Connection mockConn = Mockito.mock(Connection.class);
-        Mockito.doReturn(mockConn).when(mockDataSrc).getConnection();
-        JDBCCertRecordStore store = new JDBCCertRecordStore(mockDataSrc);
+    public void testGetConnection() {
+        FileCertRecordStore store = new FileCertRecordStore(new File("/tmp"));
         assertNotNull(store.getConnection());
         store.clearConnections();
     }
     
     @Test
-    public void testGetConnectionException() throws SQLException {
-        PoolableDataSource mockDataSrc = Mockito.mock(PoolableDataSource.class);
-        Mockito.doThrow(new SQLException()).when(mockDataSrc).getConnection();
+    public void testGetStoreException() {
+        
+        File file = new File("/tmp", "zts-cert-file");
         try {
-            JDBCCertRecordStore store = new JDBCCertRecordStore(mockDataSrc);
-            store.getConnection();
+            FileWriter fileWriter = new FileWriter(file);
+            fileWriter.write("test");
+            fileWriter.close();
+        } catch (IOException e) {
+        }
+        
+        FileCertRecordStore store = null;
+        try {
+            store = new FileCertRecordStore(file);
             fail();
         } catch (RuntimeException ex) {
             assertTrue(true);
         }
+        assertNull(store);
     }
 }

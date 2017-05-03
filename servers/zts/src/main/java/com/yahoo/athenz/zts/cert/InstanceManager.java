@@ -1,5 +1,6 @@
 package com.yahoo.athenz.zts.cert;
 
+import java.io.File;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
@@ -18,6 +19,8 @@ import com.yahoo.athenz.common.server.db.DataSourceFactory;
 import com.yahoo.athenz.common.server.db.PoolableDataSource;
 import com.yahoo.athenz.zts.InstanceIdentity;
 import com.yahoo.athenz.zts.ZTSConsts;
+import com.yahoo.athenz.zts.ZTSImpl;
+import com.yahoo.athenz.zts.cert.impl.FileCertRecordStore;
 import com.yahoo.athenz.zts.cert.impl.JDBCCertRecordStore;
 
 public class InstanceManager {
@@ -40,14 +43,20 @@ public class InstanceManager {
     void loadCertificateObjectStore(PrivateKeyStore keyStore) {
         
         String jdbcStore = System.getProperty(ZTSConsts.ZTS_PROP_CERT_JDBC_STORE);
-        if (jdbcStore == null || !jdbcStore.startsWith("jdbc:")) {
-            return;
+        if (jdbcStore != null && jdbcStore.startsWith("jdbc:")) {
+            String jdbcUser = System.getProperty(ZTSConsts.ZTS_PROP_CERT_JDBC_USER);
+            String password = System.getProperty(ZTSConsts.ZTS_PROP_CERT_JDBC_PASSWORD, "");
+            String jdbcPassword = keyStore.getApplicationSecret(JDBC, password);
+            PoolableDataSource src = DataSourceFactory.create(jdbcStore, jdbcUser, jdbcPassword);
+            certStore = new JDBCCertRecordStore(src);
+        } else {
+            String homeDir = System.getProperty(ZTSConsts.ZTS_PROP_CERT_FILE_STORE_PATH,
+                    ZTSImpl.getRootDir() + "/var/zts_server");
+            String fileDirName = System.getProperty(ZTSConsts.ZTS_PROP_CERT_FILE_STORE_NAME,
+                    "zts_cert_records");
+            String path = homeDir + File.separator + fileDirName;
+            certStore = new FileCertRecordStore(new File(path));
         }
-        String jdbcUser = System.getProperty(ZTSConsts.ZTS_PROP_CERT_JDBC_USER);
-        String password = System.getProperty(ZTSConsts.ZTS_PROP_CERT_JDBC_PASSWORD, "");
-        String jdbcPassword = keyStore.getApplicationSecret(JDBC, password);
-        PoolableDataSource src = DataSourceFactory.create(jdbcStore, jdbcUser, jdbcPassword);
-        certStore = new JDBCCertRecordStore(src);
         
         // default timeout in seconds for certificate store commands
         
