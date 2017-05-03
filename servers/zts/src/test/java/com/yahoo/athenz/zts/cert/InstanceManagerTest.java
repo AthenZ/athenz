@@ -1,5 +1,6 @@
 package com.yahoo.athenz.zts.cert;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -10,6 +11,7 @@ import java.util.Map;
 
 import org.mockito.Matchers;
 import org.mockito.Mockito;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -20,9 +22,17 @@ import static org.testng.Assert.assertNotNull;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.server.cert.CertSigner;
 import com.yahoo.athenz.zts.InstanceIdentity;
+import com.yahoo.athenz.zts.ZTSConsts;
+import com.yahoo.athenz.zts.store.file.ZMSFileChangeLogStore;
 
 public class InstanceManagerTest {
 
+    @BeforeMethod
+    public void setup() {
+        ZMSFileChangeLogStore.deleteDirectory(new File("/tmp/zts_server_cert_store"));
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_FILE_STORE_PATH, "/tmp/zts_server_cert_store");
+    }
+    
     @Test
     public void testGenerateIdentity() {
         
@@ -107,6 +117,7 @@ public class InstanceManagerTest {
     @Test
     public void testGetX509CertRecordNoCertStore() {
         InstanceManager instance = new InstanceManager(null);
+        instance.setCertStore(null);
         X509CertRecord certRecord = instance.getX509CertRecord("ostk", (X509Certificate) null);
         assertNull(certRecord);
     }
@@ -168,6 +179,7 @@ public class InstanceManagerTest {
     @Test
     public void testUpdateX509CertRecordNoCertStore() {
         InstanceManager instance = new InstanceManager(null);
+        instance.setCertStore(null);
         X509CertRecord x509CertRecord = new X509CertRecord();
         boolean result = instance.updateX509CertRecord(x509CertRecord);
         assertFalse(result);
@@ -205,6 +217,7 @@ public class InstanceManagerTest {
     @Test
     public void testInsertX509CertRecordNoCertStore() {
         InstanceManager instance = new InstanceManager(null);
+        instance.setCertStore(null);
         X509CertRecord x509CertRecord = new X509CertRecord();
         boolean result = instance.insertX509CertRecord(x509CertRecord);
         assertFalse(result);
@@ -241,6 +254,7 @@ public class InstanceManagerTest {
     @Test
     public void testDeleteX509CertRecordNoCertStore() {
         InstanceManager instance = new InstanceManager(null);
+        instance.setCertStore(null);
         boolean result = instance.deleteX509CertRecord("provider", "instance");
         assertFalse(result);
     }

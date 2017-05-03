@@ -39,7 +39,7 @@ import com.yahoo.athenz.zts.cert.X509CertRecord;
 
 import junit.framework.TestCase;
 
-public class JDBCConnectionTest extends TestCase {
+public class JDBCCertRecordStoreConnectionTest extends TestCase {
     
     @Mock PoolableDataSource mockDataSrc;
     @Mock Statement mockStmt;

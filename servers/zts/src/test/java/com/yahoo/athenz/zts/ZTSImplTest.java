@@ -220,6 +220,9 @@ public class ZTSImplTest {
                 "src/test/resources/private_encrypted.key");
         System.setProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_PASSWORD, "athenz");
         
+        ZMSFileChangeLogStore.deleteDirectory(new File("/tmp/zts_server_cert_store"));
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_FILE_STORE_PATH, "/tmp/zts_server_cert_store");
+        
         store = new DataStore(structStore, cloudStore);
         zts = new ZTSImpl(cloudStore, store);
         ZTSImpl.serverHostName = "localhost";
