@@ -27,7 +27,7 @@ cp ./assembly/utils/target/athenz-utils-*-bin.tar.gz ${PROVISION}/
 PACKER_DIR=/usr/local/bin
 mkdir -p ${PACKER_DIR} && cd ${PACKER_DIR}
 sudo wget https://releases.hashicorp.com/packer/0.12.1/packer_0.12.1_linux_amd64.zip
-sudo unzip packer_0.12.1_linux_amd64.zip
+sudo unzip -o packer_0.12.1_linux_amd64.zip
 cd $CUR_DIR
 
 #run packer
