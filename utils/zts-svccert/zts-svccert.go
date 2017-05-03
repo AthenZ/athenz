@@ -37,7 +37,7 @@ func main() {
 
 	if privateKeyFile == "" || domain == "" || service == "" ||
 		keyVersion == "" || ztsUrl == "" || dnsDomain == "" {
-		log.Fatalln("usage: zts-svccert -domain <domain> -service <service> -private-key <key-file> -key-version <version> -zts <zts-server-url> -dns-domain <dns-domain> [-cert-file <output-cert-file>]")
+		log.Fatalln("usage: zts-svccert -domain <domain> -service <service> -private-key <key-file> -key-version <version> -zts <zts-server-url> -dns-domain <dns-domain> [-cert-file <output-cert-file>] [-hdr <auth-header-name>]")
 	}
 
 	// load private key
