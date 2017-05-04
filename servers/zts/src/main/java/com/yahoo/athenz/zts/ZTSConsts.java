@@ -78,7 +78,8 @@ public final class ZTSConsts {
     public static final String ZTS_CERT_INSTANCE_ID  = ".instanceid.athenz.";
     public static final String ZTS_CERT_DNS_SUFFIX   = ".athenz.cloud";
     public static final String ZTS_ACTION_LAUNCH     = "launch";
-    public static final String ZTS_RESOURCE_INSTANCE = "sys.provider:instance";
+    public static final String ZTS_RESOURCE_INSTANCE = "sys.auth:instance";
+    public static final String ZTS_RESOURCE_DNS      = "sys.auth:dns.";
     
     public static final String ZTS_PROP_AWS_ENABLED              = "athenz.zts.aws_enabled";
     public static final String ZTS_PROP_AWS_BUCKET_NAME          = "athenz.zts.aws_bucket_name";

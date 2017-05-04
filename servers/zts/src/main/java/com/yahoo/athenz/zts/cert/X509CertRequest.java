@@ -170,7 +170,7 @@ public class X509CertRequest {
         // been authorized to be used by the given provider
         
         if (dnsSuffix != null) {
-            final String dnsResource = "sys.provider:dns." + dnsSuffix;
+            final String dnsResource = ZTSConsts.ZTS_RESOURCE_DNS + dnsSuffix;
             if (!authorizer.access(ZTSConsts.ZTS_ACTION_LAUNCH, dnsResource, providerService, null)) {
                 errorMsg.append("Provider '").append(providerService.getFullName())
                     .append("' not authorized to handle ").append(dnsSuffix).append(" dns entries");

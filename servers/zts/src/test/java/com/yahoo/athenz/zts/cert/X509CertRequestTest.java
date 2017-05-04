@@ -223,7 +223,7 @@ public class X509CertRequestTest {
         
         Authorizer authorizer = Mockito.mock(Authorizer.class);
         Principal provider = Mockito.mock(Principal.class);
-        Mockito.when(authorizer.access("launch", "sys.provider:dns.ostk.athenz.cloud", provider, (String) null))
+        Mockito.when(authorizer.access("launch", "sys.auth:dns.ostk.athenz.cloud", provider, (String) null))
             .thenReturn(false);
         
         StringBuilder errorMsg = new StringBuilder(256);
@@ -242,7 +242,7 @@ public class X509CertRequestTest {
         
         Authorizer authorizer = Mockito.mock(Authorizer.class);
         Principal provider = Mockito.mock(Principal.class);
-        Mockito.when(authorizer.access("launch", "sys.provider:dns.ostk.athenz.cloud", provider, (String) null))
+        Mockito.when(authorizer.access("launch", "sys.auth:dns.ostk.athenz.cloud", provider, (String) null))
             .thenReturn(true);
         
         StringBuilder errorMsg = new StringBuilder(256);
