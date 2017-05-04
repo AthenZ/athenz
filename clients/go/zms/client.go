@@ -441,7 +441,7 @@ func (client ZMSClient) PostUserDomain(name SimpleName, auditRef string, detail 
 	}
 }
 
-func (client ZMSClient) DeleteTopLevelDomain(name DomainName, auditRef string) error {
+func (client ZMSClient) DeleteTopLevelDomain(name SimpleName, auditRef string) error {
 	headers := map[string]string{
 		"Y-Audit-Ref": auditRef,
 	}
@@ -471,7 +471,7 @@ func (client ZMSClient) DeleteTopLevelDomain(name DomainName, auditRef string) e
 	}
 }
 
-func (client ZMSClient) DeleteSubDomain(parent DomainName, name DomainName, auditRef string) error {
+func (client ZMSClient) DeleteSubDomain(parent DomainName, name SimpleName, auditRef string) error {
 	headers := map[string]string{
 		"Y-Audit-Ref": auditRef,
 	}
