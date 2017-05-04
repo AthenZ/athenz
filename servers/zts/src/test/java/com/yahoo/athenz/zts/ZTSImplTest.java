@@ -4486,7 +4486,7 @@ public class ZTSImplTest {
         List<Role> roles = new ArrayList<>();
 
         Role role = new Role();
-        role.setName(generateRoleName("sys.provider", "providers"));
+        role.setName(generateRoleName("sys.auth", "providers"));
         List<RoleMember> members = new ArrayList<>();
         members.add(new RoleMember().setMemberName("athenz.provider"));
         role.setRoleMembers(members);
@@ -4496,25 +4496,25 @@ public class ZTSImplTest {
         
         com.yahoo.athenz.zms.Policy policy = new com.yahoo.athenz.zms.Policy();
         com.yahoo.athenz.zms.Assertion assertion1 = new com.yahoo.athenz.zms.Assertion();
-        assertion1.setResource("sys.provider:instance");
+        assertion1.setResource("sys.auth:instance");
         assertion1.setAction("launch");
-        assertion1.setRole("sys.provider:role.providers");
+        assertion1.setRole("sys.auth:role.providers");
         
         com.yahoo.athenz.zms.Assertion assertion2 = new com.yahoo.athenz.zms.Assertion();
-        assertion2.setResource("sys.provider:dns.ostk.athenz.cloud");
+        assertion2.setResource("sys.auth:dns.ostk.athenz.cloud");
         assertion2.setAction("launch");
-        assertion2.setRole("sys.provider:role.providers");
+        assertion2.setRole("sys.auth:role.providers");
         
         List<com.yahoo.athenz.zms.Assertion> assertions = new ArrayList<>();
         assertions.add(assertion1);
         assertions.add(assertion2);
         
         policy.setAssertions(assertions);
-        policy.setName("sys.provider:policy.providers");
+        policy.setName("sys.auth:policy.providers");
         policies.add(policy);
         
         com.yahoo.athenz.zms.DomainPolicies domainPolicies = new com.yahoo.athenz.zms.DomainPolicies();
-        domainPolicies.setDomain("sys.provider");
+        domainPolicies.setDomain("sys.auth");
         domainPolicies.setPolicies(policies);
         
         com.yahoo.athenz.zms.SignedPolicies signedPolicies = new com.yahoo.athenz.zms.SignedPolicies();
@@ -4523,7 +4523,7 @@ public class ZTSImplTest {
         signedPolicies.setKeyId("0");
         
         DomainData domain = new DomainData();
-        domain.setName("sys.provider");
+        domain.setName("sys.auth");
         domain.setRoles(roles);
         domain.setPolicies(signedPolicies);
         domain.setModified(Timestamp.fromCurrentTime());
