@@ -468,7 +468,7 @@ func init() {
 
 	rDeleteTopLevelDomain := rdl.NewResourceBuilder("TopLevelDomain", "DELETE", "/domain/{name}")
 	rDeleteTopLevelDomain.Comment("Delete the specified domain.  This is a privileged action for the \"sys.auth\" administrators. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
-	rDeleteTopLevelDomain.Input("name", "DomainName", true, "", "", false, nil, "name of the domain to be deleted")
+	rDeleteTopLevelDomain.Input("name", "SimpleName", true, "", "", false, nil, "name of the domain to be deleted")
 	rDeleteTopLevelDomain.Input("auditRef", "String", false, "", "Y-Audit-Ref", false, nil, "Audit param required(not empty) if domain auditEnabled is true.")
 	rDeleteTopLevelDomain.Auth("delete", "sys.auth:domain", false, "")
 	rDeleteTopLevelDomain.Expected("NO_CONTENT")
@@ -481,7 +481,7 @@ func init() {
 	rDeleteSubDomain := rdl.NewResourceBuilder("SubDomain", "DELETE", "/subdomain/{parent}/{name}")
 	rDeleteSubDomain.Comment("Delete the specified subdomain. Caller must have domain delete permissions in parent. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
 	rDeleteSubDomain.Input("parent", "DomainName", true, "", "", false, nil, "name of the parent domain")
-	rDeleteSubDomain.Input("name", "DomainName", true, "", "", false, nil, "name of the subdomain to be deleted")
+	rDeleteSubDomain.Input("name", "SimpleName", true, "", "", false, nil, "name of the subdomain to be deleted")
 	rDeleteSubDomain.Input("auditRef", "String", false, "", "Y-Audit-Ref", false, nil, "Audit param required(not empty) if domain auditEnabled is true.")
 	rDeleteSubDomain.Auth("delete", "{parent}:domain", false, "")
 	rDeleteSubDomain.Expected("NO_CONTENT")

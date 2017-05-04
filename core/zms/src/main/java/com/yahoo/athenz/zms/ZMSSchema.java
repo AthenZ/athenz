@@ -425,7 +425,7 @@ public class ZMSSchema {
 
         sb.resource("TopLevelDomain", "DELETE", "/domain/{name}")
             .comment("Delete the specified domain.  This is a privileged action for the \"sys.auth\" administrators. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
-            .pathParam("name", "DomainName", "name of the domain to be deleted")
+            .pathParam("name", "SimpleName", "name of the domain to be deleted")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .auth("delete", "sys.auth:domain")
             .expected("NO_CONTENT")
@@ -441,7 +441,7 @@ public class ZMSSchema {
         sb.resource("SubDomain", "DELETE", "/subdomain/{parent}/{name}")
             .comment("Delete the specified subdomain. Caller must have domain delete permissions in parent. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
             .pathParam("parent", "DomainName", "name of the parent domain")
-            .pathParam("name", "DomainName", "name of the subdomain to be deleted")
+            .pathParam("name", "SimpleName", "name of the subdomain to be deleted")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .auth("delete", "{parent}:domain")
             .expected("NO_CONTENT")

@@ -122,7 +122,7 @@ resource Domain POST "/userdomain/{name}" {
 //Upon successful completion of this delete request, the server will return NO_CONTENT status
 //code without any data (no object will be returned).
 resource TopLevelDomain DELETE "/domain/{name}" {
-    DomainName name; //name of the domain to be deleted
+    SimpleName name; //name of the domain to be deleted
     String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     authorize ("delete", "sys.auth:domain");
     expected NO_CONTENT;
@@ -139,7 +139,7 @@ resource TopLevelDomain DELETE "/domain/{name}" {
 //code without any data (no object will be returned).
 resource SubDomain DELETE "/subdomain/{parent}/{name}" {
     DomainName parent; //name of the parent domain
-    DomainName name; //name of the subdomain to be deleted
+    SimpleName name; //name of the subdomain to be deleted
     String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     authorize ("delete", "{parent}:domain");
     expected NO_CONTENT;
