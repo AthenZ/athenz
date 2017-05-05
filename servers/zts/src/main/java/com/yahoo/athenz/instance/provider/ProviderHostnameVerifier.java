@@ -16,21 +16,20 @@
 package com.yahoo.athenz.instance.provider;
 
 import java.security.cert.Certificate;
-import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
-import java.util.Collection;
-import java.util.List;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 
+import com.yahoo.athenz.auth.util.Crypto;
+
 public class ProviderHostnameVerifier implements HostnameVerifier {
 
-    String dnsHostname = null;
+    String serviceName = null;
     
-    public ProviderHostnameVerifier(String hostname) {
-        dnsHostname = hostname;
+    public ProviderHostnameVerifier(String serviceName) {
+        this.serviceName = serviceName;
     }
     
     @Override
@@ -46,44 +45,11 @@ public class ProviderHostnameVerifier implements HostnameVerifier {
         }
         
         for (Certificate cert : certs) {
-            try {
-                X509Certificate x509Cert = (X509Certificate) cert;
-                if (matchDnsHostname(x509Cert.getSubjectAlternativeNames())) {
-                    return true;
-                }
-            } catch (CertificateParsingException e) {
+            final X509Certificate x509Cert = (X509Certificate) cert;
+            if (serviceName.equals(Crypto.extractX509CertCommonName(x509Cert))) {
+                return true;
             }
         }
-        return false;
-    }
-    
-    boolean matchDnsHostname(Collection<List<?>> altNames) {
-        
-        if (altNames == null) {
-            return false;
-        }
-        
-        // GeneralName ::= CHOICE {
-        //     otherName                       [0]     OtherName,
-        //     rfc822Name                      [1]     IA5String,
-        //     dNSName                         [2]     IA5String,
-        //     x400Address                     [3]     ORAddress,
-        //     directoryName                   [4]     Name,
-        //     ediPartyName                    [5]     EDIPartyName,
-        //     uniformResourceIdentifier       [6]     IA5String,
-        //     iPAddress                       [7]     OCTET STRING,
-        //     registeredID                    [8]     OBJECT IDENTIFIER}
-        
-        for (@SuppressWarnings("rawtypes") List item : altNames) {
-            Integer type = (Integer) item.get(0);
-            if (type == 2) {
-                String dns = (String) item.get(1);
-                if (dnsHostname.equalsIgnoreCase(dns)) {
-                    return true;
-                }
-            }
-        }
-        
         return false;
     }
 }
