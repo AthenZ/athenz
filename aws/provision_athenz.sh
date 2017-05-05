@@ -9,19 +9,19 @@ sudo cp -rp /tmp/provision /opt/athenz
 
 echo "deploying athenz-utils"
 cd /opt/athenz
-tar xvfz athenz-utils*.tar.gz
+tar xfz athenz-utils*.tar.gz
 
 echo "provisioning zms"
-tar xvfz athenz-zms*.tar.gz
+tar xfz athenz-zms*.tar.gz
 
 echo "provisioning ui"
 curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
 sudo apt-get install -y nodejs
 sudo npm install -y -g nodemon
 
-tar xvfz athenz-ui*.tar.gz
+tar xfz athenz-ui*.tar.gz
 
 echo "provisioning zts"
-tar xvfz athenz-zts*.tar.gz
+tar xfz athenz-zts*.tar.gz
 
 
