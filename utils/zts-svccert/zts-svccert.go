@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto"
 	"crypto/rand"
+	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
@@ -11,6 +12,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"strings"
 	"time"
 
@@ -24,8 +26,11 @@ type signer struct {
 
 func main() {
 
-	var ztsUrl, privateKeyFile, domain, service, keyVersion, certFile, dnsDomain, hdr string
+	var ztsUrl, privateKeyFile, domain, service, keyVersion string
+	var caCertFile, certFile, signerCertFile, dnsDomain, hdr string
 	flag.StringVar(&certFile, "cert-file", "", "output certificate file")
+	flag.StringVar(&signerCertFile, "signer-cert-file", "", "output signer certificate file")
+	flag.StringVar(&caCertFile, "cacert", "", "CA certificate file")
 	flag.StringVar(&privateKeyFile, "private-key", "", "private key file")
 	flag.StringVar(&domain, "domain", "", "domain of service")
 	flag.StringVar(&service, "service", "", "name of service")
@@ -37,7 +42,7 @@ func main() {
 
 	if privateKeyFile == "" || domain == "" || service == "" ||
 		keyVersion == "" || ztsUrl == "" || dnsDomain == "" {
-		log.Fatalln("usage: zts-svccert -domain <domain> -service <service> -private-key <key-file> -key-version <version> -zts <zts-server-url> -dns-domain <dns-domain> [-cert-file <output-cert-file>] [-hdr <auth-header-name>]")
+		log.Fatalln("usage: zts-svccert -domain <domain> -service <service> -private-key <key-file> -key-version <version> -zts <zts-server-url> -dns-domain <dns-domain> [-cert-file <output-cert-file>] [-signer-cert-file <output-signer-file>] [-cacert <ca-certificate-file>] [-hdr <auth-header-name>]")
 	}
 
 	// load private key
@@ -65,8 +70,22 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	transport := &http.Transport{
+		ResponseHeaderTimeout: 30 * time.Second,
+	}
+	if caCertFile != "" {
+		config := &tls.Config{}
+		certPool := x509.NewCertPool()
+		caCert, err := ioutil.ReadFile(caCertFile)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		certPool.AppendCertsFromPEM(caCert)
+		config.RootCAs = certPool
+		transport.TLSClientConfig = config
+	}
 	// use the ntoken to talk to Athenz
-	client := zts.NewClient(ztsUrl, nil)
+	client := zts.NewClient(ztsUrl, transport)
 	client.AddCredentials(hdr, ntoken)
 
 	// get our private key signer for csr
@@ -99,6 +118,13 @@ func main() {
 		}
 	} else {
 		fmt.Println(identity.Certificate)
+	}
+
+	if signerCertFile != "" {
+		err = ioutil.WriteFile(signerCertFile, []byte(identity.CaCertBundle), 0444)
+		if err != nil {
+			log.Fatalln(err)
+		}
 	}
 }
 
