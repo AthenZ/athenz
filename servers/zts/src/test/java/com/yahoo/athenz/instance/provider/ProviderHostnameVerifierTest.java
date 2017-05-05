@@ -45,10 +45,10 @@ public class ProviderHostnameVerifierTest {
         certs[0] = cert;
         Mockito.when(session.getPeerCertificates()).thenReturn(certs);
         
-        ProviderHostnameVerifier verifier1 = new ProviderHostnameVerifier("production.athenz.ostk.athenz.cloud");
+        ProviderHostnameVerifier verifier1 = new ProviderHostnameVerifier("athenz.production");
         assertTrue(verifier1.verify("athenz", session));
         
-        ProviderHostnameVerifier verifier2 = new ProviderHostnameVerifier("production2.athenz.ostk.athenz.cloud");
+        ProviderHostnameVerifier verifier2 = new ProviderHostnameVerifier("athenz.production2");
         assertFalse(verifier2.verify("athenz", session));
     }
 }
