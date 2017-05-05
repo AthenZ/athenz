@@ -44,6 +44,7 @@ import com.yahoo.athenz.auth.PrivateKeyStoreFactory;
 import com.yahoo.athenz.auth.impl.CertificateAuthority;
 import com.yahoo.athenz.auth.impl.PrincipalAuthority;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
+import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.common.metrics.Metric;
@@ -106,6 +107,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected boolean leastPrivilegePrincipal = false;
     protected Set<String> authorizedProxyUsers = null;
     protected boolean secureRequestsOnly = true;
+    protected int svcTokenTimeout = 86400;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -289,6 +291,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         timeout = TimeUnit.SECONDS.convert(7, TimeUnit.DAYS);
         signedPolicyTimeout = 1000 * Long.parseLong(
                 System.getProperty(ZTSConsts.ZTS_PROP_SIGNED_POLICY_TIMEOUT, Long.toString(timeout)));
+        
+        // default token timeout for issued tokens
+        
+        timeout = TimeUnit.SECONDS.convert(1, TimeUnit.DAYS);
+        svcTokenTimeout = Integer.parseInt(
+                System.getProperty(ZTSConsts.ZTS_PROP_INSTANCE_NTOKEN_TIMEOUT, Long.toString(timeout)));
         
         // retrieve the list of our authorized proxy users
         
@@ -1640,6 +1648,18 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domain);
         }
         
+        // if we're asked to return an NToken in addition to ZTS Certificate
+        // then we'll generate one and include in the identity object
+        
+        if (info.getToken() == Boolean.TRUE) {
+            PrincipalToken svcToken = new PrincipalToken.Builder("S1", domain, service)
+                .expirationWindow(svcTokenTimeout).keyId(privateKeyId).host(serverHostName)
+                .ip(ServletRequestUtil.getRemoteAddress(ctx.request()))
+                .keyService(ZTSConsts.ZTS_SERVICE).build();
+            svcToken.sign(privateKey);
+            identity.setServiceToken(svcToken.getSignedToken());
+        }
+        
         // create our audit log entry
         
         AuditLogMsgBuilder msgBldr = getAuditLogMsgBuilder(ctx, domain, caller, HTTP_POST);
@@ -1816,6 +1836,18 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (!instanceManager.updateX509CertRecord(x509CertRecord)) {
             throw serverError("postInstanceRefreshInformation: unable to update cert db",
                     caller, domain);
+        }
+        
+        // if we're asked to return an NToken in addition to ZTS Certificate
+        // then we'll generate one and include in the identity object
+        
+        if (info.getToken() == Boolean.TRUE) {
+            PrincipalToken svcToken = new PrincipalToken.Builder("S1", domain, service)
+                .expirationWindow(svcTokenTimeout).keyId(privateKeyId).host(serverHostName)
+                .ip(ServletRequestUtil.getRemoteAddress(ctx.request()))
+                .keyService(ZTSConsts.ZTS_SERVICE).build();
+            svcToken.sign(privateKey);
+            identity.setServiceToken(svcToken.getSignedToken());
         }
         
         // create our audit log entry

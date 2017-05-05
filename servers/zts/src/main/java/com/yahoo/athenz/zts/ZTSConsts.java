@@ -66,6 +66,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_PROVIDER_ENDPOINTS      = "athenz.zts.provider_endpoints";
     public static final String ZTS_PROP_CERT_FILE_STORE_PATH    = "athenz.zts.cert_file_store_path";
     public static final String ZTS_PROP_CERT_FILE_STORE_NAME    = "athenz.zts.cert_file_store_name";
+    public static final String ZTS_PROP_INSTANCE_NTOKEN_TIMEOUT = "athenz.zts.instance_token_timeout";
     
     public static final String ZTS_SERVICE           = "zts";
     public static final String ZTS_UNKNOWN_DOMAIN    = "unknown_domain";
