@@ -4630,7 +4630,7 @@ public class ZTSImplTest {
         InstanceRegisterInformation info = new InstanceRegisterInformation()
                 .setAttestationData("attestationData").setCsr(certCsr)
                 .setDomain("athenz").setService("production")
-                .setProvider("athenz.provider");
+                .setProvider("athenz.provider").setToken(true);
         
         ResourceContext context = createResourceContext(null);
         PostInstanceRegisterInformationResult result = new PostInstanceRegisterInformationResult(context);
@@ -4642,6 +4642,7 @@ public class ZTSImplTest {
             code = ex.getResponse().getStatus();
         }
         assertEquals(code, 201);
+        assertNotNull(info.getToken());
     }
     
     @Test
@@ -5033,7 +5034,7 @@ public class ZTSImplTest {
         ztsImpl.instanceManager = instanceManager;
         
         InstanceRefreshInformation info = new InstanceRefreshInformation()
-                .setCsr(certCsr);
+                .setCsr(certCsr).setToken(true);
         
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
@@ -5047,6 +5048,7 @@ public class ZTSImplTest {
         InstanceIdentity instanceIdentity = ztsImpl.postInstanceRefreshInformation(context,
                 "athenz.provider", "athenz", "production", "1001", info);
         assertNotNull(instanceIdentity);
+        assertNotNull(instanceIdentity.getServiceToken());
     }
     
     @Test
