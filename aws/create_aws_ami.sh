@@ -32,5 +32,4 @@ cd $CUR_DIR
 
 #run packer
 export BASE_AMI_ID=ami-a58d0dc5
-export AWS_ACCESS_KEY_ID="AKIAI3UXX3NGAW73XKSA"
 sudo ${PACKER_DIR}/packer build -machine-readable ./aws/athenz_ami.json && touch .ami
