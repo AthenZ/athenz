@@ -17,18 +17,20 @@ fi
 sudo -E bin/zms start
 sleep 10
 
+hostname=`hostname`
+
 echo "---initializing ui---"
 cd /opt/athenz/athenz-ui*/keys
 if [ ! -f "./athenz.ui.pem" ]; then
     echo "---creating private/public key for ui---"
     openssl genrsa -out athenz.ui.pem 2048
     openssl rsa -in athenz.ui.pem -pubout > athenz.ui_pub.pem
-    yes "" | openssl req -x509 -newkey rsa:2048 -keyout ui_key.pem -out ui_cert.pem -days 365 -passout pass:athenz
+    sed s/__athenz_hostname__/$hostname/g ./dev_x509_cert.cnf > ./dev_ui_x509_cert.cnf
+    openssl req -x509 -nodes -newkey rsa:2048 -keyout ui_key.pem -out ui_cert.pem -days 365 -config ./dev_ui_x509_cert.cnf
     cp /opt/athenz/athenz-zms*/var/zms_server/certs/zms_cert.pem .
 fi
 
 cd /opt/athenz/athenz-utils*/bin/linux
-hostname=`hostname`
 
 echo "---creating ntoken---"
 ntoken=$(curl --silent -H "Authorization:Basic YXRoZW56OmF0aGVueg==" -k https://$hostname:4443/zms/v1/user/athenz/token | grep -o '\"token\":.*\"' | cut -d':' -f2 | sed 's/\"//'g )
@@ -51,7 +53,7 @@ echo "athenz domain not found: $domainNotExist"
 if [ $domainNotExist -eq "1" ]; then
     echo "---adding athenz domain with zms---"
     sudo ./zms-cli -i user.athenz -c /opt/athenz/athenz-ui*/keys/zms_cert.pem -z https://$hostname:4443/zms/v1 add-domain athenz
-    
+
     echo "---registering ui with zms---"
     sudo ./zms-cli -c /opt/athenz/athenz-ui*/keys/zms_cert.pem -z https://$hostname:4443/zms/v1 -d athenz add-service ui 0 /opt/athenz/athenz-ui*/keys/athenz.ui_pub.pem
 fi
@@ -70,13 +72,15 @@ if [ ! -f "./zts_private.pem" ]; then
 fi
 cd /opt/athenz/athenz-zts*/var/zts_server/certs
 if [ ! -f "./zts_key.pem" ]; then
+
     echo "---creating X509 Certificate for zts---"
-    yes "" | openssl req -x509 -newkey rsa:2048 -keyout zts_key.pem -out zts_cert.pem -days 365 -passout pass:athenz
+    sed s/__athenz_hostname__/$hostname/g /opt/athenz/athenz-zts*/conf/zts_server/dev_x509_cert.cnf > ./dev_x509_cert.cnf
+    openssl req -x509 -nodes -newkey rsa:2048 -keyout zts_key.pem -out zts_cert.pem -days 365 -config ./dev_x509_cert.cnf
 fi
 
 if [ ! -f "./zts_keystore.pkcs12" ]; then
     echo "---creating keystore for zts---"
-    openssl pkcs12 -export -out zts_keystore.pkcs12 -in zts_cert.pem -inkey zts_key.pem -passin pass:athenz -passout pass:athenz
+    openssl pkcs12 -export -out zts_keystore.pkcs12 -in zts_cert.pem -inkey zts_key.pem -passout pass:athenz
 fi
 
 if [ ! -f "./zts_truststore.jks" ]; then
@@ -100,4 +104,3 @@ fi
 echo "---starting athenz zts---"
 cd /opt/athenz/athenz-zts*/
 sudo bin/zts start
-
