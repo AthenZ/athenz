@@ -23,5 +23,3 @@ tar xfz athenz-ui*.tar.gz
 
 echo "provisioning zts"
 tar xfz athenz-zts*.tar.gz
-
-

@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -ev
 
+echo "-----------------------------------------------"
+echo "Creating Athenz AWS AMI..."
+echo "-----------------------------------------------"
+
 CUR_DIR="$( pwd )"
 
 #setup provision directory
@@ -33,3 +37,7 @@ cd $CUR_DIR
 #run packer
 export BASE_AMI_ID=ami-a58d0dc5
 sudo ${PACKER_DIR}/packer build -machine-readable ./aws/athenz_ami.json && touch .ami
+
+echo "-----------------------------------------------"
+echo "Athenz AWS AMI Completed"
+echo "-----------------------------------------------"

@@ -71,8 +71,10 @@ click on `Launch Instances` to launch your Athenz EC2 instance.
 --------------------
 
 After your EC2 instance is launched, you need to ssh to your
-instance and start Athenz services. After you have connected
-and logged into your instance, execute the following commands:
+instance and start Athenz services. During the first start-up,
+the Athenz services will be automatically configured with default
+settings and self-signed certificates. After you have connected
+and logged onto your instance, execute the following commands:
 
 ```shell
 $ cd /opt/athenz
