@@ -980,7 +980,7 @@ public class DBService {
                 // audit log the request
 
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-                auditDetails.append("{member: \"").append(roleMember.getMemberName()).append("\"}");
+                auditDetails.append("{\"member\": \"").append(roleMember.getMemberName()).append("\"}");
                 
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         roleName, auditDetails.toString());
@@ -1090,7 +1090,7 @@ public class DBService {
                 // audit log the request
 
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-                auditDetails.append("{member: \"").append(normalizedMember).append("\"}");
+                auditDetails.append("{\"member\": \"").append(normalizedMember).append("\"}");
 
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
                         roleName, auditDetails.toString());
@@ -1688,7 +1688,8 @@ public class DBService {
                 // audit log the request
 
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-                auditDetails.append("assertionId=(").append(assertionId).append(')');
+                auditDetails.append("{\"policy\": \"").append(policyName).
+                    append("\", \"assertionId\": \"").append(assertionId).append("\"}");
                 
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
                         policyName, auditDetails.toString());
