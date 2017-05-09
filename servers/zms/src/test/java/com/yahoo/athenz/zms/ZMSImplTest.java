@@ -2012,39 +2012,104 @@ public class ZMSImplTest extends TestCase {
     @Test
     public void testCreateRole() {
 
+        final List<String> aLogMsgs = new ArrayList<>();
+        AuditLogger alogger = new AuditLogger() {
+            public void log(String logMsg, String msgVersionTag) {
+                aLogMsgs.add(logMsg);
+            }
+            public void log(AuditLogMsgBuilder msgBldr) {
+                String msg = msgBldr.build();
+                aLogMsgs.add(msg);
+            }
+            @Override
+            public AuditLogMsgBuilder getMsgBuilder() {
+                return new DefaultAuditLogMsgBuilder();
+            }
+        };
+        String storeFile = ZMS_DATA_STORE_FILE + "_createrole";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+
         TopLevelDomain dom1 = createTopLevelDomainObject("CreateRoleDom1",
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
         Role role1 = createRoleObject("CreateRoleDom1", "Role1", null,
                 "user.joe", "user.jane");
-        zms.putRole(mockDomRsrcCtx, "CreateRoleDom1", "Role1", auditRef, role1);
+        zmsImpl.putRole(mockDomRsrcCtx, "CreateRoleDom1", "Role1", auditRef, role1);
 
-        Role role3 = zms.getRole(mockDomRsrcCtx, "CreateRoleDom1", "Role1", false, false);
+        Role role3 = zmsImpl.getRole(mockDomRsrcCtx, "CreateRoleDom1", "Role1", false, false);
         assertNotNull(role3);
         assertEquals(role3.getName(), "CreateRoleDom1:role.Role1".toLowerCase());
         assertNull(role3.getTrust());
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "CreateRoleDom1", auditRef);
+        // check audit log msg for putRole
+        boolean foundError = false;
+        System.err.println("testCreateRole: Number of lines: " + aLogMsgs.size());
+        for (String msg: aLogMsgs) {
+            if (msg.indexOf("WHAT-api=(putrole)") == -1) {
+                continue;
+            }
+            assertTrue(msg, msg.indexOf("CLIENT-IP=(" + MOCKCLIENTADDR + ")") != -1);
+            int index = msg.indexOf("WHAT-details=(");
+            assertTrue(msg, index != -1);
+            int index2 = msg.indexOf("\"name\": \"role1\", \"trust\": \"null\", \"added-members\": [");
+            assertTrue(msg, index2 > index);
+            foundError = true;
+            break;
+        }
+        assertTrue(foundError);
+
+        // delete member of the role
+        //
+        List<RoleMember> listrm = role1.getRoleMembers();
+        for (RoleMember rmemb: listrm) {
+            if (rmemb.getMemberName().equals("user.jane")) {
+                listrm.remove(rmemb);
+                break;
+            }
+        }
+
+        aLogMsgs.clear();
+        zmsImpl.putRole(mockDomRsrcCtx, "CreateRoleDom1", "Role1", auditRef, role1);
+
+        foundError = false;
+        System.err.println("testCreateRole: Now Number of lines: " + aLogMsgs.size());
+        for (String msg: aLogMsgs) {
+            if (msg.indexOf("WHAT-api=(putrole)") == -1) {
+                continue;
+            }
+            assertTrue(msg, msg.indexOf("CLIENT-IP=(" + MOCKCLIENTADDR + ")") != -1);
+            int index = msg.indexOf("WHAT-details=(");
+            assertTrue(msg, index != -1);
+            int index2 = msg.indexOf("\"name\": \"role1\", \"trust\": \"null\", \"deleted-members\": [\"user.jane\"], \"added-members\": []");
+            assertTrue(msg, index2 > index);
+            foundError = true;
+            break;
+        }
+        assertTrue(foundError);
+
+        zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "CreateRoleDom1", auditRef);
+
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
     }
 
     @Test
     public void testCreateRoleLocalNameOnly() {
 
-        TopLevelDomain dom1 = createTopLevelDomainObject("CreateRoleDom1",
+        TopLevelDomain dom1 = createTopLevelDomainObject("CreateRoleLocalNameOnly",
                 "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
         Role role1 = new Role();
         role1.setName("role1");
         
-        zms.putRole(mockDomRsrcCtx, "CreateRoleDom1", "Role1", auditRef, role1);
+        zms.putRole(mockDomRsrcCtx, "CreateRoleLocalNameOnly", "Role1", auditRef, role1);
 
-        Role role3 = zms.getRole(mockDomRsrcCtx, "CreateRoleDom1", "Role1", false, false);
+        Role role3 = zms.getRole(mockDomRsrcCtx, "CreateRoleLocalNameOnly", "Role1", false, false);
         assertNotNull(role3);
-        assertEquals(role3.getName(), "CreateRoleDom1:role.Role1".toLowerCase());
+        assertEquals(role3.getName(), "CreateRoleLocalNameOnly:role.Role1".toLowerCase());
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "CreateRoleDom1", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "CreateRoleLocalNameOnly", auditRef);
     }
     
     @Test
@@ -3388,7 +3453,7 @@ public class ZMSImplTest extends TestCase {
         assertEquals(obj.getRole(), "PolicyGetDom1:role.Role1".toLowerCase());
 
         boolean foundError = false;
-        System.err.println("Number of lines: " + aLogMsgs.size());
+        System.err.println("testGetPolicy: Number of lines: " + aLogMsgs.size());
         for (String msg: aLogMsgs) {
             if (msg.indexOf("WHAT-api=(putpolicy)") == -1) {
                 continue;
@@ -3396,8 +3461,37 @@ public class ZMSImplTest extends TestCase {
             assertTrue(msg, msg.indexOf("CLIENT-IP=(" + MOCKCLIENTADDR + ")") != -1);
             int index = msg.indexOf("WHAT-details=(");
             assertTrue(msg, index != -1);
-            int index2 = msg.indexOf("role: \"policygetdom1:role.role1\"");
+            int index2 = msg.indexOf("\"added-assertions\": [{\"role\": \"policygetdom1:role.role1\", \"action\": \"*\", \"effect\": \"ALLOW\", \"resource\": \"policygetdom1:*\"}]");
             assertTrue(msg, index < index2);
+            index2 = msg.indexOf("ERROR");
+            assertTrue(msg, index2 == -1);
+            foundError = true;
+            break;
+        }
+        assertTrue(foundError);
+
+        // modify the assertion: result is add of new assertion, delete of old
+        //
+        obj.setAction("layup");
+        obj.setEffect(AssertionEffect.DENY);
+        List<Assertion> assertions = new ArrayList<>();
+        assertions.add(obj);
+        policy1.setAssertions(assertions);
+        aLogMsgs.clear();
+        zmsImpl.putPolicy(mockDomRsrcCtx, "PolicyGetDom1", "Policy1", auditRef, policy1);
+
+        foundError = false;
+        System.err.println("testGetPolicy: Number of lines: " + aLogMsgs.size());
+        for (String msg: aLogMsgs) {
+            if (msg.indexOf("WHAT-api=(putpolicy)") == -1) {
+                continue;
+            }
+            assertTrue(msg, msg.indexOf("CLIENT-IP=(" + MOCKCLIENTADDR + ")") != -1);
+            int index = msg.indexOf("WHAT-details=(");
+            assertTrue(msg, index != -1);
+            int index2 = msg.indexOf("\"added-assertions\": [{\"role\": \"policygetdom1:role.role1\", \"action\": \"layup\", \"effect\": \"DENY\", \"resource\": \"policygetdom1:*\"}]");
+            assertTrue(msg, index < index2);
+            index2 = msg.indexOf("\"deleted-assertions\": [{\"role\": \"policygetdom1:role.role1\", \"action\": \"*\", \"effect\": \"ALLOW\", \"resource\": \"policygetdom1:*\"}]");
             index2 = msg.indexOf("ERROR");
             assertTrue(msg, index2 == -1);
             foundError = true;

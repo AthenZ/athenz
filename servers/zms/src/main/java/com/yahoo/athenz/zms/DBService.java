@@ -302,7 +302,7 @@ public class DBService {
         
         // open our audit record
         
-        auditDetails.append("{name: \"").append(policyName).append('\"');
+        auditDetails.append("{\"name\": \"").append(policyName).append('\"');
 
         // now we need process our policy assertions depending this is
         // a new insert operation or an update
@@ -442,8 +442,8 @@ public class DBService {
 
         // open our audit record and log our trust field if one is available
         
-        auditDetails.append("{name: \"").append(roleName)
-            .append("\", trust: \"").append(role.getTrust()).append('\"');
+        auditDetails.append("{\"name\": \"").append(roleName)
+            .append("\", \"trust\": \"").append(role.getTrust()).append('\"');
         
         // now we need process our role members depending this is
         // a new insert operation or an update
@@ -2662,7 +2662,7 @@ public class DBService {
     
     void auditLogRoleMembers(StringBuilder auditDetails, String label,
             Collection<RoleMember> values) {
-        auditDetails.append(", ").append(label).append(": [");
+        auditDetails.append(", \"").append(label).append("\": [");
         boolean firstEntry = true;
         for (RoleMember value : values) {
             String entry = value.getMemberName();
@@ -2717,7 +2717,7 @@ public class DBService {
     }
     
     void auditLogAssertions(StringBuilder auditDetails, String label, Collection<Assertion> values) {
-        auditDetails.append(", ").append(label).append(": [");
+        auditDetails.append(", \"").append(label).append("\": [");
         boolean firstEntry = true;
         for (Assertion value : values) {
             firstEntry = auditLogAssertion(auditDetails, value, firstEntry);
@@ -2731,10 +2731,10 @@ public class DBService {
         if (assertion.getEffect() != null) {
             assertionEffect = assertion.getEffect().toString();
         }
-        auditDetails.append("{role: \"").append(assertion.getRole())
-            .append("\", action: \"").append(assertion.getAction())
-            .append("\", effect: \"").append(assertionEffect)
-            .append("\", resource: \"").append(assertion.getResource())
+        auditDetails.append("{\"role\": \"").append(assertion.getRole())
+            .append("\", \"action\": \"").append(assertion.getAction())
+            .append("\", \"effect\": \"").append(assertionEffect)
+            .append("\", \"resource\": \"").append(assertion.getResource())
             .append("\"}");
         return firstEntry;
     }
