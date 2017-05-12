@@ -9,7 +9,7 @@
         "source_ami": "{{user `base_ami_id`}}",
         "instance_type": "t2.micro",
         "ssh_username": "ubuntu",
-        "ami_name": "Athenz-{{isotime \"20060102030405\"}}",
+        "ami_name": "Athenz-{{isotime \"2006-01-02T03_04_05\"}}",
         "ami_groups": [
           "all"
         ]
