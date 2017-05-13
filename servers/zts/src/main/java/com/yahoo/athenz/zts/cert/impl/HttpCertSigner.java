@@ -280,9 +280,11 @@ public class HttpCertSigner implements CertSigner {
             return null;
         }
         
-        for (SSHCertificate sshCert : sshCerts.getCerts()) {
-            if (sshCert.getType().equals(type)) {
-                return sshCert.toString();
+        if (sshCerts != null && sshCerts.getCerts() != null) {
+            for (SSHCertificate sshCert : sshCerts.getCerts()) {
+                if (sshCert.getType().equals(type)) {
+                    return sshCert.toString();
+                }
             }
         }
         
