@@ -49,7 +49,7 @@ public class SelfCertSignerFactory implements CertSignerFactory {
                 "cn=Self Signed Athenz CA,o=Athenz,c=US");
 
         if (pKeyFileName == null) {
-            LOGGER.error("No private key path avaialble for Self Cert Signer Factory");
+            LOGGER.error("No private key path available for Self Cert Signer Factory");
             return null;
         }
         
