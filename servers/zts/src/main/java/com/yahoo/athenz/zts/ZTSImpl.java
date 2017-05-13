@@ -376,7 +376,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         try {
             certSignerFactory = (CertSignerFactory) Class.forName(certSignerFactoryClass).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOGGER.error("Invalid CertSigerFactory class: " + certSignerFactoryClass
+            LOGGER.error("Invalid CertSignerFactory class: " + certSignerFactoryClass
                     + " error: " + e.getMessage());
             throw new IllegalArgumentException("Invalid certsigner class");
         }
