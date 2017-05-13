@@ -53,7 +53,7 @@ public class PrincipalAuthority implements Authority, AuthorityKeyStore {
     private int allowedOffset = 300;
     IpCheckMode ipCheckMode = IpCheckMode.OPS_WRITE;
     String userDomain = USER_DOMAIN;
-    final String headerName = System.getProperty(ATHENZ_PROP_PRINCIPAL_HEADER, HTTP_HEADER);
+    String headerName = HTTP_HEADER;
     
     @Override
     public void initialize() {
@@ -61,6 +61,7 @@ public class PrincipalAuthority implements Authority, AuthorityKeyStore {
         allowedOffset = Integer.parseInt(System.getProperty(ATHENZ_PROP_TOKEN_OFFSET, "300"));
         ipCheckMode = IpCheckMode.valueOf(System.getProperty(ATHENZ_PROP_IP_CHECK_MODE, IpCheckMode.OPS_WRITE.toString()));
         userDomain = System.getProperty(ATHENZ_PROP_USER_DOMAIN, USER_DOMAIN);
+        headerName = System.getProperty(ATHENZ_PROP_PRINCIPAL_HEADER, HTTP_HEADER);
         
         // case of invalid value, we'll default back to 5 minutes
         

@@ -36,7 +36,7 @@ public class UserAuthority implements Authority {
     private static final Logger LOG = LoggerFactory.getLogger(UserAuthority.class);
     static final String ATHENZ_PROP_PAM_SERVICE_NAME = "athenz.auth.user.pam_service_name";
 
-    final String serviceName = System.getProperty(ATHENZ_PROP_PAM_SERVICE_NAME, "login");
+    String serviceName = "login";
     private PAM pam = null;
     
     public UserAuthority() {
@@ -44,6 +44,7 @@ public class UserAuthority implements Authority {
 
     @Override
     public void initialize() {
+        serviceName = System.getProperty(ATHENZ_PROP_PAM_SERVICE_NAME, "login");
     }
 
     @Override

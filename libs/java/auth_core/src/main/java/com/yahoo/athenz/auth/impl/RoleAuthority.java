@@ -43,14 +43,15 @@ public class RoleAuthority implements Authority, AuthorityKeyStore {
 
     KeyStore keyStore = null;
     String userDomain = "user";
-    final String headerName = System.getProperty(ATHENZ_PROP_ROLE_HEADER, HTTP_HEADER);
+    String headerName = HTTP_HEADER;
     
     @Override
     public void initialize() {
         
         allowedOffset = Integer.parseInt(System.getProperty(ATHENZ_PROP_TOKEN_OFFSET, "300"));
         userDomain = System.getProperty(ATHENZ_PROP_USER_DOMAIN, USER_DOMAIN);
-        
+        headerName = System.getProperty(ATHENZ_PROP_ROLE_HEADER, HTTP_HEADER);
+
         // case of invalid value, we'll default back to 5 minutes
         
         if (allowedOffset < 0) {
