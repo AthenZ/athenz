@@ -46,7 +46,6 @@ public class HttpCertSigner implements CertSigner {
     private HttpClient httpClient = null;
     String x509CertUri = null;
     String sshCertUri = null;
-    long connectTimeout;
     long requestTimeout;
     int requestRetryCount;
 
@@ -55,7 +54,7 @@ public class HttpCertSigner implements CertSigner {
         // retrieve our default timeout and retry timer
         
         long timeout = Long.parseLong(System.getProperty(ZTSConsts.ZTS_PROP_CERTSIGN_CONNECT_TIMEOUT, "10"));
-        connectTimeout = TimeUnit.MILLISECONDS.convert(timeout, TimeUnit.SECONDS);
+        long connectTimeout = TimeUnit.MILLISECONDS.convert(timeout, TimeUnit.SECONDS);
 
         requestTimeout = Long.parseLong(System.getProperty(ZTSConsts.ZTS_PROP_CERTSIGN_REQUEST_TIMEOUT, "5"));
         requestRetryCount = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_CERTSIGN_RETRY_COUNT, "3"));
@@ -64,6 +63,7 @@ public class HttpCertSigner implements CertSigner {
         
         httpClient = new HttpClient(ZTSUtils.createSSLContextObject(new String[] {"TLSv1.2"}));
         httpClient.setFollowRedirects(false);
+        httpClient.setConnectTimeout(connectTimeout);
         try {
             httpClient.start();
         } catch (Exception ex) {
@@ -95,25 +95,53 @@ public class HttpCertSigner implements CertSigner {
         }
     }
 
-    @Override
-    public String generateX509Certificate(String csr) {
-
+    ContentResponse processX509CertRequest(String csr, int retryCount) {
+        
         ContentResponse response = null;
         try {
             Request request = httpClient.POST(x509CertUri);
             request.header(HttpHeader.ACCEPT, CONTENT_JSON);
             request.header(HttpHeader.CONTENT_TYPE, CONTENT_JSON);
-
+    
             X509CertSignObject csrCert = new X509CertSignObject();
             csrCert.setPem(csr);
             request.content(new StringContentProvider(JSON.string(csrCert)), CONTENT_JSON);
+            
+            // our max timeout is going to be 30 seconds. By default
+            // we're picking a small value to quickly recognize when
+            // our idle connections are disconnected by certsigner but
+            // we won't allow any connections taking longer than 30 secs
+            
+            long timeout = retryCount * requestTimeout;
+            if (timeout > 30) {
+                timeout = 30;
+            }
+            request.timeout(timeout, TimeUnit.SECONDS);
             response = request.send();
-
         } catch (Exception ex) {
-            LOGGER.error("generateX509Certificate: unable to fetch requested uri '" + x509CertUri + "': "
-                    + ex.getMessage());
+            String msg = ex.getMessage();
+            if (msg == null) {
+                msg = ex.getClass().getName();
+            }
+            LOGGER.error("generateX509Certificate: Unable to fetch requested uri '{}': {}",
+                    x509CertUri, msg);
+        }
+        return response;
+    }
+    
+    @Override
+    public String generateX509Certificate(String csr) {
+        
+        ContentResponse response = null;
+        for (int i = 0; i < requestRetryCount; i++) {
+            if ((response = processX509CertRequest(csr, i + 1)) != null) {
+                break;
+            }
+        }
+        if (response == null) {
             return null;
         }
+        
         if (response.getStatus() != HttpStatus.CREATED_201) {
             LOGGER.error("generateX509Certificate: unable to fetch requested uri '" + x509CertUri +
                     "' status: " + response.getStatus());
