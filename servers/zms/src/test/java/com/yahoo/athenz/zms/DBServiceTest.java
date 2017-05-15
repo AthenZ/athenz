@@ -484,16 +484,18 @@ public class DBServiceTest extends TestCase {
         List<RoleMember> members = new ArrayList<>();
         members.add(new RoleMember().setMemberName("user.user1"));
         members.add(new RoleMember().setMemberName("user.user2"));
+        members.add(new RoleMember().setMemberName("_domain_.user3"));
         role.setRoleMembers(members);
         
         Role newRole = zms.dbService.updateTemplateRole(role, "athenz", "readers");
         assertEquals("athenz:role.readers", newRole.getName());
         List<RoleMember> newMembers = newRole.getRoleMembers();
-        assertEquals(2, newMembers.size());
+        assertEquals(3, newMembers.size());
         
         List<String> checkList = new ArrayList<String>();
         checkList.add("user.user1");
         checkList.add("user.user2");
+        checkList.add("athenz.user3");
         checkRoleMember(checkList, newMembers);
     }
     

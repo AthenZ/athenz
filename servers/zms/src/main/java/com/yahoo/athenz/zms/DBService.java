@@ -2005,7 +2005,12 @@ public class DBService {
         List<RoleMember> roleMembers = role.getRoleMembers();
         List<RoleMember> newMembers = new ArrayList<>();
         if (roleMembers != null && !roleMembers.isEmpty()) {
-            newMembers.addAll(roleMembers);
+            for (RoleMember roleMember : roleMembers) {
+                RoleMember newRoleMember = new RoleMember();
+                newRoleMember.setMemberName(roleMember.getMemberName().replace(TEMPLATE_DOMAIN_NAME, domainName));
+                newRoleMember.setExpiration(roleMember.getExpiration());
+                newMembers.add(newRoleMember);
+            }
         }
         templateRole.setRoleMembers(newMembers);
         return templateRole;
