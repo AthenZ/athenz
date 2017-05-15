@@ -106,7 +106,8 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
 
         X509CertRecord certRecord = null;
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_X509_RECORD)) {
-            ps.setString(1, instanceId);
+            ps.setString(1, provider);
+            ps.setString(2, instanceId);
             
             try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
