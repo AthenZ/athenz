@@ -315,7 +315,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             if (idx == -1) {
                 LOGGER.error("ZTSImpl: invalid singer service name: " + hostSignerService);
             } else {
-                ostkHostSignerService = hostSignerService;
+                ostkHostSignerService = hostSignerService.substring(idx + 1);
                 ostkHostSignerDomain = hostSignerService.substring(0, idx);
             }
         }
@@ -2096,6 +2096,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         domain = domain.toLowerCase();
         service = service.toLowerCase();
         final String cn = domain + "." + service;
+        
+        if (ostkHostSignerDomain == null) {
+            throw serverError("postOSTKInstanceInformation: Host Signer not configured",
+                    caller, domain);
+        }
         
         // Fetch the public key of ostk host signer service
         
