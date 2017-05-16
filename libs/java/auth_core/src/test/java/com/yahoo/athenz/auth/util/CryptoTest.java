@@ -30,6 +30,7 @@ import java.security.PublicKey;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Date;
+import java.util.List;
 
 import static org.testng.Assert.*;
 
@@ -600,6 +601,53 @@ public class CryptoTest {
             
             String cn = Crypto.extractX509CertCommonName(cert);
             assertEquals("athenz.syncer", cn);
+        }
+    }
+    
+    @Test
+    public void testExtractX509CertIpAddressesNull() throws Exception, IOException {
+        
+        try (InputStream inStream = new FileInputStream("src/test/resources/valid_cn_x509.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+            
+            List<String> ips = Crypto.extractX509IPAddresses(cert);
+            assertTrue(ips.isEmpty());
+        }
+        
+        try (InputStream inStream = new FileInputStream("src/test/resources/x509_altnames_noip.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+            
+            List<String> ips = Crypto.extractX509IPAddresses(cert);
+            assertTrue(ips.isEmpty());
+        }
+    }
+    
+    @Test
+    public void testExtractX509CertIpAddressesSingle() throws Exception, IOException {
+        
+        try (InputStream inStream = new FileInputStream("src/test/resources/x509_altnames_singleip.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+            
+            List<String> ips = Crypto.extractX509IPAddresses(cert);
+            assertEquals(1, ips.size());
+            assertEquals(ips.get(0), "10.11.12.13");
+        }
+    }
+    
+    @Test
+    public void testExtractX509CertIpAddressesDouble() throws Exception, IOException {
+        
+        try (InputStream inStream = new FileInputStream("src/test/resources/x509_altnames_doubleip.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+            
+            List<String> ips = Crypto.extractX509IPAddresses(cert);
+            assertEquals(2, ips.size());
+            assertEquals(ips.get(0), "10.11.12.13");
+            assertEquals(ips.get(1), "10.11.12.14");
         }
     }
     
