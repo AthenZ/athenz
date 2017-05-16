@@ -40,11 +40,11 @@ public class UserAuthority implements Authority {
     private PAM pam = null;
     
     public UserAuthority() {
+        serviceName = System.getProperty(ATHENZ_PROP_PAM_SERVICE_NAME, "login");
     }
 
     @Override
     public void initialize() {
-        serviceName = System.getProperty(ATHENZ_PROP_PAM_SERVICE_NAME, "login");
     }
 
     @Override
