@@ -1543,7 +1543,6 @@ public class ZTSImplTest {
         assertTrue(roleToken.getToken().contains(";i=10.11.12.13"));
         assertTrue(roleToken.getToken().contains(";p=user_domain.joe;"));
         assertTrue(roleToken.getToken().contains(";proxy=user_domain.proxy-user1;"));
-        assertTrue(roleToken.getToken().contains(";c=1;"));
         assertEquals(roleToken.getExpiryTime(), token.getExpiryTime());
 
         principal = SimplePrincipal.create("user_domain", "proxy-user2",
@@ -1559,7 +1558,6 @@ public class ZTSImplTest {
         assertTrue(roleToken.getToken().contains(";i=10.11.12.13"));
         assertTrue(roleToken.getToken().contains(";p=user_domain.jane;"));
         assertTrue(roleToken.getToken().contains(";proxy=user_domain.proxy-user2;"));
-        assertTrue(roleToken.getToken().contains(";c=1;"));
         assertEquals(roleToken.getExpiryTime(), token.getExpiryTime());
     }
     
