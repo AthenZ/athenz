@@ -45,9 +45,7 @@ public class RoleAuthority implements Authority, AuthorityKeyStore {
     String userDomain = "user";
     String headerName = HTTP_HEADER;
     
-    @Override
-    public void initialize() {
-        
+    public RoleAuthority() {
         allowedOffset = Integer.parseInt(System.getProperty(ATHENZ_PROP_TOKEN_OFFSET, "300"));
         userDomain = System.getProperty(ATHENZ_PROP_USER_DOMAIN, USER_DOMAIN);
         headerName = System.getProperty(ATHENZ_PROP_ROLE_HEADER, HTTP_HEADER);
@@ -57,6 +55,10 @@ public class RoleAuthority implements Authority, AuthorityKeyStore {
         if (allowedOffset < 0) {
             allowedOffset = 300;
         }
+    }
+    
+    @Override
+    public void initialize() {
     }
 
     @Override

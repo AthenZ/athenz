@@ -55,11 +55,10 @@ public class PrincipalAuthority implements Authority, AuthorityKeyStore {
     String userDomain = USER_DOMAIN;
     String headerName = HTTP_HEADER;
     
-    @Override
-    public void initialize() {
-
+    public PrincipalAuthority() {
         allowedOffset = Integer.parseInt(System.getProperty(ATHENZ_PROP_TOKEN_OFFSET, "300"));
-        ipCheckMode = IpCheckMode.valueOf(System.getProperty(ATHENZ_PROP_IP_CHECK_MODE, IpCheckMode.OPS_WRITE.toString()));
+        ipCheckMode = IpCheckMode.valueOf(System.getProperty(ATHENZ_PROP_IP_CHECK_MODE,
+                IpCheckMode.OPS_WRITE.toString()));
         userDomain = System.getProperty(ATHENZ_PROP_USER_DOMAIN, USER_DOMAIN);
         headerName = System.getProperty(ATHENZ_PROP_PRINCIPAL_HEADER, HTTP_HEADER);
         
@@ -68,6 +67,10 @@ public class PrincipalAuthority implements Authority, AuthorityKeyStore {
         if (allowedOffset < 0) {
             allowedOffset = 300;
         }
+    }
+    
+    @Override
+    public void initialize() {
     }
 
     @Override
