@@ -1186,7 +1186,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 new com.yahoo.athenz.auth.token.RoleToken.Builder(ZTS_ROLE_TOKEN_VERSION, domainName, roles)
                     .expirationWindow(tokenTimeout).host(serverHostName).keyId(privateKeyId)
                     .principal(principal).ip(ServletRequestUtil.getRemoteAddress(ctx.request()))
-                    .proxyUser(proxyUser).domainCompleteRoleSet(roleName == null).build();
+                    .proxyUser(proxyUser).build();
         token.sign(privateKey);
 
         RoleToken roleToken = new RoleToken();
