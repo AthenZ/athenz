@@ -38,6 +38,7 @@ import java.security.PublicKey;
 import java.security.MessageDigest;
 import java.security.SignatureException;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.spec.InvalidKeySpecException;
@@ -45,6 +46,7 @@ import java.security.spec.RSAPublicKeySpec;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -820,7 +822,7 @@ public class Crypto {
         }
         return dnsNames;
     }
-    
+
     public static String generateX509CSR(PrivateKey privateKey, String x500Principal,
             GeneralName[] sanArray) throws OperatorCreationException, IOException {
         final PublicKey publicKey = extractPublicKey(privateKey);
@@ -882,6 +884,42 @@ public class Crypto {
             }
         }
         return cn;
+    }
+    
+    public static List<String> extractX509IPAddresses(X509Certificate x509Cert) {
+        
+        Collection<List<?>> altNames = null;
+        try {
+            altNames = x509Cert.getSubjectAlternativeNames();
+        } catch (CertificateParsingException ex) {
+            LOG.error("extractX509IPAddresses: Caught CertificateParsingException when parsing certificate: "
+                    + ex.getMessage());
+        }
+        
+        if (altNames == null) {
+            return Collections.emptyList();
+        }
+        
+        List<String> ipAddresses = new ArrayList<>();
+        for (@SuppressWarnings("rawtypes") List item : altNames) {
+            Integer type = (Integer) item.get(0);
+            
+            // GeneralName ::= CHOICE {
+            //     otherName                       [0]     OtherName,
+            //     rfc822Name                      [1]     IA5String,
+            //     dNSName                         [2]     IA5String,
+            //     x400Address                     [3]     ORAddress,
+            //     directoryName                   [4]     Name,
+            //     ediPartyName                    [5]     EDIPartyName,
+            //     uniformResourceIdentifier       [6]     IA5String,
+            //     iPAddress                       [7]     OCTET STRING,
+            //     registeredID                    [8]     OBJECT IDENTIFIER}
+            
+            if (type == 7) {
+                ipAddresses.add((String) item.get(1));
+            }
+        }
+        return ipAddresses;
     }
     
     public static X509Certificate generateX509Certificate(PKCS10CertificationRequest certReq,
