@@ -113,7 +113,7 @@ public class S3ChangeLogStore implements ChangeLogStore {
     }
 
     /**
-     * list the objects in the zts bucket. If te mod time is specified as 0
+     * list the objects in the zts bucket. If the mod time is specified as 0
      * then we want to list all objects otherwise, we only list objects
      * that are newer than the specified timestamp
      * @param s3 AWS S3 client object
@@ -121,6 +121,11 @@ public class S3ChangeLogStore implements ChangeLogStore {
      * @param modTime only include domains newer than this timestamp
      */
     void listObjects(AmazonS3 s3, Collection<String> domains, long modTime) {
+        
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("listObjects: Retrieving domains from {} with mod time > {}",
+                    s3BucketName, modTime);
+        }
         
         ObjectListing objectListing = s3.listObjects(new ListObjectsRequest()
                 .withBucketName(s3BucketName));
@@ -131,7 +136,15 @@ public class S3ChangeLogStore implements ChangeLogStore {
             // process each entry in our result set and add the domain
             // name to our return list
 
-            for (S3ObjectSummary objectSummary : objectListing.getObjectSummaries()) {
+            final List<S3ObjectSummary> objectSummaries = objectListing.getObjectSummaries();
+            boolean listTruncated = objectListing.isTruncated();
+            
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("listObjects: retrieved {} objects, more objects available - {}",
+                        objectSummaries.size(), listTruncated);
+            }
+            
+            for (S3ObjectSummary objectSummary : objectSummaries) {
                 
                 // if mod time is specified then make sure we automatically skip
                 // any domains older than the specified value
@@ -154,7 +167,7 @@ public class S3ChangeLogStore implements ChangeLogStore {
             // since that returns null if the object listing is not truncated but 
             // this direct check here makes the logic easier to follow
             
-            if (!objectListing.isTruncated()) {
+            if (!listTruncated) {
                 break;
             }
             
@@ -191,6 +204,10 @@ public class S3ChangeLogStore implements ChangeLogStore {
     @Override
     public SignedDomains getUpdatedSignedDomains(StringBuilder lastModTimeBuffer) {
 
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("getUpdatedSignedDomains: Retrieving updating signed domains from S3...");
+        }
+        
         // We need save the timestamp at the beginning just in case we end up getting
         // paged results and while processing the last page, S3 gets pushed
         // updated domains from the earlier pages
@@ -204,6 +221,10 @@ public class S3ChangeLogStore implements ChangeLogStore {
         AmazonS3 s3 = getS3Client();
         ArrayList<String> domains = new ArrayList<>();
         listObjects(s3, domains, lastModTime);
+        
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("getUpdatedSignedDomains: {} updated domains", domains.size());
+        }
         
         ArrayList<SignedDomain> signedDomainList = new ArrayList<>();
         SignedDomain signedDomain = null;
