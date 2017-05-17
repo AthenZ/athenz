@@ -40,8 +40,8 @@ import com.yahoo.athenz.zms.SignedDomain;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.store.ChangeLogStore;
 import com.yahoo.athenz.zts.store.DataStore;
-import com.yahoo.athenz.zts.store.file.MockZMSFileChangeLogStore;
-import com.yahoo.athenz.zts.store.file.ZMSFileChangeLogStore;
+import com.yahoo.athenz.zts.store.impl.MockZMSFileChangeLogStore;
+import com.yahoo.athenz.zts.store.impl.ZMSFileChangeLogStore;
 import com.yahoo.rdl.Timestamp;
 
 public class InstanceProviderTest {

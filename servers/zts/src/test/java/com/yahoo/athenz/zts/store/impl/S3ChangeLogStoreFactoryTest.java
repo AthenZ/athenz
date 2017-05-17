@@ -13,19 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zts.store.file;
+package com.yahoo.athenz.zts.store.impl;
 
-import java.security.PrivateKey;
+import org.testng.annotations.Test;
 
 import com.yahoo.athenz.zts.store.ChangeLogStore;
-import com.yahoo.athenz.zts.store.ChangeLogStoreFactory;
-import com.yahoo.athenz.zts.store.CloudStore;
+import com.yahoo.athenz.zts.store.impl.S3ChangeLogStoreFactory;
 
-public class MockZMSFileChangeLogStoreFactory implements ChangeLogStoreFactory {
+import static org.testng.Assert.*;
 
-    @Override
-    public ChangeLogStore create(String ztsHomeDir, PrivateKey privateKey,
-            String privateKeyId, CloudStore cloudStore) {
-        return new MockZMSFileChangeLogStore(ztsHomeDir, privateKey, privateKeyId);
+public class S3ChangeLogStoreFactoryTest {
+
+    @Test
+    public void testCreateStore() {
+        S3ChangeLogStoreFactory factory = new S3ChangeLogStoreFactory();
+        ChangeLogStore store = factory.create(null, null, null, null);
+        assertNotNull(store);
     }
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zts.store.s3;
+package com.yahoo.athenz.zts.store.impl;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
@@ -44,7 +44,7 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zms.SignedDomain;
 import com.yahoo.athenz.zms.SignedDomains;
-import com.yahoo.athenz.zts.store.s3.S3ChangeLogStore;
+import com.yahoo.athenz.zts.store.impl.S3ChangeLogStore;
 
 public class S3ChangeLogStoreTest {
 

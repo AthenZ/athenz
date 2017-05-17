@@ -13,21 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zts.store.s3;
+package com.yahoo.athenz.zts.store.impl;
 
+import java.io.File;
 import java.security.PrivateKey;
 
 import com.yahoo.athenz.zts.store.ChangeLogStore;
 import com.yahoo.athenz.zts.store.ChangeLogStoreFactory;
 import com.yahoo.athenz.zts.store.CloudStore;
 
-public class S3ChangeLogStoreFactory implements ChangeLogStoreFactory {
+public class ZMSFileChangeLogStoreFactory implements ChangeLogStoreFactory {
 
-    @Override
+    private static final String ZTS_DATA_STORE = "zts_store";
+
     public ChangeLogStore create(String ztsHomeDir, PrivateKey privateKey,
             String privateKeyId, CloudStore cloudStore) {
         
-        return new S3ChangeLogStore(cloudStore);
+        return new ZMSFileChangeLogStore(ztsHomeDir + File.separator + ZTS_DATA_STORE, privateKey,
+                privateKeyId);
     }
-
 }

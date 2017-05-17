@@ -7,7 +7,7 @@ import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
 import com.yahoo.athenz.zts.cert.X509CertRecord;
-import com.yahoo.athenz.zts.store.file.ZMSFileChangeLogStore;
+import com.yahoo.athenz.zts.store.impl.ZMSFileChangeLogStore;
 
 public class FileCertRecordStoreConnectionTest {
 
