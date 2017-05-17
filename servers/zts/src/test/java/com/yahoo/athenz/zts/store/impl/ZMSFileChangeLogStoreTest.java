@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zts.store.file;
+package com.yahoo.athenz.zts.store.impl;
 
 import static org.testng.Assert.*;
 
@@ -26,7 +26,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.yahoo.athenz.zts.store.file.ZMSFileChangeLogStore;
+import com.yahoo.athenz.zts.store.impl.ZMSFileChangeLogStore;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Struct;
 

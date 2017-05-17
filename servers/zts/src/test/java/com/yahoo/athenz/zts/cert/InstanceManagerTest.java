@@ -23,7 +23,7 @@ import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.server.cert.CertSigner;
 import com.yahoo.athenz.zts.InstanceIdentity;
 import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.store.file.ZMSFileChangeLogStore;
+import com.yahoo.athenz.zts.store.impl.ZMSFileChangeLogStore;
 
 public class InstanceManagerTest {
 

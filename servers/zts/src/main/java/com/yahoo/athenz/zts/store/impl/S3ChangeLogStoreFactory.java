@@ -13,26 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zts.store.s3;
+package com.yahoo.athenz.zts.store.impl;
 
-import static org.mockito.Mockito.mock;
+import java.security.PrivateKey;
 
-import com.amazonaws.services.s3.AmazonS3;
+import com.yahoo.athenz.zts.store.ChangeLogStore;
+import com.yahoo.athenz.zts.store.ChangeLogStoreFactory;
 import com.yahoo.athenz.zts.store.CloudStore;
-import com.yahoo.athenz.zts.store.s3.S3ChangeLogStore;
 
-public class MockS3ChangeLogStore extends S3ChangeLogStore {
+public class S3ChangeLogStoreFactory implements ChangeLogStoreFactory {
 
-    AmazonS3 s3 = null;
-    
-    public MockS3ChangeLogStore(CloudStore cloudStore) {
-        super(cloudStore);
-        s3 = mock(AmazonS3.class);
-    }
-    
     @Override
-    AmazonS3 getS3Client() {
-        return s3;
+    public ChangeLogStore create(String ztsHomeDir, PrivateKey privateKey,
+            String privateKeyId, CloudStore cloudStore) {
+        
+        return new S3ChangeLogStore(cloudStore);
     }
-    
+
 }

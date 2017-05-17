@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zts.store.file;
+package com.yahoo.athenz.zts.store.impl;
 
 import static org.testng.Assert.assertNotNull;
 
@@ -25,7 +25,7 @@ import org.testng.annotations.Test;
 import com.yahoo.athenz.auth.impl.FilePrivateKeyStore;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.zts.store.ChangeLogStore;
-import com.yahoo.athenz.zts.store.file.ZMSFileChangeLogStoreFactory;
+import com.yahoo.athenz.zts.store.impl.ZMSFileChangeLogStoreFactory;
 
 public class ZMSFileChangeLogStoreFactoryTest {
 

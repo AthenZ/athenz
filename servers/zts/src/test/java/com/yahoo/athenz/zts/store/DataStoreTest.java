@@ -52,8 +52,8 @@ import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.cache.MemberRole;
 import com.yahoo.athenz.zts.store.DataStore.DataUpdater;
-import com.yahoo.athenz.zts.store.file.MockZMSFileChangeLogStore;
-import com.yahoo.athenz.zts.store.file.ZMSFileChangeLogStore;
+import com.yahoo.athenz.zts.store.impl.MockZMSFileChangeLogStore;
+import com.yahoo.athenz.zts.store.impl.ZMSFileChangeLogStore;
 import com.yahoo.rdl.JSON;
 
 public class DataStoreTest {

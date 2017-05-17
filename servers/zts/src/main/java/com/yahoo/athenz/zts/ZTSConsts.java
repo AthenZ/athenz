@@ -96,7 +96,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS  = "athenz.zts.private_key_store_factory_class";
     
     public static final String ZTS_METRIC_FACTORY_CLASS            = "com.yahoo.athenz.common.metrics.impl.NoOpMetricFactory";
-    public static final String ZTS_CHANGE_LOG_STORE_FACTORY_CLASS  = "com.yahoo.athenz.zts.store.file.ZMSFileChangeLogStoreFactory";
+    public static final String ZTS_CHANGE_LOG_STORE_FACTORY_CLASS  = "com.yahoo.athenz.zts.store.impl.ZMSFileChangeLogStoreFactory";
     public static final String ZTS_PKEY_STORE_FACTORY_CLASS        = "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory";
     public static final String ZTS_CERT_SIGNER_FACTORY_CLASS       = "com.yahoo.athenz.zts.cert.impl.HttpCertSignerFactory";
     public static final String ZTS_AUDIT_LOGGER_FACTORY_CLASS      = "com.yahoo.athenz.common.server.log.impl.DefaultAuditLoggerFactory";
