@@ -44,7 +44,6 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zms.SignedDomain;
 import com.yahoo.athenz.zms.SignedDomains;
-import com.yahoo.athenz.zts.store.impl.S3ChangeLogStore;
 
 public class S3ChangeLogStoreTest {
 
