@@ -78,6 +78,10 @@
       <directory>${basedir}/../../utils/zms-cli/target</directory>
       <outputDirectory>bin</outputDirectory>
     </fileSet>
+    <fileSet>
+      <directory>${basedir}/../../utils/athenz-conf/target</directory>
+      <outputDirectory>bin</outputDirectory>
+    </fileSet>
   </fileSets>
   <files>
     <file>
