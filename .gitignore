@@ -6,7 +6,7 @@
 **/target/
 **/dependency-reduced-pom.xml
 **/pom.xml.releaseBackup
-ui/.eslintcodecache
+**/.eslintcodecache
 release.properties
 servers/zms/zms_logs/
 servers/zms/zms_root/

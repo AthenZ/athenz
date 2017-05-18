@@ -42,4 +42,9 @@ cp $ZMS_CERT $ROOT/keys/zms_cert.pem
 $ROOT/bin/$HOST_PLATFORM/zms-cli -c $ROOT/keys/zms_cert.pem -z https://$ZMS_HOSTNAME:4443/zms/v1 add-domain athenz
 $ROOT/bin/$HOST_PLATFORM/zms-cli -c $ROOT/keys/zms_cert.pem -z https://$ZMS_HOSTNAME:4443/zms/v1 -d athenz add-service ui 0 $ROOT/keys/athenz.ui_pub.pem
 
+# Generate athenz configuration file
+
+echo "Generating Athenz configuration file..."
+$ROOT/bin/$HOST_PLATFORM/athenz-conf -o $ROOT/config/athenz.conf -c $ROOT/keys/zms_cert.pem -z https://$ZMS_HOSTNAME:4443/
+
 echo "Athenz UI Dev Enviornment setup complete"
