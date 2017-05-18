@@ -66,6 +66,7 @@ app.use(cookieParser());
 app.use('/assets', express.static(path.join(__dirname, 'build', version)));
 app.use('/imgs', express.static(path.join(__dirname, 'public', 'imgs')));
 app.use('/fonts', express.static(path.join(__dirname, 'public', 'fonts')));
+app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 
 app.use(function(req, res, next) {
   req.config = config;
@@ -91,8 +92,8 @@ app.use(function(req, res, next) {
   }
 });
 
-loginUtils.authenticateUser(app);
 loginUtils.signUserToken(app);
+loginUtils.authenticateUser(app);
 loginUtils.saveCookie(app);
 
 app.use(function(req, res, next) {
