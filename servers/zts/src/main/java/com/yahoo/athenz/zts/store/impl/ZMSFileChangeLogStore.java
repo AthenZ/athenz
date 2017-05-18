@@ -62,8 +62,9 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
     private Authority authority = null;
     private String zmsUrl = null;
     
-    private static final String ATTR_TAG = "tag";
-    private static final String LAST_MOD_FNAME = ".lastModTime";
+    private static final String ATTR_TAG           = "tag";
+    private static final String VALUE_TRUE         = "true";
+    private static final String LAST_MOD_FNAME     = ".lastModTime";
     private static final String ATTR_LAST_MOD_TIME = "lastModTime";
     
     public ZMSFileChangeLogStore(String rootDirectory, PrivateKey privateKey, String privateKeyId) {
@@ -128,7 +129,6 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
 
     @Override
     public SignedDomain getSignedDomain(String domainName) {
-
         return get(domainName, SignedDomain.class);
     }
     
@@ -166,7 +166,7 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
         try {
             return JSON.fromBytes(Files.readAllBytes(path), classType);
         } catch (IOException ex) {
-            LOGGER.error("Unable to retrieve domain file: {} error: {}", file.getPath(), ex.getMessage());
+            LOGGER.error("Unable to retrieve file: {} error: {}", file.getPath(), ex.getMessage());
         }
         return null;
     }
@@ -181,7 +181,7 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
         try {
             Files.write(path, data);
         } catch (IOException ex) {
-            error("unable to save domain file: " + file.getPath() + " error: " + ex.getMessage());
+            error("unable to save file: " + file.getPath() + " error: " + ex.getMessage());
         }
     }
 
@@ -287,15 +287,48 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
         return tagData.get(0);
     }
     
+    List<SignedDomain> getSignedDomainList(ZMSClient zmsClient, SignedDomains domainList) {
+        
+        List<SignedDomain> domains = new ArrayList<>();
+        for (SignedDomain domain : domainList.getDomains()) {
+            
+            final String domainName = domain.getDomain().getName();
+            
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("getUpdatedSignedDomains: fetching domain {}", domainName);
+            }
+            
+            try {
+                SignedDomains singleDomain = zmsClient.getSignedDomains(domainName,
+                        null, null, null);
+                
+                if (singleDomain == null || singleDomain.getDomains().isEmpty()) {
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("getUpdatedSignedDomains: unable to fetch domain {}",
+                                domainName);
+                    }
+                    continue;
+                }
+                domains.addAll(singleDomain.getDomains());
+                
+            } catch (ZMSClientException ex) {
+                LOGGER.error("Error fetching domain {} from ZMS: {}", domainName,
+                        ex.getMessage());
+            }
+        }
+        return domains;
+    }
+    
     @Override
     public SignedDomains getUpdatedSignedDomains(StringBuilder lastModTimeBuffer) {
 
         try (ZMSClient zmsClient = getZMSClient()) {
 
-            // request all the changes from ZMS
+            // request all the changes from ZMS. In this call we're asking for
+            // meta data only so we'll only get the list of domains
             
             Map<String, List<String>> responseHeaders = new HashMap<String, List<String>>();
-            SignedDomains signedDomains = zmsClient.getSignedDomains(null, null,
+            SignedDomains domainList = zmsClient.getSignedDomains(null, VALUE_TRUE,
                     lastModTime, responseHeaders);
             
             // retrieve the tag value for the request
@@ -310,10 +343,18 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
             lastModTimeBuffer.setLength(0);
             lastModTimeBuffer.append(newLastModTime);
             
-            return signedDomains;
+            // now let's iterate through our list and retrieve one domain
+            // at a time
             
-        } catch (ZMSClientException e) {
-            LOGGER.error("Error when refreshing data from ZMS: " + e.getMessage());
+            if (domainList == null || domainList.getDomains() == null) {
+                return null;
+            }
+            
+            List<SignedDomain> domains = getSignedDomainList(zmsClient, domainList);
+            return new SignedDomains().setDomains(domains);
+            
+        } catch (ZMSClientException ex) {
+            LOGGER.error("Error when refreshing data from ZMS: {}", ex.getMessage());
             return null;
         }
     }

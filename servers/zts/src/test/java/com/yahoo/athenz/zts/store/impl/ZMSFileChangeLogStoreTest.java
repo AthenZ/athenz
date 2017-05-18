@@ -20,12 +20,19 @@ import static org.testng.Assert.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
+import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.yahoo.athenz.zms.DomainData;
+import com.yahoo.athenz.zms.SignedDomain;
+import com.yahoo.athenz.zms.SignedDomains;
+import com.yahoo.athenz.zms.ZMSClient;
+import com.yahoo.athenz.zms.ZMSClientException;
 import com.yahoo.athenz.zts.store.impl.ZMSFileChangeLogStore;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Struct;
@@ -215,5 +222,52 @@ public class ZMSFileChangeLogStoreTest {
 
         ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
         assertTrue(fstore.supportsFullRefresh());
+    }
+    
+    @Test
+    public void getSignedDomainList() {
+        ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
+        ZMSClient zmsClient = Mockito.mock(ZMSClient.class);
+        
+        List<SignedDomain> domains = new ArrayList<>();
+        DomainData domData = new DomainData().setName("athenz");
+        SignedDomain domain = new SignedDomain().setDomain(domData);
+        domains.add(domain);
+        SignedDomains domainList = new SignedDomains().setDomains(domains);
+        
+        Mockito.when(zmsClient.getSignedDomains("athenz", null, null, null)).thenReturn(domainList);
+
+        List<SignedDomain> returnList = fstore.getSignedDomainList(zmsClient, domainList);
+        assertEquals(returnList.size(), 1);
+        assertEquals(returnList.get(0).getDomain().getName(), "athenz");
+    }
+    
+    @Test
+    public void getSignedDomainListOneBadDomain() {
+        ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
+        ZMSClient zmsClient = Mockito.mock(ZMSClient.class);
+        
+        DomainData domData1 = new DomainData().setName("athenz");
+        SignedDomain domain1 = new SignedDomain().setDomain(domData1);
+        
+        DomainData domData2 = new DomainData().setName("sports");
+        SignedDomain domain2 = new SignedDomain().setDomain(domData2);
+
+        List<SignedDomain> domains = new ArrayList<>();
+        domains.add(domain1);
+        domains.add(domain2);
+        
+        SignedDomains domainList = new SignedDomains().setDomains(domains);
+        
+        List<SignedDomain> mockDomains = new ArrayList<>();
+        mockDomains.add(domain1);
+        SignedDomains mockDomainList = new SignedDomains().setDomains(mockDomains);
+        
+        Mockito.when(zmsClient.getSignedDomains("athenz", null, null, null)).thenReturn(mockDomainList);
+        Mockito.when(zmsClient.getSignedDomains("sports", null, null, null)).thenReturn(null);
+
+        List<SignedDomain> returnList = fstore.getSignedDomainList(zmsClient, domainList);
+        assertEquals(returnList.size(), 1);
+        assertEquals(returnList.get(0).getDomain().getName(), "athenz");
     }
 }
