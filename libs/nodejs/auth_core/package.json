@@ -1,13 +1,8 @@
 {
-  "name": "athenz-ui",
-  "description": "AthenZ UI",
+  "name": "auth_core",
   "version": "1.0.0",
-  "author": "Athenz Team",
-  "license": "Apache-2.0",
-  "repository": {
-    "type": "git",
-    "url": "git@github.com/yahoo/athenz.git"
-  },
+  "description": "Core interfaces for authorization",
+  "main": "index.js",
   "scripts": {
     "build": "grunt build",
     "lint": "grunt lint",
@@ -16,6 +11,24 @@
     "testDev": "mocha --require test/config/mock.js test/unit/*",
     "functional": "grunt functional-sd",
     "noop": "echo Ignoring this section."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com/yahoo/athenz.git"
+  },
+  "keywords": [
+    "athenz",
+    "auth_core",
+    "yahoo"
+  ],
+  "author": "Athenz Team",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/yahoo/athenz/issues"
+  },
+  "homepage": "http://www.athenz.io",
+  "dependencies": {
+    "winston": "^2.3.1"
   },
   "devDependencies": {
     "bootstrap": "~3.3.6",
@@ -60,25 +73,6 @@
     "vis": "^4.15.1",
     "xunit-file": "1.0.0",
     "pkg-up": "1.0.0"
-  },
-  "dependencies": {
-    "async": "~1.5.2",
-    "base64url": "2.0.0",
-    "cookie-parser": "1.4.3",
-    "debug": "~2.2.0",
-    "express": "~4.14.1",
-    "express-busboy": "5.0.0",
-    "express-handlebars": "^3.0.0",
-    "express-normalized": "1.0.0",
-    "graceful-fs": "4.1.11",
-    "jsonwebtoken": "^7.3.0",
-    "lodash": "^4.5.0",
-    "lodash.clone": "~4.5.0",
-    "node-rest-client": "~2.5.0",
-    "request": "~2.79.0",
-    "serve-favicon": "~2.4.0",
-    "url-pattern": "~1.0.1",
-    "auth_core": "file:../libs/nodejs/auth_core"
   },
   "jshintConfig": {
     "esnext": true,
