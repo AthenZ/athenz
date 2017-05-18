@@ -254,7 +254,7 @@ public class DataStore implements DataCacheProvider {
         }
         
         if (!result) {
-            LOGGER.error("Invalid local domain: " + domainName + ". Full refresh from ZMS required.");
+            LOGGER.error("Invalid local domain: " + domainName + ". Refresh from ZMS required.");
         }
         
         return result;
