@@ -76,7 +76,8 @@
     "node-rest-client": "~2.5.0",
     "request": "~2.79.0",
     "serve-favicon": "~2.4.0",
-    "url-pattern": "~1.0.1"
+    "url-pattern": "~1.0.1",
+    "auth_core": "file:local_modules/auth_core"
   },
   "jshintConfig": {
     "esnext": true,
