@@ -85,12 +85,12 @@ describe('view utils', function() {
         'fullName': 'role',
         'name': 'role',
         'type': 'Regular',
-        'members': [{'name': 'a'}, {'name': config.userDomain + '.b', 'userlink': 'http://localhost/user/b'}],
+        'members': [{'name': 'a'}, {'name': config.userDomain + '.b', 'userlink': 'https://localhost:9443/athenz/domain/create/userdomain'}],
         'auditLog': [{
           'action': 'ADD',
-          'admin': {'name': config.userDomain + '.a', 'userlink': 'http://localhost/user/a'},
+          'admin': {'name': config.userDomain + '.a', 'userlink': 'https://localhost:9443/athenz/domain/create/userdomain'},
           'created': '2016-06-28T23:28:29.000Z',
-          'member': {'name': config.userDomain + '.b', 'userlink': 'http://localhost/user/b'}
+          'member': {'name': config.userDomain + '.b', 'userlink': 'https://localhost:9443/athenz/domain/create/userdomain'}
         }]
       }
     );

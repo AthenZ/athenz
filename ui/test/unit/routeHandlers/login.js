@@ -16,6 +16,7 @@
 'use strict';
 
 var routeHandlers = require('../../../src/routeHandlers/login');
+var config = require('../../../config/config.js')();
 
 var req = require('../../config/helpers').req;
 var res = require('../../config/helpers').res;
@@ -37,10 +38,13 @@ describe('main routeHandlers', function() {
   it('should test notLogged route for non ajax context', function() {
     req.originalUrl = 'dummy';
     req.method = 'GET';
+		req.config = config;
 
     var mock = sandbox.mock(res);
     mock.expects('render').withArgs('login', {
-      pageTitle: '401 Unauthorized',
+      pageTitle: 'Athenz UI login page',
+      redirect: "/athenz",
+      target: '/athenz/login',
       url: 'dummy'
     });
 
