@@ -40,7 +40,8 @@ describe('main routeHandlers', function() {
 
     var mock = sandbox.mock(res);
     mock.expects('render').withArgs('login', {
-      pageTitle: '401 Unauthorized',
+      pageTitle: 'Athenz UI login page',
+      target: "/athenz",
       url: 'dummy'
     });
 
