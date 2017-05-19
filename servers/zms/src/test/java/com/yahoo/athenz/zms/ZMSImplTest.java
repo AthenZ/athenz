@@ -14286,10 +14286,15 @@ public class ZMSImplTest extends TestCase {
         assertTrue(zms.memberNameMatch("*", "athenz.service.storage"));
         assertTrue(zms.memberNameMatch("user.*", "user.joe"));
         assertTrue(zms.memberNameMatch("athenz.*", "athenz.service.storage"));
+        assertTrue(zms.memberNameMatch("athenz.service*", "athenz.service.storage"));
+        assertTrue(zms.memberNameMatch("athenz.service*", "athenz.service-storage"));
+        assertTrue(zms.memberNameMatch("athenz.service*", "athenz.service"));
         assertTrue(zms.memberNameMatch("user.joe", "user.joe"));
         
         assertFalse(zms.memberNameMatch("user.*", "athenz.joe"));
         assertFalse(zms.memberNameMatch("athenz.*", "athenztest.joe"));
+        assertFalse(zms.memberNameMatch("athenz.service*", "athenz.servic"));
+        assertFalse(zms.memberNameMatch("athenz.service*", "athenz.servictag"));
         assertFalse(zms.memberNameMatch("user.joe", "user.joel"));
     }
 }

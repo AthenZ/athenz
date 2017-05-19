@@ -59,7 +59,7 @@ public class ZMSSchema {
             .pattern("[a-zA-Z0-9\\._%=-]*");
 
         sb.stringType("AuthorityName")
-            .comment("Used as the prefix in a signed assertion. This uniquely identifies a signing authority. i.e. \"user\"")
+            .comment("Used as the prefix in a signed assertion. This uniquely identifies a signing authority.")
             .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
 
         sb.stringType("SignedToken")
@@ -67,8 +67,8 @@ public class ZMSSchema {
             .pattern("[a-zA-Z0-9\\._%=:;,-]*");
 
         sb.stringType("MemberName")
-            .comment("Role Member name - could be one of three values, either *, DomainName.* or ResourceName")
-            .pattern("\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*\\.\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(:([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?");
+            .comment("Role Member name - could be one of three values: *, DomainName.* or ResourceName[*]")
+            .pattern("\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*\\.\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(:([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?(\\*)?");
 
         sb.structType("Domain")
             .comment("A domain is an independent partition of users, roles, and resources. Its name represents the definition of a namespace; the only way a new namespace can be created, from the top, is by creating Domains. Administration of a domain is governed by the parent domain (using reverse-DNS namespaces). The top level domains are governed by the special \"sys.auth\" domain.")

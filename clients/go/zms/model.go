@@ -74,7 +74,7 @@ type YEncoded string
 
 //
 // AuthorityName - Used as the prefix in a signed assertion. This uniquely
-// identifies a signing authority. i.e. "user"
+// identifies a signing authority.
 //
 type AuthorityName string
 
@@ -89,8 +89,8 @@ type AuthorityName string
 type SignedToken string
 
 //
-// MemberName - Role Member name - could be one of three values, either *,
-// DomainName.* or ResourceName
+// MemberName - Role Member name - could be one of three values: *,
+// DomainName.* or ResourceName[*]
 //
 type MemberName string
 

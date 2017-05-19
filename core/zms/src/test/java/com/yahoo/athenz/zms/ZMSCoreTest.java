@@ -1429,6 +1429,8 @@ public class ZMSCoreTest {
                 "athenz.storage.test-test",
                 "user.3sets",
                 "athenz.great-service",
+                "athenz.great-service*",
+                "test.joe*",
                 "*"
         };
 
@@ -1443,8 +1445,8 @@ public class ZMSCoreTest {
         String[] badMemberNames = {
                 "user.*joe",
                 "*test",
-                "test.joe*",
-                "user.joe*test"
+                "user.joe*test",
+                "test.joe**"
         };
 
         for (String s : badMemberNames) {

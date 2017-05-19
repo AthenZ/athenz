@@ -59,7 +59,7 @@ public class ProviderSchema {
             .pattern("[a-zA-Z0-9\\._%=-]*");
 
         sb.stringType("AuthorityName")
-            .comment("Used as the prefix in a signed assertion. This uniquely identifies a signing authority. i.e. \"user\"")
+            .comment("Used as the prefix in a signed assertion. This uniquely identifies a signing authority.")
             .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
 
         sb.stringType("SignedToken")
@@ -67,8 +67,8 @@ public class ProviderSchema {
             .pattern("[a-zA-Z0-9\\._%=:;,-]*");
 
         sb.stringType("MemberName")
-            .comment("Role Member name - could be one of three values, either *, DomainName.* or ResourceName")
-            .pattern("\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*\\.\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(:([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?");
+            .comment("Role Member name - could be one of three values: *, DomainName.* or ResourceName[*]")
+            .pattern("\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*\\.\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(:([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?(\\*)?");
 
         sb.enumType("TenantState")
             .element("INACTIVE")
