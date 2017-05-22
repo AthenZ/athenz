@@ -2302,11 +2302,11 @@ public class DBServiceTest extends TestCase {
     public void testAuditLogPublicKeyEntry() {
         StringBuilder auditDetails = new StringBuilder();
         assertFalse(zms.dbService.auditLogPublicKeyEntry(auditDetails, "keyId", true));
-        assertEquals("{id: \"keyId\"}", auditDetails.toString());
+        assertEquals("{\"id\": \"keyId\"}", auditDetails.toString());
         
         auditDetails.setLength(0);
         assertFalse(zms.dbService.auditLogPublicKeyEntry(auditDetails, "keyId", false));
-        assertEquals(",{id: \"keyId\"}", auditDetails.toString());
+        assertEquals(",{\"id\": \"keyId\"}", auditDetails.toString());
     }
     
     @Test
@@ -2314,7 +2314,7 @@ public class DBServiceTest extends TestCase {
         StringBuilder auditDetails = new StringBuilder();
         assertTrue(zms.dbService.applySolutionTemplate(null, null, "template1",
                 null, true, null, null, auditDetails));
-        assertEquals("{name: \"template1\"}", auditDetails.toString());
+        assertEquals("{\"name\": \"template1\"}", auditDetails.toString());
     }
 
     @Test

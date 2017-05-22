@@ -218,13 +218,13 @@ public class DBService {
                 }
                 
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-                auditDetails.append("{domain: ");
+                auditDetails.append("{\"domain\": ");
                 auditLogDomain(auditDetails, domain);
                 
                 // first create and process the admin role
                 
                 Role adminRole = ZMSUtils.makeAdminRole(domainName, adminUsers);
-                auditDetails.append(", role: ");
+                auditDetails.append(", \"role\": ");
                 if (!processRole(con, null, domainName, ZMSConsts.ADMIN_ROLE_NAME, adminRole,
                         getPrincipalName(ctx), auditRef, false, auditDetails)) {
                     con.rollbackChanges();
@@ -235,7 +235,7 @@ public class DBService {
                 // now create and process the admin policy
                 
                 Policy adminPolicy = ZMSUtils.makeAdminPolicy(domainName, adminRole);
-                auditDetails.append(", policy: ");
+                auditDetails.append(", \"policy\": ");
                 if (!processPolicy(con, null, domainName, ZMSConsts.ADMIN_POLICY_NAME, adminPolicy,
                         false, auditDetails)) {
                     con.rollbackChanges();
@@ -248,7 +248,7 @@ public class DBService {
                 
                 if (solutionTemplates != null) {
                     for (String templateName : solutionTemplates) {
-                        auditDetails.append(", template: ");
+                        auditDetails.append(", \"template\": ");
                         Template template = ZMSImpl.serverSolutionTemplates.get(templateName);
                         if (!applySolutionTemplate(con, domainName, templateName, template, true,
                                 getPrincipalName(ctx), auditRef, auditDetails)) {
@@ -537,11 +537,11 @@ public class DBService {
 
         // open our audit record and log our service details
         
-        auditDetails.append("{name: \"").append(serviceName).append('\"')
-            .append(", executable: \"").append(service.getExecutable()).append('\"')
-            .append(", user: \"").append(service.getUser()).append('\"')
-            .append(", group: \"").append(service.getGroup()).append('\"')
-            .append(", providerEndpoint: \"").append(service.getProviderEndpoint()).append('\"');
+        auditDetails.append("{\"name\": \"").append(serviceName).append('\"')
+            .append(", \"executable\": \"").append(service.getExecutable()).append('\"')
+            .append(", \"user\": \"").append(service.getUser()).append('\"')
+            .append(", \"group\": \"").append(service.getGroup()).append('\"')
+            .append(", \"providerEndpoint\": \"").append(service.getProviderEndpoint()).append('\"');
          
         // now we need process our public keys depending this is
         // a new insert operation or an update
@@ -842,10 +842,10 @@ public class DBService {
 
                 if (originalKeyEntry == null) {
                     requestSuccess = con.insertPublicKeyEntry(domainName, serviceName, keyEntry);
-                    auditDetails.append("{added-publicKeys: [");
+                    auditDetails.append("{\"added-publicKeys\": [");
                 } else {
                     requestSuccess = con.updatePublicKeyEntry(domainName, serviceName, keyEntry);
-                    auditDetails.append("{updated-publicKeys: [");
+                    auditDetails.append("{\"updated-publicKeys\": [");
                 }
                 
                 if (!requestSuccess) {
@@ -912,7 +912,7 @@ public class DBService {
                 // audit log the request
 
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-                auditDetails.append("{deleted-publicKeys: [{id: \"").append(keyId).append("\"}]}");
+                auditDetails.append("{\"deleted-publicKeys\": [{\"id\": \"").append(keyId).append("\"}]}");
                 
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
                         serviceName, auditDetails.toString());
@@ -1816,7 +1816,7 @@ public class DBService {
                 // roles and polices to our domain
                 
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-                auditDetails.append("{add-templates: ");
+                auditDetails.append("{\"add-templates\": ");
                 boolean firstEntry = true;
                 
                 for (String templateName : templateNames) {
@@ -1865,7 +1865,7 @@ public class DBService {
                 // roles and polices to our domain
                 
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-                auditDetails.append("{templates: ");
+                auditDetails.append("{\"templates\": ");
                 
                 Template template = ZMSImpl.serverSolutionTemplates.get(templateName);
                 if (!applySolutionTemplate(con, domainName, templateName, template, false,
@@ -1899,7 +1899,7 @@ public class DBService {
     boolean applySolutionTemplate(ObjectStoreConnection con, String domainName, String templateName,
             Template template, boolean addTemplate, String admin, String auditRef, StringBuilder auditDetails) {
         
-        auditDetails.append("{name: \"").append(templateName).append('\"');
+        auditDetails.append("{\"name\": \"").append(templateName).append('\"');
         
         // we have already verified that our template is valid but
         // we'll just double check to make sure it's not null
@@ -1925,7 +1925,7 @@ public class DBService {
                 if (!addTemplate) {
                     con.deleteRole(domainName, roleName);
                     firstEntry = auditLogSeparator(auditDetails, firstEntry);
-                    auditDetails.append(" delete-role: \"").append(roleName).append('\"');
+                    auditDetails.append(" \"delete-role\": \"").append(roleName).append('\"');
                     continue;
                 }
 
@@ -1937,7 +1937,7 @@ public class DBService {
                 
                 Role templateRole = updateTemplateRole(role, domainName, roleName);
                 firstEntry = auditLogSeparator(auditDetails, firstEntry);
-                auditDetails.append(" add-role: ");
+                auditDetails.append(" \"add-role\": ");
                 if (!processRole(con, originalRole, domainName, roleName, templateRole,
                         admin, auditRef, true, auditDetails)) {
                     return false;
@@ -1959,7 +1959,7 @@ public class DBService {
                 if (!addTemplate) {
                     con.deletePolicy(domainName, policyName);
                     firstEntry = auditLogSeparator(auditDetails, firstEntry);
-                    auditDetails.append(" delete-policy: \"").append(policyName).append('\"');
+                    auditDetails.append(" \"delete-policy\": \"").append(policyName).append('\"');
                     continue;
                 }
                 
@@ -1971,7 +1971,7 @@ public class DBService {
                 
                 Policy templatePolicy = updateTemplatePolicy(policy, domainName, policyName);
                 firstEntry = auditLogSeparator(auditDetails, firstEntry);
-                auditDetails.append(" add-policy: ");
+                auditDetails.append(" \"add-policy\": ");
                 if (!processPolicy(con, originalPolicy, domainName, policyName, templatePolicy,
                         true, auditDetails)) {
                     return false;
@@ -2128,7 +2128,7 @@ public class DBService {
                         provSvcName, tenantDomain, resourceGroup);
                 
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-                auditDetails.append("{put-tenant-roles: [");
+                auditDetails.append("{\"put-tenant-roles\": [");
                 boolean firstEntry = true;
                 
                 for (TenantRoleAction ra : roles) {
@@ -2153,7 +2153,7 @@ public class DBService {
                     
                     firstEntry = auditLogSeparator(auditDetails, firstEntry);
 
-                    auditDetails.append("{role: ");
+                    auditDetails.append("{\"role\": ");
                     if (!processRole(con, originalRole, provSvcDomain, trustedName, role,
                             getPrincipalName(ctx), auditRef, false, auditDetails)) {
                         con.rollbackChanges();
@@ -2183,7 +2183,7 @@ public class DBService {
 
                     // now process the request
                     
-                    auditDetails.append(", policy: ");
+                    auditDetails.append(", \"policy\": ");
                     if (!processPolicy(con, originalPolicy, provSvcDomain, trustedName, policy, false, auditDetails)) {
                         con.rollbackChanges();
                         throw ZMSUtils.internalServerError("unable to put policy: " + policy.getName(), caller);
@@ -2235,7 +2235,7 @@ public class DBService {
         // now process the request
         
         Role roleObj = new Role().setName(roleResourceName).setRoleMembers(roleMembers);
-        auditDetails.append("{role: ");
+        auditDetails.append("{\"role\": ");
         if (!processRole(con, originalRole, tenantDomain, roleName, roleObj,
                 admin, auditRef, false, auditDetails)) {
             con.rollbackChanges();
@@ -2273,7 +2273,7 @@ public class DBService {
         
         Policy assumeRolePolicy = new Policy().setName(policyResourceName).setAssertions(newAssertions);
 
-        auditDetails.append(", policy: ");
+        auditDetails.append(", \"policy\": ");
         if (!processPolicy(con, originalPolicy, tenantDomain, policyName, assumeRolePolicy,
                 false, auditDetails)) {
             con.rollbackChanges();
@@ -2313,7 +2313,7 @@ public class DBService {
                         provSvcName, tenantDomain, resourceGroup);
                 
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-                auditDetails.append("{put-provider-roles: [");
+                auditDetails.append("{\"put-provider-roles\": [");
                 boolean firstEntry = true;
                 
                 for (String role : roles) {
@@ -2460,7 +2460,7 @@ public class DBService {
                 
                 List<String> rnames = con.listRoles(provSvcDomain);
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-                auditDetails.append("{tenant-roles: [");
+                auditDetails.append("{\"tenant-roles\": [");
                 boolean firstEntry = true;
                 for (String rname: rnames) {
                     if (isTrustRoleForTenant(con, provSvcDomain, rname, rolePrefix, tenantDomain)) {
@@ -2682,7 +2682,7 @@ public class DBService {
     
     void auditLogPublicKeyEntries(StringBuilder auditDetails, String label,
             List<PublicKeyEntry> values) {
-        auditDetails.append(", ").append(label).append(": [");
+        auditDetails.append(", \"").append(label).append("\": [");
         boolean firstEntry = true;
         for (PublicKeyEntry value : values) {
             firstEntry = auditLogPublicKeyEntry(auditDetails, value, firstEntry);
@@ -2692,7 +2692,7 @@ public class DBService {
     
     void auditLogPublicKeyEntries(StringBuilder auditDetails, String label, Set<String> values,
             Map<String, PublicKeyEntry> publicKeysMap) {
-        auditDetails.append(", ").append(label).append(": [");
+        auditDetails.append(", \"").append(label).append("\": [");
         boolean firstEntry = true;
         for (String value : values) {
             firstEntry = auditLogPublicKeyEntry(auditDetails, publicKeysMap.get(value), firstEntry);
@@ -2701,7 +2701,7 @@ public class DBService {
     }
     
     void auditLogPublicKeyEntries(StringBuilder auditDetails, String label, Set<String> values) {
-        auditDetails.append(", ").append(label).append(": [");
+        auditDetails.append(", \"").append(label).append("\": [");
         boolean firstEntry = true;
         for (String value : values) {
             firstEntry = auditLogPublicKeyEntry(auditDetails, value, firstEntry);
@@ -2711,14 +2711,14 @@ public class DBService {
     
     boolean auditLogPublicKeyEntry(StringBuilder auditDetails, PublicKeyEntry publicKey, boolean firstEntry) {
         firstEntry = auditLogSeparator(auditDetails, firstEntry);
-        auditDetails.append("{key: \"").append(publicKey.getKey())
-            .append("\", id: \"").append(publicKey.getId()).append("\"}");
+        auditDetails.append("{\"key\": \"").append(publicKey.getKey())
+            .append("\", \"id\": \"").append(publicKey.getId()).append("\"}");
         return firstEntry;
     }
     
     boolean auditLogPublicKeyEntry(StringBuilder auditDetails, String publicKeyId, boolean firstEntry) {
         firstEntry = auditLogSeparator(auditDetails, firstEntry);
-        auditDetails.append("{id: \"").append(publicKeyId).append("\"}");
+        auditDetails.append("{\"id\": \"").append(publicKeyId).append("\"}");
         return firstEntry;
     }
     
@@ -2746,10 +2746,10 @@ public class DBService {
     }
     
     void auditLogDomain(StringBuilder auditDetails, Domain domain) {
-        auditDetails.append("{description: \"").append(domain.getDescription())
-        .append("\", org: \"").append(domain.getOrg())
-        .append("\", auditEnabled: \"").append(domain.getAuditEnabled())
-        .append("\", enabled: \"").append(domain.getEnabled())
+        auditDetails.append("{\"description\": \"").append(domain.getDescription())
+        .append("\", \"org\": \"").append(domain.getOrg())
+        .append("\", \"auditEnabled\": \"").append(domain.getAuditEnabled())
+        .append("\", \"enabled\": \"").append(domain.getEnabled())
         .append("\"}");
     }
 }
