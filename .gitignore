@@ -60,3 +60,4 @@ utils/zts-svccert/src/
 utils/zpe_policy_updater/bin/
 utils/zpe_policy_updater/tmp_metrics/
 utils/zpe_policy_updater/src/test/resources/sys.auth.new.pol
+servers/zms/schema/zms_server.mwb.bak
