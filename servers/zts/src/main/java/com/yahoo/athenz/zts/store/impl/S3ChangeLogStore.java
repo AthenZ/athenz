@@ -15,8 +15,6 @@
  */
 package com.yahoo.athenz.zts.store.impl;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -27,11 +25,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.google.common.io.ByteStreams;
 import com.yahoo.athenz.zms.SignedDomain;
 import com.yahoo.athenz.zms.SignedDomains;
 import com.yahoo.athenz.zts.ZTSConsts;
@@ -70,25 +69,20 @@ public class S3ChangeLogStore implements ChangeLogStore {
     
     SignedDomain getSignedDomain(AmazonS3 s3, String domainName) {
 
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("AWSS3ChangeLog: getting signed domain {}", domainName);
+        }
+        
         SignedDomain signedDomain = null;
         try {
-            S3Object object = s3.getObject(new GetObjectRequest(s3BucketName, domainName));
-            if (object == null) {
-                LOGGER.error("AWSS3ChangeLog: getSignedDomain - domain not found " + domainName);
-                return null;
+            S3Object object = s3.getObject(s3BucketName, domainName);
+            try (S3ObjectInputStream s3is = object.getObjectContent()) {
+                byte[] data = ByteStreams.toByteArray(s3is);
+                signedDomain = JSON.fromBytes(data, SignedDomain.class);
             }
-            
-            BufferedReader reader = new BufferedReader(new InputStreamReader(object.getObjectContent()));
-            StringBuilder data = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                data.append(line);
-            }
-            reader.close();
-            signedDomain = JSON.fromString(data.toString(), SignedDomain.class);
         } catch (Exception ex) {
-            LOGGER.error("AWSS3ChangeLog: getSignedDomain - unable to get domain " + domainName +
-                    " error: " + ex.getMessage());
+            LOGGER.error("AWSS3ChangeLog: getSignedDomain - unable to get domain {} error: {}",
+                    domainName, ex.getMessage());
         }
         return signedDomain;
     }

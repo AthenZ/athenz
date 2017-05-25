@@ -26,11 +26,11 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.Date;
 
-import org.junit.Before;
 import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.common.server.db.PoolableDataSource;
@@ -50,7 +50,7 @@ public class JDBCCertRecordStoreConnectionTest extends TestCase {
     
     JDBCCertRecordStore strStore;
     
-    @Before
+    @BeforeMethod
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         Mockito.doReturn(mockConn).when(mockDataSrc).getConnection();

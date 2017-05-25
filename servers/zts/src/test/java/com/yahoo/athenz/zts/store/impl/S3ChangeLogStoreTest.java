@@ -351,7 +351,7 @@ public class S3ChangeLogStoreTest {
         S3Object object = mock(S3Object.class);
         when(object.getObjectContent()).thenReturn(s3Is);
 
-        when(store.s3.getObject(any(GetObjectRequest.class))).thenReturn(object);
+        when(store.s3.getObject("athenz-domain-sys.auth", "iaas")).thenReturn(object);
         
         SignedDomain signedDomain = store.getSignedDomain(store.s3, "iaas");
         assertNotNull(signedDomain);
@@ -371,7 +371,7 @@ public class S3ChangeLogStoreTest {
         S3Object object = mock(S3Object.class);
         when(object.getObjectContent()).thenReturn(s3Is);
 
-        when(store.s3.getObject(any(GetObjectRequest.class))).thenReturn(object);
+        when(store.s3.getObject("athenz-domain-sys.auth", "iaas")).thenReturn(object);
         
         SignedDomain signedDomain = store.getSignedDomain("iaas");
         assertNotNull(signedDomain);
@@ -436,7 +436,8 @@ public class S3ChangeLogStoreTest {
         S3Object object = mock(S3Object.class);
         when(object.getObjectContent()).thenReturn(s3Is);
 
-        when(store.s3.getObject(any(GetObjectRequest.class))).thenReturn(object);
+        when(store.s3.getObject("athenz-domain-sys.auth", "iaas")).thenReturn(object);
+        when(store.s3.getObject("athenz-domain-sys.auth", "iaas.athenz")).thenReturn(object);
         
         // set the last modification time to return one of the domains
         store.lastModTime = (new Date(150)).getTime();
