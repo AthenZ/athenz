@@ -1799,6 +1799,53 @@ public class ZMSClientTest {
     }
 
     @Test
+    public void testDeleteUser() {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        User userMock = Mockito.mock(User.class);
+        Mockito.when(c.deleteUser("joe")).thenReturn(userMock);
+        Mockito.when(c.deleteUser("doe")).thenThrow(new ResourceException(404));
+
+        try {
+            client.deleteUser("joe");
+            assertTrue(true);
+        } catch (ZMSClientException ex) {
+            fail();
+        }
+        
+        try {
+            client.deleteUser("doe");
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+    }
+    
+    @Test
+    public void testGetUserList() {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        UserList userListMock = Mockito.mock(UserList.class);
+        Mockito.when(c.getUserList()).thenReturn(userListMock).thenThrow(new ResourceException(401));
+
+        try {
+            UserList userList = client.getUserList();
+            assertNotNull(userList);
+        } catch (ZMSClientException ex) {
+            fail();
+        }
+        
+        try {
+            client.getUserList();
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), 401);
+        }
+    }
+    
+    @Test
     public void testCreatePolicyUserToken() {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);

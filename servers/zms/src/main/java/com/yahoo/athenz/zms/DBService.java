@@ -1313,6 +1313,113 @@ public class DBService {
         return null;
     }
     
+    List<String> listPrincipals(String domainName, boolean domainOnly) {
+        
+        try (ObjectStoreConnection con = store.getConnection(true)) {
+            List<String> principals = con.listPrincipals(domainName);
+            
+            // if no further filtering is necessary, return the data
+            // right away
+            
+            if (!domainOnly) {
+                return principals;
+            }
+            
+            // generate our return list
+            
+            List<String> users = new ArrayList<>();
+
+            // if we're asked for domain only then we need to match
+            // the domain name, if specified, and make sure the response
+            // only includes a single period/domain separator
+            // we need to skip an extra byte to accommodate for the
+            // domain separator (e.g. <domainName>.<userName>)
+            
+            int prefixLength = 0;
+            if (domainName != null) {
+                prefixLength = domainName.length() + 1;
+            }
+                
+            for (String principal : principals) {
+                    
+                // make sure the principal name doesn't have multiple
+                // components - e.g. user.joe.test since it represents
+                // a service or a sub-domain and we're only interested
+                // in actual users
+                
+                if (prefixLength > 0) {
+                    if (principal.substring(prefixLength).indexOf('.') == -1) {
+                        users.add(principal);
+                    }
+                } else {
+                    
+                    // we have a single separator when the first index
+                    // and the last index are the same
+                    
+                    if (principal.indexOf('.') == principal.lastIndexOf('.')) {
+                        users.add(principal);
+                    }
+                }
+            }
+            
+            return users;
+        }
+    }
+    
+    void executeDeleteUser(ResourceContext ctx, String userName, String caller) {
+        
+        int retryCount = defaultRetryCount;
+        do {
+            try (ObjectStoreConnection con = store.getConnection(false)) {
+                
+                // first we're going to retrieve the list domains for
+                // the given principal
+                
+                final String domainPrefix = userName + ".";
+                List<String> subDomains = con.listDomains(domainPrefix, 0);
+
+                // first we're going to delete the principal domain if
+                // one exists and then all the sub-domains. We're not
+                // going to fail the operation for these steps - only
+                // if the actual principal is not deleted
+                
+                con.deleteDomain(userName);
+                for (String subDomain : subDomains) {
+                    con.deleteDomain(subDomain);
+                }
+                
+                // the object store is responsible for deleting this
+                // principal from all roles
+                
+                if (!con.deletePrincipal(userName, true)) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.notFoundError(caller + ": unable to delete user: "
+                            + userName, caller);
+                }
+                
+                con.commitChanges();
+                
+                // invalidate all entries from the local cache
+                
+                cacheStore.invalidate(userName);
+                for (String subDomain : subDomains) {
+                    cacheStore.invalidate(subDomain);
+                }
+
+                // audit log the request
+                
+                auditLogRequest(ctx, userName, null, caller, ZMSConsts.HTTP_DELETE,
+                        userName, null);
+                
+            } catch (ResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
+            }
+            retryCount -= 1;
+        } while (retryCount > 0);
+    }
+    
     ServiceIdentity getServiceIdentity(String domainName, String serviceName) {
 
         try (ObjectStoreConnection con = store.getConnection(true)) {

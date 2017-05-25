@@ -3895,3 +3895,118 @@ func (self *ServicePrincipal) Validate() error {
 	}
 	return nil
 }
+
+//
+// User - The representation for a user
+//
+type User struct {
+
+	//
+	// name of the user
+	//
+	Name SimpleName `json:"name"`
+}
+
+//
+// NewUser - creates an initialized User instance, returns a pointer to it
+//
+func NewUser(init ...*User) *User {
+	var o *User
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(User)
+	}
+	return o
+}
+
+type rawUser User
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a User
+//
+func (self *User) UnmarshalJSON(b []byte) error {
+	var r rawUser
+	err := json.Unmarshal(b, &r)
+	if err == nil {
+		o := User(r)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *User) Validate() error {
+	if self.Name == "" {
+		return fmt.Errorf("User.name is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.Name)
+		if !val.Valid {
+			return fmt.Errorf("User.name does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
+// UserList -
+//
+type UserList struct {
+
+	//
+	// list of user names
+	//
+	Names []SimpleName `json:"names"`
+}
+
+//
+// NewUserList - creates an initialized UserList instance, returns a pointer to it
+//
+func NewUserList(init ...*UserList) *UserList {
+	var o *UserList
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(UserList)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *UserList) Init() *UserList {
+	if self.Names == nil {
+		self.Names = make([]SimpleName, 0)
+	}
+	return self
+}
+
+type rawUserList UserList
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a UserList
+//
+func (self *UserList) UnmarshalJSON(b []byte) error {
+	var r rawUserList
+	err := json.Unmarshal(b, &r)
+	if err == nil {
+		o := UserList(r)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *UserList) Validate() error {
+	if self.Names == nil {
+		return fmt.Errorf("UserList: Missing required field: names")
+	}
+	return nil
+}

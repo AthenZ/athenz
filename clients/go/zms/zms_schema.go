@@ -408,6 +408,15 @@ func init() {
 	tServicePrincipal.Field("token", "SignedToken", false, nil, "service's signed token")
 	sb.AddType(tServicePrincipal.Build())
 
+	tUser := rdl.NewStructTypeBuilder("Struct", "User")
+	tUser.Comment("The representation for a user")
+	tUser.Field("name", "SimpleName", false, nil, "name of the user")
+	sb.AddType(tUser.Build())
+
+	tUserList := rdl.NewStructTypeBuilder("Struct", "UserList")
+	tUserList.ArrayField("names", "SimpleName", false, "list of user names")
+	sb.AddType(tUserList.Build())
+
 	rGetDomain := rdl.NewResourceBuilder("Domain", "GET", "/domain/{domain}")
 	rGetDomain.Comment("Get info for the specified domain, by name. This request only returns the configured domain attributes and not any domain objects like roles, policies or service identities.")
 	rGetDomain.Input("domain", "DomainName", true, "", "", false, nil, "name of the domain")
@@ -1232,6 +1241,23 @@ func init() {
 	rGetTemplate.Exception("NOT_FOUND", "ResourceError", "")
 	rGetTemplate.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rGetTemplate.Build())
+
+	rGetUserList := rdl.NewResourceBuilder("UserList", "GET", "/user")
+	rGetUserList.Comment("Enumerate users that are registered as principals in the system This will return only the principals with \"<user-domain>.\" prefix")
+	rGetUserList.Auth("", "", true, "")
+	rGetUserList.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(rGetUserList.Build())
+
+	rDeleteUser := rdl.NewResourceBuilder("User", "DELETE", "/user/{name}")
+	rDeleteUser.Comment("Delete the specified user. This command will delete the user.<name> domain and all of its subdomains (if they exist) and remove the user.<name> from all the roles in the system that it's member of. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+	rDeleteUser.Input("name", "SimpleName", true, "", "", false, nil, "name of the user")
+	rDeleteUser.Auth("delete", "sys.auth:user", false, "")
+	rDeleteUser.Expected("NO_CONTENT")
+	rDeleteUser.Exception("BAD_REQUEST", "ResourceError", "")
+	rDeleteUser.Exception("FORBIDDEN", "ResourceError", "")
+	rDeleteUser.Exception("NOT_FOUND", "ResourceError", "")
+	rDeleteUser.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(rDeleteUser.Build())
 
 	schema = sb.Build()
 }

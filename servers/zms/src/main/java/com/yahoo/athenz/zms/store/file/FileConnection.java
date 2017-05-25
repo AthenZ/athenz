@@ -409,6 +409,88 @@ public class FileConnection implements ObjectStoreConnection {
         return list;
     }
 
+    @Override
+    public List<String> listPrincipals(String domainName) {
+        
+        // we're going to go through all domains and extract any
+        // principal that satisfies our filter domainName
+        
+        Set<String> principals = new HashSet<>();
+        String[] fnames = rootDir.list();
+        String domainNamePrefix = domainName == null ? null : domainName + ".";
+        for (String fname : fnames) {
+            File f = new File(rootDir, fname);
+            DomainStruct domainStruct = null;
+            try {
+                Path path = Paths.get(f.toURI());
+                domainStruct = JSON.fromBytes(Files.readAllBytes(path), DomainStruct.class);
+            } catch (IOException e) {
+            }
+            if (domainStruct == null) {
+                continue;
+            }
+            
+            for (Role role: domainStruct.getRoles().values()) {
+                List<RoleMember> roleMembers = role.getRoleMembers();
+                if (roleMembers == null) {
+                    continue;
+                }
+                for (RoleMember roleMember : roleMembers) {
+                    
+                    final String memberName = roleMember.getMemberName();
+                    if (domainNamePrefix == null) {
+                        principals.add(memberName);
+                    } else if (memberName.startsWith(domainNamePrefix)) {
+                        principals.add(memberName);
+                    }
+                }
+            }
+        }
+        return new ArrayList<String>(principals);
+    }
+    
+    @Override
+    public boolean deletePrincipal(String principalName, boolean subDomains) {
+        
+        // we're going to go through all domains and delete any
+        // principal that satisfies our criteria
+        
+        String[] fnames = rootDir.list();
+        String domainNamePrefix = subDomains ? principalName + "." : null;
+        for (String fname : fnames) {
+            File f = new File(rootDir, fname);
+            DomainStruct domainStruct = null;
+            try {
+                Path path = Paths.get(f.toURI());
+                domainStruct = JSON.fromBytes(Files.readAllBytes(path), DomainStruct.class);
+            } catch (IOException e) {
+            }
+            if (domainStruct == null) {
+                continue;
+            }
+            
+            boolean domainChanged = false;
+            for (Role role: domainStruct.getRoles().values()) {
+                List<RoleMember> roleMembers = role.getRoleMembers();
+                if (roleMembers == null) {
+                    continue;
+                }
+                for (int idx = 0; idx < roleMembers.size(); idx++) {
+                    final String memberName = roleMembers.get(idx).getMemberName();
+                    if (memberName.equals(principalName) ||
+                            (domainNamePrefix != null && memberName.startsWith(domainNamePrefix))) {
+                        roleMembers.remove(idx);
+                        domainChanged = true;
+                    }
+                }
+            }
+            if (domainChanged) {
+                putDomainStruct(domainStruct.getName(), domainStruct);
+            }
+        }
+        return true;
+    }
+    
     Role getRoleObject(DomainStruct domain, String roleName) {
         HashMap<String, Role> roles = domain.getRoles();
         if (roles == null) {

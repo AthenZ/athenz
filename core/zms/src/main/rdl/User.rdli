@@ -1,0 +1,40 @@
+// Copyright 2017 Yahoo Inc.
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+//User API
+include "Names.tdl";
+
+//The representation for a user
+type User Struct {
+    SimpleName name; //name of the user
+}
+
+type UserList Struct {
+    Array<SimpleName> names; //list of user names
+}
+
+//Enumerate users that are registered as principals in the system
+//This will return only the principals with "<user-domain>." prefix
+resource UserList GET "/user" {
+    authenticate;
+    exceptions {
+        ResourceError UNAUTHORIZED;
+    }
+}
+
+//Delete the specified user. This command will delete the user.<name>
+//domain and all of its subdomains (if they exist) and remove the
+//user.<name> from all the roles in the system that it's member of.
+//Upon successful completion of this delete request, the server will
+//return NO_CONTENT status code without any data (no object will be returned).
+resource User DELETE "/user/{name}" {
+    SimpleName name; //name of the user
+    authorize ("delete", "sys.auth:user");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+    }
+}

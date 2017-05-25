@@ -117,6 +117,10 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "WHERE role.role_id=?;";
     private static final String SQL_GET_PRINCIPAL_ID = "SELECT principal_id FROM principal WHERE name=?;";
     private static final String SQL_INSERT_PRINCIPAL = "INSERT INTO principal (name) VALUES (?);";
+    private static final String SQL_DELETE_PRINCIPAL = "DELETE FROM principal WHERE name=?;";
+    private static final String SQL_DELETE_SUB_PRINCIPALS = "DELETE FROM principal WHERE name LIKE ?;";
+    private static final String SQL_LIST_PRINCIPAL = "SELECT * FROM principal;";
+    private static final String SQL_LIST_PRINCIPAL_DOMAIN = "SELECT * FROM principal WHERE name LIKE ?;";
     private static final String SQL_LAST_INSERT_ID = "SELECT LAST_INSERT_ID();";
     private static final String SQL_INSERT_ROLE_MEMBER = "INSERT INTO role_member (role_id, principal_id, expiration) VALUES (?,?,?);";
     private static final String SQL_DELETE_ROLE_MEMBER = "DELETE FROM role_member WHERE role_id=? AND principal_id=?;";
@@ -211,7 +215,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "role.name AS role_name FROM principal "
             + "JOIN role_member ON principal.principal_id=role_member.principal_id "
             + "JOIN role ON role_member.role_id=role.role_id";
-    private static final String SQL_LIST_ROLE_PRINCIPALS_YBY_ONLY = " WHERE principal.name LIKE 'yby.%';";
+    private static final String SQL_LIST_ROLE_PRINCIPALS_USER_ONLY = " WHERE principal.name LIKE ?;";
     private static final String SQL_LIST_ROLE_PRINCIPALS_QUERY = " WHERE principal.name=?;";
     private static final String SQL_LIST_TRUSTED_STANDARD_ROLES = "SELECT role.domain_id, role.name, "
             + "policy.domain_id AS assert_domain_id, assertion.role FROM role "
@@ -508,7 +512,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         return (affectedRows > 0);
     }
 
-    PreparedStatement prepareScanStatement(Connection con, String prefix, long modifiedSince)
+    PreparedStatement prepareDomainScanStatement(Connection con, String prefix, long modifiedSince)
             throws SQLException {
         
         PreparedStatement ps = null;
@@ -621,7 +625,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         final String caller = "listDomains";
 
         List<String> domains = new ArrayList<>();
-        try (PreparedStatement ps = prepareScanStatement(con, prefix, modifiedSince)) {
+        try (PreparedStatement ps = prepareDomainScanStatement(con, prefix, modifiedSince)) {
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     domains.add(rs.getString(ZMSConsts.DB_COLUMN_NAME));
@@ -942,6 +946,68 @@ public class JDBCConnection implements ObjectStoreConnection {
                     " msg: " + ex.getMessage());
         }
         return lastInsertId;
+    }
+    
+    PreparedStatement preparePrincipalScanStatement(Connection con, String domainName)
+            throws SQLException {
+        
+        PreparedStatement ps = null;
+        if (domainName != null && domainName.length() > 0) {
+            final String principalPattern = domainName + ".%";
+            ps = con.prepareStatement(SQL_LIST_PRINCIPAL_DOMAIN);
+            ps.setString(1, principalPattern);
+        } else {
+            ps = con.prepareStatement(SQL_LIST_PRINCIPAL);
+        }
+        return ps;
+    }
+    
+    @Override
+    public List<String> listPrincipals(String domainName) {
+        
+        final String caller = "listPrincipals";
+
+        List<String> principals = new ArrayList<>();
+        try (PreparedStatement ps = preparePrincipalScanStatement(con, domainName)) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    principals.add(rs.getString(ZMSConsts.DB_COLUMN_NAME));
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return principals;
+    }
+    
+    @Override
+    public boolean deletePrincipal(String principalName, boolean subDomains) {
+        
+        final String caller = "deletePrincipal";
+        
+        // first we're going to delete the principal from the principal table
+        
+        try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_PRINCIPAL)) {
+            ps.setString(1, principalName);
+            executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        
+        // next delete any principal that was created in the principal's
+        // sub-domains. These will be in the format "principal.%"
+        
+        if (subDomains) {
+            final String domainPattern = principalName + ".%";
+            try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_SUB_PRINCIPALS)) {
+                ps.setString(1, domainPattern);
+                executeUpdate(ps, caller);
+            } catch (SQLException ex) {
+                throw sqlError(ex, caller);
+            }
+        }
+        
+        return true;
     }
     
     @Override
@@ -2451,7 +2517,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         DomainModifiedList domainModifiedList = new DomainModifiedList();
         List<DomainModified> nameMods = new ArrayList<DomainModified>();
 
-        try (PreparedStatement ps = prepareScanStatement(con, null, modifiedSince)) {
+        try (PreparedStatement ps = prepareDomainScanStatement(con, null, modifiedSince)) {
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     DomainModified dm = new DomainModified()
@@ -2538,25 +2604,28 @@ public class JDBCConnection implements ObjectStoreConnection {
         return roleAssertions;
     }
     
-    PreparedStatement prepareRolePrincipalsStatement(Connection con, String principal, boolean awsQuery)
-            throws SQLException {
+    PreparedStatement prepareRolePrincipalsStatement(Connection con, String principal,
+            String userDomain, boolean awsQuery) throws SQLException {
         
         PreparedStatement ps = null;
         if (principal != null && principal.length() > 0) {
             ps = con.prepareStatement(SQL_LIST_ROLE_PRINCIPALS + SQL_LIST_ROLE_PRINCIPALS_QUERY);
             ps.setString(1, principal);
         } else if (awsQuery) {
-            ps = con.prepareStatement(SQL_LIST_ROLE_PRINCIPALS + SQL_LIST_ROLE_PRINCIPALS_YBY_ONLY);
+            final String principalPattern = userDomain + ".%";
+            ps = con.prepareStatement(SQL_LIST_ROLE_PRINCIPALS + SQL_LIST_ROLE_PRINCIPALS_USER_ONLY);
+            ps.setString(1, principalPattern);
         } else {
             ps = con.prepareStatement(SQL_LIST_ROLE_PRINCIPALS);
         }
         return ps;
     }
     
-    Map<String, List<String>> getRolePrincipals(String principal, boolean awsQuery, String caller) {
+    Map<String, List<String>> getRolePrincipals(String principal, boolean awsQuery,
+            String userDomain, String caller) {
 
         Map<String, List<String>> rolePrincipals = new HashMap<>();
-        try (PreparedStatement ps = prepareRolePrincipalsStatement(con, principal, awsQuery)) {
+        try (PreparedStatement ps = prepareRolePrincipalsStatement(con, principal, userDomain, awsQuery)) {
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     String principalName = rs.getString(ZMSConsts.DB_COLUMN_NAME);
@@ -2650,9 +2719,9 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
         
         // so now we know this is a global aws role query so we're only
-        // going to keep yby users - everyone else is skipped
+        // going to keep actual users - everyone else is skipped
         
-        // make sure the principal starts with yby prefix
+        // make sure the principal starts with the user domain prefix
         
         String userDomainPrefix = userDomain + ".";
         if (!rolePincipal.startsWith(userDomainPrefix)) {
@@ -2742,7 +2811,8 @@ public class JDBCConnection implements ObjectStoreConnection {
         // first let's get the principal list that we're asked to check for
         // since if we have no matches then we have nothing to do
         
-        Map<String, List<String>> rolePrincipals = getRolePrincipals(principal, awsQuery, caller);
+        Map<String, List<String>> rolePrincipals = getRolePrincipals(principal, awsQuery,
+                userDomain, caller);
         if (rolePrincipals.isEmpty()) {
             if (singlePrincipalQuery) {
                 
@@ -2780,7 +2850,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         // the domains that have aws account configured only and update
         // the resource to generate aws role resources. If the action is
         // assume_aws_role with no principal - then another special case to
-        // look for yby users only
+        // look for actual users only
         
         Map<String, String> awsDomains = null;
         if (awsQuery) {

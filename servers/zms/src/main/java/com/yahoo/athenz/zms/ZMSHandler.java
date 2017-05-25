@@ -77,6 +77,8 @@ public interface ZMSHandler {
     public ServicePrincipal getServicePrincipal(ResourceContext context);
     public ServerTemplateList getServerTemplateList(ResourceContext context);
     public Template getTemplate(ResourceContext context, String template);
+    public UserList getUserList(ResourceContext context);
+    public User deleteUser(ResourceContext context, String name);
     public Schema getRdlSchema(ResourceContext context);
     public ResourceContext newResourceContext(HttpServletRequest request, HttpServletResponse response);
 }

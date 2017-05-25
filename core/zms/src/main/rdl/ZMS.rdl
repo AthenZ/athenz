@@ -21,3 +21,4 @@ include "Access.rdli";
 include "SignedDomains.rdli";
 include "Token.rdli";
 include "Template.rdli";
+include "User.rdli";

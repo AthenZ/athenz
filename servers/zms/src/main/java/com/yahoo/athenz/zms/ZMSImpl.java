@@ -659,10 +659,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     public void setProviderClientClass(Class<? extends ProviderClient> providerClass) {
         this.providerClass = providerClass;
     }
-
-    public void putAuthorityList(Http.AuthorityList authList) {
-        authorities = authList;
-    }
     
     void loadSolutionTemplates() {
         
@@ -1283,6 +1279,58 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         String domainName = userDomainPrefix + name;
         deleteDomain(ctx, auditRef, domainName, caller);
+        metric.stopTiming(timerMetric);
+        return null;
+    }
+    
+    public UserList getUserList(ResourceContext ctx) {
+        
+        final String caller = "getuserlist";
+        metric.increment(ZMSConsts.HTTP_GET);
+        logPrincipal(ctx);
+
+        validateRequest(ctx.request(), caller);
+
+        metric.increment(ZMSConsts.HTTP_REQUEST);
+        metric.increment(caller);
+        Object timerMetric = metric.startTiming("getuserlist_timing", null);
+        
+        List<String> names = dbService.listPrincipals(userDomain, true);
+        UserList result = new UserList().setNames(names);
+
+        metric.stopTiming(timerMetric);
+        return result;
+    }
+    
+    public User deleteUser(ResourceContext ctx, String name) {
+        
+        final String caller = "deleteuser";
+        metric.increment(ZMSConsts.HTTP_DELETE);
+        logPrincipal(ctx);
+
+        if (readOnlyMode) {
+            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+        }
+
+        validateRequest(ctx.request(), caller);
+
+        validate(name, TYPE_SIMPLE_NAME, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        name = name.toLowerCase();
+        metric.increment(ZMSConsts.HTTP_REQUEST, userDomain);
+        metric.increment(caller, userDomain);
+        Object timerMetric = metric.startTiming("deleteuser_timing", name);
+        
+        // verify that request is properly authenticated for this request
+        
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+        
+        String userName = userDomainPrefix + name;
+        dbService.executeDeleteUser(ctx, userName, caller);
         metric.stopTiming(timerMetric);
         return null;
     }

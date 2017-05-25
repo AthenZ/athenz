@@ -104,7 +104,7 @@
           <plugin>
             <groupId>com.atlassian.maven.plugins</groupId>
             <artifactId>maven-clover2-plugin</artifactId>
-            <version>4.0.4</version>
+            <version>4.0.6</version>
             <configuration>
               <jdk>1.8</jdk>
               <licenseLocation>${HOME}/license/clover.license</licenseLocation>
