@@ -33,11 +33,20 @@ public class RecServlet extends HttpServlet {
     private static final long serialVersionUID = 2846506476975366921L;
 
     static final String URI_PREFIX = "/athenz-control/rec/v1";
-    static final String ATHENZ_HEADER = "Athenz-Principal-Auth";
-    String zmsUrl = null;
+    private String zmsUrl = null;
+    private String athenzHeader = "Athenz-Principal-Auth";
+    private String serviceDomain = "recommend";
     
     public void init() throws ServletException {
         zmsUrl = System.getenv("ZMS_SERVER_URL");
+        String hdr = System.getenv("ATHENZ_HEADER");
+        if (hdr != null) {
+            athenzHeader = hdr;
+        }
+        String domain = System.getenv("ATHENZ_DOMAIN");
+        if (domain != null) {
+            serviceDomain = domain;
+        }
     }
 
     protected void doGet(HttpServletRequest request,
@@ -46,7 +55,7 @@ public class RecServlet extends HttpServlet {
         // retrieve and verify that our request contains an Athenz
         // service authentication token
         
-        String athenzServiceToken = request.getHeader(ATHENZ_HEADER);
+        String athenzServiceToken = request.getHeader(athenzHeader);
         if (athenzServiceToken == null) {
             response.sendError(403, "Forbidden - No Athenz ServiceToken provided in request");
             return;
@@ -78,7 +87,7 @@ public class RecServlet extends HttpServlet {
         // carry out the authorization check with the expected resource
         // and action values
         
-        try (ZMSAuthorizer authorizer = new ZMSAuthorizer(zmsUrl, "recommend")) {
+        try (ZMSAuthorizer authorizer = new ZMSAuthorizer(zmsUrl, serviceDomain)) {
             boolean authorized = authorizer.access(athenzAction, athenzResource,
                     athenzServiceToken, null);
             if (!authorized) {
