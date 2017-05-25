@@ -1807,6 +1807,54 @@ public class ZMSResources {
     }
 
     @GET
+    @Path("/user")
+    @Produces(MediaType.APPLICATION_JSON)
+    public UserList getUserList() {
+        try {
+            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context.authenticate();
+            UserList e = this.delegate.getUserList(context);
+            return e;
+        } catch (ResourceException e) {
+            int code = e.getCode();
+            switch (code) {
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getUserList");
+                throw typedException(code, e, ResourceError.class);
+            }
+        }
+    }
+
+    @DELETE
+    @Path("/user/{name}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public User deleteUser(@PathParam("name") String name) {
+        try {
+            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context.authorize("delete", "sys.auth:user", null);
+            User e = this.delegate.deleteUser(context, name);
+            return null;
+        } catch (ResourceException e) {
+            int code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteUser");
+                throw typedException(code, e, ResourceError.class);
+            }
+        }
+    }
+
+    @GET
     @Path("/schema")
     @Produces(MediaType.APPLICATION_JSON)
     public Schema getRdlSchema() {

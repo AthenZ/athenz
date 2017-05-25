@@ -902,7 +902,7 @@ public class DBServiceTest extends TestCase {
         roleList = zms.getRoleList(mockDomRsrcCtx, domainName, null, null);
         assertNotNull(roleList);
 
-        // our role counti is +1 because of the admin role
+        // our role count is +1 because of the admin role
         assertEquals(roleList.getNames().size(), 1);
 
         assertFalse(roleList.getNames().contains(roleName));
@@ -2552,5 +2552,303 @@ public class DBServiceTest extends TestCase {
         
         key = zms.dbService.getPublicKeyFromCache(domainName2, "service2", "1");
         assertNull(key);
+    }
+    
+    @Test
+    public void testListPrincipalsUsersOnly() {
+        
+        String domainName = "listusers1";
+        
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        TopLevelDomain dom2 = createTopLevelDomainObject("listusersports",
+                "Test Domain2", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
+        
+        TopLevelDomain dom3 = createTopLevelDomainObject("listuserweather",
+                "Test Domain3", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom3);
+        
+        Role role1 = createRoleObject(domainName, "role1", null,
+                "user.joe", "user.janie");
+        zms.putRole(mockDomRsrcCtx, domainName, "role1", auditRef, role1);
+        
+        Role role2 = createRoleObject(domainName, "role2", null,
+                "user.joe", "listusersports.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, "role2", auditRef, role2);
+
+        Role role3 = createRoleObject(domainName, "role3", null,
+                "user.jack", "listuserweather.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, "role3", auditRef, role3);
+        
+        Role role4 = createRoleObject("listusersports", "role4", null,
+                "user.ana", "user.janie");
+        zms.putRole(mockDomRsrcCtx, "listusersports", "role4", auditRef, role4);
+        
+        List<String> users = zms.dbService.listPrincipals("user", true);
+        assertEquals(users.size(), 5);
+        assertTrue(users.contains("user.testadminuser"));
+        assertTrue(users.contains("user.janie"));
+        assertTrue(users.contains("user.ana"));
+        assertTrue(users.contains("user.jack"));
+        assertTrue(users.contains("user.joe"));
+        
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "listusersports", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "listuserweather", auditRef);
+    }
+    
+    @Test
+    public void testListPrincipalsAll() {
+        
+        String domainName = "listusers1";
+        
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        TopLevelDomain dom2 = createTopLevelDomainObject("listusersports",
+                "Test Domain2", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
+        
+        TopLevelDomain dom3 = createTopLevelDomainObject("listuserweather",
+                "Test Domain3", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom3);
+        
+        Role role1 = createRoleObject(domainName, "role1", null,
+                "user.joe", "user.janie");
+        zms.putRole(mockDomRsrcCtx, domainName, "role1", auditRef, role1);
+        
+        Role role2 = createRoleObject(domainName, "role2", null,
+                "user.joe", "listusersports.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, "role2", auditRef, role2);
+
+        Role role3 = createRoleObject(domainName, "role3", null,
+                "user.jack", "listuserweather.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, "role3", auditRef, role3);
+        
+        Role role4 = createRoleObject("listusersports", "role4", null,
+                "user.ana", "user.janie");
+        zms.putRole(mockDomRsrcCtx, "listusersports", "role4", auditRef, role4);
+        
+        Role role5 = createRoleObject("listusersports", "role5", null,
+                null, null);
+        zms.putRole(mockDomRsrcCtx, "listusersports", "role5", auditRef, role5);
+        
+        List<String> users = zms.dbService.listPrincipals(null, false);
+        assertEquals(users.size(), 7);
+        assertTrue(users.contains("user.testadminuser"));
+        assertTrue(users.contains("user.janie"));
+        assertTrue(users.contains("user.ana"));
+        assertTrue(users.contains("user.jack"));
+        assertTrue(users.contains("user.joe"));
+        assertTrue(users.contains("listusersports.jane"));
+        assertTrue(users.contains("listuserweather.jane"));
+        
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "listusersports", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "listuserweather", auditRef);
+    }
+    
+    @Test
+    public void testListPrincipalsSubdomains() {
+        
+        String domainName = "listusers1";
+        
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        TopLevelDomain dom2 = createTopLevelDomainObject("listusersports",
+                "Test Domain2", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
+        
+        SubDomain subDom2 = createSubDomainObject("api", "listusersports",
+                "Test SubDomain2", "testOrg", adminUser);
+        zms.postSubDomain(mockDomRsrcCtx, "listusersports", auditRef, subDom2);
+        
+        Role role1 = createRoleObject(domainName, "role1", null,
+                "user.joe", "user.janie");
+        zms.putRole(mockDomRsrcCtx, domainName, "role1", auditRef, role1);
+        
+        Role role2 = createRoleObject(domainName, "role2", null,
+                "user.joe", "listusersports.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, "role2", auditRef, role2);
+        
+        Role role3 = createRoleObject("listusersports", "role3", null,
+                "user.ana", "listusersports.api.service");
+        zms.putRole(mockDomRsrcCtx, "listusersports", "role3", auditRef, role3);
+        
+        List<String> users = zms.dbService.listPrincipals(null, false);
+        assertEquals(users.size(), 6);
+        assertTrue(users.contains("user.testadminuser"));
+        assertTrue(users.contains("user.janie"));
+        assertTrue(users.contains("user.ana"));
+        assertTrue(users.contains("user.joe"));
+        assertTrue(users.contains("listusersports.jane"));
+        assertTrue(users.contains("listusersports.api.service"));
+        
+        users = zms.dbService.listPrincipals(null, true);
+        assertEquals(users.size(), 5);
+        assertTrue(users.contains("user.testadminuser"));
+        assertTrue(users.contains("user.janie"));
+        assertTrue(users.contains("user.ana"));
+        assertTrue(users.contains("user.joe"));
+        assertTrue(users.contains("listusersports.jane"));
+        
+        users = zms.dbService.listPrincipals("listusersports", false);
+        assertEquals(users.size(), 2);
+        assertTrue(users.contains("listusersports.jane"));
+        assertTrue(users.contains("listusersports.api.service"));
+        
+        assertTrue(users.contains("listusersports.jane"));
+        
+        users = zms.dbService.listPrincipals("listusersports", true);
+        assertEquals(users.size(), 1);
+        assertTrue(users.contains("listusersports.jane"));
+        
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteSubDomain(mockDomRsrcCtx, "listusersports", "api", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "listusersports", auditRef);
+    }
+    
+    @Test
+    public void testExecuteDeleteUser() {
+        
+        String domainName = "deleteuser1";
+        
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        TopLevelDomain dom2 = createTopLevelDomainObject("deleteusersports",
+                "Test Domain2", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
+        
+        TopLevelDomain dom3 = createTopLevelDomainObject("deleteuserweather",
+                "Test Domain3", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom3);
+        
+        SubDomain subDom1 = createSubDomainObject("jack", "user",
+                "Test SubDomain2", "testOrg", adminUser);
+        zms.postSubDomain(mockDomRsrcCtx, "user", auditRef, subDom1);
+        
+        SubDomain subDom2 = createSubDomainObject("jane", "user",
+                "Test SubDomain2", "testOrg", adminUser);
+        zms.postSubDomain(mockDomRsrcCtx, "user", auditRef, subDom2);
+        
+        Role role1 = createRoleObject(domainName, "role1", null,
+                "user.joe", "user.janie");
+        zms.putRole(mockDomRsrcCtx, domainName, "role1", auditRef, role1);
+        
+        Role role2 = createRoleObject(domainName, "role2", null,
+                "user.joe", "deleteusersports.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, "role2", auditRef, role2);
+
+        Role role3 = createRoleObject(domainName, "role3", null,
+                "user.jack", "deleteuserweather.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, "role3", auditRef, role3);
+        
+        Role role4 = createRoleObject("deleteusersports", "role4", null,
+                "user.ana", "user.janie");
+        zms.putRole(mockDomRsrcCtx, "deleteusersports", "role4", auditRef, role4);
+        
+        List<String> users = zms.dbService.listPrincipals("user", true);
+        assertEquals(users.size(), 5);
+        assertTrue(users.contains("user.testadminuser"));
+        assertTrue(users.contains("user.janie"));
+        assertTrue(users.contains("user.ana"));
+        assertTrue(users.contains("user.jack"));
+        assertTrue(users.contains("user.joe"));
+        
+        zms.dbService.executeDeleteUser(mockDomRsrcCtx, "user.jack", "testExecuteDeleteUser");
+        
+        users = zms.dbService.listPrincipals("user", true);
+        assertEquals(users.size(), 4);
+        assertTrue(users.contains("user.testadminuser"));
+        assertTrue(users.contains("user.janie"));
+        assertTrue(users.contains("user.ana"));
+        assertTrue(users.contains("user.joe"));
+        assertFalse(users.contains("user.jack"));
+        
+        try {
+            zms.getDomain(mockDomRsrcCtx, "user.jack");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteSubDomain(mockDomRsrcCtx, "user", "jane", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "deleteusersports", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "deleteuserweather", auditRef);
+    }
+    
+    @Test
+    public void testExecuteDeleteUserSubdomains() {
+        
+        String domainName = "deleteuser1";
+        
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        TopLevelDomain dom2 = createTopLevelDomainObject("deleteusersports",
+                "Test Domain2", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
+        
+        SubDomain subDom1 = createSubDomainObject("jack", "user",
+                "Test SubDomain2", "testOrg", adminUser);
+        zms.postSubDomain(mockDomRsrcCtx, "user", auditRef, subDom1);
+        
+        SubDomain subDom2 = createSubDomainObject("sub1", "user.jack",
+                "Test SubDomain21", "testOrg", adminUser);
+        zms.postSubDomain(mockDomRsrcCtx, "user.jack", auditRef, subDom2);
+        
+        Role role1 = createRoleObject(domainName, "role1", null,
+                "user.joe", "user.jack.sub1.service");
+        zms.putRole(mockDomRsrcCtx, domainName, "role1", auditRef, role1);
+        
+        Role role2 = createRoleObject(domainName, "role2", null,
+                "user.joe", "deleteusersports.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, "role2", auditRef, role2);
+
+        Role role3 = createRoleObject(domainName, "role3", null,
+                "user.jack", "user.jack.sub1.api");
+        zms.putRole(mockDomRsrcCtx, domainName, "role3", auditRef, role3);
+        
+        List<String> users = zms.dbService.listPrincipals("user", false);
+        assertEquals(users.size(), 5);
+        assertTrue(users.contains("user.testadminuser"));
+        assertTrue(users.contains("user.jack"));
+        assertTrue(users.contains("user.jack.sub1.service"));
+        assertTrue(users.contains("user.jack.sub1.api"));
+        assertTrue(users.contains("user.joe"));
+        
+        zms.dbService.executeDeleteUser(mockDomRsrcCtx, "user.jack", "testExecuteDeleteUser");
+        
+        users = zms.dbService.listPrincipals("user", false);
+        assertEquals(users.size(), 2);
+        assertTrue(users.contains("user.testadminuser"));
+        assertTrue(users.contains("user.joe"));
+        
+        try {
+            zms.getDomain(mockDomRsrcCtx, "user.jack");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        
+        try {
+            zms.getDomain(mockDomRsrcCtx, "user.jack.sub1");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "deleteusersports", auditRef);
     }
 }

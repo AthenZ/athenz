@@ -704,6 +704,39 @@ public class ZMSClient implements Closeable {
     }
 
     /**
+     * Get list of users defined in the system
+     * @return list of user names or ZMSClientException will be thrown in case of failure
+     */
+    public UserList getUserList() {
+        updatePrincipal();
+        try {
+            return client.getUserList();
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+    
+    /**
+     * Remove the specified user from Athens system. This will delete any
+     * user.{name} domain plus all of its subdomains (if exist) and remove
+     * the user from any role in the system. This command requires authorization
+     * from the Athens sys.auth domain (delete action on resource user).
+     * @param name name of the user
+     */
+    public void deleteUser(String name) {
+        updatePrincipal();
+        try {
+            client.deleteUser(name);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+    
+    /**
      * Retrieve the list of policies defined for the specified domain. The policies
      * will contain their attributes and, if specified, the list of assertions.
      * @param domainName name of the domain

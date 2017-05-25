@@ -2384,3 +2384,62 @@ func (client ZMSClient) GetTemplate(template SimpleName) (*Template, error) {
 		return data, errobj
 	}
 }
+
+func (client ZMSClient) GetUserList() (*UserList, error) {
+	var data *UserList
+	url := client.URL + "/user"
+	resp, err := client.httpGet(url, nil)
+	if err != nil {
+		return data, err
+	}
+	contentBytes, err := ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		return data, err
+	}
+	switch resp.StatusCode {
+	case 200:
+		err = json.Unmarshal(contentBytes, &data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
+func (client ZMSClient) DeleteUser(name SimpleName) error {
+	url := client.URL + "/user/" + fmt.Sprint(name)
+	resp, err := client.httpDelete(url, nil)
+	if err != nil {
+		return err
+	}
+	contentBytes, err := ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		return err
+	}
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}

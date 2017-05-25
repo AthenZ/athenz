@@ -1086,7 +1086,6 @@ public class ZMSImplTest extends TestCase {
     public void testCreateTopLevelDomainOnceOnly() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        List<String> aLogMsgs = alogger.getLogMsgList();
         String storeFile = ZMS_DATA_STORE_FILE + "_posttopdomonceonly";
         ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
@@ -1418,7 +1417,6 @@ public class ZMSImplTest extends TestCase {
     public void testDeleteTopLevelDomainChildExist() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        List<String> aLogMsgs = alogger.getLogMsgList();
         String storeFile = ZMS_DATA_STORE_FILE + "_deltopdomhrowexc";
         ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
@@ -1517,7 +1515,6 @@ public class ZMSImplTest extends TestCase {
     public void testDeleteSubDomainChildExist() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        List<String> aLogMsgs = alogger.getLogMsgList();
         String storeFile = ZMS_DATA_STORE_FILE + "_delsubdomchildexist";
         ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
@@ -1600,7 +1597,6 @@ public class ZMSImplTest extends TestCase {
     public void testPutDomainMetaThrowException() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        List<String> aLogMsgs = alogger.getLogMsgList();
         String storeFile = ZMS_DATA_STORE_FILE + "_putdommetathrowexc";
         ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
@@ -1943,7 +1939,6 @@ public class ZMSImplTest extends TestCase {
     public void testPutRoleThrowException() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        List<String> aLogMsgs = alogger.getLogMsgList();
         String storeFile = ZMS_DATA_STORE_FILE + "_putrolethrowexc";
         ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
@@ -2450,7 +2445,6 @@ public class ZMSImplTest extends TestCase {
     public void testDeleteRoleThrowException() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        List<String> aLogMsgs = alogger.getLogMsgList();
         String storeFile = ZMS_DATA_STORE_FILE + "_delrolethrowexc";
         ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
@@ -2743,7 +2737,6 @@ public class ZMSImplTest extends TestCase {
     public void testPutMembershipMissingAuditRef() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        List<String> aLogMsgs = alogger.getLogMsgList();
         String storeFile = ZMS_DATA_STORE_FILE + "_putmembershipmissauditref";
         ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
@@ -3211,7 +3204,6 @@ public class ZMSImplTest extends TestCase {
     public void testDeleteMembershipAdminRoleSingleMember() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        List<String> aLogMsgs = alogger.getLogMsgList();
         String storeFile = ZMS_DATA_STORE_FILE + "_delmembershipadminrsm";
         ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
@@ -3879,7 +3871,6 @@ public class ZMSImplTest extends TestCase {
     public void testDeletePolicyThrowException() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        List<String> aLogMsgs = alogger.getLogMsgList();
         String storeFile = ZMS_DATA_STORE_FILE + "_delpolhrowexc";
         ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
@@ -3957,7 +3948,6 @@ public class ZMSImplTest extends TestCase {
     public void testCreateServiceIdentityNotSimpleName() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        List<String> aLogMsgs = alogger.getLogMsgList();
         String storeFile = ZMS_DATA_STORE_FILE + "_createsvcidnosimplename";
         ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
@@ -4313,7 +4303,6 @@ public class ZMSImplTest extends TestCase {
     public void testDeleteServiceIdentityThrowException() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        List<String> aLogMsgs = alogger.getLogMsgList();
         String storeFile = ZMS_DATA_STORE_FILE + "_delsvcidthrowexc";
         ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
@@ -4622,7 +4611,6 @@ public class ZMSImplTest extends TestCase {
     public void testDeleteEntityMissingAuditRef() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        List<String> aLogMsgs = alogger.getLogMsgList();
         String storeFile = ZMS_DATA_STORE_FILE + "_delentitymissauditref";
         ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
@@ -5030,7 +5018,6 @@ public class ZMSImplTest extends TestCase {
     public void testDeleteTenantRolesMissingAuditRef() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        List<String> aLogMsgs = alogger.getLogMsgList();
         String storeFile = ZMS_DATA_STORE_FILE + "_deltenantrolesmissauditref";
         ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
@@ -5145,7 +5132,6 @@ public class ZMSImplTest extends TestCase {
     public void testPutDefaultAdminsMissingAuditRef() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        List<String> aLogMsgs = alogger.getLogMsgList();
         String storeFile = ZMS_DATA_STORE_FILE + "_putdefaminsmissauditref";
         ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
@@ -7279,7 +7265,6 @@ public class ZMSImplTest extends TestCase {
     public void testPutTenancyWithAuthorizedServiceMismatch() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        List<String> aLogMsgs = alogger.getLogMsgList();
         String storeFile = ZMS_DATA_STORE_FILE + "_puttenancywithauthsvcmism";
         ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
@@ -7890,7 +7875,6 @@ public class ZMSImplTest extends TestCase {
     public void testDeleteTenancyMissingEndpoint() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        List<String> aLogMsgs = alogger.getLogMsgList();
         String storeFile = ZMS_DATA_STORE_FILE + "_deltenancymissendpoint";
         ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
@@ -8007,7 +7991,6 @@ public class ZMSImplTest extends TestCase {
     public void testPutTenantRolesMissingAuditRef() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        List<String> aLogMsgs = alogger.getLogMsgList();
         String storeFile = ZMS_DATA_STORE_FILE + "_puttenantrolesmissauditref";
         ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
@@ -10114,7 +10097,6 @@ public class ZMSImplTest extends TestCase {
     public void testDeletePublicKeyEntryInvalidService() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        List<String> aLogMsgs = alogger.getLogMsgList();
         String storeFile = ZMS_DATA_STORE_FILE + "_delpubkeyinvalidsvc";
         ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
@@ -10373,7 +10355,6 @@ public class ZMSImplTest extends TestCase {
     public void testPutPublicKeyEntryMissingAuditRef() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        List<String> aLogMsgs = alogger.getLogMsgList();
         String storeFile = ZMS_DATA_STORE_FILE + "_putpubkeyentrymissauditref";
         ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
@@ -11628,7 +11609,6 @@ public class ZMSImplTest extends TestCase {
     public void testProviderResourceGroupRolesWithAuthorizedServiceNoAccess() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        List<String> aLogMsgs = alogger.getLogMsgList();
         String storeFile = ZMS_DATA_STORE_FILE + "_putprovrsrcdomnoaccess";
         ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
 
@@ -11971,7 +11951,6 @@ public class ZMSImplTest extends TestCase {
     public void testPutDomainTemplateInvalidTemplate() {
 
         TestAuditLogger alogger = new TestAuditLogger();
-        List<String> aLogMsgs = alogger.getLogMsgList();
         String storeFile = ZMS_DATA_STORE_FILE + "_putdomtempllistinvalid";
         ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
         
@@ -12484,7 +12463,6 @@ public class ZMSImplTest extends TestCase {
         Mockito.when(servletRequest.isSecure()).thenReturn(true);
 
         TestAuditLogger alogger = new TestAuditLogger();
-        List<String> aLogMsgs = alogger.getLogMsgList();
         String storeFile = ZMS_DATA_STORE_FILE + "_al_noloop";
         ZMSImpl zmsObj = getZmsImpl(storeFile, alogger);
 
@@ -12515,7 +12493,6 @@ public class ZMSImplTest extends TestCase {
         Mockito.when(servletRequest.isSecure()).thenReturn(true);
 
         TestAuditLogger alogger = new TestAuditLogger();
-        List<String> aLogMsgs = alogger.getLogMsgList();
         String storeFile = ZMS_DATA_STORE_FILE + "_al_loopback";
         ZMSImpl zmsObj = getZmsImpl(storeFile, alogger);
 
@@ -12546,7 +12523,6 @@ public class ZMSImplTest extends TestCase {
         Mockito.when(servletRequest.isSecure()).thenReturn(true);
 
         TestAuditLogger alogger = new TestAuditLogger();
-        List<String> aLogMsgs = alogger.getLogMsgList();
         String storeFile = ZMS_DATA_STORE_FILE + "_al_loopbackXff";
         ZMSImpl zmsObj = getZmsImpl(storeFile, alogger);
 
@@ -12577,7 +12553,6 @@ public class ZMSImplTest extends TestCase {
         Mockito.when(servletRequest.isSecure()).thenReturn(true);
 
         TestAuditLogger alogger = new TestAuditLogger();
-        List<String> aLogMsgs = alogger.getLogMsgList();
         String storeFile = ZMS_DATA_STORE_FILE + "_al_loopbackXffMulti";
         ZMSImpl zmsObj = getZmsImpl(storeFile, alogger);
 
@@ -14296,6 +14271,119 @@ public class ZMSImplTest extends TestCase {
         assertFalse(zms.memberNameMatch("athenz.service*", "athenz.servic"));
         assertFalse(zms.memberNameMatch("athenz.service*", "athenz.servictag"));
         assertFalse(zms.memberNameMatch("user.joe", "user.joel"));
+    }
+    
+    @Test
+    public void testGetUserList() {
+        
+        String domainName = "listusers1";
+        
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        TopLevelDomain dom2 = createTopLevelDomainObject("listusersports",
+                "Test Domain2", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
+        
+        TopLevelDomain dom3 = createTopLevelDomainObject("listuserweather",
+                "Test Domain3", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom3);
+        
+        Role role1 = createRoleObject(domainName, "role1", null,
+                "user.joe", "user.janie");
+        zms.putRole(mockDomRsrcCtx, domainName, "role1", auditRef, role1);
+        
+        Role role2 = createRoleObject(domainName, "role2", null,
+                "user.joe", "listusersports.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, "role2", auditRef, role2);
+
+        Role role3 = createRoleObject(domainName, "role3", null,
+                "user.jack", "listuserweather.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, "role3", auditRef, role3);
+        
+        Role role4 = createRoleObject("listusersports", "role4", null,
+                "user.ana", "user.janie");
+        zms.putRole(mockDomRsrcCtx, "listusersports", "role4", auditRef, role4);
+        
+        UserList userList = zms.getUserList(mockDomRsrcCtx);
+        List<String> users = userList.getNames();
+        assertEquals(users.size(), 5);
+        assertTrue(users.contains("user.testadminuser"));
+        assertTrue(users.contains("user.janie"));
+        assertTrue(users.contains("user.ana"));
+        assertTrue(users.contains("user.jack"));
+        assertTrue(users.contains("user.joe"));
+        
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "listusersports", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "listuserweather", auditRef);
+    }
+    
+    @Test
+    public void testDeleteUser() {
+        
+        String domainName = "deleteuser1";
+        
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        TopLevelDomain dom2 = createTopLevelDomainObject("deleteusersports",
+                "Test Domain2", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
+        
+        SubDomain subDom1 = createSubDomainObject("jack", "user",
+                "Test SubDomain2", "testOrg", adminUser);
+        zms.postSubDomain(mockDomRsrcCtx, "user", auditRef, subDom1);
+        
+        SubDomain subDom2 = createSubDomainObject("sub1", "user.jack",
+                "Test SubDomain21", "testOrg", adminUser);
+        zms.postSubDomain(mockDomRsrcCtx, "user.jack", auditRef, subDom2);
+        
+        Role role1 = createRoleObject(domainName, "role1", null,
+                "user.joe", "user.jack.sub1.service");
+        zms.putRole(mockDomRsrcCtx, domainName, "role1", auditRef, role1);
+        
+        Role role2 = createRoleObject(domainName, "role2", null,
+                "user.joe", "deleteusersports.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, "role2", auditRef, role2);
+
+        Role role3 = createRoleObject(domainName, "role3", null,
+                "user.jack", "user.jack.sub1.api");
+        zms.putRole(mockDomRsrcCtx, domainName, "role3", auditRef, role3);
+        
+        UserList userList = zms.getUserList(mockDomRsrcCtx);
+        List<String> users = userList.getNames();
+        assertEquals(users.size(), 3);
+        assertTrue(users.contains("user.testadminuser"));
+        assertTrue(users.contains("user.jack"));
+        assertTrue(users.contains("user.joe"));
+        
+        zms.deleteUser(mockDomRsrcCtx, "jack");
+        
+        userList = zms.getUserList(mockDomRsrcCtx);
+        users = userList.getNames();
+        assertEquals(users.size(), 2);
+        assertTrue(users.contains("user.testadminuser"));
+        assertTrue(users.contains("user.joe"));
+        
+        try {
+            zms.getDomain(mockDomRsrcCtx, "user.jack");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        
+        try {
+            zms.getDomain(mockDomRsrcCtx, "user.jack.sub1");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "deleteusersports", auditRef);
     }
 }
 

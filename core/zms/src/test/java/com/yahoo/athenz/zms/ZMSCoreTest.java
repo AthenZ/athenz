@@ -26,6 +26,7 @@ import com.yahoo.rdl.Validator.Result;
 import static org.testng.Assert.*;
 import org.testng.annotations.Test;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class ZMSCoreTest {
@@ -625,7 +626,6 @@ public class ZMSCoreTest {
         assertFalse(d2.equals(d));
         assertFalse(d2.equals(null));
         assertFalse(d.equals(new String()));
-
     }
 
     @Test
@@ -691,7 +691,6 @@ public class ZMSCoreTest {
         assertFalse(dm2.equals(dm));
         assertFalse(dm2.equals(null));
         assertFalse(dm.equals(new String()));
-
     }
 
     @Test
@@ -1453,5 +1452,55 @@ public class ZMSCoreTest {
             Result result = validator.validate(s, "MemberName");
             assertFalse(result.valid, s);
         }
+    }
+    
+    @Test
+    public void testUserMethod() {
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+
+        User user1 = new User().setName("joe");
+        Result result = validator.validate(user1, "User");
+        assertTrue(result.valid);
+        assertEquals(user1.getName(), "joe");
+        
+        User user2 = new User().setName("test.joe");
+        result = validator.validate(user2, "User");
+        assertFalse(result.valid);
+        
+        User user3 = new User().setName("joe");
+        User user4 = new User();
+
+        assertTrue(user1.equals(user3));
+
+        assertFalse(user1.equals(user2));
+        assertFalse(user1.equals(user4));
+        assertFalse(user1.equals(null));
+    }
+    
+    @Test
+    public void testUserListMethod() {
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+
+        ArrayList<String> users1 = new ArrayList<>();
+        users1.add("joe");
+        users1.add("jane");
+        UserList userList1 = new UserList().setNames(users1);
+        Result result = validator.validate(userList1, "UserList");
+        assertTrue(result.valid);
+        assertEquals(userList1.getNames().size(), 2);
+        
+        ArrayList<String> users2 = new ArrayList<>();
+        users2.add("test.joe");
+        UserList userList2 = new UserList().setNames(users2);
+        result = validator.validate(userList2, "UserList");
+        assertFalse(result.valid);
+
+        UserList userList3 = new UserList().setNames(users1);
+        
+        assertTrue(userList1.equals(userList3));
+        assertFalse(userList1.equals(userList2));
+        assertFalse(userList1.equals(null));
     }
 }

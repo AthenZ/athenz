@@ -55,6 +55,11 @@ public interface ObjectStoreConnection extends Closeable {
     AthenzDomain getAthenzDomain(String domainName);
     DomainModifiedList listModifiedDomains(long modifiedSince);
 
+    // Principal commands
+    
+    boolean deletePrincipal(String principalName, boolean subDomains);
+    List<String> listPrincipals(String domainName);
+    
     // Template commands
     
     boolean insertDomainTemplate(String domainName, String templateName, String params);

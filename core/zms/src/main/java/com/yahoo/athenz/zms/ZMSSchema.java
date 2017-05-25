@@ -348,6 +348,13 @@ public class ZMSSchema {
             .field("service", "EntityName", false, "name of the service")
             .field("token", "SignedToken", false, "service's signed token");
 
+        sb.structType("User")
+            .comment("The representation for a user")
+            .field("name", "SimpleName", false, "name of the user");
+
+        sb.structType("UserList")
+            .arrayField("names", "SimpleName", false, "list of user names");
+
 
         sb.resource("Domain", "GET", "/domain/{domain}")
             .comment("Get info for the specified domain, by name. This request only returns the configured domain attributes and not any domain objects like roles, policies or service identities.")
@@ -1407,6 +1414,27 @@ public class ZMSSchema {
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("UserList", "GET", "/user")
+            .comment("Enumerate users that are registered as principals in the system This will return only the principals with \"<user-domain>.\" prefix")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("User", "DELETE", "/user/{name}")
+            .comment("Delete the specified user. This command will delete the user.<name> domain and all of its subdomains (if they exist) and remove the user.<name> from all the roles in the system that it's member of. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+            .pathParam("name", "SimpleName", "name of the user")
+            .auth("delete", "sys.auth:user")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
 
             .exception("NOT_FOUND", "ResourceError", "")
 
