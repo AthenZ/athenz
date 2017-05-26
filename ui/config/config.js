@@ -13,42 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var config = {
-  development: {
-    zmshost: process.env.ZMS_SERVER || 'localhost',
-    userDomain: 'user',
-    authHeader: 'Athenz-Principal-Auth',
-    strictSSL: false,
-    user: 'ui',
-    serviceFQN: 'athenz.ui',
-    authKeyVersion: '0',
-    envLabel: ''
-  },
-  production: {
-    zmshost: process.env.ZMS_SERVER || 'localhost',
-    userDomain: 'user',
-    authHeader: 'Athenz-Principal-Auth',
-    strictSSL: true,
-    user: 'ui',
-    serviceFQN: 'athenz.ui',
-    authKeyVersion: '0',
-    envLabel: ''
-  }
-};
+'use strict';
 
-// Fetches 'service' specific config sub-section, and fills defaults if not present
+var fs = require('fs');
+
 module.exports = function() {
-  var c = config[process.env.SERVICE_NAME || 'development'];
+  var defaultConfig = require(process.cwd() + '/config/default-config.js')();
+  try {
+    fs.statSync(process.cwd() + '/config/extended-config.js');
+    var extendedConfig = require(process.cwd() + '/config/extended-config.js')();
+  } catch(err) {
+    if (err.code !== 'ENOENT') {
+      console.log(err);
+    }
+    var extendedConfig = {};
+  }
 
-  c.zmshost = c.zmshost || 'localhost';
-  c.zms = process.env.ZMS_SERVER_URL || 'https://' + c.zmshost + ':4443/zms/v1/',
-  c.userDomain = c.userDomain || 'user';
-  c.authHeader = c.authHeader || 'Athenz-Principal-Auth';
-  c.strictSSL = c.strictSSL || false;
-  c.user = c.user || 'ui';
-  c.serviceFQN = c.serviceFQN || process.env.DOMAIN_NAME + '.' + process.env.SERVICE_NAME;
-  c.authKeyVersion = c.authKeyVersion || '0';
-  c.envLabel = c.envLabel || 'development';
+  var c = Object.assign(defaultConfig, extendedConfig);
 
   return c;
 };

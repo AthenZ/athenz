@@ -1,0 +1,80 @@
+{
+  "name": "auth_core",
+  "version": "1.0.0",
+  "description": "Core interfaces for authorization",
+  "main": "index.js",
+  "scripts": {
+    "build": "grunt build",
+    "lint": "grunt lint",
+    "test": "jenkins-mocha --require test/config/mock.js test/unit/*",
+    "posttest": "istanbul check-coverage",
+    "testDev": "mocha --require test/config/mock.js test/unit/*",
+    "functional": "grunt functional-sd",
+    "noop": "echo Ignoring this section."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com/yahoo/athenz.git"
+  },
+  "keywords": [
+    "athenz",
+    "auth_core",
+    "yahoo"
+  ],
+  "author": "Athenz Team",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/yahoo/athenz/issues"
+  },
+  "homepage": "http://www.athenz.io",
+  "dependencies": {
+    "winston": "^2.3.1"
+  },
+  "devDependencies": {
+    "jshint": "^2.9.4",
+    "grunt": "^1.0.1",
+    "grunt-cli": "~1.2.0",
+    "grunt-contrib-jshint": "^1.1.0",
+    "jenkins-mocha": "~2.5.0",
+    "mocha": "~3.2.0"
+  },
+  "jshintConfig": {
+    "esnext": true,
+    "white": true,
+    "onevar": true,
+    "node": true,
+    "camelcase": true,
+    "curly": true,
+    "eqeqeq": true,
+    "immed": true,
+    "latedef": true,
+    "newcap": true,
+    "nonew": true,
+    "plusplus": false,
+    "quotmark": "single",
+    "undef": true,
+    "unused": true,
+    "trailing": true,
+    "maxparams": 5,
+    "maxcomplexity": 8,
+    "globals": {
+      "$": true,
+      "$$": true,
+      "afterEach": true,
+      "assert": true,
+      "before": true,
+      "beforeEach": true,
+      "browser": true,
+      "describe": true,
+      "expect": true,
+      "it": true,
+      "xdescribe": true,
+      "xit": true,
+      "window": true,
+      "document": true,
+      "vis": true,
+      "Intl": true,
+      "FormData": true
+    }
+  }
+}

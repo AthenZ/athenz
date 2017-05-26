@@ -95,6 +95,19 @@ $ bin/<platform>/zms-cli -z https://<zms-server>:4443/zms/v1 add-domain athenz
 $ bin/<platform>/zms-cli -z https://<zms-server>:4443/zms/v1 -d athenz add-service ui 0 keys/athenz.ui_pub.pem
 ```
 
+### Generate Athenz Configuration File
+--------------------------------------
+
+Generate an Athenz configuration file `athenz.conf` in `athenz-ui-X.Y/config`
+directory to include the ZMS Server URL and the registered public keys that the
+athenz client libraries and utilities will use to establish connection and validate any
+data signed by the ZMS Server:
+
+```shell
+$ cd athenz-ui-X.Y
+$ bin/<platform>/athenz-conf -o config/athenz.conf -z https://<zms-server>:4443/
+```
+
 ## Start/Stop UI Server
 -----------------------
 
