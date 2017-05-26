@@ -64,7 +64,7 @@ module.exports = {
       if (!err && roleData && Array.isArray(roleData.members)) {
         members = roleData.members.map(function(member) {
           if (member.startsWith(config.userDomain + '.')){
-            member = member.substring(5);
+            member = member.substring(config.userDomain.length + 1);
           }
           return member;
         });

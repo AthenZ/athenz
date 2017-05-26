@@ -15,21 +15,25 @@
  */
 'use strict';
 
-var fs = require('fs');
-
-module.exports = function() {
-  var defaultConfig = require(process.cwd() + '/config/default-config.js')();
-  try {
-    fs.statSync(process.cwd() + '/config/extended-config.js');
-    var extendedConfig = require(process.cwd() + '/config/extended-config.js')();
-  } catch(err) {
-    if (err.code !== 'ENOENT') {
-      console.log(err);
-    }
-    var extendedConfig = {};
+function notLogged(req, res) {
+  var viewData = {
+    pageTitle: 'Athenz UI login page',
+    url: req.originalUrl,
+    target: (req.query.target || '/athenz')
+  };
+  if (req.query && req.query.error) {
+    res.locals.appContextMessage = '401 Unauthorized';
+    res.locals.appContextMessageType = 'error';
   }
+  if (req.method === 'GET' && req.originalUrl.indexOf('ajax') === -1) {
+    return res.render('login', viewData);
+  } else if(req.method === 'POST' && req.originalUrl.indexOf('ajax') === -1) {
+    return res.render('login', viewData);
+  }
+  res.status(401).send('');
+}
 
-  var c = Object.assign(defaultConfig, extendedConfig);
-
-  return c;
+module.exports = {
+  notLogged: notLogged
 };
+

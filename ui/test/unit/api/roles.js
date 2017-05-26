@@ -19,6 +19,7 @@ var rolesHandler = require('../../../src/api/roles');
 var sinon = require('sinon');
 var expect = require('chai').expect;
 var restClient = require('../../config/helpers').restClient;
+var config = require('../../../config/config.js')();
 
 var sandbox;
 
@@ -59,7 +60,7 @@ describe('roles', function() {
 
   it('should test fetch role', function() {
     var fetchExpectation = sandbox.mock(restClient).expects('getRole');
-    fetchExpectation.callsArgWith(1, null, {members: ['user.abc', 'user.def', 'user.ghi']});
+    fetchExpectation.callsArgWith(1, null, {members: [config.userDomain + '.abc', config.userDomain + '.def', config.userDomain + '.ghi']});
     var cb = sandbox.spy();
 
     rolesHandler.fetchRole({}, restClient, cb);
