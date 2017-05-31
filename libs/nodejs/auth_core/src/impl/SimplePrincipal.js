@@ -16,11 +16,12 @@
 var winston = require('winston');
 var Validate = require('../util/Validate');
 var config = require('../../config/config')();
-winston.level = config.loglevel;
 
 class SimplePrincipal {
   /*eslint max-params: ["error", 6]*/
   constructor(domain, name, creds, roles, issueTime,authority) {
+    winston.level = config.logLevel;
+
     this._domain = domain;
     this._name = name;
     this._creds = creds;
@@ -35,6 +36,10 @@ class SimplePrincipal {
     this._keyService = null;
     this._keyId = null;
     this._x509Certificate = null;
+  }
+
+  static setConfig(c) {
+    config = Object.assign({}, config, c.auth_core);
   }
 
   static _simplePrincipal(domain, name, creds, issueTime, authority) {

@@ -27,13 +27,13 @@ module.exports = function() {
   var userConfig = {};
   if (__dirname !== process.cwd() + '/config') {
     var parentModule = module.parent;
-    while (parentModule.id.match(/node_modules\/auth_core\//)) {
+    while (parentModule.id.match(/node_modules\/zts_nodejs_client\//)) {
       parentModule = parentModule.parent;
     }
     var module_path = parentModule.id.match(/(.*)(node_modules\/(\w+))/g);
     try {
       fs.statSync(module_path + '/config/config.js');
-      moduleConfig = require(module_path + '/config/config.js')().auth_core;
+      moduleConfig = require(module_path + '/config/config.js')().ztsClient;
     } catch (err) {
       if (err.code !== 'ENOENT' && err.code !== 'MODULE_NOT_FOUND') {
         console.error(err);
@@ -41,7 +41,7 @@ module.exports = function() {
     }
     try {
       fs.statSync(process.cwd() + '/config/config.js');
-      userConfig = require(process.cwd() + '/config/config.js')().auth_core;
+      userConfig = require(process.cwd() + '/config/config.js')().ztsClient;
     } catch (err) {
       if (err.code !== 'ENOENT' && err.code !== 'MODULE_NOT_FOUND') {
         console.error(err);

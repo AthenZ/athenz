@@ -3,26 +3,25 @@
   "version": "1.0.0",
   "description": "Core interfaces for authorization",
   "main": "index.js",
-  "scripts": {
-    "build": "grunt build",
-    "lint": "grunt lint",
-    "test": "jenkins-mocha --require test/config/mock.js test/unit/*",
-    "posttest": "istanbul check-coverage",
-    "testDev": "mocha --require test/config/mock.js test/unit/*",
-    "functional": "grunt functional-sd",
-    "noop": "echo Ignoring this section."
-  },
+  "author": "Athenz Team",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "git@github.com/yahoo/athenz.git"
+  },
+  "scripts": {
+    "build": "make",
+    "lint": "grunt lint",
+    "test": "./node_modules/nyc/bin/nyc.js node_modules/.bin/jenkins-mocha --require test/config/mock.js test/unit/*.js",
+    "testDev": "mocha --require test/config/mock.js test/unit/*.js",
+    "functional": "grunt functional-sd",
+    "noop": "echo Ignoring this section."
   },
   "keywords": [
     "athenz",
     "auth_core",
     "yahoo"
   ],
-  "author": "Athenz Team",
-  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/yahoo/athenz/issues"
   },
@@ -50,8 +49,8 @@
     "grunt-postcss": "^0.8.0",
     "grunt-protractor-webdriver": "~0.2.5",
     "grunt-webdriver": "~1.0.0",
-    "istanbul": "~0.4.2",
-    "jenkins-mocha": "~2.5.0",
+    "nyc": "^11.0.3",
+    "jenkins-mocha": "^5.0.0",
     "jquery": "^3.1.1",
     "jquery-ui": "^1.10.5",
     "load-grunt-tasks": "^3.5.2",

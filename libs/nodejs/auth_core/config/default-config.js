@@ -21,7 +21,7 @@ var config = {
     principalHeader: 'Athenz-Principal-Auth',
     tokenMaxExpiry: String(30 * 24 * 60 * 60),
     tokenNoExpiry: true,
-    loglebel: 'debug'
+    logLevel: 'debug'
   },
   production: {
     principalIpCheckMode: 'OPS_WRITE',
@@ -30,7 +30,7 @@ var config = {
     principalHeader: 'Athenz-Principal-Auth',
     tokenMaxExpiry: String(30 * 24 * 60 * 60),
     tokenNoExpiry: false,
-    loglebel: 'info'
+    logLevel: 'info'
   }
 };
 
@@ -44,7 +44,7 @@ module.exports = function() {
   c.principalHeader = c.principalHeader || 'Athenz-Principal-Auth';
   c.tokenMaxExpiry = c.tokenMaxExpiry || String(30 * 24 * 60 * 60);
   c.tokenNoExpiry = c.tokenNoExpiry || false;
-  c.loglevel = c.loglevel || 'info';
+  c.logLevel = c.logLevel || 'info';
 
   return c;
 };
