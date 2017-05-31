@@ -1,0 +1,1930 @@
+{
+  "namespace": "com.yahoo.athenz.zts",
+  "name": "ZTS",
+  "version": 1,
+  "comment": "Copyright 2016 Yahoo Inc. Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. The Authorization Management Service (ZTS) API",
+  "types": [
+    {
+      "StringTypeDef": {
+        "type": "String",
+        "name": "SimpleName",
+        "comment": "Copyright 2016 Yahoo Inc. Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. Common name types used by several API definitions A simple identifier, an element of compound name.",
+        "pattern": "[a-zA-Z0-9_][a-zA-Z0-9_-]*"
+      }
+    },
+    {
+      "StringTypeDef": {
+        "type": "String",
+        "name": "CompoundName",
+        "comment": "A compound name. Most names in this API are compound names.",
+        "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
+      }
+    },
+    {
+      "StringTypeDef": {
+        "type": "String",
+        "name": "DomainName",
+        "comment": "A domain name is the general qualifier prefix, as its uniqueness is managed.",
+        "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
+      }
+    },
+    {
+      "StringTypeDef": {
+        "type": "String",
+        "name": "EntityName",
+        "comment": "An entity name is a short form of a resource name, including only the domain and entity.",
+        "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
+      }
+    },
+    {
+      "StringTypeDef": {
+        "type": "String",
+        "name": "ServiceName",
+        "comment": "A service name will generally be a unique subdomain.",
+        "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
+      }
+    },
+    {
+      "StringTypeDef": {
+        "type": "String",
+        "name": "ActionName",
+        "comment": "An action (operation) name.",
+        "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
+      }
+    },
+    {
+      "StringTypeDef": {
+        "type": "String",
+        "name": "ResourceName",
+        "comment": "A resource name Note that the EntityName part is optional, that is, a domain name followed by a colon is valid resource name.",
+        "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(:([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?"
+      }
+    },
+    {
+      "StringTypeDef": {
+        "type": "String",
+        "name": "YBase64",
+        "comment": "The Y-specific URL-safe Base64 variant.",
+        "pattern": "[a-zA-Z0-9\\._-]+"
+      }
+    },
+    {
+      "StringTypeDef": {
+        "type": "String",
+        "name": "YEncoded",
+        "comment": "YEncoded includes ybase64 chars, as well as = and %. This can represent a user cookie and URL-encoded values.",
+        "pattern": "[a-zA-Z0-9\\._%=-]*"
+      }
+    },
+    {
+      "StringTypeDef": {
+        "type": "String",
+        "name": "AuthorityName",
+        "comment": "Used as the prefix in a signed assertion. This uniquely identifies a signing authority.",
+        "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
+      }
+    },
+    {
+      "StringTypeDef": {
+        "type": "String",
+        "name": "SignedToken",
+        "comment": "A signed assertion if identity. i.e. the user cookie value. This token will only make sense to the authority that generated it, so it is beneficial to have something in the value that is cheaply recognized to quickly reject if it belongs to another authority. In addition to the YEncoded set our token includes ; to separate components and , to separate roles",
+        "pattern": "[a-zA-Z0-9\\._%=;,-]*"
+      }
+    },
+    {
+      "StringTypeDef": {
+        "type": "String",
+        "name": "PathElement",
+        "comment": "A uri-safe path element",
+        "pattern": "[a-zA-Z0-9-._~=+@$,:]*"
+      }
+    },
+    {
+      "StructTypeDef": {
+        "type": "Struct",
+        "name": "ResourceAccess",
+        "comment": "ResourceAccess can be checked and returned as this resource. (same as ZMS.Access)",
+        "fields": [
+          {
+            "name": "granted",
+            "type": "Bool",
+            "comment": "true (allowed) or false (denied)"
+          }
+        ]
+      }
+    },
+    {
+      "StructTypeDef": {
+        "type": "Struct",
+        "name": "PublicKeyEntry",
+        "comment": "The representation of the public key in a service identity object.",
+        "fields": [
+          {
+            "name": "key",
+            "type": "String",
+            "comment": "the public key for the service"
+          },
+          {
+            "name": "id",
+            "type": "String",
+            "comment": "the key identifier (version or zone name)"
+          }
+        ]
+      }
+    },
+    {
+      "StructTypeDef": {
+        "type": "Struct",
+        "name": "ServiceIdentity",
+        "comment": "The representation of the service identity object.",
+        "fields": [
+          {
+            "name": "name",
+            "type": "ServiceName",
+            "comment": "the full name of the service, i.e. \"sports.storage\""
+          },
+          {
+            "name": "publicKeys",
+            "type": "Array",
+            "optional": true,
+            "comment": "array of public keys for key rotation",
+            "items": "PublicKeyEntry"
+          },
+          {
+            "name": "providerEndpoint",
+            "type": "String",
+            "optional": true,
+            "comment": "if present, then this service can provision tenants via this endpoint."
+          },
+          {
+            "name": "modified",
+            "type": "Timestamp",
+            "optional": true,
+            "comment": "the timestamp when this entry was last modified"
+          },
+          {
+            "name": "executable",
+            "type": "String",
+            "optional": true,
+            "comment": "the path of the executable that runs the service"
+          },
+          {
+            "name": "hosts",
+            "type": "Array",
+            "optional": true,
+            "comment": "list of host names that this service can run on",
+            "items": "String"
+          },
+          {
+            "name": "user",
+            "type": "String",
+            "optional": true,
+            "comment": "local (unix) user name this service can run as"
+          },
+          {
+            "name": "group",
+            "type": "String",
+            "optional": true,
+            "comment": "local (unix) group name this service can run as"
+          }
+        ]
+      }
+    },
+    {
+      "StructTypeDef": {
+        "type": "Struct",
+        "name": "ServiceIdentityList",
+        "comment": "The representation for an enumeration of services in the namespace.",
+        "fields": [
+          {
+            "name": "names",
+            "type": "Array",
+            "comment": "list of service names",
+            "items": "EntityName"
+          }
+        ]
+      }
+    },
+    {
+      "StructTypeDef": {
+        "type": "Struct",
+        "name": "HostServices",
+        "comment": "The representation for an enumeration of services authorized to run on a specific host.",
+        "fields": [
+          {
+            "name": "host",
+            "type": "String",
+            "comment": "name of the host"
+          },
+          {
+            "name": "names",
+            "type": "Array",
+            "comment": "list of service names authorized to run on this host",
+            "items": "EntityName"
+          }
+        ]
+      }
+    },
+    {
+      "EnumTypeDef": {
+        "type": "Enum",
+        "name": "AssertionEffect",
+        "comment": "Every assertion can have the effect of ALLOW or DENY.",
+        "elements": [
+          {
+            "symbol": "ALLOW"
+          },
+          {
+            "symbol": "DENY"
+          }
+        ]
+      }
+    },
+    {
+      "StructTypeDef": {
+        "type": "Struct",
+        "name": "Assertion",
+        "comment": "A representation for the encapsulation of an action to be performed on a resource by a principal.",
+        "fields": [
+          {
+            "name": "role",
+            "type": "String",
+            "comment": "the subject of the assertion, a role"
+          },
+          {
+            "name": "resource",
+            "type": "String",
+            "comment": "the object of the assertion. Must be in the local namespace. Can contain wildcards"
+          },
+          {
+            "name": "action",
+            "type": "String",
+            "comment": "the predicate of the assertion. Can contain wildcards"
+          },
+          {
+            "name": "effect",
+            "type": "AssertionEffect",
+            "optional": true,
+            "comment": "the effect of the assertion in the policy language",
+            "default": "ALLOW"
+          },
+          {
+            "name": "id",
+            "type": "Int64",
+            "optional": true,
+            "comment": "assertion id - auto generated by server"
+          }
+        ]
+      }
+    },
+    {
+      "StructTypeDef": {
+        "type": "Struct",
+        "name": "Policy",
+        "comment": "The representation for a Policy with set of assertions.",
+        "fields": [
+          {
+            "name": "name",
+            "type": "ResourceName",
+            "comment": "name of the policy"
+          },
+          {
+            "name": "modified",
+            "type": "Timestamp",
+            "optional": true,
+            "comment": "last modification timestamp of this policy"
+          },
+          {
+            "name": "assertions",
+            "type": "Array",
+            "comment": "list of defined assertions for this policy",
+            "items": "Assertion"
+          }
+        ]
+      }
+    },
+    {
+      "StructTypeDef": {
+        "type": "Struct",
+        "name": "PolicyData",
+        "fields": [
+          {
+            "name": "domain",
+            "type": "DomainName",
+            "comment": "name of the domain"
+          },
+          {
+            "name": "policies",
+            "type": "Array",
+            "comment": "list of policies defined in this server",
+            "items": "Policy"
+          }
+        ]
+      }
+    },
+    {
+      "StructTypeDef": {
+        "type": "Struct",
+        "name": "SignedPolicyData",
+        "comment": "A representation of policies object defined in a given server.",
+        "fields": [
+          {
+            "name": "policyData",
+            "type": "PolicyData",
+            "comment": "list of policies defined in a domain"
+          },
+          {
+            "name": "zmsSignature",
+            "type": "String",
+            "comment": "zms signature generated based on the domain policies object"
+          },
+          {
+            "name": "zmsKeyId",
+            "type": "String",
+            "comment": "the identifier of the zms key used to generate the signature"
+          },
+          {
+            "name": "modified",
+            "type": "Timestamp",
+            "comment": "when the domain itself was last modified"
+          },
+          {
+            "name": "expires",
+            "type": "Timestamp",
+            "comment": "timestamp specifying the expiration time for using this set of policies"
+          }
+        ]
+      }
+    },
+    {
+      "StructTypeDef": {
+        "type": "Struct",
+        "name": "DomainSignedPolicyData",
+        "comment": "A signed bulk transfer of policies. The data is signed with server's private key.",
+        "fields": [
+          {
+            "name": "signedPolicyData",
+            "type": "SignedPolicyData",
+            "comment": "policy data signed by ZMS"
+          },
+          {
+            "name": "signature",
+            "type": "String",
+            "comment": "signature generated based on the domain policies object"
+          },
+          {
+            "name": "keyId",
+            "type": "String",
+            "comment": "the identifier of the key used to generate the signature"
+          }
+        ]
+      }
+    },
+    {
+      "StructTypeDef": {
+        "type": "Struct",
+        "name": "RoleToken",
+        "comment": "A representation of a signed RoleToken",
+        "fields": [
+          {
+            "name": "token",
+            "type": "String",
+            "comment": ""
+          },
+          {
+            "name": "expiryTime",
+            "type": "Int64",
+            "comment": ""
+          }
+        ]
+      }
+    },
+    {
+      "StructTypeDef": {
+        "type": "Struct",
+        "name": "RoleCertificateRequest",
+        "comment": "RoleCertificateRequest - a certificate signing request",
+        "fields": [
+          {
+            "name": "csr",
+            "type": "String",
+            "comment": ""
+          },
+          {
+            "name": "expiryTime",
+            "type": "Int64",
+            "comment": ""
+          }
+        ]
+      }
+    },
+    {
+      "StructTypeDef": {
+        "type": "Struct",
+        "name": "Access",
+        "comment": "Access can be checked and returned as this resource.",
+        "fields": [
+          {
+            "name": "granted",
+            "type": "Bool",
+            "comment": "true (allowed) or false (denied)"
+          }
+        ]
+      }
+    },
+    {
+      "StructTypeDef": {
+        "type": "Struct",
+        "name": "RoleAccess",
+        "fields": [
+          {
+            "name": "roles",
+            "type": "Array",
+            "comment": "",
+            "items": "EntityName"
+          }
+        ]
+      }
+    },
+    {
+      "StructTypeDef": {
+        "type": "Struct",
+        "name": "TenantDomains",
+        "fields": [
+          {
+            "name": "tenantDomainNames",
+            "type": "Array",
+            "comment": "",
+            "items": "DomainName"
+          }
+        ]
+      }
+    },
+    {
+      "StructTypeDef": {
+        "type": "Struct",
+        "name": "Identity",
+        "comment": "Identity - a signed assertion of service or human identity, the response could be either a client certificate or just a regular NToken (depending if the request contained a csr or not).",
+        "fields": [
+          {
+            "name": "name",
+            "type": "CompoundName",
+            "comment": "name of the identity, fully qualified, i.e. my.domain.service1, or aws.1232321321312.myusername"
+          },
+          {
+            "name": "certificate",
+            "type": "String",
+            "optional": true,
+            "comment": "a certificate usable for both client and server in TLS connections"
+          },
+          {
+            "name": "caCertBundle",
+            "type": "String",
+            "optional": true,
+            "comment": "the CA certificate chain to use with all IMS-generated certs"
+          },
+          {
+            "name": "sshCertificate",
+            "type": "String",
+            "optional": true,
+            "comment": "the SSH certificate, signed by the CA (user or host)"
+          },
+          {
+            "name": "sshCertificateSigner",
+            "type": "String",
+            "optional": true,
+            "comment": "the SSH CA's public key for the sshCertificate (user or host)"
+          },
+          {
+            "name": "serviceToken",
+            "type": "SignedToken",
+            "optional": true,
+            "comment": "service token instead of TLS certificate"
+          },
+          {
+            "name": "attributes",
+            "type": "Map",
+            "optional": true,
+            "comment": "other config-like attributes determined at boot time",
+            "items": "String",
+            "keys": "String"
+          }
+        ]
+      }
+    },
+    {
+      "StructTypeDef": {
+        "type": "Struct",
+        "name": "InstanceInformation",
+        "comment": "Instance object that includes requested service details plus host document that is signed by provider as part of the host bootstrap process",
+        "fields": [
+          {
+            "name": "document",
+            "type": "String",
+            "comment": "signed document containing attributes like IP address, instance-id, account#, etc."
+          },
+          {
+            "name": "signature",
+            "type": "String",
+            "comment": "the signature for the document"
+          },
+          {
+            "name": "keyId",
+            "type": "String",
+            "comment": "the keyid used to sign the document"
+          },
+          {
+            "name": "domain",
+            "type": "CompoundName",
+            "comment": "the domain of the instance"
+          },
+          {
+            "name": "service",
+            "type": "SimpleName",
+            "comment": "the service this instance is supposed to run"
+          },
+          {
+            "name": "csr",
+            "type": "String",
+            "comment": "return a certificate in the response"
+          },
+          {
+            "name": "ssh",
+            "type": "String",
+            "optional": true,
+            "comment": "if present, return an SSH host certificate"
+          }
+        ]
+      }
+    },
+    {
+      "StructTypeDef": {
+        "type": "Struct",
+        "name": "InstanceRefreshRequest",
+        "comment": "InstanceRefreshRequest - a certificate refresh request",
+        "fields": [
+          {
+            "name": "csr",
+            "type": "String",
+            "comment": "Cert CSR signed by the service's private key (public key registered in ZMS)"
+          },
+          {
+            "name": "expiryTime",
+            "type": "Int32",
+            "optional": true,
+            "comment": "in seconds how long token should be valid for"
+          }
+        ]
+      }
+    },
+    {
+      "StructTypeDef": {
+        "type": "Struct",
+        "name": "AWSInstanceInformation",
+        "comment": "AWSInstanceInformation - the information a booting EC2 instance must provide to ZTS to authenticate.",
+        "fields": [
+          {
+            "name": "document",
+            "type": "String",
+            "comment": "signed document containing attributes like IP address, instance-id, account#, etc."
+          },
+          {
+            "name": "signature",
+            "type": "String",
+            "comment": "the signature for the document"
+          },
+          {
+            "name": "domain",
+            "type": "CompoundName",
+            "comment": "the domain of the instance"
+          },
+          {
+            "name": "service",
+            "type": "SimpleName",
+            "comment": "the service this instance is supposed to run"
+          },
+          {
+            "name": "csr",
+            "type": "String",
+            "comment": "return a certificate in the response"
+          },
+          {
+            "name": "ssh",
+            "type": "String",
+            "optional": true,
+            "comment": "if present, return an SSH host certificate. Format is JSON."
+          },
+          {
+            "name": "name",
+            "type": "CompoundName",
+            "comment": "the full service identity name (same as the EC2 instance profile name)"
+          },
+          {
+            "name": "account",
+            "type": "SimpleName",
+            "comment": "the account id (as a string) for the instance. parsed from the instance profile ARN"
+          },
+          {
+            "name": "cloud",
+            "type": "SimpleName",
+            "optional": true,
+            "comment": "the name of the cloud (namespace) within the account, parsed from the name"
+          },
+          {
+            "name": "subnet",
+            "type": "SimpleName",
+            "optional": true,
+            "comment": "not used"
+          },
+          {
+            "name": "access",
+            "type": "String",
+            "comment": "the AWS Access Key Id for the role"
+          },
+          {
+            "name": "secret",
+            "type": "String",
+            "comment": "the AWS Secret Access Key for the role"
+          },
+          {
+            "name": "token",
+            "type": "String",
+            "comment": "the AWS STS Token for the role"
+          },
+          {
+            "name": "expires",
+            "type": "Timestamp",
+            "comment": "the expiration time of the access keys"
+          },
+          {
+            "name": "modified",
+            "type": "Timestamp",
+            "comment": "the modified time of the access keys"
+          },
+          {
+            "name": "flavor",
+            "type": "String",
+            "comment": "the 'flavor' of the access keys, i.e. \"AWS-HMAC\""
+          }
+        ]
+      }
+    },
+    {
+      "StructTypeDef": {
+        "type": "Struct",
+        "name": "AWSCertificateRequest",
+        "comment": "AWSCertificateRequest - a certificate signing request",
+        "fields": [
+          {
+            "name": "csr",
+            "type": "String",
+            "optional": true,
+            "comment": "request an X.509 certificate"
+          },
+          {
+            "name": "ssh",
+            "type": "String",
+            "optional": true,
+            "comment": "request an SSH certificate"
+          }
+        ]
+      }
+    },
+    {
+      "StructTypeDef": {
+        "type": "Struct",
+        "name": "AWSTemporaryCredentials",
+        "fields": [
+          {
+            "name": "accessKeyId",
+            "type": "String",
+            "comment": ""
+          },
+          {
+            "name": "secretAccessKey",
+            "type": "String",
+            "comment": ""
+          },
+          {
+            "name": "sessionToken",
+            "type": "String",
+            "comment": ""
+          },
+          {
+            "name": "expiration",
+            "type": "Timestamp",
+            "comment": ""
+          }
+        ]
+      }
+    },
+    {
+      "StructTypeDef": {
+        "type": "Struct",
+        "name": "OSTKInstanceInformation",
+        "comment": "Instance object that includes requested service details plus host document that is signed by Openstack as part of the host bootstrap process",
+        "fields": [
+          {
+            "name": "document",
+            "type": "String",
+            "comment": "signed document containing attributes like IP address, instance-id, account#, etc."
+          },
+          {
+            "name": "signature",
+            "type": "String",
+            "comment": "the signature for the document"
+          },
+          {
+            "name": "keyId",
+            "type": "String",
+            "comment": "the keyid used to sign the document"
+          },
+          {
+            "name": "domain",
+            "type": "CompoundName",
+            "comment": "the domain of the instance"
+          },
+          {
+            "name": "service",
+            "type": "SimpleName",
+            "comment": "the service this instance is supposed to run"
+          },
+          {
+            "name": "csr",
+            "type": "String",
+            "comment": "return a certificate in the response"
+          }
+        ]
+      }
+    },
+    {
+      "StructTypeDef": {
+        "type": "Struct",
+        "name": "OSTKInstanceRefreshRequest",
+        "comment": "OSTKCertificateRequest - a certificate signing request",
+        "fields": [
+          {
+            "name": "csr",
+            "type": "String",
+            "optional": true,
+            "comment": "request an X.509 certificate"
+          }
+        ]
+      }
+    },
+    {
+      "StructTypeDef": {
+        "type": "Struct",
+        "name": "InstanceRegisterInformation",
+        "fields": [
+          {
+            "name": "provider",
+            "type": "ServiceName",
+            "comment": "the provider service name (i.e. \"aws.us-west-2\", \"sys.openstack.cluster1\")"
+          },
+          {
+            "name": "domain",
+            "type": "DomainName",
+            "comment": "the domain of the instance"
+          },
+          {
+            "name": "service",
+            "type": "SimpleName",
+            "comment": "the service this instance is supposed to run"
+          },
+          {
+            "name": "attestationData",
+            "type": "String",
+            "comment": "identity attestation data including document with its signature containing attributes like IP address, instance-id, account#, etc."
+          },
+          {
+            "name": "csr",
+            "type": "String",
+            "comment": "the Certificate Signing Request for the expected X.509 certificate in the response"
+          },
+          {
+            "name": "ssh",
+            "type": "String",
+            "optional": true,
+            "comment": "if present, return an SSH host certificate. Format is JSON."
+          },
+          {
+            "name": "token",
+            "type": "Bool",
+            "optional": true,
+            "comment": "if true, return a service token signed by ZTS for this service"
+          }
+        ]
+      }
+    },
+    {
+      "StructTypeDef": {
+        "type": "Struct",
+        "name": "InstanceRefreshInformation",
+        "fields": [
+          {
+            "name": "csr",
+            "type": "String",
+            "optional": true,
+            "comment": "the Certificate Signing Request for the expected X.509 certificate in the response"
+          },
+          {
+            "name": "ssh",
+            "type": "String",
+            "optional": true,
+            "comment": "if present, return an SSH host certificate. Format is JSON."
+          },
+          {
+            "name": "token",
+            "type": "Bool",
+            "optional": true,
+            "comment": "if true, return a service token signed by ZTS for this service"
+          }
+        ]
+      }
+    },
+    {
+      "StructTypeDef": {
+        "type": "Struct",
+        "name": "InstanceIdentity",
+        "fields": [
+          {
+            "name": "provider",
+            "type": "ServiceName",
+            "comment": "the provider service name (i.e. \"aws.us-west-2\", \"sys.openstack.cluster1\")"
+          },
+          {
+            "name": "name",
+            "type": "ServiceName",
+            "comment": "name of the identity, fully qualified, i.e. my.domain.service1"
+          },
+          {
+            "name": "instanceId",
+            "type": "PathElement",
+            "comment": "unique instance id within provider's namespace"
+          },
+          {
+            "name": "x509Certificate",
+            "type": "String",
+            "optional": true,
+            "comment": "an X.509 certificate usable for both client and server in TLS connections"
+          },
+          {
+            "name": "x509CertificateSigner",
+            "type": "String",
+            "optional": true,
+            "comment": "the CA certificate chain to verify all generated X.509 certs"
+          },
+          {
+            "name": "sshCertificate",
+            "type": "String",
+            "optional": true,
+            "comment": "the SSH certificate, signed by the CA (user or host)"
+          },
+          {
+            "name": "sshCertificateSigner",
+            "type": "String",
+            "optional": true,
+            "comment": "the SSH CA's public key for the sshCertificate (user or host)"
+          },
+          {
+            "name": "serviceToken",
+            "type": "SignedToken",
+            "optional": true,
+            "comment": "service token instead of TLS certificate"
+          },
+          {
+            "name": "attributes",
+            "type": "Map",
+            "optional": true,
+            "comment": "other config-like attributes determined at boot time",
+            "items": "String",
+            "keys": "String"
+          }
+        ]
+      }
+    },
+    {
+      "EnumTypeDef": {
+        "type": "Enum",
+        "name": "DomainMetricType",
+        "comment": "zpe metric attributes",
+        "elements": [
+          {
+            "symbol": "ACCESS_ALLOWED"
+          },
+          {
+            "symbol": "ACCESS_ALLOWED_DENY"
+          },
+          {
+            "symbol": "ACCESS_ALLOWED_DENY_NO_MATCH"
+          },
+          {
+            "symbol": "ACCESS_ALLOWED_ALLOW"
+          },
+          {
+            "symbol": "ACCESS_ALLOWED_ERROR"
+          },
+          {
+            "symbol": "ACCESS_ALLOWED_TOKEN_INVALID"
+          },
+          {
+            "symbol": "ACCESS_Allowed_TOKEN_EXPIRED"
+          },
+          {
+            "symbol": "ACCESS_ALLOWED_DOMAIN_NOT_FOUND"
+          },
+          {
+            "symbol": "ACCESS_ALLOWED_DOMAIN_MISMATCH"
+          },
+          {
+            "symbol": "ACCESS_ALLOWED_DOMAIN_EXPIRED"
+          },
+          {
+            "symbol": "ACCESS_ALLOWED_DOMAIN_EMPTY"
+          },
+          {
+            "symbol": "ACCESS_ALLOWED_TOKEN_CACHE_FAILURE"
+          },
+          {
+            "symbol": "ACCESS_ALLOWED_TOKEN_CACHE_NOT_FOUND"
+          },
+          {
+            "symbol": "ACCESS_ALLOWED_TOKEN_CACHE_SUCCESS"
+          },
+          {
+            "symbol": "ACCESS_ALLOWED_TOKEN_VALIDATE"
+          },
+          {
+            "symbol": "LOAD_FILE_FAIL"
+          },
+          {
+            "symbol": "LOAD_FILE_GOOD"
+          },
+          {
+            "symbol": "LOAD_DOMAIN_GOOD"
+          }
+        ]
+      }
+    },
+    {
+      "StructTypeDef": {
+        "type": "Struct",
+        "name": "DomainMetric",
+        "fields": [
+          {
+            "name": "metricType",
+            "type": "DomainMetricType",
+            "comment": ""
+          },
+          {
+            "name": "metricVal",
+            "type": "Int32",
+            "comment": ""
+          }
+        ]
+      }
+    },
+    {
+      "StructTypeDef": {
+        "type": "Struct",
+        "name": "DomainMetrics",
+        "fields": [
+          {
+            "name": "domainName",
+            "type": "DomainName",
+            "comment": "name of the domain the metrics pertain to"
+          },
+          {
+            "name": "metricList",
+            "type": "Array",
+            "comment": "list of the domains metrics",
+            "items": "DomainMetric"
+          }
+        ]
+      }
+    }
+  ],
+  "resources": [
+    {
+      "type": "ResourceAccess",
+      "method": "GET",
+      "path": "/access/{action}/{resource}",
+      "comment": "Check access for the specified operation on the specified resource for the currently authenticated user. This is the slow centralized access for control-plane purposes. Use distributed mechanisms for decentralized (data-plane) access by fetching signed policies and role tokens for users. With this endpoint the resource is part of the uri and restricted to its strict definition of resource name. If needed, you can use the GetAccessExt api that allows resource name to be less restrictive.",
+      "inputs": [
+        {
+          "name": "action",
+          "type": "ActionName",
+          "comment": "action as specified in the policy assertion, i.e. update or read",
+          "pathParam": true
+        },
+        {
+          "name": "resource",
+          "type": "ResourceName",
+          "comment": "the resource to check access against, i.e. \"media.news:articles\"",
+          "pathParam": true
+        },
+        {
+          "name": "domain",
+          "type": "DomainName",
+          "comment": "usually null. If present, it specifies an alternate domain for cross-domain trust relation",
+          "queryParam": "domain",
+          "optional": true
+        },
+        {
+          "name": "checkPrincipal",
+          "type": "EntityName",
+          "comment": "usually null. If present, carry out the access check for this principal",
+          "queryParam": "principal",
+          "optional": true
+        }
+      ],
+      "auth": {
+        "authenticate": true,
+        "action": "",
+        "resource": ""
+      },
+      "expected": "OK",
+      "exceptions": {
+        "UNAUTHORIZED": {
+          "type": "ResourceError"
+        },
+        "BAD_REQUEST": {
+          "type": "ResourceError"
+        },
+        "NOT_FOUND": {
+          "type": "ResourceError"
+        },
+        "FORBIDDEN": {
+          "type": "ResourceError"
+        }
+      }
+    },
+    {
+      "type": "ResourceAccess",
+      "method": "GET",
+      "path": "/access/{action}",
+      "comment": "Check access for the specified operation on the specified resource for the currently authenticated user. This is the slow centralized access for control-plane purposes.",
+      "inputs": [
+        {
+          "name": "action",
+          "type": "ActionName",
+          "comment": "action as specified in the policy assertion, i.e. update or read",
+          "pathParam": true
+        },
+        {
+          "name": "resource",
+          "type": "String",
+          "comment": "the resource to check access against, i.e. \"media.news:articles\"",
+          "queryParam": "resource",
+          "optional": true
+        },
+        {
+          "name": "domain",
+          "type": "DomainName",
+          "comment": "usually null. If present, it specifies an alternate domain for cross-domain trust relation",
+          "queryParam": "domain",
+          "optional": true
+        },
+        {
+          "name": "checkPrincipal",
+          "type": "EntityName",
+          "comment": "usually null. If present, carry out the access check for this principal",
+          "queryParam": "principal",
+          "optional": true
+        }
+      ],
+      "auth": {
+        "authenticate": true,
+        "action": "",
+        "resource": ""
+      },
+      "expected": "OK",
+      "exceptions": {
+        "UNAUTHORIZED": {
+          "type": "ResourceError"
+        },
+        "BAD_REQUEST": {
+          "type": "ResourceError"
+        },
+        "NOT_FOUND": {
+          "type": "ResourceError"
+        },
+        "FORBIDDEN": {
+          "type": "ResourceError"
+        }
+      },
+      "name": "GetResourceAccessExt"
+    },
+    {
+      "type": "ServiceIdentity",
+      "method": "GET",
+      "path": "/domain/{domainName}/service/{serviceName}",
+      "comment": "Get info for the specified ServiceIdentity.",
+      "inputs": [
+        {
+          "name": "domainName",
+          "type": "DomainName",
+          "comment": "name of the domain",
+          "pathParam": true
+        },
+        {
+          "name": "serviceName",
+          "type": "ServiceName",
+          "comment": "name of the service to be retrieved",
+          "pathParam": true
+        }
+      ],
+      "auth": {
+        "authenticate": true,
+        "action": "",
+        "resource": ""
+      },
+      "expected": "OK",
+      "exceptions": {
+        "UNAUTHORIZED": {
+          "type": "ResourceError"
+        },
+        "BAD_REQUEST": {
+          "type": "ResourceError"
+        },
+        "NOT_FOUND": {
+          "type": "ResourceError"
+        }
+      }
+    },
+    {
+      "type": "ServiceIdentityList",
+      "method": "GET",
+      "path": "/domain/{domainName}/service",
+      "comment": "Enumerate services provisioned in this domain.",
+      "inputs": [
+        {
+          "name": "domainName",
+          "type": "DomainName",
+          "comment": "name of the domain",
+          "pathParam": true
+        }
+      ],
+      "auth": {
+        "authenticate": true,
+        "action": "",
+        "resource": ""
+      },
+      "expected": "OK",
+      "exceptions": {
+        "UNAUTHORIZED": {
+          "type": "ResourceError"
+        },
+        "BAD_REQUEST": {
+          "type": "ResourceError"
+        },
+        "NOT_FOUND": {
+          "type": "ResourceError"
+        }
+      }
+    },
+    {
+      "type": "PublicKeyEntry",
+      "method": "GET",
+      "path": "/domain/{domainName}/service/{serviceName}/publickey/{keyId}",
+      "comment": "Retrieve the specified public key from the service.",
+      "inputs": [
+        {
+          "name": "domainName",
+          "type": "DomainName",
+          "comment": "name of the domain",
+          "pathParam": true
+        },
+        {
+          "name": "serviceName",
+          "type": "SimpleName",
+          "comment": "name of the service",
+          "pathParam": true
+        },
+        {
+          "name": "keyId",
+          "type": "String",
+          "comment": "the identifier of the public key to be retrieved",
+          "pathParam": true
+        }
+      ],
+      "expected": "OK",
+      "exceptions": {
+        "BAD_REQUEST": {
+          "type": "ResourceError"
+        },
+        "NOT_FOUND": {
+          "type": "ResourceError"
+        }
+      }
+    },
+    {
+      "type": "HostServices",
+      "method": "GET",
+      "path": "/host/{host}/services",
+      "comment": "Enumerate services provisioned on a specific host",
+      "inputs": [
+        {
+          "name": "host",
+          "type": "String",
+          "comment": "name of the host",
+          "pathParam": true
+        }
+      ],
+      "expected": "OK",
+      "exceptions": {
+        "BAD_REQUEST": {
+          "type": "ResourceError"
+        }
+      }
+    },
+    {
+      "type": "DomainSignedPolicyData",
+      "method": "GET",
+      "path": "/domain/{domainName}/signed_policy_data",
+      "comment": "Get a signed policy enumeration from the service, to transfer to a local store. An ETag is generated for the PolicyList that changes when any item in the list changes. If the If-None-Match header is provided, and it matches the ETag that would be returned, then a NOT_MODIFIED response is returned instead of the list.",
+      "inputs": [
+        {
+          "name": "domainName",
+          "type": "DomainName",
+          "comment": "name of the domain",
+          "pathParam": true
+        },
+        {
+          "name": "matchingTag",
+          "type": "String",
+          "comment": "Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time",
+          "header": "If-None-Match",
+          "optional": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "tag",
+          "type": "String",
+          "header": "ETag",
+          "comment": "The current latest modification timestamp is returned in this header"
+        }
+      ],
+      "expected": "OK",
+      "exceptions": {
+        "BAD_REQUEST": {
+          "type": "ResourceError"
+        },
+        "NOT_FOUND": {
+          "type": "ResourceError"
+        }
+      }
+    },
+    {
+      "type": "RoleToken",
+      "method": "GET",
+      "path": "/domain/{domainName}/token",
+      "comment": "Return a security token for the specific role in the namespace that the principal can assume. If the role is omitted, then all roles in the namespace that the authenticated user can assume are returned. the caller can specify how long the RoleToken should be valid for by specifying the minExpiryTime and maxExpiryTime parameters. The minExpiryTime specifies that the returned RoleToken must be at least valid (min/lower bound) for specified number of seconds, while maxExpiryTime specifies that the RoleToken must be at most valid (max/upper bound) for specified number of seconds. If both values are the same, the server must return a RoleToken for that many seconds. If no values are specified, the server's default RoleToken Timeout value is used.",
+      "inputs": [
+        {
+          "name": "domainName",
+          "type": "DomainName",
+          "comment": "name of the domain",
+          "pathParam": true
+        },
+        {
+          "name": "role",
+          "type": "EntityName",
+          "comment": "only interested for a token for this role",
+          "queryParam": "role",
+          "optional": true
+        },
+        {
+          "name": "minExpiryTime",
+          "type": "Int32",
+          "comment": "in seconds min expiry time",
+          "queryParam": "minExpiryTime",
+          "optional": true
+        },
+        {
+          "name": "maxExpiryTime",
+          "type": "Int32",
+          "comment": "in seconds max expiry time",
+          "queryParam": "maxExpiryTime",
+          "optional": true
+        },
+        {
+          "name": "proxyForPrincipal",
+          "type": "EntityName",
+          "comment": "optional this request is proxy for this principal",
+          "queryParam": "proxyForPrincipal",
+          "optional": true
+        }
+      ],
+      "auth": {
+        "authenticate": true,
+        "action": "",
+        "resource": ""
+      },
+      "expected": "OK",
+      "exceptions": {
+        "UNAUTHORIZED": {
+          "type": "ResourceError"
+        },
+        "BAD_REQUEST": {
+          "type": "ResourceError"
+        },
+        "NOT_FOUND": {
+          "type": "ResourceError"
+        },
+        "FORBIDDEN": {
+          "type": "ResourceError"
+        }
+      }
+    },
+    {
+      "type": "RoleCertificateRequest",
+      "method": "POST",
+      "path": "/domain/{domainName}/role/{roleName}/token",
+      "comment": "Return a TLS certificate for the specific role in the namespace that the principal can assume. Role certificates are valid for 30 days by default",
+      "inputs": [
+        {
+          "name": "domainName",
+          "type": "DomainName",
+          "comment": "name of the domain",
+          "pathParam": true
+        },
+        {
+          "name": "roleName",
+          "type": "EntityName",
+          "comment": "name of role",
+          "pathParam": true
+        },
+        {
+          "name": "req",
+          "type": "RoleCertificateRequest",
+          "comment": "csr request"
+        }
+      ],
+      "auth": {
+        "authenticate": true,
+        "action": "",
+        "resource": ""
+      },
+      "expected": "OK",
+      "exceptions": {
+        "UNAUTHORIZED": {
+          "type": "ResourceError"
+        },
+        "BAD_REQUEST": {
+          "type": "ResourceError"
+        },
+        "NOT_FOUND": {
+          "type": "ResourceError"
+        },
+        "FORBIDDEN": {
+          "type": "ResourceError"
+        }
+      }
+    },
+    {
+      "type": "Access",
+      "method": "GET",
+      "path": "/access/domain/{domainName}/role/{roleName}/principal/{principal}",
+      "inputs": [
+        {
+          "name": "domainName",
+          "type": "DomainName",
+          "comment": "name of the domain",
+          "pathParam": true
+        },
+        {
+          "name": "roleName",
+          "type": "EntityName",
+          "comment": "name of the role to check access for",
+          "pathParam": true
+        },
+        {
+          "name": "principal",
+          "type": "EntityName",
+          "comment": "carry out the access check for this principal",
+          "pathParam": true
+        }
+      ],
+      "auth": {
+        "authenticate": true,
+        "action": "",
+        "resource": ""
+      },
+      "expected": "OK",
+      "exceptions": {
+        "UNAUTHORIZED": {
+          "type": "ResourceError"
+        },
+        "BAD_REQUEST": {
+          "type": "ResourceError"
+        },
+        "NOT_FOUND": {
+          "type": "ResourceError"
+        },
+        "FORBIDDEN": {
+          "type": "ResourceError"
+        }
+      }
+    },
+    {
+      "type": "RoleAccess",
+      "method": "GET",
+      "path": "/access/domain/{domainName}/principal/{principal}",
+      "inputs": [
+        {
+          "name": "domainName",
+          "type": "DomainName",
+          "comment": "name of the domain",
+          "pathParam": true
+        },
+        {
+          "name": "principal",
+          "type": "EntityName",
+          "comment": "carry out the role access lookup for this principal",
+          "pathParam": true
+        }
+      ],
+      "auth": {
+        "authenticate": true,
+        "action": "",
+        "resource": ""
+      },
+      "expected": "OK",
+      "exceptions": {
+        "UNAUTHORIZED": {
+          "type": "ResourceError"
+        },
+        "BAD_REQUEST": {
+          "type": "ResourceError"
+        },
+        "NOT_FOUND": {
+          "type": "ResourceError"
+        }
+      }
+    },
+    {
+      "type": "TenantDomains",
+      "method": "GET",
+      "path": "/providerdomain/{providerDomainName}/user/{userName}",
+      "comment": "Get list of tenant domains user has access to for specified provider domain and service",
+      "inputs": [
+        {
+          "name": "providerDomainName",
+          "type": "DomainName",
+          "comment": "name of the provider domain",
+          "pathParam": true
+        },
+        {
+          "name": "userName",
+          "type": "EntityName",
+          "comment": "name of the user to retrieve tenant domain access for",
+          "pathParam": true
+        },
+        {
+          "name": "roleName",
+          "type": "EntityName",
+          "comment": "role name to filter on when looking for the tenants in provider",
+          "queryParam": "roleName",
+          "optional": true
+        },
+        {
+          "name": "serviceName",
+          "type": "ServiceName",
+          "comment": "service name to filter on when looking for the tenants in provider",
+          "queryParam": "serviceName",
+          "optional": true
+        }
+      ],
+      "auth": {
+        "authenticate": true,
+        "action": "",
+        "resource": ""
+      },
+      "expected": "OK",
+      "exceptions": {
+        "UNAUTHORIZED": {
+          "type": "ResourceError"
+        },
+        "BAD_REQUEST": {
+          "type": "ResourceError"
+        },
+        "NOT_FOUND": {
+          "type": "ResourceError"
+        }
+      }
+    },
+    {
+      "type": "InstanceRefreshRequest",
+      "method": "POST",
+      "path": "/instance/{domain}/{service}/refresh",
+      "comment": "Refresh Service NToken into TLS Certificate",
+      "inputs": [
+        {
+          "name": "domain",
+          "type": "CompoundName",
+          "comment": "name of the domain requesting the refresh",
+          "pathParam": true
+        },
+        {
+          "name": "service",
+          "type": "SimpleName",
+          "comment": "name of the service requesting the refresh",
+          "pathParam": true
+        },
+        {
+          "name": "req",
+          "type": "InstanceRefreshRequest",
+          "comment": "the refresh request"
+        }
+      ],
+      "auth": {
+        "authenticate": true,
+        "action": "",
+        "resource": ""
+      },
+      "expected": "OK",
+      "exceptions": {
+        "INTERNAL_SERVER_ERROR": {
+          "type": "ResourceError"
+        },
+        "UNAUTHORIZED": {
+          "type": "ResourceError"
+        },
+        "BAD_REQUEST": {
+          "type": "ResourceError"
+        },
+        "NOT_FOUND": {
+          "type": "ResourceError"
+        },
+        "FORBIDDEN": {
+          "type": "ResourceError"
+        }
+      }
+    },
+    {
+      "type": "AWSInstanceInformation",
+      "method": "POST",
+      "path": "/aws/instance",
+      "comment": "Register an instance in AWS ZTS. Whether this succeeds or not depends on the contents of the request (the request itself is not authenticated or authorized in the normal way). If successful, the Identity is returned as a x.509 client certificate (to be used in TLS operations)",
+      "inputs": [
+        {
+          "name": "info",
+          "type": "AWSInstanceInformation"
+        }
+      ],
+      "expected": "OK",
+      "exceptions": {
+        "UNAUTHORIZED": {
+          "type": "ResourceError"
+        },
+        "BAD_REQUEST": {
+          "type": "ResourceError"
+        },
+        "FORBIDDEN": {
+          "type": "ResourceError"
+        }
+      }
+    },
+    {
+      "type": "AWSCertificateRequest",
+      "method": "POST",
+      "path": "/aws/instance/{domain}/{service}/refresh",
+      "comment": "Rotate certs. Make this request with previous cert, the result are new certs for the same identity.",
+      "inputs": [
+        {
+          "name": "domain",
+          "type": "CompoundName",
+          "comment": "name of the domain requesting the refresh",
+          "pathParam": true
+        },
+        {
+          "name": "service",
+          "type": "SimpleName",
+          "comment": "name of the service requesting the refresh",
+          "pathParam": true
+        },
+        {
+          "name": "req",
+          "type": "AWSCertificateRequest",
+          "comment": "the refresh request"
+        }
+      ],
+      "auth": {
+        "authenticate": true,
+        "action": "",
+        "resource": ""
+      },
+      "expected": "OK",
+      "exceptions": {
+        "UNAUTHORIZED": {
+          "type": "ResourceError"
+        },
+        "BAD_REQUEST": {
+          "type": "ResourceError"
+        },
+        "FORBIDDEN": {
+          "type": "ResourceError"
+        }
+      }
+    },
+    {
+      "type": "AWSTemporaryCredentials",
+      "method": "GET",
+      "path": "/domain/{domainName}/role/{role}/creds",
+      "comment": "perform an AWS AssumeRole of the target role and return the credentials. ZTS must have been granted the ability to assume the role in IAM, and granted the ability to ASSUME_AWS_ROLE in Athenz for this to succeed.",
+      "inputs": [
+        {
+          "name": "domainName",
+          "type": "DomainName",
+          "comment": "name of the domain containing the role, which implies the target account",
+          "pathParam": true
+        },
+        {
+          "name": "role",
+          "type": "CompoundName",
+          "comment": "the target AWS role name in the domain account, in Athenz terms, i.e. \"the.role\"",
+          "pathParam": true
+        }
+      ],
+      "auth": {
+        "authenticate": true,
+        "action": "",
+        "resource": ""
+      },
+      "expected": "OK",
+      "exceptions": {
+        "UNAUTHORIZED": {
+          "type": "ResourceError"
+        },
+        "BAD_REQUEST": {
+          "type": "ResourceError"
+        },
+        "NOT_FOUND": {
+          "type": "ResourceError"
+        },
+        "FORBIDDEN": {
+          "type": "ResourceError"
+        }
+      }
+    },
+    {
+      "type": "OSTKInstanceInformation",
+      "method": "POST",
+      "path": "/ostk/instance",
+      "comment": "Get a cert for service being bootstrapped by Openstack",
+      "inputs": [
+        {
+          "name": "info",
+          "type": "OSTKInstanceInformation"
+        }
+      ],
+      "expected": "OK",
+      "exceptions": {
+        "INTERNAL_SERVER_ERROR": {
+          "type": "ResourceError"
+        },
+        "UNAUTHORIZED": {
+          "type": "ResourceError"
+        },
+        "BAD_REQUEST": {
+          "type": "ResourceError"
+        },
+        "FORBIDDEN": {
+          "type": "ResourceError"
+        }
+      }
+    },
+    {
+      "type": "OSTKInstanceRefreshRequest",
+      "method": "POST",
+      "path": "/ostk/instance/{domain}/{service}/refresh",
+      "comment": "Refresh self identity if the original identity was issued by ZTS The token must include the original requestor's name and the server will verify that the service still has authorization to grant inception to the current service requesting to refresh its identity",
+      "inputs": [
+        {
+          "name": "domain",
+          "type": "CompoundName",
+          "comment": "name of the tenant domain",
+          "pathParam": true
+        },
+        {
+          "name": "service",
+          "type": "SimpleName",
+          "comment": "name of the tenant service",
+          "pathParam": true
+        },
+        {
+          "name": "req",
+          "type": "OSTKInstanceRefreshRequest",
+          "comment": "the refresh request"
+        }
+      ],
+      "auth": {
+        "authenticate": true,
+        "action": "",
+        "resource": ""
+      },
+      "expected": "OK",
+      "exceptions": {
+        "INTERNAL_SERVER_ERROR": {
+          "type": "ResourceError"
+        },
+        "UNAUTHORIZED": {
+          "type": "ResourceError"
+        },
+        "BAD_REQUEST": {
+          "type": "ResourceError"
+        },
+        "NOT_FOUND": {
+          "type": "ResourceError"
+        },
+        "FORBIDDEN": {
+          "type": "ResourceError"
+        }
+      }
+    },
+    {
+      "type": "InstanceRegisterInformation",
+      "method": "POST",
+      "path": "/instance",
+      "inputs": [
+        {
+          "name": "info",
+          "type": "InstanceRegisterInformation"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "location",
+          "type": "String",
+          "header": "Location",
+          "comment": "return location for subsequent patch requests"
+        }
+      ],
+      "expected": "CREATED",
+      "exceptions": {
+        "INTERNAL_SERVER_ERROR": {
+          "type": "ResourceError"
+        },
+        "UNAUTHORIZED": {
+          "type": "ResourceError"
+        },
+        "BAD_REQUEST": {
+          "type": "ResourceError"
+        },
+        "FORBIDDEN": {
+          "type": "ResourceError"
+        }
+      }
+    },
+    {
+      "type": "InstanceRefreshInformation",
+      "method": "POST",
+      "path": "/instance/{provider}/{domain}/{service}/{instanceId}",
+      "comment": "only TLS Certificate authentication is allowed",
+      "inputs": [
+        {
+          "name": "provider",
+          "type": "ServiceName",
+          "comment": "the provider service name (i.e. \"aws.us-west-2\", \"paas.manhattan.corp-gq1\")",
+          "pathParam": true
+        },
+        {
+          "name": "domain",
+          "type": "DomainName",
+          "comment": "the domain of the instance",
+          "pathParam": true
+        },
+        {
+          "name": "service",
+          "type": "SimpleName",
+          "comment": "the service this instance is supposed to run",
+          "pathParam": true
+        },
+        {
+          "name": "instanceId",
+          "type": "PathElement",
+          "comment": "unique instance id within provider's namespace",
+          "pathParam": true
+        },
+        {
+          "name": "info",
+          "type": "InstanceRefreshInformation",
+          "comment": "the refresh request"
+        }
+      ],
+      "auth": {
+        "authenticate": true,
+        "action": "",
+        "resource": ""
+      },
+      "expected": "OK",
+      "exceptions": {
+        "INTERNAL_SERVER_ERROR": {
+          "type": "ResourceError"
+        },
+        "UNAUTHORIZED": {
+          "type": "ResourceError"
+        },
+        "BAD_REQUEST": {
+          "type": "ResourceError"
+        },
+        "NOT_FOUND": {
+          "type": "ResourceError"
+        },
+        "FORBIDDEN": {
+          "type": "ResourceError"
+        }
+      }
+    },
+    {
+      "type": "InstanceIdentity",
+      "method": "DELETE",
+      "path": "/instance/{provider}/{domain}/{service}/{instanceId}",
+      "inputs": [
+        {
+          "name": "provider",
+          "type": "ServiceName",
+          "comment": "the provider service name (i.e. \"aws.us-west-2\", \"paas.manhattan.corp-gq1\")",
+          "pathParam": true
+        },
+        {
+          "name": "domain",
+          "type": "DomainName",
+          "comment": "the domain of the instance",
+          "pathParam": true
+        },
+        {
+          "name": "service",
+          "type": "SimpleName",
+          "comment": "the service this instance is supposed to run",
+          "pathParam": true
+        },
+        {
+          "name": "instanceId",
+          "type": "PathElement",
+          "comment": "unique instance id within provider's namespace",
+          "pathParam": true
+        }
+      ],
+      "auth": {
+        "action": "delete",
+        "resource": "{domain}:instance.{instanceId}"
+      },
+      "expected": "NO_CONTENT",
+      "exceptions": {
+        "INTERNAL_SERVER_ERROR": {
+          "type": "ResourceError"
+        },
+        "UNAUTHORIZED": {
+          "type": "ResourceError"
+        },
+        "BAD_REQUEST": {
+          "type": "ResourceError"
+        },
+        "NOT_FOUND": {
+          "type": "ResourceError"
+        },
+        "FORBIDDEN": {
+          "type": "ResourceError"
+        }
+      }
+    },
+    {
+      "type": "DomainMetrics",
+      "method": "POST",
+      "path": "/metrics/{domainName}",
+      "comment": "called to post multiple zpe related metric attributes",
+      "inputs": [
+        {
+          "name": "domainName",
+          "type": "DomainName",
+          "comment": "name of the domain the metrics pertain to",
+          "pathParam": true
+        },
+        {
+          "name": "req",
+          "type": "DomainMetrics"
+        }
+      ],
+      "expected": "OK",
+      "exceptions": {
+        "UNAUTHORIZED": {
+          "type": "ResourceError"
+        },
+        "BAD_REQUEST": {
+          "type": "ResourceError"
+        },
+        "NOT_FOUND": {
+          "type": "ResourceError"
+        },
+        "FORBIDDEN": {
+          "type": "ResourceError"
+        }
+      }
+    }
+  ]
+}

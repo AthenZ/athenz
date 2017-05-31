@@ -204,16 +204,10 @@ module.exports = function(grunt) {
     grunt.log.ok('Running unit tests with node@' + process.version);
     var done = this.async();
     grunt.util.spawn({
-      cmd: path.join(__dirname, 'node_modules/.bin/jenkins-mocha'),
-      args: ['--require', 'test/config/mock.js', 'test/unit/**/*.js'],
+      cmd: path.join(__dirname, 'node_modules/nyc/bin/nyc.js'),
+      args: ['node_modules/.bin/jenkins-mocha', '--require', 'test/config/mock.js', 'test/unit/**/*.js'],
       opts: { stdio: 'inherit' }
-    }, function(){
-      grunt.util.spawn({
-        cmd: path.join(__dirname, 'node_modules/.bin/istanbul'),
-        args: ['check-coverage'],
-        opts: { stdio: 'inherit' }
-      }, done);
-    });
+    }, done);
   });
 
   grunt.registerTask('csslint', 'Lint css', function(){

@@ -15,13 +15,14 @@
 
 var winston = require('winston');
 var Token = require('./Token');
-var crypto = require('../util/Crypto');
+var Crypto = require('../util/Crypto');
 var config = require('../../config/config')();
-winston.level = config.loglevel;
 
 class PrincipalToken extends Token {
   constructor(token) {
     super();
+
+    winston.level = config.logLevel;
 
     this._name = null;
     this._originalRequestor = null;
@@ -44,6 +45,11 @@ class PrincipalToken extends Token {
         throw e;
       }
     }
+  }
+
+  static setConfig(c) {
+    super.setConfig(c);
+    config = Object.assign({}, config, c.auth_core);
   }
 
   /*eslint complexity: ["error", 24]*/
@@ -190,7 +196,7 @@ class PrincipalToken extends Token {
     this._domain = options.domain;
     this._name = options.name;
     this._host = options.host;
-    this._salt = (options.salt || crypto.randomSalt());
+    this._salt = (options.salt || Crypto.randomSalt());
     this._keyId = (options.keyId || '0');
     this._ip = options.ip;
     this._authorizedServices = (options.authorizedServices) ? options.authorizedServices.split(',') : null;
@@ -223,6 +229,7 @@ class PrincipalToken extends Token {
       parts.push('b=' + this._authorizedServices.join(','));
     }
     this._unsignedToken = parts.join(';');
+    winston.debug('PrincipalToken created: ' + this._unsignedToken);
   }
 
   signForAuthorizedService(authorizedServiceName, authorizedServiceKeyId, privateKey) {
@@ -234,7 +241,7 @@ class PrincipalToken extends Token {
     }
 
     this._authorizedServiceKeyId = authorizedServiceKeyId;
-    var tokenToSign = this._signedToken + ';bk=' + authorizedServiceName;
+    var tokenToSign = this._signedToken + ';bk=' + authorizedServiceKeyId;
 
     if (this._authorizedServices.length > 1) {
       /* if the user has allowed multiple authorized services then we need
@@ -244,7 +251,7 @@ class PrincipalToken extends Token {
       tokenToSign += ';bn=' + authorizedServiceName;
     }
 
-    this._authorizedServiceSignature = crypto.sign(tokenToSign, privateKey, this._digestAlgorithm);
+    this._authorizedServiceSignature = Crypto.sign(tokenToSign, privateKey, this._digestAlgorithm);
 
     /* now append our new signature to the token we just signed */
     tokenToSign += ';bs=' + this._authorizedServiceSignature;
@@ -278,7 +285,7 @@ class PrincipalToken extends Token {
 
     var verified = false; // fail safe
     try {
-      verified = crypto.verify(unsignedAuthorizedServiceToken, publicKey, this._authorizedServiceSignature, this._digestAlgorithm);
+      verified = Crypto.verify(unsignedAuthorizedServiceToken, publicKey, this._authorizedServiceSignature, this._digestAlgorithm);
       if (verified === false) {
         err = new Error('PrincipalToken:validateForAuthorizedService: token=' + this._unsignedToken +
           ' : authentication failed: public key=' + publicKey);

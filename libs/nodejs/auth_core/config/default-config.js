@@ -13,7 +13,7 @@
  */
 'use strict';
 
-var config = {
+const config = {
   development: {
     principalIpCheckMode: 'OPS_WRITE',
     principalTokenAllowedOffset: '300',
@@ -21,7 +21,7 @@ var config = {
     principalHeader: 'Athenz-Principal-Auth',
     tokenMaxExpiry: String(30 * 24 * 60 * 60),
     tokenNoExpiry: true,
-    loglebel: 'debug'
+    logLevel: 'debug'
   },
   production: {
     principalIpCheckMode: 'OPS_WRITE',
@@ -30,13 +30,13 @@ var config = {
     principalHeader: 'Athenz-Principal-Auth',
     tokenMaxExpiry: String(30 * 24 * 60 * 60),
     tokenNoExpiry: false,
-    loglebel: 'info'
+    logLevel: 'info'
   }
 };
 
 // Fetches 'service' specific config sub-section, and fills defaults if not present
 module.exports = function() {
-  var c = config[process.env.SERVICE_NAME || 'development'];
+  let c = config[process.env.SERVICE_NAME || 'development'];
 
   c.principalIpCheckMode = c.principalIpCheckMode || 'OPS_WRITE';
   c.principalTokenAllowedOffset = c.principalTokenAllowedOffset || '300';
@@ -44,7 +44,7 @@ module.exports = function() {
   c.principalHeader = c.principalHeader || 'Athenz-Principal-Auth';
   c.tokenMaxExpiry = c.tokenMaxExpiry || String(30 * 24 * 60 * 60);
   c.tokenNoExpiry = c.tokenNoExpiry || false;
-  c.loglevel = c.loglevel || 'info';
+  c.logLevel = c.logLevel || 'info';
 
   return c;
 };

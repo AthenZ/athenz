@@ -20,10 +20,10 @@
     <relativePath>../../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>athenz-auth-core-nodejs</artifactId>
+  <artifactId>athenz-zts-nodejs-client</artifactId>
   <packaging>jar</packaging>
-  <name>athenz-auth-core-nodejs</name>
-  <description>Core Auth Interfaces</description>
+  <name>athenz-zts-nodejs-client</name>
+  <description>ZTS Node.js Client Library</description>
 
   <properties>
     <maven.install.skip>true</maven.install.skip>

@@ -13,7 +13,7 @@
  */
 'use strict';
 
-var config = {
+const config = {
   development: {
     timeZone: 'America/Los_Angeles',
     language: 'en-US',
@@ -29,7 +29,7 @@ var config = {
       return '/imgs/welcome_to_athenz.gif';
     },
     userLink: function (user) {
-      var domain = process.env.UI_SERVER || 'localhost';
+      const domain = process.env.UI_SERVER || 'localhost';
       return 'https://' + domain + ':9443/athenz/domain/create/userdomain';
     },
     headerLinks: [
@@ -64,7 +64,7 @@ var config = {
       return '/imgs/welcome_to_athenz.gif';
     },
     userLink: function (user) {
-      var domain = process.env.UI_SERVER || 'localhost';
+      const domain = process.env.UI_SERVER || 'localhost';
       return 'https://' + domain + ':9443/athenz/domain/create/userdomain';
     },
     headerLinks: [
@@ -88,7 +88,7 @@ var config = {
 
 // Fetches 'service' specific config sub-section, and fills defaults if not present
 module.exports = function() {
-  var c = config[process.env.SERVICE_NAME || 'development'];
+  let c = config[process.env.SERVICE_NAME || 'development'];
 
   c.zmshost = c.zmshost || 'localhost';
   c.zms = process.env.ZMS_SERVER_URL || 'https://' + c.zmshost + ':4443/zms/v1/',
@@ -103,7 +103,7 @@ module.exports = function() {
     return '/imgs/welcome_to_athenz.gif';
   };
   c.userLink = c.userLink || function(user) {
-    var domain = process.env.UI_SERVER || 'localhost';
+    const domain = process.env.UI_SERVER || 'localhost';
     return 'https://' + domain + '/athenz/domain/create/userdomain';
   };
   c.cookieName = c.cookieName || 'Athenz-Principal-Auth';
