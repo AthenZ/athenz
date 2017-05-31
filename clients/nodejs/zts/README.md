@@ -1,7 +1,8 @@
-auth-core
-=========
+zts-nodejs-client
+===============
 
-Core interfaces for authorization
+A Node.js client library to access ZTS. This client library is generated
+from the RDL(zts.json).
 
 --- Customizing configuration settings ---
 
@@ -17,13 +18,13 @@ Configuration object:
 ```javascript
 module.exports = function() {
   return {
-    principalIpCheckMode: 'OPS_WRITE',
-    principalTokenAllowedOffset: '300',
-    principalUserDomain: 'user',
-    principalHeader: 'Athenz-Principal-Auth',
-    tokenMaxExpiry: String(30 * 24 * 60 * 60),
-    tokenNoExpiry: true,
-    loglebel: 'debug'
+    ztshost: process.env.ZTS_SERVER || 'localhost',
+    zts: 'https://localhost:4443/zts/v1/',
+    strictSSL: false,
+    logLevel: 'debug',
+    tokenMinExpiryTime: 900,
+    tokenRefresh: 1800,
+    disableCache: false
   };
 };
 ```

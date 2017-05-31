@@ -21,9 +21,9 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <artifactId>ui</artifactId>
+  <artifactId>athenz-ui</artifactId>
   <packaging>jar</packaging>
-  <name>ui</name>
+  <name>athenz-ui</name>
   <description>Athenz UI</description>
 
   <properties>
