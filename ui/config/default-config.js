@@ -13,7 +13,7 @@
  */
 'use strict';
 
-var config = {
+const config = {
   development: {
     timeZone: 'America/Los_Angeles',
     language: 'en-US',

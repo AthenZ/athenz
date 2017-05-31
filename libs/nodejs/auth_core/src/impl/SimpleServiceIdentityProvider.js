@@ -40,6 +40,12 @@ class SimpleServiceIdentityProvider {
     this.setHost(this._getServerHostName());
   }
 
+  static setConfig(c) {
+    PrincipalAuthority.setConfig(c);
+    PrincipalToken.setConfig(c);
+    SimplePrincipal.setConfig(c);
+  }
+
   getIdentity(domainName, serviceName) {
     // all the role members in Athenz are normalized to lower case so we need to make
     // sure our principal's name and domain are created with lower case as well
