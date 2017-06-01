@@ -13,7 +13,7 @@ ifdef NPM
 all:
 	@echo "Building auth_core"
 	npm install
-	$(CURDIR)/node_modules/grunt-cli/bin/grunt --force
+	$(CURDIR)/node_modules/grunt-cli/bin/grunt
 
 else
 
