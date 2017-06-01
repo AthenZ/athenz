@@ -289,7 +289,7 @@ public class ZMSImplTest extends TestCase {
     private Membership generateMembership(String roleName, String memberName) {
         return generateMembership(roleName, memberName, null);
     }
-      
+    
     private Membership generateMembership(String roleName, String memberName,
             Timestamp expiration) {
         Membership mbr = new Membership();
@@ -343,13 +343,13 @@ public class ZMSImplTest extends TestCase {
     }
 
     private DomainMeta createDomainMetaObject(String description, String org,
-            Boolean futureEnabled, Boolean auditEnabled, String account, Integer productId) {
+            Boolean enabled, Boolean auditEnabled, String account, Integer productId) {
 
         DomainMeta meta = new DomainMeta();
         meta.setDescription(description);
         meta.setOrg(org);
-        if (futureEnabled != null) {
-            meta.setEnabled(futureEnabled);
+        if (enabled != null) {
+            meta.setEnabled(enabled);
         }
         if (auditEnabled != null) {
             meta.setAuditEnabled(auditEnabled);
@@ -1626,7 +1626,7 @@ public class ZMSImplTest extends TestCase {
         assertFalse(resDom1.getAuditEnabled());
 
         DomainMeta meta = createDomainMetaObject("Test2 Domain", "NewOrg",
-                false, true, "12345", 1001);
+                true, true, "12345", 1001);
         zms.putDomainMeta(mockDomRsrcCtx, "MetaDom1", auditRef, meta);
 
         Domain resDom3 = zms.getDomain(mockDomRsrcCtx, "MetaDom1");
@@ -1690,7 +1690,7 @@ public class ZMSImplTest extends TestCase {
         Integer productId = resDom.getYpmId();
 
         DomainMeta meta = createDomainMetaObject("Test2 Domain", "NewOrg",
-                false, true, "12345", null);
+                true, true, "12345", null);
         try {
             zmsImpl.putDomainMeta(mockDomRsrcCtx, "MetaDomProductid", auditRef, meta);
             fail("bad request exc not thrown");
@@ -1709,7 +1709,7 @@ public class ZMSImplTest extends TestCase {
         assertFalse(productId.intValue() == productId2.intValue());
 
         meta = createDomainMetaObject("Test3 Domain", "NewOrg",
-                false, true, "12345", productId2);
+                true, true, "12345", productId2);
         try {
             zmsImpl.putDomainMeta(mockDomRsrcCtx, "MetaDomProductid", auditRef, meta);
             fail("bad request exc not thrown");
@@ -1767,7 +1767,7 @@ public class ZMSImplTest extends TestCase {
         assertEquals(resDom.getOrg(), "testOrg");
         assertTrue(resDom.getAuditEnabled());
 
-        DomainMeta meta = createDomainMetaObject("Test2 Domain", "NewOrg", false, true, null, 0);
+        DomainMeta meta = createDomainMetaObject("Test2 Domain", "NewOrg", true, true, null, 0);
         try {
             zms.putDomainMeta(mockDomRsrcCtx, domain, null, meta);
             fail();
@@ -1795,12 +1795,12 @@ public class ZMSImplTest extends TestCase {
 
         // put meta data with null productId
         DomainMeta meta = createDomainMetaObject("Test sub Domain", "NewOrg",
-                false, true, "12345", null);
+                true, true, "12345", null);
         zms.putDomainMeta(mockDomRsrcCtx, "MetaDomProductid.metaSubDom", auditRef, meta);
 
         // put meta data with a productId
         meta = createDomainMetaObject("Test sub Domain", "NewOrg",
-                false, true, "12345", getRandomProductId());
+                true, true, "12345", getRandomProductId());
         zms.putDomainMeta(mockDomRsrcCtx, "MetaDomProductid.metaSubDom", auditRef, meta);
 
         zms.deleteSubDomain(mockDomRsrcCtx, "MetaDomProductid", "metaSubDom", auditRef);
@@ -6037,6 +6037,131 @@ public class ZMSImplTest extends TestCase {
     }
 
     @Test
+    public void testGetAccessDisabledDomain() {
+
+        final String userName = "joe";
+        UserDomain userDom = createUserDomainObject(userName, "Test Domain1", "testOrg");
+        zms.postUserDomain(mockDomRsrcCtx, userName, auditRef, userDom);
+
+        final String domainName = "user." + userName;
+        Role role1 = createRoleObject(domainName, "Role1", null, "user.user1",
+                "user.user3");
+        zms.putRole(mockDomRsrcCtx, domainName, "Role1", auditRef, role1);
+
+        Role role2 = createRoleObject(domainName, "Role2", null, "user.user2",
+                "user.user3");
+        zms.putRole(mockDomRsrcCtx, domainName, "Role2", auditRef, role2);
+
+        Policy policy1 = createPolicyObject(domainName, "Policy1", "Role1",
+                "UPDATE", domainName + ":resource1", AssertionEffect.ALLOW);
+        zms.putPolicy(mockDomRsrcCtx, domainName, "Policy1", auditRef, policy1);
+
+        Policy policy2 = createPolicyObject(domainName, "Policy2", "Role2",
+                "CREATE", domainName + ":resource2", AssertionEffect.ALLOW);
+        zms.putPolicy(mockDomRsrcCtx, domainName, "Policy2", auditRef, policy2);
+
+        // user1 and user3 have access to UPDATE/resource1
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        Principal principal1 = principalAuthority.authenticate("v=U1;d=user;n=user1;s=signature",
+                "10.11.12.13", "GET", null);
+        ResourceContext rsrcCtx1 = createResourceContext(principal1);
+        Principal principal2 = principalAuthority.authenticate("v=U1;d=user;n=user2;s=signature",
+                "10.11.12.13", "GET", null);
+        ResourceContext rsrcCtx2 = createResourceContext(principal2);
+        Principal principal3 = principalAuthority.authenticate("v=U1;d=user;n=user3;s=signature",
+                "10.11.12.13", "GET", null);
+        ResourceContext rsrcCtx3 = createResourceContext(principal3);
+
+        // user1 and user3 have access update on resource1
+
+        Access access = zms.getAccess(rsrcCtx1, "UPDATE", domainName + ":resource1",
+                null, null);
+        assertTrue(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx2, "UPDATE", domainName + ":resource1",
+                null, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx3, "UPDATE", domainName + ":resource1",
+                null, null);
+        assertTrue(access.getGranted());
+
+        // user2 and user3 have access to create on resource 2
+
+        access = zms.getAccess(rsrcCtx1, "CREATE", domainName + ":resource2",
+                null, null);
+        assertFalse(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx2, "CREATE", domainName + ":resource2",
+                null, null);
+        assertTrue(access.getGranted());
+
+        access = zms.getAccess(rsrcCtx3, "CREATE", domainName + ":resource2",
+                null, null);
+        assertTrue(access.getGranted());
+
+        // Now we're going to disable our domain. Then all get access calls
+        // must return 403 forbidden - domain disabled error
+        
+        UserMeta meta = new UserMeta().setEnabled(false);
+        zms.putUserMeta(mockDomRsrcCtx, userName, meta);
+        
+        try {
+            zms.getAccess(rsrcCtx1, "UPDATE", domainName + ":resource1",
+                null, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.FORBIDDEN, ex.getCode());
+        }
+        assertTrue(access.getGranted());
+
+        try {
+            zms.getAccess(rsrcCtx2, "UPDATE", domainName + ":resource1",
+                null, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.FORBIDDEN, ex.getCode());
+        }
+
+        try {
+            zms.getAccess(rsrcCtx3, "UPDATE", domainName + ":resource1",
+                null, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.FORBIDDEN, ex.getCode());
+        }
+
+        // user2 and user3 used to have access to create on resource 2
+
+        try {
+            zms.getAccess(rsrcCtx1, "CREATE", domainName + ":resource2",
+                null, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.FORBIDDEN, ex.getCode());
+        }
+
+        try {
+            zms.getAccess(rsrcCtx2, "CREATE", domainName + ":resource2",
+                null, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.FORBIDDEN, ex.getCode());
+        }
+
+        try {
+            zms.getAccess(rsrcCtx3, "CREATE", domainName + ":resource2",
+                null, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.FORBIDDEN, ex.getCode());
+        }
+        
+        zms.deleteUserDomain(mockDomRsrcCtx, userName, auditRef);
+    }
+
+    @Test
     public void testGetAccessWildcard() {
 
         final String domainName = "WildcardAccessDomain1";
@@ -7562,7 +7687,7 @@ public class ZMSImplTest extends TestCase {
 
         // modify the tenant domain to require auditing
         //
-        DomainMeta meta = createDomainMetaObject("Tenant Domain", null, false, true, null, 0);
+        DomainMeta meta = createDomainMetaObject("Tenant Domain", null, true, true, null, 0);
         zms.putDomainMeta(mockDomRsrcCtx, tenantDomain, auditRef, meta);
 
         Tenancy tenant = createTenantObject(tenantDomain, providerDomain + "." + providerService);
@@ -7619,7 +7744,7 @@ public class ZMSImplTest extends TestCase {
         // modify the tenant domain to require auditing
         //
         DomainMeta meta =
-            createDomainMetaObject("Tenant Domain", null, false, true, null, 0);
+            createDomainMetaObject("Tenant Domain", null, true, true, null, 0);
         zms.putDomainMeta(mockDomRsrcCtx, tenantDomain, auditRef, meta);
 
         String testRoleName = providerDomain + ".testrole";
@@ -7846,7 +7971,7 @@ public class ZMSImplTest extends TestCase {
         // modify the tenant domain to require auditing
         //
         DomainMeta meta =
-            createDomainMetaObject("Tenant Domain", null, false, true, null, 0);
+            createDomainMetaObject("Tenant Domain", null, true, true, null, 0);
         zms.putDomainMeta(mockDomRsrcCtx, tenantDomain, auditRef, meta);
 
         // setup tenancy
@@ -7891,7 +8016,7 @@ public class ZMSImplTest extends TestCase {
         // modify the tenant domain to require auditing
         //
         DomainMeta meta =
-            createDomainMetaObject("Tenant Domain", null, false, true, null, 0);
+            createDomainMetaObject("Tenant Domain", null, true, true, null, 0);
         zmsImpl.putDomainMeta(mockDomRsrcCtx, tenantDomain, auditRef, meta);
 
         // setup tenancy
@@ -7935,7 +8060,7 @@ public class ZMSImplTest extends TestCase {
         // modify the tenant domain to require auditing
         //
         DomainMeta meta =
-            createDomainMetaObject("Tenant Domain", null, false, true, null, 0);
+            createDomainMetaObject("Tenant Domain", null, true, true, null, 0);
         zms.putDomainMeta(mockDomRsrcCtx, tenantDomain, auditRef, meta);
 
         // setup tenancy

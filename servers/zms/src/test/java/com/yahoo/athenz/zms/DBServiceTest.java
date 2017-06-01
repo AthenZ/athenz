@@ -29,6 +29,7 @@ import com.yahoo.athenz.provider.ProviderMockClient;
 import com.yahoo.athenz.zms.DBService.DataCache;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.athenz.zms.store.ObjectStore;
+import com.yahoo.athenz.zms.store.ObjectStoreConnection;
 import com.yahoo.athenz.zms.store.file.FileConnection;
 import com.yahoo.athenz.zms.store.file.FileObjectStore;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
@@ -1164,6 +1165,107 @@ public class DBServiceTest extends TestCase {
     }
     
     @Test
+    public void testExecutePutUserMeta() {
+
+        final String userName = "john";
+        final String domainName = "user." + userName;
+        UserDomain userDom = new UserDomain().setName(userName);
+        zms.postUserDomain(mockDomRsrcCtx, userName, auditRef, userDom);
+        
+        Domain resDom1 = zms.getDomain(mockDomRsrcCtx, domainName);
+        assertNotNull(resDom1);
+        assertTrue(resDom1.getEnabled());
+        
+        UserMeta meta = new UserMeta().setEnabled(false);
+        zms.dbService.executePutUserMeta(mockDomRsrcCtx, domainName, meta, "putUserMeta");
+        
+        Domain resDom2 = zms.getDomain(mockDomRsrcCtx, domainName);
+        assertNotNull(resDom2);
+        assertFalse(resDom2.getEnabled());
+
+        zms.dbService.executeDeleteDomain(mockDomRsrcCtx, domainName, auditRef, "putUserMeta");
+    }
+    
+    @Test
+    public void testExecutePutUserMetaSubdomains() {
+
+        // we're going to make sure we don't match joey when
+        // processing subdomains for joe
+        
+        final String testUserName = "joey";
+        final String testDomainName = "user." + testUserName;
+        UserDomain testUserDom = new UserDomain().setName(testUserName);
+        zms.postUserDomain(mockDomRsrcCtx, testUserName, auditRef, testUserDom);
+        
+        final String userName = "joe";
+        final String domainName = "user." + userName;
+        UserDomain userDom = new UserDomain().setName(userName);
+        zms.postUserDomain(mockDomRsrcCtx, userName, auditRef, userDom);
+        
+        final String subDomainName1 = "user." + userName + ".dom1";
+        SubDomain subDom1 = createSubDomainObject("dom1", "user.joe",
+                "Test Domain1", "testOrg", adminUser);
+        zms.postSubDomain(mockDomRsrcCtx, "user.joe", auditRef, subDom1);
+        
+        final String subDomainName2 = "user." + userName + ".dom2";
+        SubDomain subDom2 = createSubDomainObject("dom2", "user.joe",
+                "Test Domain2", "testOrg", adminUser);
+        zms.postSubDomain(mockDomRsrcCtx, "user.joe", auditRef, subDom2);
+        
+        Domain resDom = zms.getDomain(mockDomRsrcCtx, domainName);
+        assertNotNull(resDom);
+        assertTrue(resDom.getEnabled());
+        
+        Domain resSubDom1 = zms.getDomain(mockDomRsrcCtx, subDomainName1);
+        assertNotNull(resSubDom1);
+        assertTrue(resSubDom1.getEnabled());
+        
+        Domain resSubDom2 = zms.getDomain(mockDomRsrcCtx, subDomainName2);
+        assertNotNull(resSubDom2);
+        assertTrue(resSubDom2.getEnabled());
+        
+        Domain resTestDom = zms.getDomain(mockDomRsrcCtx, testDomainName);
+        assertNotNull(resTestDom);
+        assertTrue(resTestDom.getEnabled());
+        
+        UserMeta meta = new UserMeta().setEnabled(false);
+        zms.dbService.executePutUserMeta(mockDomRsrcCtx, domainName, meta, "putUserMeta");
+        
+        resDom = zms.getDomain(mockDomRsrcCtx, domainName);
+        assertNotNull(resDom);
+        assertFalse(resDom.getEnabled());
+        
+        resSubDom1 = zms.getDomain(mockDomRsrcCtx, subDomainName1);
+        assertNotNull(resSubDom1);
+        assertFalse(resSubDom1.getEnabled());
+        
+        resSubDom2 = zms.getDomain(mockDomRsrcCtx, subDomainName2);
+        assertNotNull(resSubDom2);
+        assertFalse(resSubDom2.getEnabled());
+        
+        resTestDom = zms.getDomain(mockDomRsrcCtx, testDomainName);
+        assertNotNull(resTestDom);
+        assertTrue(resTestDom.getEnabled());
+
+        zms.dbService.executeDeleteDomain(mockDomRsrcCtx, subDomainName1, auditRef, "putUserMetaSubDomains");
+        zms.dbService.executeDeleteDomain(mockDomRsrcCtx, subDomainName2, auditRef, "putUserMetaSubDomains");
+        zms.dbService.executeDeleteDomain(mockDomRsrcCtx, domainName, auditRef, "putUserMetaSubDomains");
+        zms.dbService.executeDeleteDomain(mockDomRsrcCtx, testDomainName, auditRef, "putUserMetaSubDomains");
+    }
+    
+    @Test
+    public void testExecutePutUserMetaUnknownDomain() {
+        
+        UserMeta meta = new UserMeta().setEnabled(false);
+        try {
+            zms.dbService.executePutUserMeta(mockDomRsrcCtx, "user.unknown-domain-meta", meta, "putUserMeta");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+        }
+    }
+    
+    @Test
     public void testExecutePutMembership() {
 
         String domainName = "mgradddom1";
@@ -1321,6 +1423,45 @@ public class DBServiceTest extends TestCase {
         assertNotNull(entry);
         assertEquals(entry.getId(), "zone1");
         assertEquals(entry.getKey(), pubKeyK2);
+        
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+    
+    @Test
+    public void testExecutePutPublicKeyEntryDisabledDomain() {
+        
+        String domainName = "servicepubpubkeydom1disableddomain";
+        String serviceName = "service1";
+        
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        ServiceIdentity service = createServiceObject(domainName,
+                serviceName, "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+
+        zms.putServiceIdentity(mockDomRsrcCtx, domainName, serviceName, auditRef, service);
+        
+        PublicKeyEntry entry = zms.dbService.getServicePublicKeyEntry(domainName, serviceName, "1", true);
+        assertNotNull(entry);
+        assertEquals(entry.getId(), "1");
+
+        // now let's disable the domain
+        
+        UserMeta meta = new UserMeta().setEnabled(false);
+        Domain domain = zms.dbService.getDomain(domainName);
+        ObjectStoreConnection con = zms.dbService.store.getConnection(false);
+        zms.dbService.updateUserDomainMeta(con, domain, meta);
+        
+        // this time the lookup should return nothing
+        
+        try {
+            zms.dbService.getServicePublicKeyEntry(domainName, serviceName, "1", true);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+        }
         
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }

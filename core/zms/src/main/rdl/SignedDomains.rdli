@@ -38,8 +38,9 @@ type SignedPolicies Struct {
 //A domain object that includes its roles, policies and services.
 type DomainData Struct {
     DomainName name; //name of the domain
-    String account (optional); // associated cloud (i.e. aws) account id
-    Int32 ypmId (optional); // associated product id
+    String account (optional); //associated cloud (i.e. aws) account id
+    Int32 ypmId (optional); //associated product id
+    Bool enabled (optional); //domain enabled state
     Array<Role> roles; //list of roles in the domain
     SignedPolicies policies; //list of policies in the domain signed with ZMS private key
     Array<ServiceIdentity> services; //list of services in the domain

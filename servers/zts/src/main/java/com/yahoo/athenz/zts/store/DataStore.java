@@ -339,7 +339,17 @@ public class DataStore implements DataCacheProvider {
         String domainName = domainData.getName();
         
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Processing domain: " + domainName);
+            LOGGER.debug("Processing domain: {}", domainName);
+        }
+        
+        /* if the domain is disabled we're going to skip
+         * processing this domain and just assume success */
+        
+        if (domainData.getEnabled() == Boolean.FALSE) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Skipping disabled domain domain: {}", domainName);
+            }
+            return true;
         }
         
         /* before doing anything else let's validate our domain */

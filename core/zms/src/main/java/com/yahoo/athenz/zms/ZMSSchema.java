@@ -322,6 +322,7 @@ public class ZMSSchema {
             .field("name", "DomainName", false, "name of the domain")
             .field("account", "String", true, "associated cloud (i.e. aws) account id")
             .field("ypmId", "Int32", true, "associated product id")
+            .field("enabled", "Bool", true, "domain enabled state")
             .arrayField("roles", "Role", false, "list of roles in the domain")
             .field("policies", "SignedPolicies", false, "list of policies in the domain signed with ZMS private key")
             .arrayField("services", "ServiceIdentity", false, "list of services in the domain")
@@ -354,6 +355,10 @@ public class ZMSSchema {
 
         sb.structType("UserList")
             .arrayField("names", "SimpleName", false, "list of user names");
+
+        sb.structType("UserMeta")
+            .comment("Set of metadata attributes that system administrators may set on user domains")
+            .field("enabled", "Bool", true, "", true);
 
 
         sb.resource("Domain", "GET", "/domain/{domain}")
@@ -1427,12 +1432,31 @@ public class ZMSSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
+        sb.resource("UserMeta", "PUT", "/user/{name}/meta")
+            .comment("Update the specified user domain(s) metadata. Note that entities in the domain are not affected. This API is only available to system administrators in order to disable user accounts when the user is no longer active, for example, before eventual deletion of the account after some grace period")
+            .pathParam("name", "SimpleName", "name of the user")
+            .input("detail", "UserMeta", "UserMeta object with updated attribute values")
+            .auth("update", "sys.auth:user")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
         sb.resource("User", "DELETE", "/user/{name}")
-            .comment("Delete the specified user. This command will delete the user.<name> domain and all of its subdomains (if they exist) and remove the user.<name> from all the roles in the system that it's member of. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+            .comment("Delete the specified user. This command will delete the user.<name> domain and all of its sub-domains (if they exist) and remove the user.<name> from all the roles in the system that it's member of. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
             .pathParam("name", "SimpleName", "name of the user")
             .auth("delete", "sys.auth:user")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
 
             .exception("FORBIDDEN", "ResourceError", "")
 

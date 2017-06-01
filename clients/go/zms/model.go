@@ -3515,6 +3515,11 @@ type DomainData struct {
 	YpmId *int32 `json:"ypmId,omitempty" rdl:"optional"`
 
 	//
+	// domain enabled state
+	//
+	Enabled *bool `json:"enabled,omitempty" rdl:"optional"`
+
+	//
 	// list of roles in the domain
 	//
 	Roles []*Role `json:"roles"`
@@ -4008,5 +4013,60 @@ func (self *UserList) Validate() error {
 	if self.Names == nil {
 		return fmt.Errorf("UserList: Missing required field: names")
 	}
+	return nil
+}
+
+//
+// UserMeta - Set of metadata attributes that system administrators may set on
+// user domains
+//
+type UserMeta struct {
+	Enabled *bool `json:"enabled,omitempty" rdl:"optional"`
+}
+
+//
+// NewUserMeta - creates an initialized UserMeta instance, returns a pointer to it
+//
+func NewUserMeta(init ...*UserMeta) *UserMeta {
+	var o *UserMeta
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(UserMeta)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *UserMeta) Init() *UserMeta {
+	if self.Enabled == nil {
+		d := true
+		self.Enabled = &d
+	}
+	return self
+}
+
+type rawUserMeta UserMeta
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a UserMeta
+//
+func (self *UserMeta) UnmarshalJSON(b []byte) error {
+	var r rawUserMeta
+	err := json.Unmarshal(b, &r)
+	if err == nil {
+		o := UserMeta(r)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *UserMeta) Validate() error {
 	return nil
 }
