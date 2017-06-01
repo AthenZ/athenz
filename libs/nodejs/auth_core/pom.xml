@@ -20,9 +20,9 @@
     <relativePath>../../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>auth_core</artifactId>
+  <artifactId>auth_core_nodejs</artifactId>
   <packaging>jar</packaging>
-  <name>auth_core</name>
+  <name>auth_core_nodejs</name>
   <description>Core Auth Interfaces</description>
 
   <properties>
