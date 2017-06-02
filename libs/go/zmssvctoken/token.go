@@ -213,7 +213,8 @@ type TokenBuilder interface {
 	// SetIPAddress sets the I/P address for the token (default=host I/P address)
 	SetIPAddress(ip string)
 	// Token returns a Token instance with the fields correctly set for
-	// the current token
+	// the current token. Multiple calls to Token will return the same implementation.
+	// If you change optional attributes between calls to Token, these will have no effect.
 	Token() Token
 }
 
@@ -222,6 +223,8 @@ type tokenBuilder struct {
 	signer     signer
 	ntok       *NToken
 	expiration time.Duration
+	l          sync.Mutex
+	tok        *token
 }
 
 // NewTokenBuilder returns a TokenBuilder implementation for the specified
@@ -270,11 +273,16 @@ func (t *tokenBuilder) SetIPAddress(v string) {
 }
 
 func (t *tokenBuilder) Token() Token {
-	return &token{
-		signer:     t.signer,
-		ntok:       t.ntok,
-		expiration: t.expiration,
+	t.l.Lock()
+	defer t.l.Unlock()
+	if t.tok == nil {
+		t.tok = &token{
+			signer:     t.signer,
+			ntok:       t.ntok,
+			expiration: t.expiration,
+		}
 	}
+	return t.tok
 }
 
 type token struct {

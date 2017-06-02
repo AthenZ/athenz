@@ -209,3 +209,17 @@ func TestBadVerifier(t *testing.T) {
 	require.NotNil(t, err)
 	require.Equal(t, "Unable to create verifier: Unable to load public key", err.Error())
 }
+
+func TestMultipleTokenCallsOnBuilder(t *testing.T) {
+	a := assert.New(t)
+	tb, err := NewTokenBuilder("domain", "service", rsaPrivateKeyPEM, "v1")
+	require.Nil(t, err)
+	tok1 := tb.Token()
+	tok2 := tb.Token()
+	s1, err := tok1.Value()
+	a.Nil(err)
+	a.NotEmpty(s1)
+	s2, err := tok2.Value()
+	a.Nil(err)
+	a.NotEmpty(s2)
+}
