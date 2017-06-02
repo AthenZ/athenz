@@ -1827,6 +1827,36 @@ public class ZMSResources {
         }
     }
 
+    @PUT
+    @Path("/user/{name}/meta")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public UserMeta putUserMeta(@PathParam("name") String name, UserMeta detail) {
+        try {
+            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context.authorize("update", "sys.auth:user", null);
+            UserMeta e = this.delegate.putUserMeta(context, name, detail);
+            return null;
+        } catch (ResourceException e) {
+            int code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource putUserMeta");
+                throw typedException(code, e, ResourceError.class);
+            }
+        }
+    }
+
     @DELETE
     @Path("/user/{name}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -1840,6 +1870,8 @@ public class ZMSResources {
             int code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);

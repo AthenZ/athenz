@@ -18,6 +18,9 @@ public class DomainData {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer ypmId;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Boolean enabled;
     public List<Role> roles;
     public SignedPolicies policies;
     public List<ServiceIdentity> services;
@@ -44,6 +47,13 @@ public class DomainData {
     }
     public Integer getYpmId() {
         return ypmId;
+    }
+    public DomainData setEnabled(Boolean enabled) {
+        this.enabled = enabled;
+        return this;
+    }
+    public Boolean getEnabled() {
+        return enabled;
     }
     public DomainData setRoles(List<Role> roles) {
         this.roles = roles;
@@ -95,6 +105,9 @@ public class DomainData {
                 return false;
             }
             if (ypmId == null ? a.ypmId != null : !ypmId.equals(a.ypmId)) {
+                return false;
+            }
+            if (enabled == null ? a.enabled != null : !enabled.equals(a.enabled)) {
                 return false;
             }
             if (roles == null ? a.roles != null : !roles.equals(a.roles)) {

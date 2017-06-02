@@ -1010,10 +1010,15 @@ public class FileConnection implements ObjectStoreConnection {
     }
     
     @Override
-    public PublicKeyEntry getPublicKeyEntry(String domainName, String serviceName, String keyId) {
+    public PublicKeyEntry getPublicKeyEntry(String domainName, String serviceName,
+            String keyId, boolean domainStateCheck) {
+        
         DomainStruct domainStruct = getDomainStruct(domainName);
         if (domainStruct == null) {
             throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "getPublicKeyEntry");
+        }
+        if (domainStateCheck && domainStruct.getMeta().getEnabled() == Boolean.FALSE) {
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain disabled", "getPublicKeyEntry");
         }
         ServiceIdentity service = getServiceObject(domainStruct, serviceName);
         if (service == null) {

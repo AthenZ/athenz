@@ -2778,7 +2778,7 @@ public class JDBCConnectionTest extends TestCase {
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_KEY_VALUE))
             .thenReturn("Value1");
     
-        PublicKeyEntry publicKey = jdbcConn.getPublicKeyEntry("my-domain", "service1", "zone1");
+        PublicKeyEntry publicKey = jdbcConn.getPublicKeyEntry("my-domain", "service1", "zone1", false);
         assertNotNull(publicKey);
         assertEquals("Value1", publicKey.getKey());
         assertEquals("zone1", publicKey.getId());
@@ -2794,7 +2794,7 @@ public class JDBCConnectionTest extends TestCase {
             .thenReturn(false); // this one is for domain id
 
         try {
-            jdbcConn.getPublicKeyEntry("my-domain", "service1", "zone1");
+            jdbcConn.getPublicKeyEntry("my-domain", "service1", "zone1", false);
             fail();
         } catch (Exception ex) {
             assertTrue(true);
@@ -2814,7 +2814,7 @@ public class JDBCConnectionTest extends TestCase {
             .thenReturn(false); // this one is for service id
 
         try {
-            jdbcConn.getPublicKeyEntry("my-domain", "service1", "zone1");
+            jdbcConn.getPublicKeyEntry("my-domain", "service1", "zone1", false);
             fail();
         } catch (Exception ex) {
             assertTrue(true);
@@ -2835,7 +2835,7 @@ public class JDBCConnectionTest extends TestCase {
             .thenReturn(true) // this one is for service id
             .thenReturn(false); // for key
 
-        PublicKeyEntry publicKey = jdbcConn.getPublicKeyEntry("my-domain", "service1", "zone1");
+        PublicKeyEntry publicKey = jdbcConn.getPublicKeyEntry("my-domain", "service1", "zone1", false);
         assertNull(publicKey);
         jdbcConn.close();
     }
@@ -2859,7 +2859,7 @@ public class JDBCConnectionTest extends TestCase {
             .thenThrow(new SQLException("failed operation", "state", 1001));
         
         try {
-            jdbcConn.getPublicKeyEntry("my-domain", "service1", "zone1");
+            jdbcConn.getPublicKeyEntry("my-domain", "service1", "zone1", false);
             fail();
         } catch (Exception ex) {
             assertTrue(true);

@@ -403,7 +403,8 @@ public class ZMSCoreTest {
 
         // DomainData test
         DomainData dd = new DomainData().setName("test.domain").setAccount("user.test").setYpmId(1).setRoles(rl)
-                .setPolicies(sp).setServices(sil).setEntities(el).setModified(Timestamp.fromMillis(123456789123L));
+                .setPolicies(sp).setServices(sil).setEntities(el).setModified(Timestamp.fromMillis(123456789123L))
+                .setEnabled(true);
         result = validator.validate(dd, "DomainData");
         assertTrue(result.valid);
 
@@ -415,25 +416,41 @@ public class ZMSCoreTest {
         assertEquals(dd.getServices(), sil);
         assertEquals(dd.getEntities(), el);
         assertEquals(dd.getModified(), Timestamp.fromMillis(123456789123L));
-
+        assertTrue(dd.getEnabled());
+        
         DomainData dd2 = new DomainData().setName("test.domain").setAccount("user.test").setYpmId(1).setRoles(rl)
-                .setPolicies(sp).setServices(sil).setEntities(el);
-        assertTrue(dd.equals(dd));
+                .setPolicies(sp).setServices(sil).setEntities(el).setModified(Timestamp.fromMillis(123456789123L))
+                .setEnabled(true);
+        assertTrue(dd.equals(dd2));
         
         dd2.setModified(null);
         assertFalse(dd2.equals(dd));
+        
+        dd2.setModified(Timestamp.fromMillis(123456789123L));
         dd2.setEntities(null);
         assertFalse(dd2.equals(dd));
+        
+        dd2.setEntities(el);
         dd2.setServices(null);
         assertFalse(dd2.equals(dd));
+        
+        dd2.setServices(sil);
         dd2.setPolicies(null);
         assertFalse(dd2.equals(dd));
+        
+        dd2.setPolicies(sp);
         dd2.setRoles(null);
         assertFalse(dd2.equals(dd));
+        
+        dd2.setRoles(rl);
         dd2.setYpmId(null);
         assertFalse(dd2.equals(dd));
+        
+        dd2.setYpmId(1);
         dd2.setAccount(null);
         assertFalse(dd2.equals(dd));
+        
+        dd2.setAccount("user.test");
         dd2.setName(null);
         assertFalse(dd2.equals(dd));
         assertFalse(dd.equals(new String()));
@@ -1502,5 +1519,25 @@ public class ZMSCoreTest {
         assertTrue(userList1.equals(userList3));
         assertFalse(userList1.equals(userList2));
         assertFalse(userList1.equals(null));
+    }
+    
+    @Test
+    public void testUserMetaMethod() {
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+
+        UserMeta um1 = new UserMeta().init();
+        um1.setEnabled(true);
+
+        Result result = validator.validate(um1, "UserMeta");
+        assertTrue(result.valid);
+        assertTrue(um1.getEnabled());
+
+        UserMeta um2 = new UserMeta().setEnabled(true);
+        assertTrue(um1.equals(um2));
+        
+        UserMeta um3 = new UserMeta().setEnabled(false);
+        assertFalse(um3.getEnabled());
+        assertFalse(um1.equals(um3));
     }
 }

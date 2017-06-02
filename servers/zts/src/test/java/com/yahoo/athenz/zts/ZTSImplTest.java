@@ -518,6 +518,12 @@ public class ZTSImplTest {
     }
     
     private SignedDomain createSignedDomainExpiration(String domainName, String serviceName) {
+        return createSignedDomainExpiration(domainName, serviceName, null);
+    }
+        
+    private SignedDomain createSignedDomainExpiration(String domainName, String serviceName,
+            Boolean enabled) {
+
         SignedDomain signedDomain = new SignedDomain();
 
         List<Role> roles = new ArrayList<>();
@@ -563,6 +569,7 @@ public class ZTSImplTest {
         domain.setRoles(roles);
         domain.setServices(services);
         domain.setModified(Timestamp.fromCurrentTime());
+        domain.setEnabled(enabled);
 
         signedDomain.setDomain(domain);
 
@@ -1285,6 +1292,26 @@ public class ZTSImplTest {
         assertEquals(token.getRoles().size(), 1);
         assertTrue(token.getRoles().contains("readers"));
         assertTrue(roleToken.getToken().contains(";p=user_domain.user4;"));
+    }
+    
+    @Test
+    public void testGetRoleTokenDisabledDomain() {
+        
+        SignedDomain signedDomain = createSignedDomainExpiration("coretech-disabled",
+                "weather", Boolean.FALSE);
+        store.processDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            zts.getRoleToken(context, "coretech-disabled", null, Integer.valueOf(600),
+                    Integer.valueOf(1200), null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
     }
     
     @Test

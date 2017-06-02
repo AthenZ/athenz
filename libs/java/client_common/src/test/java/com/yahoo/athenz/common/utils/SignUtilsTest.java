@@ -51,6 +51,7 @@ public class SignUtilsTest {
     
     @Test
     public void testAsCanonicalStringDomainData() {
+        Mockito.when(mockDomain.getEnabled()).thenReturn(null);
         Mockito.when(mockDomain.getRoles()).thenReturn(null);
         Mockito.when(mockDomain.getServices()).thenReturn(null);
         
@@ -143,6 +144,7 @@ public class SignUtilsTest {
         
         SignedPolicies signedPolicies = Mockito.mock(SignedPolicies.class);
         
+        Mockito.when(mockDomain.getEnabled()).thenReturn(null);
         Mockito.when(mockDomain.getAccount()).thenReturn("chk_string");
         Mockito.when(mockDomain.getRoles()).thenReturn(roles);
         Mockito.when(mRole.getMembers()).thenReturn(items);

@@ -33,6 +33,7 @@ import com.yahoo.rdl.Struct;
 
 public class SignUtils {
     
+    private static final String ATTR_ENABLED = "enabled";
     private static final String ATTR_MODIFIED = "modified";
     private static final String ATTR_POLICIES = "policies";
     private static final String ATTR_DOMAIN = "domain";
@@ -194,6 +195,8 @@ public class SignUtils {
             struct.append(name, value);
         } else if (value instanceof Long) {
             struct.append(name, value);
+        } else if (value instanceof Boolean) {
+            struct.append(name, value);
         } else {
             struct.append(name, value.toString());
         }
@@ -238,6 +241,7 @@ public class SignUtils {
         // on their attribute name
         Struct struct = new Struct();
         appendObject(struct, ATTR_ACCOUNT, domainData.getAccount());
+        appendObject(struct, ATTR_ENABLED, domainData.getEnabled());
         appendObject(struct, ATTR_MODIFIED, domainData.getModified());
         appendObject(struct, ATTR_NAME, domainData.getName());
         SignedPolicies signedPolicies = domainData.getPolicies();

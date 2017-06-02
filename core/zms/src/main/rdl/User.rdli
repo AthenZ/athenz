@@ -13,6 +13,12 @@ type UserList Struct {
     Array<SimpleName> names; //list of user names
 }
 
+//Set of metadata attributes that system administrators
+//may set on user domains
+type UserMeta Struct {
+    Bool enabled (optional, default=true);
+}
+
 //Enumerate users that are registered as principals in the system
 //This will return only the principals with "<user-domain>." prefix
 resource UserList GET "/user" {
@@ -22,8 +28,27 @@ resource UserList GET "/user" {
     }
 }
 
+//Update the specified user domain(s) metadata. Note that
+//entities in the domain are not affected. This API is only
+//available to system administrators in order to disable user
+//accounts when the user is no longer active, for example, before
+//eventual deletion of the account after some grace period
+resource UserMeta PUT "/user/{name}/meta" {
+    SimpleName name; //name of the user
+    UserMeta detail; //UserMeta object with updated attribute values
+    authorize ("update", "sys.auth:user");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+    }
+}
+
 //Delete the specified user. This command will delete the user.<name>
-//domain and all of its subdomains (if they exist) and remove the
+//domain and all of its sub-domains (if they exist) and remove the
 //user.<name> from all the roles in the system that it's member of.
 //Upon successful completion of this delete request, the server will
 //return NO_CONTENT status code without any data (no object will be returned).
@@ -36,5 +61,6 @@ resource User DELETE "/user/{name}" {
         ResourceError BAD_REQUEST;
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
     }
 }

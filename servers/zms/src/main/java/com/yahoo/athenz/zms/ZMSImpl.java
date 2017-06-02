@@ -125,6 +125,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private static final String TYPE_TOP_LEVEL_DOMAIN = "TopLevelDomain";
     private static final String TYPE_SUB_DOMAIN = "SubDomain";
     private static final String TYPE_USER_DOMAIN = "UserDomain";
+    private static final String TYPE_USER_META = "UserMeta";
     private static final String TYPE_DOMAIN_META = "DomainMeta";
     private static final String TYPE_DOMAIN_TEMPLATE = "DomainTemplate";
     private static final String TYPE_TENANT_ROLES = "TenantRoles";
@@ -1335,7 +1336,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return null;
     }
     
-    public Domain putDomainMeta(ResourceContext ctx, String domainName, String auditRef, DomainMeta meta) {
+    public Domain putDomainMeta(ResourceContext ctx, String domainName, String auditRef,
+            DomainMeta meta) {
 
         final String caller = "putdomainmeta";
         metric.increment(ZMSConsts.HTTP_PUT);
@@ -1360,7 +1362,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         // verify that request is properly authenticated for this request
         
-        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(),
+                caller);
         
         if (LOG.isDebugEnabled()) {
             LOG.debug("putDomainMeta: name=" + domainName + ", meta=" + meta);
@@ -1376,7 +1379,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             
             Integer productId = meta.getYpmId();
             if (productId == null) {
-                throw ZMSUtils.requestError("Unique Product Id must be specified for top level domain", caller);
+                throw ZMSUtils.requestError("Unique Product Id must be specified for top level domain",
+                        caller);
             }
         }
 
@@ -1386,10 +1390,51 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return null;
     }
     
+    public UserMeta putUserMeta(ResourceContext ctx, String name, UserMeta meta) {
+
+        final String caller = "putusermeta";
+        metric.increment(ZMSConsts.HTTP_PUT);
+        logPrincipal(ctx);
+
+        if (readOnlyMode) {
+            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+        }
+
+        validateRequest(ctx.request(), caller);
+
+        validate(name, TYPE_SIMPLE_NAME, caller);
+        validate(meta, TYPE_USER_META, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        name = name.toLowerCase();
+        metric.increment(ZMSConsts.HTTP_REQUEST, userDomain);
+        metric.increment(caller, userDomain);
+        Object timerMetric = metric.startTiming("putusermeta_timing", userDomain);
+        
+        // verify that request is properly authenticated for this request
+        
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(),
+                caller);
+        
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("putDomainMeta: name=" + name + ", meta=" + meta);
+        }
+        
+        String userName = userDomainPrefix + name;
+        dbService.executePutUserMeta(ctx, userName, meta, caller);
+        metric.stopTiming(timerMetric);
+
+        return null;
+    }
+    
     void validateSolutionTemplates(List<String> templateNames, String caller) {
         for (String templateName : templateNames) {
             if (!serverSolutionTemplates.contains(templateName)) {
-                throw ZMSUtils.notFoundError("validateSolutionTemplates: Template not found: " + templateName, caller);
+                throw ZMSUtils.notFoundError("validateSolutionTemplates: Template not found: "
+                        + templateName, caller);
             }
         }
     }
@@ -1732,6 +1777,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     ResourceException.NOT_FOUND, "Domain not found");
         }
         
+        // if the domain is disabled then we're going to reject this
+        // request right away
+        
+        if (domain.getDomain().getEnabled() == Boolean.FALSE) {
+            throw new com.yahoo.athenz.common.server.rest.ResourceException(
+                    ResourceException.FORBIDDEN, "Disabled Domain");
+        }
+        
         AccessStatus accessStatus = hasAccess(domain, action, resource, principal, trustDomain);
         if (accessStatus == AccessStatus.ALLOWED) {
             return true;
@@ -1855,6 +1908,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     + domainName + "'", caller);
         }
         
+        // if the domain is disabled then we're going to reject this
+        // request right away
+        
+        if (domain.getDomain().getEnabled() == Boolean.FALSE) {
+            throw ZMSUtils.forbiddenError("getAccessCheck: Disabled domain: '"
+                    + domainName + "'", caller);
+        }
+
         // start our counter with domain dimension. we're moving the metric here
         // after the domain name has been confirmed as valid since with
         // dimensions we get stuck with persistent indexes so we only want
@@ -3222,6 +3283,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         String name = principal.getFullName();
         AthenzDomain athenzDomain = new AthenzDomain(name);
         
+        Domain domain = new Domain().setName(name).setEnabled(Boolean.TRUE);
+        athenzDomain.setDomain(domain);
+        
         List<String> adminUsers = new ArrayList<>();
         adminUsers.add(name);
         
@@ -3606,7 +3670,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.increment(caller, domainName);
         Object timerMetric = metric.startTiming("getpublickeyentry_timing", domainName);
         
-        PublicKeyEntry entry = dbService.getServicePublicKeyEntry(domainName, serviceName, keyId);
+        PublicKeyEntry entry = dbService.getServicePublicKeyEntry(domainName, serviceName, keyId, false);
         if (entry == null) {
             throw ZMSUtils.notFoundError("getPublicKeyEntry: PublicKey " + keyId + " in service " +
                     ZMSUtils.serviceResourceName(domainName, serviceName) + " not found", caller);
@@ -3861,6 +3925,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
             // set domain attributes
             
+            domainData.setEnabled(athenzDomain.getDomain().getEnabled());
             domainData.setAccount(athenzDomain.getDomain().getAccount());
             domainData.setYpmId(athenzDomain.getDomain().getYpmId());
             domainData.setRoles(athenzDomain.getRoles());
@@ -5822,7 +5887,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         if (pubKey == null) {
             try {
-                PublicKeyEntry keyEntry = dbService.getServicePublicKeyEntry(domain, service, keyId);
+                PublicKeyEntry keyEntry = dbService.getServicePublicKeyEntry(domain, service, keyId, true);
                 if (keyEntry != null) {
                     pubKey = keyEntry.getKey();
                 }

@@ -69,6 +69,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_DELETE_DOMAIN = "DELETE FROM domain WHERE name=?;";
     private static final String SQL_GET_DOMAIN = "SELECT * FROM domain WHERE name=?;";
     private static final String SQL_GET_DOMAIN_ID = "SELECT domain_id FROM domain WHERE name=?;";
+    private static final String SQL_GET_ACTIVE_DOMAIN_ID = "SELECT domain_id FROM domain WHERE name=? AND enabled=true;";
     private static final String SQL_GET_DOMAIN_WITH_ACCOUNT = "SELECT name FROM domain WHERE account=?;";
     private static final String SQL_GET_DOMAIN_WITH_PRODUCT_ID = "SELECT name FROM domain WHERE ypm_id=?;";
     private static final String SQL_INSERT_DOMAIN = "INSERT INTO domain "
@@ -460,6 +461,10 @@ public class JDBCConnection implements ObjectStoreConnection {
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
+        
+        // invalidate the cache domain entry
+        
+        objectMap.remove(CACHE_DOMAIN + domain.getName());
         return (affectedRows > 0);
     }
     
@@ -699,23 +704,25 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
     
     int getDomainId(Connection con, String domainName) {
+        return getDomainId(con, domainName, false);
+    }
+    
+    int getDomainId(Connection con, String domainName, boolean domainStateCheck) {
         
         final String caller = "getDomainId";
 
         // first check to see if our cache contains this value
         // otherwise we'll contact the MySQL Server
         
-        StringBuilder cacheKeyBldr = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-        cacheKeyBldr.append(CACHE_DOMAIN).append(domainName);
-        String cacheKey = cacheKeyBldr.toString();
-        
+        final String cacheKey = CACHE_DOMAIN + domainName;
         Integer value = objectMap.get(cacheKey);
         if (value != null) {
             return value;
         }
         
         int domainId = 0;
-        try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_ID)) {
+        final String sqlCommand = domainStateCheck ? SQL_GET_ACTIVE_DOMAIN_ID : SQL_GET_DOMAIN_ID;
+        try (PreparedStatement ps = con.prepareStatement(sqlCommand)) {
             ps.setString(1, domainName);
             try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
@@ -745,7 +752,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         StringBuilder cacheKeyBldr = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
         cacheKeyBldr.append(CACHE_POLICY).append(domainId).append('.').append(policyName);
-        String cacheKey = cacheKeyBldr.toString();
+        final String cacheKey = cacheKeyBldr.toString();
         
         Integer value = objectMap.get(cacheKey);
         if (value != null) {
@@ -784,7 +791,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         StringBuilder cacheKeyBldr = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
         cacheKeyBldr.append(CACHE_ROLE).append(domainId).append('.').append(roleName);
-        String cacheKey = cacheKeyBldr.toString();
+        final String cacheKey = cacheKeyBldr.toString();
         
         Integer value = objectMap.get(cacheKey);
         if (value != null) {
@@ -823,7 +830,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         StringBuilder cacheKeyBldr = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
         cacheKeyBldr.append(CACHE_SERVICE).append(domainId).append('.').append(serviceName);
-        String cacheKey = cacheKeyBldr.toString();
+        final String cacheKey = cacheKeyBldr.toString();
         
         Integer value = objectMap.get(cacheKey);
         if (value != null) {
@@ -860,10 +867,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         // first check to see if our cache contains this value
         // otherwise we'll contact the MySQL Server
         
-        StringBuilder cacheKeyBldr = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-        cacheKeyBldr.append(CACHE_PRINCIPAL).append(principal);
-        String cacheKey = cacheKeyBldr.toString();
-        
+        final String cacheKey = CACHE_PRINCIPAL + principal;
         Integer value = objectMap.get(cacheKey);
         if (value != null) {
             return value;
@@ -898,11 +902,8 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         // first check to see if our cache contains this value
         // otherwise we'll contact the MySQL Server
-        
-        StringBuilder cacheKeyBldr = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-        cacheKeyBldr.append(CACHE_HOST).append(hostName);
-        String cacheKey = cacheKeyBldr.toString();
-        
+
+        final String cacheKey = CACHE_HOST + hostName;
         Integer value = objectMap.get(cacheKey);
         if (value != null) {
             return value;
@@ -2016,11 +2017,12 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
     
     @Override
-    public PublicKeyEntry getPublicKeyEntry(String domainName, String serviceName, String keyId) {
+    public PublicKeyEntry getPublicKeyEntry(String domainName, String serviceName,
+            String keyId, boolean domainStateCheck) {
         
         final String caller = "getPublicKeyEntry";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(con, domainName, domainStateCheck);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }

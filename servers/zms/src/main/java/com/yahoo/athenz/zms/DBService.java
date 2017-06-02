@@ -833,7 +833,7 @@ public class DBService {
 
                 // check to see if this key already exists or not
                 
-                PublicKeyEntry originalKeyEntry = con.getPublicKeyEntry(domainName, serviceName, keyEntry.getId());
+                PublicKeyEntry originalKeyEntry = con.getPublicKeyEntry(domainName, serviceName, keyEntry.getId(), false);
                 
                 // now process the request
                 
@@ -1373,15 +1373,15 @@ public class DBService {
             try (ObjectStoreConnection con = store.getConnection(false)) {
                 
                 // first we're going to retrieve the list domains for
-                // the given principal
+                // the given user
                 
                 final String domainPrefix = userName + ".";
                 List<String> subDomains = con.listDomains(domainPrefix, 0);
 
-                // first we're going to delete the principal domain if
+                // first we're going to delete the user domain if
                 // one exists and then all the sub-domains. We're not
                 // going to fail the operation for these steps - only
-                // if the actual principal is not deleted
+                // if the actual user is not deleted
                 
                 con.deleteDomain(userName);
                 for (String subDomain : subDomains) {
@@ -1484,10 +1484,11 @@ public class DBService {
         return null;
     }
     
-    PublicKeyEntry getServicePublicKeyEntry(String domainName, String serviceName, String keyId) {
+    PublicKeyEntry getServicePublicKeyEntry(String domainName, String serviceName,
+            String keyId, boolean domainStateCheck) {
 
         try (ObjectStoreConnection con = store.getConnection(true)) {
-            return con.getPublicKeyEntry(domainName, serviceName, keyId);
+            return con.getPublicKeyEntry(domainName, serviceName, keyId, domainStateCheck);
         } catch (ResourceException ex) {
             if (ex.getCode() != ResourceException.SERVICE_UNAVAILABLE) {
                 throw ex;
@@ -1874,7 +1875,7 @@ public class DBService {
                         .setDescription(meta.getDescription())
                         .setOrg(meta.getOrg());
                 
-                // we'll only update aws/product ids if the meta
+                // we'll only update account/product id fields if the meta
                 // object does not contain nulls
                 
                 if (meta.getAccount() == null && meta.getYpmId() == null) {
@@ -1896,6 +1897,73 @@ public class DBService {
 
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         domainName, auditDetails.toString());
+                
+                return;
+                
+            } catch (ResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
+            }
+            retryCount -= 1;
+        } while (retryCount > 0);
+    }
+    
+    boolean updateUserDomainMeta(ObjectStoreConnection con, Domain domain, UserMeta meta) {
+        
+        Domain updatedDomain = new Domain()
+                .setName(domain.getName())
+                .setEnabled(meta.getEnabled())
+                .setId(domain.getId())
+                .setAuditEnabled(domain.getAuditEnabled())
+                .setDescription(domain.getDescription())
+                .setOrg(domain.getOrg())
+                .setAccount(domain.getAccount())
+                .setYpmId(domain.getYpmId());
+        
+        return con.updateDomain(updatedDomain);
+    }
+    
+    void executePutUserMeta(ResourceContext ctx, String userName, UserMeta meta, String caller) {
+        
+        int retryCount = defaultRetryCount;
+        do {
+            try (ObjectStoreConnection con = store.getConnection(false)) {
+                
+                // first we're going to retrieve the list domains for
+                // the given principal
+                
+                final String domainPrefix = userName + ".";
+                List<String> subDomains = con.listDomains(domainPrefix, 0);
+                
+                Domain domain = con.getDomain(userName);
+                if (domain == null && subDomains.isEmpty()) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.notFoundError(caller + ": Unknown domain: " + userName, caller);
+                }
+                
+                // process the request
+                
+                if (domain != null) {
+                    updateUserDomainMeta(con, domain, meta);
+                }
+                for (String domainName : subDomains) {
+                    domain = con.getDomain(domainName);
+                    if (domain != null) {
+                        updateUserDomainMeta(con, domain, meta);
+                    }
+                }
+                
+                con.commitChanges();
+                cacheStore.invalidate(userName);
+
+                // audit log the request
+
+                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+                auditLogUserMeta(auditDetails, meta);
+
+                auditLogRequest(ctx, userName, null, caller, ZMSConsts.HTTP_PUT,
+                        userName, auditDetails.toString());
                 
                 return;
                 
@@ -2857,6 +2925,11 @@ public class DBService {
         .append("\", \"org\": \"").append(domain.getOrg())
         .append("\", \"auditEnabled\": \"").append(domain.getAuditEnabled())
         .append("\", \"enabled\": \"").append(domain.getEnabled())
+        .append("\"}");
+    }
+    
+    void auditLogUserMeta(StringBuilder auditDetails, UserMeta meta) {
+        auditDetails.append("{\"enabled\": \"").append(meta.getEnabled())
         .append("\"}");
     }
 }
