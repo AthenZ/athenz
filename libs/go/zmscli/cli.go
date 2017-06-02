@@ -230,6 +230,22 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 2 {
 				return cli.ShowResourceAccess(args[0], args[1])
 			}
+		case "list-user":
+			return cli.ListUsers()
+		case "delete-user":
+			if argc == 1 {
+				return cli.DeleteUser(args[0])
+			}
+		case "enable-user":
+			state := true
+			if argc == 1 {
+				return cli.UpdateUserState(args[0], &state)
+			}
+		case "disable-user":
+			state := false
+			if argc == 1 {
+				return cli.UpdateUserState(args[0], &state)
+			}
 		case "help":
 			return cli.helpCommand(args)
 		default:
@@ -1436,6 +1452,32 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   template   : name of the template to be deleted from the domain\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domain_example + " delete-domain-template vipng\n")
+	case "list-user":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   list-user\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   list-user\n")
+	case "delete-user":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   delete-user user\n")
+		buf.WriteString(" parameters:\n")
+		buf.WriteString("   user   : id of the user to be deleted\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   delete-user jdoe\n")
+	case "enable-user":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   enable-user user\n")
+		buf.WriteString(" parameters:\n")
+		buf.WriteString("   user   : id of the user to be enabled\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   enable-user jdoe\n")
+	case "disable-user":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   disable-user user\n")
+		buf.WriteString(" parameters:\n")
+		buf.WriteString("   user   : id of the user to be disabled\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   disable-user jdoe\n")
 	default:
 		if interactive {
 			buf.WriteString("Unknown command. Type 'help' to see available commands")
@@ -1463,7 +1505,6 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   export-domain domain [file.yaml] - no file means stdout\n")
 	buf.WriteString("   update-domain domain [file.yaml] - no file means stdin\n")
 	buf.WriteString("   delete-domain domain\n")
-	buf.WriteString("   set-default-admins domain admin [admin ...] (for system administrators only)\n")
 	buf.WriteString("   get-signed-domains [matching_tag]\n")
 	buf.WriteString("   use-domain [domain]\n")
 	buf.WriteString("   check-domain [domain]\n")
@@ -1536,6 +1577,13 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   show-server-template template\n")
 	buf.WriteString("   set-domain-template template [template]\n")
 	buf.WriteString("   delete-domain-template template\n")
+	buf.WriteString("\n")
+	buf.WriteString(" System Administrator commands:\n")
+	buf.WriteString("   set-default-admins domain admin [admin ...]\n")
+	buf.WriteString("   list-user\n")
+	buf.WriteString("   enable-user user\n")
+	buf.WriteString("   disable-user user\n")
+	buf.WriteString("   delete-user user\n")
 	buf.WriteString("\n")
 	buf.WriteString(" Other commands:\n")
 	buf.WriteString("   get-user-token [authorized_service]\n")
