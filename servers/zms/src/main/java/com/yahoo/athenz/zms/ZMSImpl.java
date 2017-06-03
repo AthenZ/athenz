@@ -3923,9 +3923,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             
             sdList.add(signedDomain);
 
-            // set domain attributes
+            // set domain attributes - for enabled flag only set it
+            // if it set to false
             
-            domainData.setEnabled(athenzDomain.getDomain().getEnabled());
+            if (athenzDomain.getDomain().getEnabled() == Boolean.FALSE) {
+                domainData.setEnabled(athenzDomain.getDomain().getEnabled());
+            }
             domainData.setAccount(athenzDomain.getDomain().getAccount());
             domainData.setYpmId(athenzDomain.getDomain().getYpmId());
             domainData.setRoles(athenzDomain.getRoles());
