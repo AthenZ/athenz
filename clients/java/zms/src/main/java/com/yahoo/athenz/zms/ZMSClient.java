@@ -57,14 +57,14 @@ public class ZMSClient implements Closeable {
     private static final Authority PRINCIPAL_AUTHORITY = new com.yahoo.athenz.auth.impl.PrincipalAuthority();
     
     /**
-     * Constructs a new ZMSClient object with media type set to application/json.
-     * The url for ZMS Server is automatically retrieved from the athenz_config
-     * package's configuration file (zms_url field). The client can only be used
+     * Constructs a new ZMSClient object with default settings.
+     * The url for ZMS Server is automatically retrieved from the athenz
+     * configuration file (zmsUrl field). The client can only be used
      * to retrieve objects from ZMS that do not require any authentication
      * otherwise addCredentials method must be used to set the principal identity.
      * Default read and connect timeout values are 30000ms (30sec). The application can
-     * change these values by using the yahoo.zms_java_client.read_timeout and
-     * yahoo.zms_java_client.connect_timeout system properties. The values specified
+     * change these values by using the athenz.zms.client.read_timeout and
+     * athenz.zms.client.connect_timeout system properties. The values specified
      * for timeouts must be in milliseconds.
      */
     public ZMSClient() {
@@ -72,18 +72,49 @@ public class ZMSClient implements Closeable {
     }
     
     /**
-     * Constructs a new ZMSClient object with the given ZMS Server url and
-     * media type set to application/json. The client can only be used
-     * to retrieve objects from ZMS that do not require any authentication
+     * Constructs a new ZMSClient object with the given ZMS Server url. The client
+     * can only be used to retrieve objects from ZMS that do not require any authentication
      * otherwise addCredentials method must be used to set the principal identity.
      * Default read and connect timeout values are 30000ms (30sec). The application can
-     * change these values by using the yahoo.zms_java_client.read_timeout and
-     * yahoo.zms_java_client.connect_timeout system properties. The values specified
+     * change these values by using the athenz.zms.client.read_timeout and
+     * athenz.zms.client.connect_timeout system properties. The values specified
      * for timeouts must be in milliseconds.
      * @param url ZMS Server url (e.g. https://server1.athenzcompany.com:4443/zms/v1)
      */
     public ZMSClient(String url) {
         initClient(url);
+    }
+    
+    /**
+     * Constructs a new ZMSClient object with the given ZMS Server url and
+     * given principal. The credentials from the principal object will be used
+     * to set call the addCredentials method for the zms client object.
+     * Default read and connect timeout values are 30000ms (30sec). The application can
+     * change these values by using the athenz.zms.client.read_timeout and
+     * athenz.zms.client.connect_timeout system properties. The values specified
+     * for timeouts must be in milliseconds.
+     * @param url ZMS Server url (e.g. https://server1.athenzcompany.com:4443/zms/v1)
+     * @param identity Principal object that includes credentials
+     */
+    public ZMSClient(String url, Principal identity) {
+        initClient(url);
+        addCredentials(identity);
+    }
+    
+    /**
+     * Constructs a new ZMSClient object with default settings and given
+     * principal object for credentials. The url for ZMS Server is
+     * automatically retrieved from the athenz configuration file
+     * (zmsUrl field).
+     * Default read and connect timeout values are 30000ms (30sec). The application can
+     * change these values by using the athenz.zms.client.read_timeout and
+     * athenz.zms.client.connect_timeout system properties. The values specified
+     * for timeouts must be in milliseconds.
+     * @param identity Principal object that includes credentials
+     */
+    public ZMSClient(Principal identity) {
+        initClient(null);
+        addCredentials(identity);
     }
     
     /**

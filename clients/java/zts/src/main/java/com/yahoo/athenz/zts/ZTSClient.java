@@ -140,16 +140,33 @@ public class ZTSClient implements Closeable {
     }
     
     /**
+     * Constructs a new ZTSClient object with default settings.
+     * The url for ZTS Server is automatically retrieved from the athenz
+     * configuration file (ztsUrl field). The client can only be used
+     * to retrieve objects from ZTS that do not require any authentication
+     * otherwise addCredentials method must be used to set the principal identity.
+     * Default read and connect timeout values are 30000ms (30sec).
+     * The application can change these values by using the
+     * athenz.zts.client.read_timeout and athenz.zts.client.connect_timeout
+     * system properties. The values specified for timeouts must be in
+     * milliseconds.
+     */
+    public ZTSClient() {
+        initClient(null, null, null, null, null);
+        enablePrefetch = false; // can't use this domain and service for prefetch
+    }
+    
+    /**
      * Constructs a new ZTSClient object with the given ZTS Server Url.
      * If the specified zts url is null, then it is automatically
      * retrieved from athenz.conf configuration file (ztsUrl field).
      * Default read and connect timeout values are 30000ms (30sec).
      * The application can change these values by using the
-     * athenz.zts.client.read_timeout and athenz.zts.client.connct_timeout
+     * athenz.zts.client.read_timeout and athenz.zts.client.connect_timeout
      * system properties. The values specified for timeouts must be in
      * milliseconds. This client object can only be used for API calls
      * that require no authentication or setting the principal using
-     * addCredentials method before calling any other athentication
+     * addCredentials method before calling any other authentication
      * protected API.
      * @param ztsUrl ZTS Server's URL (optional)
      */
@@ -159,12 +176,23 @@ public class ZTSClient implements Closeable {
     }
     
     /**
+     * Constructs a new ZTSClient object with the given principal identity.
+     * The url for ZTS Server is automatically retrieved from the athenz
+     * configuration file (ztsUrl field). Default read and connect timeout values
+     * are 30000ms (30sec). The application can change these values by using the
+     * athenz.zts.client.read_timeout and athenz.zts.client.connect_timeout
+     * system properties. The values specified for timeouts must be in milliseconds.
+     * @param identity Principal identity for authenticating requests
+     */
+    public ZTSClient(Principal identity) {
+        this(null, identity);
+    }
+    
+    /**
      * Constructs a new ZTSClient object with the given principal identity
-     * and ZTS Server Url. If the specified zts url is null, then it is
-     * automatically retrieved from athenz.conf configuration file
-     * (ztsUrl field). Default read and connect timeout values are
+     * and ZTS Server Url. Default read and connect timeout values are
      * 30000ms (30sec). The application can change these values by using the
-     * athenz.zts.client.read_timeout and athenz.zts.client.connct_timeout
+     * athenz.zts.client.read_timeout and athenz.zts.client.connect_timeout
      * system properties. The values specified for timeouts must be in milliseconds.
      * @param ztsUrl ZTS Server's URL (optional)
      * @param identity Principal identity for authenticating requests
@@ -186,11 +214,27 @@ public class ZTSClient implements Closeable {
     /**
      * Constructs a new ZTSClient object with the given service details
      * identity provider (which will provide the ntoken for the service)
+     * The ZTS Server url is automatically retrieved from athenz.conf configuration
+     * file (ztsUrl field). Default read and connect timeout values are
+     * 30000ms (30sec). The application can change these values by using the
+     * athenz.zts.client.read_timeout and athenz.zts.client.connect_timeout
+     * system properties. The values specified for timeouts must be in milliseconds.
+     * @param domainName name of the domain
+     * @param serviceName name of the service
+     * @param siaProvider service identity provider for the client to request principals
+     */
+    public ZTSClient(String domainName, String serviceName, ServiceIdentityProvider siaProvider) {
+        this(null, domainName, serviceName, siaProvider);
+    }
+    
+    /**
+     * Constructs a new ZTSClient object with the given service details
+     * identity provider (which will provide the ntoken for the service)
      * and ZTS Server Url. If the specified zts url is null, then it is
      * automatically retrieved from athenz.conf configuration file
      * (ztsUrl field). Default read and connect timeout values are
      * 30000ms (30sec). The application can change these values by using the
-     * athenz.zts.client.read_timeout and athenz.zts.client.connct_timeout
+     * athenz.zts.client.read_timeout and athenz.zts.client.connect_timeout
      * system properties. The values specified for timeouts must be in milliseconds.
      * @param ztsUrl ZTS Server's URL (optional)
      * @param domainName name of the domain
