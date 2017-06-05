@@ -21,6 +21,6 @@ public class ZTSClientFactoryImpl implements ZTSClientFactory {
 
     @Override
     public ZTSClient create() {
-        return new ZTSClient(null);
+        return new ZTSClient();
     }
 }
