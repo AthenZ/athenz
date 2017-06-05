@@ -59,6 +59,23 @@ public class SimpleServiceIdentityProvider implements ServiceIdentityProvider {
         this.setHost(getServerHostName());
     }
     
+    /**
+     * A simple implementation of the ServiceIdentityProvider interface.
+     * The caller specifies the domain and service name along with the
+     * private key for the given service
+     * @param domainName Name of the domain
+     * @param serviceName Name of the service
+     * @param privateKey the private key for the service
+     * @param keyId the registered key id in ZMS for this private key
+     * @param tokenTimeout how long in seconds the generated ntoken is valid for
+     */
+    public SimpleServiceIdentityProvider(String domainName, String serviceName,
+            PrivateKey privateKey, String keyId, long tokenTimeout) {
+
+        this(domainName, serviceName, privateKey, keyId);
+        this.tokenTimeout = tokenTimeout;
+    }
+    
     public Principal getIdentity(String domainName, String serviceName) {
         
         // all the role members in Athenz are normalized to lower case so we need to make
