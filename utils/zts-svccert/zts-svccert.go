@@ -21,7 +21,8 @@ import (
 )
 
 type signer struct {
-	key crypto.Signer
+	key       crypto.Signer
+	algorithm x509.SignatureAlgorithm
 }
 
 func main() {
@@ -140,13 +141,13 @@ func newSigner(privateKeyPEM []byte) (*signer, error) {
 		if err != nil {
 			return nil, err
 		}
-		return &signer{key: key}, nil
+		return &signer{key: key, algorithm: x509.ECDSAWithSHA256}, nil
 	case "RSA PRIVATE KEY":
 		key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 		if err != nil {
 			return nil, err
 		}
-		return &signer{key: key}, nil
+		return &signer{key: key, algorithm: x509.SHA256WithRSA}, nil
 	default:
 		return nil, fmt.Errorf("Unsupported private key type: %s", block.Type)
 	}
@@ -161,7 +162,7 @@ func generateCSR(keySigner *signer, commonName, host string) (string, error) {
 
 	template := x509.CertificateRequest{
 		Subject:            subj,
-		SignatureAlgorithm: x509.SHA256WithRSA,
+		SignatureAlgorithm: keySigner.algorithm,
 	}
 	if host != "" {
 		template.DNSNames = []string{host}
