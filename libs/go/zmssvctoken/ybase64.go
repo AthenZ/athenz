@@ -18,15 +18,15 @@ func getEncoding() *base64.Encoding {
 // YBase64 is a variant of the std base64 encoding with URL safe
 // characters, used by Yahoo circa web 1.0. It uses '.' and '_' as replacements
 // for '+' and '/' and uses '-' instead of '=' as the padding character.
-type yBase64 struct {
+type YBase64 struct {
 }
 
 // EncodeToString encodes an array of bytes to a string
-func (lb *yBase64) EncodeToString(b []byte) string {
+func (lb *YBase64) EncodeToString(b []byte) string {
 	return getEncoding().EncodeToString(b)
 }
 
 // DecodeString decodes a string encoded using EncodeToString
-func (lb *yBase64) DecodeString(s string) ([]byte, error) {
+func (lb *YBase64) DecodeString(s string) ([]byte, error) {
 	return getEncoding().DecodeString(s)
 }

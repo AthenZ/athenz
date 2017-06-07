@@ -64,31 +64,31 @@ awIDAQAB
 -----END PUBLIC KEY-----
 `)
 
-func testSV(t *testing.T, s signer, v verifier) {
+func testSV(t *testing.T, s Signer, v Verifier) {
 	input := `
 Now is the time
 for all good men
 to come to the aid of the party
 `
-	sig, err := s.sign(input)
+	sig, err := s.Sign(input)
 	require.Nil(t, err)
-	err = v.verify(input, sig)
+	err = v.Verify(input, sig)
 	require.Nil(t, err)
 	input += "X"
-	err = v.verify(input, sig)
+	err = v.Verify(input, sig)
 	require.NotNil(t, err)
 }
 
 func TestRSASigner(t *testing.T) {
-	signer, err := newSigner(rsaPrivateKeyPEM)
+	signer, err := NewSigner(rsaPrivateKeyPEM)
 	require.Nil(t, err)
-	verifier, err := newVerifier(rsaPublicKeyPEM)
+	verifier, err := NewVerifier(rsaPublicKeyPEM)
 	testSV(t, signer, verifier)
 }
 
 func TestECDSASigner(t *testing.T) {
-	signer, err := newSigner(ecdsaPrivateKeyPEM)
+	signer, err := NewSigner(ecdsaPrivateKeyPEM)
 	require.Nil(t, err)
-	verifier, err := newVerifier(ecdsaPublicKeyPEM)
+	verifier, err := NewVerifier(ecdsaPublicKeyPEM)
 	testSV(t, signer, verifier)
 }

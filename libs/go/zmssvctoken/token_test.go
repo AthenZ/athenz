@@ -95,11 +95,11 @@ func TestTokenPubValidateNegative(t *testing.T) {
 	start := fmt.Sprint(time.Now().Unix())
 	e := fmt.Sprint(time.Now().Add(time.Hour).Unix())
 
-	signer, err := newSigner(rsaPrivateKeyPEM)
+	signer, err := NewSigner(rsaPrivateKeyPEM)
 	require.Nil(t, err)
 
 	genTok := func(s string) string {
-		sig, err := signer.sign(s)
+		sig, err := signer.Sign(s)
 		require.Nil(t, err)
 		return s + ";s=" + sig
 	}

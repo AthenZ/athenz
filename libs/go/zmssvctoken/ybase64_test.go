@@ -28,7 +28,7 @@ justo. Sed nec vestibulum libero.
 
 func testReplay(t *testing.T, input []byte) {
 	a := assert.New(t)
-	var lb64 yBase64
+	var lb64 YBase64
 	s := lb64.EncodeToString(input)
 	b, err := lb64.DecodeString(s)
 	require.Nil(t, err)
@@ -43,14 +43,14 @@ func TestEdgeChars(t *testing.T) {
 	a := assert.New(t)
 	input := []byte{0x3f << 2, 0x00, 0x00, 0x3e << 2}
 	testReplay(t, []byte(input))
-	var lb64 yBase64
+	var lb64 YBase64
 	a.Equal("/AAA+A==", base64.StdEncoding.EncodeToString(input))
 	a.Equal("_AAA.A--", lb64.EncodeToString(input))
 }
 
 func TestBadPadding(t *testing.T) {
 	a := assert.New(t)
-	var lb64 yBase64
+	var lb64 YBase64
 	s := lb64.EncodeToString([]byte("goobledegooks"))
 	s = s + "--"
 	_, err := lb64.DecodeString(s)

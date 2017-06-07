@@ -19,13 +19,13 @@ import (
 var hash = crypto.SHA256
 
 // signer signs a string and returns the signature
-type signer interface {
-	sign(input string) (string, error)
+type Signer interface {
+	Sign(input string) (string, error)
 }
 
 // verifier verifies the signature for a string
-type verifier interface {
-	verify(input, signature string) error
+type Verifier interface {
+	Verify(input, signature string) error
 }
 
 // hashString hashes the input string using the
@@ -40,7 +40,7 @@ func hashString(input string) ([]byte, error) {
 	return h.Sum(nil), nil
 }
 
-func newSigner(privateKeyPEM []byte) (signer, error) {
+func NewSigner(privateKeyPEM []byte) (Signer, error) {
 	block, _ := pem.Decode(privateKeyPEM)
 	if block == nil {
 		return nil, fmt.Errorf("Unable to load private key")
@@ -68,7 +68,7 @@ type sign struct {
 	key crypto.Signer
 }
 
-func (s *sign) sign(input string) (string, error) {
+func (s *sign) Sign(input string) (string, error) {
 	hashed, err := hashString(input)
 	if err != nil {
 		return "", err
@@ -77,18 +77,18 @@ func (s *sign) sign(input string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return new(yBase64).EncodeToString(signed), nil
+	return new(YBase64).EncodeToString(signed), nil
 }
 
 type internalVerifier interface {
-	verify(hashed []byte, sig []byte) error
+	Verify(hashed []byte, sig []byte) error
 }
 
 type rsaVerify struct {
 	key *rsa.PublicKey
 }
 
-func (r *rsaVerify) verify(hashed []byte, sig []byte) error {
+func (r *rsaVerify) Verify(hashed []byte, sig []byte) error {
 	return rsa.VerifyPKCS1v15(r.key, hash, hashed, sig)
 }
 
@@ -96,7 +96,7 @@ type ecdsaVerify struct {
 	key *ecdsa.PublicKey
 }
 
-func (e *ecdsaVerify) verify(hashed []byte, sig []byte) error {
+func (e *ecdsaVerify) Verify(hashed []byte, sig []byte) error {
 	var s struct {
 		R, S *big.Int
 	}
@@ -110,7 +110,7 @@ func (e *ecdsaVerify) verify(hashed []byte, sig []byte) error {
 	return nil
 }
 
-func newVerifier(publicKeyPEM []byte) (verifier, error) {
+func NewVerifier(publicKeyPEM []byte) (Verifier, error) {
 	block, _ := pem.Decode(publicKeyPEM)
 	if block == nil {
 		return nil, fmt.Errorf("Unable to load public key")
@@ -137,9 +137,9 @@ type verify struct {
 	iv internalVerifier
 }
 
-func (v *verify) verify(input, signature string) error {
+func (v *verify) Verify(input, signature string) error {
 
-	sigBytes, err := new(yBase64).DecodeString(signature)
+	sigBytes, err := new(YBase64).DecodeString(signature)
 	if err != nil {
 		return err
 	}
@@ -149,5 +149,5 @@ func (v *verify) verify(input, signature string) error {
 		return err
 	}
 
-	return v.iv.verify(hashed, sigBytes)
+	return v.iv.Verify(hashed, sigBytes)
 }
