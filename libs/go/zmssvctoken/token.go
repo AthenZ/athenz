@@ -59,7 +59,7 @@ func (n *NToken) almostExpired() bool {
 	return time.Now().After(n.ExpiryTime.Add(-1 * expirationDrift))
 }
 
-func (n *NToken) toSignedToken(s signer, expiration time.Duration) (string, error) {
+func (n *NToken) toSignedToken(s Signer, expiration time.Duration) (string, error) {
 
 	n.GenerationTime = time.Now()
 	n.ExpiryTime = n.GenerationTime.Add(expiration)
@@ -88,7 +88,7 @@ func (n *NToken) toSignedToken(s signer, expiration time.Duration) (string, erro
 	add(tagExpireTime, fmt.Sprintf("%d", n.ExpiryTime.Unix()))
 
 	unsignedToken := strings.Join(parts, ";")
-	signature, err := s.sign(unsignedToken)
+	signature, err := s.Sign(unsignedToken)
 	if err != nil {
 		return "", fmt.Errorf("Signature error: %v", err)
 	}
@@ -127,7 +127,7 @@ func (n *NToken) assertValid() error {
 	return nil
 }
 
-func (n *NToken) load(tok string, verifier verifier) error {
+func (n *NToken) load(tok string, verifier Verifier) error {
 
 	delim := fmt.Sprintf(";%s=", tagSignature)
 	usig := strings.SplitN(tok, delim, 2)
@@ -138,7 +138,7 @@ func (n *NToken) load(tok string, verifier verifier) error {
 	unsignedToken := usig[0]
 	signature := usig[1]
 
-	err := verifier.verify(unsignedToken, signature)
+	err := verifier.Verify(unsignedToken, signature)
 	if err != nil {
 		return fmt.Errorf("Invalid token signature")
 	}
@@ -220,7 +220,7 @@ type TokenBuilder interface {
 
 // tokenBuilder implements TokenBuilder
 type tokenBuilder struct {
-	signer     signer
+	signer     Signer
 	ntok       *NToken
 	expiration time.Duration
 	l          sync.Mutex
@@ -231,7 +231,7 @@ type tokenBuilder struct {
 // domain/ name, with a private key (PEM format) and its key-version. The key-version
 // should be the same string that was used to register the key with Athenz
 func NewTokenBuilder(domain, name string, privateKeyPEM []byte, keyVersion string) (TokenBuilder, error) {
-	s, err := newSigner(privateKeyPEM)
+	s, err := NewSigner(privateKeyPEM)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to create signer: %v", err)
 	}
@@ -287,7 +287,7 @@ func (t *tokenBuilder) Token() Token {
 
 type token struct {
 	sync.Mutex
-	signer      signer
+	signer      Signer
 	ntok        *NToken
 	expiration  time.Duration
 	cachedToken string
@@ -316,7 +316,7 @@ type TokenValidator interface {
 }
 
 type tokenValidator struct {
-	verifier verifier
+	verifier Verifier
 }
 
 func (tv *tokenValidator) Validate(token string) (*NToken, error) {
@@ -334,7 +334,7 @@ func (tv *tokenValidator) Validate(token string) (*NToken, error) {
 // NewPubKeyTokenValidator returns NToken objects from signed token strings
 // given a public key to verify signatures
 func NewPubKeyTokenValidator(publicKeyPEM []byte) (TokenValidator, error) {
-	v, err := newVerifier(publicKeyPEM)
+	v, err := NewVerifier(publicKeyPEM)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to create verifier: %v", err)
 	}
@@ -380,14 +380,14 @@ func NewTokenValidator(config ...ValidationConfig) TokenValidator {
 type nopVerifier struct {
 }
 
-func (nv *nopVerifier) verify(input, signature string) error {
+func (nv *nopVerifier) Verify(input, signature string) error {
 	return nil
 }
 
 type autoTokenValidator struct {
 	config          *ValidationConfig
 	store           *keyStore
-	initialVerifier verifier
+	initialVerifier Verifier
 }
 
 func newAutoTokenValidator(cfg *ValidationConfig) *autoTokenValidator {

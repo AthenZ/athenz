@@ -72,7 +72,7 @@ func (k *keyStore) loadKey(src keySource) ([]byte, error) {
 		return nil, err
 	}
 
-	s, err := new(yBase64).DecodeString(data.Key)
+	s, err := new(YBase64).DecodeString(data.Key)
 	if err != nil {
 		return nil, err
 	}
