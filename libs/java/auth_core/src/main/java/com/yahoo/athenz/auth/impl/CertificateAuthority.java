@@ -16,6 +16,7 @@
 package com.yahoo.athenz.auth.impl;
 
 import java.security.cert.X509Certificate;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,17 +83,36 @@ public class CertificateAuthority implements Authority {
             errMsg.append("CertificateAuthority:authenticate: Certificate principal is empty");
             return null;
         }
-        
+
+        // For role cert, the principal information is in the SAN email
+        int idx = principalName.indexOf(":role.");
+        if (idx != -1) {
+            List<String> emails = Crypto.extractX509CertEmails(x509Cert);
+            if (emails.isEmpty()) {
+                errMsg.append("CertificateAuthority:authenticate: Invalid role cert, no email SAN entry"
+                    + principalName);
+                return null;
+            }
+            String email = emails.get(0);
+            idx = email.indexOf('@');
+            if (idx == -1) {
+                errMsg.append("CertificateAuthority:authenticate: Invalid role cert, invalid email SAN entry"
+                    + principalName);
+                return null;
+            }
+            principalName = email.substring(0, idx);
+        }
+
         // extract domain and service names from the name. We must have
         // a valid service identity in the form domain.service
-        
-        int idx = principalName.lastIndexOf('.');
+
+        idx = principalName.lastIndexOf('.');
         if (idx == -1) {
             errMsg.append("CertificateAuthority:authenticate: Principal is not a valid service identity: "
-                    + principalName);
+                + principalName);
             return null;
         }
-        
+
         String domain = principalName.substring(0, idx);
         String name = principalName.substring(idx + 1);
         
