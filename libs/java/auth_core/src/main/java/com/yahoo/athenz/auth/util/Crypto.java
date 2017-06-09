@@ -804,7 +804,7 @@ public class Crypto {
         }
         return rfc822;
     }
-    
+
     public static List<String> extractX509CSRDnsNames(PKCS10CertificationRequest certReq) {
         
         List<String> dnsNames = new ArrayList<>();
@@ -885,7 +885,44 @@ public class Crypto {
         }
         return cn;
     }
-    
+
+    public static List<String> extractX509CertEmails(X509Certificate x509Cert) {
+        Collection<List<?>> altNames = null;
+        try {
+            altNames = x509Cert.getSubjectAlternativeNames();
+        } catch (CertificateParsingException ex) {
+            LOG.error("extractX509IPAddresses: Caught CertificateParsingException when parsing certificate: "
+                + ex.getMessage());
+        }
+
+        if (altNames == null) {
+            return Collections.emptyList();
+        }
+
+        List<String> emails = new ArrayList<>();
+        for (@SuppressWarnings("rawtypes") List item : altNames) {
+            Integer type = (Integer) item.get(0);
+
+            // GeneralName ::= CHOICE {
+            //     otherName                       [0]     OtherName,
+            //     rfc822Name                      [1]     IA5String,
+            //     dNSName                         [2]     IA5String,
+            //     x400Address                     [3]     ORAddress,
+            //     directoryName                   [4]     Name,
+            //     ediPartyName                    [5]     EDIPartyName,
+            //     uniformResourceIdentifier       [6]     IA5String,
+            //     iPAddress                       [7]     OCTET STRING,
+            //     registeredID                    [8]     OBJECT IDENTIFIER}
+
+            if (type == 1) {
+                emails.add((String) item.get(1));
+            }
+        }
+        return emails;
+    }
+
+
+
     public static List<String> extractX509IPAddresses(X509Certificate x509Cert) {
         
         Collection<List<?>> altNames = null;

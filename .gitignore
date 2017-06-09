@@ -6,6 +6,8 @@
 **/target/
 **/dependency-reduced-pom.xml
 **/pom.xml.releaseBackup
+**/.DS_Store
+**/*.iml
 ui/.eslintcodecache
 release.properties
 servers/zms/zms_logs/

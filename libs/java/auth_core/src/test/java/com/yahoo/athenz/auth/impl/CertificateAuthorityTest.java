@@ -77,6 +77,24 @@ public class CertificateAuthorityTest {
             assertEquals("syncer", principal.getName());
         }
     }
+
+    @Test
+    public void testAuthenticateRoleCertificate() throws Exception, IOException {
+        CertificateAuthority authority = new CertificateAuthority();
+        authority.initialize();
+
+        try (InputStream inStream = new FileInputStream("src/test/resources/valid_email_x509.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+
+            X509Certificate[] certs = new X509Certificate[1];
+            certs[0] = cert;
+            Principal principal = authority.authenticate(certs, null);
+            assertNotNull(principal);
+            assertEquals("athens", principal.getDomain());
+            assertEquals("zts", principal.getName());
+        }
+    }
     
     @Test
     public void testAuthenciateInvalidArray() {
