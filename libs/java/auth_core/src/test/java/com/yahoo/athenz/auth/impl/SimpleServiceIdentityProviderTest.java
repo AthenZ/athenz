@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.auth.impl;
 
+import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimpleServiceIdentityProvider;
 import com.yahoo.athenz.auth.token.PrincipalToken;
@@ -108,5 +109,20 @@ public class SimpleServiceIdentityProviderTest {
 
         String name = provider.getHost();
         assertNotNull(name);
+    }
+    
+    @Test
+    public void testConstructorWithAuthority() {
+        PrivateKey key = Crypto.loadPrivateKey(servicePrivateKeyStringK1);
+        Authority authority = new PrincipalAuthority();
+        SimpleServiceIdentityProvider provider = new SimpleServiceIdentityProvider(authority,
+                "coretech", "athenz", key, "1", 3600);
+        assertEquals(provider.getAuthority(), authority);
+        
+        SimpleServiceIdentityProvider provider2 = new SimpleServiceIdentityProvider("coretech",
+                "athenz", key, "1", 3600);
+        assertNotEquals(provider2.getAuthority(), authority);
+        provider2.setAuthority(authority);
+        assertEquals(provider2.getAuthority(), authority);
     }
 }
