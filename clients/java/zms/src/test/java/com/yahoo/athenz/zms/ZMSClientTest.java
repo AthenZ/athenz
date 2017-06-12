@@ -2140,4 +2140,21 @@ public class ZMSClientTest {
         client.deleteDomainTemplate(domName, svrTemplNames.get(1), AUDIT_REF);
         client.deleteTopLevelDomain(domName, AUDIT_REF);
     }
+    
+    @Test
+    public void testPutUserMeta() {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        UserMeta meta = new UserMeta().setEnabled(false);
+        Mockito.when(c.putUserMeta("joe", meta)).thenReturn(null).thenThrow(new ZMSClientException(400, "fail"));
+        client.putUserMeta("joe", meta);
+
+        try {
+            client.putUserMeta("joe", meta);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(400, ex.getCode());
+        }
+    }
 }
