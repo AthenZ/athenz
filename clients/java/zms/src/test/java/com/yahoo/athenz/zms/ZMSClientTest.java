@@ -1061,7 +1061,7 @@ public class ZMSClientTest {
             assertTrue(true);
         }
     }
-
+    
     @Test
     public void testPutDomainTemplate() {
         ZMSClient client = createClient(systemAdminUser);

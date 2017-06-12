@@ -6,15 +6,17 @@ include "Names.tdl";
 //A user token generated based on user's credentials
 type UserToken Struct {
     SignedToken token; //Signed user token identifying a specific authenticated user
+    String header (optional); //Authorization header name for the token
 }
 
 //Return a user/principal token for the specified authenticated user. Typical
 //authenticated users with their native credentials are not allowed to update
 //their domain data. They must first obtain a UserToken and then use that
 //token for authentication and authorization of their update requests.
-resource UserToken GET "/user/{userName}/token?services={serviceNames}" {
+resource UserToken GET "/user/{userName}/token?services={serviceNames}&header={header}" {
     SimpleName userName; //name of the user
     String serviceNames (optional); //comma separated list of on-behalf-of service names
+    Bool header (optional, default=false); //include Authorization header name in response
     authenticate;
     exceptions {
         ResourceError FORBIDDEN;

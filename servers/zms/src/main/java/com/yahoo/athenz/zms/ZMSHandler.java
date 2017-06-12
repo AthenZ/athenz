@@ -72,7 +72,7 @@ public interface ZMSHandler {
     public Access getAccessExt(ResourceContext context, String action, String resource, String domain, String checkPrincipal);
     public ResourceAccessList getResourceAccessList(ResourceContext context, String principal, String action);
     public void getSignedDomains(ResourceContext context, String domain, String metaOnly, String matchingTag, GetSignedDomainsResult result);
-    public UserToken getUserToken(ResourceContext context, String userName, String serviceNames);
+    public UserToken getUserToken(ResourceContext context, String userName, String serviceNames, Boolean header);
     public UserToken optionsUserToken(ResourceContext context, String userName, String serviceNames);
     public ServicePrincipal getServicePrincipal(ResourceContext context);
     public ServerTemplateList getServerTemplateList(ResourceContext context);

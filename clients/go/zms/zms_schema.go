@@ -400,6 +400,7 @@ func init() {
 	tUserToken := rdl.NewStructTypeBuilder("Struct", "UserToken")
 	tUserToken.Comment("A user token generated based on user's credentials")
 	tUserToken.Field("token", "SignedToken", false, nil, "Signed user token identifying a specific authenticated user")
+	tUserToken.Field("header", "String", true, nil, "Authorization header name for the token")
 	sb.AddType(tUserToken.Build())
 
 	tServicePrincipal := rdl.NewStructTypeBuilder("Struct", "ServicePrincipal")
@@ -1213,6 +1214,7 @@ func init() {
 	rGetUserToken.Comment("Return a user/principal token for the specified authenticated user. Typical authenticated users with their native credentials are not allowed to update their domain data. They must first obtain a UserToken and then use that token for authentication and authorization of their update requests.")
 	rGetUserToken.Input("userName", "SimpleName", true, "", "", false, nil, "name of the user")
 	rGetUserToken.Input("serviceNames", "String", false, "services", "", true, nil, "comma separated list of on-behalf-of service names")
+	rGetUserToken.Input("header", "Bool", false, "header", "", true, false, "include Authorization header name in response")
 	rGetUserToken.Auth("", "", true, "")
 	rGetUserToken.Exception("FORBIDDEN", "ResourceError", "")
 	rGetUserToken.Exception("UNAUTHORIZED", "ResourceError", "")

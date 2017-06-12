@@ -4653,7 +4653,7 @@ public class ZMSImplTest extends TestCase {
         zms.privateKeyId = "0";
         zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
         
-        UserToken token = zms.getUserToken(rsrcCtx1, userId, null);
+        UserToken token = zms.getUserToken(rsrcCtx1, userId, null, null);
         assertNotNull(token);
         assertTrue(token.getToken().startsWith("v=U1;d=user;n=" + userId + ";"));
         assertTrue(token.getToken().contains(";h=localhost"));
@@ -4665,7 +4665,7 @@ public class ZMSImplTest extends TestCase {
         
         zms.privateKeyId = "1";
         zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKeyK1));
-        token = zms.getUserToken(rsrcCtx1, userId, null);
+        token = zms.getUserToken(rsrcCtx1, userId, null, false);
         assertNotNull(token);
         assertTrue(token.getToken().contains("k=1"));
         // Verify signature
@@ -4675,7 +4675,7 @@ public class ZMSImplTest extends TestCase {
         zms.privateKeyId = "2";
         zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKeyK2));
 
-        token = zms.getUserToken(rsrcCtx1, userId, null);
+        token = zms.getUserToken(rsrcCtx1, userId, null, null);
         assertNotNull(token);
         assertTrue(token.getToken().contains("k=2"));
         // Verify signature
@@ -4697,11 +4697,11 @@ public class ZMSImplTest extends TestCase {
         zms.privateKeyId = "0";
         zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
         
-        UserToken token = zms.getUserToken(rsrcCtx1, userId, "coretech.storage");
+        UserToken token = zms.getUserToken(rsrcCtx1, userId, "coretech.storage", null);
         assertNotNull(token);
         assertTrue(token.getToken().contains(";b=coretech.storage;"));
         
-        token = zms.getUserToken(rsrcCtx1, userId, "coretech.storage,sports.hockey");
+        token = zms.getUserToken(rsrcCtx1, userId, "coretech.storage,sports.hockey", false);
         assertNotNull(token);
         assertTrue(token.getToken().contains(";b=coretech.storage,sports.hockey;"));
     }
@@ -4718,21 +4718,21 @@ public class ZMSImplTest extends TestCase {
         ResourceContext rsrcCtx1 = createResourceContext(principal);
         
         try {
-            zms.getUserToken(rsrcCtx1, userId, "coretech.storage,sports");
+            zms.getUserToken(rsrcCtx1, userId, "coretech.storage,sports", null);
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 401);
             assertTrue(ex.getMessage().contains("getUserToken: Service sports is not authorized in ZMS"));
         }
 
         try {
-            zms.getUserToken(rsrcCtx1, userId, "baseball");
+            zms.getUserToken(rsrcCtx1, userId, "baseball", false);
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 401);
             assertTrue(ex.getMessage().contains("getUserToken: Service baseball is not authorized in ZMS"));
         }
         
         try {
-            zms.getUserToken(rsrcCtx1, userId, "hat trick");
+            zms.getUserToken(rsrcCtx1, userId, "hat trick", false);
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 401);
             assertTrue(ex.getMessage().contains("getUserToken: Service hat trick is not authorized in ZMS"));
@@ -4761,7 +4761,7 @@ public class ZMSImplTest extends TestCase {
         zms.privateKeyId = "0";
         zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
         
-        UserToken token = zms.getUserToken(rsrcCtx1, userId, null);
+        UserToken token = zms.getUserToken(rsrcCtx1, userId, null, null);
         assertNotNull(token);
         // Verify signature
         Principal principalToVerify = principalAuthority.authenticate(token.getToken(), "10.11.12.13", "GET", null);
@@ -4790,21 +4790,21 @@ public class ZMSImplTest extends TestCase {
         ResourceContext rsrcCtx1 = createResourceContext(principal);
         
         try {
-            zms.getUserToken(rsrcCtx1, "user2", null);
+            zms.getUserToken(rsrcCtx1, "user2", null, null);
             fail("unauthorizederror not thrown.");
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), code);
         }
         
         try {
-            zms.getUserToken(rsrcCtx1, "_self", null);
+            zms.getUserToken(rsrcCtx1, "_self", null, false);
             fail("unauthorizederror not thrown.");
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), code);
         }
         
         try {
-            zms.getUserToken(rsrcCtx1, "self", null);
+            zms.getUserToken(rsrcCtx1, "self", null, false);
             fail("unauthorizederror not thrown.");
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), code);
@@ -4829,7 +4829,7 @@ public class ZMSImplTest extends TestCase {
         zms.privateKeyId = "0";
         zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
         
-        UserToken token = zms.getUserToken(rsrcCtx1, "_self_", null);
+        UserToken token = zms.getUserToken(rsrcCtx1, "_self_", null, false);
         assertNotNull(token);
         assertTrue(token.getToken().startsWith("v=U1;d=user;n=" + userId + ";"));
         assertTrue(token.getToken().contains(";h=localhost"));
@@ -4850,7 +4850,7 @@ public class ZMSImplTest extends TestCase {
         ResourceContext rsrcCtx1 = createResourceContext(principal);
         
         try {
-            zms.getUserToken(rsrcCtx1, "user1", null);
+            zms.getUserToken(rsrcCtx1, "user1", null, null);
             fail("unauthorizederror not thrown.");
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), code);
@@ -4865,7 +4865,7 @@ public class ZMSImplTest extends TestCase {
         ResourceContext rsrcCtx1 = createResourceContext(principal);
 
         try {
-            zms.getUserToken(rsrcCtx1, "user1", null);
+            zms.getUserToken(rsrcCtx1, "user1", null, null);
             fail("unauthorizederror not thrown.");
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), code);

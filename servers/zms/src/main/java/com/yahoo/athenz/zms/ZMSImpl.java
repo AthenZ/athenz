@@ -161,6 +161,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected PrivateKeyStore keyStore = null;
     protected boolean secureRequestsOnly = true;
     protected AuditLogger auditLogger = null;
+    protected Authority principalAuthority = null;
 
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
@@ -593,8 +594,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         // get our authorities
         
-        String authListConfig = System.getProperty(ZMSConsts.ZMS_PROP_AUTHORITY_CLASSES,
+        final String authListConfig = System.getProperty(ZMSConsts.ZMS_PROP_AUTHORITY_CLASSES,
                 ZMSConsts.ZMS_PRINCIPAL_AUTHORITY_CLASS);
+        final String principalAuthorityClass = System.getProperty(ZMSConsts.ZMS_PROP_PRINCIPAL_AUTHORITY_CLASS);
+        
         authorities = new AuthorityList();
 
         String[] authorityList = authListConfig.split(",");
@@ -602,6 +605,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             Authority authority = getAuthority(authorityList[idx]);
             if (authority == null) {
                 throw new IllegalArgumentException("Invalid authority");
+            }
+            if (authorityList[idx].equals(principalAuthorityClass)) {
+                principalAuthority = authority;
             }
             authority.initialize();
             authorities.add(authority);
@@ -4046,7 +4052,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return true;
     }
     
-    public UserToken getUserToken(ResourceContext ctx, String userName, String authorizedServices) {
+    @Override
+    public UserToken getUserToken(ResourceContext ctx, String userName, String authorizedServices,
+            Boolean header) {
 
         final String caller = "getusertoken";
         metric.increment(ZMSConsts.HTTP_GET);
@@ -4087,6 +4095,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         token.sign(privateKey);
         UserToken userToken = new UserToken().setToken(token.getSignedToken());
+        
+        if (header == Boolean.TRUE && principalAuthority != null) {
+            userToken.setHeader(principalAuthority.getHeader());
+        }
         
         // set our standard CORS headers in our response if we're processing
         // a get user token for an authorized service
