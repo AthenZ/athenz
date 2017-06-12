@@ -341,7 +341,8 @@ public class ZMSSchema {
 
         sb.structType("UserToken")
             .comment("A user token generated based on user's credentials")
-            .field("token", "SignedToken", false, "Signed user token identifying a specific authenticated user");
+            .field("token", "SignedToken", false, "Signed user token identifying a specific authenticated user")
+            .field("header", "String", true, "Authorization header name for the token");
 
         sb.structType("ServicePrincipal")
             .comment("A service principal object identifying a given service.")
@@ -1380,6 +1381,7 @@ public class ZMSSchema {
             .comment("Return a user/principal token for the specified authenticated user. Typical authenticated users with their native credentials are not allowed to update their domain data. They must first obtain a UserToken and then use that token for authentication and authorization of their update requests.")
             .pathParam("userName", "SimpleName", "name of the user")
             .queryParam("services", "serviceNames", "String", null, "comma separated list of on-behalf-of service names")
+            .queryParam("header", "header", "Bool", false, "include Authorization header name in response")
             .auth("", "", true)
             .expected("OK")
             .exception("FORBIDDEN", "ResourceError", "")

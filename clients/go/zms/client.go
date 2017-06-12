@@ -2225,9 +2225,9 @@ func (client ZMSClient) GetSignedDomains(domain DomainName, metaOnly string, mat
 	}
 }
 
-func (client ZMSClient) GetUserToken(userName SimpleName, serviceNames string) (*UserToken, error) {
+func (client ZMSClient) GetUserToken(userName SimpleName, serviceNames string, header *bool) (*UserToken, error) {
 	var data *UserToken
-	url := client.URL + "/user/" + fmt.Sprint(userName) + "/token" + encodeParams(encodeStringParam("services", string(serviceNames), ""))
+	url := client.URL + "/user/" + fmt.Sprint(userName) + "/token" + encodeParams(encodeStringParam("services", string(serviceNames), ""), encodeOptionalBoolParam("header", header))
 	resp, err := client.httpGet(url, nil)
 	if err != nil {
 		return data, err

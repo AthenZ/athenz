@@ -1696,11 +1696,11 @@ public class ZMSResources {
     @GET
     @Path("/user/{userName}/token")
     @Produces(MediaType.APPLICATION_JSON)
-    public UserToken getUserToken(@PathParam("userName") String userName, @QueryParam("services") String serviceNames) {
+    public UserToken getUserToken(@PathParam("userName") String userName, @QueryParam("services") String serviceNames, @QueryParam("header") @DefaultValue("false") Boolean header) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            UserToken e = this.delegate.getUserToken(context, userName, serviceNames);
+            UserToken e = this.delegate.getUserToken(context, userName, serviceNames, header);
             return e;
         } catch (ResourceException e) {
             int code = e.getCode();

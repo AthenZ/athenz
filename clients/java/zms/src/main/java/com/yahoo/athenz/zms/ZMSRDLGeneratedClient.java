@@ -1384,11 +1384,14 @@ public class ZMSRDLGeneratedClient {
 
     }
 
-    public UserToken getUserToken(String userName, String serviceNames) {
+    public UserToken getUserToken(String userName, String serviceNames, Boolean header) {
         WebTarget target = base.path("/user/{userName}/token")
             .resolveTemplate("userName", userName);
         if (serviceNames != null) {
             target = target.queryParam("services", serviceNames);
+        }
+        if (header != null) {
+            target = target.queryParam("header", header);
         }
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {

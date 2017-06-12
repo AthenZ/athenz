@@ -149,8 +149,8 @@ public class ZMSClientMockTest {
     public void testGetUserToken() throws Exception {
 
         String uname = "johnny";
-        Mockito.doReturn(new UserToken()).when(mockZMS).getUserToken(uname, null);
-        Mockito.doReturn(new UserToken()).when(mockZMS).getUserToken(uname, "coretech.storage");
+        Mockito.doReturn(new UserToken()).when(mockZMS).getUserToken(uname, null, null);
+        Mockito.doReturn(new UserToken()).when(mockZMS).getUserToken(uname, "coretech.storage", null);
 
         UserToken utok = zclt.getUserToken(uname);
         assertNotNull(utok);

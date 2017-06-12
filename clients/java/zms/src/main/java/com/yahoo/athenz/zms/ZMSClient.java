@@ -54,7 +54,7 @@ public class ZMSClient implements Closeable {
     public static final String ZMS_CLIENT_PROP_CONNECT_TIMEOUT = "athenz.zms.client.connect_timeout";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZMSClient.class);
-    private static final Authority PRINCIPAL_AUTHORITY = new com.yahoo.athenz.auth.impl.PrincipalAuthority();
+    private static final Authority PRINCIPAL_AUTHORITY = new PrincipalAuthority();
     
     /**
      * Constructs a new ZMSClient object with default settings.
@@ -206,15 +206,11 @@ public class ZMSClient implements Closeable {
          */
 
         String userName = principal.getName();
-        long issueTime = principal.getIssueTime();
-        UserToken userToken = getUserToken(userName);
+        UserToken userToken = getUserToken(userName, null, true);
 
-        PrincipalToken principalToken = new PrincipalToken(userToken.getToken());
-        Principal identity = SimplePrincipal.create(principalToken.getDomain(),
-                principalToken.getName(), userToken.getToken(), issueTime,
-                PRINCIPAL_AUTHORITY);
         clearCredentials();
-        addCredentials(identity);
+        client.addCredentials(userToken.getHeader(), userToken.getToken());
+        principalCheckDone = true;
     }
 
     String lookupZMSUrl() {
@@ -701,11 +697,9 @@ public class ZMSClient implements Closeable {
      */
     public void putMembership(String domainName, String roleName, String memberName,
             Timestamp expiration, String auditRef) {
-        Membership mbr = new Membership();
-        mbr.setRoleName(roleName);
-        mbr.setMemberName(memberName);
-        mbr.setExpiration(expiration);
-        mbr.setIsMember(true);
+        Membership mbr = new Membership().setRoleName(roleName)
+                .setMemberName(memberName).setExpiration(expiration)
+                .setIsMember(true);
         updatePrincipal();
         try {
             client.putMembership(domainName, roleName, memberName, auditRef, mbr);
@@ -1479,7 +1473,25 @@ public class ZMSClient implements Closeable {
      * @return ZMS generated User Token
      */
     public UserToken getUserToken(String userName) {
-        return getUserToken(userName, null);
+        return getUserToken(userName, null, null);
+    }
+    
+    /**
+     * For the specified user credentials return the corresponding User Token that
+     * can be used for authenticating other ZMS operations by any of the specified
+     * authorized services.
+     * @param userName name of the user
+     * @param serviceNames comma separated list of authorized service names
+     * @return ZMS generated User Token
+     */
+    public UserToken getUserToken(String userName, String serviceNames, Boolean header) {
+        try {
+            return client.getUserToken(userName, serviceNames, header);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
     }
     
     /**
@@ -1492,7 +1504,7 @@ public class ZMSClient implements Closeable {
      */
     public UserToken getUserToken(String userName, String serviceNames) {
         try {
-            return client.getUserToken(userName, serviceNames);
+            return client.getUserToken(userName, serviceNames, null);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
@@ -1524,14 +1536,33 @@ public class ZMSClient implements Closeable {
      * The client will validate the given serviceToken against the ZMS Server
      * and if the token is valid, it will return a Principal object.
      * @param serviceToken token to be validated.
-     * @return Principal object if the token is successfully validated or 
+     * @return Principal object if the token is successfully validated or
      * ZMSClientException will be thrown in case of failure
      */
     public Principal getPrincipal(String serviceToken) {
+        return getPrincipal(serviceToken, PRINCIPAL_AUTHORITY.getHeader());
+    }
+    
+    /**
+     * The client will validate the given serviceToken against the ZMS Server
+     * and if the token is valid, it will return a Principal object.
+     * @param serviceToken token to be validated.
+     * @param tokenHeader name of the authorization header for the token
+     * @return Principal object if the token is successfully validated or
+     * ZMSClientException will be thrown in case of failure
+     */
+    public Principal getPrincipal(String serviceToken, String tokenHeader) {
         
         if (serviceToken == null) {
             throw new ZMSClientException(401, "Null service token provided");
         }
+
+        if (tokenHeader == null) {
+            tokenHeader = PRINCIPAL_AUTHORITY.getHeader();
+        }
+        
+        // verify that service token is valid before sending the data to
+        // the ZMS server
         
         PrincipalToken token = null;
         try {
@@ -1548,7 +1579,8 @@ public class ZMSClient implements Closeable {
             throw new ZMSClientException(ZMSClientException.UNAUTHORIZED, "Invalid service token provided");
         }
         
-        addCredentials(servicePrincipal);
+        client.addCredentials(tokenHeader, serviceToken);
+        principalCheckDone = true;
         
         ServicePrincipal validatedPrincipal = null;
         try {

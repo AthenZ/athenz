@@ -3774,6 +3774,11 @@ type UserToken struct {
 	// Signed user token identifying a specific authenticated user
 	//
 	Token SignedToken `json:"token"`
+
+	//
+	// Authorization header name for the token
+	//
+	Header string `json:"header,omitempty" rdl:"optional"`
 }
 
 //
