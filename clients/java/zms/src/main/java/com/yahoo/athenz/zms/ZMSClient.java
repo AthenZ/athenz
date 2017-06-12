@@ -538,6 +538,21 @@ public class ZMSClient implements Closeable {
     }
 
     /**
+     * Set the user domain meta parameters
+     * @param name user name (without the domain part)
+     * @param detail meta parameters to be set on the domain
+     */
+    public void putUserMeta(String name, UserMeta detail) {
+        try {
+            client.putUserMeta(name, detail);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
      * Retrieve the list of roles defined for the specified domain
      * @param domainName name of the domain
      * @return list of role names or ZMSClientException will be thrown in case of failure
