@@ -19,8 +19,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+//import java.lang.reflect.InvocationTargetException;
+//import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -43,8 +43,7 @@ import org.testng.annotations.Test;
 
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
-import com.yahoo.rdl.Array;
-import com.yahoo.rdl.Struct;
+//import com.yahoo.rdl.Array;
 
 public class CryptoTest {
 
@@ -494,54 +493,54 @@ public class CryptoTest {
         assertNotNull(checkByte);
     }
 
-    @Test
-    public void testHmac() throws Exception {
-        Struct argData =  new Struct(3);
-        argData.append("00", 0);
-        argData.append("01", 1);
-        argData.append("02", 2);
-        
-        String hmac = Crypto.hmac(argData, "check");
-        
-        assertNotNull(hmac);
+//    @Test
+//    public void testHmac() throws Exception {
+//        Struct argData =  new Struct(3);
+//        argData.append("00", 0);
+//        argData.append("01", 1);
+//        argData.append("02", 2);
+//        
+//        String hmac = Crypto.hmac(argData, "check");
+//        
+//        assertNotNull(hmac);
+//
+//        boolean checkStringNum = false;
+//        if(hmac.length() == 44){
+//            checkStringNum = true;
+//        }
+//        assertTrue(checkStringNum);
+//    }
+//
+//    @Test
+//    public void testSign(){
+//        Struct argData = new Struct(3);
+//        argData.append("00", 0);
+//        argData.append("01", 1);
+//        argData.append("02", 2);
+//
+//        PrivateKey privateKey = Crypto.loadPrivateKey(rsaPrivateKey);
+//        String checkSign = Crypto.sign(argData,privateKey);
+//        
+//        assertNotNull(checkSign);
+//        assertEquals(checkSign.length(),88);
+//    }
 
-        boolean checkStringNum = false;
-        if(hmac.length() == 44){
-            checkStringNum = true;
-        }
-        assertTrue(checkStringNum);
-    }
-
-    @Test
-    public void testSign(){
-        Struct argData = new Struct(3);
-        argData.append("00", 0);
-        argData.append("01", 1);
-        argData.append("02", 2);
-
-        PrivateKey privateKey = Crypto.loadPrivateKey(rsaPrivateKey);
-        String checkSign = Crypto.sign(argData,privateKey);
-        
-        assertNotNull(checkSign);
-        assertEquals(checkSign.length(),88);
-    }
-
-    @Test
-    public void testCanonical() throws NoSuchMethodException, SecurityException, IllegalAccessException,
-            IllegalArgumentException, InvocationTargetException {
-        Class<Crypto> c = Crypto.class;
-        Crypto check = new Crypto();
-
-        Method m = c.getDeclaredMethod("canonical", Object.class );
-        m.setAccessible(true);
-        Array p = null; 
-        Object a = (Object) m.invoke(check, p);
-        assertNull(a);
-        Array az = new Array();
-        az.add("aa");
-        a = (Object) m.invoke(check, az);
-        assertNotNull(a);
-    }
+//    @Test
+//    public void testCanonical() throws NoSuchMethodException, SecurityException, IllegalAccessException,
+//            IllegalArgumentException, InvocationTargetException {
+//        Class<Crypto> c = Crypto.class;
+//        Crypto check = new Crypto();
+//
+//        Method m = c.getDeclaredMethod("canonical", Object.class );
+//        m.setAccessible(true);
+//        Array p = null; 
+//        Object a = (Object) m.invoke(check, p);
+//        assertNull(a);
+//        Array az = new Array();
+//        az.add("aa");
+//        a = (Object) m.invoke(check, az);
+//        assertNotNull(a);
+//    }
     
     @DataProvider
     public Object[][] x500Principal() {

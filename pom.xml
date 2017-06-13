@@ -72,6 +72,7 @@
     <jetty.version>9.4.5.v20170502</jetty.version>
     <jersey.version>2.23.2</jersey.version>
     <jackson.version>2.5.4</jackson.version>
+    <rdl.version>1.4.13</rdl.version>
     <bouncycastle.version>1.55</bouncycastle.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -166,25 +167,6 @@
   </build>
 
   <dependencies>
-    <dependency>
-      <groupId>com.yahoo.rdl</groupId>
-      <artifactId>rdl-java</artifactId>
-      <version>1.4.8-2</version>
-      <exclusions>
-        <exclusion>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-databind</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-core</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-annotations</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
