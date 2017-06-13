@@ -678,7 +678,7 @@ public class DataStore implements DataCacheProvider {
     
     // Internal
     void processStandardMembership(Set<MemberRole> memberRoles, String rolePrefix,
-            String roleName, List<String> accessibleRoles, boolean keepFullName) {
+            String roleName, Set<String> accessibleRoles, boolean keepFullName) {
         
         /* if we have no member roles, then we haven't added anything
          * to our return result list */
@@ -704,7 +704,7 @@ public class DataStore implements DataCacheProvider {
     
     // Internal
     void processTrustMembership(DataCache data, String identity, String rolePrefix,
-            String roleName, List<String> accessibleRoles, boolean keepFullName) {
+            String roleName, Set<String> accessibleRoles, boolean keepFullName) {
         
         Map<String, Set<String>> trustedRolesMap = data.getTrustMap();
 
@@ -726,7 +726,7 @@ public class DataStore implements DataCacheProvider {
     
     // API
     public void getAccessibleRoles(DataCache data, String domainName, String identity,
-            String roleName, List<String> accessibleRoles, boolean keepFullName) {
+            String roleName, Set<String> accessibleRoles, boolean keepFullName) {
 
         /* if the domain hasn't been processed then we don't have anything to do */
         
@@ -734,7 +734,7 @@ public class DataStore implements DataCacheProvider {
             return;
         }
 
-        String rolePrefix = domainName + ROLE_POSTFIX;
+        final String rolePrefix = domainName + ROLE_POSTFIX;
 
         /* first look through the members to see if the given identity is
          * included in the list explicitly */
@@ -742,7 +742,25 @@ public class DataStore implements DataCacheProvider {
         processStandardMembership(data.getMemberRoleSet(identity),
                 rolePrefix, roleName, accessibleRoles, keepFullName);
         
-        /* now process all the roles that have trusted domain specified */
+        /* next look at all * wildcard roles that are configured
+         * for all members to access */
+
+        processStandardMembership(data.getAllMemberRoleSet(),
+                rolePrefix, roleName, accessibleRoles, keepFullName);
+        
+        /* then look at the prefix wildcard roles. in this map
+         * we only process those where the key in the map is
+         * a prefix of our identity */
+        
+        Map<String, Set<MemberRole>> roleSetMap = data.getPrefixMemberRoleSetMap();
+        for (String identityPrefix : roleSetMap.keySet()) {
+            if (identity.startsWith(identityPrefix)) {
+                processStandardMembership(roleSetMap.get(identityPrefix),
+                        rolePrefix, roleName, accessibleRoles, keepFullName);
+            }
+        }
+        
+        /* finally process all the roles that have trusted domain specified */
 
         processTrustMembership(data, identity, rolePrefix, roleName,
                 accessibleRoles, keepFullName);
@@ -760,7 +778,7 @@ public class DataStore implements DataCacheProvider {
 
     // Internal
     void addRoleToList(String role, String rolePrefix, String roleName,
-            List<String> accessibleRoles, boolean keepFullName) {
+            Set<String> accessibleRoles, boolean keepFullName) {
 
         /* any roles we return must start with the domain role prefix */
 
@@ -819,7 +837,7 @@ public class DataStore implements DataCacheProvider {
     
     // Internal
     void processSingleTrustedDomainRole(String roleName, String rolePrefix, String roleSuffix,
-            Set<MemberRole> memberRoles, List<String> accessibleRoles, boolean keepFullName) {
+            Set<MemberRole> memberRoles, Set<String> accessibleRoles, boolean keepFullName) {
         
         /* since our member role set can include wildcard domains we
          * need to match the role as oppose to a direct check if the
@@ -836,7 +854,7 @@ public class DataStore implements DataCacheProvider {
     
     // Internal
     void processTrustedDomain(DataCache trustData, String identity, String rolePrefix,
-            String roleSuffix, Set<String> trustedResources, List<String> accessibleRoles,
+            String roleSuffix, Set<String> trustedResources, Set<String> accessibleRoles,
             boolean keepFullName) {
 
         /* verify that our data cache and list of trusted resources are valid */
@@ -845,19 +863,52 @@ public class DataStore implements DataCacheProvider {
             return;
         }
         
-        /* if we have no member roles, then return right away */
+        /* first we need to process our regular roles that include
+         * our identity */
 
         Set<MemberRole> memberRoles = trustData.getMemberRoleSet(identity);
-        if (memberRoles == null) {
-            return;
+        if (memberRoles != null) {
+        
+            for (String resource : trustedResources) {
+                
+                /* in this case our resource is the role name */
+                    
+                processSingleTrustedDomainRole(resource, rolePrefix, roleSuffix,
+                        memberRoles, accessibleRoles, keepFullName);
+            }
         }
         
-        for (String resource : trustedResources) {
-            
-            /* in this case our resource is the role name */
+        /* next we should process all the * wildcard roles */
+        
+        memberRoles = trustData.getAllMemberRoleSet();
+        if (memberRoles != null && !memberRoles.isEmpty()) {
+        
+            for (String resource : trustedResources) {
                 
-            processSingleTrustedDomainRole(resource, rolePrefix, roleSuffix,
-                    memberRoles, accessibleRoles, keepFullName);
+                /* in this case our resource is the role name */
+                    
+                processSingleTrustedDomainRole(resource, rolePrefix, roleSuffix,
+                        memberRoles, accessibleRoles, keepFullName);
+            }
+        }
+        
+        /* finally we're going to process the wildcard roles
+         * but we need to first confirm that our identity
+         * matches to member before processing it */
+        
+        Map<String, Set<MemberRole>> roleSetMap = trustData.getPrefixMemberRoleSetMap();
+        for (String identityPrefix : roleSetMap.keySet()) {
+            if (identity.startsWith(identityPrefix)) {
+                
+                memberRoles = roleSetMap.get(identityPrefix);
+                for (String resource : trustedResources) {
+                    
+                    /* in this case our resource is the role name */
+                        
+                    processSingleTrustedDomainRole(resource, rolePrefix, roleSuffix,
+                            memberRoles, accessibleRoles, keepFullName);
+                }
+            }
         }
     }
     

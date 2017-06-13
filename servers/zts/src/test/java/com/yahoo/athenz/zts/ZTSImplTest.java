@@ -4298,35 +4298,35 @@ public class ZTSImplTest {
     }
     
     @Test
-    public void testCompareRoleLists() {
-        List<String> list1 = new ArrayList<>();
-        List<String> list2 = new ArrayList<>();
+    public void testCompareRoleSets() {
+        Set<String> set1 = new HashSet<>();
+        Set<String> set2 = new HashSet<>();
 
         // emtpy sets should match
         
-        assertTrue(zts.compareRoleLists(list1, list2));
+        assertTrue(zts.compareRoleSets(set1, set2));
         
         // not the same size so mismatch
         
-        list1.add("role1");
-        list1.add("role2");
+        set1.add("role1");
+        set1.add("role2");
         
-        list2.add("role1");
+        set2.add("role1");
         
-        assertFalse(zts.compareRoleLists(list1, list2));
+        assertFalse(zts.compareRoleSets(set1, set2));
         
         // same size different values
         
-        list2.add("role3");
+        set2.add("role3");
         
-        assertFalse(zts.compareRoleLists(list1, list2));
+        assertFalse(zts.compareRoleSets(set1, set2));
 
         // same values in both
         
-        list1.add("role3");
-        list2.add("role2");
+        set1.add("role3");
+        set2.add("role2");
         
-        assertTrue(zts.compareRoleLists(list1, list2));
+        assertTrue(zts.compareRoleSets(set1, set2));
     }
     
     @Test
@@ -4336,7 +4336,8 @@ public class ZTSImplTest {
         String csr = new String(Files.readAllBytes(path));
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
         
-        List<String> roles = Arrays.asList("writer");
+        Set<String> roles = new HashSet<>();
+        roles.add("writer");
         assertFalse(zts.validateRoleCertificateRequest(certReq, "sports", roles, "sports.scores"));
     }
     
@@ -4347,7 +4348,8 @@ public class ZTSImplTest {
         String csr = new String(Files.readAllBytes(path));
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
         
-        List<String> roles = Arrays.asList("readers");
+        Set<String> roles = new HashSet<>();
+        roles.add("readers");
         assertFalse(zts.validateRoleCertificateRequest(certReq, "sports", roles, "sports.standings"));
     }
     
@@ -4358,7 +4360,8 @@ public class ZTSImplTest {
         String csr = new String(Files.readAllBytes(path));
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
         
-        List<String> roles = Arrays.asList("readers");
+        Set<String> roles = new HashSet<>();
+        roles.add("readers");
         assertTrue(zts.validateRoleCertificateRequest(certReq, "sports", roles, "no-email"));
     }
     
@@ -4369,7 +4372,8 @@ public class ZTSImplTest {
         String csr = new String(Files.readAllBytes(path));
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
         
-        List<String> roles = Arrays.asList("readers");
+        Set<String> roles = new HashSet<>();
+        roles.add("readers");
         assertTrue(zts.validateRoleCertificateRequest(certReq, "sports", roles, "sports.scores"));
     }
     
@@ -4485,10 +4489,15 @@ public class ZTSImplTest {
         assertTrue(authorizer.memberNameMatch("*", "athenz.service.storage"));
         assertTrue(authorizer.memberNameMatch("user.*", "user.joe"));
         assertTrue(authorizer.memberNameMatch("athenz.*", "athenz.service.storage"));
+        assertTrue(authorizer.memberNameMatch("athenz.service*", "athenz.service.storage"));
+        assertTrue(authorizer.memberNameMatch("athenz.service*", "athenz.service-storage"));
+        assertTrue(authorizer.memberNameMatch("athenz.service*", "athenz.service"));
         assertTrue(authorizer.memberNameMatch("user.joe", "user.joe"));
         
         assertFalse(authorizer.memberNameMatch("user.*", "athenz.joe"));
         assertFalse(authorizer.memberNameMatch("athenz.*", "athenztest.joe"));
+        assertFalse(authorizer.memberNameMatch("athenz.service*", "athenz.servic"));
+        assertFalse(authorizer.memberNameMatch("athenz.service*", "athenz.servictag"));
         assertFalse(authorizer.memberNameMatch("user.joe", "user.joel"));
     }
     

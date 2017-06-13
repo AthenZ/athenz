@@ -39,6 +39,8 @@ public class DataCache {
 
     // member ==> [ role1, role2, ...] complete map
     private final Map<String, Set<MemberRole>> memberRoleCache;
+    private final Map<String, Set<MemberRole>> memberPrefixRoleCache;
+    private final Set<MemberRole> memberAllRoleCache;
     private final Map<String, Set<String>> trustCache;
     private final Map<String, Set<String>> hostCache;
     private final Map<String, Set<String>> awsRoleCache;
@@ -51,6 +53,8 @@ public class DataCache {
     
     public DataCache() {
         memberRoleCache = new HashMap<>();
+        memberPrefixRoleCache = new HashMap<>();
+        memberAllRoleCache = new HashSet<>();
         trustCache = new HashMap<>();
         hostCache = new HashMap<>();
         awsRoleCache = new HashMap<>();
@@ -91,12 +95,28 @@ public class DataCache {
                 continue;
             }
             
+            // we're going to process 3 types of members
+            // * - all members have access to these roles
+            // <prefix>* - members with the key name prefix
+            // <member> - regular members
+            
             final String memberName = member.getMemberName();
-            if (!memberRoleCache.containsKey(memberName)) {
-                memberRoleCache.put(memberName, new HashSet<>());
+            if (memberName.equals("*")) {
+                memberAllRoleCache.add(new MemberRole(roleName, expiration));
+            } else if (memberName.endsWith("*")) {
+                final String keyName = memberName.substring(0, memberName.length() - 1);
+                if (!memberPrefixRoleCache.containsKey(keyName)) {
+                    memberPrefixRoleCache.put(keyName, new HashSet<>());
+                }
+                final Set<MemberRole> rolesForMember = memberPrefixRoleCache.get(keyName);
+                rolesForMember.add(new MemberRole(roleName, expiration));
+            } else {
+                if (!memberRoleCache.containsKey(memberName)) {
+                    memberRoleCache.put(memberName, new HashSet<>());
+                }
+                final Set<MemberRole> rolesForMember = memberRoleCache.get(memberName);
+                rolesForMember.add(new MemberRole(roleName, expiration));
             }
-            final Set<MemberRole> rolesForMember = memberRoleCache.get(memberName);
-            rolesForMember.add(new MemberRole(roleName, expiration));
         }
     }
 
@@ -266,6 +286,22 @@ public class DataCache {
      */
     public Set<MemberRole> getMemberRoleSet(String member) {
         return memberRoleCache.get(member);
+    }
+    
+    /**
+     * Return roles configured for all access
+     * @return the list of roles
+     */
+    public Set<MemberRole> getAllMemberRoleSet() {
+        return memberAllRoleCache;
+    }
+    
+    /**
+     * Return roles configured for wildcard access
+     * @return the list of roles
+     */
+    public Map<String, Set<MemberRole>> getPrefixMemberRoleSetMap() {
+        return memberPrefixRoleCache;
     }
     
     /**

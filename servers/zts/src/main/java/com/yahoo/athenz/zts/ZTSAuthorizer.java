@@ -283,10 +283,10 @@ public class ZTSAuthorizer implements Authorizer {
     
     boolean memberNameMatch(String memberName, String matchName) {
         // we are supporting 3 formats for role members
-        // *, <domain>.* and <domain>.<user>
+        // *, <domain>.[user]* and <domain>.<user>
         if (memberName.equals("*")) {
             return true;
-        } else if (memberName.endsWith(".*")) {
+        } else if (memberName.endsWith("*")) {
             return matchName.startsWith(memberName.substring(0, memberName.length() - 1));
         } else {
             return memberName.equals(matchName);

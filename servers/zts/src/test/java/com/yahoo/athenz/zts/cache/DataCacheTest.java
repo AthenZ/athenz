@@ -241,6 +241,107 @@ public class DataCacheTest {
     }
     
     @Test
+    public void testProcessRoleMembersWithWildcards() {
+        
+        List<RoleMember> members1 = new ArrayList<>();
+        members1.add(new RoleMember().setMemberName("user_domain.user1"));
+        members1.add(new RoleMember().setMemberName("user_domain.user2"));
+        members1.add(new RoleMember().setMemberName("user_domain.*"));
+        members1.add(new RoleMember().setMemberName("user_domain.user*"));
+        members1.add(new RoleMember().setMemberName("*"));
+        
+        DataCache cache = new DataCache();
+        cache.processRoleMembers("dom.role1", members1);
+        
+        Set<MemberRole> set1 = cache.getMemberRoleSet("user_domain.user1");
+        assertNotNull(set1);
+        assertTrue(set1.contains(new MemberRole("dom.role1", 0)));
+        assertEquals(set1.size(), 1);
+        
+        Set<MemberRole> set2 = cache.getMemberRoleSet("user_domain.user2");
+        assertNotNull(set2);
+        assertTrue(set2.contains(new MemberRole("dom.role1", 0)));
+        assertEquals(set2.size(), 1);
+        
+        Set<MemberRole> set3 = cache.getAllMemberRoleSet();
+        assertNotNull(set3);
+        assertTrue(set3.contains(new MemberRole("dom.role1", 0)));
+        assertEquals(set3.size(), 1);
+        
+        Map<String, Set<MemberRole>> setMap = cache.getPrefixMemberRoleSetMap();
+        assertNotNull(setMap);
+        assertEquals(setMap.size(), 2);
+        
+        Set<MemberRole> set4 = setMap.get("user_domain.");
+        assertNotNull(set4);
+        assertTrue(set4.contains(new MemberRole("dom.role1", 0)));
+        assertEquals(set4.size(), 1);
+        
+        Set<MemberRole> set5 = setMap.get("user_domain.user");
+        assertNotNull(set5);
+        assertTrue(set5.contains(new MemberRole("dom.role1", 0)));
+        assertEquals(set5.size(), 1);
+    }
+    
+    @Test
+    public void testProcessRoleMembersWithWildcardsMultipleRoles() {
+        
+        List<RoleMember> members1 = new ArrayList<>();
+        members1.add(new RoleMember().setMemberName("user_domain.user1"));
+        members1.add(new RoleMember().setMemberName("user_domain.user2"));
+        members1.add(new RoleMember().setMemberName("user_domain.*"));
+        members1.add(new RoleMember().setMemberName("user_domain.user*"));
+        members1.add(new RoleMember().setMemberName("*"));
+        
+        List<RoleMember> members2 = new ArrayList<>();
+        members2.add(new RoleMember().setMemberName("user_domain.user1"));
+        members2.add(new RoleMember().setMemberName("user_domain.user3"));
+        members2.add(new RoleMember().setMemberName("user_domain.*"));
+        members2.add(new RoleMember().setMemberName("*"));
+        
+        DataCache cache = new DataCache();
+        cache.processRoleMembers("dom.role1", members1);
+        cache.processRoleMembers("dom.role2", members2);
+        
+        Set<MemberRole> set1 = cache.getMemberRoleSet("user_domain.user1");
+        assertNotNull(set1);
+        assertTrue(set1.contains(new MemberRole("dom.role1", 0)));
+        assertTrue(set1.contains(new MemberRole("dom.role2", 0)));
+        assertEquals(set1.size(), 2);
+        
+        Set<MemberRole> set2 = cache.getMemberRoleSet("user_domain.user2");
+        assertNotNull(set2);
+        assertTrue(set2.contains(new MemberRole("dom.role1", 0)));
+        assertEquals(set2.size(), 1);
+        
+        Set<MemberRole> set3 = cache.getMemberRoleSet("user_domain.user3");
+        assertNotNull(set3);
+        assertTrue(set3.contains(new MemberRole("dom.role2", 0)));
+        assertEquals(set3.size(), 1);
+        
+        Set<MemberRole> set4 = cache.getAllMemberRoleSet();
+        assertNotNull(set4);
+        assertTrue(set4.contains(new MemberRole("dom.role1", 0)));
+        assertTrue(set4.contains(new MemberRole("dom.role2", 0)));
+        assertEquals(set4.size(), 2);
+        
+        Map<String, Set<MemberRole>> setMap = cache.getPrefixMemberRoleSetMap();
+        assertNotNull(setMap);
+        assertEquals(setMap.size(), 2);
+        
+        Set<MemberRole> set5= setMap.get("user_domain.");
+        assertNotNull(set5);
+        assertTrue(set5.contains(new MemberRole("dom.role1", 0)));
+        assertTrue(set5.contains(new MemberRole("dom.role2", 0)));
+        assertEquals(set4.size(), 2);
+        
+        Set<MemberRole> set6 = setMap.get("user_domain.user");
+        assertNotNull(set6);
+        assertTrue(set6.contains(new MemberRole("dom.role1", 0)));
+        assertEquals(set6.size(), 1);
+    }
+    
+    @Test
     public void testRoleWithTrust() {
         
         Role role1 = new Role();

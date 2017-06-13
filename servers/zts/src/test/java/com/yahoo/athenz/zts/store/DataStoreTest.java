@@ -884,7 +884,7 @@ public class DataStoreTest {
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
-        List<String> accessibleRoles = new ArrayList<>();
+        Set<String> accessibleRoles = new HashSet<>();
         store.addRoleToList("sports:role.admin", "coretech:role.", null, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
     }
@@ -896,10 +896,10 @@ public class DataStoreTest {
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
         
-        List<String> accessibleRoles = new ArrayList<>();
+        Set<String> accessibleRoles = new HashSet<>();
         store.addRoleToList("coretech:role.admin", "coretech:role.", null, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 1);
-        assertEquals(accessibleRoles.get(0), "admin");
+        assertTrue(accessibleRoles.contains("admin"));
     }
     
     @Test
@@ -909,10 +909,10 @@ public class DataStoreTest {
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
         
-        List<String> accessibleRoles = new ArrayList<>();
+        Set<String> accessibleRoles = new HashSet<>();
         store.addRoleToList("coretech:role.admin", "coretech:role.", null, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 1);
-        assertEquals(accessibleRoles.get(0), "admin");
+        assertTrue(accessibleRoles.contains("admin"));
     }
     
     @Test
@@ -1898,14 +1898,62 @@ public class DataStoreTest {
         SignedDomain signedDomain = createSignedDomain("coretech", "weather");
         store.processDomain(signedDomain, true);
         
-        List<String> accessibleRoles = new ArrayList<>();
+        Set<String> accessibleRoles = new HashSet<>();
         DataCache data = store.getDataCache("coretech");
         store.getAccessibleRoles(data, "coretech", "user_domain.user1", null, accessibleRoles, false);
         
         assertEquals(accessibleRoles.size(), 1);
         assertTrue(accessibleRoles.contains("writers"));
     }
-   
+    
+    @Test
+    public void testGetAccessibleRolesWildCards() {
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+        DataStore store = new DataStore(clogStore, null);
+        store.loadZMSPublicKeys();
+
+        SignedDomain signedDomain = createSignedDomainWildCardMembers("coretech", "weather");
+        store.processDomain(signedDomain, true);
+        
+        Set<String> accessibleRoles = new HashSet<>();
+        DataCache data = store.getDataCache("coretech");
+        store.getAccessibleRoles(data, "coretech", "user_domain.user1", null, accessibleRoles, false);
+        
+        assertEquals(accessibleRoles.size(), 2);
+        assertTrue(accessibleRoles.contains("writers"));
+        assertTrue(accessibleRoles.contains("all"));
+        
+        accessibleRoles.clear();
+        store.getAccessibleRoles(data, "coretech", "user_domain.user3", null, accessibleRoles, false);
+        
+        assertEquals(accessibleRoles.size(), 3);
+        assertTrue(accessibleRoles.contains("readers"));
+        assertTrue(accessibleRoles.contains("writers"));
+        assertTrue(accessibleRoles.contains("all"));
+        
+        accessibleRoles.clear();
+        store.getAccessibleRoles(data, "coretech", "user_domain.user5", null, accessibleRoles, false);
+        
+        assertEquals(accessibleRoles.size(), 2);
+        assertTrue(accessibleRoles.contains("writers"));
+        assertTrue(accessibleRoles.contains("all"));
+        
+        accessibleRoles.clear();
+        store.getAccessibleRoles(data, "coretech", "athenz.service", null, accessibleRoles, false);
+        
+        assertEquals(accessibleRoles.size(), 1);
+        assertTrue(accessibleRoles.contains("all"));
+        
+        // make sure the prefix is fully matched
+        
+        accessibleRoles.clear();
+        store.getAccessibleRoles(data, "coretech", "athenz.use", null, accessibleRoles, false);
+        
+        assertEquals(accessibleRoles.size(), 1);
+        assertTrue(accessibleRoles.contains("all"));
+    }
+    
     @Test
     public void testGetAccessibleRolesInvalidDomain() {
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
@@ -1915,7 +1963,7 @@ public class DataStoreTest {
         SignedDomain signedDomain = createSignedDomain("coretech", "weather");
         store.processDomain(signedDomain, true);
         
-        List<String> accessibleRoles = new ArrayList<>();
+        Set<String> accessibleRoles = new HashSet<>();
         DataCache data = store.getDataCache("sports");
         store.getAccessibleRoles(data, "sports", "user_domain.user", null, accessibleRoles, false);
         
@@ -1932,7 +1980,7 @@ public class DataStoreTest {
         SignedDomain signedDomain = createSignedDomain("coretech", "weather");
         store.processDomain(signedDomain, true);
         
-        List<String> accessibleRoles = new ArrayList<>();
+        Set<String> accessibleRoles = new HashSet<>();
         DataCache data = store.getDataCache("coretech");
         store.getAccessibleRoles(data, "coretech", "user_domain.user", "coretech:role.admin", accessibleRoles, false);
         
@@ -1950,7 +1998,7 @@ public class DataStoreTest {
         SignedDomain signedDomain = createSignedDomain("coretech", "weather");
         store.processDomain(signedDomain, true);
         
-        List<String> accessibleRoles = new ArrayList<>();
+        Set<String> accessibleRoles = new HashSet<>();
         DataCache data = store.getDataCache("coretech");
         store.getAccessibleRoles(data, "coretech", "user_domain.nonexistentuser", null, accessibleRoles, false);
         
@@ -1967,7 +2015,7 @@ public class DataStoreTest {
         SignedDomain signedDomain = createSignedDomain("coretech", "weather");
         store.processDomain(signedDomain, true);
         
-        List<String> accessibleRoles = new ArrayList<>();
+        Set<String> accessibleRoles = new HashSet<>();
         DataCache data = store.getDataCache("coretech");
         store.getAccessibleRoles(data, "coretech", "user_domain.user", null, accessibleRoles, false);
         
@@ -2028,14 +2076,14 @@ public class DataStoreTest {
         boolean result = store.init();
         assertTrue(result);
         
-        List<String> accessibleRoles = new ArrayList<>();
+        Set<String> accessibleRoles = new HashSet<>();
         DataCache data = store.getDataCache("coretech");
         store.getAccessibleRoles(data, "coretech", "user_domain.user", null, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 2);
         assertTrue(accessibleRoles.contains("admin"));
         assertTrue(accessibleRoles.contains("writers"));
         
-        accessibleRoles = new ArrayList<>();
+        accessibleRoles = new HashSet<>();
         data = store.getDataCache("sports");
         store.getAccessibleRoles(data, "sports", "user_domain.user", null, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 2);
@@ -2109,17 +2157,17 @@ public class DataStoreTest {
         boolean result = store.init();
         assertTrue(result);
         
-        List<String> accessibleRoles = new ArrayList<>();
+        Set<String> accessibleRoles = new HashSet<>();
         DataCache data = store.getDataCache("coretech");
         store.getAccessibleRoles(data, "coretech", "user_domain.user1", null, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
         
-        accessibleRoles = new ArrayList<>();
+        accessibleRoles = new HashSet<>();
         store.getAccessibleRoles(data, "coretech", "user_domain.user8", null, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 1);
         assertTrue(accessibleRoles.contains("admin"));
         
-        accessibleRoles = new ArrayList<>();
+        accessibleRoles = new HashSet<>();
         data = store.getDataCache("sports");
         store.getAccessibleRoles(data, "sports", "user_domain.user", null, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 2);
@@ -2163,7 +2211,7 @@ public class DataStoreTest {
         boolean result = store.init();
         assertTrue(result);
         
-        List<String> accessibleRoles = new ArrayList<>();
+        Set<String> accessibleRoles = new HashSet<>();
         DataCache data = store.getDataCache("coretech");
         store.getAccessibleRoles(data, "coretech", "user_domain.user", null, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
@@ -2171,7 +2219,7 @@ public class DataStoreTest {
         File file = new File("/tmp/zts_server_unit_tests/zts_root/coretech");
         assertFalse(file.exists());
         
-        accessibleRoles = new ArrayList<>();
+        accessibleRoles = new HashSet<>();
         data = store.getDataCache("sports");
         store.getAccessibleRoles(data, "sports", "user_domain.user", null, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 2);
@@ -2447,7 +2495,97 @@ public class DataStoreTest {
         return signedDomain;
     }
     
-   private SignedDomain createTenantSignedDomain(String domainName, String providerDomain) {
+    private SignedDomain createSignedDomainWildCardMembers(String domainName, String tenantDomain) {
+        
+        SignedDomain signedDomain = new SignedDomain();
+
+        List<Role> roles = new ArrayList<>();
+
+        Role role = new Role();
+        role.setName(domainName + ":role.admin");
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user"));
+        role.setRoleMembers(members);
+        roles.add(role);
+        
+        role = new Role();
+        role.setName(domainName + ":role.writers");
+        members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user*"));
+        members.add(new RoleMember().setMemberName("user_domain.user1"));
+        role.setRoleMembers(members);
+        roles.add(role);
+        
+        role = new Role();
+        role.setName(domainName + ":role.readers");
+        members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user3"));
+        members.add(new RoleMember().setMemberName("user_domain.user4"));
+        role.setRoleMembers(members);
+        roles.add(role);
+        
+        role = new Role();
+        role.setName(domainName + ":role.all");
+        members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("*"));
+        role.setRoleMembers(members);
+        roles.add(role);
+        
+        role = new Role();
+        role.setName(domainName + ":role.tenant.readers");
+        role.setTrust(tenantDomain);
+        roles.add(role);
+        
+        List<com.yahoo.athenz.zms.Policy> policies = new ArrayList<>();
+        
+        com.yahoo.athenz.zms.Policy policy = new com.yahoo.athenz.zms.Policy();
+        com.yahoo.athenz.zms.Assertion assertion = new com.yahoo.athenz.zms.Assertion();
+        assertion.setResource(domainName + ":tenant.weather.*");
+        assertion.setAction("read");
+        assertion.setRole(domainName + ":role.tenant.readers");
+        
+        List<com.yahoo.athenz.zms.Assertion> assertions = new ArrayList<>();
+        assertions.add(assertion);
+        
+        policy.setAssertions(assertions);
+        policy.setName(domainName + ":policy.tenant.reader");
+        policies.add(policy);
+        
+        ServiceIdentity service = new ServiceIdentity();
+        service.setName(domainName + ".storage");
+        setServicePublicKey(service, "0", "abcdefgh");
+        
+        List<String> hosts = new ArrayList<>();
+        hosts.add("host1");
+        service.setHosts(hosts);
+
+        List<ServiceIdentity> services = new ArrayList<>();
+        services.add(service);
+        
+        com.yahoo.athenz.zms.DomainPolicies domainPolicies = new com.yahoo.athenz.zms.DomainPolicies();
+        domainPolicies.setDomain(domainName);
+        domainPolicies.setPolicies(policies);
+        
+        com.yahoo.athenz.zms.SignedPolicies signedPolicies = new com.yahoo.athenz.zms.SignedPolicies();
+        signedPolicies.setContents(domainPolicies);
+        signedPolicies.setSignature(Crypto.sign(SignUtils.asCanonicalString(domainPolicies), pkey));
+        signedPolicies.setKeyId("0");
+        
+        DomainData domain = new DomainData();
+        domain.setName(domainName);
+        domain.setRoles(roles);
+        domain.setServices(services);
+        domain.setPolicies(signedPolicies);
+        
+        signedDomain.setDomain(domain);
+
+        signedDomain.setSignature(Crypto.sign(SignUtils.asCanonicalString(domain), pkey));
+        signedDomain.setKeyId("0");
+        
+        return signedDomain;
+    }
+    
+    private SignedDomain createTenantSignedDomain(String domainName, String providerDomain) {
         
         SignedDomain signedDomain = new SignedDomain();
 
@@ -2796,6 +2934,50 @@ public class DataStoreTest {
         return dataCache;
     }
     
+    private DataCache createDataCacheWildCard(String domainName) {
+        
+        DataCache dataCache = new DataCache();
+        List<Role> roles = new ArrayList<>();
+        
+        Role role = new Role();
+        role.setName(domainName + ":role.admin");
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user*"));
+        role.setRoleMembers(members);
+        roles.add(role);
+        dataCache.processRole(role);
+        
+        role = new Role();
+        role.setName(domainName + ":role.readers");
+        members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user1"));
+        members.add(new RoleMember().setMemberName("user_domain.joe"));
+        role.setRoleMembers(members);
+        roles.add(role);
+        dataCache.processRole(role);
+        
+        role = new Role();
+        role.setName(domainName + ":role.editors");
+        members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("*"));
+        role.setRoleMembers(members);
+        roles.add(role);
+        dataCache.processRole(role);
+        
+        role = new Role();
+        role.setName(domainName + ":role.writers");
+        role.setTrust(domainName + "Trust");
+        roles.add(role);
+        dataCache.processRole(role);
+        
+        DomainData domainData = new DomainData();
+        domainData.setName(domainName);
+        domainData.setRoles(roles);
+        
+        dataCache.setDomainData(domainData);
+        return dataCache;
+    }
+    
     @Test
     public void testProcessTrustedDomainDataNull() {
         
@@ -2803,7 +2985,7 @@ public class DataStoreTest {
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
         
-        List<String> accessibleRoles = new ArrayList<>();
+        Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
         String identity = "user_domain.user1";
         String role = "coretech:role.admin";
@@ -2823,7 +3005,7 @@ public class DataStoreTest {
         DataStore store = new DataStore(clogStore, null);
         DataCache dataCache = createDataCache("coretech");
         
-        List<String> accessibleRoles = new ArrayList<>();
+        Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
         String identity = "user_domain.user1";
         String role = "coretech:role.admin";
@@ -2839,7 +3021,7 @@ public class DataStoreTest {
         DataStore store = new DataStore(clogStore, null);
         DataCache dataCache = createDataCache("coretech");
         
-        List<String> accessibleRoles = new ArrayList<>();
+        Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
         String identity = "user_domain.user3";
         String role = "coretech:role.admin";
@@ -2859,7 +3041,7 @@ public class DataStoreTest {
         DataStore store = new DataStore(clogStore, null);
         DataCache dataCache = createDataCache("coretech");
         
-        List<String> accessibleRoles = new ArrayList<>();
+        Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
         String identity = "user_domain.user1";
         
@@ -2880,7 +3062,7 @@ public class DataStoreTest {
         DataStore store = new DataStore(clogStore, null);
         DataCache dataCache = createDataCache("coretech");
         
-        List<String> accessibleRoles = new ArrayList<>();
+        Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
         String identity = "user_domain.user1";
         String role = "coretech:role.writers"; /* invalid role causing no match */
@@ -2901,7 +3083,7 @@ public class DataStoreTest {
         DataStore store = new DataStore(clogStore, null);
         DataCache dataCache = createDataCache("coretech");
         
-        List<String> accessibleRoles = new ArrayList<>();
+        Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
         String identity = "user_domain.user1";
         String role = "coretech:role.admin";
@@ -2916,13 +3098,63 @@ public class DataStoreTest {
     }
     
     @Test
+    public void testProcessTrustedDomainRoleValidWildCard() {
+        
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+        DataStore store = new DataStore(clogStore, null);
+        DataCache dataCache = createDataCacheWildCard("coretech");
+        
+        // first we're going tor process user1
+        // which should match all three roles including
+        // both wildcard roles
+        
+        Set<String> accessibleRoles = new HashSet<>();
+        String prefix = "coretech" + ROLE_POSTFIX;
+        String identity = "user_domain.user1";
+        
+        Set<String> trustedResources = new HashSet<>();
+        trustedResources.add("coretech:role.admin");
+        trustedResources.add("coretech:role.readers");
+        trustedResources.add("coretech:role.editors");
+        
+        store.processTrustedDomain(dataCache, identity, prefix, null,
+                trustedResources, accessibleRoles, false);
+        assertEquals(accessibleRoles.size(), 3);
+        assertTrue(accessibleRoles.contains("admin"));
+        assertTrue(accessibleRoles.contains("editors"));
+        assertTrue(accessibleRoles.contains("readers"));
+        
+        // user_domain.joe should match readers and editors
+        
+        accessibleRoles.clear();
+        identity = "user_domain.joe";
+        
+        store.processTrustedDomain(dataCache, identity, prefix, null,
+                trustedResources, accessibleRoles, false);
+        assertEquals(accessibleRoles.size(), 2);
+        assertTrue(accessibleRoles.contains("readers"));
+        assertTrue(accessibleRoles.contains("editors"));
+        
+        // random service should only match editors
+        
+        accessibleRoles.clear();
+        identity = "athenz.service";
+        
+        store.processTrustedDomain(dataCache, identity, prefix, null,
+                trustedResources, accessibleRoles, false);
+        assertEquals(accessibleRoles.size(), 1);
+        assertTrue(accessibleRoles.contains("editors"));
+    }
+    
+    @Test
     public void testProcessTrustedDomainRoleInvalid() {
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
         DataCache dataCache = createDataCache("coretech");
         
-        List<String> accessibleRoles = new ArrayList<>();
+        Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech2" + ROLE_POSTFIX; /* invalid prefix to cause no match */
         String identity = "user_domain.user1";
         String role = "coretech:role.readers";
@@ -2941,7 +3173,7 @@ public class DataStoreTest {
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
         
-        List<String> accessibleRoles = new ArrayList<>();
+        Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
         
         store.processStandardMembership(null, prefix, null, accessibleRoles, false);
@@ -2954,7 +3186,7 @@ public class DataStoreTest {
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
         
-        List<String> accessibleRoles = new ArrayList<>();
+        Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
         
         Set<MemberRole> memberRoles = new HashSet<>();
@@ -2974,7 +3206,7 @@ public class DataStoreTest {
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
         
-        List<String> accessibleRoles = new ArrayList<>();
+        Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
         String roleCheck = "coretech:role.admin";
         
@@ -2987,13 +3219,32 @@ public class DataStoreTest {
     }
     
     @Test
+    public void testProcessStandardMembershipRoleExpired() {
+        
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+        DataStore store = new DataStore(clogStore, null);
+        
+        Set<String> accessibleRoles = new HashSet<>();
+        String prefix = "coretech" + ROLE_POSTFIX;
+        String roleCheck = "coretech:role.admin";
+        
+        Set<MemberRole> memberRoles = new HashSet<>();
+        memberRoles.add(new MemberRole("coretech:role.admin", System.currentTimeMillis() - 1000));
+        memberRoles.add(new MemberRole("coretech:role.readers", 0));
+        
+        store.processStandardMembership(memberRoles, prefix, roleCheck, accessibleRoles, false);
+        assertTrue(accessibleRoles.isEmpty());
+    }
+    
+    @Test
     public void testProcessStandardMembershipRoleSuffixValid() {
         
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
         
-        List<String> accessibleRoles = new ArrayList<>();
+        Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
         String roleCheck = "admin";
         
@@ -3011,7 +3262,7 @@ public class DataStoreTest {
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
         
-        List<String> accessibleRoles = new ArrayList<>();
+        Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech2" + ROLE_POSTFIX; /* invalid prefix causing no match */
         String roleCheck = "coretech:role.admin";
         
@@ -3030,7 +3281,7 @@ public class DataStoreTest {
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
         
-        List<String> accessibleRoles = new ArrayList<>();
+        Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
         String roleCheck = "2admin";
         
@@ -3055,7 +3306,7 @@ public class DataStoreTest {
         signedDomain = createTenantSignedDomain("weather", "coretech");
         store.processDomain(signedDomain, true);
         
-        List<String> accessibleRoles = new ArrayList<>();
+        Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
         String identity = "user_domain.user100";
         
@@ -3078,7 +3329,7 @@ public class DataStoreTest {
         signedDomain = createTenantSignedDomain("weather", "coretech");
         store.processDomain(signedDomain, true);
         
-        List<String> accessibleRoles = new ArrayList<>();
+        Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
         String identity = "user_domain.user100";
         
@@ -3101,7 +3352,7 @@ public class DataStoreTest {
         signedDomain = createTenantSignedDomain("weather", "coretech");
         store.processDomain(signedDomain, true);
         
-        List<String> accessibleRoles = new ArrayList<>();
+        Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
         String identity = "user_domain.user400";
         
@@ -3209,17 +3460,17 @@ public class DataStoreTest {
         boolean result = store.processDomainUpdates();
         assertTrue(result);
         
-        List<String> accessibleRoles = new ArrayList<>();
+        Set<String> accessibleRoles = new HashSet<>();
         DataCache data = store.getDataCache("coretech");
         store.getAccessibleRoles(data, "coretech", "user_domain.user1", null, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
         
-        accessibleRoles = new ArrayList<>();
+        accessibleRoles = new HashSet<>();
         store.getAccessibleRoles(data, "coretech", "user_domain.user8", null, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 1);
         assertTrue(accessibleRoles.contains("admin"));
         
-        accessibleRoles = new ArrayList<>();
+        accessibleRoles = new HashSet<>();
         data = store.getDataCache("sports");
         store.getAccessibleRoles(data, "sports", "user_domain.user", null, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 2);
@@ -3271,17 +3522,17 @@ public class DataStoreTest {
         DataUpdater updater = store.new DataUpdater();
         updater.run();
         
-        List<String> accessibleRoles = new ArrayList<>();
+        Set<String> accessibleRoles = new HashSet<>();
         DataCache data = store.getDataCache("coretech");
         store.getAccessibleRoles(data, "coretech", "user_domain.user1", null, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
         
-        accessibleRoles = new ArrayList<>();
+        accessibleRoles = new HashSet<>();
         store.getAccessibleRoles(data, "coretech", "user_domain.user8", null, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 1);
         assertTrue(accessibleRoles.contains("admin"));
         
-        accessibleRoles = new ArrayList<>();
+        accessibleRoles = new HashSet<>();
         data = store.getDataCache("sports");
         store.getAccessibleRoles(data, "sports", "user_domain.user", null, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 2);
@@ -3334,6 +3585,21 @@ public class DataStoreTest {
     }
     
     @Test
+    public void testRoleMatchInSetExpiration() {
+        
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+        DataStore store = new DataStore(clogStore, null);
+
+        Set<MemberRole> checkSet = new HashSet<>();
+        checkSet.add(new MemberRole("expired", System.currentTimeMillis() - 100000));
+        checkSet.add(new MemberRole("notexpired", System.currentTimeMillis() + 100000));
+        
+        assertFalse(store.roleMatchInSet("expired", checkSet));
+        assertTrue(store.roleMatchInSet("notexpired", checkSet));
+    }
+    
+    @Test
     public void testRoleMatchInSetRegex() {
         
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
@@ -3360,7 +3626,7 @@ public class DataStoreTest {
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
 
-        List<String> accessibleRoles = new ArrayList<>();
+        Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
         String role = "coretech:role.writers"; /* invalid role causing no match */
         
@@ -3379,7 +3645,7 @@ public class DataStoreTest {
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
 
-        List<String> accessibleRoles = new ArrayList<>();
+        Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
         String role = "coretech:role.readers"; /* invalid role causing no match */
         
@@ -3397,7 +3663,7 @@ public class DataStoreTest {
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
 
-        List<String> accessibleRoles = new ArrayList<>();
+        Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech2" + ROLE_POSTFIX;
         String role = "coretech:role.readers"; /* invalid role causing no match */
         
