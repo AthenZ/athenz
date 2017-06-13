@@ -52,6 +52,36 @@
       <artifactId>jersey-client</artifactId>
       <version>${jersey.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.yahoo.rdl</groupId>
+      <artifactId>rdl-java</artifactId>
+      <version>${rdl.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-annotations</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
   </dependencies>
 
   <build>
@@ -111,6 +141,7 @@
                   <include>org.glassfish.jersey.core</include>
                   <include>org.glassfish.jersey.media</include>
                   <include>org.glassfish.jersey.bundles.repackaged</include>
+                  <include>com.fasterxml.jackson.core</include>
                   <include>com.fasterxml.jackson.jaxrs</include>
                   <include>com.fasterxml.jackson.module</include>
                   <include>javax.ws.rs</include>
@@ -160,6 +191,10 @@
                 <relocation>
                   <pattern>org.jvnet.tiger_types</pattern>
                   <shadedPattern>athenz.shade.zms.org.jvnet.tiger_types</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.fasterxml.jackson</pattern>
+                  <shadedPattern>athenz.shade.zms.com.fasterxml.jackson</shadedPattern>
                 </relocation>
               </relocations>
               <filters>

@@ -56,8 +56,6 @@ import javax.security.auth.x500.X500Principal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.yahoo.rdl.*;
-
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.DERIA5String;
@@ -148,72 +146,6 @@ public class Crypto {
         RANDOM = r;
         // force seeding.
         RANDOM.nextBytes(new byte[] { 8 });
-    }
-
-    /**
-     * Return a signature for the specific structured data with HmacSHA256 algorithm, 
-     * using the provided secret.
-     * @param data structured data
-     * @param sharedSecret provided secret
-     * @return signature for the data
-     * @throws CryptoException for any issues with provider/algorithm/signature/key
-     */
-    public static String hmac(Struct data, String sharedSecret) throws CryptoException {
-        return hmac(hashableString(data), sharedSecret);
-    }
-
-    /**
-     * Calculate the SHA256withRSA signature for the specific structured data, using the provided private key.
-     * @param data structured data to sign
-     * @param key the RSA private key to sign with
-     * @return a ybase64 encoded signature
-     * @throws CryptoException for any issues with provider/algorithm/signature/key
-     */
-    public static String sign(Struct data, PrivateKey key) throws CryptoException {
-        return sign(hashableString(data), key);
-    }
-
-    /**
-     * Verify the SHA256withRSA signature for the specific structured data, using the provided public key.
-     * @param data structured data that was signed
-     * @param key the RSA public key corresponding to the signing key
-     * @param signature the ybase64 encoded signature to check
-     * @return true if the data signature can be verified with the given public key
-     * @throws CryptoException for any issues with provider/algorithm/signature/key
-     */
-    public static boolean verify(Struct data, PublicKey key, String signature) throws CryptoException {
-        return verify(hashableString(data), key, signature);
-    }
-
-    private static Object canonical(Object obj) {
-        if (obj != null) {
-            if (obj instanceof Struct) {
-                Struct s = (Struct) obj;
-                Struct s2 = new Struct();
-                for (String k : s.sortedNames()) {
-                    s2.put(k, canonical(s.get(k)));
-                }
-                return s2;
-            } else if (obj instanceof Array) {
-                Array a = new Array();
-                for (Object o : (Array) obj) {
-                    a.add(canonical(o));
-                }
-                return a;
-            }
-        }
-        return obj;
-    }
-
-    /**
-     * Make a copy of the data in canonical form. This means the field names are sorted,
-     * (recursively), so the same data (from a JSON point of view) will produce the same
-     * string.
-     * @param data structured data to normalize
-     * @return the canonical form for the data
-     */
-    public static String hashableString(Struct data) {
-        return JSON.string(canonical(data));
     }
 
     /**

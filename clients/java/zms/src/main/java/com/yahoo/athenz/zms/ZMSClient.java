@@ -1510,6 +1510,7 @@ public class ZMSClient implements Closeable {
      * authorized services.
      * @param userName name of the user
      * @param serviceNames comma separated list of authorized service names
+     * @param header boolean flag whether or not return authority header name
      * @return ZMS generated User Token
      */
     public UserToken getUserToken(String userName, String serviceNames, Boolean header) {
