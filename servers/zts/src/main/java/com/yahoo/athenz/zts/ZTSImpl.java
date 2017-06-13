@@ -952,16 +952,16 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_REQUEST, providerDomainName);
         metric.increment(caller, providerDomainName);
         
-        // process our request and retrieve the roles for the principal
-        
-        ArrayList<String> roles = new ArrayList<>();
-        
         // if the username does not contain a domain then we'll assume
         // user domain and handle accordingly
         
         if (userName.indexOf('.') == -1) {
             userName = this.userDomain + "." + userName;
         }
+        
+        // process our request and retrieve the roles for the principal
+        
+        Set<String> roles = new HashSet<>();
         
         dataStore.getAccessibleRoles(data, providerDomainName, userName,
                 roleName, roles, false);
@@ -1152,7 +1152,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // process our request and retrieve the roles for the principal
         
-        ArrayList<String> roles = new ArrayList<>();
+        Set<String> roles = new HashSet<>();
         dataStore.getAccessibleRoles(data, domainName, principal, roleName,
                 roles, false);
         
@@ -1168,9 +1168,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         String proxyUser = null;
         if (proxyForPrincipal != null) {
-            ArrayList<String> rolesForProxy = new ArrayList<>();
+            Set<String> rolesForProxy = new HashSet<>();
             dataStore.getAccessibleRoles(data, domainName, proxyForPrincipal, roleName, rolesForProxy, false);
-            if (!compareRoleLists(roles, rolesForProxy)) {
+            if (!compareRoleSets(roles, rolesForProxy)) {
                 throw forbiddenError("getRoleToken: Principal does not have access to the same set of roles as proxy principal",
                         caller, domainName);
             }
@@ -1182,8 +1182,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
 
         long tokenTimeout = determineTokenTimeout(minExpiryTime, maxExpiryTime);
+        List<String> roleList = new ArrayList<>(roles);
         com.yahoo.athenz.auth.token.RoleToken token =
-                new com.yahoo.athenz.auth.token.RoleToken.Builder(ZTS_ROLE_TOKEN_VERSION, domainName, roles)
+                new com.yahoo.athenz.auth.token.RoleToken.Builder(ZTS_ROLE_TOKEN_VERSION, domainName, roleList)
                     .expirationWindow(tokenTimeout).host(serverHostName).keyId(privateKeyId)
                     .principal(principal).ip(ServletRequestUtil.getRemoteAddress(ctx.request()))
                     .proxyUser(proxyUser).build();
@@ -1197,15 +1198,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return roleToken;
     }
 
-    boolean compareRoleLists(List<String> list1, List<String> list2) {
+    boolean compareRoleSets(Set<String> set1, Set<String> set2) {
 
-        if (list1.size() != list2.size()) {
-            LOGGER.error("Role lists do not have the same size: " + list1.size() + " vs. " + list2.size());
+        if (set1.size() != set2.size()) {
+            LOGGER.error("Role sets do not have the same size: {} vs. {}", set1.size(), set2.size());
             return false;
         }
 
-        Set<String> set2 = new HashSet<>(list2);
-        for (String item : list1) {
+        for (String item : set1) {
             if (!set2.contains(item)) {
                 return false;
             }
@@ -1262,11 +1262,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // process our request and retrieve the roles for the principal
         
-        ArrayList<String> roles = new ArrayList<>();
+        Set<String> roles = new HashSet<>();
         dataStore.getAccessibleRoles(data, domainName, principal, null,
                 roles, false);
         
-        RoleAccess roleAccess = new RoleAccess().setRoles(roles);
+        RoleAccess roleAccess = new RoleAccess().setRoles(new ArrayList<String>(roles));
         metric.stopTiming(timerMetric);
         return roleAccess;
     }
@@ -1327,7 +1327,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // process our request and retrieve the roles for the principal
         
-        ArrayList<String> roles = new ArrayList<>();
+        Set<String> roles = new HashSet<>();
         dataStore.getAccessibleRoles(data, domainName, principal, roleName,
                 roles, false);
         
@@ -1363,7 +1363,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     boolean validateRoleCertificateRequest(PKCS10CertificationRequest certReq,
-            String domainName, List<String> roles, String principal) {
+            String domainName, Set<String> roles, String principal) {
         
         String cnCertReq = null;
         try {
@@ -1505,7 +1505,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // retrieve the roles for the principal
         
-        ArrayList<String> roles = new ArrayList<>();
+        Set<String> roles = new HashSet<>();
         dataStore.getAccessibleRoles(data, domainName, principal, null, roles, true);
         
         if (roles.isEmpty()) {
@@ -2523,7 +2523,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // process our request and retrieve the roles for the principal
         
-        ArrayList<String> roles = new ArrayList<>();
+        Set<String> roles = new HashSet<>();
         dataStore.getAccessibleRoles(data, domainName, principal, null,
                 roles, false);
         
