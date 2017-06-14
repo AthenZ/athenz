@@ -21,9 +21,9 @@
     <relativePath>../../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>zpe_java_client</artifactId>
+  <artifactId>athenz-zpe-java-client</artifactId>
   <packaging>jar</packaging>
-  <name>zpe_java_client</name>
+  <name>athenz-zpe-java-client</name>
   <description>ZPE Client Library (Java)</description>
 
   <properties>
@@ -34,17 +34,17 @@
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>zts_core</artifactId>
+      <artifactId>athenz-zts-core</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>auth_core</artifactId>
+      <artifactId>athenz-auth-core</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>client_common</artifactId>
+      <artifactId>athenz-client-common</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>

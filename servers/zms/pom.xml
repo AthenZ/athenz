@@ -21,30 +21,30 @@
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>zms_server</artifactId>
-  <name>zms_server</name>
+  <artifactId>athenz-zms-server</artifactId>
+  <name>athenz-zms-server</name>
   <description>Athenz ZMS Server</description>
   <packaging>war</packaging>
 
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>zms_core</artifactId>
+      <artifactId>athenz-zms-core</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>server_common</artifactId>
+      <artifactId>athenz-server-common</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>client_common</artifactId>
+      <artifactId>athenz-client-common</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>auth_core</artifactId>
+      <artifactId>athenz-auth-core</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>

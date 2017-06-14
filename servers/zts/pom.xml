@@ -23,8 +23,8 @@
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>zts_server</artifactId>
-  <name>zts_server</name>
+  <artifactId>athenz-zts-server</artifactId>
+  <name>athenz-zts-server</name>
   <description>Athenz ZTS Server</description>
 
   <dependencyManagement>
@@ -42,27 +42,27 @@
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>auth_core</artifactId>
+      <artifactId>athenz-auth-core</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>server_common</artifactId>
+      <artifactId>athenz-server-common</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>zts_core</artifactId>
+      <artifactId>athenz-zts-core</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>zms_java_client</artifactId>
+      <artifactId>athenz-zms-java-client</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>client_common</artifactId>
+      <artifactId>athenz-client-common</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>

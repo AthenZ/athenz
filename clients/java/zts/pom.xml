@@ -21,25 +21,25 @@
     <relativePath>../../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>zts_java_client</artifactId>
+  <artifactId>athenz-zts-java-client</artifactId>
   <packaging>jar</packaging>
-  <name>zts-java-client</name>
+  <name>athenz-zts-java-client</name>
   <description>ZTS Java Client Library</description>
 
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>zts_core</artifactId>
+      <artifactId>athenz-zts-core</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>client_common</artifactId>
+      <artifactId>athenz-client-common</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>auth_core</artifactId>
+      <artifactId>athenz-auth-core</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>

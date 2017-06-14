@@ -21,25 +21,25 @@
     <relativePath>../../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>zms_java_client</artifactId>
+  <artifactId>athenz-zms-java-client</artifactId>
   <packaging>jar</packaging>
-  <name>zms-java-client</name>
+  <name>athenz-zms-java-client</name>
   <description>ZMS Java Client Library</description>
 
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>zms_core</artifactId>
+      <artifactId>athenz-zms-core</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>client_common</artifactId>
+      <artifactId>athenz-client-common</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>auth_core</artifactId>
+      <artifactId>athenz-auth-core</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>
@@ -144,6 +144,7 @@
                   <include>com.fasterxml.jackson.core</include>
                   <include>com.fasterxml.jackson.jaxrs</include>
                   <include>com.fasterxml.jackson.module</include>
+                  <include>com.yahoo.rdl</include>
                   <include>javax.ws.rs</include>
                   <include>javax.annotation</include>
                   <include>javax.inject</include>

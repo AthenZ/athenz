@@ -21,24 +21,25 @@
   <artifactId>example-instance-client</artifactId>
   <packaging>jar</packaging>
   <version>1.0</version>
-  <name>athenz_example_instance_client</name>
+  <name>athenz-example-instance-client</name>
   <description>Athenz Instance Client Example</description>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <athenz.version>1.7.13</athenz.version>
   </properties>
 
   <dependencies>
     <dependency>
       <groupId>com.yahoo.athenz</groupId>
-      <artifactId>auth_core</artifactId>
-      <version>1.7.3</version>
+      <artifactId>athenz-auth-core</artifactId>
+      <version>${athenz.version}</version>
     </dependency>
     <dependency>
       <groupId>com.yahoo.athenz</groupId>
-      <artifactId>zts_java_client</artifactId>
-      <version>1.7.3</version>
+      <artifactId>athenz-zts-java-client</artifactId>
+      <version>${athenz.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-cli</groupId>

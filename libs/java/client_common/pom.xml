@@ -21,20 +21,20 @@
     <relativePath>../../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>client_common</artifactId>
-  <name>client_common</name>
+  <artifactId>athenz-client-common</artifactId>
+  <name>athenz-client-common</name>
   <description>Athenz Client Common Package</description>
   <packaging>jar</packaging>
 
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>zms_core</artifactId>
+      <artifactId>athenz-zms-core</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>zts_core</artifactId>
+      <artifactId>athenz-zts-core</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
   </dependencies>

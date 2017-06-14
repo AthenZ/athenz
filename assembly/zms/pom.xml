@@ -34,7 +34,7 @@
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>athenz_jetty_container</artifactId>
+      <artifactId>athenz-jetty-container</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>

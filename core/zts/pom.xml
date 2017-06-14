@@ -21,9 +21,9 @@
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>zts_core</artifactId>
+  <artifactId>athenz-zts-core</artifactId>
   <packaging>jar</packaging>
-  <name>zts_core</name>
+  <name>athenz-zts-core</name>
   <description>Core ZTS Interfaces</description>
 
   <dependencies>
