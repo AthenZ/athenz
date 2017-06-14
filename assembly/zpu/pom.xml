@@ -34,7 +34,7 @@
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>zpe_policy_updater</artifactId>
+      <artifactId>athenz-zpe-policy-updater</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
   </dependencies>

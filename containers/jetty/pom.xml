@@ -21,15 +21,15 @@
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>athenz_jetty_container</artifactId>
-  <name>athenz_jetty_container</name>
+  <artifactId>athenz-jetty-container</artifactId>
+  <name>athenz-jetty-container</name>
   <description>Athenz Jetty Container</description>
   <packaging>jar</packaging>
 
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>server_common</artifactId>
+      <artifactId>athenz-server-common</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>

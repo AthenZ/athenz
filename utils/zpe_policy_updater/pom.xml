@@ -21,30 +21,30 @@
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>zpe_policy_updater</artifactId>
+  <artifactId>athenz-zpe-policy-updater</artifactId>
   <packaging>jar</packaging>
-  <name>zpe_policy_updater</name>
+  <name>athenz-zpe-policy-updater</name>
   <description>ZPE Policy Updater</description>
 
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>zts_core</artifactId>
+      <artifactId>athenz-zts-core</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>auth_core</artifactId>
+      <artifactId>athenz-auth-core</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>zts_java_client</artifactId>
+      <artifactId>athenz-zts-java-client</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>client_common</artifactId>
+      <artifactId>athenz-client-common</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>

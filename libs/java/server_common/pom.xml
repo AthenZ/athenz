@@ -21,15 +21,15 @@
     <relativePath>../../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>server_common</artifactId>
-  <name>server_common</name>
+  <artifactId>athenz-server-common</artifactId>
+  <name>athenz-server-common</name>
   <description>Athenz Server Common Packages</description>
   <packaging>jar</packaging>
 
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>auth_core</artifactId>
+      <artifactId>athenz-auth-core</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>

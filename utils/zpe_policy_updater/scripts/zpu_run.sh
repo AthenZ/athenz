@@ -5,7 +5,7 @@ if [ -z "${ROOT}" ]; then
 fi
 
 UTILITY_NAME=zpe_policy_updater
-UTILITY_CLASSPATH=${ROOT}/lib/jar/zpe_policy_updater*.jar:${ROOT}/lib/jars/*
+UTILITY_CLASSPATH=${ROOT}/lib/jars/athenz-zpe-policy-updater-*.jar:${ROOT}/lib/jars/*
 UTILITY_BOOTSTRAP_CLASS=com.yahoo.athenz.zpe_policy_updater.PolicyUpdater
 
 ## pick up our service settings which should override

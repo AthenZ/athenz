@@ -21,9 +21,9 @@
     <relativePath>../../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>auth_core</artifactId>
+  <artifactId>athenz-auth-core</artifactId>
   <packaging>jar</packaging>
-  <name>auth_core</name>
+  <name>athenz-auth-core</name>
   <description>Core Auth Interfaces</description>
 
   <dependencies>
