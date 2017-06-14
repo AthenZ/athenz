@@ -15,12 +15,12 @@
  */
 'use strict';
 
-var TIME_ZONE = 'America/Los_Angeles';
+var config = require('../../config/config.js')();
 
-var dateFormatter = new Intl.DateTimeFormat('en-US', {
+var dateFormatter = new Intl.DateTimeFormat(config.language, {
   year: 'numeric', month: 'numeric', day: 'numeric',
   hour: 'numeric', minute: 'numeric', hour12: false,
-  timeZone: TIME_ZONE, timeZoneName: 'short'
+  timeZone: config.timeZone, timeZoneName: 'short'
 });
 
 module.exports = {

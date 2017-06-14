@@ -20,6 +20,11 @@ containers/jetty/zms_logs/
 ui/build/
 ui/node_modules/
 ui/artifacts/
+ui/keys/
+ui/.eslintcodecache
+ui/.nyc_output/
+ui/artifacts/
+ui/node_modules/
 core/zms/bin/
 core/zts/bin/
 clients/go/zms/pkg/
@@ -44,6 +49,11 @@ libs/go/zmssvctoken/src/
 libs/java/client_common/bin/
 libs/java/server_common/bin/
 libs/java/auth_core/bin/
+libs/nodejs/auth_core/node_modules/
+libs/nodejs/auth_core/artifacts/
+libs/nodejs/auth_core/.eslintcodecache
+libs/nodejs/auth_core/.nyc_output/
+libs/nodejs/auth_core/artifacts
 utils/zms-cli/pkg/
 utils/zms-cli/src/
 utils/zms-cli/bin/

@@ -83,33 +83,6 @@ describe('main routeHandlers', function() {
     mock.verify();
   });
 
-  it('should test notLogged route for non ajax context', function() {
-    req.originalUrl = 'dummy';
-    req.method = 'GET';
-
-    var mock = sandbox.mock(res);
-    mock.expects('render').withArgs('login', {
-      pageTitle: '401 Unauthorized',
-      url: 'dummy'
-    });
-
-    routeHandlers.notLogged(req, res);
-     
-    mock.verify();
-  });
-
-  it('should test notLogged route for ajax context', function() {
-    req.originalUrl = 'ajax';
-
-    var mock = sandbox.mock(res);
-    mock.expects('status').withArgs(401).returns(res);
-    mock.expects('send').withArgs('');
-
-    routeHandlers.notLogged(req, res);
-
-    mock.verify();
-  });
-
   describe('init', function() {
     var mockCommon;
 
@@ -119,7 +92,7 @@ describe('main routeHandlers', function() {
     });
 
     it('should populate static data', function() {
-      req.userCred = 'you';
+      req.username = 'you';
       routeHandlers.init(req, res, function() {});
 
       expect(res.locals.navApps).to.be.an('array').of.length(1);

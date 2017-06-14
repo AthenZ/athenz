@@ -1,6 +1,6 @@
 <div class="domain-form">
   <h4>Login User</h4>
-  <form action="/athenz" method="post">
+  <form name="auth">
     <fieldset>
       <div class="section">
         <label for="username">Username</label>
@@ -20,5 +20,9 @@
       </div>
       {{> submitcontainer }}
     </fieldset>
+  </form>
+  <form name="login" action="{{target}}" method="post">
+    <input type="hidden" name="redirect" value="{{redirect}}" id="redirect" />
+    <input type="hidden" name="token" value="" id="token" />
   </form>
 </div>

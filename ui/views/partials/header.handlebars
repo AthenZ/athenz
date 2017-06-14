@@ -1,7 +1,5 @@
 <div class="header-container">
-  <div class="logo-container">
-    <a class="iaas-logo" href="/"></a>
-  </div>
+  {{> athenzlogo }}
   {{#unless noHeaderSearch}}
   {{> search }}
   {{/unless}}
@@ -9,9 +7,13 @@
     <div class="support">
       <div class="icon-question"></div>
       <div class="links">
-        <a target="_blank" rel="noopener" href="https://github.com/yahoo/athenz">User Guide</a>
+        {{#each headerLinks }}
+        <a target="{{target}}" rel="noopener" href="{{url}}">{{title}}</a>
+        {{/each}}
       </div>
     </div>
-      <p>{{user.name}}</p>
+    <a target="_blank" rel="noopener" class="user-profile" href="{{user.link}}">
+      <img class="user-icon" src={{user.icon}} alt={{user.name}} />
+    </a>
   </div>
 </div>
