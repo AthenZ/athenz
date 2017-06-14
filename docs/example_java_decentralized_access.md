@@ -165,13 +165,13 @@ pages to make sure you're using the latest release version:
 ```
 <dependency>
   <groupId>com.yahoo.athenz</groupId>
-  <artifactId>auth_core</artifactId>
-  <version>1.1.1</version>
+  <artifactId>athenz-auth-core</artifactId>
+  <version>1.7.13</version>
 </dependency>
 <dependency>
   <groupId>com.yahoo.athenz</groupId>
-  <artifactId>zts_java_client</artifactId>
-  <version>1.1.1</version>
+  <artifactId>athenz-zts-java-client</artifactId>
+  <version>1.7.13</version>
 </dependency>
 
 <repositories>
@@ -281,8 +281,8 @@ to make sure you're using the latest release version:
 ```
 <dependency>
   <groupId>com.yahoo.athenz</groupId>
-  <artifactId>zpe_java_client</artifactId>
-  <version>1.1.1</version>
+  <artifactId>athenz-zpe-java-client</artifactId>
+  <version>1.7.13</version>
 </dependency>
 
 <repositories>

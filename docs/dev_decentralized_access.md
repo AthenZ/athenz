@@ -55,7 +55,7 @@ the dependency on the Athenz auth_core Library:
 ```
 <dependency>
     <groupId>com.yahoo.athenz</groupId>
-    <artifactId>auth_core</artifactId>
+    <artifactId>athenz-auth-core</artifactId>
     <version>1.X.Y</version>
 </dependency>
 ```
@@ -92,7 +92,7 @@ the dependency on the ZTS Java Client Library:
 ```
 <dependency>
     <groupId>com.yahoo.athenz</groupId>
-    <artifactId>zts_java_client</artifactId>
+    <artifactId>athenz-zts-java-client</artifactId>
     <version>1.X.Y</version>
 </dependency>
 ```
@@ -393,7 +393,7 @@ your dependency on the ZPE Java Client Library:
 ```
 <dependency>
     <groupId>com.yahoo.athenz</groupId>
-    <artifactId>zpe_java_client</artifactId>
+    <artifactId>athenz-zpe-java-client</artifactId>
     <version>1.X.Y</version>
 </dependency>
 ```

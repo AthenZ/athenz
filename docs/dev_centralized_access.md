@@ -36,7 +36,7 @@ the dependency on the Athenz auth_core Library:
 ```
 <dependency>
     <groupId>com.yahoo.athenz</groupId>
-    <artifactId>auth_core</artifactId>
+    <artifactId>athenz-auth-core</artifactId>
     <version>1.X.Y</version>
 </dependency>
 ```
@@ -85,7 +85,7 @@ the dependency on the Athenz zms java client Library:
 ```
 <dependency>
     <groupId>com.yahoo.athenz</groupId>
-    <artifactId>zms_java_client</artifactId>
+    <artifactId>athenz-zms-java-client</artifactId>
     <version>1.X.Y</version>
 </dependency>
 ```

@@ -142,8 +142,8 @@ to make sure you're using the latest release version:
 ```
 <dependency>
     <groupId>com.yahoo.athenz</groupId>
-    <artifactId>auth_core</artifactId>
-    <version>1.1.1</version>
+    <artifactId>athenz-auth-core</artifactId>
+    <version>1.7.13</version>
 </dependency>
 
 <repositories>
@@ -231,8 +231,8 @@ to make sure you're using the latest release version:
 ```
 <dependency>
     <groupId>com.yahoo.athenz</groupId>
-    <artifactId>zms_java_client</artifactId>
-    <version>1.1.1</version>
+    <artifactId>athenz-zms-java-client</artifactId>
+    <version>1.7.13</version>
 </dependency>
 
 <repositories>
