@@ -20,7 +20,7 @@
   <groupId>com.yahoo.athenz</groupId>
   <artifactId>athenz</artifactId>
   <packaging>pom</packaging>
-  <version>1.7.13</version>
+  <version>1.7.14-SNAPSHOT</version>
 
   <name>AthenZ</name>
   <description>
@@ -55,7 +55,7 @@
   <scm>
     <url>https://github.com/yahoo/athenz</url>
     <connection>scm:git:https://github.com/yahoo/athenz.git</connection>
-    <tag>v1.7.13</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <issueManagement>
