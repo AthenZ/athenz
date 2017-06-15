@@ -16,8 +16,8 @@
 var fs = require('fs');
 module.exports = function() {
   var defaultConfig = require('./default-config.js')();
-  var extendedConfig;
-  var userConfig;
+  var extendedConfig = {};
+  var userConfig = {};
   if (__dirname !== process.cwd() + '/config') {
     var parentModule = module.parent;
     while (parentModule.id.match(/node_modules\/auth_core\//)) {
@@ -26,7 +26,7 @@ module.exports = function() {
     var module_path = parentModule.id.match(/(.*)(node_modules\/(\w+))/g);
     try {
       fs.statSync(module_path + '/config/config.js');
-      extendedConfig = require(module_path + '/config/config.js');
+      extendedConfig = require(module_path + '/config/config.js')().auth_core;
     } catch (err) {
       if (err.code !== 'ENOENT') {
         console.error(err);
@@ -34,14 +34,12 @@ module.exports = function() {
     }
     try {
       fs.statSync(process.cwd() + '/config/config.js');
-      userConfig = require(process.cwd() + '/config/config.js')();
+      userConfig = require(process.cwd() + '/config/config.js')().auth_core;
     } catch (err) {
       if (err.code !== 'ENOENT') {
         console.error(err);
       }
     }
   }
-  var extendedConfigObj = (extendedConfig) ? extendedConfig().auth_core : {};
-  var userConfigObj = (userConfig) ? userConfig().auth_core : {};
-  return Object.assign(defaultConfig, extendedConfigObj, userConfigObj);
+  return Object.assign(defaultConfig, extendedConfig, userConfig);
 };
