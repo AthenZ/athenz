@@ -1804,18 +1804,18 @@ public class ZMSClientTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         User userMock = Mockito.mock(User.class);
-        Mockito.when(c.deleteUser("joe")).thenReturn(userMock);
-        Mockito.when(c.deleteUser("doe")).thenThrow(new ResourceException(404));
+        Mockito.when(c.deleteUser("joe", AUDIT_REF)).thenReturn(userMock);
+        Mockito.when(c.deleteUser("doe", AUDIT_REF)).thenThrow(new ResourceException(404));
 
         try {
-            client.deleteUser("joe");
+            client.deleteUser("joe", AUDIT_REF);
             assertTrue(true);
         } catch (ZMSClientException ex) {
             fail();
         }
         
         try {
-            client.deleteUser("doe");
+            client.deleteUser("doe", AUDIT_REF);
             fail();
         } catch (ZMSClientException ex) {
             assertEquals(ex.getCode(), 404);
@@ -2147,11 +2147,11 @@ public class ZMSClientTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         UserMeta meta = new UserMeta().setEnabled(false);
-        Mockito.when(c.putUserMeta("joe", meta)).thenReturn(null).thenThrow(new ZMSClientException(400, "fail"));
-        client.putUserMeta("joe", meta);
+        Mockito.when(c.putUserMeta("joe", AUDIT_REF, meta)).thenReturn(null).thenThrow(new ZMSClientException(400, "fail"));
+        client.putUserMeta("joe", AUDIT_REF, meta);
 
         try {
-            client.putUserMeta("joe", meta);
+            client.putUserMeta("joe", AUDIT_REF, meta);
             fail();
         } catch (ZMSClientException ex) {
             assertEquals(400, ex.getCode());

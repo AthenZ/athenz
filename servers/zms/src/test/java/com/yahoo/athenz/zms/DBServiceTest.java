@@ -1177,7 +1177,7 @@ public class DBServiceTest extends TestCase {
         assertTrue(resDom1.getEnabled());
         
         UserMeta meta = new UserMeta().setEnabled(false);
-        zms.dbService.executePutUserMeta(mockDomRsrcCtx, domainName, meta, "putUserMeta");
+        zms.dbService.executePutUserMeta(mockDomRsrcCtx, domainName, meta, auditRef, "putUserMeta");
         
         Domain resDom2 = zms.getDomain(mockDomRsrcCtx, domainName);
         assertNotNull(resDom2);
@@ -1229,7 +1229,7 @@ public class DBServiceTest extends TestCase {
         assertTrue(resTestDom.getEnabled());
         
         UserMeta meta = new UserMeta().setEnabled(false);
-        zms.dbService.executePutUserMeta(mockDomRsrcCtx, domainName, meta, "putUserMeta");
+        zms.dbService.executePutUserMeta(mockDomRsrcCtx, domainName, meta, auditRef, "putUserMeta");
         
         resDom = zms.getDomain(mockDomRsrcCtx, domainName);
         assertNotNull(resDom);
@@ -1258,7 +1258,8 @@ public class DBServiceTest extends TestCase {
         
         UserMeta meta = new UserMeta().setEnabled(false);
         try {
-            zms.dbService.executePutUserMeta(mockDomRsrcCtx, "user.unknown-domain-meta", meta, "putUserMeta");
+            zms.dbService.executePutUserMeta(mockDomRsrcCtx, "user.unknown-domain-meta",
+                    meta, auditRef, "putUserMeta");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ResourceException.NOT_FOUND, ex.getCode());
@@ -2904,7 +2905,7 @@ public class DBServiceTest extends TestCase {
         assertTrue(users.contains("user.jack"));
         assertTrue(users.contains("user.joe"));
         
-        zms.dbService.executeDeleteUser(mockDomRsrcCtx, "user.jack", "testExecuteDeleteUser");
+        zms.dbService.executeDeleteUser(mockDomRsrcCtx, "user.jack", auditRef, "testExecuteDeleteUser");
         
         users = zms.dbService.listPrincipals("user", true);
         assertEquals(users.size(), 4);
@@ -2968,7 +2969,7 @@ public class DBServiceTest extends TestCase {
         assertTrue(users.contains("user.jack.sub1.api"));
         assertTrue(users.contains("user.joe"));
         
-        zms.dbService.executeDeleteUser(mockDomRsrcCtx, "user.jack", "testExecuteDeleteUser");
+        zms.dbService.executeDeleteUser(mockDomRsrcCtx, "user.jack", auditRef, "testExecuteDeleteUser");
         
         users = zms.dbService.listPrincipals("user", false);
         assertEquals(users.size(), 2);

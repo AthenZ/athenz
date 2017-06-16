@@ -25,7 +25,7 @@ func (cli Zms) ListUsers() (*string, error) {
 }
 
 func (cli Zms) DeleteUser(user string) (*string, error) {
-	err := cli.Zms.DeleteUser(zms.SimpleName(user))
+	err := cli.Zms.DeleteUser(zms.SimpleName(user), cli.AuditRef)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func (cli Zms) UpdateUserState(user string, state *bool) (*string, error) {
 	meta := zms.UserMeta{
 		Enabled: state,
 	}
-	err := cli.Zms.PutUserMeta(zms.SimpleName(user), &meta)
+	err := cli.Zms.PutUserMeta(zms.SimpleName(user), cli.AuditRef, &meta)
 	if err != nil {
 		return nil, err
 	}

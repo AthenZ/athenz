@@ -2417,13 +2417,16 @@ func (client ZMSClient) GetUserList() (*UserList, error) {
 	}
 }
 
-func (client ZMSClient) PutUserMeta(name SimpleName, detail *UserMeta) error {
+func (client ZMSClient) PutUserMeta(name SimpleName, auditRef string, detail *UserMeta) error {
+	headers := map[string]string{
+		"Y-Audit-Ref": auditRef,
+	}
 	url := client.URL + "/user/" + fmt.Sprint(name) + "/meta"
 	contentBytes, err := json.Marshal(detail)
 	if err != nil {
 		return err
 	}
-	resp, err := client.httpPut(url, nil, contentBytes)
+	resp, err := client.httpPut(url, headers, contentBytes)
 	if err != nil {
 		return err
 	}
@@ -2448,9 +2451,12 @@ func (client ZMSClient) PutUserMeta(name SimpleName, detail *UserMeta) error {
 	}
 }
 
-func (client ZMSClient) DeleteUser(name SimpleName) error {
+func (client ZMSClient) DeleteUser(name SimpleName, auditRef string) error {
+	headers := map[string]string{
+		"Y-Audit-Ref": auditRef,
+	}
 	url := client.URL + "/user/" + fmt.Sprint(name)
-	resp, err := client.httpDelete(url, nil)
+	resp, err := client.httpDelete(url, headers)
 	if err != nil {
 		return err
 	}

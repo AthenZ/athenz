@@ -37,6 +37,7 @@ import com.yahoo.athenz.zms.DomainModifiedList;
 import com.yahoo.athenz.zms.Entity;
 import com.yahoo.athenz.zms.Membership;
 import com.yahoo.athenz.zms.Policy;
+import com.yahoo.athenz.zms.PrincipalRole;
 import com.yahoo.athenz.zms.PublicKeyEntry;
 import com.yahoo.athenz.zms.ResourceAccessList;
 import com.yahoo.athenz.zms.ResourceException;
@@ -407,6 +408,44 @@ public class FileConnection implements ObjectStoreConnection {
             list.addAll(domainStruct.getTemplates());
         }
         return list;
+    }
+
+    @Override
+    public List<PrincipalRole> listPrincipalRoles(String principalName) {
+        
+        // we're going to go through all domains
+        
+        String[] fnames = rootDir.list();
+        List<PrincipalRole> roles = new ArrayList<>();
+        for (String fname : fnames) {
+            File f = new File(rootDir, fname);
+            DomainStruct domainStruct = null;
+            try {
+                Path path = Paths.get(f.toURI());
+                domainStruct = JSON.fromBytes(Files.readAllBytes(path), DomainStruct.class);
+            } catch (IOException e) {
+            }
+            if (domainStruct == null) {
+                continue;
+            }
+            
+            for (Role role: domainStruct.getRoles().values()) {
+                List<RoleMember> roleMembers = role.getRoleMembers();
+                if (roleMembers == null) {
+                    continue;
+                }
+                for (int idx = 0; idx < roleMembers.size(); idx++) {
+                    final String memberName = roleMembers.get(idx).getMemberName();
+                    if (memberName.equals(principalName)) {
+                        PrincipalRole pRole = new PrincipalRole();
+                        pRole.setDomainName(fname);
+                        pRole.setRoleName(extractRoleName(fname, role.getName()));
+                        roles.add(pRole);
+                    }
+                }
+            }
+        }
+        return roles;
     }
 
     @Override

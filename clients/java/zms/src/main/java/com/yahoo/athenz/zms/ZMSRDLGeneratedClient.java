@@ -1495,12 +1495,15 @@ public class ZMSRDLGeneratedClient {
 
     }
 
-    public UserMeta putUserMeta(String name, UserMeta detail) {
+    public UserMeta putUserMeta(String name, String auditRef, UserMeta detail) {
         WebTarget target = base.path("/user/{name}/meta")
             .resolveTemplate("name", name);
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
             invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
         Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(detail, "application/json"));
         int code = response.getStatus();
@@ -1513,12 +1516,15 @@ public class ZMSRDLGeneratedClient {
 
     }
 
-    public User deleteUser(String name) {
+    public User deleteUser(String name, String auditRef) {
         WebTarget target = base.path("/user/{name}")
             .resolveTemplate("name", name);
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
             invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
         Response response = invocationBuilder.delete();
         int code = response.getStatus();

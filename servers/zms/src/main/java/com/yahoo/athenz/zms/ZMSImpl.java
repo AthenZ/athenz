@@ -1309,7 +1309,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return result;
     }
     
-    public User deleteUser(ResourceContext ctx, String name) {
+    public User deleteUser(ResourceContext ctx, String name, String auditRef) {
         
         final String caller = "deleteuser";
         metric.increment(ZMSConsts.HTTP_DELETE);
@@ -1337,7 +1337,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
         
         String userName = userDomainPrefix + name;
-        dbService.executeDeleteUser(ctx, userName, caller);
+        dbService.executeDeleteUser(ctx, userName, auditRef, caller);
         metric.stopTiming(timerMetric);
         return null;
     }
@@ -1396,7 +1396,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return null;
     }
     
-    public UserMeta putUserMeta(ResourceContext ctx, String name, UserMeta meta) {
+    public UserMeta putUserMeta(ResourceContext ctx, String name, String auditRef, UserMeta meta) {
 
         final String caller = "putusermeta";
         metric.increment(ZMSConsts.HTTP_PUT);
@@ -1430,7 +1430,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         
         String userName = userDomainPrefix + name;
-        dbService.executePutUserMeta(ctx, userName, meta, caller);
+        dbService.executePutUserMeta(ctx, userName, meta, auditRef, caller);
         metric.stopTiming(timerMetric);
 
         return null;

@@ -42,6 +42,7 @@ import com.yahoo.athenz.zms.DomainModifiedList;
 import com.yahoo.athenz.zms.Entity;
 import com.yahoo.athenz.zms.Membership;
 import com.yahoo.athenz.zms.Policy;
+import com.yahoo.athenz.zms.PrincipalRole;
 import com.yahoo.athenz.zms.PublicKeyEntry;
 import com.yahoo.athenz.zms.ResourceAccess;
 import com.yahoo.athenz.zms.ResourceAccessList;
@@ -230,6 +231,11 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN assertion ON assertion.resource=CONCAT(\"*:role.\", role.name) "
             + "JOIN policy ON policy.policy_id=assertion.policy_id "
             + "WHERE assertion.action='assume_role';";
+    private static final String SQL_LIST_PRINCIPAL_ROLES = "SELECT domain.name, "
+            + "role.name AS role_name FROM role_member "
+            + "JOIN role ON role_member.role_id=role.role_id "
+            + "JOIN domain ON domain.domain_id=role.domain_id "
+            + "WHERE role_member.principal_id=?;";
     
     private static final String CACHE_DOMAIN    = "d:";
     private static final String CACHE_ROLE      = "r:";
@@ -1251,6 +1257,32 @@ public class JDBCConnection implements ObjectStoreConnection {
         return members;
     }
 
+    @Override
+    public List<PrincipalRole> listPrincipalRoles(String principalName) {
+        
+        final String caller = "listPrincipalRoles";
+
+        int principalId = getPrincipalId(con, principalName);
+        if (principalId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_PRINCIPAL, principalName);
+        }
+        List<PrincipalRole> roles = new ArrayList<>();
+        try (PreparedStatement ps = con.prepareStatement(SQL_LIST_PRINCIPAL_ROLES)) {
+            ps.setInt(1, principalId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    PrincipalRole role = new PrincipalRole();
+                    role.setDomainName(rs.getString(ZMSConsts.DB_COLUMN_NAME));
+                    role.setRoleName(rs.getString(ZMSConsts.DB_COLUMN_ROLE_NAME));
+                    roles.add(role);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return roles;
+    }
+    
     @Override
     public List<RoleAuditLog> listRoleAuditLogs(String domainName, String roleName) {
         

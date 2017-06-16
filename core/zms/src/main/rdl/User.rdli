@@ -35,6 +35,7 @@ resource UserList GET "/user" {
 //eventual deletion of the account after some grace period
 resource UserMeta PUT "/user/{name}/meta" {
     SimpleName name; //name of the user
+    String auditRef (header="Y-Audit-Ref"); //Audit reference
     UserMeta detail; //UserMeta object with updated attribute values
     authorize ("update", "sys.auth:user");
     expected NO_CONTENT;
@@ -54,6 +55,7 @@ resource UserMeta PUT "/user/{name}/meta" {
 //return NO_CONTENT status code without any data (no object will be returned).
 resource User DELETE "/user/{name}" {
     SimpleName name; //name of the user
+    String auditRef (header="Y-Audit-Ref"); //Audit reference
     authorize ("delete", "sys.auth:user");
     expected NO_CONTENT;
     exceptions {
