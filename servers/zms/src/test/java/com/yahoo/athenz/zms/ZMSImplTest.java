@@ -6105,7 +6105,7 @@ public class ZMSImplTest extends TestCase {
         // must return 403 forbidden - domain disabled error
         
         UserMeta meta = new UserMeta().setEnabled(false);
-        zms.putUserMeta(mockDomRsrcCtx, userName, meta);
+        zms.putUserMeta(mockDomRsrcCtx, userName, auditRef, meta);
         
         try {
             zms.getAccess(rsrcCtx1, "UPDATE", domainName + ":resource1",
@@ -14485,7 +14485,7 @@ public class ZMSImplTest extends TestCase {
         assertTrue(users.contains("user.jack"));
         assertTrue(users.contains("user.joe"));
         
-        zms.deleteUser(mockDomRsrcCtx, "jack");
+        zms.deleteUser(mockDomRsrcCtx, "jack", auditRef);
         
         userList = zms.getUserList(mockDomRsrcCtx);
         users = userList.getNames();

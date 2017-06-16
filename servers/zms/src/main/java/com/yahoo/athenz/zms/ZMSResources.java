@@ -1831,11 +1831,11 @@ public class ZMSResources {
     @Path("/user/{name}/meta")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public UserMeta putUserMeta(@PathParam("name") String name, UserMeta detail) {
+    public UserMeta putUserMeta(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef, UserMeta detail) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "sys.auth:user", null);
-            UserMeta e = this.delegate.putUserMeta(context, name, detail);
+            UserMeta e = this.delegate.putUserMeta(context, name, auditRef, detail);
             return null;
         } catch (ResourceException e) {
             int code = e.getCode();
@@ -1860,11 +1860,11 @@ public class ZMSResources {
     @DELETE
     @Path("/user/{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    public User deleteUser(@PathParam("name") String name) {
+    public User deleteUser(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("delete", "sys.auth:user", null);
-            User e = this.delegate.deleteUser(context, name);
+            User e = this.delegate.deleteUser(context, name, auditRef);
             return null;
         } catch (ResourceException e) {
             int code = e.getCode();

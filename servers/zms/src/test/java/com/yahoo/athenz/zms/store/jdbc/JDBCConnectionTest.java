@@ -24,6 +24,7 @@ import com.yahoo.athenz.zms.DomainModifiedList;
 import com.yahoo.athenz.zms.Entity;
 import com.yahoo.athenz.zms.Membership;
 import com.yahoo.athenz.zms.Policy;
+import com.yahoo.athenz.zms.PrincipalRole;
 import com.yahoo.athenz.zms.PublicKeyEntry;
 import com.yahoo.athenz.zms.ResourceAccess;
 import com.yahoo.athenz.zms.ResourceAccessList;
@@ -2601,6 +2602,69 @@ public class JDBCConnectionTest extends TestCase {
         assertNull(jdbcConn.extractServiceName("my-domain1", ".service1"));
         assertNull(jdbcConn.extractServiceName("my-domain1", "service1"));
         assertNull(jdbcConn.extractServiceName("my-domain1", "service1.service2"));
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testUpdateServiceModTimestampSuccess() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.when(mockResultSet.getInt(1))
+            .thenReturn(5) // domain id
+            .thenReturn(7); // service id
+        
+        boolean requestSuccess = jdbcConn.updateServiceIdentityModTimestamp("my-domain", "service1");
+        assertTrue(requestSuccess);
+        
+        // get domain id
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+        // get service id
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "service1");
+        // update service time-stamp
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 7);
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testUpdateServiceModTimestampFailure() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.doReturn(0).when(mockPrepStmt).executeUpdate();
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.when(mockResultSet.getInt(1))
+            .thenReturn(5) // domain id
+            .thenReturn(7); // service id
+        
+        boolean requestSuccess = jdbcConn.updateServiceIdentityModTimestamp("my-domain", "service1");
+        assertFalse(requestSuccess);
+        
+        // get domain id
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+        // get service id
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "service1");
+        // update service time-stamp
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 7);
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testUpdateServiceModTimestampException() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        
+        Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("failed operation", "state", 1001));
+        try {
+            jdbcConn.updateServiceIdentityModTimestamp("my-domain", "service1");
+            fail();
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
         jdbcConn.close();
     }
     
@@ -5397,7 +5461,7 @@ public class JDBCConnectionTest extends TestCase {
     }
     
     @Test
-    public void testListPrincipalsExcption() throws Exception {
+    public void testListPrincipalsException() throws Exception {
         
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         
@@ -5409,6 +5473,110 @@ public class JDBCConnectionTest extends TestCase {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testListPrincipalRoles() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        
+        Mockito.when(mockResultSet.getInt(1))
+            .thenReturn(5); // principal id
+        
+        // principal roles
+        Mockito.when(mockResultSet.next())
+            .thenReturn(true) // get principal id
+            .thenReturn(true)
+            .thenReturn(true)
+            .thenReturn(true)
+            .thenReturn(true)
+            .thenReturn(false);
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_NAME))
+            .thenReturn("coretech")
+            .thenReturn("sports")
+            .thenReturn("sports")
+            .thenReturn("weather");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ROLE_NAME))
+            .thenReturn("admin")
+            .thenReturn("reader")
+            .thenReturn("writer")
+            .thenReturn("reader");
+        
+        List<PrincipalRole> roles = jdbcConn.listPrincipalRoles("user.joe");
+        
+        assertEquals(4, roles.size());
+        
+        // get principal id
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.joe");
+        // get role list
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        
+        boolean coretech_admin = false;
+        boolean sports_reader = false;
+        boolean sports_writer = false;
+        boolean weather_reader = false;
+        for (PrincipalRole role : roles) {
+            if (role.getDomainName().equals("coretech") && role.getRoleName().equals("admin")) {
+                coretech_admin = true;
+            } else if (role.getDomainName().equals("sports") && role.getRoleName().equals("reader")) {
+                sports_reader = true;
+            } else if (role.getDomainName().equals("sports") && role.getRoleName().equals("writer")) {
+                sports_writer = true;
+            } else if (role.getDomainName().equals("weather") && role.getRoleName().equals("reader")) {
+                weather_reader = true;
+            }
+        }
+        assertTrue(coretech_admin);
+        assertTrue(sports_reader);
+        assertTrue(sports_writer);
+        assertTrue(weather_reader);
+        
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testListPrincipalRolesInvalidPrincipal() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        
+        Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("failed operation", "state", 1001));
+
+        try {
+            jdbcConn.listPrincipalRoles("user.joe");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testListPrincipalRolesException() throws SQLException {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        
+        Mockito.when(mockPrepStmt.executeQuery())
+            .thenReturn(mockResultSet)
+            .thenThrow(new SQLException("failed operation", "state", 1001));
+        
+        Mockito.when(mockResultSet.next())
+            .thenReturn(true); // get principal id
+        
+        Mockito.when(mockResultSet.getInt(1))
+            .thenReturn(5); // principal id
+        
+        try {
+            jdbcConn.listPrincipalRoles("user.joe");
+            fail();
+        } catch (Exception ex) {
+        }
+        
+        // get principal id
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.joe");
+        // get role list
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        
         jdbcConn.close();
     }
     

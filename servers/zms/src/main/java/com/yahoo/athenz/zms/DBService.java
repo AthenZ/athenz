@@ -1366,49 +1366,93 @@ public class DBService {
         }
     }
     
-    void executeDeleteUser(ResourceContext ctx, String userName, String caller) {
+    void removePrincipalFromAllRoles(ObjectStoreConnection con, String principalName,
+            String adminUser, String auditRef) {
+        
+        // extract all the roles that this principal is member of
+        // we have to this here so that there are records of
+        // entries in the role member audit logs and the domain
+        // entries are properly invalidated
+        
+        List<PrincipalRole> roles = con.listPrincipalRoles(principalName);
+        for (PrincipalRole role : roles) {
+            
+            final String domainName = role.getDomainName();
+            final String roleName = role.getRoleName();
+            
+            // process our delete role member operation
+            
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("removePrincipalFromAllRoles: removing member {} from {}:role.{}",
+                        principalName, domainName, roleName);
+            }
+
+            // we are going to ignore all errors here rather than
+            // rejecting the full operation. our delete user will
+            // eventually remove all these principals
+            
+            try {
+                con.deleteRoleMember(domainName, roleName, principalName, adminUser, auditRef);
+            } catch (ResourceException ex) {
+                LOG.error("removePrincipalFromAllRoles: unable to remove {} from {}:role.{} - error {}",
+                        principalName, domainName, roleName, ex.getMessage());
+            }
+
+            // update our role and domain time-stamps, and invalidate local cache entry
+            
+            con.updateRoleModTimestamp(domainName, roleName);
+            con.updateDomainModTimestamp(domainName);
+        }
+    }
+    
+    void removePrincipalDomains(ObjectStoreConnection con, String principalName) {
+        
+        // first we're going to retrieve the list domains for
+        // the given user
+        
+        final String domainPrefix = principalName + ".";
+        List<String> subDomains = con.listDomains(domainPrefix, 0);
+        
+        // first we're going to delete the user domain if
+        // one exists and then all the sub-domains. We're not
+        // going to fail the operation for these steps - only
+        // if the actual user is not deleted
+        
+        con.deleteDomain(principalName);
+        cacheStore.invalidate(principalName);
+
+        for (String subDomain : subDomains) {
+            con.deleteDomain(subDomain);
+            cacheStore.invalidate(subDomain);
+        }
+    }
+    
+    void executeDeleteUser(ResourceContext ctx, String userName, String auditRef, String caller) {
         
         int retryCount = defaultRetryCount;
         do {
-            try (ObjectStoreConnection con = store.getConnection(false)) {
+            try (ObjectStoreConnection con = store.getConnection(true)) {
                 
-                // first we're going to retrieve the list domains for
-                // the given user
-                
-                final String domainPrefix = userName + ".";
-                List<String> subDomains = con.listDomains(domainPrefix, 0);
+                // remove all principal domains
 
-                // first we're going to delete the user domain if
-                // one exists and then all the sub-domains. We're not
-                // going to fail the operation for these steps - only
-                // if the actual user is not deleted
+                removePrincipalDomains(con, userName);
                 
-                con.deleteDomain(userName);
-                for (String subDomain : subDomains) {
-                    con.deleteDomain(subDomain);
-                }
+                // remove this user from all roles manually so that we
+                // can have an audit log record for each role
                 
-                // the object store is responsible for deleting this
-                // principal from all roles
+                removePrincipalFromAllRoles(con, userName, getPrincipalName(ctx), auditRef);
+                
+                // finally delete the principal object. any roles that were
+                // left behind will be cleaned up from this operation
                 
                 if (!con.deletePrincipal(userName, true)) {
-                    con.rollbackChanges();
                     throw ZMSUtils.notFoundError(caller + ": unable to delete user: "
                             + userName, caller);
-                }
-                
-                con.commitChanges();
-                
-                // invalidate all entries from the local cache
-                
-                cacheStore.invalidate(userName);
-                for (String subDomain : subDomains) {
-                    cacheStore.invalidate(subDomain);
                 }
 
                 // audit log the request
                 
-                auditLogRequest(ctx, userName, null, caller, ZMSConsts.HTTP_DELETE,
+                auditLogRequest(ctx, userName, auditRef, caller, ZMSConsts.HTTP_DELETE,
                         userName, null);
                 
             } catch (ResourceException ex) {
@@ -1924,7 +1968,7 @@ public class DBService {
         return con.updateDomain(updatedDomain);
     }
     
-    void executePutUserMeta(ResourceContext ctx, String userName, UserMeta meta, String caller) {
+    void executePutUserMeta(ResourceContext ctx, String userName, UserMeta meta, String auditRef, String caller) {
         
         int retryCount = defaultRetryCount;
         do {
@@ -1962,7 +2006,7 @@ public class DBService {
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
                 auditLogUserMeta(auditDetails, meta);
 
-                auditLogRequest(ctx, userName, null, caller, ZMSConsts.HTTP_PUT,
+                auditLogRequest(ctx, userName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         userName, auditDetails.toString());
                 
                 return;

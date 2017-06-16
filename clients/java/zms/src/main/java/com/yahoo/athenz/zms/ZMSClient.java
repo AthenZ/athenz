@@ -540,11 +540,12 @@ public class ZMSClient implements Closeable {
     /**
      * Set the user domain meta parameters
      * @param name user name (without the domain part)
+     * @param auditRef string containing audit specification or ticket number
      * @param detail meta parameters to be set on the domain
      */
-    public void putUserMeta(String name, UserMeta detail) {
+    public void putUserMeta(String name, String auditRef, UserMeta detail) {
         try {
-            client.putUserMeta(name, detail);
+            client.putUserMeta(name, auditRef, detail);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
@@ -777,11 +778,12 @@ public class ZMSClient implements Closeable {
      * the user from any role in the system. This command requires authorization
      * from the Athens sys.auth domain (delete action on resource user).
      * @param name name of the user
+     * @param auditRef string containing audit specification or ticket number
      */
-    public void deleteUser(String name) {
+    public void deleteUser(String name, String auditRef) {
         updatePrincipal();
         try {
-            client.deleteUser(name);
+            client.deleteUser(name, auditRef);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {

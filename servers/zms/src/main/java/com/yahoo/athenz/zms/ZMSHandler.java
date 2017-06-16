@@ -78,8 +78,8 @@ public interface ZMSHandler {
     public ServerTemplateList getServerTemplateList(ResourceContext context);
     public Template getTemplate(ResourceContext context, String template);
     public UserList getUserList(ResourceContext context);
-    public UserMeta putUserMeta(ResourceContext context, String name, UserMeta detail);
-    public User deleteUser(ResourceContext context, String name);
+    public UserMeta putUserMeta(ResourceContext context, String name, String auditRef, UserMeta detail);
+    public User deleteUser(ResourceContext context, String name, String auditRef);
     public Schema getRdlSchema(ResourceContext context);
     public ResourceContext newResourceContext(HttpServletRequest request, HttpServletResponse response);
 }

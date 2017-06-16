@@ -24,6 +24,7 @@ import com.yahoo.athenz.zms.DomainModifiedList;
 import com.yahoo.athenz.zms.Entity;
 import com.yahoo.athenz.zms.Membership;
 import com.yahoo.athenz.zms.Policy;
+import com.yahoo.athenz.zms.PrincipalRole;
 import com.yahoo.athenz.zms.PublicKeyEntry;
 import com.yahoo.athenz.zms.ResourceAccessList;
 import com.yahoo.athenz.zms.Role;
@@ -59,6 +60,7 @@ public interface ObjectStoreConnection extends Closeable {
     
     boolean deletePrincipal(String principalName, boolean subDomains);
     List<String> listPrincipals(String domainName);
+    List<PrincipalRole> listPrincipalRoles(String principalName);
     
     // Template commands
     
