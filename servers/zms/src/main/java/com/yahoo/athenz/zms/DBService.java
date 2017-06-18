@@ -1316,6 +1316,7 @@ public class DBService {
     List<String> listPrincipals(String domainName, boolean domainOnly) {
         
         try (ObjectStoreConnection con = store.getConnection(true)) {
+            
             List<String> principals = con.listPrincipals(domainName);
             
             // if no further filtering is necessary, return the data
@@ -1374,7 +1375,20 @@ public class DBService {
         // entries in the role member audit logs and the domain
         // entries are properly invalidated
         
-        List<PrincipalRole> roles = con.listPrincipalRoles(principalName);
+        List<PrincipalRole> roles = null;
+        try {
+            roles = con.listPrincipalRoles(principalName);
+        } catch (ResourceException ex) {
+            
+            // if there is no such principal then we have nothing to do
+            
+            if (ex.getCode() == ResourceException.NOT_FOUND) {
+                return;
+            } else {
+                throw ex;
+            }
+        }
+        
         for (PrincipalRole role : roles) {
             
             final String domainName = role.getDomainName();
@@ -1437,10 +1451,20 @@ public class DBService {
 
                 removePrincipalDomains(con, userName);
                 
+                // extract all principals that this user has - this would
+                // include the user self plus all services this user
+                // has created in the personal domain + sub-domains
+                
+                List<String> userSvcPrincipals = con.listPrincipals(userName);
+
                 // remove this user from all roles manually so that we
                 // can have an audit log record for each role
                 
-                removePrincipalFromAllRoles(con, userName, getPrincipalName(ctx), auditRef);
+                final String adminPrincipal = getPrincipalName(ctx);
+                removePrincipalFromAllRoles(con, userName, adminPrincipal, auditRef);
+                for (String userSvcPrincipal : userSvcPrincipals) {
+                    removePrincipalFromAllRoles(con, userSvcPrincipal, adminPrincipal, auditRef);
+                }
                 
                 // finally delete the principal object. any roles that were
                 // left behind will be cleaned up from this operation

@@ -2897,6 +2897,10 @@ public class DBServiceTest extends TestCase {
                 "user.ana", "user.janie");
         zms.putRole(mockDomRsrcCtx, "deleteusersports", "role4", auditRef, role4);
         
+        Role role5 = createRoleObject("deleteusersports", "role5", null,
+                "user.jack.service", "user.jane.storage");
+        zms.putRole(mockDomRsrcCtx, "deleteusersports", "role5", auditRef, role5);
+        
         List<String> users = zms.dbService.listPrincipals("user", true);
         assertEquals(users.size(), 5);
         assertTrue(users.contains("user.testadminuser"));
@@ -2914,6 +2918,11 @@ public class DBServiceTest extends TestCase {
         assertTrue(users.contains("user.ana"));
         assertTrue(users.contains("user.joe"));
         assertFalse(users.contains("user.jack"));
+        
+        Role testRole = zms.dbService.getRole("deleteusersports", "role5", false, false);
+        assertEquals(testRole.getRoleMembers().size(), 1);
+        RoleMember roleMember = testRole.getRoleMembers().get(0);
+        assertEquals(roleMember.getMemberName(), "user.jane.storage");
         
         try {
             zms.getDomain(mockDomRsrcCtx, "user.jack");
