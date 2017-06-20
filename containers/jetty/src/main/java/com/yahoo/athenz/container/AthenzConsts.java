@@ -49,10 +49,12 @@ public final class AthenzConsts {
     public static final String ATHENZ_PROP_HOSTNAME               = "athenz.hostname";
     public static final String ATHENZ_PROP_HOME                   = "athenz.home";
     public static final String ATHENZ_PROP_JETTY_HOME             = "athenz.jetty_home";
+    public static final String ATHENZ_PROP_JETTY_TEMP             = "athenz.jetty_temp";
     public static final String ATHENZ_PROP_DEBUG                  = "athenz.debug";
     public static final String ATHENZ_PROP_HEALTH_CHECK_URI_LIST  = "athenz.health_check_uri_list";
     public static final String ATHENZ_PROP_HEALTH_CHECK_PATH      = "athenz.health_check_path";
-    
+    public static final String ATHENZ_PROP_RATE_LIMIT_FACTORY_CLASS = "athenz.ratelimit_factory_class";
+
     public static final String STR_DEF_ROOT     = "/home/athenz";
     public static final String STR_ENV_ROOT     = "ROOT";
     
@@ -62,5 +64,5 @@ public final class AthenzConsts {
     public static final int ATHENZ_HTTPS_PORT_DEFAULT = 4443;
     public static final int ATHENZ_HTTP_PORT_DEFAULT  = 4080;
     public static final int ATHENZ_HTTP_MAX_THREADS   = 1024;
+    public static final String ATHENZ_RATE_LIMIT_FACTORY_CLASS = "com.yahoo.athenz.common.filter.impl.NoOpRateLimitFactory";
 }
-
