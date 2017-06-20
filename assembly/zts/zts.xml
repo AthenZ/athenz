@@ -44,6 +44,14 @@
       </includes>
     </fileSet>
     <fileSet>
+      <directory>${basedir}/../../containers/jetty/conf/etc</directory>
+      <outputDirectory>etc</outputDirectory>
+      <fileMode>755</fileMode>
+      <includes>
+        <include>webdefault.xml</include>
+      </includes>
+    </fileSet>
+    <fileSet>
       <directory>${basedir}/../../utils/zms-cli/target</directory>
       <outputDirectory>bin</outputDirectory>
     </fileSet>

@@ -15,7 +15,11 @@
  */
 package com.yahoo.athenz.container;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
@@ -28,22 +32,20 @@ import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.ThreadPool;
-
 import org.mockito.MockitoAnnotations;
-
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.container.log.AthenzRequestLog;
-import com.yahoo.athenz.container.AthenzConsts;
-import com.yahoo.athenz.container.AthenzJettyContainer;
 
 public class AthenzJettyContainerTest {
 
     @BeforeClass
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
+        System.setProperty(AthenzConsts.ATHENZ_PROP_JETTY_HOME, "conf");
     }
     
     @AfterMethod
@@ -66,6 +68,11 @@ public class AthenzJettyContainerTest {
         System.clearProperty(AthenzConsts.ATHENZ_PROP_MAX_THREADS);
     }
     
+    @AfterClass
+    public void cleanUpAfterClass() {
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_JETTY_HOME);
+    }
+
     @Test
     public void testContainerThreadPool() {
         
