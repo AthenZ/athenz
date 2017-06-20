@@ -267,13 +267,16 @@ public class AthenzJettyContainer {
                 "org.eclipse.jetty.server.webapp.ContainerIncludeJarPattern",
                 ".*/servlet-api-[^/]*\\.jar$");
 
-        String jettyHome = System.getProperty(AthenzConsts.ATHENZ_PROP_JETTY_HOME, getRootDir());
+        final String jettyHome = System.getProperty(AthenzConsts.ATHENZ_PROP_JETTY_HOME, getRootDir());
         WebAppProvider webappProvider = new WebAppProvider();
         webappProvider.setMonitoredDirName(jettyHome + "/webapps");
         webappProvider.setScanInterval(60);
         webappProvider.setExtractWars(true);
         webappProvider.setConfigurationManager(new PropertiesConfigurationManager());
         webappProvider.setParentLoaderPriority(true);
+        
+        final String jettyTemp = System.getProperty(AthenzConsts.ATHENZ_PROP_JETTY_TEMP, jettyHome + "/temp");
+        webappProvider.setTempDir(new File(jettyTemp));
 
         deployer.addAppProvider(webappProvider);
         server.addBean(deployer);
