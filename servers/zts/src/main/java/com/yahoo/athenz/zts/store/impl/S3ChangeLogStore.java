@@ -216,8 +216,8 @@ public class S3ChangeLogStore implements ChangeLogStore {
         ArrayList<String> domains = new ArrayList<>();
         listObjects(s3, domains, lastModTime);
         
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("getUpdatedSignedDomains: {} updated domains", domains.size());
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("getUpdatedSignedDomains: {} updated domains", domains.size());
         }
         
         ArrayList<SignedDomain> signedDomainList = new ArrayList<>();

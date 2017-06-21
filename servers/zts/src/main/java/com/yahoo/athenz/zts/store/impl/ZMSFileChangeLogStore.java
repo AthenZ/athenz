@@ -295,7 +295,7 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
             final String domainName = domain.getDomain().getName();
             
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("getUpdatedSignedDomains: fetching domain {}", domainName);
+                LOGGER.debug("getSignedDomainList: fetching domain {}", domainName);
             }
             
             try {
@@ -304,7 +304,7 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
                 
                 if (singleDomain == null || singleDomain.getDomains().isEmpty()) {
                     if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug("getUpdatedSignedDomains: unable to fetch domain {}",
+                        LOGGER.debug("getSignedDomainList: unable to fetch domain {}",
                                 domainName);
                     }
                     continue;
@@ -348,6 +348,10 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
             
             if (domainList == null || domainList.getDomains() == null) {
                 return null;
+            }
+            
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("getUpdatedSignedDomains: {} updated domains", domainList.getDomains().size());
             }
             
             List<SignedDomain> domains = getSignedDomainList(zmsClient, domainList);
