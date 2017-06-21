@@ -338,8 +338,8 @@ public class DataStore implements DataCacheProvider {
         DomainData domainData = signedDomain.getDomain();
         String domainName = domainData.getName();
         
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Processing domain: {}", domainName);
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("Processing domain: {}", domainName);
         }
         
         /* if the domain is disabled we're going to skip
@@ -473,8 +473,8 @@ public class DataStore implements DataCacheProvider {
          * from ZMS Server */
         
         if (signedDomains == null) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("No updates received from ZMS Server");
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("No updates received from ZMS Server");
             }
             return true;
         }
@@ -483,8 +483,8 @@ public class DataStore implements DataCacheProvider {
         
         List<SignedDomain> domains = signedDomains.getDomains();
         if (domains == null || domains.isEmpty()) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("No updates received from ZMS Server");
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("No updates received from ZMS Server");
             }
             return true;
         }
