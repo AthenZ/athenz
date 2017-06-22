@@ -17,11 +17,21 @@
 package com.yahoo.athenz.container;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.util.EnumSet;
 
 import javax.servlet.DispatcherType;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
+import org.eclipse.jetty.deploy.DeploymentManager;
+import org.eclipse.jetty.deploy.PropertiesConfigurationManager;
+import org.eclipse.jetty.deploy.bindings.DebugListenerBinding;
+import org.eclipse.jetty.deploy.providers.WebAppProvider;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpHeaderValue;
 import org.eclipse.jetty.http.HttpVersion;
@@ -39,29 +49,29 @@ import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
+import org.eclipse.jetty.servlet.FilterMapping;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
-import org.eclipse.jetty.deploy.DeploymentManager;
-import org.eclipse.jetty.deploy.PropertiesConfigurationManager;
-import org.eclipse.jetty.deploy.bindings.DebugListenerBinding;
-import org.eclipse.jetty.deploy.providers.WebAppProvider;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.container.filter.HealthCheckFilter;
+import com.yahoo.athenz.container.filter.RateLimitFilter;
 import com.yahoo.athenz.container.log.AthenzRequestLog;
 
 public class AthenzJettyContainer {
     
     private static final Logger LOG = LoggerFactory.getLogger(AthenzJettyContainer.class);
     private static String ROOT_DIR;
-    
+    private static final String DEFAULT_FILTER_PATH = "/*";
+
     static final String ATHENZ_DEFAULT_EXCLUDED_CIPHER_SUITES = "SSL_RSA_WITH_DES_CBC_SHA,"
             + "SSL_DHE_RSA_WITH_DES_CBC_SHA,SSL_DHE_DSS_WITH_DES_CBC_SHA,"
             + "SSL_RSA_EXPORT_WITH_RC4_40_MD5,SSL_RSA_EXPORT_WITH_DES40_CBC_SHA,"
@@ -71,6 +81,7 @@ public class AthenzJettyContainer {
     private Server server = null;
     private String banner = null;
     private HandlerCollection handlers = null;
+    
     
     public AthenzJettyContainer() {
     }
@@ -196,6 +207,19 @@ public class AthenzJettyContainer {
         rconf.register(binder);
     }
     
+    private void addDefaultServletFilters() {
+        ServletHandler servletHandler = new ServletHandler();
+        handlers.addHandler(servletHandler);
+        String rateLimitFilterName = RateLimitFilter.class.getSimpleName();
+        servletHandler.addServletWithMapping(new ServletHolder(new DefaultServlet()), DEFAULT_FILTER_PATH);
+        FilterHolder filterHolder = new FilterHolder(RateLimitFilter.class);
+        filterHolder.setName(rateLimitFilterName);
+        FilterMapping filterMapping = new FilterMapping();
+        filterMapping.setFilterName(rateLimitFilterName);
+        filterMapping.setPathSpec(DEFAULT_FILTER_PATH);
+        servletHandler.addFilter(filterHolder, filterMapping);
+    }
+    
     public void addServletHandlers(String serverHostName) {
         
         // Handler Structure
@@ -250,6 +274,8 @@ public class AthenzJettyContainer {
                 servletCtxHandler.addFilter(filterHolder, checkUri.trim(), EnumSet.of(DispatcherType.REQUEST));
             }
         }
+        // setup global filters
+        addDefaultServletFilters();
         
         contexts.addHandler(servletCtxHandler);
         
@@ -485,6 +511,30 @@ public class AthenzJettyContainer {
             
             LOG.error("Startup failure. Shutting down", exc);
             throw exc;
+        }
+    }
+    
+    class DefaultServlet extends HttpServlet {
+        /**
+         * 
+         */
+        private static final long serialVersionUID = 1L;
+
+        public DefaultServlet() {
+        }
+
+        @Override
+        protected void doPost(HttpServletRequest request,
+                HttpServletResponse response) throws ServletException, IOException {
+        }
+
+        @Override
+        protected void doGet(HttpServletRequest request,
+                HttpServletResponse response) throws ServletException, IOException {
+            response.setContentType("text/plain");
+            PrintWriter writer = response.getWriter();
+            writer.flush();
+            writer.close();
         }
     }
 }
