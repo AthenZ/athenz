@@ -46,7 +46,9 @@ public class RateLimitFilter implements javax.servlet.Filter {
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain)
             throws IOException, ServletException {
-        rateLimit.filter(servletRequest, servletResponse);
+        if (rateLimit.filter(servletRequest, servletResponse)) {
+            return;
+        }
         chain.doFilter(servletRequest, servletResponse);
     }
 

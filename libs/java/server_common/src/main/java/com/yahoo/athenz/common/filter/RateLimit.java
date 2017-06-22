@@ -25,7 +25,8 @@ public interface RateLimit {
      * filter based on rate limit
      * @param servletResponse  ServletRequest
      * @param servletResponse ServletResponse
+     * @return boolean too many request
      */
-    public void filter(ServletRequest servletRequest, ServletResponse servletResponse);
+    public boolean filter(ServletRequest servletRequest, ServletResponse servletResponse);
 
 }

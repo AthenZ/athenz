@@ -27,10 +27,11 @@ public class NoOpRateLimit implements RateLimit {
     private static final Logger LOG = LoggerFactory.getLogger(NoOpRateLimit.class);
 
     @Override
-    public void filter(ServletRequest servletRequest, ServletResponse servletResponse) {
+    public boolean filter(ServletRequest servletRequest, ServletResponse servletResponse) {
         if (LOG.isDebugEnabled()) {
             LOG.debug("NoOpRateLimit called");
         }
+        return false;
     }
 
 }
