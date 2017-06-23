@@ -17,16 +17,10 @@
 package com.yahoo.athenz.container;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.util.EnumSet;
 
 import javax.servlet.DispatcherType;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.eclipse.jetty.deploy.DeploymentManager;
 import org.eclipse.jetty.deploy.PropertiesConfigurationManager;
