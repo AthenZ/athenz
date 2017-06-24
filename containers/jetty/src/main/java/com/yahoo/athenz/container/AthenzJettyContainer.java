@@ -22,6 +22,10 @@ import java.util.EnumSet;
 
 import javax.servlet.DispatcherType;
 
+import org.eclipse.jetty.deploy.DeploymentManager;
+import org.eclipse.jetty.deploy.PropertiesConfigurationManager;
+import org.eclipse.jetty.deploy.bindings.DebugListenerBinding;
+import org.eclipse.jetty.deploy.providers.WebAppProvider;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpHeaderValue;
 import org.eclipse.jetty.http.HttpVersion;
@@ -42,16 +46,10 @@ import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-
-import org.eclipse.jetty.deploy.DeploymentManager;
-import org.eclipse.jetty.deploy.PropertiesConfigurationManager;
-import org.eclipse.jetty.deploy.bindings.DebugListenerBinding;
-import org.eclipse.jetty.deploy.providers.WebAppProvider;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.container.filter.HealthCheckFilter;
@@ -61,7 +59,8 @@ public class AthenzJettyContainer {
     
     private static final Logger LOG = LoggerFactory.getLogger(AthenzJettyContainer.class);
     private static String ROOT_DIR;
-    
+    private static final String DEFAULT_WEBAPP_DESCRIPTOR = "/etc/webdefault.xml";
+
     static final String ATHENZ_DEFAULT_EXCLUDED_CIPHER_SUITES = "SSL_RSA_WITH_DES_CBC_SHA,"
             + "SSL_DHE_RSA_WITH_DES_CBC_SHA,SSL_DHE_DSS_WITH_DES_CBC_SHA,"
             + "SSL_RSA_EXPORT_WITH_RC4_40_MD5,SSL_RSA_EXPORT_WITH_DES40_CBC_SHA,"
@@ -71,6 +70,7 @@ public class AthenzJettyContainer {
     private Server server = null;
     private String banner = null;
     private HandlerCollection handlers = null;
+    
     
     public AthenzJettyContainer() {
     }
@@ -250,7 +250,6 @@ public class AthenzJettyContainer {
                 servletCtxHandler.addFilter(filterHolder, checkUri.trim(), EnumSet.of(DispatcherType.REQUEST));
             }
         }
-        
         contexts.addHandler(servletCtxHandler);
         
         DeploymentManager deployer = new DeploymentManager();
@@ -274,7 +273,8 @@ public class AthenzJettyContainer {
         webappProvider.setExtractWars(true);
         webappProvider.setConfigurationManager(new PropertiesConfigurationManager());
         webappProvider.setParentLoaderPriority(true);
-        
+        //setup a Default web.xml file.  file is applied to a Web application before it's own WEB_INF/web.xml 
+        setDefaultsDescriptor(webappProvider, jettyHome);
         final String jettyTemp = System.getProperty(AthenzConsts.ATHENZ_PROP_JETTY_TEMP, jettyHome + "/temp");
         webappProvider.setTempDir(new File(jettyTemp));
 
@@ -282,6 +282,17 @@ public class AthenzJettyContainer {
         server.addBean(deployer);
     }
 
+    private void setDefaultsDescriptor(WebAppProvider webappProvider, String jettyHome) {
+        //setup a Default web.xml file.  file is applied to a Web application before it's own WEB_INF/web.xml 
+        //check for file existence
+        String webDefaultXML = jettyHome + DEFAULT_WEBAPP_DESCRIPTOR;
+        File file = new File(webDefaultXML);
+        if (!file.exists()) {
+            throw new RuntimeException("webdefault.xml not found in " + webDefaultXML);
+        } 
+        webappProvider.setDefaultsDescriptor(webDefaultXML);
+    }
+    
     public HttpConfiguration newHttpConfiguration(int httpsPort) {
 
         // HTTP Configuration
@@ -487,4 +498,5 @@ public class AthenzJettyContainer {
             throw exc;
         }
     }
+    
 }
