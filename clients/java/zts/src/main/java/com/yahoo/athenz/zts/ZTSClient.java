@@ -678,6 +678,10 @@ public class ZTSClient implements Closeable {
             throw new IllegalArgumentException("Role DomainName and Name must be specified");
         }
         
+        if (cloud == null) {
+            throw new IllegalArgumentException("Cloud Environment must be specified");
+        }
+        
         // Athenz uses lower case for all elements, so let's
         // generate our dn which will be our role resource value
         
@@ -686,7 +690,10 @@ public class ZTSClient implements Closeable {
         
         roleDomainName = roleDomainName.toLowerCase();
         roleName = roleName.toLowerCase();
-        final String dn = "cn=" + roleDomainName + ":role." + roleName + "," + X509_CSR_DN;
+        String dn = "cn=" + roleDomainName + ":role." + roleName;
+        if (X509_CSR_DN != null) {
+            dn = dn.concat(",").concat(X509_CSR_DN);
+        }
         
         // now let's generate our dsnName and email fields which will based on
         // our principal's details
@@ -697,11 +704,16 @@ public class ZTSClient implements Closeable {
         hostBuilder.append(principalDomain.replace('.', '-'));
         hostBuilder.append('.');
         hostBuilder.append(cloud);
-        hostBuilder.append('.');
-        hostBuilder.append(X509_CSR_DOMAIN);
+        if (X509_CSR_DOMAIN != null) {
+            hostBuilder.append('.');
+            hostBuilder.append(X509_CSR_DOMAIN);
+        }
         String hostName = hostBuilder.toString();
 
-        String email = principalDomain + "." + principalService + "@" + cloud + "." + X509_CSR_DOMAIN;
+        String email = principalDomain + "." + principalService + "@" + cloud;
+        if (X509_CSR_DOMAIN != null) {
+            email = email.concat(".").concat(X509_CSR_DOMAIN);
+        }
         
         GeneralName[] sanArray = new GeneralName[2];
         sanArray[0] = new GeneralName(GeneralName.dNSName, new DERIA5String(hostName));
@@ -743,7 +755,10 @@ public class ZTSClient implements Closeable {
         principalService = principalService.toLowerCase();
         final String cn = principalDomain + "." + principalService;
         
-        final String dn = "cn=" + cn + "," + X509_CSR_DN;
+        String dn = "cn=" + cn;
+        if (X509_CSR_DN != null) {
+            dn = dn.concat(",").concat(X509_CSR_DN);
+        }
         
         // now let's generate our dsnName field based on our principal's details
         
@@ -753,8 +768,10 @@ public class ZTSClient implements Closeable {
         hostBuilder.append(principalDomain.replace('.', '-'));
         hostBuilder.append('.');
         hostBuilder.append(cloud);
-        hostBuilder.append('.');
-        hostBuilder.append(X509_CSR_DOMAIN);
+        if (X509_CSR_DOMAIN != null) {
+            hostBuilder.append('.');
+            hostBuilder.append(X509_CSR_DOMAIN);
+        }
         String hostName = hostBuilder.toString();
         
         GeneralName[] sanArray = new GeneralName[1];
