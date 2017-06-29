@@ -44,6 +44,7 @@ import com.yahoo.athenz.zms.Membership;
 import com.yahoo.athenz.zms.Policy;
 import com.yahoo.athenz.zms.PrincipalRole;
 import com.yahoo.athenz.zms.PublicKeyEntry;
+import com.yahoo.athenz.zms.Quota;
 import com.yahoo.athenz.zms.ResourceAccess;
 import com.yahoo.athenz.zms.ResourceAccessList;
 import com.yahoo.athenz.zms.ResourceException;
@@ -236,6 +237,15 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN role ON role_member.role_id=role.role_id "
             + "JOIN domain ON domain.domain_id=role.domain_id "
             + "WHERE role_member.principal_id=?;";
+    private static final String SQL_GET_QUOTA = "SELECT * FROM quota WHERE domain_id=?;";
+    private static final String SQL_INSERT_QUOTA = "INSERT INTO quota (domain_id, role, role_member, "
+            + "policy, assertion, service, service_host, public_key, entity, subdomain) "
+            + "VALUES (?,?,?,?,?,?,?,?,?,?);";
+    private static final String SQL_UPDATE_QUOTA = "UPDATE quota SET role=?, role_member=?, "
+            + "policy=?, assertion=?, service=?, service_host=?, public_key=?, entity=?, "
+            + "subdomain=? WHERE domain_id=?;";
+    private static final String SQL_DELETE_QUOTA = "DELETE FROM quota WHERE domain_id=?;";
+
     
     private static final String CACHE_DOMAIN    = "d:";
     private static final String CACHE_ROLE      = "r:";
@@ -2969,6 +2979,115 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
         
         return rsrcAccessList;
+    }
+    
+
+    @Override
+    public Quota getQuota(String domainName) {
+        
+        final String caller = "getQuota";
+
+        int domainId = getDomainId(con, domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        Quota quota = null;
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_QUOTA)) {
+            ps.setInt(1, domainId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                if (rs.next()) {
+                    quota = new Quota().setName(domainName);
+                    quota.setAssertion(rs.getInt(ZMSConsts.DB_COLUMN_ASSERTION));
+                    quota.setRole(rs.getInt(ZMSConsts.DB_COLUMN_ROLE));
+                    quota.setRoleMember(rs.getInt(ZMSConsts.DB_COLUMN_ROLE_MEMBER));
+                    quota.setPolicy(rs.getInt(ZMSConsts.DB_COLUMN_POLICY));
+                    quota.setService(rs.getInt(ZMSConsts.DB_COLUMN_SERVICE));
+                    quota.setServiceHost(rs.getInt(ZMSConsts.DB_COLUMN_SERVICE_HOST));
+                    quota.setPublicKey(rs.getInt(ZMSConsts.DB_COLUMN_PUBLIC_KEY));
+                    quota.setEntity(rs.getInt(ZMSConsts.DB_COLUMN_ENTITY));
+                    quota.setSubdomain(rs.getInt(ZMSConsts.DB_COLUMN_SUBDOMAIN));
+                    quota.setModified(Timestamp.fromMillis(rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime()));
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return quota;
+    }
+
+    @Override
+    public boolean insertQuota(String domainName, Quota quota) {
+        
+        final String caller = "insertQuota";
+
+        int domainId = getDomainId(con, domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int affectedRows = 0;
+        try (PreparedStatement ps = con.prepareStatement(SQL_INSERT_QUOTA)) {
+            ps.setInt(1, domainId);
+            ps.setInt(2, quota.getRole());
+            ps.setInt(3, quota.getRoleMember());
+            ps.setInt(4, quota.getPolicy());
+            ps.setInt(5, quota.getAssertion());
+            ps.setInt(6, quota.getService());
+            ps.setInt(7, quota.getServiceHost());
+            ps.setInt(8, quota.getPublicKey());
+            ps.setInt(9, quota.getEntity());
+            ps.setInt(10, quota.getSubdomain());
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return (affectedRows > 0);
+    }
+
+    @Override
+    public boolean updateQuota(String domainName, Quota quota) {
+        
+        final String caller = "updateQuota";
+
+        int domainId = getDomainId(con, domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int affectedRows = 0;
+        try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_QUOTA)) {
+            ps.setInt(1, quota.getRole());
+            ps.setInt(2, quota.getRoleMember());
+            ps.setInt(3, quota.getPolicy());
+            ps.setInt(4, quota.getAssertion());
+            ps.setInt(5, quota.getService());
+            ps.setInt(6, quota.getServiceHost());
+            ps.setInt(7, quota.getPublicKey());
+            ps.setInt(8, quota.getEntity());
+            ps.setInt(9, quota.getSubdomain()); 
+            ps.setInt(10, domainId);
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return (affectedRows > 0);
+    }
+
+    @Override
+    public boolean deleteQuota(String domainName) {
+        
+        final String caller = "deleteQuota";
+
+        int domainId = getDomainId(con, domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int affectedRows = 0;
+        try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_QUOTA)) {
+            ps.setInt(1, domainId);
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return (affectedRows > 0);
     }
     
     RuntimeException notFoundError(String caller, String objectType, String objectName) {

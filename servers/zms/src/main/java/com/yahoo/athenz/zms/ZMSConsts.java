@@ -40,6 +40,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_JDBC_USER         = "athenz.zms.jdbc_user";
     public static final String ZMS_PROP_JDBC_PASSWORD     = "athenz.zms.jdbc_password";
     public static final String ZMS_PROP_FILE_STORE_NAME   = "athenz.zms.file_store_name";
+    public static final String ZMS_PROP_FILE_STORE_QUOTA  = "athenz.zms.file_store_quota";
     public static final String ZMS_PROP_FILE_STORE_PATH   = "athenz.zms.file_store_path";
     public static final String ZMS_PROP_MAX_THREADS       = "athenz.zms.http_max_threads";
     public static final String ZMS_PROP_AUTHORITY_CLASSES = "athenz.zms.authority_classes";
@@ -60,6 +61,18 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_METRIC_FACTORY_CLASS            = "athenz.zms.metric_factory_class";
     public static final String ZMS_PROP_AUDIT_LOGGER_FACTORY_CLASS      = "athenz.zms.audit_logger_factory_class";
     public static final String ZMS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS = "athenz.zms.private_key_store_factory_class";
+    
+    // properties for our default quota limits
+    
+    public static final String ZMS_PROP_QUOTA_ROLE         = "athenz.zms.quota_role";
+    public static final String ZMS_PROP_QUOTA_ROLE_MEMBER  = "athenz.zms.quota_role_member";
+    public static final String ZMS_PROP_QUOTA_POLICY       = "athenz.zms.quota_policy";
+    public static final String ZMS_PROP_QUOTA_ASSERTION    = "athenz.zms.quota_assertion";
+    public static final String ZMS_PROP_QUOTA_SERVICE      = "athenz.zms.quota_service";
+    public static final String ZMS_PROP_QUOTA_SERVICE_HOST = "athenz.zms.quota_service_host";
+    public static final String ZMS_PROP_QUOTA_PUBLIC_KEY   = "athenz.zms.quota_public_key";
+    public static final String ZMS_PROP_QUOTA_ENTITY       = "athenz.zms.quota_entity";
+    public static final String ZMS_PROP_QUOTA_SUBDOMAIN    = "athenz.zms.quota_subdomain";
     
     public static final String ZMS_METRIC_FACTORY_CLASS       = "com.yahoo.athenz.common.metrics.impl.NoOpMetricFactory";
     public static final String ZMS_AUDIT_LOGGER_FACTORY_CLASS = "com.yahoo.athenz.common.server.log.impl.DefaultAuditLoggerFactory";
@@ -99,7 +112,15 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_NAME              = "name";
     public static final String DB_COLUMN_TRUST             = "trust";
     public static final String DB_COLUMN_MEMBER            = "member";
+    public static final String DB_COLUMN_ENTITY            = "entity";
+    public static final String DB_COLUMN_SUBDOMAIN         = "subdomain";
     public static final String DB_COLUMN_ROLE              = "role";
+    public static final String DB_COLUMN_ROLE_MEMBER       = "role_member";
+    public static final String DB_COLUMN_POLICY            = "policy";
+    public static final String DB_COLUMN_SERVICE           = "service";
+    public static final String DB_COLUMN_SERVICE_HOST      = "service_host";
+    public static final String DB_COLUMN_PUBLIC_KEY        = "public_key";
+    public static final String DB_COLUMN_ASSERTION         = "assertion";
     public static final String DB_COLUMN_RESOURCE          = "resource";
     public static final String DB_COLUMN_ACTION            = "action";
     public static final String DB_COLUMN_EFFECT            = "effect";

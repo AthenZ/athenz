@@ -51,6 +51,7 @@ resource TenantRoles PUT "/domain/{domain}/service/{service}/tenant/{tenantDomai
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -65,6 +66,7 @@ resource TenantRoles GET "/domain/{domain}/service/{service}/tenant/{tenantDomai
         ResourceError BAD_REQUEST;
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -84,6 +86,7 @@ resource TenantRoles DELETE "/domain/{domain}/service/{service}/tenant/{tenantDo
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -103,6 +106,7 @@ resource TenantResourceGroupRoles PUT "/domain/{domain}/service/{service}/tenant
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -118,6 +122,7 @@ resource TenantResourceGroupRoles GET "/domain/{domain}/service/{service}/tenant
         ResourceError BAD_REQUEST;
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -136,6 +141,7 @@ resource TenantResourceGroupRoles DELETE "/domain/{domain}/service/{service}/ten
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -155,6 +161,7 @@ resource ProviderResourceGroupRoles PUT "/domain/{tenantDomain}/provDomain/{prov
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -170,6 +177,7 @@ resource ProviderResourceGroupRoles GET "/domain/{tenantDomain}/provDomain/{prov
         ResourceError BAD_REQUEST;
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -188,5 +196,6 @@ resource ProviderResourceGroupRoles DELETE "/domain/{tenantDomain}/provDomain/{p
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }

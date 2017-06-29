@@ -72,6 +72,7 @@ public class DBServiceTest extends TestCase {
     @Mock HttpServletResponse mockServletResponse;
     
     private static final String ZMS_DATA_STORE_PATH = "/tmp/zms_core_unit_tests/zms_root";
+    private static final String ZMS_DATA_QUOTA_PATH = "/tmp/zms_core_unit_tests/zms_quota";
 
     static final Struct TABLE_PROVIDER_ROLE_ACTIONS = new Struct()
             .with("admin", "*").with("writer", "WRITE").with("reader", "READ");
@@ -143,8 +144,11 @@ public class DBServiceTest extends TestCase {
     }
 
     private ZMSImpl zmsInit() {
+        
         // we want to make sure we start we clean dir structure
+        
         FileConnection.deleteDirectory(new File(ZMS_DATA_STORE_PATH));
+        FileConnection.deleteDirectory(new File(ZMS_DATA_QUOTA_PATH));
 
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
 
@@ -2274,7 +2278,7 @@ public class DBServiceTest extends TestCase {
     @Test
     public void testShouldRetryOperation() {
         
-        FileObjectStore store = new FileObjectStore(new File("."));
+        FileObjectStore store = new FileObjectStore(new File("."), new File("."));
         DBService dbService = new DBService(store, null, "user");
         
         // regardless of exception, count of 0 or 1 returns false
@@ -3001,5 +3005,131 @@ public class DBServiceTest extends TestCase {
         
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "deleteusersports", auditRef);
+    }
+    
+    @Test
+    public void testExecutePutQuotaInsert() {
+
+        String domainName = "executeputquotainsert";
+        
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Quota quota = new Quota().setName(domainName)
+                .setAssertion(10).setEntity(11)
+                .setPolicy(12).setPublicKey(13)
+                .setRole(14).setRoleMember(15)
+                .setService(16).setServiceHost(17)
+                .setSubdomain(18);
+        
+        zms.dbService.executePutQuota(mockDomRsrcCtx, domainName, quota,
+                auditRef, "testExecutePutQuotaInsert");
+
+        // now retrieve the quota using zms interface
+        
+        Quota quotaCheck = zms.getQuota(mockDomRsrcCtx, domainName);
+        assertNotNull(quotaCheck);
+        assertEquals(quotaCheck.getAssertion(), 10);
+        assertEquals(quotaCheck.getRole(), 14);
+        assertEquals(quotaCheck.getPolicy(), 12);
+        
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+    
+    @Test
+    public void testExecutePutQuotaUpdate() {
+
+        String domainName = "executeputquotaupdate";
+        
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Quota quota = new Quota().setName(domainName)
+                .setAssertion(10).setEntity(11)
+                .setPolicy(12).setPublicKey(13)
+                .setRole(14).setRoleMember(15)
+                .setService(16).setServiceHost(17)
+                .setSubdomain(18);
+        
+        zms.dbService.executePutQuota(mockDomRsrcCtx, domainName, quota,
+                auditRef, "testExecutePutQuotaUpdate");
+
+        // now update the quota and apply the change again
+        
+        quota.setAssertion(100);
+        quota.setRole(104);
+        
+        zms.dbService.executePutQuota(mockDomRsrcCtx, domainName, quota,
+                auditRef, "testExecutePutQuotaUpdate");
+        
+        // now retrieve the quota using zms interface
+        
+        Quota quotaCheck = zms.getQuota(mockDomRsrcCtx, domainName);
+        assertNotNull(quotaCheck);
+        assertEquals(quotaCheck.getAssertion(), 100);
+        assertEquals(quotaCheck.getRole(), 104);
+        assertEquals(quotaCheck.getPolicy(), 12);
+        
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+    
+    @Test
+    public void testExecuteDeleteQuota() {
+
+        String domainName = "executedeletequota";
+        
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Quota quota = new Quota().setName(domainName)
+                .setAssertion(10).setEntity(11)
+                .setPolicy(12).setPublicKey(13)
+                .setRole(14).setRoleMember(15)
+                .setService(16).setServiceHost(17)
+                .setSubdomain(18);
+        
+        zms.dbService.executePutQuota(mockDomRsrcCtx, domainName, quota,
+                auditRef, "testExecuteDeleteQuota");
+
+        Quota quotaCheck = zms.getQuota(mockDomRsrcCtx, domainName);
+        assertNotNull(quotaCheck);
+        assertEquals(domainName, quotaCheck.getName());
+        assertEquals(quotaCheck.getAssertion(), 10);
+        assertEquals(quotaCheck.getRole(), 14);
+        assertEquals(quotaCheck.getPolicy(), 12);
+        
+        // now delete the quota
+        
+        zms.dbService.executeDeleteQuota(mockDomRsrcCtx, domainName, auditRef,
+                "testExecuteDeleteQuota");
+        
+        // now we'll get the default quota
+        
+        quotaCheck = zms.getQuota(mockDomRsrcCtx, domainName);
+
+        assertEquals("server-default", quotaCheck.getName());
+        assertEquals(quotaCheck.getAssertion(), 100);
+        assertEquals(quotaCheck.getRole(), 1000);
+        assertEquals(quotaCheck.getPolicy(), 1000);
+        
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+    
+    @Test
+    public void testExecuteDeleteQuotaException() {
+
+        String domainName = "executedeletequotaexception";
+        
+        // delete the quota for nonexistent domain
+        
+        try {
+            zms.dbService.executeDeleteQuota(mockDomRsrcCtx, domainName, auditRef,
+                    "testExecuteDeleteQuota");
+            fail();
+        } catch (ResourceException ex) {
+        }
     }
 }

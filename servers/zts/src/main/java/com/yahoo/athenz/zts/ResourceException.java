@@ -21,10 +21,13 @@ public class ResourceException extends RuntimeException {
     public final static int GONE = 410;
     public final static int PRECONDITION_FAILED = 412;
     public final static int UNSUPPORTED_MEDIA_TYPE = 415;
+    public final static int PRECONDITION_REQUIRED = 428;
+    public final static int TOO_MANY_REQUESTS = 429;
+    public final static int REQUEST_HEADER_FIELDS_TOO_LARGE = 431;
     public final static int INTERNAL_SERVER_ERROR = 500;
     public final static int NOT_IMPLEMENTED = 501;
-
     public final static int SERVICE_UNAVAILABLE = 503;
+    public final static int NETWORK_AUTHENTICATION_REQUIRED = 511;
 
     public static String codeToString(int code) {
         switch (code) {
@@ -45,8 +48,13 @@ public class ResourceException extends RuntimeException {
         case GONE: return "Gone";
         case PRECONDITION_FAILED: return "Precondition Failed";
         case UNSUPPORTED_MEDIA_TYPE: return "Unsupported Media Type";
+        case PRECONDITION_REQUIRED: return "Precondition Required";
+        case TOO_MANY_REQUESTS: return "Too Many Requests";
+        case REQUEST_HEADER_FIELDS_TOO_LARGE: return "Request Header Fields Too Large";
         case INTERNAL_SERVER_ERROR: return "Internal Server Error";
         case NOT_IMPLEMENTED: return "Not Implemented";
+        case SERVICE_UNAVAILABLE: return "Service Unavailable";
+        case NETWORK_AUTHENTICATION_REQUIRED: return "Network Authentication Required";
         default: return "" + code;
         }
     }

@@ -23,23 +23,30 @@ import com.yahoo.athenz.zms.store.ObjectStoreConnection;
 public class FileObjectStore implements ObjectStore {
 
     File rootDir;
+    File quotaDir;
     
-    public FileObjectStore(File rootDirectory) {
-        if (!rootDirectory.exists()) {
-            if (!rootDirectory.mkdirs()) {
-                error("cannot create specified root: " + rootDirectory);
-            }
-        } else {
-            if (!rootDirectory.isDirectory()) {
-                error("specified root is not a directory: " + rootDirectory);
-            }
-        }
+    public FileObjectStore(File rootDirectory, File quotaDirectory) {
+        verifyDirectory(rootDirectory);
+        verifyDirectory(quotaDirectory);
         this.rootDir = rootDirectory;
+        this.quotaDir = quotaDirectory;
     }
 
+    void verifyDirectory(File directory) {
+        if (!directory.exists()) {
+            if (!directory.mkdirs()) {
+                error("cannot create specified root: " + directory);
+            }
+        } else {
+            if (!directory.isDirectory()) {
+                error("specified root is not a directory: " + directory);
+            }
+        }
+    }
+    
     @Override
     public ObjectStoreConnection getConnection(boolean autoCommit) {
-        return new FileConnection(rootDir);
+        return new FileConnection(rootDir, quotaDir);
     }
     
     @Override

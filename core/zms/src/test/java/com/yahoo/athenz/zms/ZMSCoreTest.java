@@ -1540,4 +1540,49 @@ public class ZMSCoreTest {
         assertFalse(um3.getEnabled());
         assertFalse(um1.equals(um3));
     }
+    
+    @Test
+    public void testQuotaObject() {
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+
+        Quota quota = new Quota().setName("athenz").setAssertion(10).setEntity(11)
+                .setPolicy(12).setPublicKey(13).setRole(14).setRoleMember(15)
+                .setService(16).setServiceHost(17).setSubdomain(18);
+
+        Result result = validator.validate(quota, "Quota");
+        assertTrue(result.valid);
+
+        assertEquals(quota.getName(), "athenz");
+        assertEquals(quota.getAssertion(), 10);
+        assertEquals(quota.getEntity(), 11);
+        assertEquals(quota.getPolicy(), 12);
+        assertEquals(quota.getPublicKey(), 13);
+        assertEquals(quota.getRole(), 14);
+        assertEquals(quota.getRoleMember(), 15);
+        assertEquals(quota.getService(), 16);
+        assertEquals(quota.getServiceHost(), 17);
+        assertEquals(quota.getSubdomain(), 18);
+        
+        Quota quota2 = new Quota().setName("athenz").setAssertion(10).setEntity(11)
+                .setPolicy(12).setPublicKey(13).setRole(14).setRoleMember(15)
+                .setService(16).setServiceHost(17).setSubdomain(18);
+
+        assertTrue(quota.equals(quota2));
+        
+        quota2.setPolicy(101);
+        assertFalse(quota.equals(quota2));
+        quota2.setPolicy(12);
+        assertTrue(quota.equals(quota2));
+
+        quota2.setRole(102);
+        assertFalse(quota.equals(quota2));
+        quota2.setRole(14);
+        assertTrue(quota.equals(quota2));
+
+        quota2.setService(103);
+        assertFalse(quota.equals(quota2));
+        quota2.setService(16);
+        assertTrue(quota.equals(quota2));
+    }
 }

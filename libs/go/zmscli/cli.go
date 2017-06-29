@@ -531,6 +531,18 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 1 {
 				return cli.DeleteDomainTemplate(dn, args[0])
 			}
+		case "get-quota":
+			if argc == 0 {
+				return cli.GetQuota(dn)
+			}
+		case "set-quota":
+			if argc >= 1 {
+				return cli.SetQuota(dn, args[0:])
+			}
+		case "delete-quota":
+			if argc == 0 {
+				return cli.DeleteQuota(dn)
+			}
 		default:
 			return nil, fmt.Errorf("Unrecognized command '%v'. Type 'zms-cli help' to see help information", cmd)
 		}
@@ -1478,6 +1490,43 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   user   : id of the user to be disabled\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   disable-user jdoe\n")
+	case "get-quota":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domain_param + " get-quota\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain\n")
+		}
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domain_example + " get-quota\n")
+	case "delete-quota":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domain_param + " delete-quota\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain\n")
+		}
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domain_example + " delete-quota\n")
+	case "set-quota":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domain_param + " set-quota [quota-attributes ...]\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain\n")
+		}
+		buf.WriteString("   quota-attributes   : object=<n> values specifying limits. Valid object values are:\n")
+		buf.WriteString("                      :     subdomain (applies to top level domains ony)\n")
+		buf.WriteString("                      :     role\n")
+		buf.WriteString("                      :     role-member\n")
+		buf.WriteString("                      :     policy\n")
+		buf.WriteString("                      :     assertion (total number across all policies)\n")
+		buf.WriteString("                      :     entity\n")
+		buf.WriteString("                      :     service\n")
+		buf.WriteString("                      :     service-host\n")
+		buf.WriteString("                      :     public-key\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domain_example + " set-quota role=100 policy=50 service=25\n")
 	default:
 		if interactive {
 			buf.WriteString("Unknown command. Type 'help' to see available commands")
@@ -1508,6 +1557,9 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   get-signed-domains [matching_tag]\n")
 	buf.WriteString("   use-domain [domain]\n")
 	buf.WriteString("   check-domain [domain]\n")
+	buf.WriteString("   get-quota\n")
+	buf.WriteString("   set-quota [attrs ...]\n")
+	buf.WriteString("   delete-quota\n")
 	buf.WriteString("\n")
 	buf.WriteString(" Policy commands:\n")
 	buf.WriteString("   list-policy\n")

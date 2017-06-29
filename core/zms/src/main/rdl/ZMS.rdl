@@ -22,3 +22,4 @@ include "SignedDomains.rdli";
 include "Token.rdli";
 include "Template.rdli";
 include "User.rdli";
+include "Quota.rdli";

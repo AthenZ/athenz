@@ -76,5 +76,6 @@ resource SignedDomains GET "/sys/modified_domains?domain={domain}&metaonly={meta
         ResourceError NOT_FOUND;
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED; 
+        ResourceError TOO_MANY_REQUESTS;
     }
 }

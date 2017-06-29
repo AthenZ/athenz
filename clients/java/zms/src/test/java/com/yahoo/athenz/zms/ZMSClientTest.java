@@ -2157,4 +2157,63 @@ public class ZMSClientTest {
             assertEquals(400, ex.getCode());
         }
     }
+    
+    @Test
+    public void testGetQuota() {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        Quota quota = new Quota().setName("athenz").setAssertion(10).setEntity(11)
+                .setPolicy(12).setPublicKey(13).setRole(14).setRoleMember(15)
+                .setService(16).setServiceHost(17).setSubdomain(18);
+        Mockito.when(c.getQuota("athenz")).thenReturn(quota);
+        
+        Quota quotaRes = client.getQuota("athenz");
+        assertNotNull(quotaRes);
+        assertEquals(quotaRes.getPolicy(), 12);
+        assertEquals(quotaRes.getRole(), 14);
+    }
+    
+    @Test
+    public void testPutQuota() {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        Quota quota = new Quota().setName("athenz").setAssertion(10).setEntity(11)
+                .setPolicy(12).setPublicKey(13).setRole(14).setRoleMember(15)
+                .setService(16).setServiceHost(17).setSubdomain(18);
+        Mockito.when(c.putQuota("athenz", AUDIT_REF, quota)).thenReturn(null).thenThrow(new ZMSClientException(400, "fail"));
+        
+        // first time it completes successfully
+        
+        client.putQuota("athenz", AUDIT_REF, quota);
+
+        // second time it fails
+        try {
+            client.putQuota("athenz", AUDIT_REF, quota);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(400, ex.getCode());
+        }
+    }
+    
+    @Test
+    public void testDeleteQuota() {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        Mockito.when(c.deleteQuota("athenz", AUDIT_REF)).thenReturn(null).thenThrow(new ZMSClientException(400, "fail"));
+        
+        // first time it completes successfully
+        
+        client.deleteQuota("athenz", AUDIT_REF);
+
+        // second time it fails
+        try {
+            client.deleteQuota("athenz", AUDIT_REF);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(400, ex.getCode());
+        }
+    }
 }

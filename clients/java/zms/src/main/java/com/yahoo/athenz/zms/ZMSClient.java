@@ -341,7 +341,8 @@ public class ZMSClient implements Closeable {
     /**
      * Retrieve the specified domain object
      * @param domain name of the domain to be retrieved
-     * @return Domain object or ZMSClientException will be thrown in case of failure
+     * @return Domain object
+     * @throws ZMSClientException in case of failure
      */
     public Domain getDomain(String domain) {
         updatePrincipal();
@@ -356,7 +357,8 @@ public class ZMSClient implements Closeable {
 
     /**
      * Retrieve the list of domains provisioned on the ZMS Server
-     * @return list of Domains or ZMSClientException will be thrown in case of failure
+     * @return list of Domains
+     * @throws ZMSClientException in case of failure
      */
     public DomainList getDomainList() {
         return getDomainList(null, null, null, null, null, null, null);
@@ -376,7 +378,8 @@ public class ZMSClient implements Closeable {
      *        is specified all other optional attributes are ignored since there must be
      *        only one domain matching the specified product id.
      * @param modifiedSince return domains only modified since this date
-     * @return list of domain names or ZMSClientException will be thrown in case of failure
+     * @return list of domain names
+     * @throws ZMSClientException in case of failure
      */
     public DomainList getDomainList(Integer limit, String skip, String prefix, Integer depth,
             String account, Integer productId, Date modifiedSince) {
@@ -400,7 +403,8 @@ public class ZMSClient implements Closeable {
      * filters based on the specified arguments
      * @param roleMember name of the principal
      * @param roleName name of the role where the principal is a member of
-     * @return list of domain names or ZMSClientException will be thrown in case of failure
+     * @return list of domain names
+     * @throws ZMSClientException in case of failure
      */
     public DomainList getDomainList(String roleMember, String roleName) {
         updatePrincipal();
@@ -419,7 +423,8 @@ public class ZMSClient implements Closeable {
      * object configured on the server (not just some of the attributes).
      * @param auditRef string containing audit specification or ticket number
      * @param detail TopLevelDomain object to be created in ZMS
-     * @return created Domain object or ZMSClientException will be thrown in case of failure
+     * @return created Domain object
+     * @throws ZMSClientException in case of failure
      */
     public Domain postTopLevelDomain(String auditRef, TopLevelDomain detail) {
         updatePrincipal();
@@ -440,7 +445,8 @@ public class ZMSClient implements Closeable {
      * @param parent name of the parent domain
      * @param auditRef string containing audit specification or ticket number
      * @param detail SubDomain object to be created in ZMS
-     * @return created Domain object or ZMSClientException will be thrown in case of failure
+     * @return created Domain object
+     * @throws ZMSClientException in case of failure
      */
     public Domain postSubDomain(String parent, String auditRef, SubDomain detail) {
         updatePrincipal();
@@ -458,7 +464,8 @@ public class ZMSClient implements Closeable {
      * @param name domain to be created, this is the &lt;userid&gt;
      * @param auditRef string containing audit specification or ticket number
      * @param detail UserDomain object to be created in ZMS
-     * @return created Domain object or ZMSClientException will be thrown in case of failure
+     * @return created Domain object
+     * @throws ZMSClientException in case of failure
      */
     public Domain postUserDomain(String name, String auditRef, UserDomain detail) {
         updatePrincipal();
@@ -475,6 +482,7 @@ public class ZMSClient implements Closeable {
      * Delete a top level domain
      * @param name domain name to be deleted from ZMS
      * @param auditRef string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
      */
     public void deleteTopLevelDomain(String name, String auditRef) {
         updatePrincipal();
@@ -492,6 +500,7 @@ public class ZMSClient implements Closeable {
      * @param parent name of the parent domain
      * @param name sub-domain to be deleted
      * @param auditRef string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
      */
     public void deleteSubDomain(String parent, String name, String auditRef) {
         updatePrincipal();
@@ -542,6 +551,7 @@ public class ZMSClient implements Closeable {
      * @param name user name (without the domain part)
      * @param auditRef string containing audit specification or ticket number
      * @param detail meta parameters to be set on the domain
+     * @throws ZMSClientException in case of failure
      */
     public void putUserMeta(String name, String auditRef, UserMeta detail) {
         try {
@@ -556,7 +566,8 @@ public class ZMSClient implements Closeable {
     /**
      * Retrieve the list of roles defined for the specified domain
      * @param domainName name of the domain
-     * @return list of role names or ZMSClientException will be thrown in case of failure
+     * @return list of role names
+     * @throws ZMSClientException in case of failure
      */
     public RoleList getRoleList(String domainName) {
         updatePrincipal();
@@ -575,7 +586,8 @@ public class ZMSClient implements Closeable {
      * @param domainName name of the domain
      * @param limit number of roles to return
      * @param skip exclude all the roles including the specified one from the return set
-     * @return list of role names or ZMSClientException will be thrown in case of failure
+     * @return list of role names
+     * @throws ZMSClientException in case of failure
      */
     public RoleList getRoleList(String domainName, Integer limit, String skip) {
         updatePrincipal();
@@ -593,7 +605,8 @@ public class ZMSClient implements Closeable {
      * will contain their attributes and, if specified, the list of members.
      * @param domainName name of the domain
      * @param members include all members for group roles as well
-     * @return list of roles or ZMSClientException will be thrown in case of failure
+     * @return list of roles
+     * @throws ZMSClientException in case of failure
      */
     public Roles getRoles(String domainName, Boolean members) {
         updatePrincipal();
@@ -610,7 +623,8 @@ public class ZMSClient implements Closeable {
      * Retrieve the specified role
      * @param domainName name of the domain
      * @param roleName name of the role
-     * @return role object or ZMSClientException will be thrown in case of failure
+     * @return role object
+     * @throws ZMSClientException in case of failure
      */
     public Role getRole(String domainName, String roleName) {
         return getRole(domainName, roleName, false, false);
@@ -621,7 +635,8 @@ public class ZMSClient implements Closeable {
      * @param domainName name of the domain
      * @param roleName name of the role
      * @param auditLog include audit log for the role changes in the response
-     * @return role object or ZMSClientException will be thrown in case of failure
+     * @return role object
+     * @throws ZMSClientException in case of failure
      */
     public Role getRole(String domainName, String roleName, boolean auditLog) {
         return getRole(domainName, roleName, auditLog, false);
@@ -636,7 +651,8 @@ public class ZMSClient implements Closeable {
      * @param expand if the requested role is a delegated/trust role, this flag
      * will instruct the ZMS server to automatically retrieve the members of the
      * role from the delegated domain and return as part of the role object
-     * @return role object or ZMSClientException will be thrown in case of failure
+     * @return role object
+     * @throws ZMSClientException in case of failure
      */
     public Role getRole(String domainName, String roleName, boolean auditLog, boolean expand) {
         updatePrincipal();
@@ -657,6 +673,7 @@ public class ZMSClient implements Closeable {
      * @param roleName name of the role
      * @param auditRef string containing audit specification or ticket number
      * @param role role object to be added to the domain
+     * @throws ZMSClientException in case of failure
      */
     public void putRole(String domainName, String roleName, String auditRef, Role role) {
         updatePrincipal();
@@ -674,6 +691,7 @@ public class ZMSClient implements Closeable {
      * @param domainName name of the domain
      * @param roleName name of the role
      * @param auditRef string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
      */
     public void deleteRole(String domainName, String roleName, String auditRef) {
         updatePrincipal();
@@ -692,7 +710,8 @@ public class ZMSClient implements Closeable {
      * @param domainName name of the domain
      * @param roleName name of the role
      * @param memberName name of the member
-     * @return Membership object or ZMSClientException will be thrown in case of failure
+     * @return Membership object
+     * @throws ZMSClientException in case of failure
      */
     public Membership getMembership(String domainName, String roleName, String memberName) {
         updatePrincipal();
@@ -711,6 +730,7 @@ public class ZMSClient implements Closeable {
      * @param roleName name of the role
      * @param memberName name of the member to be added
      * @param auditRef string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
      */
     public void putMembership(String domainName, String roleName, String memberName, String auditRef) {
         putMembership(domainName, roleName, memberName, null, auditRef);
@@ -723,6 +743,7 @@ public class ZMSClient implements Closeable {
      * @param memberName name of the member to be added
      * @param expiration timestamp when this membership will expire (optional)
      * @param auditRef string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
      */
     public void putMembership(String domainName, String roleName, String memberName,
             Timestamp expiration, String auditRef) {
@@ -745,6 +766,7 @@ public class ZMSClient implements Closeable {
      * @param roleName name of the role
      * @param memberName name of the member to be removed
      * @param auditRef string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
      */
     public void deleteMembership(String domainName, String roleName, String memberName, String auditRef) {
         updatePrincipal();
@@ -759,7 +781,8 @@ public class ZMSClient implements Closeable {
 
     /**
      * Get list of users defined in the system
-     * @return list of user names or ZMSClientException will be thrown in case of failure
+     * @return list of user names
+     * @throws ZMSClientException in case of failure
      */
     public UserList getUserList() {
         updatePrincipal();
@@ -779,6 +802,7 @@ public class ZMSClient implements Closeable {
      * from the Athens sys.auth domain (delete action on resource user).
      * @param name name of the user
      * @param auditRef string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
      */
     public void deleteUser(String name, String auditRef) {
         updatePrincipal();
@@ -796,7 +820,8 @@ public class ZMSClient implements Closeable {
      * will contain their attributes and, if specified, the list of assertions.
      * @param domainName name of the domain
      * @param assertions include all assertion for policies as well
-     * @return list of policies or ZMSClientException will be thrown in case of failure
+     * @return list of policies
+     * @throws ZMSClientException in case of failure
      */
     public Policies getPolicies(String domainName, Boolean assertions) {
         updatePrincipal();
@@ -812,7 +837,8 @@ public class ZMSClient implements Closeable {
     /**
      * Get list of policies defined in the specified domain
      * @param domainName name of the domain
-     * @return list of policy names or ZMSClientException will be thrown in case of failure
+     * @return list of policy names
+     * @throws ZMSClientException in case of failure
      */
     public PolicyList getPolicyList(String domainName) {
         updatePrincipal();
@@ -831,7 +857,8 @@ public class ZMSClient implements Closeable {
      * @param domainName name of the domain
      * @param limit number of policies to return
      * @param skip exclude all the policies including the specified one from the return set
-     * @return list of policy names or ZMSClientException will be thrown in case of failure
+     * @return list of policy names
+     * @throws ZMSClientException in case of failure
      */
     public PolicyList getPolicyList(String domainName, Integer limit, String skip) {
         updatePrincipal();
@@ -849,7 +876,8 @@ public class ZMSClient implements Closeable {
      * @param domainName name of the domain
      * @param policyName name of the policy
      * @param assertionId the id of the assertion to be retrieved
-     * @return Assertion object or ZMSClientException will be thrown in case of failure
+     * @return Assertion object
+     * @throws ZMSClientException in case of failure
      */
     public Assertion getAssertion(String domainName, String policyName, Long assertionId) {
         updatePrincipal();
@@ -869,6 +897,7 @@ public class ZMSClient implements Closeable {
      * @param auditRef string containing audit specification or ticket number
      * @param assertion Assertion object to be added to the policy
      * @return updated assertion object that includes the server assigned id
+     * @throws ZMSClientException in case of failure
      */
     public Assertion putAssertion(String domainName, String policyName, String auditRef, Assertion assertion) {
         updatePrincipal();
@@ -887,6 +916,7 @@ public class ZMSClient implements Closeable {
      * @param policyName name of the policy
      * @param assertionId the id of the assertion to be deleted
      * @param auditRef string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
      */
     public void deleteAssertion(String domainName, String policyName, Long assertionId, String auditRef) {
         updatePrincipal();
@@ -903,7 +933,8 @@ public class ZMSClient implements Closeable {
      * Return the specified policy object
      * @param domainName name of the domain
      * @param policyName name of the policy to be retrieved
-     * @return Policy object or ZMSClientException will be thrown in case of failure
+     * @return Policy object
+     * @throws ZMSClientException in case of failure
      */
     public Policy getPolicy(String domainName, String policyName) {
         updatePrincipal();
@@ -924,6 +955,7 @@ public class ZMSClient implements Closeable {
      * @param policyName name of the policy
      * @param auditRef string containing audit specification or ticket number
      * @param policy Policy object with details
+     * @throws ZMSClientException in case of failure
      */
     public void putPolicy(String domainName, String policyName, String auditRef, Policy policy) {
         updatePrincipal();
@@ -941,6 +973,7 @@ public class ZMSClient implements Closeable {
      * @param domainName name of the domain
      * @param policyName name of the policy to be deleted
      * @param auditRef string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
      */
     public void deletePolicy(String domainName, String policyName, String auditRef) {
         updatePrincipal();
@@ -961,6 +994,7 @@ public class ZMSClient implements Closeable {
      * @param serviceName name of the service
      * @param auditRef string containing audit specification or ticket number
      * @param service ServiceIdentity object with all service details
+     * @throws ZMSClientException in case of failure
      */
     public void putServiceIdentity(String domainName, String serviceName, 
             String auditRef, ServiceIdentity service) {
@@ -978,7 +1012,8 @@ public class ZMSClient implements Closeable {
      * Retrieve the specified service object from a domain
      * @param domainName name of the domain
      * @param serviceName name of the service to be retrieved
-     * @return ServiceIdentity object or ZMSClientException will be thrown in case of failure
+     * @return ServiceIdentity object
+     * @throws ZMSClientException in case of failure
      */
     public ServiceIdentity getServiceIdentity(String domainName, String serviceName) {
         updatePrincipal();
@@ -996,6 +1031,7 @@ public class ZMSClient implements Closeable {
      * @param domainName name of the domain
      * @param serviceName name of the service to be deleted
      * @param auditRef string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
      */
     public void deleteServiceIdentity(String domainName, String serviceName, String auditRef) {
         updatePrincipal();
@@ -1014,7 +1050,8 @@ public class ZMSClient implements Closeable {
      * @param domainName name of the domain
      * @param publicKeys include all public keys for services as well
      * @param hosts include all configured hosts for services as well
-     * @return list of services or ZMSClientException will be thrown in case of failure
+     * @return list of services
+     * @throws ZMSClientException in case of failure
      */
     public ServiceIdentities getServiceIdentities(String domainName, Boolean publicKeys, Boolean hosts) {
         updatePrincipal();
@@ -1030,7 +1067,8 @@ public class ZMSClient implements Closeable {
     /**
      * Retrieve the full list of services defined in a domain
      * @param domainName name of the domain
-     * @return list of all service names or ZMSClientException will be thrown in case of failure
+     * @return list of all service names
+     * @throws ZMSClientException in case of failure
      */
     public ServiceIdentityList getServiceIdentityList(String domainName) {
         updatePrincipal();
@@ -1049,7 +1087,8 @@ public class ZMSClient implements Closeable {
      * @param domainName name of the domain
      * @param limit number of services to return
      * @param skip exclude all the services including the specified one from the return set
-     * @return list of service names or ZMSClientException will be thrown in case of failure
+     * @return list of service names
+     * @throws ZMSClientException in case of failure
      */
     public ServiceIdentityList getServiceIdentityList(String domainName, Integer limit, String skip) {
         updatePrincipal();
@@ -1067,7 +1106,8 @@ public class ZMSClient implements Closeable {
      * @param domainName name of the domain
      * @param serviceName name of the service
      * @param keyId the identifier of the public key to be retrieved
-     * @return PublicKeyEntry object or ZMSClientException will be thrown in case of failure
+     * @return PublicKeyEntry object
+     * @throws ZMSClientException in case of failure
      */
     public PublicKeyEntry getPublicKeyEntry(String domainName, String serviceName, String keyId) {
         updatePrincipal();
@@ -1087,6 +1127,7 @@ public class ZMSClient implements Closeable {
      * @param keyId the identifier of the public key to be updated
      * @param auditRef string containing audit specification or ticket number
      * @param publicKeyEntry that contains the public key details
+     * @throws ZMSClientException in case of failure
      */
     public void putPublicKeyEntry(String domainName, String serviceName, String keyId, String auditRef,
             PublicKeyEntry publicKeyEntry) {
@@ -1107,6 +1148,7 @@ public class ZMSClient implements Closeable {
      * @param serviceName name of the service
      * @param keyId the identifier of the public key to be deleted
      * @param auditRef string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
      */
     public void deletePublicKeyEntry(String domainName, String serviceName, String keyId, String auditRef) {
         updatePrincipal();
@@ -1125,6 +1167,7 @@ public class ZMSClient implements Closeable {
      * @param entityName name of the entity
      * @param auditRef string containing audit specification or ticket number
      * @param entity entity object with details
+     * @throws ZMSClientException in case of failure
      */
     public void putEntity(String domainName, String entityName, String auditRef, Entity entity) {
         updatePrincipal();
@@ -1141,7 +1184,8 @@ public class ZMSClient implements Closeable {
      * Retrieve the specified entity from the ZMS Server
      * @param domainName name of the domain
      * @param entityName name of the entity
-     * @return Entity object with details or ZMSClientException will be thrown in case of failure
+     * @return Entity object with details
+     * @throws ZMSClientException in case of failure
      */
     public Entity getEntity(String domainName, String entityName) {
         updatePrincipal();
@@ -1159,6 +1203,7 @@ public class ZMSClient implements Closeable {
      * @param domainName name of the domain
      * @param entityName name of the entity
      * @param auditRef string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
      */
     public void deleteEntity(String domainName, String entityName, String auditRef) {
         updatePrincipal();
@@ -1174,7 +1219,8 @@ public class ZMSClient implements Closeable {
     /**
      * Retrieve the list of entities defined for the specified domain
      * @param domainName name of the domain
-     * @return list of entity names or ZMSClientException will be thrown in case of failure
+     * @return list of entity names
+     * @throws ZMSClientException in case of failure
      */
     public EntityList getEntityList(String domainName) {
         updatePrincipal();
@@ -1195,6 +1241,7 @@ public class ZMSClient implements Closeable {
      *        format: provider-domain-name.provider-service-name, ex: "sports.storage"
      * @param auditRef string containing audit specification or ticket number
      * @param tenant Tenancy object with tenant details
+     * @throws ZMSClientException in case of failure
      */
     public void putTenancy(String tenantDomain, String providerService, String auditRef, Tenancy tenant) {
         updatePrincipal();
@@ -1212,7 +1259,8 @@ public class ZMSClient implements Closeable {
      * @param tenantDomain name of the tenant domain
      * @param providerService name of the provider service,
      *        format: provider-domain-name.provider-service-name, ex: "sports.storage"
-     * @return Tenancy object or ZMSClientException will be thrown in case of failure
+     * @return Tenancy object
+     * @throws ZMSClientException in case of failure
      */
     public Tenancy getTenancy(String tenantDomain, String providerService) {
         updatePrincipal();
@@ -1231,6 +1279,7 @@ public class ZMSClient implements Closeable {
      * @param providerService name of the provider service,
      *        format: provider-domain-name.provider-service-name, ex: "sports.storage"
      * @param auditRef string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
      */
     public void deleteTenancy(String tenantDomain, String providerService, String auditRef) {
         updatePrincipal();
@@ -1252,6 +1301,7 @@ public class ZMSClient implements Closeable {
      * @param resourceGroup name of the resource group
      * @param auditRef string containing audit specification or ticket number
      * @param resourceGroupData TenancyResourceGroup object with tenant's resource group details
+     * @throws ZMSClientException in case of failure
      */
     public void putTenancyResourceGroup(String tenantDomain, String providerService,
             String resourceGroup, String auditRef, TenancyResourceGroup resourceGroupData) {
@@ -1272,6 +1322,7 @@ public class ZMSClient implements Closeable {
      *        provider-domain-name.provider-service-name, ex: "sports.storage"
      * @param resourceGroup name of the resource group
      * @param auditRef string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
      */
     public void deleteTenancyResourceGroup(String tenantDomain, String providerService,
             String resourceGroup, String auditRef) {
@@ -1292,6 +1343,7 @@ public class ZMSClient implements Closeable {
      * @param tenantDomain name of the tenant's domain
      * @param auditRef string containing audit specification or ticket number
      * @param tenantRoles Tenant roles
+     * @throws ZMSClientException in case of failure
      */
     public void putTenantRoles(String providerDomain, String providerServiceName,
             String tenantDomain, String auditRef, TenantRoles tenantRoles) {
@@ -1313,6 +1365,7 @@ public class ZMSClient implements Closeable {
      * @param resourceGroup name of the resource group
      * @param auditRef string containing audit specification or ticket number
      * @param tenantRoles Tenant roles
+     * @throws ZMSClientException in case of failure
      */
     public void putTenantResourceGroupRoles(String providerDomain, String providerServiceName, String tenantDomain,
             String resourceGroup, String auditRef, TenantResourceGroupRoles tenantRoles) {
@@ -1332,7 +1385,8 @@ public class ZMSClient implements Closeable {
      * @param providerDomain name of the provider domain
      * @param providerServiceName name of the provider service
      * @param tenantDomain name of the tenant's domain
-     * @return list of tenant roles or ZMSClientException will be thrown in case of failure
+     * @return list of tenant roles
+     * @throws ZMSClientException in case of failure
      */
     public TenantRoles getTenantRoles(String providerDomain, String providerServiceName, String tenantDomain) {
         updatePrincipal();
@@ -1351,7 +1405,8 @@ public class ZMSClient implements Closeable {
      * @param providerServiceName name of the provider service
      * @param tenantDomain name of the tenant's domain
      * @param resourceGroup name of the resource group
-     * @return list of tenant roles or ZMSClientException will be thrown in case of failure
+     * @return list of tenant roles
+     * @throws ZMSClientException in case of failure
      */
     public TenantResourceGroupRoles getTenantResourceGroupRoles(String providerDomain, String providerServiceName,
             String tenantDomain, String resourceGroup) {
@@ -1372,6 +1427,7 @@ public class ZMSClient implements Closeable {
      * @param providerServiceName name of the provider service
      * @param tenantDomain name of tenant's domain
      * @param auditRef string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
      */
     public void deleteTenantRoles(String providerDomain, String providerServiceName, String tenantDomain,
             String auditRef) {
@@ -1392,6 +1448,7 @@ public class ZMSClient implements Closeable {
      * @param tenantDomain name of tenant's domain
      * @param resourceGroup name of the resource group
      * @param auditRef string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
      */
     public void deleteTenantResourceGroupRoles(String providerDomain, String providerServiceName, String tenantDomain,
             String resourceGroup, String auditRef) {
@@ -1414,6 +1471,7 @@ public class ZMSClient implements Closeable {
      * @param trustDomain (optional) if the access checks involves cross domain check only
      *        check the specified trusted domain and ignore all others
      * @return Access object indicating whether or not the request will be granted or not
+     * @throws ZMSClientException in case of failure
      */
     public Access getAccess(String action, String resource, String trustDomain) {
         return getAccess(action, resource, trustDomain, null);
@@ -1428,6 +1486,7 @@ public class ZMSClient implements Closeable {
      *        check the specified trusted domain and ignore all others
      * @param principal (optional) carry out the access check for specified principal
      * @return Access object indicating whether or not the request will be granted or not
+     * @throws ZMSClientException in case of failure
      */
     public Access getAccess(String action, String resource, String trustDomain, String principal) {
         try {
@@ -1449,6 +1508,7 @@ public class ZMSClient implements Closeable {
      *        check the specified trusted domain and ignore all others
      * @param principal (optional) carry out the access check for specified principal
      * @return Access object indicating whether or not the request will be granted or not
+     * @throws ZMSClientException in case of failure
      */
     public Access getAccessExt(String action, String resource, String trustDomain, String principal) {
         try {
@@ -1478,6 +1538,7 @@ public class ZMSClient implements Closeable {
      *        contain a single value timestamp String to be used
      *        with subsequent call as matchingTag to this API
      * @return list of domains signed by ZMS Server
+     * @throws ZMSClientException in case of failure
      */
     public SignedDomains getSignedDomains(String domainName, String metaOnly, String matchingTag,
             Map<String, List<String>> responseHeaders) {
@@ -1501,6 +1562,7 @@ public class ZMSClient implements Closeable {
      * the user name from the credentials and is optional. The caller can just pass
      * the string "_self_" as the userName to bypass this optional check.
      * @return ZMS generated User Token
+     * @throws ZMSClientException in case of failure
      */
     public UserToken getUserToken(String userName) {
         return getUserToken(userName, null, null);
@@ -1514,6 +1576,7 @@ public class ZMSClient implements Closeable {
      * @param serviceNames comma separated list of authorized service names
      * @param header boolean flag whether or not return authority header name
      * @return ZMS generated User Token
+     * @throws ZMSClientException in case of failure
      */
     public UserToken getUserToken(String userName, String serviceNames, Boolean header) {
         try {
@@ -1532,6 +1595,7 @@ public class ZMSClient implements Closeable {
      * @param userName name of the user
      * @param serviceNames comma separated list of authorized service names
      * @return ZMS generated User Token
+     * @throws ZMSClientException in case of failure
      */
     public UserToken getUserToken(String userName, String serviceNames) {
         try {
@@ -1551,6 +1615,7 @@ public class ZMSClient implements Closeable {
      * @param domainName - name of the domain to add default administrators to
      * @param auditRef - string containing audit specification or ticket number
      * @param defaultAdmins - list of names to be added as default administrators
+     * @throws ZMSClientException in case of failure
      */
     public void putDefaultAdmins(String domainName, String auditRef, DefaultAdmins defaultAdmins) {
         updatePrincipal();
@@ -1568,7 +1633,7 @@ public class ZMSClient implements Closeable {
      * and if the token is valid, it will return a Principal object.
      * @param serviceToken token to be validated.
      * @return Principal object if the token is successfully validated or
-     * ZMSClientException will be thrown in case of failure
+     * @throws ZMSClientException in case of failure
      */
     public Principal getPrincipal(String serviceToken) {
         return getPrincipal(serviceToken, PRINCIPAL_AUTHORITY.getHeader());
@@ -1580,7 +1645,7 @@ public class ZMSClient implements Closeable {
      * @param serviceToken token to be validated.
      * @param tokenHeader name of the authorization header for the token
      * @return Principal object if the token is successfully validated or
-     * ZMSClientException will be thrown in case of failure
+     * @throws ZMSClientException in case of failure
      */
     public Principal getPrincipal(String serviceToken, String tokenHeader) {
         
@@ -1651,6 +1716,7 @@ public class ZMSClient implements Closeable {
      * @param resourceGroup name of the resource group
      * @param auditRef string containing audit specification or ticket number
      * @param providerRoles Provider roles
+     * @throws ZMSClientException in case of failure
      */
     public void putProviderResourceGroupRoles(String tenantDomain, String providerDomain,
             String providerServiceName, String resourceGroup, String auditRef,
@@ -1676,6 +1742,7 @@ public class ZMSClient implements Closeable {
      * @param providerServiceName name of the provider service
      * @param resourceGroup name of the resource group
      * @param auditRef string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
      */
     public void deleteProviderResourceGroupRoles(String tenantDomain, String providerDomain,
             String providerServiceName, String resourceGroup, String auditRef) {
@@ -1696,7 +1763,8 @@ public class ZMSClient implements Closeable {
      * @param providerDomain name of the provider domain
      * @param providerServiceName name of the provider service
      * @param resourceGroup name of the resource group
-     * @return list of provider roles or ZMSClientException will be thrown in case of failure
+     * @return list of provider roles
+     * @throws ZMSClientException in case of failure
      */
     public ProviderResourceGroupRoles getProviderResourceGroupRoles(String tenantDomain,
             String providerDomain, String providerServiceName, String resourceGroup) {
@@ -1714,7 +1782,8 @@ public class ZMSClient implements Closeable {
     /**
      * Check the data for the specified domain object
      * @param domain name of the domain to be checked
-     * @return DomainDataCheck object or ZMSClientException will be thrown in case of failure
+     * @return DomainDataCheck object
+     * @throws ZMSClientException in case of failure
      */
     public DomainDataCheck getDomainDataCheck(String domain) {
         updatePrincipal();
@@ -1732,7 +1801,8 @@ public class ZMSClient implements Closeable {
      * The template object will include the list of roles and policies that will
      * be provisioned in the domain when the template is applied.
      * @param template name of the solution template to be retrieved
-     * @return template object or ZMSClientException will be thrown in case of failure
+     * @return template object
+     * @throws ZMSClientException in case of failure
      */
     public Template getTemplate(String template) {
         updatePrincipal();
@@ -1747,7 +1817,8 @@ public class ZMSClient implements Closeable {
 
     /**
      * Retrieve the list of solution templates provisioned on the ZMS Server
-     * @return list of template names or ZMSClientException will be thrown in case of failure
+     * @return list of template names
+     * @throws ZMSClientException in case of failure
      */
     public ServerTemplateList getServerTemplateList() {
         updatePrincipal();
@@ -1765,6 +1836,7 @@ public class ZMSClient implements Closeable {
      * @param domain name of the domain to be updated
      * @param auditRef string containing audit specification or ticket number
      * @param templates contains list of template names to be provisioned in the domain
+     * @throws ZMSClientException in case of failure
      */
     public void putDomainTemplate(String domain, String auditRef, DomainTemplate templates) {
         updatePrincipal();
@@ -1782,6 +1854,7 @@ public class ZMSClient implements Closeable {
      * @param domain name of the domain to be updated
      * @param template is the name of the provisioned template to be deleted
      * @param auditRef string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
      */
     public void deleteDomainTemplate(String domain, String template, String auditRef) {
         updatePrincipal();
@@ -1798,6 +1871,7 @@ public class ZMSClient implements Closeable {
      * Retrieve the list of solution template provisioned for a domain
      * @param domain name of the domain
      * @return TemplateList object that includes the list of provisioned solution template names
+     * @throws ZMSClientException in case of failure
      */
     public DomainTemplateList getDomainTemplateList(String domain) {
         updatePrincipal();
@@ -1819,11 +1893,64 @@ public class ZMSClient implements Closeable {
      * request all principals from Athenz Service
      * @param action optional field specifying what action to filter assertions on
      * @return ResourceAccessList object that lists the set of assertions per principal
+     * @throws ZMSClientException in case of failure
      */
     public ResourceAccessList getResourceAccessList(String principal, String action) {
         updatePrincipal();
         try {
             return client.getResourceAccessList(principal, action);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+    
+    /**
+     * Retrieve the quota deatails for the specified domain
+     * @param domainName name of the domain
+     * @return quota object
+     * @throws ZMSClientException in case of failure
+     */
+    public Quota getQuota(String domainName) {
+        updatePrincipal();
+        try {
+            return client.getQuota(domainName);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+    
+    /**
+     * Create/Update the quota details for the specified domain
+     * @param domainName name of the domain
+     * @param auditRef string containing audit specification or ticket number
+     * @param quota object to be set for the domain
+     * @throws ZMSClientException in case of failure
+     */
+    public void putQuota(String domainName, String auditRef, Quota quota) {
+        updatePrincipal();
+        try {
+            client.putQuota(domainName, auditRef, quota);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Delete the specified quota details for the specified domain
+     * @param domainName name of the domain
+     * @param auditRef string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
+     */
+    public void deleteQuota(String domainName, String auditRef) {
+        updatePrincipal();
+        try {
+            client.deleteQuota(domainName, auditRef);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {

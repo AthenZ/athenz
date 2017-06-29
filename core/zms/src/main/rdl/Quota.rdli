@@ -1,0 +1,61 @@
+// Copyright 2017 Oath Inc.
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+//User API
+include "Names.tdl";
+
+//The representation for a quota object
+type Quota Struct {
+    DomainName name; //name of the domain object
+    Int32 subdomain; //number of subdomains allowed (applied at top level domain level)
+    Int32 role; //number of roles allowed
+    Int32 roleMember; //number of members a role may have
+    Int32 policy; //number of policies allowed
+    Int32 assertion; //total number of assertions a policy may have
+    Int32 entity; //total number of entity objects
+    Int32 service; //number of services allowed
+    Int32 serviceHost; //number of hosts allowed per service
+    Int32 publicKey; //number of public keys per service
+    Timestamp modified (optional); //the last modification timestamp of the quota object
+}
+
+//Retrieve the quota object defined for the domain
+resource Quota GET "/domain/{name}/quota" {
+    DomainName name; //name of the domain
+    authenticate;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+    }
+}
+
+//Update the specified domain's quota object
+resource Quota PUT "/domain/{name}/quota" {
+    DomainName name; //name of the domain
+    String auditRef (header="Y-Audit-Ref"); //Audit reference
+    Quota quota; //Quota object with limits for the domain
+    authorize ("update", "sys.auth:quota");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+    }
+}
+
+//Delete the specified domain's quota
+resource Quota DELETE "/domain/{name}/quota" {
+    DomainName name; //name of the domain
+    String auditRef (header="Y-Audit-Ref"); //Audit reference
+    authorize ("update", "sys.auth:quota");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+    }
+}

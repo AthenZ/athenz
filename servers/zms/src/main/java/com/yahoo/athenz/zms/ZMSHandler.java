@@ -80,6 +80,9 @@ public interface ZMSHandler {
     public UserList getUserList(ResourceContext context);
     public UserMeta putUserMeta(ResourceContext context, String name, String auditRef, UserMeta detail);
     public User deleteUser(ResourceContext context, String name, String auditRef);
+    public Quota getQuota(ResourceContext context, String name);
+    public Quota putQuota(ResourceContext context, String name, String auditRef, Quota quota);
+    public Quota deleteQuota(ResourceContext context, String name, String auditRef);
     public Schema getRdlSchema(ResourceContext context);
     public ResourceContext newResourceContext(HttpServletRequest request, HttpServletResponse response);
 }

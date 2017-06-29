@@ -26,6 +26,7 @@ import com.yahoo.athenz.zms.Membership;
 import com.yahoo.athenz.zms.Policy;
 import com.yahoo.athenz.zms.PrincipalRole;
 import com.yahoo.athenz.zms.PublicKeyEntry;
+import com.yahoo.athenz.zms.Quota;
 import com.yahoo.athenz.zms.ResourceAccessList;
 import com.yahoo.athenz.zms.Role;
 import com.yahoo.athenz.zms.RoleAuditLog;
@@ -91,13 +92,13 @@ public interface ObjectStoreConnection extends Closeable {
     boolean deletePolicy(String domainName, String policyName);
     List<String> listPolicies(String domainName, String assertionRoleName);
     boolean updatePolicyModTimestamp(String domainName, String policyName);
-
+    
     Assertion getAssertion(String domainName, String policyName, Long assertionId);
     boolean insertAssertion(String domainName, String policyName, Assertion assertion);
     boolean deleteAssertion(String domainName, String policyName, Long assertionId);
     List<Assertion> listAssertions(String domainName, String policyName);
     ResourceAccessList listResourceAccess(String principal, String action, String userDomain);
-
+    
     // Service commands
 
     ServiceIdentity getServiceIdentity(String domainName, String serviceName);
@@ -124,4 +125,11 @@ public interface ObjectStoreConnection extends Closeable {
     boolean updateEntity(String domainName, Entity entity);
     boolean deleteEntity(String domainName, String entityName);
     List<String> listEntities(String domainName);
+    
+    // Quota commands
+    
+    Quota getQuota(String domainName);
+    boolean insertQuota(String domainName, Quota quota);
+    boolean updateQuota(String domainName, Quota quota);
+    boolean deleteQuota(String domainName);
 }

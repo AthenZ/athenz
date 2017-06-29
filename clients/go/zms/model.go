@@ -4075,3 +4075,108 @@ func (self *UserMeta) UnmarshalJSON(b []byte) error {
 func (self *UserMeta) Validate() error {
 	return nil
 }
+
+//
+// Quota - The representation for a quota object
+//
+type Quota struct {
+
+	//
+	// name of the domain object
+	//
+	Name DomainName `json:"name"`
+
+	//
+	// number of subdomains allowed (applied at top level domain level)
+	//
+	Subdomain int32 `json:"subdomain"`
+
+	//
+	// number of roles allowed
+	//
+	Role int32 `json:"role"`
+
+	//
+	// number of members a role may have
+	//
+	RoleMember int32 `json:"roleMember"`
+
+	//
+	// number of policies allowed
+	//
+	Policy int32 `json:"policy"`
+
+	//
+	// total number of assertions a policy may have
+	//
+	Assertion int32 `json:"assertion"`
+
+	//
+	// total number of entity objects
+	//
+	Entity int32 `json:"entity"`
+
+	//
+	// number of services allowed
+	//
+	Service int32 `json:"service"`
+
+	//
+	// number of hosts allowed per service
+	//
+	ServiceHost int32 `json:"serviceHost"`
+
+	//
+	// number of public keys per service
+	//
+	PublicKey int32 `json:"publicKey"`
+
+	//
+	// the last modification timestamp of the quota object
+	//
+	Modified *rdl.Timestamp `json:"modified,omitempty" rdl:"optional"`
+}
+
+//
+// NewQuota - creates an initialized Quota instance, returns a pointer to it
+//
+func NewQuota(init ...*Quota) *Quota {
+	var o *Quota
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(Quota)
+	}
+	return o
+}
+
+type rawQuota Quota
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a Quota
+//
+func (self *Quota) UnmarshalJSON(b []byte) error {
+	var r rawQuota
+	err := json.Unmarshal(b, &r)
+	if err == nil {
+		o := Quota(r)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *Quota) Validate() error {
+	if self.Name == "" {
+		return fmt.Errorf("Quota.name is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "DomainName", self.Name)
+		if !val.Valid {
+			return fmt.Errorf("Quota.name does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	return nil
+}

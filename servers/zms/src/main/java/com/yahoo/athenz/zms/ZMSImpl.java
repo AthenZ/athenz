@@ -133,6 +133,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private static final String TYPE_PROVIDER_RESOURCE_GROUP_ROLES = "ProviderResourceGroupRoles";
     private static final String TYPE_PUBLIC_KEY_ENTRY = "PublicKeyEntry";
     private static final String TYPE_MEMBERSHIP = "Membership";
+    private static final String TYPE_QUOTA = "Quota";
     
     public static Metric metric;
     public static String serverHostName  = null;
@@ -365,6 +366,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 DOMAIN_TEMPLATE_LIST.convertToLowerCase(domain.getTemplates());
             }
         },
+        QUOTA {
+            void convertToLowerCase(Object obj) {
+                Quota quota = (Quota) obj;
+                quota.setName(quota.getName().toLowerCase());
+            }
+        },
         USER_DOMAIN {
             void convertToLowerCase(Object obj) {
                 UserDomain userDomain = (UserDomain) obj;
@@ -540,10 +547,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             String homeDir = System.getProperty(ZMSConsts.ZMS_PROP_FILE_STORE_PATH,
                     getRootDir() + "/var/zms_server");
             String fileDirName = System.getProperty(ZMSConsts.ZMS_PROP_FILE_STORE_NAME, "zms_root");
-            String path = getFileStructPath(homeDir, fileDirName);
-            store = new FileObjectStore(new File(path));
+            String quotaDirName = System.getProperty(ZMSConsts.ZMS_PROP_FILE_STORE_QUOTA, "zms_quota");
+            String filePath = homeDir + File.separator + fileDirName;
+            String quotaPath = homeDir + File.separator + quotaDirName;
+            store = new FileObjectStore(new File(filePath), new File(quotaPath));
         }
-        
+
         dbService = new DBService(store, auditLogger, userDomain);
     }
     
@@ -2650,6 +2659,106 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return null;
     }
 
+    public Quota getQuota(ResourceContext ctx, String domainName) {
+        
+        final String caller = "getquota";
+        metric.increment(ZMSConsts.HTTP_GET);
+        logPrincipal(ctx);
+
+        validateRequest(ctx.request(), caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        domainName = domainName.toLowerCase();
+
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
+        metric.increment(caller, domainName);
+        Object timerMetric = metric.startTiming("getquota_timing", domainName);
+
+        Quota result = dbService.getQuota(domainName);
+        
+        metric.stopTiming(timerMetric);
+        return result;
+    }
+    
+    public Quota putQuota(ResourceContext ctx, String domainName, String auditRef, Quota quota) {
+        
+        final String caller = "putQuota";
+        metric.increment(ZMSConsts.HTTP_PUT);
+        logPrincipal(ctx);
+
+        if (readOnlyMode) {
+            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+        }
+
+        validateRequest(ctx.request(), caller);
+
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(quota, TYPE_QUOTA, caller);
+        
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        domainName = domainName.toLowerCase();
+        AthenzObject.QUOTA.convertToLowerCase(quota);
+
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
+        metric.increment(caller, domainName);
+        Object timerMetric = metric.startTiming("putquota_timing", domainName);
+
+        // verify that request is properly authenticated for this request
+        
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(),
+                caller);
+        
+        // verify that the domain name in the URI and object provided match
+        
+        if (!domainName.equals(quota.getName())) {
+            throw ZMSUtils.requestError("putQuota: Domain name in URI and Quota object do not match", caller);
+        }
+
+        dbService.executePutQuota(ctx, domainName, quota, auditRef, caller);
+        metric.stopTiming(timerMetric);
+        return null;
+    }
+
+    public Quota deleteQuota(ResourceContext ctx, String domainName, String auditRef) {
+        
+        final String caller = "deleteQuota";
+        metric.increment(ZMSConsts.HTTP_DELETE);
+        logPrincipal(ctx);
+
+        if (readOnlyMode) {
+            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+        }
+
+        validateRequest(ctx.request(), caller);
+
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        domainName = domainName.toLowerCase();
+
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
+        metric.increment(caller, domainName);
+        Object timerMetric = metric.startTiming("deletequota_timing", domainName);
+        
+        // verify that request is properly authenticated for this request
+        
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+        
+        dbService.executeDeleteQuota(ctx, domainName, auditRef, caller);
+        metric.stopTiming(timerMetric);
+        return null;
+    }
+    
     boolean hasExceededListLimit(Integer limit, int count) {
         
         if (limit == null) {
@@ -6387,18 +6496,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             return null;
         }
         return authority;
-    }
-    
-    String getFileStructPath(String db_context, String name) {
-        
-        String path = db_context;
-        if (path == null) {
-            path = name;
-        } else if (name != null) {
-            path = path + File.separator + name;
-        }
-        
-        return path;
     }
     
     String getRootDir() {

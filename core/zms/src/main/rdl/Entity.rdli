@@ -19,6 +19,7 @@ resource Entity PUT "/domain/{domainName}/entity/{entityName}" {
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -33,6 +34,7 @@ resource Entity GET "/domain/{domainName}/entity/{entityName}" {
         ResourceError BAD_REQUEST;
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -51,6 +53,7 @@ resource Entity DELETE "/domain/{domainName}/entity/{entityName}" {
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -62,5 +65,6 @@ resource EntityList GET "/domain/{domainName}/entity" {
         ResourceError BAD_REQUEST;
         ResourceError NOT_FOUND;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }

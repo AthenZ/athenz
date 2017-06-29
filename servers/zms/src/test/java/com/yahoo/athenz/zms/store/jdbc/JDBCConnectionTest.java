@@ -26,6 +26,7 @@ import com.yahoo.athenz.zms.Membership;
 import com.yahoo.athenz.zms.Policy;
 import com.yahoo.athenz.zms.PrincipalRole;
 import com.yahoo.athenz.zms.PublicKeyEntry;
+import com.yahoo.athenz.zms.Quota;
 import com.yahoo.athenz.zms.ResourceAccess;
 import com.yahoo.athenz.zms.ResourceAccessList;
 import com.yahoo.athenz.zms.ResourceException;
@@ -5699,6 +5700,280 @@ public class JDBCConnectionTest extends TestCase {
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testGetQuota() throws Exception {
+
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.doReturn(7).when(mockResultSet).getInt(1); // domain id
+        Mockito.doReturn(10).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_ASSERTION);
+        Mockito.doReturn(11).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_ROLE);
+        Mockito.doReturn(12).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_ROLE_MEMBER);
+        Mockito.doReturn(13).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_POLICY);
+        Mockito.doReturn(14).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_SERVICE);
+        Mockito.doReturn(15).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_SERVICE_HOST);
+        Mockito.doReturn(16).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_PUBLIC_KEY);
+        Mockito.doReturn(17).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_ENTITY);
+        Mockito.doReturn(18).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_SUBDOMAIN);
+        Mockito.doReturn(new java.sql.Timestamp(1454358916)).when(mockResultSet).getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED);
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Quota quota = jdbcConn.getQuota("athenz");
+        assertNotNull(quota);
+        assertEquals(quota.getAssertion(), 10);
+        assertEquals(quota.getRole(), 11);
+        assertEquals(quota.getRoleMember(), 12);
+        assertEquals(quota.getPolicy(), 13);
+        assertEquals(quota.getService(), 14);
+        assertEquals(quota.getServiceHost(), 15);
+        assertEquals(quota.getPublicKey(), 16);
+        assertEquals(quota.getEntity(), 17);
+        assertEquals(quota.getSubdomain(), 18);
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "athenz");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 7);
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testGetQuotaNull() throws Exception {
+
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+        Mockito.doReturn(7).when(mockResultSet).getInt(1); // domain id
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Quota quota = jdbcConn.getQuota("athenz");
+        assertNull(quota);
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testGetQuotaException() throws Exception {
+
+        Mockito.when(mockPrepStmt.executeQuery()).thenReturn(mockResultSet)
+            .thenThrow(new SQLException("failed operation", "state", 1001));
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.doReturn(7).when(mockResultSet).getInt(1); // domain id
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        try {
+            jdbcConn.getQuota("athenz");
+            fail();
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testInsertQuota() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Quota quota = new Quota().setName("athenz")
+                .setAssertion(10).setEntity(11)
+                .setPolicy(12).setPublicKey(13)
+                .setRole(14).setRoleMember(15)
+                .setService(16).setServiceHost(17)
+                .setSubdomain(18);
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1); // return domain id
+        
+        boolean requestSuccess = jdbcConn.insertQuota("athenz", quota);
+        assertTrue(requestSuccess);
+        
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "athenz");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(2, 14);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(3, 15);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(4, 12);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(5, 10);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(6, 16);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(7, 17);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(8, 13);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(9, 11);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(10, 18);
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testInsertQuotaInvalidDomain() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Quota quota = new Quota().setName("athenz")
+                .setAssertion(10).setEntity(11)
+                .setPolicy(12).setPublicKey(13)
+                .setRole(14).setRoleMember(15)
+                .setService(16).setServiceHost(17)
+                .setSubdomain(18);
+        
+        Mockito.when(mockResultSet.next()).thenReturn(false);
+        
+        try {
+            jdbcConn.insertQuota("athenz", quota);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(404, ex.getCode());
+        }
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testInsertQuotaException() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Quota quota = new Quota().setName("athenz")
+                .setAssertion(10).setEntity(11)
+                .setPolicy(12).setPublicKey(13)
+                .setRole(14).setRoleMember(15)
+                .setService(16).setServiceHost(17)
+                .setSubdomain(18);
+
+        Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("failed operation", "state", 1001));
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1); // return domain id
+        
+        try {
+            jdbcConn.insertQuota("athenz", quota);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testUpdateQuota() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Quota quota = new Quota().setName("athenz")
+                .setAssertion(10).setEntity(11)
+                .setPolicy(12).setPublicKey(13)
+                .setRole(14).setRoleMember(15)
+                .setService(16).setServiceHost(17)
+                .setSubdomain(18);
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1); // return domain id
+        
+        boolean requestSuccess = jdbcConn.updateQuota("athenz", quota);
+        assertTrue(requestSuccess);
+        
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "athenz");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 14);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(2, 15);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(3, 12);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(4, 10);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(5, 16);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(6, 17);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(7, 13);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(8, 11);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(9, 18);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(10, 5); // domain id
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testUpdateQuotaInvalidDomain() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Quota quota = new Quota().setName("athenz")
+                .setAssertion(10).setEntity(11)
+                .setPolicy(12).setPublicKey(13)
+                .setRole(14).setRoleMember(15)
+                .setService(16).setServiceHost(17)
+                .setSubdomain(18);
+        
+        Mockito.when(mockResultSet.next()).thenReturn(false);
+        
+        try {
+            jdbcConn.updateQuota("athenz", quota);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(404, ex.getCode());
+        }
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testUpdateQuotaException() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Quota quota = new Quota().setName("athenz")
+                .setAssertion(10).setEntity(11)
+                .setPolicy(12).setPublicKey(13)
+                .setRole(14).setRoleMember(15)
+                .setService(16).setServiceHost(17)
+                .setSubdomain(18);
+
+        Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("failed operation", "state", 1001));
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1); // return domain id
+        
+        try {
+            jdbcConn.updateQuota("athenz", quota);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testDeleteQuota() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1); // return domain id
+
+        boolean requestSuccess = jdbcConn.deleteQuota("athenz");
+        assertTrue(requestSuccess);
+        
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "athenz");
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testDeleteQuotaInvalidDomain() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next()).thenReturn(false);
+        
+        try {
+            jdbcConn.deleteQuota("athenz");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(404, ex.getCode());
+        }
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testDeleteQuotaException() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1); // return domain id
+        
+        Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("failed operation", "state", 1001));
+        try {
+            jdbcConn.deleteQuota("athenz");
+            fail();
+        } catch (Exception ex) {
+            assertTrue(true);
         }
         jdbcConn.close();
     }

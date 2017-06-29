@@ -39,6 +39,7 @@ import com.yahoo.athenz.zms.Membership;
 import com.yahoo.athenz.zms.Policy;
 import com.yahoo.athenz.zms.PrincipalRole;
 import com.yahoo.athenz.zms.PublicKeyEntry;
+import com.yahoo.athenz.zms.Quota;
 import com.yahoo.athenz.zms.ResourceAccessList;
 import com.yahoo.athenz.zms.ResourceException;
 import com.yahoo.athenz.zms.Role;
@@ -56,8 +57,10 @@ public class FileConnection implements ObjectStoreConnection {
     private static final String ALL_PRINCIPALS  = "*";
     
     File rootDir;
-    public FileConnection(File rootDir) {
+    File quotaDir;
+    public FileConnection(File rootDir, File quotaDir) {
         this.rootDir = rootDir;
+        this.quotaDir = quotaDir;
     }
 
     @Override
@@ -1282,7 +1285,7 @@ public class FileConnection implements ObjectStoreConnection {
         }
     }
     
-    private static void delete(File f) {
+    private static boolean delete(File f) {
         if (f.exists()) {
             if (f.isDirectory()) {
 
@@ -1296,16 +1299,18 @@ public class FileConnection implements ObjectStoreConnection {
             if (!f.delete()) {
                 throw new RuntimeException("Cannot delete file: " + f);
             }
+            return true;
         }
+        return false;
     }
 
     public static void deleteDirectory(File f) {
         delete(f);
     }
 
-    public synchronized void delete(String name) {
+    public synchronized boolean delete(String name) {
         File f = new File(rootDir, name);
-        delete(f);
+        return delete(f);
     }
 
     String extractObjectName(String domainName, String fullName, String objType) {
@@ -1378,5 +1383,50 @@ public class FileConnection implements ObjectStoreConnection {
         policy.setModified(Timestamp.fromCurrentTime());
         putDomainStruct(domainName, domainStruct);
         return true;
+    }
+
+    @Override
+    public Quota getQuota(String domainName) {
+        File f = new File(quotaDir, domainName);
+        if (!f.exists()) {
+            return null;
+        }
+        Quota quota = null;
+        try {
+            Path path = Paths.get(f.toURI());
+            quota = JSON.fromBytes(Files.readAllBytes(path), Quota.class);
+        } catch (IOException e) {
+        }
+        return quota;
+    }
+
+    boolean putQuota(String domainName, Quota quota) {
+        File f = new File(quotaDir, domainName);
+        String quotaData = JSON.string(quota);
+        try {
+            FileWriter fileWriter = new FileWriter(f);
+            fileWriter.write(quotaData);
+            fileWriter.flush();
+            fileWriter.close();
+        } catch (IOException e) {
+            return false;
+        }
+        return true;
+    }
+    
+    @Override
+    public boolean insertQuota(String domainName, Quota quota) {
+        return putQuota(domainName, quota);
+    }
+
+    @Override
+    public boolean updateQuota(String domainName, Quota quota) {
+        return putQuota(domainName, quota);
+    }
+
+    @Override
+    public boolean deleteQuota(String domainName) {
+        File quotaFile = new File(quotaDir, domainName);
+        return delete(quotaFile);
     }
 }

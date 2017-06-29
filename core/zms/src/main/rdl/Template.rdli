@@ -9,6 +9,7 @@ resource ServerTemplateList GET "/template" {
     authenticate;
     exceptions {
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -22,5 +23,6 @@ resource Template GET "/template/{template}" {
         ResourceError BAD_REQUEST;
         ResourceError NOT_FOUND;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }

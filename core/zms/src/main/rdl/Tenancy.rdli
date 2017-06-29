@@ -31,6 +31,7 @@ resource Tenancy PUT "/domain/{domain}/tenancy/{service}" {
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -44,6 +45,7 @@ resource Tenancy GET "/domain/{domain}/tenancy/{service}" {
         ResourceError BAD_REQUEST;
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -62,6 +64,7 @@ resource Tenancy DELETE "/domain/{domain}/tenancy/{service}" {
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -80,6 +83,7 @@ resource TenancyResourceGroup PUT "/domain/{domain}/tenancy/{service}/resourceGr
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -97,5 +101,6 @@ resource TenancyResourceGroup DELETE "/domain/{domain}/tenancy/{service}/resourc
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }

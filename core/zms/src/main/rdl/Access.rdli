@@ -29,6 +29,7 @@ resource Access GET "/access/{action}/{resource}?domain={domain}&principal={chec
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError NOT_FOUND;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -47,6 +48,7 @@ resource Access GET "/access/{action}?resource={resource}&domain={domain}&princi
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError NOT_FOUND;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -72,5 +74,6 @@ resource ResourceAccessList GET "/resource?principal={principal}&action={action}
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError NOT_FOUND;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }

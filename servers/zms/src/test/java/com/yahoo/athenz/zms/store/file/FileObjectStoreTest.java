@@ -31,19 +31,15 @@ public class FileObjectStoreTest {
     }
 
     @Test
-    public void TestFileObjectStore() {
-        File file = new File("/home/athenz/");
-        File file2 = new File("/home/hoge.txt");
+    public void TestFileObjectStoreInvalidDirectories() {
+        File fileDir = new File("/invalid_athenz/zms_store");
+        File quotaDir = new File("/invalid_athenz/zms_quota");
+        FileObjectStore store = null;
         try {
-            new FileObjectStore(file);
+            store = new FileObjectStore(fileDir, quotaDir);
+            fail();
         } catch (Exception ex) {
-            assertTrue(true);
         }
-
-        try {
-            new FileObjectStore(file2);
-        } catch (Exception ex) {
-            assertTrue(true);
-        }
+        assertNull(store);
     }
 }
