@@ -6,6 +6,7 @@
 * [Getting Software](#getting-software)
 * [Configuration](#configuration)
 * [Start/Stop UI Server](#startstop-ui-server)
+* [UI Access](ui-access)
 
 ## Requirements
 ---------------
@@ -27,6 +28,7 @@ in your runtime path:
 ```shell
 $ node --version
 v6.9.4
+$ npm install -g nodemon
 $ nodemon --version
 1.11.0
 ```
@@ -94,11 +96,34 @@ $ cd athenz-ui-X.Y
 $ bin/athenz_ui stop
 ```
 
-## Befor accessing to UI
------------------------
+## UI Access
+------------
 
-Install self-signed X509 certificates into your own web browser in order to have HTTPS support for ZMS Server and UI Server:
+To access Athenz UI in your browser, visit:
 
-To access UI we need the self-signed certificates for ZMS Server and UI Server.
-From your ZMS Server installation, copy the `zms_cert.pem` file from the `athenz-zms-X.Y/var/zms_server/certs` directory to a local directory on the host that will be running web browser.
-From your UI Server installation, copy the `ui_cert.pem` file from the `athenz-ui-X.Y/keys` directory to a local directory on the host that will be running web browser.
+```
+https://<ui-server-host-name>:9443
+```
+
+Since the development setup is using self-signed X509 certificates for
+Athenz ZMS and UI servers, the administrator must add exceptions when
+accessing Athenz UI or install the self-signed certificates for those two
+servers into his/her own web browser.
+
+The administrator must first access the ZMS Server endpoint in the browser to
+accept the exception since the Athenz UI contacts ZMS Server to get an authorized
+token for the user when logging in. The administrator must access
+
+```
+https://<zms-server-host-name>:4443
+```
+
+first and accept the certificate exception before accessing Athenz UI.
+
+Alternatively, the administrator may decide to install the self-signed
+certificates for the ZMS and UI servers in their browser. For ZMS Server,
+the self-signed certificate is called `zms_cert.pem` and this file
+is located in the `athenz-zms-X.Y/var/zms_server/certs` directory.
+For UI Server, the self-signed certificate is called `ui_cert.pem` and this file
+is located in the `athenz-ui-X.Y/keys` directory.
+

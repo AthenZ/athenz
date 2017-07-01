@@ -15,7 +15,7 @@ openssl genrsa -out zms_private.pem 2048
 
 echo "Generating a self signed certificate for ZMS Server..."
 cd ../certs
-HOSTNAME=$(hostname)
+HOSTNAME=$(hostname -f)
 sed s/__athenz_hostname__/$HOSTNAME/g $ROOT/conf/zms_server/dev_x509_cert.cnf > ./dev_x509_cert.cnf
 openssl req -x509 -nodes -newkey rsa:2048 -keyout zms_key.pem -out zms_cert.pem -days 365 -config ./dev_x509_cert.cnf
 

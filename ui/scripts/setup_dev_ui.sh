@@ -29,7 +29,7 @@ openssl rsa -in athenz.ui.pem -pubout > athenz.ui_pub.pem
 
 echo "Generating a self signed certificate for Athenz UI Server..."
 
-UI_HOSTNAME=$(hostname)
+UI_HOSTNAME=$(hostname -f)
 sed s/__athenz_hostname__/$UI_HOSTNAME/g ./dev_x509_cert.cnf > ./dev_ui_x509_cert.cnf
 openssl req -x509 -nodes -newkey rsa:2048 -keyout ui_key.pem -out ui_cert.pem -days 365 -config ./dev_ui_x509_cert.cnf
 

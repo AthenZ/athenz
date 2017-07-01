@@ -15,7 +15,7 @@ if [ ! -f "./var/zms_server/keys/zms_private.pem" ]; then
 fi
 
 hostname=`hostname`
-public_hostname=`curl http://169.254.169.254/latest/meta-data/public-hostname`
+public_hostname=`hostname`
 
 sudo -E bin/zms start
 set +e

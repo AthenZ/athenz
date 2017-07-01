@@ -29,7 +29,7 @@ openssl rsa -in zts_private.pem -pubout > zts_public.pem
 
 echo "Generating a self signed certificate for ZTS Server..."
 cd ../certs
-ZTS_HOSTNAME=$(hostname)
+ZTS_HOSTNAME=$(hostname -f)
 sed s/__athenz_hostname__/$ZTS_HOSTNAME/g $ROOT/conf/zts_server/dev_x509_cert.cnf > ./dev_x509_cert.cnf
 openssl req -x509 -nodes -newkey rsa:2048 -keyout zts_key.pem -out zts_cert.pem -days 365 -config ./dev_x509_cert.cnf
 
