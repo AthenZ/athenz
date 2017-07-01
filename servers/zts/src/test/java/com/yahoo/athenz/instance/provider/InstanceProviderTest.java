@@ -26,10 +26,10 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertFalse;
 
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.yahoo.athenz.auth.impl.FilePrivateKeyStore;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.zms.DomainData;
@@ -50,6 +50,13 @@ public class InstanceProviderTest {
     DataStore store = null;
     
     static final String ZTS_DATA_STORE_PATH = "/tmp/zts_server_unit_tests/zts_root";
+    static final String ZTS_PRIVATE_KEY = "src/test/resources/zts_private.pem";
+    
+    @BeforeClass
+    public void setUpClass() throws Exception {
+        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
+        System.setProperty(ZTSConsts.ZTS_PROP_FILE_NAME, "src/test/resources/zts.properties");
+    }
     
     @BeforeMethod
     public void setup() {
@@ -57,9 +64,8 @@ public class InstanceProviderTest {
         // we want to make sure we start we clean dir structure
 
         ZMSFileChangeLogStore.deleteDirectory(new File(ZTS_DATA_STORE_PATH));
-        
-        String privKeyName = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
-        File privKeyFile = new File(privKeyName);
+
+        File privKeyFile = new File(ZTS_PRIVATE_KEY);
         String privKey = Crypto.encodedFile(privKeyFile);
         
         privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
