@@ -58,6 +58,7 @@ in your runtime path:
 ```shell
 $ node --version
 v6.9.4
+$ npm install -g nodemon
 $ nodemon --version
 1.11.0
 ```
@@ -74,10 +75,5 @@ $ cd athenz
 $ mvn clean install
 ```
 
-To build the release packages after the build has completed
-successfully:
-
-```shell
-$ cd assembly
-$ mvn clean package -Dmaven.test.skip=true
-```
+The release packages will be created automatically in the `assembly`
+subdirectory.

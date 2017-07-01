@@ -32,9 +32,8 @@ and search for "Athenz" in the `Search community AMIs` field:
 
 ![Search Athenz AMI](images/choose_athenz_ami.png)
 
-You might get back multiple matches. The numeric value after `Athenz` is
-the timestamp when the image was built so pick the image with the highest
-value which would be the latest release. Click on `Select` button next
+You might get back multiple matches. Pick the latest image with the most
+recent timestamp after the `Athenz` name. Click on `Select` button next
 to the image name to continue.
 
 On `Step 2: Choose an Instance Type` pick an instance with multiple vCPUs
@@ -57,8 +56,17 @@ Click on `Next: Add Storage`, then on `Next: Add Tags` and finally on
 
 On `Step 6: Configure Security Group` select `Add Rule`, choose
 `Custom TCP Rule` for Type field, 4443 for Port Range field and
-0.0.0.0/0 for Source field. Repeat adding a rule for ports 8443
+select `My IP` for Source field. Repeat adding a rule for ports 8443
 and 9443. Once completed, your setup should be:
+
+By default, AWS has a TCP rule for SSH access from all IP
+addresses with a warning "Rules with source of 0.0.0.0/0 allow all
+IP addresses to access your instance. We recommend setting security
+group rules to allow access from known IP addresses only.". It
+is strongly recommended for the SSH Rule to pick `My IP` from
+the Source drop down field or configure SSH access from your
+company IP range only. Same requirement would also apply
+for Athenz 4443, 8443, and 9443 port access as well.
 
 ![Security Group Setup](images/aws_security_group.png)
 
