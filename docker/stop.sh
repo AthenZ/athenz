@@ -9,7 +9,7 @@ sudo -E bin/zms stop
 
 echo "---stopping ui---"
 cd /opt/athenz/athenz-ui*
-public_hostname=`hostname`
+public_hostname=`hostname -f`
 export ZMS_SERVER=$public_hostname
 export UI_SERVER=$public_hostname
 bin/athenz_ui stop

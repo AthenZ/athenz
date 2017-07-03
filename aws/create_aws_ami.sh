@@ -36,7 +36,7 @@ cd $CUR_DIR
 
 #run packer
 export BASE_AMI_ID=ami-a58d0dc5
-sudo ${PACKER_DIR}/packer build -machine-readable ./aws/athenz_ami.json && touch .ami
+sudo -E ${PACKER_DIR}/packer build -machine-readable ./aws/athenz_ami.json && touch .ami
 
 echo "-----------------------------------------------"
 echo "Athenz AWS AMI Completed"

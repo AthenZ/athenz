@@ -57,6 +57,10 @@
       </excludes>
     </fileSet>
     <fileSet>
+      <directory>${basedir}/../../libs/nodejs/auth_core/node_modules</directory>
+      <outputDirectory>node_modules</outputDirectory>
+    </fileSet>
+    <fileSet>
       <directory>${basedir}/../../ui/src</directory>
       <outputDirectory>src</outputDirectory>
     </fileSet>

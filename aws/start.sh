@@ -14,12 +14,12 @@ if [ ! -f "./var/zms_server/keys/zms_private.pem" ]; then
     bin/setup_dev_zms.sh
 fi
 
-hostname=`hostname`
+hostname=`hostname -f`
 public_hostname=`curl http://169.254.169.254/latest/meta-data/public-hostname`
 
 sudo -E bin/zms start
 set +e
-for i in {1..10};
+for i in `seq 1 20`;
 do
     status=$(curl -k -s -w %{http_code} --output /dev/null https://$hostname:4443/zms/v1/schema)
     if [ $status -eq "200" ]; then
