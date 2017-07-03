@@ -112,10 +112,10 @@ servers into his/her own web browser.
 
 The administrator must first access the ZMS Server endpoint in the browser to
 accept the exception since the Athenz UI contacts ZMS Server to get an authorized
-token for the user when logging in. The administrator must access
+token for the user when logging in. The administrator must access:
 
 ```
-https://<zms-server-host-name>:4443
+https://<zms-server-host-name>:4443/zms/v1/schema
 ```
 
 first and accept the certificate exception before accessing Athenz UI.

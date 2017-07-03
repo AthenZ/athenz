@@ -5,6 +5,7 @@
     * [AWS Account](#aws-account)
 * [Launch EC2 instance](#launch-ec2-instance)
 * [Start/Stop Athenz](#startstop-athenz)
+* [Access Athenz UI](#access-athenz-ui)
 
 ## Requirements
 ---------------
@@ -98,9 +99,32 @@ They're running on the following ports:
 |   ZTS   | 8443 |
 |   UI    | 9443 |
 
-To access Athenz UI, open your browser with url https://{ec2-instance-public-dns-name}:9443/athenz
+To stop Athenz, execute the following commands:
+
+```shell
+$ cd /opt/athenz
+$ sudo ./stop.sh
+```
+
+## Access Athenz UI
+-------------------
+
+To access Athenz UI, open your browser with url
+
+```
+https://<ec2-instance-public-dns-name>:9443/athenz
+```
+
 Since the services are running with self-signed certificates, configure your browser to
 ignore the warnings regarding the UI server certificate.
+
+The administrator must first access the ZMS Server endpoint in the browser to
+accept the exception since the Athenz UI contacts ZMS Server to get an authorized
+token for the user when logging in. The administrator must access:
+
+```
+https://<ec2-instance-public-dns-name>:4443/zms/v1/schema
+```
 
 The instance is configured with the following default user details:
 
@@ -108,9 +132,3 @@ The instance is configured with the following default user details:
  |--------|----------|
  | athenz |  athenz  |
 
-To stop Athenz, execute the following commands:
-
-```shell
-$ cd /opt/athenz
-$ sudo ./stop.sh
-```
