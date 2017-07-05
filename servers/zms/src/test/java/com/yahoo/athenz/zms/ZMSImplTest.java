@@ -10833,6 +10833,13 @@ public class ZMSImplTest extends TestCase {
     }
     
     @Test
+    public void testConvertToLowerCaseQuota() {
+        Quota quota = new Quota().setName("UpperCaseDomain");
+        AthenzObject.QUOTA.convertToLowerCase(quota);
+        assertEquals(quota.getName(), "uppercasedomain");
+    }
+    
+    @Test
     public void testConvertToLowerCaseEntity() {
         Entity entity = createEntityObject("ABcEntity");
         AthenzObject.ENTITY.convertToLowerCase(entity);
@@ -14509,6 +14516,101 @@ public class ZMSImplTest extends TestCase {
         
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "deleteusersports", auditRef);
+    }
+    
+    @Test
+    public void testPutQuota() {
+
+        String domainName = "putquota";
+        
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Quota quota = new Quota().setName(domainName)
+                .setAssertion(10).setEntity(11)
+                .setPolicy(12).setPublicKey(13)
+                .setRole(14).setRoleMember(15)
+                .setService(16).setServiceHost(17)
+                .setSubdomain(18);
+        
+        zms.putQuota(mockDomRsrcCtx, domainName, auditRef, quota);
+
+        // now retrieve the quota using zms interface
+        
+        Quota quotaCheck = zms.getQuota(mockDomRsrcCtx, domainName);
+        assertNotNull(quotaCheck);
+        assertEquals(quotaCheck.getAssertion(), 10);
+        assertEquals(quotaCheck.getRole(), 14);
+        assertEquals(quotaCheck.getPolicy(), 12);
+        
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+    
+    @Test
+    public void testPutQuotaMismatchName() {
+
+        String domainName = "putquotamismatchname";
+        
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Quota quota = new Quota().setName("athenz")
+                .setAssertion(10).setEntity(11)
+                .setPolicy(12).setPublicKey(13)
+                .setRole(14).setRoleMember(15)
+                .setService(16).setServiceHost(17)
+                .setSubdomain(18);
+        
+        try {
+            zms.putQuota(mockDomRsrcCtx, domainName, auditRef, quota);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+        
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+    
+    @Test
+    public void testDeleteQuota() {
+
+        String domainName = "deletequota";
+        
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Quota quota = new Quota().setName(domainName)
+                .setAssertion(10).setEntity(11)
+                .setPolicy(12).setPublicKey(13)
+                .setRole(14).setRoleMember(15)
+                .setService(16).setServiceHost(17)
+                .setSubdomain(18);
+        
+        zms.putQuota(mockDomRsrcCtx, domainName, auditRef, quota);
+
+        Quota quotaCheck = zms.getQuota(mockDomRsrcCtx, domainName);
+        assertNotNull(quotaCheck);
+        assertEquals(domainName, quotaCheck.getName());
+        assertEquals(quotaCheck.getAssertion(), 10);
+        assertEquals(quotaCheck.getRole(), 14);
+        assertEquals(quotaCheck.getPolicy(), 12);
+        
+        // now delete the quota
+        
+        zms.deleteQuota(mockDomRsrcCtx, domainName, auditRef);
+        
+        // now we'll get the default quota
+        
+        quotaCheck = zms.getQuota(mockDomRsrcCtx, domainName);
+
+        assertEquals("server-default", quotaCheck.getName());
+        assertEquals(quotaCheck.getAssertion(), 100);
+        assertEquals(quotaCheck.getRole(), 1000);
+        assertEquals(quotaCheck.getPolicy(), 1000);
+        
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 }
 

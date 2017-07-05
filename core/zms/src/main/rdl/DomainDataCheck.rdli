@@ -47,6 +47,7 @@ resource DomainDataCheck GET "/domain/{domainName}/check" {
         ResourceError NOT_FOUND;
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 

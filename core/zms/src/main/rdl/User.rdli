@@ -25,6 +25,7 @@ resource UserList GET "/user" {
     authenticate;
     exceptions {
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -45,6 +46,7 @@ resource UserMeta PUT "/user/{name}/meta" {
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -64,5 +66,6 @@ resource User DELETE "/user/{name}" {
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }

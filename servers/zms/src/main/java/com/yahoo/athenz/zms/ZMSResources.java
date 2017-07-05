@@ -32,6 +32,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -52,6 +54,8 @@ public class ZMSResources {
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -77,6 +81,8 @@ public class ZMSResources {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -106,6 +112,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -134,6 +142,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -160,6 +170,8 @@ public class ZMSResources {
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -188,6 +200,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -214,6 +228,8 @@ public class ZMSResources {
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -245,6 +261,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -275,6 +293,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -299,6 +319,8 @@ public class ZMSResources {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -329,6 +351,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -353,6 +377,8 @@ public class ZMSResources {
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -384,6 +410,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -410,6 +438,8 @@ public class ZMSResources {
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -440,6 +470,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -464,6 +496,8 @@ public class ZMSResources {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -492,6 +526,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -516,6 +552,8 @@ public class ZMSResources {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -543,6 +581,8 @@ public class ZMSResources {
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -574,6 +614,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -603,6 +645,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -629,6 +673,8 @@ public class ZMSResources {
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -660,6 +706,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -689,6 +737,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -717,6 +767,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -744,6 +796,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -768,6 +822,8 @@ public class ZMSResources {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -795,6 +851,8 @@ public class ZMSResources {
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -826,6 +884,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -855,6 +915,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -881,6 +943,8 @@ public class ZMSResources {
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -914,6 +978,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -942,6 +1008,8 @@ public class ZMSResources {
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -973,6 +1041,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -999,6 +1069,8 @@ public class ZMSResources {
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -1029,6 +1101,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -1053,6 +1127,8 @@ public class ZMSResources {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -1081,6 +1157,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -1107,6 +1185,8 @@ public class ZMSResources {
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -1138,6 +1218,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -1166,6 +1248,8 @@ public class ZMSResources {
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -1197,6 +1281,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -1223,6 +1309,8 @@ public class ZMSResources {
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -1252,6 +1340,8 @@ public class ZMSResources {
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -1283,6 +1373,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -1311,6 +1403,8 @@ public class ZMSResources {
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -1344,6 +1438,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -1370,6 +1466,8 @@ public class ZMSResources {
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -1399,6 +1497,8 @@ public class ZMSResources {
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -1432,6 +1532,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -1458,6 +1560,8 @@ public class ZMSResources {
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -1487,6 +1591,8 @@ public class ZMSResources {
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -1520,6 +1626,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -1546,6 +1654,8 @@ public class ZMSResources {
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -1576,6 +1686,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -1602,6 +1714,8 @@ public class ZMSResources {
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -1630,6 +1744,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -1656,6 +1772,8 @@ public class ZMSResources {
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -1684,6 +1802,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -1707,6 +1827,8 @@ public class ZMSResources {
             switch (code) {
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -1727,6 +1849,8 @@ public class ZMSResources {
             int code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             default:
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource optionsUserToken");
@@ -1751,6 +1875,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -1772,6 +1898,8 @@ public class ZMSResources {
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -1797,6 +1925,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -1818,6 +1948,8 @@ public class ZMSResources {
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -1848,6 +1980,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -1877,10 +2011,94 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteUser");
+                throw typedException(code, e, ResourceError.class);
+            }
+        }
+    }
+
+    @GET
+    @Path("/domain/{name}/quota")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Quota getQuota(@PathParam("name") String name) {
+        try {
+            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context.authenticate();
+            Quota e = this.delegate.getQuota(context, name);
+            return e;
+        } catch (ResourceException e) {
+            int code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getQuota");
+                throw typedException(code, e, ResourceError.class);
+            }
+        }
+    }
+
+    @PUT
+    @Path("/domain/{name}/quota")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Quota putQuota(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef, Quota quota) {
+        try {
+            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context.authorize("update", "sys.auth:quota", null);
+            Quota e = this.delegate.putQuota(context, name, auditRef, quota);
+            return null;
+        } catch (ResourceException e) {
+            int code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource putQuota");
+                throw typedException(code, e, ResourceError.class);
+            }
+        }
+    }
+
+    @DELETE
+    @Path("/domain/{name}/quota")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Quota deleteQuota(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef) {
+        try {
+            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context.authorize("update", "sys.auth:quota", null);
+            Quota e = this.delegate.deleteQuota(context, name, auditRef);
+            return null;
+        } catch (ResourceException e) {
+            int code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteQuota");
                 throw typedException(code, e, ResourceError.class);
             }
         }

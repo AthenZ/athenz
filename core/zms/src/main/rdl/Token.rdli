@@ -21,6 +21,7 @@ resource UserToken GET "/user/{userName}/token?services={serviceNames}&header={h
     exceptions {
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -31,6 +32,7 @@ resource UserToken OPTIONS "/user/{userName}/token?services={serviceNames}" {
     String serviceNames (optional); //comma separated list of on-behalf-of service names
     exceptions {
         ResourceError BAD_REQUEST;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -50,5 +52,6 @@ resource ServicePrincipal GET "/principal" {
         ResourceError BAD_REQUEST;
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }

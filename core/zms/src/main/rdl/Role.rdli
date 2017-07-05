@@ -15,6 +15,7 @@ resource RoleList GET "/domain/{domainName}/role?limit={limit}&skip={skip}" {
         ResourceError NOT_FOUND;
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -28,6 +29,7 @@ resource Roles GET "/domain/{domainName}/roles?members={members}" {
         ResourceError BAD_REQUEST;
         ResourceError NOT_FOUND;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -43,6 +45,7 @@ resource Role GET "/domain/{domainName}/role/{roleName}?auditLog={auditLog}&expa
         ResourceError NOT_FOUND;
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -60,6 +63,7 @@ resource Role PUT "/domain/{domainName}/role/{roleName}" {
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -78,6 +82,7 @@ resource Role DELETE "/domain/{domainName}/role/{roleName}" {
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -92,6 +97,7 @@ resource Membership GET "/domain/{domainName}/role/{roleName}/member/{memberName
         ResourceError NOT_FOUND;
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -110,6 +116,7 @@ resource Membership PUT "/domain/{domainName}/role/{roleName}/member/{memberName
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -129,6 +136,7 @@ resource Membership DELETE "/domain/{domainName}/role/{roleName}/member/{memberN
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -147,5 +155,6 @@ resource DefaultAdmins PUT "/domain/{domainName}/admins" {
         ResourceError BAD_REQUEST;
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }

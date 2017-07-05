@@ -424,6 +424,21 @@ func init() {
 	tUserMeta.Field("enabled", "Bool", true, true, "")
 	sb.AddType(tUserMeta.Build())
 
+	tQuota := rdl.NewStructTypeBuilder("Struct", "Quota")
+	tQuota.Comment("The representation for a quota object")
+	tQuota.Field("name", "DomainName", false, nil, "name of the domain object")
+	tQuota.Field("subdomain", "Int32", false, nil, "number of subdomains allowed (applied at top level domain level)")
+	tQuota.Field("role", "Int32", false, nil, "number of roles allowed")
+	tQuota.Field("roleMember", "Int32", false, nil, "number of members a role may have")
+	tQuota.Field("policy", "Int32", false, nil, "number of policies allowed")
+	tQuota.Field("assertion", "Int32", false, nil, "total number of assertions a policy may have")
+	tQuota.Field("entity", "Int32", false, nil, "total number of entity objects")
+	tQuota.Field("service", "Int32", false, nil, "number of services allowed")
+	tQuota.Field("serviceHost", "Int32", false, nil, "number of hosts allowed per service")
+	tQuota.Field("publicKey", "Int32", false, nil, "number of public keys per service")
+	tQuota.Field("modified", "Timestamp", true, nil, "the last modification timestamp of the quota object")
+	sb.AddType(tQuota.Build())
+
 	rGetDomain := rdl.NewResourceBuilder("Domain", "GET", "/domain/{domain}")
 	rGetDomain.Comment("Get info for the specified domain, by name. This request only returns the configured domain attributes and not any domain objects like roles, policies or service identities.")
 	rGetDomain.Input("domain", "DomainName", true, "", "", false, nil, "name of the domain")
@@ -431,6 +446,7 @@ func init() {
 	rGetDomain.Exception("BAD_REQUEST", "ResourceError", "")
 	rGetDomain.Exception("FORBIDDEN", "ResourceError", "")
 	rGetDomain.Exception("NOT_FOUND", "ResourceError", "")
+	rGetDomain.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rGetDomain.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rGetDomain.Build())
 
@@ -445,6 +461,7 @@ func init() {
 	rGetDomainList.Input("roleMember", "ResourceName", false, "member", "", true, nil, "restrict the domain names where the specified user is in a role - see roleName")
 	rGetDomainList.Input("roleName", "ResourceName", false, "role", "", true, nil, "restrict the domain names where the specified user is in this role - see roleMember")
 	rGetDomainList.Input("modifiedSince", "String", false, "", "If-Modified-Since", false, nil, "This header specifies to the server to return any domains modified since this HTTP date")
+	rGetDomainList.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rGetDomainList.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rGetDomainList.Build())
 
@@ -455,6 +472,7 @@ func init() {
 	rPostTopLevelDomain.Auth("create", "sys.auth:domain", false, "")
 	rPostTopLevelDomain.Exception("BAD_REQUEST", "ResourceError", "")
 	rPostTopLevelDomain.Exception("FORBIDDEN", "ResourceError", "")
+	rPostTopLevelDomain.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rPostTopLevelDomain.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rPostTopLevelDomain.Build())
 
@@ -467,6 +485,7 @@ func init() {
 	rPostSubDomain.Exception("BAD_REQUEST", "ResourceError", "")
 	rPostSubDomain.Exception("FORBIDDEN", "ResourceError", "")
 	rPostSubDomain.Exception("NOT_FOUND", "ResourceError", "")
+	rPostSubDomain.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rPostSubDomain.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rPostSubDomain.Build())
 
@@ -479,6 +498,7 @@ func init() {
 	rPostUserDomain.Exception("BAD_REQUEST", "ResourceError", "")
 	rPostUserDomain.Exception("FORBIDDEN", "ResourceError", "")
 	rPostUserDomain.Exception("NOT_FOUND", "ResourceError", "")
+	rPostUserDomain.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rPostUserDomain.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rPostUserDomain.Build())
 
@@ -491,6 +511,7 @@ func init() {
 	rDeleteTopLevelDomain.Exception("BAD_REQUEST", "ResourceError", "")
 	rDeleteTopLevelDomain.Exception("FORBIDDEN", "ResourceError", "")
 	rDeleteTopLevelDomain.Exception("NOT_FOUND", "ResourceError", "")
+	rDeleteTopLevelDomain.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rDeleteTopLevelDomain.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rDeleteTopLevelDomain.Build())
 
@@ -504,6 +525,7 @@ func init() {
 	rDeleteSubDomain.Exception("BAD_REQUEST", "ResourceError", "")
 	rDeleteSubDomain.Exception("FORBIDDEN", "ResourceError", "")
 	rDeleteSubDomain.Exception("NOT_FOUND", "ResourceError", "")
+	rDeleteSubDomain.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rDeleteSubDomain.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rDeleteSubDomain.Build())
 
@@ -516,6 +538,7 @@ func init() {
 	rDeleteUserDomain.Exception("BAD_REQUEST", "ResourceError", "")
 	rDeleteUserDomain.Exception("FORBIDDEN", "ResourceError", "")
 	rDeleteUserDomain.Exception("NOT_FOUND", "ResourceError", "")
+	rDeleteUserDomain.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rDeleteUserDomain.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rDeleteUserDomain.Build())
 
@@ -530,6 +553,7 @@ func init() {
 	rPutDomainMeta.Exception("CONFLICT", "ResourceError", "")
 	rPutDomainMeta.Exception("FORBIDDEN", "ResourceError", "")
 	rPutDomainMeta.Exception("NOT_FOUND", "ResourceError", "")
+	rPutDomainMeta.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rPutDomainMeta.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rPutDomainMeta.Build())
 
@@ -544,6 +568,7 @@ func init() {
 	rPutDomainTemplate.Exception("CONFLICT", "ResourceError", "")
 	rPutDomainTemplate.Exception("FORBIDDEN", "ResourceError", "")
 	rPutDomainTemplate.Exception("NOT_FOUND", "ResourceError", "")
+	rPutDomainTemplate.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rPutDomainTemplate.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rPutDomainTemplate.Build())
 
@@ -553,6 +578,7 @@ func init() {
 	rGetDomainTemplateList.Auth("", "", true, "")
 	rGetDomainTemplateList.Exception("BAD_REQUEST", "ResourceError", "")
 	rGetDomainTemplateList.Exception("NOT_FOUND", "ResourceError", "")
+	rGetDomainTemplateList.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rGetDomainTemplateList.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rGetDomainTemplateList.Build())
 
@@ -567,6 +593,7 @@ func init() {
 	rDeleteDomainTemplate.Exception("CONFLICT", "ResourceError", "")
 	rDeleteDomainTemplate.Exception("FORBIDDEN", "ResourceError", "")
 	rDeleteDomainTemplate.Exception("NOT_FOUND", "ResourceError", "")
+	rDeleteDomainTemplate.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rDeleteDomainTemplate.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rDeleteDomainTemplate.Build())
 
@@ -576,6 +603,7 @@ func init() {
 	rGetDomainDataCheck.Auth("", "", true, "")
 	rGetDomainDataCheck.Exception("FORBIDDEN", "ResourceError", "")
 	rGetDomainDataCheck.Exception("NOT_FOUND", "ResourceError", "")
+	rGetDomainDataCheck.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rGetDomainDataCheck.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rGetDomainDataCheck.Build())
 
@@ -591,6 +619,7 @@ func init() {
 	rPutEntity.Exception("CONFLICT", "ResourceError", "")
 	rPutEntity.Exception("FORBIDDEN", "ResourceError", "")
 	rPutEntity.Exception("NOT_FOUND", "ResourceError", "")
+	rPutEntity.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rPutEntity.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rPutEntity.Build())
 
@@ -602,6 +631,7 @@ func init() {
 	rGetEntity.Exception("BAD_REQUEST", "ResourceError", "")
 	rGetEntity.Exception("FORBIDDEN", "ResourceError", "")
 	rGetEntity.Exception("NOT_FOUND", "ResourceError", "")
+	rGetEntity.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rGetEntity.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rGetEntity.Build())
 
@@ -616,6 +646,7 @@ func init() {
 	rDeleteEntity.Exception("CONFLICT", "ResourceError", "")
 	rDeleteEntity.Exception("FORBIDDEN", "ResourceError", "")
 	rDeleteEntity.Exception("NOT_FOUND", "ResourceError", "")
+	rDeleteEntity.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rDeleteEntity.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rDeleteEntity.Build())
 
@@ -625,6 +656,7 @@ func init() {
 	rGetEntityList.Auth("", "", true, "")
 	rGetEntityList.Exception("BAD_REQUEST", "ResourceError", "")
 	rGetEntityList.Exception("NOT_FOUND", "ResourceError", "")
+	rGetEntityList.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rGetEntityList.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rGetEntityList.Build())
 
@@ -637,6 +669,7 @@ func init() {
 	rGetRoleList.Exception("BAD_REQUEST", "ResourceError", "")
 	rGetRoleList.Exception("FORBIDDEN", "ResourceError", "")
 	rGetRoleList.Exception("NOT_FOUND", "ResourceError", "")
+	rGetRoleList.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rGetRoleList.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rGetRoleList.Build())
 
@@ -647,6 +680,7 @@ func init() {
 	rGetRoles.Auth("", "", true, "")
 	rGetRoles.Exception("BAD_REQUEST", "ResourceError", "")
 	rGetRoles.Exception("NOT_FOUND", "ResourceError", "")
+	rGetRoles.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rGetRoles.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rGetRoles.Build())
 
@@ -660,6 +694,7 @@ func init() {
 	rGetRole.Exception("BAD_REQUEST", "ResourceError", "")
 	rGetRole.Exception("FORBIDDEN", "ResourceError", "")
 	rGetRole.Exception("NOT_FOUND", "ResourceError", "")
+	rGetRole.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rGetRole.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rGetRole.Build())
 
@@ -675,6 +710,7 @@ func init() {
 	rPutRole.Exception("CONFLICT", "ResourceError", "")
 	rPutRole.Exception("FORBIDDEN", "ResourceError", "")
 	rPutRole.Exception("NOT_FOUND", "ResourceError", "")
+	rPutRole.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rPutRole.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rPutRole.Build())
 
@@ -689,6 +725,7 @@ func init() {
 	rDeleteRole.Exception("CONFLICT", "ResourceError", "")
 	rDeleteRole.Exception("FORBIDDEN", "ResourceError", "")
 	rDeleteRole.Exception("NOT_FOUND", "ResourceError", "")
+	rDeleteRole.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rDeleteRole.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rDeleteRole.Build())
 
@@ -701,6 +738,7 @@ func init() {
 	rGetMembership.Exception("BAD_REQUEST", "ResourceError", "")
 	rGetMembership.Exception("FORBIDDEN", "ResourceError", "")
 	rGetMembership.Exception("NOT_FOUND", "ResourceError", "")
+	rGetMembership.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rGetMembership.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rGetMembership.Build())
 
@@ -717,6 +755,7 @@ func init() {
 	rPutMembership.Exception("CONFLICT", "ResourceError", "")
 	rPutMembership.Exception("FORBIDDEN", "ResourceError", "")
 	rPutMembership.Exception("NOT_FOUND", "ResourceError", "")
+	rPutMembership.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rPutMembership.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rPutMembership.Build())
 
@@ -732,6 +771,7 @@ func init() {
 	rDeleteMembership.Exception("CONFLICT", "ResourceError", "")
 	rDeleteMembership.Exception("FORBIDDEN", "ResourceError", "")
 	rDeleteMembership.Exception("NOT_FOUND", "ResourceError", "")
+	rDeleteMembership.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rDeleteMembership.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rDeleteMembership.Build())
 
@@ -745,6 +785,7 @@ func init() {
 	rPutDefaultAdmins.Exception("BAD_REQUEST", "ResourceError", "")
 	rPutDefaultAdmins.Exception("FORBIDDEN", "ResourceError", "")
 	rPutDefaultAdmins.Exception("NOT_FOUND", "ResourceError", "")
+	rPutDefaultAdmins.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rPutDefaultAdmins.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rPutDefaultAdmins.Build())
 
@@ -757,6 +798,7 @@ func init() {
 	rGetPolicyList.Exception("BAD_REQUEST", "ResourceError", "")
 	rGetPolicyList.Exception("FORBIDDEN", "ResourceError", "")
 	rGetPolicyList.Exception("NOT_FOUND", "ResourceError", "")
+	rGetPolicyList.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rGetPolicyList.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rGetPolicyList.Build())
 
@@ -767,6 +809,7 @@ func init() {
 	rGetPolicies.Auth("", "", true, "")
 	rGetPolicies.Exception("BAD_REQUEST", "ResourceError", "")
 	rGetPolicies.Exception("NOT_FOUND", "ResourceError", "")
+	rGetPolicies.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rGetPolicies.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rGetPolicies.Build())
 
@@ -778,6 +821,7 @@ func init() {
 	rGetPolicy.Exception("BAD_REQUEST", "ResourceError", "")
 	rGetPolicy.Exception("FORBIDDEN", "ResourceError", "")
 	rGetPolicy.Exception("NOT_FOUND", "ResourceError", "")
+	rGetPolicy.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rGetPolicy.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rGetPolicy.Build())
 
@@ -793,6 +837,7 @@ func init() {
 	rPutPolicy.Exception("CONFLICT", "ResourceError", "")
 	rPutPolicy.Exception("FORBIDDEN", "ResourceError", "")
 	rPutPolicy.Exception("NOT_FOUND", "ResourceError", "")
+	rPutPolicy.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rPutPolicy.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rPutPolicy.Build())
 
@@ -807,6 +852,7 @@ func init() {
 	rDeletePolicy.Exception("CONFLICT", "ResourceError", "")
 	rDeletePolicy.Exception("FORBIDDEN", "ResourceError", "")
 	rDeletePolicy.Exception("NOT_FOUND", "ResourceError", "")
+	rDeletePolicy.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rDeletePolicy.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rDeletePolicy.Build())
 
@@ -819,6 +865,7 @@ func init() {
 	rGetAssertion.Exception("BAD_REQUEST", "ResourceError", "")
 	rGetAssertion.Exception("FORBIDDEN", "ResourceError", "")
 	rGetAssertion.Exception("NOT_FOUND", "ResourceError", "")
+	rGetAssertion.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rGetAssertion.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rGetAssertion.Build())
 
@@ -833,6 +880,7 @@ func init() {
 	rPutAssertion.Exception("CONFLICT", "ResourceError", "")
 	rPutAssertion.Exception("FORBIDDEN", "ResourceError", "")
 	rPutAssertion.Exception("NOT_FOUND", "ResourceError", "")
+	rPutAssertion.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rPutAssertion.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rPutAssertion.Build())
 
@@ -848,6 +896,7 @@ func init() {
 	rDeleteAssertion.Exception("CONFLICT", "ResourceError", "")
 	rDeleteAssertion.Exception("FORBIDDEN", "ResourceError", "")
 	rDeleteAssertion.Exception("NOT_FOUND", "ResourceError", "")
+	rDeleteAssertion.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rDeleteAssertion.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rDeleteAssertion.Build())
 
@@ -863,6 +912,7 @@ func init() {
 	rPutServiceIdentity.Exception("CONFLICT", "ResourceError", "")
 	rPutServiceIdentity.Exception("FORBIDDEN", "ResourceError", "")
 	rPutServiceIdentity.Exception("NOT_FOUND", "ResourceError", "")
+	rPutServiceIdentity.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rPutServiceIdentity.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rPutServiceIdentity.Build())
 
@@ -874,6 +924,7 @@ func init() {
 	rGetServiceIdentity.Exception("BAD_REQUEST", "ResourceError", "")
 	rGetServiceIdentity.Exception("FORBIDDEN", "ResourceError", "")
 	rGetServiceIdentity.Exception("NOT_FOUND", "ResourceError", "")
+	rGetServiceIdentity.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rGetServiceIdentity.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rGetServiceIdentity.Build())
 
@@ -888,6 +939,7 @@ func init() {
 	rDeleteServiceIdentity.Exception("CONFLICT", "ResourceError", "")
 	rDeleteServiceIdentity.Exception("FORBIDDEN", "ResourceError", "")
 	rDeleteServiceIdentity.Exception("NOT_FOUND", "ResourceError", "")
+	rDeleteServiceIdentity.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rDeleteServiceIdentity.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rDeleteServiceIdentity.Build())
 
@@ -899,6 +951,7 @@ func init() {
 	rGetServiceIdentities.Auth("", "", true, "")
 	rGetServiceIdentities.Exception("BAD_REQUEST", "ResourceError", "")
 	rGetServiceIdentities.Exception("NOT_FOUND", "ResourceError", "")
+	rGetServiceIdentities.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rGetServiceIdentities.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rGetServiceIdentities.Build())
 
@@ -911,6 +964,7 @@ func init() {
 	rGetServiceIdentityList.Exception("BAD_REQUEST", "ResourceError", "")
 	rGetServiceIdentityList.Exception("FORBIDDEN", "ResourceError", "")
 	rGetServiceIdentityList.Exception("NOT_FOUND", "ResourceError", "")
+	rGetServiceIdentityList.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rGetServiceIdentityList.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rGetServiceIdentityList.Build())
 
@@ -923,6 +977,7 @@ func init() {
 	rGetPublicKeyEntry.Exception("BAD_REQUEST", "ResourceError", "")
 	rGetPublicKeyEntry.Exception("FORBIDDEN", "ResourceError", "")
 	rGetPublicKeyEntry.Exception("NOT_FOUND", "ResourceError", "")
+	rGetPublicKeyEntry.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rGetPublicKeyEntry.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rGetPublicKeyEntry.Build())
 
@@ -939,6 +994,7 @@ func init() {
 	rPutPublicKeyEntry.Exception("CONFLICT", "ResourceError", "")
 	rPutPublicKeyEntry.Exception("FORBIDDEN", "ResourceError", "")
 	rPutPublicKeyEntry.Exception("NOT_FOUND", "ResourceError", "")
+	rPutPublicKeyEntry.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rPutPublicKeyEntry.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rPutPublicKeyEntry.Build())
 
@@ -954,6 +1010,7 @@ func init() {
 	rDeletePublicKeyEntry.Exception("CONFLICT", "ResourceError", "")
 	rDeletePublicKeyEntry.Exception("FORBIDDEN", "ResourceError", "")
 	rDeletePublicKeyEntry.Exception("NOT_FOUND", "ResourceError", "")
+	rDeletePublicKeyEntry.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rDeletePublicKeyEntry.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rDeletePublicKeyEntry.Build())
 
@@ -969,6 +1026,7 @@ func init() {
 	rPutTenancy.Exception("CONFLICT", "ResourceError", "")
 	rPutTenancy.Exception("FORBIDDEN", "ResourceError", "")
 	rPutTenancy.Exception("NOT_FOUND", "ResourceError", "")
+	rPutTenancy.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rPutTenancy.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rPutTenancy.Build())
 
@@ -980,6 +1038,7 @@ func init() {
 	rGetTenancy.Exception("BAD_REQUEST", "ResourceError", "")
 	rGetTenancy.Exception("FORBIDDEN", "ResourceError", "")
 	rGetTenancy.Exception("NOT_FOUND", "ResourceError", "")
+	rGetTenancy.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rGetTenancy.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rGetTenancy.Build())
 
@@ -994,6 +1053,7 @@ func init() {
 	rDeleteTenancy.Exception("CONFLICT", "ResourceError", "")
 	rDeleteTenancy.Exception("FORBIDDEN", "ResourceError", "")
 	rDeleteTenancy.Exception("NOT_FOUND", "ResourceError", "")
+	rDeleteTenancy.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rDeleteTenancy.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rDeleteTenancy.Build())
 
@@ -1010,6 +1070,7 @@ func init() {
 	rPutTenancyResourceGroup.Exception("CONFLICT", "ResourceError", "")
 	rPutTenancyResourceGroup.Exception("FORBIDDEN", "ResourceError", "")
 	rPutTenancyResourceGroup.Exception("NOT_FOUND", "ResourceError", "")
+	rPutTenancyResourceGroup.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rPutTenancyResourceGroup.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rPutTenancyResourceGroup.Build())
 
@@ -1025,6 +1086,7 @@ func init() {
 	rDeleteTenancyResourceGroup.Exception("CONFLICT", "ResourceError", "")
 	rDeleteTenancyResourceGroup.Exception("FORBIDDEN", "ResourceError", "")
 	rDeleteTenancyResourceGroup.Exception("NOT_FOUND", "ResourceError", "")
+	rDeleteTenancyResourceGroup.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rDeleteTenancyResourceGroup.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rDeleteTenancyResourceGroup.Build())
 
@@ -1040,6 +1102,7 @@ func init() {
 	rPutTenantRoles.Exception("CONFLICT", "ResourceError", "")
 	rPutTenantRoles.Exception("FORBIDDEN", "ResourceError", "")
 	rPutTenantRoles.Exception("NOT_FOUND", "ResourceError", "")
+	rPutTenantRoles.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rPutTenantRoles.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rPutTenantRoles.Build())
 
@@ -1052,6 +1115,7 @@ func init() {
 	rGetTenantRoles.Exception("BAD_REQUEST", "ResourceError", "")
 	rGetTenantRoles.Exception("FORBIDDEN", "ResourceError", "")
 	rGetTenantRoles.Exception("NOT_FOUND", "ResourceError", "")
+	rGetTenantRoles.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rGetTenantRoles.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rGetTenantRoles.Build())
 
@@ -1067,6 +1131,7 @@ func init() {
 	rDeleteTenantRoles.Exception("CONFLICT", "ResourceError", "")
 	rDeleteTenantRoles.Exception("FORBIDDEN", "ResourceError", "")
 	rDeleteTenantRoles.Exception("NOT_FOUND", "ResourceError", "")
+	rDeleteTenantRoles.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rDeleteTenantRoles.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rDeleteTenantRoles.Build())
 
@@ -1083,6 +1148,7 @@ func init() {
 	rPutTenantResourceGroupRoles.Exception("CONFLICT", "ResourceError", "")
 	rPutTenantResourceGroupRoles.Exception("FORBIDDEN", "ResourceError", "")
 	rPutTenantResourceGroupRoles.Exception("NOT_FOUND", "ResourceError", "")
+	rPutTenantResourceGroupRoles.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rPutTenantResourceGroupRoles.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rPutTenantResourceGroupRoles.Build())
 
@@ -1096,6 +1162,7 @@ func init() {
 	rGetTenantResourceGroupRoles.Exception("BAD_REQUEST", "ResourceError", "")
 	rGetTenantResourceGroupRoles.Exception("FORBIDDEN", "ResourceError", "")
 	rGetTenantResourceGroupRoles.Exception("NOT_FOUND", "ResourceError", "")
+	rGetTenantResourceGroupRoles.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rGetTenantResourceGroupRoles.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rGetTenantResourceGroupRoles.Build())
 
@@ -1112,6 +1179,7 @@ func init() {
 	rDeleteTenantResourceGroupRoles.Exception("CONFLICT", "ResourceError", "")
 	rDeleteTenantResourceGroupRoles.Exception("FORBIDDEN", "ResourceError", "")
 	rDeleteTenantResourceGroupRoles.Exception("NOT_FOUND", "ResourceError", "")
+	rDeleteTenantResourceGroupRoles.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rDeleteTenantResourceGroupRoles.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rDeleteTenantResourceGroupRoles.Build())
 
@@ -1128,6 +1196,7 @@ func init() {
 	rPutProviderResourceGroupRoles.Exception("CONFLICT", "ResourceError", "")
 	rPutProviderResourceGroupRoles.Exception("FORBIDDEN", "ResourceError", "")
 	rPutProviderResourceGroupRoles.Exception("NOT_FOUND", "ResourceError", "")
+	rPutProviderResourceGroupRoles.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rPutProviderResourceGroupRoles.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rPutProviderResourceGroupRoles.Build())
 
@@ -1141,6 +1210,7 @@ func init() {
 	rGetProviderResourceGroupRoles.Exception("BAD_REQUEST", "ResourceError", "")
 	rGetProviderResourceGroupRoles.Exception("FORBIDDEN", "ResourceError", "")
 	rGetProviderResourceGroupRoles.Exception("NOT_FOUND", "ResourceError", "")
+	rGetProviderResourceGroupRoles.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rGetProviderResourceGroupRoles.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rGetProviderResourceGroupRoles.Build())
 
@@ -1157,6 +1227,7 @@ func init() {
 	rDeleteProviderResourceGroupRoles.Exception("CONFLICT", "ResourceError", "")
 	rDeleteProviderResourceGroupRoles.Exception("FORBIDDEN", "ResourceError", "")
 	rDeleteProviderResourceGroupRoles.Exception("NOT_FOUND", "ResourceError", "")
+	rDeleteProviderResourceGroupRoles.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rDeleteProviderResourceGroupRoles.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rDeleteProviderResourceGroupRoles.Build())
 
@@ -1170,6 +1241,7 @@ func init() {
 	rGetAccess.Exception("BAD_REQUEST", "ResourceError", "")
 	rGetAccess.Exception("FORBIDDEN", "ResourceError", "")
 	rGetAccess.Exception("NOT_FOUND", "ResourceError", "")
+	rGetAccess.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rGetAccess.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rGetAccess.Build())
 
@@ -1184,6 +1256,7 @@ func init() {
 	rGetAccessExt.Exception("BAD_REQUEST", "ResourceError", "")
 	rGetAccessExt.Exception("FORBIDDEN", "ResourceError", "")
 	rGetAccessExt.Exception("NOT_FOUND", "ResourceError", "")
+	rGetAccessExt.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rGetAccessExt.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rGetAccessExt.Build())
 
@@ -1195,6 +1268,7 @@ func init() {
 	rGetResourceAccessList.Exception("BAD_REQUEST", "ResourceError", "")
 	rGetResourceAccessList.Exception("FORBIDDEN", "ResourceError", "")
 	rGetResourceAccessList.Exception("NOT_FOUND", "ResourceError", "")
+	rGetResourceAccessList.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rGetResourceAccessList.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rGetResourceAccessList.Build())
 
@@ -1207,6 +1281,7 @@ func init() {
 	rGetSignedDomains.Auth("", "", true, "")
 	rGetSignedDomains.Exception("FORBIDDEN", "ResourceError", "")
 	rGetSignedDomains.Exception("NOT_FOUND", "ResourceError", "")
+	rGetSignedDomains.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rGetSignedDomains.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rGetSignedDomains.Build())
 
@@ -1217,6 +1292,7 @@ func init() {
 	rGetUserToken.Input("header", "Bool", false, "header", "", true, false, "include Authorization header name in response")
 	rGetUserToken.Auth("", "", true, "")
 	rGetUserToken.Exception("FORBIDDEN", "ResourceError", "")
+	rGetUserToken.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rGetUserToken.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rGetUserToken.Build())
 
@@ -1225,6 +1301,7 @@ func init() {
 	rOptionsUserToken.Input("userName", "SimpleName", true, "", "", false, nil, "name of the user")
 	rOptionsUserToken.Input("serviceNames", "String", false, "services", "", true, nil, "comma separated list of on-behalf-of service names")
 	rOptionsUserToken.Exception("BAD_REQUEST", "ResourceError", "")
+	rOptionsUserToken.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	sb.AddResource(rOptionsUserToken.Build())
 
 	rGetServicePrincipal := rdl.NewResourceBuilder("ServicePrincipal", "GET", "/principal")
@@ -1232,12 +1309,14 @@ func init() {
 	rGetServicePrincipal.Auth("", "", true, "")
 	rGetServicePrincipal.Exception("BAD_REQUEST", "ResourceError", "")
 	rGetServicePrincipal.Exception("FORBIDDEN", "ResourceError", "")
+	rGetServicePrincipal.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rGetServicePrincipal.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rGetServicePrincipal.Build())
 
 	rGetServerTemplateList := rdl.NewResourceBuilder("ServerTemplateList", "GET", "/template")
 	rGetServerTemplateList.Comment("Get the list of solution templates defined in the server")
 	rGetServerTemplateList.Auth("", "", true, "")
+	rGetServerTemplateList.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rGetServerTemplateList.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rGetServerTemplateList.Build())
 
@@ -1247,12 +1326,14 @@ func init() {
 	rGetTemplate.Auth("", "", true, "")
 	rGetTemplate.Exception("BAD_REQUEST", "ResourceError", "")
 	rGetTemplate.Exception("NOT_FOUND", "ResourceError", "")
+	rGetTemplate.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rGetTemplate.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rGetTemplate.Build())
 
 	rGetUserList := rdl.NewResourceBuilder("UserList", "GET", "/user")
 	rGetUserList.Comment("Enumerate users that are registered as principals in the system This will return only the principals with \"<user-domain>.\" prefix")
 	rGetUserList.Auth("", "", true, "")
+	rGetUserList.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rGetUserList.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rGetUserList.Build())
 
@@ -1267,6 +1348,7 @@ func init() {
 	rPutUserMeta.Exception("CONFLICT", "ResourceError", "")
 	rPutUserMeta.Exception("FORBIDDEN", "ResourceError", "")
 	rPutUserMeta.Exception("NOT_FOUND", "ResourceError", "")
+	rPutUserMeta.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rPutUserMeta.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rPutUserMeta.Build())
 
@@ -1280,8 +1362,44 @@ func init() {
 	rDeleteUser.Exception("CONFLICT", "ResourceError", "")
 	rDeleteUser.Exception("FORBIDDEN", "ResourceError", "")
 	rDeleteUser.Exception("NOT_FOUND", "ResourceError", "")
+	rDeleteUser.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	rDeleteUser.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(rDeleteUser.Build())
+
+	rGetQuota := rdl.NewResourceBuilder("Quota", "GET", "/domain/{name}/quota")
+	rGetQuota.Comment("Retrieve the quota object defined for the domain")
+	rGetQuota.Input("name", "DomainName", true, "", "", false, nil, "name of the domain")
+	rGetQuota.Auth("", "", true, "")
+	rGetQuota.Exception("BAD_REQUEST", "ResourceError", "")
+	rGetQuota.Exception("NOT_FOUND", "ResourceError", "")
+	sb.AddResource(rGetQuota.Build())
+
+	rPutQuota := rdl.NewResourceBuilder("Quota", "PUT", "/domain/{name}/quota")
+	rPutQuota.Comment("Update the specified domain's quota object")
+	rPutQuota.Input("name", "DomainName", true, "", "", false, nil, "name of the domain")
+	rPutQuota.Input("auditRef", "String", false, "", "Y-Audit-Ref", false, nil, "Audit reference")
+	rPutQuota.Input("quota", "Quota", false, "", "", false, nil, "Quota object with limits for the domain")
+	rPutQuota.Auth("update", "sys.auth:quota", false, "")
+	rPutQuota.Expected("NO_CONTENT")
+	rPutQuota.Exception("BAD_REQUEST", "ResourceError", "")
+	rPutQuota.Exception("CONFLICT", "ResourceError", "")
+	rPutQuota.Exception("FORBIDDEN", "ResourceError", "")
+	rPutQuota.Exception("NOT_FOUND", "ResourceError", "")
+	rPutQuota.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(rPutQuota.Build())
+
+	rDeleteQuota := rdl.NewResourceBuilder("Quota", "DELETE", "/domain/{name}/quota")
+	rDeleteQuota.Comment("Delete the specified domain's quota")
+	rDeleteQuota.Input("name", "DomainName", true, "", "", false, nil, "name of the domain")
+	rDeleteQuota.Input("auditRef", "String", false, "", "Y-Audit-Ref", false, nil, "Audit reference")
+	rDeleteQuota.Auth("update", "sys.auth:quota", false, "")
+	rDeleteQuota.Expected("NO_CONTENT")
+	rDeleteQuota.Exception("BAD_REQUEST", "ResourceError", "")
+	rDeleteQuota.Exception("CONFLICT", "ResourceError", "")
+	rDeleteQuota.Exception("FORBIDDEN", "ResourceError", "")
+	rDeleteQuota.Exception("NOT_FOUND", "ResourceError", "")
+	rDeleteQuota.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(rDeleteQuota.Build())
 
 	schema = sb.Build()
 }

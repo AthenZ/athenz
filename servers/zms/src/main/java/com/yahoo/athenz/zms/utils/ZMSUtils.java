@@ -299,6 +299,10 @@ public class ZMSUtils {
         return error(ResourceException.INTERNAL_SERVER_ERROR, msg, caller);
     }
     
+    public static RuntimeException quotaLimitError(String msg, String caller) {
+        return error(ResourceException.TOO_MANY_REQUESTS, msg, caller);
+    }
+    
     public static boolean emitMonmetricError(int errorCode, String caller) {
         if (errorCode < 1) {
             return false;

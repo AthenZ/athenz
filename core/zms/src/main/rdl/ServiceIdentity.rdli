@@ -17,6 +17,7 @@ resource ServiceIdentity PUT "/domain/{domain}/service/{service}" {
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -30,6 +31,7 @@ resource ServiceIdentity GET "/domain/{domain}/service/{service}" {
         ResourceError BAD_REQUEST;
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -48,6 +50,7 @@ resource ServiceIdentity DELETE "/domain/{domain}/service/{service}" {
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -61,6 +64,7 @@ resource ServiceIdentities GET "/domain/{domainName}/services?publickeys={public
         ResourceError BAD_REQUEST;
         ResourceError NOT_FOUND;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -75,6 +79,7 @@ resource ServiceIdentityList GET "/domain/{domainName}/service?limit={limit}&ski
         ResourceError NOT_FOUND;
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -89,6 +94,7 @@ resource PublicKeyEntry GET "/domain/{domain}/service/{service}/publickey/{id}" 
         ResourceError NOT_FOUND;
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -107,6 +113,7 @@ resource PublicKeyEntry PUT "/domain/{domain}/service/{service}/publickey/{id}" 
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -126,5 +133,6 @@ resource PublicKeyEntry DELETE "/domain/{domain}/service/{service}/publickey/{id
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }

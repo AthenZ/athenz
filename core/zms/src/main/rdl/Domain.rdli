@@ -17,6 +17,7 @@ resource Domain GET "/domain/{domain}" {
         ResourceError NOT_FOUND;
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -40,6 +41,7 @@ resource DomainList GET "/domain?limit={limit}&skip={skip}&prefix={prefix}&depth
     String modifiedSince (header="If-Modified-Since"); //This header specifies to the server to return any domains modified since this HTTP date
     exceptions {
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -76,6 +78,7 @@ resource Domain POST "/domain" {
         ResourceError BAD_REQUEST;
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -92,6 +95,7 @@ resource Domain POST "/subdomain/{parent}" {
         ResourceError BAD_REQUEST;
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -115,6 +119,7 @@ resource Domain POST "/userdomain/{name}" {
         ResourceError BAD_REQUEST;
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -131,6 +136,7 @@ resource TopLevelDomain DELETE "/domain/{name}" {
         ResourceError BAD_REQUEST;
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -148,6 +154,7 @@ resource SubDomain DELETE "/subdomain/{parent}/{name}" {
         ResourceError BAD_REQUEST;
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -164,6 +171,7 @@ resource UserDomain DELETE "/userdomain/{name}" {
         ResourceError BAD_REQUEST;
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -181,6 +189,7 @@ resource Domain PUT "/domain/{name}/meta" {
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -199,6 +208,7 @@ resource DomainTemplate PUT "/domain/{name}/template" {
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -210,6 +220,7 @@ resource DomainTemplateList GET "/domain/{name}/template" {
         ResourceError BAD_REQUEST;
         ResourceError NOT_FOUND;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -229,5 +240,6 @@ resource DomainTemplate DELETE "/domain/{name}/template/{template}" {
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }

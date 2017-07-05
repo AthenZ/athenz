@@ -48,6 +48,7 @@ public class DBService {
     String userDomain;
     AuditLogger auditLogger;
     Cache<String, DataCache> cacheStore;
+    QuotaChecker quotaCheck;
     int retrySleepTime = 250;
     int defaultRetryCount = 120;
     int defaultOpTimeout = 60;
@@ -88,6 +89,10 @@ public class DBService {
         if (retrySleepTime < 0) {
             retrySleepTime = 250;
         }
+        
+        // create our quota checker class
+        
+        quotaCheck = new QuotaChecker();
     }
 
     static class DataCache {
@@ -209,6 +214,11 @@ public class DBService {
         int retryCount = defaultRetryCount;
         do {
             try (ObjectStoreConnection con = store.getConnection(false)) {
+                
+                // before adding this domain we need to verify our
+                // quota check for sub-domains
+                
+                quotaCheck.checkSubdomainQuota(con, domainName, caller);
                 
                 boolean objectsInserted = con.insertDomain(domain);
                 if (!objectsInserted) {
@@ -701,6 +711,10 @@ public class DBService {
                 
                 checkDomainAuditEnabled(con, domainName, auditRef, caller);
 
+                // check that quota is not exceeded
+                
+                quotaCheck.checkPolicyQuota(con, domainName, policy, caller);
+                
                 // retrieve our original policy
                 
                 Policy originalPolicy = getPolicy(con, domainName, policyName);
@@ -744,6 +758,10 @@ public class DBService {
                 
                 checkDomainAuditEnabled(con, domainName, auditRef, caller);
 
+                // check that quota is not exceeded
+                
+                quotaCheck.checkRoleQuota(con, domainName, role, caller);
+                
                 // retrieve our original role
                 
                 Role originalRole = getRole(con, domainName, roleName, false, false);
@@ -776,7 +794,7 @@ public class DBService {
             retryCount -= 1;
         } while (retryCount > 0);
     }
-    
+
     void executePutServiceIdentity(ResourceContext ctx, String domainName, String serviceName,
             ServiceIdentity service, String auditRef, String caller) {
         
@@ -788,6 +806,10 @@ public class DBService {
                 
                 checkDomainAuditEnabled(con, domainName, auditRef, caller);
 
+                // check that quota is not exceeded
+                
+                quotaCheck.checkServiceIdentityQuota(con, domainName, service, caller);
+                
                 // retrieve our original service identity object
                 
                 ServiceIdentity originalService = getServiceIdentity(con, domainName, serviceName);
@@ -833,7 +855,16 @@ public class DBService {
 
                 // check to see if this key already exists or not
                 
-                PublicKeyEntry originalKeyEntry = con.getPublicKeyEntry(domainName, serviceName, keyEntry.getId(), false);
+                PublicKeyEntry originalKeyEntry = con.getPublicKeyEntry(domainName, serviceName,
+                        keyEntry.getId(), false);
+                
+                // now we need verify our quota check if we know that
+                // that we'll be adding another public key
+                
+                if (originalKeyEntry == null) {
+                    final List<PublicKeyEntry> publicKeys = con.listPublicKeys(domainName, serviceName);
+                    quotaCheck.checkServiceIdentityPublicKeyQuota(con, domainName, publicKeys, caller);
+                }
                 
                 // now process the request
                 
@@ -951,7 +982,7 @@ public class DBService {
                 // first verify that auditing requirements are met
                 
                 checkDomainAuditEnabled(con, domainName, auditRef, caller);
-
+                
                 // before inserting a member we need to verify that
                 // this is a group role and not a delegated one.
                 
@@ -960,6 +991,11 @@ public class DBService {
                     throw ZMSUtils.requestError(caller + ": " + roleName +
                             "is a delegated role", caller);
                 }
+                
+                // now we need verify our quota check
+                
+                quotaCheck.checkRoleMembershipQuota(con, domainName,
+                        con.listRoleMembers(domainName, roleName), caller);
                 
                 // process our insert role member support. since this is a "single"
                 // operation, we are not using any transactions.
@@ -1010,6 +1046,10 @@ public class DBService {
                 
                 checkDomainAuditEnabled(con, domainName, auditRef, caller);
 
+                // check that quota is not exceeded
+                
+                quotaCheck.checkEntityQuota(con, domainName, entity, caller);
+                
                 // check to see if this key already exists or not
                 
                 Entity originalEntity = con.getEntity(domainName, entityName);
@@ -1799,6 +1839,11 @@ public class DBService {
                 // first verify that auditing requirements are met
                 
                 checkDomainAuditEnabled(con, domainName, auditRef, caller);
+                
+                // now we need verify our quota check
+                
+                quotaCheck.checkPolicyAssertionQuota(con, domainName,
+                        con.listAssertions(domainName, policyName), caller);
                 
                 // process our insert assertion. since this is a "single"
                 // operation, we are not using any transactions.
@@ -2999,5 +3044,74 @@ public class DBService {
     void auditLogUserMeta(StringBuilder auditDetails, UserMeta meta) {
         auditDetails.append("{\"enabled\": \"").append(meta.getEnabled())
         .append("\"}");
+    }
+
+    public void executePutQuota(ResourceContext ctx, String domainName, Quota quota,
+            String auditRef, String caller) {
+        
+        int retryCount = defaultRetryCount;
+        do {
+            try (ObjectStoreConnection con = store.getConnection(true)) {
+                
+                // process our insert quota. since this is a "single"
+                // operation, we are not using any transactions.
+                
+                if (con.getQuota(domainName) != null) {
+                    con.updateQuota(domainName, quota);
+                } else {
+                    con.insertQuota(domainName, quota);
+                }
+                
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
+                        domainName, null);
+                
+                return;
+                
+            } catch (ResourceException ex) {
+                
+                // otherwise check if we need to retry or return failure
+                
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
+            }
+            retryCount -= 1;
+        } while (retryCount > 0);
+    }
+
+    public void executeDeleteQuota(ResourceContext ctx, String domainName,
+            String auditRef, String caller) {
+        
+        int retryCount = defaultRetryCount;
+        do {
+            try (ObjectStoreConnection con = store.getConnection(true)) {
+                
+                // process our delete quota request - it's a single
+                // operation so no need to make it a transaction
+                
+                if (!con.deleteQuota(domainName)) {
+                    throw ZMSUtils.notFoundError(caller + ": unable to delete quota: " + domainName, caller);
+                }
+
+                // audit log the request
+                
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
+                        domainName, null);
+                
+                return;
+                
+            } catch (ResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
+            }
+            retryCount -= 1;
+        } while (retryCount > 0);
+    }
+
+    public Quota getQuota(String domainName) {
+        try (ObjectStoreConnection con = store.getConnection(true)) {
+            return quotaCheck.getDomainQuota(con, domainName);
+        }
     }
 }
