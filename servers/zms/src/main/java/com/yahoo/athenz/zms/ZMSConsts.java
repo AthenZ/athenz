@@ -64,6 +64,7 @@ public final class ZMSConsts {
     
     // properties for our default quota limits
     
+    public static final String ZMS_PROP_QUOTA_CHECK        = "athenz.zms.quota_check";
     public static final String ZMS_PROP_QUOTA_ROLE         = "athenz.zms.quota_role";
     public static final String ZMS_PROP_QUOTA_ROLE_MEMBER  = "athenz.zms.quota_role_member";
     public static final String ZMS_PROP_QUOTA_POLICY       = "athenz.zms.quota_policy";

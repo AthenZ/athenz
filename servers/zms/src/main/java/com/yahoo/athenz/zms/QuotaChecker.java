@@ -9,8 +9,16 @@ import com.yahoo.rdl.Timestamp;
 public class QuotaChecker {
 
     Quota defaultQuota;
+    boolean quotaCheckEnabled = true;
     
     public QuotaChecker() {
+        
+        // first check if the quota check is enabled or not
+        
+        quotaCheckEnabled = Boolean.parseBoolean(System.getProperty(ZMSConsts.ZMS_PROP_QUOTA_CHECK, "true"));
+        
+        // retrieve default quota values
+        
         int roleQuota = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_QUOTA_ROLE, "1000"));
         int roleMemberQuota = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_QUOTA_ROLE_MEMBER, "100"));
         int policyQuota = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_QUOTA_POLICY, "1000"));
@@ -40,6 +48,12 @@ public class QuotaChecker {
     
     void checkSubdomainQuota(ObjectStoreConnection con, String domainName, String caller) {
         
+        // if quota check is disabled we have nothing to do
+        
+        if (!quotaCheckEnabled) {
+            return;
+        }
+        
         // for sub-domains we need to run the quota check against
         // the top level domain so let's get that first. If we are
         // creating a top level domain then there is no need for
@@ -68,6 +82,12 @@ public class QuotaChecker {
     }
     
     void checkRoleQuota(ObjectStoreConnection con, String domainName, Role role, String caller) {
+        
+        // if quota check is disabled we have nothing to do
+        
+        if (!quotaCheckEnabled) {
+            return;
+        }
         
         // if our role is null then there is no quota check
         
@@ -101,6 +121,12 @@ public class QuotaChecker {
     void checkRoleMembershipQuota(ObjectStoreConnection con, String domainName,
             List<RoleMember> roleMembers, String caller) {
         
+        // if quota check is disabled we have nothing to do
+        
+        if (!quotaCheckEnabled) {
+            return;
+        }
+        
         // first retrieve the domain quota
         
         final Quota quota = getDomainQuota(con, domainName);
@@ -116,6 +142,12 @@ public class QuotaChecker {
     }
     
     void checkPolicyQuota(ObjectStoreConnection con, String domainName, Policy policy, String caller) {
+        
+        // if quota check is disabled we have nothing to do
+        
+        if (!quotaCheckEnabled) {
+            return;
+        }
         
         // if our policy is null then there is no quota check
         
@@ -149,6 +181,12 @@ public class QuotaChecker {
     void checkPolicyAssertionQuota(ObjectStoreConnection con, String domainName,
             List<Assertion> assertions, String caller) {
         
+        // if quota check is disabled we have nothing to do
+        
+        if (!quotaCheckEnabled) {
+            return;
+        }
+        
         // first retrieve the domain quota
         
         final Quota quota = getDomainQuota(con, domainName);
@@ -165,6 +203,12 @@ public class QuotaChecker {
     
     void checkServiceIdentityQuota(ObjectStoreConnection con, String domainName,
             ServiceIdentity service, String caller) {
+        
+        // if quota check is disabled we have nothing to do
+        
+        if (!quotaCheckEnabled) {
+            return;
+        }
         
         // if our service is null then there is no quota check
         
@@ -204,6 +248,12 @@ public class QuotaChecker {
     void checkServiceIdentityPublicKeyQuota(ObjectStoreConnection con, String domainName,
             List<PublicKeyEntry> publicKeys, String caller) {
         
+        // if quota check is disabled we have nothing to do
+        
+        if (!quotaCheckEnabled) {
+            return;
+        }
+        
         // first retrieve the domain quota
         
         final Quota quota = getDomainQuota(con, domainName);
@@ -220,6 +270,12 @@ public class QuotaChecker {
     
     void checkEntityQuota(ObjectStoreConnection con, String domainName, Entity entity,
             String caller) {
+        
+        // if quota check is disabled we have nothing to do
+        
+        if (!quotaCheckEnabled) {
+            return;
+        }
         
         // if our entity is null then there is no quota check
         
