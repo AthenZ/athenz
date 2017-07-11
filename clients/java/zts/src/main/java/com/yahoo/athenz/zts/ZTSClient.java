@@ -80,6 +80,7 @@ public class ZTSClient implements Closeable {
     static private boolean initialized = initConfigValues();
     
     private boolean enablePrefetch = true;
+    private boolean ztsClientOverride = false;
     Principal principal = null;
     
     // system properties
@@ -282,6 +283,7 @@ public class ZTSClient implements Closeable {
     
     public void setZTSRDLGeneratedClient(ZTSRDLGeneratedClient client) {
         this.ztsClient = client;
+        ztsClientOverride = true;
     }
     
     String lookupZTSUrl() {
@@ -835,11 +837,20 @@ public class ZTSClient implements Closeable {
                 // fetch items
                 for (PrefetchRoleTokenScheduledItem item : toFetch) {
                     // create ZTS Client for this particular item
+                    
+                    ZTSRDLGeneratedClient savedZtsClient = null;
                     try (ZTSClient itemZtsClient = new ZTSClient(item.providedZTSUrl,
                             item.identityDomain, item.identityName, item.siaProvider)) {
+                        
+                        // use the zts client if one was given however we need
+                        // reset back to the original client so we don't close
+                        // our given client
+                        
+                        savedZtsClient = itemZtsClient.ztsClient;
                         if (item.ztsClient != null) {
                             itemZtsClient.ztsClient = item.ztsClient;
                         }
+                        
                         if (item.isRoleToken()) {
                             // check if this came from service provider
                             //
@@ -867,6 +878,12 @@ public class ZTSClient implements Closeable {
                                     item.roleName, true);
                             item.expiresAtUTC(awsCred.getExpiration().millis() / 1000);
                         }
+                        
+                        // don't forget to restore the original client if case
+                        // we had overridden with the caller specified client
+                        
+                        itemZtsClient.ztsClient = savedZtsClient;
+                        
                     } catch (Exception ex) {
                         // any exception should remove this item from fetch queue
                         item.invalid(true);
@@ -995,8 +1012,14 @@ public class ZTSClient implements Closeable {
             .identityName(service)
             .tokenMinExpiryTime(ZTSClient.tokenMinExpiryTime)
             .providedZTSUrl(this.ztsUrl)
-            .ztsClient(this.ztsClient)
             .siaIdentityProvider(siaProvider);
+        
+        // include our zts client only if it was overriden by
+        // the caller (most likely for unit test mock)
+        
+        if (ztsClientOverride) {
+             item.ztsClient(this.ztsClient);
+        }
         
         if (!PREFETCH_SCHEDULED_ITEMS.contains(item)) {
             PREFETCH_SCHEDULED_ITEMS.add(item);
