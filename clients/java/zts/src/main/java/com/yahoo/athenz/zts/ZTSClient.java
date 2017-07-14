@@ -1278,6 +1278,18 @@ public class ZTSClient implements Closeable {
             throw new ZTSClientException(ZTSClientException.BAD_REQUEST, ex.getMessage());
         }
     }
+
+
+    /**
+     * For a given domain and role return AWS credential provider
+     *
+     * @param domainName name of the domain
+     * @param roleName   is the name of the role
+     * @return AWSCredentialsProviderImpl AWS credential provider
+     */
+    public AWSCredentialsProviderImpl getAWSCredentialProvider(String domainName, String roleName) {
+        return new AWSCredentialsProviderImpl(this, domainName, roleName);
+    }
     
     /**
      * For a given domain and role return AWS temporary credentials
