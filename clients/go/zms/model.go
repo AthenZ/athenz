@@ -1163,6 +1163,74 @@ func (self *TemplateList) Validate() error {
 }
 
 //
+// TemplateParam -
+//
+type TemplateParam struct {
+
+	//
+	// name of the parameter
+	//
+	Name SimpleName `json:"name"`
+
+	//
+	// value of the parameter
+	//
+	Value SimpleName `json:"value"`
+}
+
+//
+// NewTemplateParam - creates an initialized TemplateParam instance, returns a pointer to it
+//
+func NewTemplateParam(init ...*TemplateParam) *TemplateParam {
+	var o *TemplateParam
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(TemplateParam)
+	}
+	return o
+}
+
+type rawTemplateParam TemplateParam
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a TemplateParam
+//
+func (self *TemplateParam) UnmarshalJSON(b []byte) error {
+	var r rawTemplateParam
+	err := json.Unmarshal(b, &r)
+	if err == nil {
+		o := TemplateParam(r)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *TemplateParam) Validate() error {
+	if self.Name == "" {
+		return fmt.Errorf("TemplateParam.name is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.Name)
+		if !val.Valid {
+			return fmt.Errorf("TemplateParam.name does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.Value == "" {
+		return fmt.Errorf("TemplateParam.value is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.Value)
+		if !val.Valid {
+			return fmt.Errorf("TemplateParam.value does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
 // DomainTemplate - solution template(s) to be applied to a domain
 //
 type DomainTemplate struct {
@@ -1171,6 +1239,11 @@ type DomainTemplate struct {
 	// list of template names
 	//
 	TemplateNames []SimpleName `json:"templateNames"`
+
+	//
+	// optional template parameters
+	//
+	Params []*TemplateParam `json:"params,omitempty" rdl:"optional"`
 }
 
 //

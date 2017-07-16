@@ -155,8 +155,13 @@ public class ZMSSchema {
             .comment("List of template names that is the base struct for server and domain templates")
             .arrayField("templateNames", "SimpleName", false, "list of template names");
 
+        sb.structType("TemplateParam")
+            .field("name", "SimpleName", false, "name of the parameter")
+            .field("value", "SimpleName", false, "value of the parameter");
+
         sb.structType("DomainTemplate", "TemplateList")
-            .comment("solution template(s) to be applied to a domain");
+            .comment("solution template(s) to be applied to a domain")
+            .arrayField("params", "TemplateParam", true, "optional template parameters");
 
         sb.structType("DomainTemplateList", "TemplateList")
             .comment("List of solution templates to be applied to a domain");

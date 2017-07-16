@@ -3,6 +3,7 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 import com.yahoo.rdl.*;
 
@@ -11,6 +12,9 @@ import com.yahoo.rdl.*;
 //
 public class DomainTemplate {
     public List<String> templateNames;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public List<TemplateParam> params;
 
     public DomainTemplate setTemplateNames(List<String> templateNames) {
         this.templateNames = templateNames;
@@ -18,6 +22,13 @@ public class DomainTemplate {
     }
     public List<String> getTemplateNames() {
         return templateNames;
+    }
+    public DomainTemplate setParams(List<TemplateParam> params) {
+        this.params = params;
+        return this;
+    }
+    public List<TemplateParam> getParams() {
+        return params;
     }
 
     @Override
@@ -28,6 +39,9 @@ public class DomainTemplate {
             }
             DomainTemplate a = (DomainTemplate) another;
             if (templateNames == null ? a.templateNames != null : !templateNames.equals(a.templateNames)) {
+                return false;
+            }
+            if (params == null ? a.params != null : !params.equals(a.params)) {
                 return false;
             }
         }

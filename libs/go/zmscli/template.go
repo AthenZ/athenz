@@ -5,6 +5,8 @@ package zmscli
 
 import (
 	"bytes"
+	"fmt"
+	"strings"
 
 	"github.com/yahoo/athenz/clients/go/zms"
 )
@@ -57,13 +59,30 @@ func (cli Zms) ShowServerTemplate(templateName string) (*string, error) {
 	return &s, nil
 }
 
-func (cli Zms) SetDomainTemplate(dn string, templates []string) (*string, error) {
+func (cli Zms) SetDomainTemplate(dn string, templateArgs []string) (*string, error) {
 	templateNames := make([]zms.SimpleName, 0)
-	for _, value := range templates {
-		templateNames = append(templateNames, zms.SimpleName(value))
+	templateParams := make([]*zms.TemplateParam, 0)
+	for _, value := range templateArgs {
+		idx := strings.Index(value, "=")
+		if idx < 0 {
+			templateNames = append(templateNames, zms.SimpleName(value))
+		} else {
+			param := zms.TemplateParam{
+				Name  : zms.SimpleName(value[0:idx]),
+				Value : zms.SimpleName(value[idx+1:]),
+			}
+			templateParams = append(templateParams, &param)
+		}
+	}
+	//make sure we have some templates specified
+	if len(templateNames) == 0 {
+		return nil, fmt.Errorf("No template names specified")
 	}
 	var domainTemplateList zms.DomainTemplate
 	domainTemplateList.TemplateNames = templateNames
+	if len(templateParams) > 0 {
+		domainTemplateList.Params = templateParams
+	}
 	err := cli.Zms.PutDomainTemplate(zms.DomainName(dn), cli.AuditRef, &domainTemplateList)
 	if err != nil {
 		return nil, err

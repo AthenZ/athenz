@@ -17,6 +17,10 @@ package com.yahoo.athenz.zms.store.file;
 
 import java.util.List;
 import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -55,7 +59,8 @@ import com.yahoo.rdl.Timestamp;
 public class FileConnection implements ObjectStoreConnection {
 
     private static final String ALL_PRINCIPALS  = "*";
-    
+    private static final Logger LOG = LoggerFactory.getLogger(FileConnection.class);
+
     File rootDir;
     File quotaDir;
     public FileConnection(File rootDir, File quotaDir) {
@@ -356,7 +361,7 @@ public class FileConnection implements ObjectStoreConnection {
                     continue;
                 }
             } catch (Exception exc) {
-                System.out.println("FileStructStore: FAILED to get timestamp for file "
+                LOG.error("FileStructStore: FAILED to get timestamp for file "
                         + dname + ", error: " + exc.getMessage());
             }
             DomainModified dm = new DomainModified().setName(dname).setModified(ts);

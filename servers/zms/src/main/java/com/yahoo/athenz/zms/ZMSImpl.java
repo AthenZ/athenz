@@ -189,19 +189,26 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 LIST.convertToLowerCase(defaultAdmins.getAdmins());
             }
         },
-        DOMAIN_TEMPLATE_LIST {
-            void convertToLowerCase(Object obj) {
-                DomainTemplateList templates = (DomainTemplateList) obj;
-                if (templates != null) {
-                    LIST.convertToLowerCase(templates.getTemplateNames());
-                }
-            }
-        },
         DOMAIN_TEMPLATE {
             void convertToLowerCase(Object obj) {
                 DomainTemplate template = (DomainTemplate) obj;
                 if (template != null) {
                     LIST.convertToLowerCase(template.getTemplateNames());
+                    List<TemplateParam> params = template.getParams();
+                    if (params != null) {
+                        for (TemplateParam param : params) {
+                            param.setName(param.getName().toLowerCase());
+                            param.setValue(param.getValue().toLowerCase());
+                        }
+                    }
+                }
+            }
+        },
+        DOMAIN_TEMPLATE_LIST {
+            void convertToLowerCase(Object obj) {
+                DomainTemplateList templates = (DomainTemplateList) obj;
+                if (templates != null) {
+                    LIST.convertToLowerCase(templates.getTemplateNames());
                 }
             }
         },
@@ -219,19 +226,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     ListIterator<String> iter = list.listIterator();
                     while (iter.hasNext()) {
                         iter.set(iter.next().toLowerCase());
-                    }
-                }
-            }
-        },
-        ROLE_MEMBER {
-            void convertToLowerCase(Object obj) {
-                @SuppressWarnings("unchecked")
-                List<RoleMember> list = (List<RoleMember>) obj;
-                if (list != null) {
-                    ListIterator<RoleMember> iter = list.listIterator();
-                    while (iter.hasNext()) {
-                        RoleMember roleMember = iter.next();
-                        iter.set(roleMember.setMemberName(roleMember.getMemberName().toLowerCase()));
                     }
                 }
             }
@@ -285,6 +279,19 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 }
                 LIST.convertToLowerCase(role.getMembers());
                 ROLE_MEMBER.convertToLowerCase(role.getRoleMembers());
+            }
+        },
+        ROLE_MEMBER {
+            void convertToLowerCase(Object obj) {
+                @SuppressWarnings("unchecked")
+                List<RoleMember> list = (List<RoleMember>) obj;
+                if (list != null) {
+                    ListIterator<RoleMember> iter = list.listIterator();
+                    while (iter.hasNext()) {
+                        RoleMember roleMember = iter.next();
+                        iter.set(roleMember.setMemberName(roleMember.getMemberName().toLowerCase()));
+                    }
+                }
             }
         },
         SERVICE_IDENTITY {
@@ -1482,7 +1489,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
     
     public DomainTemplate putDomainTemplate(ResourceContext ctx, String domainName, String auditRef,
-            DomainTemplate templates) {
+            DomainTemplate domainTemplate) {
 
         final String caller = "putdomaintemplate";
         metric.increment(ZMSConsts.HTTP_PUT);
@@ -1495,14 +1502,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateRequest(ctx.request(), caller);
 
         validate(domainName, TYPE_DOMAIN_NAME, caller);
-        validate(templates, TYPE_DOMAIN_TEMPLATE, caller);
+        validate(domainTemplate, TYPE_DOMAIN_TEMPLATE, caller);
         
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
         // policy, service, etc name)
         
         domainName = domainName.toLowerCase();
-        AthenzObject.DOMAIN_TEMPLATE.convertToLowerCase(templates);
+        AthenzObject.DOMAIN_TEMPLATE.convertToLowerCase(domainTemplate);
         
         metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
         metric.increment(caller, domainName);
@@ -1510,7 +1517,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         // verify that all template names are valid
         
-        List<String> templateNames = templates.getTemplateNames();
+        List<String> templateNames = domainTemplate.getTemplateNames();
         if (templateNames == null || templateNames.size() == 0) {
             throw ZMSUtils.requestError("putDomainTemplate: No templates specified", caller);
         }
@@ -1519,12 +1526,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // verify that request is properly authenticated for this request
         // Make sure each template name is verified
         
-        for (String templateName : templates.getTemplateNames()) {
+        for (String templateName : domainTemplate.getTemplateNames()) {
             verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(),
                     caller, "name", templateName);
         }
 
-        dbService.executePutDomainTemplate(ctx, domainName, templateNames, auditRef, caller);
+        dbService.executePutDomainTemplate(ctx, domainName, domainTemplate, auditRef, caller);
         metric.stopTiming(timerMetric);
         return null;
     }
@@ -5897,7 +5904,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // verify length of full sub domain name
         String fullSubDomName = parentName + "." + name;
         if (fullSubDomName.length() > domainNameMaxLen) {
-            throw ZMSUtils.requestError("Invalid SubDomain name: " + fullSubDomName + " : name length cannot exceed: " + domainNameMaxLen, caller);
+            throw ZMSUtils.requestError("Invalid SubDomain name: " + fullSubDomName
+                    + " : name length cannot exceed: " + domainNameMaxLen, caller);
         } 
 
         List<String> users = validatedAdminUsers(adminUsers);

@@ -469,7 +469,7 @@ public class DBServiceTest extends TestCase {
     @Test
     public void testUpdateTemplateRoleNoMembers() {
         Role role = new Role().setName("_domain_:role.readers");
-        Role newRole = zms.dbService.updateTemplateRole(role, "athenz", "readers");
+        Role newRole = zms.dbService.updateTemplateRole(role, "athenz", "readers", null);
         assertEquals("athenz:role.readers", newRole.getName());
         assertEquals(0, newRole.getRoleMembers().size());
     }
@@ -477,7 +477,7 @@ public class DBServiceTest extends TestCase {
     @Test
     public void testUpdateTemplateRoleWithTrust() {
         Role role = new Role().setName("_domain_:role.readers").setTrust("trustdomain");
-        Role newRole = zms.dbService.updateTemplateRole(role, "athenz", "readers");
+        Role newRole = zms.dbService.updateTemplateRole(role, "athenz", "readers", null);
         assertEquals("athenz:role.readers", newRole.getName());
         assertEquals("trustdomain", newRole.getTrust());
         assertEquals(0, newRole.getRoleMembers().size());
@@ -492,7 +492,7 @@ public class DBServiceTest extends TestCase {
         members.add(new RoleMember().setMemberName("_domain_.user3"));
         role.setRoleMembers(members);
         
-        Role newRole = zms.dbService.updateTemplateRole(role, "athenz", "readers");
+        Role newRole = zms.dbService.updateTemplateRole(role, "athenz", "readers", null);
         assertEquals("athenz:role.readers", newRole.getName());
         List<RoleMember> newMembers = newRole.getRoleMembers();
         assertEquals(3, newMembers.size());
@@ -505,11 +505,36 @@ public class DBServiceTest extends TestCase {
     }
     
     @Test
+    public void testUpdateTemplateRoleWithMembersWithParams() {
+        Role role = new Role().setName("_domain_:role._service___api_readers");
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user.user1"));
+        members.add(new RoleMember().setMemberName("user._service_"));
+        members.add(new RoleMember().setMemberName("_domain_.user3"));
+        role.setRoleMembers(members);
+        
+        List<TemplateParam> params = new ArrayList<>();
+        params.add(new TemplateParam().setName("service").setValue("storage"));
+        params.add(new TemplateParam().setName("api").setValue("java"));
+        params.add(new TemplateParam().setName("name").setValue("notfound"));
+        Role newRole = zms.dbService.updateTemplateRole(role, "athenz", "_service___api_readers", params);
+        assertEquals("athenz:role.storage_javareaders", newRole.getName());
+        List<RoleMember> newMembers = newRole.getRoleMembers();
+        assertEquals(3, newMembers.size());
+        
+        List<String> checkList = new ArrayList<String>();
+        checkList.add("user.user1");
+        checkList.add("user.storage");
+        checkList.add("athenz.user3");
+        checkRoleMember(checkList, newMembers);
+    }
+    
+    @Test
     public void testUpdateTemplatePolicy() {
         Policy policy = createPolicyObject("_domain_", "policy1",
                 "role1", true, "read", "_domain_:*", AssertionEffect.ALLOW);
         
-        Policy newPolicy = zms.dbService.updateTemplatePolicy(policy, "athenz", "policy1");
+        Policy newPolicy = zms.dbService.updateTemplatePolicy(policy, "athenz", "policy1", null);
         
         assertEquals("athenz:policy.policy1", newPolicy.getName());
 
@@ -523,9 +548,32 @@ public class DBServiceTest extends TestCase {
     }
     
     @Test
+    public void testUpdateTemplatePolicyWithParams() {
+        Policy policy = createPolicyObject("_domain_", "policy1",
+                "_api_-role1", true, "read", "_domain_:_api___service__*", AssertionEffect.ALLOW);
+        
+        List<TemplateParam> params = new ArrayList<>();
+        params.add(new TemplateParam().setName("service").setValue("storage"));
+        params.add(new TemplateParam().setName("api").setValue("java"));
+        params.add(new TemplateParam().setName("name").setValue("notfound"));
+        Policy newPolicy = zms.dbService.updateTemplatePolicy(policy, "athenz",
+                "_service___api_policy1", params);
+        
+        assertEquals("athenz:policy.storage_javapolicy1", newPolicy.getName());
+
+        List<Assertion> assertions = newPolicy.getAssertions();
+        assertEquals(1, assertions.size());
+        Assertion assertion = assertions.get(0);
+        assertEquals("athenz:role.java-role1", assertion.getRole());
+        assertEquals("athenz:java_storage_*", assertion.getResource());
+        assertEquals("read", assertion.getAction());
+        assertEquals(AssertionEffect.ALLOW, assertion.getEffect());
+    }
+    
+    @Test
     public void testUpdateTemplatePolicyNoAssertions() {
         Policy policy = new Policy().setName("_domain_:policy.policy1");
-        Policy newPolicy = zms.dbService.updateTemplatePolicy(policy, "athenz", "policy1");
+        Policy newPolicy = zms.dbService.updateTemplatePolicy(policy, "athenz", "policy1", null);
         
         assertEquals("athenz:policy.policy1", newPolicy.getName());
         List<Assertion> assertions = newPolicy.getAssertions();
@@ -537,7 +585,7 @@ public class DBServiceTest extends TestCase {
         Policy policy = createPolicyObject("_domain_", "policy1",
                 "coretech:role.role1", false, "read", "coretech:*", AssertionEffect.ALLOW);
         
-        Policy newPolicy = zms.dbService.updateTemplatePolicy(policy, "athenz", "policy1");
+        Policy newPolicy = zms.dbService.updateTemplatePolicy(policy, "athenz", "policy1", null);
         
         assertEquals("athenz:policy.policy1", newPolicy.getName());
 
@@ -1732,7 +1780,8 @@ public class DBServiceTest extends TestCase {
         
         List<String> templates = new ArrayList<>();
         templates.add("vipng");
-        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, templates, auditRef, caller);
+        DomainTemplate domainTemplate = new DomainTemplate().setTemplateNames(templates);
+        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
         
         DomainTemplateList domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertEquals(1, domainTemplateList.getTemplateNames().size());
@@ -1760,7 +1809,7 @@ public class DBServiceTest extends TestCase {
         
         // Try applying the template again. This time, there should be no changes.
         
-        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, templates, auditRef, caller);
+        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
 
         verifyPolicies(domainName);
         
@@ -1818,7 +1867,8 @@ public class DBServiceTest extends TestCase {
         
         List<String> templates = new ArrayList<>();
         templates.add("vipng");
-        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, templates, auditRef, caller);
+        DomainTemplate domainTemplate = new DomainTemplate().setTemplateNames(templates);
+        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
         
         DomainTemplateList domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertEquals(1, domainTemplateList.getTemplateNames().size());
@@ -1867,7 +1917,8 @@ public class DBServiceTest extends TestCase {
         // add another template
         templates = new ArrayList<>();
         templates.add("platforms");
-        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, templates, auditRef, caller);
+        domainTemplate.setTemplateNames(templates);
+        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
 
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertEquals(2, domainTemplateList.getTemplateNames().size());
@@ -1936,7 +1987,8 @@ public class DBServiceTest extends TestCase {
         
         List<String> templates = new ArrayList<>();
         templates.add("vipng");
-        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, templates, auditRef, caller);
+        DomainTemplate domainTemplate = new DomainTemplate().setTemplateNames(templates);
+        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
         
         DomainTemplateList domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertEquals(1, domainTemplateList.getTemplateNames().size());
@@ -1968,7 +2020,7 @@ public class DBServiceTest extends TestCase {
         
         // Try applying the template again. This time, there should be no changes.
         
-        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, templates, auditRef, caller);
+        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
 
         names = zms.dbService.listPolicies(domainName);
         assertEquals(3, names.size());
@@ -2030,11 +2082,12 @@ public class DBServiceTest extends TestCase {
         
         List<String> templates = new ArrayList<>();
         templates.add("vipng");
-        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, templates, auditRef, caller);
+        DomainTemplate domainTemplate = new DomainTemplate().setTemplateNames(templates);
+        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
         
         // apply the template again - nothing should change
 
-        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, templates, auditRef, caller);
+        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
         
         DomainTemplateList domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertEquals(1, domainTemplateList.getTemplateNames().size());
@@ -2117,11 +2170,12 @@ public class DBServiceTest extends TestCase {
         
         List<String> templates = new ArrayList<>();
         templates.add("vipng");
-        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, templates, auditRef, caller);
+        DomainTemplate domainTemplate = new DomainTemplate().setTemplateNames(templates);
+        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
         
         // apply the template again - nothing should change
 
-        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, templates, auditRef, caller);
+        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
         
         DomainTemplateList domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertEquals(1, domainTemplateList.getTemplateNames().size());
@@ -2456,10 +2510,15 @@ public class DBServiceTest extends TestCase {
     }
     
     @Test
-    public void testApplySolutionTemplateNullTemplat() {
+    public void testApplySolutionTemplateNullTemplate() {
         StringBuilder auditDetails = new StringBuilder();
-        assertTrue(zms.dbService.applySolutionTemplate(null, null, "template1",
-                null, true, null, null, auditDetails));
+        assertTrue(zms.dbService.addSolutionTemplate(null, null, "template1",
+                null, null, null, auditDetails));
+        assertEquals("{\"name\": \"template1\"}", auditDetails.toString());
+        
+        auditDetails.setLength(0);
+        assertTrue(zms.dbService.deleteSolutionTemplate(null, null, "template1",
+                null, auditDetails));
         assertEquals("{\"name\": \"template1\"}", auditDetails.toString());
     }
 

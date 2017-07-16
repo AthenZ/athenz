@@ -18,8 +18,14 @@ type TemplateList Struct {
     Array<SimpleName> templateNames; //list of template names
 }
 
+type TemplateParam Struct {
+    SimpleName name; //name of the parameter
+    SimpleName value; //value of the parameter
+}
+
 //solution template(s) to be applied to a domain
 type DomainTemplate TemplateList {
+    Array<TemplateParam> params (optional); //optional template parameters
 }
 
 //List of solution templates to be applied to a domain
