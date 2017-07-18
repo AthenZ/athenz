@@ -36,9 +36,12 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_CONFLICT_RETRY_COUNT      = "athenz.zms.request_conflict_retry_count";
     public static final String ZMS_PROP_CONFLICT_RETRY_SLEEP_TIME = "athenz.zms.request_conflict_retry_sleep_time";
 
-    public static final String ZMS_PROP_JDBC_STORE        = "athenz.zms.jdbc_store";
-    public static final String ZMS_PROP_JDBC_USER         = "athenz.zms.jdbc_user";
-    public static final String ZMS_PROP_JDBC_PASSWORD     = "athenz.zms.jdbc_password";
+    public static final String ZMS_PROP_JDBC_RW_STORE     = "athenz.zms.jdbc_store";
+    public static final String ZMS_PROP_JDBC_RW_USER      = "athenz.zms.jdbc_user";
+    public static final String ZMS_PROP_JDBC_RW_PASSWORD  = "athenz.zms.jdbc_password";
+    public static final String ZMS_PROP_JDBC_RO_STORE     = "athenz.zms.jdbc_ro_store";
+    public static final String ZMS_PROP_JDBC_RO_USER      = "athenz.zms.jdbc_ro_user";
+    public static final String ZMS_PROP_JDBC_RO_PASSWORD  = "athenz.zms.jdbc_ro_password";
     public static final String ZMS_PROP_FILE_STORE_NAME   = "athenz.zms.file_store_name";
     public static final String ZMS_PROP_FILE_STORE_QUOTA  = "athenz.zms.file_store_quota";
     public static final String ZMS_PROP_FILE_STORE_PATH   = "athenz.zms.file_store_path";

@@ -231,7 +231,8 @@ public class ZMSImplTest extends TestCase {
         adminUser = System.getProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN);
         
         System.setProperty(ZMSConsts.ZMS_PROP_FILE_STORE_PATH, "/tmp/zms_core_unit_tests/");
-        System.clearProperty(ZMSConsts.ZMS_PROP_JDBC_STORE);
+        System.clearProperty(ZMSConsts.ZMS_PROP_JDBC_RW_STORE);
+        System.clearProperty(ZMSConsts.ZMS_PROP_JDBC_RO_STORE);
         
         ZMSImpl zmsObj = new ZMSImpl();
         zmsObj.serverPublicKeyMap.put("1", pubKeyK1);
@@ -245,7 +246,8 @@ public class ZMSImplTest extends TestCase {
         
         FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
         
-        System.clearProperty(ZMSConsts.ZMS_PROP_JDBC_STORE);
+        System.clearProperty(ZMSConsts.ZMS_PROP_JDBC_RW_STORE);
+        System.clearProperty(ZMSConsts.ZMS_PROP_JDBC_RO_STORE);
         System.setProperty(ZMSConsts.ZMS_PROP_FILE_STORE_NAME, storeFile);
         System.setProperty(ZMSConsts.ZMS_PROP_FILE_STORE_PATH, "/tmp/zms_core_unit_tests/");
 

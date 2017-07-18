@@ -23,21 +23,43 @@ import com.yahoo.athenz.zms.utils.ZMSUtils;
 
 public class JDBCObjectStore implements ObjectStore {
 
-    PoolableDataSource src;
+    PoolableDataSource rwSrc;
+    PoolableDataSource roSrc;
     private int opTimeout = 60; //in seconds
     
-    public JDBCObjectStore(PoolableDataSource src) {
-        this.src = src;
+    public JDBCObjectStore(PoolableDataSource rwSrc, PoolableDataSource roSrc) {
+        this.rwSrc = rwSrc;
+        this.roSrc = roSrc;
+        
+        // if we're not given read-only source pool then we'll
+        // be using the read-write for all operations
+        
+        if (this.roSrc == null) {
+            this.roSrc = this.rwSrc;
+        }
     }
     
     @Override
-    public ObjectStoreConnection getConnection(boolean autoCommit) {
+    public ObjectStoreConnection getConnection(boolean autoCommit, boolean readWrite) {
         final String caller = "getConnection";
         try {
+            PoolableDataSource src = readWrite ? rwSrc : roSrc;
             JDBCConnection jdbcConn = new JDBCConnection(src.getConnection(), autoCommit);
             jdbcConn.setOperationTimeout(opTimeout);
             return jdbcConn;
         } catch (Exception ex) {
+            
+            // if this was a read-only operation and we failed to get a connection
+            // then we're going to try to get a connection from our read-write
+            // pool first before throwing an exception
+            
+            if (!readWrite) {
+                return getConnection(autoCommit, true);
+            }
+            
+            // otherwise our service is not available and let the caller
+            // retry the request if necessary
+            
             throw ZMSUtils.error(ResourceException.SERVICE_UNAVAILABLE, ex.getMessage(), caller);
         }
     }
@@ -47,8 +69,15 @@ public class JDBCObjectStore implements ObjectStore {
         this.opTimeout = opTimeout;
     }
     
+    /**
+     * Clear all connections to the object store. This is called when
+     * the server tries to write some object to the database yet
+     * database reports that it's not in write-only mode thus indicating
+     * it failed over to another master. So we need to clear all our
+     * connections and start new ones.
+     */
     @Override
     public void clearConnections() {
-        src.clearPoolConnections();
+        rwSrc.clearPoolConnections();
     }
 }

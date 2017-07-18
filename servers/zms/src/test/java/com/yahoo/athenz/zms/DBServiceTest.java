@@ -169,7 +169,8 @@ public class DBServiceTest extends TestCase {
         System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, "src/test/resources/solution_templates.json");
 
         System.setProperty(ZMSConsts.ZMS_PROP_FILE_STORE_PATH, "/tmp/zms_core_unit_tests/");
-        System.clearProperty(ZMSConsts.ZMS_PROP_JDBC_STORE);
+        System.clearProperty(ZMSConsts.ZMS_PROP_JDBC_RW_STORE);
+        System.clearProperty(ZMSConsts.ZMS_PROP_JDBC_RO_STORE);
 
         ZMSImpl zmsObj = new ZMSImpl();
         return zmsObj;
@@ -1504,7 +1505,7 @@ public class DBServiceTest extends TestCase {
         
         UserMeta meta = new UserMeta().setEnabled(false);
         Domain domain = zms.dbService.getDomain(domainName);
-        ObjectStoreConnection con = zms.dbService.store.getConnection(false);
+        ObjectStoreConnection con = zms.dbService.store.getConnection(false, true);
         zms.dbService.updateUserDomainMeta(con, domain, meta);
         
         // this time the lookup should return nothing
@@ -1602,7 +1603,7 @@ public class DBServiceTest extends TestCase {
                 "users", "host1");
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false)).thenReturn(mockFileConn);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
         Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
         Mockito.when(mockFileConn.insertServiceIdentity(domainName, service))
             .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));

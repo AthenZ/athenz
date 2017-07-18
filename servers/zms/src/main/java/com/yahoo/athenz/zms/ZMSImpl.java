@@ -543,13 +543,35 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     void loadObjectStore() {
         
         ObjectStore store = null;
-        String jdbcStore = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_STORE);
+        String jdbcStore = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RW_STORE);
         if (jdbcStore != null && jdbcStore.startsWith("jdbc:")) {
-            String jdbcUser = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_USER);
-            String password = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_PASSWORD, "");
+            String jdbcUser = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RW_USER);
+            String password = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RW_PASSWORD, "");
             String jdbcPassword = keyStore.getApplicationSecret(JDBC, password);
-            PoolableDataSource src = DataSourceFactory.create(jdbcStore, jdbcUser, jdbcPassword);
-            store = new JDBCObjectStore(src);
+            PoolableDataSource readWriteSrc = DataSourceFactory.create(jdbcStore, jdbcUser, jdbcPassword);
+            
+            // now check to see if we also have a read-only jdbc store configured
+            // if no username and password are specified then we'll use the
+            // read-write store credentials
+            
+            PoolableDataSource readOnlySrc = null;
+            String jdbcReadOnlyStore = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RO_STORE);
+            if (jdbcReadOnlyStore != null && jdbcReadOnlyStore.startsWith("jdbc:")) {
+                String jdbcReadOnlyUser = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RO_USER);
+                if (jdbcReadOnlyUser == null) {
+                    jdbcReadOnlyUser = jdbcUser;
+                }
+                password = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RO_PASSWORD, "");
+                String jdbcReadOnlyPassword = keyStore.getApplicationSecret(JDBC, password);
+                if (jdbcReadOnlyPassword == null) {
+                    jdbcReadOnlyPassword = jdbcPassword;
+                }
+                readOnlySrc = DataSourceFactory.create(jdbcReadOnlyStore,
+                        jdbcReadOnlyUser, jdbcReadOnlyPassword);
+            }
+            
+            store = new JDBCObjectStore(readWriteSrc, readOnlySrc);
+
         } else {
             String homeDir = System.getProperty(ZMSConsts.ZMS_PROP_FILE_STORE_PATH,
                     getRootDir() + "/var/zms_server");
@@ -1625,10 +1647,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     AthenzDomain getAthenzDomain(String domainName, boolean ignoreExceptions) {
+        return getAthenzDomain(domainName, ignoreExceptions, false);
+    }
+    
+    AthenzDomain getAthenzDomain(String domainName, boolean ignoreExceptions, boolean masterCopy) {
         
         AthenzDomain domain = null;
         try {
-            domain = dbService.getAthenzDomain(domainName);
+            domain = dbService.getAthenzDomain(domainName, masterCopy);
         } catch (ResourceException ex) {
             
             if (LOG.isDebugEnabled()) {
@@ -4029,7 +4055,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 LOG.debug("getSignedDomains: retrieving domain " + dmod.getName());
             }
             
-            AthenzDomain athenzDomain = getAthenzDomain(dmod.getName(), true);
+            AthenzDomain athenzDomain = getAthenzDomain(dmod.getName(), true, true);
             
             // it's possible that our domain was deleted by another
             // thread while we were processing this request so
