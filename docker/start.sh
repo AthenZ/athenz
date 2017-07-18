@@ -75,8 +75,12 @@ fi
 
 echo "---starting athenz ui---"
 cd /opt/athenz/athenz-ui*/
-export ZMS_SERVER=$public_hostname
-export UI_SERVER=$public_hostname
+if [ -z "${ZMS_SERVER}" ]; then
+    export ZMS_SERVER=$public_hostname
+fi
+if [ -z "${UI_SERVER}" ]; then
+    export UI_SERVER=$public_hostname
+fi
 bin/athenz_ui start
 
 cd /opt/athenz/athenz-zts*/var/zts_server/keys
