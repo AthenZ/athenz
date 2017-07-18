@@ -996,8 +996,8 @@ public class DataStore implements DataCacheProvider {
                     lastDeleteRunTime = System.currentTimeMillis();
                 }
                 
-            } catch (Exception ex) {
-                LOGGER.error("DataUpdater: unable to process domain changes: " + ex.getMessage());
+            } catch (Throwable t) {
+                LOGGER.error("DataUpdater: unable to process domain changes: " + t.getMessage());
             }
         }
     }
