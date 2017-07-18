@@ -180,8 +180,14 @@ func init() {
 	tTemplateList.ArrayField("templateNames", "SimpleName", false, "list of template names")
 	sb.AddType(tTemplateList.Build())
 
+	tTemplateParam := rdl.NewStructTypeBuilder("Struct", "TemplateParam")
+	tTemplateParam.Field("name", "SimpleName", false, nil, "name of the parameter")
+	tTemplateParam.Field("value", "SimpleName", false, nil, "value of the parameter")
+	sb.AddType(tTemplateParam.Build())
+
 	tDomainTemplate := rdl.NewStructTypeBuilder("TemplateList", "DomainTemplate")
 	tDomainTemplate.Comment("solution template(s) to be applied to a domain")
+	tDomainTemplate.ArrayField("params", "TemplateParam", true, "optional template parameters")
 	sb.AddType(tDomainTemplate.Build())
 
 	tDomainTemplateList := rdl.NewStructTypeBuilder("TemplateList", "DomainTemplateList")

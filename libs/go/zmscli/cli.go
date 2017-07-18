@@ -1445,15 +1445,18 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domain_example + " list-domain-template\n")
 	case "set-domain-template":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domain_param + " set-domain-template template [template ...]\n")
+		buf.WriteString("   " + domain_param + " set-domain-template template [template ...] [param-key=param-value ...]\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain     : name of the domain to apply the template to\n")
 		}
-		buf.WriteString("   template   : name of the template to be applied to the domain\n")
+		buf.WriteString("   template    : name of the template to be applied to the domain\n")
+		buf.WriteString("   param-key   : optional parameter key name if template requires it\n")
+		buf.WriteString("   param-value : value for the specified parameter key\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domain_example + " set-domain-template vipng\n")
 		buf.WriteString("   " + domain_example + " set-domain-template vipng cm3\n")
+		buf.WriteString("   " + domain_example + " set-domain-template vipng service=api\n")
 	case "delete-domain-template":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domain_param + " delete-domain-template template\n")
@@ -1627,7 +1630,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   list-server-template\n")
 	buf.WriteString("   list-domain-template\n")
 	buf.WriteString("   show-server-template template\n")
-	buf.WriteString("   set-domain-template template [template]\n")
+	buf.WriteString("   set-domain-template template [template ...] [param-key=param-value ...]\n")
 	buf.WriteString("   delete-domain-template template\n")
 	buf.WriteString("\n")
 	buf.WriteString(" System Administrator commands:\n")

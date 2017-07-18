@@ -7086,6 +7086,63 @@ public class ZMSImplTest extends TestCase {
     }
     
     @Test
+    public void testValidateDomainTemplate() {
+        DomainTemplate domainTemplate = new DomainTemplate();
+        List<String> names = new ArrayList<>();
+        names.add("vipng");
+        domainTemplate.setTemplateNames(names);
+        
+        List<TemplateParam> params = new ArrayList<>();
+        params.add(new TemplateParam().setName("param_name_valid").setValue("param_value_valid"));
+        domainTemplate.setParams(params);
+        
+        // our validation should be successful
+        
+        zms.validate(domainTemplate, "DomainTemplate", "testValidateDomainTemplate");
+        
+        // now let's add an invalid entry
+        
+        params.add(new TemplateParam().setName("param_name_invalid.test").setValue("param_value_valid"));
+        try {
+            zms.validate(domainTemplate, "DomainTemplate", "testValidateDomainTemplate");
+            fail();
+        } catch (ResourceException ex) {
+        }
+
+        // remove the second element and add another with invalid value
+        
+        params.remove(1);
+        params.add(new TemplateParam().setName("param_name_valid").setValue("param_value_invalid(again)"));
+        try {
+            zms.validate(domainTemplate, "DomainTemplate", "testValidateDomainTemplate");
+            fail();
+        } catch (ResourceException ex) {
+        }
+    }
+    
+    @Test
+    public void testValidateRole() {
+        Role role = new Role();
+        role.setName("athenz:role.role1");
+        List<RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user.joe"));
+        role.setRoleMembers(roleMembers);
+        
+        // first validation should be successful
+        
+        zms.validate(role, "Role", "testValidateRole");
+        
+        // now let's add invalid entry
+        
+        roleMembers.add(new RoleMember().setMemberName("user joe"));
+        try {
+            zms.validate(role, "Role", "testValidateRole");
+            fail();
+        } catch (ResourceException ex) {
+        }
+    }
+    
+    @Test
     public void testCheckReservedEntityName() {
         int code = 400;
         String reserved = new String("meta");
@@ -10847,9 +10904,43 @@ public class ZMSImplTest extends TestCase {
     }
     
     @Test
+    public void testConvertToLowerCaseTemplate() {
+        DomainTemplate template = new DomainTemplate();
+        List<String> names = new ArrayList<>();
+        names.add("Burbank");
+        names.add("santa_Monica");
+        names.add("playa");
+        template.setTemplateNames(names);
+        List<TemplateParam> params = new ArrayList<>();
+        params.add(new TemplateParam().setName("Name1").setValue("value1"));
+        params.add(new TemplateParam().setName("name2").setValue("Value2"));
+        template.setParams(params);
+        
+        AthenzObject.DOMAIN_TEMPLATE.convertToLowerCase(template);
+        assertEquals(template.getTemplateNames().size(), 3);
+        assertTrue(template.getTemplateNames().contains("burbank"));
+        assertTrue(template.getTemplateNames().contains("playa"));
+        assertTrue(template.getTemplateNames().contains("santa_monica"));
+        assertEquals(template.getParams().size(), 2);
+        boolean param1Check = false;
+        boolean param2Check = false;
+        TemplateParam param1 = new TemplateParam().setName("name1").setValue("value1");
+        TemplateParam param2 = new TemplateParam().setName("name2").setValue("value2");
+        for (TemplateParam param : template.getParams()) {
+            if (param.equals(param1)) {
+                param1Check = true;
+            } else if (param.equals(param2)) {
+                param2Check = true;
+            }
+        }
+        assertTrue(param1Check);
+        assertTrue(param2Check);
+    }
+    
+    @Test
     public void testConvertToLowerCaseTenancy() {
         Tenancy tenancy = createTenantObject("CoretecH", "STorage");
-        List<String> groups = new ArrayList<String>();
+        List<String> groups = new ArrayList<>();
         groups.add("Burbank");
         groups.add("santa_monica");
         tenancy.setResourceGroups(groups);

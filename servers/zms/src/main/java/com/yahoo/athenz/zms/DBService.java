@@ -259,9 +259,8 @@ public class DBService {
                 if (solutionTemplates != null) {
                     for (String templateName : solutionTemplates) {
                         auditDetails.append(", \"template\": ");
-                        Template template = ZMSImpl.serverSolutionTemplates.get(templateName);
-                        if (!applySolutionTemplate(con, domainName, templateName, template, true,
-                                getPrincipalName(ctx), auditRef, auditDetails)) {
+                        if (!addSolutionTemplate(con, domainName, templateName, getPrincipalName(ctx),
+                                null, auditRef, auditDetails)) {
                             con.rollbackChanges();
                             throw ZMSUtils.internalServerError("makeDomain: Cannot apply templates: '" +
                                     domain, caller);
@@ -2089,7 +2088,7 @@ public class DBService {
         } while (retryCount > 0);
     }
     
-    void executePutDomainTemplate(ResourceContext ctx, String domainName, List<String> templateNames,
+    void executePutDomainTemplate(ResourceContext ctx, String domainName, DomainTemplate domainTemplate,
             String auditRef, String caller) {
         
         int retryCount = defaultRetryCount;
@@ -2107,11 +2106,10 @@ public class DBService {
                 auditDetails.append("{\"add-templates\": ");
                 boolean firstEntry = true;
                 
-                for (String templateName : templateNames) {
-                    Template template = ZMSImpl.serverSolutionTemplates.get(templateName);
+                for (String templateName : domainTemplate.getTemplateNames()) {
                     firstEntry = auditLogSeparator(auditDetails, firstEntry);
-                    if (!applySolutionTemplate(con, domainName, templateName, template, true,
-                            getPrincipalName(ctx), auditRef, auditDetails)) {
+                    if (!addSolutionTemplate(con, domainName, templateName, getPrincipalName(ctx),
+                            domainTemplate.getParams(), auditRef, auditDetails)) {
                         con.rollbackChanges();
                         throw ZMSUtils.internalServerError("unable to put domain templates: " + domainName, caller);
                     }
@@ -2156,8 +2154,7 @@ public class DBService {
                 auditDetails.append("{\"templates\": ");
                 
                 Template template = ZMSImpl.serverSolutionTemplates.get(templateName);
-                if (!applySolutionTemplate(con, domainName, templateName, template, false,
-                        getPrincipalName(ctx), auditRef, auditDetails)) {
+                if (!deleteSolutionTemplate(con, domainName, templateName, template, auditDetails)) {
                     con.rollbackChanges();
                     throw ZMSUtils.internalServerError("unable to delete domain template: " + domainName, caller);
                 }
@@ -2184,8 +2181,90 @@ public class DBService {
         } while (retryCount > 0);
     }
     
-    boolean applySolutionTemplate(ObjectStoreConnection con, String domainName, String templateName,
-            Template template, boolean addTemplate, String admin, String auditRef, StringBuilder auditDetails) {
+    boolean addSolutionTemplate(ObjectStoreConnection con, String domainName, String templateName,
+            String admin, List<TemplateParam> templateParams, String auditRef, StringBuilder auditDetails) {
+        
+        auditDetails.append("{\"name\": \"").append(templateName).append('\"');
+        
+        // we have already verified that our template is valid but
+        // we'll just double check to make sure it's not null
+        
+        Template template = ZMSImpl.serverSolutionTemplates.get(templateName);
+        if (template == null) {
+            auditDetails.append("}");
+            return true;
+        }
+        
+        boolean firstEntry = true;
+        
+        // iterate through roles in the list.
+        // When adding a template, if the role does not exist in our domain
+        // then insert it otherwise only apply the changes to the member list.
+        // otherwise for delete request, we just the delete role
+        
+        List<Role> templateRoles = template.getRoles();
+        if (templateRoles != null) {
+            for (Role role : templateRoles) {
+                String roleName = ZMSUtils.removeDomainPrefix(role.getName(),
+                    TEMPLATE_DOMAIN_NAME, ROLE_PREFIX);
+
+                // retrieve our original role
+                
+                Role originalRole = getRole(con, domainName, roleName, false, false);
+
+                // now process the request
+                
+                Role templateRole = updateTemplateRole(role, domainName, roleName, templateParams);
+                firstEntry = auditLogSeparator(auditDetails, firstEntry);
+                auditDetails.append(" \"add-role\": ");
+                if (!processRole(con, originalRole, domainName, roleName, templateRole,
+                        admin, auditRef, true, auditDetails)) {
+                    return false;
+                }
+            }
+        }
+        
+        // iterate through policies in the list.
+        // When adding a template, if the policy does not exist in our domain
+        // then insert it otherwise only apply the changes to the assertions
+        // otherwise for delete requests, we just delete the policy
+
+        List<Policy> templatePolicies = template.getPolicies();
+        if (templatePolicies != null) {
+            for (Policy policy : templatePolicies) {
+                String policyName = ZMSUtils.removeDomainPrefix(policy.getName(),
+                    TEMPLATE_DOMAIN_NAME, POLICY_PREFIX);
+                
+                // retrieve our original policy
+                
+                Policy originalPolicy = getPolicy(con, domainName, policyName);
+                
+                // now process the request
+                
+                Policy templatePolicy = updateTemplatePolicy(policy, domainName, policyName, templateParams);
+                firstEntry = auditLogSeparator(auditDetails, firstEntry);
+                auditDetails.append(" \"add-policy\": ");
+                if (!processPolicy(con, originalPolicy, domainName, policyName, templatePolicy,
+                        true, auditDetails)) {
+                    return false;
+                }
+            }
+        }
+        
+        // if adding a template, only add if it is not in our current list
+        // check to see if the template is already listed for the domain
+            
+        List<String> currentTemplateList = con.listDomainTemplates(domainName);
+        if (!currentTemplateList.contains(templateName)) {
+            con.insertDomainTemplate(domainName, templateName, null);
+        }
+        
+        auditDetails.append("}");
+        return true;
+    }
+    
+    boolean deleteSolutionTemplate(ObjectStoreConnection con, String domainName, String templateName,
+            Template template, StringBuilder auditDetails) {
         
         auditDetails.append("{\"name\": \"").append(templateName).append('\"');
         
@@ -2210,26 +2289,10 @@ public class DBService {
                 String roleName = ZMSUtils.removeDomainPrefix(role.getName(),
                     TEMPLATE_DOMAIN_NAME, ROLE_PREFIX);
 
-                if (!addTemplate) {
-                    con.deleteRole(domainName, roleName);
-                    firstEntry = auditLogSeparator(auditDetails, firstEntry);
-                    auditDetails.append(" \"delete-role\": \"").append(roleName).append('\"');
-                    continue;
-                }
-
-                // retrieve our original role
-                
-                Role originalRole = getRole(con, domainName, roleName, false, false);
-
-                // now process the request
-                
-                Role templateRole = updateTemplateRole(role, domainName, roleName);
+                con.deleteRole(domainName, roleName);
                 firstEntry = auditLogSeparator(auditDetails, firstEntry);
-                auditDetails.append(" \"add-role\": ");
-                if (!processRole(con, originalRole, domainName, roleName, templateRole,
-                        admin, auditRef, true, auditDetails)) {
-                    return false;
-                }
+                auditDetails.append(" \"delete-role\": \"").append(roleName).append('\"');
+                continue;
             }
         }
         
@@ -2244,58 +2307,53 @@ public class DBService {
                 String policyName = ZMSUtils.removeDomainPrefix(policy.getName(),
                     TEMPLATE_DOMAIN_NAME, POLICY_PREFIX);
 
-                if (!addTemplate) {
-                    con.deletePolicy(domainName, policyName);
-                    firstEntry = auditLogSeparator(auditDetails, firstEntry);
-                    auditDetails.append(" \"delete-policy\": \"").append(policyName).append('\"');
-                    continue;
-                }
-                
-                // retrieve our original policy
-                
-                Policy originalPolicy = getPolicy(con, domainName, policyName);
-                
-                // now process the request
-                
-                Policy templatePolicy = updateTemplatePolicy(policy, domainName, policyName);
+                con.deletePolicy(domainName, policyName);
                 firstEntry = auditLogSeparator(auditDetails, firstEntry);
-                auditDetails.append(" \"add-policy\": ");
-                if (!processPolicy(con, originalPolicy, domainName, policyName, templatePolicy,
-                        true, auditDetails)) {
-                    return false;
-                }
+                auditDetails.append(" \"delete-policy\": \"").append(policyName).append('\"');
+                continue;
             }
         }
         
         // if deleting a template, delete it from the current list
-        // if adding a template, only add if it is not in our current list
         
-        if (!addTemplate) {
-            con.deleteDomainTemplate(domainName, templateName, null);
-        } else {
-            // check to see if the template is already listed for the domain
-            
-            List<String> currentTemplateList = con.listDomainTemplates(domainName);
-            if (!currentTemplateList.contains(templateName)) {
-                con.insertDomainTemplate(domainName, templateName, null);
-            }
-        }
+        con.deleteDomainTemplate(domainName, templateName, null);
         
         auditDetails.append("}");
         return true;
     }
     
-    Role updateTemplateRole(Role role, String domainName, String roleName) {
+    Role updateTemplateRole(Role role, String domainName, String roleName, List<TemplateParam> params) {
         
+        // first process our given role name and carry out any
+        // requested substitutions
+        
+        String templateRoleName = roleName;
+        if (params != null) {
+            for (TemplateParam param : params) {
+                final String paramKey = "_" + param.getName() + "_";
+                templateRoleName = templateRoleName.replace(paramKey, param.getValue());
+            }
+        }
         Role templateRole = new Role()
-                .setName(ZMSUtils.roleResourceName(domainName, roleName))
+                .setName(ZMSUtils.roleResourceName(domainName, templateRoleName))
                 .setTrust(role.getTrust());
+        
         List<RoleMember> roleMembers = role.getRoleMembers();
         List<RoleMember> newMembers = new ArrayList<>();
         if (roleMembers != null && !roleMembers.isEmpty()) {
             for (RoleMember roleMember : roleMembers) {
                 RoleMember newRoleMember = new RoleMember();
-                newRoleMember.setMemberName(roleMember.getMemberName().replace(TEMPLATE_DOMAIN_NAME, domainName));
+                
+                // process our role members for any requested substitutions
+                
+                String memberName = roleMember.getMemberName().replace(TEMPLATE_DOMAIN_NAME, domainName);
+                if (params != null) {
+                    for (TemplateParam param : params) {
+                        final String paramKey = "_" + param.getName() + "_";
+                        memberName = memberName.replace(paramKey, param.getValue());
+                    }
+                }
+                newRoleMember.setMemberName(memberName);
                 newRoleMember.setExpiration(roleMember.getExpiration());
                 newMembers.add(newRoleMember);
             }
@@ -2304,9 +2362,20 @@ public class DBService {
         return templateRole;
     }
     
-    Policy updateTemplatePolicy(Policy policy, String domainName, String policyName) {
+    Policy updateTemplatePolicy(Policy policy, String domainName, String policyName, List<TemplateParam> params) {
         
-        Policy templatePolicy = new Policy().setName(ZMSUtils.policyResourceName(domainName, policyName));
+        // first process our given role name and carry out any
+        // requested substitutions
+        
+        String templatePolicyName = policyName;
+        if (params != null) {
+            for (TemplateParam param : params) {
+                final String paramKey = "_" + param.getName() + "_";
+                templatePolicyName = templatePolicyName.replace(paramKey, param.getValue());
+            }
+        }
+        
+        Policy templatePolicy = new Policy().setName(ZMSUtils.policyResourceName(domainName, templatePolicyName));
         List<Assertion> assertions = policy.getAssertions();
         List<Assertion> newAssertions = new ArrayList<>();
         if (assertions != null && !assertions.isEmpty()) {
@@ -2314,8 +2383,20 @@ public class DBService {
                 Assertion newAssertion = new Assertion();
                 newAssertion.setAction(assertion.getAction());
                 newAssertion.setEffect(assertion.getEffect());
-                newAssertion.setResource(assertion.getResource().replace(TEMPLATE_DOMAIN_NAME, domainName));
-                newAssertion.setRole(assertion.getRole().replace(TEMPLATE_DOMAIN_NAME, domainName));
+                
+                // process our assertion resource and role for any requested substitutions
+                
+                String resource = assertion.getResource().replace(TEMPLATE_DOMAIN_NAME, domainName);
+                String role = assertion.getRole().replace(TEMPLATE_DOMAIN_NAME, domainName);
+                if (params != null) {
+                    for (TemplateParam param : params) {
+                        final String paramKey = "_" + param.getName() + "_";
+                        resource = resource.replace(paramKey, param.getValue());
+                        role = role.replace(paramKey, param.getValue());
+                    }
+                }
+                newAssertion.setResource(resource);
+                newAssertion.setRole(role);
                 newAssertions.add(newAssertion);
             }
         }
@@ -2940,7 +3021,7 @@ public class DBService {
     }
     
     void auditLogStrings(StringBuilder auditDetails, String label, Collection<String> values) {
-        auditDetails.append(", ").append(label).append(": [");
+        auditDetails.append(", \"").append(label).append("\": [");
         boolean firstEntry = true;
         for (String value : values) {
             firstEntry = auditLogString(auditDetails, value, firstEntry);
