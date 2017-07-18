@@ -4270,14 +4270,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     void setStandardCORSHeaders(ResourceContext ctx) {
 
         // if we get an Origin header in our request then we're going to return
-        // the same value in the Allow-Origin header otherwise we'll just
-        // return * value to match everything
+        // the same value in the Allow-Origin header
         
         String origin = ctx.request().getHeader(ZMSConsts.HTTP_ORIGIN);
         if (origin != null && !origin.isEmpty()) {
             ctx.response().addHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_ORIGIN, origin);
-        } else {
-            ctx.response().addHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_ORIGIN, "*");
         }
         
         // we must allow credentials to be passed by the client
