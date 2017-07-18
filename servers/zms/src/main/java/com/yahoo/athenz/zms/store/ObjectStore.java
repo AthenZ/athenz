@@ -17,12 +17,29 @@ package com.yahoo.athenz.zms.store;
 
 public interface ObjectStore {
 
-    // get a new connection with the specified auto commit state
-    ObjectStoreConnection getConnection(boolean autoCommit);
+    /**
+     * Get a new connection from the object store with the specified
+     * auto commit state and read-only/write mode
+     * @param autoCommit connection will only used to make a single change
+     * so auto commit option should be set thus not requiring any explicit
+     * commit operations.
+     * @param readWrite the request is only for a read/write operation
+     * @return ObjectStoreConnection object
+     */
+    ObjectStoreConnection getConnection(boolean autoCommit, boolean readWrite);
     
-    // operation timeout in seconds
+    /**
+     * Set the operation timeout for all requests
+     * @param opTimeout timeout in seconds
+     */
     void setOperationTimeout(int opTimeout);
     
-    // clear all connections to the object store
+    /**
+     * Clear all connections to the object store. This is called when
+     * the server tries to write some object to the object store yet
+     * the store reports that it's not in write-only mode thus indicating
+     * it failed over to another master. So we need to clear all our
+     * connections and start new ones.
+     */
     void clearConnections();
 }

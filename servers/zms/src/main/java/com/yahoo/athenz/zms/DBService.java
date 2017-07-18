@@ -72,10 +72,10 @@ public class DBService {
         if (defaultOpTimeout < 0) {
             defaultOpTimeout = 60;
         }
-        if (store != null) {
-            store.setOperationTimeout(defaultOpTimeout);
+        if (this.store != null) {
+            this.store.setOperationTimeout(defaultOpTimeout);
         }
-        
+
         // retrieve the concurrent update retry count. If we're given an invalid negative
         // value for count, we'll default back to our default configured value of 120 retries
         // which would result up to 30 seconds sleeping 250ms each time
@@ -113,7 +113,7 @@ public class DBService {
         }
     }
     
-    AthenzDomain getAthenzDomainFromCache(String domainName) {
+    AthenzDomain getAthenzDomainFromCache(String domainName, boolean masterCopy) {
         
         // if we have a match for a given domain name then we're going
         // to check if the last modified domain timestamp matches to what's
@@ -129,7 +129,7 @@ public class DBService {
         }
         
         long modTime = 0;
-        try (ObjectStoreConnection con = store.getConnection(true)) {
+        try (ObjectStoreConnection con = store.getConnection(true, masterCopy)) {
             
             // we expect this response to come back immediately from
             // object store so we're going to use a smaller timeout
@@ -150,7 +150,12 @@ public class DBService {
             }
         }
         
-        if (modTime == data.getModTime()) {
+        // if our cache data is same or newer than db then return
+        // data from the cache (it could be newer if we just updated
+        // the cache based on write db but during read, the server
+        // hasn't replicated the data yet)
+        
+        if (data.getModTime() >= modTime) {
             return data.getAthenzDomain();
         }
         
@@ -213,7 +218,7 @@ public class DBService {
         
         int retryCount = defaultRetryCount;
         do {
-            try (ObjectStoreConnection con = store.getConnection(false)) {
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
                 
                 // before adding this domain we need to verify our
                 // quota check for sub-domains
@@ -672,6 +677,8 @@ public class DBService {
                 // this error indicates that the server is reporting is in
                 // read-only mode which indicates a fail-over has taken place
                 // and we need to clear all connections and start new ones
+                // this could only happen with write operations against the
+                // read-write object store
                 
                 store.clearConnections();
                 retry = true;
@@ -704,7 +711,7 @@ public class DBService {
         
         int retryCount = defaultRetryCount;
         do {
-            try (ObjectStoreConnection con = store.getConnection(false)) {
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
                 
                 // first verify that auditing requirements are met
                 
@@ -751,7 +758,7 @@ public class DBService {
         
         int retryCount = defaultRetryCount;
         do {
-            try (ObjectStoreConnection con = store.getConnection(false)) {
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
                 
                 // first verify that auditing requirements are met
                 
@@ -799,7 +806,7 @@ public class DBService {
         
         int retryCount = defaultRetryCount;
         do {
-            try (ObjectStoreConnection con = store.getConnection(false)) {
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
                 
                 // first verify that auditing requirements are met
                 
@@ -846,7 +853,7 @@ public class DBService {
         
         int retryCount = defaultRetryCount;
         do {
-            try (ObjectStoreConnection con = store.getConnection(false)) {
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
                 
                 // first verify that auditing requirements are met
                 
@@ -913,7 +920,7 @@ public class DBService {
         
         int retryCount = defaultRetryCount;
         do {
-            try (ObjectStoreConnection con = store.getConnection(false)) {
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
                 
                 // first verify that auditing requirements are met
                 
@@ -976,7 +983,7 @@ public class DBService {
         
         int retryCount = defaultRetryCount;
         do {
-            try (ObjectStoreConnection con = store.getConnection(true)) {
+            try (ObjectStoreConnection con = store.getConnection(true, true)) {
                 
                 // first verify that auditing requirements are met
                 
@@ -1039,7 +1046,7 @@ public class DBService {
         
         int retryCount = defaultRetryCount;
         do {
-            try (ObjectStoreConnection con = store.getConnection(false)) {
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
                 
                 // first verify that auditing requirements are met
                 
@@ -1093,7 +1100,7 @@ public class DBService {
         
         int retryCount = defaultRetryCount;
         do {
-            try (ObjectStoreConnection con = store.getConnection(true)) {
+            try (ObjectStoreConnection con = store.getConnection(true, true)) {
                 
                 // first verify that auditing requirements are met
                 
@@ -1150,7 +1157,7 @@ public class DBService {
         
         int retryCount = defaultRetryCount;
         do {
-            try (ObjectStoreConnection con = store.getConnection(false)) {
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
                 
                 // first verify that auditing requirements are met
                 
@@ -1188,7 +1195,7 @@ public class DBService {
         
         int retryCount = defaultRetryCount;
         do {
-            try (ObjectStoreConnection con = store.getConnection(false)) {
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
                 
                 // first verify that auditing requirements are met
                 
@@ -1226,7 +1233,7 @@ public class DBService {
         
         int retryCount = defaultRetryCount;
         do {
-            try (ObjectStoreConnection con = store.getConnection(false)) {
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
                 
                 // first verify that auditing requirements are met
                 
@@ -1264,7 +1271,7 @@ public class DBService {
         
         int retryCount = defaultRetryCount;
         do {
-            try (ObjectStoreConnection con = store.getConnection(false)) {
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
                 
                 // first verify that auditing requirements are met
                 
@@ -1322,7 +1329,7 @@ public class DBService {
         
         int retryCount = defaultRetryCount;
         do {
-            try (ObjectStoreConnection con = store.getConnection(false)) {
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
                 
                 // first verify that auditing requirements are met
                 
@@ -1354,7 +1361,7 @@ public class DBService {
     
     List<String> listPrincipals(String domainName, boolean domainOnly) {
         
-        try (ObjectStoreConnection con = store.getConnection(true)) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
             
             List<String> principals = con.listPrincipals(domainName);
             
@@ -1484,7 +1491,7 @@ public class DBService {
         
         int retryCount = defaultRetryCount;
         do {
-            try (ObjectStoreConnection con = store.getConnection(true)) {
+            try (ObjectStoreConnection con = store.getConnection(true, true)) {
                 
                 // remove all principal domains
 
@@ -1518,6 +1525,8 @@ public class DBService {
                 auditLogRequest(ctx, userName, auditRef, caller, ZMSConsts.HTTP_DELETE,
                         userName, null);
                 
+                return;
+                
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
                     throw ex;
@@ -1529,14 +1538,14 @@ public class DBService {
     
     ServiceIdentity getServiceIdentity(String domainName, String serviceName) {
 
-        try (ObjectStoreConnection con = store.getConnection(true)) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return getServiceIdentity(con, domainName, serviceName);
         }
     }
     
     DomainTemplateList listDomainTemplates(String domainName) {
 
-        try (ObjectStoreConnection con = store.getConnection(true)) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
             DomainTemplateList domainTemplateList = new DomainTemplateList();
             domainTemplateList.setTemplateNames(con.listDomainTemplates(domainName));
             return domainTemplateList;
@@ -1594,7 +1603,7 @@ public class DBService {
     PublicKeyEntry getServicePublicKeyEntry(String domainName, String serviceName,
             String keyId, boolean domainStateCheck) {
 
-        try (ObjectStoreConnection con = store.getConnection(true)) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.getPublicKeyEntry(domainName, serviceName, keyId, domainStateCheck);
         } catch (ResourceException ex) {
             if (ex.getCode() != ResourceException.SERVICE_UNAVAILABLE) {
@@ -1621,7 +1630,7 @@ public class DBService {
         // and needs to be optimized. For now we'll configure it with
         // default timeout of 30 minutes to avoid any issues
         
-        try (ObjectStoreConnection con = store.getConnection(true)) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
             con.setOperationTimeout(1800);
             return con.listResourceAccess(principal, action, userDomain);
         }
@@ -1629,14 +1638,14 @@ public class DBService {
     
     Domain getDomain(String domainName) {
 
-        try (ObjectStoreConnection con = store.getConnection(true)) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.getDomain(domainName);
         }
     }
     
     List<String> listDomains(String prefix, long modifiedSince) {
         
-        try (ObjectStoreConnection con = store.getConnection(true)) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.listDomains(prefix, modifiedSince);
         }
     }
@@ -1644,7 +1653,7 @@ public class DBService {
     DomainList lookupDomainById(String account, int productId) {
         
         DomainList domList = new DomainList();
-        try (ObjectStoreConnection con = store.getConnection(true)) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
             String domain = con.lookupDomainById(account, productId);
             if (domain != null) {
                 List<String> list = Arrays.asList(domain);
@@ -1665,7 +1674,7 @@ public class DBService {
     DomainList lookupDomainByRole(String roleMember, String roleName) {
         
         DomainList domList = new DomainList();
-        try (ObjectStoreConnection con = store.getConnection(true)) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
             List<String> domains = con.lookupDomainByRole(roleMember, roleName);
             if (domains != null) {
                 domList.setNames(domains);
@@ -1676,14 +1685,14 @@ public class DBService {
     
     List<String> listRoles(String domainName) {
         
-        try (ObjectStoreConnection con = store.getConnection(true)) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.listRoles(domainName);
         }
     }
     
     Membership getMembership(String domainName, String roleName, String principal) {
         
-        try (ObjectStoreConnection con = store.getConnection(true)) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
             Membership membership = con.getRoleMember(domainName, roleName, principal);
             Timestamp expiration = membership.getExpiration();
 
@@ -1699,7 +1708,7 @@ public class DBService {
     
     Role getRole(String domainName, String roleName, Boolean auditLog, Boolean expand) {
 
-        try (ObjectStoreConnection con = store.getConnection(true)) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return getRole(con, domainName, roleName, auditLog, expand);
         }
     }
@@ -1753,7 +1762,7 @@ public class DBService {
         
         AthenzDomain domain = null;
         try {
-            domain = getAthenzDomain(trustDomain);
+            domain = getAthenzDomain(trustDomain, false);
         } catch (ResourceException ex) {
         }
         
@@ -1816,24 +1825,24 @@ public class DBService {
     
     Policy getPolicy(String domainName, String policyName) {
 
-        try (ObjectStoreConnection con = store.getConnection(true)) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return getPolicy(con, domainName, policyName);
         }
     }
     
     Assertion getAssertion(String domainName, String policyName, Long assertionId) {
 
-        try (ObjectStoreConnection con = store.getConnection(true)) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.getAssertion(domainName, policyName, assertionId);
         }
     }
     
-    public void executePutAssertion(ResourceContext ctx, String domainName, String policyName,
+    void executePutAssertion(ResourceContext ctx, String domainName, String policyName,
             Assertion assertion, String auditRef, String caller) {
         
         int retryCount = defaultRetryCount;
         do {
-            try (ObjectStoreConnection con = store.getConnection(true)) {
+            try (ObjectStoreConnection con = store.getConnection(true, true)) {
                 
                 // first verify that auditing requirements are met
                 
@@ -1880,12 +1889,12 @@ public class DBService {
         } while (retryCount > 0);
     }
     
-    public void executeDeleteAssertion(ResourceContext ctx, String domainName, String policyName,
+    void executeDeleteAssertion(ResourceContext ctx, String domainName, String policyName,
             Long assertionId, String auditRef, String caller) {
 
         int retryCount = defaultRetryCount;
         do {
-            try (ObjectStoreConnection con = store.getConnection(true)) {
+            try (ObjectStoreConnection con = store.getConnection(true, true)) {
                 
                 // first verify that auditing requirements are met
                 
@@ -1930,14 +1939,14 @@ public class DBService {
     
     List<String> listEntities(String domainName) {
         
-        try (ObjectStoreConnection con = store.getConnection(true)) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.listEntities(domainName);
         }
     }
     
     Entity getEntity(String domainName, String entityName) {
 
-        try (ObjectStoreConnection con = store.getConnection(true)) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.getEntity(domainName, entityName);
         }
     }
@@ -1953,14 +1962,14 @@ public class DBService {
     
     List<String> listPolicies(String domainName) {
 
-        try (ObjectStoreConnection con = store.getConnection(true)) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.listPolicies(domainName, null);
         }
     }
     
     List<String> listServiceIdentities(String domainName) {
 
-        try (ObjectStoreConnection con = store.getConnection(true)) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.listServiceIdentities(domainName);
         }
     }
@@ -1971,7 +1980,7 @@ public class DBService {
         int retryCount = defaultRetryCount;
         Domain domain = null;
         do {
-            try (ObjectStoreConnection con = store.getConnection(false)) {
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
                 
                 // first verify that auditing requirements are met
                 
@@ -2040,7 +2049,7 @@ public class DBService {
         
         int retryCount = defaultRetryCount;
         do {
-            try (ObjectStoreConnection con = store.getConnection(false)) {
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
                 
                 // first we're going to retrieve the list domains for
                 // the given principal
@@ -2093,7 +2102,7 @@ public class DBService {
         
         int retryCount = defaultRetryCount;
         do {
-            try (ObjectStoreConnection con = store.getConnection(false)) {
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
                 
                 // first verify that auditing requirements are met
                 
@@ -2141,7 +2150,7 @@ public class DBService {
         
         int retryCount = defaultRetryCount;
         do {
-            try (ObjectStoreConnection con = store.getConnection(false)) {
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
                 
                 // first verify that auditing requirements are met
                 
@@ -2409,7 +2418,7 @@ public class DBService {
         
         int retryCount = defaultRetryCount;
         do {
-            try (ObjectStoreConnection con = store.getConnection(false)) {
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
                 
                 // first verify that auditing requirements are met
                 
@@ -2487,7 +2496,7 @@ public class DBService {
         
         int retryCount = defaultRetryCount;
         do {
-            try (ObjectStoreConnection con = store.getConnection(false)) {
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
 
                 // first verify that auditing requirements are met
                 
@@ -2657,7 +2666,7 @@ public class DBService {
             
         int retryCount = defaultRetryCount;
         do {
-            try (ObjectStoreConnection con = store.getConnection(false)) {
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
 
                 // first verify that auditing requirements are met
                 
@@ -2738,7 +2747,7 @@ public class DBService {
         
         int retryCount = defaultRetryCount;
         do {
-            try (ObjectStoreConnection con = store.getConnection(false)) {
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
 
                 // first verify that auditing requirements are met
                 
@@ -2819,7 +2828,7 @@ public class DBService {
         
         int retryCount = defaultRetryCount;
         do {
-            try (ObjectStoreConnection con = store.getConnection(false)) {
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
 
                 // first verify that auditing requirements are met
                 
@@ -2890,14 +2899,14 @@ public class DBService {
     boolean isTrustRoleForTenant(String provSvcDomain, String roleName, String rolePrefix,
             String tenantDomain) {
 
-        try (ObjectStoreConnection con = store.getConnection(true)) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return isTrustRoleForTenant(con, provSvcDomain, roleName, rolePrefix, tenantDomain);
         }
     }
 
     boolean isTenantRolePrefixMatch(String roleName, String rolePrefix, String tenantDomain) {
 
-        try (ObjectStoreConnection con = store.getConnection(true)) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return isTenantRolePrefixMatch(con, roleName, rolePrefix, tenantDomain);
         }
     }
@@ -2962,16 +2971,16 @@ public class DBService {
         return true;
     }
     
-    AthenzDomain getAthenzDomain(String domainName) {
+    AthenzDomain getAthenzDomain(String domainName, boolean masterCopy) {
         
         // first check to see if we our data is in the cache
         
-        AthenzDomain athenzDomain = getAthenzDomainFromCache(domainName);
+        AthenzDomain athenzDomain = getAthenzDomainFromCache(domainName, masterCopy);
         if (athenzDomain != null) {
             return athenzDomain;
         }
         
-        try (ObjectStoreConnection con = store.getConnection(true)) {
+        try (ObjectStoreConnection con = store.getConnection(true, masterCopy)) {
             athenzDomain = con.getAthenzDomain(domainName);
             setMembersInDomain(athenzDomain);
         }
@@ -3006,7 +3015,12 @@ public class DBService {
     
     DomainModifiedList listModifiedDomains(long modifiedSince) {
         
-        try (ObjectStoreConnection con = store.getConnection(true)) {
+        // since this is the operation executed by ZTS servers to
+        // retrieve latest domain changes, we're going to use
+        // the read-write store as oppose to read-only store to
+        // get our up-to-date data
+        
+        try (ObjectStoreConnection con = store.getConnection(true, true)) {
             return con.listModifiedDomains(modifiedSince);
         }
     }
@@ -3127,12 +3141,12 @@ public class DBService {
         .append("\"}");
     }
 
-    public void executePutQuota(ResourceContext ctx, String domainName, Quota quota,
+    void executePutQuota(ResourceContext ctx, String domainName, Quota quota,
             String auditRef, String caller) {
         
         int retryCount = defaultRetryCount;
         do {
-            try (ObjectStoreConnection con = store.getConnection(true)) {
+            try (ObjectStoreConnection con = store.getConnection(true, true)) {
                 
                 // process our insert quota. since this is a "single"
                 // operation, we are not using any transactions.
@@ -3160,12 +3174,11 @@ public class DBService {
         } while (retryCount > 0);
     }
 
-    public void executeDeleteQuota(ResourceContext ctx, String domainName,
-            String auditRef, String caller) {
+    void executeDeleteQuota(ResourceContext ctx, String domainName, String auditRef, String caller) {
         
         int retryCount = defaultRetryCount;
         do {
-            try (ObjectStoreConnection con = store.getConnection(true)) {
+            try (ObjectStoreConnection con = store.getConnection(true, true)) {
                 
                 // process our delete quota request - it's a single
                 // operation so no need to make it a transaction
@@ -3191,7 +3204,7 @@ public class DBService {
     }
 
     public Quota getQuota(String domainName) {
-        try (ObjectStoreConnection con = store.getConnection(true)) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return quotaCheck.getDomainQuota(con, domainName);
         }
     }

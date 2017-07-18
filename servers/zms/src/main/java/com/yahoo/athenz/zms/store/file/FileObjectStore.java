@@ -45,7 +45,7 @@ public class FileObjectStore implements ObjectStore {
     }
     
     @Override
-    public ObjectStoreConnection getConnection(boolean autoCommit) {
+    public ObjectStoreConnection getConnection(boolean autoCommit, boolean readWrite) {
         return new FileConnection(rootDir, quotaDir);
     }
     
