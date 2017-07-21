@@ -109,6 +109,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_UPDATE_ROLE_MOD_TIMESTAMP = "UPDATE role "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE role_id=?;";
     private static final String SQL_LIST_ROLE = "SELECT name FROM role WHERE domain_id=?;";
+    private static final String SQL_COUNT_ROLE = "SELECT COUNT(*) FROM role WHERE domain_id=?;";
     private static final String SQL_GET_ROLE_MEMBER = "SELECT principal.principal_id, role_member.expiration FROM principal "
             + "JOIN role_member ON role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=role_member.role_id "
@@ -118,6 +119,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN role_member ON role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=role_member.role_id "
             + "WHERE role.role_id=?;";
+    private static final String SQL_COUNT_ROLE_MEMBERS = "SELECT COUNT(*) FROM role_member WHERE role_id=?;";
     private static final String SQL_GET_PRINCIPAL_ID = "SELECT principal_id FROM principal WHERE name=?;";
     private static final String SQL_INSERT_PRINCIPAL = "INSERT INTO principal (name) VALUES (?);";
     private static final String SQL_DELETE_PRINCIPAL = "DELETE FROM principal WHERE name=?;";
@@ -140,7 +142,9 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_POLICY_ID = "SELECT policy_id FROM policy WHERE domain_id=? AND name=?;";
     private static final String SQL_DELETE_POLICY = "DELETE FROM policy WHERE domain_id=? AND name=?;";
     private static final String SQL_LIST_POLICY = "SELECT name FROM policy WHERE domain_id=?";
+    private static final String SQL_COUNT_POLICY = "SELECT COUNT(*) FROM policy WHERE domain_id=?";
     private static final String SQL_LIST_ASSERTION = "SELECT * FROM assertion WHERE policy_id=?";
+    private static final String SQL_COUNT_ASSERTION = "SELECT COUNT(*) FROM assertion WHERE policy_id=?";
     private static final String SQL_GET_ASSERTION = "SELECT * FROM assertion "
             + "JOIN policy ON assertion.policy_id=policy.policy_id "
             + "JOIN domain ON policy.domain_id=domain.domain_id "
@@ -162,7 +166,9 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_DELETE_SERVICE = "DELETE FROM service WHERE domain_id=? AND name=?;";
     private static final String SQL_GET_SERVICE_ID = "SELECT service_id FROM service WHERE domain_id=? AND name=?;";
     private static final String SQL_LIST_SERVICE = "SELECT name FROM service WHERE domain_id=?;";
+    private static final String SQL_COUNT_SERVICE = "SELECT COUNT(*) FROM service WHERE domain_id=?;";
     private static final String SQL_LIST_PUBLIC_KEY = "SELECT * FROM public_key WHERE service_id=?;";
+    private static final String SQL_COUNT_PUBLIC_KEY = "SELECT COUNT(*) FROM public_key WHERE service_id=?;";
     private static final String SQL_GET_PUBLIC_KEY = "SELECT key_value FROM public_key WHERE service_id=? AND key_id=?;";
     private static final String SQL_INSERT_PUBLIC_KEY = "INSERT INTO public_key "
             + "(service_id, key_id, key_value) VALUES (?,?,?);";
@@ -180,6 +186,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_DELETE_ENTITY = "DELETE FROM entity WHERE domain_id=? AND name=?;";
     private static final String SQL_GET_ENTITY = "SELECT value FROM entity WHERE domain_id=? AND name=?;";
     private static final String SQL_LIST_ENTITY = "SELECT name FROM entity WHERE domain_id=?;";
+    private static final String SQL_COUNT_ENTITY = "SELECT COUNT(*) FROM entity WHERE domain_id=?;";
     private static final String SQL_INSERT_DOMAIN_TEMPLATE = "INSERT INTO domain_template (domain_id, template) VALUES (?,?);";
     private static final String SQL_DELETE_DOMAIN_TEMPLATE = "DELETE FROM domain_template WHERE domain_id=? AND template=?;";
     private static final String SQL_LIST_DOMAIN_TEMPLATE = "SELECT template FROM domain_template "
@@ -1225,6 +1232,29 @@ public class JDBCConnection implements ObjectStoreConnection {
         return roles;
     }
 
+    @Override
+    public int countRoles(String domainName) {
+
+        final String caller = "countRoles";
+
+        int domainId = getDomainId(con, domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int count = 0;
+        try (PreparedStatement ps = con.prepareStatement(SQL_COUNT_ROLE)) {
+            ps.setInt(1, domainId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                if (rs.next()) {
+                    count = rs.getInt(1);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return count;
+    }
+    
     public static Comparator<RoleMember> RoleMemberComparator = new Comparator<RoleMember>() {
         public int compare(RoleMember roleMember1, RoleMember roleMember2) {
             String roleMember1Name = roleMember1.getMemberName().toLowerCase();
@@ -1267,6 +1297,33 @@ public class JDBCConnection implements ObjectStoreConnection {
         return members;
     }
 
+    @Override
+    public int countRoleMembers(String domainName, String roleName) {
+        
+        final String caller = "countRoleMembers";
+
+        int domainId = getDomainId(con, domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int roleId = getRoleId(con, domainId, roleName);
+        if (roleId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_ROLE, ZMSUtils.roleResourceName(domainName, roleName));
+        }
+        int count = 0;
+        try (PreparedStatement ps = con.prepareStatement(SQL_COUNT_ROLE_MEMBERS)) {
+            ps.setInt(1, roleId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                if (rs.next()) {
+                    count = rs.getInt(1);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return count;
+    }
+    
     @Override
     public List<PrincipalRole> listPrincipalRoles(String principalName) {
         
@@ -1748,6 +1805,29 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     @Override
+    public int countPolicies(String domainName) {
+
+        final String caller = "countPolicies";
+
+        int domainId = getDomainId(con, domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int count = 0;
+        try (PreparedStatement ps = con.prepareStatement(SQL_COUNT_POLICY)) {
+            ps.setInt(1, domainId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                if (rs.next()) {
+                    count = rs.getInt(1);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return count;
+    }
+    
+    @Override
     public boolean insertAssertion(String domainName, String policyName, Assertion assertion) {
         
         final String caller = "insertAssertion";
@@ -1866,6 +1946,33 @@ public class JDBCConnection implements ObjectStoreConnection {
         return assertions;
     }
 
+    @Override
+    public int countAssertions(String domainName, String policyName) {
+        
+        final String caller = "countAssertions";
+
+        int domainId = getDomainId(con, domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int policyId = getPolicyId(con, domainId, policyName);
+        if (policyId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_POLICY, ZMSUtils.policyResourceName(domainName, policyName));
+        }
+        int count = 0;
+        try (PreparedStatement ps = con.prepareStatement(SQL_COUNT_ASSERTION)) {
+            ps.setInt(1, policyId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                if (rs.next()) {
+                    count = rs.getInt(1);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return count;
+    }
+    
     String saveValue(String value) {
         return (value.isEmpty()) ? null : value;
     }
@@ -2029,6 +2136,29 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     @Override
+    public int countServiceIdentities(String domainName) {
+        
+        final String caller = "countServiceIdentities";
+
+        int domainId = getDomainId(con, domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int count = 0;
+        try (PreparedStatement ps = con.prepareStatement(SQL_COUNT_SERVICE)) {
+            ps.setInt(1, domainId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                if (rs.next()) {
+                    count = rs.getInt(1);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return count;
+    }
+    
+    @Override
     public List<PublicKeyEntry> listPublicKeys(String domainName, String serviceName) {
         
         final String caller = "listPublicKeys";
@@ -2056,6 +2186,33 @@ public class JDBCConnection implements ObjectStoreConnection {
             throw sqlError(ex, caller);
         }
         return publicKeys;
+    }
+    
+    @Override
+    public int countPublicKeys(String domainName, String serviceName) {
+        
+        final String caller = "countPublicKeys";
+
+        int domainId = getDomainId(con, domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int serviceId = getServiceId(con, domainId, serviceName);
+        if (serviceId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_SERVICE, ZMSUtils.serviceResourceName(domainName, serviceName));
+        }
+        int count = 0;
+        try (PreparedStatement ps = con.prepareStatement(SQL_COUNT_PUBLIC_KEY)) {
+            ps.setInt(1, serviceId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                if (rs.next()) {
+                    count = rs.getInt(1);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return count;
     }
     
     @Override
@@ -2357,6 +2514,29 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
         Collections.sort(entities);
         return entities;
+    }
+    
+    @Override
+    public int countEntities(String domainName) {
+
+        final String caller = "countEntities";
+
+        int domainId = getDomainId(con, domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int count = 0;
+        try (PreparedStatement ps = con.prepareStatement(SQL_COUNT_ENTITY)) {
+            ps.setInt(1, domainId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                if (rs.next()) {
+                    count = rs.getInt(1);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return count;
     }
     
     void getAthenzDomainRoles(String domainName, int domainId, AthenzDomain athenzDomain, String caller) {

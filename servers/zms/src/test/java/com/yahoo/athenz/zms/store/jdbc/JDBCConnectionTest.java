@@ -1134,6 +1134,68 @@ public class JDBCConnectionTest extends TestCase {
     }
     
     @Test
+    public void testCountRoles() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7); // return domain/count
+        
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        
+        assertEquals(jdbcConn.countRoles("my-domain"), 7);
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testCountRolesNoResult() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5); // return domain/count
+        
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+        
+        assertEquals(jdbcConn.countRoles("my-domain"), 0);
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testCountRolesInvalidDomain() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        
+        Mockito.when(mockResultSet.next())
+            .thenReturn(false); // this one is for domain id
+        
+        try {
+            jdbcConn.countRoles("my-domain");
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testCountRolesException() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1); // return domain id
+        
+        Mockito.when(mockResultSet.next())
+            .thenReturn(true); // this one is for domain id
+        
+        Mockito.when(mockPrepStmt.executeQuery())
+            .thenReturn(mockResultSet)
+            .thenThrow(new SQLException("failed operation", "state", 1001));
+
+        try {
+            jdbcConn.countRoles("my-domain");
+            fail();
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
+        jdbcConn.close();
+    }
+    
+    @Test
     public void testListRolesInvalidDomain() throws Exception {
         
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
@@ -1189,10 +1251,96 @@ public class JDBCConnectionTest extends TestCase {
     }
     
     @Test
+    public void testCountRoleMembers() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7)
+            .thenReturn(4); // return domain/role id/count
+        
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        
+        assertEquals(jdbcConn.countRoleMembers("my-domain", "role1"), 4);
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testCountRoleMembersInvalidDomain() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        
+        Mockito.when(mockResultSet.next())
+            .thenReturn(false); // invalid domain
+        
+        try {
+            jdbcConn.countRoleMembers("my-domain", "role1");
+            fail();
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testCountRoleMembersInvalidRole() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5); // return domain id
+        
+        Mockito.when(mockResultSet.next())
+            .thenReturn(true) // this one is for domain id
+            .thenReturn(false); // this one is for role id
+        
+        try {
+            jdbcConn.countRoleMembers("my-domain", "role1");
+            fail();
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testCountRoleMembersException() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7); // return domain id
+        
+        Mockito.when(mockResultSet.next())
+            .thenReturn(true) // this one is for domain id
+            .thenReturn(true); // this one is for role id
+        
+        Mockito.when(mockPrepStmt.executeQuery())
+            .thenReturn(mockResultSet)
+            .thenReturn(mockResultSet)
+            .thenThrow(new SQLException("failed operation", "state", 1001));
+
+        try {
+            jdbcConn.countRoleMembers("my-domain", "role1");
+            fail();
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testCountRoleMembersNoResult() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7);
+        
+        Mockito.when(mockResultSet.next()).thenReturn(true)
+            .thenReturn(true).thenReturn(false);
+        
+        assertEquals(jdbcConn.countRoleMembers("my-domain", "role1"), 0);
+        jdbcConn.close();
+    }
+    
+    @Test
     public void testListRoleMembers() throws Exception {
         
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7); // return domain/trust id
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7); // return domain/role id
         
         Mockito.when(mockResultSet.next())
             .thenReturn(true) // this one is for domain id
@@ -1939,6 +2087,67 @@ public class JDBCConnectionTest extends TestCase {
     }
     
     @Test
+    public void testCountPolicies() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1); // return domain id/same for count
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        
+        assertEquals(jdbcConn.countPolicies("my-domain"), 5);
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testCountPoliciesNoResult() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5); // return domain/count
+        
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+        
+        assertEquals(jdbcConn.countPolicies("my-domain"), 0);
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testCountPoliciesInvalidDomain() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        
+        Mockito.when(mockResultSet.next())
+            .thenReturn(false); // this one is for domain id
+        
+        try {
+            jdbcConn.countPolicies("my-domain");
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testCountPoliciesException() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1); // return domain id
+        
+        Mockito.when(mockResultSet.next())
+            .thenReturn(true); // this one is for domain id
+        
+        Mockito.when(mockPrepStmt.executeQuery())
+            .thenReturn(mockResultSet)
+            .thenThrow(new SQLException("failed operation", "state", 1001));
+
+        try {
+            jdbcConn.countPolicies("my-domain");
+            fail();
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
+        jdbcConn.close();
+    }
+    
+    @Test
     public void testExtractPolicyName() throws Exception {
         
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
@@ -2590,6 +2799,67 @@ public class JDBCConnectionTest extends TestCase {
     }
     
     @Test
+    public void testCountServiceIdentities() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1); // return domain id/count (same)
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+
+        assertEquals(jdbcConn.countServiceIdentities("my-domain"), 5);
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testCountServiceIdentitiesNoResult() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5); // return domain/count
+        
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+        
+        assertEquals(jdbcConn.countServiceIdentities("my-domain"), 0);
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testCountServiceIdentitiesInvalidDomain() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        
+        Mockito.when(mockResultSet.next())
+            .thenReturn(false); // this one is for domain id
+        
+        try {
+            jdbcConn.countServiceIdentities("my-domain");
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testCountServiceIdentitiesException() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1); // return domain id
+        
+        Mockito.when(mockResultSet.next())
+            .thenReturn(true); // this one is for domain id
+        
+        Mockito.when(mockPrepStmt.executeQuery())
+            .thenReturn(mockResultSet)
+            .thenThrow(new SQLException("failed operation", "state", 1001));
+
+        try {
+            jdbcConn.countServiceIdentities("my-domain");
+            fail();
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
+        jdbcConn.close();
+    }
+    
+    @Test
     public void testExtractServiceName() throws Exception {
         
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
@@ -2771,6 +3041,92 @@ public class JDBCConnectionTest extends TestCase {
     }
     
     @Test
+    public void testCountPublicKeys() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7).thenReturn(2); 
+            // return domain/service id/count
+        
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        
+        assertEquals(jdbcConn.countPublicKeys("my-domain", "service1"), 2);
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testCountPublicKeysInvalidDomain() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        
+        Mockito.when(mockResultSet.next())
+            .thenReturn(false); // this one is for domain id
+
+        try {
+            jdbcConn.countPublicKeys("my-domain", "service1");
+            fail();
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testCountPublicKeysInvalidService() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        
+        Mockito.when(mockResultSet.next()).thenReturn(true) // this one is for domain id
+            .thenReturn(false); // this one is for service id
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5);
+
+        try {
+            jdbcConn.countPublicKeys("my-domain", "service1");
+            fail();
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testCountPublicKeysNoResult() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        
+        Mockito.when(mockResultSet.next()).thenReturn(true) // this one is for domain id
+            .thenReturn(true) // this one is for service id
+            .thenReturn(false); // no result for count
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7);
+
+        assertEquals(jdbcConn.countPublicKeys("my-domain", "service1"), 0);
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testCountPublicKeysException() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7)
+            .thenReturn(1); // return domain/service id/count
+        
+        Mockito.when(mockResultSet.next())
+            .thenReturn(true); // this one is for domain id
+        
+        Mockito.when(mockPrepStmt.executeQuery())
+            .thenReturn(mockResultSet)
+            .thenReturn(mockResultSet)
+            .thenThrow(new SQLException("failed operation", "state", 1001));
+
+        try {
+            jdbcConn.countPublicKeys("my-domain", "service1");
+            fail();
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
+        jdbcConn.close();
+    }
+    
+    @Test
     public void testListAssertions() throws Exception {
         
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
@@ -2820,6 +3176,92 @@ public class JDBCConnectionTest extends TestCase {
 
         try {
             jdbcConn.listAssertions("my-domain", "policy1");
+            fail();
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testCountAssertions() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7)
+            .thenReturn(1); // return domain/policy id/count
+        Mockito.when(mockResultSet.next())
+            .thenReturn(true);
+        
+        assertEquals(jdbcConn.countAssertions("my-domain", "policy1"), 1);
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testCountAssertionsInvalidDomain() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        
+        Mockito.when(mockResultSet.next())
+            .thenReturn(false); // this one is for domain id
+
+        try {
+            jdbcConn.countAssertions("my-domain", "policy1");
+            fail();
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testCountAssertionsInvalidPolicy() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        
+        Mockito.when(mockResultSet.next()).thenReturn(true) // this one is for domain id
+            .thenReturn(false); // this one is for policy id
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5);
+
+        try {
+            jdbcConn.countAssertions("my-domain", "policy1");
+            fail();
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testCountAssertionsNoResult() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        
+        Mockito.when(mockResultSet.next()).thenReturn(true) // this one is for domain id
+            .thenReturn(true) // this one is for policy id
+            .thenReturn(false); // no result for count
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7);
+
+        assertEquals(jdbcConn.countAssertions("my-domain", "policy1"), 0);
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testCountAssertionsException() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7)
+            .thenReturn(1); // return domain/policy id/count
+        
+        Mockito.when(mockResultSet.next())
+            .thenReturn(true); // this one is for domain id
+        
+        Mockito.when(mockPrepStmt.executeQuery())
+            .thenReturn(mockResultSet)
+            .thenReturn(mockResultSet)
+            .thenThrow(new SQLException("failed operation", "state", 1001));
+
+        try {
+            jdbcConn.countAssertions("my-domain", "policy1");
             fail();
         } catch (Exception ex) {
             assertTrue(true);
@@ -3853,6 +4295,67 @@ public class JDBCConnectionTest extends TestCase {
         assertEquals("a-entity", entities.get(0));
         assertEquals("b-entity", entities.get(1));
         assertEquals("z-entity", entities.get(2));
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testCountEntities() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1); // return domain id/same for count
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        
+        assertEquals(jdbcConn.countEntities("my-domain"), 5);
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testCountEntitiesNoResult() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5); // return domain/count
+        
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+        
+        assertEquals(jdbcConn.countEntities("my-domain"), 0);
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testCountEntitiesInvalidDomain() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        
+        Mockito.when(mockResultSet.next())
+            .thenReturn(false); // this one is for domain id
+        
+        try {
+            jdbcConn.countEntities("my-domain");
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testCountEntitiesException() throws Exception {
+        
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1); // return domain id
+        
+        Mockito.when(mockResultSet.next())
+            .thenReturn(true); // this one is for domain id
+        
+        Mockito.when(mockPrepStmt.executeQuery())
+            .thenReturn(mockResultSet)
+            .thenThrow(new SQLException("failed operation", "state", 1001));
+
+        try {
+            jdbcConn.countEntities("my-domain");
+            fail();
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
         jdbcConn.close();
     }
     

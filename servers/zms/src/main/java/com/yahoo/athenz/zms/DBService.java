@@ -868,8 +868,7 @@ public class DBService {
                 // that we'll be adding another public key
                 
                 if (originalKeyEntry == null) {
-                    final List<PublicKeyEntry> publicKeys = con.listPublicKeys(domainName, serviceName);
-                    quotaCheck.checkServiceIdentityPublicKeyQuota(con, domainName, publicKeys, caller);
+                    quotaCheck.checkServiceIdentityPublicKeyQuota(con, domainName, serviceName, caller);
                 }
                 
                 // now process the request
@@ -1000,8 +999,7 @@ public class DBService {
                 
                 // now we need verify our quota check
                 
-                quotaCheck.checkRoleMembershipQuota(con, domainName,
-                        con.listRoleMembers(domainName, roleName), caller);
+                quotaCheck.checkRoleMembershipQuota(con, domainName, roleName, caller);
                 
                 // process our insert role member support. since this is a "single"
                 // operation, we are not using any transactions.
@@ -1850,8 +1848,7 @@ public class DBService {
                 
                 // now we need verify our quota check
                 
-                quotaCheck.checkPolicyAssertionQuota(con, domainName,
-                        con.listAssertions(domainName, policyName), caller);
+                quotaCheck.checkPolicyAssertionQuota(con, domainName, policyName, caller);
                 
                 // process our insert assertion. since this is a "single"
                 // operation, we are not using any transactions.

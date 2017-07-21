@@ -54,6 +54,7 @@ public class JDBCObjectStoreTest {
         Connection mockConn = Mockito.mock(Connection.class);
         Mockito.doReturn(mockConn).when(mockDataSrc).getConnection();
         JDBCObjectStore store = new JDBCObjectStore(mockDataSrc, null);
+        store.setOperationTimeout(60);
         assertNotNull(store.getConnection(true, true));
         
         // without read store we should also get a connection for a read
@@ -92,5 +93,23 @@ public class JDBCObjectStoreTest {
         } catch (RuntimeException ex) {
             assertTrue(true);
         }
+    }
+    
+    @Test
+    public void testGetReadWriteConnectionException() throws SQLException {
+        PoolableDataSource mockDataRwSrc = Mockito.mock(PoolableDataSource.class);
+        Connection mockConn = Mockito.mock(Connection.class);
+        Mockito.doReturn(mockConn).when(mockDataRwSrc).getConnection();
+        PoolableDataSource mockDataRoSrc = Mockito.mock(PoolableDataSource.class);
+        Mockito.doThrow(new SQLException()).when(mockDataRoSrc).getConnection();
+        JDBCObjectStore store = new JDBCObjectStore(mockDataRwSrc, mockDataRoSrc);
+        
+        // we should get back same read-write connection for both cases
+        
+        JDBCConnection jdbcConn = (JDBCConnection) store.getConnection(true, true);
+        assertEquals(jdbcConn.con, mockConn);
+        
+        jdbcConn = (JDBCConnection) store.getConnection(true, false);
+        assertEquals(jdbcConn.con, mockConn);
     }
 }
