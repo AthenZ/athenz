@@ -1434,4 +1434,46 @@ public class FileConnection implements ObjectStoreConnection {
         File quotaFile = new File(quotaDir, domainName);
         return delete(quotaFile);
     }
+
+    @Override
+    public int countRoles(String domainName) {
+        final List<String> list = listRoles(domainName);
+        return list == null ? 0 : list.size();
+    }
+
+    @Override
+    public int countRoleMembers(String domainName, String roleName) {
+        final List<RoleMember> list = listRoleMembers(domainName, roleName);
+        return list == null ? 0 : list.size();
+    }
+
+    @Override
+    public int countPolicies(String domainName) {
+        final List<String> list =  listPolicies(domainName, null);
+        return list == null ? 0 : list.size();
+    }
+
+    @Override
+    public int countAssertions(String domainName, String policyName) {
+        final List<Assertion> list =  listAssertions(domainName, policyName);
+        return list == null ? 0 : list.size();
+    }
+
+    @Override
+    public int countServiceIdentities(String domainName) {
+        final List<String> list =  listServiceIdentities(domainName);
+        return list == null ? 0 : list.size();
+    }
+
+    @Override
+    public int countPublicKeys(String domainName, String serviceName) {
+        final List<PublicKeyEntry> list =  listPublicKeys(domainName, serviceName);
+        return list == null ? 0 : list.size();
+    }
+
+    @Override
+    public int countEntities(String domainName) {
+        final List<String> list =  listEntities(domainName);
+        return list == null ? 0 : list.size();
+    }
 }

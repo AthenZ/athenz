@@ -111,7 +111,7 @@ public class QuotaChecker {
         // now we're going to check if we'll be allowed
         // to create this role in the domain
         
-        objectCount = con.listRoles(domainName).size() + 1;
+        objectCount = con.countRoles(domainName) + 1;
         if (quota.getRole() < objectCount) {
             throw ZMSUtils.quotaLimitError("role quota exceeded - limit: "
                     + quota.getRole() + " actual: " + objectCount, caller);
@@ -119,7 +119,7 @@ public class QuotaChecker {
     }
     
     void checkRoleMembershipQuota(ObjectStoreConnection con, String domainName,
-            List<RoleMember> roleMembers, String caller) {
+            String roleName, String caller) {
         
         // if quota check is disabled we have nothing to do
         
@@ -134,7 +134,7 @@ public class QuotaChecker {
         // now check to make sure we can add 1 more member
         // to this role without exceeding the quota
         
-        int objectCount = getListSize(roleMembers) + 1;
+        int objectCount = con.countRoleMembers(domainName, roleName) + 1;
         if (quota.getRoleMember() < objectCount) {
             throw ZMSUtils.quotaLimitError("role member quota exceeded - limit: "
                     + quota.getRoleMember() + " actual: " + objectCount, caller);
@@ -171,7 +171,7 @@ public class QuotaChecker {
         // now we're going to check if we'll be allowed
         // to create this policy in the domain
         
-        objectCount = con.listPolicies(domainName, null).size() + 1;
+        objectCount = con.countPolicies(domainName) + 1;
         if (quota.getPolicy() < objectCount) {
             throw ZMSUtils.quotaLimitError("policy quota exceeded - limit: "
                     + quota.getPolicy() + " actual: " + objectCount, caller);
@@ -179,7 +179,7 @@ public class QuotaChecker {
     }
     
     void checkPolicyAssertionQuota(ObjectStoreConnection con, String domainName,
-            List<Assertion> assertions, String caller) {
+            String policyName, String caller) {
         
         // if quota check is disabled we have nothing to do
         
@@ -194,7 +194,7 @@ public class QuotaChecker {
         // now check to make sure we can add 1 more assertion
         // to this policy without exceeding the quota
         
-        int objectCount = getListSize(assertions) + 1;
+        int objectCount = con.countAssertions(domainName, policyName) + 1;
         if (quota.getAssertion() < objectCount) {
             throw ZMSUtils.quotaLimitError("policy assertion quota exceeded - limit: "
                     + quota.getAssertion() + " actual: " + objectCount, caller);
@@ -238,7 +238,7 @@ public class QuotaChecker {
         // now we're going to check if we'll be allowed
         // to create this service in the domain
         
-        objectCount = con.listServiceIdentities(domainName).size() + 1;
+        objectCount = con.countServiceIdentities(domainName) + 1;
         if (quota.getService() < objectCount) {
             throw ZMSUtils.quotaLimitError("service quota exceeded - limit: "
                     + quota.getService() + " actual: " + objectCount, caller);
@@ -246,7 +246,7 @@ public class QuotaChecker {
     }
     
     void checkServiceIdentityPublicKeyQuota(ObjectStoreConnection con, String domainName,
-            List<PublicKeyEntry> publicKeys, String caller) {
+            String serviceName, String caller) {
         
         // if quota check is disabled we have nothing to do
         
@@ -261,7 +261,7 @@ public class QuotaChecker {
         // now check to make sure we can add 1 more public key
         // to this policy without exceeding the quota
         
-        int objectCount = getListSize(publicKeys) + 1;
+        int objectCount = con.countPublicKeys(domainName, serviceName) + 1;
         if (quota.getPublicKey() < objectCount) {
             throw ZMSUtils.quotaLimitError("service public key quota exceeded - limit: "
                     + quota.getPublicKey() + " actual: " + objectCount, caller);
@@ -290,7 +290,7 @@ public class QuotaChecker {
         // we're going to check if we'll be allowed
         // to create this entity in the domain
         
-        int objectCount = con.listEntities(domainName).size() + 1;
+        int objectCount = con.countEntities(domainName) + 1;
         if (quota.getEntity() < objectCount) {
             throw ZMSUtils.quotaLimitError("entity quota exceeded - limit: "
                     + quota.getEntity() + " actual: " + objectCount, caller);

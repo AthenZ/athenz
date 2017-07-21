@@ -77,9 +77,11 @@ public interface ObjectStoreConnection extends Closeable {
     boolean deleteRole(String domainName, String roleName);
     boolean updateRoleModTimestamp(String domainName, String roleName);
     List<String> listRoles(String domainName);
+    int countRoles(String domainName);
     List<RoleAuditLog> listRoleAuditLogs(String domainName, String roleName);
     
     List<RoleMember> listRoleMembers(String domainName, String roleName);
+    int countRoleMembers(String domainName, String roleName);
     Membership getRoleMember(String domainName, String roleName, String member);
     boolean insertRoleMember(String domainName, String roleName, RoleMember roleMember, String principal, String auditRef);
     boolean deleteRoleMember(String domainName, String roleName, String member, String principal, String auditRef);
@@ -91,12 +93,14 @@ public interface ObjectStoreConnection extends Closeable {
     boolean updatePolicy(String domainName, Policy policy);
     boolean deletePolicy(String domainName, String policyName);
     List<String> listPolicies(String domainName, String assertionRoleName);
+    int countPolicies(String domainName);
     boolean updatePolicyModTimestamp(String domainName, String policyName);
     
     Assertion getAssertion(String domainName, String policyName, Long assertionId);
     boolean insertAssertion(String domainName, String policyName, Assertion assertion);
     boolean deleteAssertion(String domainName, String policyName, Long assertionId);
     List<Assertion> listAssertions(String domainName, String policyName);
+    int countAssertions(String domainName, String policyName);
     ResourceAccessList listResourceAccess(String principal, String action, String userDomain);
     
     // Service commands
@@ -106,6 +110,7 @@ public interface ObjectStoreConnection extends Closeable {
     boolean updateServiceIdentity(String domainName, ServiceIdentity service);
     boolean deleteServiceIdentity(String domainName, String serviceName);
     List<String> listServiceIdentities(String domainName);
+    int countServiceIdentities(String domainName);
     boolean updateServiceIdentityModTimestamp(String domainName, String serviceName);
     
     PublicKeyEntry getPublicKeyEntry(String domainName, String serviceName, String keyId, boolean domainStateCheck);
@@ -113,6 +118,7 @@ public interface ObjectStoreConnection extends Closeable {
     boolean updatePublicKeyEntry(String domainName, String serviceName, PublicKeyEntry publicKey);
     boolean deletePublicKeyEntry(String domainName, String serviceName, String keyId);
     List<PublicKeyEntry> listPublicKeys(String domainName, String serviceName);
+    int countPublicKeys(String domainName, String serviceName);
 
     List<String> listServiceHosts(String domainName, String serviceName);
     boolean insertServiceHost(String domainName, String serviceName, String hostName);
@@ -125,6 +131,7 @@ public interface ObjectStoreConnection extends Closeable {
     boolean updateEntity(String domainName, Entity entity);
     boolean deleteEntity(String domainName, String entityName);
     List<String> listEntities(String domainName);
+    int countEntities(String domainName);
     
     // Quota commands
     

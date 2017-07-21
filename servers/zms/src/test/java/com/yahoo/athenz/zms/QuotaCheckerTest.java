@@ -127,9 +127,7 @@ public class QuotaCheckerTest {
                 .setRole(2).setRoleMember(2);
         ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
         Mockito.when(con.getQuota("athenz")).thenReturn(mockQuota);
-        ArrayList<String> roles = new ArrayList<>();
-        roles.add("athenz.one");
-        Mockito.when(con.listRoles("athenz")).thenReturn(roles);
+        Mockito.when(con.countRoles("athenz")).thenReturn(1);
         
         ArrayList<RoleMember> roleMembers = new ArrayList<>();
         roleMembers.add(new RoleMember().setMemberName("user.joe"));
@@ -148,9 +146,7 @@ public class QuotaCheckerTest {
                 .setRole(2).setRoleMember(2);
         ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
         Mockito.when(con.getQuota("athenz")).thenReturn(mockQuota);
-        ArrayList<String> roles = new ArrayList<>();
-        roles.add("athenz.one");
-        Mockito.when(con.listRoles("athenz")).thenReturn(roles);
+        Mockito.when(con.countRoles("athenz")).thenReturn(1);
         
         ArrayList<RoleMember> roleMembers = new ArrayList<>();
         roleMembers.add(new RoleMember().setMemberName("user.joe"));
@@ -175,10 +171,7 @@ public class QuotaCheckerTest {
                 .setRole(2).setRoleMember(2);
         ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
         Mockito.when(con.getQuota("athenz")).thenReturn(mockQuota);
-        ArrayList<String> roles = new ArrayList<>();
-        roles.add("athenz.one");
-        roles.add("athenz.two");
-        Mockito.when(con.listRoles("athenz")).thenReturn(roles);
+        Mockito.when(con.countRoles("athenz")).thenReturn(2);
         
         ArrayList<RoleMember> roleMembers = new ArrayList<>();
         roleMembers.add(new RoleMember().setMemberName("user.joe"));
@@ -201,13 +194,11 @@ public class QuotaCheckerTest {
                 .setRole(2).setRoleMember(2);
         ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
         Mockito.when(con.getQuota("athenz")).thenReturn(mockQuota);
-        
-        ArrayList<RoleMember> roleMembers = new ArrayList<>();
-        roleMembers.add(new RoleMember().setMemberName("user.joe"));
-        
+        Mockito.when(con.countRoleMembers("athenz", "readers")).thenReturn(1);
+
         // this should complete successfully
         
-        quotaCheck.checkRoleMembershipQuota(con, "athenz", roleMembers, "caller");
+        quotaCheck.checkRoleMembershipQuota(con, "athenz", "readers", "caller");
     }
     
     @Test
@@ -218,13 +209,10 @@ public class QuotaCheckerTest {
                 .setRole(2).setRoleMember(2);
         ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
         Mockito.when(con.getQuota("athenz")).thenReturn(mockQuota);
-        
-        ArrayList<RoleMember> roleMembers = new ArrayList<>();
-        roleMembers.add(new RoleMember().setMemberName("user.joe"));
-        roleMembers.add(new RoleMember().setMemberName("user.jane"));
+        Mockito.when(con.countRoleMembers("athenz", "readers")).thenReturn(2);
         
         try {
-            quotaCheck.checkRoleMembershipQuota(con, "athenz", roleMembers, "caller");
+            quotaCheck.checkRoleMembershipQuota(con, "athenz", "readers", "caller");
             fail();
        } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.TOO_MANY_REQUESTS);
@@ -248,9 +236,7 @@ public class QuotaCheckerTest {
                 .setPolicy(2).setAssertion(2);
         ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
         Mockito.when(con.getQuota("athenz")).thenReturn(mockQuota);
-        ArrayList<String> policies = new ArrayList<>();
-        policies.add("athenz.one");
-        Mockito.when(con.listPolicies("athenz", null)).thenReturn(policies);
+        Mockito.when(con.countPolicies("athenz")).thenReturn(1);
         
         ArrayList<Assertion> assertions = new ArrayList<>();
         assertions.add(new Assertion().setAction("*").setResource("*").setRole("admin"));
@@ -271,9 +257,7 @@ public class QuotaCheckerTest {
                 .setPolicy(2).setAssertion(2);
         ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
         Mockito.when(con.getQuota("athenz")).thenReturn(mockQuota);
-        ArrayList<String> policies = new ArrayList<>();
-        policies.add("athenz.one");
-        Mockito.when(con.listPolicies("athenz", null)).thenReturn(policies);
+        Mockito.when(con.countPolicies("athenz")).thenReturn(1);
         
         ArrayList<Assertion> assertions = new ArrayList<>();
         assertions.add(new Assertion().setAction("*").setResource("*").setRole("admin"));
@@ -300,10 +284,7 @@ public class QuotaCheckerTest {
                 .setPolicy(2).setAssertion(2);
         ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
         Mockito.when(con.getQuota("athenz")).thenReturn(mockQuota);
-        ArrayList<String> policies = new ArrayList<>();
-        policies.add("athenz.one");
-        policies.add("athenz.two");
-        Mockito.when(con.listPolicies("athenz", null)).thenReturn(policies);
+        Mockito.when(con.countPolicies("athenz")).thenReturn(2);
         
         ArrayList<Assertion> assertions = new ArrayList<>();
         assertions.add(new Assertion().setAction("*").setResource("*").setRole("admin"));
@@ -329,13 +310,11 @@ public class QuotaCheckerTest {
                 .setPolicy(2).setAssertion(2);
         ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
         Mockito.when(con.getQuota("athenz")).thenReturn(mockQuota);
-        
-        ArrayList<Assertion> assertions = new ArrayList<>();
-        assertions.add(new Assertion().setAction("*").setResource("*").setRole("admin"));
-        
+        Mockito.when(con.countAssertions("athenz", "readers")).thenReturn(1);
+
         // this should be successful - no exceptions
 
-        quotaCheck.checkPolicyAssertionQuota(con, "athenz", assertions, "caller");
+        quotaCheck.checkPolicyAssertionQuota(con, "athenz", "readers", "caller");
     }
     
     @Test
@@ -346,14 +325,10 @@ public class QuotaCheckerTest {
                 .setPolicy(2).setAssertion(2);
         ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
         Mockito.when(con.getQuota("athenz")).thenReturn(mockQuota);
-        
-        ArrayList<Assertion> assertions = new ArrayList<>();
-        assertions.add(new Assertion().setAction("*").setResource("*").setRole("admin"));
-        assertions.add(new Assertion().setAction("*").setResource("*").setRole("admin"));
-        assertions.add(new Assertion().setAction("*").setResource("*").setRole("admin"));
+        Mockito.when(con.countAssertions("athenz", "readers")).thenReturn(3);
         
         try {
-            quotaCheck.checkPolicyAssertionQuota(con, "athenz", assertions, "caller");
+            quotaCheck.checkPolicyAssertionQuota(con, "athenz", "readers", "caller");
             fail();
        } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.TOO_MANY_REQUESTS);
@@ -377,9 +352,7 @@ public class QuotaCheckerTest {
                 .setService(2).setServiceHost(2).setPublicKey(2);
         ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
         Mockito.when(con.getQuota("athenz")).thenReturn(mockQuota);
-        ArrayList<String> services = new ArrayList<>();
-        services.add("athenz.one");
-        Mockito.when(con.listServiceIdentities("athenz")).thenReturn(services);
+        Mockito.when(con.countServiceIdentities("athenz")).thenReturn(1);
         
         ArrayList<String> hosts = new ArrayList<>();
         hosts.add("host1");
@@ -404,10 +377,7 @@ public class QuotaCheckerTest {
                 .setService(2).setServiceHost(2).setPublicKey(2);
         ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
         Mockito.when(con.getQuota("athenz")).thenReturn(mockQuota);
-        ArrayList<String> services = new ArrayList<>();
-        services.add("athenz.one");
-        services.add("athenz.two");
-        Mockito.when(con.listServiceIdentities("athenz")).thenReturn(services);
+        Mockito.when(con.countServiceIdentities("athenz")).thenReturn(2);
         
         ArrayList<String> hosts = new ArrayList<>();
         hosts.add("host1");
@@ -438,9 +408,7 @@ public class QuotaCheckerTest {
                 .setService(2).setServiceHost(2).setPublicKey(2);
         ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
         Mockito.when(con.getQuota("athenz")).thenReturn(mockQuota);
-        ArrayList<String> services = new ArrayList<>();
-        services.add("athenz.one");
-        Mockito.when(con.listServiceIdentities("athenz")).thenReturn(services);
+        Mockito.when(con.countServiceIdentities("athenz")).thenReturn(1);
         
         ArrayList<String> hosts = new ArrayList<>();
         hosts.add("host1");
@@ -473,9 +441,7 @@ public class QuotaCheckerTest {
                 .setService(2).setServiceHost(2).setPublicKey(2);
         ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
         Mockito.when(con.getQuota("athenz")).thenReturn(mockQuota);
-        ArrayList<String> services = new ArrayList<>();
-        services.add("athenz.one");
-        Mockito.when(con.listServiceIdentities("athenz")).thenReturn(services);
+        Mockito.when(con.countServiceIdentities("athenz")).thenReturn(1);
         
         ArrayList<String> hosts = new ArrayList<>();
         hosts.add("host1");
@@ -508,13 +474,11 @@ public class QuotaCheckerTest {
                 .setService(2).setServiceHost(2).setPublicKey(2);
         ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
         Mockito.when(con.getQuota("athenz")).thenReturn(mockQuota);
-        
-        ArrayList<PublicKeyEntry> publicKeys = new ArrayList<>();
-        publicKeys.add(new PublicKeyEntry().setId("id1").setKey("key"));
+        Mockito.when(con.countPublicKeys("athenz", "storage")).thenReturn(1);
         
         // this should be successful - no exceptions
         
-        quotaCheck.checkServiceIdentityPublicKeyQuota(con, "athenz", publicKeys, "caller");
+        quotaCheck.checkServiceIdentityPublicKeyQuota(con, "athenz", "storage", "caller");
     }
     
     @Test
@@ -525,13 +489,10 @@ public class QuotaCheckerTest {
                 .setService(2).setServiceHost(2).setPublicKey(2);
         ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
         Mockito.when(con.getQuota("athenz")).thenReturn(mockQuota);
-        
-        ArrayList<PublicKeyEntry> publicKeys = new ArrayList<>();
-        publicKeys.add(new PublicKeyEntry().setId("id1").setKey("key"));
-        publicKeys.add(new PublicKeyEntry().setId("id2").setKey("key"));
+        Mockito.when(con.countPublicKeys("athenz", "storage")).thenReturn(2);
         
         try {
-            quotaCheck.checkServiceIdentityPublicKeyQuota(con, "athenz", publicKeys, "caller");
+            quotaCheck.checkServiceIdentityPublicKeyQuota(con, "athenz", "storage", "caller");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.TOO_MANY_REQUESTS);
@@ -555,9 +516,7 @@ public class QuotaCheckerTest {
                 .setEntity(2);
         ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
         Mockito.when(con.getQuota("athenz")).thenReturn(mockQuota);
-        ArrayList<String> entities = new ArrayList<>();
-        entities.add("athenz.one");
-        Mockito.when(con.listEntities("athenz")).thenReturn(entities);
+        Mockito.when(con.countEntities("athenz")).thenReturn(1);
         
         Entity entity = new Entity();
         
@@ -574,10 +533,7 @@ public class QuotaCheckerTest {
                 .setEntity(2);
         ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
         Mockito.when(con.getQuota("athenz")).thenReturn(mockQuota);
-        ArrayList<String> entities = new ArrayList<>();
-        entities.add("athenz.one");
-        entities.add("athenz.two");
-        Mockito.when(con.listEntities("athenz")).thenReturn(entities);
+        Mockito.when(con.countEntities("athenz")).thenReturn(2);
         
         Entity entity = new Entity();
         
