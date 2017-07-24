@@ -1278,11 +1278,28 @@ public class ZTSClient implements Closeable {
             throw new ZTSClientException(ZTSClientException.BAD_REQUEST, ex.getMessage());
         }
     }
-    
+
     /**
-     * For a given domain and role return AWS temporary credentials
+     * AWSCredential Provider provides AWS Credentials which the caller can
+     * use to authorize an AWS request. It automatically refreshes the credentials
+     * when the current credentials become invalid.
+     * It uses ZTS client to refresh the AWS Credentials. So the ZTS Client must
+     * not be closed while the credential provider is being used.
+     * The caller should close the client when the provider is no longer required.
+     * For a given domain and role return AWS temporary credential provider
      * @param domainName name of the domain
      * @param roleName is the name of the role
+     * @return AWSCredentialsProviderImpl AWS credential provider
+     */
+    public AWSCredentialsProviderImpl getAWSCredentialProvider(String domainName, String roleName) {
+        return new AWSCredentialsProviderImpl(this, domainName, roleName);
+    }
+
+    /**
+     * For a given domain and role return AWS temporary credentials
+     *
+     * @param domainName name of the domain
+     * @param roleName   is the name of the role
      * @return AWSTemporaryCredentials AWS credentials
      */
     public AWSTemporaryCredentials getAWSTemporaryCredentials(String domainName, String roleName) {
