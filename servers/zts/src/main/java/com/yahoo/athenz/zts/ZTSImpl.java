@@ -1828,6 +1828,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domain);
         }
         
+        // set the other required attributes in the identity object
+
+        identity.setProvider(provider);
+        identity.setInstanceId(instanceId);
+        
         // need to update our cert record with new certificate details
         
         X509Certificate newCert = Crypto.loadX509Certificate(identity.getX509Certificate());
