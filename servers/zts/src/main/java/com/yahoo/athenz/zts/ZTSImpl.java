@@ -1162,16 +1162,20 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
         
         // if this is proxy for operation then we want to make sure that
-        // both principals have access to the same set of roles otherwise
-        // we're not going to issue a roletoken with an updated principal
-        // field
+        // both principals have access to the same set of roles so we'll
+        // remove any roles that are authorized by only one of the principals
         
         String proxyUser = null;
         if (proxyForPrincipal != null) {
             Set<String> rolesForProxy = new HashSet<>();
             dataStore.getAccessibleRoles(data, domainName, proxyForPrincipal, roleName, rolesForProxy, false);
-            if (!compareRoleSets(roles, rolesForProxy)) {
-                throw forbiddenError("getRoleToken: Principal does not have access to the same set of roles as proxy principal",
+            roles.retainAll(rolesForProxy);
+            
+            // check again in case we removed all the roles and ended up
+            // with an empty set
+            
+            if (roles.isEmpty()) {
+                throw forbiddenError("getRoleToken: No access to any roles by User and Proxy Principals",
                         caller, domainName);
             }
             

@@ -31,7 +31,6 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1536,6 +1535,7 @@ public class ZTSImplTest {
         try {
             zts.getRoleToken(context, "coretech-proxy1", null, Integer.valueOf(600),
                 Integer.valueOf(1200), "user_domain.unknown-proxy-user");
+            fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("not authorized for proxy role token request"));
@@ -1589,7 +1589,7 @@ public class ZTSImplTest {
     }
     
     @Test
-    public void testGetRoleTokenProxyUserMismatchRoles() {
+    public void testGetRoleTokenProxyUserMismatchRolesIntersection() {
         
         List<RoleMember> writers = new ArrayList<>();
         writers.add(new RoleMember().setMemberName("user_domain.proxy-user1"));
@@ -1608,12 +1608,39 @@ public class ZTSImplTest {
                 "v=U1;d=user_domain;n=proxy-user1;s=sig", 0, null);
         ResourceContext context = createResourceContext(principal);
 
+        RoleToken roleToken = zts.getRoleToken(context, "coretech-proxy3", null,
+                Integer.valueOf(600), Integer.valueOf(1200), "user_domain.joe");
+        com.yahoo.athenz.auth.token.RoleToken token = new com.yahoo.athenz.auth.token.RoleToken(roleToken.getToken());
+
+        assertEquals(token.getRoles().size(), 1);
+        assertTrue(token.getRoles().contains("writers"));
+    }
+    
+    @Test
+    public void testGetRoleTokenProxyUserMismatchRolesEmptySet() {
+        
+        List<RoleMember> writers = new ArrayList<>();
+        writers.add(new RoleMember().setMemberName("user_domain.joe"));
+        
+        List<RoleMember> readers = new ArrayList<>();
+        readers.add(new RoleMember().setMemberName("user_domain.proxy-user2"));
+        readers.add(new RoleMember().setMemberName("user_domain.jane"));
+        readers.add(new RoleMember().setMemberName("user_domain.proxy-user1"));
+
+        SignedDomain signedDomain = createSignedDomain("coretech-proxy4", "weather-proxy4", "storage",
+                writers, readers, true);
+        store.processDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=sig", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
         try {
-            zts.getRoleToken(context, "coretech-proxy3", null, Integer.valueOf(600),
+            zts.getRoleToken(context, "coretech-proxy4", null, Integer.valueOf(600),
                     Integer.valueOf(1200), "user_domain.joe");
+            fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
-            assertTrue(ex.getMessage().contains("does not have access to the same set of roles as proxy"));
         }
     }
     
@@ -2490,6 +2517,7 @@ public class ZTSImplTest {
         
         try {
             zts.getTenantDomains(context, "athenz.non_product", "user100", null, null);
+            fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
         }
@@ -3155,6 +3183,7 @@ public class ZTSImplTest {
         
         try {
             zts.postAWSCertificateRequest(context, "athenz", "syncer", req);
+            fail();
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
         }
@@ -3187,6 +3216,7 @@ public class ZTSImplTest {
         
         try {
             zts.postAWSCertificateRequest(context, "athenz", "zts", req);
+            fail();
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
         }
@@ -3736,6 +3766,7 @@ public class ZTSImplTest {
 
         try {
             zts.postOSTKInstanceRefreshRequest(context, "athenz", "production", req);
+            fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
         }
@@ -4151,6 +4182,7 @@ public class ZTSImplTest {
         String errMsg = "No such domain";
         try {
             ztsImpl.postDomainMetrics(context, testDomain, req);
+            fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
             assertTrue(ex.getMessage().contains(errMsg));
@@ -4185,6 +4217,7 @@ public class ZTSImplTest {
         metrixMap.clear();
         try {
             ztsImpl.postDomainMetrics(context, testDomain, req);
+            fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains(errMsg), ex.getMessage());
@@ -4220,6 +4253,7 @@ public class ZTSImplTest {
         metrixMap.clear();
         try {
             ztsImpl.postDomainMetrics(context, testDomain, req);
+            fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains(errMsg), ex.getMessage());
@@ -4253,6 +4287,7 @@ public class ZTSImplTest {
         metrixMap.clear();
         try {
             ztsImpl.postDomainMetrics(context, testDomain, req);
+            fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains(errMsg), ex.getMessage());
@@ -5270,6 +5305,7 @@ public class ZTSImplTest {
         try {
             ztsImpl.postInstanceRefreshInformation(context, "athenz.provider",
                     "athenz", "production", "1001", info);
+            fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("CSR validation failed"));
@@ -5328,6 +5364,7 @@ public class ZTSImplTest {
         try {
             ztsImpl.postInstanceRefreshInformation(context, "athenz.provider",
                     "athenz", "production", "1001", info);
+            fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("dnsName attribute mismatch in CSR"));
@@ -5388,6 +5425,7 @@ public class ZTSImplTest {
         try {
             ztsImpl.postInstanceRefreshInformation(context, "athenz.provider",
                     "athenz", "production", "1001", info);
+            fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("Unable to find certificate record"));
@@ -5455,6 +5493,7 @@ public class ZTSImplTest {
         try {
             ztsImpl.postInstanceRefreshInformation(context, "athenz.provider",
                     "athenz", "production", "1001", info);
+            fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("service name mismatch"));
@@ -5522,6 +5561,7 @@ public class ZTSImplTest {
         try {
             ztsImpl.postInstanceRefreshInformation(context, "athenz.provider",
                     "athenz", "production", "1001", info);
+            fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("Certificate revoked"));
@@ -5587,6 +5627,7 @@ public class ZTSImplTest {
         try {
             ztsImpl.postInstanceRefreshInformation(context, "athenz.provider",
                     "athenz", "production", "1001", info);
+            fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 500);
             assertTrue(ex.getMessage().contains("unable to generate identity"));
@@ -5654,6 +5695,7 @@ public class ZTSImplTest {
         try {
             ztsImpl.postInstanceRefreshInformation(context, "athenz.provider",
                     "athenz", "production", "1001", info);
+            fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 500);
             assertTrue(ex.getMessage().contains("unable to update cert db"));
