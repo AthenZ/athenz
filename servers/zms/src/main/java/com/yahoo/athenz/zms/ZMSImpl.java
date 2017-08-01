@@ -557,15 +557,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             PoolableDataSource readOnlySrc = null;
             String jdbcReadOnlyStore = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RO_STORE);
             if (jdbcReadOnlyStore != null && jdbcReadOnlyStore.startsWith("jdbc:")) {
-                String jdbcReadOnlyUser = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RO_USER);
-                if (jdbcReadOnlyUser == null) {
-                    jdbcReadOnlyUser = jdbcUser;
-                }
-                password = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RO_PASSWORD, "");
-                String jdbcReadOnlyPassword = keyStore.getApplicationSecret(JDBC, password);
-                if (jdbcReadOnlyPassword == null) {
-                    jdbcReadOnlyPassword = jdbcPassword;
-                }
+                String jdbcReadOnlyUser = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RO_USER, jdbcUser);
+                String readOnlyPassword = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RO_PASSWORD, password);
+                String jdbcReadOnlyPassword = keyStore.getApplicationSecret(JDBC, readOnlyPassword);
                 readOnlySrc = DataSourceFactory.create(jdbcReadOnlyStore,
                         jdbcReadOnlyUser, jdbcReadOnlyPassword);
             }
