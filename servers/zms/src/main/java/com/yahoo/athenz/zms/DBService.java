@@ -1634,9 +1634,9 @@ public class DBService {
         }
     }
     
-    Domain getDomain(String domainName) {
+    Domain getDomain(String domainName, boolean masterCopy) {
 
-        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+        try (ObjectStoreConnection con = store.getConnection(true, masterCopy)) {
             return con.getDomain(domainName);
         }
     }
