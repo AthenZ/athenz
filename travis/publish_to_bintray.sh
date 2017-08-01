@@ -17,3 +17,5 @@ mvn deploy -Dmaven.test.skip=true --projects com.yahoo.athenz:athenz-zts --setti
 mvn deploy -Dmaven.test.skip=true --projects com.yahoo.athenz:athenz-zpu --settings travis/settings-athenz-zpu.xml
 mvn deploy -Dmaven.test.skip=true --projects com.yahoo.athenz:athenz-ui --settings travis/settings-athenz-ui.xml
 mvn deploy -Dmaven.test.skip=true --projects com.yahoo.athenz:athenz-utils --settings travis/settings-athenz-utils.xml
+
+mvn deploy -Dmaven.test.skip=true --projects com.yahoo.athenz:athenz-jetty-container --settings travis/settings-athenz-jetty-container.xml
