@@ -557,15 +557,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             PoolableDataSource readOnlySrc = null;
             String jdbcReadOnlyStore = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RO_STORE);
             if (jdbcReadOnlyStore != null && jdbcReadOnlyStore.startsWith("jdbc:")) {
-                String jdbcReadOnlyUser = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RO_USER);
-                if (jdbcReadOnlyUser == null) {
-                    jdbcReadOnlyUser = jdbcUser;
-                }
-                password = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RO_PASSWORD, "");
-                String jdbcReadOnlyPassword = keyStore.getApplicationSecret(JDBC, password);
-                if (jdbcReadOnlyPassword == null) {
-                    jdbcReadOnlyPassword = jdbcPassword;
-                }
+                String jdbcReadOnlyUser = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RO_USER, jdbcUser);
+                String readOnlyPassword = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RO_PASSWORD, password);
+                String jdbcReadOnlyPassword = keyStore.getApplicationSecret(JDBC, readOnlyPassword);
                 readOnlySrc = DataSourceFactory.create(jdbcReadOnlyStore,
                         jdbcReadOnlyUser, jdbcReadOnlyPassword);
             }
@@ -904,7 +898,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         Object timerMetric = metric.startTiming("getdomain_timing", domainName);
         
-        Domain domain = dbService.getDomain(domainName);
+        Domain domain = dbService.getDomain(domainName, false);
         if (domain == null) {
             throw ZMSUtils.notFoundError("getDomain: Domain not found: " + domainName, caller);
         }
@@ -3954,8 +3948,76 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return timestamp;
     }
     
+    SignedDomain retrieveSignedDomain(String domainName, long modifiedTime,
+            Boolean setMetaDataOnly) {
+        
+        // generate our signed domain object
+        
+        SignedDomain signedDomain = new SignedDomain();
+        DomainData domainData = new DomainData().setName(domainName);
+        signedDomain.setDomain(domainData);
+        domainData.setModified(Timestamp.fromMillis(modifiedTime));
+        
+        // check if we're asked to only return the meta data which
+        // we already have - name and last modified time, so we can
+        // add the domain to our return list and continue with the
+        // next domain
+        
+        if (setMetaDataOnly) {
+            return signedDomain;
+        }
+        
+        // get the policies, roles, and service identities to create the
+        // DomainData
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("retrieveSignedDomain: retrieving domain " + domainName);
+        }
+        
+        AthenzDomain athenzDomain = getAthenzDomain(domainName, true, true);
+        
+        // it's possible that our domain was deleted by another
+        // thread while we were processing this request so
+        // we'll return null so the caller can skip this domain
+        
+        if (athenzDomain == null) {
+            return null;
+        }
+
+        // set domain attributes - for enabled flag only set it
+        // if it set to false
+        
+        if (athenzDomain.getDomain().getEnabled() == Boolean.FALSE) {
+            domainData.setEnabled(athenzDomain.getDomain().getEnabled());
+        }
+        domainData.setAccount(athenzDomain.getDomain().getAccount());
+        domainData.setYpmId(athenzDomain.getDomain().getYpmId());
+        domainData.setRoles(athenzDomain.getRoles());
+        domainData.setServices(athenzDomain.getServices());
+        
+        // generate the domain policy object that includes the domain
+        // name and all policies. Then we'll sign this struct using
+        // server's private key to get signed policy object
+        
+        DomainPolicies domainPolicies = new DomainPolicies().setDomain(domainName);
+        domainPolicies.setPolicies(getPolicyListWithoutAssertionId(athenzDomain.getPolicies()));
+        SignedPolicies signedPolicies = new SignedPolicies();
+        signedPolicies.setContents(domainPolicies);
+        domainData.setPolicies(signedPolicies);
+
+        String signature = Crypto.sign(
+                SignUtils.asCanonicalString(signedDomain.getDomain().getPolicies().getContents()), privateKey);
+        signedDomain.getDomain().getPolicies().setSignature(signature).setKeyId(privateKeyId);
+
+        // then sign the data and set the data and signature in a SignedDomain
+        
+        signature = Crypto.sign(SignUtils.asCanonicalString(signedDomain.getDomain()), privateKey);
+        signedDomain.setSignature(signature).setKeyId(privateKeyId);
+        return signedDomain;
+    }
+    
     // SignedDomains interface
-    public void getSignedDomains(ResourceContext ctx, String domain, String metaOnly,
+    public void getSignedDomains(ResourceContext ctx, String domainName, String metaOnly,
             String matchingTag, GetSignedDomainsResult result) {
 
         final String caller = "getsigneddomains";
@@ -3971,134 +4033,96 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // all incoming object values into lower case (e.g. domain, role,
         // policy, service, etc name)
         
-        if (domain != null) {
-            domain = domain.toLowerCase();
+        if (domainName != null) {
+            domainName = domainName.toLowerCase();
         }
         
         boolean setMetaDataOnly = false;
         if (metaOnly != null) {
-            // only true or false is valid
-            setMetaDataOnly = metaOnly.trim().equalsIgnoreCase("true");
+
             if (LOG.isDebugEnabled()) {
                 LOG.debug("getSignedDomains: metaonly: " + metaOnly, caller);
             }
+            
+            setMetaDataOnly = Boolean.parseBoolean(metaOnly.trim());
         }
         
         long timestamp = getModTimestamp(matchingTag);
         
-        // we should get our matching tag before calling get modified list
-        // in case we get a domain added/updated right after an empty domain list
-        // was returned and before the matchingTag was set to a value
+        // if this is one of our system principals then we're going to
+        // to use the master copy instead of read-only slaves
         
-        if (matchingTag == null) {
-            EntityTag eTag = new EntityTag(Timestamp.fromMillis(0).toString());
-            matchingTag = eTag.toString();
-        }
+        Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        boolean masterCopy = principal.getFullName().startsWith("sys.");
         
-        DomainModifiedList dmlist = dbService.listModifiedDomains(timestamp);
-        List<DomainModified> modlist = dmlist.getNameModList();
-        if (modlist == null || modlist.size() == 0) {
-            result.done(304, matchingTag);
-        }
-
-        Long youngestDomMod = -1L;
+        // if we're given a specific domain then we don't need to
+        // retrieve the list of modified domains
+        
         List<SignedDomain> sdList = new ArrayList<SignedDomain>();
+        Long youngestDomMod = -1L;
 
-        // now we can iterate through our list and retrieve each domain
+        if (domainName != null && !domainName.isEmpty()) {
         
-        boolean domainFilterDone = false;
-        for (DomainModified dmod : modlist) {
-            
-            // if we were processing only our given domain then
-            // we can stop iterating through the list if the
-            // filter done flag has been set
-            
-            if (domainFilterDone) {
-                break;
-            }
-            
-            // if we're given a specific domain then ignore all others
-            
-            if (domain != null && !domain.isEmpty()) {
-                if (domain.compareToIgnoreCase(dmod.getName()) != 0) {
-                    continue;
-                }
-                domainFilterDone = true;
-            }
-            
-            Long domModMillis = dmod.getModified();
-            if (domModMillis.compareTo(youngestDomMod) > 0) {
-                youngestDomMod = domModMillis;
+            Domain domain = dbService.getDomain(domainName, masterCopy);
+            long lastModifiedTime = domain.getModified().millis();
+            if (timestamp != 0 && lastModifiedTime <= timestamp) {
+                EntityTag eTag = new EntityTag(domain.getModified().toString());
+                result.done(304, eTag.toString());
             }
             
             // generate our signed domain object
-                
-            SignedDomain signedDomain = new SignedDomain();
-            DomainData domainData = new DomainData().setName(dmod.getName());
-            signedDomain.setDomain(domainData);
-            domainData.setModified(Timestamp.fromMillis(dmod.getModified()));
             
-            // check if we're asked to only return the meta data which
-            // we already have - name and last modified time, so we can
-            // add the domain to our return list and continue with the
-            // next domain
+            SignedDomain signedDomain = retrieveSignedDomain(domainName, lastModifiedTime,
+                    setMetaDataOnly);
             
-            if (setMetaDataOnly) {
+            if (signedDomain != null) {
                 sdList.add(signedDomain);
-                continue;
             }
             
-            // get the policies, roles, and service identities to create the
-            // DomainData
-
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("getSignedDomains: retrieving domain " + dmod.getName());
+        } else {
+            
+            // we should get our matching tag before calling get modified list
+            // in case we get a domain added/updated right after an empty domain list
+            // was returned and before the matchingTag was set to a value
+            
+            if (matchingTag == null) {
+                EntityTag eTag = new EntityTag(Timestamp.fromMillis(0).toString());
+                matchingTag = eTag.toString();
             }
             
-            AthenzDomain athenzDomain = getAthenzDomain(dmod.getName(), true, true);
-            
-            // it's possible that our domain was deleted by another
-            // thread while we were processing this request so
-            // if we get a null object, we'll just skip this 
-            // item and continue with the next one
-            
-            if (athenzDomain == null) {
-                continue;
+            DomainModifiedList dmlist = dbService.listModifiedDomains(timestamp);
+            List<DomainModified> modlist = dmlist.getNameModList();
+            if (modlist == null || modlist.size() == 0) {
+                result.done(304, matchingTag);
             }
-
-            // we have a valid domain so first we need to add
-            // our object to the return list
             
-            sdList.add(signedDomain);
-
-            // set domain attributes - for enabled flag only set it
-            // if it set to false
+            // now we can iterate through our list and retrieve each domain
             
-            if (athenzDomain.getDomain().getEnabled() == Boolean.FALSE) {
-                domainData.setEnabled(athenzDomain.getDomain().getEnabled());
+            for (DomainModified dmod : modlist) {
+                
+                Long domModMillis = dmod.getModified();
+                if (domModMillis.compareTo(youngestDomMod) > 0) {
+                    youngestDomMod = domModMillis;
+                }
+                
+                // generate our signed domain object
+                
+                SignedDomain signedDomain = retrieveSignedDomain(dmod.getName(), dmod.getModified(),
+                        setMetaDataOnly);
+                
+                // it's possible that our domain was deleted by another
+                // thread while we were processing this request so
+                // if we get a null object, we'll just skip this
+                // item and continue with the next one
+                
+                if (signedDomain == null) {
+                    continue;
+                }
+                
+                // we have a valid domain so we'll add it to our return list
+                
+                sdList.add(signedDomain);
             }
-            domainData.setAccount(athenzDomain.getDomain().getAccount());
-            domainData.setYpmId(athenzDomain.getDomain().getYpmId());
-            domainData.setRoles(athenzDomain.getRoles());
-            domainData.setServices(athenzDomain.getServices());
-            
-            // generate the domain policy object that includes the domain
-            // name and all policies. Then we'll sign this struct using
-            // server's private key to get signed policy object
-            
-            DomainPolicies domainPolicies = new DomainPolicies().setDomain(dmod.getName());
-            domainPolicies.setPolicies(getPolicyListWithoutAssertionId(athenzDomain.getPolicies()));
-            SignedPolicies signedPolicies = new SignedPolicies();
-            signedPolicies.setContents(domainPolicies);
-            domainData.setPolicies(signedPolicies);
-
-            String signature = Crypto.sign(SignUtils.asCanonicalString(signedDomain.getDomain().getPolicies().getContents()), privateKey);
-            signedDomain.getDomain().getPolicies().setSignature(signature).setKeyId(privateKeyId);
-
-            // then sign the data and set the data and signature in a SignedDomain
-            
-            signature = Crypto.sign(SignUtils.asCanonicalString(signedDomain.getDomain()), privateKey);
-            signedDomain.setSignature(signature).setKeyId(privateKeyId);
         }
 
         SignedDomains sdoms = new SignedDomains();
@@ -4664,7 +4688,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         // first verify that we have a valid tenant domain with policies
         
-        Domain domain = dbService.getDomain(tenantDomain);
+        Domain domain = dbService.getDomain(tenantDomain, false);
         if (domain == null) {
             throw ZMSUtils.notFoundError("getTenancy: No such tenant domain: " + tenantDomain, caller);
         }
@@ -4677,7 +4701,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         String provSvcDomain = providerServiceDomain(providerService);
         String provSvcName = providerServiceName(providerService);
         
-        Domain providerDomain = dbService.getDomain(provSvcDomain);
+        Domain providerDomain = dbService.getDomain(provSvcDomain, false);
         if (providerDomain == null) {
             throw ZMSUtils.requestError("getTenancy: No such provider domain: " + provSvcDomain, caller);
         }
@@ -5477,7 +5501,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.increment(caller, provSvcDomain);
         Object timerMetric = metric.startTiming("getproviderresourcegrouproles_timing", provSvcDomain);
 
-        Domain domain = dbService.getDomain(tenantDomain);
+        Domain domain = dbService.getDomain(tenantDomain, false);
         if (domain == null) {
             throw ZMSUtils.notFoundError("No such domain: " + tenantDomain, caller);
         }
@@ -5693,7 +5717,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         TenantRoles troles = new TenantRoles().setDomain(provSvcDomain).setService(provSvcName)
                 .setTenant(tenantDomain);
 
-        Domain domain = dbService.getDomain(provSvcDomain);
+        Domain domain = dbService.getDomain(provSvcDomain, false);
         if (domain == null) {
             throw ZMSUtils.notFoundError("getTenantRoles: No such domain: " + provSvcDomain, caller);
         }
@@ -5756,7 +5780,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         TenantResourceGroupRoles troles = new TenantResourceGroupRoles().setDomain(provSvcDomain)
                 .setService(provSvcName).setTenant(tenantDomain).setResourceGroup(resourceGroup);
 
-        Domain domain = dbService.getDomain(provSvcDomain);
+        Domain domain = dbService.getDomain(provSvcDomain, false);
         if (domain == null) {
             throw ZMSUtils.notFoundError("getTenantResourceGroupRoles: No such domain: " + provSvcDomain, caller);
         }

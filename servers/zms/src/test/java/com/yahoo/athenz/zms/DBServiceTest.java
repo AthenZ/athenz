@@ -1504,7 +1504,7 @@ public class DBServiceTest extends TestCase {
         // now let's disable the domain
         
         UserMeta meta = new UserMeta().setEnabled(false);
-        Domain domain = zms.dbService.getDomain(domainName);
+        Domain domain = zms.dbService.getDomain(domainName, false);
         ObjectStoreConnection con = zms.dbService.store.getConnection(false, true);
         zms.dbService.updateUserDomainMeta(con, domain, meta);
         
