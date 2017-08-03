@@ -4063,20 +4063,37 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (domainName != null && !domainName.isEmpty()) {
         
-            Domain domain = dbService.getDomain(domainName, masterCopy);
-            long lastModifiedTime = domain.getModified().millis();
-            if (timestamp != 0 && lastModifiedTime <= timestamp) {
-                EntityTag eTag = new EntityTag(domain.getModified().toString());
-                result.done(304, eTag.toString());
+            Domain domain = null;
+            try {
+                domain = dbService.getDomain(domainName, masterCopy);
+            } catch (ResourceException ex) {
+                
+                // in case the domain does not exist we're just
+                // going to return an empty set
+                
+                if (ex.getCode() != ResourceException.NOT_FOUND) {
+                    throw ex;
+                }
             }
             
-            // generate our signed domain object
-            
-            SignedDomain signedDomain = retrieveSignedDomain(domainName, lastModifiedTime,
-                    setMetaDataOnly);
-            
-            if (signedDomain != null) {
-                sdList.add(signedDomain);
+            if (domain != null) {
+                youngestDomMod = domain.getModified().millis();
+                
+                if (timestamp != 0 && youngestDomMod <= timestamp) {
+                    EntityTag eTag = new EntityTag(domain.getModified().toString());
+                    result.done(304, eTag.toString());
+                }
+                
+                // generate our signed domain object
+                
+                SignedDomain signedDomain = retrieveSignedDomain(domainName, youngestDomMod,
+                        setMetaDataOnly);
+                
+                if (signedDomain != null) {
+                    sdList.add(signedDomain);
+                }
+            } else {
+                youngestDomMod = System.currentTimeMillis();
             }
             
         } else {
