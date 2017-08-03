@@ -46,9 +46,14 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import junit.framework.TestCase;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.fail;
 
-public class DBServiceTest extends TestCase {
+public class DBServiceTest {
     
     @Mock FileConnection mockFileConn;
     @Mock ObjectStore mockObjStore;

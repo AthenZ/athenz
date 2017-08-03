@@ -25,8 +25,6 @@ import java.util.List;
 
 import org.testng.annotations.Test;
 
-import junit.framework.Assert;
-
 public class DomainMetricTest {
 
     @Test
@@ -36,9 +34,9 @@ public class DomainMetricTest {
         dm.setMetricType(DomainMetricType.ACCESS_ALLOWED);
         dm.setMetricVal(1);
 
-        Assert.assertEquals(DomainMetricType.ACCESS_ALLOWED, dm.getMetricType());
-        Assert.assertEquals(1, dm.getMetricVal());
-        Assert.assertEquals(DomainMetricType.ACCESS_ALLOWED, DomainMetricType.fromString("ACCESS_ALLOWED"));
+        assertEquals(DomainMetricType.ACCESS_ALLOWED, dm.getMetricType());
+        assertEquals(1, dm.getMetricVal());
+        assertEquals(DomainMetricType.ACCESS_ALLOWED, DomainMetricType.fromString("ACCESS_ALLOWED"));
     }
 
     @Test(expectedExceptions = { java.lang.IllegalArgumentException.class })
@@ -56,17 +54,17 @@ public class DomainMetricTest {
         dm2.setMetricType(DomainMetricType.ACCESS_ALLOWED);
         dm2.setMetricVal(1);
 
-        Assert.assertTrue(dm1.equals(dm2));
+        assertTrue(dm1.equals(dm2));
 
         // change value
         dm2.setMetricVal(0);
-        Assert.assertFalse(dm1.equals(dm2));
+        assertFalse(dm1.equals(dm2));
 
         // change type
         dm1.setMetricType(DomainMetricType.ACCESS_ALLOWED_DENY);
-        Assert.assertFalse(dm1.equals(dm2));
+        assertFalse(dm1.equals(dm2));
 
-        Assert.assertFalse(dm1.equals(new String()));
+        assertFalse(dm1.equals(new String()));
     }
 
     @Test
@@ -90,12 +88,12 @@ public class DomainMetricTest {
 
         //// equals
         // true case
-        Assert.assertTrue(dms1.equals(dms1));
+        assertTrue(dms1.equals(dms1));
         assertTrue(dms1.equals(dms2));
 
         // false case
         dms2.setMetricList(new ArrayList<DomainMetric>());
-        Assert.assertFalse(dms1.equals(dms2));
+        assertFalse(dms1.equals(dms2));
 
         dms2.setDomainName("test.net");
         assertFalse(dms1.equals(dms2));

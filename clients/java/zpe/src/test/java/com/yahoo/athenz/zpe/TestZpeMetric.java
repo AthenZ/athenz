@@ -16,7 +16,6 @@
 package com.yahoo.athenz.zpe;
 
 import java.io.IOException;
-import junit.framework.TestCase;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -31,7 +30,10 @@ import com.yahoo.athenz.zts.DomainMetric;
 import com.yahoo.athenz.zts.DomainMetrics;
 import com.yahoo.rdl.JSON;
 
-public class TestZpeMetric extends TestCase {
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.assertEquals;
+
+public class TestZpeMetric {
     
     @Test
     public void testZpeMetric() throws IOException {
