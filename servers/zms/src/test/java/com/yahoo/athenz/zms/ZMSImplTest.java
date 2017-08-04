@@ -34,8 +34,13 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.*;
 
-import static org.testng.Assert.*;
-import junit.framework.TestCase;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.fail;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -64,7 +69,7 @@ import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
 
-public class ZMSImplTest extends TestCase {
+public class ZMSImplTest {
 
     public static final String ZMS_PROP_PUBLIC_KEY = "athenz.zms.publickey";
 
@@ -133,7 +138,7 @@ public class ZMSImplTest extends TestCase {
         }
     }
 
-    @BeforeClass(alwaysRun=true)
+    @BeforeMethod
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
 
@@ -575,7 +580,7 @@ public class ZMSImplTest extends TestCase {
         String who = msgBldr.who();
         assertNotNull(who);
         assertTrue(who.contains(userId));
-        assertTrue("Should not contain the signature: " + who, !who.contains(signature));
+        assertTrue(!who.contains(signature), "Should not contain the signature: " + who);
     }
 
     @Test
@@ -2003,11 +2008,11 @@ public class ZMSImplTest extends TestCase {
             if (msg.indexOf("WHAT-api=(putrole)") == -1) {
                 continue;
             }
-            assertTrue(msg, msg.indexOf("CLIENT-IP=(" + MOCKCLIENTADDR + ")") != -1);
+            assertTrue(msg.indexOf("CLIENT-IP=(" + MOCKCLIENTADDR + ")") != -1, msg);
             int index = msg.indexOf("WHAT-details=(");
-            assertTrue(msg, index != -1);
+            assertTrue(index != -1, msg);
             int index2 = msg.indexOf("\"name\": \"role1\", \"trust\": \"null\", \"added-members\": [");
-            assertTrue(msg, index2 > index);
+            assertTrue(index2 > index, msg);
             foundError = true;
             break;
         }
@@ -2032,11 +2037,11 @@ public class ZMSImplTest extends TestCase {
             if (msg.indexOf("WHAT-api=(putrole)") == -1) {
                 continue;
             }
-            assertTrue(msg, msg.indexOf("CLIENT-IP=(" + MOCKCLIENTADDR + ")") != -1);
+            assertTrue(msg.indexOf("CLIENT-IP=(" + MOCKCLIENTADDR + ")") != -1, msg);
             int index = msg.indexOf("WHAT-details=(");
-            assertTrue(msg, index != -1);
+            assertTrue(index != -1, msg);
             int index2 = msg.indexOf("\"name\": \"role1\", \"trust\": \"null\", \"deleted-members\": [\"user.jane\"], \"added-members\": []");
-            assertTrue(msg, index2 > index);
+            assertTrue(index2 > index, msg);
             foundError = true;
             break;
         }
@@ -2589,9 +2594,9 @@ public class ZMSImplTest extends TestCase {
                 continue;
             }
             int index = msg.indexOf("WHAT-details=(");
-            assertTrue(msg, index != -1);
+            assertTrue(index != -1, msg);
             int index2 = msg.indexOf("{\"member\": \"user.doe\"}");
-            assertTrue(msg, index2 > index);
+            assertTrue(index2 > index, msg);
             foundError = true;
             break;
         }
@@ -2622,9 +2627,9 @@ public class ZMSImplTest extends TestCase {
                 continue;
             }
             int index = msg.indexOf("WHAT-details=(");
-            assertTrue(msg, index != -1);
+            assertTrue(index != -1, msg);
             int index2 = msg.indexOf("{\"member\": \"coretech.storage\"}");
-            assertTrue(msg, index2 > index);
+            assertTrue(index2 > index, msg);
             foundError = true;
             break;
         }
@@ -3406,13 +3411,13 @@ public class ZMSImplTest extends TestCase {
             if (msg.indexOf("WHAT-api=(putpolicy)") == -1) {
                 continue;
             }
-            assertTrue(msg, msg.indexOf("CLIENT-IP=(" + MOCKCLIENTADDR + ")") != -1);
+            assertTrue(msg.indexOf("CLIENT-IP=(" + MOCKCLIENTADDR + ")") != -1, msg);
             int index = msg.indexOf("WHAT-details=(");
-            assertTrue(msg, index != -1);
+            assertTrue(index != -1, msg);
             int index2 = msg.indexOf("\"added-assertions\": [{\"role\": \"policygetdom1:role.role1\", \"action\": \"*\", \"effect\": \"ALLOW\", \"resource\": \"policygetdom1:*\"}]");
-            assertTrue(msg, index < index2);
+            assertTrue(index < index2, msg);
             index2 = msg.indexOf("ERROR");
-            assertTrue(msg, index2 == -1);
+            assertTrue(index2 == -1, msg);
             foundError = true;
             break;
         }
@@ -3434,14 +3439,14 @@ public class ZMSImplTest extends TestCase {
             if (msg.indexOf("WHAT-api=(putpolicy)") == -1) {
                 continue;
             }
-            assertTrue(msg, msg.indexOf("CLIENT-IP=(" + MOCKCLIENTADDR + ")") != -1);
+            assertTrue(msg.indexOf("CLIENT-IP=(" + MOCKCLIENTADDR + ")") != -1, msg);
             int index = msg.indexOf("WHAT-details=(");
-            assertTrue(msg, index != -1);
+            assertTrue(index != -1, msg);
             int index2 = msg.indexOf("\"added-assertions\": [{\"role\": \"policygetdom1:role.role1\", \"action\": \"layup\", \"effect\": \"DENY\", \"resource\": \"policygetdom1:*\"}]");
-            assertTrue(msg, index < index2);
+            assertTrue(index < index2, msg);
             index2 = msg.indexOf("\"deleted-assertions\": [{\"role\": \"policygetdom1:role.role1\", \"action\": \"*\", \"effect\": \"ALLOW\", \"resource\": \"policygetdom1:*\"}]");
             index2 = msg.indexOf("ERROR");
-            assertTrue(msg, index2 == -1);
+            assertTrue(index2 == -1, msg);
             foundError = true;
             break;
         }
@@ -3672,7 +3677,7 @@ public class ZMSImplTest extends TestCase {
             fail();
         } catch (ResourceException ex) {
             assertTrue(ex.getCode() == 400);
-            assertTrue(ex.getMessage(), ex.getMessage().contains("admin policy cannot be modified"));
+            assertTrue(ex.getMessage().contains("admin policy cannot be modified"), ex.getMessage());
         }
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domain, auditRef);
     }
@@ -8577,7 +8582,7 @@ public class ZMSImplTest extends TestCase {
         // tenant sees that the subdomain provider isnt provisioned yet
         // for the resource group: testgetdomaindatacheckprovider.sub.storage.ravers
         ddc = zms.getDomainDataCheck(mockDomRsrcCtx, tenantDomainName);
-        assertNotNull(ddc.toString(), ddc);
+        assertNotNull(ddc, ddc.toString());
         assertEquals(7, ddc.getPolicyCount());
         assertEquals(12, ddc.getAssertionCount());
         assertEquals(2, ddc.getRoleWildCardCount());
@@ -9418,7 +9423,7 @@ public class ZMSImplTest extends TestCase {
     @Test
     public void testProcessListRequestSkipNoMatch() {
         
-        String domainName = "listrequest";
+        String domainName = "listrequestskipnomatch";
         List<String> adminUsers = new ArrayList<>();
         adminUsers.add("user.user");
         zms.dbService.makeDomain(mockDomRsrcCtx, domainName, "Test Domain", "org",
@@ -9452,7 +9457,7 @@ public class ZMSImplTest extends TestCase {
     @Test
     public void testProcessListRequestSkipMatch() {
         
-        String domainName = "listrequest";
+        String domainName = "listrequestskipmatch";
         List<String> adminUsers = new ArrayList<>();
         adminUsers.add("user.user");
         zms.dbService.makeDomain(mockDomRsrcCtx, domainName, "Test Domain", "org",
@@ -9480,7 +9485,7 @@ public class ZMSImplTest extends TestCase {
     @Test
     public void testProcessListRequestLimitExceeded() {
         
-        String domainName = "listrequest";
+        String domainName = "listrequestlimitexceeded";
         List<String> adminUsers = new ArrayList<>();
         adminUsers.add("user.user");
         zms.dbService.makeDomain(mockDomRsrcCtx, domainName, "Test Domain", "org",
@@ -9510,7 +9515,7 @@ public class ZMSImplTest extends TestCase {
     @Test
     public void testProcessListRequestLimitNotExceeded() {
 
-        String domainName = "listrequest";
+        String domainName = "listrequestlimitnotexceeded";
         List<String> adminUsers = new ArrayList<>();
         adminUsers.add("user.user");
         zms.dbService.makeDomain(mockDomRsrcCtx, domainName, "Test Domain", "org",
@@ -9544,8 +9549,7 @@ public class ZMSImplTest extends TestCase {
     @Test
     public void testProcessListRequestLimitAndSkip() {
         
-
-        String domainName = "listrequest";
+        String domainName = "listrequestlimitandskip";
         List<String> adminUsers = new ArrayList<>();
         adminUsers.add("user.user");
         zms.dbService.makeDomain(mockDomRsrcCtx, domainName, "Test Domain", "org",
@@ -9583,7 +9587,7 @@ public class ZMSImplTest extends TestCase {
     @Test
     public void testProcessListRequestLimitAndSkipLessThanLimitLeft() {
         
-        String domainName = "listrequest";
+        String domainName = "listrequestlimitskiplessthanlimitleft";
         List<String> adminUsers = new ArrayList<>();
         adminUsers.add("user.user");
         zms.dbService.makeDomain(mockDomRsrcCtx, domainName, "Test Domain", "org",
@@ -9613,6 +9617,7 @@ public class ZMSImplTest extends TestCase {
         assertNull(zms.processListRequest(domainName, AthenzObject.ROLE, 2, "role4", names));
         assertEquals(names.size(), 1);
         assertTrue(names.contains("role5"));
+        zms.dbService.executeDeleteDomain(mockDomRsrcCtx, domainName, auditRef, "unittest");
     }
     
     @Test
@@ -14044,7 +14049,7 @@ public class ZMSImplTest extends TestCase {
             zms.putAssertion(mockDomRsrcCtx, domainName, "admin", auditRef, assertion);
             fail();
         } catch (ResourceException ex) {
-            assertTrue(ex.getMessage(), ex.getMessage().contains("admin policy cannot be modified"));
+            assertTrue(ex.getMessage().contains("admin policy cannot be modified"), ex.getMessage());
         }
         
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
@@ -14149,7 +14154,7 @@ public class ZMSImplTest extends TestCase {
             zms.deleteAssertion(mockDomRsrcCtx, domainName, "admin", Long.valueOf(101), auditRef);
             fail();
         } catch (ResourceException ex) {
-            assertTrue(ex.getMessage(), ex.getMessage().contains("admin policy cannot be modified"));
+            assertTrue(ex.getMessage().contains("admin policy cannot be modified"), ex.getMessage());
         }
         
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);

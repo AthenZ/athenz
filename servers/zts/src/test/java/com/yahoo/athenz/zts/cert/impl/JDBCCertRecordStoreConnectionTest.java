@@ -33,13 +33,16 @@ import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
+
 import com.yahoo.athenz.common.server.db.PoolableDataSource;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.cert.X509CertRecord;
 
-import junit.framework.TestCase;
-
-public class JDBCCertRecordStoreConnectionTest extends TestCase {
+public class JDBCCertRecordStoreConnectionTest {
     
     @Mock PoolableDataSource mockDataSrc;
     @Mock Statement mockStmt;

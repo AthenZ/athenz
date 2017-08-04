@@ -62,11 +62,17 @@ import org.mockito.Matchers;
 import static org.mockito.Mockito.times;
 
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import junit.framework.TestCase;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.fail;
 
-public class JDBCConnectionTest extends TestCase {
+public class JDBCConnectionTest {
     
     @Mock PoolableDataSource mockDataSrc;
     @Mock Statement mockStmt;
@@ -79,7 +85,7 @@ public class JDBCConnectionTest extends TestCase {
     String domainData;
     String domainChangedData;
     
-    @BeforeClass
+    @BeforeMethod
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         Mockito.doReturn(mockConn).when(mockDataSrc).getConnection();

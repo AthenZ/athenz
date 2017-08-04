@@ -300,7 +300,7 @@ public class ZMSCoreTest {
         //assertTrue(result.valid, result.error);
 
         assertEquals(e.getName(), "test.entity");
-        assertEquals(e.getValue(), new Struct().with("key", (Object) "test"));
+        assertTrue(e.getValue().equals(new Struct().with("key", (Object) "test")));
 
         Entity e2 = new Entity().setName("test.entity").setValue(new Struct().with("key", "test"));
         assertTrue(e2.equals(e));
