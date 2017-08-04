@@ -93,7 +93,6 @@
     <module>servers/zms</module>
     <module>servers/zts</module>
     <module>containers/jetty</module>
-    <module>utils/zpe_policy_updater</module>
     <module>clients/go/zms</module>
     <module>clients/go/zts</module>
     <module>libs/go/zmscli</module>
@@ -101,6 +100,8 @@
     <module>utils/zms-cli</module>
     <module>utils/athenz-conf</module>
     <module>utils/zms-svctoken</module>
+    <module>utils/zpe_policy_updater</module>
+    <module>utils/zpe-updater</module>
     <module>utils/zts-roletoken</module>
     <module>utils/zts-svccert</module>
     <module>libs/nodejs/auth_core</module>

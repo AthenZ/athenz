@@ -1,4 +1,5 @@
 *~
+**/.idea
 **/.classpath
 **/.project
 **/.settings
@@ -61,6 +62,9 @@ utils/athenz-conf/bin/
 utils/zms-svctoken/bin/
 utils/zms-svctoken/pkg/
 utils/zms-svctoken/src/
+utils/zpe-updater/pkg/
+utils/zpe-updater/src/
+utils/zpe-updater/bin/
 utils/zts-roletoken/bin/
 utils/zts-roletoken/pkg/
 utils/zts-roletoken/src/
