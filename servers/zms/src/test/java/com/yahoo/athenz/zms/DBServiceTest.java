@@ -18,6 +18,8 @@ package com.yahoo.athenz.zms;
 import org.mockito.Mockito;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.annotations.*;
 
 import com.yahoo.athenz.auth.Authority;
@@ -893,7 +895,9 @@ public class DBServiceTest {
 
         zms.dbService.executeDeletePublicKeyEntry(mockDomRsrcCtx, domainName, serviceName,
                 "1", auditRef, "deletePublicKeyEntry");
+
         ServiceIdentity serviceRes = zms.getServiceIdentity(mockDomRsrcCtx, domainName, serviceName);
+
         List<PublicKeyEntry> keyList = serviceRes.getPublicKeys();
         boolean found = false;
         for (PublicKeyEntry entry : keyList) {
@@ -907,7 +911,7 @@ public class DBServiceTest {
     }
     
     @Test
-    public void testExecuteDeletePublicKeyEntryLastKeyNotAllowed() {
+    public void testExecuteDeletePublicKeyEntryLastKeyAllowed() {
         
         String domainName = "servicedelpubkeydom1";
         String serviceName = "service1";
@@ -922,17 +926,22 @@ public class DBServiceTest {
 
         zms.putServiceIdentity(mockDomRsrcCtx, domainName, serviceName, auditRef, service);
 
-        zms.dbService.executeDeletePublicKeyEntry(mockDomRsrcCtx, domainName, serviceName,
-                "1", auditRef, "deletePublicKeyEntry");
-
         try {
             zms.dbService.executeDeletePublicKeyEntry(mockDomRsrcCtx, domainName, serviceName,
+                    "1", auditRef, "deletePublicKeyEntry");
+
+            zms.dbService.executeDeletePublicKeyEntry(mockDomRsrcCtx, domainName, serviceName,
                     "2", auditRef, "deletePublicKeyEntry");
+        } catch (Exception e) {
             fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
         }
-        
+
+        ServiceIdentity serviceRes = zms.getServiceIdentity(mockDomRsrcCtx, domainName, serviceName);
+        List<PublicKeyEntry> keyList = serviceRes.getPublicKeys();
+        if (keyList != null) {
+            assertEquals(keyList.size(), 0);
+        }
+
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
     

@@ -3557,14 +3557,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
     
     boolean verifyServicePublicKeys(ServiceIdentity service) {
-        
-        // verify that the public keys specified are valid public
-        // key and we require that at least one key is provided
-        
+
+        // verify that the public keys specified are valid
+        // It's okay to not specify any public keys
+
         List<PublicKeyEntry> publicKeyList = service.getPublicKeys();
         if (publicKeyList == null || publicKeyList.size() == 0) {
-            return false;
+            return true;
         }
+
         for (PublicKeyEntry entry : publicKeyList) {
             if (!verifyServicePublicKey(entry.getKey())) {
                 return false;
@@ -3613,7 +3614,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         
         if (!verifyServicePublicKeys(service)) {
-            throw ZMSUtils.requestError("putServiceIdentity: No valid public key found or provided public key is invalid", caller);
+            throw ZMSUtils.requestError("putServiceIdentity: Provided public key is invalid", caller);
         }
 
         if (!verifyProviderEndpoint(service.getProviderEndpoint())) {

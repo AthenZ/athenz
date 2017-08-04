@@ -4083,6 +4083,27 @@ public class ZMSImplTest {
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "ServiceAddInvalidStructDom1", auditRef);
     }
+
+
+    @Test
+    public void testPutServiceIdentityWithoutPubKey() {
+        String domainName = "ServicePutDom1";
+        String serviceName = "Service1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        ServiceIdentity service = new ServiceIdentity();
+        service.setName(ZMSUtils.serviceResourceName(domainName, serviceName));
+
+        zms.putServiceIdentity(mockDomRsrcCtx, domainName, serviceName, auditRef, service);
+
+        ServiceIdentity serviceRes = zms.getServiceIdentity(mockDomRsrcCtx, domainName, serviceName);
+        assertNotNull(serviceRes);
+        assertEquals(serviceRes.getName(), "ServicePutDom1.Service1".toLowerCase());
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx,  domainName, auditRef);
+    }
     
     @Test
     public void testPutServiceIdentityThrowException() {
@@ -9079,7 +9100,9 @@ public class ZMSImplTest {
         
         ServiceIdentity service = new ServiceIdentity();
         service.setName(ZMSUtils.serviceResourceName("ServiceAddInvalidCertDom1", "Service1"));
-        assertFalse(zms.verifyServicePublicKeys(service));
+
+        // New Service need not have any public keys
+        assertTrue(zms.verifyServicePublicKeys(service));
     }
     
     @Test

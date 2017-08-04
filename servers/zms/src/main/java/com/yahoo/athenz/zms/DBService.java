@@ -925,13 +925,6 @@ public class DBService {
                 
                 checkDomainAuditEnabled(con, domainName, auditRef, caller);
 
-                // verify that we don't want to delete the last public key
-                
-                List<PublicKeyEntry> publicKeys = con.listPublicKeys(domainName, serviceName);
-                if (publicKeys.size() == 1 && publicKeys.get(0).getId().equals(keyId)) {
-                    throw ZMSUtils.requestError("cannot remove last public key from service", caller);
-                }
-                
                 // now process the request
                 
                 if (!con.deletePublicKeyEntry(domainName, serviceName, keyId)) {
