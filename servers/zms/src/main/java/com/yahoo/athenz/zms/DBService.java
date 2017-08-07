@@ -555,7 +555,8 @@ public class DBService {
             .append(", \"executable\": \"").append(service.getExecutable()).append('\"')
             .append(", \"user\": \"").append(service.getUser()).append('\"')
             .append(", \"group\": \"").append(service.getGroup()).append('\"')
-            .append(", \"providerEndpoint\": \"").append(service.getProviderEndpoint()).append('\"');
+            .append(", \"providerEndpoint\": \"").append(service.getProviderEndpoint()).append('\"')
+            .append(", \"description\"L \"").append(service.getDescription()).append('\"');
          
         // now we need process our public keys depending this is
         // a new insert operation or an update

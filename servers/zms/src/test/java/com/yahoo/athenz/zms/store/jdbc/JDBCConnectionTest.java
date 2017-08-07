@@ -2591,6 +2591,7 @@ public class JDBCConnectionTest {
 
         ServiceIdentity service = new ServiceIdentity()
                 .setName("my-domain.service1")
+                .setDescription("test service")
                 .setExecutable("/usr/bin64/test.sh")
                 .setGroup("users")
                 .setUser("root")
@@ -2607,11 +2608,12 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
         // update service
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "service1");
-        Mockito.verify(mockPrepStmt, times(1)).setString(2, "http://server.athenzcompany.com");
-        Mockito.verify(mockPrepStmt, times(1)).setString(3, "/usr/bin64/test.sh");
-        Mockito.verify(mockPrepStmt, times(1)).setString(4, "root");
-        Mockito.verify(mockPrepStmt, times(1)).setString(5, "users");
-        Mockito.verify(mockPrepStmt, times(1)).setInt(6, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "test service");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "http://server.athenzcompany.com");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "/usr/bin64/test.sh");
+        Mockito.verify(mockPrepStmt, times(1)).setString(5, "root");
+        Mockito.verify(mockPrepStmt, times(1)).setString(6, "users");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(7, 5);
         jdbcConn.close();
     }
     
@@ -2661,7 +2663,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(3, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(4, "");
-        Mockito.verify(mockPrepStmt, times(1)).setInt(5, 4);
+        Mockito.verify(mockPrepStmt, times(1)).setString(5, "");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(6, 4);
         jdbcConn.close();
     }
     
@@ -2693,6 +2696,7 @@ public class JDBCConnectionTest {
 
         ServiceIdentity service = new ServiceIdentity()
                 .setName("my-domain.service1")
+                .setDescription("test service")
                 .setExecutable("/usr/bin64/test.sh")
                 .setGroup("users")
                 .setUser("root")
@@ -2712,11 +2716,12 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "service1");
         // update service
-        Mockito.verify(mockPrepStmt, times(1)).setString(1, "http://server.athenzcompany.com");
-        Mockito.verify(mockPrepStmt, times(1)).setString(2, "/usr/bin64/test.sh");
-        Mockito.verify(mockPrepStmt, times(1)).setString(3, "root");
-        Mockito.verify(mockPrepStmt, times(1)).setString(4, "users");
-        Mockito.verify(mockPrepStmt, times(1)).setInt(5, 4);
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "test service");
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "http://server.athenzcompany.com");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "/usr/bin64/test.sh");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "root");
+        Mockito.verify(mockPrepStmt, times(1)).setString(5, "users");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(6, 4);
         jdbcConn.close();
     }
     

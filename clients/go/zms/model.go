@@ -2360,6 +2360,11 @@ type ServiceIdentity struct {
 	Name ServiceName `json:"name"`
 
 	//
+	// description of the service
+	//
+	Description string `json:"description,omitempty" rdl:"optional"`
+
+	//
 	// array of public keys for key rotation
 	//
 	PublicKeys []*PublicKeyEntry `json:"publicKeys,omitempty" rdl:"optional"`

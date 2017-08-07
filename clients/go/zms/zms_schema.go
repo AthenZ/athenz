@@ -275,6 +275,7 @@ func init() {
 	tServiceIdentity := rdl.NewStructTypeBuilder("Struct", "ServiceIdentity")
 	tServiceIdentity.Comment("The representation of the service identity object.")
 	tServiceIdentity.Field("name", "ServiceName", false, nil, "the full name of the service, i.e. \"sports.storage\"")
+	tServiceIdentity.Field("description", "String", true, nil, "description of the service")
 	tServiceIdentity.ArrayField("publicKeys", "PublicKeyEntry", true, "array of public keys for key rotation")
 	tServiceIdentity.Field("providerEndpoint", "String", true, nil, "if present, then this service can provision tenants via this endpoint.")
 	tServiceIdentity.Field("modified", "Timestamp", true, nil, "the timestamp when this entry was last modified")
