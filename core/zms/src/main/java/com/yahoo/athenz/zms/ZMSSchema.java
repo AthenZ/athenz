@@ -235,6 +235,7 @@ public class ZMSSchema {
         sb.structType("ServiceIdentity")
             .comment("The representation of the service identity object.")
             .field("name", "ServiceName", false, "the full name of the service, i.e. \"sports.storage\"")
+            .field("description", "String", true, "description of the service")
             .arrayField("publicKeys", "PublicKeyEntry", true, "array of public keys for key rotation")
             .field("providerEndpoint", "String", true, "if present, then this service can provision tenants via this endpoint.")
             .field("modified", "Timestamp", true, "the timestamp when this entry was last modified")

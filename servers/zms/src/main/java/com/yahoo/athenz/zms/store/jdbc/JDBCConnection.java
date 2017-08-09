@@ -158,9 +158,9 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_SERVICE = "SELECT * FROM service "
             + "JOIN domain ON domain.domain_id=service.domain_id WHERE domain.name=? AND service.name=?;";
     private static final String SQL_INSERT_SERVICE = "INSERT INTO service "
-            + "(name, provider_endpoint, executable, svc_user, svc_group, domain_id) VALUES (?,?,?,?,?,?);";
+            + "(name, description, provider_endpoint, executable, svc_user, svc_group, domain_id) VALUES (?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_SERVICE = "UPDATE service SET "
-            + "provider_endpoint=?, executable=?, svc_user=?, svc_group=?  WHERE service_id=?;";
+            + "description=?, provider_endpoint=?, executable=?, svc_user=?, svc_group=?  WHERE service_id=?;";
     private static final String SQL_UPDATE_SERVICE_MOD_TIMESTAMP = "UPDATE service "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE service_id=?;";
     private static final String SQL_DELETE_SERVICE = "DELETE FROM service WHERE domain_id=? AND name=?;";
@@ -2046,11 +2046,12 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
         try (PreparedStatement ps = con.prepareStatement(SQL_INSERT_SERVICE)) {
             ps.setString(1, serviceName);
-            ps.setString(2, processInsertValue(service.getProviderEndpoint()));
-            ps.setString(3, processInsertValue(service.getExecutable()));
-            ps.setString(4, processInsertValue(service.getUser()));
-            ps.setString(5, processInsertValue(service.getGroup()));
-            ps.setInt(6, domainId);
+            ps.setString(2, processInsertValue(service.getDescription()));
+            ps.setString(3, processInsertValue(service.getProviderEndpoint()));
+            ps.setString(4, processInsertValue(service.getExecutable()));
+            ps.setString(5, processInsertValue(service.getUser()));
+            ps.setString(6, processInsertValue(service.getGroup()));
+            ps.setInt(7, domainId);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -2079,11 +2080,12 @@ public class JDBCConnection implements ObjectStoreConnection {
             throw notFoundError(caller, ZMSConsts.OBJECT_SERVICE, ZMSUtils.serviceResourceName(domainName, serviceName));
         }
         try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_SERVICE)) {
-            ps.setString(1, processInsertValue(service.getProviderEndpoint()));
-            ps.setString(2, processInsertValue(service.getExecutable()));
-            ps.setString(3, processInsertValue(service.getUser()));
-            ps.setString(4, processInsertValue(service.getGroup()));
-            ps.setInt(5, serviceId);
+            ps.setString(1, processInsertValue(service.getDescription()));
+            ps.setString(2, processInsertValue(service.getProviderEndpoint()));
+            ps.setString(3, processInsertValue(service.getExecutable()));
+            ps.setString(4, processInsertValue(service.getUser()));
+            ps.setString(5, processInsertValue(service.getGroup()));
+            ps.setInt(6, serviceId);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);

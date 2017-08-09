@@ -57,6 +57,7 @@ public class SignUtils {
     private static final String ATTR_RESOURCE = "resource";
     private static final String ATTR_ASSERTIONS = "assertions";
     private static final String ATTR_EXECUTABLE = "executable";
+    private static final String ATTR_DESCRIPTION = "descrition";
     private static final String ATTR_TRUST = "trust";
     private static final String ATTR_GROUP = "group";
     private static final String ATTR_PROVIDER_ENDPOINT = "providerEndpoint";
@@ -151,6 +152,7 @@ public class SignUtils {
         // all of our fields are in canonical order based
         // on their attribute name
         Struct struct = new Struct();
+        appendObject(struct, ATTR_DESCRIPTION, service.getDescription());
         appendObject(struct, ATTR_EXECUTABLE, service.getExecutable());
         appendObject(struct, ATTR_GROUP, service.getGroup());
         appendList(struct, ATTR_HOSTS, service.getHosts());

@@ -14,6 +14,9 @@ public class ServiceIdentity {
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String description;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public List<PublicKeyEntry> publicKeys;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -40,6 +43,13 @@ public class ServiceIdentity {
     }
     public String getName() {
         return name;
+    }
+    public ServiceIdentity setDescription(String description) {
+        this.description = description;
+        return this;
+    }
+    public String getDescription() {
+        return description;
     }
     public ServiceIdentity setPublicKeys(List<PublicKeyEntry> publicKeys) {
         this.publicKeys = publicKeys;
@@ -99,6 +109,9 @@ public class ServiceIdentity {
             }
             ServiceIdentity a = (ServiceIdentity) another;
             if (name == null ? a.name != null : !name.equals(a.name)) {
+                return false;
+            }
+            if (description == null ? a.description != null : !description.equals(a.description)) {
                 return false;
             }
             if (publicKeys == null ? a.publicKeys != null : !publicKeys.equals(a.publicKeys)) {
