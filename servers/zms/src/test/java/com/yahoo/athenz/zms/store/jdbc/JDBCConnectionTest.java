@@ -2463,7 +2463,7 @@ public class JDBCConnectionTest {
     public void testGetServiceIdentity() throws Exception {
 
         Mockito.when(mockResultSet.next()).thenReturn(true);
-        Mockito.doReturn("policy1").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_NAME);
+        Mockito.doReturn("test description").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_DESCRIPTION);
         Mockito.doReturn(new java.sql.Timestamp(1454358916)).when(mockResultSet).getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_EXECTUABLE);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_SVC_GROUP);
@@ -2502,7 +2502,7 @@ public class JDBCConnectionTest {
     public void testGetServiceIdentityAllFields() throws Exception {
 
         Mockito.when(mockResultSet.next()).thenReturn(true);
-        Mockito.doReturn("policy1").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_NAME);
+        Mockito.doReturn("test description").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_DESCRIPTION);
         Mockito.doReturn(new java.sql.Timestamp(1454358916)).when(mockResultSet).getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED);
         Mockito.doReturn("/usr/bin64/athenz").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_EXECTUABLE);
         Mockito.doReturn("users").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_SVC_GROUP);

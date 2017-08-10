@@ -1993,6 +1993,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                 if (rs.next()) {
                     ServiceIdentity serviceIdentity = new ServiceIdentity()
                             .setName(ZMSUtils.serviceResourceName(domainName, serviceName))
+                            .setDescription(saveValue(rs.getString(ZMSConsts.DB_COLUMN_DESCRIPTION)))
                             .setModified(Timestamp.fromMillis(rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime()))
                             .setProviderEndpoint(saveValue(rs.getString(ZMSConsts.DB_COLUMN_PROVIDER_ENDPOINT)))
                             .setExecutable(saveValue(rs.getString(ZMSConsts.DB_COLUMN_EXECTUABLE)))
