@@ -159,4 +159,11 @@
     </profile>
   </profiles>
 
+  <distributionManagement>
+    <repository>
+      <id>bintray-athenz-jetty-container-repo</id>
+      <url>https://api.bintray.com/maven/yahoo/maven/athenz-jetty-container/;publish=1</url>
+    </repository>
+  </distributionManagement>
+
 </project>
