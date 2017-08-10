@@ -1,0 +1,134 @@
+/**
+ * Copyright 2017 Yahoo Holdings, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.yahoo.athenz.zms.store.impl;
+
+import java.util.Properties;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.amazonaws.auth.InstanceProfileCredentialsProvider;
+import com.amazonaws.services.rds.auth.GetIamAuthTokenRequest;
+import com.amazonaws.services.rds.auth.RdsIamAuthTokenGenerator;
+import com.amazonaws.util.EC2MetadataUtils;
+
+import com.yahoo.athenz.auth.PrivateKeyStore;
+import com.yahoo.athenz.common.server.db.DataSourceFactory;
+import com.yahoo.athenz.common.server.db.PoolableDataSource;
+import com.yahoo.athenz.zms.ZMSConsts;
+import com.yahoo.athenz.zms.store.ObjectStore;
+import com.yahoo.athenz.zms.store.ObjectStoreFactory;
+import com.yahoo.athenz.zms.store.jdbc.JDBCObjectStore;
+
+public class AWSObjectStoreFactory implements ObjectStoreFactory {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AWSObjectStoreFactory.class);
+    
+    static final String ATHENZ_PROP_DB_VERIFY_SERVER_CERT = "athenz.db.verify_server_certificate";
+    static final String ATHENZ_PROP_DB_USE_SSL            = "athenz.db.use_ssl";
+    
+    static final String ATHENZ_DB_USER               = "user";
+    static final String ATHENZ_DB_PASSWORD           = "password";
+    static final String ATHENZ_DB_USE_SSL            = "useSSL";
+    static final String ATHENZ_DB_VERIFY_SERVER_CERT = "verifyServerCertificate";
+    
+    private static Properties mysqlConnectionProperties = new Properties();
+    private static ScheduledExecutorService scheduledThreadPool;
+    private static String rdsUser = null;
+    private static String rdsIamRole = null;
+    private static String rdsMaster = null;
+    private int rdsPort = 3306;
+    
+    @Override
+    public ObjectStore create(PrivateKeyStore keyStore) {
+        
+        rdsUser = System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_USER);
+        rdsIamRole = System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_IAM_ROLE);
+        rdsMaster = System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_MASTER_INSTANCE);
+        rdsPort = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_MASTER_PORT, "3306"));
+        
+        final String rdsEngine = System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_ENGINE, "mysql");
+        final String rdsDatabase = System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_DATABASE, "zms_store");
+        final String jdbcStore = String.format("jdbc:%s://%s:%d/%s", rdsEngine, rdsMaster, rdsPort, rdsDatabase);
+        String rdsToken = getAuthToken(rdsMaster, rdsPort, rdsUser, rdsIamRole);
+        
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Connecting to {} with auth token {}", jdbcStore, rdsToken);
+        }
+        
+        mysqlConnectionProperties.setProperty(ATHENZ_DB_VERIFY_SERVER_CERT,
+                System.getProperty(ATHENZ_PROP_DB_VERIFY_SERVER_CERT, "true"));
+        mysqlConnectionProperties.setProperty(ATHENZ_DB_USE_SSL,
+                System.getProperty(ATHENZ_PROP_DB_USE_SSL, "true"));
+        mysqlConnectionProperties.setProperty(ATHENZ_DB_USER, rdsUser);
+        mysqlConnectionProperties.setProperty(ATHENZ_DB_PASSWORD, rdsToken);
+        
+        PoolableDataSource dataSource = DataSourceFactory.create(jdbcStore, mysqlConnectionProperties);
+        
+        long credsRefreshTime = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_CREDS_REFRESH_TIME, "300"));
+
+        scheduledThreadPool = Executors.newScheduledThreadPool(1);
+        scheduledThreadPool.scheduleAtFixedRate(new CredentialsUpdater(), credsRefreshTime,
+                credsRefreshTime, TimeUnit.SECONDS);
+        
+        return new JDBCObjectStore(dataSource, null);
+    }
+    
+    String getAuthToken(String hostname, int port, String rdsUser, String rdsIamRole) {
+        
+        InstanceProfileCredentialsProvider awsCredProvider = new InstanceProfileCredentialsProvider(true);
+        
+          if (LOG.isDebugEnabled()) {
+              LOG.debug("getAuthToken: Access key id: {}", awsCredProvider.getCredentials().getAWSAccessKeyId());
+          }
+          
+          RdsIamAuthTokenGenerator generator = RdsIamAuthTokenGenerator.builder()
+                .credentials(awsCredProvider)
+                .region(EC2MetadataUtils.getEC2InstanceRegion())
+                .build();
+        
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Instance {} Port {} User {} Region: {} Role: {}", hostname, port, rdsUser,
+                    EC2MetadataUtils.getEC2InstanceRegion(), rdsIamRole);
+        }
+        
+        return generator.getAuthToken(GetIamAuthTokenRequest.builder()
+               .hostname(hostname).port(port).userName(rdsUser)
+               .build());
+    }
+    
+   class CredentialsUpdater implements Runnable {
+        
+        @Override
+        public void run() {
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("CredentialsUpdater: Starting credential updater thread...");
+            }
+            
+            try {
+                final String rdsToken = getAuthToken(rdsMaster, rdsPort, rdsUser, rdsIamRole);
+                mysqlConnectionProperties.setProperty(ATHENZ_DB_PASSWORD, rdsToken);
+                
+            } catch (Throwable t) {
+                LOG.error("CredentialsUpdater: unable to update auth token: " + t.getMessage());
+            }
+        }
+    }
+}

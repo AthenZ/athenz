@@ -49,6 +49,14 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_AUTHORITY_CLASSES = "athenz.zms.authority_classes";
     public static final String ZMS_PROP_STORE_OP_TIMEOUT  = "athenz.zms.store_operation_timeout";
     
+    public static final String ZMS_PROP_AWS_RDS_USER               = "athenz.zms.aws_rds_user";
+    public static final String ZMS_PROP_AWS_RDS_IAM_ROLE           = "athenz.zms.aws_rds_iam_role";
+    public static final String ZMS_PROP_AWS_RDS_ENGINE             = "athenz.zms.aws_rds_engine";
+    public static final String ZMS_PROP_AWS_RDS_DATABASE           = "athenz.zms.aws_rds_database";
+    public static final String ZMS_PROP_AWS_RDS_MASTER_INSTANCE    = "athenz.zms.aws_rds_master_instance";
+    public static final String ZMS_PROP_AWS_RDS_MASTER_PORT        = "athenz.zms.aws_rds_master_port";
+    public static final String ZMS_PROP_AWS_RDS_CREDS_REFRESH_TIME = "athenz.zms.aws_rds_creds_refresh_time";
+
     public static final String ZMS_PROP_PRINCIPAL_AUTHORITY_CLASS = "athenz.zms.principal_authority_class";
 
     public static final String ZMS_PROP_TIMEOUT                 = "athenz.zms.user_token_timeout";
@@ -62,9 +70,17 @@ public final class ZMSConsts {
     // properties used to over-ride default Audit logger
  
     public static final String ZMS_PROP_METRIC_FACTORY_CLASS            = "athenz.zms.metric_factory_class";
+    public static final String ZMS_METRIC_FACTORY_CLASS                 = "com.yahoo.athenz.common.metrics.impl.NoOpMetricFactory";
+
     public static final String ZMS_PROP_AUDIT_LOGGER_FACTORY_CLASS      = "athenz.zms.audit_logger_factory_class";
+    public static final String ZMS_AUDIT_LOGGER_FACTORY_CLASS           = "com.yahoo.athenz.common.server.log.impl.DefaultAuditLoggerFactory";
+
     public static final String ZMS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS = "athenz.zms.private_key_store_factory_class";
-    
+    public static final String ZMS_PRIVATE_KEY_STORE_FACTORY_CLASS      = "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory";
+
+    public static final String ZMS_PROP_OBJECT_STORE_FACTORY_CLASS      = "athenz.zms.object_store_factory_class";
+    public static final String ZMS_OBJECT_STORE_FACTORY_CLASS           = "com.yahoo.athenz.zms.store.impl.FileObjectStoreFactory";
+
     // properties for our default quota limits
     
     public static final String ZMS_PROP_QUOTA_CHECK        = "athenz.zms.quota_check";
@@ -78,10 +94,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_QUOTA_ENTITY       = "athenz.zms.quota_entity";
     public static final String ZMS_PROP_QUOTA_SUBDOMAIN    = "athenz.zms.quota_subdomain";
     
-    public static final String ZMS_METRIC_FACTORY_CLASS       = "com.yahoo.athenz.common.metrics.impl.NoOpMetricFactory";
-    public static final String ZMS_AUDIT_LOGGER_FACTORY_CLASS = "com.yahoo.athenz.common.server.log.impl.DefaultAuditLoggerFactory";
     public static final String ZMS_PRINCIPAL_AUTHORITY_CLASS  = "com.yahoo.athenz.auth.impl.PrincipalAuthority";
-    public static final String ZMS_PKEY_STORE_FACTORY_CLASS   = "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory";
 
     public static final String ZMS_UNKNOWN_DOMAIN     = "unknown_domain";
     public static final String ZMS_INVALID_DOMAIN     = "invalid_domain";

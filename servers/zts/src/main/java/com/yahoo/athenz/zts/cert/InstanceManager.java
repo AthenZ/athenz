@@ -1,6 +1,5 @@
 package com.yahoo.athenz.zts.cert;
 
-import java.io.File;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
@@ -15,13 +14,9 @@ import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.cert.CertSigner;
-import com.yahoo.athenz.common.server.db.DataSourceFactory;
-import com.yahoo.athenz.common.server.db.PoolableDataSource;
 import com.yahoo.athenz.zts.InstanceIdentity;
 import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.ZTSImpl;
-import com.yahoo.athenz.zts.cert.impl.FileCertRecordStore;
-import com.yahoo.athenz.zts.cert.impl.JDBCCertRecordStore;
+
 
 public class InstanceManager {
 
@@ -42,21 +37,20 @@ public class InstanceManager {
     
     void loadCertificateObjectStore(PrivateKeyStore keyStore) {
         
-        String jdbcStore = System.getProperty(ZTSConsts.ZTS_PROP_CERT_JDBC_STORE);
-        if (jdbcStore != null && jdbcStore.startsWith("jdbc:")) {
-            String jdbcUser = System.getProperty(ZTSConsts.ZTS_PROP_CERT_JDBC_USER);
-            String password = System.getProperty(ZTSConsts.ZTS_PROP_CERT_JDBC_PASSWORD, "");
-            String jdbcPassword = keyStore.getApplicationSecret(JDBC, password);
-            PoolableDataSource src = DataSourceFactory.create(jdbcStore, jdbcUser, jdbcPassword);
-            certStore = new JDBCCertRecordStore(src);
-        } else {
-            String homeDir = System.getProperty(ZTSConsts.ZTS_PROP_CERT_FILE_STORE_PATH,
-                    ZTSImpl.getRootDir() + "/var/zts_server");
-            String fileDirName = System.getProperty(ZTSConsts.ZTS_PROP_CERT_FILE_STORE_NAME,
-                    "zts_cert_records");
-            String path = homeDir + File.separator + fileDirName;
-            certStore = new FileCertRecordStore(new File(path));
+        String certRecordStoreFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_CERT_RECORD_STORE_FACTORY_CLASS,
+                ZTSConsts.ZTS_CERT_RECORD_STORE_FACTORY_CLASS);
+        CertRecordStoreFactory certRecordStoreFactory = null;
+        try {
+            certRecordStoreFactory = (CertRecordStoreFactory) Class.forName(certRecordStoreFactoryClass).newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            LOGGER.error("Invalid CertRecordStoreFactory class: " + certRecordStoreFactoryClass
+                    + " error: " + e.getMessage());
+            throw new IllegalArgumentException("Invalid cert record store factory class");
         }
+
+        // create our cert record store instance
+        
+        certStore = certRecordStoreFactory.create(keyStore);
         
         // default timeout in seconds for certificate store commands
         
