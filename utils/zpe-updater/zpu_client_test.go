@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net"
 	"os"
 	"testing"
 	"time"
@@ -34,19 +33,13 @@ const (
 
 var testConfig *ZpuConfiguration
 var ztsClient zts.ZTSClient
-var port int
+var port string
 
 func TestMain(m *testing.M) {
-	for i := 50000; i < 60000; i++ {
-		tcpPort := fmt.Sprintf(":%d", i)
-		conn, err := net.Listen("tcp", tcpPort)
-		if err == nil {
-			port = i
-			conn.Close()
-			break
-		}
-	}
-	go devel.StartMockServer(test_data.EndPoints, test_data.MetricEndPoints, port)
+
+	address := devel.StartMockServer(test_data.EndPoints, test_data.MetricEndPoints)
+	port = address[5:len(address)]
+	log.Printf("The port assigned to test server is; %v", port)
 	err := setUp()
 	if err != nil {
 		log.Fatalf("Failed to set up test environment, Error:%v", err)
@@ -356,8 +349,8 @@ func cleanUp() error {
 }
 
 func getTestConfiguration() (*ZpuConfiguration, error) {
-	zmsUrl := fmt.Sprintf("http://localhost:%d/zms/v1", port)
-	ztsUrl := fmt.Sprintf("http://localhost:%d/zts/v1", port)
+	zmsUrl := fmt.Sprintf("http://localhost:%s/zms/v1", port)
+	ztsUrl := fmt.Sprintf("http://localhost:%s/zts/v1", port)
 	athenzConf := `{"zmsUrl":"` + zmsUrl + `","ztsUrl":"` + ztsUrl + `","ztsPublicKeys":[{"id":"0","key":"LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZ3d0RRWUpLb1pJaHZjTkFRRUJCUUFEU3dBd1NBSkJBTHpmU09UUUpmRW0xZW00TDNza3lOVlEvYngwTU9UcQphK1J3T0gzWmNNS3lvR3hPSm85QXllUmE2RlhNbXZKSkdZczVQMzRZc3pGcG5qMnVBYmkyNG5FQ0F3RUFBUT09Ci0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQo-"}],"zmsPublicKeys":[{"id":"0","key":"LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZ3d0RRWUpLb1pJaHZjTkFRRUJCUUFEU3dBd1NBSkJBTHpmU09UUUpmRW0xZW00TDNza3lOVlEvYngwTU9UcQphK1J3T0gzWmNNS3lvR3hPSm85QXllUmE2RlhNbXZKSkdZczVQMzRZc3pGcG5qMnVBYmkyNG5FQ0F3RUFBUT09Ci0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQo-"}]}`
 	devel.CreateFile(CONF_PATH+"/athenz.conf", athenzConf)
 	zpuConf := `{"domains":"test"}`

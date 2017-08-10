@@ -13,9 +13,11 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/yahoo/athenz/utils/zpe-updater/util"
+
+	"net"
 )
 
-func StartMockServer(endPoints map[string]string, metricEndPoints []string, port int) {
+func StartMockServer(endPoints map[string]string, metricEndPoints []string) string {
 	router := mux.NewRouter()
 
 	for key, val := range endPoints {
@@ -35,10 +37,17 @@ func StartMockServer(endPoints map[string]string, metricEndPoints []string, port
 		}).Methods("POST")
 	}
 
-	err := http.ListenAndServe(fmt.Sprintf(":%d", port), router)
+	listener, err := net.Listen("tcp", ":0")
 	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
+		log.Panicln("Unable to serve on randomly assigned port")
 	}
+	s := &http.Server{Handler: router}
+	addr := listener.Addr().String()
+
+	go func() {
+		s.Serve(listener)
+	}()
+	return addr
 }
 
 func CreateFile(fileName, content string) error {
