@@ -382,6 +382,8 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				} else {
 					return nil, err
 				}
+			} else if argc == 1 {
+				return cli.AddService(dn, args[0], "", nil)
 			}
 		case "add-provider-service":
 			if argc == 3 {
