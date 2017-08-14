@@ -67,12 +67,15 @@ func (cli Zms) AddService(dn string, sn string, keyId string, pubKey *string) (*
 		return nil, fmt.Errorf("Service identity already exists: " + string(service.Name) + " - use add-public-key to add a key")
 	}
 	longName := dn + "." + shortName
-	publicKeys := make([]*zms.PublicKeyEntry, 0)
-	publicKey := zms.PublicKeyEntry{
-		Key: *pubKey,
-		Id:  keyId,
+	var publicKeys []*zms.PublicKeyEntry
+	if pubKey != nil {
+		publicKeys = make([]*zms.PublicKeyEntry, 0)
+		publicKey := zms.PublicKeyEntry{
+			Key: *pubKey,
+			Id:  keyId,
+		}
+		publicKeys = append(publicKeys, &publicKey)
 	}
-	publicKeys = append(publicKeys, &publicKey)
 	detail := zms.ServiceIdentity{
 		Name:             zms.ServiceName(longName),
 		PublicKeys:       publicKeys,
