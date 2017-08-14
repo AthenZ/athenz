@@ -17,6 +17,8 @@ package com.yahoo.athenz.common.server.db;
 
 import static org.testng.Assert.*;
 
+import java.util.Properties;
+
 import org.apache.commons.pool2.impl.BaseObjectPoolConfig;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.testng.annotations.Test;
@@ -26,21 +28,29 @@ import com.yahoo.athenz.common.server.db.PoolableDataSource;
 
 public class DataSourceFactoryTest {
 
-    static final String ZMS_DBPOOL_PROP1 = "athenz.zms.db_pool_test_prop";
+    static final String ATHENZ_DBPOOL_PROP1 = "athenz.zms.db_pool_test_prop";
     
     @Test
     public void testCrateDataSourceWithMysqlUrl() {
         
+        Properties props = new Properties();
+        props.setProperty("user", "user");
+        props.setProperty("password", "password");
+
         PoolableDataSource src = DataSourceFactory.create("jdbc:mysql:localhost:3306/athenz",
-                "user", "password");
+                props);
         assertNotNull(src);
     }
     
     @Test
     public void testCreateDataSourceWithUnknownUrl() {
         
+        Properties props = new Properties();
+        props.setProperty("user", "user");
+        props.setProperty("password", "password");
+        
         try {
-            DataSourceFactory.create("jdbc:tdb:localhost:11080", "user", "password");
+            DataSourceFactory.create("jdbc:tdb:localhost:11080", props);
             fail();
         } catch (RuntimeException ex) {
             assertTrue(true);
@@ -50,19 +60,19 @@ public class DataSourceFactoryTest {
     @Test
     public void testCreateDataSourceWithFactory() {
         
-        System.setProperty(DataSourceFactory.ZMS_PROP_DBPOOL_MAX_TTL, "10000");
+        System.setProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_MAX_TTL, "10000");
 
         MockConnectionFactory connectionFactory = new MockConnectionFactory();
         PoolableDataSource src = DataSourceFactory.create(connectionFactory);
         assertNotNull(src);
         
-        System.clearProperty(DataSourceFactory.ZMS_PROP_DBPOOL_MAX_TTL);
+        System.clearProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_MAX_TTL);
     }
     
     @Test
     public void testCreateDataSourceWithFactoryInvalidTTL() {
         
-        System.setProperty(DataSourceFactory.ZMS_PROP_DBPOOL_MAX_TTL, "abc");
+        System.setProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_MAX_TTL, "abc");
 
         // we ignore the invalid ttl and everything else should work fine
         
@@ -70,7 +80,7 @@ public class DataSourceFactoryTest {
         PoolableDataSource src = DataSourceFactory.create(connectionFactory);
         assertNotNull(src);
         
-        System.clearProperty(DataSourceFactory.ZMS_PROP_DBPOOL_MAX_TTL);
+        System.clearProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_MAX_TTL);
     }
     
     @Test
@@ -91,12 +101,12 @@ public class DataSourceFactoryTest {
     @Test
     public void testPoolConfigSpecifiedValues() {
        
-        System.setProperty(DataSourceFactory.ZMS_PROP_DBPOOL_MAX_TOTAL, "10");
-        System.setProperty(DataSourceFactory.ZMS_PROP_DBPOOL_MAX_IDLE, "20");
-        System.setProperty(DataSourceFactory.ZMS_PROP_DBPOOL_MIN_IDLE, "30");
-        System.setProperty(DataSourceFactory.ZMS_PROP_DBPOOL_MAX_WAIT, "40");
-        System.setProperty(DataSourceFactory.ZMS_PROP_DBPOOL_EVICT_IDLE_TIMEOUT, "50");
-        System.setProperty(DataSourceFactory.ZMS_PROP_DBPOOL_EVICT_IDLE_INTERVAL, "60");
+        System.setProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_MAX_TOTAL, "10");
+        System.setProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_MAX_IDLE, "20");
+        System.setProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_MIN_IDLE, "30");
+        System.setProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_MAX_WAIT, "40");
+        System.setProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_EVICT_IDLE_TIMEOUT, "50");
+        System.setProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_EVICT_IDLE_INTERVAL, "60");
         
         GenericObjectPoolConfig config = DataSourceFactory.setupPoolConfig();
         assertNotNull(config);
@@ -109,23 +119,23 @@ public class DataSourceFactoryTest {
         assertTrue(config.getTestWhileIdle());
         assertTrue(config.getTestOnBorrow());
         
-        System.clearProperty(DataSourceFactory.ZMS_PROP_DBPOOL_MAX_TOTAL);
-        System.clearProperty(DataSourceFactory.ZMS_PROP_DBPOOL_MAX_IDLE);
-        System.clearProperty(DataSourceFactory.ZMS_PROP_DBPOOL_MIN_IDLE);
-        System.clearProperty(DataSourceFactory.ZMS_PROP_DBPOOL_MAX_WAIT);
-        System.clearProperty(DataSourceFactory.ZMS_PROP_DBPOOL_EVICT_IDLE_TIMEOUT);
-        System.clearProperty(DataSourceFactory.ZMS_PROP_DBPOOL_EVICT_IDLE_INTERVAL);
+        System.clearProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_MAX_TOTAL);
+        System.clearProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_MAX_IDLE);
+        System.clearProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_MIN_IDLE);
+        System.clearProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_MAX_WAIT);
+        System.clearProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_EVICT_IDLE_TIMEOUT);
+        System.clearProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_EVICT_IDLE_INTERVAL);
     }
     
     @Test
     public void testPoolConfigInvalidValues() {
        
-        System.setProperty(DataSourceFactory.ZMS_PROP_DBPOOL_MAX_TOTAL, "a");
-        System.setProperty(DataSourceFactory.ZMS_PROP_DBPOOL_MAX_IDLE, "b");
-        System.setProperty(DataSourceFactory.ZMS_PROP_DBPOOL_MIN_IDLE, "c");
-        System.setProperty(DataSourceFactory.ZMS_PROP_DBPOOL_MAX_WAIT, "d");
-        System.setProperty(DataSourceFactory.ZMS_PROP_DBPOOL_EVICT_IDLE_TIMEOUT, "e");
-        System.setProperty(DataSourceFactory.ZMS_PROP_DBPOOL_EVICT_IDLE_INTERVAL, "f");
+        System.setProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_MAX_TOTAL, "a");
+        System.setProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_MAX_IDLE, "b");
+        System.setProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_MIN_IDLE, "c");
+        System.setProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_MAX_WAIT, "d");
+        System.setProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_EVICT_IDLE_TIMEOUT, "e");
+        System.setProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_EVICT_IDLE_INTERVAL, "f");
         
         GenericObjectPoolConfig config = DataSourceFactory.setupPoolConfig();
         assertNotNull(config);
@@ -139,23 +149,23 @@ public class DataSourceFactoryTest {
         assertTrue(config.getTestWhileIdle());
         assertTrue(config.getTestOnBorrow());
         
-        System.clearProperty(DataSourceFactory.ZMS_PROP_DBPOOL_MAX_TOTAL);
-        System.clearProperty(DataSourceFactory.ZMS_PROP_DBPOOL_MAX_IDLE);
-        System.clearProperty(DataSourceFactory.ZMS_PROP_DBPOOL_MIN_IDLE);
-        System.clearProperty(DataSourceFactory.ZMS_PROP_DBPOOL_MAX_WAIT);
-        System.clearProperty(DataSourceFactory.ZMS_PROP_DBPOOL_EVICT_IDLE_TIMEOUT);
-        System.clearProperty(DataSourceFactory.ZMS_PROP_DBPOOL_EVICT_IDLE_INTERVAL);
+        System.clearProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_MAX_TOTAL);
+        System.clearProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_MAX_IDLE);
+        System.clearProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_MIN_IDLE);
+        System.clearProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_MAX_WAIT);
+        System.clearProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_EVICT_IDLE_TIMEOUT);
+        System.clearProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_EVICT_IDLE_INTERVAL);
     }
 
     @Test
     public void testPoolConfigZeroValues() {
        
-        System.setProperty(DataSourceFactory.ZMS_PROP_DBPOOL_MAX_TOTAL, "0");
-        System.setProperty(DataSourceFactory.ZMS_PROP_DBPOOL_MAX_IDLE, "0");
-        System.setProperty(DataSourceFactory.ZMS_PROP_DBPOOL_MIN_IDLE, "0");
-        System.setProperty(DataSourceFactory.ZMS_PROP_DBPOOL_MAX_WAIT, "0");
-        System.setProperty(DataSourceFactory.ZMS_PROP_DBPOOL_EVICT_IDLE_TIMEOUT, "0");
-        System.setProperty(DataSourceFactory.ZMS_PROP_DBPOOL_EVICT_IDLE_INTERVAL, "0");
+        System.setProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_MAX_TOTAL, "0");
+        System.setProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_MAX_IDLE, "0");
+        System.setProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_MIN_IDLE, "0");
+        System.setProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_MAX_WAIT, "0");
+        System.setProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_EVICT_IDLE_TIMEOUT, "0");
+        System.setProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_EVICT_IDLE_INTERVAL, "0");
         
         GenericObjectPoolConfig config = DataSourceFactory.setupPoolConfig();
         assertNotNull(config);
@@ -170,67 +180,67 @@ public class DataSourceFactoryTest {
         assertTrue(config.getTestWhileIdle());
         assertTrue(config.getTestOnBorrow());
         
-        System.clearProperty(DataSourceFactory.ZMS_PROP_DBPOOL_MAX_TOTAL);
-        System.clearProperty(DataSourceFactory.ZMS_PROP_DBPOOL_MAX_IDLE);
-        System.clearProperty(DataSourceFactory.ZMS_PROP_DBPOOL_MIN_IDLE);
-        System.clearProperty(DataSourceFactory.ZMS_PROP_DBPOOL_MAX_WAIT);
-        System.clearProperty(DataSourceFactory.ZMS_PROP_DBPOOL_EVICT_IDLE_TIMEOUT);
-        System.clearProperty(DataSourceFactory.ZMS_PROP_DBPOOL_EVICT_IDLE_INTERVAL);
+        System.clearProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_MAX_TOTAL);
+        System.clearProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_MAX_IDLE);
+        System.clearProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_MIN_IDLE);
+        System.clearProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_MAX_WAIT);
+        System.clearProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_EVICT_IDLE_TIMEOUT);
+        System.clearProperty(DataSourceFactory.ATHENZ_PROP_DBPOOL_EVICT_IDLE_INTERVAL);
     }
     
     @Test
     public void testRetrieveConfigSettingLong() {
         
-        System.setProperty(ZMS_DBPOOL_PROP1, "100");
-        assertEquals(DataSourceFactory.retrieveConfigSetting(ZMS_DBPOOL_PROP1, 20L), 100L);
+        System.setProperty(ATHENZ_DBPOOL_PROP1, "100");
+        assertEquals(DataSourceFactory.retrieveConfigSetting(ATHENZ_DBPOOL_PROP1, 20L), 100L);
 
-        System.setProperty(ZMS_DBPOOL_PROP1, "0");
-        assertEquals(DataSourceFactory.retrieveConfigSetting(ZMS_DBPOOL_PROP1, 20L), 0);
+        System.setProperty(ATHENZ_DBPOOL_PROP1, "0");
+        assertEquals(DataSourceFactory.retrieveConfigSetting(ATHENZ_DBPOOL_PROP1, 20L), 0);
         
-        System.setProperty(ZMS_DBPOOL_PROP1, "-100");
-        assertEquals(DataSourceFactory.retrieveConfigSetting(ZMS_DBPOOL_PROP1, 20L), -100L);
+        System.setProperty(ATHENZ_DBPOOL_PROP1, "-100");
+        assertEquals(DataSourceFactory.retrieveConfigSetting(ATHENZ_DBPOOL_PROP1, 20L), -100L);
         
-        System.clearProperty(ZMS_DBPOOL_PROP1);
+        System.clearProperty(ATHENZ_DBPOOL_PROP1);
     }
     
     @Test
     public void testRetrieveConfigSettingLongNull() {
-        System.clearProperty(ZMS_DBPOOL_PROP1);
-        assertEquals(DataSourceFactory.retrieveConfigSetting(ZMS_DBPOOL_PROP1, 25L), 25L);
+        System.clearProperty(ATHENZ_DBPOOL_PROP1);
+        assertEquals(DataSourceFactory.retrieveConfigSetting(ATHENZ_DBPOOL_PROP1, 25L), 25L);
     }
     
     @Test
     public void testRetrieveConfigSettingLongInvalid() {
-        System.setProperty(ZMS_DBPOOL_PROP1, "abc");
-        assertEquals(DataSourceFactory.retrieveConfigSetting(ZMS_DBPOOL_PROP1, 20L), 20L);
-        System.clearProperty(ZMS_DBPOOL_PROP1);
+        System.setProperty(ATHENZ_DBPOOL_PROP1, "abc");
+        assertEquals(DataSourceFactory.retrieveConfigSetting(ATHENZ_DBPOOL_PROP1, 20L), 20L);
+        System.clearProperty(ATHENZ_DBPOOL_PROP1);
     }
 
     @Test
     public void testRetrieveConfigSettingInt() {
         
-        System.setProperty(ZMS_DBPOOL_PROP1, "100");
-        assertEquals(DataSourceFactory.retrieveConfigSetting(ZMS_DBPOOL_PROP1, 20), 100);
+        System.setProperty(ATHENZ_DBPOOL_PROP1, "100");
+        assertEquals(DataSourceFactory.retrieveConfigSetting(ATHENZ_DBPOOL_PROP1, 20), 100);
 
-        System.setProperty(ZMS_DBPOOL_PROP1, "0");
-        assertEquals(DataSourceFactory.retrieveConfigSetting(ZMS_DBPOOL_PROP1, 20), 0);
+        System.setProperty(ATHENZ_DBPOOL_PROP1, "0");
+        assertEquals(DataSourceFactory.retrieveConfigSetting(ATHENZ_DBPOOL_PROP1, 20), 0);
         
-        System.setProperty(ZMS_DBPOOL_PROP1, "-100");
-        assertEquals(DataSourceFactory.retrieveConfigSetting(ZMS_DBPOOL_PROP1, 20), -100);
+        System.setProperty(ATHENZ_DBPOOL_PROP1, "-100");
+        assertEquals(DataSourceFactory.retrieveConfigSetting(ATHENZ_DBPOOL_PROP1, 20), -100);
         
-        System.clearProperty(ZMS_DBPOOL_PROP1);
+        System.clearProperty(ATHENZ_DBPOOL_PROP1);
     }
     
     @Test
     public void testRetrieveConfigSettingIntNull() {
-        System.clearProperty(ZMS_DBPOOL_PROP1);
-        assertEquals(DataSourceFactory.retrieveConfigSetting(ZMS_DBPOOL_PROP1, 25), 25);
+        System.clearProperty(ATHENZ_DBPOOL_PROP1);
+        assertEquals(DataSourceFactory.retrieveConfigSetting(ATHENZ_DBPOOL_PROP1, 25), 25);
     }
     
     @Test
     public void testRetrieveConfigSettingIntInvalid() {
-        System.setProperty(ZMS_DBPOOL_PROP1, "abc");
-        assertEquals(DataSourceFactory.retrieveConfigSetting(ZMS_DBPOOL_PROP1, 20), 20);
-        System.clearProperty(ZMS_DBPOOL_PROP1);
+        System.setProperty(ATHENZ_DBPOOL_PROP1, "abc");
+        assertEquals(DataSourceFactory.retrieveConfigSetting(ATHENZ_DBPOOL_PROP1, 20), 20);
+        System.clearProperty(ATHENZ_DBPOOL_PROP1);
     }
 }

@@ -32,8 +32,6 @@ import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.metrics.MetricFactory;
-import com.yahoo.athenz.common.server.db.DataSourceFactory;
-import com.yahoo.athenz.common.server.db.PoolableDataSource;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
 import com.yahoo.athenz.common.server.rest.Http;
@@ -51,8 +49,7 @@ import com.yahoo.athenz.zms.config.AuthorizedServices;
 import com.yahoo.athenz.zms.config.SolutionTemplates;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.athenz.zms.store.ObjectStore;
-import com.yahoo.athenz.zms.store.file.FileObjectStore;
-import com.yahoo.athenz.zms.store.jdbc.JDBCObjectStore;
+import com.yahoo.athenz.zms.store.ObjectStoreFactory;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 
 import java.util.HashSet;
@@ -71,7 +68,6 @@ import java.security.PublicKey;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URISyntaxException;
@@ -108,7 +104,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     
     private static final String SYS_AUTH = "sys.auth";
     private static final String USER_TOKEN_DEFAULT_NAME = "_self_";
-    private static final String JDBC = "jdbc";
     
     // data validation types
     private static final String TYPE_DOMAIN_NAME = "DomainName";
@@ -542,40 +537,18 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     
     void loadObjectStore() {
         
-        ObjectStore store = null;
-        String jdbcStore = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RW_STORE);
-        if (jdbcStore != null && jdbcStore.startsWith("jdbc:")) {
-            String jdbcUser = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RW_USER);
-            String password = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RW_PASSWORD, "");
-            String jdbcPassword = keyStore.getApplicationSecret(JDBC, password);
-            PoolableDataSource readWriteSrc = DataSourceFactory.create(jdbcStore, jdbcUser, jdbcPassword);
-            
-            // now check to see if we also have a read-only jdbc store configured
-            // if no username and password are specified then we'll use the
-            // read-write store credentials
-            
-            PoolableDataSource readOnlySrc = null;
-            String jdbcReadOnlyStore = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RO_STORE);
-            if (jdbcReadOnlyStore != null && jdbcReadOnlyStore.startsWith("jdbc:")) {
-                String jdbcReadOnlyUser = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RO_USER, jdbcUser);
-                String readOnlyPassword = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RO_PASSWORD, password);
-                String jdbcReadOnlyPassword = keyStore.getApplicationSecret(JDBC, readOnlyPassword);
-                readOnlySrc = DataSourceFactory.create(jdbcReadOnlyStore,
-                        jdbcReadOnlyUser, jdbcReadOnlyPassword);
-            }
-            
-            store = new JDBCObjectStore(readWriteSrc, readOnlySrc);
-
-        } else {
-            String homeDir = System.getProperty(ZMSConsts.ZMS_PROP_FILE_STORE_PATH,
-                    getRootDir() + "/var/zms_server");
-            String fileDirName = System.getProperty(ZMSConsts.ZMS_PROP_FILE_STORE_NAME, "zms_root");
-            String quotaDirName = System.getProperty(ZMSConsts.ZMS_PROP_FILE_STORE_QUOTA, "zms_quota");
-            String filePath = homeDir + File.separator + fileDirName;
-            String quotaPath = homeDir + File.separator + quotaDirName;
-            store = new FileObjectStore(new File(filePath), new File(quotaPath));
+        String objFactoryClass = System.getProperty(ZMSConsts.ZMS_PROP_OBJECT_STORE_FACTORY_CLASS,
+                ZMSConsts.ZMS_OBJECT_STORE_FACTORY_CLASS);
+        ObjectStoreFactory objFactory = null;
+        try {
+            objFactory = (ObjectStoreFactory) Class.forName(objFactoryClass).newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            LOG.error("Invalid ObjectStoreFactory class: " + objFactoryClass
+                    + " error: " + e.getMessage());
+            throw new IllegalArgumentException("Invalid object store");
         }
-
+        
+        ObjectStore store = objFactory.create(keyStore);
         dbService = new DBService(store, auditLogger, userDomain);
     }
     
@@ -601,7 +574,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     void loadPrivateKeyStore() {
         
         String pkeyFactoryClass = System.getProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
-                ZMSConsts.ZMS_PKEY_STORE_FACTORY_CLASS);
+                ZMSConsts.ZMS_PRIVATE_KEY_STORE_FACTORY_CLASS);
         PrivateKeyStoreFactory pkeyFactory = null;
         try {
             pkeyFactory = (PrivateKeyStoreFactory) Class.forName(pkeyFactoryClass).newInstance();
@@ -6571,7 +6544,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return authority;
     }
     
-    String getRootDir() {
+    public static String getRootDir() {
         
         if (ROOT_DIR == null) {
             ROOT_DIR = System.getenv(ZMSConsts.STR_ENV_ROOT);
