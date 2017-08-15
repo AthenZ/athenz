@@ -44,6 +44,8 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 
+import com.amazonaws.auth.AWSCredentialsProvider;
+
 import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.operator.OperatorCreationException;
@@ -1289,9 +1291,9 @@ public class ZTSClient implements Closeable {
      * For a given domain and role return AWS temporary credential provider
      * @param domainName name of the domain
      * @param roleName is the name of the role
-     * @return AWSCredentialsProviderImpl AWS credential provider
+     * @return AWSCredentialsProvider AWS credential provider
      */
-    public AWSCredentialsProviderImpl getAWSCredentialProvider(String domainName, String roleName) {
+    public AWSCredentialsProvider getAWSCredentialProvider(String domainName, String roleName) {
         return new AWSCredentialsProviderImpl(this, domainName, roleName);
     }
 
