@@ -1972,8 +1972,22 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, info.getDomain());
         }
         
-        // we need to validate the instance document
-        
+        // we need to validate the instance document, unless it isn't there i.e. lambda, then just validate the creds
+
+        if (info.getDocument() == "lambda") {
+            if (!cloudStore.verifyInstanceIdentity(info)) {
+                throw requestError("postAWSInstanceInformation: unable to validate lambda identity",
+                                   caller, info.getDomain());
+            }
+            Identity identity = cloudStore.generateIdentity(info.getName(), info.getCsr(), null, null);
+            if (identity == null) {
+                throw requestError("postAWSInstanceInformation: unable to generate identity for lambda",
+                                   caller, info.getDomain());
+            }
+            metric.stopTiming(timerMetric);
+            return identity;
+        }
+
         if (!cloudStore.verifyInstanceDocument(info, account)) {
             throw requestError("postAWSInstanceInformation: unable to validate instance document",
                     caller, info.getDomain());
