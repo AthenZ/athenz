@@ -34,6 +34,7 @@ import org.eclipse.jetty.rewrite.handler.RewriteHandler;
 import org.eclipse.jetty.server.DebugListener;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.ProxyConnectionFactory;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -377,11 +378,19 @@ public class AthenzJettyContainer {
         int idleTimeout = Integer.parseInt(
                 System.getProperty(AthenzConsts.ATHENZ_PROP_IDLE_TIMEOUT, "30000"));
         String listenHost = System.getProperty(AthenzConsts.ATHENZ_PROP_LISTEN_HOST);
+        boolean proxyProtocol = Boolean.parseBoolean(
+                System.getProperty(AthenzConsts.ATHENZ_PROP_PROXY_PROTOCOL, "false"));
 
         // HTTP Connector
         
         if (httpPort > 0) {
-            ServerConnector connector = new ServerConnector(server, new HttpConnectionFactory(httpConfig));
+            ServerConnector connector = null;
+            if (proxyProtocol) {
+                connector = new ServerConnector(server, new ProxyConnectionFactory(),
+                        new HttpConnectionFactory(httpConfig));
+            } else {
+                connector = new ServerConnector(server, new HttpConnectionFactory(httpConfig));
+            }
             if (listenHost != null) {
                 connector.setHost(listenHost);
             }
@@ -405,9 +414,16 @@ public class AthenzJettyContainer {
 
             // SSL Connector
             
-            ServerConnector sslConnector = new ServerConnector(server,
-                    new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
-                    new HttpConnectionFactory(httpsConfig));
+            ServerConnector sslConnector = null;
+            if (proxyProtocol) {
+                sslConnector = new ServerConnector(server, new ProxyConnectionFactory(),
+                        new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
+                        new HttpConnectionFactory(httpsConfig));
+            } else {
+                sslConnector = new ServerConnector(server,
+                        new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
+                        new HttpConnectionFactory(httpsConfig));
+            }
             sslConnector.setPort(httpsPort);
             sslConnector.setIdleTimeout(idleTimeout);
             server.addConnector(sslConnector);
