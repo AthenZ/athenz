@@ -1974,7 +1974,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // we need to validate the instance document, unless it isn't there i.e. lambda, then just validate the creds
 
-        String ssh = info.getSsh();
         if (info.getDocument() == "lambda") {
             if (!cloudStore.verifyInstanceIdentity(info)) {
                 throw requestError("postAWSInstanceInformation: unable to validate lambda identity",
