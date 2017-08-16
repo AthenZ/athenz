@@ -5838,4 +5838,38 @@ public class ZTSImplTest {
         ChangeLogStore store = zts.getChangeLogStore(ZTS_DATA_STORE_PATH);
         assertNotNull(store);
     }
+
+    @Test
+    public void testPostAWSInstanceInformationLambda() throws IOException {
+
+        File caCert = new File("src/test/resources/valid_cn_x509.cert");
+        X509Certificate caCertificate = Crypto.loadX509Certificate(caCert);
+
+        File caKey = new File("src/test/resources/private_encrypted.key");
+        PrivateKey caPrivateKey = Crypto.loadPrivateKey(caKey, "athenz");
+        CertSigner certSigner = new SelfCertSigner(caPrivateKey, caCertificate);
+
+        MockCloudStore cloudStore = new MockCloudStore(certSigner);
+        cloudStore.setIdentityCheckResult(1);
+        cloudStore.skipDocumentSignatureCheck(true);
+        store.setCloudStore(cloudStore);
+        zts.cloudStore = cloudStore;
+
+        SignedDomain signedDomain = createAwsSignedDomain("athenz", "111111111111");
+        store.processDomain(signedDomain, false);
+
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String certCsr = new String(Files.readAllBytes(path));
+
+        AWSInstanceInformation info = generateAWSInstanceInformation("athenz", "111111111111", "lambda", "");
+        info.setCsr(certCsr);
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+
+        Identity identity = zts.postAWSInstanceInformation(context, info);
+        assertNotNull(identity);
+    }
+
 }
