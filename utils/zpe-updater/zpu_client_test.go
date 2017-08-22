@@ -16,7 +16,6 @@ import (
 	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/yahoo/athenz/clients/go/zms"
 	"github.com/yahoo/athenz/clients/go/zts"
 	"github.com/yahoo/athenz/libs/go/zmssvctoken"
 	"github.com/yahoo/athenz/utils/zpe-updater/devel"
@@ -81,10 +80,10 @@ func TestWritePolicies(t *testing.T) {
 
 func TestGetEtagForExistingPolicy(t *testing.T) {
 	a := assert.New(t)
-	zmsClient := zms.NewClient((*testConfig).Zms, nil)
+	ztsClient := zts.NewClient((*testConfig).Zts, nil)
 
 	//Policy File does not exist
-	etag, err := GetEtagForExistingPolicy(testConfig, zmsClient, DOMAIN, POLICIES_DIR)
+	etag, err := GetEtagForExistingPolicy(testConfig, ztsClient, DOMAIN, POLICIES_DIR)
 	a.Nil(err, "Empty Etag should be returned")
 	a.Empty(etag, "Empty Etag should be returned")
 
@@ -95,8 +94,8 @@ func TestGetEtagForExistingPolicy(t *testing.T) {
 	a.Nil(err)
 	err = ioutil.WriteFile(POLICIES_DIR+"/test.pol", policyJson, 0755)
 	a.Nil(err)
-	etag, err = GetEtagForExistingPolicy(testConfig, zmsClient, "test", POLICIES_DIR)
-	errv := ValidateSignedPolicies(testConfig, zmsClient, policyData)
+	etag, err = GetEtagForExistingPolicy(testConfig, ztsClient, "test", POLICIES_DIR)
+	errv := ValidateSignedPolicies(testConfig, ztsClient, policyData)
 	if errv != nil {
 		a.NotNil(err)
 		a.Empty(etag)
@@ -114,7 +113,6 @@ func TestPolicyUpdaterEmptyDomain(t *testing.T) {
 	a := assert.New(t)
 	conf := &ZpuConfiguration{
 		Zts:        "zts_url",
-		Zms:        "zms_url",
 		DomainList: "",
 	}
 	err := PolicyUpdater(conf)
@@ -125,7 +123,6 @@ func TestPolicyUpdaterEmptyPolicyDir(t *testing.T) {
 	a := assert.New(t)
 	conf := &ZpuConfiguration{
 		Zts:        "zts_url",
-		Zms:        "zms_url",
 		DomainList: "test",
 		MetricsDir: "",
 	}
@@ -136,7 +133,7 @@ func TestPolicyUpdaterEmptyPolicyDir(t *testing.T) {
 func TestPolicyUpdaterEmptyzts(t *testing.T) {
 	a := assert.New(t)
 	conf := &ZpuConfiguration{
-		Zms:        "zms_url",
+		Zts:        "zts_url",
 		DomainList: "test",
 		MetricsDir: "/policy",
 	}

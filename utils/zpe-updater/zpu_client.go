@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"github.com/ardielle/ardielle-go/rdl"
-	"github.com/yahoo/athenz/clients/go/zms"
 	"github.com/yahoo/athenz/clients/go/zts"
 	"github.com/yahoo/athenz/libs/go/zmssvctoken"
 	"github.com/yahoo/athenz/utils/zpe-updater/util"
@@ -31,9 +30,6 @@ func PolicyUpdater(config *ZpuConfiguration) error {
 	if config.DomainList == "" {
 		return errors.New("No domain list to process from configuration")
 	}
-	if config.Zms == "" {
-		return errors.New("Empty Zms url in configuration")
-	}
 	if config.Zts == "" {
 		return errors.New("Empty Zts url in configuration")
 	}
@@ -41,12 +37,10 @@ func PolicyUpdater(config *ZpuConfiguration) error {
 	domains := strings.Split(config.DomainList, ",")
 	ztsUrl := formatUrl(config.Zts, "zts/v1")
 	ztsClient := zts.NewClient(ztsUrl, nil)
-	zmsUrl := formatUrl(config.Zms, "zms/v1")
-	zmsClient := zms.NewClient(zmsUrl, nil)
 	policyFileDir := config.PolicyFileDir
 	failedDomains := ""
 	for _, domain := range domains {
-		err := GetPolicies(config, ztsClient, zmsClient, policyFileDir, domain)
+		err := GetPolicies(config, ztsClient, policyFileDir, domain)
 		if err != nil {
 			if success {
 				success = false
@@ -70,9 +64,9 @@ func PolicyUpdater(config *ZpuConfiguration) error {
 	return nil
 }
 
-func GetPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, zmsClient zms.ZMSClient, policyFileDir, domain string) error {
+func GetPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, policyFileDir, domain string) error {
 	log.Printf("Getting policies for domain: %v", domain)
-	etag, err := GetEtagForExistingPolicy(config, zmsClient, domain, policyFileDir)
+	etag, err := GetEtagForExistingPolicy(config, ztsClient, domain, policyFileDir)
 	if err != nil {
 		return fmt.Errorf("Failed to get Etag for domain: %v, Error: %v", domain, err)
 	}
@@ -90,7 +84,7 @@ func GetPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, zmsClient zm
 		}
 	}
 	//validate data using zts public key and signature
-	err = ValidateSignedPolicies(config, zmsClient, data)
+	err = ValidateSignedPolicies(config, ztsClient, data)
 	if err != nil {
 		return fmt.Errorf("Failed to validate policy data for domain: %v, Error: %v", domain, err)
 	}
@@ -102,7 +96,7 @@ func GetPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, zmsClient zm
 	return nil
 }
 
-func GetEtagForExistingPolicy(config *ZpuConfiguration, zmsClient zms.ZMSClient, domain, policyFileDir string) (string, error) {
+func GetEtagForExistingPolicy(config *ZpuConfiguration, ztsClient zts.ZTSClient, domain, policyFileDir string) (string, error) {
 	var etag string
 	var domainSignedPolicyData *zts.DomainSignedPolicyData
 
@@ -124,7 +118,7 @@ func GetEtagForExistingPolicy(config *ZpuConfiguration, zmsClient zms.ZMSClient,
 	if err != nil {
 		return "", err
 	}
-	err = ValidateSignedPolicies(config, zmsClient, domainSignedPolicyData)
+	err = ValidateSignedPolicies(config, ztsClient, domainSignedPolicyData)
 	if err != nil {
 		return "", err
 	}
@@ -140,7 +134,7 @@ func GetEtagForExistingPolicy(config *ZpuConfiguration, zmsClient zms.ZMSClient,
 	return etag, nil
 }
 
-func ValidateSignedPolicies(config *ZpuConfiguration, zmsClient zms.ZMSClient, data *zts.DomainSignedPolicyData) error {
+func ValidateSignedPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, data *zts.DomainSignedPolicyData) error {
 	expires := data.SignedPolicyData.Expires
 	if expired(expires) {
 		return fmt.Errorf("The policy data is expired on %v", expires)
@@ -151,7 +145,7 @@ func ValidateSignedPolicies(config *ZpuConfiguration, zmsClient zms.ZMSClient, d
 
 	ztsPublicKey := config.GetZtsPublicKey(ztsKeyId)
 	if ztsPublicKey == "" {
-		key, err := zmsClient.GetPublicKeyEntry("sys.auth", "zts", ztsKeyId)
+		key, err := ztsClient.GetPublicKeyEntry("sys.auth", "zts", ztsKeyId)
 		if err != nil {
 			return fmt.Errorf("Unable to get the Zts public key with id:\"%v\" to verify data", ztsKeyId)
 		}
@@ -173,7 +167,7 @@ func ValidateSignedPolicies(config *ZpuConfiguration, zmsClient zms.ZMSClient, d
 	zmsKeyId := data.SignedPolicyData.ZmsKeyId
 	zmsPublicKey := config.GetZmsPublicKey(zmsKeyId)
 	if zmsPublicKey == "" {
-		key, err := zmsClient.GetPublicKeyEntry("sys.auth", "zms", zmsKeyId)
+		key, err := ztsClient.GetPublicKeyEntry("sys.auth", "zms", zmsKeyId)
 		if err != nil {
 			return fmt.Errorf("Unable to get the Zms public key with id:\"%v\" to verify data", zmsKeyId)
 		}
