@@ -29,6 +29,9 @@ public class SubDomain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer ypmId;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String applicationId;
     public String name;
     public List<String> adminUsers;
     @RdlOptional
@@ -77,6 +80,13 @@ public class SubDomain {
     }
     public Integer getYpmId() {
         return ypmId;
+    }
+    public SubDomain setApplicationId(String applicationId) {
+        this.applicationId = applicationId;
+        return this;
+    }
+    public String getApplicationId() {
+        return applicationId;
     }
     public SubDomain setName(String name) {
         this.name = name;
@@ -130,6 +140,9 @@ public class SubDomain {
                 return false;
             }
             if (ypmId == null ? a.ypmId != null : !ypmId.equals(a.ypmId)) {
+                return false;
+            }
+            if (applicationId == null ? a.applicationId != null : !applicationId.equals(a.applicationId)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

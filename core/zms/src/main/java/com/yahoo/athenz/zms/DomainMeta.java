@@ -29,6 +29,9 @@ public class DomainMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer ypmId;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String applicationId;
 
     public DomainMeta setDescription(String description) {
         this.description = description;
@@ -72,6 +75,13 @@ public class DomainMeta {
     public Integer getYpmId() {
         return ypmId;
     }
+    public DomainMeta setApplicationId(String applicationId) {
+        this.applicationId = applicationId;
+        return this;
+    }
+    public String getApplicationId() {
+        return applicationId;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -96,6 +106,9 @@ public class DomainMeta {
                 return false;
             }
             if (ypmId == null ? a.ypmId != null : !ypmId.equals(a.ypmId)) {
+                return false;
+            }
+            if (applicationId == null ? a.applicationId != null : !applicationId.equals(a.applicationId)) {
                 return false;
             }
         }
