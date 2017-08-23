@@ -29,6 +29,9 @@ public class UserDomain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer ypmId;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String applicationId;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -76,6 +79,13 @@ public class UserDomain {
     public Integer getYpmId() {
         return ypmId;
     }
+    public UserDomain setApplicationId(String applicationId) {
+        this.applicationId = applicationId;
+        return this;
+    }
+    public String getApplicationId() {
+        return applicationId;
+    }
     public UserDomain setName(String name) {
         this.name = name;
         return this;
@@ -114,6 +124,9 @@ public class UserDomain {
                 return false;
             }
             if (ypmId == null ? a.ypmId != null : !ypmId.equals(a.ypmId)) {
+                return false;
+            }
+            if (applicationId == null ? a.applicationId != null : !applicationId.equals(a.applicationId)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

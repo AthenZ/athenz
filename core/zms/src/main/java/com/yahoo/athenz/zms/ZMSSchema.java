@@ -80,7 +80,8 @@ public class ZMSSchema {
             .field("enabled", "Bool", true, "Future use only, currently not used", true)
             .field("auditEnabled", "Bool", true, "Flag indicates whether or not domain modifications should be logged for SOX+Auditing. If true, the auditRef parameter must be supplied(not empty) for any API defining it.", false)
             .field("account", "String", true, "associated cloud (i.e. aws) account id")
-            .field("ypmId", "Int32", true, "associated product id");
+            .field("ypmId", "Int32", true, "associated product id")
+            .field("applicationId", "String", true, "associated application id");
 
         sb.structType("RoleList")
             .comment("The representation for an enumeration of roles in the namespace, with pagination.")
@@ -181,7 +182,8 @@ public class ZMSSchema {
             .field("enabled", "Bool", true, "Future use only, currently not used", true)
             .field("auditEnabled", "Bool", true, "Flag indicates whether or not domain modifications should be logged for SOX+Auditing. If true, the auditRef parameter must be supplied(not empty) for any API defining it.", false)
             .field("account", "String", true, "associated cloud (i.e. aws) account id")
-            .field("ypmId", "Int32", true, "associated product id");
+            .field("ypmId", "Int32", true, "associated product id")
+            .field("applicationId", "String", true, "associated application id");
 
         sb.structType("TopLevelDomain", "DomainMeta")
             .comment("Top Level Domain object. The required attributes include the name of the domain and list of domain administrators.")
