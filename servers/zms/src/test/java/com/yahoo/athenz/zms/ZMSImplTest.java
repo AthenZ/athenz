@@ -9242,7 +9242,7 @@ public class ZMSImplTest {
         List<String> adminUsers = new ArrayList<>();
         adminUsers.add("user.user2");
         zms.dbService.makeDomain(mockDomRsrcCtx, domainName, "Test Domain", "org",
-                true, adminUsers, null, 0, null, auditRef);
+                true, adminUsers, null, 0, null, null, auditRef);
 
         Policy policy = createPolicyObject(domainName, "trust", "coretechtrust:role.role1",
                 false, "ASSUME_ROLE", "weather:role.role1", AssertionEffect.ALLOW);
@@ -9271,7 +9271,7 @@ public class ZMSImplTest {
         List<String> adminUsers = new ArrayList<>();
         adminUsers.add("user.user");
         zms.dbService.makeDomain(mockDomRsrcCtx, domainName, "Test Domain", "org",
-                true, adminUsers, null, 0, null, auditRef);
+                true, adminUsers, null, 0, null, null, auditRef);
         
         Role role1 = createRoleObject(domainName,  "role1", null, "user.user", null);
         zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1",
@@ -9300,7 +9300,7 @@ public class ZMSImplTest {
         List<String> adminUsers = new ArrayList<>();
         adminUsers.add("user.user");
         zms.dbService.makeDomain(mockDomRsrcCtx, domainName, "Test Domain", "org",
-                true, adminUsers, null, 0, null, auditRef);
+                true, adminUsers, null, 0, null, null, auditRef);
         
         zms.dbService.executeDeleteRole(mockDomRsrcCtx, domainName, "admin", auditRef, "unittest");
         
@@ -9325,7 +9325,7 @@ public class ZMSImplTest {
         List<String> adminUsers = new ArrayList<>();
         adminUsers.add("user.user");
         zms.dbService.makeDomain(mockDomRsrcCtx, domainName, "Test Domain", "org",
-                true, adminUsers, null, 0, null, auditRef);
+                true, adminUsers, null, 0, null, null, auditRef);
         
         Role role1 = createRoleObject(domainName,  "role1", null, "user.user", null);
         zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1",
@@ -9359,7 +9359,7 @@ public class ZMSImplTest {
         List<String> adminUsers = new ArrayList<>();
         adminUsers.add("user.user");
         zms.dbService.makeDomain(mockDomRsrcCtx, domainName, "Test Domain", "org",
-                true, adminUsers, null, 0, null, auditRef);
+                true, adminUsers, null, 0, null, null, auditRef);
         
         Role role1 = createRoleObject(domainName,  "role1", null, "user.user", null);
         zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1",
@@ -9387,7 +9387,7 @@ public class ZMSImplTest {
         List<String> adminUsers = new ArrayList<>();
         adminUsers.add("user.user");
         zms.dbService.makeDomain(mockDomRsrcCtx, domainName, "Test Domain", "org",
-                true, adminUsers, null, 0, null, auditRef);
+                true, adminUsers, null, 0, null, null, auditRef);
         
         Role role1 = createRoleObject(domainName,  "role1", null, "user.user", null);
         zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1",
@@ -9417,7 +9417,7 @@ public class ZMSImplTest {
         List<String> adminUsers = new ArrayList<>();
         adminUsers.add("user.user");
         zms.dbService.makeDomain(mockDomRsrcCtx, domainName, "Test Domain", "org",
-                true, adminUsers, null, 0, null, auditRef);
+                true, adminUsers, null, 0, null, null, auditRef);
         
         Role role1 = createRoleObject(domainName,  "role1", null, "user.user", null);
         zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1",
@@ -9451,7 +9451,7 @@ public class ZMSImplTest {
         List<String> adminUsers = new ArrayList<>();
         adminUsers.add("user.user");
         zms.dbService.makeDomain(mockDomRsrcCtx, domainName, "Test Domain", "org",
-                true, adminUsers, null, 0, null, auditRef);
+                true, adminUsers, null, 0, null, null, auditRef);
         
         Role role1 = createRoleObject(domainName,  "role1", null, "user.user", null);
         zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1",
@@ -9489,7 +9489,7 @@ public class ZMSImplTest {
         List<String> adminUsers = new ArrayList<>();
         adminUsers.add("user.user");
         zms.dbService.makeDomain(mockDomRsrcCtx, domainName, "Test Domain", "org",
-                true, adminUsers, null, 0, null, auditRef);
+                true, adminUsers, null, 0, null, null, auditRef);
         
         Role role1 = createRoleObject(domainName,  "role1", null, "user.user", null);
         zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1",

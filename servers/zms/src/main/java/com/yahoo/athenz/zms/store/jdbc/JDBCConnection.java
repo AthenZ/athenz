@@ -75,9 +75,9 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_DOMAIN_WITH_ACCOUNT = "SELECT name FROM domain WHERE account=?;";
     private static final String SQL_GET_DOMAIN_WITH_PRODUCT_ID = "SELECT name FROM domain WHERE ypm_id=?;";
     private static final String SQL_INSERT_DOMAIN = "INSERT INTO domain "
-            + "(name, description, org, uuid, enabled, audit_enabled, account, ypm_id) VALUES (?,?,?,?,?,?,?,?);";
+            + "(name, description, org, uuid, enabled, audit_enabled, account, ypm_id, application_id) VALUES (?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_DOMAIN = "UPDATE domain "
-            + "SET description=?, org=?, uuid=?, enabled=?, audit_enabled=?, account=?, ypm_id=? WHERE name=?;";
+            + "SET description=?, org=?, uuid=?, enabled=?, audit_enabled=?, account=?, ypm_id=?, application_id=? WHERE name=?;";
     private static final String SQL_UPDATE_DOMAIN_MOD_TIMESTAMP = "UPDATE domain "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE name=?;";
     private static final String SQL_GET_DOMAIN_MOD_TIMESTAMP = "SELECT modified FROM domain WHERE name=?;";
@@ -425,6 +425,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setBoolean(6, processInsertValue(domain.getAuditEnabled(), false));
             ps.setString(7, processInsertValue(domain.getAccount()));
             ps.setInt(8, processInsertValue(domain.getYpmId()));
+            ps.setString(9, processInsertValue(domain.getApplicationId()));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -479,7 +480,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setBoolean(5, processInsertValue(domain.getAuditEnabled(), false));
             ps.setString(6, processInsertValue(domain.getAccount()));
             ps.setInt(7, processInsertValue(domain.getYpmId()));
-            ps.setString(8, domain.getName());
+            ps.setString(8, processInsertValue(domain.getApplicationId()));
+            ps.setString(9, domain.getName());
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);

@@ -150,6 +150,11 @@ type Domain struct {
 	// associated product id
 	//
 	YpmId *int32 `json:"ypmId,omitempty" rdl:"optional"`
+
+	//
+	// associated application id
+	//
+	ApplicationId string `json:"applicationId,omitempty" rdl:"optional"`
 }
 
 //
@@ -1519,6 +1524,11 @@ type DomainMeta struct {
 	// associated product id
 	//
 	YpmId *int32 `json:"ypmId,omitempty" rdl:"optional"`
+
+	//
+	// associated application id
+	//
+	ApplicationId string `json:"applicationId,omitempty" rdl:"optional"`
 }
 
 //
@@ -1609,6 +1619,11 @@ type TopLevelDomain struct {
 	// associated product id
 	//
 	YpmId *int32 `json:"ypmId,omitempty" rdl:"optional"`
+
+	//
+	// associated application id
+	//
+	ApplicationId string `json:"applicationId,omitempty" rdl:"optional"`
 
 	//
 	// name of the domain
@@ -1727,6 +1742,11 @@ type SubDomain struct {
 	// associated product id
 	//
 	YpmId *int32 `json:"ypmId,omitempty" rdl:"optional"`
+
+	//
+	// associated application id
+	//
+	ApplicationId string `json:"applicationId,omitempty" rdl:"optional"`
 
 	//
 	// name of the domain
@@ -1859,6 +1879,11 @@ type UserDomain struct {
 	// associated product id
 	//
 	YpmId *int32 `json:"ypmId,omitempty" rdl:"optional"`
+
+	//
+	// associated application id
+	//
+	ApplicationId string `json:"applicationId,omitempty" rdl:"optional"`
 
 	//
 	// user id which will be the domain name
@@ -3621,6 +3646,11 @@ type DomainData struct {
 	// last modification timestamp
 	//
 	Modified rdl.Timestamp `json:"modified"`
+
+	//
+	// associated application id
+	//
+	ApplicationId string `json:"applicationId,omitempty" rdl:"optional"`
 }
 
 //

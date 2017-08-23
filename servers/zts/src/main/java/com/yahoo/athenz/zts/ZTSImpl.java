@@ -1154,7 +1154,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         Set<String> roles = new HashSet<>();
         dataStore.getAccessibleRoles(data, domainName, principal, roleName,
-                roles, false);
+                roles, false, ((RsrcCtxWrapper) ctx).principal().getApplicationId());
         
         if (roles.isEmpty()) {
             throw forbiddenError("getRoleToken: No access to any roles in domain: " + domainName,

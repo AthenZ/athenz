@@ -723,15 +723,31 @@ public class DataStore implements DataCacheProvider {
     public DataCache getDataCache(String domainName) {
         return getCacheStore().getIfPresent(domainName);
     }
-    
+
     // API
     public void getAccessibleRoles(DataCache data, String domainName, String identity,
             String roleName, Set<String> accessibleRoles, boolean keepFullName) {
+        getAccessibleRoles(data, domainName, identity, roleName, accessibleRoles, keepFullName, null);
+    }
+    
+    // API additional check for application ID
+    public void getAccessibleRoles(DataCache data, String domainName, String identity,
+            String roleName, Set<String> accessibleRoles, boolean keepFullName, String applicationId) {
 
         /* if the domain hasn't been processed then we don't have anything to do */
         
         if (data == null) {
             return;
+        }
+        
+        /* check if application id matches the principal's application id */
+        if (null != applicationId && !applicationId.isEmpty()) {
+            String appId = data.getDomainData().getApplicationId();
+            if (null != appId && !appId.isEmpty()) {
+                if (!appId.equals(applicationId)) {
+                    return;
+                }
+            }
         }
 
         final String rolePrefix = domainName + ROLE_POSTFIX;

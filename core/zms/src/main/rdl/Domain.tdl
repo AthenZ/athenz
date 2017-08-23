@@ -20,4 +20,5 @@ type Domain Struct {
     Bool auditEnabled (optional, default=false); //Flag indicates whether or not domain modifications should be logged for SOX+Auditing. If true, the auditRef parameter must be supplied(not empty) for any API defining it.
     String account (optional); // associated cloud (i.e. aws) account id
     Int32 ypmId (optional); // associated product id
+    String applicationId (optional); // associated application id
 }

@@ -92,6 +92,7 @@ func init() {
 	tDomain.Field("auditEnabled", "Bool", true, false, "Flag indicates whether or not domain modifications should be logged for SOX+Auditing. If true, the auditRef parameter must be supplied(not empty) for any API defining it.")
 	tDomain.Field("account", "String", true, nil, "associated cloud (i.e. aws) account id")
 	tDomain.Field("ypmId", "Int32", true, nil, "associated product id")
+	tDomain.Field("applicationId", "String", true, nil, "associated application id")
 	sb.AddType(tDomain.Build())
 
 	tRoleList := rdl.NewStructTypeBuilder("Struct", "RoleList")
@@ -212,6 +213,7 @@ func init() {
 	tDomainMeta.Field("auditEnabled", "Bool", true, false, "Flag indicates whether or not domain modifications should be logged for SOX+Auditing. If true, the auditRef parameter must be supplied(not empty) for any API defining it.")
 	tDomainMeta.Field("account", "String", true, nil, "associated cloud (i.e. aws) account id")
 	tDomainMeta.Field("ypmId", "Int32", true, nil, "associated product id")
+	tDomainMeta.Field("applicationId", "String", true, nil, "associated application id")
 	sb.AddType(tDomainMeta.Build())
 
 	tTopLevelDomain := rdl.NewStructTypeBuilder("DomainMeta", "TopLevelDomain")
@@ -390,6 +392,7 @@ func init() {
 	tDomainData.ArrayField("services", "ServiceIdentity", false, "list of services in the domain")
 	tDomainData.ArrayField("entities", "Entity", false, "list of entities in the domain")
 	tDomainData.Field("modified", "Timestamp", false, nil, "last modification timestamp")
+	tDomainData.Field("applicationId", "String", true, nil, "associated application id")
 	sb.AddType(tDomainData.Build())
 
 	tSignedDomain := rdl.NewStructTypeBuilder("Struct", "SignedDomain")

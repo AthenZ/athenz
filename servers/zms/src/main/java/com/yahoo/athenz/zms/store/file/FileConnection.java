@@ -102,7 +102,8 @@ public class FileConnection implements ObjectStoreConnection {
                 .setModified(domainStruct.getModified())
                 .setName(domainStruct.getName())
                 .setOrg(domainStruct.getMeta().getOrg())
-                .setYpmId(domainStruct.getMeta().getYpmId());
+                .setYpmId(domainStruct.getMeta().getYpmId())
+                .setApplicationId(domainStruct.getMeta().getApplicationId());
         if (domainStruct.getMeta().getAuditEnabled() != null) {
             domain.setAuditEnabled(domainStruct.getMeta().getAuditEnabled());
         } else {
@@ -146,7 +147,8 @@ public class FileConnection implements ObjectStoreConnection {
                 .setDescription(domain.getDescription())
                 .setEnabled(domain.getEnabled())
                 .setOrg(domain.getOrg())
-                .setYpmId(domain.getYpmId());
+                .setYpmId(domain.getYpmId())
+                .setApplicationId(domain.getApplicationId());
         domainStruct.setMeta(meta);
         
         putDomainStruct(domain.getName(), domainStruct);
@@ -184,7 +186,8 @@ public class FileConnection implements ObjectStoreConnection {
                 .setDescription(domain.getDescription())
                 .setEnabled(domain.getEnabled())
                 .setOrg(domain.getOrg())
-                .setYpmId(domain.getYpmId());
+                .setYpmId(domain.getYpmId())
+                .setApplicationId(domain.getApplicationId());
         domainStruct.setMeta(meta);
 
         putDomainStruct(domain.getName(), domainStruct);
