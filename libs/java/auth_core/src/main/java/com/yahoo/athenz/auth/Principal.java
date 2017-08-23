@@ -76,4 +76,10 @@ public interface Principal {
     default String getKeyId() {
         return null;
     }
+    
+    /** @return the application ID */
+    default public String getApplicationId() {
+        return null;
+    }
+
 }

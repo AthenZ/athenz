@@ -43,6 +43,7 @@ public class SimplePrincipal implements Principal {
     String keyService = null;
     String keyId = null;
     X509Certificate x509Certificate = null;
+    String applicationId = null;
     
     public static Principal create(String domain, String name, String creds) {
         return create(domain, name, creds, 0, null);
@@ -172,6 +173,10 @@ public class SimplePrincipal implements Principal {
         this.x509Certificate = x509Certificate;
     }
     
+    public void setApplicationId(String applicationId) {
+        this.applicationId = applicationId;
+    }
+    
     @Override
     public String getIP() {
         return ip;
@@ -259,5 +264,10 @@ public class SimplePrincipal implements Principal {
     @Override
     public X509Certificate getX509Certificate() {
         return x509Certificate;
+    }
+    
+    @Override
+    public String getApplicationId() {
+        return this.applicationId;
     }
 }
