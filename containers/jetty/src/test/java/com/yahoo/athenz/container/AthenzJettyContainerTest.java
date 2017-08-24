@@ -42,6 +42,9 @@ import com.yahoo.athenz.container.log.AthenzRequestLog;
 
 public class AthenzJettyContainerTest {
 
+    private static final String DEFAULT_EXCLUDED_CIPHERS = "^_(MD5|SHA|SHA1)$";
+    private static final String DEFAULT_INCLUDED_CIPHERS = "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384";
+    
     @BeforeClass
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
@@ -58,6 +61,7 @@ public class AthenzJettyContainerTest {
         System.clearProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PASSWORD);
         System.clearProperty(AthenzConsts.ATHENZ_PROP_KEYMANAGER_PASSWORD);
         System.clearProperty(AthenzConsts.ATHENZ_PROP_EXCLUDED_CIPHER_SUITES);
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_INCLUDED_CIPHER_SUITES);
         System.clearProperty(AthenzConsts.ATHENZ_PROP_EXCLUDED_PROTOCOLS);
         System.clearProperty(AthenzConsts.ATHENZ_PROP_IDLE_TIMEOUT);
         System.clearProperty(AthenzConsts.ATHENZ_PROP_SEND_SERVER_VERSION);
@@ -329,7 +333,8 @@ public class AthenzJettyContainerTest {
         System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_TYPE, "PKCS12");
         System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PASSWORD, "pass123");
         System.setProperty(AthenzConsts.ATHENZ_PROP_KEYMANAGER_PASSWORD, "pass123");
-        System.setProperty(AthenzConsts.ATHENZ_PROP_EXCLUDED_CIPHER_SUITES, AthenzJettyContainer.ATHENZ_DEFAULT_EXCLUDED_CIPHER_SUITES);
+        System.setProperty(AthenzConsts.ATHENZ_PROP_EXCLUDED_CIPHER_SUITES, DEFAULT_EXCLUDED_CIPHERS);
+        System.setProperty(AthenzConsts.ATHENZ_PROP_INCLUDED_CIPHER_SUITES, DEFAULT_INCLUDED_CIPHERS);
         System.setProperty(AthenzConsts.ATHENZ_PROP_EXCLUDED_PROTOCOLS, AthenzJettyContainer.ATHENZ_DEFAULT_EXCLUDED_PROTOCOLS);
         
         SslContextFactory sslContextFactory = container.createSSLContextObject();
@@ -338,7 +343,8 @@ public class AthenzJettyContainerTest {
         assertEquals(sslContextFactory.getKeyStoreType(), "PKCS12");
         assertEquals(sslContextFactory.getTrustStoreResource().toString(), "file:///tmp/truststore");
         assertEquals(sslContextFactory.getTrustStoreType(), "PKCS12");
-        assertEquals(sslContextFactory.getExcludeCipherSuites(), AthenzJettyContainer.ATHENZ_DEFAULT_EXCLUDED_CIPHER_SUITES.split(","));
+        assertEquals(sslContextFactory.getExcludeCipherSuites(), DEFAULT_EXCLUDED_CIPHERS.split(","));
+        assertEquals(sslContextFactory.getIncludeCipherSuites(), DEFAULT_INCLUDED_CIPHERS.split(","));
         assertEquals(sslContextFactory.getExcludeProtocols(), AthenzJettyContainer.ATHENZ_DEFAULT_EXCLUDED_PROTOCOLS.split(","));
     }
     
@@ -366,7 +372,8 @@ public class AthenzJettyContainerTest {
         System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_TYPE, "PKCS12");
         System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PASSWORD, "pass123");
         System.setProperty(AthenzConsts.ATHENZ_PROP_KEYMANAGER_PASSWORD, "pass123");
-        System.setProperty(AthenzConsts.ATHENZ_PROP_EXCLUDED_CIPHER_SUITES, AthenzJettyContainer.ATHENZ_DEFAULT_EXCLUDED_CIPHER_SUITES);
+        System.setProperty(AthenzConsts.ATHENZ_PROP_EXCLUDED_CIPHER_SUITES, DEFAULT_EXCLUDED_CIPHERS);
+        System.setProperty(AthenzConsts.ATHENZ_PROP_INCLUDED_CIPHER_SUITES, DEFAULT_INCLUDED_CIPHERS);
         System.setProperty(AthenzConsts.ATHENZ_PROP_EXCLUDED_PROTOCOLS, AthenzJettyContainer.ATHENZ_DEFAULT_EXCLUDED_PROTOCOLS);
         
         SslContextFactory sslContextFactory = container.createSSLContextObject();
@@ -376,7 +383,8 @@ public class AthenzJettyContainerTest {
         assertEquals(sslContextFactory.getKeyStoreType(), "PKCS12");
         assertEquals(sslContextFactory.getTrustStoreResource().toString(), "file:///tmp/truststore");
         assertEquals(sslContextFactory.getTrustStoreType(), "PKCS12");
-        assertEquals(sslContextFactory.getExcludeCipherSuites(), AthenzJettyContainer.ATHENZ_DEFAULT_EXCLUDED_CIPHER_SUITES.split(","));
+        assertEquals(sslContextFactory.getExcludeCipherSuites(), DEFAULT_EXCLUDED_CIPHERS.split(","));
+        assertEquals(sslContextFactory.getIncludeCipherSuites(), DEFAULT_INCLUDED_CIPHERS.split(","));
         assertEquals(sslContextFactory.getExcludeProtocols(), AthenzJettyContainer.ATHENZ_DEFAULT_EXCLUDED_PROTOCOLS.split(","));
     }
     
@@ -388,7 +396,8 @@ public class AthenzJettyContainerTest {
         System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH, "file:///tmp/keystore");
         System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_TYPE, "PKCS12");
         System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD, "pass123");
-        System.setProperty(AthenzConsts.ATHENZ_PROP_EXCLUDED_CIPHER_SUITES, AthenzJettyContainer.ATHENZ_DEFAULT_EXCLUDED_CIPHER_SUITES);
+        System.setProperty(AthenzConsts.ATHENZ_PROP_EXCLUDED_CIPHER_SUITES, DEFAULT_EXCLUDED_CIPHERS);
+        System.setProperty(AthenzConsts.ATHENZ_PROP_INCLUDED_CIPHER_SUITES, DEFAULT_INCLUDED_CIPHERS);
         System.setProperty(AthenzConsts.ATHENZ_PROP_EXCLUDED_PROTOCOLS, AthenzJettyContainer.ATHENZ_DEFAULT_EXCLUDED_PROTOCOLS);
         
         SslContextFactory sslContextFactory = container.createSSLContextObject();
@@ -398,7 +407,8 @@ public class AthenzJettyContainerTest {
         assertNull(sslContextFactory.getTrustStore());
         // store type always defaults to PKCS12
         assertEquals(sslContextFactory.getTrustStoreType(), "PKCS12");
-        assertEquals(sslContextFactory.getExcludeCipherSuites(), AthenzJettyContainer.ATHENZ_DEFAULT_EXCLUDED_CIPHER_SUITES.split(","));
+        assertEquals(sslContextFactory.getExcludeCipherSuites(), DEFAULT_EXCLUDED_CIPHERS.split(","));
+        assertEquals(sslContextFactory.getIncludeCipherSuites(), DEFAULT_INCLUDED_CIPHERS.split(","));
         assertEquals(sslContextFactory.getExcludeProtocols(), AthenzJettyContainer.ATHENZ_DEFAULT_EXCLUDED_PROTOCOLS.split(","));
     }
     

@@ -36,6 +36,7 @@ public final class AthenzConsts {
     public static final String ATHENZ_PROP_TRUSTSTORE_PATH        = "athenz.ssl_trust_store";
     public static final String ATHENZ_PROP_TRUSTSTORE_TYPE        = "athenz.ssl_trust_store_type";
     public static final String ATHENZ_PROP_EXCLUDED_CIPHER_SUITES = "athenz.ssl_excluded_cipher_suites";
+    public static final String ATHENZ_PROP_INCLUDED_CIPHER_SUITES = "athenz.ssl_included_cipher_suites";
     public static final String ATHENZ_PROP_EXCLUDED_PROTOCOLS     = "athenz.ssl_excluded_protocols";
     public static final String ATHENZ_PROP_IDLE_TIMEOUT           = "athenz.http_idle_timeout";
     public static final String ATHENZ_PROP_PROXY_PROTOCOL         = "athenz.proxy_protocol";

@@ -62,10 +62,6 @@ public class AthenzJettyContainer {
     private static String ROOT_DIR;
     private static final String DEFAULT_WEBAPP_DESCRIPTOR = "/etc/webdefault.xml";
 
-    static final String ATHENZ_DEFAULT_EXCLUDED_CIPHER_SUITES = "SSL_RSA_WITH_DES_CBC_SHA,"
-            + "SSL_DHE_RSA_WITH_DES_CBC_SHA,SSL_DHE_DSS_WITH_DES_CBC_SHA,"
-            + "SSL_RSA_EXPORT_WITH_RC4_40_MD5,SSL_RSA_EXPORT_WITH_DES40_CBC_SHA,"
-            + "SSL_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA,SSL_DHE_DSS_EXPORT_WITH_DES40_CBC_SHA";
     static final String ATHENZ_DEFAULT_EXCLUDED_PROTOCOLS = "SSLv2,SSLv3";
 
     private Server server = null;
@@ -334,14 +330,14 @@ public class AthenzJettyContainer {
         String trustStorePath = System.getProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PATH);
         String trustStorePassword = System.getProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PASSWORD);
         String trustStoreType = System.getProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_TYPE, "PKCS12");
-        String excludedCipherSuites = System.getProperty(AthenzConsts.ATHENZ_PROP_EXCLUDED_CIPHER_SUITES,
-                ATHENZ_DEFAULT_EXCLUDED_CIPHER_SUITES);
+        String includedCipherSuites = System.getProperty(AthenzConsts.ATHENZ_PROP_INCLUDED_CIPHER_SUITES);
+        String excludedCipherSuites = System.getProperty(AthenzConsts.ATHENZ_PROP_EXCLUDED_CIPHER_SUITES);
         String excludedProtocols = System.getProperty(AthenzConsts.ATHENZ_PROP_EXCLUDED_PROTOCOLS,
                 ATHENZ_DEFAULT_EXCLUDED_PROTOCOLS);
         
         SslContextFactory sslContextFactory = new SslContextFactory();
         if (keyStorePath != null) {
-            LOG.info("Using SSL KeyStore path: " + keyStorePath);
+            LOG.info("Using SSL KeyStore path: {}", keyStorePath);
             sslContextFactory.setKeyStorePath(keyStorePath);
         }
         if (keyStorePassword != null) {
@@ -353,7 +349,7 @@ public class AthenzJettyContainer {
             sslContextFactory.setKeyManagerPassword(keyManagerPassword);
         }
         if (trustStorePath != null) {
-            LOG.info("Using SSL TrustStore path: " + trustStorePath);
+            LOG.info("Using SSL TrustStore path: {}", trustStorePath);
             sslContextFactory.setTrustStorePath(trustStorePath);
         }
         if (trustStorePassword != null) {
@@ -361,11 +357,15 @@ public class AthenzJettyContainer {
         }
         sslContextFactory.setTrustStoreType(trustStoreType);
 
-        if (excludedCipherSuites.length() != 0) {
+        if (includedCipherSuites != null && !includedCipherSuites.isEmpty()) {
+            sslContextFactory.setIncludeCipherSuites(includedCipherSuites.split(","));
+        }
+        
+        if (excludedCipherSuites != null && !excludedCipherSuites.isEmpty()) {
             sslContextFactory.setExcludeCipherSuites(excludedCipherSuites.split(","));
         }
         
-        if (excludedProtocols.length() != 0) {
+        if (!excludedProtocols.isEmpty()) {
             sslContextFactory.setExcludeProtocols(excludedProtocols.split(","));
         }
         sslContextFactory.setWantClientAuth(true);
