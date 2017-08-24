@@ -22,7 +22,6 @@ import java.security.PrivateKey;
 
 import org.testng.annotations.Test;
 
-import com.yahoo.athenz.auth.impl.FilePrivateKeyStore;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.zts.store.ChangeLogStore;
 import com.yahoo.athenz.zts.store.impl.ZMSFileChangeLogStoreFactory;
