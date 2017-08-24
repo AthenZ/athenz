@@ -34,8 +34,7 @@ public class ZMSFileChangeLogStoreFactoryTest {
     @Test
     public void testCreateStore() {
         
-        String privKeyName = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
-        File privKeyFile = new File(privKeyName);
+        File privKeyFile = new File("src/test/resources/zts_private.pem");
         String privKey = Crypto.encodedFile(privKeyFile);
         PrivateKey pkey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
         
