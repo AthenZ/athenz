@@ -2417,40 +2417,6 @@ func (client ZMSClient) GetUserList() (*UserList, error) {
 	}
 }
 
-func (client ZMSClient) PutUserMeta(name SimpleName, auditRef string, detail *UserMeta) error {
-	headers := map[string]string{
-		"Y-Audit-Ref": auditRef,
-	}
-	url := client.URL + "/user/" + fmt.Sprint(name) + "/meta"
-	contentBytes, err := json.Marshal(detail)
-	if err != nil {
-		return err
-	}
-	resp, err := client.httpPut(url, headers, contentBytes)
-	if err != nil {
-		return err
-	}
-	contentBytes, err = ioutil.ReadAll(resp.Body)
-	resp.Body.Close()
-	if err != nil {
-		return err
-	}
-	switch resp.StatusCode {
-	case 204:
-		return nil
-	default:
-		var errobj rdl.ResourceError
-		json.Unmarshal(contentBytes, &errobj)
-		if errobj.Code == 0 {
-			errobj.Code = resp.StatusCode
-		}
-		if errobj.Message == "" {
-			errobj.Message = string(contentBytes)
-		}
-		return errobj
-	}
-}
-
 func (client ZMSClient) DeleteUser(name SimpleName, auditRef string) error {
 	headers := map[string]string{
 		"Y-Audit-Ref": auditRef,

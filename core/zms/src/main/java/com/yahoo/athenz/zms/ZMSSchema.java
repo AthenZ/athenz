@@ -363,10 +363,6 @@ public class ZMSSchema {
         sb.structType("UserList")
             .arrayField("names", "SimpleName", false, "list of user names");
 
-        sb.structType("UserMeta")
-            .comment("Set of metadata attributes that system administrators may set on user domains")
-            .field("enabled", "Bool", true, "", true);
-
         sb.structType("Quota")
             .comment("The representation for a quota object")
             .field("name", "DomainName", false, "name of the domain object")
@@ -1581,26 +1577,6 @@ public class ZMSSchema {
             .comment("Enumerate users that are registered as principals in the system This will return only the principals with \"<user-domain>.\" prefix")
             .auth("", "", true)
             .expected("OK")
-            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
-
-            .exception("UNAUTHORIZED", "ResourceError", "")
-;
-
-        sb.resource("UserMeta", "PUT", "/user/{name}/meta")
-            .comment("Update the specified user domain(s) metadata. Note that entities in the domain are not affected. This API is only available to system administrators in order to disable user accounts when the user is no longer active, for example, before eventual deletion of the account after some grace period")
-            .pathParam("name", "SimpleName", "name of the user")
-            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit reference")
-            .input("detail", "UserMeta", "UserMeta object with updated attribute values")
-            .auth("update", "sys.auth:user")
-            .expected("NO_CONTENT")
-            .exception("BAD_REQUEST", "ResourceError", "")
-
-            .exception("CONFLICT", "ResourceError", "")
-
-            .exception("FORBIDDEN", "ResourceError", "")
-
-            .exception("NOT_FOUND", "ResourceError", "")
-
             .exception("TOO_MANY_REQUESTS", "ResourceError", "")
 
             .exception("UNAUTHORIZED", "ResourceError", "")
