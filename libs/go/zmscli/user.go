@@ -5,7 +5,6 @@ package zmscli
 
 import (
 	"bytes"
-	"strconv"
 
 	"github.com/yahoo/athenz/clients/go/zms"
 )
@@ -30,17 +29,5 @@ func (cli Zms) DeleteUser(user string) (*string, error) {
 		return nil, err
 	}
 	s := "[Deleted user: " + user + "]"
-	return &s, nil
-}
-
-func (cli Zms) UpdateUserState(user string, state *bool) (*string, error) {
-	meta := zms.UserMeta{
-		Enabled: state,
-	}
-	err := cli.Zms.PutUserMeta(zms.SimpleName(user), cli.AuditRef, &meta)
-	if err != nil {
-		return nil, err
-	}
-	s := "[Updated user: " + user + " state: " + strconv.FormatBool(*state) + "]"
 	return &s, nil
 }

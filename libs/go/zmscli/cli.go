@@ -236,16 +236,6 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 1 {
 				return cli.DeleteUser(args[0])
 			}
-		case "enable-user":
-			state := true
-			if argc == 1 {
-				return cli.UpdateUserState(args[0], &state)
-			}
-		case "disable-user":
-			state := false
-			if argc == 1 {
-				return cli.UpdateUserState(args[0], &state)
-			}
 		case "help":
 			return cli.helpCommand(args)
 		default:
@@ -1481,20 +1471,6 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   user   : id of the user to be deleted\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   delete-user jdoe\n")
-	case "enable-user":
-		buf.WriteString(" syntax:\n")
-		buf.WriteString("   enable-user user\n")
-		buf.WriteString(" parameters:\n")
-		buf.WriteString("   user   : id of the user to be enabled\n")
-		buf.WriteString(" examples:\n")
-		buf.WriteString("   enable-user jdoe\n")
-	case "disable-user":
-		buf.WriteString(" syntax:\n")
-		buf.WriteString("   disable-user user\n")
-		buf.WriteString(" parameters:\n")
-		buf.WriteString("   user   : id of the user to be disabled\n")
-		buf.WriteString(" examples:\n")
-		buf.WriteString("   disable-user jdoe\n")
 	case "get-quota":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domain_param + " get-quota\n")
@@ -1638,8 +1614,6 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString(" System Administrator commands:\n")
 	buf.WriteString("   set-default-admins domain admin [admin ...]\n")
 	buf.WriteString("   list-user\n")
-	buf.WriteString("   enable-user user\n")
-	buf.WriteString("   disable-user user\n")
 	buf.WriteString("   delete-user user\n")
 	buf.WriteString("\n")
 	buf.WriteString(" Other commands:\n")

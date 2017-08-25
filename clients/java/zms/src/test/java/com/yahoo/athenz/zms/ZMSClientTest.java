@@ -2142,23 +2142,6 @@ public class ZMSClientTest {
     }
     
     @Test
-    public void testPutUserMeta() {
-        ZMSClient client = createClient(systemAdminUser);
-        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
-        client.setZMSRDLGeneratedClient(c);
-        UserMeta meta = new UserMeta().setEnabled(false);
-        Mockito.when(c.putUserMeta("joe", AUDIT_REF, meta)).thenReturn(null).thenThrow(new ZMSClientException(400, "fail"));
-        client.putUserMeta("joe", AUDIT_REF, meta);
-
-        try {
-            client.putUserMeta("joe", AUDIT_REF, meta);
-            fail();
-        } catch (ZMSClientException ex) {
-            assertEquals(400, ex.getCode());
-        }
-    }
-    
-    @Test
     public void testGetQuota() {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);

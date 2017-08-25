@@ -426,11 +426,6 @@ func init() {
 	tUserList.ArrayField("names", "SimpleName", false, "list of user names")
 	sb.AddType(tUserList.Build())
 
-	tUserMeta := rdl.NewStructTypeBuilder("Struct", "UserMeta")
-	tUserMeta.Comment("Set of metadata attributes that system administrators may set on user domains")
-	tUserMeta.Field("enabled", "Bool", true, true, "")
-	sb.AddType(tUserMeta.Build())
-
 	tQuota := rdl.NewStructTypeBuilder("Struct", "Quota")
 	tQuota.Comment("The representation for a quota object")
 	tQuota.Field("name", "DomainName", false, nil, "name of the domain object")
@@ -1343,21 +1338,6 @@ func init() {
 	mGetUserList.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetUserList.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetUserList.Build())
-
-	mPutUserMeta := rdl.NewResourceBuilder("UserMeta", "PUT", "/user/{name}/meta")
-	mPutUserMeta.Comment("Update the specified user domain(s) metadata. Note that entities in the domain are not affected. This API is only available to system administrators in order to disable user accounts when the user is no longer active, for example, before eventual deletion of the account after some grace period")
-	mPutUserMeta.Input("name", "SimpleName", true, "", "", false, nil, "name of the user")
-	mPutUserMeta.Input("auditRef", "String", false, "", "Y-Audit-Ref", false, nil, "Audit reference")
-	mPutUserMeta.Input("detail", "UserMeta", false, "", "", false, nil, "UserMeta object with updated attribute values")
-	mPutUserMeta.Auth("update", "sys.auth:user", false, "")
-	mPutUserMeta.Expected("NO_CONTENT")
-	mPutUserMeta.Exception("BAD_REQUEST", "ResourceError", "")
-	mPutUserMeta.Exception("CONFLICT", "ResourceError", "")
-	mPutUserMeta.Exception("FORBIDDEN", "ResourceError", "")
-	mPutUserMeta.Exception("NOT_FOUND", "ResourceError", "")
-	mPutUserMeta.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
-	mPutUserMeta.Exception("UNAUTHORIZED", "ResourceError", "")
-	sb.AddResource(mPutUserMeta.Build())
 
 	mDeleteUser := rdl.NewResourceBuilder("User", "DELETE", "/user/{name}")
 	mDeleteUser.Comment("Delete the specified user. This command will delete the user.<name> domain and all of its sub-domains (if they exist) and remove the user.<name> from all the roles in the system that it's member of. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")

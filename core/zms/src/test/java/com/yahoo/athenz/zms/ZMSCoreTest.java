@@ -1534,26 +1534,6 @@ public class ZMSCoreTest {
     }
     
     @Test
-    public void testUserMetaMethod() {
-        Schema schema = ZMSSchema.instance();
-        Validator validator = new Validator(schema);
-
-        UserMeta um1 = new UserMeta().init();
-        um1.setEnabled(true);
-
-        Result result = validator.validate(um1, "UserMeta");
-        assertTrue(result.valid);
-        assertTrue(um1.getEnabled());
-
-        UserMeta um2 = new UserMeta().setEnabled(true);
-        assertTrue(um1.equals(um2));
-        
-        UserMeta um3 = new UserMeta().setEnabled(false);
-        assertFalse(um3.getEnabled());
-        assertFalse(um1.equals(um3));
-    }
-    
-    @Test
     public void testQuotaObject() {
         Schema schema = ZMSSchema.instance();
         Validator validator = new Validator(schema);

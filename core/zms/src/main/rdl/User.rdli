@@ -13,39 +13,12 @@ type UserList Struct {
     Array<SimpleName> names; //list of user names
 }
 
-//Set of metadata attributes that system administrators
-//may set on user domains
-type UserMeta Struct {
-    Bool enabled (optional, default=true);
-}
-
 //Enumerate users that are registered as principals in the system
 //This will return only the principals with "<user-domain>." prefix
 resource UserList GET "/user" {
     authenticate;
     exceptions {
         ResourceError UNAUTHORIZED;
-        ResourceError TOO_MANY_REQUESTS;
-    }
-}
-
-//Update the specified user domain(s) metadata. Note that
-//entities in the domain are not affected. This API is only
-//available to system administrators in order to disable user
-//accounts when the user is no longer active, for example, before
-//eventual deletion of the account after some grace period
-resource UserMeta PUT "/user/{name}/meta" {
-    SimpleName name; //name of the user
-    String auditRef (header="Y-Audit-Ref"); //Audit reference
-    UserMeta detail; //UserMeta object with updated attribute values
-    authorize ("update", "sys.auth:user");
-    expected NO_CONTENT;
-    exceptions {
-        ResourceError NOT_FOUND;
-        ResourceError BAD_REQUEST;
-        ResourceError FORBIDDEN;
-        ResourceError UNAUTHORIZED;
-        ResourceError CONFLICT;
         ResourceError TOO_MANY_REQUESTS;
     }
 }

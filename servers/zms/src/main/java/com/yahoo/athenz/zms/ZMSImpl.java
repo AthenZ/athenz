@@ -1401,46 +1401,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return null;
     }
     
-    public UserMeta putUserMeta(ResourceContext ctx, String name, String auditRef, UserMeta meta) {
-
-        final String caller = "putusermeta";
-        metric.increment(ZMSConsts.HTTP_PUT);
-        logPrincipal(ctx);
-
-        if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
-        }
-
-        validateRequest(ctx.request(), caller);
-
-        validate(name, TYPE_SIMPLE_NAME, caller);
-        validate(meta, TYPE_USER_META, caller);
-
-        // for consistent handling of all requests, we're going to convert
-        // all incoming object values into lower case (e.g. domain, role,
-        // policy, service, etc name)
-        
-        name = name.toLowerCase();
-        metric.increment(ZMSConsts.HTTP_REQUEST, userDomain);
-        metric.increment(caller, userDomain);
-        Object timerMetric = metric.startTiming("putusermeta_timing", userDomain);
-        
-        // verify that request is properly authenticated for this request
-        
-        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(),
-                caller);
-        
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("putDomainMeta: name=" + name + ", meta=" + meta);
-        }
-        
-        String userName = userDomainPrefix + name;
-        dbService.executePutUserMeta(ctx, userName, meta, auditRef, caller);
-        metric.stopTiming(timerMetric);
-
-        return null;
-    }
-    
     void validateSolutionTemplates(List<String> templateNames, String caller) {
         for (String templateName : templateNames) {
             if (!serverSolutionTemplates.contains(templateName)) {

@@ -4100,61 +4100,6 @@ func (self *UserList) Validate() error {
 }
 
 //
-// UserMeta - Set of metadata attributes that system administrators may set on
-// user domains
-//
-type UserMeta struct {
-	Enabled *bool `json:"enabled,omitempty" rdl:"optional"`
-}
-
-//
-// NewUserMeta - creates an initialized UserMeta instance, returns a pointer to it
-//
-func NewUserMeta(init ...*UserMeta) *UserMeta {
-	var o *UserMeta
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(UserMeta)
-	}
-	return o.Init()
-}
-
-//
-// Init - sets up the instance according to its default field values, if any
-//
-func (self *UserMeta) Init() *UserMeta {
-	if self.Enabled == nil {
-		d := true
-		self.Enabled = &d
-	}
-	return self
-}
-
-type rawUserMeta UserMeta
-
-//
-// UnmarshalJSON is defined for proper JSON decoding of a UserMeta
-//
-func (self *UserMeta) UnmarshalJSON(b []byte) error {
-	var m rawUserMeta
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := UserMeta(m)
-		*self = *((&o).Init())
-		err = self.Validate()
-	}
-	return err
-}
-
-//
-// Validate - checks for missing required fields, etc
-//
-func (self *UserMeta) Validate() error {
-	return nil
-}
-
-//
 // Quota - The representation for a quota object
 //
 type Quota struct {
