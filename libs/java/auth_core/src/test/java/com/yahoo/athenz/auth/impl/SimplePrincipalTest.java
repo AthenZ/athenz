@@ -35,13 +35,16 @@ public class SimplePrincipalTest {
     
     @Test
     public void testSimplePrincipal() {
+        String testApplicationId = "test_app_id";
         SimplePrincipal p = (SimplePrincipal) SimplePrincipal.create("user", "jdoe", fakeCreds, null);
         assertNotNull(p);
         p.setUnsignedCreds(fakeUnsignedCreds);
+        p.setApplicationId(testApplicationId);
         assertEquals(p.getName(), "jdoe");
         assertEquals(p.getDomain(), "user");
         assertEquals(p.getCredentials(), fakeCreds);
         assertEquals(p.getUnsignedCredentials(), fakeUnsignedCreds);
+        assertEquals(p.getApplicationId(), testApplicationId);
     }
     
     @Test

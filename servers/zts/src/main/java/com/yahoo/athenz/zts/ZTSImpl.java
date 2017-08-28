@@ -1064,6 +1064,29 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return proxyUsers.contains(principal);
     }
     
+    private void checkRoleTokenApplicationIdRequest(ResourceContext ctx, DomainData domain, String caller) {
+        Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        String applicationId = principal.getApplicationId();
+        String domainName = domain.getName();
+        String exceptionMessage = "getRoleToken: No access to any roles in domain: " + domainName;
+        // if principal contains applicationId, it means that the request came through Okta Authority,
+        // so check for association with domain
+        if (null != applicationId && !applicationId.isEmpty()) {
+            String appId = domain.getApplicationId();
+            //domain has not been configured with application ID, revoke request
+            if (null == appId || appId.isEmpty()) {
+                throw forbiddenError(exceptionMessage + ", application Id " + applicationId + " is missing from domain configuration",
+                        caller, domainName);
+            }
+            //check for match
+            if (!appId.equals(applicationId)) {
+                //application Id found, but not the same from the principal, revoke request
+                throw forbiddenError(exceptionMessage + ", application Id " + appId + " does not match principal's appplication Id " + applicationId,
+                        caller, domainName);
+            }
+        }
+    }
+    
     // Token interface
     public RoleToken getRoleToken(ResourceContext ctx, String domainName, String roleName,
             Integer minExpiryTime, Integer maxExpiryTime, String proxyForPrincipal) {
@@ -1094,7 +1117,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         Object timerMetric = metric.startTiming(callerTiming, domainName);
         
         // get our principal's name
-        
         String principal = ((RsrcCtxWrapper) ctx).principal().getFullName();
         
         if (LOGGER.isDebugEnabled()) {
@@ -1150,8 +1172,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_REQUEST, domainName);
         metric.increment(caller, domainName);
         
-        // process our request and retrieve the roles for the principal
+        /* check if application id matches the principal's application id */
+        checkRoleTokenApplicationIdRequest(ctx, data.getDomainData(), caller);
         
+        // process our request and retrieve the roles for the principal
         Set<String> roles = new HashSet<>();
         dataStore.getAccessibleRoles(data, domainName, principal, roleName,
                 roles, false);

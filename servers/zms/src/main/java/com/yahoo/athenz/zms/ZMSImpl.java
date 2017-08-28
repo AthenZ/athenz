@@ -741,17 +741,18 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
             adminUsers.add(adminUser);
         }
-        
+
         if (!ZMSConsts.USER_DOMAIN.equals(userDomain)) {
             createTopLevelDomain(null, ZMSConsts.USER_DOMAIN, "The reserved domain for user authentication",
-                    null, null, adminUsers, null, 0, null, null);
+                    null, null, adminUsers, null, 0, null, null, null);
         }
         createTopLevelDomain(null, userDomain, "The reserved domain for user authentication",
-                null, null, adminUsers, null, 0, null, null);
+                null, null, adminUsers, null, 0, null, null, null);
         createTopLevelDomain(null, "sys", "The reserved domain for system related information",
-                null, null, adminUsers, null, 0, null, null);
+                null, null, adminUsers, null, 0, null, null, null);
+        
         createSubDomain(null, "sys", "auth", "The AuthNG domain", null, null, adminUsers,
-                null, 0, null, null, caller);
+                null, 0, null, null, null, caller);
 
         if (privateKey != null) {
             List<PublicKeyEntry> pubKeys = new ArrayList<>();
@@ -948,7 +949,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         Domain domain = createTopLevelDomain(ctx, domainName, detail.getDescription(),
             detail.getOrg(), detail.getAuditEnabled(), detail.getAdminUsers(),
-            detail.getAccount(), productId, solutionTemplates, auditRef);
+            detail.getAccount(), productId, detail.getApplicationId(), solutionTemplates, auditRef);
 
         metric.stopTiming(timerMetric);
         return domain;
@@ -1086,8 +1087,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             validateSolutionTemplates(solutionTemplates, caller);
         }
         
+        
         Domain domain = createSubDomain(ctx, userDomain, detail.getName(), detail.getDescription(),
-                detail.getOrg(), detail.getAuditEnabled(), adminUsers, detail.getAccount(), 0,
+                detail.getOrg(), detail.getAuditEnabled(), adminUsers, detail.getAccount(), 0, detail.getApplicationId(), 
                 solutionTemplates, auditRef, caller);
 
         metric.stopTiming(timerMetric);
@@ -1165,7 +1167,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         Domain domain = createSubDomain(ctx, detail.getParent(), detail.getName(), detail.getDescription(),
                 detail.getOrg(), detail.getAuditEnabled(), detail.getAdminUsers(), detail.getAccount(),
-                productId, solutionTemplates, auditRef, caller);
+                productId, detail.getApplicationId(), solutionTemplates, auditRef, caller);
 
         metric.stopTiming(timerMetric);
         return domain;
@@ -3928,6 +3930,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainData.setYpmId(athenzDomain.getDomain().getYpmId());
         domainData.setRoles(athenzDomain.getRoles());
         domainData.setServices(athenzDomain.getServices());
+        domainData.setApplicationId(athenzDomain.getDomain().getApplicationId());
         
         // generate the domain policy object that includes the domain
         // name and all policies. Then we'll sign this struct using
@@ -5889,15 +5892,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     
     Domain createTopLevelDomain(ResourceContext ctx, String domainName, String description,
             String org, Boolean auditEnabled, List<String> adminUsers, String account,
-            int productId, List<String> solutionTemplates, String auditRef) {
+            int productId, String applicationId, List<String> solutionTemplates, String auditRef) {
         List<String> users = validatedAdminUsers(adminUsers);
         return dbService.makeDomain(ctx, domainName, description, org, auditEnabled, 
-                users, account, productId, solutionTemplates, auditRef);
+                users, account, productId, applicationId, solutionTemplates, auditRef);
     }
     
     Domain createSubDomain(ResourceContext ctx, String parentName, String name, String description,
             String org, Boolean auditEnabled, List<String> adminUsers, String account,
-            int productId, List<String> solutionTemplates, String auditRef, String caller) {
+            int productId, String applicationId, List<String> solutionTemplates, String auditRef, String caller) {
 
         // verify length of full sub domain name
         String fullSubDomName = parentName + "." + name;
@@ -5908,7 +5911,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         List<String> users = validatedAdminUsers(adminUsers);
         return dbService.makeDomain(ctx, fullSubDomName, description, org, auditEnabled,
-                users, account, productId, solutionTemplates, auditRef);
+                users, account, productId, applicationId, solutionTemplates, auditRef);
     }
 
     int countDots(String str) {

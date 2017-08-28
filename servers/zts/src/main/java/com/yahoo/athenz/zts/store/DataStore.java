@@ -723,7 +723,7 @@ public class DataStore implements DataCacheProvider {
     public DataCache getDataCache(String domainName) {
         return getCacheStore().getIfPresent(domainName);
     }
-    
+
     // API
     public void getAccessibleRoles(DataCache data, String domainName, String identity,
             String roleName, Set<String> accessibleRoles, boolean keepFullName) {
@@ -733,7 +733,7 @@ public class DataStore implements DataCacheProvider {
         if (data == null) {
             return;
         }
-
+        
         final String rolePrefix = domainName + ROLE_POSTFIX;
 
         /* first look through the members to see if the given identity is

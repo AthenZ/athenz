@@ -95,7 +95,11 @@ func (cli Zms) ImportDomain(dn string, filename string, admins []string) (*strin
 			account = val.(string)
 		}
 	}
-	err = cli.SetCompleteDomainMeta(dn, descr, org, auditEnabled, account, productId32)
+	var applicationId string
+	if val, ok := dnSpec["application_id"]; ok {
+		applicationId = val.(string)
+	}
+	err = cli.SetCompleteDomainMeta(dn, descr, org, auditEnabled, account, productId32, applicationId)
 	if err != nil {
 		return nil, err
 	}
@@ -165,7 +169,11 @@ func (cli Zms) UpdateDomain(dn string, filename string) (*string, error) {
 		productId = val.(int)
 	}
 	productId32 := int32(productId)
-	err = cli.SetCompleteDomainMeta(dn, descr, org, auditEnabled, account, productId32)
+	var applicationId string
+	if val, ok := dnSpec["application_id"]; ok {
+		applicationId = val.(string)
+	}
+	err = cli.SetCompleteDomainMeta(dn, descr, org, auditEnabled, account, productId32, applicationId)
 	if err != nil {
 		return nil, err
 	}
@@ -409,14 +417,15 @@ func (cli Zms) showDomain(dn string, export bool) (*string, error) {
 	return &s, nil
 }
 
-func (cli Zms) SetCompleteDomainMeta(dn string, descr string, org string, auditEnabled bool, account string, productId int32) error {
+func (cli Zms) SetCompleteDomainMeta(dn string, descr string, org string, auditEnabled bool, account string, productId int32, applicationId string) error {
 	meta := zms.DomainMeta{
-		Description:  descr,
-		Org:          zms.ResourceName(org),
-		Enabled:      nil,
-		AuditEnabled: &auditEnabled,
-		Account:      account,
-		YpmId:        &productId,
+		Description:   descr,
+		Org:           zms.ResourceName(org),
+		Enabled:       nil,
+		AuditEnabled:  &auditEnabled,
+		Account:       account,
+		YpmId:         &productId,
+		ApplicationId: applicationId,
 	}
 	return cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
 }
@@ -427,12 +436,13 @@ func (cli Zms) SetDomainMeta(dn string, descr string, org string, auditEnabled b
 		return nil, err
 	}
 	meta := zms.DomainMeta{
-		Description:  descr,
-		Org:          zms.ResourceName(org),
-		Enabled:      domain.Enabled,
-		AuditEnabled: &auditEnabled,
-		Account:      domain.Account,
-		YpmId:        domain.YpmId,
+		Description:   descr,
+		Org:           zms.ResourceName(org),
+		Enabled:       domain.Enabled,
+		AuditEnabled:  &auditEnabled,
+		Account:       domain.Account,
+		YpmId:         domain.YpmId,
+		ApplicationId: domain.ApplicationId,
 	}
 	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
 	if err != nil {
@@ -447,7 +457,7 @@ func (cli Zms) SetDomainAccount(dn string, account string) (*string, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = cli.SetCompleteDomainMeta(dn, domain.Description, string(domain.Org), *domain.AuditEnabled, account, *domain.YpmId)
+	err = cli.SetCompleteDomainMeta(dn, domain.Description, string(domain.Org), *domain.AuditEnabled, account, *domain.YpmId, domain.ApplicationId)
 	if err != nil {
 		return nil, err
 	}
@@ -460,11 +470,24 @@ func (cli Zms) SetDomainProductId(dn string, productId int32) (*string, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = cli.SetCompleteDomainMeta(dn, domain.Description, string(domain.Org), *domain.AuditEnabled, domain.Account, productId)
+	err = cli.SetCompleteDomainMeta(dn, domain.Description, string(domain.Org), *domain.AuditEnabled, domain.Account, productId, domain.ApplicationId)
 	if err != nil {
 		return nil, err
 	}
 	s := "[domain " + dn + " product-id successfully updated]\n"
+	return &s, nil
+}
+
+func (cli Zms) SetDomainApplicationId(dn string, applicationId string) (*string, error) {
+	domain, err := cli.Zms.GetDomain(zms.DomainName(dn))
+	if err != nil {
+		return nil, err
+	}
+	err = cli.SetCompleteDomainMeta(dn, domain.Description, string(domain.Org), *domain.AuditEnabled, domain.Account, *domain.YpmId, applicationId)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " application-id successfully updated]\n"
 	return &s, nil
 }
 

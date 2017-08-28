@@ -26,6 +26,9 @@ public class DomainData {
     public List<ServiceIdentity> services;
     public List<Entity> entities;
     public Timestamp modified;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String applicationId;
 
     public DomainData setName(String name) {
         this.name = name;
@@ -90,6 +93,13 @@ public class DomainData {
     public Timestamp getModified() {
         return modified;
     }
+    public DomainData setApplicationId(String applicationId) {
+        this.applicationId = applicationId;
+        return this;
+    }
+    public String getApplicationId() {
+        return applicationId;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -123,6 +133,9 @@ public class DomainData {
                 return false;
             }
             if (modified == null ? a.modified != null : !modified.equals(a.modified)) {
+                return false;
+            }
+            if (applicationId == null ? a.applicationId != null : !applicationId.equals(a.applicationId)) {
                 return false;
             }
         }

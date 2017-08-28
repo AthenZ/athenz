@@ -504,7 +504,8 @@ public class JDBCConnectionTest {
                 .setId(UUID.fromString("e5e97240-e94e-11e4-8163-6d083f3f473f"))
                 .setOrg("cloud_services")
                 .setAccount("123456789")
-                .setYpmId(Integer.valueOf(1011));
+                .setYpmId(Integer.valueOf(1011))
+                .setApplicationId("application_id");
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         boolean requestSuccess = jdbcConn.updateDomain(domain);
@@ -517,7 +518,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setBoolean(5, false);
         Mockito.verify(mockPrepStmt, times(1)).setString(6, "123456789");
         Mockito.verify(mockPrepStmt, times(1)).setInt(7, 1011);
-        Mockito.verify(mockPrepStmt, times(1)).setString(8, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setString(8, "application_id");
+        Mockito.verify(mockPrepStmt, times(1)).setString(9, "my-domain");
         jdbcConn.close();
     }
     
@@ -541,7 +543,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setBoolean(5, false);
         Mockito.verify(mockPrepStmt, times(1)).setString(6, "");
         Mockito.verify(mockPrepStmt, times(1)).setInt(7, 0);
-        Mockito.verify(mockPrepStmt, times(1)).setString(8, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setString(8, "");
+        Mockito.verify(mockPrepStmt, times(1)).setString(9, "my-domain");
         jdbcConn.close();
     }
     

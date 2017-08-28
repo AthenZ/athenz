@@ -199,7 +199,7 @@ public class DBService {
     }
     
     Domain makeDomain(ResourceContext ctx, String domainName, String description, String org,
-            Boolean auditEnabled, List<String> adminUsers, String account, int productId,
+            Boolean auditEnabled, List<String> adminUsers, String account, int productId, String applicationId,
             List<String> solutionTemplates, String auditRef) {
         
         final String caller = "makedomain";
@@ -212,7 +212,8 @@ public class DBService {
                 .setId(UUID.fromCurrentTime())
                 .setAccount(account)
                 .setYpmId(productId)
-                .setModified(Timestamp.fromCurrentTime());
+                .setModified(Timestamp.fromCurrentTime())
+                .setApplicationId(applicationId);
         
         // get our connection object
         
@@ -1996,6 +1997,13 @@ public class DBService {
                 } else {
                     updatedDomain.setYpmId(meta.getYpmId());
                     updatedDomain.setAccount(meta.getAccount());
+                }
+                
+                // if meta application ID is null, update to existing application ID
+                if (meta.getApplicationId() == null) {
+                    updatedDomain.setApplicationId(domain.getApplicationId());
+                } else {
+                    updatedDomain.setApplicationId(meta.getApplicationId());
                 }
                 
                 con.updateDomain(updatedDomain);
