@@ -1290,6 +1290,22 @@ public class ZTSImplTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
         }
+        
+        //failure - domain application id missing
+        signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+        principal = (SimplePrincipal) SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        principal.setApplicationId("application_id");
+        context = createResourceContext(principal);
+        
+        try {
+            zts.getRoleToken(context, "coretech", null, Integer.valueOf(600),
+                    Integer.valueOf(1200), null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
     }
     
     

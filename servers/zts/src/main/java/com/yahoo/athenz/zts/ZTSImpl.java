@@ -1073,9 +1073,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // so check for association with domain
         if (null != applicationId && !applicationId.isEmpty()) {
             String appId = domain.getApplicationId();
-            //if domain has not configured to grant the application id, pass through
-            //else, check for match
-            if (null != appId && !appId.equals(applicationId)) {
+            //domain has not been configured with application ID, revoke request
+            if (null == appId || appId.isEmpty()) {
+                throw forbiddenError(exceptionMessage + ", application Id " + applicationId + " is missing from domain configuration",
+                        caller, domainName);
+            }
+            //check for match
+            if (!appId.equals(applicationId)) {
                 //application Id found, but not the same from the principal, revoke request
                 throw forbiddenError(exceptionMessage + ", application Id " + appId + " does not match principal's appplication Id " + applicationId,
                         caller, domainName);
