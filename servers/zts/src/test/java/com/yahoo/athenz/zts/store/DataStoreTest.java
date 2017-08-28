@@ -2025,25 +2025,6 @@ public class DataStoreTest {
     }
     
     @Test
-    public void testGetAccessibleRolesApplicationId() {
-        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
-                pkey, "0");
-        DataStore store = new DataStore(clogStore, null);
-
-        SignedDomain signedDomain = createSignedDomain("coretech", "weather");
-        signedDomain.domain.setApplicationId("applicationId");
-        store.processDomain(signedDomain, true);
-        
-        Set<String> accessibleRoles = new HashSet<>();
-        DataCache data = store.getDataCache("coretech");
-        store.getAccessibleRoles(data, "coretech", "user_domain.user", null, accessibleRoles, false, "wrong_applicationId");
-        assertEquals(accessibleRoles.size(), 0);
-
-        store.getAccessibleRoles(data, "coretech", "user_domain.user", null, accessibleRoles, false, "applicationId");
-        assertEquals(accessibleRoles.size(), 2);
-    }
-    
-    @Test
     public void testStoreInitNoLastModTimeLocalDomainDelete() {
 
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
