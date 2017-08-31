@@ -901,9 +901,11 @@ public class DBService {
                 
                 auditLogPublicKeyEntry(auditDetails, keyEntry, true);
                 auditDetails.append("]}");
-
-                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
-                        serviceName, auditDetails.toString());
+                
+                if (null != ctx) {
+                    auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
+                            serviceName, auditDetails.toString());
+                }
                 
                 return;
                 
@@ -945,9 +947,11 @@ public class DBService {
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
                 auditDetails.append("{\"deleted-publicKeys\": [{\"id\": \"").append(keyId).append("\"}]}");
                 
-                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
-                        serviceName, auditDetails.toString());
-                
+                if (null != ctx) {
+                    auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
+                            serviceName, auditDetails.toString());
+                }
+
                 return;
                 
             } catch (ResourceException ex) {
