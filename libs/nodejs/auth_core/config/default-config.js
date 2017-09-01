@@ -19,15 +19,21 @@ const config = {
     principalTokenAllowedOffset: '300',
     principalUserDomain: 'user',
     principalHeader: 'Athenz-Principal-Auth',
+    roleTokenAllowedOffset: '300',
+    roleUserDomain: 'user',
+    roleHeader: 'Athenz-Role-Auth',
     tokenMaxExpiry: String(30 * 24 * 60 * 60),
     tokenNoExpiry: true,
     logLevel: 'debug'
   },
   production: {
     principalIpCheckMode: 'OPS_WRITE',
-    tokenAllowedOffset: '300',
-    userDomain: 'user',
+    principalTokenAllowedOffset: '300',
+    principalUserDomain: 'user',
     principalHeader: 'Athenz-Principal-Auth',
+    roleTokenAllowedOffset: '300',
+    roleUserDomain: 'user',
+    roleHeader: 'Athenz-Role-Auth',
     tokenMaxExpiry: String(30 * 24 * 60 * 60),
     tokenNoExpiry: false,
     logLevel: 'info'
@@ -42,6 +48,9 @@ module.exports = function() {
   c.principalTokenAllowedOffset = c.principalTokenAllowedOffset || '300';
   c.principalUserDomain = c.principalUserDomain || 'user';
   c.principalHeader = c.principalHeader || 'Athenz-Principal-Auth';
+  c.roleTokenAllowedOffset = c.roleTokenAllowedOffset || '300';
+  c.roleUserDomain = c.roleUserDomain || 'user';
+  c.roleHeader = c.roleHeader || 'Athenz-Role-Auth';
   c.tokenMaxExpiry = c.tokenMaxExpiry || String(30 * 24 * 60 * 60);
   c.tokenNoExpiry = c.tokenNoExpiry || false;
   c.logLevel = c.logLevel || 'info';
