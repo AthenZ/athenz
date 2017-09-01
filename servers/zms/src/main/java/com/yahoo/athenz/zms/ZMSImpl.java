@@ -3808,6 +3808,20 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return entry;
     }
     
+    public PublicKeyEntry deletePublicKeyEntry(String domainName, String serviceName,
+            String keyId, String auditRef) {
+        final String caller = "deletepublickeyentry";
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        domainName = domainName.toLowerCase();
+        serviceName = serviceName.toLowerCase();
+        keyId = keyId.toLowerCase();
+        dbService.executeDeletePublicKeyEntry(null, domainName, serviceName, keyId, auditRef, caller);
+        return null;
+    }
+
     public PublicKeyEntry deletePublicKeyEntry(ResourceContext ctx, String domainName, String serviceName,
             String keyId, String auditRef) {
         
@@ -3842,6 +3856,31 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         dbService.executeDeletePublicKeyEntry(ctx, domainName, serviceName, keyId, auditRef, caller);
         metric.stopTiming(timerMetric);
+        return null;
+    }
+    
+    public PublicKeyEntry putPublicKeyEntry(String domainName, String serviceName, 
+            String keyId, String auditRef, PublicKeyEntry keyEntry) {
+        final String caller = "putpublickeyentry";
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        domainName = domainName.toLowerCase();
+        serviceName = serviceName.toLowerCase();
+        keyId = keyId.toLowerCase();
+        AthenzObject.PUBLIC_KEY_ENTRY.convertToLowerCase(keyEntry);
+
+        // verify that key id specified in request and object do match
+        
+        if (!keyId.equals(keyEntry.getId())) {
+            throw ZMSUtils.requestError("putPublicKeyEntry: keyId in URI and PublicKeyEntry object do not match", caller);
+        }
+        
+        if (!verifyServicePublicKey(keyEntry.getKey())) {
+            throw ZMSUtils.requestError("putPublicKeyEntry: Invalid public key", caller);
+        }
+        dbService.executePutPublicKeyEntry(null, domainName, serviceName, keyEntry, auditRef, caller);
         return null;
     }
     
