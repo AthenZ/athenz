@@ -18,14 +18,50 @@ package com.yahoo.athenz.zms;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Arrays;
 
 import com.yahoo.athenz.auth.util.Crypto;
 
 public class ZMSImplMain {
     private static final String AUDITREF = "Server bootstrap: instance private key registration";
+    private static final String CHECK_USER_CMD = "id -u";
+    static {
+        //must run as root user or with sudo
+        checkUser();
+    }
+    
     private static final ZMSImpl ZMS = new ZMSImpl();
 
+    private static void checkUser() {
+        Process p = null;
+        try  {
+            p = Runtime.getRuntime().exec(CHECK_USER_CMD);
+            p.waitFor();
+            int status = p.exitValue();
+            System.out.println("check user '" + CHECK_USER_CMD + "' = " + status);
+            if (status != 0) {
+                System.out.println(CHECK_USER_CMD + " command returned none 0 value");
+                System.exit(1);
+            }
+            String result;
+            try (InputStream processInput = p.getInputStream(); 
+                    InputStreamReader inputStreamReader = new InputStreamReader(processInput, "UTF-8");
+                    BufferedReader reader = new BufferedReader(inputStreamReader)) {
+                result = reader.readLine();
+            } 
+            System.out.println("check user '" + CHECK_USER_CMD + " out put' = " + result);
+            if (Integer.valueOf(result) != 0) {
+                System.out.println("This script must be run as root user or with sudo");
+                System.exit(1);
+            }
+        } catch (IOException | InterruptedException e) {
+            System.out.println(e.getMessage());
+            System.exit(1);
+        } 
+    }
+    
     public static void main(String[] args) {
         System.out.println(Arrays.toString(args));
         if (args.length != 5) {
