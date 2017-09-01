@@ -21,8 +21,9 @@ package com.yahoo.athenz.zts;
 public final class ZTSConsts {
     // System property names with defaults(where applicable)
     
-    public static final String ZTS_PROP_USER_DOMAIN = "athenz.user_domain";
-    public static final String ZTS_PROP_ATHENZ_CONF = "athenz.athenz_conf";
+    public static final String ZTS_PROP_USER_DOMAIN       = "athenz.user_domain";
+    public static final String ZTS_PROP_USER_DOMAIN_ALIAS = "athenz.user_domain_alias";
+    public static final String ZTS_PROP_ATHENZ_CONF       = "athenz.athenz_conf";
 
     public static final String ZTS_PROP_HOSTNAME    = "athenz.zts.hostname";
     public static final String ZTS_PROP_FILE_NAME   = "athenz.zts.prop_file";

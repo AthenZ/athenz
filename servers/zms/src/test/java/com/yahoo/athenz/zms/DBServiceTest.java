@@ -2843,7 +2843,7 @@ public class DBServiceTest {
         assertTrue(users.contains("user.jack"));
         assertTrue(users.contains("user.joe"));
         
-        zms.dbService.executeDeleteUser(mockDomRsrcCtx, "user.jack", auditRef, "testExecuteDeleteUser");
+        zms.dbService.executeDeleteUser(mockDomRsrcCtx, "user.jack", "user.jack", auditRef, "testExecuteDeleteUser");
         
         users = zms.dbService.listPrincipals("user", true);
         assertEquals(users.size(), 4);
@@ -2912,7 +2912,7 @@ public class DBServiceTest {
         assertTrue(users.contains("user.jack.sub1.api"));
         assertTrue(users.contains("user.joe"));
         
-        zms.dbService.executeDeleteUser(mockDomRsrcCtx, "user.jack", auditRef, "testExecuteDeleteUser");
+        zms.dbService.executeDeleteUser(mockDomRsrcCtx, "user.jack", "user.jack", auditRef, "testExecuteDeleteUser");
         
         users = zms.dbService.listPrincipals("user", false);
         assertEquals(users.size(), 2);

@@ -61,7 +61,6 @@ import org.mockito.Matchers;
 
 import static org.mockito.Mockito.times;
 
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -143,8 +142,8 @@ public class JDBCConnectionTest {
         Mockito.doReturn(7).when(mockResultSet).getInt(1);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        assertEquals(7, jdbcConn.getDomainId(mockConn, "my-domain"));
-        assertEquals(7, jdbcConn.getDomainId(mockConn, "my-domain"));
+        assertEquals(7, jdbcConn.getDomainId("my-domain"));
+        assertEquals(7, jdbcConn.getDomainId("my-domain"));
 
         jdbcConn.close();
     }
@@ -158,7 +157,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
             
         try {
-            jdbcConn.getDomainId(mockConn, "my-domain");
+            jdbcConn.getDomainId("my-domain");
         } catch (Exception ex) {
             assertTrue(true);
         }
@@ -175,8 +174,8 @@ public class JDBCConnectionTest {
         Mockito.doReturn(9).when(mockResultSet).getInt(1);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        assertEquals(9, jdbcConn.getRoleId(mockConn, 7, "role1"));
-        assertEquals(9, jdbcConn.getRoleId(mockConn, 7, "role1"));
+        assertEquals(9, jdbcConn.getRoleId(7, "role1"));
+        assertEquals(9, jdbcConn.getRoleId(7, "role1"));
 
         jdbcConn.close();
     }
@@ -190,7 +189,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
             
         try {
-            jdbcConn.getRoleId(mockConn, 3, "role1");
+            jdbcConn.getRoleId(3, "role1");
         } catch (Exception ex) {
             assertTrue(true);
         }
@@ -207,8 +206,8 @@ public class JDBCConnectionTest {
         Mockito.doReturn(7).when(mockResultSet).getInt(1);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        assertEquals(7, jdbcConn.getPrincipalId(mockConn, "my-domain.user1"));
-        assertEquals(7, jdbcConn.getPrincipalId(mockConn, "my-domain.user1"));
+        assertEquals(7, jdbcConn.getPrincipalId("my-domain.user1"));
+        assertEquals(7, jdbcConn.getPrincipalId("my-domain.user1"));
 
         jdbcConn.close();
     }
@@ -222,7 +221,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
             
         try {
-            jdbcConn.getPrincipalId(mockConn, "domain.user1");
+            jdbcConn.getPrincipalId("domain.user1");
         } catch (Exception ex) {
             assertTrue(true);
         }
@@ -235,7 +234,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockResultSet.next()).thenReturn(false);
         
-        assertEquals(0, jdbcConn.getLastInsertId(mockConn));
+        assertEquals(0, jdbcConn.getLastInsertId());
         jdbcConn.close();
     }
     
@@ -248,7 +247,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
             
         try {
-            jdbcConn.getLastInsertId(mockConn);
+            jdbcConn.getLastInsertId();
         } catch (Exception ex) {
             assertTrue(true);
         }
@@ -265,8 +264,8 @@ public class JDBCConnectionTest {
         Mockito.doReturn(9).when(mockResultSet).getInt(1);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        assertEquals(9, jdbcConn.getPolicyId(mockConn, 7, "policy1"));
-        assertEquals(9, jdbcConn.getPolicyId(mockConn, 7, "policy1"));
+        assertEquals(9, jdbcConn.getPolicyId(7, "policy1"));
+        assertEquals(9, jdbcConn.getPolicyId(7, "policy1"));
 
         jdbcConn.close();
     }
@@ -280,7 +279,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
             
         try {
-            jdbcConn.getPolicyId(mockConn, 3, "policy1");
+            jdbcConn.getPolicyId(3, "policy1");
         } catch (Exception ex) {
             assertTrue(true);
         }
@@ -297,8 +296,8 @@ public class JDBCConnectionTest {
         Mockito.doReturn(9).when(mockResultSet).getInt(1);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        assertEquals(9, jdbcConn.getServiceId(mockConn, 7, "service1"));
-        assertEquals(9, jdbcConn.getServiceId(mockConn, 7, "service1"));
+        assertEquals(9, jdbcConn.getServiceId(7, "service1"));
+        assertEquals(9, jdbcConn.getServiceId(7, "service1"));
 
         jdbcConn.close();
     }
@@ -312,7 +311,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
             
         try {
-            jdbcConn.getServiceId(mockConn, 3, "service1");
+            jdbcConn.getServiceId(3, "service1");
         } catch (Exception ex) {
             assertTrue(true);
         }
@@ -329,8 +328,8 @@ public class JDBCConnectionTest {
         Mockito.doReturn(9).when(mockResultSet).getInt(1);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        assertEquals(9, jdbcConn.getHostId(mockConn, "host1"));
-        assertEquals(9, jdbcConn.getHostId(mockConn, "host1"));
+        assertEquals(9, jdbcConn.getHostId("host1"));
+        assertEquals(9, jdbcConn.getHostId("host1"));
 
         jdbcConn.close();
     }
@@ -344,7 +343,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
             
         try {
-            jdbcConn.getHostId(mockConn, "host1");
+            jdbcConn.getHostId("host1");
         } catch (Exception ex) {
             assertTrue(true);
         }
@@ -4166,7 +4165,7 @@ public class JDBCConnectionTest {
         
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        jdbcConn.prepareDomainScanStatement(mockConn, null, 0);
+        jdbcConn.prepareDomainScanStatement(null, 0);
         Mockito.verify(mockPrepStmt, times(0)).setString(Mockito.anyInt(), Mockito.isA(String.class));
         jdbcConn.close();
     }
@@ -4176,7 +4175,7 @@ public class JDBCConnectionTest {
         
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        jdbcConn.prepareDomainScanStatement(mockConn, "prefix", 0);
+        jdbcConn.prepareDomainScanStatement("prefix", 0);
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "prefix");
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "prefiy");
         jdbcConn.close();
@@ -4187,7 +4186,7 @@ public class JDBCConnectionTest {
         
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        jdbcConn.prepareDomainScanStatement(mockConn, "prefix", 100);
+        jdbcConn.prepareDomainScanStatement("prefix", 100);
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "prefix");
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "prefiy");
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(Matchers.eq(3), Matchers.eq(new java.sql.Timestamp(100)), Matchers.isA(Calendar.class));
@@ -4199,7 +4198,7 @@ public class JDBCConnectionTest {
         
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        jdbcConn.prepareDomainScanStatement(mockConn, "", 100);
+        jdbcConn.prepareDomainScanStatement("", 100);
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(Matchers.eq(1), Matchers.eq(new java.sql.Timestamp(100)), Matchers.isA(Calendar.class));
         jdbcConn.close();
     }
@@ -4209,7 +4208,7 @@ public class JDBCConnectionTest {
         
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        jdbcConn.prepareDomainScanStatement(mockConn, null, 100);
+        jdbcConn.prepareDomainScanStatement(null, 100);
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(Matchers.eq(1), Matchers.eq(new java.sql.Timestamp(100)), Matchers.isA(Calendar.class));
         jdbcConn.close();
     }
@@ -4218,7 +4217,7 @@ public class JDBCConnectionTest {
     public void testPrepareScanByRoleStatement() throws Exception {
         
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        jdbcConn.prepareScanByRoleStatement(mockConn, "user.member", "name");
+        jdbcConn.prepareScanByRoleStatement("user.member", "name");
         Mockito.verify(mockPrepStmt, times(1)).setString(Matchers.eq(1), Matchers.eq("user.member"));
         Mockito.verify(mockPrepStmt, times(1)).setString(Matchers.eq(2), Matchers.eq("name"));
         jdbcConn.close();
@@ -4228,7 +4227,7 @@ public class JDBCConnectionTest {
     public void testPrepareScanByRoleStatementOnlyRoleNameNull() throws Exception {
         
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        jdbcConn.prepareScanByRoleStatement(mockConn, null, "name");
+        jdbcConn.prepareScanByRoleStatement(null, "name");
         Mockito.verify(mockPrepStmt, times(1)).setString(Matchers.eq(1), Matchers.eq("name"));
         Mockito.verify(mockPrepStmt, times(0)).setString(Matchers.eq(2), Mockito.isA(String.class));
         jdbcConn.close();
@@ -4238,7 +4237,7 @@ public class JDBCConnectionTest {
     public void testPrepareScanByRoleStatementOnlyRoleNameEmpty() throws Exception {
         
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        jdbcConn.prepareScanByRoleStatement(mockConn, "", "name");
+        jdbcConn.prepareScanByRoleStatement("", "name");
         Mockito.verify(mockPrepStmt, times(1)).setString(Matchers.eq(1), Matchers.eq("name"));
         Mockito.verify(mockPrepStmt, times(0)).setString(Matchers.eq(2), Mockito.isA(String.class));
         jdbcConn.close();
@@ -4248,7 +4247,7 @@ public class JDBCConnectionTest {
     public void testPrepareScanByRoleStatementOnlyRoleMemberNull() throws Exception {
         
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        jdbcConn.prepareScanByRoleStatement(mockConn, "user.member", null);
+        jdbcConn.prepareScanByRoleStatement("user.member", null);
         Mockito.verify(mockPrepStmt, times(1)).setString(Matchers.eq(1), Matchers.eq("user.member"));
         Mockito.verify(mockPrepStmt, times(0)).setString(Matchers.eq(2), Mockito.isA(String.class));
         jdbcConn.close();
@@ -4258,7 +4257,7 @@ public class JDBCConnectionTest {
     public void testPrepareScanByRoleStatementOnlyRoleMemberEmpty() throws Exception {
         
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        jdbcConn.prepareScanByRoleStatement(mockConn, "user.member", "");
+        jdbcConn.prepareScanByRoleStatement("user.member", "");
         Mockito.verify(mockPrepStmt, times(1)).setString(Matchers.eq(1), Matchers.eq("user.member"));
         Mockito.verify(mockPrepStmt, times(0)).setString(Matchers.eq(2), Mockito.isA(String.class));
         jdbcConn.close();
@@ -4269,16 +4268,16 @@ public class JDBCConnectionTest {
         
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         
-        jdbcConn.prepareScanByRoleStatement(mockConn, null, null);
+        jdbcConn.prepareScanByRoleStatement(null, null);
         Mockito.verify(mockPrepStmt, times(0)).setString(Mockito.anyInt(), Mockito.isA(String.class));
         
-        jdbcConn.prepareScanByRoleStatement(mockConn, null, "");
+        jdbcConn.prepareScanByRoleStatement(null, "");
         Mockito.verify(mockPrepStmt, times(0)).setString(Mockito.anyInt(), Mockito.isA(String.class));
         
-        jdbcConn.prepareScanByRoleStatement(mockConn, "", null);
+        jdbcConn.prepareScanByRoleStatement("", null);
         Mockito.verify(mockPrepStmt, times(0)).setString(Mockito.anyInt(), Mockito.isA(String.class));
 
-        jdbcConn.prepareScanByRoleStatement(mockConn, "", "");
+        jdbcConn.prepareScanByRoleStatement("", "");
         Mockito.verify(mockPrepStmt, times(0)).setString(Mockito.anyInt(), Mockito.isA(String.class));
 
         jdbcConn.close();
@@ -4619,7 +4618,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.next()).thenReturn(true);
         Mockito.doReturn(101).when(mockResultSet).getInt(1);
 
-        int value = jdbcConn.insertPrincipal(mockConn, "domain.user1");
+        int value = jdbcConn.insertPrincipal("domain.user1");
         assertEquals(101, value);
         jdbcConn.close();
     }
@@ -4631,7 +4630,7 @@ public class JDBCConnectionTest {
         
         Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("failed operation", "state", 1001));
         try {
-            jdbcConn.insertPrincipal(mockConn, "domain.user1");
+            jdbcConn.insertPrincipal("domain.user1");
             fail();
         } catch (Exception ex) {
             assertTrue(true);
@@ -4645,7 +4644,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         
         Mockito.when(mockPrepStmt.executeUpdate()).thenReturn(0);
-        int value = jdbcConn.insertPrincipal(mockConn, "domain.user1");
+        int value = jdbcConn.insertPrincipal("domain.user1");
         assertEquals(0, value);
         jdbcConn.close();
     }
@@ -4657,7 +4656,7 @@ public class JDBCConnectionTest {
         
         Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("failed operation", "state", 1001));
         try {
-            jdbcConn.insertHost(mockConn, "host1");
+            jdbcConn.insertHost("host1");
             fail();
         } catch (Exception ex) {
             assertTrue(true);
@@ -4671,7 +4670,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         
         Mockito.when(mockPrepStmt.executeUpdate()).thenReturn(0);
-        int value = jdbcConn.insertHost(mockConn, "host1");
+        int value = jdbcConn.insertHost("host1");
         assertEquals(0, value);
         jdbcConn.close();
     }
@@ -5226,7 +5225,7 @@ public class JDBCConnectionTest {
     public void testPrepareRoleAssertionsStatementWithAction() throws Exception {
         
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        jdbcConn.prepareRoleAssertionsStatement(mockConn, "create");
+        jdbcConn.prepareRoleAssertionsStatement("create");
         Mockito.verify(mockPrepStmt, times(1)).setString(Matchers.eq(1), Matchers.eq("create"));
         jdbcConn.close();
     }
@@ -5235,8 +5234,8 @@ public class JDBCConnectionTest {
     public void testPrepareRoleAssertionsStatementEmptyAction() throws Exception {
         
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        jdbcConn.prepareRoleAssertionsStatement(mockConn, "");
-        jdbcConn.prepareRoleAssertionsStatement(mockConn, null);
+        jdbcConn.prepareRoleAssertionsStatement("");
+        jdbcConn.prepareRoleAssertionsStatement(null);
         Mockito.verify(mockPrepStmt, times(0)).setString(Matchers.isA(Integer.class), Matchers.isA(String.class));
         jdbcConn.close();
     }
@@ -5245,7 +5244,7 @@ public class JDBCConnectionTest {
     public void testPrepareRolePrinciaplsStatementWithPrincipal() throws Exception {
         
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        jdbcConn.prepareRolePrincipalsStatement(mockConn, "user.user1", "user", false);
+        jdbcConn.prepareRolePrincipalsStatement("user.user1", "user", false);
         Mockito.verify(mockPrepStmt, times(1)).setString(Matchers.eq(1), Matchers.eq("user.user1"));
         jdbcConn.close();
     }
@@ -5254,8 +5253,8 @@ public class JDBCConnectionTest {
     public void testPrepareRolePrinciaplsStatementEmptyPrincipal() throws Exception {
         
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        jdbcConn.prepareRolePrincipalsStatement(mockConn, "", "user", false);
-        jdbcConn.prepareRolePrincipalsStatement(mockConn, null, "user", false);
+        jdbcConn.prepareRolePrincipalsStatement("", "user", false);
+        jdbcConn.prepareRolePrincipalsStatement(null, "user", false);
         Mockito.verify(mockPrepStmt, times(0)).setString(Matchers.isA(Integer.class), Matchers.isA(String.class));
         jdbcConn.close();
     }
@@ -5936,7 +5935,7 @@ public class JDBCConnectionTest {
         
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        jdbcConn.preparePrincipalScanStatement(mockConn, null);
+        jdbcConn.preparePrincipalScanStatement(null);
         Mockito.verify(mockPrepStmt, times(0)).setString(Mockito.anyInt(), Mockito.isA(String.class));
         jdbcConn.close();
     }
@@ -5946,7 +5945,7 @@ public class JDBCConnectionTest {
         
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        jdbcConn.preparePrincipalScanStatement(mockConn, "athenz");
+        jdbcConn.preparePrincipalScanStatement("athenz");
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "athenz.%");
         jdbcConn.close();
     }

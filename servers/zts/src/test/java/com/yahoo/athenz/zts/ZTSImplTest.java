@@ -5888,6 +5888,47 @@ public class ZTSImplTest {
         principal = zts.createPrincipalForName("provider");
         assertEquals(principal.getDomain(), zts.userDomain);
         assertEquals(principal.getName(), "provider");
+
+        zts.userDomain = "user";
+        zts.userDomainAlias = null;
+        
+        principal = zts.createPrincipalForName("joe");
+        assertEquals(principal.getFullName(), "user.joe");
+        
+        principal = zts.createPrincipalForName("joe-smith");
+        assertEquals(principal.getFullName(), "user.joe-smith");
+        
+        principal = zts.createPrincipalForName("user.joe");
+        assertEquals(principal.getFullName(), "user.joe");
+
+        principal = zts.createPrincipalForName("user.joe.storage");
+        assertEquals(principal.getFullName(), "user.joe.storage");
+        
+        principal = zts.createPrincipalForName("alias.joe");
+        assertEquals(principal.getFullName(), "alias.joe");
+        
+        principal = zts.createPrincipalForName("alias.joe.storage");
+        assertEquals(principal.getFullName(), "alias.joe.storage");
+        
+        zts.userDomainAlias = "alias";
+        
+        principal = zts.createPrincipalForName("joe");
+        assertEquals(principal.getFullName(), "user.joe");
+        
+        principal = zts.createPrincipalForName("joe-smith");
+        assertEquals(principal.getFullName(), "user.joe-smith");
+        
+        principal = zts.createPrincipalForName("user.joe");
+        assertEquals(principal.getFullName(), "user.joe");
+
+        principal = zts.createPrincipalForName("user.joe.storage");
+        assertEquals(principal.getFullName(), "user.joe.storage");
+        
+        principal = zts.createPrincipalForName("alias.joe");
+        assertEquals(principal.getFullName(), "user.joe");
+        
+        principal = zts.createPrincipalForName("alias.joe.storage");
+        assertEquals(principal.getFullName(), "alias.joe.storage");
     }
     
     @Test
@@ -5929,4 +5970,20 @@ public class ZTSImplTest {
         assertNotNull(identity);
     }
 
+    @Test
+    public void testUpdateUserDomainAlias() {
+        
+        assertEquals(zts.updateUserDomainAlias(null), null);
+        assertEquals(zts.updateUserDomainAlias(""), null);
+        
+        zts.userDomainAlias = null;
+        assertEquals(zts.updateUserDomainAlias("user.joe"), "user.joe");
+        assertEquals(zts.updateUserDomainAlias("useralias.joe"), "useralias.joe");
+        assertEquals(zts.updateUserDomainAlias("joe"), "joe");
+
+        zts.userDomainAlias = "useralias";
+        assertEquals(zts.updateUserDomainAlias("user.joe"), "user.joe");
+        assertEquals(zts.updateUserDomainAlias("useralias.joe"), "user.joe");
+        assertEquals(zts.updateUserDomainAlias("joe"), "joe");
+    }
 }

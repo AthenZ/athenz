@@ -1480,7 +1480,7 @@ public class DBService {
         }
     }
     
-    void executeDeleteUser(ResourceContext ctx, String userName, String auditRef, String caller) {
+    void executeDeleteUser(ResourceContext ctx, String userName, String domainName, String auditRef, String caller) {
         
         int retryCount = defaultRetryCount;
         do {
@@ -1488,13 +1488,13 @@ public class DBService {
                 
                 // remove all principal domains
 
-                removePrincipalDomains(con, userName);
+                removePrincipalDomains(con, domainName);
                 
                 // extract all principals that this user has - this would
                 // include the user self plus all services this user
                 // has created in the personal domain + sub-domains
                 
-                List<String> userSvcPrincipals = con.listPrincipals(userName);
+                List<String> userSvcPrincipals = con.listPrincipals(domainName);
 
                 // remove this user from all roles manually so that we
                 // can have an audit log record for each role

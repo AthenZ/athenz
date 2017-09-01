@@ -64,6 +64,16 @@ public interface Authority {
     }
     
     /**
+     * If the authority is handling user principals, then it might require some
+     * mapping from username to user domain name.
+     * @param userName user name
+     * @return mapped domain name
+     */
+    default public String getUserDomainName(String userName) {
+        return userName;
+    }
+    
+    /**
      * Verify the credentials and if valid return the corresponding Principal, null otherwise.
      * @param creds the credentials (i.e. cookie, token, secret) that will identify the principal.
      * @param remoteAddr remote IP address of the connection
