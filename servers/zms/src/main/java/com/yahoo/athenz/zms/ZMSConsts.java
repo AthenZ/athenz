@@ -22,7 +22,9 @@ public final class ZMSConsts {
 
     // System property names with defaults(where applicable)
     //
-    public static final String ZMS_PROP_USER_DOMAIN   = "athenz.user_domain";
+    public static final String ZMS_PROP_USER_DOMAIN       = "athenz.user_domain";
+    public static final String ZMS_PROP_HOME_DOMAIN       = "athenz.home_domain";
+    public static final String ZMS_PROP_USER_DOMAIN_ALIAS = "athenz.user_domain_alias";
 
     public static final String ZMS_PROP_HOSTNAME      = "athenz.zms.hostname";
     public static final String ZMS_PROP_DOMAIN_ADMIN  = "athenz.zms.domain_admin";
@@ -57,6 +59,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_AWS_RDS_MASTER_PORT        = "athenz.zms.aws_rds_master_port";
     public static final String ZMS_PROP_AWS_RDS_CREDS_REFRESH_TIME = "athenz.zms.aws_rds_creds_refresh_time";
 
+    public static final String ZMS_PROP_USER_AUTHORITY_CLASS      = "athenz.zms.user_authority_class";
     public static final String ZMS_PROP_PRINCIPAL_AUTHORITY_CLASS = "athenz.zms.principal_authority_class";
 
     public static final String ZMS_PROP_TIMEOUT                 = "athenz.zms.user_token_timeout";

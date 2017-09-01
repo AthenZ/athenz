@@ -103,7 +103,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected String ostkHostSignerDomain = null;
     protected String ostkHostSignerService = null;
     protected AuditLogger auditLogger = null;
-    protected String userDomain = "user";
+    protected String userDomain;
+    protected String userDomainAlias;
     protected boolean leastPrivilegePrincipal = false;
     protected Set<String> authorizedProxyUsers = null;
     protected boolean secureRequestsOnly = true;
@@ -306,7 +307,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
         
         userDomain = System.getProperty(ZTSConsts.ZTS_PROP_USER_DOMAIN, ZTSConsts.ATHENZ_USER_DOMAIN);
-        
+        userDomainAlias = System.getProperty(ZTSConsts.ZTS_PROP_USER_DOMAIN_ALIAS);
+
         // retrieve our temporary ostk host signer domain/service name
         
         String hostSignerService = System.getProperty(ZTSConsts.ZTS_PROP_OSTK_HOST_SIGNER_SERVICE);
@@ -862,6 +864,28 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
     }
     
+    String updateUserDomainAlias(String principal) {
+        
+        if (principal == null || principal.length() == 0) {
+            return null;
+        }
+        
+        if (userDomainAlias == null) {
+            return principal;
+        }
+        
+        int idx = principal.lastIndexOf('.');
+        if (idx == -1) {
+            return principal;
+        }
+
+        final String domain = principal.substring(0, idx);
+        if (userDomainAlias.equals(domain)) {
+            principal = userDomain + principal.substring(idx);
+        }
+        return principal;
+    }
+    
     long determineTokenTimeout(Integer minExpiryTime, Integer maxExpiryTime) {
         
         // we're going to default our return value to the default token
@@ -1127,7 +1151,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // do not allow empty (not null) values for role
         
         roleName = convertEmptyStringToNull(roleName);
-        proxyForPrincipal = convertEmptyStringToNull(proxyForPrincipal);
+        proxyForPrincipal = updateUserDomainAlias(proxyForPrincipal);
 
         if (leastPrivilegePrincipal && roleName == null) {
             throw requestError("getRoleToken: Client must specify a roleName to request a token for",
@@ -2460,6 +2484,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             name = principalName;
         } else {
             domain = principalName.substring(0, idx);
+            if (userDomainAlias != null && userDomainAlias.equals(domain)) {
+                domain = userDomain;
+            }
             name = principalName.substring(idx + 1);
         }
         

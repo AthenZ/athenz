@@ -9532,12 +9532,19 @@ public class ZMSImplTest {
     @Test
     public void testHasAccessInvalidRoleTokenAccess() {
 
+        final String domainName = "coretech";
+        TopLevelDomain dom = createTopLevelDomainObject(domainName,
+                "Test Domain", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom);
+        
         List<String> authRoles = new ArrayList<>();
         authRoles.add("role1");
-        Principal principal = SimplePrincipal.create("coretech", "v=U1;d=user;n=user1;s=signature", authRoles, null);
-        AthenzDomain domain = zms.retrieveAccessDomain("coretech", principal);
-        assertEquals(zms.hasAccess(domain, "read", "coretech:entity", principal, "trustdomain"),
+        Principal principal = SimplePrincipal.create(domainName, "v=U1;d=user;n=user1;s=signature", authRoles, null);
+        AthenzDomain domain = zms.retrieveAccessDomain(domainName, principal);
+        assertEquals(zms.hasAccess(domain, "read", domainName + ":entity", principal, "trustdomain"),
                 AccessStatus.DENIED_INVALID_ROLE_TOKEN);
+        
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
     
     @Test
@@ -10074,7 +10081,7 @@ public class ZMSImplTest {
         Principal principal = SimplePrincipal.create("user", "user1", "v=U1;d=user;n=user1;s=signature",
                 0, principalAuthority);
         
-        AthenzDomain virtualDomain = zms.virtualHomeDomain(principal);
+        AthenzDomain virtualDomain = zms.virtualHomeDomain(principal, "user.user1");
         assertNotNull(virtualDomain);
         
         List<Role> roles = virtualDomain.getRoles();
@@ -10087,6 +10094,9 @@ public class ZMSImplTest {
             }
         }
         assertNotNull(adminRole);
+        List<RoleMember> roleMembers = adminRole.getRoleMembers();
+        assertEquals(roleMembers.size(), 1);
+        assertEquals(roleMembers.get(0).getMemberName(), "user.user1");
         
         List<Policy> policies = virtualDomain.getPolicies();
         assertNotNull(policies);
@@ -10100,6 +10110,43 @@ public class ZMSImplTest {
         assertNotNull(adminPolicy);
     }
 
+    @Test
+    public void testVirtualHomeDomainDifferentUserHome() {
+        
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        
+        Principal principal = SimplePrincipal.create("user", "john.smith", "v=U1;d=user;n=john.smith;s=signature",
+                0, principalAuthority);
+        
+        AthenzDomain virtualDomain = zms.virtualHomeDomain(principal, "home.john-smith");
+        assertNotNull(virtualDomain);
+        
+        List<Role> roles = virtualDomain.getRoles();
+        assertNotNull(roles);
+        Role adminRole = null;
+        for (Role role : roles) {
+            if (role.getName().equals("home.john-smith:role.admin")) {
+                adminRole = role;
+                break;
+            }
+        }
+        assertNotNull(adminRole);
+        List<RoleMember> roleMembers = adminRole.getRoleMembers();
+        assertEquals(roleMembers.size(), 1);
+        assertEquals(roleMembers.get(0).getMemberName(), "user.john.smith");
+        
+        List<Policy> policies = virtualDomain.getPolicies();
+        assertNotNull(policies);
+        Policy adminPolicy = null;
+        for (Policy policy : policies) {
+            if (policy.getName().equals("home.john-smith:policy.admin")) {
+                adminPolicy = policy;
+                break;
+            }
+        }
+        assertNotNull(adminPolicy);
+    }
+    
     @Test
     public void testDeletePublicKeyEntry() {
         
@@ -14607,6 +14654,160 @@ public class ZMSImplTest {
         assertEquals(quotaCheck.getPolicy(), 1000);
         
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+    
+    @Test
+    public void testUserHomeDomainResource() {
+        ZMSImpl zmsImpl = zmsInit();
+        
+        PrincipalAuthority principalAuthority = new com.yahoo.athenz.auth.impl.PrincipalAuthority();
+        PrincipalAuthority testPrincipalAuthority = new com.yahoo.athenz.zms.TestUserPrincipalAuthority();
+        
+        // no changes expected
+        
+        zmsImpl.userDomain = "user";
+        zmsImpl.userDomainPrefix = "user.";
+        zmsImpl.homeDomain = "user";
+        zmsImpl.homeDomainPrefix = "user.";
+        zmsImpl.userAuthority = principalAuthority;
+        assertEquals(zmsImpl.userHomeDomainResource("user.hga:domain"), "user.hga:domain");
+        assertEquals(zmsImpl.userHomeDomainResource("user.john.smith:domain"), "user.john.smith:domain");
+        assertEquals(zmsImpl.userHomeDomainResource("testuser.john.smith:domain"), "testuser.john.smith:domain");
+        assertEquals(zmsImpl.userHomeDomainResource("product.john.smith:domain"), "product.john.smith:domain");
+
+        // no changes expected
+        
+        zmsImpl.userDomain = "user";
+        zmsImpl.userDomainPrefix = "user.";
+        zmsImpl.homeDomain = "user";
+        zmsImpl.homeDomainPrefix = "user.";
+        zmsImpl.userAuthority = testPrincipalAuthority;
+        assertEquals(zmsImpl.userHomeDomainResource("user.hga:domain"), "user.hga:domain");
+        assertEquals(zmsImpl.userHomeDomainResource("user.john.smith:domain"), "user.john.smith:domain");
+        assertEquals(zmsImpl.userHomeDomainResource("testuser.john.smith:domain"), "testuser.john.smith:domain");
+        assertEquals(zmsImpl.userHomeDomainResource("product.john.smith:domain"), "product.john.smith:domain");
+        
+        // only domain name is changed - no username changes since user/home are same
+        
+        zmsImpl.userDomain = "testuser";
+        zmsImpl.userDomainPrefix = "testuser.";
+        zmsImpl.homeDomain = "testuser";
+        zmsImpl.homeDomainPrefix = "testuser.";
+        zmsImpl.userAuthority = principalAuthority;
+        assertEquals(zmsImpl.userHomeDomainResource("user.hga:domain"), "testuser.hga:domain");
+        assertEquals(zmsImpl.userHomeDomainResource("user.john.smith:domain"), "testuser.john.smith:domain");
+        assertEquals(zmsImpl.userHomeDomainResource("testuser.john.smith:domain"), "testuser.john.smith:domain");
+        assertEquals(zmsImpl.userHomeDomainResource("product.john.smith:domain"), "product.john.smith:domain");
+        
+        // only domain name is changed - no username changes since user/home are same
+
+        zmsImpl.userDomain = "testuser";
+        zmsImpl.userDomainPrefix = "testuser.";
+        zmsImpl.homeDomain = "testuser";
+        zmsImpl.homeDomainPrefix = "testuser.";
+        zmsImpl.userAuthority = testPrincipalAuthority;
+        assertEquals(zmsImpl.userHomeDomainResource("user.hga:domain"), "testuser.hga:domain");
+        assertEquals(zmsImpl.userHomeDomainResource("user.john.smith:domain"), "testuser.john.smith:domain");
+        assertEquals(zmsImpl.userHomeDomainResource("testuser.john.smith:domain"), "testuser.john.smith:domain");
+        assertEquals(zmsImpl.userHomeDomainResource("product.john.smith:domain"), "product.john.smith:domain");
+        
+        // domain and username are changed since user/home namespaces are different
+        // username impl in authority is default so we'll end up with same username
+        
+        zmsImpl.userDomain = "user";
+        zmsImpl.userDomainPrefix = "user.";
+        zmsImpl.homeDomain = "home";
+        zmsImpl.homeDomainPrefix = "home.";
+        zmsImpl.userAuthority = principalAuthority;
+        assertEquals(zmsImpl.userHomeDomainResource("user.hga:domain"), "home.hga:domain");
+        assertEquals(zmsImpl.userHomeDomainResource("user.john.smith:domain"), "home.john.smith:domain");
+        assertEquals(zmsImpl.userHomeDomainResource("testuser.john.smith:domain"), "testuser.john.smith:domain");
+        assertEquals(zmsImpl.userHomeDomainResource("product.john.smith:domain"), "product.john.smith:domain");
+        
+        // domain and username are changed since user/home namespaces are different
+        // username impl in authority will replace .'s with -'s
+
+        zmsImpl.userDomain = "user";
+        zmsImpl.userDomainPrefix = "user.";
+        zmsImpl.homeDomain = "home";
+        zmsImpl.homeDomainPrefix = "home.";
+        zmsImpl.userAuthority = testPrincipalAuthority;
+        assertEquals(zmsImpl.userHomeDomainResource("user.hga:domain"), "home.hga:domain");
+        assertEquals(zmsImpl.userHomeDomainResource("user.john.smith:domain"), "home.john-smith:domain");
+        assertEquals(zmsImpl.userHomeDomainResource("testuser.john.smith:domain"), "testuser.john.smith:domain");
+        assertEquals(zmsImpl.userHomeDomainResource("product.john.smith:domain"), "product.john.smith:domain");
+        
+        // domain and username are changed since user/home namespaces are different
+        // username impl in authority is default so we'll end up with same username
+        
+        zmsImpl.userDomain = "testuser";
+        zmsImpl.userDomainPrefix = "testuser.";
+        zmsImpl.homeDomain = "home";
+        zmsImpl.homeDomainPrefix = "home.";
+        zmsImpl.userAuthority = principalAuthority;
+        assertEquals(zmsImpl.userHomeDomainResource("user.hga:domain"), "home.hga:domain");
+        assertEquals(zmsImpl.userHomeDomainResource("user.john.smith:domain"), "home.john.smith:domain");
+        assertEquals(zmsImpl.userHomeDomainResource("testuser.john.smith:domain"), "testuser.john.smith:domain");
+        assertEquals(zmsImpl.userHomeDomainResource("product.john.smith:domain"), "product.john.smith:domain");
+        
+        // domain and username are changed since user/home namespaces are different
+        // username impl in authority will replace .'s with -'s
+        
+        zmsImpl.userDomain = "testuser";
+        zmsImpl.userDomainPrefix = "testuser.";
+        zmsImpl.homeDomain = "home";
+        zmsImpl.homeDomainPrefix = "home.";
+        zmsImpl.userAuthority = testPrincipalAuthority;
+        assertEquals(zmsImpl.userHomeDomainResource("user.hga:domain"), "home.hga:domain");
+        assertEquals(zmsImpl.userHomeDomainResource("user.john.smith:domain"), "home.john-smith:domain");
+        assertEquals(zmsImpl.userHomeDomainResource("testuser.john.smith:domain"), "testuser.john.smith:domain");
+        assertEquals(zmsImpl.userHomeDomainResource("product.john.smith:domain"), "product.john.smith:domain");
+    }
+
+    @Test
+    public void testCreatePrincipalForName() {
+        
+        ZMSImpl zmsImpl = zmsInit();
+        zmsImpl.userDomain = "user";
+        zmsImpl.userDomainAlias = null;
+        
+        Principal principal = zmsImpl.createPrincipalForName("joe");
+        assertEquals(principal.getFullName(), "user.joe");
+        
+        principal = zmsImpl.createPrincipalForName("joe-smith");
+        assertEquals(principal.getFullName(), "user.joe-smith");
+        
+        principal = zmsImpl.createPrincipalForName("user.joe");
+        assertEquals(principal.getFullName(), "user.joe");
+
+        principal = zmsImpl.createPrincipalForName("user.joe.storage");
+        assertEquals(principal.getFullName(), "user.joe.storage");
+        
+        principal = zmsImpl.createPrincipalForName("alias.joe");
+        assertEquals(principal.getFullName(), "alias.joe");
+        
+        principal = zmsImpl.createPrincipalForName("alias.joe.storage");
+        assertEquals(principal.getFullName(), "alias.joe.storage");
+        
+        zmsImpl.userDomainAlias = "alias";
+        
+        principal = zmsImpl.createPrincipalForName("joe");
+        assertEquals(principal.getFullName(), "user.joe");
+        
+        principal = zmsImpl.createPrincipalForName("joe-smith");
+        assertEquals(principal.getFullName(), "user.joe-smith");
+        
+        principal = zmsImpl.createPrincipalForName("user.joe");
+        assertEquals(principal.getFullName(), "user.joe");
+
+        principal = zmsImpl.createPrincipalForName("user.joe.storage");
+        assertEquals(principal.getFullName(), "user.joe.storage");
+        
+        principal = zmsImpl.createPrincipalForName("alias.joe");
+        assertEquals(principal.getFullName(), "user.joe");
+        
+        principal = zmsImpl.createPrincipalForName("alias.joe.storage");
+        assertEquals(principal.getFullName(), "alias.joe.storage");
     }
 }
 

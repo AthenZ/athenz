@@ -542,7 +542,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         return (affectedRows > 0);
     }
 
-    PreparedStatement prepareDomainScanStatement(Connection con, String prefix, long modifiedSince)
+    PreparedStatement prepareDomainScanStatement(String prefix, long modifiedSince)
             throws SQLException {
         
         PreparedStatement ps = null;
@@ -571,7 +571,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         return ps;
     }
     
-    PreparedStatement prepareScanByRoleStatement(Connection con, String roleMember, String roleName)
+    PreparedStatement prepareScanByRoleStatement(String roleMember, String roleName)
             throws SQLException {
         
         PreparedStatement ps = null;
@@ -603,7 +603,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         // we're going to automatically skip those by using a set
         
         Set<String> uniqueDomains = new HashSet<>();
-        try (PreparedStatement ps = prepareScanByRoleStatement(con, roleMember, roleName)) {
+        try (PreparedStatement ps = prepareScanByRoleStatement(roleMember, roleName)) {
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     uniqueDomains.add(rs.getString(ZMSConsts.DB_COLUMN_NAME));
@@ -655,7 +655,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         final String caller = "listDomains";
 
         List<String> domains = new ArrayList<>();
-        try (PreparedStatement ps = prepareDomainScanStatement(con, prefix, modifiedSince)) {
+        try (PreparedStatement ps = prepareDomainScanStatement(prefix, modifiedSince)) {
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     domains.add(rs.getString(ZMSConsts.DB_COLUMN_NAME));
@@ -673,7 +673,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         final String caller = "insertDomainTemplate";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
@@ -693,7 +693,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         final String caller = "deleteDomainTemplate";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
@@ -728,11 +728,11 @@ public class JDBCConnection implements ObjectStoreConnection {
         return templates;
     }
     
-    int getDomainId(Connection con, String domainName) {
-        return getDomainId(con, domainName, false);
+    int getDomainId(String domainName) {
+        return getDomainId(domainName, false);
     }
     
-    int getDomainId(Connection con, String domainName, boolean domainStateCheck) {
+    int getDomainId(String domainName, boolean domainStateCheck) {
         
         final String caller = "getDomainId";
 
@@ -768,7 +768,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         return domainId;
     }
     
-    int getPolicyId(Connection con, int domainId, String policyName) {
+    int getPolicyId(int domainId, String policyName) {
         
         final String caller = "getPolicyId";
 
@@ -807,7 +807,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         return policyId;
     }
     
-    int getRoleId(Connection con, int domainId, String roleName) {
+    int getRoleId(int domainId, String roleName) {
         
         final String caller = "getRoleId";
 
@@ -846,7 +846,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         return roleId;
     }
     
-    int getServiceId(Connection con, int domainId, String serviceName) {
+    int getServiceId(int domainId, String serviceName) {
         
         final String caller = "getServiceId";
 
@@ -885,7 +885,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         return serviceId;
     }
     
-    int getPrincipalId(Connection con, String principal) {
+    int getPrincipalId(String principal) {
         
         final String caller = "getPrincipalId";
 
@@ -921,7 +921,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         return principalId;
     }
     
-    int getHostId(Connection con, String hostName) {
+    int getHostId(String hostName) {
         
         final String caller = "getHostId";
 
@@ -956,7 +956,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         return hostId;
     }
     
-    int getLastInsertId(Connection con) {
+    int getLastInsertId() {
 
         int lastInsertId = 0;
         final String caller = "getLastInsertId";
@@ -974,7 +974,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         return lastInsertId;
     }
     
-    PreparedStatement preparePrincipalScanStatement(Connection con, String domainName)
+    PreparedStatement preparePrincipalScanStatement(String domainName)
             throws SQLException {
         
         PreparedStatement ps = null;
@@ -994,7 +994,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         final String caller = "listPrincipals";
 
         List<String> principals = new ArrayList<>();
-        try (PreparedStatement ps = preparePrincipalScanStatement(con, domainName)) {
+        try (PreparedStatement ps = preparePrincipalScanStatement(domainName)) {
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     principals.add(rs.getString(ZMSConsts.DB_COLUMN_NAME));
@@ -1095,7 +1095,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     " insert role name: " + role.getName());
         }
         
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
@@ -1122,11 +1122,11 @@ public class JDBCConnection implements ObjectStoreConnection {
                     " update role name: " + role.getName());
         }
         
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int roleId = getRoleId(con, domainId, roleName);
+        int roleId = getRoleId(domainId, roleName);
         if (roleId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_ROLE, ZMSUtils.roleResourceName(domainName, roleName));
         }
@@ -1148,11 +1148,11 @@ public class JDBCConnection implements ObjectStoreConnection {
         int affectedRows = 0;
         final String caller = "updateRoleModTimestamp";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int roleId = getRoleId(con, domainId, roleName);
+        int roleId = getRoleId(domainId, roleName);
         if (roleId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_ROLE, ZMSUtils.roleResourceName(domainName, roleName));
         }
@@ -1172,11 +1172,11 @@ public class JDBCConnection implements ObjectStoreConnection {
         int affectedRows = 0;
         final String caller = "updateServiceIdentityModTimestamp";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int serviceId = getServiceId(con, domainId, serviceName);
+        int serviceId = getServiceId(domainId, serviceName);
         if (serviceId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_SERVICE, ZMSUtils.serviceResourceName(domainName, serviceName));
         }
@@ -1195,7 +1195,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         final String caller = "deleteRole";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
@@ -1215,7 +1215,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         final String caller = "listRoles";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
@@ -1239,7 +1239,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         final String caller = "countRoles";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
@@ -1270,11 +1270,11 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         final String caller = "listRoleMembers";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int roleId = getRoleId(con, domainId, roleName);
+        int roleId = getRoleId(domainId, roleName);
         if (roleId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_ROLE, ZMSUtils.roleResourceName(domainName, roleName));
         }
@@ -1304,11 +1304,11 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         final String caller = "countRoleMembers";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int roleId = getRoleId(con, domainId, roleName);
+        int roleId = getRoleId(domainId, roleName);
         if (roleId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_ROLE, ZMSUtils.roleResourceName(domainName, roleName));
         }
@@ -1331,7 +1331,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         final String caller = "listPrincipalRoles";
 
-        int principalId = getPrincipalId(con, principalName);
+        int principalId = getPrincipalId(principalName);
         if (principalId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_PRINCIPAL, principalName);
         }
@@ -1357,11 +1357,11 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         final String caller = "listRoleAuditLogs";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int roleId = getRoleId(con, domainId, roleName);
+        int roleId = getRoleId(domainId, roleName);
         if (roleId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_ROLE, ZMSUtils.roleResourceName(domainName, roleName));
         }
@@ -1400,11 +1400,11 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         final String caller = "getRoleMember";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int roleId = getRoleId(con, domainId, roleName);
+        int roleId = getRoleId(domainId, roleName);
         if (roleId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_ROLE, ZMSUtils.roleResourceName(domainName, roleName));
         }
@@ -1432,7 +1432,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         return membership;
     }
     
-    int insertPrincipal(Connection con, String principal) {
+    int insertPrincipal(String principal) {
         
         int affectedRows = 0;
         final String caller = "insertPrincipal";
@@ -1449,7 +1449,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             // that instead of returning an exception
             
             if (ex.getErrorCode() == MYSQL_ER_OPTION_DUPLICATE_ENTRY) {
-                return getPrincipalId(con, principal);
+                return getPrincipalId(principal);
             }
 
             throw sqlError(ex, caller);
@@ -1457,12 +1457,12 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         int principalId = 0;
         if (affectedRows == 1) {
-            principalId = getLastInsertId(con);
+            principalId = getLastInsertId();
         }
         return principalId;
     }
     
-    int insertHost(Connection con, String hostName) {
+    int insertHost(String hostName) {
         
         int affectedRows = 0;
         final String caller = "insertHost";
@@ -1476,7 +1476,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         int hostId = 0;
         if (affectedRows == 1) {
-            hostId = getLastInsertId(con);
+            hostId = getLastInsertId();
         }
         return hostId;
     }
@@ -1488,20 +1488,20 @@ public class JDBCConnection implements ObjectStoreConnection {
         final String caller = "insertRoleMember";
 
         String principal = roleMember.getMemberName();
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int roleId = getRoleId(con, domainId, roleName);
+        int roleId = getRoleId(domainId, roleName);
         if (roleId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_ROLE, ZMSUtils.roleResourceName(domainName, roleName));
         }
         if (!validatePrincipalDomain(principal)) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, principal);
         }
-        int principalId = getPrincipalId(con, principal);
+        int principalId = getPrincipalId(principal);
         if (principalId == 0) {
-            principalId = insertPrincipal(con, principal);
+            principalId = insertPrincipal(principal);
             if (principalId == 0) {
                 throw internalServerError(caller, "Unable to insert principal: " + principal);
             }
@@ -1540,7 +1540,7 @@ public class JDBCConnection implements ObjectStoreConnection {
            }
            result = (affectedRows > 0);
            if (result) {
-               result = insertRoleAuditLog(con, roleId, admin, principal, "UPDATE", auditRef);
+               result = insertRoleAuditLog(roleId, admin, principal, "UPDATE", auditRef);
            }
         } else {
             try (PreparedStatement ps = con.prepareStatement(SQL_INSERT_ROLE_MEMBER)) {
@@ -1562,7 +1562,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             // add return the result of the audit log insert operation
             
             if (result) {
-                result = insertRoleAuditLog(con, roleId, admin, principal, "ADD", auditRef);
+                result = insertRoleAuditLog(roleId, admin, principal, "ADD", auditRef);
             }
         }
         return result;
@@ -1574,15 +1574,15 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         final String caller = "deleteRoleMember";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int roleId = getRoleId(con, domainId, roleName);
+        int roleId = getRoleId(domainId, roleName);
         if (roleId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_ROLE, ZMSUtils.roleResourceName(domainName, roleName));
         }
-        int principalId = getPrincipalId(con, principal);
+        int principalId = getPrincipalId(principal);
         if (principalId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_PRINCIPAL, principal);
         }
@@ -1601,13 +1601,13 @@ public class JDBCConnection implements ObjectStoreConnection {
         // add return the result of the audit log insert operation
         
         if (result) {
-            result = insertRoleAuditLog(con, roleId, admin, principal, "DELETE", auditRef);
+            result = insertRoleAuditLog(roleId, admin, principal, "DELETE", auditRef);
         }
         
         return result;
     }
 
-    boolean insertRoleAuditLog(Connection con, int roleId, String admin, String member,
+    boolean insertRoleAuditLog(int roleId, String admin, String member,
             String action, String auditRef) {
         
         int affectedRows = 0;
@@ -1685,7 +1685,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     " insert policy name: " + policy.getName());
         }
         
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
@@ -1711,11 +1711,11 @@ public class JDBCConnection implements ObjectStoreConnection {
                     " update policy name: " + policy.getName());
         }
         
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int policyId = getPolicyId(con, domainId, policyName);
+        int policyId = getPolicyId(domainId, policyName);
         if (policyId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_POLICY, ZMSUtils.policyResourceName(domainName, policyName));
         }
@@ -1735,11 +1735,11 @@ public class JDBCConnection implements ObjectStoreConnection {
         int affectedRows = 0;
         final String caller = "updatePolicyModTimestamp";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int policyId = getPolicyId(con, domainId, policyName);
+        int policyId = getPolicyId(domainId, policyName);
         if (policyId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_POLICY, ZMSUtils.policyResourceName(domainName, policyName));
         }
@@ -1758,7 +1758,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         final String caller = "deletePolicy";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
@@ -1778,7 +1778,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         final String caller = "listPolicies";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
@@ -1811,7 +1811,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         final String caller = "countPolicies";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
@@ -1840,11 +1840,11 @@ public class JDBCConnection implements ObjectStoreConnection {
                     " assertion role name: " + assertion.getRole());
         }
         
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int policyId = getPolicyId(con, domainId, policyName);
+        int policyId = getPolicyId(domainId, policyName);
         if (policyId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_POLICY, ZMSUtils.policyResourceName(domainName, policyName));
         }
@@ -1885,7 +1885,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         boolean result = (affectedRows > 0);
 
         if (result) {
-            assertion.setId((long) getLastInsertId(con));
+            assertion.setId((long) getLastInsertId());
         }
         return result;
     }
@@ -1895,11 +1895,11 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         final String caller = "deleteAssertion";
         
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int policyId = getPolicyId(con, domainId, policyName);
+        int policyId = getPolicyId(domainId, policyName);
         if (policyId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_POLICY, ZMSUtils.policyResourceName(domainName, policyName));
         }
@@ -1920,11 +1920,11 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         final String caller = "listAssertions";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int policyId = getPolicyId(con, domainId, policyName);
+        int policyId = getPolicyId(domainId, policyName);
         if (policyId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_POLICY, ZMSUtils.policyResourceName(domainName, policyName));
         }
@@ -1953,11 +1953,11 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         final String caller = "countAssertions";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int policyId = getPolicyId(con, domainId, policyName);
+        int policyId = getPolicyId(domainId, policyName);
         if (policyId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_POLICY, ZMSUtils.policyResourceName(domainName, policyName));
         }
@@ -2043,7 +2043,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     " insert service name: " + service.getName());
         }
         
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
@@ -2074,11 +2074,11 @@ public class JDBCConnection implements ObjectStoreConnection {
                     " update service name: " + service.getName());
         }
         
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int serviceId = getServiceId(con, domainId, serviceName);
+        int serviceId = getServiceId(domainId, serviceName);
         if (serviceId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_SERVICE, ZMSUtils.serviceResourceName(domainName, serviceName));
         }
@@ -2101,7 +2101,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         final String caller = "deleteServiceIdentity";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
@@ -2121,7 +2121,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         final String caller = "listServiceIdentities";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
@@ -2145,7 +2145,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         final String caller = "countServiceIdentities";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
@@ -2168,11 +2168,11 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         final String caller = "listPublicKeys";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int serviceId = getServiceId(con, domainId, serviceName);
+        int serviceId = getServiceId(domainId, serviceName);
         if (serviceId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_SERVICE, ZMSUtils.serviceResourceName(domainName, serviceName));
         }
@@ -2198,11 +2198,11 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         final String caller = "countPublicKeys";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int serviceId = getServiceId(con, domainId, serviceName);
+        int serviceId = getServiceId(domainId, serviceName);
         if (serviceId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_SERVICE, ZMSUtils.serviceResourceName(domainName, serviceName));
         }
@@ -2226,11 +2226,11 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         final String caller = "getPublicKeyEntry";
 
-        int domainId = getDomainId(con, domainName, domainStateCheck);
+        int domainId = getDomainId(domainName, domainStateCheck);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int serviceId = getServiceId(con, domainId, serviceName);
+        int serviceId = getServiceId(domainId, serviceName);
         if (serviceId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_SERVICE, ZMSUtils.serviceResourceName(domainName, serviceName));
         }
@@ -2255,11 +2255,11 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         final String caller = "insertPublicKeyEntry";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int serviceId = getServiceId(con, domainId, serviceName);
+        int serviceId = getServiceId(domainId, serviceName);
         if (serviceId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_SERVICE, ZMSUtils.serviceResourceName(domainName, serviceName));
         }
@@ -2280,11 +2280,11 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         final String caller = "updatePublicKeyEntry";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int serviceId = getServiceId(con, domainId, serviceName);
+        int serviceId = getServiceId(domainId, serviceName);
         if (serviceId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_SERVICE, ZMSUtils.serviceResourceName(domainName, serviceName));
         }
@@ -2305,11 +2305,11 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         final String caller = "deletePublicKeyEntry";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int serviceId = getServiceId(con, domainId, serviceName);
+        int serviceId = getServiceId(domainId, serviceName);
         if (serviceId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_SERVICE, ZMSUtils.serviceResourceName(domainName, serviceName));
         }
@@ -2329,11 +2329,11 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         final String caller = "listServiceHosts";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int serviceId = getServiceId(con, domainId, serviceName);
+        int serviceId = getServiceId(domainId, serviceName);
         if (serviceId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_SERVICE, ZMSUtils.serviceResourceName(domainName, serviceName));
         }
@@ -2356,17 +2356,17 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         final String caller = "insertServiceHost";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int serviceId = getServiceId(con, domainId, serviceName);
+        int serviceId = getServiceId(domainId, serviceName);
         if (serviceId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_SERVICE, ZMSUtils.serviceResourceName(domainName, serviceName));
         }
-        int hostId = getHostId(con, hostName);
+        int hostId = getHostId(hostName);
         if (hostId == 0) {
-            hostId = insertHost(con, hostName);
+            hostId = insertHost(hostName);
             if (hostId == 0) {
                 throw internalServerError(caller, "Unable to insert host: " + hostName);
             }
@@ -2387,15 +2387,15 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         final String caller = "deleteServiceHost";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int serviceId = getServiceId(con, domainId, serviceName);
+        int serviceId = getServiceId(domainId, serviceName);
         if (serviceId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_SERVICE, ZMSUtils.serviceResourceName(domainName, serviceName));
         }
-        int hostId = getHostId(con, hostName);
+        int hostId = getHostId(hostName);
         if (hostId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_HOST, hostName);
         }
@@ -2415,7 +2415,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         final String caller = "insertEntity";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
@@ -2436,7 +2436,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         final String caller = "updateEntity";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
@@ -2457,7 +2457,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         final String caller = "deleteEntity";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
@@ -2477,7 +2477,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         final String caller = "getEntity";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
@@ -2502,7 +2502,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         final String caller = "listEntities";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
@@ -2526,7 +2526,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         final String caller = "countEntities";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
@@ -2746,7 +2746,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         DomainModifiedList domainModifiedList = new DomainModifiedList();
         List<DomainModified> nameMods = new ArrayList<DomainModified>();
 
-        try (PreparedStatement ps = prepareDomainScanStatement(con, null, modifiedSince)) {
+        try (PreparedStatement ps = prepareDomainScanStatement(null, modifiedSince)) {
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     DomainModified dm = new DomainModified()
@@ -2772,7 +2772,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         if (idx == -1 || idx == 0 || idx == principal.length() - 1) {
             return false;
         }
-        if (getDomainId(con, principal.substring(0, idx)) == 0) {
+        if (getDomainId(principal.substring(0, idx)) == 0) {
             return false;
         }
         return true;
@@ -2784,7 +2784,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         return index.toString();
     }
     
-    PreparedStatement prepareRoleAssertionsStatement(Connection con, String action)
+    PreparedStatement prepareRoleAssertionsStatement(String action)
             throws SQLException {
         
         PreparedStatement ps = null;
@@ -2800,7 +2800,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     Map<String, List<Assertion>> getRoleAssertions(String action, String caller) {
 
         Map<String, List<Assertion>> roleAssertions = new HashMap<>();
-        try (PreparedStatement ps = prepareRoleAssertionsStatement(con, action)) {
+        try (PreparedStatement ps = prepareRoleAssertionsStatement(action)) {
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     Assertion assertion = new Assertion();
@@ -2833,7 +2833,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         return roleAssertions;
     }
     
-    PreparedStatement prepareRolePrincipalsStatement(Connection con, String principal,
+    PreparedStatement prepareRolePrincipalsStatement(String principal,
             String userDomain, boolean awsQuery) throws SQLException {
         
         PreparedStatement ps = null;
@@ -2854,7 +2854,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             String userDomain, String caller) {
 
         Map<String, List<String>> rolePrincipals = new HashMap<>();
-        try (PreparedStatement ps = prepareRolePrincipalsStatement(con, principal, userDomain, awsQuery)) {
+        try (PreparedStatement ps = prepareRolePrincipalsStatement(principal, userDomain, awsQuery)) {
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     String principalName = rs.getString(ZMSConsts.DB_COLUMN_NAME);
@@ -3050,7 +3050,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                 // that it has been registered in Athenz otherwise we'll
                 // just return 404 - not found exception
                 
-                if (getPrincipalId(con, principal) == 0) {
+                if (getPrincipalId(principal) == 0) {
                     throw notFoundError(caller, ZMSConsts.OBJECT_PRINCIPAL, principal);
                 }
                 
@@ -3172,7 +3172,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         final String caller = "getQuota";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
@@ -3205,7 +3205,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         final String caller = "insertQuota";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
@@ -3233,7 +3233,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         final String caller = "updateQuota";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
@@ -3261,7 +3261,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         final String caller = "deleteQuota";
 
-        int domainId = getDomainId(con, domainName);
+        int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }

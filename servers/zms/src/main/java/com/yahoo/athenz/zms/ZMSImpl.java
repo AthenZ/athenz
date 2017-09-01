@@ -120,7 +120,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private static final String TYPE_TOP_LEVEL_DOMAIN = "TopLevelDomain";
     private static final String TYPE_SUB_DOMAIN = "SubDomain";
     private static final String TYPE_USER_DOMAIN = "UserDomain";
-    private static final String TYPE_USER_META = "UserMeta";
     private static final String TYPE_DOMAIN_META = "DomainMeta";
     private static final String TYPE_DOMAIN_TEMPLATE = "DomainTemplate";
     private static final String TYPE_TENANT_ROLES = "TenantRoles";
@@ -150,13 +149,17 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected Map<String, String> serverPublicKeyMap = null;
     protected boolean readOnlyMode = false;
     protected static Validator validator;
-    protected static String userDomain;
-    protected static String userDomainPrefix;
+    protected String userDomain;
+    protected String userDomainPrefix;
+    protected String homeDomain;
+    protected String homeDomainPrefix;
+    protected String userDomainAlias;
     protected Http.AuthorityList authorities = null;
     protected List<String> providerEndpoints = null;
     protected PrivateKeyStore keyStore = null;
     protected boolean secureRequestsOnly = true;
     protected AuditLogger auditLogger = null;
+    protected Authority userAuthority = null;
     protected Authority principalAuthority = null;
 
     // enum to represent our access response since in some cases we want to
@@ -479,6 +482,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         userDomain = System.getProperty(ZMSConsts.ZMS_PROP_USER_DOMAIN, ZMSConsts.USER_DOMAIN);
         userDomainPrefix = userDomain + ".";
         
+        userDomainAlias = System.getProperty(ZMSConsts.ZMS_PROP_USER_DOMAIN_ALIAS);
+        
+        homeDomain = System.getProperty(ZMSConsts.ZMS_PROP_HOME_DOMAIN, userDomain);
+        homeDomainPrefix = homeDomain + ".";
+        
         // default token timeout for issued tokens
         
         userTokenTimeout = Integer.parseInt(
@@ -602,6 +610,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String authListConfig = System.getProperty(ZMSConsts.ZMS_PROP_AUTHORITY_CLASSES,
                 ZMSConsts.ZMS_PRINCIPAL_AUTHORITY_CLASS);
         final String principalAuthorityClass = System.getProperty(ZMSConsts.ZMS_PROP_PRINCIPAL_AUTHORITY_CLASS);
+        final String userAuthorityClass = System.getProperty(ZMSConsts.ZMS_PROP_USER_AUTHORITY_CLASS);
         
         authorities = new AuthorityList();
 
@@ -613,6 +622,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
             if (authorityList[idx].equals(principalAuthorityClass)) {
                 principalAuthority = authority;
+            } else if (authorityList[idx].equals(userAuthorityClass)) {
+                userAuthority = authority;
             }
             authority.initialize();
             authorities.add(authority);
@@ -741,17 +752,20 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
             adminUsers.add(adminUser);
         }
-
+        
         if (!ZMSConsts.USER_DOMAIN.equals(userDomain)) {
             createTopLevelDomain(null, ZMSConsts.USER_DOMAIN, "The reserved domain for user authentication",
+                    null, null, adminUsers, null, 0, null, null, null);
+        }
+        if (!homeDomain.equals(userDomain)) {
+            createTopLevelDomain(null, homeDomain, "The reserved domain for personal user domains",
                     null, null, adminUsers, null, 0, null, null, null);
         }
         createTopLevelDomain(null, userDomain, "The reserved domain for user authentication",
                 null, null, adminUsers, null, 0, null, null, null);
         createTopLevelDomain(null, "sys", "The reserved domain for system related information",
                 null, null, adminUsers, null, 0, null, null, null);
-        
-        createSubDomain(null, "sys", "auth", "The AuthNG domain", null, null, adminUsers,
+        createSubDomain(null, "sys", "auth", "The Athenz domain", null, null, adminUsers,
                 null, 0, null, null, null, caller);
 
         if (privateKey != null) {
@@ -773,8 +787,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     public Schema schema() {
         return schema;
     }
-
-    // ----------------- the Domain interface {
 
     public DomainList getDomainList(ResourceContext ctx, Integer limit, String skip, String prefix,
             Integer depth, String account, Integer productId, String roleMember, String roleName,
@@ -1068,17 +1080,18 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         // verify that request is properly authenticated for this request
         
-        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+        Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        verifyAuthorizedServiceOperation(principal.getAuthorizedService(), caller);
         
         if (!name.equals(detail.getName())) {
             throw ZMSUtils.forbiddenError("postUserDomain: Request and detail domain names do not match", caller);
         }
 
         // we're dealing with user's top level domain so the parent is going
-        // to be the user domain and the admin of the domain is the user
+        // to be the home domain and the admin of the domain is the user
 
         List<String> adminUsers = new ArrayList<>();
-        adminUsers.add(userDomainPrefix + name);
+        adminUsers.add(userDomainPrefix + principal.getName());
         
         List<String> solutionTemplates = null;
         DomainTemplateList templates = detail.getTemplates();
@@ -1087,10 +1100,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             validateSolutionTemplates(solutionTemplates, caller);
         }
         
-        
-        Domain domain = createSubDomain(ctx, userDomain, detail.getName(), detail.getDescription(),
-                detail.getOrg(), detail.getAuditEnabled(), adminUsers, detail.getAccount(), 0, detail.getApplicationId(), 
-                solutionTemplates, auditRef, caller);
+        Domain domain = createSubDomain(ctx, homeDomain, getUserDomainName(detail.getName()),
+                detail.getDescription(), detail.getOrg(), detail.getAuditEnabled(), adminUsers,
+                detail.getAccount(), 0, detail.getApplicationId(), solutionTemplates, auditRef, caller);
 
         metric.stopTiming(timerMetric);
         return domain;
@@ -1291,7 +1303,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
         
-        String domainName = userDomainPrefix + name;
+        String domainName = homeDomainPrefix + name;
         deleteDomain(ctx, auditRef, domainName, caller);
         metric.stopTiming(timerMetric);
         return null;
@@ -1344,9 +1356,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
         
         String userName = userDomainPrefix + name;
-        dbService.executeDeleteUser(ctx, userName, auditRef, caller);
+        String domainName = homeDomainPrefix + getUserDomainName(name);
+        dbService.executeDeleteUser(ctx, userName, domainName, auditRef, caller);
         metric.stopTiming(timerMetric);
         return null;
+    }
+    
+    String getUserDomainName(String userName) {
+        return (userAuthority == null) ? userName : userAuthority.getUserDomainName(userName);
     }
     
     public Domain putDomainMeta(ResourceContext ctx, String domainName, String auditRef,
@@ -1531,14 +1548,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return null;
     }
     
-    // ----------------- end of the Domain interface }
-
     Principal createPrincipalForName(String principalName) {
         
         String domain = null;
         String name = null;
         
-        /* if we have no . in the principal name we're going to default to standard user */
+        // if we have no . in the principal name we're going to default
+        // to our configured user domain
         
         int idx = principalName.lastIndexOf('.');
         if (idx == -1) {
@@ -1546,6 +1562,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             name = principalName;
         } else {
             domain = principalName.substring(0, idx);
+            if (userDomainAlias != null && userDomainAlias.equals(domain)) {
+                domain = userDomain;
+            }
             name = principalName.substring(idx + 1);
         }
         
@@ -1626,11 +1645,19 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             return null;
         }
         
-        if (!principal.getFullName().equals(domainName)) {
+        // the principals user name must match to the corresponding
+        // home domain name for the user
+        
+        if (!principal.getDomain().equals(userDomain)) {
             return null;
         }
         
-        return virtualHomeDomain(principal);
+        final String userHomeDomain = homeDomainPrefix + getUserDomainName(principal.getName());
+        if (!userHomeDomain.equals(domainName)) {
+            return null;
+        }
+        
+        return virtualHomeDomain(principal, domainName);
     }
 
     AccessStatus evaluateAccess(AthenzDomain domain, String identity, String action, String resource,
@@ -1701,6 +1728,40 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return accessStatus;
     }
     
+    String userHomeDomainResource(String resource) {
+        
+        // if the resource does not start with user domain prefix then
+        // we have nothing to do and we'll return resource as is
+        
+        if (!resource.startsWith(ZMSConsts.USER_DOMAIN_PREFIX)) {
+            return resource;
+        }
+        
+        String homeResource = null;
+        
+        // if we have different userDomain and homeDomain values then
+        // we need to replace both domain and user names otherwise
+        // we only need to update the domain value
+        
+        if (!userDomain.equals(homeDomain)) {
+            
+            // let's extract the user name. at this point we should
+            // have the format user.<user-name>:resource
+            
+            int idx = resource.indexOf(':');
+            if (idx == -1) {
+                return resource;
+            }
+            
+            final String userName = resource.substring(ZMSConsts.USER_DOMAIN_PREFIX.length(), idx);
+            homeResource = homeDomainPrefix + getUserDomainName(userName) + resource.substring(idx);
+            
+        } else if (!homeDomain.equals(ZMSConsts.USER_DOMAIN)) {
+            homeResource = homeDomainPrefix + resource.substring(ZMSConsts.USER_DOMAIN_PREFIX.length());
+        }
+        return homeResource == null ? resource : homeResource;
+    }
+    
     public boolean access(String action, String resource, Principal principal, String trustDomain) {
         
         // for consistent handling of all requests, we're going to convert
@@ -1716,9 +1777,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // if the resource starts with the user domain and the environment is using
         // a different domain name we'll dynamically update the resource value
         
-        if (!userDomain.equals(ZMSConsts.USER_DOMAIN) && resource.startsWith(ZMSConsts.USER_DOMAIN_PREFIX)) {
-            resource = userDomainPrefix + resource.substring(ZMSConsts.USER_DOMAIN_PREFIX.length());
-        }
+        resource = userHomeDomainResource(resource);
         
         if (LOG.isDebugEnabled()) {
             LOG.debug("access:(" + action + ", " + resource + ", " + principal + ", " + trustDomain + ")");
@@ -1902,8 +1961,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.increment(caller, domainName);
         Object timerMetric = metric.startTiming("getaccess_timing", domainName);
 
-        /* if the check principal is given then we need to carry out the access
-         * check against that principal */
+        // if the check principal is given then we need to carry out the access
+        // check against that principal
         
         if (checkPrincipal != null) {
             principal = createPrincipalForName(checkPrincipal);
@@ -1922,8 +1981,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.stopTiming(timerMetric);
         return access;
     }
-
-    // ----------------- the Entity interface
 
     boolean equalToOrPrefixedBy(String pattern, String name) {
         if (name.equals(pattern)) {
@@ -2147,8 +2204,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return template;
     }
 
-    // ----------------- the Role interface
-    
     public RoleList getRoleList(ResourceContext ctx, String domainName, Integer limit, String skip) {
         
         final String caller = "getrolelist";
@@ -2778,8 +2833,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return next;
     }
     
-    // ----------------- the Policy interface
-
     public PolicyList getPolicyList(ResourceContext ctx, String domainName, Integer limit, String skip) {
         
         final String caller = "getpolicylist";
@@ -3351,25 +3404,24 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return false;
     }
 
-    AthenzDomain virtualHomeDomain(Principal principal) {
+    AthenzDomain virtualHomeDomain(Principal principal, String domainName) {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("homeDomain: home domain detected. Create on the fly.");
         }
         
-        String name = principal.getFullName();
-        AthenzDomain athenzDomain = new AthenzDomain(name);
+        AthenzDomain athenzDomain = new AthenzDomain(domainName);
         
-        Domain domain = new Domain().setName(name).setEnabled(Boolean.TRUE);
+        Domain domain = new Domain().setName(domainName).setEnabled(Boolean.TRUE);
         athenzDomain.setDomain(domain);
         
         List<String> adminUsers = new ArrayList<>();
-        adminUsers.add(name);
+        adminUsers.add(principal.getFullName());
         
-        Role role = ZMSUtils.makeAdminRole(name, adminUsers);
+        Role role = ZMSUtils.makeAdminRole(domainName, adminUsers);
         athenzDomain.getRoles().add(role);
         
-        Policy policy = ZMSUtils.makeAdminPolicy(name, role);
+        Policy policy = ZMSUtils.makeAdminPolicy(domainName, role);
         athenzDomain.getPolicies().add(policy);
         
         return athenzDomain;
@@ -3508,8 +3560,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         return true;
     }
-    
-    // ----------------- the ServiceIdentity interface
     
     public ServiceIdentity putServiceIdentity(ResourceContext ctx, String domainName, String serviceName,
             String auditRef, ServiceIdentity service) {
@@ -3953,7 +4003,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return signedDomain;
     }
     
-    // SignedDomains interface
     public void getSignedDomains(ResourceContext ctx, String domainName, String metaOnly,
             String matchingTag, GetSignedDomainsResult result) {
 
@@ -4293,8 +4342,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             ctx.response().addHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_HEADERS, allowHeaders);
         }
     }
-
-    // Tenancy interface
 
     String providerServiceDomain(String provider) {
         int n = provider.lastIndexOf('.');
@@ -5900,7 +5947,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     
     Domain createSubDomain(ResourceContext ctx, String parentName, String name, String description,
             String org, Boolean auditEnabled, List<String> adminUsers, String account,
-            int productId, String applicationId, List<String> solutionTemplates, String auditRef, String caller) {
+            int productId, String applicationId, List<String> solutionTemplates, String auditRef,
+            String caller) {
 
         // verify length of full sub domain name
         String fullSubDomName = parentName + "." + name;
