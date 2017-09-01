@@ -1,14 +1,19 @@
 #!/bin/bash
 #############
 # Usage: See display_usage
-# Requires zms.war and various system property files
+# Requires zms.war and various system property files and must run as root or sudo user
 # Assumes that this run on AWS.
 ###############
 
+if [[ $EUID -ne 0 ]]; then
+   echo "This script must be run as root" 
+   exit 1
+fi
+
 display_usage() {
     echo "zms_standalone.sh -z [zms war file name] -o [private/pub key output directory] -c [command] -d [domain name] -s [service name] -k [key id] -l [additional classpath folder] -r [root folder for properties files]";
-    echo "example: zms_standalone.sh -z zms.war -o /tmp -c put-public-key -d yby.charlesk -s zms -k 1234 -l /home/y/lib/jars -r /home/y"
-    echo "example: zms_standalone.sh -z zms.war -c delete-public-key -d yby.charlesk -s zms -k 1234 -l /home/y/lib/jars -r /home/y"
+    echo "example: zms_standalone.sh -z zms.war -o /var/run/zms_server/keys -c put-public-key -d sys.auth -s zms -k 1234 -r /home/athenz"
+    echo "example: zms_standalone.sh -z zms.war -c delete-public-key -d sys.auth -s zms -k 1234 -r /home/athenz"
 }
 
 tmp_zms_dir=/tmp/zms

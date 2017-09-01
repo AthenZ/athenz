@@ -23,7 +23,7 @@ import java.util.Arrays;
 import com.yahoo.athenz.auth.util.Crypto;
 
 public class ZMSImplMain {
-    private static final String AUDITREF = "zms_standalone";
+    private static final String AUDITREF = "Server bootstrap: instance private key registration";
     private static final ZMSImpl ZMS = new ZMSImpl();
 
     public static void main(String[] args) {
