@@ -103,6 +103,7 @@
     <module>utils/zpe_policy_updater</module>
     <module>utils/zpe-updater</module>
     <module>utils/zts-roletoken</module>
+    <module>utils/zts-rolecert</module>
     <module>utils/zts-svccert</module>
     <module>libs/nodejs/auth_core</module>
     <module>ui</module>
