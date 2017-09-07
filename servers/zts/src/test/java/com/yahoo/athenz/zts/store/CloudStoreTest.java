@@ -892,7 +892,7 @@ public class CloudStoreTest {
                 .setService("zts")
                 .setAccount("12345");
         assertTrue(cloudStore.verifyInstanceIdentity(info));
-}
+    }
     
     @Test
     public void testAssumeAWSRoleAWSNotEnabled() {

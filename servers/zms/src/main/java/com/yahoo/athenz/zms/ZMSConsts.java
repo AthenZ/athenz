@@ -120,8 +120,9 @@ public final class ZMSConsts {
     public static final String HTTP_ACCESS_CONTROL_REQUEST_HEADERS   = "Access-Control-Request-Headers";
     
     public static final String LOCALHOST    = "localhost";
-    public static final String HTTP_SCHEME  = "http";
-    public static final String HTTPS_SCHEME = "https";
+    public static final String SCHEME_HTTP  = "http";
+    public static final String SCHEME_HTTPS = "https";
+    public static final String SCHEME_CLASS = "class";
     
     public static final String DB_COLUMN_DESCRIPTION       = "description";
     public static final String DB_COLUMN_ORG               = "org";

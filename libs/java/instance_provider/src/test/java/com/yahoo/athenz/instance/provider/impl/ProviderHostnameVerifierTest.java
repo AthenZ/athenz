@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.instance.provider;
+package com.yahoo.athenz.instance.provider.impl;
 
 import javax.net.ssl.SSLSession;
 import static org.testng.Assert.assertTrue;
@@ -30,6 +30,7 @@ import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.instance.provider.impl.ProviderHostnameVerifier;
 
 public class ProviderHostnameVerifierTest {
 
@@ -50,5 +51,15 @@ public class ProviderHostnameVerifierTest {
         
         ProviderHostnameVerifier verifier2 = new ProviderHostnameVerifier("athenz.production2");
         assertFalse(verifier2.verify("athenz", session));
+    }
+    
+    @Test
+    public void testHostnameVerifierNullCerts() throws IOException {
+        
+        SSLSession session = Mockito.mock(SSLSession.class);
+        Mockito.when(session.getPeerCertificates()).thenReturn(null);
+        
+        ProviderHostnameVerifier verifier1 = new ProviderHostnameVerifier("athenz.production");
+        assertFalse(verifier1.verify("athenz", session));
     }
 }

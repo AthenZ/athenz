@@ -18,15 +18,20 @@ import com.yahoo.athenz.zts.InstanceIdentity;
 import com.yahoo.athenz.zts.ZTSConsts;
 
 
-public class InstanceManager {
+public class InstanceCertManager {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(InstanceManager.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(InstanceCertManager.class);
     public static final String JDBC = "jdbc";
 
+    private CertSigner certSigner = null;
     private CertRecordStore certStore = null;
     private static String CA_X509_CERTIFICATE = null;
+    private static String SSH_USER_CERTIFICATE = null;
+    private static String SSH_HOST_CERTIFICATE = null;
     
-    public InstanceManager(PrivateKeyStore keyStore) {
+    public InstanceCertManager(PrivateKeyStore keyStore, CertSigner certSigner) {
+        
+        this.certSigner = certSigner;
         
         // if ZTS configured to issue certificate for services, it can
         // track of serial and instance values to make sure the same
@@ -193,8 +198,7 @@ public class InstanceManager {
         return result;
     }
     
-    public InstanceIdentity generateIdentity(CertSigner certSigner, String csr,
-            String cn, Map<String, String> attributes) {
+    public InstanceIdentity generateIdentity(String csr, String cn, Map<String, String> attributes) {
         
         // generate a certificate for this certificate request
 
@@ -205,7 +209,7 @@ public class InstanceManager {
         }
         
         if (CA_X509_CERTIFICATE == null) {
-            synchronized (InstanceManager.class) {
+            synchronized (InstanceCertManager.class) {
                 if (CA_X509_CERTIFICATE == null) {
                     CA_X509_CERTIFICATE = certSigner.getCACertificate();
                 }
@@ -215,6 +219,49 @@ public class InstanceManager {
         return new InstanceIdentity().setName(cn).setX509Certificate(pemCert)
                 .setX509CertificateSigner(CA_X509_CERTIFICATE)
                 .setAttributes(attributes);
+    }
+    
+    public boolean generateSshIdentity(InstanceIdentity identity, String sshCsr, String sshCertType) {
+        
+        if (sshCsr == null || sshCsr.isEmpty()) {
+            return true;
+        }
+        
+        SshRequest sshReq = new SshRequest(sshCsr, sshCertType);
+        if (!sshReq.validateType()) {
+            return false;
+        }
+        
+        final String sshCert = certSigner.generateSSHCertificate(sshCsr);
+        if (sshCert == null || sshCert.isEmpty()) {
+            LOGGER.error("generateSshIdentity: CertSigner was unable to generate SSH certificate");
+            return false;
+        }
+
+        identity.setSshCertificate(sshCert);
+        identity.setSshCertificateSigner(getSshCertificateSigner(sshReq.getSshReqType()));
+        return true;
+    }
+    
+    String getSshCertificateSigner(String sshReqType) {
+        
+        if (SSH_HOST_CERTIFICATE == null) {
+            synchronized (InstanceCertManager.class) {
+                if (SSH_HOST_CERTIFICATE == null) {
+                    SSH_HOST_CERTIFICATE = certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_HOST);
+                }
+            }
+        }
+        
+        if (SSH_USER_CERTIFICATE == null) {
+            synchronized (InstanceCertManager.class) {
+                if (SSH_USER_CERTIFICATE == null) {
+                    SSH_USER_CERTIFICATE = certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_USER);
+                }
+            }
+        }
+        
+        return sshReqType.equals(ZTSConsts.ZTS_SSH_HOST) ? SSH_HOST_CERTIFICATE : SSH_USER_CERTIFICATE;
     }
     
     public boolean authorizeLaunch(Principal providerService, String domain, String service,

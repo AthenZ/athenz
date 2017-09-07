@@ -11985,6 +11985,9 @@ public class ZMSImplTest {
         assertTrue(zms.verifyProviderEndpoint("https://host1.athenzcompany.com:4080/"));
         assertTrue(zms.verifyProviderEndpoint("https://host1.athenzcompany.com:4080/test1"));
         
+        // class successful test case
+        assertTrue(zms.verifyProviderEndpoint("class://com.yahoo.athenz.zms.ZMS"));
+        
         // http invalid cases - not *.athenzcompany.com
         assertFalse(zms.verifyProviderEndpoint("http://host1.server.com"));
         assertFalse(zms.verifyProviderEndpoint("http://host1.server.com:4080"));

@@ -22,8 +22,10 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -61,10 +63,9 @@ import com.yahoo.athenz.common.server.util.ServletRequestUtil;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
-import com.yahoo.athenz.instance.provider.InstanceProviderClient;
 import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zts.cache.DataCache;
-import com.yahoo.athenz.zts.cert.InstanceManager;
+import com.yahoo.athenz.zts.cert.InstanceCertManager;
 import com.yahoo.athenz.zts.cert.X509CertRecord;
 import com.yahoo.athenz.zts.cert.X509CertRequest;
 import com.yahoo.athenz.zts.store.ChangeLogStore;
@@ -87,8 +88,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
     protected DataStore dataStore = null;
     protected CloudStore cloudStore = null;
-    protected InstanceManager instanceManager = null;
-    protected InstanceProvider instanceProvider = null;
+    protected InstanceCertManager instanceCertManager = null;
+    protected InstanceProviderManager instanceProviderManager = null;
     protected Metric metric = null;
     protected Schema schema = null;
     protected PrivateKey privateKey = null;
@@ -240,8 +241,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // create our instance manager and provider
         
-        instanceManager = new InstanceManager(privateKeyStore);
-        instanceProvider = new InstanceProvider(dataStore);
+        instanceCertManager = new InstanceCertManager(privateKeyStore, certSigner);
+        instanceProviderManager = new InstanceProviderManager(dataStore);
         
         // make sure to set the keystore for any instance that requires it
         
@@ -1620,7 +1621,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         Principal providerService = createPrincipalForName(provider);
         StringBuilder errorMsg = new StringBuilder(256);
 
-        if (!instanceManager.authorizeLaunch(providerService, domain, service,
+        if (!instanceCertManager.authorizeLaunch(providerService, domain, service,
                 authorizer, errorMsg)) {
             throw forbiddenError("postInstanceRegisterInformation: " + errorMsg.toString(),
                     caller, domain);
@@ -1645,37 +1646,54 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // validate attestation data is included in the request
         
-        InstanceProviderClient providerClient = instanceProvider.getProviderClient(provider);
-        if (providerClient == null) {
-            throw requestError("postInstanceRegisterInformation: unable to get client for provider: "
+        InstanceProvider instanceProvider = instanceProviderManager.getProvider(provider);
+        if (instanceProvider == null) {
+            throw requestError("postInstanceRegisterInformation: unable to get instance for provider: "
                     + provider, caller, domain);
         }
         
         InstanceConfirmation instance = new InstanceConfirmation()
                 .setAttestationData(info.getAttestationData())
                 .setDomain(domain).setService(service).setProvider(provider);
+
+        // if we have an aws account setup for this domain, we're going
+        // to include it in the optional attributes
         
-        try {
-            instance = providerClient.postInstanceConfirmation(instance);
-        } catch (Exception ex) {
-            providerClient.close();
-            throw forbiddenError("postInstanceRegisterInformation: unable to verify attestation data: "
-                    + ex.getMessage(), caller, domain);
+        String account = cloudStore.getAWSAccount(domain);
+        if (account != null) {
+            Map<String, String> attributes = new HashMap<>();
+            attributes.put("awsAccount", account);
+            instance.setAttributes(attributes);
         }
         
-        // close our provider client as its no longer needed
-        
-        providerClient.close();
+        // make sure to close our provider when its no longer needed
+
+        try {
+            instance = instanceProvider.confirmInstance(instance);
+        } catch (Exception ex) {
+            throw forbiddenError("postInstanceRegisterInformation: unable to verify attestation data: "
+                    + ex.getMessage(), caller, domain);
+        } finally {
+            instanceProvider.close();
+        }
         
         // generate certificate for the instance
 
-        InstanceIdentity identity = instanceManager.generateIdentity(certSigner, info.getCsr(),
-                cn, instance.getAttributes());
+        InstanceIdentity identity = instanceCertManager.generateIdentity(info.getCsr(), cn,
+                instance.getAttributes());
         if (identity == null) {
             throw serverError("postInstanceRegisterInformation: unable to generate identity",
                     caller, domain);
         }
         
+        // if we're asked then we should also generate a ssh
+        // certificate for the instance as well
+        
+        if (!instanceCertManager.generateSshIdentity(identity, info.getSsh(), ZTSConsts.ZTS_SSH_HOST)) {
+            throw serverError("postInstanceRegisterInformation: unable to generate ssh identity",
+                    caller, domain);
+        }
+
         // set the other required attributes in the identity object
 
         identity.setProvider(provider);
@@ -1700,7 +1718,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // we must be able to update our database otherwise we will not be
         // able to validate the certificate during refresh operations
         
-        if (!instanceManager.insertX509CertRecord(x509CertRecord)) {
+        if (!instanceCertManager.insertX509CertRecord(x509CertRecord)) {
             throw serverError("postInstanceRegisterInformation: unable to update cert db",
                     caller, domain);
         }
@@ -1789,7 +1807,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         Principal providerService = createPrincipalForName(provider);
         StringBuilder errorMsg = new StringBuilder(256);
 
-        if (!instanceManager.authorizeLaunch(providerService, domain, service,
+        if (!instanceCertManager.authorizeLaunch(providerService, domain, service,
                 authorizer, errorMsg)) {
             throw forbiddenError("postInstanceRefreshInformation: " + errorMsg.toString(),
                     caller, domain);
@@ -1823,7 +1841,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // extract our instance certificate record to make sure it
         // hasn't been revoked already
         
-        X509CertRecord x509CertRecord = instanceManager.getX509CertRecord(provider, instanceId);
+        X509CertRecord x509CertRecord = instanceCertManager.getX509CertRecord(provider, instanceId);
         if (x509CertRecord == null) {
             throw forbiddenError("postInstanceRefreshInformation: Unable to find certificate record",
                     caller, domain);
@@ -1866,17 +1884,25 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             x509CertRecord.setPrevSerial("-1");
             x509CertRecord.setCurrentSerial("-1");
             
-            instanceManager.updateX509CertRecord(x509CertRecord);
+            instanceCertManager.updateX509CertRecord(x509CertRecord);
             throw forbiddenError("postInstanceRefreshInformation: Certificate revoked",
                     caller, domain);
         }
         
         // generate identity with the certificate
         
-        InstanceIdentity identity = instanceManager.generateIdentity(certSigner, info.getCsr(),
+        InstanceIdentity identity = instanceCertManager.generateIdentity(info.getCsr(),
                 principalName, null);
         if (identity == null) {
             throw serverError("postInstanceRefreshInformation: unable to generate identity",
+                    caller, domain);
+        }
+        
+        // if we're asked then we should also generate a ssh
+        // certificate for the instance as well
+        
+        if (!instanceCertManager.generateSshIdentity(identity, info.getSsh(), null)) {
+            throw serverError("postInstanceRefreshInformation: unable to generate ssh identity",
                     caller, domain);
         }
         
@@ -1895,7 +1921,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // we must be able to update our record db otherwise we will
         // not be able to validate the refresh request next time
         
-        if (!instanceManager.updateX509CertRecord(x509CertRecord)) {
+        if (!instanceCertManager.updateX509CertRecord(x509CertRecord)) {
             throw serverError("postInstanceRefreshInformation: unable to update cert db",
                     caller, domain);
         }
@@ -1959,7 +1985,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // remove the cert record for this instance
 
-        instanceManager.deleteX509CertRecord(provider, instanceId);
+        instanceCertManager.deleteX509CertRecord(provider, instanceId);
         
         // create our audit log entry
         
@@ -2045,7 +2071,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // and generate certificate for the instance
         
         Identity identity = cloudStore.generateIdentity(info.getName(), info.getCsr(),
-                info.getSsh(), CloudStore.ZTS_SSH_HOST);
+                info.getSsh(), ZTSConsts.ZTS_SSH_HOST);
         if (identity == null) {
             throw requestError("postAWSInstanceInformation: unable to generate identity",
                     caller, info.getDomain());
@@ -2246,7 +2272,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // we must be able to update our database otherwise we will not be
         // able to validate the certificate during refresh operations
         
-        if (!instanceManager.insertX509CertRecord(x509CertRecord)) {
+        if (!instanceCertManager.insertX509CertRecord(x509CertRecord)) {
             throw serverError("postOSTKInstanceInformation: unable to update cert db",
                     caller, domain);
         }
@@ -2305,7 +2331,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
         
         X509Certificate cert = principal.getX509Certificate();
-        X509CertRecord x509CertRecord = instanceManager.getX509CertRecord("ostk", cert);
+        X509CertRecord x509CertRecord = instanceCertManager.getX509CertRecord("ostk", cert);
         if (x509CertRecord == null) {
             throw forbiddenError("postOSTKInstanceRefreshRequest: Unable to find certificate record",
                     caller, domain);
@@ -2354,7 +2380,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             x509CertRecord.setPrevSerial("-1");
             x509CertRecord.setCurrentSerial("-1");
             
-            instanceManager.updateX509CertRecord(x509CertRecord);
+            instanceCertManager.updateX509CertRecord(x509CertRecord);
             throw forbiddenError("postOSTKInstanceRefreshRequest: Certificate revoked",
                     caller, domain);
         }
@@ -2377,7 +2403,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // we must be able to update our record db otherwise we will
         // not be able to validate the refresh request next time
         
-        if (!instanceManager.updateX509CertRecord(x509CertRecord)) {
+        if (!instanceCertManager.updateX509CertRecord(x509CertRecord)) {
             throw serverError("postOSTKInstanceRefreshRequest: unable to update cert db",
                     caller, domain);
         }
