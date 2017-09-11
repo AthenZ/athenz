@@ -106,6 +106,7 @@
     <module>utils/zts-rolecert</module>
     <module>utils/zts-svccert</module>
     <module>libs/nodejs/auth_core</module>
+    <module>clients/nodejs/zts</module>
     <module>ui</module>
     <module>assembly/zms</module>
     <module>assembly/zts</module>

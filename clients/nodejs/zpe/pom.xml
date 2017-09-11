@@ -20,10 +20,10 @@
     <relativePath>../../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>athenz-auth-core-nodejs</artifactId>
+  <artifactId>athenz-zpe-nodejs-client</artifactId>
   <packaging>jar</packaging>
-  <name>athenz-auth-core-nodejs</name>
-  <description>Core Auth Interfaces</description>
+  <name>athenz-zpe-nodejs-client</name>
+  <description>ZPE Node.js Client Library</description>
 
   <properties>
     <maven.install.skip>true</maven.install.skip>

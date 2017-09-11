@@ -13,15 +13,39 @@
  */
 'use strict';
 
-module.exports = {
-  Crypto: require('./src/util/Crypto'),
-  KeyStore: require('./src/impl/KeyStore'),
-  PrincipalAuthority: require('./src/impl/PrincipalAuthority'),
-  PrincipalToken: require('./src/token/PrincipalToken'),
-  RoleAuthority: require('./src/impl/RoleAuthority'),
-  RoleToken: require('./src/token/RoleToken'),
-  SimplePrincipal: require('./src/impl/SimplePrincipal'),
-  SimpleServiceIdentityProvider: require('./src/impl/SimpleServiceIdentityProvider'),
-  Validate: require('./src/util/Validate'),
-  YBase64: require('./src/util/YBase64')
-};
+class IdentityMock {
+  constructor(domain, name) {
+    this._domain = domain;
+    this._name = name;
+
+    this._creds = null;
+    if(domain && name) {
+      this._creds = 'v=S1;d=' + domain + ';n=' + name + ';';
+    }
+  }
+
+  getDomain() {
+    return this._domain;
+  }
+
+  getName() {
+    return this._name;
+  }
+
+  getCredentials() {
+      return this._creds;
+  }
+
+  getAuthority() {
+    if (!this._domain){
+      return null;
+    }
+    return this;
+  }
+
+  getHeader() {
+    return 'Athenz-Principal-Auth';
+  }
+}
+
+module.exports = IdentityMock;

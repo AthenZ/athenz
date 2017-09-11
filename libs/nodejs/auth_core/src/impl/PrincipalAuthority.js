@@ -17,20 +17,26 @@ var winston = require('winston');
 var PrincipalToken = require('../token/PrincipalToken');
 var SimplePrincipal = require('./SimplePrincipal');
 var config = require('../../config/config')();
-winston.level = config.loglevel;
 
 var USER_DOMAIN = 'user';
 var SYS_AUTH_DOMAIN = 'sys.auth';
 var ZMS_SERVICE = 'zms';
 var ZTS_SERVICE = 'zts';
 
-var ATHENZ_PROP_TOKEN_OFFSET = Number(config.principalTokenAllowedOffset);
-var ATHENZ_PROP_IP_CHECK_MODE = config.principalIpCheckMode;
-var ATHENZ_PROP_USER_DOMAIN = config.principalUserDomain;
-var ATHENZ_PROP_PRINCIPAL_HEADER = config.principalHeader;
+var ATHENZ_PROP_TOKEN_OFFSET;
+var ATHENZ_PROP_IP_CHECK_MODE;
+var ATHENZ_PROP_USER_DOMAIN;
+var ATHENZ_PROP_PRINCIPAL_HEADER;
 
 class PrincipalAuthority {
   constructor() {
+    winston.level = config.logLevel;
+
+    ATHENZ_PROP_TOKEN_OFFSET = Number(config.principalTokenAllowedOffset);
+    ATHENZ_PROP_IP_CHECK_MODE = config.principalIpCheckMode;
+    ATHENZ_PROP_USER_DOMAIN = config.principalUserDomain;
+    ATHENZ_PROP_PRINCIPAL_HEADER = config.principalHeader;
+
     this._keyStore = null;
     this._allowedOffset = (ATHENZ_PROP_TOKEN_OFFSET) ? Number(ATHENZ_PROP_TOKEN_OFFSET) : 300;
     this._ipCheckMode = ATHENZ_PROP_IP_CHECK_MODE || 'OPS_WRITE';
@@ -41,6 +47,12 @@ class PrincipalAuthority {
     if (this._allowedOffset < 0) {
       this._allowedOffset = 300;
     }
+  }
+
+  static setConfig(c) {
+    config = Object.assign({}, config, c.auth_core);
+    PrincipalToken.setConfig(c);
+    SimplePrincipal.setConfig(c);
   }
 
   initialize() {

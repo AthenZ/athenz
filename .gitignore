@@ -33,6 +33,16 @@ clients/java/zpe/src/test/resources/pol_dir/sports.pol
 clients/java/zms/bin/
 clients/java/zpe/bin/
 clients/java/zts/bin/
+clients/nodejs/zts/node_modules/
+clients/nodejs/zts/artifacts/
+clients/nodejs/zts/.eslintcodecache
+clients/nodejs/zts/.nyc_output/
+clients/nodejs/zts/artifacts
+clients/nodejs/zpe/node_modules/
+clients/nodejs/zpe/artifacts/
+clients/nodejs/zpe/.eslintcodecache
+clients/nodejs/zpe/.nyc_output/
+clients/nodejs/zpe/artifacts
 libs/go/zmscli/bin/
 libs/go/zmscli/pkg/
 libs/go/zmscli/src/

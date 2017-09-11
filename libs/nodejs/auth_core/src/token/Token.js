@@ -14,15 +14,19 @@
 'use strict';
 
 var winston = require('winston');
-var crypto = require('../util/Crypto');
+var Crypto = require('../util/Crypto');
 var config = require('../../config/config')();
-winston.level = config.loglevel;
 
-var ATHENZ_TOKEN_MAX_EXPIRY = (Number(config.tokenMaxExpiry) > 30 * 24 * 60 * 60) ? 30 * 24 * 60 * 60 : Number(config.tokenMaxExpiry);
-var ATHENZ_TOKEN_NO_EXPIRY = config.tokenNoExpiry;
+var ATHENZ_TOKEN_MAX_EXPIRY;
+var ATHENZ_TOKEN_NO_EXPIRY;
 
 class Token {
   constructor() {
+    winston.level = config.logLevel;
+
+    ATHENZ_TOKEN_MAX_EXPIRY = (Number(config.tokenMaxExpiry) > 30 * 24 * 60 * 60) ? 30 * 24 * 60 * 60 : Number(config.tokenMaxExpiry);
+    ATHENZ_TOKEN_NO_EXPIRY = config.tokenNoExpiry;
+
     this._unsignedToken = null;
     this._signedToken = null;
     this._version = null;
@@ -37,9 +41,13 @@ class Token {
     this._digestAlgorithm = 'SHA256';
   }
 
+  static setConfig(c) {
+    config = Object.assign({}, config, c.auth_core);
+  }
+
   sign(privateKey) {
     try {
-      this._signature = crypto.sign(this._unsignedToken, privateKey, this._digestAlgorithm);
+      this._signature = Crypto.sign(this._unsignedToken, privateKey, this._digestAlgorithm);
       this._signedToken = this._unsignedToken + ';s=' + this._signature;
     } catch (e) {
       throw e;
@@ -105,7 +113,7 @@ class Token {
 
     var verified = false; //fail safe
     try {
-      verified = crypto.verify(this._unsignedToken, publicKey, this._signature, this._digestAlgorithm);
+      verified = Crypto.verify(this._unsignedToken, publicKey, this._signature, this._digestAlgorithm);
       if (verified === false) {
         err = new Error('Token:validate: token=' + this._unsignedToken +
           ' : authentication failed');
