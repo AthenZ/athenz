@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # If the zts_core dependency has been updated, then this script should be run
-# manually to pick up the latest rdl to generate the appropriate server stubs.
+# manually to pick up the latest rdl to generate the appropriate stubs.
 # however, we're not going to run this utility during our automated builds since
 # builds must be done based on files already checked-in into git
 
@@ -31,11 +31,7 @@ command -v rdl >/dev/null 2>&1 || {
     exit 0;
 }
 
-echo "Update the ZTS.rdl to define string type"
-RDL_FILE=src/main/rdl/ZTS.rdl
+RDL_PROVIDER_FILE=../../../core/zts/src/main/rdl/InstanceProvider.rdl
 
-echo "Generate the ZTS server stubs"
-rdl -s generate -b="/v1" -o="src/main/java" java-server $RDL_FILE
-
-echo "Removing not needed ZTS Server file..."
-rm src/main/java/com/yahoo/athenz/zts/ZTSServer.java
+echo "Generate the provider client library"
+rdl -s generate -o="src/main/java" java-client $RDL_PROVIDER_FILE

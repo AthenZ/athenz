@@ -3497,7 +3497,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         
         scheme = scheme.toLowerCase();
-        if (!(scheme.equalsIgnoreCase(ZMSConsts.HTTP_SCHEME) || scheme.equalsIgnoreCase(ZMSConsts.HTTPS_SCHEME))) {
+        
+        // if our scheme is class then we have no further checks to carry
+        
+        if (scheme.equalsIgnoreCase(ZMSConsts.SCHEME_CLASS)) {
+            return true;
+        }
+        
+        // otherwise it must be one of our http schemes
+
+        if (!(scheme.equalsIgnoreCase(ZMSConsts.SCHEME_HTTP) || scheme.equalsIgnoreCase(ZMSConsts.SCHEME_HTTPS))) {
             return false;
         }
         

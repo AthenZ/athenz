@@ -1,5 +1,5 @@
 /**
- * Copyright 2017 Yahoo Inc.
+ * Copyright 2017 Yahoo Holdings, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,8 +41,13 @@ public class ResourceExceptionTest {
         assertEquals("Gone", ResourceException.codeToString(410));
         assertEquals("Precondition Failed", ResourceException.codeToString(412));
         assertEquals("Unsupported Media Type", ResourceException.codeToString(415));
+        assertEquals("Precondition Required", ResourceException.codeToString(428));
+        assertEquals("Too Many Requests", ResourceException.codeToString(429));
+        assertEquals("Request Header Fields Too Large", ResourceException.codeToString(431));
         assertEquals("Internal Server Error", ResourceException.codeToString(500));
         assertEquals("Not Implemented", ResourceException.codeToString(501));
+        assertEquals("Service Unavailable", ResourceException.codeToString(503));
+        assertEquals("Network Authentication Required", ResourceException.codeToString(511));
         assertEquals("1001", ResourceException.codeToString(1001));
     }
 

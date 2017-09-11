@@ -60,10 +60,6 @@ import com.yahoo.rdl.Timestamp;
 public class CloudStore {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CloudStore.class);
-
-    public static final String ZTS_SSH_HOST = "host";
-    public static final String ZTS_SSH_USER = "user";
-    public static final String ZTS_SSH_TYPE = "certtype";
     
     private static final String ATTR_ACCOUNT_ID = "accountId";
     private static final String ATTR_PENDING_TIME = "pendingTime";
@@ -96,8 +92,8 @@ public class CloudStore {
         this.certSigner = certSigner;
         if (certSigner != null) {
             x509CACertificate = certSigner.getCACertificate();
-            sshHostCertificate = certSigner.getSSHCertificate(ZTS_SSH_HOST);
-            sshUserCertificate = certSigner.getSSHCertificate(ZTS_SSH_USER);
+            sshHostCertificate = certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_HOST);
+            sshUserCertificate = certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_USER);
         }
         
         // initialize our account cache
@@ -767,12 +763,12 @@ public class CloudStore {
             }
             
             if (sshHostCertificate == null) {
-                sshHostCertificate = certSigner.getSSHCertificate(ZTS_SSH_HOST);
+                sshHostCertificate = certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_HOST);
             }
             if (sshUserCertificate == null) {
-                sshUserCertificate = certSigner.getSSHCertificate(ZTS_SSH_USER);
+                sshUserCertificate = certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_USER);
             }
-            sshCertificateSigner = sshReqType.equals(ZTS_SSH_HOST) ? sshHostCertificate : sshUserCertificate;
+            sshCertificateSigner = sshReqType.equals(ZTSConsts.ZTS_SSH_HOST) ? sshHostCertificate : sshUserCertificate;
         }
 
         // generate a certificate for this certificate request
@@ -819,7 +815,7 @@ public class CloudStore {
             return null;
         }
         
-        String sshType = keyReq.getString(ZTS_SSH_TYPE);
+        String sshType = keyReq.getString(ZTSConsts.ZTS_SSH_TYPE);
         if (sshType == null) {
             LOGGER.error("getSshKeyReqType: SSH Key request does not have certtype: " + sshKeyReq);
         }

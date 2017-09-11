@@ -1,5 +1,5 @@
 /**
- * Copyright 2017 Yahoo Inc.
+ * Copyright 2017 Yahoo Holdings, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.instance.provider;
+package com.yahoo.athenz.instance.provider.impl;
 
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;

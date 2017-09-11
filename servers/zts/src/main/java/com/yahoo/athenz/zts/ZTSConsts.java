@@ -85,6 +85,10 @@ public final class ZTSConsts {
     public static final String ATHENZ_ROOT_DIR       = "/home/athenz";
     public static final String ATHENZ_ENV_ROOT_DIR   = "ROOT";
     
+    public static final String ZTS_SSH_HOST = "host";
+    public static final String ZTS_SSH_USER = "user";
+    public static final String ZTS_SSH_TYPE = "certtype";
+    
     public static final String ZTS_CERT_INSTANCE_ID  = ".instanceid.athenz.";
     public static final String ZTS_CERT_DNS_SUFFIX   = ".athenz.cloud";
     public static final String ZTS_ACTION_LAUNCH     = "launch";
