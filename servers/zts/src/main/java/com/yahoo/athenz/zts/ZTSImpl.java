@@ -1404,7 +1404,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Cert signer: {} ", certSigner);
         }
-        String x509Cert = certSigner.generateX509Certificate(req.getCsr());
+        
+        String x509Cert = certSigner.generateX509Certificate(req.getCsr(), ZTSConsts.ZTS_CERT_USAGE_CLIENT);
         if (null == x509Cert || x509Cert.isEmpty()) {
             throw serverError("postRoleCertificateRequest: Unable to create certificate from the cert signer",
                     caller, domainName);
@@ -1442,6 +1443,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         boolean roleNameValidated = false;
         for (String role : roles) {
             final String roleName = domainName + ":role." + role;
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("validateRoleCertificateRequest: validating role {} against {}",
+                        roleName, cnCertReq);
+            }
             if (cnCertReq.equals(roleName)) {
                 roleNameValidated = true;
                 break;
@@ -1449,6 +1454,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
         
         if (!roleNameValidated) {
+            LOGGER.error("validateRoleCertificateRequest: unable to validate role name");
             return false;
         }
         
@@ -1472,6 +1478,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (email != null) {
             String emailPrefix = principal + "@";
             if (!email.startsWith(emailPrefix) || !email.endsWith(ZTSUtils.ZTS_CERT_DNS_SUFFIX)) {
+                LOGGER.error("validateRoleCertificateRequest: unable to validate email to be <principal>@*{}",
+                        ZTSUtils.ZTS_CERT_DNS_SUFFIX);
                 return false;
             }
         }
@@ -1677,10 +1685,19 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             instanceProvider.close();
         }
         
+        // determine what type of certificate the provider is authorizing
+        // this instance to get - possible values are: server, client or
+        // null (indicating both client and server)
+        
+        String certUsage = null;
+        Map<String, String> instanceAttrs = instance.getAttributes();
+        if (instanceAttrs != null) {
+            certUsage = instanceAttrs.remove(ZTSConsts.ZTS_CERT_USAGE);
+        }
+        
         // generate certificate for the instance
 
-        InstanceIdentity identity = instanceCertManager.generateIdentity(info.getCsr(), cn,
-                instance.getAttributes());
+        InstanceIdentity identity = instanceCertManager.generateIdentity(info.getCsr(), cn, certUsage);
         if (identity == null) {
             throw serverError("postInstanceRegisterInformation: unable to generate identity",
                     caller, domain);
@@ -1696,6 +1713,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // set the other required attributes in the identity object
 
+        identity.setAttributes(instanceAttrs);
         identity.setProvider(provider);
         identity.setInstanceId(certReqInstanceId);
 
@@ -1714,6 +1732,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         x509CertRecord.setPrevSerial(x509CertRecord.getCurrentSerial());
         x509CertRecord.setPrevIP(x509CertRecord.getCurrentIP());
         x509CertRecord.setPrevTime(x509CertRecord.getCurrentTime());
+        x509CertRecord.setClientCert(ZTSConsts.ZTS_CERT_USAGE_CLIENT.equalsIgnoreCase(certUsage));
         
         // we must be able to update our database otherwise we will not be
         // able to validate the certificate during refresh operations
@@ -1892,7 +1911,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // generate identity with the certificate
         
         InstanceIdentity identity = instanceCertManager.generateIdentity(info.getCsr(),
-                principalName, null);
+                principalName, x509CertRecord.getClientCert() ? ZTSConsts.ZTS_CERT_USAGE_CLIENT : null);
         if (identity == null) {
             throw serverError("postInstanceRefreshInformation: unable to generate identity",
                     caller, domain);
@@ -2157,7 +2176,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // generate identity with the certificate
         
-        Identity identity = ZTSUtils.generateIdentity(certSigner, req.getCsr(), principalName);
+        Identity identity = ZTSUtils.generateIdentity(certSigner, req.getCsr(), principalName, null);
         if (identity == null) {
             throw requestError("postInstanceRefreshRequest: unable to generate identity",
                     caller, domain);
@@ -2247,7 +2266,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // generate certificate for the instance
 
-        Identity identity = ZTSUtils.generateIdentity(certSigner, info.getCsr(), cn);
+        Identity identity = ZTSUtils.generateIdentity(certSigner, info.getCsr(), cn, null);
         if (identity == null) {
             throw requestError("postOSTKInstanceInformation: unable to generate identity",
                     caller, domain);
@@ -2387,7 +2406,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // generate identity with the certificate
         
-        Identity identity = ZTSUtils.generateIdentity(certSigner, req.getCsr(), principalName);
+        Identity identity = ZTSUtils.generateIdentity(certSigner, req.getCsr(), principalName, null);
         if (identity == null) {
             throw requestError("postInstanceRefreshRequest: unable to generate identity",
                     caller, domain);

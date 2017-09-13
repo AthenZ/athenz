@@ -62,7 +62,7 @@ public class HttpCertSignerTest {
         Mockito.when(httpClient.POST("https://localhost:443/certsign/v2/x509")).thenReturn(request);
         Mockito.when(request.send()).thenThrow(new TimeoutException());
 
-        assertNull(certSigner.generateX509Certificate("csr"));
+        assertNull(certSigner.generateX509Certificate("csr", null));
     }
 
     @Test
@@ -81,7 +81,7 @@ public class HttpCertSignerTest {
         Mockito.when(request.send()).thenReturn(response);
         Mockito.when(response.getStatus()).thenReturn(400);
 
-        assertNull(certSigner.generateX509Certificate("csr"));
+        assertNull(certSigner.generateX509Certificate("csr", null));
     }
 
     @Test
@@ -101,7 +101,7 @@ public class HttpCertSignerTest {
         Mockito.when(response.getStatus()).thenReturn(201);
         Mockito.when(response.getContentAsString()).thenReturn(null);
 
-        assertNull(certSigner.generateX509Certificate("csr"));
+        assertNull(certSigner.generateX509Certificate("csr", null));
     }
 
     @Test
@@ -121,7 +121,7 @@ public class HttpCertSignerTest {
         Mockito.when(response.getStatus()).thenReturn(201);
         Mockito.when(response.getContentAsString()).thenReturn("");
 
-        assertNull(certSigner.generateX509Certificate("csr"));
+        assertNull(certSigner.generateX509Certificate("csr", null));
     }
 
     @Test
@@ -141,7 +141,7 @@ public class HttpCertSignerTest {
         Mockito.when(response.getStatus()).thenReturn(201);
         Mockito.when(response.getContentAsString()).thenReturn("{\"pem\": \"pem-value\"}");
 
-        String pem = certSigner.generateX509Certificate("csr");
+        String pem = certSigner.generateX509Certificate("csr", null);
         assertEquals(pem, "pem-value");
     }
 
@@ -162,10 +162,10 @@ public class HttpCertSignerTest {
         Mockito.when(response.getStatus()).thenReturn(201);
         Mockito.when(response.getContentAsString()).thenReturn("{\"pem2\": \"pem-value\"}");
 
-        assertNull(certSigner.generateX509Certificate("csr"));
+        assertNull(certSigner.generateX509Certificate("csr", null));
 
         Mockito.when(response.getContentAsString()).thenReturn("invalid-json");
-        assertNull(certSigner.generateX509Certificate("csr"));
+        assertNull(certSigner.generateX509Certificate("csr", null));
     }
 
     @Test

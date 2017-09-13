@@ -25,20 +25,16 @@ public class AWSAttestationDataTest {
     public void testAWSAttestationData() {
         AWSAttestationData data = new AWSAttestationData();
         data.setAccess("access");
-        data.setAccount("account");
         data.setDocument("document");
-        data.setDomain("domain");
+        data.setRole("role");
         data.setSecret("secret");
-        data.setService("service");
         data.setSignature("signature");
         data.setToken("token");
         
         assertEquals(data.getAccess(), "access");
-        assertEquals(data.getAccount(), "account");
         assertEquals(data.getDocument(), "document");
-        assertEquals(data.getDomain(), "domain");
+        assertEquals(data.getRole(), "role");
         assertEquals(data.getSecret(), "secret");
-        assertEquals(data.getService(), "service");
         assertEquals(data.getSignature(), "signature");
         assertEquals(data.getToken(), "token");
     }

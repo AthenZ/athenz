@@ -514,6 +514,7 @@ func init() {
 	mPostInstanceRegisterInformation.Exception("BAD_REQUEST", "ResourceError", "")
 	mPostInstanceRegisterInformation.Exception("FORBIDDEN", "ResourceError", "")
 	mPostInstanceRegisterInformation.Exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
+	mPostInstanceRegisterInformation.Exception("NOT_FOUND", "ResourceError", "")
 	mPostInstanceRegisterInformation.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mPostInstanceRegisterInformation.Build())
 

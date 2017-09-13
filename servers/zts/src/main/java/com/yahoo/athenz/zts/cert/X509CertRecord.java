@@ -28,10 +28,11 @@ public class X509CertRecord {
     private String prevSerial;
     private Date prevTime;
     private String prevIP;
-    
+    private boolean clientCert;
+
     public X509CertRecord() {
     }
-    
+
     public String getInstanceId() {
         return instanceId;
     }
@@ -102,5 +103,13 @@ public class X509CertRecord {
 
     public void setPrevIP(String prevIP) {
         this.prevIP = prevIP;
+    }
+
+    public void setClientCert(Boolean clientCert) {
+        this.clientCert = clientCert;
+    }
+
+    public boolean getClientCert() {
+        return clientCert;
     }
 }

@@ -21,6 +21,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 public class X509CertSignObject {
 
     private String pem;
+    private String extusage;
+    private int expire;
     
     public X509CertSignObject() {
     }
@@ -31,6 +33,24 @@ public class X509CertSignObject {
     
     public X509CertSignObject setPem(String pem) {
         this.pem = pem;
+        return this;
+    }
+
+    public String getExtusage() {
+        return extusage;
+    }
+
+    public X509CertSignObject setExtusage(String extusage) {
+        this.extusage = extusage;
+        return this;
+    }
+
+    public int getExpire() {
+        return expire;
+    }
+
+    public X509CertSignObject setExpire(int expire) {
+        this.expire = expire;
         return this;
     }
 }

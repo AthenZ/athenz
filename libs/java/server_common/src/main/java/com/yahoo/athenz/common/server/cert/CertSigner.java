@@ -22,9 +22,11 @@ public interface CertSigner {
      * signer imposes how long the certificate is valid for. The result
      * must be the certificate in PEM format.
      * @param csr Certificate request
+     * @param keyUsage Requested key usage (null for both server and client,
+     * otherwise specified usage type: server or client)
      * @return X509 Certificate in PEM format
      */
-    default String generateX509Certificate(String csr) {
+    default String generateX509Certificate(String csr, String keyUsage) {
         return null;
     }
 
@@ -45,7 +47,7 @@ public interface CertSigner {
     default String generateSSHCertificate(String csr) {
         return null;
     }
-    
+
     /**
      * Retrieve the SSH Signer certificate for the given type
      * @param type signer type user or host

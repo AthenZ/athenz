@@ -38,6 +38,7 @@ resource InstanceIdentity POST "/instance" {
     exceptions {
         ResourceError BAD_REQUEST;
         ResourceError FORBIDDEN;
+        ResourceError NOT_FOUND;
         ResourceError UNAUTHORIZED;
         ResourceError INTERNAL_SERVER_ERROR;
     }

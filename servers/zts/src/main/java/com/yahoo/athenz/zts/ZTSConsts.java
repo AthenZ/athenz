@@ -89,6 +89,10 @@ public final class ZTSConsts {
     public static final String ZTS_SSH_USER = "user";
     public static final String ZTS_SSH_TYPE = "certtype";
     
+    public static final String ZTS_CERT_USAGE        = "certUsage";
+    public static final String ZTS_CERT_USAGE_CLIENT = "client";
+    public static final String ZTS_CERT_USAGE_SERVER = "server";
+    
     public static final String ZTS_CERT_INSTANCE_ID  = ".instanceid.athenz.";
     public static final String ZTS_CERT_DNS_SUFFIX   = ".athenz.cloud";
     public static final String ZTS_ACTION_LAUNCH     = "launch";

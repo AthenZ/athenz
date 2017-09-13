@@ -339,11 +339,11 @@ public class ZTSUtils {
         return true;
     }
     
-    public static Identity generateIdentity(CertSigner certSigner, String csr, String cn) {
+    public static Identity generateIdentity(CertSigner certSigner, String csr, String cn, String certUsage) {
         
         // generate a certificate for this certificate request
 
-        String pemCert = certSigner.generateX509Certificate(csr);
+        String pemCert = certSigner.generateX509Certificate(csr, certUsage);
         if (pemCert == null || pemCert.isEmpty()) {
             LOGGER.error("generateIdentity: CertSigner was unable to generate X509 certificate");
             return null;

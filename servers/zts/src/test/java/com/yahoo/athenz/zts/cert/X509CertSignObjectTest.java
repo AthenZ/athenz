@@ -31,6 +31,12 @@ public class X509CertSignObjectTest {
         
         cert.setPem("pem-value");
         assertEquals(cert.getPem(), "pem-value");
+        
+        cert.setExpire(30);
+        assertEquals(cert.getExpire(), 30);
+        
+        cert.setExtusage("1,2");
+        assertEquals(cert.getExtusage(), "1,2");
     }
     
     @Test
@@ -38,5 +44,12 @@ public class X509CertSignObjectTest {
 
         X509CertSignObject cert = JSON.fromString("{\"pem\":\"pem-value\"}", X509CertSignObject.class);
         assertEquals(cert.getPem(), "pem-value");
+        assertNull(cert.getExtusage());
+        assertEquals(cert.getExpire(), 0);
+        
+        cert = JSON.fromString("{\"pem\":\"pem-value\",\"extusage\":\"1,2\",\"expire\":10}", X509CertSignObject.class);
+        assertEquals(cert.getPem(), "pem-value");
+        assertEquals(cert.getExtusage(), "1,2");
+        assertEquals(cert.getExpire(), 10);
     }
 }

@@ -775,7 +775,7 @@ public class CloudStore {
 
         String x509Cert = null;
         if (csr != null) {
-            x509Cert = certSigner.generateX509Certificate(csr);
+            x509Cert = certSigner.generateX509Certificate(csr, null);
             if (x509Cert == null || x509Cert.isEmpty()) {
                 LOGGER.error("generateIdentity: CertSigner was unable to generate X509 certificate");
                 return null;

@@ -42,7 +42,7 @@ public class HttpCertSigner implements CertSigner {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpCertSigner.class);
     private static final String CONTENT_JSON = "application/json";
-    
+
     private HttpClient httpClient = null;
     String x509CertUri = null;
     String sshCertUri = null;
@@ -95,16 +95,16 @@ public class HttpCertSigner implements CertSigner {
         }
     }
 
-    ContentResponse processX509CertRequest(String csr, int retryCount) {
+    ContentResponse processX509CertRequest(final String csr, final String keyUsage, int retryCount) {
         
         ContentResponse response = null;
         try {
             Request request = httpClient.POST(x509CertUri);
             request.header(HttpHeader.ACCEPT, CONTENT_JSON);
             request.header(HttpHeader.CONTENT_TYPE, CONTENT_JSON);
-    
-            X509CertSignObject csrCert = new X509CertSignObject();
-            csrCert.setPem(csr);
+            
+            X509CertSignObject csrCert = new X509CertSignObject()
+                    .setPem(csr).setExtusage(keyUsage);
             request.content(new StringContentProvider(JSON.string(csrCert)), CONTENT_JSON);
             
             // our max timeout is going to be 30 seconds. By default
@@ -130,11 +130,16 @@ public class HttpCertSigner implements CertSigner {
     }
     
     @Override
-    public String generateX509Certificate(String csr) {
+    public String generateX509Certificate(String csr, String keyUsage) {
         
+        // Key Usage value used in go - https://golang.org/src/crypto/x509/x509.go?s=18153:18173#L558
+        // we're only interested in ExtKeyUsageClientAuth - with value of 2
+        
+        final String extKeyUsage = ZTSConsts.ZTS_CERT_USAGE_CLIENT.equals(keyUsage) ? "2" : null;
+
         ContentResponse response = null;
         for (int i = 0; i < requestRetryCount; i++) {
-            if ((response = processX509CertRequest(csr, i + 1)) != null) {
+            if ((response = processX509CertRequest(csr, extKeyUsage, i + 1)) != null) {
                 break;
             }
         }

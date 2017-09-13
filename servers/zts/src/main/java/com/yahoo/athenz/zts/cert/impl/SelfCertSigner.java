@@ -36,7 +36,7 @@ public class SelfCertSigner implements CertSigner {
     }
 
     @Override
-    public String generateX509Certificate(String csr) {
+    public String generateX509Certificate(String csr, String keyUsage) {
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
         X509Certificate cert = Crypto.generateX509Certificate(certReq, caPrivateKey,
                 caCertificate, certValidityTime, false);

@@ -539,6 +539,8 @@ public class ZTSSchema {
 
             .exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
 
+            .exception("NOT_FOUND", "ResourceError", "")
+
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
