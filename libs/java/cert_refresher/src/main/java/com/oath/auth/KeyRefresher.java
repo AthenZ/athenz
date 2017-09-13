@@ -29,7 +29,17 @@ public class KeyRefresher {
     private final TrustManagerProxy trustManagerProxy;
 
     /**
-     * this method should be invoked primarily by the Utils.generateKeyRefresher method
+     * this method should be used in the following way
+     * 1) invoked primarily by the Utils.generateKeyRefresher method
+     * 2) an outside callers can then call getKeyManagerProxy() and getTrustManagerProxy()
+     * 3) pass those proxies into the Utils.BuildSSLContext method
+     * 4) use that SSLContext when starting a server
+     * 5) once server is started, call startup() (in this class)
+     *
+     *  at this point, when the private/public keys / trustStore files change, it will automatically
+     *  update the SSL context so any new connections will use the new values, and no old connections
+     *  will fail.  So presumably when those connections die (from expiring TTL values) they will create
+     *  new connections and leverage the new values.  No interruption to the service will be experienced.
      *
      * Once created, it needs to be turned on using the startup() method.  It will then
      * wake up once an hour and check the various public/private keys and trust store files
