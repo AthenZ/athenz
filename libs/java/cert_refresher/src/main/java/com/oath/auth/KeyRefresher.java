@@ -28,9 +28,25 @@ public class KeyRefresher {
     private final KeyManagerProxy keyManagerProxy;
     private final TrustManagerProxy trustManagerProxy;
 
-
+    /**
+     * this method should be invoked primarily by the Utils.generateKeyRefresher method
+     *
+     * Once created, it needs to be turned on using the startup() method.  It will then
+     * wake up once an hour and check the various public/private keys and trust store files
+     * to see if they have been updated.  If so, it will automatically update the SSL context
+     * correlating to the client/server that the *ManagerProxy objects are tied to.
+     *
+     * If you want to stop this thread, you need to call the shutdown() method
+     *
+     * @param athensPublicKey the file path to this key
+     * @param athensPrivateKey the file path to this key
+     * @param trustStorePath the file path to this store
+     * @param keyManagerProxy the keyManagerProxy used in the existing server/client
+     * @param trustManagerProxy the keyManagerProxy used in the existing server/client
+     * @throws NoSuchAlgorithmException this is only thrown if we cannot use MD5 hashing
+     */
     public KeyRefresher(final String athensPublicKey, final String athensPrivateKey, final String trustStorePath,
-                        KeyManagerProxy keyManagerProxy, TrustManagerProxy trustManagerProxy) throws NoSuchAlgorithmException {
+                        final KeyManagerProxy keyManagerProxy, final TrustManagerProxy trustManagerProxy) throws NoSuchAlgorithmException {
         this.athensPublicKey = athensPublicKey;
         this.athensPrivateKey = athensPrivateKey;
         this.trustStorePath = trustStorePath;
@@ -86,7 +102,7 @@ public class KeyRefresher {
     /**
      *  If the checksum for the file has changed, then update the checksum and return true.  else return false
      */
-    protected boolean haveFilesBeenChanged(String filePath, byte[] checksum) {
+    protected boolean haveFilesBeenChanged(final String filePath, byte[] checksum) {
         try (InputStream is = Files.newInputStream(Paths.get(filePath));
              DigestInputStream digestInputStream = new DigestInputStream(is, md)) {
             while (digestInputStream.read() != -1) {

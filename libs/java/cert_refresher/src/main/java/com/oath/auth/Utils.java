@@ -67,7 +67,7 @@ public class Utils {
 
     /**
      *  as the server will need access to the KeyRefresher (to turn it off and on as needed) we generate it first.
-     *  It requries that the proxys are created which are then stored in the KeyRefresher
+     *  It requires that the proxies are created which are then stored in the KeyRefresher
      */
     public static KeyRefresher generateKeyRefresher(final String trustStorePath, final String athensPublicKey, final String athensPrivateKey) throws Exception {
         KeyManagerProxy keyManagerProxy = new KeyManagerProxy(getKeyManagers(athensPublicKey, athensPrivateKey));
@@ -75,12 +75,27 @@ public class Utils {
         return new KeyRefresher(athensPublicKey, athensPrivateKey, trustStorePath, keyManagerProxy, trustManagerProxy);
     }
 
+    /**
+     * this method will create a new SSLContext object that can be updated on the fly should the
+     * public/private keys / trustStore change.
+     * @param keyManagerProxy uses standard KeyManager interface except also allows for the updating of KeyManager on the fly
+     * @param trustManagerProxy uses standard TrustManager interface except also allows for the updating of TrustManager on the fly
+     * @return a valid SSLContext object using the passed in key/trust managers
+     * @throws Exception sslContext.init can throw exceptions
+     */
     public static SSLContext buildSSLContext(KeyManagerProxy keyManagerProxy, TrustManagerProxy trustManagerProxy) throws Exception {
         final SSLContext sslContext = SSLContext.getInstance(SSLCONTEXT_ALGORITHM);
         sslContext.init(new KeyManager[]{ keyManagerProxy }, new TrustManager[] { trustManagerProxy }, null);
         return sslContext;
     }
 
+    /**
+     *
+     * @param publicKeyLocation the location on the public key file
+     * @param privateKeyLocation the location of hte private key file
+     * @return a KeyStore with loaded certificate
+     * @throws Exception KeyStore generation can throw Exception for many reasons
+     */
     public static KeyStore createKeyStore(final String publicKeyLocation, final String privateKeyLocation) throws Exception {
 
         final CertificateFactory cf = CertificateFactory.getInstance("X.509");
@@ -93,7 +108,6 @@ public class Utils {
         final InputStream privateKeyStream;
 
         try {
-            ///CLOVER:OFF
             if (Paths.get(publicKeyLocation).isAbsolute() && Paths.get(privateKeyLocation).isAbsolute()) {
                 // Can not cover this branch in unit test. Can not refer any files by absolute paths
                 File certFile = new File(publicKeyLocation);
@@ -111,7 +125,6 @@ public class Utils {
             }
         } catch (IOException e) {
             throw new IllegalArgumentException(e);
-            ///CLOVER:ON
         }
 
         try (PEMParser pemParser = new PEMParser(new InputStreamReader(privateKeyStream))) {
