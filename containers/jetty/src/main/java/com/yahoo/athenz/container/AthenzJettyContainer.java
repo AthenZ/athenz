@@ -52,6 +52,8 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.yahoo.athenz.auth.PrivateKeyStore;
+import com.yahoo.athenz.auth.PrivateKeyStoreFactory;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.container.filter.HealthCheckFilter;
 import com.yahoo.athenz.container.log.AthenzRequestLog;
@@ -67,9 +69,10 @@ public class AthenzJettyContainer {
     private Server server = null;
     private String banner = null;
     private HandlerCollection handlers = null;
-    
+    private PrivateKeyStore privateKeyStore;
     
     public AthenzJettyContainer() {
+        loadServicePrivateKey();
     }
     
     Server getServer() {
@@ -321,6 +324,20 @@ public class AthenzJettyContainer {
         return httpConfig;
     }
     
+    void loadServicePrivateKey() {
+        String pkeyFactoryClass = System.getProperty(AthenzConsts.ATHENZ_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
+                AthenzConsts.ATHENZ_PKEY_STORE_FACTORY_CLASS);
+        PrivateKeyStoreFactory pkeyFactory = null;
+        try {
+            pkeyFactory = (PrivateKeyStoreFactory) Class.forName(pkeyFactoryClass).newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            LOG.error("Invalid PrivateKeyStoreFactory class: " + pkeyFactoryClass
+                    + " error: " + e.getMessage());
+            throw new IllegalArgumentException("Invalid private key store");
+        }
+        this.privateKeyStore = pkeyFactory.create();
+    }
+    
     SslContextFactory createSSLContextObject() {
         
         String keyStorePath = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH);
@@ -341,7 +358,8 @@ public class AthenzJettyContainer {
             sslContextFactory.setKeyStorePath(keyStorePath);
         }
         if (keyStorePassword != null) {
-            sslContextFactory.setKeyStorePassword(keyStorePassword);
+            //default implementation should just return the same
+            sslContextFactory.setKeyStorePassword(this.privateKeyStore.getApplicationSecret(null, keyStorePassword));
         }
         sslContextFactory.setKeyStoreType(keyStoreType);
 
@@ -353,7 +371,7 @@ public class AthenzJettyContainer {
             sslContextFactory.setTrustStorePath(trustStorePath);
         }
         if (trustStorePassword != null) {
-            sslContextFactory.setTrustStorePassword(trustStorePassword);
+            sslContextFactory.setTrustStorePassword(this.privateKeyStore.getApplicationSecret(null, trustStorePassword));
         }
         sslContextFactory.setTrustStoreType(trustStoreType);
 
