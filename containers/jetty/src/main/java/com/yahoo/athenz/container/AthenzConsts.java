@@ -69,4 +69,8 @@ public final class AthenzConsts {
     public static final int ATHENZ_HTTP_MAX_THREADS   = 1024;
     public static final String ATHENZ_RATE_LIMIT_FACTORY_CLASS = "com.yahoo.athenz.common.filter.impl.NoOpRateLimitFactory";
     public static final String ATHENZ_PKEY_STORE_FACTORY_CLASS = "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory";
+    
+    public static final String ATHENZ_PROP_KEYSTORE_PASSWORD_APPNAME = "athenz.ssl_key_store_password_appname";
+    public static final String ATHENZ_PROP_KEYMANAGER_PASSWORD_APPNAME = "athenz.ssl_key_manager_password_appname";
+    public static final String ATHENZ_PROP_TRUSTSTORE_PASSWORD_APPNAME = "athenz.ssl_trust_store_password_appname";
 }

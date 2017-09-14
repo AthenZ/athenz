@@ -341,11 +341,14 @@ public class AthenzJettyContainer {
     SslContextFactory createSSLContextObject() {
         
         String keyStorePath = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH);
+        String keyStorePasswordAppName = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD_APPNAME);
         String keyStorePassword = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD);
         String keyStoreType = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_TYPE, "PKCS12");
         String keyManagerPassword = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYMANAGER_PASSWORD);
+        String keyManagerPasswordAppName = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYMANAGER_PASSWORD_APPNAME);
         String trustStorePath = System.getProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PATH);
         String trustStorePassword = System.getProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PASSWORD);
+        String trustStorePasswordAppName = System.getProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PASSWORD_APPNAME);
         String trustStoreType = System.getProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_TYPE, "PKCS12");
         String includedCipherSuites = System.getProperty(AthenzConsts.ATHENZ_PROP_INCLUDED_CIPHER_SUITES);
         String excludedCipherSuites = System.getProperty(AthenzConsts.ATHENZ_PROP_EXCLUDED_CIPHER_SUITES);
@@ -359,19 +362,19 @@ public class AthenzJettyContainer {
         }
         if (keyStorePassword != null) {
             //default implementation should just return the same
-            sslContextFactory.setKeyStorePassword(this.privateKeyStore.getApplicationSecret(null, keyStorePassword));
+            sslContextFactory.setKeyStorePassword(this.privateKeyStore.getApplicationSecret(keyStorePasswordAppName, keyStorePassword));
         }
         sslContextFactory.setKeyStoreType(keyStoreType);
 
         if (keyManagerPassword != null) {
-            sslContextFactory.setKeyManagerPassword(keyManagerPassword);
+            sslContextFactory.setKeyManagerPassword(this.privateKeyStore.getApplicationSecret(keyManagerPasswordAppName, keyManagerPassword));
         }
         if (trustStorePath != null) {
             LOG.info("Using SSL TrustStore path: {}", trustStorePath);
             sslContextFactory.setTrustStorePath(trustStorePath);
         }
         if (trustStorePassword != null) {
-            sslContextFactory.setTrustStorePassword(this.privateKeyStore.getApplicationSecret(null, trustStorePassword));
+            sslContextFactory.setTrustStorePassword(this.privateKeyStore.getApplicationSecret(trustStorePasswordAppName, trustStorePassword));
         }
         sslContextFactory.setTrustStoreType(trustStoreType);
 
