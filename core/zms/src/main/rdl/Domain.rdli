@@ -201,7 +201,7 @@ resource DomainTemplate PUT "/domain/{name}/template" {
     DomainName name; //name of the domain to be updated
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     DomainTemplate template; //DomainTemplate object with solution template name(s)
-    authorize ("update", "{name}:");
+    authorize ("update", "{name}:template");
     expected NO_CONTENT;
     exceptions {
         ResourceError NOT_FOUND;
@@ -233,7 +233,7 @@ resource DomainTemplate DELETE "/domain/{name}/template/{template}" {
     DomainName name; //name of the domain to be updated
     SimpleName template; //name of the solution template
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
-    authorize ("delete", "{name}:");
+    authorize ("delete", "{name}:template.{template}");
     expected NO_CONTENT;
     exceptions {
         ResourceError NOT_FOUND;
