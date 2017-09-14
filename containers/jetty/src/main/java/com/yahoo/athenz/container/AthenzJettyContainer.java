@@ -52,6 +52,8 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.yahoo.athenz.auth.PrivateKeyStore;
+import com.yahoo.athenz.auth.PrivateKeyStoreFactory;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.container.filter.HealthCheckFilter;
 import com.yahoo.athenz.container.log.AthenzRequestLog;
@@ -67,9 +69,10 @@ public class AthenzJettyContainer {
     private Server server = null;
     private String banner = null;
     private HandlerCollection handlers = null;
-    
+    private PrivateKeyStore privateKeyStore;
     
     public AthenzJettyContainer() {
+        loadServicePrivateKey();
     }
     
     Server getServer() {
@@ -321,14 +324,31 @@ public class AthenzJettyContainer {
         return httpConfig;
     }
     
+    void loadServicePrivateKey() {
+        String pkeyFactoryClass = System.getProperty(AthenzConsts.ATHENZ_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
+                AthenzConsts.ATHENZ_PKEY_STORE_FACTORY_CLASS);
+        PrivateKeyStoreFactory pkeyFactory = null;
+        try {
+            pkeyFactory = (PrivateKeyStoreFactory) Class.forName(pkeyFactoryClass).newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            LOG.error("Invalid PrivateKeyStoreFactory class: " + pkeyFactoryClass
+                    + " error: " + e.getMessage());
+            throw new IllegalArgumentException("Invalid private key store");
+        }
+        this.privateKeyStore = pkeyFactory.create();
+    }
+    
     SslContextFactory createSSLContextObject() {
         
         String keyStorePath = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH);
+        String keyStorePasswordAppName = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD_APPNAME);
         String keyStorePassword = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD);
         String keyStoreType = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_TYPE, "PKCS12");
         String keyManagerPassword = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYMANAGER_PASSWORD);
+        String keyManagerPasswordAppName = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYMANAGER_PASSWORD_APPNAME);
         String trustStorePath = System.getProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PATH);
         String trustStorePassword = System.getProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PASSWORD);
+        String trustStorePasswordAppName = System.getProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PASSWORD_APPNAME);
         String trustStoreType = System.getProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_TYPE, "PKCS12");
         String includedCipherSuites = System.getProperty(AthenzConsts.ATHENZ_PROP_INCLUDED_CIPHER_SUITES);
         String excludedCipherSuites = System.getProperty(AthenzConsts.ATHENZ_PROP_EXCLUDED_CIPHER_SUITES);
@@ -341,19 +361,20 @@ public class AthenzJettyContainer {
             sslContextFactory.setKeyStorePath(keyStorePath);
         }
         if (keyStorePassword != null) {
-            sslContextFactory.setKeyStorePassword(keyStorePassword);
+            //default implementation should just return the same
+            sslContextFactory.setKeyStorePassword(this.privateKeyStore.getApplicationSecret(keyStorePasswordAppName, keyStorePassword));
         }
         sslContextFactory.setKeyStoreType(keyStoreType);
 
         if (keyManagerPassword != null) {
-            sslContextFactory.setKeyManagerPassword(keyManagerPassword);
+            sslContextFactory.setKeyManagerPassword(this.privateKeyStore.getApplicationSecret(keyManagerPasswordAppName, keyManagerPassword));
         }
         if (trustStorePath != null) {
             LOG.info("Using SSL TrustStore path: {}", trustStorePath);
             sslContextFactory.setTrustStorePath(trustStorePath);
         }
         if (trustStorePassword != null) {
-            sslContextFactory.setTrustStorePassword(trustStorePassword);
+            sslContextFactory.setTrustStorePassword(this.privateKeyStore.getApplicationSecret(trustStorePasswordAppName, trustStorePassword));
         }
         sslContextFactory.setTrustStoreType(trustStoreType);
 
