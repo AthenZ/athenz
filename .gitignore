@@ -81,6 +81,9 @@ utils/zts-roletoken/src/
 utils/zts-svccert/bin/
 utils/zts-svccert/pkg/
 utils/zts-svccert/src/
+utils/zts-rolecert/bin/
+utils/zts-rolecert/pkg/
+utils/zts-rolecert/src/
 utils/zpe_policy_updater/bin/
 utils/zpe_policy_updater/tmp_metrics/
 utils/zpe_policy_updater/src/test/resources/sys.auth.new.pol

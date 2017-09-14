@@ -38,8 +38,8 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
 
     private static final String SQL_GET_X509_RECORD = "SELECT * FROM certificates WHERE provider=? AND instanceId=?;";
     private static final String SQL_INSERT_X509_RECORD = "INSERT INTO certificates " +
-            "(provider, instanceId, service, currentSerial, currentTime, currentIP, prevSerial, prevTime, prevIP) " +
-            "VALUES (?, ?,?,?,?,?,?,?,?);";
+            "(provider, instanceId, service, currentSerial, currentTime, currentIP, prevSerial, prevTime, prevIP, clientCert) " +
+            "VALUES (?, ?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_X509_RECORD = "UPDATE certificates SET " +
             "currentSerial=?, currentTime=?, currentIP=?, prevSerial=?, prevTime=?, prevIP=? " +
             "WHERE provider=? AND instanceId=?;";
@@ -53,7 +53,8 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
     public static final String DB_COLUMN_PREV_IP        = "prevIP";
     public static final String DB_COLUMN_PREV_SERIAL    = "prevSerial";
     public static final String DB_COLUMN_PREV_TIME      = "prevTime";
-
+    public static final String DB_COLUMN_CLIENT_CERT    = "clientCert";
+    
     Connection con = null;
     int queryTimeout = 10;
 
@@ -121,6 +122,7 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
                     certRecord.setPrevIP(rs.getString(DB_COLUMN_PREV_IP));
                     certRecord.setPrevSerial(rs.getString(DB_COLUMN_PREV_SERIAL));
                     certRecord.setPrevTime(new Date(rs.getTimestamp(DB_COLUMN_PREV_TIME).getTime()));
+                    certRecord.setClientCert(rs.getBoolean(DB_COLUMN_CLIENT_CERT));
                 }
             }
         } catch (SQLException ex) {
@@ -167,6 +169,7 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
             ps.setString(7, certRecord.getPrevSerial());
             ps.setTimestamp(8, new java.sql.Timestamp(certRecord.getPrevTime().getTime()));
             ps.setString(9, certRecord.getPrevIP());
+            ps.setBoolean(10, certRecord.getClientCert());
             affectedRows = executeUpdate(ps, caller);
             
         } catch (SQLException ex) {

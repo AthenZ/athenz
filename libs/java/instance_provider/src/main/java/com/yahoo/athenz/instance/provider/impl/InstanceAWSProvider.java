@@ -18,6 +18,7 @@ package com.yahoo.athenz.instance.provider.impl;
 import java.io.File;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -42,9 +43,12 @@ public class InstanceAWSProvider implements InstanceProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceAWSProvider.class);
     
     private static final String ATTR_ACCOUNT_ID = "accountId";
+    private static final String ATTR_REGION = "region";
     private static final String ATTR_PENDING_TIME = "pendingTime";
-    private static final String AWS_DOCUMENT_LAMBDA = "lambda";
 
+    private static final String ZTS_CERT_USAGE        = "certUsage";
+    private static final String ZTS_CERT_USAGE_CLIENT = "client";
+    
     public static final String AWS_PROP_PUBLIC_CERT      = "athenz.zts.aws_public_cert";
     public static final String AWS_PROP_BOOT_TIME_OFFSET = "athenz.zts.aws_boot_time_offset";
     
@@ -74,19 +78,30 @@ public class InstanceAWSProvider implements InstanceProvider {
         return new ResourceException(ResourceException.FORBIDDEN, message);
     }
     
-    boolean validateAWSAccount(Map<String, String> attributes, String docAccount) {
+    String getAWSAccount(Map<String, String> attributes) {
+        
         if (attributes == null) {
-            return false;
+            LOGGER.error("validateAWSAccount: no attributes available");
+            return null;
         }
+    
         final String awsAccount = attributes.get("awsAccount");
         if (awsAccount == null) {
-            return false;
+            LOGGER.error("validateAWSAccount: awsAccount attribute not available");
+            return null;
         }
+        
+        return awsAccount;
+    }
+    
+    boolean validateAWSAccount(final String awsAccount, final String docAccount) {
+        
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("validateAWSAccount: ZTS domain account lookup: " + awsAccount);
+            LOGGER.debug("validateAWSAccount: Instance document account: " + docAccount);
+        }
+        
         if (!awsAccount.equalsIgnoreCase(docAccount)) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("validateAWSAccount: ZTS domain account lookup: " + awsAccount);
-                LOGGER.debug("validateAWSAccount: Instance document account: " + docAccount);
-            }
             LOGGER.error("verifyInstanceDocument: mismatch between account values: "
                     + " domain lookup: {} vs. instance document: {}", awsAccount, docAccount);
             return false;
@@ -94,8 +109,32 @@ public class InstanceAWSProvider implements InstanceProvider {
         return true;
     }
     
-    public boolean validateAWSSignature(final String document, final String signature) {
+    boolean validateAWSProvider(final String provider, final String region) {
+        
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("validateAWSProvider: validating provider {} with region {}", provider, region);
+        }
+        
+        if (region == null) {
+            LOGGER.error("validateAWSProvider: no region provided in instance document");
+            return false;
+        }
+        
+        final String suffix = "." + region;
+        if (!provider.endsWith(suffix)) {
+            LOGGER.error("validateAWSProvider: provider does not end with expected suffix {}", suffix);
+            return false;
+        }
+        
+        return true;
+    }
+    
+    boolean validateAWSSignature(final String document, final String signature) {
 
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("validateAWSSignature: validating AWS signature: {}", signature);
+        }
+        
         if (signature == null || signature.isEmpty()) {
             LOGGER.error("AWS instance document signature is empty");
             return false;
@@ -117,65 +156,105 @@ public class InstanceAWSProvider implements InstanceProvider {
         return valid;
     }
     
+    boolean validateAWSDocument(final String provider, final String document, final String signature,
+            final String awsAccount) {
+        
+        if (!validateAWSSignature(document, signature)) {
+            return false;
+        }
+        
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("validateAWSDocument: parsing AWS document");
+        }
+        
+        // convert our document into a struct that we can extract data
+        
+        Struct instanceDocument = JSON.fromString(document, Struct.class);
+        if (instanceDocument == null) {
+            LOGGER.error("validateAWSDocument: failed to parse: {}",
+                    document);
+            return false;
+        }
+        
+        if (!validateAWSProvider(provider, instanceDocument.getString(ATTR_REGION))) {
+            return false;
+        }
+        
+        // verify that the account lookup and the account in the document match
+        
+        if (!validateAWSAccount(awsAccount, instanceDocument.getString(ATTR_ACCOUNT_ID))) {
+            return false;
+        }
+        
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("validateAWSDocument: validating instance boot up time");
+        }
+        
+        // verify that the boot up time for the instance is now
+        
+        Timestamp bootTime = Timestamp.fromString(instanceDocument.getString(ATTR_PENDING_TIME));
+        if (bootTime.millis() < System.currentTimeMillis() - bootTimeOffset) {
+            LOGGER.error("validateAWSDocument: Instance boot time is not recent enough: {}",
+                    bootTime.toString());
+            return false;
+        }
+        
+        return true;
+    }
+    
     @Override
     public InstanceConfirmation confirmInstance(InstanceConfirmation confirmation) {
         
         AWSAttestationData info = JSON.fromString(confirmation.getAttestationData(),
                 AWSAttestationData.class);
         
-        final String document = info.getDocument();
-        if (document == null || document.isEmpty()) {
-            throw error("AWS instance document is empty");
+        // before doing anything else we want to make sure our
+        // object has an associated aws account id
+        
+        final String awsAccount = getAWSAccount(confirmation.getAttributes());
+        if (awsAccount == null) {
+            throw error("Unable to extract AWS Account id");
         }
         
-        // check if this is a special labmda document as opposed to
-        // standard EC2 instance document
+        // validate that the domain/service given in the confirmation
+        // request match the attestation data
         
-        if (!AWS_DOCUMENT_LAMBDA.equals(document)) {
+        final String serviceName = confirmation.getDomain() + "." + confirmation.getService();
+        if (!serviceName.equals(info.getRole())) {
+            throw error("Service name mismatch: " + info.getRole() + " vs. " + serviceName);
+        }
         
-            if (!validateAWSSignature(document, info.getSignature())) {
-                throw error("AWS Instance document signature mismatch");
+        // if we have no document then we can only issue client
+        // certs (e.g. support for lambda)
+        
+        final String document = info.getDocument();
+        if (document != null && !document.isEmpty()) {
+            
+            // validate our document against given signature
+            
+            if (!validateAWSDocument(confirmation.getProvider(), document, info.getSignature(), awsAccount)) {
+                throw error("Unable to validate AWS document");
             }
             
-            // convert our document into a struct that we can extract data
+            // reset the attributes received from the server
+
+            confirmation.setAttributes(null);
+
+        } else {
             
-            Struct instanceDocument = null;
-            try {
-                instanceDocument = JSON.fromString(document, Struct.class);
-            } catch (Exception ex) {
-                LOGGER.error("verifyInstanceDocument: failed to parse: {} error: {}",
-                        info.getDocument(), ex.getMessage());
-            }
-            
-            if (instanceDocument == null) {
-                throw error("Unable to parse instance document");
-            }
-            
-            // verify that the account lookup and the account in the document match
-            
-            if (!validateAWSAccount(confirmation.getAttributes(), instanceDocument.getString(ATTR_ACCOUNT_ID))) {
-                throw error("Unable to validate registered AWS account id in Athenz");
-            }
-            
-            // verify that the boot up time for the instance is now
-            
-            Timestamp bootTime = Timestamp.fromMillis(Long.valueOf(instanceDocument.getString(ATTR_PENDING_TIME)));
-            if (bootTime.millis() < System.currentTimeMillis() - bootTimeOffset) {
-                throw error("Instance boot time is not recent enough");
-            }
+            Map<String, String> attributes = new HashMap<>();
+            attributes.put(ZTS_CERT_USAGE, ZTS_CERT_USAGE_CLIENT);
+            confirmation.setAttributes(attributes);
         }
         
         // verify that the temporary credentials specified in the request
         // can be used to assume the given role thus verifying the
         // instance identity
         
-        if (!verifyInstanceIdentity(info)) {
+        if (!verifyInstanceIdentity(info, awsAccount)) {
             throw error("Unable to verify instance identity");
         }
         
-        // reset the attributes received from the server
-        
-        confirmation.setAttributes(null);
         return confirmation;
     }
 
@@ -209,11 +288,7 @@ public class InstanceAWSProvider implements InstanceProvider {
         return new AWSSecurityTokenServiceClient(creds);
     }
     
-    public boolean verifyInstanceIdentity(AWSAttestationData info) {
-
-        StringBuilder serviceBuilder = new StringBuilder(256);
-        serviceBuilder.append(info.getDomain()).append('.').append(info.getService());
-        String service = serviceBuilder.toString();
+    public boolean verifyInstanceIdentity(AWSAttestationData info, final String awsAccount) {
         
         GetCallerIdentityRequest req = new GetCallerIdentityRequest();
         
@@ -230,7 +305,11 @@ public class InstanceAWSProvider implements InstanceProvider {
                 return false;
             }
             
-            String arn = "arn:aws:sts::" + info.getAccount() + ":assumed-role/" + service + "/";
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("verifyInstanceIdentity: caller identity: {}", res.getArn());
+            }
+             
+            String arn = "arn:aws:sts::" + awsAccount + ":assumed-role/" + info.getRole() + "/";
             if (!res.getArn().startsWith(arn)) {
                 LOGGER.error("verifyInstanceIdentity - ARN mismatch - request:" +
                         arn + " caller-identity: " + res.getArn());

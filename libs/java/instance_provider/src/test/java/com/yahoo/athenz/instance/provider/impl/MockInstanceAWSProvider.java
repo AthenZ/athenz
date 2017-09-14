@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.instance.provider.impl;
 
+import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
 import com.yahoo.athenz.instance.provider.impl.AWSAttestationData;
 import com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider;
 
@@ -22,6 +23,8 @@ public class MockInstanceAWSProvider extends InstanceAWSProvider {
 
     boolean signatureResult = true;
     boolean identityResult = true;
+    boolean identitySuper = false;
+    AWSSecurityTokenServiceClient stsClient;
     
     void setSignatureResult(boolean value) {
         signatureResult = value;
@@ -31,13 +34,26 @@ public class MockInstanceAWSProvider extends InstanceAWSProvider {
         identityResult = value;
     }
     
+    void setIdentitySuper(boolean value) {
+        identitySuper = value;
+    }
+    
+    void setStsClient(AWSSecurityTokenServiceClient client) {
+        stsClient = client;
+    }
+    
     @Override
     public boolean validateAWSSignature(final String document, final String signature) {
         return signatureResult;
     }
     
     @Override
-    public boolean verifyInstanceIdentity(AWSAttestationData info) {
-        return identityResult;
+    public boolean verifyInstanceIdentity(AWSAttestationData info, final String awsAccount) {
+        return identitySuper ? super.verifyInstanceIdentity(info, awsAccount) : identityResult;
+    }
+    
+    @Override
+    public AWSSecurityTokenServiceClient getInstanceClient(AWSAttestationData info) {
+        return stsClient != null ? stsClient : super.getInstanceClient(info);
     }
 }

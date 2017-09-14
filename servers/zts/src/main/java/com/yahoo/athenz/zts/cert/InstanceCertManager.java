@@ -5,7 +5,6 @@ import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +15,6 @@ import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.cert.CertSigner;
 import com.yahoo.athenz.zts.InstanceIdentity;
 import com.yahoo.athenz.zts.ZTSConsts;
-
 
 public class InstanceCertManager {
 
@@ -198,11 +196,11 @@ public class InstanceCertManager {
         return result;
     }
     
-    public InstanceIdentity generateIdentity(String csr, String cn, Map<String, String> attributes) {
+    public InstanceIdentity generateIdentity(String csr, String cn, String keyUsage) {
         
         // generate a certificate for this certificate request
 
-        String pemCert = certSigner.generateX509Certificate(csr);
+        String pemCert = certSigner.generateX509Certificate(csr, keyUsage);
         if (pemCert == null || pemCert.isEmpty()) {
             LOGGER.error("generateIdentity: CertSigner was unable to generate X509 certificate");
             return null;
@@ -217,8 +215,7 @@ public class InstanceCertManager {
         }
         
         return new InstanceIdentity().setName(cn).setX509Certificate(pemCert)
-                .setX509CertificateSigner(CA_X509_CERTIFICATE)
-                .setAttributes(attributes);
+                .setX509CertificateSigner(CA_X509_CERTIFICATE);
     }
     
     public boolean generateSshIdentity(InstanceIdentity identity, String sshCsr, String sshCertType) {

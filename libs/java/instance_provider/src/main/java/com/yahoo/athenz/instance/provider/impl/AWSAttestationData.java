@@ -25,9 +25,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 public class AWSAttestationData {
     public String document;
     public String signature;
-    public String domain;
-    public String service;
-    public String account;
+    public String role;
     public String access;
     public String secret;
     public String token;
@@ -44,23 +42,11 @@ public class AWSAttestationData {
     public String getSignature() {
         return signature;
     }
-    public void setDomain(String domain) {
-        this.domain = domain;
+    public void setRole(String role) {
+        this.role = role;
     }
-    public String getDomain() {
-        return domain;
-    }
-    public void setService(String service) {
-        this.service = service;
-    }
-    public String getService() {
-        return service;
-    }
-    public void setAccount(String account) {
-        this.account = account;
-    }
-    public String getAccount() {
-        return account;
+    public String getRole() {
+        return role;
     }
     public void setAccess(String access) {
         this.access = access;
