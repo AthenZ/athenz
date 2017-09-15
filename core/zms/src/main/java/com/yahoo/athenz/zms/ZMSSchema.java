@@ -542,7 +542,7 @@ public class ZMSSchema {
             .pathParam("name", "DomainName", "name of the domain to be updated")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .input("template", "DomainTemplate", "DomainTemplate object with solution template name(s)")
-            .auth("update", "{name}:")
+            .auth("update", "{name}:template")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 
@@ -576,7 +576,7 @@ public class ZMSSchema {
             .pathParam("name", "DomainName", "name of the domain to be updated")
             .pathParam("template", "SimpleName", "name of the solution template")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
-            .auth("delete", "{name}:")
+            .auth("delete", "{name}:template.{template}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 

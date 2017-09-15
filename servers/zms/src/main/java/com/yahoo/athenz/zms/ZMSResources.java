@@ -279,7 +279,7 @@ public class ZMSResources {
     public DomainTemplate putDomainTemplate(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef, DomainTemplate template) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
-            context.authorize("update", "" + name + ":", null);
+            context.authorize("update", "" + name + ":template", null);
             DomainTemplate e = this.delegate.putDomainTemplate(context, name, auditRef, template);
             return null;
         } catch (ResourceException e) {
@@ -337,7 +337,7 @@ public class ZMSResources {
     public DomainTemplate deleteDomainTemplate(@PathParam("name") String name, @PathParam("template") String template, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
-            context.authorize("delete", "" + name + ":", null);
+            context.authorize("delete", "" + name + ":template." + template + "", null);
             DomainTemplate e = this.delegate.deleteDomainTemplate(context, name, template, auditRef);
             return null;
         } catch (ResourceException e) {
