@@ -26,25 +26,26 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>22.0</version>
+            <version>${guava.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.12</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk15on</artifactId>
-            <version>1.57</version>
+            <version>${bouncycastle.version}</version>
         </dependency>
     </dependencies>
 
     <distributionManagement>
         <repository>
-            <id>bintray-athenz-client-common-repo</id>
-            <url>https://api.bintray.com/maven/yahoo/maven/athenz-client-common/;publish=1</url>
+            <id>bintray-athenz-cert-refresher-repo</id>
+            <url>https://api.bintray.com/maven/yahoo/maven/athenz-cert-refresher/;publish=1</url>
         </repository>
     </distributionManagement>
 
