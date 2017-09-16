@@ -88,6 +88,7 @@
     <module>libs/java/client_common</module>
     <module>libs/java/server_common</module>
     <module>libs/java/instance_provider</module>
+    <module>libs/java/cert_refresher</module>
     <module>clients/java/zms</module>
     <module>clients/java/zts</module>
     <module>clients/java/zpe</module>

@@ -105,9 +105,11 @@ public class KeyRefresher {
                     }
                 } catch (Exception ignored) {
                     // if we could not reload the SSL context (but we tried) we will ignore it and hope it works on the next loop
-                } try {
+                }
+                try {
                     Thread.sleep(RETRY_CHECK_FREQUENCY);
-                } catch (InterruptedException ignored) { }
+                } catch (InterruptedException ignored) {
+                }
             }
         });
         scanForFileChangesThread.setDaemon(true);
