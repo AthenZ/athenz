@@ -10,6 +10,7 @@ mvn deploy -Dmaven.test.skip=true --projects com.yahoo.athenz:athenz-zms-java-cl
 mvn deploy -Dmaven.test.skip=true --projects com.yahoo.athenz:athenz-zts-java-client --settings travis/settings-zts-java-client.xml
 mvn deploy -Dmaven.test.skip=true --projects com.yahoo.athenz:athenz-zpe-java-client --settings travis/settings-zpe-java-client.xml
 mvn deploy -Dmaven.test.skip=true --projects com.yahoo.athenz:athenz-client-common --settings travis/settings-client-common.xml
+mvn deploy -Dmaven.test.skip=true --projects com.yahoo.athenz:athenz-cert-refresher --settings travis/settings-cert-refresher.xml
 mvn deploy -Dmaven.test.skip=true --projects com.yahoo.athenz:athenz-server-common --settings travis/settings-server-common.xml
 mvn deploy -Dmaven.test.skip=true --projects com.yahoo.athenz:athenz-zpe-policy-updater --settings travis/settings-zpe-policy-updater.xml
 mvn deploy -Dmaven.test.skip=true --projects com.yahoo.athenz:athenz-zms --settings travis/settings-athenz-zms.xml
