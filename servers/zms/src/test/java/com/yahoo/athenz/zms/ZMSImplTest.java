@@ -8857,6 +8857,36 @@ public class ZMSImplTest {
     }
     
     @Test
+    public void testGetNormalizedMemberAliasDomain() {
+        
+        ZMSImpl zmsImpl = zmsInit();
+        zmsImpl.userDomain = "user";
+        zmsImpl.userDomainPrefix = "user.";
+        zmsImpl.userDomainAlias = null;
+        zmsImpl.userDomainAliasPrefix = null;
+        
+        assertEquals(zmsImpl.getNormalizedMember(
+                new RoleMember().setMemberName("user-alias.user1")).getMemberName(), "user-alias.user1");
+        assertEquals(zmsImpl.getNormalizedMember(
+                new RoleMember().setMemberName("user-alias.user1.svc")).getMemberName(), "user-alias.user1.svc");
+        assertEquals(zmsImpl.getNormalizedMember(
+                new RoleMember().setMemberName("user.user1")).getMemberName(), "user.user1");
+        assertEquals(zmsImpl.getNormalizedMember(
+                new RoleMember().setMemberName("user.user1.svc")).getMemberName(), "user.user1.svc");
+        
+        zmsImpl.userDomainAlias = "user-alias";
+        zmsImpl.userDomainAliasPrefix = "user-alias.";
+        assertEquals(zmsImpl.getNormalizedMember(
+                new RoleMember().setMemberName("user-alias.user1")).getMemberName(), "user.user1");
+        assertEquals(zmsImpl.getNormalizedMember(
+                new RoleMember().setMemberName("user-alias.user1.svc")).getMemberName(), "user-alias.user1.svc");
+        assertEquals(zmsImpl.getNormalizedMember(
+                new RoleMember().setMemberName("user.user1")).getMemberName(), "user.user1");
+        assertEquals(zmsImpl.getNormalizedMember(
+                new RoleMember().setMemberName("user.user1.svc")).getMemberName(), "user.user1.svc");
+    }
+    
+    @Test
     public void testNormalizeRoleMembersUsers() {
 
         ArrayList<RoleMember> roleMembers = new ArrayList<>();

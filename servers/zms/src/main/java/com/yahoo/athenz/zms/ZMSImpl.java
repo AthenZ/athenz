@@ -154,6 +154,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected String homeDomain;
     protected String homeDomainPrefix;
     protected String userDomainAlias;
+    protected String userDomainAliasPrefix;
     protected Http.AuthorityList authorities = null;
     protected List<String> providerEndpoints = null;
     protected PrivateKeyStore keyStore = null;
@@ -483,6 +484,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         userDomainPrefix = userDomain + ".";
         
         userDomainAlias = System.getProperty(ZMSConsts.ZMS_PROP_USER_DOMAIN_ALIAS);
+        if (userDomainAlias != null) {
+            userDomainAliasPrefix = userDomainAlias + ".";
+        }
         
         homeDomain = System.getProperty(ZMSConsts.ZMS_PROP_HOME_DOMAIN, userDomain);
         homeDomainPrefix = homeDomain + ".";
@@ -2327,15 +2331,27 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     RoleMember getNormalizedMember(RoleMember member) {
         
-        String[] resourceParts = member.getMemberName().split(":");
-        if (resourceParts.length != 2) {
-            return member;
-        }
+        // first we're going to check for the domain alias
+        // and handle accordingly - user-alias.hga will become user.hga
         
+        final String memberName = member.getMemberName();
+        if (userDomainAliasPrefix != null && memberName.startsWith(userDomainAliasPrefix)) {
+            if (memberName.indexOf('.', userDomainAliasPrefix.length()) == -1) {
+                RoleMember normalizedMember = member;
+                normalizedMember.setMemberName(userDomainPrefix + memberName.substring(userDomainAliasPrefix.length()));
+                return normalizedMember;
+            }
+        }
+
         // we are going we normalize and use the common name to
         // represent our principals. The changes are:
         // user:hga will be replaced with user.hga
         // coretech:service.storage will be replaced with coretech.storage
+        
+        String[] resourceParts = memberName.split(":");
+        if (resourceParts.length != 2) {
+            return member;
+        }
         
         RoleMember normalizedMember = member;
         if (resourceParts[0].equalsIgnoreCase(userDomain)) {
