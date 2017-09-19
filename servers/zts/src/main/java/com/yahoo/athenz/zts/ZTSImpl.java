@@ -105,7 +105,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected String ostkHostSignerService = null;
     protected AuditLogger auditLogger = null;
     protected String userDomain;
+    protected String userDomainPrefix;
     protected String userDomainAlias;
+    protected String userDomainAliasPrefix;
     protected boolean leastPrivilegePrincipal = false;
     protected Set<String> authorizedProxyUsers = null;
     protected boolean secureRequestsOnly = true;
@@ -308,7 +310,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
         
         userDomain = System.getProperty(ZTSConsts.ZTS_PROP_USER_DOMAIN, ZTSConsts.ATHENZ_USER_DOMAIN);
+        userDomainPrefix = userDomain + ".";
+        
         userDomainAlias = System.getProperty(ZTSConsts.ZTS_PROP_USER_DOMAIN_ALIAS);
+        if (userDomainAlias != null) {
+            userDomainAliasPrefix = userDomainAlias + ".";
+        }
 
         // retrieve our temporary ostk host signer domain/service name
         
@@ -865,28 +872,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
     }
     
-    String updateUserDomainAlias(String principal) {
-        
-        if (principal == null || principal.length() == 0) {
-            return null;
-        }
-        
-        if (userDomainAlias == null) {
-            return principal;
-        }
-        
-        int idx = principal.lastIndexOf('.');
-        if (idx == -1) {
-            return principal;
-        }
-
-        final String domain = principal.substring(0, idx);
-        if (userDomainAlias.equals(domain)) {
-            principal = userDomain + principal.substring(idx);
-        }
-        return principal;
-    }
-    
     long determineTokenTimeout(Integer minExpiryTime, Integer maxExpiryTime) {
         
         // we're going to default our return value to the default token
@@ -947,13 +932,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // saves all of its object names in lower case
         
         providerDomainName = providerDomainName.toLowerCase();
-        userName = userName.toLowerCase();
         if (roleName != null) {
             roleName = roleName.toLowerCase();
         }
         if (serviceName != null) {
             serviceName = serviceName.toLowerCase();
         }
+        userName = normalizeDomainAliasUser(userName.toLowerCase());
         
         // first retrieve our domain data object from the cache
 
@@ -1138,6 +1123,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (roleName != null) {
             roleName = roleName.toLowerCase();
         }
+        if (proxyForPrincipal != null) {
+            proxyForPrincipal = normalizeDomainAliasUser(proxyForPrincipal.toLowerCase());
+        }
         
         Object timerMetric = metric.startTiming(callerTiming, domainName);
         
@@ -1152,8 +1140,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // do not allow empty (not null) values for role
         
         roleName = convertEmptyStringToNull(roleName);
-        proxyForPrincipal = updateUserDomainAlias(proxyForPrincipal);
-
+        proxyForPrincipal = convertEmptyStringToNull(proxyForPrincipal);
+        
         if (leastPrivilegePrincipal && roleName == null) {
             throw requestError("getRoleToken: Client must specify a roleName to request a token for",
                     caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
@@ -1283,7 +1271,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // saves all of its object names in lower case
         
         domainName = domainName.toLowerCase();
-        principal = principal.toLowerCase();
+        principal = normalizeDomainAliasUser(principal.toLowerCase());
         
         Object timerMetric = metric.startTiming(callerTiming, domainName);
         
@@ -2823,5 +2811,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
 
         return ROOT_DIR;
+    }
+    
+    String normalizeDomainAliasUser(String user) {
+        if (user != null && userDomainAliasPrefix != null && user.startsWith(userDomainAliasPrefix)) {
+            if (user.indexOf('.', userDomainAliasPrefix.length()) == -1) {
+                return userDomainPrefix + user.substring(userDomainAliasPrefix.length());
+            }
+        }
+        return user;
     }
 }

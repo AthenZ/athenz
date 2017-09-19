@@ -6062,19 +6062,23 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testUpdateUserDomainAlias() {
+    public void testNormalizeDomainAliasUser() {
         
-        assertEquals(zts.updateUserDomainAlias(null), null);
-        assertEquals(zts.updateUserDomainAlias(""), null);
+        assertEquals(zts.normalizeDomainAliasUser(null), null);
+        assertEquals(zts.normalizeDomainAliasUser(""), "");
         
         zts.userDomainAlias = null;
-        assertEquals(zts.updateUserDomainAlias("user.joe"), "user.joe");
-        assertEquals(zts.updateUserDomainAlias("useralias.joe"), "useralias.joe");
-        assertEquals(zts.updateUserDomainAlias("joe"), "joe");
+        zts.userDomainAliasPrefix = null;
+        assertEquals(zts.normalizeDomainAliasUser("user.joe"), "user.joe");
+        assertEquals(zts.normalizeDomainAliasUser("useralias.joe"), "useralias.joe");
+        assertEquals(zts.normalizeDomainAliasUser("useralias.joe.svc"), "useralias.joe.svc");
+        assertEquals(zts.normalizeDomainAliasUser("joe"), "joe");
 
         zts.userDomainAlias = "useralias";
-        assertEquals(zts.updateUserDomainAlias("user.joe"), "user.joe");
-        assertEquals(zts.updateUserDomainAlias("useralias.joe"), "user.joe");
-        assertEquals(zts.updateUserDomainAlias("joe"), "joe");
+        zts.userDomainAliasPrefix = "useralias.";
+        assertEquals(zts.normalizeDomainAliasUser("user.joe"), "user.joe");
+        assertEquals(zts.normalizeDomainAliasUser("useralias.joe"), "user.joe");
+        assertEquals(zts.normalizeDomainAliasUser("useralias.joe.svc"), "useralias.joe.svc");
+        assertEquals(zts.normalizeDomainAliasUser("joe"), "joe");
     }
 }

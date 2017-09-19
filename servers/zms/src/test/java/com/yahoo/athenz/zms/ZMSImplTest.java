@@ -14842,5 +14842,61 @@ public class ZMSImplTest {
         principal = zmsImpl.createPrincipalForName("alias.joe.storage");
         assertEquals(principal.getFullName(), "alias.joe.storage");
     }
+    
+    @Test
+    public void testNormalizedAdminUsers() {
+        List<String> list = new ArrayList<>();
+        list.add("user-alias.user1");
+        list.add("user-alias.user1.svc");
+        list.add("user.user2");
+        list.add("user.user2.svc");
+        
+        ZMSImpl zmsImpl = zmsInit();
+        zmsImpl.userDomain = "user";
+        zmsImpl.userDomainPrefix = "user.";
+        zmsImpl.userDomainAlias = null;
+        zmsImpl.userDomainAliasPrefix = null;
+        
+        List<String> normList = zmsImpl.normalizedAdminUsers(list);
+        assertEquals(normList.size(), 4);
+        assertTrue(normList.contains("user-alias.user1"));
+        assertTrue(normList.contains("user-alias.user1.svc"));
+        assertTrue(normList.contains("user.user2"));
+        assertTrue(normList.contains("user.user2.svc"));
+        
+        zmsImpl.userDomainAlias = "user-alias";
+        zmsImpl.userDomainAliasPrefix = "user-alias.";
+        
+        normList = zmsImpl.normalizedAdminUsers(list);
+        assertEquals(normList.size(), 4);
+        assertTrue(normList.contains("user.user1"));
+        assertTrue(normList.contains("user-alias.user1.svc"));
+        assertTrue(normList.contains("user.user2"));
+        assertTrue(normList.contains("user.user2.svc"));
+    }
+    
+    @Test
+    public void testNormalizeDomainAliasUser() {
+
+        ZMSImpl zmsImpl = zmsInit();
+        zmsImpl.userDomain = "user";
+        zmsImpl.userDomainPrefix = "user.";
+        zmsImpl.userDomainAlias = null;
+        zmsImpl.userDomainAliasPrefix = null;
+        
+        assertNull(zmsImpl.normalizeDomainAliasUser(null));
+        assertEquals(zmsImpl.normalizeDomainAliasUser("user-alias.user1"), "user-alias.user1");
+        assertEquals(zmsImpl.normalizeDomainAliasUser("user-alias.user1.svc"), "user-alias.user1.svc");
+        assertEquals(zmsImpl.normalizeDomainAliasUser("user.user2"), "user.user2");
+        assertEquals(zmsImpl.normalizeDomainAliasUser("user.user2.svc"), "user.user2.svc");
+        
+        zmsImpl.userDomainAlias = "user-alias";
+        zmsImpl.userDomainAliasPrefix = "user-alias.";
+        assertNull(zmsImpl.normalizeDomainAliasUser(null));
+        assertEquals(zmsImpl.normalizeDomainAliasUser("user-alias.user1"), "user.user1");
+        assertEquals(zmsImpl.normalizeDomainAliasUser("user-alias.user1.svc"), "user-alias.user1.svc");
+        assertEquals(zmsImpl.normalizeDomainAliasUser("user.user2"), "user.user2");
+        assertEquals(zmsImpl.normalizeDomainAliasUser("user.user2.svc"), "user.user2.svc");
+    }
 }
 

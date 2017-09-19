@@ -860,7 +860,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         } else if (productId != null && productId.intValue() != 0) {
             dlist = dbService.lookupDomainByProductId(productId);
         } else if (roleMember != null || roleName != null) {
-            dlist = dbService.lookupDomainByRole(roleMember, roleName);
+            dlist = dbService.lookupDomainByRole(normalizeDomainAliasUser(roleMember), roleName);
         } else {
             dlist = listDomains(limit, skip, prefix, depth, modTime);
         }
@@ -963,8 +963,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         }
         
+        List<String> adminUsers = normalizedAdminUsers(detail.getAdminUsers());
         Domain domain = createTopLevelDomain(ctx, domainName, detail.getDescription(),
-            detail.getOrg(), detail.getAuditEnabled(), detail.getAdminUsers(),
+            detail.getOrg(), detail.getAuditEnabled(), adminUsers,
             detail.getAccount(), productId, detail.getApplicationId(), solutionTemplates, auditRef);
 
         metric.stopTiming(timerMetric);
@@ -1181,8 +1182,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         }
         
+        List<String> adminUsers = normalizedAdminUsers(detail.getAdminUsers());
         Domain domain = createSubDomain(ctx, detail.getParent(), detail.getName(), detail.getDescription(),
-                detail.getOrg(), detail.getAuditEnabled(), detail.getAdminUsers(), detail.getAccount(),
+                detail.getOrg(), detail.getAuditEnabled(), adminUsers, detail.getAccount(),
                 productId, detail.getApplicationId(), solutionTemplates, auditRef, caller);
 
         metric.stopTiming(timerMetric);
@@ -2329,18 +2331,34 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return role;
     }
 
+    List<String> normalizedAdminUsers(List<String> admins) {
+        List<String> normalizedAdmins = new ArrayList<>();
+        for (String admin : admins) {
+            normalizedAdmins.add(normalizeDomainAliasUser(admin));
+        }
+        return normalizedAdmins;
+    }
+    
+    String normalizeDomainAliasUser(String user) {
+        if (user != null && userDomainAliasPrefix != null && user.startsWith(userDomainAliasPrefix)) {
+            if (user.indexOf('.', userDomainAliasPrefix.length()) == -1) {
+                return userDomainPrefix + user.substring(userDomainAliasPrefix.length());
+            }
+        }
+        return user;
+    }
+    
     RoleMember getNormalizedMember(RoleMember member) {
         
         // first we're going to check for the domain alias
         // and handle accordingly - user-alias.hga will become user.hga
         
         final String memberName = member.getMemberName();
-        if (userDomainAliasPrefix != null && memberName.startsWith(userDomainAliasPrefix)) {
-            if (memberName.indexOf('.', userDomainAliasPrefix.length()) == -1) {
-                RoleMember normalizedMember = member;
-                normalizedMember.setMemberName(userDomainPrefix + memberName.substring(userDomainAliasPrefix.length()));
-                return normalizedMember;
-            }
+        final String aliasMemberName = normalizeDomainAliasUser(memberName);
+        if (!aliasMemberName.equals(memberName)) {
+            RoleMember normalizedMember = member;
+            normalizedMember.setMemberName(aliasMemberName);
+            return normalizedMember;
         }
 
         // we are going we normalize and use the common name to
@@ -2398,6 +2416,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         }
         role.setRoleMembers(new ArrayList<RoleMember>(normalizedMembers.values()));
+        role.setMembers(null);
         return;
     }
     
@@ -2579,7 +2598,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         domainName = domainName.toLowerCase();
         roleName = roleName.toLowerCase();
-        memberName = memberName.toLowerCase();
+        memberName = normalizeDomainAliasUser(memberName.toLowerCase());
 
         metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
         metric.increment(caller, domainName);
@@ -6191,6 +6210,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         domainName = domainName.toLowerCase();
         AthenzObject.DEFAULT_ADMINS.convertToLowerCase(defaultAdmins);
+        defaultAdmins.setAdmins(normalizedAdminUsers(defaultAdmins.getAdmins()));
         
         AthenzDomain domain = getAthenzDomain(domainName, false);
         if (domain == null) {
@@ -6551,7 +6571,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         if (principal != null) {
             validate(principal, TYPE_ENTITY_NAME, caller);
-            principal = principal.toLowerCase();
+            principal = normalizeDomainAliasUser(principal.toLowerCase());
         }
         if (action != null) {
             validate(action, TYPE_COMPOUND_NAME, caller);
