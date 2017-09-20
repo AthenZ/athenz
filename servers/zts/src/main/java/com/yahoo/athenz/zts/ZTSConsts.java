@@ -28,9 +28,14 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_HOSTNAME    = "athenz.zts.hostname";
     public static final String ZTS_PROP_FILE_NAME   = "athenz.zts.prop_file";
     
-    public static final String ZTS_PROP_KEYSTORE_PASSWORD      = "athenz.zts.ssl_key_store_password";
-    public static final String ZTS_PROP_KEYMANAGER_PASSWORD    = "athenz.zts.ssl_key_manager_password";
-    public static final String ZTS_PROP_TRUSTSTORE_PASSWORD    = "athenz.zts.ssl_trust_store_password";
+    public static final String ZTS_PROP_KEYSTORE_PASSWORD           = "athenz.zts.ssl_key_store_password";
+    public static final String ZTS_PROP_KEYSTORE_PASSWORD_APPNAME   = "athenz.zts.ssl_key_store_password_appname";
+    public static final String ZTS_PROP_KEYMANAGER_PASSWORD         = "athenz.zts.ssl_key_manager_password";
+    public static final String ZTS_PROP_KEYMANAGER_PASSWORD_APPNAME = "athenz.zts.ssl_key_manager_password_appname";
+    public static final String ZTS_PROP_TRUSTSTORE_PASSWORD         = "athenz.zts.ssl_trust_store_password";
+    public static final String ZTS_PROP_TRUSTSTORE_PASSWORD_APPNAME = "athenz.zts.ssl_trust_store_password_appname";
+    
+    
     public static final String ZTS_PROP_KEYSTORE_PATH          = "athenz.zts.ssl_key_store";
     public static final String ZTS_PROP_KEYSTORE_TYPE          = "athenz.zts.ssl_key_store_type";
     public static final String ZTS_PROP_TRUSTSTORE_PATH        = "athenz.zts.ssl_trust_store";
@@ -120,4 +125,6 @@ public final class ZTSConsts {
     public static final String ZTS_AUDIT_LOGGER_FACTORY_CLASS      = "com.yahoo.athenz.common.server.log.impl.DefaultAuditLoggerFactory";
     public static final String ZTS_PRINCIPAL_AUTHORITY_CLASS       = "com.yahoo.athenz.auth.impl.PrincipalAuthority";
     public static final String ZTS_CERT_RECORD_STORE_FACTORY_CLASS = "com.yahoo.athenz.zts.cert.impl.FileCertRecordStoreFactory";
+    
+    
 }

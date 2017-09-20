@@ -26,11 +26,11 @@ import org.bouncycastle.openssl.PEMException;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
-
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.common.metrics.Metric;
@@ -84,13 +84,22 @@ public class ZTSUtils {
     }
     
     public static SslContextFactory createSSLContextObject(String[] clientProtocols) {
+        return createSSLContextObject(clientProtocols, null);
+    }
+    
+    public static SslContextFactory createSSLContextObject(String[] clientProtocols, PrivateKeyStore privateKeyStore) {
         
         String keyStorePath = System.getProperty(ZTSConsts.ZTS_PROP_KEYSTORE_PATH);
+        String keyStorePasswordAppName = System.getProperty(ZTSConsts.ZTS_PROP_KEYSTORE_PASSWORD_APPNAME);
         String keyStorePassword = System.getProperty(ZTSConsts.ZTS_PROP_KEYSTORE_PASSWORD);
         String keyStoreType = System.getProperty(ZTSConsts.ZTS_PROP_KEYSTORE_TYPE, "PKCS12");
         String keyManagerPassword = System.getProperty(ZTSConsts.ZTS_PROP_KEYMANAGER_PASSWORD);
+        String keyManagerPasswordAppName = System.getProperty(ZTSConsts.ZTS_PROP_KEYMANAGER_PASSWORD_APPNAME);
+
         String trustStorePath = System.getProperty(ZTSConsts.ZTS_PROP_TRUSTSTORE_PATH);
         String trustStorePassword = System.getProperty(ZTSConsts.ZTS_PROP_TRUSTSTORE_PASSWORD);
+        String trustStorePasswordAppName = System.getProperty(ZTSConsts.ZTS_PROP_TRUSTSTORE_PASSWORD_APPNAME);
+
         String trustStoreType = System.getProperty(ZTSConsts.ZTS_PROP_TRUSTSTORE_TYPE, "PKCS12");
         String excludedCipherSuites = System.getProperty(ZTSConsts.ZTS_PROP_EXCLUDED_CIPHER_SUITES,
                 ZTS_DEFAULT_EXCLUDED_CIPHER_SUITES);
@@ -104,11 +113,17 @@ public class ZTSUtils {
             sslContextFactory.setKeyStorePath(keyStorePath);
         }
         if (keyStorePassword != null) {
+            if (null != privateKeyStore) {
+                keyStorePassword = privateKeyStore.getApplicationSecret(keyStorePasswordAppName, keyStorePassword);
+            }
             sslContextFactory.setKeyStorePassword(keyStorePassword);
         }
         sslContextFactory.setKeyStoreType(keyStoreType);
 
         if (keyManagerPassword != null) {
+            if (null != privateKeyStore) {
+                keyManagerPassword = privateKeyStore.getApplicationSecret(keyManagerPasswordAppName, keyManagerPassword);
+            }
             sslContextFactory.setKeyManagerPassword(keyManagerPassword);
         }
         if (trustStorePath != null) {
@@ -116,6 +131,9 @@ public class ZTSUtils {
             sslContextFactory.setTrustStorePath(trustStorePath);
         }
         if (trustStorePassword != null) {
+            if (null != privateKeyStore) {
+                trustStorePassword = privateKeyStore.getApplicationSecret(trustStorePasswordAppName, trustStorePassword);
+            }
             sslContextFactory.setTrustStorePassword(trustStorePassword);
         }
         sslContextFactory.setTrustStoreType(trustStoreType);
@@ -359,4 +377,6 @@ public class ZTSUtils {
         
         return new Identity().setName(cn).setCertificate(pemCert).setCaCertBundle(CA_X509_CERTIFICATE);
     }
+
+
 }
