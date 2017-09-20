@@ -19,6 +19,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import com.yahoo.athenz.auth.PrivateKeyStore;
+import com.yahoo.athenz.auth.PrivateKeyStoreFactory;
 import com.yahoo.athenz.common.server.cert.CertSigner;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSConsts;
@@ -43,6 +45,7 @@ public class HttpCertSigner implements CertSigner {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpCertSigner.class);
     private static final String CONTENT_JSON = "application/json";
 
+    private final PrivateKeyStore privateKeyStore;
     private HttpClient httpClient = null;
     String x509CertUri = null;
     String sshCertUri = null;
@@ -50,6 +53,8 @@ public class HttpCertSigner implements CertSigner {
     int requestRetryCount;
 
     public HttpCertSigner() {
+
+        this.privateKeyStore = loadServicePrivateKey();
 
         // retrieve our default timeout and retry timer
         
@@ -61,7 +66,7 @@ public class HttpCertSigner implements CertSigner {
 
         // Instantiate and start our HttpClient
         
-        httpClient = new HttpClient(ZTSUtils.createSSLContextObject(new String[] {"TLSv1.2"}));
+        httpClient = new HttpClient(ZTSUtils.createSSLContextObject(new String[] {"TLSv1.2"}, privateKeyStore));
         httpClient.setFollowRedirects(false);
         httpClient.setConnectTimeout(connectTimeout);
         try {
@@ -82,8 +87,23 @@ public class HttpCertSigner implements CertSigner {
         }
         x509CertUri = serverBaseUri + "/x509";
         sshCertUri = serverBaseUri + "/ssh";
+        
     }
 
+    private PrivateKeyStore loadServicePrivateKey() {
+        String pkeyFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
+                ZTSConsts.ZTS_PKEY_STORE_FACTORY_CLASS);
+        PrivateKeyStoreFactory pkeyFactory = null;
+        try {
+            pkeyFactory = (PrivateKeyStoreFactory) Class.forName(pkeyFactoryClass).newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            LOGGER.error("Invalid PrivateKeyStoreFactory class: " + pkeyFactoryClass
+                    + " error: " + e.getMessage());
+            throw new IllegalArgumentException("Invalid private key store");
+        }
+        return pkeyFactory.create();
+    }
+    
     @Override
     public void close() {
         try {
