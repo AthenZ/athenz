@@ -13,7 +13,7 @@
  */
 'use strict';
 
-var zpeClient = require('../../index');
+var ZPEMatch = require('../../src/ZPEMatch');
 
 var sinon = require('sinon');
 var expect = require('chai').expect;
@@ -49,7 +49,7 @@ var siaParams = {
 
 var cacheKey = 'cacheKeyRoleToken';
 
-describe('zpe_nodejs_client', function() {
+describe('ZPEMatch', function() {
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
   });
@@ -58,6 +58,31 @@ describe('zpe_nodejs_client', function() {
     sandbox.restore();
   });
 
-  it('should test zpe_nodejs_client', function() {
+  it('should test ZPEMatch equalMatches', function() {
+    var zpeMatch = ZPEMatch('athenz.test.aaa');
+    expect(zpeMatch.equal.matches('athenz.test.aaa')).to.equal(true);
+    zpeMatch = ZPEMatch('athenz.test.aaa');
+    expect(zpeMatch.equal.matches('athenz.test.bbb')).to.equal(false);
+  });
+
+  it('should test ZPEMatch startswithMatches', function() {
+    var zpeMatch = ZPEMatch('athenz');
+    expect(zpeMatch.startswith.matches('athenz.test.aaa')).to.equal(true);
+    zpeMatch = ZPEMatch('aaa');
+    expect(zpeMatch.startswith.matches('athenz.test.aaa')).to.equal(false);
+  });
+
+  it('should test ZPEMatch allMatches', function() {
+    var zpeMatch = ZPEMatch('anything');
+    expect(zpeMatch.all.matches('athenz.test.aaa')).to.equal(true);
+  });
+
+  it('should test ZPEMatch regexMatches', function() {
+    var zpeMatch = ZPEMatch(/[a-z]/);
+    expect(zpeMatch.regex.matches('athenz.test.aaa')).to.equal(true);
+    zpeMatch = ZPEMatch(/[A-z]/);
+    expect(zpeMatch.regex.matches('athenz.test.aaa')).to.equal(true);
+    zpeMatch = ZPEMatch(/[A-Z]/);
+    expect(zpeMatch.regex.matches('athenz.test.aaa')).to.equal(false);
   });
 });

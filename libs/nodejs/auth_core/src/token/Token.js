@@ -118,8 +118,9 @@ class Token {
         err = new Error('Token:validate: token=' + this._unsignedToken +
           ' : authentication failed');
         winston.error(err);
+      } else {
+        winston.debug('validate: Token successfully authenticated');
       }
-      winston.debug('validate: Token successfully authenticated');
     } catch (e) {
       winston.error('Token:validate: token=' + this._unsignedToken +
         ' : verify signature failed due to Exception=' + e.message);
