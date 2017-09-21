@@ -13,7 +13,7 @@
  */
 'use strict';
 
-var zpeClient = require('../../index');
+var PublicKeyStore = require('../../src/PublicKeyStore');
 
 var sinon = require('sinon');
 var expect = require('chai').expect;
@@ -49,7 +49,7 @@ var siaParams = {
 
 var cacheKey = 'cacheKeyRoleToken';
 
-describe('zpe_nodejs_client', function() {
+describe('PublicKeyStore', function() {
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
   });
@@ -58,6 +58,6 @@ describe('zpe_nodejs_client', function() {
     sandbox.restore();
   });
 
-  it('should test zpe_nodejs_client', function() {
+  it('should test PublicKeyStore', function() {
   });
 });
