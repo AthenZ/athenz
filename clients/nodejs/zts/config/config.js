@@ -14,6 +14,7 @@
 'use strict';
 
 var fs = require('fs');
+/* istanbul ignore next */
 module.exports = function() {
   var defaultConfig = require('./default-config.js')();
   try {
