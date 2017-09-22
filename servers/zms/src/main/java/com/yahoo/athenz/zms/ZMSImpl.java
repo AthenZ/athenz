@@ -3126,7 +3126,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             
         // extract the domain name from the resource
         
-        String resource = assertion.getResource();
+        final String resource = assertion.getResource();
         int idx = resource.indexOf(':');
         if (idx == -1) {
             throw ZMSUtils.requestError("Missing domain name from assertion resource: "
@@ -3147,6 +3147,19 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         if (StringUtils.containsControlCharacter(resource)) {
             throw ZMSUtils.requestError("Assertion resource contains control characters: "
+                    + resource, caller);
+        }
+        
+        // verify the action is not empty and does not contain
+        // any control characters
+        
+        final String action = assertion.getAction();
+        if (action == null || action.isEmpty()) {
+            throw ZMSUtils.requestError("Assertion action cannot be empty", caller);
+        }
+        
+        if (StringUtils.containsControlCharacter(action)) {
+            throw ZMSUtils.requestError("Assertion action contains control characters: "
                     + resource, caller);
         }
     }
