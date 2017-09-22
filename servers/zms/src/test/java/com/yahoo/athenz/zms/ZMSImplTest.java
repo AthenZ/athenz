@@ -13131,6 +13131,51 @@ public class ZMSImplTest {
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
         }
+        
+        // assertion with null action
+        
+        assertion = new Assertion();
+        assertion.setAction(null);
+        assertion.setEffect(AssertionEffect.ALLOW);
+        assertion.setResource("domain name:resource1");
+        assertion.setRole(ZMSUtils.roleResourceName("domain1", "role1"));
+        
+        try {
+            zms.validatePolicyAssertion(assertion, "unitTest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(400, ex.getCode());
+        }
+        
+        // assertion with empty action
+        
+        assertion = new Assertion();
+        assertion.setAction("");
+        assertion.setEffect(AssertionEffect.ALLOW);
+        assertion.setResource("domain name:resource1");
+        assertion.setRole(ZMSUtils.roleResourceName("domain1", "role1"));
+        
+        try {
+            zms.validatePolicyAssertion(assertion, "unitTest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(400, ex.getCode());
+        }
+        
+        // assertion with action containing control characters
+        
+        assertion = new Assertion();
+        assertion.setAction("update\t");
+        assertion.setEffect(AssertionEffect.ALLOW);
+        assertion.setResource("domain name:resource1");
+        assertion.setRole(ZMSUtils.roleResourceName("domain1", "role1"));
+        
+        try {
+            zms.validatePolicyAssertion(assertion, "unitTest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(400, ex.getCode());
+        }
     }
     
     @Test
