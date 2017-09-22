@@ -17,7 +17,7 @@ var fs = require('fs');
 var userRoutes = require('../routeHandlers/user');
 var config = require('../../config/config.js')();
 var q = require('querystring');
-var auth_core = require('auth_core');
+var auth_core = require('@athenz/auth-core');
 var authority = new auth_core.PrincipalAuthority();
 authority.setKeyStore(require('../PublicKeyStore'));
 

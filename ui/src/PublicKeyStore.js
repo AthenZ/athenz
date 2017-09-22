@@ -15,7 +15,7 @@
 
 var fs = require('fs');
 var config = require('../config/config.js')();
-var auth_core = require('auth_core');
+var auth_core = require('@athenz/auth-core');
 var YBase64 = auth_core.YBase64;
 var KeyStore = auth_core.KeyStore;
 

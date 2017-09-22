@@ -1,7 +1,7 @@
 'use strict';
 
 let config = require('../config/config')();
-const YBase64 = require('auth_core').YBase64;
+const YBase64 = require('@athenz/auth-core').YBase64;
 const fs = require('fs');
 
 class PublicKeyStore {

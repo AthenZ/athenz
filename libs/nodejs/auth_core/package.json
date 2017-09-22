@@ -1,5 +1,5 @@
 {
-  "name": "auth_core",
+  "name": "@athenz/auth-core",
   "version": "1.0.0",
   "description": "Core interfaces for authorization",
   "main": "index.js",
@@ -19,7 +19,6 @@
   },
   "keywords": [
     "athenz",
-    "auth_core",
     "yahoo"
   ],
   "bugs": {

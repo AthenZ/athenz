@@ -1,5 +1,5 @@
 {
-  "name": "zpe_nodejs_client",
+  "name": "@athenz/zpe-client",
   "version": "1.0.0",
   "description": "A Node.js client library to check assertion received from ZTS",
   "main": "index.js",
@@ -19,7 +19,6 @@
   },
   "keywords": [
     "athenz",
-    "zpe_nodejs_client",
     "yahoo"
   ],
   "bugs": {
@@ -31,7 +30,7 @@
     "lodash.clone": "^4.5.0",
     "memory-cache": "^0.2.0",
     "winston": "^2.3.1",
-    "auth_core": "file:../../../libs/nodejs/auth_core"
+    "@athenz/auth-core": "^1.0.0"
   },
   "devDependencies": {
     "bootstrap": "~3.3.6",

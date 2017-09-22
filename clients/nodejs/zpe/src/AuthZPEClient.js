@@ -3,7 +3,7 @@
 const winston = require('winston');
 
 let config = require('../config/config')();
-const RoleToken = require('auth_core').RoleToken;
+const RoleToken = require('@athenz/auth-core').RoleToken;
 const AccessCheckStatus = require('./AccessCheckStatus');
 const PublicKeyStore = require('./PublicKeyStore');
 const ZPEUpdater = require('./ZPEUpdater');

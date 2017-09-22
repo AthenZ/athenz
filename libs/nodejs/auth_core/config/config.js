@@ -27,7 +27,7 @@ module.exports = function() {
   var userConfig = {};
   if (__dirname !== process.cwd() + '/config') {
     var parentModule = module.parent;
-    while (parentModule.id.match(/node_modules\/auth_core\//)) {
+    while (parentModule.id.match(/node_modules\/@athenz\/auth-core\//)) {
       parentModule = parentModule.parent;
     }
     var module_path = parentModule.id.match(/(.*)(node_modules\/(\w+))/g);

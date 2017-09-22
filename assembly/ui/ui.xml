@@ -46,12 +46,12 @@
       <directory>${basedir}/../../ui/node_modules</directory>
       <outputDirectory>node_modules</outputDirectory>
       <excludes>
-        <exclude>auth_core/</exclude>
+        <exclude>@athenz/auth-core/</exclude>
       </excludes>
     </fileSet>
     <fileSet>
       <directory>${basedir}/../../libs/nodejs/auth_core</directory>
-      <outputDirectory>node_modules/auth_core</outputDirectory>
+      <outputDirectory>node_modules/@athenz/auth-core</outputDirectory>
       <excludes>
         <exclude>node_modules/</exclude>
       </excludes>
