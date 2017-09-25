@@ -60,6 +60,9 @@ public class AwsPrivateKeyStore implements PrivateKeyStore {
     public String getApplicationSecret(final String appName, final String keyName) {
         String keyValue = "";
         S3Object s3Object = s3.getObject(appName, keyName);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("retrieving appName {}, key {}", appName, keyName);
+        }
         if (null == s3Object) {
             LOG.error("error retrieving key {}, from bucket {}", keyName, appName);
             return keyValue;
@@ -78,7 +81,6 @@ public class AwsPrivateKeyStore implements PrivateKeyStore {
         } catch (IOException e) {
             LOG.error("error getting application secret.", e);
         }
-        
-        return keyValue;
+        return keyValue.trim();
     }
 }
