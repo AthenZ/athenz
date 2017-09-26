@@ -36,7 +36,8 @@ import com.yahoo.athenz.auth.PrivateKeyStore;
  * Downloads encrypted secrete from private S3 bucket and returns decrypted secrete in plaintext
  * Assumes that S3 bucket contains data encrypted with KMS. 
  * Assumes that this runs on an instance with a policy set to allow kms decrypt and read access to private S3 bucket. But it can be a public S3 bucket.
- * Assumes aws config is setup
+ * AmazonS3 lib defaults to reading from S3 buckets created under us-east-1 unless its explicitly specified using system property or aws config
+ * 
  * @author charlesk
  * See http://docs.aws.amazon.com/kms/latest/developerguide/programming-encryption.html
  * See http://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/examples-s3-objects.html
@@ -44,11 +45,21 @@ import com.yahoo.athenz.auth.PrivateKeyStore;
 public class AwsPrivateKeyStore implements PrivateKeyStore {
 
     private static final Logger LOG = LoggerFactory.getLogger(AwsPrivateKeyStore.class);
+    private static final String ATHENZ_PROP_AWS_S3_REGION = "athenz.aws.s3.region";
     private final AmazonS3 s3;
     private final AWSKMS kms;
-    
+
+
     public AwsPrivateKeyStore() {
-        this(AmazonS3ClientBuilder.defaultClient(), AWSKMSClientBuilder.defaultClient());
+       this(initAmazonS3(), AWSKMSClientBuilder.defaultClient());
+    }
+    
+    private static AmazonS3 initAmazonS3() {
+        String s3Region = System.getProperty(ATHENZ_PROP_AWS_S3_REGION);
+        if (null != s3Region && !s3Region.isEmpty()) {
+            return AmazonS3ClientBuilder.standard().withRegion(s3Region).build();
+       }
+        return AmazonS3ClientBuilder.defaultClient();
     }
     
     public AwsPrivateKeyStore(final AmazonS3 s3, final AWSKMS kms) {
