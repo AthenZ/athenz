@@ -124,6 +124,7 @@ public class ZTSResources {
     public PublicKeyEntry getPublicKeyEntry(@PathParam("domainName") String domainName, @PathParam("serviceName") String serviceName, @PathParam("keyId") String keyId) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context.authenticate();
             PublicKeyEntry e = this.delegate.getPublicKeyEntry(context, domainName, serviceName, keyId);
             return e;
         } catch (ResourceException e) {
@@ -146,6 +147,7 @@ public class ZTSResources {
     public HostServices getHostServices(@PathParam("host") String host) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context.authenticate();
             HostServices e = this.delegate.getHostServices(context, host);
             return e;
         } catch (ResourceException e) {
@@ -166,6 +168,7 @@ public class ZTSResources {
     public void getDomainSignedPolicyData(@PathParam("domainName") String domainName, @HeaderParam("If-None-Match") String matchingTag) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context.authenticate();
             GetDomainSignedPolicyDataResult result = new GetDomainSignedPolicyDataResult(context);
             this.delegate.getDomainSignedPolicyData(context, domainName, matchingTag, result);
         } catch (ResourceException e) {
@@ -576,6 +579,7 @@ public class ZTSResources {
     public DomainMetrics postDomainMetrics(@PathParam("domainName") String domainName, DomainMetrics req) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context.authenticate();
             DomainMetrics e = this.delegate.postDomainMetrics(context, domainName, req);
             return e;
         } catch (ResourceException e) {
@@ -602,6 +606,7 @@ public class ZTSResources {
     public Schema getRdlSchema() {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context.authenticate();
             Schema e = this.delegate.getRdlSchema(context);
             return e;
         } catch (ResourceException e) {

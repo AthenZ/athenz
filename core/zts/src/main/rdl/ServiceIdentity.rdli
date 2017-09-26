@@ -54,6 +54,7 @@ resource PublicKeyEntry GET "/domain/{domainName}/service/{serviceName}/publicke
     DomainName domainName; //name of the domain
     SimpleName serviceName; //name of the service
     String keyId; //the identifier of the public key to be retrieved
+    authenticate;
     exceptions {
         ResourceError BAD_REQUEST;
         ResourceError NOT_FOUND;
@@ -69,6 +70,7 @@ type HostServices Struct {
 //Enumerate services provisioned on a specific host
 resource HostServices GET "/host/{host}/services" {
     String host; //name of the host
+    authenticate;
     exceptions {
         ResourceError BAD_REQUEST;
     }

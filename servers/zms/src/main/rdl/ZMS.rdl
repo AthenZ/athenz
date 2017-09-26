@@ -13,5 +13,6 @@ include "../../../../../core/zms/src/main/rdl/ZMS.rdl";
 
 // Get RDL Schema
 resource rdl.Schema GET "/schema" {
+    authenticate;
     expected OK;
 }

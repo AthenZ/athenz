@@ -33,6 +33,7 @@ resource DomainSignedPolicyData GET "/domain/{domainName}/signed_policy_data" {
     DomainName domainName; //name of the domain
     String matchingTag (header="If-None-Match"); //Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time
     String tag (header="ETag", out); //The current latest modification timestamp is returned in this header
+    authenticate;
     expected OK, NOT_MODIFIED;
     exceptions {
         ResourceError BAD_REQUEST;

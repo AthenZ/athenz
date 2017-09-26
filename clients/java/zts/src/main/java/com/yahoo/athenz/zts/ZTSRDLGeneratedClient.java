@@ -137,6 +137,9 @@ public class ZTSRDLGeneratedClient {
             .resolveTemplate("serviceName", serviceName)
             .resolveTemplate("keyId", keyId);
         Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+        }
         Response response = invocationBuilder.get();
         int code = response.getStatus();
         switch (code) {
@@ -152,6 +155,9 @@ public class ZTSRDLGeneratedClient {
         WebTarget target = base.path("/host/{host}/services")
             .resolveTemplate("host", host);
         Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+        }
         Response response = invocationBuilder.get();
         int code = response.getStatus();
         switch (code) {
@@ -167,6 +173,9 @@ public class ZTSRDLGeneratedClient {
         WebTarget target = base.path("/domain/{domainName}/signed_policy_data")
             .resolveTemplate("domainName", domainName);
         Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+        }
         if (matchingTag != null) {
             invocationBuilder = invocationBuilder.header("If-None-Match", matchingTag);
         }
@@ -468,6 +477,9 @@ public class ZTSRDLGeneratedClient {
         WebTarget target = base.path("/metrics/{domainName}")
             .resolveTemplate("domainName", domainName);
         Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+        }
         Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(req, "application/json"));
         int code = response.getStatus();
         switch (code) {

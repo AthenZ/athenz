@@ -50,6 +50,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_MAX_THREADS       = "athenz.zms.http_max_threads";
     public static final String ZMS_PROP_AUTHORITY_CLASSES = "athenz.zms.authority_classes";
     public static final String ZMS_PROP_STORE_OP_TIMEOUT  = "athenz.zms.store_operation_timeout";
+    public static final String ZMS_PROP_NOAUTH_URI_LIST   = "athenz.zms.no_auth_uri_list";
     
     public static final String ZMS_PROP_AWS_RDS_USER               = "athenz.zms.aws_rds_user";
     public static final String ZMS_PROP_AWS_RDS_IAM_ROLE           = "athenz.zms.aws_rds_iam_role";

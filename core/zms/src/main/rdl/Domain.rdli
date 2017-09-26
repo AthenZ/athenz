@@ -39,6 +39,7 @@ resource DomainList GET "/domain?limit={limit}&skip={skip}&prefix={prefix}&depth
     ResourceName roleMember (optional); //restrict the domain names where the specified user is in a role - see roleName
     ResourceName roleName (optional); //restrict the domain names where the specified user is in this role - see roleMember
     String modifiedSince (header="If-Modified-Since"); //This header specifies to the server to return any domains modified since this HTTP date
+    authenticate;
     exceptions {
         ResourceError UNAUTHORIZED;
         ResourceError TOO_MANY_REQUESTS;

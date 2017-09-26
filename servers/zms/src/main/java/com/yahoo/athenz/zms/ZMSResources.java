@@ -49,6 +49,7 @@ public class ZMSResources {
     public DomainList getDomainList(@QueryParam("limit") Integer limit, @QueryParam("skip") String skip, @QueryParam("prefix") String prefix, @QueryParam("depth") Integer depth, @QueryParam("account") String account, @QueryParam("ypmid") Integer productId, @QueryParam("member") String roleMember, @QueryParam("role") String roleName, @HeaderParam("If-Modified-Since") String modifiedSince) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context.authenticate();
             DomainList e = this.delegate.getDomainList(context, limit, skip, prefix, depth, account, productId, roleMember, roleName, modifiedSince);
             return e;
         } catch (ResourceException e) {
@@ -2078,6 +2079,7 @@ public class ZMSResources {
     public Schema getRdlSchema() {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context.authenticate();
             Schema e = this.delegate.getRdlSchema(context);
             return e;
         } catch (ResourceException e) {
