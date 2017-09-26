@@ -51,7 +51,7 @@ public class RsrcCtxWrapperTest {
         Mockito.when(reqMock.getMethod()).thenReturn("POST");
         authListMock.add(authMock);
 
-        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, authorizerMock);
+        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, false, authorizerMock);
 
         assertNotNull(wrapper.context());
 
@@ -99,7 +99,7 @@ public class RsrcCtxWrapperTest {
         Mockito.when(authorizerMock.access(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any()))
                 .thenReturn(true);
 
-        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, authorizerMock);
+        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, false, authorizerMock);
 
         wrapper.authorize("add-domain", "test", "test");
 
@@ -123,7 +123,7 @@ public class RsrcCtxWrapperTest {
         Mockito.when(authorizerMock.access(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any()))
                 .thenReturn(true);
 
-        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, authorizerMock);
+        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, false, authorizerMock);
 
         // when not set authority
         wrapper.authorize("add-domain", "test", "test");

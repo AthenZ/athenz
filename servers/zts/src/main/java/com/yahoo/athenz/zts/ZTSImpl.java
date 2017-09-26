@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -60,6 +61,7 @@ import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
+import com.yahoo.athenz.common.server.util.StringUtils;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
@@ -112,7 +114,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected Set<String> authorizedProxyUsers = null;
     protected boolean secureRequestsOnly = true;
     protected int svcTokenTimeout = 86400;
-
+    protected Set<String> authFreeUriSet = null;
+    protected List<Pattern> authFreeUriList = null;
+    
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
     private static final String TYPE_ENTITY_NAME = "EntityName";
@@ -327,6 +331,22 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             } else {
                 ostkHostSignerService = hostSignerService.substring(idx + 1);
                 ostkHostSignerDomain = hostSignerService.substring(0, idx);
+            }
+        }
+        
+        // get the list of uris that we want to allow an-authenticated access
+        
+        final String uriList = System.getProperty(ZTSConsts.ZTS_PROP_NOAUTH_URI_LIST);
+        if (uriList != null) {
+            authFreeUriSet = new HashSet<>();
+            authFreeUriList = new ArrayList<>();
+            String[] list = uriList.split(",");
+            for (String uri : list) {
+                if (uri.indexOf('+') != -1) {
+                    authFreeUriList.add(Pattern.compile(uri));
+                } else {
+                    authFreeUriSet.add(uri);
+                }
             }
         }
     }
@@ -2783,7 +2803,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     public ResourceContext newResourceContext(HttpServletRequest request, HttpServletResponse response) {
-        return new RsrcCtxWrapper(request, response, authorities, authorizer);
+        
+        // check to see if we want to allow this URI to be available
+        // with optional authentication support
+        
+        boolean optionalAuth = StringUtils.requestUriMatch(request.getRequestURI(),
+                authFreeUriSet, authFreeUriList);
+        return new RsrcCtxWrapper(request, response, authorities, optionalAuth, authorizer);
     }
     
     Authority getAuthority(String className) {

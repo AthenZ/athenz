@@ -27,9 +27,12 @@ public class RsrcCtxWrapper implements ResourceContext {
     private static final String ZMS_REQUEST_PRINCIPAL = "com.yahoo.athenz.auth.principal";
 
     com.yahoo.athenz.common.server.rest.ResourceContext ctx = null;
-
+    boolean optionalAuth = false;
+    
     RsrcCtxWrapper(HttpServletRequest request, HttpServletResponse response,
-                   Http.AuthorityList authList, Authorizer authorizer) {
+                   Http.AuthorityList authList, boolean optionalAuth,
+                   Authorizer authorizer) {
+        this.optionalAuth = optionalAuth;
         ctx = new com.yahoo.athenz.common.server.rest.ResourceContext(request,
                 response, authList, authorizer);
     }
@@ -57,6 +60,13 @@ public class RsrcCtxWrapper implements ResourceContext {
         try {
             ctx.authenticate();
         } catch (com.yahoo.athenz.common.server.rest.ResourceException restExc) {
+            
+            // if this was an optional authentication request
+            // then we'll skip the exception
+            
+            if (optionalAuth) {
+                return;
+            }
             throwZmsException(restExc);
         }
     }

@@ -16,6 +16,15 @@
 package com.yahoo.athenz.common.server.util;
 
 import static org.testng.Assert.*;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.common.server.util.StringUtils;
@@ -69,5 +78,27 @@ public class StringUtilsTest {
         assertTrue(StringUtils.containsControlCharacter("abc\b"));
         assertTrue(StringUtils.containsControlCharacter("abc\r"));
         assertTrue(StringUtils.containsControlCharacter("abc\t\r\b\t\n"));
+    }
+    
+    @Test
+    public void testRequestUriMatch() {
+        assertFalse(StringUtils.requestUriMatch("/zts/v1/schema", null, null));
+        assertFalse(StringUtils.requestUriMatch("/zts/v1/schema", Collections.emptySet(), null));
+        assertFalse(StringUtils.requestUriMatch("/zts/v1/schema", null, Collections.emptyList()));
+        
+        Set<String> uriSet = new HashSet<>();
+        uriSet.add("/zts/v1/domain");
+        uriSet.add("/zts/v1/schema");
+        assertFalse(StringUtils.requestUriMatch("/zts/v1/token", uriSet, null));
+        assertTrue(StringUtils.requestUriMatch("/zts/v1/domain", uriSet, null));
+        assertTrue(StringUtils.requestUriMatch("/zts/v1/schema", uriSet, null));
+        
+        List<Pattern> uriList = new ArrayList<>();
+        uriList.add(Pattern.compile("/zts/v1/domain/.+/service/.+/publickey/.+"));
+        assertFalse(StringUtils.requestUriMatch("/zts/v1/domain/athenz/service/zms/publickey/", uriSet, uriList));
+        assertFalse(StringUtils.requestUriMatch("/zts/v1/domain/athenz", uriSet, uriList));
+        assertFalse(StringUtils.requestUriMatch("/zts/v1/domain/athenz/token", uriSet, uriList));
+        assertFalse(StringUtils.requestUriMatch("/zts/v1/domain/athenz/service/zms", uriSet, uriList));
+        assertTrue(StringUtils.requestUriMatch("/zts/v1/domain/athenz/service/zms/publickey/zms1", uriSet, uriList));
     }
 }

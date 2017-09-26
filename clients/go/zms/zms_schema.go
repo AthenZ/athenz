@@ -466,6 +466,7 @@ func init() {
 	mGetDomainList.Input("roleMember", "ResourceName", false, "member", "", true, nil, "restrict the domain names where the specified user is in a role - see roleName")
 	mGetDomainList.Input("roleName", "ResourceName", false, "role", "", true, nil, "restrict the domain names where the specified user is in this role - see roleMember")
 	mGetDomainList.Input("modifiedSince", "String", false, "", "If-Modified-Since", false, nil, "This header specifies to the server to return any domains modified since this HTTP date")
+	mGetDomainList.Auth("", "", true, "")
 	mGetDomainList.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetDomainList.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetDomainList.Build())

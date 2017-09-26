@@ -87,6 +87,9 @@ public class ZMSRDLGeneratedClient {
             target = target.queryParam("role", roleName);
         }
         Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+        }
         if (modifiedSince != null) {
             invocationBuilder = invocationBuilder.header("If-Modified-Since", modifiedSince);
         }

@@ -63,6 +63,7 @@ import java.util.HashMap;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.text.ParseException;
@@ -162,7 +163,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected AuditLogger auditLogger = null;
     protected Authority userAuthority = null;
     protected Authority principalAuthority = null;
-
+    protected Set<String> authFreeUriSet = null;
+    protected List<Pattern> authFreeUriList = null;
+    
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
 
@@ -545,6 +548,22 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             domainNameMaxLen = domNameMaxDefault;
         }
         LOG.info("init: using maximum domain name length: " + domainNameMaxLen);
+        
+        // get the list of uris that we want to allow an-authenticated access
+        
+        final String uriList = System.getProperty(ZMSConsts.ZMS_PROP_NOAUTH_URI_LIST);
+        if (uriList != null) {
+            authFreeUriSet = new HashSet<>();
+            authFreeUriList = new ArrayList<>();
+            String[] list = uriList.split(",");
+            for (String uri : list) {
+                if (uri.indexOf('+') != -1) {
+                    authFreeUriList.add(Pattern.compile(uri));
+                } else {
+                    authFreeUriSet.add(uri);
+                }
+            }
+        }
     }
     
     void loadObjectStore() {
@@ -6614,7 +6633,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     public ResourceContext newResourceContext(HttpServletRequest request,
             HttpServletResponse response) {
-        return new RsrcCtxWrapper(request, response, authorities, this);
+        
+        // check to see if we want to allow this URI to be available
+        // with optional authentication support
+        
+        boolean optionalAuth = StringUtils.requestUriMatch(request.getRequestURI(),
+                authFreeUriSet, authFreeUriList);
+        return new RsrcCtxWrapper(request, response, authorities, optionalAuth, this);
     }
     
     @Override

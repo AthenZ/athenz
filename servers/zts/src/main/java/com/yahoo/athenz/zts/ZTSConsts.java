@@ -35,7 +35,6 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_TRUSTSTORE_PASSWORD         = "athenz.zts.ssl_trust_store_password";
     public static final String ZTS_PROP_TRUSTSTORE_PASSWORD_APPNAME = "athenz.zts.ssl_trust_store_password_appname";
     
-    
     public static final String ZTS_PROP_KEYSTORE_PATH          = "athenz.zts.ssl_key_store";
     public static final String ZTS_PROP_KEYSTORE_TYPE          = "athenz.zts.ssl_key_store_type";
     public static final String ZTS_PROP_TRUSTSTORE_PATH        = "athenz.zts.ssl_trust_store";
@@ -46,7 +45,8 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_AUTHORITY_CLASSES      = "athenz.zts.authority_classes";
     public static final String ZTS_PROP_ZMS_URL_OVERRIDE       = "athenz.zts.zms_url";
     public static final String ZTS_PROP_CHANGE_LOG_STORE_DIR   = "athenz.zts.change_log_store_dir";
-    
+    public static final String ZTS_PROP_NOAUTH_URI_LIST        = "athenz.zts.no_auth_uri_list";
+
     public static final String ZTS_PROP_CERTSIGN_BASE_URI        = "athenz.zts.certsign_base_uri";
     public static final String ZTS_PROP_CERTSIGN_REQUEST_TIMEOUT = "athenz.zts.certsign_request_timeout";
     public static final String ZTS_PROP_CERTSIGN_CONNECT_TIMEOUT = "athenz.zts.certsign_connect_timeout";

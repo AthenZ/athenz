@@ -340,6 +340,7 @@ public class ZTSSchema {
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("serviceName", "SimpleName", "name of the service")
             .pathParam("keyId", "String", "the identifier of the public key to be retrieved")
+            .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
 
@@ -349,6 +350,7 @@ public class ZTSSchema {
         sb.resource("HostServices", "GET", "/host/{host}/services")
             .comment("Enumerate services provisioned on a specific host")
             .pathParam("host", "String", "name of the host")
+            .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
 ;
@@ -358,6 +360,7 @@ public class ZTSSchema {
             .pathParam("domainName", "DomainName", "name of the domain")
             .headerParam("If-None-Match", "matchingTag", "String", null, "Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time")
             .output("ETag", "tag", "String", "The current latest modification timestamp is returned in this header")
+            .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
 
@@ -586,6 +589,7 @@ public class ZTSSchema {
             .comment("called to post multiple zpe related metric attributes")
             .pathParam("domainName", "DomainName", "name of the domain the metrics pertain to")
             .input("req", "DomainMetrics", "")
+            .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
 

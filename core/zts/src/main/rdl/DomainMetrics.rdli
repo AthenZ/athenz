@@ -39,6 +39,7 @@ type DomainMetrics Struct {
 resource DomainMetrics POST "/metrics/{domainName}" {
     DomainName domainName; //name of the domain the metrics pertain to
     DomainMetrics req;
+    authenticate;
     expected OK;
     exceptions {
         ResourceError BAD_REQUEST;

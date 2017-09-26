@@ -15,6 +15,11 @@
  */
 package com.yahoo.athenz.common.server.util;
 
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class StringUtils {
     
     public static boolean isRegexMetaCharacter(char regexChar) {
@@ -72,6 +77,28 @@ public class StringUtils {
         for (int i = 0; i < length; i++) {
             if (value.charAt(i) < ' ') {
                 return true;
+            }
+        }
+        return false;
+    }
+    
+    public static boolean requestUriMatch(String uri, Set<String> uriSet,
+            List<Pattern> uriList) {
+        
+        // first we're going to check if we have the uri in our set
+        
+        if (uriSet != null && uriSet.contains(uri)) {
+            return true;
+        }
+        
+        // if not in our set, we'll check our pattern list for a regex match
+        
+        if (uriList != null) {
+            for (Pattern pattern : uriList) {
+                Matcher matcher = pattern.matcher(uri);
+                if (matcher.matches()) {
+                    return true;
+                }
             }
         }
         return false;

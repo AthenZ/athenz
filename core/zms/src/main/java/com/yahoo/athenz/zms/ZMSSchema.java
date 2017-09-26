@@ -408,6 +408,7 @@ public class ZMSSchema {
             .queryParam("member", "roleMember", "ResourceName", null, "restrict the domain names where the specified user is in a role - see roleName")
             .queryParam("role", "roleName", "ResourceName", null, "restrict the domain names where the specified user is in this role - see roleMember")
             .headerParam("If-Modified-Since", "modifiedSince", "String", null, "This header specifies to the server to return any domains modified since this HTTP date")
+            .auth("", "", true)
             .expected("OK")
             .exception("TOO_MANY_REQUESTS", "ResourceError", "")
 
