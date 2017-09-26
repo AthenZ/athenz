@@ -4,7 +4,7 @@ const fs = require('fs');
 const winston = require('winston');
 
 let config = require('../config/config')();
-const Crypto = require('auth_core').Crypto;
+const Crypto = require('@athenz/auth-core').Crypto;
 const ZPEMatch = require('./ZPEMatch');
 
 let _roleCache = require('memory-cache');

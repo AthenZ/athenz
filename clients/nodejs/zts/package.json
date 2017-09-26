@@ -1,5 +1,5 @@
 {
-  "name": "zts_nodejs_client",
+  "name": "@athenz/zts-client",
   "version": "1.0.0",
   "description": "A Node.js client library to access ZTS",
   "main": "index.js",
@@ -19,7 +19,6 @@
   },
   "keywords": [
     "athenz",
-    "zts_nodejs_client",
     "yahoo"
   ],
   "bugs": {

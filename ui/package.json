@@ -1,5 +1,5 @@
 {
-  "name": "athenz-ui",
+  "name": "@athenz/ui",
   "version": "1.0.0",
   "description": "AthenZ UI",
   "main": "index.js",
@@ -43,7 +43,7 @@
     "request": "~2.79.0",
     "serve-favicon": "~2.4.0",
     "url-pattern": "~1.0.1",
-    "auth_core": "file:../libs/nodejs/auth_core"
+    "@athenz/auth-core": "file:../libs/nodejs/auth_core"
   },
   "devDependencies": {
     "bootstrap": "~3.3.6",
