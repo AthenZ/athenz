@@ -118,7 +118,7 @@ public class SimplePrincipalTest {
         
         // we output warning but still create a principal
 
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         
         UserAuthority userAuthority = new UserAuthority();
         userAuthority.initialize();
@@ -129,6 +129,12 @@ public class SimplePrincipalTest {
         assertEquals(p.getDomain(), "user");
         assertEquals(p.getCredentials(), fakeCreds);
         assertEquals(p.getUnsignedCredentials(), fakeUnsignedCreds);
+        assertEquals(p.getRoles().size(), 0);
+        
+        roles.add("newrole");
+        p.setRoles(roles);
+        assertEquals(p.getRoles().size(), 1);
+        assertTrue(p.getRoles().contains("newrole"));
     }
     
     @Test

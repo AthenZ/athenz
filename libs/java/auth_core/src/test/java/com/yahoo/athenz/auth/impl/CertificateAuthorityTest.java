@@ -75,6 +75,7 @@ public class CertificateAuthorityTest {
             assertNotNull(principal);
             assertEquals("athenz", principal.getDomain());
             assertEquals("syncer", principal.getName());
+            assertNull(principal.getRoles());
         }
     }
 
@@ -93,6 +94,7 @@ public class CertificateAuthorityTest {
             assertNotNull(principal);
             assertEquals("athens", principal.getDomain());
             assertEquals("zts", principal.getName());
+            assertEquals("sports:role.readers", principal.getRoles().get(0));
         }
     }
     
