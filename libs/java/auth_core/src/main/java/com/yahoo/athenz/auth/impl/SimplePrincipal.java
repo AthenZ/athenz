@@ -177,6 +177,10 @@ public class SimplePrincipal implements Principal {
         this.applicationId = applicationId;
     }
     
+    public void setRoles(List<String> roles) {
+        this.roles = roles;
+    }
+    
     @Override
     public String getIP() {
         return ip;

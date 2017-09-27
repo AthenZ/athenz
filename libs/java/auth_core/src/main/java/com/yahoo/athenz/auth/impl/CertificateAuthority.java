@@ -16,6 +16,7 @@
 package com.yahoo.athenz.auth.impl;
 
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -85,8 +86,18 @@ public class CertificateAuthority implements Authority {
         }
 
         // For role cert, the principal information is in the SAN email
+        
+        List<String> roles = null;
         int idx = principalName.indexOf(":role.");
         if (idx != -1) {
+            
+            // fist we need to keep the role name in our object
+            
+            roles = new ArrayList<>();
+            roles.add(principalName);
+            
+            // now extract the email field
+            
             List<String> emails = Crypto.extractX509CertEmails(x509Cert);
             if (emails.isEmpty()) {
                 errMsg.append("CertificateAuthority:authenticate: Invalid role cert, no email SAN entry"
@@ -123,7 +134,7 @@ public class CertificateAuthority implements Authority {
                 name.toLowerCase(), x509Cert.toString(), this);
         principal.setUnsignedCreds(x509Cert.getSubjectX500Principal().toString());
         principal.setX509Certificate(x509Cert);
-        
+        principal.setRoles(roles);
         return principal;
     }
 }
