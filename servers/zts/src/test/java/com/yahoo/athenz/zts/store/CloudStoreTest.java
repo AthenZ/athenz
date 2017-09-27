@@ -319,13 +319,11 @@ public class CloudStoreTest {
     }
 
     @Test
-    public void testParseInstanceProfileArnInvalidCloud() {
+    public void testParseInstanceProfileArnCloud() {
         
         CloudStore store = new CloudStore(null);
-        
-        // missing/invalid cloud name
-        
-        assertFalse(store.parseInstanceProfileArn("arn:aws:iam::111111111111:instance-profile/athenz.zts"));
+        // cloud name is optional for backwards compatibility
+        assertTrue(store.parseInstanceProfileArn("arn:aws:iam::111111111111:instance-profile/athenz.zts"));
         assertFalse(store.parseInstanceProfileArn("arn:aws:iam::111111111111:instance-profile/athenz.zts,athenz,test"));
         store.close();
     }
