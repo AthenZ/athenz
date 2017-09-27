@@ -1,7 +1,7 @@
 zpe-nodejs-client
 ===============
 
-AuthNG ZPE client lib to perform data plane authorization for client requests
+Athenz ZPE client lib to perform data plane authorization for client requests
 
 ## Contents
 
