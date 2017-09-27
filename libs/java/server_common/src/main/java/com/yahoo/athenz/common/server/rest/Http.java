@@ -75,20 +75,6 @@ public class Http {
                 header.substring(7)) : request.getHeader(header);
         return creds;
     }
-
-    public static String authenticatingCredentials(HttpServletRequest request,
-            AuthorityList authorities) {
-        if (authorities == null) {
-            return null;
-        }
-        for (Authority authority : authorities.authorities) {
-            String creds = authenticatingCredentials(request, authority);
-            if (creds != null) {
-                return creds;
-            }
-        }
-        return null;
-    }
     
     public static Principal authenticate(HttpServletRequest request,
             AuthorityList authorities) {
@@ -115,6 +101,9 @@ public class Http {
                 if (certs != null) {
                     principal = authority.authenticate(certs, errMsg);
                 }
+                break;
+            case REQUEST:
+                principal = authority.authenticate(request, errMsg);
                 break;
             }
             

@@ -17,6 +17,8 @@ package com.yahoo.athenz.auth;
 
 import java.security.cert.X509Certificate;
 
+import javax.servlet.http.HttpServletRequest;
+
 /**
  * An Authority can validate credentials of a Principal in its domain. It also can provide HTTP header information
  * that determines where to find relevant credentials for that task.
@@ -28,7 +30,8 @@ public interface Authority {
      */
     enum CredSource {
         HEADER,
-        CERTIFICATE
+        CERTIFICATE,
+        REQUEST
     }
     
     /**
@@ -56,7 +59,7 @@ public interface Authority {
     /**
      * @return a boolean flag indicating whether or not authenticated principals
      * by this authority are allowed to be "authorized" to make changes. If this
-     * flag is true, then the principal must first get a ZMS UserToken and then
+     * flag is false, then the principal must first get a ZMS UserToken and then
      * use that UserToken for subsequent operations.
      */
     default public boolean allowAuthorization() {
@@ -93,6 +96,16 @@ public interface Authority {
      * @return the Principal for the certificate, or null in case of failure.
      */
     default public Principal authenticate(X509Certificate[] certs, StringBuilder errMsg) {
+        return null;
+    }
+    
+    /**
+     * Process the authenticate request based on http request object.
+     * @param request http servlet request
+     * @param errMsg will contain error message if authenticate fails
+     * @return the Principal for the certificate, or null in case of failure.
+     */
+    default public Principal authenticate(HttpServletRequest request, StringBuilder errMsg) {
         return null;
     }
 }

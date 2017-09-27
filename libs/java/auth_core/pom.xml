@@ -42,6 +42,12 @@
       <artifactId>aws-java-sdk-s3</artifactId>
       <version>${aws.version}</version>
     </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>${javax.version}</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
 
   <build>
