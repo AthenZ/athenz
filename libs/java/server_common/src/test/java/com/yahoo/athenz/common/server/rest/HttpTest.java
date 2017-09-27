@@ -30,22 +30,6 @@ import com.yahoo.athenz.auth.Authority.CredSource;
 public class HttpTest {
 
     @Test
-    public void testAuthenticatingCredentialsNull() {
-        HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
-        assertNull(Http.authenticatingCredentials(httpServletRequest, null));
-    }
-
-    @Test
-    public void testAuthenticatingCredentials() {
-        HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
-        Http.AuthorityList authorities = new Http.AuthorityList();
-        Authority authority = Mockito.mock(Authority.class);
-        Mockito.when(authority.getHeader()).thenReturn("hogehoge");
-        authorities.add(authority);
-        assertNull(Http.authenticatingCredentials(httpServletRequest, authorities));
-    }
-
-    @Test
     public void testAuthoritiesNotNull() {
         Http.AuthorityList authorities = new Http.AuthorityList();
         assertNotNull(authorities.getAuthorities());

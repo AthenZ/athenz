@@ -104,7 +104,7 @@ public class CertificateAuthorityTest {
         CertificateAuthority authority = new CertificateAuthority();
         authority.initialize();
         StringBuilder errMsg = new StringBuilder(512);
-        Principal principal = authority.authenticate(null, errMsg);
+        Principal principal = authority.authenticate((X509Certificate[]) null, errMsg);
         assertNull(principal);
         
         X509Certificate[] certs = new X509Certificate[1];

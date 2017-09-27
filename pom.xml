@@ -77,6 +77,7 @@
     <aws.version>1.11.172</aws.version>
     <guava.version>22.0</guava.version>
     <logback.version>1.2.3</logback.version>
+    <javax.version>3.1.0</javax.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
