@@ -3,6 +3,8 @@ auth-core
 
 Core interfaces for authorization
 
+https://www.npmjs.com/package/@athenz/auth-core
+
 --- Customizing configuration settings ---
 
 The application can change these values by adding a following configuration file, 

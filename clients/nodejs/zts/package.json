@@ -21,6 +21,9 @@
     "athenz",
     "yahoo"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "bugs": {
     "url": "https://github.com/yahoo/athenz/issues"
   },

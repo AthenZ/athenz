@@ -4,6 +4,8 @@ zts-nodejs-client
 A Node.js client library to access ZTS. This client library is generated
 from the RDL(zts.json).
 
+https://www.npmjs.com/package/@athenz/zts-client
+
 --- Customizing configuration settings ---
 
 The application can change these values by adding a following configuration file, 
