@@ -3,6 +3,8 @@ zpe-nodejs-client
 
 Athenz ZPE client lib to perform data plane authorization for client requests
 
+https://www.npmjs.com/package/@athenz/zpe-client
+
 ## Contents
 
 * [Summary](#summary)
