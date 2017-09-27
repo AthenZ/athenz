@@ -369,15 +369,17 @@ public class CloudStore {
         }
         
         // we need to extract the role and cloud names from the profile
-        
+        // 
         String[] comps = awsProfile.split(",");
-        if (comps.length != 2) {
+        if (comps.length == 0 || comps.length > 2) {
             LOGGER.error("CloudStore: unable to extract role/cloud name from profile: " + awsProfile);
             return false;
         }
         
         awsRole = comps[0];
-        awsCloud = comps[1];
+        if (comps.length == 2) {
+            awsCloud = comps[1];
+        }
         
         // retrieve our domain and service names from our role name
         
