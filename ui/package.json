@@ -43,7 +43,7 @@
     "request": "~2.79.0",
     "serve-favicon": "~2.4.0",
     "url-pattern": "~1.0.1",
-    "@athenz/auth-core": "file:../libs/nodejs/auth_core"
+    "@athenz/auth-core": "^1.0.0"
   },
   "devDependencies": {
     "bootstrap": "~3.3.6",
