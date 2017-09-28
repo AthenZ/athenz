@@ -1039,7 +1039,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // all virtual domains start with our user domain
         
-        return domain.startsWith(userDomainPrefix);
+        return domain.startsWith(homeDomainPrefix);
     }
     
     boolean hasExceededVirtualSubDomainLimit(String domain) {
@@ -1050,23 +1050,23 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // since we're counting subdomains and we need to make sure
         // not to match other users who have the same prefix
         
-        String userDomain = null;
-        int idx = domain.indexOf(".", userDomainPrefix.length());
+        String userDomainCheck = null;
+        int idx = domain.indexOf(".", homeDomainPrefix.length());
         if (idx == -1) {
-            userDomain = domain + ".";
+            userDomainCheck = domain + ".";
         } else {
-            userDomain = domain.substring(0, idx + 1);
+            userDomainCheck = domain.substring(0, idx + 1);
         }
         
         // retrieve the number of domains with this prefix
         
-        DomainList dlist = listDomains(null, null, userDomain, null, 0);
+        DomainList dlist = listDomains(null, null, userDomainCheck, null, 0);
         if (dlist.getNames().size() < virtualDomainLimit) {
             return false;
         }
         
         if (LOG.isDebugEnabled()) {
-            LOG.debug("hasExceededVirtualSubDomainLimit: subdomains with prefix " + userDomain
+            LOG.debug("hasExceededVirtualSubDomainLimit: subdomains with prefix " + userDomainCheck
                     + ": " + dlist.getNames().size() + " while limit is: " + virtualDomainLimit);
         }
         
