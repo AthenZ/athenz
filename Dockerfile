@@ -3,7 +3,7 @@ RUN mkdir -p /opt/athenz
 COPY ./docker/start.sh /opt/athenz
 COPY ./docker/stop.sh /opt/athenz
 
-RUN apt-get update && apt-get -y install openjdk-8-jdk curl sudo && curl -sL https://deb.nodesource.com/setup_6.x | bash - && apt-get install -y nodejs && npm install -y -g nodemon
+RUN apt-get update && apt-get -y install openjdk-8-jdk curl sudo && curl -sL https://deb.nodesource.com/setup_6.x | bash - && apt-get install -y nodejs && apt-get install -y git && npm install -y -g nodemon
 
 COPY ./assembly/zms/target/athenz-zms-*-bin.tar.gz /opt/athenz
 COPY ./assembly/zts/target/athenz-zts-*-bin.tar.gz /opt/athenz
