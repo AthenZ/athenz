@@ -13,7 +13,6 @@ OU = Testing Domain
 CN = __athenz_hostname__
 
 [ v3_req ]
-basicConstraints = CA:FALSE
 keyUsage = digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
 subjectAltName = @alt_names

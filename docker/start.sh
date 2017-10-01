@@ -73,6 +73,9 @@ if [ ! -f "./config/athenz.conf" ]; then
     sudo /opt/athenz/athenz-utils*/bin/linux/athenz-conf -o ./config/athenz.conf -c /opt/athenz/athenz-zms*/var/zms_server/certs/zms_cert.pem -z https://$hostname:4443/
 fi
 
+echo "---installing npm packages for athenz ui---"
+npm install
+
 echo "---starting athenz ui---"
 cd /opt/athenz/athenz-ui*/
 if [ -z "${ZMS_SERVER}" ]; then
