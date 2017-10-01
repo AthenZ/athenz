@@ -19,6 +19,7 @@ package com.yahoo.athenz.auth.impl.aws;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.security.PrivateKey;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,12 +32,19 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.yahoo.athenz.auth.PrivateKeyStore;
+import com.yahoo.athenz.auth.util.Crypto;
 
 /**
- * Downloads encrypted secrete from private S3 bucket and returns decrypted secrete in plaintext
- * Assumes that S3 bucket contains data encrypted with KMS. 
- * Assumes that this runs on an instance with a policy set to allow kms decrypt and read access to private S3 bucket. But it can be a public S3 bucket.
- * AmazonS3 lib defaults to reading from S3 buckets created under us-east-1 unless its explicitly specified using system property or aws config
+ * Downloads encrypted secrets from private S3 bucket and returns decrypted data
+ * in plaintext. The key store supports the following two use cases:
+ *   a) Encrypted S3 bucket - all data already encrypted with keys from KMS
+ *   b) Regular S3 bucket - data is manually encrypted with a key from KMS
+ * Assumes that this runs on an instance with a policy set to allow kms decrypt and
+ * read access to private S3 bucket. With use case (a) S3 api will automatically
+ * decrypt the data and return plain text while in use case (b) the caller is
+ * responsible for decrypting data.
+ * AmazonS3 lib defaults to reading from S3 buckets created under us-east-1 unless
+ * its explicitly specified using system property or aws config
  * 
  * @author charlesk
  * See http://docs.aws.amazon.com/kms/latest/developerguide/programming-encryption.html
@@ -45,13 +53,29 @@ import com.yahoo.athenz.auth.PrivateKeyStore;
 public class AwsPrivateKeyStore implements PrivateKeyStore {
 
     private static final Logger LOG = LoggerFactory.getLogger(AwsPrivateKeyStore.class);
-    private static final String ATHENZ_PROP_AWS_S3_REGION = "athenz.aws.s3.region";
+    
+    private static final String ATHENZ_PROP_AWS_S3_REGION   = "athenz.aws.s3.region";
+    private static final String ATHENZ_PROP_AWS_KMS_DECRYPT = "athenz.aws.store_kms_decrypt";
+    private static final String ATHENZ_PROP_ZMS_BUCKET_NAME = "athenz.aws.zms.bucket_name";
+    private static final String ATHENZ_PROP_ZMS_KEY_NAME    = "athenz.aws.zms.key_name";
+    private static final String ATHENZ_PROP_ZMS_KEY_ID_NAME = "athenz.aws.zms.key_id_name";
+    private static final String ATHENZ_PROP_ZTS_BUCKET_NAME = "athenz.aws.zts.bucket_name";
+    private static final String ATHENZ_PROP_ZTS_KEY_NAME    = "athenz.aws.zts.key_name";
+    private static final String ATHENZ_PROP_ZTS_KEY_ID_NAME = "athenz.aws.zts.key_id_name";
+
+    private static final String ATHENZ_DEFAULT_KEY_NAME     = "service_private_key";
+    private static final String ATHENZ_DEFAULT_KEY_ID_NAME  = "service_private_key_id";
+     
+    private static final String ZMS_SERVICE = "zms";
+    private static final String ZTS_SERVICE = "zts";
+    
     private final AmazonS3 s3;
     private final AWSKMS kms;
-
-
+    private boolean kmsDecrypt;
+    
     public AwsPrivateKeyStore() {
        this(initAmazonS3(), AWSKMSClientBuilder.defaultClient());
+       kmsDecrypt = Boolean.parseBoolean(System.getProperty(ATHENZ_PROP_AWS_KMS_DECRYPT, "false"));
     }
     
     private static AmazonS3 initAmazonS3() {
@@ -68,30 +92,78 @@ public class AwsPrivateKeyStore implements PrivateKeyStore {
     }
     
     @Override
-    public String getApplicationSecret(final String appName, final String keyName) {
-        String keyValue = "";
-        S3Object s3Object = s3.getObject(appName, keyName);
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("retrieving appName {}, key {}", appName, keyName);
+    public PrivateKey getPrivateKey(String service, String serverHostName,
+            StringBuilder privateKeyId) {
+        
+        String bucketName;
+        String keyName;
+        String keyIdName;
+        
+        if (ZMS_SERVICE.equals(service)) {
+            bucketName = System.getProperty(ATHENZ_PROP_ZMS_BUCKET_NAME);
+            keyName = System.getProperty(ATHENZ_PROP_ZMS_KEY_NAME, ATHENZ_DEFAULT_KEY_NAME);
+            keyIdName = System.getProperty(ATHENZ_PROP_ZMS_KEY_ID_NAME, ATHENZ_DEFAULT_KEY_ID_NAME);
+        } else if (ZTS_SERVICE.equals(service)) {
+            bucketName = System.getProperty(ATHENZ_PROP_ZTS_BUCKET_NAME);
+            keyName = System.getProperty(ATHENZ_PROP_ZTS_KEY_NAME, ATHENZ_DEFAULT_KEY_NAME);
+            keyIdName = System.getProperty(ATHENZ_PROP_ZTS_KEY_ID_NAME, ATHENZ_DEFAULT_KEY_ID_NAME);
+        } else {
+            LOG.error("Unknown service specified: {}", service);
+            return null;
         }
+        
+        if (bucketName == null) {
+            LOG.error("No bucket name specified with system property");
+            return null;
+        }
+        
+        PrivateKey pkey = Crypto.loadPrivateKey(getDecryptedData(bucketName, keyName));
+        privateKeyId.append(getDecryptedData(bucketName, keyIdName));
+        return pkey;
+    }
+    
+    @Override
+    public String getApplicationSecret(final String appName, final String keyName) {
+        return getDecryptedData(appName, keyName);
+    }
+    
+    String getDecryptedData(final String bucketName, final String keyName) {
+        
+        String keyValue = "";
+        S3Object s3Object = s3.getObject(bucketName, keyName);
+        
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("retrieving appName {}, key {}", bucketName, keyName);
+        }
+        
         if (null == s3Object) {
-            LOG.error("error retrieving key {}, from bucket {}", keyName, appName);
+            LOG.error("error retrieving key {}, from bucket {}", keyName, bucketName);
             return keyValue;
         }
+        
         try (S3ObjectInputStream s3InputStream = s3Object.getObjectContent(); 
                 ByteArrayOutputStream result = new ByteArrayOutputStream();) {
+            
             byte[] buffer = new byte[1024];
             int length;
             while ((length = s3InputStream.read(buffer)) != -1) {
                 result.write(buffer, 0, length);
             }
-            //key should be encrypted. decrypt using aws KMS
-            DecryptRequest req = new DecryptRequest().withCiphertextBlob(ByteBuffer.wrap(result.toByteArray()));
-            ByteBuffer plainText = kms.decrypt(req).getPlaintext();
-            keyValue = new String(plainText.array());
+            
+            // if key should be decrypted, do so with KMS
+
+            if (kmsDecrypt) {
+                DecryptRequest req = new DecryptRequest().withCiphertextBlob(ByteBuffer.wrap(result.toByteArray()));
+                ByteBuffer plainText = kms.decrypt(req).getPlaintext();
+                keyValue = new String(plainText.array());
+            } else {
+                keyValue = result.toString();
+            }
+            
         } catch (IOException e) {
             LOG.error("error getting application secret.", e);
         }
+        
         return keyValue.trim();
     }
 }
