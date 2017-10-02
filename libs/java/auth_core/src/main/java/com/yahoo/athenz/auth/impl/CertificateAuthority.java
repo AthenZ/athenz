@@ -17,7 +17,10 @@ package com.yahoo.athenz.auth.impl;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,9 +32,17 @@ import com.yahoo.athenz.auth.util.Crypto;
 public class CertificateAuthority implements Authority {
 
     private static final Logger LOG = LoggerFactory.getLogger(CertificateAuthority.class);
+    static final String ATHENZ_PROP_EXCLUDED_PRINCIPALS = "athenz.auth.certificate.excluded_principals";
 
+    Set<String> excludedPrincipalSet = null;
+    
     @Override
     public void initialize() {
+        
+        final String exPrincipals = System.getProperty(ATHENZ_PROP_EXCLUDED_PRINCIPALS);
+        if (exPrincipals != null && !exPrincipals.isEmpty()) {
+            excludedPrincipalSet = new HashSet<>(Arrays.asList(exPrincipals.split(",")));
+        }
     }
 
     @Override
@@ -78,13 +89,25 @@ public class CertificateAuthority implements Authority {
         X509Certificate x509Cert = certs[0];
         String principalName = Crypto.extractX509CertCommonName(x509Cert);
         if (principalName == null || principalName.isEmpty()) {
+            final String message = "CertificateAuthority:authenticate: Certificate principal is empty";
             if (LOG.isDebugEnabled()) {
-                LOG.debug("CertificateAuthority:authenticate: Certificate principal is empty");
+                LOG.debug(message);
             }
-            errMsg.append("CertificateAuthority:authenticate: Certificate principal is empty");
+            errMsg.append(message);
             return null;
         }
 
+        // make sure the principal is not on our excluded list
+        
+        if (excludedPrincipalSet != null && excludedPrincipalSet.contains(principalName)) {
+            final String message = "CertificateAuthority:authenticate: Principal is excluded";
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(message);
+            }
+            errMsg.append(message);
+            return null;
+        }
+        
         // For role cert, the principal information is in the SAN email
         
         List<String> roles = null;
