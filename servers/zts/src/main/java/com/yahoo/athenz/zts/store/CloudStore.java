@@ -382,15 +382,26 @@ public class CloudStore {
         }
         
         // retrieve our domain and service names from our role name
-        
+        // role names can contain . or -
+        boolean validRoleName = false;
         idx = awsRole.lastIndexOf('.');
-        if (idx == -1) {
+        if (idx != -1) {
+            validRoleName = true;
+            awsDomain = awsRole.substring(0, idx);
+            awsService = awsRole.substring(idx + 1);
+        }
+
+        idx = awsRole.indexOf('-');
+        if (idx != -1) {
+            validRoleName = true;
+            awsDomain = awsRole.substring(0, idx);
+            awsService = awsRole.substring(idx + 1);
+        }
+        
+        if (!validRoleName) {
             LOGGER.error("CloudStore: malformed service name: " + awsRole);
             return false;
         }
-        
-        awsDomain = awsRole.substring(0, idx);
-        awsService = awsRole.substring(idx + 1);
         
         // make sure we have valid service and domain values
         

@@ -272,6 +272,20 @@ public class CloudStoreTest {
     }
     
     @Test
+    public void testParseInstanceProfileArn2() {
+        
+        CloudStore store = new CloudStore(null);
+        assertTrue(store.parseInstanceProfileArn("arn:aws:iam::111111111111:instance-profile/athenz-zts-service"));
+        assertEquals(store.awsAccount, "111111111111");
+        assertEquals(store.awsCloud, null);
+        assertEquals(store.awsDomain, "athenz");
+        assertEquals(store.awsRole, "athenz-zts-service");
+        assertEquals(store.awsService, "zts-service");
+        assertEquals(store.awsProfile, "athenz-zts-service");
+        store.close();
+    }
+    
+    @Test
     public void testParseInstanceProfileArnInvalidPrefix() {
         
         CloudStore store = new CloudStore(null);
