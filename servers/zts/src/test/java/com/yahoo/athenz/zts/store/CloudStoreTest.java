@@ -183,7 +183,6 @@ public class CloudStoreTest {
     public void testParseInstanceInfo() {
         CloudStore store = new CloudStore(null);
         assertTrue(store.parseInstanceInfo(AWS_INSTANCE_DOCUMENT));
-        assertEquals(store.awsAccount, "111111111111");
         assertEquals(store.awsRegion, "us-west-2");
         store.close();
     }
@@ -212,7 +211,6 @@ public class CloudStoreTest {
 
         store = new CloudStore(null);
         assertTrue(store.parseInstanceInfo("{\"accountId\":\"012345678901\"}"));
-        assertEquals(store.awsAccount, "012345678901");
         assertEquals(store.awsRegion, "us-west-3");
         System.clearProperty(ZTSConsts.ZTS_PROP_AWS_REGION_NAME);
         store.close();
@@ -248,12 +246,7 @@ public class CloudStoreTest {
     public void testParseIamRoleInfo() {
         CloudStore store = new CloudStore(null);
         assertTrue(store.parseIamRoleInfo(AWS_IAM_ROLE_INFO));
-        assertEquals(store.awsAccount, "111111111111");
-        assertEquals(store.awsCloud, "athenz");
-        assertEquals(store.awsDomain, "athenz");
         assertEquals(store.awsRole, "athenz.zts");
-        assertEquals(store.awsService, "zts");
-        assertEquals(store.awsProfile, "athenz.zts,athenz");
         store.close();
     }
     
@@ -262,12 +255,7 @@ public class CloudStoreTest {
         
         CloudStore store = new CloudStore(null);
         assertTrue(store.parseInstanceProfileArn("arn:aws:iam::111111111111:instance-profile/athenz.zts,athenz"));
-        assertEquals(store.awsAccount, "111111111111");
-        assertEquals(store.awsCloud, "athenz");
-        assertEquals(store.awsDomain, "athenz");
         assertEquals(store.awsRole, "athenz.zts");
-        assertEquals(store.awsService, "zts");
-        assertEquals(store.awsProfile, "athenz.zts,athenz");
         store.close();
     }
     
@@ -308,36 +296,14 @@ public class CloudStoreTest {
     }
     
     @Test
-    public void testParseInstanceProfileArnInvalidAccount() {
-        
-        CloudStore store = new CloudStore(null);
-        
-        // missing account id
-        
-        assertFalse(store.parseInstanceProfileArn("arn:aws:iam:::instance-profile/athenz.zts,athenz"));
-        store.close();
-    }
-
-    @Test
     public void testParseInstanceProfileArnCloud() {
         
         CloudStore store = new CloudStore(null);
         // cloud name is optional for backwards compatibility
         assertTrue(store.parseInstanceProfileArn("arn:aws:iam::111111111111:instance-profile/athenz.zts"));
-        assertFalse(store.parseInstanceProfileArn("arn:aws:iam::111111111111:instance-profile/athenz.zts,athenz,test"));
-        store.close();
-    }
-    
-    @Test
-    public void testParseInstanceProfileArnInvalidDomain() {
-        
-        CloudStore store = new CloudStore(null);
-        
-        // invalid domain/service names
-        
-        assertFalse(store.parseInstanceProfileArn("arn:aws:iam::111111111111:instance-profile/iaas,athenz"));
-        assertFalse(store.parseInstanceProfileArn("arn:aws:iam::111111111111:instance-profile/iaas.,athenz"));
-        assertFalse(store.parseInstanceProfileArn("arn:aws:iam::111111111111:instance-profile/.iaas,athenz"));
+        assertEquals(store.awsRole, "athenz.zts");
+        assertTrue(store.parseInstanceProfileArn("arn:aws:iam::111111111111:instance-profile/athenz.proxy,athenz,test"));
+        assertEquals(store.awsRole, "athenz.proxy");
         store.close();
     }
     
@@ -585,12 +551,7 @@ public class CloudStoreTest {
         Mockito.when(httpClient.GET("http://169.254.169.254/latest/meta-data/iam/info")).thenReturn(responseInfo);
 
         assertTrue(store.loadBootMetaData());
-        assertEquals(store.awsAccount, "111111111111");
-        assertEquals(store.awsCloud, "athenz");
-        assertEquals(store.awsDomain, "athenz");
         assertEquals(store.awsRole, "athenz.zts");
-        assertEquals(store.awsService, "zts");
-        assertEquals(store.awsProfile, "athenz.zts,athenz");
         assertEquals(store.awsRegion, "us-west-2");
         store.close();
     }
