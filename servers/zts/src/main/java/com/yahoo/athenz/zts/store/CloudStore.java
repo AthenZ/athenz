@@ -65,11 +65,6 @@ public class CloudStore {
     private static final String ATTR_PENDING_TIME = "pendingTime";
     
     String awsRole = null;
-    String awsCloud = null;
-    String awsProfile = null;
-    String awsAccount = null;
-    String awsDomain = null;
-    String awsService = null;
     String awsRegion = null;
     boolean awsEnabled = false;
     CertSigner certSigner = null;
@@ -262,12 +257,7 @@ public class CloudStore {
         
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("CloudStore: service meta information:");
-            LOGGER.debug("CloudStore:   cloud:   " + awsCloud);
             LOGGER.debug("CloudStore:   role:    " + awsRole);
-            LOGGER.debug("CloudStore:   profile: " + awsProfile);
-            LOGGER.debug("CloudStore:   account: " + awsAccount);
-            LOGGER.debug("CloudStore:   domain:  " + awsDomain);
-            LOGGER.debug("CloudStore:   service: " + awsService);
             LOGGER.debug("CloudStore:   region:  " + awsRegion);
         }
         return true;
@@ -287,11 +277,6 @@ public class CloudStore {
             LOGGER.error("CloudStore: unable to parse instance identity document: " + document);
             return false;
         }
-
-        // if we don't extract our account id here, we'll try
-        // to retrieve it from our iam role name
-        
-        awsAccount = instStruct.getString("accountId");
         
         // if we're overriding the region name, then we'll
         // extract that value here
@@ -352,53 +337,24 @@ public class CloudStore {
             return false;
         }
         
-        awsProfile = profileArn.substring(idx + ":instance-profile/".length());
-        
-        // we should already have our aws account data but in case we didn't
-        // get it from our instance document, we'll extract it from the profile name
-        
-        if (awsAccount == null || awsAccount.isEmpty()) {
-            awsAccount = profileArn.substring("arn:aws:iam::".length(), idx);
-        }
+        final String awsProfile = profileArn.substring(idx + ":instance-profile/".length());
         
         // make sure we have valid profile and account data
         
-        if (awsProfile.isEmpty() || awsAccount.isEmpty()) {
+        if (awsProfile.isEmpty()) {
             LOGGER.error("CloudStore: unable to extract profile/account data from InstanceProfileArn: " + profileArn);
             return false;
         }
         
-        // we need to extract the role and cloud names from the profile
-        // 
-        String[] comps = awsProfile.split(",");
-        if (comps.length == 0 || comps.length > 2) {
-            LOGGER.error("CloudStore: unable to extract role/cloud name from profile: " + awsProfile);
-            return false;
-        }
+        // we need to extract the role from the profile
         
-        awsRole = comps[0];
-        if (comps.length == 2) {
-            awsCloud = comps[1];
-        }
-        
-        // retrieve our domain and service names from our role name
-        
-        idx = awsRole.lastIndexOf('.');
+        idx = awsProfile.indexOf(',');
         if (idx == -1) {
-            LOGGER.error("CloudStore: malformed service name: " + awsRole);
-            return false;
+            awsRole = awsProfile;
+        } else {
+            awsRole = awsProfile.substring(0, idx);
         }
-        
-        awsDomain = awsRole.substring(0, idx);
-        awsService = awsRole.substring(idx + 1);
-        
-        // make sure we have valid service and domain values
-        
-        if (awsDomain.isEmpty() || awsService.isEmpty()) {
-            LOGGER.error("CloudStore: unable to extract domain/service data from profile: " + awsRole);
-            return false;
-        }
-        
+    
         return true;
     }
     
