@@ -776,6 +776,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             adminUsers.add(adminUser);
         }
         
+        createTopLevelDomain(null, userDomain, "The reserved domain for user authentication",
+                null, null, adminUsers, null, 0, null, null, null);
         if (!ZMSConsts.USER_DOMAIN.equals(userDomain)) {
             createTopLevelDomain(null, ZMSConsts.USER_DOMAIN, "The reserved domain for user authentication",
                     null, null, adminUsers, null, 0, null, null, null);
@@ -784,8 +786,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             createTopLevelDomain(null, homeDomain, "The reserved domain for personal user domains",
                     null, null, adminUsers, null, 0, null, null, null);
         }
-        createTopLevelDomain(null, userDomain, "The reserved domain for user authentication",
-                null, null, adminUsers, null, 0, null, null, null);
         createTopLevelDomain(null, "sys", "The reserved domain for system related information",
                 null, null, adminUsers, null, 0, null, null, null);
         createSubDomain(null, "sys", "auth", "The Athenz domain", null, null, adminUsers,
