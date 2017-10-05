@@ -645,7 +645,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return ztsService;
     }
 
-    public PublicKeyEntry getPublicKeyEntry(ResourceContext ctx, String domainName, String serviceName, String keyId) {
+    public PublicKeyEntry getPublicKeyEntry(ResourceContext ctx, String domainName,
+            String serviceName, String keyId) {
         
         final String caller = "getpublickeyentry";
         final String callerTiming = "getpublickeyentry_timing";
@@ -2622,8 +2623,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         domainName = domainName.toLowerCase();
         roleName = roleName.toLowerCase();
-        principal = principal.toLowerCase();
-        
+        principal = normalizeDomainAliasUser(principal.toLowerCase());
+
         Object timerMetric = metric.startTiming(callerTiming, domainName);
         
         if (LOGGER.isDebugEnabled()) {
