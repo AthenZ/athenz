@@ -31,7 +31,7 @@ and those three ports must be exposed and available on the docker host as well.
 Once docker is successfully installed, launch Athenz by executing the following docker command.
 
 ```shell
-$ docker run -itd -p 9443:9443 -p 4443:4443 -p 8443:8443 -e ZMS_SERVER=<server-hostname> -e UI_SERVER=<server-hostname> athenz/athenz
+$ docker run -itd -h <server-hostname> -p 9443:9443 -p 4443:4443 -p 8443:8443 -e ZMS_SERVER=<server-hostname> -e UI_SERVER=<server-hostname> athenz/athenz
 ```
 
 To access Athenz UI, open your browser with url
