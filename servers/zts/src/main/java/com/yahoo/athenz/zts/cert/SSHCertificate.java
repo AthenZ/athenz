@@ -17,37 +17,17 @@ package com.yahoo.athenz.zts.cert;
 
 public class SSHCertificate {
 
-    private String pem;
-    private String cn;
-    private String type;
+    private String opensshkey;
 
     public SSHCertificate() {
     }
     
-    public String getPem() {
-        return pem;
+    public String getOpensshkey() {
+        return opensshkey;
     }
     
-    public SSHCertificate setPem(String pem) {
-        this.pem = pem;
-        return this;
-    }
-    
-    public String getCn() {
-        return cn;
-    }
-
-    public SSHCertificate setCn(String cn) {
-        this.cn = cn;
-        return this;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public SSHCertificate setType(String type) {
-        this.type = type;
+    public SSHCertificate setOpensshkey(String opensshkey) {
+        this.opensshkey = opensshkey;
         return this;
     }
 }

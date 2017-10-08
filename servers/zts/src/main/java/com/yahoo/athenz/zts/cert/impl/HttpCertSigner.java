@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.zts.cert.impl;
 
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -248,14 +249,14 @@ public class HttpCertSigner implements CertSigner {
             return null;
         }
 
-        X509CertSignObject pemCert = null;
+        SSHCertificate cert = null;
         try {
-            pemCert = JSON.fromString(data, X509CertSignObject.class);
+            cert = JSON.fromString(data, SSHCertificate.class);
         } catch (Exception ex) {
             LOGGER.error("generateSSHCertificate: unable to decode object from '" + sshCertUri +
                     "' error: " + ex.getMessage());
         }
-        return (pemCert != null) ? pemCert.getPem() : null;
+        return (cert != null) ? cert.getOpensshkey() : null;
     }
     
     @Override
@@ -334,9 +335,15 @@ public class HttpCertSigner implements CertSigner {
         }
         
         if (sshCerts != null && sshCerts.getCerts() != null) {
-            for (SSHCertificate sshCert : sshCerts.getCerts()) {
-                if (sshCert.getType().equals(type)) {
-                    return sshCert.toString();
+            
+            // the current order is 0 - user and 1 - host
+            
+            List<SSHCertificate> certs = sshCerts.getCerts();
+            if (certs.size() == 2) {
+                if (ZTSConsts.ZTS_SSH_USER.equals(type)) {
+                    return certs.get(0).getOpensshkey();
+                } else if (ZTSConsts.ZTS_SSH_HOST.equals(type)) {
+                    return certs.get(1).getOpensshkey();
                 }
             }
         }
