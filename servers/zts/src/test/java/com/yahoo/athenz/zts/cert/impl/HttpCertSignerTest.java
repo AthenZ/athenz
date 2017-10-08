@@ -285,10 +285,10 @@ public class HttpCertSignerTest {
         ContentResponse response = Mockito.mock(ContentResponse.class);
         Mockito.when(request.send()).thenReturn(response);
         Mockito.when(response.getStatus()).thenReturn(201);
-        Mockito.when(response.getContentAsString()).thenReturn("{\"pem\": \"pem-value\"}");
+        Mockito.when(response.getContentAsString()).thenReturn("{\"opensshkey\": \"ssh-key\"}");
 
         String pem = certSigner.generateSSHCertificate("ssh-key-req");
-        assertEquals(pem, "pem-value");
+        assertEquals(pem, "ssh-key");
     }
     
     @Test
@@ -303,9 +303,10 @@ public class HttpCertSignerTest {
         ContentResponse response = Mockito.mock(ContentResponse.class);
         Mockito.when(httpClient.GET("https://localhost:443/certsign/v2/ssh")).thenReturn(response);
         Mockito.when(response.getStatus()).thenReturn(200);
-        Mockito.when(response.getContentAsString()).thenReturn("{\"certs\": [{\"type\":\"user\",\"cn\":\"name\",\"pem\":\"pem-value\"}]}");
+        Mockito.when(response.getContentAsString()).thenReturn("{\"certs\": [{\"opensshkey\":\"user-key\"},{\"opensshkey\":\"host-key\"}]}");
 
         String pem = certSigner.getSSHCertificate("user");
         assertNotNull(pem);
+        assertEquals(pem, "user-key");
     }
 }
