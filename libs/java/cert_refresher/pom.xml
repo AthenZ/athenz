@@ -43,7 +43,7 @@
     <dependency>
       <groupId>org.jmockit</groupId>
       <artifactId>jmockit</artifactId>
-      <version>1.32</version>
+      <version>1.35</version>
       <scope>test</scope>
     </dependency>
     <dependency>

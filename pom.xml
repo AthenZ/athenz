@@ -69,15 +69,16 @@
   </ciManagement>
 
   <properties>
-    <jetty.version>9.4.6.v20170531</jetty.version>
-    <jersey.version>2.25.1</jersey.version>
-    <jackson.version>2.9.0</jackson.version>
+    <jetty.version>9.4.7.v20170914</jetty.version>
+    <jersey.version>2.26</jersey.version>
+    <jackson.version>2.9.1</jackson.version>
     <rdl.version>1.4.14</rdl.version>
-    <bouncycastle.version>1.57</bouncycastle.version>
-    <aws.version>1.11.172</aws.version>
-    <guava.version>22.0</guava.version>
+    <bouncycastle.version>1.58</bouncycastle.version>
+    <aws.version>1.11.211</aws.version>
+    <guava.version>23.0</guava.version>
     <logback.version>1.2.3</logback.version>
     <javax.version>3.1.0</javax.version>
+    <hk2.version>2.5.0-b57</hk2.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
