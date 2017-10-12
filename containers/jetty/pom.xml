@@ -59,11 +59,6 @@
       <version>${jersey.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.glassfish.hk2</groupId>
-      <artifactId>hk2-api</artifactId>
-      <version>${hk2.version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-servlet</artifactId>
       <version>${jetty.version}</version>
