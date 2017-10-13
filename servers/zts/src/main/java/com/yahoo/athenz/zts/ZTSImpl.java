@@ -124,8 +124,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private static final String TYPE_INSTANCE_REGISTER_INFO = "InstanceRegisterInformation";
     private static final String TYPE_INSTANCE_REFRESH_INFO = "InstanceRefreshInformation";
     private static final String TYPE_INSTANCE_REFRESH_REQUEST = "InstanceRefreshRequest";
-    private static final String TYPE_AWS_INSTANCE_INFO = "AWSInstanceInformation";
-    private static final String TYPE_AWS_CERT_REQUEST = "AWSCertificateRequest";
     private static final String TYPE_OSTK_INSTANCE_INFO = "OSTKInstanceInformation";
     private static final String TYPE_OSTK_INSTANCE_REFRESH_REQUEST = "OSTKInstanceRefreshRequest";
     private static final String TYPE_DOMAIN_METRICS = "DomainMetrics";
@@ -2031,83 +2029,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.stopTiming(timerMetric);
         return null;
     }
-    
-    // this method will be removed and replaced with call to postInstanceRegisterInformation
-    @Override
-    public Identity postAWSInstanceInformation(ResourceContext ctx, AWSInstanceInformation info) {
-        
-        final String caller = "postawsinstanceinformation";
-        final String callerTiming = "postawsinstanceinformation_timing";
-        metric.increment(HTTP_POST);
-        logPrincipal(ctx);
-
-        validateRequest(ctx.request(), caller);
-        validate(info, TYPE_AWS_INSTANCE_INFO, caller);
-        
-        Object timerMetric = metric.startTiming(callerTiming, info.getDomain());
-        metric.increment(HTTP_REQUEST, info.getDomain());
-        metric.increment(caller, info.getDomain());
-        
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("postAWSInstanceInformation: " + info);
-        }
-        
-        if (!cloudStore.isAwsEnabled()) {
-            throw requestError("postAWSInstanceInformation: AWS support is not available",
-                    caller, info.getDomain());
-        }
-        
-        // verify we have a valid aws enabled domain
-        
-        String account = cloudStore.getAWSAccount(info.getDomain());
-        if (account == null) {
-            throw requestError("postAWSInstanceInformation: unable to retrieve AWS account for: "
-                    + info.getDomain(), caller, info.getDomain());
-        }
-        
-        // verify the domain account and the account in the info
-        // object do match
-        
-        if (!account.equalsIgnoreCase(info.getAccount())) {
-            throw requestError("postAWSInstanceInformation: mismatch between account values: "
-                    + " domain lookup: " + account + " vs. instance info: " + info.getAccount(),
-                    caller, info.getDomain());
-        }
-        
-        // we need to validate the instance document, unless it isn't there i.e. lambda, then just validate the creds
-
-        if (info.getDocument() == "lambda") {
-            if (!cloudStore.verifyInstanceIdentity(info)) {
-                throw requestError("postAWSInstanceInformation: unable to validate lambda identity",
-                                   caller, info.getDomain());
-            }
-            Identity identity = cloudStore.generateIdentity(info.getName(), info.getCsr(), null, null);
-            if (identity == null) {
-                throw requestError("postAWSInstanceInformation: unable to generate identity for lambda",
-                                   caller, info.getDomain());
-            }
-            metric.stopTiming(timerMetric);
-            return identity;
-        }
-
-        if (!cloudStore.verifyInstanceDocument(info, account)) {
-            throw requestError("postAWSInstanceInformation: unable to validate instance document",
-                    caller, info.getDomain());
-        }
-        
-        // now let's validate the csr given to us by the client
-        // and generate certificate for the instance
-        
-        Identity identity = cloudStore.generateIdentity(info.getName(), info.getCsr(),
-                info.getSsh(), ZTSConsts.ZTS_SSH_HOST);
-        if (identity == null) {
-            throw requestError("postAWSInstanceInformation: unable to generate identity",
-                    caller, info.getDomain());
-        }
-        
-        metric.stopTiming(timerMetric);
-        return identity;
-    }
      
     @Override
     public Identity postInstanceRefreshRequest(ResourceContext ctx, String domain,
@@ -2450,78 +2371,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
         
         return requestedValue;
-    }
-    
-    // this method will be removed and replaced with call to postInstanceRefreshInformation
-    @Override
-    public Identity postAWSCertificateRequest(ResourceContext ctx, String domain, String service,
-            AWSCertificateRequest req) {
-        
-        final String caller = "postawscertificaterequest";
-        final String callerTiming = "postawscertificaterequest_timing";
-        metric.increment(HTTP_POST);
-        logPrincipal(ctx);
-
-        validateRequest(ctx.request(), caller);
-        validate(domain, TYPE_DOMAIN_NAME, caller);
-        validate(service, TYPE_SIMPLE_NAME, caller);
-        validate(req, TYPE_AWS_CERT_REQUEST, caller);
-
-        // for consistent handling of all requests, we're going to convert
-        // all incoming object values into lower case (e.g. domain, role,
-        // policy, service, etc name)
-        
-        domain = domain.toLowerCase();
-        service = service.toLowerCase();
-        
-        Object timerMetric = metric.startTiming(callerTiming, domain);
-        metric.increment(HTTP_REQUEST, domain);
-        metric.increment(caller, domain);
-        
-        // get our principal's name
-        
-        // make sure this was authenticated by the
-        // Certificate authority and not by anyone else
-        
-        Principal principal = ((RsrcCtxWrapper) ctx).principal();
-        Authority authority = principal.getAuthority();
-        
-        if (!(authority instanceof com.yahoo.athenz.auth.impl.CertificateAuthority)) {
-            throw forbiddenError("postAWSCertificateRequest: Not authenticated by Certificate Authority",
-                    caller, domain);
-        }
-        
-        String principalName = principal.getFullName();
-
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("postAWSCertificateRequest: " + req + " for principal: " + principal);
-        }
-        
-        if (!cloudStore.isAwsEnabled()) {
-            throw requestError("postAWSCertificateRequest: AWS support is not available",
-                    caller, domain);
-        }
-        
-        // verify we have a valid aws enabled domain
-        
-        String account = cloudStore.getAWSAccount(domain);
-        if (account == null) {
-            throw requestError("postAWSCertificateRequest: unable to retrieve AWS account for: "
-                    + domain, caller, domain);
-        }
-        
-        // now let's validate the csr given to us by the client
-        // and generate certificate for the instance
-        
-        Identity identity = cloudStore.generateIdentity(principalName, req.getCsr(),
-                req.getSsh(), null);
-        if (identity == null) {
-            throw requestError("postAWSCertificateRequest: unable to generate identity",
-                    caller, domain);
-        }
-        
-        metric.stopTiming(timerMetric);
-        return identity;
     }
     
     Principal createPrincipalForName(String principalName) {

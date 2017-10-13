@@ -177,30 +177,6 @@ public class ZTSSchema {
             .field("csr", "String", false, "Cert CSR signed by the service's private key (public key registered in ZMS)")
             .field("expiryTime", "Int32", true, "in seconds how long token should be valid for");
 
-        sb.structType("AWSInstanceInformation")
-            .comment("AWSInstanceInformation - the information a booting EC2 instance must provide to ZTS to authenticate.")
-            .field("document", "String", false, "signed document containing attributes like IP address, instance-id, account#, etc.")
-            .field("signature", "String", false, "the signature for the document")
-            .field("domain", "CompoundName", false, "the domain of the instance")
-            .field("service", "SimpleName", false, "the service this instance is supposed to run")
-            .field("csr", "String", false, "return a certificate in the response")
-            .field("ssh", "String", true, "if present, return an SSH host certificate. Format is JSON.")
-            .field("name", "CompoundName", false, "the full service identity name (same as the EC2 instance profile name)")
-            .field("account", "SimpleName", false, "the account id (as a string) for the instance. parsed from the instance profile ARN")
-            .field("cloud", "SimpleName", true, "the name of the cloud (namespace) within the account, parsed from the name")
-            .field("subnet", "SimpleName", true, "not used")
-            .field("access", "String", false, "the AWS Access Key Id for the role")
-            .field("secret", "String", false, "the AWS Secret Access Key for the role")
-            .field("token", "String", false, "the AWS STS Token for the role")
-            .field("expires", "Timestamp", false, "the expiration time of the access keys")
-            .field("modified", "Timestamp", false, "the modified time of the access keys")
-            .field("flavor", "String", false, "the 'flavor' of the access keys, i.e. \"AWS-HMAC\"");
-
-        sb.structType("AWSCertificateRequest")
-            .comment("AWSCertificateRequest - a certificate signing request")
-            .field("csr", "String", true, "request an X.509 certificate")
-            .field("ssh", "String", true, "request an SSH certificate");
-
         sb.structType("AWSTemporaryCredentials")
             .field("accessKeyId", "String", false, "")
             .field("secretAccessKey", "String", false, "")
@@ -457,31 +433,6 @@ public class ZTSSchema {
             .exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
 
             .exception("NOT_FOUND", "ResourceError", "")
-
-            .exception("UNAUTHORIZED", "ResourceError", "")
-;
-
-        sb.resource("AWSInstanceInformation", "POST", "/aws/instance")
-            .comment("Register an instance in AWS ZTS. Whether this succeeds or not depends on the contents of the request (the request itself is not authenticated or authorized in the normal way). If successful, the Identity is returned as a x.509 client certificate (to be used in TLS operations)")
-            .input("info", "AWSInstanceInformation", "")
-            .expected("OK")
-            .exception("BAD_REQUEST", "ResourceError", "")
-
-            .exception("FORBIDDEN", "ResourceError", "")
-
-            .exception("UNAUTHORIZED", "ResourceError", "")
-;
-
-        sb.resource("AWSCertificateRequest", "POST", "/aws/instance/{domain}/{service}/refresh")
-            .comment("Rotate certs. Make this request with previous cert, the result are new certs for the same identity.")
-            .pathParam("domain", "CompoundName", "name of the domain requesting the refresh")
-            .pathParam("service", "SimpleName", "name of the service requesting the refresh")
-            .input("req", "AWSCertificateRequest", "the refresh request")
-            .auth("", "", true)
-            .expected("OK")
-            .exception("BAD_REQUEST", "ResourceError", "")
-
-            .exception("FORBIDDEN", "ResourceError", "")
 
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;

@@ -329,39 +329,6 @@ public class ZTSRDLGeneratedClient {
 
     }
 
-    public Identity postAWSInstanceInformation(AWSInstanceInformation info) {
-        WebTarget target = base.path("/aws/instance");
-        Invocation.Builder invocationBuilder = target.request("application/json");
-        Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(info, "application/json"));
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-            return response.readEntity(Identity.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
-        }
-
-    }
-
-    public Identity postAWSCertificateRequest(String domain, String service, AWSCertificateRequest req) {
-        WebTarget target = base.path("/aws/instance/{domain}/{service}/refresh")
-            .resolveTemplate("domain", domain)
-            .resolveTemplate("service", service);
-        Invocation.Builder invocationBuilder = target.request("application/json");
-        if (credsHeader != null) {
-            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
-        }
-        Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(req, "application/json"));
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-            return response.readEntity(Identity.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
-        }
-
-    }
-
     public AWSTemporaryCredentials getAWSTemporaryCredentials(String domainName, String role) {
         WebTarget target = base.path("/domain/{domainName}/role/{role}/creds")
             .resolveTemplate("domainName", domainName)

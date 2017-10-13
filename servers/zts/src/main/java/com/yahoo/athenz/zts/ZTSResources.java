@@ -349,57 +349,6 @@ public class ZTSResources {
         }
     }
 
-    @POST
-    @Path("/aws/instance")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Identity postAWSInstanceInformation(AWSInstanceInformation info) {
-        try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
-            Identity e = this.delegate.postAWSInstanceInformation(context, info);
-            return e;
-        } catch (ResourceException e) {
-            int code = e.getCode();
-            switch (code) {
-            case ResourceException.BAD_REQUEST:
-                throw typedException(code, e, ResourceError.class);
-            case ResourceException.FORBIDDEN:
-                throw typedException(code, e, ResourceError.class);
-            case ResourceException.UNAUTHORIZED:
-                throw typedException(code, e, ResourceError.class);
-            default:
-                System.err.println("*** Warning: undeclared exception (" + code + ") for resource postAWSInstanceInformation");
-                throw typedException(code, e, ResourceError.class);
-            }
-        }
-    }
-
-    @POST
-    @Path("/aws/instance/{domain}/{service}/refresh")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Identity postAWSCertificateRequest(@PathParam("domain") String domain, @PathParam("service") String service, AWSCertificateRequest req) {
-        try {
-            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
-            context.authenticate();
-            Identity e = this.delegate.postAWSCertificateRequest(context, domain, service, req);
-            return e;
-        } catch (ResourceException e) {
-            int code = e.getCode();
-            switch (code) {
-            case ResourceException.BAD_REQUEST:
-                throw typedException(code, e, ResourceError.class);
-            case ResourceException.FORBIDDEN:
-                throw typedException(code, e, ResourceError.class);
-            case ResourceException.UNAUTHORIZED:
-                throw typedException(code, e, ResourceError.class);
-            default:
-                System.err.println("*** Warning: undeclared exception (" + code + ") for resource postAWSCertificateRequest");
-                throw typedException(code, e, ResourceError.class);
-            }
-        }
-    }
-
     @GET
     @Path("/domain/{domainName}/role/{role}/creds")
     @Produces(MediaType.APPLICATION_JSON)
