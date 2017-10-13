@@ -25,8 +25,6 @@ public interface ZTSHandler {
     public RoleAccess getRoleAccess(ResourceContext context, String domainName, String principal);
     public TenantDomains getTenantDomains(ResourceContext context, String providerDomainName, String userName, String roleName, String serviceName);
     public Identity postInstanceRefreshRequest(ResourceContext context, String domain, String service, InstanceRefreshRequest req);
-    public Identity postAWSInstanceInformation(ResourceContext context, AWSInstanceInformation info);
-    public Identity postAWSCertificateRequest(ResourceContext context, String domain, String service, AWSCertificateRequest req);
     public AWSTemporaryCredentials getAWSTemporaryCredentials(ResourceContext context, String domainName, String role);
     public Identity postOSTKInstanceInformation(ResourceContext context, OSTKInstanceInformation info);
     public Identity postOSTKInstanceRefreshRequest(ResourceContext context, String domain, String service, OSTKInstanceRefreshRequest req);
