@@ -26,7 +26,9 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -1074,8 +1076,18 @@ public class ZTSClient implements Closeable {
 
         if (roleName != null && !roleName.isEmpty()) {
             cacheKey.append(";r=");
-            cacheKey.append(roleName);
+            
+            // check to see if we have multiple roles in the values
+            // in which case we need to sort the values
+            
+            if (roleName.indexOf(',') == -1) {
+                cacheKey.append(roleName);
+            } else {
+                List<String> roles = Arrays.asList(roleName.split(","));
+                cacheKey.append(ZTSClient.multipleRoleKey(roles));
+            }
         }
+        
         if (proxyForPrincipal != null && !proxyForPrincipal.isEmpty()) {
             cacheKey.append(";u=");
             cacheKey.append(proxyForPrincipal);
@@ -1772,6 +1784,38 @@ public class ZTSClient implements Closeable {
     }
     
     /**
+     * returns a cache key for the given list of roles.
+     * if the list of roles contains multiple entries
+     * then we have to sort the array first and then
+     * generate the key based on the sorted list since
+     * there is no guarantee what order the ZTS Server
+     * might return the list of roles
+     * 
+     * @param roles list of role names
+     * @return cache key for the list
+     */
+    static String multipleRoleKey(List<String> roles) {
+        
+        // first check to make sure we have valid data
+        
+        if (roles == null || roles.isEmpty()) {
+            return null;
+        }
+        
+        // if we have a single role then that's the key
+        
+        if (roles.size() == 1) {
+            return roles.get(0);
+        }
+        
+        // if we have multiple roles, then we have to
+        // sort the values and then generate the key
+        
+        Collections.sort(roles);
+        return String.join(",", roles);
+    }
+    
+    /**
      * stuff pre-loaded service token in cache. in this model an external
      * service (proxy user) has retrieved the role tokens and added to the
      * client cache so it can run without the need to contact zts server.
@@ -1792,23 +1836,12 @@ public class ZTSClient implements Closeable {
         String domainName = rt.getDomain();
         String principalName = rt.getPrincipal();
         boolean completeRoleSet = rt.getDomainCompleteRoleSet();
-        List<String> roles = rt.getRoles();
-        
-        // before doing anything else we need to see if we can cache this
-        // token - the requirement is either we have a full set or
-        // if it's not then we must have a single role in the list
-        
-        if (!completeRoleSet && roles.size() != 1) {
-            LOG.error("cacheSvcProvRoleToken: Unable to determine original rolename query: "
-                    + rt.getUnsignedToken());
-            return null;
-        }
-        
+
         // if the role token was for a complete set then we're not going
         // to use the rolename field (it indicates that the original request
         // was completed without the rolename field being specified)
         
-        final String roleName = (completeRoleSet) ? null : rt.getRoles().get(0);
+        final String roleName = (completeRoleSet) ? null : multipleRoleKey(rt.getRoles());
         
         // parse principalName for the tenant domain and service name
         // we must have valid components otherwise we'll just
