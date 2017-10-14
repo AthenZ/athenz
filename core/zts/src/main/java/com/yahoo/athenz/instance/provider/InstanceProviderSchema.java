@@ -34,6 +34,10 @@ public class InstanceProviderSchema {
             .comment("An entity name is a short form of a resource name, including only the domain and entity.")
             .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
 
+        sb.stringType("EntityList")
+            .comment("An Entity list is comma separated compound Names")
+            .pattern("(([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*,)*([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
+
         sb.stringType("ServiceName")
             .comment("A service name will generally be a unique subdomain.")
             .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");

@@ -48,7 +48,7 @@ func main() {
 	expireTimeMs := int32(expireTime * 60)
 
 	// request a roletoken
-	roleToken, err := client.GetRoleToken(zts.DomainName(domain), zts.EntityName(role), &expireTimeMs, &expireTimeMs, "")
+	roleToken, err := client.GetRoleToken(zts.DomainName(domain), zts.EntityList(role), &expireTimeMs, &expireTimeMs, "")
 	if err != nil {
 		log.Fatalln(err)
 	}

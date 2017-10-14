@@ -34,6 +34,10 @@ public class ZTSSchema {
             .comment("An entity name is a short form of a resource name, including only the domain and entity.")
             .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
 
+        sb.stringType("EntityList")
+            .comment("An Entity list is comma separated compound Names")
+            .pattern("(([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*,)*([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
+
         sb.stringType("ServiceName")
             .comment("A service name will generally be a unique subdomain.")
             .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
@@ -346,7 +350,7 @@ public class ZTSSchema {
         sb.resource("RoleToken", "GET", "/domain/{domainName}/token")
             .comment("Return a security token for the specific role in the namespace that the principal can assume. If the role is omitted, then all roles in the namespace that the authenticated user can assume are returned. the caller can specify how long the RoleToken should be valid for by specifying the minExpiryTime and maxExpiryTime parameters. The minExpiryTime specifies that the returned RoleToken must be at least valid (min/lower bound) for specified number of seconds, while maxExpiryTime specifies that the RoleToken must be at most valid (max/upper bound) for specified number of seconds. If both values are the same, the server must return a RoleToken for that many seconds. If no values are specified, the server's default RoleToken Timeout value is used.")
             .pathParam("domainName", "DomainName", "name of the domain")
-            .queryParam("role", "role", "EntityName", null, "only interested for a token for this role")
+            .queryParam("role", "role", "EntityList", null, "only interested for a token for these comma separated roles")
             .queryParam("minExpiryTime", "minExpiryTime", "Int32", null, "in seconds min expiry time")
             .queryParam("maxExpiryTime", "maxExpiryTime", "Int32", null, "in seconds max expiry time")
             .queryParam("proxyForPrincipal", "proxyForPrincipal", "EntityName", null, "optional this request is proxy for this principal")

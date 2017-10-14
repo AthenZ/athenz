@@ -40,6 +40,11 @@ type DomainName string
 type EntityName string
 
 //
+// EntityList - An Entity list is comma separated compound Names
+//
+type EntityList string
+
+//
 // ServiceName - A service name will generally be a unique subdomain.
 //
 type ServiceName string

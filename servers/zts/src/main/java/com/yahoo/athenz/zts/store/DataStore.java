@@ -678,7 +678,7 @@ public class DataStore implements DataCacheProvider {
     
     // Internal
     void processStandardMembership(Set<MemberRole> memberRoles, String rolePrefix,
-            String roleName, Set<String> accessibleRoles, boolean keepFullName) {
+            String[] requestedRoleList, Set<String> accessibleRoles, boolean keepFullName) {
         
         /* if we have no member roles, then we haven't added anything
          * to our return result list */
@@ -697,14 +697,14 @@ public class DataStore implements DataCacheProvider {
             if (expiration != 0 && expiration < currentTime) {
                 continue;
             }
-            addRoleToList(memberRole.getRole(), rolePrefix, roleName,
+            addRoleToList(memberRole.getRole(), rolePrefix, requestedRoleList,
                     accessibleRoles, keepFullName);
         }
     }
     
     // Internal
     void processTrustMembership(DataCache data, String identity, String rolePrefix,
-            String roleName, Set<String> accessibleRoles, boolean keepFullName) {
+            String[] requestedRoleList, Set<String> accessibleRoles, boolean keepFullName) {
         
         Map<String, Set<String>> trustedRolesMap = data.getTrustMap();
 
@@ -713,7 +713,7 @@ public class DataStore implements DataCacheProvider {
         for (Map.Entry<String, Set<String>> trustedRole : trustedRolesMap.entrySet()) {
 
             processTrustedDomain(getCacheStore().getIfPresent(trustedRole.getKey()),
-                    identity, rolePrefix, roleName, trustedRole.getValue(),
+                    identity, rolePrefix, requestedRoleList, trustedRole.getValue(),
                     accessibleRoles, keepFullName);
         }
     }
@@ -726,7 +726,7 @@ public class DataStore implements DataCacheProvider {
 
     // API
     public void getAccessibleRoles(DataCache data, String domainName, String identity,
-            String roleName, Set<String> accessibleRoles, boolean keepFullName) {
+            String[] requestedRoleList, Set<String> accessibleRoles, boolean keepFullName) {
 
         /* if the domain hasn't been processed then we don't have anything to do */
         
@@ -740,13 +740,13 @@ public class DataStore implements DataCacheProvider {
          * included in the list explicitly */
 
         processStandardMembership(data.getMemberRoleSet(identity),
-                rolePrefix, roleName, accessibleRoles, keepFullName);
+                rolePrefix, requestedRoleList, accessibleRoles, keepFullName);
         
         /* next look at all * wildcard roles that are configured
          * for all members to access */
 
         processStandardMembership(data.getAllMemberRoleSet(),
-                rolePrefix, roleName, accessibleRoles, keepFullName);
+                rolePrefix, requestedRoleList, accessibleRoles, keepFullName);
         
         /* then look at the prefix wildcard roles. in this map
          * we only process those where the key in the map is
@@ -756,13 +756,13 @@ public class DataStore implements DataCacheProvider {
         for (String identityPrefix : roleSetMap.keySet()) {
             if (identity.startsWith(identityPrefix)) {
                 processStandardMembership(roleSetMap.get(identityPrefix),
-                        rolePrefix, roleName, accessibleRoles, keepFullName);
+                        rolePrefix, requestedRoleList, accessibleRoles, keepFullName);
             }
         }
         
         /* finally process all the roles that have trusted domain specified */
 
-        processTrustMembership(data, identity, rolePrefix, roleName,
+        processTrustMembership(data, identity, rolePrefix, requestedRoleList,
                 accessibleRoles, keepFullName);
     }
 
@@ -777,7 +777,7 @@ public class DataStore implements DataCacheProvider {
     }
 
     // Internal
-    void addRoleToList(String role, String rolePrefix, String roleName,
+    void addRoleToList(String role, String rolePrefix, String[] requestedRoleList,
             Set<String> accessibleRoles, boolean keepFullName) {
 
         /* any roles we return must start with the domain role prefix */
@@ -786,10 +786,19 @@ public class DataStore implements DataCacheProvider {
             return;
         }
 
-        /* and it must end with the suffix if specified */
+        /* and it must end with the suffix if requested */
         
-        if (roleName != null && !role.endsWith(roleName)) {
-            return;
+        if (requestedRoleList != null) {
+            boolean matchFound = false;
+            for (String requestedRole : requestedRoleList) {
+                if (role.endsWith(requestedRole)) {
+                    matchFound = true;
+                    break;
+                }
+            }
+            if (!matchFound) {
+                return;
+            }
         }
 
         /* when returning the value we're going to skip the prefix */
@@ -836,7 +845,7 @@ public class DataStore implements DataCacheProvider {
     }
     
     // Internal
-    void processSingleTrustedDomainRole(String roleName, String rolePrefix, String roleSuffix,
+    void processSingleTrustedDomainRole(String roleName, String rolePrefix, String[] requestedRoleList,
             Set<MemberRole> memberRoles, Set<String> accessibleRoles, boolean keepFullName) {
         
         /* since our member role set can include wildcard domains we
@@ -849,12 +858,12 @@ public class DataStore implements DataCacheProvider {
         
         /* now check if the role is in the resource list as well */
 
-        addRoleToList(roleName, rolePrefix, roleSuffix, accessibleRoles, keepFullName);
+        addRoleToList(roleName, rolePrefix, requestedRoleList, accessibleRoles, keepFullName);
     }
     
     // Internal
     void processTrustedDomain(DataCache trustData, String identity, String rolePrefix,
-            String roleSuffix, Set<String> trustedResources, Set<String> accessibleRoles,
+            String[] requestedRoleList, Set<String> trustedResources, Set<String> accessibleRoles,
             boolean keepFullName) {
 
         /* verify that our data cache and list of trusted resources are valid */
@@ -873,7 +882,7 @@ public class DataStore implements DataCacheProvider {
                 
                 /* in this case our resource is the role name */
                     
-                processSingleTrustedDomainRole(resource, rolePrefix, roleSuffix,
+                processSingleTrustedDomainRole(resource, rolePrefix, requestedRoleList,
                         memberRoles, accessibleRoles, keepFullName);
             }
         }
@@ -887,7 +896,7 @@ public class DataStore implements DataCacheProvider {
                 
                 /* in this case our resource is the role name */
                     
-                processSingleTrustedDomainRole(resource, rolePrefix, roleSuffix,
+                processSingleTrustedDomainRole(resource, rolePrefix, requestedRoleList,
                         memberRoles, accessibleRoles, keepFullName);
             }
         }
@@ -905,7 +914,7 @@ public class DataStore implements DataCacheProvider {
                     
                     /* in this case our resource is the role name */
                         
-                    processSingleTrustedDomainRole(resource, rolePrefix, roleSuffix,
+                    processSingleTrustedDomainRole(resource, rolePrefix, requestedRoleList,
                             memberRoles, accessibleRoles, keepFullName);
                 }
             }

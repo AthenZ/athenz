@@ -487,7 +487,7 @@ func (client ZTSClient) GetDomainSignedPolicyData(domainName DomainName, matchin
 	}
 }
 
-func (client ZTSClient) GetRoleToken(domainName DomainName, role EntityName, minExpiryTime *int32, maxExpiryTime *int32, proxyForPrincipal EntityName) (*RoleToken, error) {
+func (client ZTSClient) GetRoleToken(domainName DomainName, role EntityList, minExpiryTime *int32, maxExpiryTime *int32, proxyForPrincipal EntityName) (*RoleToken, error) {
 	var data *RoleToken
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/token" + encodeParams(encodeStringParam("role", string(role), ""), encodeOptionalInt32Param("minExpiryTime", minExpiryTime), encodeOptionalInt32Param("maxExpiryTime", maxExpiryTime), encodeStringParam("proxyForPrincipal", string(proxyForPrincipal), ""))
 	resp, err := client.httpGet(url, nil)
