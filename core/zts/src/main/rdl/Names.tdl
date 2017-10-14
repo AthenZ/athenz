@@ -18,6 +18,9 @@ type DomainName String (pattern="{CompoundName}");
 //including only the domain and entity.
 type EntityName String (pattern="{CompoundName}");
 
+//An Entity list is comma separated compound Names
+type EntityList String (pattern="({CompoundName},)*{CompoundName}");
+
 //A service name will generally be a unique subdomain.
 type ServiceName String (pattern="{CompoundName}");
 

@@ -120,6 +120,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
     private static final String TYPE_ENTITY_NAME = "EntityName";
+    private static final String TYPE_ENTITY_LIST = "EntityList";
     private static final String TYPE_SERVICE_NAME = "ServiceName";
     private static final String TYPE_INSTANCE_REGISTER_INFO = "InstanceRegisterInformation";
     private static final String TYPE_INSTANCE_REFRESH_INFO = "InstanceRefreshInformation";
@@ -988,12 +989,18 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             userName = this.userDomain + "." + userName;
         }
         
+        roleName = convertEmptyStringToNull(roleName);
+        String[] requestedRoleList = null;
+        if (roleName != null) {
+            requestedRoleList = roleName.split(",");
+        }
+        
         // process our request and retrieve the roles for the principal
         
         Set<String> roles = new HashSet<>();
         
         dataStore.getAccessibleRoles(data, providerDomainName, userName,
-                roleName, roles, false);
+                requestedRoleList, roles, false);
         
         // we are going to process the list and only keep the tenant
         // domains - this is based on the role names since our tenant
@@ -1128,7 +1135,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         validateRequest(ctx.request(), caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         if (roleName != null && !roleName.isEmpty()) {
-            validate(roleName, TYPE_ENTITY_NAME, caller);
+            validate(roleName, TYPE_ENTITY_LIST, caller);
         }
         if (proxyForPrincipal != null && !proxyForPrincipal.isEmpty()) {
             validate(proxyForPrincipal, TYPE_ENTITY_NAME, caller);
@@ -1204,17 +1211,27 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_REQUEST, domainName);
         metric.increment(caller, domainName);
         
-        /* check if application id matches the principal's application id */
+        // check if application id matches the principal's application id
+        
         checkRoleTokenApplicationIdRequest(ctx, data.getDomainData(), caller);
         
+        // we need to convert our request role name into array since
+        // it could contain multiple values separated by commas
+        
+        String[] requestedRoleList = null;
+        if (roleName != null) {
+            requestedRoleList = roleName.split(",");
+        }
+        
         // process our request and retrieve the roles for the principal
+        
         Set<String> roles = new HashSet<>();
-        dataStore.getAccessibleRoles(data, domainName, principal, roleName,
+        dataStore.getAccessibleRoles(data, domainName, principal, requestedRoleList,
                 roles, false);
         
         if (roles.isEmpty()) {
-            throw forbiddenError("getRoleToken: No access to any roles in domain: " + domainName,
-                    caller, domainName);
+            throw forbiddenError("getRoleToken: No access to any roles in domain: "
+                    + domainName, caller, domainName);
         }
         
         // if this is proxy for operation then we want to make sure that
@@ -1224,7 +1241,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         String proxyUser = null;
         if (proxyForPrincipal != null) {
             Set<String> rolesForProxy = new HashSet<>();
-            dataStore.getAccessibleRoles(data, domainName, proxyForPrincipal, roleName, rolesForProxy, false);
+            dataStore.getAccessibleRoles(data, domainName, proxyForPrincipal,
+                    requestedRoleList, rolesForProxy, false);
             roles.retainAll(rolesForProxy);
             
             // check again in case we removed all the roles and ended up
@@ -1387,8 +1405,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // process our request and retrieve the roles for the principal
         
+        String[] requestedRoleList = { roleName };
         Set<String> roles = new HashSet<>();
-        dataStore.getAccessibleRoles(data, domainName, principal, roleName,
+        dataStore.getAccessibleRoles(data, domainName, principal, requestedRoleList,
                 roles, false);
         
         if (roles.isEmpty()) {

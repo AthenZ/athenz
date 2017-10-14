@@ -916,6 +916,60 @@ public class DataStoreTest {
     }
     
     @Test
+    public void testAddRoleToListSingleRoleSpecified() {
+        
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+        DataStore store = new DataStore(clogStore, null);
+        
+        Set<String> accessibleRoles = new HashSet<>();
+        String[] requestedRoleList = { "admin" };
+        store.addRoleToList("coretech:role.admin", "coretech:role.", requestedRoleList, accessibleRoles, false);
+        assertEquals(accessibleRoles.size(), 1);
+        assertTrue(accessibleRoles.contains("admin"));
+    }
+    
+    @Test
+    public void testAddRoleToListSingleRoleSpecifiedNoMatch() {
+        
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+        DataStore store = new DataStore(clogStore, null);
+        
+        Set<String> accessibleRoles = new HashSet<>();
+        String[] requestedRoleList = { "admin2" };
+        store.addRoleToList("coretech:role.admin", "coretech:role.", requestedRoleList, accessibleRoles, false);
+        assertEquals(accessibleRoles.size(), 0);
+    }
+    
+    @Test
+    public void testAddRoleToListMultipleRoleSpecified() {
+        
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+        DataStore store = new DataStore(clogStore, null);
+        
+        Set<String> accessibleRoles = new HashSet<>();
+        String[] requestedRoleList = { "admin2", "admin3", "admin" };
+        store.addRoleToList("coretech:role.admin", "coretech:role.", requestedRoleList, accessibleRoles, false);
+        assertEquals(accessibleRoles.size(), 1);
+        assertTrue(accessibleRoles.contains("admin"));
+    }
+    
+    @Test
+    public void testAddRoleToListMultipleRoleSpecifiedNoMatch() {
+        
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+        DataStore store = new DataStore(clogStore, null);
+        
+        Set<String> accessibleRoles = new HashSet<>();
+        String[] requestedRoleList = { "admin2", "admin3", "admin4" };
+        store.addRoleToList("coretech:role.admin", "coretech:role.", requestedRoleList, accessibleRoles, false);
+        assertEquals(accessibleRoles.size(), 0);
+    }
+    
+    @Test
     public void testAddDomainToCacheNewDomain() {
         
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
@@ -1982,7 +2036,8 @@ public class DataStoreTest {
         
         Set<String> accessibleRoles = new HashSet<>();
         DataCache data = store.getDataCache("coretech");
-        store.getAccessibleRoles(data, "coretech", "user_domain.user", "coretech:role.admin", accessibleRoles, false);
+        String[] requestedRoleList = { "coretech:role.admin" };
+        store.getAccessibleRoles(data, "coretech", "user_domain.user", requestedRoleList, accessibleRoles, false);
         
         assertEquals(accessibleRoles.size(), 1);
         assertTrue(accessibleRoles.contains("admin"));
@@ -2988,13 +3043,13 @@ public class DataStoreTest {
         Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
         String identity = "user_domain.user1";
-        String role = "coretech:role.admin";
+        String[] requestedRoleList = { "coretech:role.admin" };
         
         Set<String> trustedResources = new HashSet<>();
         trustedResources.add("coretech:role.admin");
         trustedResources.add("coretech:role.readers");
         
-        store.processTrustedDomain(null, identity, prefix, role, trustedResources, accessibleRoles, false);
+        store.processTrustedDomain(null, identity, prefix, requestedRoleList, trustedResources, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
     }
     
@@ -3008,9 +3063,9 @@ public class DataStoreTest {
         Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
         String identity = "user_domain.user1";
-        String role = "coretech:role.admin";
+        String[] requestedRoleList = { "coretech:role.admin" };
         
-        store.processTrustedDomain(dataCache, identity, prefix, role, null, accessibleRoles, false);
+        store.processTrustedDomain(dataCache, identity, prefix, requestedRoleList, null, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
     }
     
@@ -3024,13 +3079,13 @@ public class DataStoreTest {
         Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
         String identity = "user_domain.user3";
-        String role = "coretech:role.admin";
+        String[] requestedRoleList = { "coretech:role.admin" };
         
         Set<String> trustedResources = new HashSet<>();
         trustedResources.add("coretech:role.admin");
         trustedResources.add("coretech:role.readers");
         
-        store.processTrustedDomain(dataCache, identity, prefix, role, trustedResources, accessibleRoles, false);
+        store.processTrustedDomain(dataCache, identity, prefix, requestedRoleList, trustedResources, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
     }
     
@@ -3065,13 +3120,13 @@ public class DataStoreTest {
         Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
         String identity = "user_domain.user1";
-        String role = "coretech:role.writers"; /* invalid role causing no match */
+        String[] requestedRoleList = { "coretech:role.writers" }; /* invalid role causing no match */
         
         Set<String> trustedResources = new HashSet<>();
         trustedResources.add("coretech:role.admin");
         trustedResources.add("coretech:role.readers");
         
-        store.processTrustedDomain(dataCache, identity, prefix, role, trustedResources, accessibleRoles, false);
+        store.processTrustedDomain(dataCache, identity, prefix, requestedRoleList, trustedResources, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
     }
     
@@ -3086,13 +3141,13 @@ public class DataStoreTest {
         Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
         String identity = "user_domain.user1";
-        String role = "coretech:role.admin";
+        String[] requestedRoleList = { "coretech:role.admin" };
         
         Set<String> trustedResources = new HashSet<>();
         trustedResources.add("coretech:role.admin");
         trustedResources.add("coretech:role.readers");
         
-        store.processTrustedDomain(dataCache, identity, prefix, role, trustedResources, accessibleRoles, false);
+        store.processTrustedDomain(dataCache, identity, prefix, requestedRoleList, trustedResources, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 1);
         assertTrue(accessibleRoles.contains("admin"));
     }
@@ -3157,13 +3212,13 @@ public class DataStoreTest {
         Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech2" + ROLE_POSTFIX; /* invalid prefix to cause no match */
         String identity = "user_domain.user1";
-        String role = "coretech:role.readers";
+        String[] requestedRoleList = { "coretech:role.readers" };
         
         Set<String> trustedResources = new HashSet<>();
         trustedResources.add("coretech:role.admin");
         trustedResources.add("coretech:role.readers");
         
-        store.processTrustedDomain(dataCache, identity, prefix, role, trustedResources, accessibleRoles, false);
+        store.processTrustedDomain(dataCache, identity, prefix, requestedRoleList, trustedResources, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
     }
     
@@ -3208,13 +3263,13 @@ public class DataStoreTest {
         
         Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
-        String roleCheck = "coretech:role.admin";
+        String[] requestedRoleList = { "coretech:role.admin" };
         
         Set<MemberRole> memberRoles = new HashSet<>();
         memberRoles.add(new MemberRole("coretech:role.admin", 0));
         memberRoles.add(new MemberRole("coretech:role.readers", 0));
         
-        store.processStandardMembership(memberRoles, prefix, roleCheck, accessibleRoles, false);
+        store.processStandardMembership(memberRoles, prefix, requestedRoleList, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 1);
     }
     
@@ -3227,13 +3282,13 @@ public class DataStoreTest {
         
         Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
-        String roleCheck = "coretech:role.admin";
+        String[] requestedRoleList = { "coretech:role.admin" };
         
         Set<MemberRole> memberRoles = new HashSet<>();
         memberRoles.add(new MemberRole("coretech:role.admin", System.currentTimeMillis() - 1000));
         memberRoles.add(new MemberRole("coretech:role.readers", 0));
         
-        store.processStandardMembership(memberRoles, prefix, roleCheck, accessibleRoles, false);
+        store.processStandardMembership(memberRoles, prefix, requestedRoleList, accessibleRoles, false);
         assertTrue(accessibleRoles.isEmpty());
     }
     
@@ -3246,13 +3301,13 @@ public class DataStoreTest {
         
         Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
-        String roleCheck = "admin";
+        String[] requestedRoleList = { "admin" };
         
         Set<MemberRole> memberRoles = new HashSet<>();
         memberRoles.add(new MemberRole("coretech:role.admin", 0));
         memberRoles.add(new MemberRole("coretech:role.readers", 0));
         
-        store.processStandardMembership(memberRoles, prefix, roleCheck, accessibleRoles, false);
+        store.processStandardMembership(memberRoles, prefix, requestedRoleList, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 1);
     }
     
@@ -3264,13 +3319,13 @@ public class DataStoreTest {
         
         Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech2" + ROLE_POSTFIX; /* invalid prefix causing no match */
-        String roleCheck = "coretech:role.admin";
+        String[] requestedRoleList = { "coretech:role.admin" };
         
         Set<MemberRole> memberRoles = new HashSet<>();
         memberRoles.add(new MemberRole("coretech:role.admin", 0));
         memberRoles.add(new MemberRole("coretech:role.readers", 0));
         
-        store.processStandardMembership(memberRoles, prefix, roleCheck, accessibleRoles, false);
+        store.processStandardMembership(memberRoles, prefix, requestedRoleList, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
     }
     
@@ -3283,13 +3338,13 @@ public class DataStoreTest {
         
         Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
-        String roleCheck = "2admin";
+        String[] requestedRoleList = { "2admin" };
         
         Set<MemberRole> memberRoles = new HashSet<>();
         memberRoles.add(new MemberRole("coretech:role.admin", 0));
         memberRoles.add(new MemberRole("coretech:role.readers", 0));
         
-        store.processStandardMembership(memberRoles, prefix, roleCheck, accessibleRoles, false);
+        store.processStandardMembership(memberRoles, prefix, requestedRoleList, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
     }
     
@@ -3333,8 +3388,10 @@ public class DataStoreTest {
         String prefix = "coretech" + ROLE_POSTFIX;
         String identity = "user_domain.user100";
         
+        String[] requestedRoleList = { "coretech:role.tenant.readers" };
+
         store.processTrustMembership(store.getCacheStore().getIfPresent("coretech"), identity, prefix,
-                "coretech:role.tenant.readers", accessibleRoles, false);
+                requestedRoleList, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 1);
         assertTrue(accessibleRoles.contains("tenant.readers"));
     }

@@ -23,7 +23,7 @@ type RoleToken Struct {
 //RoleToken Timeout value is used.
 resource RoleToken GET "/domain/{domainName}/token?role={role}&minExpiryTime={minExpiryTime}&maxExpiryTime={maxExpiryTime}&proxyForPrincipal={proxyForPrincipal}" {
     DomainName domainName; //name of the domain
-    EntityName role (optional); //only interested for a token for this role
+    EntityList role (optional); //only interested for a token for these comma separated roles
     Int32 minExpiryTime (optional); //in seconds min expiry time
     Int32 maxExpiryTime (optional); //in seconds max expiry time
     EntityName proxyForPrincipal (optional); //optional this request is proxy for this principal

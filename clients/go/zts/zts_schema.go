@@ -36,6 +36,11 @@ func init() {
 	tEntityName.Pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*")
 	sb.AddType(tEntityName.Build())
 
+	tEntityList := rdl.NewStringTypeBuilder("EntityList")
+	tEntityList.Comment("An Entity list is comma separated compound Names")
+	tEntityList.Pattern("(([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*,)*([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*")
+	sb.AddType(tEntityList.Build())
+
 	tServiceName := rdl.NewStringTypeBuilder("ServiceName")
 	tServiceName.Comment("A service name will generally be a unique subdomain.")
 	tServiceName.Pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*")
@@ -364,7 +369,7 @@ func init() {
 	mGetRoleToken := rdl.NewResourceBuilder("RoleToken", "GET", "/domain/{domainName}/token")
 	mGetRoleToken.Comment("Return a security token for the specific role in the namespace that the principal can assume. If the role is omitted, then all roles in the namespace that the authenticated user can assume are returned. the caller can specify how long the RoleToken should be valid for by specifying the minExpiryTime and maxExpiryTime parameters. The minExpiryTime specifies that the returned RoleToken must be at least valid (min/lower bound) for specified number of seconds, while maxExpiryTime specifies that the RoleToken must be at most valid (max/upper bound) for specified number of seconds. If both values are the same, the server must return a RoleToken for that many seconds. If no values are specified, the server's default RoleToken Timeout value is used.")
 	mGetRoleToken.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
-	mGetRoleToken.Input("role", "EntityName", false, "role", "", true, nil, "only interested for a token for this role")
+	mGetRoleToken.Input("role", "EntityList", false, "role", "", true, nil, "only interested for a token for these comma separated roles")
 	mGetRoleToken.Input("minExpiryTime", "Int32", false, "minExpiryTime", "", true, nil, "in seconds min expiry time")
 	mGetRoleToken.Input("maxExpiryTime", "Int32", false, "maxExpiryTime", "", true, nil, "in seconds max expiry time")
 	mGetRoleToken.Input("proxyForPrincipal", "EntityName", false, "proxyForPrincipal", "", true, nil, "optional this request is proxy for this principal")
