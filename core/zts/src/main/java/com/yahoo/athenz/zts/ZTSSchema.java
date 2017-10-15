@@ -16,7 +16,7 @@ public class ZTSSchema {
         SchemaBuilder sb = new SchemaBuilder("ZTS");
         sb.version(1);
         sb.namespace("com.yahoo.athenz.zts");
-        sb.comment("Copyright 2016 Yahoo Inc. Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. The Authorization Management Service (ZTS) API");
+        sb.comment("Copyright 2016 Yahoo Inc. Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. The Authorization Token Service (ZTS) API");
 
         sb.stringType("SimpleName")
             .comment("Copyright 2016 Yahoo Inc. Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. Common name types used by several API definitions A simple identifier, an element of compound name.")
@@ -253,6 +253,11 @@ public class ZTSSchema {
         sb.structType("DomainMetrics")
             .field("domainName", "DomainName", false, "name of the domain the metrics pertain to")
             .arrayField("metricList", "DomainMetric", false, "list of the domains metrics");
+
+        sb.structType("Status")
+            .comment("The representation for a status object")
+            .field("code", "Int32", false, "status message code")
+            .field("message", "String", false, "status message of the server");
 
 
         sb.resource("ResourceAccess", "GET", "/access/{action}/{resource}")
@@ -549,6 +554,17 @@ public class ZTSSchema {
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("Status", "GET", "/status")
+            .comment("Retrieve the server status")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("NOT_FOUND", "ResourceError", "")
 

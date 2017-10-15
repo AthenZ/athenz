@@ -61,12 +61,14 @@ public final class AthenzConsts {
     public static final String STR_DEF_ROOT     = "/home/athenz";
     public static final String STR_ENV_ROOT     = "ROOT";
     
-    public static final String ATHENZ_PROP_HTTPS_PORT    = "athenz.tls_port";
-    public static final String ATHENZ_PROP_HTTP_PORT     = "athenz.port";
+    public static final String ATHENZ_PROP_HTTP_PORT   = "athenz.port";
+    public static final String ATHENZ_PROP_HTTPS_PORT  = "athenz.tls_port";
+    public static final String ATHENZ_PROP_STATUS_PORT = "athenz.status_port";
     
     public static final int ATHENZ_HTTPS_PORT_DEFAULT = 4443;
     public static final int ATHENZ_HTTP_PORT_DEFAULT  = 4080;
     public static final int ATHENZ_HTTP_MAX_THREADS   = 1024;
+    
     public static final String ATHENZ_RATE_LIMIT_FACTORY_CLASS = "com.yahoo.athenz.common.filter.impl.NoOpRateLimitFactory";
     public static final String ATHENZ_PKEY_STORE_FACTORY_CLASS = "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory";
     

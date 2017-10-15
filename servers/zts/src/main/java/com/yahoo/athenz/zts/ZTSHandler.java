@@ -32,6 +32,7 @@ public interface ZTSHandler {
     public InstanceIdentity postInstanceRefreshInformation(ResourceContext context, String provider, String domain, String service, String instanceId, InstanceRefreshInformation info);
     public InstanceIdentity deleteInstanceIdentity(ResourceContext context, String provider, String domain, String service, String instanceId);
     public DomainMetrics postDomainMetrics(ResourceContext context, String domainName, DomainMetrics req);
+    public Status getStatus(ResourceContext context);
     public Schema getRdlSchema(ResourceContext context);
     public ResourceContext newResourceContext(HttpServletRequest request, HttpServletResponse response);
 }

@@ -4233,3 +4233,63 @@ func (self *Quota) Validate() error {
 	}
 	return nil
 }
+
+//
+// Status - The representation for a status object
+//
+type Status struct {
+
+	//
+	// status message code
+	//
+	Code int32 `json:"code"`
+
+	//
+	// status message of the server
+	//
+	Message string `json:"message"`
+}
+
+//
+// NewStatus - creates an initialized Status instance, returns a pointer to it
+//
+func NewStatus(init ...*Status) *Status {
+	var o *Status
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(Status)
+	}
+	return o
+}
+
+type rawStatus Status
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a Status
+//
+func (self *Status) UnmarshalJSON(b []byte) error {
+	var m rawStatus
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := Status(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *Status) Validate() error {
+	if self.Message == "" {
+		return fmt.Errorf("Status.message is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "String", self.Message)
+		if !val.Valid {
+			return fmt.Errorf("Status.message does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}

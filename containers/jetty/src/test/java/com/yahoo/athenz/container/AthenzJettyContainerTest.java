@@ -175,9 +175,7 @@ public class AthenzJettyContainerTest {
         System.setProperty(AthenzConsts.ATHENZ_PROP_REQUEST_HEADER_SIZE, "256");
         System.setProperty(AthenzConsts.ATHENZ_PROP_RESPONSE_HEADER_SIZE, "512");
         
-        int httpsPort = 443;
-        
-        HttpConfiguration httpConfig = container.newHttpConfiguration(httpsPort);
+        HttpConfiguration httpConfig = container.newHttpConfiguration();
         assertNotNull(httpConfig);
         
         assertEquals(httpConfig.getOutputBufferSize(), 128);
@@ -185,7 +183,8 @@ public class AthenzJettyContainerTest {
         assertTrue(httpConfig.getSendServerVersion());
         assertEquals(httpConfig.getRequestHeaderSize(), 256);
         assertEquals(httpConfig.getResponseHeaderSize(), 512);
-        assertEquals(httpConfig.getSecurePort(), httpsPort);
+        
+        // it defaults to https even if we have no value specified
         assertEquals(httpConfig.getSecureScheme(), "https");
     }
     
@@ -201,7 +200,7 @@ public class AthenzJettyContainerTest {
         System.setProperty(AthenzConsts.ATHENZ_PROP_REQUEST_HEADER_SIZE, "128");
         System.setProperty(AthenzConsts.ATHENZ_PROP_RESPONSE_HEADER_SIZE, "256");
         
-        HttpConfiguration httpConfig = container.newHttpConfiguration(0);
+        HttpConfiguration httpConfig = container.newHttpConfiguration();
         assertNotNull(httpConfig);
         
         assertEquals(httpConfig.getOutputBufferSize(), 64);
@@ -230,8 +229,8 @@ public class AthenzJettyContainerTest {
         AthenzJettyContainer container = new AthenzJettyContainer();
         container.createServer(100);
         
-        HttpConfiguration httpConfig = container.newHttpConfiguration(8082);
-        container.addHTTPConnectors(httpConfig, 8081, 8082);
+        HttpConfiguration httpConfig = container.newHttpConfiguration();
+        container.addHTTPConnectors(httpConfig, 8081, 8082, 0);
         
         Server server = container.getServer();
         Connector[] connectors = server.getConnectors();
@@ -259,8 +258,8 @@ public class AthenzJettyContainerTest {
         AthenzJettyContainer container = new AthenzJettyContainer();
         container.createServer(100);
         
-        HttpConfiguration httpConfig = container.newHttpConfiguration(8082);
-        container.addHTTPConnectors(httpConfig, 0, 8082);
+        HttpConfiguration httpConfig = container.newHttpConfiguration();
+        container.addHTTPConnectors(httpConfig, 0, 8082, 0);
         
         Server server = container.getServer();
         Connector[] connectors = server.getConnectors();
@@ -285,8 +284,8 @@ public class AthenzJettyContainerTest {
         AthenzJettyContainer container = new AthenzJettyContainer();
         container.createServer(100);
         
-        HttpConfiguration httpConfig = container.newHttpConfiguration(0);
-        container.addHTTPConnectors(httpConfig, 8081, 0);
+        HttpConfiguration httpConfig = container.newHttpConfiguration();
+        container.addHTTPConnectors(httpConfig, 8081, 0, 0);
         
         Server server = container.getServer();
         Connector[] connectors = server.getConnectors();
@@ -518,34 +517,5 @@ public class AthenzJettyContainerTest {
         
         assertTrue(connectors[1].getProtocols().contains("http/1.1"));
         assertTrue(connectors[1].getProtocols().contains("ssl"));
-    }
-    
-    @Test
-    public void testGetPortNumberDefault() {
-        assertEquals(AthenzJettyContainer.getPortNumber("NotExistantProperty", 4080), 4080);
-    }
-    
-    @Test
-    public void testGetPortNumberValid() {
-        System.setProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT, "4085");
-        assertEquals(AthenzJettyContainer.getPortNumber(AthenzConsts.ATHENZ_PROP_HTTP_PORT, 4080), 4085);
-    }
-    
-    @Test
-    public void testGetPortNumberInvalidFormat() {
-        System.setProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT, "abc");
-        assertEquals(AthenzJettyContainer.getPortNumber(AthenzConsts.ATHENZ_PROP_HTTP_PORT, 4080), 4080);
-    }
-    
-    @Test
-    public void testGetPortNumberOutOfRangeNegative() {
-        System.setProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT, "-1");
-        assertEquals(AthenzJettyContainer.getPortNumber(AthenzConsts.ATHENZ_PROP_HTTP_PORT, 4080), 4080);
-    }
-    
-    @Test
-    public void testGetPortNumberOutOfRangePositive() {
-        System.setProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT, "65536");
-        assertEquals(AthenzJettyContainer.getPortNumber(AthenzConsts.ATHENZ_PROP_HTTP_PORT, 4080), 4080);
     }
 }

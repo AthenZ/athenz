@@ -444,6 +444,12 @@ func init() {
 	tQuota.Field("modified", "Timestamp", true, nil, "the last modification timestamp of the quota object")
 	sb.AddType(tQuota.Build())
 
+	tStatus := rdl.NewStructTypeBuilder("Struct", "Status")
+	tStatus.Comment("The representation for a status object")
+	tStatus.Field("code", "Int32", false, nil, "status message code")
+	tStatus.Field("message", "String", false, nil, "status message of the server")
+	sb.AddType(tStatus.Build())
+
 	mGetDomain := rdl.NewResourceBuilder("Domain", "GET", "/domain/{domain}")
 	mGetDomain.Comment("Get info for the specified domain, by name. This request only returns the configured domain attributes and not any domain objects like roles, policies or service identities.")
 	mGetDomain.Input("domain", "DomainName", true, "", "", false, nil, "name of the domain")
@@ -1391,6 +1397,14 @@ func init() {
 	mDeleteQuota.Exception("NOT_FOUND", "ResourceError", "")
 	mDeleteQuota.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mDeleteQuota.Build())
+
+	mGetStatus := rdl.NewResourceBuilder("Status", "GET", "/status")
+	mGetStatus.Comment("Retrieve the server status")
+	mGetStatus.Auth("", "", true, "")
+	mGetStatus.Exception("BAD_REQUEST", "ResourceError", "")
+	mGetStatus.Exception("NOT_FOUND", "ResourceError", "")
+	mGetStatus.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mGetStatus.Build())
 
 	schema = sb.Build()
 }

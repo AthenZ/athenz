@@ -550,6 +550,31 @@ public class ZTSResources {
     }
 
     @GET
+    @Path("/status")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Status getStatus() {
+        try {
+            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context.authenticate();
+            Status e = this.delegate.getStatus(context);
+            return e;
+        } catch (ResourceException e) {
+            int code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getStatus");
+                throw typedException(code, e, ResourceError.class);
+            }
+        }
+    }
+
+    @GET
     @Path("/schema")
     @Produces(MediaType.APPLICATION_JSON)
     public Schema getRdlSchema() {

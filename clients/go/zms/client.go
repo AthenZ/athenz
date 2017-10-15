@@ -2542,3 +2542,35 @@ func (client ZMSClient) DeleteQuota(name DomainName, auditRef string) error {
 		return errobj
 	}
 }
+
+func (client ZMSClient) GetStatus() (*Status, error) {
+	var data *Status
+	url := client.URL + "/status"
+	resp, err := client.httpGet(url, nil)
+	if err != nil {
+		return data, err
+	}
+	contentBytes, err := ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		return data, err
+	}
+	switch resp.StatusCode {
+	case 200:
+		err = json.Unmarshal(contentBytes, &data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}

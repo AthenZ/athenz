@@ -458,4 +458,21 @@ public class ZTSRDLGeneratedClient {
 
     }
 
+    public Status getStatus() {
+        WebTarget target = base.path("/status");
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+        }
+        Response response = invocationBuilder.get();
+        int code = response.getStatus();
+        switch (code) {
+        case 200:
+            return response.readEntity(Status.class);
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
 }

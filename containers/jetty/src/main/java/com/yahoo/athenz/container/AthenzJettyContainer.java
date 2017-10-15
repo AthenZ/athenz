@@ -99,34 +99,6 @@ public class AthenzJettyContainer {
         return serverHostName;
     }
     
-    static int getPortNumber(String property, int defaultValue) {
-        
-        String propValue = System.getProperty(property);
-        if (propValue == null) {
-            return defaultValue;
-        }
-        
-        int port = defaultValue;
-        try {
-            
-            // first try to convert the string property to integer
-            
-            port = Integer.parseInt(propValue);
-            
-            // now verify that it's a valid port number
-            
-            if (port < 0 || port > 65535) {
-                throw new NumberFormatException();
-            }
-            
-        } catch (NumberFormatException ex) {
-            LOG.info("invalid port: " + propValue + ". Using default port: " + defaultValue);
-            port = defaultValue;
-        }
-        
-        return port;
-    }
-    
     public static String getRootDir() {
         
         if (ROOT_DIR == null) {
@@ -293,7 +265,7 @@ public class AthenzJettyContainer {
         webappProvider.setDefaultsDescriptor(webDefaultXML);
     }
     
-    public HttpConfiguration newHttpConfiguration(int httpsPort) {
+    public HttpConfiguration newHttpConfiguration() {
 
         // HTTP Configuration
         
@@ -309,11 +281,6 @@ public class AthenzJettyContainer {
                 System.getProperty(AthenzConsts.ATHENZ_PROP_RESPONSE_HEADER_SIZE, "8192"));
         
         HttpConfiguration httpConfig = new HttpConfiguration();
-        
-        if (httpsPort > 0) {
-            httpConfig.setSecureScheme("https");
-            httpConfig.setSecurePort(httpsPort);
-        }
         
         httpConfig.setOutputBufferSize(outputBufferSize);
         httpConfig.setRequestHeaderSize(requestHeaderSize);
@@ -394,7 +361,57 @@ public class AthenzJettyContainer {
         return sslContextFactory;
     }
     
-    public void addHTTPConnectors(HttpConfiguration httpConfig, int httpPort, int httpsPort) {
+    void addHTTPConnector(HttpConfiguration httpConfig, int httpPort, boolean proxyProtocol,
+            String listenHost, int idleTimeout) {
+        
+        ServerConnector connector = null;
+        if (proxyProtocol) {
+            connector = new ServerConnector(server, new ProxyConnectionFactory(),
+                    new HttpConnectionFactory(httpConfig));
+        } else {
+            connector = new ServerConnector(server, new HttpConnectionFactory(httpConfig));
+        }
+        if (listenHost != null) {
+            connector.setHost(listenHost);
+        }
+        connector.setPort(httpPort);
+        connector.setIdleTimeout(idleTimeout);
+        server.addConnector(connector);
+    }
+    
+    void addHTTPSConnector(HttpConfiguration httpConfig, int httpsPort, boolean proxyProtocol,
+            String listenHost, int idleTimeout) {
+        
+        // SSL Context Factory
+    
+        SslContextFactory sslContextFactory = createSSLContextObject();
+    
+        // SSL HTTP Configuration
+        
+        HttpConfiguration httpsConfig = new HttpConfiguration(httpConfig);
+        httpsConfig.setSecureScheme("https");
+        httpsConfig.setSecurePort(httpsPort);
+        httpsConfig.addCustomizer(new SecureRequestCustomizer());
+    
+        // SSL Connector
+        
+        ServerConnector sslConnector = null;
+        if (proxyProtocol) {
+            sslConnector = new ServerConnector(server, new ProxyConnectionFactory(),
+                    new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
+                    new HttpConnectionFactory(httpsConfig));
+        } else {
+            sslConnector = new ServerConnector(server,
+                    new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
+                    new HttpConnectionFactory(httpsConfig));
+        }
+        sslConnector.setPort(httpsPort);
+        sslConnector.setIdleTimeout(idleTimeout);
+        server.addConnector(sslConnector);
+    }
+    
+    public void addHTTPConnectors(HttpConfiguration httpConfig, int httpPort, int httpsPort,
+            int statusPort) {
 
         int idleTimeout = Integer.parseInt(
                 System.getProperty(AthenzConsts.ATHENZ_PROP_IDLE_TIMEOUT, "30000"));
@@ -405,49 +422,24 @@ public class AthenzJettyContainer {
         // HTTP Connector
         
         if (httpPort > 0) {
-            ServerConnector connector = null;
-            if (proxyProtocol) {
-                connector = new ServerConnector(server, new ProxyConnectionFactory(),
-                        new HttpConnectionFactory(httpConfig));
-            } else {
-                connector = new ServerConnector(server, new HttpConnectionFactory(httpConfig));
-            }
-            if (listenHost != null) {
-                connector.setHost(listenHost);
-            }
-            connector.setPort(httpPort);
-            connector.setIdleTimeout(idleTimeout);
-            server.addConnector(connector);
+            addHTTPConnector(httpConfig, httpPort, proxyProtocol, listenHost, idleTimeout);
         }
         
         // HTTPS Connector
         
         if (httpsPort > 0) {
+            addHTTPSConnector(httpConfig, httpsPort, proxyProtocol, listenHost, idleTimeout);
+        }
+        
+        // Status Connector - only if it's different from HTTP/HTTPS
+        
+        if (statusPort > 0 && statusPort != httpPort && statusPort != httpsPort) {
             
-            // SSL Context Factory
-
-            SslContextFactory sslContextFactory = createSSLContextObject();
-
-            // SSL HTTP Configuration
-            
-            HttpConfiguration httpsConfig = new HttpConfiguration(httpConfig);
-            httpsConfig.addCustomizer(new SecureRequestCustomizer());
-
-            // SSL Connector
-            
-            ServerConnector sslConnector = null;
-            if (proxyProtocol) {
-                sslConnector = new ServerConnector(server, new ProxyConnectionFactory(),
-                        new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
-                        new HttpConnectionFactory(httpsConfig));
-            } else {
-                sslConnector = new ServerConnector(server,
-                        new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
-                        new HttpConnectionFactory(httpsConfig));
+            if (httpsPort > 0) {
+                addHTTPSConnector(httpConfig, statusPort, false, listenHost, idleTimeout);
+            } else if (httpPort > 0) {
+                addHTTPConnector(httpConfig, statusPort, false, listenHost, idleTimeout);
             }
-            sslConnector.setPort(httpsPort);
-            sslConnector.setIdleTimeout(idleTimeout);
-            server.addConnector(sslConnector);
         }
     }
     
@@ -494,23 +486,30 @@ public class AthenzJettyContainer {
         
         // retrieve our http and https port numbers
         
-        int httpPort = getPortNumber(AthenzConsts.ATHENZ_PROP_HTTP_PORT,
+        int httpPort = ConfigProperties.getPortNumber(AthenzConsts.ATHENZ_PROP_HTTP_PORT,
                 AthenzConsts.ATHENZ_HTTP_PORT_DEFAULT);
-        int httpsPort = getPortNumber(AthenzConsts.ATHENZ_PROP_HTTPS_PORT,
+        int httpsPort = ConfigProperties.getPortNumber(AthenzConsts.ATHENZ_PROP_HTTPS_PORT,
                 AthenzConsts.ATHENZ_HTTPS_PORT_DEFAULT);
-
+        
+        // for status port we'll use the protocol specified for the regular http
+        // port. if both http and https are provided then https will be picked
+        // it could also be either one of the values specified as well
+        
+        int statusPort = ConfigProperties.getPortNumber(AthenzConsts.ATHENZ_PROP_STATUS_PORT, 0);
+        
         String serverHostName = getServerHostName();
         
         container = new AthenzJettyContainer();
         container.setBanner("http://" + serverHostName + " http port: " +
-                httpPort + " https port: " + httpsPort);
+                httpPort + " https port: " + httpsPort + " status port: " +
+                statusPort);
 
         int maxThreads = Integer.parseInt(System.getProperty(AthenzConsts.ATHENZ_PROP_MAX_THREADS,
                 Integer.toString(AthenzConsts.ATHENZ_HTTP_MAX_THREADS)));
         container.createServer(maxThreads);
         
-        HttpConfiguration httpConfig = container.newHttpConfiguration(httpsPort);
-        container.addHTTPConnectors(httpConfig, httpPort, httpsPort);
+        HttpConfiguration httpConfig = container.newHttpConfiguration();
+        container.addHTTPConnectors(httpConfig, httpPort, httpsPort, statusPort);
         container.addServletHandlers(serverHostName);
         
         container.addRequestLogHandler();
