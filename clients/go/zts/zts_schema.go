@@ -14,7 +14,7 @@ func init() {
 	sb := rdl.NewSchemaBuilder("ZTS")
 	sb.Version(1)
 	sb.Namespace("com.yahoo.athenz.zts")
-	sb.Comment("Copyright 2016 Yahoo Inc. Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. The Authorization Management Service (ZTS) API")
+	sb.Comment("Copyright 2016 Yahoo Inc. Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. The Authorization Token Service (ZTS) API")
 
 	tSimpleName := rdl.NewStringTypeBuilder("SimpleName")
 	tSimpleName.Comment("Copyright 2016 Yahoo Inc. Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. Common name types used by several API definitions A simple identifier, an element of compound name.")
@@ -293,6 +293,12 @@ func init() {
 	tDomainMetrics.ArrayField("metricList", "DomainMetric", false, "list of the domains metrics")
 	sb.AddType(tDomainMetrics.Build())
 
+	tStatus := rdl.NewStructTypeBuilder("Struct", "Status")
+	tStatus.Comment("The representation for a status object")
+	tStatus.Field("code", "Int32", false, nil, "status message code")
+	tStatus.Field("message", "String", false, nil, "status message of the server")
+	sb.AddType(tStatus.Build())
+
 	mGetResourceAccess := rdl.NewResourceBuilder("ResourceAccess", "GET", "/access/{action}/{resource}")
 	mGetResourceAccess.Comment("Check access for the specified operation on the specified resource for the currently authenticated user. This is the slow centralized access for control-plane purposes. Use distributed mechanisms for decentralized (data-plane) access by fetching signed policies and role tokens for users. With this endpoint the resource is part of the uri and restricted to its strict definition of resource name. If needed, you can use the GetAccessExt api that allows resource name to be less restrictive.")
 	mGetResourceAccess.Input("action", "ActionName", true, "", "", false, nil, "action as specified in the policy assertion, i.e. update or read")
@@ -520,6 +526,14 @@ func init() {
 	mPostDomainMetrics.Exception("NOT_FOUND", "ResourceError", "")
 	mPostDomainMetrics.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mPostDomainMetrics.Build())
+
+	mGetStatus := rdl.NewResourceBuilder("Status", "GET", "/status")
+	mGetStatus.Comment("Retrieve the server status")
+	mGetStatus.Auth("", "", true, "")
+	mGetStatus.Exception("BAD_REQUEST", "ResourceError", "")
+	mGetStatus.Exception("NOT_FOUND", "ResourceError", "")
+	mGetStatus.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mGetStatus.Build())
 
 	schema = sb.Build()
 }

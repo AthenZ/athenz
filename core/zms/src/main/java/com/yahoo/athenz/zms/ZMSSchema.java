@@ -380,6 +380,11 @@ public class ZMSSchema {
             .field("publicKey", "Int32", false, "number of public keys per service")
             .field("modified", "Timestamp", true, "the last modification timestamp of the quota object");
 
+        sb.structType("Status")
+            .comment("The representation for a status object")
+            .field("code", "Int32", false, "status message code")
+            .field("message", "String", false, "status message of the server");
+
 
         sb.resource("Domain", "GET", "/domain/{domain}")
             .comment("Get info for the specified domain, by name. This request only returns the configured domain attributes and not any domain objects like roles, policies or service identities.")
@@ -1644,6 +1649,17 @@ public class ZMSSchema {
             .exception("CONFLICT", "ResourceError", "")
 
             .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("Status", "GET", "/status")
+            .comment("Retrieve the server status")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("NOT_FOUND", "ResourceError", "")
 

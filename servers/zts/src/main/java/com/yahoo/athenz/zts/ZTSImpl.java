@@ -116,6 +116,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected int svcTokenTimeout = 86400;
     protected Set<String> authFreeUriSet = null;
     protected List<Pattern> authFreeUriList = null;
+    protected int httpPort;
+    protected int httpsPort;
+    protected int statusPort;
+    protected Status successServerStatus = null;
     
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -270,6 +274,16 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         secureRequestsOnly = Boolean.parseBoolean(System.getProperty(ZTSConsts.ZTS_PROP_SECURE_REQUESTS_ONLY, "true"));
  
+        // retrieve the regular and status ports
+        
+        httpPort = ConfigProperties.getPortNumber(ZTSConsts.ZTS_PROP_HTTP_PORT,
+                ZTSConsts.ZTS_HTTP_PORT_DEFAULT);
+        httpsPort = ConfigProperties.getPortNumber(ZTSConsts.ZTS_PROP_HTTPS_PORT,
+                ZTSConsts.ZTS_HTTPS_PORT_DEFAULT);
+        statusPort = ConfigProperties.getPortNumber(ZTSConsts.ZTS_PROP_STATUS_PORT, 0);
+        
+        successServerStatus = new Status().setCode(ResourceException.OK).setMessage("OK");
+        
         // check to see if we want to disable allowing clients to ask for role
         // tokens without role name thus violating the least privilege principle
         
@@ -1424,11 +1438,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (!validateRoleCertificateRequest(certReq, domainName, roles, principal)) {
             throw requestError("postRoleCertificateRequest: Unable to validate cert request",
                     caller, domainName);
-        }
-        
-        CertSigner certSigner = this.cloudStore.getCertSigner();
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Cert signer: {} ", certSigner);
         }
         
         String x509Cert = certSigner.generateX509Certificate(req.getCsr(), ZTSConsts.ZTS_CERT_USAGE_CLIENT);
@@ -2614,6 +2623,34 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
     
     @Override
+    public Status getStatus(ResourceContext ctx) {
+        
+        final String caller = "getstatus";
+        metric.increment(HTTP_GET);
+        logPrincipal(ctx);
+
+        // validate our request as status request
+        
+        validateRequest(ctx.request(), caller, true);
+        
+        // create our timer object
+        
+        metric.increment(caller);
+        Object timerMetric = metric.startTiming("getstatus_timing", null);
+        
+        // for now we're going to verify our certsigner connectivity
+        // in case of failure we're going to return not found
+
+        if (certSigner.getCACertificate() == null) {
+            throw notFoundError("Unable to communicate with cert signer", caller,
+                    ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+        }
+        
+        metric.stopTiming(timerMetric);
+        return successServerStatus;
+    }
+    
+    @Override
     public Schema getRdlSchema(ResourceContext context) {
         return schema;
     }
@@ -2623,8 +2660,36 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     void validateRequest(HttpServletRequest request, String caller) {
+        validateRequest(request, caller, false);
+    }
+    
+    void validateRequest(HttpServletRequest request, String caller, boolean statusRequest) {
+        
+        // first validate if we're required process this over TLS only
+        
         if (secureRequestsOnly && !request.isSecure()) {
-            throw requestError(caller + "request must be over TLS", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+            throw requestError(caller + "request must be over TLS", caller,
+                    ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+        }
+        
+        // second check if this is a status port so we can only
+        // process on status requests
+        
+        if (statusPort > 0 && statusPort != httpPort && statusPort != httpsPort) {
+            
+            // non status requests must not take place on the status port
+            
+            if (!statusRequest && request.getLocalPort() == statusPort) {
+                throw requestError("incorrect port number for a non-status request",
+                        caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+            }
+            
+            // status requests must not take place on a non-status port
+            
+            if (statusRequest && request.getLocalPort() != statusPort) {
+                throw requestError("incorrect port number for a status request",
+                        caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+            }
         }
     }
     

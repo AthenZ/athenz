@@ -69,4 +69,32 @@ public class ConfigProperties {
             }
         }
     }
+    
+    public static int getPortNumber(String property, int defaultValue) {
+        
+        String propValue = System.getProperty(property);
+        if (propValue == null) {
+            return defaultValue;
+        }
+        
+        int port = defaultValue;
+        try {
+            
+            // first try to convert the string property to integer
+            
+            port = Integer.parseInt(propValue);
+            
+            // now verify that it's a valid port number
+            
+            if (port < 0 || port > 65535) {
+                throw new NumberFormatException();
+            }
+            
+        } catch (NumberFormatException ex) {
+            LOGGER.info("invalid port: " + propValue + ". Using default port: " + defaultValue);
+            port = defaultValue;
+        }
+        
+        return port;
+    }
 }

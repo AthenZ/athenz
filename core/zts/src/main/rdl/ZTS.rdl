@@ -2,7 +2,7 @@
 // Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
 
 //
-//The Authorization Management Service (ZTS) API
+//The Authorization Token Service (ZTS) API
 //
 name ZTS;
 version 1;
@@ -16,5 +16,6 @@ include "Tenancy.rdli";
 include "Identity.rdli";
 include "AWSAuth.rdli";
 include "OSTKAuth.rdli";
-include "Instance.rdli"
+include "Instance.rdli";
 include "DomainMetrics.rdli";
+include "Status.rdli";

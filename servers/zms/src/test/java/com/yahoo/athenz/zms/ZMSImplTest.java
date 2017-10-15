@@ -14943,5 +14943,120 @@ public class ZMSImplTest {
         assertEquals(zmsImpl.normalizeDomainAliasUser("user.user2"), "user.user2");
         assertEquals(zmsImpl.normalizeDomainAliasUser("user.user2.svc"), "user.user2.svc");
     }
+    
+    @Test
+    public void testValidateRequestSecureRequests() {
+        ZMSImpl zmsImpl = zmsInit();
+        zmsImpl.secureRequestsOnly = false;
+        zmsImpl.statusPort = 0;
+        
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(request.isSecure()).thenReturn(true);
+        
+        // if secure requests is false, no check is done
+        
+        zmsImpl.validateRequest(request, "test");
+        zmsImpl.validateRequest(request, "test", false);
+        zmsImpl.validateRequest(request, "test", true);
+        
+        // should complete successfully since our request is true
+        
+        zmsImpl.secureRequestsOnly = true;
+        zmsImpl.validateRequest(request, "test");
+        zmsImpl.validateRequest(request, "test", false);
+        zmsImpl.validateRequest(request, "test", true);
+    }
+    
+    @Test
+    public void testValidateRequestNonSecureRequests() {
+        ZMSImpl zmsImpl = zmsInit();
+        zmsImpl.secureRequestsOnly = true;
+        zmsImpl.statusPort = 0;
+        
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        
+        // if request is not secure, should be rejected
+        
+        Mockito.when(request.isSecure()).thenReturn(false);
+        try {
+            zmsImpl.validateRequest(request, "test");
+            fail();
+        } catch (ResourceException ex) {
+        }
+        try {
+            zmsImpl.validateRequest(request, "test", false);
+            fail();
+        } catch (ResourceException ex) {
+        }
+        try {
+            zmsImpl.validateRequest(request, "test", true);
+            fail();
+        } catch (ResourceException ex) {
+        }
+    }
+    
+    @Test
+    public void testValidateRequestStatusRequestPort() {
+        
+        ZMSImpl zmsImpl = zmsInit();
+        zmsImpl.secureRequestsOnly = true;
+        zmsImpl.statusPort = 8443;
+        
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(request.isSecure()).thenReturn(true);
+        Mockito.when(request.getLocalPort()).thenReturn(4443);
+        
+        // non-status requests are allowed on port 4443
+        
+        zmsImpl.validateRequest(request, "test");
+        zmsImpl.validateRequest(request, "test", false);
+
+        // status requests are not allowed on port 4443
+        
+        try {
+            zmsImpl.validateRequest(request, "test", true);
+            fail();
+        } catch (ResourceException ex) {
+        }
+    }
+    
+    @Test
+    public void testValidateRequestRegularRequestPort() {
+        
+        ZMSImpl zmsImpl = zmsInit();
+        zmsImpl.secureRequestsOnly = true;
+        zmsImpl.statusPort = 8443;
+        
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(request.isSecure()).thenReturn(true);
+        Mockito.when(request.getLocalPort()).thenReturn(8443);
+        
+        // status requests are allowed on port 8443
+        
+        zmsImpl.validateRequest(request, "test", true);
+
+        // non-status requests are not allowed on port 8443
+        
+        try {
+            zmsImpl.validateRequest(request, "test");
+            fail();
+        } catch (ResourceException ex) {
+        }
+        
+        try {
+            zmsImpl.validateRequest(request, "test", false);
+            fail();
+        } catch (ResourceException ex) {
+        }
+    }
+    
+    @Test
+    public void testGetStatus() {
+
+        ZMSImpl zmsImpl = zmsInit();
+        zmsImpl.statusPort = 0;
+        Status status = zmsImpl.getStatus(mockDomRsrcCtx);
+        assertEquals(status.getCode(), ResourceException.OK);
+    }
 }
 

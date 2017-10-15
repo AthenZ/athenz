@@ -25,7 +25,10 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_USER_DOMAIN       = "athenz.user_domain";
     public static final String ZMS_PROP_HOME_DOMAIN       = "athenz.home_domain";
     public static final String ZMS_PROP_USER_DOMAIN_ALIAS = "athenz.user_domain_alias";
-
+    public static final String ZMS_PROP_HTTP_PORT         = "athenz.port";
+    public static final String ZMS_PROP_HTTPS_PORT        = "athenz.tls_port";
+    public static final String ZMS_PROP_STATUS_PORT       = "athenz.status_port";
+    
     public static final String ZMS_PROP_HOSTNAME      = "athenz.zms.hostname";
     public static final String ZMS_PROP_DOMAIN_ADMIN  = "athenz.zms.domain_admin";
     public static final String ZMS_PROP_FILE_NAME     = "athenz.zms.prop_file";
@@ -124,6 +127,9 @@ public final class ZMSConsts {
     public static final String SCHEME_HTTP  = "http";
     public static final String SCHEME_HTTPS = "https";
     public static final String SCHEME_CLASS = "class";
+    
+    public static final int ZMS_HTTPS_PORT_DEFAULT = 4443;
+    public static final int ZMS_HTTP_PORT_DEFAULT  = 4080;
     
     public static final String DB_COLUMN_DESCRIPTION       = "description";
     public static final String DB_COLUMN_ORG               = "org";

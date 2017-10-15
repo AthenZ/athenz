@@ -24,7 +24,10 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_USER_DOMAIN       = "athenz.user_domain";
     public static final String ZTS_PROP_USER_DOMAIN_ALIAS = "athenz.user_domain_alias";
     public static final String ZTS_PROP_ATHENZ_CONF       = "athenz.athenz_conf";
-
+    public static final String ZTS_PROP_HTTP_PORT         = "athenz.port";
+    public static final String ZTS_PROP_HTTPS_PORT        = "athenz.tls_port";
+    public static final String ZTS_PROP_STATUS_PORT       = "athenz.status_port";
+    
     public static final String ZTS_PROP_HOSTNAME    = "athenz.zts.hostname";
     public static final String ZTS_PROP_FILE_NAME   = "athenz.zts.prop_file";
     
@@ -84,6 +87,9 @@ public final class ZTSConsts {
 
     public static final String ZTS_SERVICE           = "zts";
     public static final String ZTS_UNKNOWN_DOMAIN    = "unknown_domain";
+    
+    public static final int ZTS_HTTPS_PORT_DEFAULT   = 4443;
+    public static final int ZTS_HTTP_PORT_DEFAULT    = 4080;
     
     public static final String ATHENZ_SYS_DOMAIN     = "sys.auth";
     public static final String ATHENZ_USER_DOMAIN    = "user";

@@ -165,6 +165,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected Authority principalAuthority = null;
     protected Set<String> authFreeUriSet = null;
     protected List<Pattern> authFreeUriList = null;
+    protected int httpPort;
+    protected int httpsPort;
+    protected int statusPort;
+    protected Status successServerStatus = null;
     
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
@@ -480,6 +484,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // make sure all requests run in secure mode
 
         secureRequestsOnly = Boolean.parseBoolean(System.getProperty(ZMSConsts.ZMS_PROP_SECURE_REQUESTS_ONLY, "true"));
+        
+        // retrieve the regular and status ports
+        
+        httpPort = ConfigProperties.getPortNumber(ZMSConsts.ZMS_PROP_HTTP_PORT,
+                ZMSConsts.ZMS_HTTP_PORT_DEFAULT);
+        httpsPort = ConfigProperties.getPortNumber(ZMSConsts.ZMS_PROP_HTTPS_PORT,
+                ZMSConsts.ZMS_HTTPS_PORT_DEFAULT);
+        statusPort = ConfigProperties.getPortNumber(ZMSConsts.ZMS_PROP_STATUS_PORT, 0);
+        
+        successServerStatus = new Status().setCode(ResourceException.OK).setMessage("OK");
         
         // retrieve the user domain we're supposed to use
         
@@ -6021,8 +6035,33 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     void validateRequest(HttpServletRequest request, String caller) {
+        validateRequest(request, caller, false);
+    }
+    
+    void validateRequest(HttpServletRequest request, String caller, boolean statusRequest) {
+        
+        // first validate if we're required process this over TLS only
+        
         if (secureRequestsOnly && !request.isSecure()) {
             throw ZMSUtils.requestError(caller + "request must be over TLS", caller);
+        }
+        
+        // second check if this is a status port so we can only
+        // process on status requests
+        
+        if (statusPort > 0 && statusPort != httpPort && statusPort != httpsPort) {
+            
+            // non status requests must not take place on the status port
+            
+            if (!statusRequest && request.getLocalPort() == statusPort) {
+                throw ZMSUtils.requestError("incorrect port number for a non-status request", caller);
+            }
+            
+            // status requests must not take place on a non-status port
+            
+            if (statusRequest && request.getLocalPort() != statusPort) {
+                throw ZMSUtils.requestError("incorrect port number for a status request", caller);
+            }
         }
     }
     
@@ -6627,6 +6666,34 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return rsrcAccessList;
     }
 
+    @Override
+    public Status getStatus(ResourceContext ctx) {
+        
+        final String caller = "getstatus";
+        metric.increment(ZMSConsts.HTTP_GET);
+        logPrincipal(ctx);
+
+        // validate our request as status request
+        
+        validateRequest(ctx.request(), caller, true);
+        
+        // create our timer object
+        
+        metric.increment(caller);
+        Object timerMetric = metric.startTiming("getstatus_timing", null);
+        
+        // for now we're going to verify our database connectivity
+        // in case of failure we're going to return not found
+
+        DomainList dlist = listDomains(null, null, null, null, 0);
+        if (dlist.getNames() == null || dlist.getNames().isEmpty()) {
+            throw ZMSUtils.notFoundError("Error - no domains available", caller);
+        }
+        
+        metric.stopTiming(timerMetric);
+        return successServerStatus;
+    }
+    
     void logPrincipal(ResourceContext ctx) {
         ((RsrcCtxWrapper) ctx).logPrincipal();
     }

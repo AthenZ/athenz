@@ -23,3 +23,4 @@ include "Token.rdli";
 include "Template.rdli";
 include "User.rdli";
 include "Quota.rdli";
+include "Status.rdli";

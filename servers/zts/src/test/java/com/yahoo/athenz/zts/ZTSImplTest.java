@@ -2605,7 +2605,7 @@ public class ZTSImplTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(401, ex.getCode());
-            assertEquals( ((ResourceError) ex.data).message, "failed message");
+            assertEquals( ((ResourceError) ex.getData()).message, "failed message");
         }
     }
     
@@ -5541,5 +5541,150 @@ public class ZTSImplTest {
         assertEquals(zts.normalizeDomainAliasUser("useralias.joe"), "user.joe");
         assertEquals(zts.normalizeDomainAliasUser("useralias.joe.svc"), "useralias.joe.svc");
         assertEquals(zts.normalizeDomainAliasUser("joe"), "joe");
+    }
+    
+    @Test
+    public void testValidateRequestSecureRequests() {
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null);
+        
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        ztsImpl.secureRequestsOnly = false;
+        ztsImpl.statusPort = 0;
+        
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(request.isSecure()).thenReturn(true);
+        
+        // if secure requests is false, no check is done
+        
+        ztsImpl.validateRequest(request, "test");
+        ztsImpl.validateRequest(request, "test", false);
+        ztsImpl.validateRequest(request, "test", true);
+        
+        // should complete successfully since our request is true
+        
+        ztsImpl.secureRequestsOnly = true;
+        ztsImpl.validateRequest(request, "test");
+        ztsImpl.validateRequest(request, "test", false);
+        ztsImpl.validateRequest(request, "test", true);
+    }
+    
+    @Test
+    public void testValidateRequestNonSecureRequests() {
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null);
+        
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        ztsImpl.secureRequestsOnly = true;
+        ztsImpl.statusPort = 0;
+        
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        
+        // if request is not secure, should be rejected
+        
+        Mockito.when(request.isSecure()).thenReturn(false);
+        try {
+            ztsImpl.validateRequest(request, "test");
+            fail();
+        } catch (ResourceException ex) {
+        }
+        try {
+            ztsImpl.validateRequest(request, "test", false);
+            fail();
+        } catch (ResourceException ex) {
+        }
+        try {
+            ztsImpl.validateRequest(request, "test", true);
+            fail();
+        } catch (ResourceException ex) {
+        }
+    }
+    
+    @Test
+    public void testValidateRequestStatusRequestPort() {
+        
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null);
+        
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        ztsImpl.secureRequestsOnly = true;
+        ztsImpl.statusPort = 8443;
+        
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(request.isSecure()).thenReturn(true);
+        Mockito.when(request.getLocalPort()).thenReturn(4443);
+        
+        // non-status requests are allowed on port 4443
+        
+        ztsImpl.validateRequest(request, "test");
+        ztsImpl.validateRequest(request, "test", false);
+
+        // status requests are not allowed on port 4443
+        
+        try {
+            ztsImpl.validateRequest(request, "test", true);
+            fail();
+        } catch (ResourceException ex) {
+        }
+    }
+    
+    @Test
+    public void testValidateRequestRegularRequestPort() {
+        
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null);
+        
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        ztsImpl.secureRequestsOnly = true;
+        ztsImpl.statusPort = 8443;
+        
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(request.isSecure()).thenReturn(true);
+        Mockito.when(request.getLocalPort()).thenReturn(8443);
+        
+        // status requests are allowed on port 8443
+        
+        ztsImpl.validateRequest(request, "test", true);
+
+        // non-status requests are not allowed on port 8443
+        
+        try {
+            ztsImpl.validateRequest(request, "test");
+            fail();
+        } catch (ResourceException ex) {
+        }
+        
+        try {
+            ztsImpl.validateRequest(request, "test", false);
+            fail();
+        } catch (ResourceException ex) {
+        }
+    }
+    
+    @Test
+    public void testGetStatus() {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null);
+        
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        ztsImpl.statusPort = 0;
+        
+        Principal principal = SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+        
+        Status status = ztsImpl.getStatus(context);
+        assertEquals(status.getCode(), ResourceException.OK);
     }
 }
