@@ -2991,20 +2991,20 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
         
         // we're going to update each assertion and generate the
-        // resource in the expected aws role format
+        // resource in the expected aws role format. however, we
+        // going to skip any assertions where we do not have a
+        // valid syntax or no aws domain
         
         for (Assertion assertion : roleAssertions) {
             
             String resource = assertion.getResource();
             int idx = resource.indexOf(':');
             if (idx == -1) {
-                principalAssertions.add(assertion);
                 continue;
             }
             
             String awsDomain = awsDomains.get(resource.substring(0, idx));
             if (awsDomain == null) {
-                principalAssertions.add(assertion);
                 continue;
             }
 

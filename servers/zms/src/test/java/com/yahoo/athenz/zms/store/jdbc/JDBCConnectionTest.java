@@ -5485,12 +5485,11 @@ public class JDBCConnectionTest {
         Map<String, String> awsDomains = new HashMap<>();
         awsDomains.put("dom1", "12345");
         
-        jdbcConn.addRoleAssertions(principalAssertions, roleAssertions, awsDomains);
-        assertEquals(3, principalAssertions.size());
+        // we're going to skip 2 invalid assertions - no aws domains
         
+        jdbcConn.addRoleAssertions(principalAssertions, roleAssertions, awsDomains);
+        assertEquals(1, principalAssertions.size());
         assertEquals("arn:aws:iam::12345:role/resource", principalAssertions.get(0).getResource());
-        assertEquals("dom2:resource1", principalAssertions.get(1).getResource());
-        assertEquals("resource3", principalAssertions.get(2).getResource());
         
         jdbcConn.close();
     }
@@ -5700,6 +5699,7 @@ public class JDBCConnectionTest {
             .thenReturn(false) // up to here standard trusted roles
             .thenReturn(false) // up to here wildcard trusted roles
             .thenReturn(true)
+            .thenReturn(true)
             .thenReturn(false); // up to here is aws domains
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_NAME))
             .thenReturn("user.user1")
@@ -5711,7 +5711,8 @@ public class JDBCConnectionTest {
             .thenReturn("trole1")
             .thenReturn("trole2")
             .thenReturn("trole3") // up to here trusted roles
-            .thenReturn("dom1");
+            .thenReturn("dom1")
+            .thenReturn("dom2");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_DOMAIN_ID))
             .thenReturn("101")
             .thenReturn("102")
@@ -5742,7 +5743,8 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_EFFECT))
             .thenReturn("ALLOW");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ACCOUNT))
-            .thenReturn("12345");
+            .thenReturn("12345")
+            .thenReturn("12346");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ASSERT_DOMAIN_ID))
             .thenReturn("101")
             .thenReturn("102")
@@ -5766,7 +5768,7 @@ public class JDBCConnectionTest {
                 case "user.user2":
                     userUser2 = true;
                     assertEquals(1, rsrcAccess.getAssertions().size());
-                    assertEquals("dom2:role2", rsrcAccess.getAssertions().get(0).getResource());
+                    assertEquals("arn:aws:iam::12346:role/role2", rsrcAccess.getAssertions().get(0).getResource());
                     break;
                 case "user.user3.service":
                     userUser3 = true;
