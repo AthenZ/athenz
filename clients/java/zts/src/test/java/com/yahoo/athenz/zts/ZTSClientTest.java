@@ -219,6 +219,16 @@ public class ZTSClientTest {
     }
     
     @Test
+    public void testGetRoleTokenCacheKeyMultipleRoles() {
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+        ZTSClient client = new ZTSClient("http://localhost:4080/", principal);
+        assertEquals(client.getRoleTokenCacheKey("coretech", "writers,admin,readers", "proxyuser"),
+                "p=user_domain.user;d=coretech;r=admin,readers,writers;u=proxyuser");
+        client.close();
+    }
+    
+    @Test
     public void testLookupAwsCredInCacheNotPresent() {
         
         Principal principal = SimplePrincipal.create("user_domain", "user",
@@ -2557,5 +2567,24 @@ public class ZTSClientTest {
         }
 
         client.close();
+    }
+    
+    @Test
+    public void testMultipleRoleKey() {
+        
+        assertNull(ZTSClient.multipleRoleKey(null));
+        
+        List<String> roles = new ArrayList<>();
+        assertNull(ZTSClient.multipleRoleKey(roles));
+        
+        roles.add("role");
+        assertEquals(ZTSClient.multipleRoleKey(roles), "role");
+        
+        roles.add("one");
+        roles.add("apple");
+        roles.add("yellow");
+        roles.add("ones");
+        
+        assertEquals(ZTSClient.multipleRoleKey(roles), "apple,one,ones,role,yellow");
     }
 }
