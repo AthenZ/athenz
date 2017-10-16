@@ -252,7 +252,6 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "policy=?, assertion=?, service=?, service_host=?, public_key=?, entity=?, "
             + "subdomain=? WHERE domain_id=?;";
     private static final String SQL_DELETE_QUOTA = "DELETE FROM quota WHERE domain_id=?;";
-
     
     private static final String CACHE_DOMAIN    = "d:";
     private static final String CACHE_ROLE      = "r:";
@@ -262,6 +261,8 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String CACHE_HOST      = "h:";
     private static final String ALL_PRINCIPALS  = "*";
 
+    private static final String AWS_ARN_PREFIX  = "arn:aws:iam::";
+    
     Connection con = null;
     boolean transactionCompleted = true;
     int queryTimeout = 60;
@@ -2997,19 +2998,42 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         for (Assertion assertion : roleAssertions) {
             
-            String resource = assertion.getResource();
-            int idx = resource.indexOf(':');
-            if (idx == -1) {
+            final String resource = assertion.getResource();
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("addRoleAssertions: processing assertion: {}", resource);
+            }
+            
+            // first we need to check if the assertion has already
+            // been processed and as such the resource has been
+            // rewritten to have aws format
+            
+            if (resource.startsWith(AWS_ARN_PREFIX)) {
+                principalAssertions.add(assertion);
                 continue;
             }
             
-            String awsDomain = awsDomains.get(resource.substring(0, idx));
+            // otherwise we're going to look for the domain component
+            
+            int idx = resource.indexOf(':');
+            if (idx == -1) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("addRoleAssertions: resource without domain component: {}", resource);
+                }
+                continue;
+            }
+            
+            final String resourceDomain = resource.substring(0, idx);
+            String awsDomain = awsDomains.get(resourceDomain);
             if (awsDomain == null) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("addRoleAssertions: resource without aws domain: {}", resourceDomain);
+                }
                 continue;
             }
 
             StringBuilder awsRole = new StringBuilder(512);
-            awsRole.append("arn:aws:iam::").append(awsDomain).append(":role/").append(resource.substring(idx + 1));
+            awsRole.append(AWS_ARN_PREFIX).append(awsDomain).append(":role/").append(resource.substring(idx + 1));
             assertion.setResource(awsRole.toString());
             principalAssertions.add(assertion);
         }
