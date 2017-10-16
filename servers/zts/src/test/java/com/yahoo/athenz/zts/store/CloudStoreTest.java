@@ -17,13 +17,6 @@ package com.yahoo.athenz.zts.store;
 
 import static org.testng.Assert.*;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -34,19 +27,12 @@ import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
 import com.amazonaws.auth.BasicSessionCredentials;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
 import com.amazonaws.services.securitytoken.model.Credentials;
-import com.amazonaws.services.securitytoken.model.GetCallerIdentityResult;
-import com.yahoo.athenz.auth.util.Crypto;
-import com.yahoo.athenz.common.server.cert.CertSigner;
-import com.yahoo.athenz.zts.AWSInstanceInformation;
 import com.yahoo.athenz.zts.AWSTemporaryCredentials;
-import com.yahoo.athenz.zts.Identity;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.cert.impl.SelfCertSigner;
 import com.yahoo.athenz.zts.store.CloudStore;
 
 public class CloudStoreTest {
@@ -105,6 +91,7 @@ public class CloudStoreTest {
     @Test
     public void testGetS3Client() {
         
+        System.setProperty(ZTSConsts.ZTS_PROP_AWS_PUBLIC_CERT, "src/test/resources/aws_public.crt");
         CloudStore store = new CloudStore(null);
         store.credentials = new BasicSessionCredentials("accessKey", "secretKey", "token");
         store.awsEnabled = true;
@@ -662,195 +649,6 @@ public class CloudStoreTest {
             assertEquals(ex.getCode(), 500);
         }
         store.close();
-    }
-    
-    @Test
-    public void testGenerateIdentity() throws IOException {
-        
-        File caCert = new File("src/test/resources/valid_cn_x509.cert");
-        X509Certificate caCertificate = Crypto.loadX509Certificate(caCert);
-        
-        File caKey = new File("src/test/resources/private_encrypted.key");
-        PrivateKey caPrivateKey = Crypto.loadPrivateKey(caKey, "athenz");
-        CertSigner certSigner = new SelfCertSigner(caPrivateKey, caCertificate);
-        
-        CloudStore cloudStore = new CloudStore(certSigner);
-        
-        Path path = Paths.get("src/test/resources/valid.csr");
-        String certCsr = new String(Files.readAllBytes(path));
-        
-        Identity identity = cloudStore.generateIdentity("athenz.syncer", certCsr, null, null);
-        assertNotNull(identity);
-        cloudStore.close();
-    }
-    
-    @Test
-    public void testGenerateIdentityInvalidCsr() throws IOException {
-        
-        File caCert = new File("src/test/resources/valid_cn_x509.cert");
-        X509Certificate caCertificate = Crypto.loadX509Certificate(caCert);
-        
-        File caKey = new File("src/test/resources/private_encrypted.key");
-        PrivateKey caPrivateKey = Crypto.loadPrivateKey(caKey, "athenz");
-        CertSigner certSigner = new SelfCertSigner(caPrivateKey, caCertificate);
-
-        CloudStore cloudStore = new CloudStore(certSigner);
-        
-        Identity identity = cloudStore.generateIdentity("athenz.syncer", "invalid-csr", null, null);
-        assertNull(identity);
-        cloudStore.close();
-    }
-    
-    @Test
-    public void testGenerateIdentityMismatchCN() throws IOException {
-        
-        File caCert = new File("src/test/resources/valid_cn_x509.cert");
-        X509Certificate caCertificate = Crypto.loadX509Certificate(caCert);
-        
-        File caKey = new File("src/test/resources/private_encrypted.key");
-        PrivateKey caPrivateKey = Crypto.loadPrivateKey(caKey, "athenz");
-        CertSigner certSigner = new SelfCertSigner(caPrivateKey, caCertificate);
-
-        CloudStore cloudStore = new CloudStore(certSigner);
-        
-        Path path = Paths.get("src/test/resources/valid.csr");
-        String certCsr = new String(Files.readAllBytes(path));
-        
-        Identity identity = cloudStore.generateIdentity("athenz.backup", certCsr, null, null);
-        assertNull(identity);
-        
-        identity = cloudStore.generateIdentity("athenz", certCsr, null, null);
-        assertNull(identity);
-        cloudStore.close();
-    }
-    
-    @Test
-    public void testGetInstanceClient() {
-        AWSInstanceInformation info = new AWSInstanceInformation();
-        info.setAccess("access");
-        info.setSecret("secret");
-        info.setToken("token");
-        
-        CloudStore cloudStore = new CloudStore(null);
-        AWSSecurityTokenServiceClient client = cloudStore.getInstanceClient(info);
-        assertNotNull(client);
-        cloudStore.close();
-    }
-    
-    @Test
-    public void testGetInstanceClientInvalidAccess() {
-        AWSInstanceInformation info = new AWSInstanceInformation();
-        info.setAccess("");
-        info.setSecret("secret");
-        info.setToken("token");
-        
-        CloudStore cloudStore = new CloudStore(null);
-        assertNull(cloudStore.getInstanceClient(info));
-        
-        info = new AWSInstanceInformation();
-        info.setSecret("secret");
-        info.setToken("token");
-
-        assertNull(cloudStore.getInstanceClient(info));
-        cloudStore.close();
-    }
-    
-    @Test
-    public void testGetInstanceClientInvalidSecret() {
-        AWSInstanceInformation info = new AWSInstanceInformation();
-        info.setAccess("access");
-        info.setSecret("");
-        info.setToken("token");
-        
-        CloudStore cloudStore = new CloudStore(null);
-        assertNull(cloudStore.getInstanceClient(info));
-        
-        info = new AWSInstanceInformation();
-        info.setAccess("access");
-        info.setToken("token");
-
-        assertNull(cloudStore.getInstanceClient(info));
-        cloudStore.close();
-    }
-    
-    @Test
-    public void testGetInstanceClientInvalidToken() {
-        AWSInstanceInformation info = new AWSInstanceInformation();
-        info.setAccess("access");
-        info.setSecret("secret");
-        info.setToken("");
-        
-        CloudStore cloudStore = new CloudStore(null);
-        assertNull(cloudStore.getInstanceClient(info));
-        
-        info = new AWSInstanceInformation();
-        info.setAccess("access");
-        info.setSecret("secret");
-
-        assertNull(cloudStore.getInstanceClient(info));
-        cloudStore.close();
-   }
-    
-    @Test
-    public void testVerifyInstanceIdentityNullResult() {
-        MockCloudStore cloudStore = new MockCloudStore();
-        cloudStore.setAssumeRoleResult(null);
-        AWSInstanceInformation info = new AWSInstanceInformation()
-                .setDomain("athenz")
-                .setService("zts")
-                .setAccount("12345");
-        assertFalse(cloudStore.verifyInstanceIdentity(info));
-    }
-    
-    @Test
-    public void testVerifyInstanceIdentityNullClient() {
-        MockCloudStore cloudStore = new MockCloudStore();
-        cloudStore.setGetCallerIdentityResult(null);
-        cloudStore.setReturnNullClient(true);
-        AWSInstanceInformation info = new AWSInstanceInformation()
-                .setDomain("athenz")
-                .setService("zts")
-                .setAccount("12345");
-        assertFalse(cloudStore.verifyInstanceIdentity(info));
-    }
-    
-    @Test
-    public void testVerifyInstanceIdentityNullCreds() {
-        MockCloudStore cloudStore = new MockCloudStore();
-        GetCallerIdentityResult mockResult = Mockito.mock(GetCallerIdentityResult.class);
-        Mockito.when(mockResult.getArn()).thenReturn(null);
-        cloudStore.setGetCallerIdentityResult(mockResult);
-        AWSInstanceInformation info = new AWSInstanceInformation()
-                .setDomain("athenz")
-                .setService("zts")
-                .setAccount("12345");
-        assertFalse(cloudStore.verifyInstanceIdentity(info));
-    }
-
-    @Test
-    public void testVerifyInstanceIdentityMismatchCreds() {
-        MockCloudStore cloudStore = new MockCloudStore();
-        GetCallerIdentityResult mockResult = Mockito.mock(GetCallerIdentityResult.class);
-        Mockito.when(mockResult.getArn()).thenReturn("arn:aws:sts::12345:assumed-role/athenz.zts2/i-13434");
-        cloudStore.setGetCallerIdentityResult(mockResult);
-        AWSInstanceInformation info = new AWSInstanceInformation()
-                .setDomain("athenz")
-                .setService("zts")
-                .setAccount("12345");
-        assertFalse(cloudStore.verifyInstanceIdentity(info));
-    }
-    
-    @Test
-    public void testVerifyInstanceIdentity() {
-        MockCloudStore cloudStore = new MockCloudStore();
-        GetCallerIdentityResult mockResult = Mockito.mock(GetCallerIdentityResult.class);
-        Mockito.when(mockResult.getArn()).thenReturn("arn:aws:sts::12345:assumed-role/athenz.zts/i-134343");
-        cloudStore.setGetCallerIdentityResult(mockResult);
-        AWSInstanceInformation info = new AWSInstanceInformation()
-                .setDomain("athenz")
-                .setService("zts")
-                .setAccount("12345");
-        assertTrue(cloudStore.verifyInstanceIdentity(info));
     }
     
     @Test

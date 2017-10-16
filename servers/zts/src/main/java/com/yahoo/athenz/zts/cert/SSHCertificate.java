@@ -18,7 +18,8 @@ package com.yahoo.athenz.zts.cert;
 public class SSHCertificate {
 
     private String opensshkey;
-
+    private String type;
+    
     public SSHCertificate() {
     }
     
@@ -28,6 +29,15 @@ public class SSHCertificate {
     
     public SSHCertificate setOpensshkey(String opensshkey) {
         this.opensshkey = opensshkey;
+        return this;
+    }
+    
+    public String getType() {
+        return type;
+    }
+    
+    public SSHCertificate setType(String type) {
+        this.type = type;
         return this;
     }
 }

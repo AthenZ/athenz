@@ -23,7 +23,6 @@ import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
 import com.amazonaws.services.securitytoken.model.GetCallerIdentityRequest;
 import com.amazonaws.services.securitytoken.model.GetCallerIdentityResult;
 import com.yahoo.athenz.common.server.cert.CertSigner;
-import com.yahoo.athenz.zts.AWSInstanceInformation;
 import com.yahoo.athenz.zts.AWSTemporaryCredentials;
 import com.yahoo.athenz.zts.store.CloudStore;
 
@@ -67,31 +66,6 @@ public class MockCloudStore extends CloudStore {
         identityCheck = idCheck;
     }
     
-    @Override
-    public boolean verifyInstanceIdentity(AWSInstanceInformation info) {
-        boolean result = false;
-        switch (identityCheck) {
-            case 0:
-                result = super.verifyInstanceIdentity(info);
-                break;
-            case 1:
-                result = true;
-                break;
-            case -1:
-                result = false;
-                break;
-        }
-        return result;
-    }
-    
-    @Override
-    public boolean verifyInstanceDocument(AWSInstanceInformation info, String account) {
-        if (skipSigCheck) {
-            return true;
-        }
-        return super.verifyInstanceDocument(info, account);
-    }
-    
     void setAssumeRoleResult(AssumeRoleResult assumeRoleResult) {
         this.assumeRoleResult = assumeRoleResult;
     }
@@ -110,18 +84,6 @@ public class MockCloudStore extends CloudStore {
         Mockito.when(client.assumeRole(Mockito.any(AssumeRoleRequest.class))).thenReturn(assumeRoleResult);
         Mockito.when(client.getCallerIdentity(Mockito.any(GetCallerIdentityRequest.class))).thenReturn(callerIdentityResult);
         return client;
-    }
-
-    @Override
-    AWSSecurityTokenServiceClient getInstanceClient(AWSInstanceInformation info) {
-        if (returnNullClient) {
-            return null;
-        } else {
-            AWSSecurityTokenServiceClient client = Mockito.mock(AWSSecurityTokenServiceClient.class);
-            Mockito.when(client.assumeRole(Mockito.any(AssumeRoleRequest.class))).thenReturn(assumeRoleResult);
-            Mockito.when(client.getCallerIdentity(Mockito.any(GetCallerIdentityRequest.class))).thenReturn(callerIdentityResult);
-            return client;
-        }
     }
 
     void setAssumeAWSRole(boolean returnSuperAWSRole) {

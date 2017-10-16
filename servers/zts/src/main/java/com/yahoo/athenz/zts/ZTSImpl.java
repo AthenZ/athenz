@@ -1837,13 +1837,26 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_REQUEST, domain);
         metric.increment(caller, domain);
         
+        // we are going to get two use cases here. client asking for:
+        // * x509 cert (optionally with ssh certificate
+        // * only ssh certificate
+        // both CSRs are marked as optional so we need to make sure
+        // at least one of the CSRs is provided
+        
+        final String x509Csr = convertEmptyStringToNull(info.getCsr());
+        final String sshCsr = convertEmptyStringToNull(info.getSsh());
+
+        if (x509Csr == null && sshCsr == null) {
+            throw requestError("no csr provided", caller, domain);
+        }
+        
         // make sure the credentials match to whatever the request is
 
         Principal principal = ((RsrcCtxWrapper) ctx).principal();
         final String principalName = domain + "." + service;
         if (!principalName.equals(principal.getFullName())) {
-            throw requestError("postInstanceRefreshInformation: Principal mismatch: "
-                    + principalName + " vs. " + principal.getFullName(), caller, domain);
+            throw requestError("Principal mismatch: " + principalName + " vs. " +
+                    principal.getFullName(), caller, domain);
         }
 
         Authority authority = principal.getAuthority();
@@ -1851,7 +1864,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // we only support services that already have certificates
         
         if (!(authority instanceof CertificateAuthority)) {
-            throw requestError("postInstanceRefreshInformation: Unsupported authority for TLS Certs: " +
+            throw requestError("Unsupported authority for TLS Certs: " +
                     authority.toString(), caller, domain);
         }
         
@@ -1863,9 +1876,39 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         if (!instanceCertManager.authorizeLaunch(providerService, domain, service,
                 authorizer, errorMsg)) {
-            throw forbiddenError("postInstanceRefreshInformation: " + errorMsg.toString(),
-                    caller, domain);
+            throw forbiddenError(errorMsg.toString(), caller, domain);
         }
+        
+        // extract our instance certificate record to make sure it
+        // hasn't been revoked already
+        
+        X509CertRecord x509CertRecord = instanceCertManager.getX509CertRecord(provider, instanceId);
+        if (x509CertRecord == null) {
+            throw forbiddenError("Unable to find certificate record", caller, domain);
+        }
+        
+        if (!principalName.equals(x509CertRecord.getService())) {
+            throw requestError("service name mismatch - csr: " + principalName +
+                    " cert db: " + x509CertRecord.getService(), caller, domain);
+        }
+        
+        InstanceIdentity identity = null;
+        if (x509Csr != null) {
+            identity = processX509RefreshRequest(ctx, principal, domain, service, provider,
+                    providerService, instanceId, info, x509CertRecord, caller);
+        } else {
+            identity = processSSHRefreshRequest(ctx, principal, domain, service, provider,
+                    instanceId, sshCsr, x509CertRecord, caller);
+        }
+        
+        metric.stopTiming(timerMetric);
+        return identity;
+    }
+    
+    InstanceIdentity processX509RefreshRequest(ResourceContext ctx, final Principal principal,
+            final String domain, final String service, final String provider,
+            final Principal providerService, final String instanceId,
+            InstanceRefreshInformation info, X509CertRecord x509CertRecord, final String caller) {
         
         // parse and validate our CSR
         
@@ -1873,13 +1916,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         try {
             certReq = new X509CertRequest(info.getCsr());
         } catch (CryptoException ex) {
-            throw requestError("postInstanceRefreshInformation: unable to parse PKCS10 CSR",
-                    caller, domain);
+            throw requestError("unable to parse PKCS10 CSR", caller, domain);
         }
         
+        StringBuilder errorMsg = new StringBuilder(256);
         if (!certReq.validate(providerService, domain, service, instanceId, authorizer, errorMsg)) {
-            throw requestError("postInstanceRefreshInformation: CSR validation failed - "
-                    + errorMsg.toString(), caller, domain);
+            throw requestError("CSR validation failed - " + errorMsg.toString(), caller, domain);
         }
         
         // retrieve the certificate that was used for authentication
@@ -1888,26 +1930,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         X509Certificate cert = principal.getX509Certificate();
         if (!certReq.compareDnsNames(cert)) {
-            throw requestError("postInstanceRefreshInformation: dnsName attribute mismatch in CSR",
-                    caller, domain);
-        }
-        
-        // extract our instance certificate record to make sure it
-        // hasn't been revoked already
-        
-        X509CertRecord x509CertRecord = instanceCertManager.getX509CertRecord(provider, instanceId);
-        if (x509CertRecord == null) {
-            throw forbiddenError("postInstanceRefreshInformation: Unable to find certificate record",
-                    caller, domain);
+            throw requestError("dnsName attribute mismatch in CSR", caller, domain);
         }
         
         // validate that the tenant domain/service matches to the values
         // in the cert record when it was initially issued
         
-        if (!principalName.equals(x509CertRecord.getService())) {
-            throw requestError("postInstanceRefreshInformation: service name mismatch - csr: "
-                    + principalName + " cert db: " + x509CertRecord.getService(), caller, domain);
-        }
+        final String principalName = principal.getFullName();
+
         
         // now we need to make sure the serial number for the certificate
         // matches to what we had issued previously. If we have a mismatch
@@ -1930,8 +1960,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             // we have a mismatch for both current and previous serial
             // numbers so we're going to revoke it
             
-            LOGGER.error("postInstanceRefreshInformation: Revoking certificate refresh for cn: {} " +
-                    "instance id: {}, current serial: {}, previous serial: {}, cert serial: {}",
+            LOGGER.error("Revoking certificate refresh for cn: {} instance id: {}," +
+                    " current serial: {}, previous serial: {}, cert serial: {}",
                     principalName, x509CertRecord.getInstanceId(), x509CertRecord.getCurrentSerial(),
                     x509CertRecord.getPrevSerial(), serialNumber);
             
@@ -1939,8 +1969,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             x509CertRecord.setCurrentSerial("-1");
             
             instanceCertManager.updateX509CertRecord(x509CertRecord);
-            throw forbiddenError("postInstanceRefreshInformation: Certificate revoked",
-                    caller, domain);
+            throw forbiddenError("Certificate revoked", caller, domain);
         }
         
         // generate identity with the certificate
@@ -1948,16 +1977,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         InstanceIdentity identity = instanceCertManager.generateIdentity(info.getCsr(),
                 principalName, x509CertRecord.getClientCert() ? ZTSConsts.ZTS_CERT_USAGE_CLIENT : null);
         if (identity == null) {
-            throw serverError("postInstanceRefreshInformation: unable to generate identity",
-                    caller, domain);
+            throw serverError("unable to generate identity", caller, domain);
         }
         
         // if we're asked then we should also generate a ssh
         // certificate for the instance as well
         
         if (!instanceCertManager.generateSshIdentity(identity, info.getSsh(), null)) {
-            throw serverError("postInstanceRefreshInformation: unable to generate ssh identity",
-                    caller, domain);
+            throw serverError("unable to generate ssh identity", caller, domain);
         }
         
         // set the other required attributes in the identity object
@@ -1976,8 +2003,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // not be able to validate the refresh request next time
         
         if (!instanceCertManager.updateX509CertRecord(x509CertRecord)) {
-            throw serverError("postInstanceRefreshInformation: unable to update cert db",
-                    caller, domain);
+            throw serverError("unable to update cert db", caller, domain);
         }
         
         // if we're asked to return an NToken in addition to ZTS Certificate
@@ -2002,14 +2028,76 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             .append(" Domain: ").append(domain)
             .append(" Service: ").append(service)
             .append(" InstanceId: ").append(instanceId)
-            .append(" Serial: ").append(x509CertRecord.getCurrentSerial());
+            .append(" Serial: ").append(x509CertRecord.getCurrentSerial())
+            .append(" Type: x509");
         msgBldr.whatDetails(auditLogDetails.toString());
         auditLogger.log(msgBldr);
         
-        metric.stopTiming(timerMetric);
         return identity;
     }
 
+    InstanceIdentity processSSHRefreshRequest(ResourceContext ctx, final Principal principal,
+            final String domain, final String service, final String provider,
+            final String instanceId, final String sshCsr, X509CertRecord x509CertRecord,
+            final String caller) {
+        
+        final String principalName = principal.getFullName();
+        
+        // now we need to make sure the serial number for the certificate
+        // matches to what we had issued previously. If we have a mismatch
+        // then we're going to revoke this instance as it has been possibly
+        // compromised
+        
+        X509Certificate cert = principal.getX509Certificate();
+        String serialNumber = cert.getSerialNumber().toString();
+        if (!x509CertRecord.getCurrentSerial().equals(serialNumber) &&
+                !x509CertRecord.getPrevSerial().equals(serialNumber)) {
+            
+            // we have a mismatch for both current and previous serial
+            // numbers so we're going to revoke it
+            
+            LOGGER.error("Revoking certificate refresh for cn: {} instance id: {}," +
+                    " current serial: {}, previous serial: {}, cert serial: {}",
+                    principalName, x509CertRecord.getInstanceId(), x509CertRecord.getCurrentSerial(),
+                    x509CertRecord.getPrevSerial(), serialNumber);
+            
+            x509CertRecord.setPrevSerial("-1");
+            x509CertRecord.setCurrentSerial("-1");
+            
+            instanceCertManager.updateX509CertRecord(x509CertRecord);
+            throw forbiddenError("Certificate revoked", caller, domain);
+        }
+        
+        // generate identity with the ssh certificate
+        
+        InstanceIdentity identity = new InstanceIdentity().setName(principalName);
+        if (!instanceCertManager.generateSshIdentity(identity, sshCsr, null)) {
+            throw serverError("unable to generate ssh identity", caller, domain);
+        }
+        
+        // set the other required attributes in the identity object
+
+        identity.setProvider(provider);
+        identity.setInstanceId(instanceId);
+        
+        // create our audit log entry
+        
+        AuditLogMsgBuilder msgBldr = getAuditLogMsgBuilder(ctx, domain, caller, HTTP_POST);
+        msgBldr.whatEntity(instanceId);
+        
+        StringBuilder auditLogDetails = new StringBuilder(512);
+        auditLogDetails.append("Provider: ").append(provider)
+            .append(" Domain: ").append(domain)
+            .append(" Service: ").append(service)
+            .append(" InstanceId: ").append(instanceId)
+            .append(" Serial: ").append(serialNumber)
+            .append(" Type: ssh");
+        msgBldr.whatDetails(auditLogDetails.toString());
+        auditLogger.log(msgBldr);
+        
+        return identity;
+    }
+    
     @Override
     public InstanceIdentity deleteInstanceIdentity(ResourceContext ctx, String provider,
             String domain, String service, String instanceId) {

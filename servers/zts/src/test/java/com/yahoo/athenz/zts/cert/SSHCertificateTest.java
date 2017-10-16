@@ -26,8 +26,10 @@ public class SSHCertificateTest {
         SSHCertificate cert = new SSHCertificate();
         assertNotNull(cert);
         assertNull(cert.getOpensshkey());
+        assertNull(cert.getType());
         
-        SSHCertificate cert2 = new SSHCertificate().setOpensshkey("key");
+        SSHCertificate cert2 = new SSHCertificate().setOpensshkey("key").setType("user");
         assertEquals(cert2.getOpensshkey(), "key");
+        assertEquals(cert2.getType(), "user");
     }
 }

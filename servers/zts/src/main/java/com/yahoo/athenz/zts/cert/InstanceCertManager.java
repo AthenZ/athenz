@@ -224,7 +224,7 @@ public class InstanceCertManager {
             return true;
         }
         
-        SshRequest sshReq = new SshRequest(sshCsr, sshCertType);
+        SSHRequest sshReq = new SSHRequest(sshCsr, sshCertType);
         if (!sshReq.validateType()) {
             return false;
         }
