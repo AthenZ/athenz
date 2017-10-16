@@ -335,15 +335,9 @@ public class HttpCertSigner implements CertSigner {
         }
         
         if (sshCerts != null && sshCerts.getCerts() != null) {
-            
-            // the current order is 0 - user and 1 - host
-            
-            List<SSHCertificate> certs = sshCerts.getCerts();
-            if (certs.size() == 2) {
-                if (ZTSConsts.ZTS_SSH_USER.equals(type)) {
-                    return certs.get(0).getOpensshkey();
-                } else if (ZTSConsts.ZTS_SSH_HOST.equals(type)) {
-                    return certs.get(1).getOpensshkey();
+            for (SSHCertificate sshCert : sshCerts.getCerts()) {
+                if (sshCert.getType().equals(type)) {
+                    return sshCert.getOpensshkey();
                 }
             }
         }

@@ -22,15 +22,15 @@ import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Struct;
 
-public class SshRequest {
+public class SSHRequest {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SshRequest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SSHRequest.class);
 
     String ssh;
     String sshCertType;
     String sshReqType;
     
-    public SshRequest(String ssh, String sshCertType) {
+    public SSHRequest(String ssh, String sshCertType) {
         this.ssh = ssh;
         this.sshCertType = sshCertType;
     }
