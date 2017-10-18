@@ -37,7 +37,7 @@ public class InstanceCertManagerTest {
         final String cert = "cert";
         final String caCert = "caCert";
         CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class);
-        Mockito.when(certSigner.generateX509Certificate(Mockito.anyString(), Mockito.anyObject())).thenReturn(cert);
+        Mockito.when(certSigner.generateX509Certificate(Mockito.<String>any(), Mockito.anyObject())).thenReturn(cert);
         Mockito.when(certSigner.getCACertificate()).thenReturn(caCert);
         
         InstanceCertManager instanceManager = new InstanceCertManager(null, certSigner);
@@ -53,7 +53,7 @@ public class InstanceCertManagerTest {
     public void testGenerateIdentityNullCert() {
         
         CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class);
-        Mockito.when(certSigner.generateX509Certificate(Mockito.anyString(), Mockito.anyObject())).thenReturn(null);
+        Mockito.when(certSigner.generateX509Certificate(Mockito.<String>any(), Mockito.anyObject())).thenReturn(null);
 
         InstanceCertManager instanceManager = new InstanceCertManager(null, certSigner);
         InstanceIdentity identity = instanceManager.generateIdentity("csr", "cn", null);
@@ -64,7 +64,7 @@ public class InstanceCertManagerTest {
     public void testGenerateIdentityEmptyCert() {
         
         CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class);
-        Mockito.when(certSigner.generateX509Certificate(Mockito.anyString(), Mockito.anyObject())).thenReturn("");
+        Mockito.when(certSigner.generateX509Certificate(Mockito.<String>any(), Mockito.anyObject())).thenReturn("");
 
         InstanceCertManager instanceManager = new InstanceCertManager(null, certSigner);
         InstanceIdentity identity = instanceManager.generateIdentity("csr", "cn", null);

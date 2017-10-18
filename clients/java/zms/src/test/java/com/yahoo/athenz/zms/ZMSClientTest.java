@@ -1275,7 +1275,7 @@ public class ZMSClientTest {
                 "Test Domain1", "testOrg", systemAdminFullUser);
         Domain domainMock = Mockito.mock(Domain.class);
         dom1.setAuditEnabled(true);
-        Mockito.when(c.postTopLevelDomain(Mockito.anyString(), Mockito.any(TopLevelDomain.class))).thenReturn(domainMock);
+        Mockito.when(c.postTopLevelDomain(Mockito.<String>any(), Mockito.any(TopLevelDomain.class))).thenReturn(domainMock);
         Mockito.when(c.getDomain("AddTopDom1")).thenReturn(domainMock);
         Mockito.when(c.getDomain("AddTopDom3")).thenThrow(new NullPointerException()).thenThrow(new ResourceException(204));;
         testCreateTopLevelDomain(client, systemAdminFullUser);
@@ -1290,7 +1290,7 @@ public class ZMSClientTest {
                 "Test Domain1", "testOrg", systemAdminFullUser);
         Domain domainMock = Mockito.mock(Domain.class);
         dom1.setAuditEnabled(true);
-        Mockito.when(c.postTopLevelDomain(Mockito.anyString(), Mockito.any(TopLevelDomain.class))).thenReturn(domainMock).thenThrow(new ResourceException(204));
+        Mockito.when(c.postTopLevelDomain(Mockito.<String>any(), Mockito.any(TopLevelDomain.class))).thenReturn(domainMock).thenThrow(new ResourceException(204));
         testCreateTopLevelDomainOnceOnly(client, systemAdminFullUser);
     }
 
@@ -1882,7 +1882,7 @@ public class ZMSClientTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         Domain domainMock = Mockito.mock(Domain.class);
-        Mockito.when(c.postTopLevelDomain(Mockito.anyString(), Mockito.any(TopLevelDomain.class))).thenReturn(domainMock);
+        Mockito.when(c.postTopLevelDomain(Mockito.<String>any(), Mockito.any(TopLevelDomain.class))).thenReturn(domainMock);
         ServiceIdentity serviceMock = Mockito.mock(ServiceIdentity.class);
         Mockito.when(c.putServiceIdentity("DelPublicKeyDom1", "Service1", AUDIT_REF, serviceMock)).thenReturn(serviceMock);
         PublicKeyEntry entoryMock = Mockito.mock(PublicKeyEntry.class);

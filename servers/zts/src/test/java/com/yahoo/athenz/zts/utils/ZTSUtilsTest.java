@@ -157,7 +157,7 @@ public class ZTSUtilsTest {
     public void testGenerateIdentityFailure() throws IOException {
         
         CertSigner certSigner = Mockito.mock(CertSigner.class);
-        Mockito.when(certSigner.generateX509Certificate(Mockito.anyString(), Mockito.anyObject())).thenReturn(null);
+        Mockito.when(certSigner.generateX509Certificate(Mockito.<String>any(), Mockito.anyObject())).thenReturn(null);
         
         Path path = Paths.get("src/test/resources/valid.csr");
         String csr = new String(Files.readAllBytes(path));

@@ -137,7 +137,7 @@ public class PolicyUpdaterTest {
         
         // negative test with tampered publickey - zts pubkey failure
         PolicyUpdaterConfiguration confMock = Mockito.mock(PolicyUpdaterConfiguration.class);
-        Mockito.when(confMock.getZtsPublicKey(Mockito.any(ZTSClient.class), Mockito.anyString())).thenReturn(null);
+        Mockito.when(confMock.getZtsPublicKey(Mockito.any(ZTSClient.class), Mockito.<String>any())).thenReturn(null);
         Assert.assertFalse(PolicyUpdater.validateSignedPolicies(null, confMock, domainPolicySignedData, "sys.auth.new"));
         
         // negative test with tampered publickey - zms pubkey failure
@@ -147,8 +147,8 @@ public class PolicyUpdaterTest {
                 + "Nza3lOVlEvYngwTU9UcQphK1J3T0gzWmNNS3lvR3hPSm85QXllUmE2RlhNbX"
                 + "ZKSkdZczVQMzRZc3pGcG5qMnVBYmkyNG5FQ0F3RUFBUT09Ci0tLS0tRU5EIF"
                 + "BVQkxJQyBLRVktLS0tLQo-"));
-        Mockito.when(confMock.getZtsPublicKey(Mockito.any(ZTSClient.class), Mockito.anyString())).thenReturn(pKey);
-        Mockito.when(confMock.getZmsPublicKey(Mockito.any(ZTSClient.class), Mockito.anyString())).thenReturn(null);
+        Mockito.when(confMock.getZtsPublicKey(Mockito.any(ZTSClient.class), Mockito.<String>any())).thenReturn(pKey);
+        Mockito.when(confMock.getZmsPublicKey(Mockito.any(ZTSClient.class), Mockito.<String>any())).thenReturn(null);
         Assert.assertFalse(PolicyUpdater.validateSignedPolicies(null, confMock, domainPolicySignedData, "sys.auth.new"));
         
         // negative test with tampered expiration - zts signature failure
