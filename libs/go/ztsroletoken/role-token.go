@@ -121,7 +121,7 @@ func (r *roleToken) updateRoleToken() (string, error) {
 
 	rt, err := z.GetRoleToken(
 		zts.DomainName(r.domain),
-		zts.EntityName(r.opts.Role),
+		zts.EntityList(r.opts.Role),
 		durationToExpireSeconds(r.opts.MinExpire),
 		durationToExpireSeconds(r.opts.MaxExpire),
 		zts.EntityName(""),
