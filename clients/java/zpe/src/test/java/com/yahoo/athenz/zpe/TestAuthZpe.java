@@ -16,8 +16,8 @@
 package com.yahoo.athenz.zpe;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,21 +26,23 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import javax.security.auth.x500.X500Principal;
 
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.auth.token.RoleToken;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.utils.SignUtils;
-import com.yahoo.athenz.zpe.AuthZpeClient;
-import com.yahoo.athenz.zpe.ZpeUpdPolLoader;
 import com.yahoo.athenz.zpe.AuthZpeClient.AccessCheckStatus;
 import com.yahoo.athenz.zts.DomainSignedPolicyData;
 import com.yahoo.athenz.zts.SignedPolicyData;
@@ -164,6 +166,10 @@ public class TestAuthZpe {
 
         renamedFile = new File("./src/test/resources/pol_dir/empty.pol");
         file.renameTo(renamedFile);
+        
+        String issuers = "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public | C=US, ST=CA, O=Athenz, OU=Testing Domain2, CN=angler:role.public | C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler.test:role.public";
+        System.setProperty(ZpeConsts.ZPE_PROP_X509_CA_ISSUERS, issuers);
+        
     }
     
     @BeforeMethod
@@ -1007,6 +1013,33 @@ public class TestAuthZpe {
     public void testgetZtsPublicKeyNull() throws Exception {
         PublicKey key = AuthZpeClient.getZtsPublicKey("notexist");
         assertNull(key);
+    }
+    
+    @DataProvider(name = "x509CertData")
+    public static Object[][] x509CertData() {
+        return new Object[][] { 
+            { "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public", "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public", AccessCheckStatus.ALLOW, "angler:stuff" }, 
+            { "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public", "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.private", AccessCheckStatus.DENY_NO_MATCH, "angler:stuff" }, 
+            { "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public", "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role", AccessCheckStatus.DENY_CERT_MISSING_ROLE_NAME, "angler:stuff" }, 
+            { "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public", "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler", AccessCheckStatus.DENY_CERT_MISSING_ROLE_NAME, "angler:stuff" }, 
+            { "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public", "", AccessCheckStatus.DENY_CERT_MISSING_SUBJECT, "angler:stuff" }, 
+            { "", "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public", AccessCheckStatus.DENY_CERT_MISMATCH_ISSUER, "angler:stuff"},
+            { "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler.test:role.public", "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler.test:role.public", AccessCheckStatus.DENY_DOMAIN_NOT_FOUND, "angler.test:stuff"}
+        };
+    }
+    
+    @Test(dataProvider = "x509CertData")
+    public void testX509CertificateReadAllowed(String issuer, String subject, AccessCheckStatus expectedStatus, String angResource) throws Exception{
+        String action      = "read";
+        X509Certificate cert = Mockito.mock(X509Certificate.class);
+        X500Principal x500Principal = Mockito.mock(X500Principal.class);
+        X500Principal x500PrincipalS = Mockito.mock(X500Principal.class);
+        Mockito.when(x500Principal.getName()).thenReturn(issuer);
+        Mockito.when(x500PrincipalS.getName()).thenReturn(subject);
+        Mockito.when(cert.getIssuerX500Principal()).thenReturn(x500Principal);
+        Mockito.when(cert.getSubjectX500Principal()).thenReturn(x500PrincipalS);
+        AccessCheckStatus status = AuthZpeClient.allowAccess(cert, angResource, action);
+        Assert.assertEquals(status, expectedStatus);
     }
 }
 

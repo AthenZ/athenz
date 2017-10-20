@@ -63,7 +63,7 @@ public class ZMSAuthorizerTest {
         ZMSRDLGeneratedClient zmsRdlClient = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(zmsRdlClient);
         Domain domainMock = Mockito.mock(Domain.class);
-        Mockito.when(zmsRdlClient.postTopLevelDomain(Mockito.anyString(), Mockito.any(TopLevelDomain.class)))
+        Mockito.when(zmsRdlClient.postTopLevelDomain(Mockito.<String>any(), Mockito.any(TopLevelDomain.class)))
                 .thenReturn(domainMock);
 
         setupAccess(client, domain);
@@ -156,7 +156,7 @@ public class ZMSAuthorizerTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         Domain domainMock = Mockito.mock(Domain.class);
-        Mockito.when(c.postTopLevelDomain(Mockito.anyString(), Mockito.any(TopLevelDomain.class)))
+        Mockito.when(c.postTopLevelDomain(Mockito.<String>any(), Mockito.any(TopLevelDomain.class)))
                 .thenReturn(domainMock);
 
         setupAccess(client, domain);
@@ -210,7 +210,7 @@ public class ZMSAuthorizerTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         Domain domainMock = Mockito.mock(Domain.class);
-        Mockito.when(c.postTopLevelDomain(Mockito.anyString(), Mockito.any(TopLevelDomain.class)))
+        Mockito.when(c.postTopLevelDomain(Mockito.<String>any(), Mockito.any(TopLevelDomain.class)))
                 .thenReturn(domainMock);
 
         setupAccess(client, domain);
@@ -253,7 +253,7 @@ public class ZMSAuthorizerTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         Domain domainMock = Mockito.mock(Domain.class);
-        Mockito.when(c.postTopLevelDomain(Mockito.anyString(), Mockito.any(TopLevelDomain.class)))
+        Mockito.when(c.postTopLevelDomain(Mockito.<String>any(), Mockito.any(TopLevelDomain.class)))
                 .thenReturn(domainMock);
         setupAccess(client, domain);
 

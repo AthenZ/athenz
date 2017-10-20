@@ -825,8 +825,8 @@ public class ZTSClientTest {
                 "auth_creds", PRINCIPAL_AUTHORITY);
 
         ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
-        Mockito.when(siaProvider.getIdentity(Mockito.anyString(),
-                Mockito.anyString())).thenReturn(principal);
+        Mockito.when(siaProvider.getIdentity(Mockito.<String>any(),
+                Mockito.<String>any())).thenReturn(principal);
         
         ZTSClient client = new ZTSClient("http://localhost:4080/", "user_domain",
                 "user", siaProvider);
@@ -924,8 +924,8 @@ public class ZTSClientTest {
         final Principal principal = SimplePrincipal.create("user_domain", "user", "auth_creds", PRINCIPAL_AUTHORITY);
 
         ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
-        Mockito.when(siaProvider.getIdentity(Mockito.anyString(),
-                Mockito.anyString())).thenReturn(principal);
+        Mockito.when(siaProvider.getIdentity(Mockito.<String>any(),
+                Mockito.<String>any())).thenReturn(principal);
         
         ZTSClient client = new ZTSClient("http://localhost:4080/", "user_domain",
                 "user", siaProvider);
@@ -1037,8 +1037,8 @@ public class ZTSClientTest {
                 "auth_creds", PRINCIPAL_AUTHORITY);
 
         ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
-        Mockito.when(siaProvider.getIdentity(Mockito.anyString(),
-                Mockito.anyString())).thenReturn(principal);
+        Mockito.when(siaProvider.getIdentity(Mockito.<String>any(),
+                Mockito.<String>any())).thenReturn(principal);
         
         ZTSClient client = new ZTSClient("http://localhost:4080/", "user_domain",
                 "user" , siaProvider);
@@ -1161,8 +1161,8 @@ public class ZTSClientTest {
                 "auth_creds", PRINCIPAL_AUTHORITY);
 
         ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
-        Mockito.when(siaProvider.getIdentity(Mockito.anyString(),
-                Mockito.anyString())).thenReturn(principal);
+        Mockito.when(siaProvider.getIdentity(Mockito.<String>any(),
+                Mockito.<String>any())).thenReturn(principal);
         
         ZTSClient client = new ZTSClient("http://localhost:4080/", "user_domain",
                 "user", siaProvider);
@@ -1305,8 +1305,8 @@ public class ZTSClientTest {
                 "auth_creds", PRINCIPAL_AUTHORITY);
         
         ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
-        Mockito.when(siaProvider.getIdentity(Mockito.anyString(),
-                Mockito.anyString())).thenReturn(principal);
+        Mockito.when(siaProvider.getIdentity(Mockito.<String>any(),
+                Mockito.<String>any())).thenReturn(principal);
         
         ZTSClient client = new ZTSClient("http://localhost:4080/", "user_domain",
                 "user", siaProvider);
@@ -1399,8 +1399,8 @@ public class ZTSClientTest {
                 "auth_creds", PRINCIPAL_AUTHORITY);
         
         ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
-        Mockito.when(siaProvider.getIdentity(Mockito.anyString(),
-                Mockito.anyString())).thenReturn(principal);
+        Mockito.when(siaProvider.getIdentity(Mockito.<String>any(),
+                Mockito.<String>any())).thenReturn(principal);
         
         ZTSClient client = new ZTSClient("http://localhost:4080/", "user_domain",
                 "user", siaProvider);
@@ -1510,8 +1510,8 @@ public class ZTSClientTest {
                 "auth_creds", PRINCIPAL_AUTHORITY);
         
         ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
-        Mockito.when(siaProvider.getIdentity(Mockito.anyString(),
-                Mockito.anyString())).thenReturn(principal);
+        Mockito.when(siaProvider.getIdentity(Mockito.<String>any(),
+                Mockito.<String>any())).thenReturn(principal);
         
         ZTSClient client = new ZTSClient("http://localhost:4080/", "user_domain",
                 "user", siaProvider);

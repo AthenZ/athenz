@@ -15,19 +15,26 @@
  */
 package com.yahoo.athenz.zpe;
 
+import java.security.PublicKey;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.security.auth.x500.X500Principal;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.yahoo.athenz.auth.impl.RoleAuthority;
 import com.yahoo.athenz.auth.token.RoleToken;
+import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.zpe.match.ZpeMatch;
 import com.yahoo.athenz.zpe.pkey.PublicKeyStore;
 import com.yahoo.athenz.zpe.pkey.PublicKeyStoreFactory;
 import com.yahoo.rdl.Struct;
-
-import java.security.PublicKey;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class AuthZpeClient {
 
@@ -59,6 +66,10 @@ public class AuthZpeClient {
     private static ZpeClient zpeClt = null;
     private static PublicKeyStore publicKeyStore = null;
 
+    private static final Set<String> X509_ISSUERS = new HashSet<String>();
+    
+    private static final String ROLE_SEARCH = ":role.";
+    
     public enum AccessCheckStatus {
         ALLOW {
             public String toString() {
@@ -109,6 +120,26 @@ public class AuthZpeClient {
             public String toString() {
                 return "Access denied due to invalid/empty action/resource values";
             };
+        },
+        DENY_CERT_MISMATCH_ISSUER {
+            public String toString() {
+                return "Access denied due to certificate mismatch in issuer";
+            }
+        }, 
+        DENY_CERT_MISSING_SUBJECT {
+            public String toString() {
+                return "Access denied due to missing subject in certificate";
+            }
+        },
+        DENY_CERT_MISSING_DOMAIN {
+            public String toString() {
+                return "Access denied due to missing domain name in certificate";
+            }
+        },
+        DENY_CERT_MISSING_ROLE_NAME {
+            public String toString() {
+                return "Access denied due to missing role name in certificate";
+            }
         }
     }
     
@@ -147,6 +178,22 @@ public class AuthZpeClient {
         if (allowedOffset < 0) {
             allowedOffset = 300;
         }
+        
+        loadX509CAIssuers();
+    }
+    
+    private static void loadX509CAIssuers() {
+        String issuers = System.getProperty(ZpeConsts.ZPE_PROP_X509_CA_ISSUERS);
+        if (null != issuers && !issuers.isEmpty()) {
+            issuers = issuers.replaceAll("\\s+" , "");
+            String[] issuerArray = issuers.split("\\|");
+            for (String issuer: issuerArray) {
+                X509_ISSUERS.add(issuer);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("x509 issuer: {}", issuer);
+                }
+            }
+        }
     }
     
     public static void init() {
@@ -161,6 +208,73 @@ public class AuthZpeClient {
     
     public static PublicKey getZmsPublicKey(String keyId) {
         return publicKeyStore.getZmsKey(keyId);
+    }
+    
+    /**
+     * Determine if access(action) is allowed against the specified resource by
+     * a user represented by the X509Certificate
+     * @param cert - X509Certificate
+     *        
+     * @param angResource is a domain qualified resource the calling service
+     *        will check access for.  ex: my_domain:my_resource
+     *        ex: "angler:pondsKernCounty"
+     *        ex: "sports:service.storage.tenant.Activator.ActionMap"
+     * @param action is the type of access attempted by a client
+     *        ex: "read"
+     *        ex: "scan"
+     * @return AccessCheckStatus if the user can access the resource via the specified action
+     *        the result is ALLOW otherwise one of the DENY_* values specifies the exact
+     *        reason why the access was denied
+     */
+    public static AccessCheckStatus allowAccess(X509Certificate cert, String angResource, String action) {
+        StringBuilder matchRoleName = new StringBuilder(256);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("AUTHZPECLT:allowAccess: action=" + action + " resource=" + angResource);
+        }
+        zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME, DEFAULT_DOMAIN);
+        // validate the certificate against CAs
+        X500Principal issuerx500Principal = cert.getIssuerX500Principal();
+        String issuer = issuerx500Principal.getName();
+        
+        if (issuer == null || issuer.isEmpty() 
+                || !X509_ISSUERS.contains(issuer.replaceAll("\\s+" , ""))) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("AUTHZPECLT:allowAccess: missing or mismatch issuer {}", issuer);
+            }
+            return AccessCheckStatus.DENY_CERT_MISMATCH_ISSUER;
+        }
+        String subject = Crypto.extractX509CertCommonName(cert);
+        if (subject == null || subject.isEmpty()) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("AUTHZPECLT:allowAccess: missing subject");
+            }
+            return AccessCheckStatus.DENY_CERT_MISSING_SUBJECT;
+        }
+        int idx = subject.indexOf(ROLE_SEARCH);
+        if (idx == -1) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("AUTHZPECLT:allowAccess: missing domain or role");
+            }
+            return AccessCheckStatus.DENY_CERT_MISSING_ROLE_NAME;
+        }
+        String domainName = subject.substring(0, idx);
+        if (domainName == null || domainName.isEmpty()) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("AUTHZPECLT:allowAccess: missing domain");
+            }
+            return AccessCheckStatus.DENY_CERT_MISSING_DOMAIN;
+        }
+        String roleName = subject.substring(idx + ROLE_SEARCH.length(), subject.length());
+        if (roleName == null || roleName.isEmpty()) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("AUTHZPECLT:allowAccess: missing role name");
+            }
+            return AccessCheckStatus.DENY_CERT_MISSING_ROLE_NAME;
+        }
+        List<String> roles = new ArrayList<String>();
+        roles.add(roleName);
+        return allowActionZPE(action, domainName, angResource, roles, matchRoleName);
+
     }
     
     /**

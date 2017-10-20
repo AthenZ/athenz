@@ -6,8 +6,6 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import static org.mockito.Matchers.any;
-
 
 public class AWSCredentialsProviderImplTest {
 
@@ -31,7 +29,7 @@ public class AWSCredentialsProviderImplTest {
 
         //Check that get credentials calls refresh to get credentials from ZTS
 
-        Mockito.when(ztsClient.getAWSTemporaryCredentials(any(String.class), any(String.class))).thenReturn(awsTemporaryCredentials, awsTemporaryCredentialsTwo);
+        Mockito.when(ztsClient.getAWSTemporaryCredentials(Mockito.<String>any(), Mockito.<String>any())).thenReturn(awsTemporaryCredentials, awsTemporaryCredentialsTwo);
         AWSCredentialsProviderImpl original = new AWSCredentialsProviderImpl(ztsClient, null, null);
 
         AWSCredentialsProviderImpl awsCredentialsProviderImpl = Mockito.spy(original);
@@ -43,7 +41,7 @@ public class AWSCredentialsProviderImplTest {
         Mockito.verify(awsCredentialsProviderImpl, Mockito.times(2)).refresh();
 
         //null credentials are returned in case of exception
-        Mockito.when(ztsClient.getAWSTemporaryCredentials(any(String.class), any(String.class))).thenThrow(new ResourceException(400));
+        Mockito.when(ztsClient.getAWSTemporaryCredentials(Mockito.<String>any(), Mockito.<String>any())).thenThrow(new ResourceException(400));
         Assert.assertNull(awsCredentialsProviderImpl.getCredentials());
     }
 }

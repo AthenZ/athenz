@@ -15,7 +15,6 @@
  */
 package com.yahoo.athenz.zts.store.impl;
 
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -24,12 +23,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.mockito.Mockito;
+
 import com.yahoo.athenz.zms.DomainList;
 import com.yahoo.athenz.zms.SignedDomains;
 import com.yahoo.athenz.zms.ZMSClient;
 import com.yahoo.athenz.zms.ZMSClientException;
 import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.store.impl.ZMSFileChangeLogStore;
 
 public class MockZMSFileChangeLogStore extends ZMSFileChangeLogStore {
 
@@ -82,9 +82,9 @@ public class MockZMSFileChangeLogStore extends ZMSFileChangeLogStore {
     @SuppressWarnings("unchecked")
     public void setSignedDomains(SignedDomains signedDomains) {
         if (signedDomains != null) {
-            when(zms.getSignedDomains(any(String.class), any(String.class), any(String.class), any(Map.class))).thenReturn(signedDomains);
+            when(zms.getSignedDomains(Mockito.<String>any(), Mockito.<String>any(), Mockito.<String>any(), Mockito.<Map>any())).thenReturn(signedDomains);
         } else {
-            when(zms.getSignedDomains(any(String.class), any(String.class), any(String.class), any(Map.class))).thenThrow(new ZMSClientException(500, "Invalid request"));
+            when(zms.getSignedDomains(Mockito.<String>any(), Mockito.<String>any(), Mockito.<String>any(), Mockito.<Map>any())).thenThrow(new ZMSClientException(500, "Invalid request"));
         }
     }
     
