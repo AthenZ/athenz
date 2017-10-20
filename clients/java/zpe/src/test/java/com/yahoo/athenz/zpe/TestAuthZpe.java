@@ -167,7 +167,7 @@ public class TestAuthZpe {
         renamedFile = new File("./src/test/resources/pol_dir/empty.pol");
         file.renameTo(renamedFile);
         
-        String issuers = "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public | C=US, ST=CA, O=Athenz, OU=Testing Domain2, CN=angler:role.public";
+        String issuers = "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public | C=US, ST=CA, O=Athenz, OU=Testing Domain2, CN=angler:role.public | C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler.test:role.public";
         System.setProperty(ZpeConsts.ZPE_PROP_X509_CA_ISSUERS, issuers);
         
     }
@@ -1018,19 +1018,19 @@ public class TestAuthZpe {
     @DataProvider(name = "x509CertData")
     public static Object[][] x509CertData() {
         return new Object[][] { 
-            { "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public", "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public", AccessCheckStatus.ALLOW }, 
-            { "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public", "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.private", AccessCheckStatus.DENY_NO_MATCH }, 
-            { "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public", "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role", AccessCheckStatus.DENY_CERT_MISSING_ROLE_NAME }, 
-            { "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public", "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler", AccessCheckStatus.DENY_CERT_MISSING_DOMAIN }, 
-            { "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public", "", AccessCheckStatus.DENY_CERT_MISSING_SUBJECT }, 
-            { "", "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public", AccessCheckStatus.DENY_CERT_MISMATCH_ISSUER }
-       };
+            { "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public", "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public", AccessCheckStatus.ALLOW, "angler:stuff" }, 
+            { "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public", "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.private", AccessCheckStatus.DENY_NO_MATCH, "angler:stuff" }, 
+            { "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public", "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role", AccessCheckStatus.DENY_CERT_MISSING_ROLE_NAME, "angler:stuff" }, 
+            { "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public", "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler", AccessCheckStatus.DENY_CERT_MISSING_ROLE_NAME, "angler:stuff" }, 
+            { "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public", "", AccessCheckStatus.DENY_CERT_MISSING_SUBJECT, "angler:stuff" }, 
+            { "", "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public", AccessCheckStatus.DENY_CERT_MISMATCH_ISSUER, "angler:stuff"},
+            { "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler.test:role.public", "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler.test:role.public", AccessCheckStatus.DENY_DOMAIN_NOT_FOUND, "angler.test:stuff"}
+        };
     }
     
     @Test(dataProvider = "x509CertData")
-    public void testX509CertificateReadAllowed(String issuer, String subject, AccessCheckStatus expectedStatus) throws Exception{
+    public void testX509CertificateReadAllowed(String issuer, String subject, AccessCheckStatus expectedStatus, String angResource) throws Exception{
         String action      = "read";
-        String angResource = "angler:stuff";
         X509Certificate cert = Mockito.mock(X509Certificate.class);
         X500Principal x500Principal = Mockito.mock(X500Principal.class);
         X500Principal x500PrincipalS = Mockito.mock(X500Principal.class);

@@ -68,6 +68,8 @@ public class AuthZpeClient {
 
     private static final Set<String> X509_ISSUERS = new HashSet<String>();
     
+    private static final String ROLE_SEARCH = ":role.";
+    
     public enum AccessCheckStatus {
         ALLOW {
             public String toString() {
@@ -248,23 +250,28 @@ public class AuthZpeClient {
             }
             return AccessCheckStatus.DENY_CERT_MISSING_SUBJECT;
         }
-        int idx = subject.indexOf(":");
+        int idx = subject.indexOf(ROLE_SEARCH);
         if (idx == -1) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("AUTHZPECLT:allowAccess: missing domain or role");
+            }
+            return AccessCheckStatus.DENY_CERT_MISSING_ROLE_NAME;
+        }
+        String domainName = subject.substring(0, idx);
+        if (domainName == null || domainName.isEmpty()) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("AUTHZPECLT:allowAccess: missing domain");
             }
             return AccessCheckStatus.DENY_CERT_MISSING_DOMAIN;
         }
-        String domainName = subject.substring(0, idx);
-        int roleIndex = subject.indexOf(".");
-        if (roleIndex == -1) {
+        String roleName = subject.substring(idx + ROLE_SEARCH.length(), subject.length());
+        if (roleName == null || roleName.isEmpty()) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("AUTHZPECLT:allowAccess: missing role name");
             }
             return AccessCheckStatus.DENY_CERT_MISSING_ROLE_NAME;
         }
         List<String> roles = new ArrayList<String>();
-        String roleName = subject.substring(roleIndex + 1, subject.length());
         roles.add(roleName);
         return allowActionZPE(action, domainName, angResource, roles, matchRoleName);
 
