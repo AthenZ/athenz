@@ -619,4 +619,28 @@ public class CryptoTest {
         assertEquals(Crypto.extractX509CSRCommonName(certReq), "sports:role.readers");
         assertEquals(Crypto.extractX509CSREmail(certReq), "sports.scores@aws.yahoo.cloud");
     }
+    
+    @Test
+    public void testExtractX509IPAddressesNoAddresses() throws IOException {
+        
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String csr = new String(Files.readAllBytes(path));
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
+
+        List<String> ips = Crypto.extractX509IPAddresses(certReq);
+        assertTrue(ips.isEmpty());
+    }
+    
+    @Test
+    public void testExtractX509IPAddressesMultipleAddresses() throws IOException {
+        
+        Path path = Paths.get("src/test/resources/multiple_ips.csr");
+        String csr = new String(Files.readAllBytes(path));
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
+        
+        List<String> ips = Crypto.extractX509IPAddresses(certReq);
+        assertEquals(2, ips.size());
+        assertEquals(ips.get(0), "10.11.12.13");
+        assertEquals(ips.get(1), "10.11.12.14");
+    }
 }

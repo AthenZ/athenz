@@ -27,6 +27,7 @@ public class X509CertRequest {
     private String dnsSuffix = null;
     private String cn = null;
     private List<String> dnsNames = Collections.emptyList();
+    private List<String> ipAddresses = null;
     
     public X509CertRequest(String csr) throws CryptoException {
         certReq = Crypto.getPKCS10CertRequest(csr);
@@ -35,30 +36,38 @@ public class X509CertRequest {
         }
     }
     
-    public boolean parseDnsNames(String domain, String service, StringBuilder errorMsg) {
+    public boolean parseCertRequest(StringBuilder errorMsg) {
         
-        final String prefix = service + "." + domain.replace('.', '-') + ".";
         dnsNames = Crypto.extractX509CSRDnsNames(certReq);
-        String checkDnsSuffix = null;
+        ipAddresses = Crypto.extractX509IPAddresses(certReq);
+        
+        // first we need to determine our instance id and dns suffix
+        
         for (String dnsName : dnsNames) {
             int idx = dnsName.indexOf(ZTSConsts.ZTS_CERT_INSTANCE_ID);
             if (instanceId == null && idx != -1) {
                 instanceId = dnsName.substring(0, idx);
-                checkDnsSuffix = dnsName.substring(idx + ZTSConsts.ZTS_CERT_INSTANCE_ID.length());
-            } else if (dnsSuffix == null && dnsName.startsWith(prefix)) {
-                dnsSuffix = dnsName.substring(prefix.length());
-            } else {
-                errorMsg.append("Invalid SAN dnsName entry: ").append(dnsName);
-                return false;
+                dnsSuffix = dnsName.substring(idx + ZTSConsts.ZTS_CERT_INSTANCE_ID.length());
+                break;
             }
+        }
+        
+        // if we have no instance id or suffix, we have an invalid request
+        
+        if (instanceId == null || dnsSuffix == null || instanceId.isEmpty() || dnsSuffix.isEmpty()) {
+            errorMsg.append("CSR does not include required instance id DNS hostname entry");
+            return false;
         }
         
         // verify that our dns name suffixes match before returning success
         
-        if (dnsSuffix != null && checkDnsSuffix != null && !dnsSuffix.equals(checkDnsSuffix)) {
-            errorMsg.append("Mismatch DNS suffixes: ").append(dnsSuffix)
-                .append(" vs. ").append(checkDnsSuffix);
-            return false;
+        final String dnsSuffixCheck = "." + dnsSuffix;
+        for (String dnsName : dnsNames) {
+            if (!dnsName.endsWith(dnsSuffixCheck)) {
+                errorMsg.append("DNS Name ").append(dnsName)
+                    .append(" does not end with expected suffix: ").append(dnsSuffix);
+                return false;
+            }
         }
         
         return true;
@@ -119,7 +128,7 @@ public class X509CertRequest {
             // handle all the errors and not let container to return
             // standard server error
             
-            LOGGER.error("compareCommonName: unable to extract csr cn: " + ex.getMessage());
+            LOGGER.error("compareCommonName: unable to extract csr cn: {}", ex.getMessage());
             return false;
         }
         
@@ -134,22 +143,16 @@ public class X509CertRequest {
     public boolean validate(Principal providerService, String domain, String service,
             String reqInstanceId, Authorizer authorizer, StringBuilder errorMsg) {
         
-        // the csr must only have 2 SAN dnsName attributes. one with the provider
-        // dns suffix and the second one with instance id. If we have any additional
-        // dns names then we'll reject the request right away
+        // parse the cert request (csr) to extract the DNS entries
+        // along with IP addresses. Validate that all hostnames
+        // include the same dns suffix and the instance id required
+        // hostname is specified
         
-        if (!parseDnsNames(domain, service, errorMsg)) {
+        if (!parseCertRequest(errorMsg)) {
             return false;
         }
         
-        // we need to make sure that instance id is provided and is non-empty
-        
-        if (instanceId == null || instanceId.isEmpty()) {
-            errorMsg.append("CSR does not contain required instance id dnsName");
-            return false;
-        }
-        
-        // if specified, we must mak sure it matches to the given value
+        // if specified, we must make sure it matches to the given value
         
         if (reqInstanceId != null && !instanceId.equals(reqInstanceId)) {
             errorMsg.append("Instance id mismatch - URI: ").append(reqInstanceId)
@@ -177,7 +180,6 @@ public class X509CertRequest {
                 return false;
             }
         }
-
         
         return true;
     }
@@ -192,5 +194,13 @@ public class X509CertRequest {
 
     public String getDnsSuffix() {
         return dnsSuffix;
+    }
+    
+    public List<String> getDnsNames() {
+        return dnsNames;
+    }
+    
+    public List<String> getIpAddresses() {
+        return ipAddresses;
     }
 }

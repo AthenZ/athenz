@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.cert.X509Certificate;
+import java.util.List;
 
 import static org.testng.Assert.*;
 
@@ -41,7 +42,7 @@ public class X509CertRequestTest {
     }
     
     @Test
-    public void testParseDnsNames() throws IOException {
+    public void testParseCertRequest() throws IOException {
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
         
@@ -49,21 +50,40 @@ public class X509CertRequestTest {
         assertNotNull(certReq);
 
         StringBuilder errorMsg = new StringBuilder(256);
-        assertTrue(certReq.parseDnsNames("athenz", "production", errorMsg));
-        assertFalse(certReq.parseDnsNames("athenz", "storage", errorMsg));
-        assertFalse(certReq.parseDnsNames("sys", "production", errorMsg));
+        assertTrue(certReq.parseCertRequest(errorMsg));
     }
     
     @Test
-    public void testParseDnsNamesInvalid() throws IOException {
+    public void testParseCertRequestIPs() throws IOException {
+        Path path = Paths.get("src/test/resources/multiple_ips.csr");
+        String csr = new String(Files.readAllBytes(path));
+        
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertNotNull(certReq);
+
+        StringBuilder errorMsg = new StringBuilder(256);
+        assertTrue(certReq.parseCertRequest(errorMsg));
+        
+        List<String> values = certReq.getDnsNames();
+        assertEquals(values.size(), 2);
+        assertTrue(values.contains("production.athenz.ostk.athenz.cloud"));
+        assertTrue(values.contains("1001.instanceid.athenz.ostk.athenz.cloud"));
+        
+        values = certReq.getIpAddresses();
+        assertEquals(values.size(), 2);
+        assertTrue(values.contains("10.11.12.13"));
+        assertTrue(values.contains("10.11.12.14"));
+    }
+    
+    @Test
+    public void testParseCertRequestInvalid() throws IOException {
         Path path = Paths.get("src/test/resources/invalid_dns.csr");
         String csr = new String(Files.readAllBytes(path));
         
         StringBuilder errorMsg = new StringBuilder(256);
         X509CertRequest certReq = new X509CertRequest(csr);
         assertNotNull(certReq);
-        assertFalse(certReq.parseDnsNames("athenz", "production", errorMsg));
-        assertTrue(errorMsg.toString().contains("Invalid SAN dnsName entry"));
+        assertFalse(certReq.parseCertRequest(errorMsg));
     }
     
     @Test
@@ -74,7 +94,7 @@ public class X509CertRequestTest {
         StringBuilder errorMsg = new StringBuilder(256);
         X509CertRequest certReq = new X509CertRequest(csr);
         assertNotNull(certReq);
-        certReq.parseDnsNames("athenz", "production", errorMsg);
+        certReq.parseCertRequest(errorMsg);
 
         assertTrue(certReq.compareCommonName("athenz.production"));
         assertEquals(certReq.getCommonName(), "athenz.production");
@@ -91,7 +111,7 @@ public class X509CertRequestTest {
         StringBuilder errorMsg = new StringBuilder(256);
         X509CertRequest certReq = new X509CertRequest(csr);
         assertNotNull(certReq);
-        certReq.parseDnsNames("athenz", "production", errorMsg);
+        certReq.parseCertRequest(errorMsg);
 
         assertEquals(certReq.getInstanceId(), "1001");
     }
@@ -104,7 +124,7 @@ public class X509CertRequestTest {
         StringBuilder errorMsg = new StringBuilder(256);
         X509CertRequest certReq = new X509CertRequest(csr);
         assertNotNull(certReq);
-        certReq.parseDnsNames("athenz", "production", errorMsg);
+        certReq.parseCertRequest(errorMsg);
 
         assertEquals(certReq.getDnsSuffix(), "ostk.athenz.cloud");
     }
@@ -118,7 +138,7 @@ public class X509CertRequestTest {
         StringBuilder errorMsg = new StringBuilder(256);
         X509CertRequest certReq = new X509CertRequest(csr);
         assertNotNull(certReq);
-        certReq.parseDnsNames("athenz", "production", errorMsg);
+        certReq.parseCertRequest(errorMsg);
         
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
         String pem = new String(Files.readAllBytes(path));
@@ -136,7 +156,7 @@ public class X509CertRequestTest {
         StringBuilder errorMsg = new StringBuilder(256);
         X509CertRequest certReq = new X509CertRequest(csr);
         assertNotNull(certReq);
-        certReq.parseDnsNames("athenz", "production", errorMsg);
+        certReq.parseCertRequest(errorMsg);
 
         path = Paths.get("src/test/resources/valid_cn_x509.cert");
         String pem = new String(Files.readAllBytes(path));
@@ -209,7 +229,7 @@ public class X509CertRequestTest {
         
         StringBuilder errorMsg = new StringBuilder(256);
         assertFalse(certReq.validate(null, "athenz", "production", "1001", null, errorMsg));
-        assertTrue(errorMsg.toString().contains("Mismatch DNS suffixes"));
+        assertTrue(errorMsg.toString().contains("does not end with expected suffix"));
     }
     
     @Test
