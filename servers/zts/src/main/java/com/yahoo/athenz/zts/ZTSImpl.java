@@ -76,7 +76,6 @@ import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.DataStore;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
 import com.yahoo.rdl.Schema;
-import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
 import com.yahoo.rdl.Validator;
 import com.yahoo.rdl.Validator.Result;
