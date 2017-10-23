@@ -336,7 +336,7 @@ public class AthenzJettyContainerTest {
         System.setProperty(AthenzConsts.ATHENZ_PROP_INCLUDED_CIPHER_SUITES, DEFAULT_INCLUDED_CIPHERS);
         System.setProperty(AthenzConsts.ATHENZ_PROP_EXCLUDED_PROTOCOLS, AthenzJettyContainer.ATHENZ_DEFAULT_EXCLUDED_PROTOCOLS);
         
-        SslContextFactory sslContextFactory = container.createSSLContextObject();
+        SslContextFactory sslContextFactory = container.createSSLContextObject(true);
         assertNotNull(sslContextFactory);
         assertEquals(sslContextFactory.getKeyStorePath(), "file:///tmp/keystore");
         assertEquals(sslContextFactory.getKeyStoreType(), "PKCS12");
@@ -345,13 +345,14 @@ public class AthenzJettyContainerTest {
         assertEquals(sslContextFactory.getExcludeCipherSuites(), DEFAULT_EXCLUDED_CIPHERS.split(","));
         assertEquals(sslContextFactory.getIncludeCipherSuites(), DEFAULT_INCLUDED_CIPHERS.split(","));
         assertEquals(sslContextFactory.getExcludeProtocols(), AthenzJettyContainer.ATHENZ_DEFAULT_EXCLUDED_PROTOCOLS.split(","));
+        assertTrue(sslContextFactory.getNeedClientAuth());
     }
     
     @Test
     public void testCreateSSLContextObjectNoValues() {
         
         AthenzJettyContainer container = new AthenzJettyContainer();
-        SslContextFactory sslContextFactory = container.createSSLContextObject();
+        SslContextFactory sslContextFactory = container.createSSLContextObject(false);
         
         assertNotNull(sslContextFactory);
         assertNull(sslContextFactory.getKeyStoreResource());
@@ -360,6 +361,8 @@ public class AthenzJettyContainerTest {
         assertNull(sslContextFactory.getTrustStoreResource());
         // store type always defaults to PKCS12
         assertEquals(sslContextFactory.getTrustStoreType(), "PKCS12");
+        assertTrue(sslContextFactory.getWantClientAuth());
+        assertFalse(sslContextFactory.getNeedClientAuth());
     }
     
     @Test
@@ -375,7 +378,7 @@ public class AthenzJettyContainerTest {
         System.setProperty(AthenzConsts.ATHENZ_PROP_INCLUDED_CIPHER_SUITES, DEFAULT_INCLUDED_CIPHERS);
         System.setProperty(AthenzConsts.ATHENZ_PROP_EXCLUDED_PROTOCOLS, AthenzJettyContainer.ATHENZ_DEFAULT_EXCLUDED_PROTOCOLS);
         
-        SslContextFactory sslContextFactory = container.createSSLContextObject();
+        SslContextFactory sslContextFactory = container.createSSLContextObject(true);
         assertNotNull(sslContextFactory);
         assertNull(sslContextFactory.getKeyStoreResource());
         // store type always defaults to PKCS12
@@ -399,7 +402,7 @@ public class AthenzJettyContainerTest {
         System.setProperty(AthenzConsts.ATHENZ_PROP_INCLUDED_CIPHER_SUITES, DEFAULT_INCLUDED_CIPHERS);
         System.setProperty(AthenzConsts.ATHENZ_PROP_EXCLUDED_PROTOCOLS, AthenzJettyContainer.ATHENZ_DEFAULT_EXCLUDED_PROTOCOLS);
         
-        SslContextFactory sslContextFactory = container.createSSLContextObject();
+        SslContextFactory sslContextFactory = container.createSSLContextObject(false);
         assertNotNull(sslContextFactory);
         assertEquals(sslContextFactory.getKeyStorePath(), "file:///tmp/keystore");
         assertEquals(sslContextFactory.getKeyStoreType(), "PKCS12");
