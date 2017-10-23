@@ -118,6 +118,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected int httpPort;
     protected int httpsPort;
     protected int statusPort;
+    protected boolean statusCertSigner = false;
     protected Status successServerStatus = null;
     
     private static final String TYPE_DOMAIN_NAME = "DomainName";
@@ -277,7 +278,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // make sure all requests run in secure mode
 
-        secureRequestsOnly = Boolean.parseBoolean(System.getProperty(ZTSConsts.ZTS_PROP_SECURE_REQUESTS_ONLY, "true"));
+        secureRequestsOnly = Boolean.parseBoolean(
+                System.getProperty(ZTSConsts.ZTS_PROP_SECURE_REQUESTS_ONLY, "true"));
  
         // retrieve the regular and status ports
         
@@ -288,6 +290,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         statusPort = ConfigProperties.getPortNumber(ZTSConsts.ZTS_PROP_STATUS_PORT, 0);
         
         successServerStatus = new Status().setCode(ResourceException.OK).setMessage("OK");
+        
+        statusCertSigner = Boolean.parseBoolean(
+                System.getProperty(ZTSConsts.ZTS_PROP_STATUS_CERT_SIGNER, "false"));
         
         // check to see if we want to disable allowing clients to ask for role
         // tokens without role name thus violating the least privilege principle
@@ -2735,11 +2740,15 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         Object timerMetric = metric.startTiming("getstatus_timing", null);
         
         // for now we're going to verify our certsigner connectivity
+        // only if the administrator has configured it. without certsigner
+        // we can still issue role tokens and temporary credentials
         // in case of failure we're going to return not found
 
-        if (certSigner.getCACertificate() == null) {
-            throw notFoundError("Unable to communicate with cert signer", caller,
-                    ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+        if (statusCertSigner) {
+            if (certSigner.getCACertificate() == null) {
+                throw notFoundError("Unable to communicate with cert signer", caller,
+                        ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+            }
         }
         
         metric.stopTiming(timerMetric);
