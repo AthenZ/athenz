@@ -76,7 +76,6 @@ import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.DataStore;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
 import com.yahoo.rdl.Schema;
-import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
 import com.yahoo.rdl.Validator;
 import com.yahoo.rdl.Validator.Result;
@@ -158,6 +157,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected static Validator validator;
     
     enum AthenzObject {
+        DOMAIN_METRICS {
+            void convertToLowerCase(Object obj) {
+                DomainMetrics metrics = (DomainMetrics) obj;
+                metrics.setDomainName(metrics.getDomainName().toLowerCase());
+            }
+        },
         INSTANCE_REGISTER_INFO {
             void convertToLowerCase(Object obj) {
                 InstanceRegisterInformation info = (InstanceRegisterInformation) obj;
@@ -1593,9 +1598,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         DataCache data = dataStore.getDataCache(domainName);
         if (data == null) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("verifyAWSAssumeRole: unknown domain: " + domainName);
-            }
+            LOGGER.error("verifyAWSAssumeRole: unknown domain: {}", domainName);
             return false;
         }
         
@@ -1605,10 +1608,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         dataStore.getAccessibleRoles(data, domainName, principal, null, roles, true);
         
         if (roles.isEmpty()) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("verifyAWSAssumeRole: Principal: " + principal +
-                    " has no acccess to any roles in domain: " + domainName);
-            }
+            LOGGER.error("verifyAWSAssumeRole: Principal: {}" +
+                    " has no acccess to any roles in domain: ", principal, domainName);
             return false;
         }
 
@@ -1622,10 +1623,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             }
         }
         
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("verifyAWSAssumeRole: Principal: " + principal +
-                " has no acccess to resource: " + roleResource + " in domain: " + domainName);
-        }
+        LOGGER.error("verifyAWSAssumeRole: Principal: {} has no acccess to resource: {}" +
+                " in domain: ", principal, roleResource, domainName);
         
         return false;
     }
@@ -1699,16 +1698,26 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 .setAttestationData(info.getAttestationData())
                 .setDomain(domain).setService(service).setProvider(provider);
 
+        // we're going to include the hostnames and optional IP addresses
+        // from the CSR for provider validation
+        
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(ZTSConsts.ZTS_INSTANCE_SAN_DNS, String.join(",", certReq.getDnsNames()));
+        
+        final List<String> certReqIps = certReq.getIpAddresses();
+        if (certReqIps != null && !certReqIps.isEmpty()) {
+            attributes.put(ZTSConsts.ZTS_INSTANCE_SAN_IP, String.join(",", certReqIps));
+        }
+        
         // if we have an aws account setup for this domain, we're going
         // to include it in the optional attributes
         
-        String account = cloudStore.getAWSAccount(domain);
+        final String account = cloudStore.getAWSAccount(domain);
         if (account != null) {
-            Map<String, String> attributes = new HashMap<>();
-            attributes.put("awsAccount", account);
-            instance.setAttributes(attributes);
+            attributes.put(ZTSConsts.ZTS_INSTANCE_AWS_ACCOUNT, account);
         }
-        
+        instance.setAttributes(attributes);
+
         // make sure to close our provider when its no longer needed
 
         try {
@@ -2640,7 +2649,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
      */
     @Override
     public DomainMetrics postDomainMetrics(ResourceContext ctx, String domainName,
-            DomainMetrics req) {
+            DomainMetrics domainMetrics) {
 
         final String caller = "postdomainmetrics";
         final String callerTiming = "postdomainmetrics_timing";
@@ -2649,9 +2658,15 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         validateRequest(ctx.request(), caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
-        validate(req, TYPE_DOMAIN_METRICS, caller);
+        validate(domainMetrics, TYPE_DOMAIN_METRICS, caller);
         domainName = domainName.toLowerCase();
  
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        AthenzObject.DOMAIN_METRICS.convertToLowerCase(domainMetrics);
+        
         Object timerMetric = metric.startTiming(callerTiming, domainName);
 
         // verify valid domain specified
@@ -2664,21 +2679,15 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
 
         // verify domain name matches domain name in request object
-        String metricDomain = req.getDomainName();
-        if (metricDomain == null) {
-            final String errMsg = "postDomainMetrics: metrics request missing domain name: "
-                    + domainName;
+        
+        final String metricDomain = domainMetrics.getDomainName();
+        if (!metricDomain.equals(domainName)) {
+            final String errMsg = "postDomainMetrics: mismatched domain names: uri domain: "
+                    + domainName + " : metric domain: " + metricDomain;
             throw requestError(errMsg, caller, domainName);
-        } else if (metricDomain != null) {
-            metricDomain = metricDomain.toLowerCase();
-            if (!metricDomain.equals(domainName)) {
-                final String errMsg = "postDomainMetrics: mismatched domain names: uri domain: "
-                        + domainName + " : metric domain: " + metricDomain;
-                throw requestError(errMsg, caller, domainName);
-            }
         }
 
-        List<DomainMetric> dmList = req.getMetricList();
+        List<DomainMetric> dmList = domainMetrics.getMetricList();
         if (dmList == null || dmList.size() == 0) {
             // no metrics were sent - log error
             final String errMsg = "postDomainMetrics: received no metrics for domain: " + domainName;
@@ -2686,20 +2695,19 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
 
         // process the DomainMetrics request in order to increment each of its attrs
+        
         for (DomainMetric dm: dmList) {
             DomainMetricType dmType = dm.getMetricType();
             if (dmType == null) {
-                LOGGER.warn("postDomainMetrics: ignore missing metric received for domain: {}", domainName);
+                LOGGER.error("postDomainMetrics: ignore missing metric received for domain: {}", domainName);
                 continue;
             }
 
             final String dmt = dmType.toString().toLowerCase();
             Integer count = dm.getMetricVal();
             if (count == null || count.intValue() < 0) {
-                if (LOGGER.isWarnEnabled()) {
-                    LOGGER.warn("postDomainMetrics: ignore metric: " + dmt + 
-                        " : invalid counter: " + count + " : received for domain: " + domainName);
-                }
+                LOGGER.error("postDomainMetrics: ignore metric: {} invalid counter {} received for domain {}",
+                        dmt, count,  domainName);
                 continue;
             }
             String metricName = DOM_METRIX_PREFIX + dmt;
@@ -2707,7 +2715,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
 
         metric.stopTiming(timerMetric);
-        return req;
+        return domainMetrics;
     }
     
     @Override
@@ -2743,10 +2751,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return schema;
     }
     
-    protected String formatValidationError(String msg, Struct v) {
-        return msg + ": " + v.getString("error") + " [" + v.getString("context") + "]";
-    }
-
     void validateRequest(HttpServletRequest request, String caller) {
         validateRequest(request, caller, false);
     }

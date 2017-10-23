@@ -110,6 +110,10 @@ public final class ZTSConsts {
     public static final String ZTS_RESOURCE_INSTANCE = "sys.auth:instance";
     public static final String ZTS_RESOURCE_DNS      = "sys.auth:dns.";
     
+    public static final String ZTS_INSTANCE_SAN_DNS     = "sanDNS";
+    public static final String ZTS_INSTANCE_SAN_IP      = "sanIP";
+    public static final String ZTS_INSTANCE_AWS_ACCOUNT = "awsAccount";
+    
     public static final String ZTS_PROP_AWS_ENABLED              = "athenz.zts.aws_enabled";
     public static final String ZTS_PROP_AWS_BUCKET_NAME          = "athenz.zts.aws_bucket_name";
     public static final String ZTS_PROP_AWS_CREDS_UPDATE_TIMEOUT = "athenz.zts.aws_creds_update_timeout";

@@ -26,6 +26,8 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.math.BigInteger;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
@@ -59,6 +61,7 @@ import org.slf4j.LoggerFactory;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.DERIA5String;
+import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -755,6 +758,28 @@ public class Crypto {
         return dnsNames;
     }
 
+    public static List<String> extractX509IPAddresses(PKCS10CertificationRequest certReq) {
+       
+        List<String> ipAddresses = new ArrayList<>();
+        Attribute[] attributes = certReq.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);
+        for (Attribute attribute : attributes) {
+            for (ASN1Encodable value : attribute.getAttributeValues()) {
+                Extensions extensions = Extensions.getInstance(value);
+                GeneralNames gns = GeneralNames.fromExtensions(extensions, Extension.subjectAlternativeName);
+                for (GeneralName name : gns.getNames()) {
+                    if (name.getTagNo() == GeneralName.iPAddress) {
+                        try {
+                            InetAddress addr = InetAddress.getByAddress(((DEROctetString) name.getName()).getOctets());
+                            ipAddresses.add(addr.getHostAddress());
+                        } catch (UnknownHostException e) {
+                        }
+                    }
+                }
+            }
+        }
+        return ipAddresses;
+    }
+    
     public static String generateX509CSR(PrivateKey privateKey, String x500Principal,
             GeneralName[] sanArray) throws OperatorCreationException, IOException {
         final PublicKey publicKey = extractPublicKey(privateKey);
@@ -846,14 +871,12 @@ public class Crypto {
             //     iPAddress                       [7]     OCTET STRING,
             //     registeredID                    [8]     OBJECT IDENTIFIER}
 
-            if (type == 1) {
+            if (type == GeneralName.rfc822Name) {
                 emails.add((String) item.get(1));
             }
         }
         return emails;
     }
-
-
 
     public static List<String> extractX509IPAddresses(X509Certificate x509Cert) {
         
@@ -884,7 +907,7 @@ public class Crypto {
             //     iPAddress                       [7]     OCTET STRING,
             //     registeredID                    [8]     OBJECT IDENTIFIER}
             
-            if (type == 7) {
+            if (type == GeneralName.iPAddress) {
                 ipAddresses.add((String) item.get(1));
             }
         }

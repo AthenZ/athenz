@@ -42,18 +42,25 @@ public class InstanceAWSProvider implements InstanceProvider {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceAWSProvider.class);
     
-    private static final String ATTR_ACCOUNT_ID = "accountId";
-    private static final String ATTR_REGION = "region";
+    private static final String ATTR_ACCOUNT_ID   = "accountId";
+    private static final String ATTR_REGION       = "region";
     private static final String ATTR_PENDING_TIME = "pendingTime";
+    private static final String ATTR_INSTANCE_ID  = "instanceId";
+    
+    private static final String ZTS_CERT_USAGE          = "certUsage";
+    private static final String ZTS_CERT_USAGE_CLIENT   = "client";
+    private static final String ZTS_CERT_INSTANCE_ID    = ".instanceid.athenz.";
 
-    private static final String ZTS_CERT_USAGE        = "certUsage";
-    private static final String ZTS_CERT_USAGE_CLIENT = "client";
+    public static final String ZTS_INSTANCE_SAN_DNS     = "sanDNS";
+    public static final String ZTS_INSTANCE_AWS_ACCOUNT = "awsAccount";
     
     public static final String AWS_PROP_PUBLIC_CERT      = "athenz.zts.aws_public_cert";
     public static final String AWS_PROP_BOOT_TIME_OFFSET = "athenz.zts.aws_boot_time_offset";
+    public static final String AWS_PROP_DNS_SUFFIX       = "athenz.zts.aws_dns_suffix";
     
     PublicKey awsPublicKey = null;      // AWS public key for validating instance documents
     long bootTimeOffset;                // boot time offset in milliseconds
+    String dnsSuffix = null;
     
     @Override
     public void initialize(String provider, String providerEndpoint) {
@@ -65,12 +72,24 @@ public class InstanceAWSProvider implements InstanceProvider {
             awsPublicKey = awsCert.getPublicKey();
         }
         
+        if (awsPublicKey == null) {
+            LOGGER.error("AWS Public Key not specified - no instance requests will be authorized");
+        }
+        
         // how long the instance must be booted in the past before we
         // stop validating the instance requests
         
         long timeout = TimeUnit.SECONDS.convert(5, TimeUnit.MINUTES);
         bootTimeOffset = 1000 * Long.parseLong(
                 System.getProperty(AWS_PROP_BOOT_TIME_OFFSET, Long.toString(timeout)));
+        
+        // determine the dns suffix. if this is not specified we'll
+        // rejecting all entries
+        
+        dnsSuffix = System.getProperty(AWS_PROP_DNS_SUFFIX);
+        if (dnsSuffix == null || dnsSuffix.isEmpty()) {
+            LOGGER.error("AWS DNS Suffix not specified - no instance requests will be authorized");
+        }
     }
 
     ResourceException error(String message) {
@@ -78,28 +97,23 @@ public class InstanceAWSProvider implements InstanceProvider {
         return new ResourceException(ResourceException.FORBIDDEN, message);
     }
     
-    String getAWSAccount(Map<String, String> attributes) {
+    String getInstanceProperty(final Map<String, String> attributes, final String propertyName) {
         
         if (attributes == null) {
-            LOGGER.error("validateAWSAccount: no attributes available");
+            LOGGER.error("getInstanceProperty: no attributes available");
             return null;
         }
     
-        final String awsAccount = attributes.get("awsAccount");
-        if (awsAccount == null) {
-            LOGGER.error("validateAWSAccount: awsAccount attribute not available");
+        final String value = attributes.get(propertyName);
+        if (value == null) {
+            LOGGER.error("getInstanceProperty: " + propertyName + " attribute not available");
             return null;
         }
         
-        return awsAccount;
+        return value;
     }
     
     boolean validateAWSAccount(final String awsAccount, final String docAccount) {
-        
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("validateAWSAccount: ZTS domain account lookup: " + awsAccount);
-            LOGGER.debug("validateAWSAccount: Instance document account: " + docAccount);
-        }
         
         if (!awsAccount.equalsIgnoreCase(docAccount)) {
             LOGGER.error("verifyInstanceDocument: mismatch between account values: "
@@ -111,10 +125,6 @@ public class InstanceAWSProvider implements InstanceProvider {
     
     boolean validateAWSProvider(final String provider, final String region) {
         
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("validateAWSProvider: validating provider {} with region {}", provider, region);
-        }
-        
         if (region == null) {
             LOGGER.error("validateAWSProvider: no region provided in instance document");
             return false;
@@ -122,7 +132,19 @@ public class InstanceAWSProvider implements InstanceProvider {
         
         final String suffix = "." + region;
         if (!provider.endsWith(suffix)) {
-            LOGGER.error("validateAWSProvider: provider does not end with expected suffix {}", suffix);
+            LOGGER.error("validateAWSProvider: provider {} does not end with expected suffix {}",
+                    provider, region);
+            return false;
+        }
+        
+        return true;
+    }
+    
+    boolean validateAWSInstanceId(final String reqInstanceId, final String docInstanceId) {
+        
+        if (!reqInstanceId.equalsIgnoreCase(docInstanceId)) {
+            LOGGER.error("validateAWSInstanceId: mismatch between instance-id values: "
+                    + " request: {} vs. instance document: {}", reqInstanceId, docInstanceId);
             return false;
         }
         
@@ -130,10 +152,6 @@ public class InstanceAWSProvider implements InstanceProvider {
     }
     
     boolean validateAWSSignature(final String document, final String signature) {
-
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("validateAWSSignature: validating AWS signature: {}", signature);
-        }
         
         if (signature == null || signature.isEmpty()) {
             LOGGER.error("AWS instance document signature is empty");
@@ -157,14 +175,10 @@ public class InstanceAWSProvider implements InstanceProvider {
     }
     
     boolean validateAWSDocument(final String provider, final String document, final String signature,
-            final String awsAccount) {
+            final String awsAccount, final String instanceId) {
         
         if (!validateAWSSignature(document, signature)) {
             return false;
-        }
-        
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("validateAWSDocument: parsing AWS document");
         }
         
         // convert our document into a struct that we can extract data
@@ -186,8 +200,10 @@ public class InstanceAWSProvider implements InstanceProvider {
             return false;
         }
         
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("validateAWSDocument: validating instance boot up time");
+        // verify the request has the expected account id
+        
+        if (!validateAWSInstanceId(instanceId, instanceDocument.getString(ATTR_INSTANCE_ID))) {
+            return false;
         }
         
         // verify that the boot up time for the instance is now
@@ -202,16 +218,95 @@ public class InstanceAWSProvider implements InstanceProvider {
         return true;
     }
     
+    boolean validateCertRequestHostnames(final Map<String, String> attributes, final String domain,
+            final String service, StringBuilder instanceId) {
+        
+        // make sure we have valid dns suffix specified
+        
+        if (dnsSuffix == null || dnsSuffix.isEmpty()) {
+            LOGGER.error("No AWS DNS suffix specified for validation");
+            return false;
+        }
+        // first check to see if we're given any hostnames to validate
+        // if the list is empty then something is not right thus we'll
+        // reject the request
+        
+        final String hostnames = getInstanceProperty(attributes, ZTS_INSTANCE_SAN_DNS);
+        if (hostnames == null || hostnames.isEmpty()) {
+            LOGGER.error("Request contains no SAN DNS entries for validation");
+            return false;
+        }
+        
+        // generate the expected hostname for check
+        
+        final String hostNameCheck = service + "." + domain.replace('.', '-') + "." + dnsSuffix;
+        
+        // validate the entries
+        
+        boolean hostCheck = false;
+        boolean instanceIdCheck = false;
+        
+        String[] hosts = hostnames.split(",");
+        
+        // we only allow two hostnames in our AWS CSR:
+        // service.<domain-with-dashes>.<dns-suffix>
+        // <instance-id>.instanceid.athenz.<dns-suffix>
+        
+        if (hosts.length != 2) {
+            LOGGER.error("Request does not contain expected number of SAN DNS entries: {}",
+                    hosts.length);
+            return false;
+        }
+        
+        for (String host : hosts) {
+            
+            int idx = host.indexOf(ZTS_CERT_INSTANCE_ID);
+            if (idx != -1) {
+                instanceId.append(host.substring(0, idx));
+                if (!dnsSuffix.equals(host.substring(idx + ZTS_CERT_INSTANCE_ID.length()))) {
+                    LOGGER.error("Host: {} does not have expected instance id format", host);
+                    return false;
+                }
+                
+                instanceIdCheck = true;
+            } else {
+                if (!hostNameCheck.equals(host)) {
+                    LOGGER.error("Unable to verify SAN DNS entry: {}", host);
+                    return false;
+                }
+                hostCheck = true;
+            }
+        }
+
+        // report error cases separately for easier debugging
+        
+        if (!instanceIdCheck) {
+            LOGGER.error("Request does not contain expected instance id SAN DNS entry");
+            return false;
+        }
+        
+        if (!hostCheck) {
+            LOGGER.error("Request does not contain expected host SAN DNS entry");
+            return false;
+        }
+        
+        return true;
+    }
+    
     @Override
     public InstanceConfirmation confirmInstance(InstanceConfirmation confirmation) {
         
         AWSAttestationData info = JSON.fromString(confirmation.getAttestationData(),
                 AWSAttestationData.class);
         
+        final Map<String, String> instanceAttributes = confirmation.getAttributes();
+        final String instanceDomain = confirmation.getDomain();
+        final String instanceService = confirmation.getService();
+        
         // before doing anything else we want to make sure our
         // object has an associated aws account id
         
-        final String awsAccount = getAWSAccount(confirmation.getAttributes());
+        final String awsAccount = getInstanceProperty(instanceAttributes, ZTS_INSTANCE_AWS_ACCOUNT);
         if (awsAccount == null) {
             throw error("Unable to extract AWS Account id");
         }
@@ -219,9 +314,17 @@ public class InstanceAWSProvider implements InstanceProvider {
         // validate that the domain/service given in the confirmation
         // request match the attestation data
         
-        final String serviceName = confirmation.getDomain() + "." + confirmation.getService();
+        final String serviceName = instanceDomain + "." + instanceService;
         if (!serviceName.equals(info.getRole())) {
             throw error("Service name mismatch: " + info.getRole() + " vs. " + serviceName);
+        }
+        
+        // validate the certificate host names
+        
+        StringBuilder instanceId = new StringBuilder(256);
+        if (!validateCertRequestHostnames(instanceAttributes, instanceDomain,
+                instanceService, instanceId)) {
+            throw error("Unable to validate certificate request hostnames");
         }
         
         // if we have no document then we can only issue client
@@ -232,7 +335,8 @@ public class InstanceAWSProvider implements InstanceProvider {
             
             // validate our document against given signature
             
-            if (!validateAWSDocument(confirmation.getProvider(), document, info.getSignature(), awsAccount)) {
+            if (!validateAWSDocument(confirmation.getProvider(), document, info.getSignature(),
+                    awsAccount, instanceId.toString())) {
                 throw error("Unable to validate AWS document");
             }
             
@@ -262,25 +366,19 @@ public class InstanceAWSProvider implements InstanceProvider {
         
         String access = info.getAccess();
         if (access == null || access.isEmpty()) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("getInstanceClient: No access key id available in instance document");
-            }
+            LOGGER.error("getInstanceClient: No access key id available in instance document");
             return null;
         }
         
         String secret = info.getSecret();
         if (secret == null || secret.isEmpty()) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("getInstanceClient: No secret access key available in instance document");
-            }
+            LOGGER.error("getInstanceClient: No secret access key available in instance document");
             return null;
         }
         
         String token = info.getToken();
         if (token == null || token.isEmpty()) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("getInstanceClient: No token available in instance document");
-            }
+            LOGGER.error("getInstanceClient: No token available in instance document");
             return null;
         }
         
@@ -304,22 +402,19 @@ public class InstanceAWSProvider implements InstanceProvider {
                 LOGGER.error("verifyInstanceIdentity - unable to get caller identity");
                 return false;
             }
-            
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("verifyInstanceIdentity: caller identity: {}", res.getArn());
-            }
              
             String arn = "arn:aws:sts::" + awsAccount + ":assumed-role/" + info.getRole() + "/";
             if (!res.getArn().startsWith(arn)) {
-                LOGGER.error("verifyInstanceIdentity - ARN mismatch - request:" +
-                        arn + " caller-identity: " + res.getArn());
+                LOGGER.error("verifyInstanceIdentity - ARN mismatch - request: {} caller-idenity: {}",
+                        arn, res.getArn());
                 return false;
             }
             
             return true;
             
         } catch (Exception ex) {
-            LOGGER.error("CloudStore: verifyInstanceIdentity - unable get caller identity: " + ex.getMessage());
+            LOGGER.error("CloudStore: verifyInstanceIdentity - unable get caller identity: {}",
+                    ex.getMessage());
             return false;
         }
     }
