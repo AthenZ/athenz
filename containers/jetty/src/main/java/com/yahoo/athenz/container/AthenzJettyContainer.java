@@ -305,7 +305,7 @@ public class AthenzJettyContainer {
         this.privateKeyStore = pkeyFactory.create();
     }
     
-    SslContextFactory createSSLContextObject() {
+    SslContextFactory createSSLContextObject(boolean needClientAuth) {
         
         String keyStorePath = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH);
         String keyStorePasswordAppName = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD_APPNAME);
@@ -356,7 +356,12 @@ public class AthenzJettyContainer {
         if (!excludedProtocols.isEmpty()) {
             sslContextFactory.setExcludeProtocols(excludedProtocols.split(","));
         }
-        sslContextFactory.setWantClientAuth(true);
+        
+        if (needClientAuth) {
+            sslContextFactory.setNeedClientAuth(true);
+        } else {
+            sslContextFactory.setWantClientAuth(true);
+        }
         
         return sslContextFactory;
     }
@@ -380,11 +385,11 @@ public class AthenzJettyContainer {
     }
     
     void addHTTPSConnector(HttpConfiguration httpConfig, int httpsPort, boolean proxyProtocol,
-            String listenHost, int idleTimeout) {
+            String listenHost, int idleTimeout, boolean needClientAuth) {
         
         // SSL Context Factory
     
-        SslContextFactory sslContextFactory = createSSLContextObject();
+        SslContextFactory sslContextFactory = createSSLContextObject(needClientAuth);
     
         // SSL HTTP Configuration
         
@@ -428,7 +433,9 @@ public class AthenzJettyContainer {
         // HTTPS Connector
         
         if (httpsPort > 0) {
-            addHTTPSConnector(httpConfig, httpsPort, proxyProtocol, listenHost, idleTimeout);
+            boolean needClientAuth = Boolean.parseBoolean(
+                    System.getProperty(AthenzConsts.ATHENZ_PROP_CLIENT_AUTH, "false"));
+            addHTTPSConnector(httpConfig, httpsPort, proxyProtocol, listenHost, idleTimeout, needClientAuth);
         }
         
         // Status Connector - only if it's different from HTTP/HTTPS
@@ -436,7 +443,7 @@ public class AthenzJettyContainer {
         if (statusPort > 0 && statusPort != httpPort && statusPort != httpsPort) {
             
             if (httpsPort > 0) {
-                addHTTPSConnector(httpConfig, statusPort, false, listenHost, idleTimeout);
+                addHTTPSConnector(httpConfig, statusPort, false, listenHost, idleTimeout, false);
             } else if (httpPort > 0) {
                 addHTTPConnector(httpConfig, statusPort, false, listenHost, idleTimeout);
             }

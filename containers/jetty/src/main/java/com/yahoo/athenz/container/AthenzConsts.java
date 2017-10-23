@@ -38,6 +38,7 @@ public final class AthenzConsts {
     public static final String ATHENZ_PROP_EXCLUDED_CIPHER_SUITES = "athenz.ssl_excluded_cipher_suites";
     public static final String ATHENZ_PROP_INCLUDED_CIPHER_SUITES = "athenz.ssl_included_cipher_suites";
     public static final String ATHENZ_PROP_EXCLUDED_PROTOCOLS     = "athenz.ssl_excluded_protocols";
+    public static final String ATHENZ_PROP_CLIENT_AUTH            = "athenz.ssl_need_client_auth";
     public static final String ATHENZ_PROP_IDLE_TIMEOUT           = "athenz.http_idle_timeout";
     public static final String ATHENZ_PROP_PROXY_PROTOCOL         = "athenz.proxy_protocol";
     public static final String ATHENZ_PROP_SEND_SERVER_VERSION    = "athenz.http_send_server_version";
@@ -55,7 +56,8 @@ public final class AthenzConsts {
     public static final String ATHENZ_PROP_DEBUG                  = "athenz.debug";
     public static final String ATHENZ_PROP_HEALTH_CHECK_URI_LIST  = "athenz.health_check_uri_list";
     public static final String ATHENZ_PROP_HEALTH_CHECK_PATH      = "athenz.health_check_path";
-    public static final String ATHENZ_PROP_RATE_LIMIT_FACTORY_CLASS = "athenz.ratelimit_factory_class";
+    
+    public static final String ATHENZ_PROP_RATE_LIMIT_FACTORY_CLASS        = "athenz.ratelimit_factory_class";
     public static final String ATHENZ_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS = "athenz.private_keystore_factory_class";
 
     public static final String STR_DEF_ROOT     = "/home/athenz";
@@ -72,7 +74,7 @@ public final class AthenzConsts {
     public static final String ATHENZ_RATE_LIMIT_FACTORY_CLASS = "com.yahoo.athenz.common.filter.impl.NoOpRateLimitFactory";
     public static final String ATHENZ_PKEY_STORE_FACTORY_CLASS = "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory";
     
-    public static final String ATHENZ_PROP_KEYSTORE_PASSWORD_APPNAME = "athenz.ssl_key_store_password_appname";
+    public static final String ATHENZ_PROP_KEYSTORE_PASSWORD_APPNAME   = "athenz.ssl_key_store_password_appname";
     public static final String ATHENZ_PROP_KEYMANAGER_PASSWORD_APPNAME = "athenz.ssl_key_manager_password_appname";
     public static final String ATHENZ_PROP_TRUSTSTORE_PASSWORD_APPNAME = "athenz.ssl_trust_store_password_appname";
 }
