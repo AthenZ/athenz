@@ -5,11 +5,13 @@
 include "Names.tdl";
 include "Role.tdl";
 include "Policy.tdl";
+include "ServiceIdentity.tdl"
 
 //Solution Template object defined on the server
 type Template Struct {
     Array<Role> roles; //list of roles in the template
     Array<Policy> policies; //list of policies defined in this template
+    Array<ServiceIdentity> services (optional); //list of services defined in this template
 }
 
 //List of template names that is the base struct for

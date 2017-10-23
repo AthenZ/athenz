@@ -114,6 +114,14 @@ public class ZMSUtils {
         return objectName;
     }
     
+    public static String removeDomainPrefixForService(String serviceName, String domainName) {
+        final String valPrefix = domainName + ".";
+        if (serviceName.startsWith(valPrefix)) {
+            serviceName = serviceName.substring(valPrefix.length());
+        }
+        return serviceName;
+    }
+    
     public static String getTenantResourceGroupRolePrefix(String provSvcName, String tenantDomain, String resourceGroup) {
         
         StringBuilder rolePrefix = new StringBuilder(256);

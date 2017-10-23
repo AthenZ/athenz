@@ -3,6 +3,7 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 import com.yahoo.rdl.*;
 
@@ -12,6 +13,9 @@ import com.yahoo.rdl.*;
 public class Template {
     public List<Role> roles;
     public List<Policy> policies;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public List<ServiceIdentity> services;
 
     public Template setRoles(List<Role> roles) {
         this.roles = roles;
@@ -27,6 +31,13 @@ public class Template {
     public List<Policy> getPolicies() {
         return policies;
     }
+    public Template setServices(List<ServiceIdentity> services) {
+        this.services = services;
+        return this;
+    }
+    public List<ServiceIdentity> getServices() {
+        return services;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -39,6 +50,9 @@ public class Template {
                 return false;
             }
             if (policies == null ? a.policies != null : !policies.equals(a.policies)) {
+                return false;
+            }
+            if (services == null ? a.services != null : !services.equals(a.services)) {
                 return false;
             }
         }
