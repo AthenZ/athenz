@@ -36,7 +36,7 @@ and often rely on network ACLs and manual updating.
 ----------------
 
 * Getting Started
-    * [Development Enviornment](docs/dev_environment.md)
+    * [Development Environment](docs/dev_environment.md)
     * Local/Development Environment Setup
         * [ZMS Server](docs/setup_zms.md)
         * [ZTS Server](docs/setup_zts.md)
