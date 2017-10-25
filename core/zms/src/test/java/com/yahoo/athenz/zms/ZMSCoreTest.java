@@ -1378,7 +1378,15 @@ public class ZMSCoreTest {
         assertFalse(t2.equals(t));
         assertFalse(t2.equals(null));
         assertFalse(t.equals(new String()));
-
+        
+        //test for service
+        List<ServiceIdentity> services = Arrays.asList(new ServiceIdentity().setName("test.service")
+                .setDescription("Test Description"));
+        Template t3 = new Template().setRoles(rl).setPolicies(pl).setServices(services);
+        
+        Result result3 = validator.validate(t3, "Template");
+        assertTrue(result3.valid, result3.error);
+        assertEquals(t3.getServices(), services);
     }
 
     @Test

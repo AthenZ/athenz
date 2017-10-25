@@ -1036,6 +1036,298 @@ func (self *Policies) Validate() error {
 }
 
 //
+// PublicKeyEntry - The representation of the public key in a service identity
+// object.
+//
+type PublicKeyEntry struct {
+
+	//
+	// the public key for the service
+	//
+	Key string `json:"key"`
+
+	//
+	// the key identifier (version or zone name)
+	//
+	Id string `json:"id"`
+}
+
+//
+// NewPublicKeyEntry - creates an initialized PublicKeyEntry instance, returns a pointer to it
+//
+func NewPublicKeyEntry(init ...*PublicKeyEntry) *PublicKeyEntry {
+	var o *PublicKeyEntry
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(PublicKeyEntry)
+	}
+	return o
+}
+
+type rawPublicKeyEntry PublicKeyEntry
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a PublicKeyEntry
+//
+func (self *PublicKeyEntry) UnmarshalJSON(b []byte) error {
+	var m rawPublicKeyEntry
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := PublicKeyEntry(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *PublicKeyEntry) Validate() error {
+	if self.Key == "" {
+		return fmt.Errorf("PublicKeyEntry.key is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "String", self.Key)
+		if !val.Valid {
+			return fmt.Errorf("PublicKeyEntry.key does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Id == "" {
+		return fmt.Errorf("PublicKeyEntry.id is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "String", self.Id)
+		if !val.Valid {
+			return fmt.Errorf("PublicKeyEntry.id does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
+// ServiceIdentity - The representation of the service identity object.
+//
+type ServiceIdentity struct {
+
+	//
+	// the full name of the service, i.e. "sports.storage"
+	//
+	Name ServiceName `json:"name"`
+
+	//
+	// description of the service
+	//
+	Description string `json:"description,omitempty" rdl:"optional"`
+
+	//
+	// array of public keys for key rotation
+	//
+	PublicKeys []*PublicKeyEntry `json:"publicKeys,omitempty" rdl:"optional"`
+
+	//
+	// if present, then this service can provision tenants via this endpoint.
+	//
+	ProviderEndpoint string `json:"providerEndpoint,omitempty" rdl:"optional"`
+
+	//
+	// the timestamp when this entry was last modified
+	//
+	Modified *rdl.Timestamp `json:"modified,omitempty" rdl:"optional"`
+
+	//
+	// the path of the executable that runs the service
+	//
+	Executable string `json:"executable,omitempty" rdl:"optional"`
+
+	//
+	// list of host names that this service can run on
+	//
+	Hosts []string `json:"hosts,omitempty" rdl:"optional"`
+
+	//
+	// local (unix) user name this service can run as
+	//
+	User string `json:"user,omitempty" rdl:"optional"`
+
+	//
+	// local (unix) group name this service can run as
+	//
+	Group string `json:"group,omitempty" rdl:"optional"`
+}
+
+//
+// NewServiceIdentity - creates an initialized ServiceIdentity instance, returns a pointer to it
+//
+func NewServiceIdentity(init ...*ServiceIdentity) *ServiceIdentity {
+	var o *ServiceIdentity
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(ServiceIdentity)
+	}
+	return o
+}
+
+type rawServiceIdentity ServiceIdentity
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a ServiceIdentity
+//
+func (self *ServiceIdentity) UnmarshalJSON(b []byte) error {
+	var m rawServiceIdentity
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := ServiceIdentity(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *ServiceIdentity) Validate() error {
+	if self.Name == "" {
+		return fmt.Errorf("ServiceIdentity.name is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "ServiceName", self.Name)
+		if !val.Valid {
+			return fmt.Errorf("ServiceIdentity.name does not contain a valid ServiceName (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
+// ServiceIdentities - The representation of list of services
+//
+type ServiceIdentities struct {
+
+	//
+	// list of services
+	//
+	List []*ServiceIdentity `json:"list"`
+}
+
+//
+// NewServiceIdentities - creates an initialized ServiceIdentities instance, returns a pointer to it
+//
+func NewServiceIdentities(init ...*ServiceIdentities) *ServiceIdentities {
+	var o *ServiceIdentities
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(ServiceIdentities)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *ServiceIdentities) Init() *ServiceIdentities {
+	if self.List == nil {
+		self.List = make([]*ServiceIdentity, 0)
+	}
+	return self
+}
+
+type rawServiceIdentities ServiceIdentities
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a ServiceIdentities
+//
+func (self *ServiceIdentities) UnmarshalJSON(b []byte) error {
+	var m rawServiceIdentities
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := ServiceIdentities(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *ServiceIdentities) Validate() error {
+	if self.List == nil {
+		return fmt.Errorf("ServiceIdentities: Missing required field: list")
+	}
+	return nil
+}
+
+//
+// ServiceIdentityList - The representation for an enumeration of services in
+// the namespace, with pagination.
+//
+type ServiceIdentityList struct {
+
+	//
+	// list of service names
+	//
+	Names []EntityName `json:"names"`
+
+	//
+	// if the response is a paginated list, this attribute specifies the value to
+	// be used in the next service list request as the value for the skip query
+	// parameter.
+	//
+	Next string `json:"next,omitempty" rdl:"optional"`
+}
+
+//
+// NewServiceIdentityList - creates an initialized ServiceIdentityList instance, returns a pointer to it
+//
+func NewServiceIdentityList(init ...*ServiceIdentityList) *ServiceIdentityList {
+	var o *ServiceIdentityList
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(ServiceIdentityList)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *ServiceIdentityList) Init() *ServiceIdentityList {
+	if self.Names == nil {
+		self.Names = make([]EntityName, 0)
+	}
+	return self
+}
+
+type rawServiceIdentityList ServiceIdentityList
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a ServiceIdentityList
+//
+func (self *ServiceIdentityList) UnmarshalJSON(b []byte) error {
+	var m rawServiceIdentityList
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := ServiceIdentityList(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *ServiceIdentityList) Validate() error {
+	if self.Names == nil {
+		return fmt.Errorf("ServiceIdentityList: Missing required field: names")
+	}
+	return nil
+}
+
+//
 // Template - Solution Template object defined on the server
 //
 type Template struct {
@@ -1049,6 +1341,11 @@ type Template struct {
 	// list of policies defined in this template
 	//
 	Policies []*Policy `json:"policies"`
+
+	//
+	// list of services defined in this template
+	//
+	Services []*ServiceIdentity `json:"services,omitempty" rdl:"optional"`
 }
 
 //
@@ -2301,298 +2598,6 @@ func (self *PolicyList) UnmarshalJSON(b []byte) error {
 func (self *PolicyList) Validate() error {
 	if self.Names == nil {
 		return fmt.Errorf("PolicyList: Missing required field: names")
-	}
-	return nil
-}
-
-//
-// PublicKeyEntry - The representation of the public key in a service identity
-// object.
-//
-type PublicKeyEntry struct {
-
-	//
-	// the public key for the service
-	//
-	Key string `json:"key"`
-
-	//
-	// the key identifier (version or zone name)
-	//
-	Id string `json:"id"`
-}
-
-//
-// NewPublicKeyEntry - creates an initialized PublicKeyEntry instance, returns a pointer to it
-//
-func NewPublicKeyEntry(init ...*PublicKeyEntry) *PublicKeyEntry {
-	var o *PublicKeyEntry
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(PublicKeyEntry)
-	}
-	return o
-}
-
-type rawPublicKeyEntry PublicKeyEntry
-
-//
-// UnmarshalJSON is defined for proper JSON decoding of a PublicKeyEntry
-//
-func (self *PublicKeyEntry) UnmarshalJSON(b []byte) error {
-	var m rawPublicKeyEntry
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := PublicKeyEntry(m)
-		*self = o
-		err = self.Validate()
-	}
-	return err
-}
-
-//
-// Validate - checks for missing required fields, etc
-//
-func (self *PublicKeyEntry) Validate() error {
-	if self.Key == "" {
-		return fmt.Errorf("PublicKeyEntry.key is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZMSSchema(), "String", self.Key)
-		if !val.Valid {
-			return fmt.Errorf("PublicKeyEntry.key does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.Id == "" {
-		return fmt.Errorf("PublicKeyEntry.id is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZMSSchema(), "String", self.Id)
-		if !val.Valid {
-			return fmt.Errorf("PublicKeyEntry.id does not contain a valid String (%v)", val.Error)
-		}
-	}
-	return nil
-}
-
-//
-// ServiceIdentity - The representation of the service identity object.
-//
-type ServiceIdentity struct {
-
-	//
-	// the full name of the service, i.e. "sports.storage"
-	//
-	Name ServiceName `json:"name"`
-
-	//
-	// description of the service
-	//
-	Description string `json:"description,omitempty" rdl:"optional"`
-
-	//
-	// array of public keys for key rotation
-	//
-	PublicKeys []*PublicKeyEntry `json:"publicKeys,omitempty" rdl:"optional"`
-
-	//
-	// if present, then this service can provision tenants via this endpoint.
-	//
-	ProviderEndpoint string `json:"providerEndpoint,omitempty" rdl:"optional"`
-
-	//
-	// the timestamp when this entry was last modified
-	//
-	Modified *rdl.Timestamp `json:"modified,omitempty" rdl:"optional"`
-
-	//
-	// the path of the executable that runs the service
-	//
-	Executable string `json:"executable,omitempty" rdl:"optional"`
-
-	//
-	// list of host names that this service can run on
-	//
-	Hosts []string `json:"hosts,omitempty" rdl:"optional"`
-
-	//
-	// local (unix) user name this service can run as
-	//
-	User string `json:"user,omitempty" rdl:"optional"`
-
-	//
-	// local (unix) group name this service can run as
-	//
-	Group string `json:"group,omitempty" rdl:"optional"`
-}
-
-//
-// NewServiceIdentity - creates an initialized ServiceIdentity instance, returns a pointer to it
-//
-func NewServiceIdentity(init ...*ServiceIdentity) *ServiceIdentity {
-	var o *ServiceIdentity
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(ServiceIdentity)
-	}
-	return o
-}
-
-type rawServiceIdentity ServiceIdentity
-
-//
-// UnmarshalJSON is defined for proper JSON decoding of a ServiceIdentity
-//
-func (self *ServiceIdentity) UnmarshalJSON(b []byte) error {
-	var m rawServiceIdentity
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := ServiceIdentity(m)
-		*self = o
-		err = self.Validate()
-	}
-	return err
-}
-
-//
-// Validate - checks for missing required fields, etc
-//
-func (self *ServiceIdentity) Validate() error {
-	if self.Name == "" {
-		return fmt.Errorf("ServiceIdentity.name is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZMSSchema(), "ServiceName", self.Name)
-		if !val.Valid {
-			return fmt.Errorf("ServiceIdentity.name does not contain a valid ServiceName (%v)", val.Error)
-		}
-	}
-	return nil
-}
-
-//
-// ServiceIdentities - The representation of list of services
-//
-type ServiceIdentities struct {
-
-	//
-	// list of services
-	//
-	List []*ServiceIdentity `json:"list"`
-}
-
-//
-// NewServiceIdentities - creates an initialized ServiceIdentities instance, returns a pointer to it
-//
-func NewServiceIdentities(init ...*ServiceIdentities) *ServiceIdentities {
-	var o *ServiceIdentities
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(ServiceIdentities)
-	}
-	return o.Init()
-}
-
-//
-// Init - sets up the instance according to its default field values, if any
-//
-func (self *ServiceIdentities) Init() *ServiceIdentities {
-	if self.List == nil {
-		self.List = make([]*ServiceIdentity, 0)
-	}
-	return self
-}
-
-type rawServiceIdentities ServiceIdentities
-
-//
-// UnmarshalJSON is defined for proper JSON decoding of a ServiceIdentities
-//
-func (self *ServiceIdentities) UnmarshalJSON(b []byte) error {
-	var m rawServiceIdentities
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := ServiceIdentities(m)
-		*self = *((&o).Init())
-		err = self.Validate()
-	}
-	return err
-}
-
-//
-// Validate - checks for missing required fields, etc
-//
-func (self *ServiceIdentities) Validate() error {
-	if self.List == nil {
-		return fmt.Errorf("ServiceIdentities: Missing required field: list")
-	}
-	return nil
-}
-
-//
-// ServiceIdentityList - The representation for an enumeration of services in
-// the namespace, with pagination.
-//
-type ServiceIdentityList struct {
-
-	//
-	// list of service names
-	//
-	Names []EntityName `json:"names"`
-
-	//
-	// if the response is a paginated list, this attribute specifies the value to
-	// be used in the next service list request as the value for the skip query
-	// parameter.
-	//
-	Next string `json:"next,omitempty" rdl:"optional"`
-}
-
-//
-// NewServiceIdentityList - creates an initialized ServiceIdentityList instance, returns a pointer to it
-//
-func NewServiceIdentityList(init ...*ServiceIdentityList) *ServiceIdentityList {
-	var o *ServiceIdentityList
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(ServiceIdentityList)
-	}
-	return o.Init()
-}
-
-//
-// Init - sets up the instance according to its default field values, if any
-//
-func (self *ServiceIdentityList) Init() *ServiceIdentityList {
-	if self.Names == nil {
-		self.Names = make([]EntityName, 0)
-	}
-	return self
-}
-
-type rawServiceIdentityList ServiceIdentityList
-
-//
-// UnmarshalJSON is defined for proper JSON decoding of a ServiceIdentityList
-//
-func (self *ServiceIdentityList) UnmarshalJSON(b []byte) error {
-	var m rawServiceIdentityList
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := ServiceIdentityList(m)
-		*self = *((&o).Init())
-		err = self.Validate()
-	}
-	return err
-}
-
-//
-// Validate - checks for missing required fields, etc
-//
-func (self *ServiceIdentityList) Validate() error {
-	if self.Names == nil {
-		return fmt.Errorf("ServiceIdentityList: Missing required field: names")
 	}
 	return nil
 }

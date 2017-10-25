@@ -147,10 +147,37 @@ public class ZMSSchema {
             .comment("The representation of list of policy objects")
             .arrayField("list", "Policy", false, "list of policy objects");
 
+        sb.structType("PublicKeyEntry")
+            .comment("The representation of the public key in a service identity object.")
+            .field("key", "String", false, "the public key for the service")
+            .field("id", "String", false, "the key identifier (version or zone name)");
+
+        sb.structType("ServiceIdentity")
+            .comment("The representation of the service identity object.")
+            .field("name", "ServiceName", false, "the full name of the service, i.e. \"sports.storage\"")
+            .field("description", "String", true, "description of the service")
+            .arrayField("publicKeys", "PublicKeyEntry", true, "array of public keys for key rotation")
+            .field("providerEndpoint", "String", true, "if present, then this service can provision tenants via this endpoint.")
+            .field("modified", "Timestamp", true, "the timestamp when this entry was last modified")
+            .field("executable", "String", true, "the path of the executable that runs the service")
+            .arrayField("hosts", "String", true, "list of host names that this service can run on")
+            .field("user", "String", true, "local (unix) user name this service can run as")
+            .field("group", "String", true, "local (unix) group name this service can run as");
+
+        sb.structType("ServiceIdentities")
+            .comment("The representation of list of services")
+            .arrayField("list", "ServiceIdentity", false, "list of services");
+
+        sb.structType("ServiceIdentityList")
+            .comment("The representation for an enumeration of services in the namespace, with pagination.")
+            .arrayField("names", "EntityName", false, "list of service names")
+            .field("next", "String", true, "if the response is a paginated list, this attribute specifies the value to be used in the next service list request as the value for the skip query parameter.");
+
         sb.structType("Template")
             .comment("Solution Template object defined on the server")
             .arrayField("roles", "Role", false, "list of roles in the template")
-            .arrayField("policies", "Policy", false, "list of policies defined in this template");
+            .arrayField("policies", "Policy", false, "list of policies defined in this template")
+            .arrayField("services", "ServiceIdentity", true, "list of services defined in this template");
 
         sb.structType("TemplateList")
             .comment("List of template names that is the base struct for server and domain templates")
@@ -228,32 +255,6 @@ public class ZMSSchema {
             .comment("The representation for an enumeration of policies in the namespace, with pagination.")
             .arrayField("names", "EntityName", false, "list of policy names")
             .field("next", "String", true, "if the response is a paginated list, this attribute specifies the value to be used in the next policy list request as the value for the skip query parameter.");
-
-        sb.structType("PublicKeyEntry")
-            .comment("The representation of the public key in a service identity object.")
-            .field("key", "String", false, "the public key for the service")
-            .field("id", "String", false, "the key identifier (version or zone name)");
-
-        sb.structType("ServiceIdentity")
-            .comment("The representation of the service identity object.")
-            .field("name", "ServiceName", false, "the full name of the service, i.e. \"sports.storage\"")
-            .field("description", "String", true, "description of the service")
-            .arrayField("publicKeys", "PublicKeyEntry", true, "array of public keys for key rotation")
-            .field("providerEndpoint", "String", true, "if present, then this service can provision tenants via this endpoint.")
-            .field("modified", "Timestamp", true, "the timestamp when this entry was last modified")
-            .field("executable", "String", true, "the path of the executable that runs the service")
-            .arrayField("hosts", "String", true, "list of host names that this service can run on")
-            .field("user", "String", true, "local (unix) user name this service can run as")
-            .field("group", "String", true, "local (unix) group name this service can run as");
-
-        sb.structType("ServiceIdentities")
-            .comment("The representation of list of services")
-            .arrayField("list", "ServiceIdentity", false, "list of services");
-
-        sb.structType("ServiceIdentityList")
-            .comment("The representation for an enumeration of services in the namespace, with pagination.")
-            .arrayField("names", "EntityName", false, "list of service names")
-            .field("next", "String", true, "if the response is a paginated list, this attribute specifies the value to be used in the next service list request as the value for the skip query parameter.");
 
         sb.structType("Tenancy")
             .comment("A representation of tenant.")

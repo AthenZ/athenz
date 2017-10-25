@@ -1845,6 +1845,241 @@ public class DBServiceTest {
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
+    
+    @Test
+    public void testApplySolutionTemplateWithService() {
+        
+        String domainName = "solutiontemplate-service";
+        String caller = "testApplySolutionTemplateDomainWithService";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        
+        // apply the template
+        
+        List<String> templates = new ArrayList<>();
+        templates.add("templateWithService");
+        DomainTemplate domainTemplate = new DomainTemplate().setTemplateNames(templates);
+        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
+        
+        DomainTemplateList domainTemplateList = zms.dbService.listDomainTemplates(domainName);
+        assertEquals(1, domainTemplateList.getTemplateNames().size());
+        
+        // verify that our role collection includes the expected roles
+        
+        List<String> names = zms.dbService.listRoles(domainName);
+        assertEquals(2, names.size());
+        assertTrue(names.contains("admin"));
+        assertTrue(names.contains("vip_admin"));
+        
+        Role role = zms.dbService.getRole(domainName, "vip_admin", false, false);
+        assertEquals(domainName + ":role.vip_admin", role.getName());
+        assertNull(role.getTrust());
+        assertNull(role.getRoleMembers());
+        
+        // verify that our policy collections includes the policies defined in the template
+        
+        names = zms.dbService.listPolicies(domainName);
+        assertEquals(2, names.size());
+        assertTrue(names.contains("admin"));
+        assertTrue(names.contains("vip_admin"));
+        
+        //verfiy that our service collections includes the services defined in the template
+        
+        names = zms.dbService.listServiceIdentities(domainName);
+        assertEquals(1, names.size());
+        assertTrue(names.contains("testService"));
+        // Try applying the template again. This time, there should be no changes.
+        
+        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
+
+        names = zms.dbService.listPolicies(domainName);
+        assertEquals(2, names.size());
+        assertTrue(names.contains("admin"));
+        assertTrue(names.contains("vip_admin"));
+        
+        // remove the templateWithService template
+
+        zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "templateWithService", 
+                auditRef, caller);
+        
+        assertNull(zms.dbService.getServiceIdentity(domainName, "testService"));
+        
+        domainTemplateList = zms.dbService.listDomainTemplates(domainName);
+        assertTrue(domainTemplateList.getTemplateNames().isEmpty());
+
+        // remove templateWithService again to ensure same result
+
+        zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "templateWithService", 
+                auditRef, caller);
+        
+        assertNull(zms.dbService.getServiceIdentity(domainName, "testService"));
+        
+        domainTemplateList = zms.dbService.listDomainTemplates(domainName);
+        assertTrue(domainTemplateList.getTemplateNames().isEmpty());
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+    
+    @Test
+    public void testApplySolutionTemplateWithMultipleServices() {
+        
+        String domainName = "solutiontemplate-multiservice";
+        String caller = "testApplySolutionTemplateWithMultipleServices";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        
+        // apply the template
+        
+        List<String> templates = new ArrayList<>();
+        templates.add("templateWithMultipleServices");
+        DomainTemplate domainTemplate = new DomainTemplate().setTemplateNames(templates);
+        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
+        
+        DomainTemplateList domainTemplateList = zms.dbService.listDomainTemplates(domainName);
+        assertEquals(1, domainTemplateList.getTemplateNames().size());
+        
+        // verify that our role collection includes the expected roles
+        
+        List<String> names = zms.dbService.listRoles(domainName);
+        assertEquals(2, names.size());
+        assertTrue(names.contains("admin"));
+        assertTrue(names.contains("vip_admin"));
+        
+        Role role = zms.dbService.getRole(domainName, "vip_admin", false, false);
+        assertEquals(domainName + ":role.vip_admin", role.getName());
+        assertNull(role.getTrust());
+        assertNull(role.getRoleMembers());
+        
+        // verify that our policy collections includes the policies defined in the template
+        
+        names = zms.dbService.listPolicies(domainName);
+        assertEquals(2, names.size());
+        assertTrue(names.contains("admin"));
+        assertTrue(names.contains("vip_admin"));
+        
+        //verfiy that our service collections includes the services defined in the template
+        
+        names = zms.dbService.listServiceIdentities(domainName);
+        assertEquals(2, names.size());
+        assertTrue(names.contains("testService"));
+        assertTrue(names.contains("testService2"));
+        // Try applying the template again. This time, there should be no changes.
+        
+        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
+
+        names = zms.dbService.listPolicies(domainName);
+        assertEquals(2, names.size());
+        assertTrue(names.contains("admin"));
+        assertTrue(names.contains("vip_admin"));
+        
+        // remove the templateWithService template
+
+        zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "templateWithMultipleServices", 
+                auditRef, caller);
+        
+        assertNull(zms.dbService.getServiceIdentity(domainName, "testService"));
+        
+        domainTemplateList = zms.dbService.listDomainTemplates(domainName);
+        assertTrue(domainTemplateList.getTemplateNames().isEmpty());
+
+        // remove templateWithService again to ensure same result
+
+        zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "templateWithMultipleServices", 
+                auditRef, caller);
+        
+        assertNull(zms.dbService.getServiceIdentity(domainName, "testService"));
+        
+        domainTemplateList = zms.dbService.listDomainTemplates(domainName);
+        assertTrue(domainTemplateList.getTemplateNames().isEmpty());
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+    
+    
+    @Test
+    public void testApplySolutionTemplateWithServiceWithKey() {
+        
+        String domainName = "solutiontemplate-servicekey";
+        String caller = "testApplySolutionTemplateWithServiceWithKey";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        
+        // apply the template
+        
+        List<String> templates = new ArrayList<>();
+        templates.add("templateWithServiceWithKey");
+        DomainTemplate domainTemplate = new DomainTemplate().setTemplateNames(templates);
+        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
+        
+        DomainTemplateList domainTemplateList = zms.dbService.listDomainTemplates(domainName);
+        assertEquals(1, domainTemplateList.getTemplateNames().size());
+        
+        // verify that our role collection includes the expected roles
+        
+        List<String> names = zms.dbService.listRoles(domainName);
+        assertEquals(2, names.size());
+        assertTrue(names.contains("admin"));
+        assertTrue(names.contains("vip_admin"));
+        
+        Role role = zms.dbService.getRole(domainName, "vip_admin", false, false);
+        assertEquals(domainName + ":role.vip_admin", role.getName());
+        assertNull(role.getTrust());
+        assertNull(role.getRoleMembers());
+        
+        // verify that our policy collections includes the policies defined in the template
+        
+        names = zms.dbService.listPolicies(domainName);
+        assertEquals(2, names.size());
+        assertTrue(names.contains("admin"));
+        assertTrue(names.contains("vip_admin"));
+        
+        //verfiy that our service collections includes the services defined in the template
+        
+        names = zms.dbService.listServiceIdentities(domainName);
+        assertEquals(1, names.size());
+        assertTrue(names.contains("testService3"));
+        // Try applying the template again. This time, there should be no changes.
+        
+        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
+
+        names = zms.dbService.listPolicies(domainName);
+        assertEquals(2, names.size());
+        assertTrue(names.contains("admin"));
+        assertTrue(names.contains("vip_admin"));
+        
+        //trying to check for the keys
+        ServiceIdentity serviceIdentity = zms.dbService.getServiceIdentity(domainName, "testService3");
+        assertEquals(1, serviceIdentity.getPublicKeys().size());
+        assertEquals("0", serviceIdentity.getPublicKeys().get(0).getId());
+        
+        // remove the templateWithService template
+
+        zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "templateWithServiceWithKey", 
+                auditRef, caller);
+        
+        assertNull(zms.dbService.getServiceIdentity(domainName, "testService3"));
+        
+        domainTemplateList = zms.dbService.listDomainTemplates(domainName);
+        assertTrue(domainTemplateList.getTemplateNames().isEmpty());
+
+        // remove templateWithService again to ensure same result
+
+        zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "templateWithServiceWithKey", 
+                auditRef, caller);
+        
+        assertNull(zms.dbService.getServiceIdentity(domainName, "testService3"));
+        
+        domainTemplateList = zms.dbService.listDomainTemplates(domainName);
+        assertTrue(domainTemplateList.getTemplateNames().isEmpty());
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+    
+    
+
     @Test
     public void testApplySolutionTemplateEmptyDomain() {
         

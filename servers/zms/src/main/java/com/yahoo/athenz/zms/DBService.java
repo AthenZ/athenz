@@ -2196,6 +2196,32 @@ public class DBService {
             }
         }
         
+        // iterate through service identities in the list.
+        // When adding a template, if the service identity does not exist in our domain
+        // then insert it otherwise only apply the changes
+        // otherwise for delete requests, we just delete the service identity
+        
+        List<ServiceIdentity> templateServiceIdentities = template.getServices();
+        if (templateServiceIdentities != null) {
+            for (ServiceIdentity serviceIdentity : templateServiceIdentities) {
+                String serviceIdentityName = ZMSUtils.removeDomainPrefixForService(serviceIdentity.getName(), TEMPLATE_DOMAIN_NAME);
+                
+                // retrieve our original service
+                
+                ServiceIdentity originalServiceIdentity = getServiceIdentity(con, domainName, serviceIdentityName);
+                
+                // now process the request
+                
+                ServiceIdentity templateServiceIdentity = updateTemplateServiceIdentity(serviceIdentity, domainName, serviceIdentityName, templateParams);
+                firstEntry = auditLogSeparator(auditDetails, firstEntry);
+                auditDetails.append(" \"add-service\": ");
+                if (!processServiceIdentity(con, originalServiceIdentity, domainName, serviceIdentityName,
+                    templateServiceIdentity, auditDetails)) {
+                    return false;
+                }
+            }
+        }
+        
         // if adding a template, only add if it is not in our current list
         // check to see if the template is already listed for the domain
             
@@ -2255,6 +2281,23 @@ public class DBService {
                 con.deletePolicy(domainName, policyName);
                 firstEntry = auditLogSeparator(auditDetails, firstEntry);
                 auditDetails.append(" \"delete-policy\": \"").append(policyName).append('\"');
+                continue;
+            }
+        }
+        
+        // iterate through services in the list.
+        // When adding a template, if the service does not exist in our domain
+        // then insert it otherwise only apply the changes
+        // otherwise for delete requests, we just delete the service
+
+        List<ServiceIdentity> templateServices = template.getServices();
+        if (templateServices != null) {
+            for (ServiceIdentity serviceIdentity : templateServices) {
+                String serviceName = ZMSUtils.removeDomainPrefixForService(serviceIdentity.getName(),
+                    TEMPLATE_DOMAIN_NAME);
+                con.deleteServiceIdentity(domainName, serviceName);
+                firstEntry = auditLogSeparator(auditDetails, firstEntry);
+                auditDetails.append(" \"delete-service\": \"").append(serviceName).append('\"');
                 continue;
             }
         }
@@ -2347,6 +2390,45 @@ public class DBService {
         }
         templatePolicy.setAssertions(newAssertions);
         return templatePolicy;
+    }
+    
+    ServiceIdentity updateTemplateServiceIdentity(ServiceIdentity serviceIdentity, String domainName, String serviceIdentityName, List<TemplateParam> params) {
+        
+        String templateServiceName = serviceIdentityName;
+        if (params != null) {
+            for (TemplateParam param : params) {
+                final String paramKey = "_" + param.getName() + "_";
+                templateServiceName = templateServiceName.replace(paramKey, param.getValue());
+            }
+        }
+        
+        ServiceIdentity templateServiceIdentity = new ServiceIdentity().setName(ZMSUtils.serviceResourceName(domainName, templateServiceName));
+        
+        templateServiceIdentity.setDescription(serviceIdentity.getDescription());
+        templateServiceIdentity.setExecutable(serviceIdentity.getExecutable());
+        templateServiceIdentity.setGroup(serviceIdentity.getGroup());
+        templateServiceIdentity.setUser(serviceIdentity.getUser());
+        templateServiceIdentity.setProviderEndpoint(serviceIdentity.getProviderEndpoint());
+        
+        List<PublicKeyEntry> publicKeyEntries = serviceIdentity.getPublicKeys();
+        List<PublicKeyEntry> newPublicKeyEntries = new ArrayList<PublicKeyEntry>();
+        if (publicKeyEntries != null && !publicKeyEntries.isEmpty()) {
+            for (PublicKeyEntry publicKeyEntry : publicKeyEntries) {
+                PublicKeyEntry newPublicKeyEntry = new PublicKeyEntry();
+                newPublicKeyEntry.setId(publicKeyEntry.getId());
+                newPublicKeyEntry.setKey(publicKeyEntry.getKey());
+                newPublicKeyEntries.add(newPublicKeyEntry);
+            }
+        }
+        templateServiceIdentity.setPublicKeys(newPublicKeyEntries);
+        
+        List<String> hosts = serviceIdentity.getHosts();
+        
+        if (hosts != null) {
+            templateServiceIdentity.setHosts(new ArrayList<String>(hosts));
+        }
+        
+        return templateServiceIdentity;
     }
     
     void setupTenantAdminPolicy(ResourceContext ctx, String tenantDomain, String provSvcDomain,

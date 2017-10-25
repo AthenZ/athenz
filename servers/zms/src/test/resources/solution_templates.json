@@ -236,6 +236,97 @@
                 ]
             }
         ]
+    },
+    "templateWithService" : {
+        "roles": [
+            {
+                "name": "_domain_:role.vip_admin",
+                "modified": "1970-01-01T00:00:00.000Z"
+            }
+        ],
+        "policies": [
+            {
+                "name": "_domain_:policy.vip_admin",
+                "modified": "1970-01-01T00:00:00.000Z",
+                "assertions": [
+                    {
+                        "resource": "_domain_:vip*",
+                        "role": "_domain_:role.vip_admin",
+                        "action": "*"
+                    }
+                ]
+            }
+        ],
+        "services": [
+            {
+                "name": "_domain_.testService",
+                "description": "This is a test description for test service."
+            }
+        ]
+    },
+    "templateWithMultipleServices" : {
+        "roles": [
+            {
+                "name": "_domain_:role.vip_admin",
+                "modified": "1970-01-01T00:00:00.000Z"
+            }
+        ],
+        "policies": [
+            {
+                "name": "_domain_:policy.vip_admin",
+                "modified": "1970-01-01T00:00:00.000Z",
+                "assertions": [
+                    {
+                        "resource": "_domain_:vip*",
+                        "role": "_domain_:role.vip_admin",
+                        "action": "*"
+                    }
+                ]
+            }
+        ],
+        "services": [
+            {
+                "name": "_domain_.testService",
+                "description": "This is a test description for test service."
+            },
+            {
+                "name": "_domain_.testService2",
+                "description": "This is a test description2 for test service."
+            }
+        ]
+    },
+    "templateWithServiceWithKey" : {
+        "roles": [
+            {
+                "name": "_domain_:role.vip_admin",
+                "modified": "1970-01-01T00:00:00.000Z"
+            }
+        ],
+        "policies": [
+            {
+                "name": "_domain_:policy.vip_admin",
+                "modified": "1970-01-01T00:00:00.000Z",
+                "assertions": [
+                    {
+                        "resource": "_domain_:vip*",
+                        "role": "_domain_:role.vip_admin",
+                        "action": "*"
+                    }
+                ]
+            }
+        ],
+        "services": [
+            {
+                "name": "_domain_.testService3",
+                "description": "This is a test description for test service.",
+                "publicKeys": [
+                    {
+                        "id": "0",
+                        "key": "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0NCk1Gd3dEUVlKS29aSWh2Y05BUUVCQlFBRFN3QXdTQUpCQVBjS3Q0aFhtTVVDU1B3SWxoY3Fqd0N5Y1pXR1B3Y0UNCmpVMzY2KzJFWHV4c05vcTJNYkplV05pUDh3ajBtSFJTOG9xeXVxQ1NUVnliWEFqdDVlN28ra3NDQXdFQUFRPT0NCi0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQ--"
+                    }
+                ]
+            }
+        ]
     }
   }
 }
