@@ -1709,6 +1709,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         Map<String, String> attributes = new HashMap<>();
         attributes.put(ZTSConsts.ZTS_INSTANCE_SAN_DNS, String.join(",", certReq.getDnsNames()));
         
+        attributes.put(ZTSConsts.ZTS_INSTANCE_CLIENT_IP, ServletRequestUtil.getRemoteAddress(ctx.request()));
         final List<String> certReqIps = certReq.getIpAddresses();
         if (certReqIps != null && !certReqIps.isEmpty()) {
             attributes.put(ZTSConsts.ZTS_INSTANCE_SAN_IP, String.join(",", certReqIps));

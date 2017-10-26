@@ -113,6 +113,7 @@ public final class ZTSConsts {
     
     public static final String ZTS_INSTANCE_SAN_DNS     = "sanDNS";
     public static final String ZTS_INSTANCE_SAN_IP      = "sanIP";
+    public static final String ZTS_INSTANCE_CLIENT_IP   = "clientIP";
     public static final String ZTS_INSTANCE_AWS_ACCOUNT = "awsAccount";
     
     public static final String ZTS_PROP_AWS_ENABLED              = "athenz.zts.aws_enabled";
