@@ -6514,9 +6514,9 @@ public class ZMSImplTest {
         ZMSImpl zmsTest = zmsInit();
 
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
-        Principal principal = SimplePrincipal.create(null, "user1", "v=U1;d=user;n=user1;s=signature",
-                0, principalAuthority);
-        
+        Principal principal = SimplePrincipal.create("user1", "v=U1;d=user;n=user1;s=signature",
+                principalAuthority);
+
         AthenzDomain athenzDomain = zmsTest.retrieveAccessDomain("user.user1", principal);
         assertNull(athenzDomain);
         
@@ -11404,7 +11404,7 @@ public class ZMSImplTest {
         assertEquals(tenantDomain.toLowerCase(), tRoles.getTenant());
         assertEquals(resourceGroup.toLowerCase(), tRoles.getResourceGroup());
         assertEquals(RESOURCE_PROVIDER_ROLE_ACTIONS.size(), tRoles.getRoles().size());
-
+        
         zms.deleteTopLevelDomain(mockDomRsrcCtx, tenantDomain, auditRef);
     }
     

@@ -59,14 +59,12 @@ public class SimplePrincipal implements Principal {
      */
     public static Principal create(String domain, String creds, List<String> roles, Authority authority) {
         if (!Validate.domainName(domain)) {
-            if (LOG.isWarnEnabled()) {
-                LOG.warn("WARNING: domain name doesn't validate: " + creds);
-            }
+            LOG.error("createRolePrincipal: domain name doesn't validate: " + domain);
+            return null;
         }
         if (roles == null || roles.size() == 0) {
-            if (LOG.isWarnEnabled()) {
-                LOG.warn("WARNING: zero roles: " + creds);
-            }
+            LOG.error("createRolePrincipal: zero roles");
+            return null;
         }
         return new SimplePrincipal(domain, creds, roles, authority);
     }
@@ -92,41 +90,38 @@ public class SimplePrincipal implements Principal {
      * @param authority authority responsible for the credentials (e.g. UserAuthority)
      * @return a Principal for the identity
      */
-    public static Principal create(String domain, String name, String creds, long issueTime, Authority authority) {
+    public static Principal create(String domain, String name, String creds, long issueTime,
+            Authority authority) {
         
-        if (!Validate.principalName(name)) {
-            if (LOG.isWarnEnabled()) {
-                LOG.warn("WARNING: principal name doesn't validate: " + name);
-            }
+        if (!Validate.domainName(domain)) {
+            LOG.error("createPrincipal: domain name doesn't validate: " + domain);
+            return null;
         }
-        
-        if (domain != null) {
-            String matchDomain = (authority == null) ? null : authority.getDomain();
-            if (matchDomain != null && !domain.equals(matchDomain)) {
-                if (LOG.isWarnEnabled()) {
-                    LOG.warn("FAIL: domain mismatch for user " + name + " in authority + " + authority);
-                }
-                return null;
-            }
-        } else if (authority != null) {
-            if (authority.getDomain() != null) {
-                if (LOG.isWarnEnabled()) {
-                    LOG.warn("FAIL: domain mismatch for user " + name + " in authority + " + authority);
-                }
-                return null;
-            }
+        if (!Validate.principalName(name)) {
+            LOG.error("createPrincipal: principal name doesn't validate: " + name);
+            return null;
+        }
+        String matchDomain = (authority == null) ? null : authority.getDomain();
+        if (matchDomain != null && !domain.equals(matchDomain)) {
+            LOG.error("createPrincipal: domain mismatch for user {} in authority {}",
+                    name, authority);
+            return null;
         }
         return new SimplePrincipal(domain, name, creds, issueTime, authority);
     }
 
     /** 
      * Create a Principal for the given host identity
-     * @param appId Application identifer
+     * @param appId Application identifier
      * @param creds Credentials of the principal
      * @param authority authority responsible for the credentials (e.g. HostAuthority)
      * @return a Principal for the host identity
      */
     public static Principal create(String appId, String creds, Authority authority) {
+        if (appId == null) {
+            LOG.error("createAppIdPrincipal: null appId");
+            return null;
+        }
         return new SimplePrincipal(null, appId, creds, 0, authority);
     }
     
@@ -217,10 +212,8 @@ public class SimplePrincipal implements Principal {
         if (fullName == null) {
             if (domain != null && name != null) {
                 fullName = domain + "." + name;
-            } else if (domain != null) {
-                fullName = domain;
-            } else if (name != null) {
-                fullName = name;
+            } else {
+                fullName = (name != null) ? name : domain;
             }
         }
         

@@ -34,6 +34,9 @@ public class Validate {
      * @return true if the principal name is valid, false otherwise.
      */
     public static boolean principalName(String name) {
+        if (name == null || name.isEmpty()) {
+            return false;
+        }
         Matcher matcher = principalPattern.matcher(name);
         return matcher.matches();
     }
@@ -43,6 +46,9 @@ public class Validate {
      * @return true if the domain name is valid, false otherwise.
      */
     public static boolean domainName(String name) {
+        if (name == null || name.isEmpty()) {
+            return false;
+        }
         Matcher matcher = domainPattern.matcher(name);
         return matcher.matches();
     }

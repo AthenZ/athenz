@@ -107,6 +107,10 @@ public class ZMSAuthorizer implements Authorizer, Closeable {
                     principalToken.getName(), principalToken.getSignedToken(),
                     0, PRINCIPAL_AUTHORITY);
         }
+        if (principal == null) {
+            LOGGER.error("ZMSAuthorizer.access: unable to create principal object");
+            return false;
+        }
         return access(action, resource, principal, trustDomain);
     }
     

@@ -1647,14 +1647,13 @@ public class ZMSClient implements Closeable {
         try {
             token = new PrincipalToken(serviceToken);
         } catch (IllegalArgumentException ex) {
-            throw new ZMSClientException(ZMSClientException.UNAUTHORIZED, "Invalid service token provided: " + ex.getMessage());
+            throw new ZMSClientException(ZMSClientException.UNAUTHORIZED,
+                    "Invalid service token provided: " + ex.getMessage());
         }
         
-        Principal servicePrincipal = null;
-        try {
-            servicePrincipal = SimplePrincipal.create(token.getDomain(), token.getName(), 
+        Principal servicePrincipal = SimplePrincipal.create(token.getDomain(), token.getName(),
                 serviceToken, 0, PRINCIPAL_AUTHORITY);
-        } catch (Exception ex) {
+        if (servicePrincipal == null) {
             throw new ZMSClientException(ZMSClientException.UNAUTHORIZED, "Invalid service token provided");
         }
         
