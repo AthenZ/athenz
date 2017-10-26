@@ -137,6 +137,12 @@ public class UserAuthority implements Authority {
         long issueTime = 0;
         SimplePrincipal princ = (SimplePrincipal) SimplePrincipal.create(getDomain().toLowerCase(),
                 userArray[0].toLowerCase(), creds, issueTime, this);
+        if (princ == null) {
+            errMsg.append("UserAuthority:authenticate: failed to create principal: user=")
+                .append(username);
+            LOG.error(errMsg.toString());
+            return null;
+        }
         princ.setUnsignedCreds(creds);
         return princ;
     }

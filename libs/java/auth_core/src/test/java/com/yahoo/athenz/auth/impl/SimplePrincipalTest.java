@@ -17,6 +17,7 @@ package com.yahoo.athenz.auth.impl;
 
 import static org.testng.Assert.*;
 
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,11 +46,19 @@ public class SimplePrincipalTest {
         assertEquals(p.getCredentials(), fakeCreds);
         assertEquals(p.getUnsignedCredentials(), fakeUnsignedCreds);
         assertEquals(p.getApplicationId(), testApplicationId);
+        
+        UserAuthority userAuthority = new UserAuthority();
+        userAuthority.initialize();
+        
+        p = (SimplePrincipal) SimplePrincipal.create("user", "jdoe", fakeCreds,
+                userAuthority);
+        assertNotNull(p);
     }
     
     @Test
     public void testSimplePrincipalNullUnsignedCred() {
         Principal p = SimplePrincipal.create("user", "jdoe", fakeCreds, null);
+       
         assertNotNull(p);
         assertEquals(p.getName(), "jdoe");
         assertEquals(p.getDomain(), "user");
@@ -59,11 +68,13 @@ public class SimplePrincipalTest {
     
     @Test
     public void testFullName() {
+        
         Principal p = SimplePrincipal.create("user", "jdoe", fakeCreds, null);
         assertEquals(p.getFullName(), "user.jdoe");
+        assertEquals(p.getFullName(), "user.jdoe");
         
-        p = SimplePrincipal.create(null, "jdoe", fakeCreds);
-        assertEquals(p.getFullName(), "jdoe");
+        assertNull(SimplePrincipal.create(null, "jdoe", fakeCreds));
+        assertNull(SimplePrincipal.create("user", null, fakeCreds));
         
         List<String> roles = new ArrayList<String>();
         roles.add("role1");
@@ -71,15 +82,15 @@ public class SimplePrincipalTest {
         p = SimplePrincipal.create("user", fakeCreds, roles, null);
         assertEquals(p.getFullName(), "user");
         
-        Authority a = null;
-        p = SimplePrincipal.create(null, null, a);
-        assertNull(p.getFullName());
+        p = SimplePrincipal.create("appid", fakeCreds, (Authority) null);
+        assertEquals(p.getFullName(), "appid");
+        
+        Authority authority = null;
+        assertNull(SimplePrincipal.create(null, null, authority));
     }
     
     @Test
     public void testSimplePrincipalInvalidDomain() {
-        
-        // we output warning but still create a principal
         
         List<String> roles = new ArrayList<String>();
         roles.add("storage.tenant.weather.updater");
@@ -87,52 +98,34 @@ public class SimplePrincipalTest {
         UserAuthority userAuthority = new UserAuthority();
         userAuthority.initialize();
 
-        SimplePrincipal p = (SimplePrincipal) SimplePrincipal.create("user test invalid#$%",
-                fakeCreds, roles, userAuthority);
-        assertNotNull(p);
-        p.setUnsignedCreds(fakeUnsignedCreds);
-        assertEquals(p.getDomain(), "user test invalid#$%");
-        assertEquals(p.getCredentials(), fakeCreds);
-        assertEquals(p.getUnsignedCredentials(), fakeUnsignedCreds);
+        assertNull(SimplePrincipal.create("user test invalid#$%",
+                fakeCreds, roles, userAuthority));
     }
     
     @Test
     public void testSimplePrincipalNullRole() {
         
-        // we output warning but still create a principal
-
         UserAuthority userAuthority = new UserAuthority();
         userAuthority.initialize();
 
-        SimplePrincipal p = (SimplePrincipal) SimplePrincipal.create("user",
-                fakeCreds, (List<String>) null, userAuthority);
-        assertNotNull(p);
-        p.setUnsignedCreds(fakeUnsignedCreds);
-        assertEquals(p.getDomain(), "user");
-        assertEquals(p.getCredentials(), fakeCreds);
-        assertEquals(p.getUnsignedCredentials(), fakeUnsignedCreds);
+        assertNull(SimplePrincipal.create("user", fakeCreds, (List<String>) null,
+                userAuthority));
     }
     
     @Test
     public void testSimplePrincipalEmptyRole() {
         
-        // we output warning but still create a principal
-
         List<String> roles = new ArrayList<>();
         
         UserAuthority userAuthority = new UserAuthority();
         userAuthority.initialize();
 
-        SimplePrincipal p = (SimplePrincipal) SimplePrincipal.create("user", fakeCreds, roles, userAuthority);
-        assertNotNull(p);
-        p.setUnsignedCreds(fakeUnsignedCreds);
-        assertEquals(p.getDomain(), "user");
-        assertEquals(p.getCredentials(), fakeCreds);
-        assertEquals(p.getUnsignedCredentials(), fakeUnsignedCreds);
-        assertEquals(p.getRoles().size(), 0);
+        assertNull(SimplePrincipal.create("user", fakeCreds, roles, userAuthority));
         
         roles.add("newrole");
-        p.setRoles(roles);
+        SimplePrincipal p = (SimplePrincipal) SimplePrincipal.create("user", fakeCreds,
+                roles, userAuthority);
+
         assertEquals(p.getRoles().size(), 1);
         assertTrue(p.getRoles().contains("newrole"));
     }
@@ -145,38 +138,15 @@ public class SimplePrincipalTest {
         UserAuthority userAuthority = new UserAuthority();
         userAuthority.initialize();
 
-        SimplePrincipal p = (SimplePrincipal) SimplePrincipal.create("user", "jdoe invalid#$%",
-                fakeCreds, 0, userAuthority);
-        assertNotNull(p);
-        p.setUnsignedCreds(fakeUnsignedCreds);
-        assertEquals(p.getDomain(), "user");
-        assertEquals(p.getName(), "jdoe invalid#$%");
-        assertEquals(p.getCredentials(), fakeCreds);
-        assertEquals(p.getUnsignedCredentials(), fakeUnsignedCreds);
+        assertNull(SimplePrincipal.create("user", "jdoe invalid#$%",
+                fakeCreds, 0, userAuthority));
     }
     
     @Test
     public void testSimplePrincipalNullDomainAuthorityDomainNotNull() {
-        
-        // we output warning but still create a principal
-        
-        UserAuthority userAuthority = new UserAuthority();
-        userAuthority.initialize();
 
-        Principal p = SimplePrincipal.create(null, "jdoe", fakeCreds, 0, userAuthority);
-        assertNull(p);
-    }
-    
-    @Test
-    public void testSimplePrincipalNullDomainAuthorityDomainNull() {
-        
-        // we output warning but still create a principal
-
-        UserAuthority userAuthority = new UserAuthority();
-        userAuthority.initialize();
-
-        Principal p = SimplePrincipal.create(null, "jdoe", fakeCreds, 0, null);
-        assertNull(p.getDomain());
+        Principal p = SimplePrincipal.create("user", "jdoe", fakeCreds, 0, null);
+        assertNotNull(p);
     }
     
     @Test
@@ -235,11 +205,14 @@ public class SimplePrincipalTest {
         ((SimplePrincipal) p).setOriginalRequestor("athenz.ci");
         ((SimplePrincipal) p).setKeyService("zts");
         ((SimplePrincipal) p).setKeyId("v1");
+        X509Certificate cert = Mockito.mock(X509Certificate.class);
+        ((SimplePrincipal) p).setX509Certificate(cert);
 
         assertEquals(p.toString(), "user.jdoe");
         assertEquals(p.getOriginalRequestor(), "athenz.ci");
         assertEquals(p.getKeyService(), "zts");
         assertEquals(p.getKeyId(), "v1");
+        assertEquals(p.getX509Certificate(), cert);
     }
 
     @Test
@@ -258,7 +231,7 @@ public class SimplePrincipalTest {
         assertNotNull(check);
 
         Mockito.when(hoge.getDomain()).thenReturn(null);
-        check = (SimplePrincipal) SimplePrincipal.create(null, "jdoe","hoge", 0, hoge);
+        check = (SimplePrincipal) SimplePrincipal.create("user", "jdoe", "hoge", 0, hoge);
         assertNotNull(check);
     }
 }
