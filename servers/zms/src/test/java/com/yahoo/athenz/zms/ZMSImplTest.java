@@ -11404,6 +11404,22 @@ public class ZMSImplTest {
         assertEquals(tenantDomain.toLowerCase(), tRoles.getTenant());
         assertEquals(resourceGroup.toLowerCase(), tRoles.getResourceGroup());
         assertEquals(RESOURCE_PROVIDER_ROLE_ACTIONS.size(), tRoles.getRoles().size());
+
+        // when we execute the same request, it should work without
+        // rejecting the request
+        
+        zms.putProviderResourceGroupRoles(mockDomRsrcCtx, tenantDomain, providerDomain, providerService,
+                resourceGroup, auditRef, providerRoles);
+
+        tRoles = zms.getProviderResourceGroupRoles(mockDomRsrcCtx,
+                tenantDomain, providerDomain, providerService, resourceGroup);
+        
+        assertNotNull(tRoles);
+        assertEquals(providerDomain.toLowerCase(), tRoles.getDomain());
+        assertEquals(providerService.toLowerCase(), tRoles.getService());
+        assertEquals(tenantDomain.toLowerCase(), tRoles.getTenant());
+        assertEquals(resourceGroup.toLowerCase(), tRoles.getResourceGroup());
+        assertEquals(RESOURCE_PROVIDER_ROLE_ACTIONS.size(), tRoles.getRoles().size());
         
         zms.deleteTopLevelDomain(mockDomRsrcCtx, tenantDomain, auditRef);
     }

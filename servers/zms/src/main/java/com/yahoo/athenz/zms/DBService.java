@@ -2660,9 +2660,14 @@ public class DBService {
         // we need to add the original policy assertions to the new one
 
         List<Assertion> newAssertions = new ArrayList<>();
-        newAssertions.add(assertion);
         if (originalPolicy != null && originalPolicy.getAssertions() != null) {
             newAssertions.addAll(originalPolicy.getAssertions());
+        }
+        
+        // if our new assertion is not already in the list then that will be added to
+        
+        if (!newAssertions.contains(assertion)) {
+            newAssertions.add(assertion);
         }
         
         // now process the request
