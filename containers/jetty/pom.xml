@@ -108,6 +108,11 @@
       <artifactId>logback-classic</artifactId>
       <version>${logback.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.gu</groupId>
+      <artifactId>kinesis-logback-appender</artifactId>
+      <version>1.4.0</version>
+    </dependency>
   </dependencies>
 
   <build>
