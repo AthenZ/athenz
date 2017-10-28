@@ -139,11 +139,6 @@
       <version>3.1.0</version>
       <scope>provided</scope>
     </dependency>
-    <dependency>
-      <groupId>com.gu</groupId>
-      <artifactId>kinesis-logback-appender</artifactId>
-      <version>1.4.0</version>
-    </dependency>
   </dependencies>
 
   <build>
