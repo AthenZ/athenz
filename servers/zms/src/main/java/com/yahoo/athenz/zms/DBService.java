@@ -2543,7 +2543,7 @@ public class DBService {
                     
                     // retrieve our original role in case one exists
                     
-                    Role originalRole = getRole(con, provSvcDomain, trustedRole, false, false);
+                    Role originalRole = getRole(con, provSvcDomain, trustedName, false, false);
 
                     // now process the request
                     
@@ -2575,7 +2575,7 @@ public class DBService {
                     
                     // retrieve our original policy
                     
-                    Policy originalPolicy = getPolicy(con, provSvcDomain, policyResourceName);
+                    Policy originalPolicy = getPolicy(con, provSvcDomain, trustedName);
 
                     // now process the request
                     
