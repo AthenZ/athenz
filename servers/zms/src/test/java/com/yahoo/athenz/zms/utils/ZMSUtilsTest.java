@@ -239,4 +239,16 @@ public class ZMSUtilsTest {
         
         assertEquals(orginalRoleMembers.size(), expectedSize);
     }
+    
+    @Test
+    public void testRemoveMembersInvalidInput() {
+        List<RoleMember> list = Arrays.asList(new RoleMember().setMemberName("member1"));
+        ZMSUtils.removeMembers(list, null);
+        assertEquals(list.size(), 1);
+        assertEquals(list.get(0).getMemberName(), "member1");
+        
+        ZMSUtils.removeMembers(null, list);
+        assertEquals(list.size(), 1);
+        assertEquals(list.get(0).getMemberName(), "member1");
+    }
 }

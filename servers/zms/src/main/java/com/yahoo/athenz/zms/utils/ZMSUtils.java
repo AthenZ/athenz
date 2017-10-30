@@ -196,13 +196,16 @@ public class ZMSUtils {
         }
     }
     
-    public static final void removeMembers(List<RoleMember> orginalRoleMembers,
+    public static final void removeMembers(List<RoleMember> originalRoleMembers,
             List<RoleMember> removeRoleMembers) {
+        if (removeRoleMembers == null || originalRoleMembers == null) {
+            return;
+        }
         for (int i = 0; i < removeRoleMembers.size(); i ++) {
             String removeName = removeRoleMembers.get(i).getMemberName();
-            for (int j = 0; j < orginalRoleMembers.size(); j ++) {
-                if (removeName.equalsIgnoreCase(orginalRoleMembers.get(j).getMemberName())) {
-                    orginalRoleMembers.remove(j);
+            for (int j = 0; j < originalRoleMembers.size(); j ++) {
+                if (removeName.equalsIgnoreCase(originalRoleMembers.get(j).getMemberName())) {
+                    originalRoleMembers.remove(j);
                 }
             }
         }
