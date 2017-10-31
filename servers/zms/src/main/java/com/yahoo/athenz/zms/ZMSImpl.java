@@ -6523,12 +6523,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         validateRequest(ctx.request(), caller);
-
-        // we need to make sure we're only validating service/user tokens
-        // so any thing that's been authenticated by the PrincipalAuthority
-        // and/or authorities that do not support authorization
         
-        ServicePrincipal servicePrincipal = null;
         Principal principal = ((RsrcCtxWrapper) ctx).principal();
         Authority authority = principal.getAuthority();
 
@@ -6536,20 +6531,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.increment(caller, principal.getDomain());
         Object timerMetric = metric.startTiming("getserviceprincipal_timing", principal.getDomain());
 
-        // If the authority is our PrincipalAuthority, then we're not making
-        // any changes and sending the authenticated token as is. However,
-        // if the authority does not support authorization then we're going to
+        // If the authority does not support authorization then we're going to
         // generate a new ServiceToken signed by ZMS and send that back.
+
+        ServicePrincipal servicePrincipal = new ServicePrincipal();
+        servicePrincipal.setDomain(principal.getDomain());
+        servicePrincipal.setService(principal.getName());
         
-        if (authority instanceof com.yahoo.athenz.auth.impl.PrincipalAuthority) {
-            
-            servicePrincipal = new ServicePrincipal();
-            servicePrincipal.setDomain(principal.getDomain());
-            servicePrincipal.setService(principal.getName());
-            servicePrincipal.setToken(principal.getCredentials());
-            
-        } else if (!authority.allowAuthorization()) {
-            
+        if (!authority.allowAuthorization()) {
+        
             PrincipalToken sdToken = new PrincipalToken(principal.getCredentials());
             PrincipalToken zmsToken = new PrincipalToken.Builder("S1", sdToken.getDomain(), sdToken.getName())
                 .issueTime(sdToken.getTimestamp())
@@ -6557,13 +6547,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .ip(sdToken.getIP()).keyId(privateKeyId).host(serverHostName)
                 .keyService(ZMSConsts.ZMS_SERVICE).build();
             zmsToken.sign(privateKey);
-            servicePrincipal = new ServicePrincipal();
-            servicePrincipal.setDomain(principal.getDomain());
-            servicePrincipal.setService(principal.getName());
+
             servicePrincipal.setToken(zmsToken.getSignedToken());
             
         } else {
-            throw ZMSUtils.requestError("getServicePrincipal: Provided Token is not a Service/User Token", caller);
+            servicePrincipal.setToken(principal.getCredentials());
         }
 
         metric.stopTiming(timerMetric);
