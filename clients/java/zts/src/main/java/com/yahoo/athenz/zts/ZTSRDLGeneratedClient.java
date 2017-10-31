@@ -27,6 +27,11 @@ public class ZTSRDLGeneratedClient {
         base = client.target(url);
     }
 
+    public ZTSRDLGeneratedClient(String url, Client rsClient) {
+        client = rsClient;
+        base = client.target(url);
+    }
+    
     public void close() {
         client.close();
     }
