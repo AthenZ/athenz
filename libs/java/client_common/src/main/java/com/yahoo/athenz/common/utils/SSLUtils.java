@@ -119,7 +119,7 @@ public class SSLUtils {
             
             try {
                 if (keyStorePath != null) {
-                    LOGGER.info("createSSLContextObject: using SSL KeyStore path: " + keyStorePath);
+                    LOGGER.info("createSSLContextObject: using SSL KeyStore path: {}", keyStorePath);
                     keyStore = loadStore(keyStorePath, keyStoreType, null, getPassword(keyStorePassword, privateKeyStore, keyStorePasswordAppName));
                     kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
                     if (keyManagerPassword == null) {
@@ -130,7 +130,7 @@ public class SSLUtils {
                     keyManagers = getAliasedKeyManagers(kmf.getKeyManagers(), certAlias);
                 }
                 if (trustStorePath != null) {
-                    LOGGER.info("createSSLContextObject: using SSL TrustStore path: " + trustStorePath);
+                    LOGGER.info("createSSLContextObject: using SSL TrustStore path: {}", trustStorePath);
                     trustStore = loadStore(trustStorePath, trustStoreType, null, getPassword(trustStorePassword, privateKeyStore, trustStorePasswordAppName));
                     tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
                     tmf.init(trustStore);

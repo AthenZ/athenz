@@ -9,6 +9,7 @@ import java.util.List;
 
 import static org.testng.Assert.*;
 
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
@@ -16,6 +17,7 @@ import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
+import com.yahoo.athenz.zts.utils.ZTSUtils;
 
 public class X509CertRequestTest {
 
@@ -267,5 +269,22 @@ public class X509CertRequestTest {
         
         StringBuilder errorMsg = new StringBuilder(256);
         assertTrue(certReq.validate(provider, "athenz", "production", "1001", authorizer, errorMsg));
+        assertTrue(certReq.validate(provider, "athenz", "production", "1001", null, errorMsg));
+    }
+    
+    @Test
+    public void testComparePublicKeys() throws IOException {
+        
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String csr = new String(Files.readAllBytes(path));
+        X509CertRequest certReq = new X509CertRequest(csr);
+        
+        final String ztsPublicKey = "-----BEGIN PUBLIC KEY-----\n"
+                + "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAKrvfvBgXWqWAorw5hYJu3dpOJe0gp3n\n"
+                + "TgiiPGT7+jzm6BRcssOBTPFIMkePT2a8Tq+FYSmFnHfbQjwmYw2uMK8CAwEAAQ==\n"
+                + "-----END PUBLIC KEY-----";
+        
+        StringBuilder errorMsg = new StringBuilder(256);
+        assertTrue(certReq.comparePublicKeys(ztsPublicKey, errorMsg));
     }
 }

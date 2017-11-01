@@ -45,7 +45,6 @@ import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.auth.PrivateKeyStoreFactory;
 import com.yahoo.athenz.auth.impl.CertificateAuthority;
-import com.yahoo.athenz.auth.impl.PrincipalAuthority;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.auth.util.Crypto;
@@ -154,7 +153,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(ZTSImpl.class);
     
     protected Http.AuthorityList authorities = null;
-    private final ZTSAuthorizer authorizer;
+    protected ZTSAuthorizer authorizer;
     protected static Validator validator;
     
     enum AthenzObject {
@@ -1883,44 +1882,122 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     authority.toString(), caller, domain);
         }
         
-        // first we need to make sure that the provider has been
-        // authorized in Athenz to bootstrap/launch instances
-        
-        Principal providerService = createPrincipalForName(provider);
-        StringBuilder errorMsg = new StringBuilder(256);
-
-        if (!instanceCertManager.authorizeLaunch(providerService, domain, service,
-                authorizer, errorMsg)) {
-            throw forbiddenError(errorMsg.toString(), caller, domain);
-        }
-        
-        // extract our instance certificate record to make sure it
-        // hasn't been revoked already
-        
-        X509CertRecord x509CertRecord = instanceCertManager.getX509CertRecord(provider, instanceId);
-        if (x509CertRecord == null) {
-            throw forbiddenError("Unable to find certificate record", caller, domain);
-        }
-        
-        if (!principalName.equals(x509CertRecord.getService())) {
-            throw requestError("service name mismatch - csr: " + principalName +
-                    " cert db: " + x509CertRecord.getService(), caller, domain);
-        }
+        // special handling when the provider is zts. the certificate
+        // was bootstrapped using user credentials
         
         InstanceIdentity identity = null;
-        if (x509Csr != null) {
-            identity = processX509RefreshRequest(ctx, principal, domain, service, provider,
-                    providerService, instanceId, info, x509CertRecord, caller);
+        if (ZTSConsts.ZTS_SERVICE.equals(provider)) {
+            
+            identity = processServiceX509RefreshRequest(ctx, principal, domain, service,
+                    instanceId, info, caller);
+            
         } else {
-            identity = processSSHRefreshRequest(ctx, principal, domain, service, provider,
-                    instanceId, sshCsr, x509CertRecord, caller);
+            
+            // first we need to make sure that the provider has been
+            // authorized in Athenz to bootstrap/launch instances
+            
+            Principal providerService = createPrincipalForName(provider);
+            StringBuilder errorMsg = new StringBuilder(256);
+    
+            if (!instanceCertManager.authorizeLaunch(providerService, domain, service,
+                    authorizer, errorMsg)) {
+                throw forbiddenError(errorMsg.toString(), caller, domain);
+            }
+            
+            // extract our instance certificate record to make sure it
+            // hasn't been revoked already
+            
+            X509CertRecord x509CertRecord = instanceCertManager.getX509CertRecord(provider, instanceId);
+            if (x509CertRecord == null) {
+                throw forbiddenError("Unable to find certificate record", caller, domain);
+            }
+            
+            if (!principalName.equals(x509CertRecord.getService())) {
+                throw requestError("service name mismatch - csr: " + principalName +
+                        " cert db: " + x509CertRecord.getService(), caller, domain);
+            }
+            
+            if (x509Csr != null) {
+                identity = processProviderX509RefreshRequest(ctx, principal, domain, service, provider,
+                        providerService, instanceId, info, x509CertRecord, caller);
+            } else {
+                identity = processProviderSSHRefreshRequest(ctx, principal, domain, service, provider,
+                        instanceId, sshCsr, x509CertRecord, caller);
+            }
         }
         
         metric.stopTiming(timerMetric);
         return identity;
     }
     
-    InstanceIdentity processX509RefreshRequest(ResourceContext ctx, final Principal principal,
+    InstanceIdentity processServiceX509RefreshRequest(ResourceContext ctx, final Principal principal,
+            final String domain, final String service, final String instanceId,
+            InstanceRefreshInformation info, final String caller) {
+
+        // parse and validate our CSR
+        
+        X509CertRequest certReq = null;
+        try {
+            certReq = new X509CertRequest(info.getCsr());
+        } catch (CryptoException ex) {
+            throw requestError("unable to parse PKCS10 CSR", caller, domain);
+        }
+        
+        StringBuilder errorMsg = new StringBuilder(256);
+        if (!certReq.validate(null, domain, service, instanceId, null, errorMsg)) {
+            throw requestError("CSR validation failed - " + errorMsg.toString(), caller, domain);
+        }
+        
+        // retrieve the certificate that was used for authentication
+        // and verify that the dns names in the certificate match to
+        // the values specified in the CSR
+        
+        X509Certificate cert = principal.getX509Certificate();
+        if (!certReq.compareDnsNames(cert)) {
+            throw requestError("dnsName attribute mismatch in CSR", caller, domain);
+        }
+        
+        // validate that the certificate and csr both are based
+        // on the same public key
+        
+        final String keyId = ZTSUtils.extractPublicKeyId(instanceId, domain, service);
+        if (!certReq.comparePublicKeys(getPublicKey(domain, service, keyId), errorMsg)) {
+            throw requestError("CSR validation failed - " + errorMsg.toString(), caller, domain);
+        }
+        
+        // generate identity with the certificate
+        
+        InstanceIdentity identity = instanceCertManager.generateIdentity(info.getCsr(),
+                principal.getFullName(), null);
+        if (identity == null) {
+            throw serverError("unable to generate identity", caller, domain);
+        }
+        
+        // set the other required attributes in the identity object
+
+        identity.setProvider(ZTSConsts.ZTS_SERVICE);
+        identity.setInstanceId(instanceId);
+        
+        // create our audit log entry
+        
+        AuditLogMsgBuilder msgBldr = getAuditLogMsgBuilder(ctx, domain, caller, HTTP_POST);
+        msgBldr.whatEntity(instanceId);
+        
+        X509Certificate newCert = Crypto.loadX509Certificate(identity.getX509Certificate());
+        StringBuilder auditLogDetails = new StringBuilder(512);
+        auditLogDetails.append("Provider: ").append(ZTSConsts.ZTS_SERVICE)
+            .append(" Domain: ").append(domain)
+            .append(" Service: ").append(service)
+            .append(" InstanceId: ").append(instanceId)
+            .append(" Serial: ").append(newCert.getSerialNumber().toString())
+            .append(" Type: x509");
+        msgBldr.whatDetails(auditLogDetails.toString());
+        auditLogger.log(msgBldr);
+        
+        return identity;
+    }
+    
+    InstanceIdentity processProviderX509RefreshRequest(ResourceContext ctx, final Principal principal,
             final String domain, final String service, final String provider,
             final Principal providerService, final String instanceId,
             InstanceRefreshInformation info, X509CertRecord x509CertRecord, final String caller) {
@@ -1952,7 +2029,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // in the cert record when it was initially issued
         
         final String principalName = principal.getFullName();
-
         
         // now we need to make sure the serial number for the certificate
         // matches to what we had issued previously. If we have a mismatch
@@ -2051,7 +2127,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return identity;
     }
 
-    InstanceIdentity processSSHRefreshRequest(ResourceContext ctx, final Principal principal,
+    InstanceIdentity processProviderSSHRefreshRequest(ResourceContext ctx, final Principal principal,
             final String domain, final String service, final String provider,
             final String instanceId, final String sshCsr, X509CertRecord x509CertRecord,
             final String caller) {
@@ -2189,36 +2265,51 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // make sure the credentials match to whatever the request is
 
         Principal principal = ((RsrcCtxWrapper) ctx).principal();
-        String principalName = domain + "." + service;
-        if (!principalName.equals(principal.getFullName())) {
-            throw requestError("postInstanceRefreshRequest: Principal mismatch: "
-                    + principalName + " vs. " + principal.getFullName(), caller, domain);
-        }
-
-        Authority authority = principal.getAuthority();
+        String fullServiceName = domain + "." + service;
+        final String principalName = principal.getFullName();
+        boolean userRequest = false;
+        String provider = null;
         
-        // currently we only support ServiceTokens being refreshed to certificates
-        
-        if (!(authority instanceof PrincipalAuthority)) {
-            throw requestError("postInstanceRefreshRequest: Unsupported authority for TLS Certs: " +
-                    authority.toString(), caller, domain);
+        if (!fullServiceName.equals(principalName)) {
+            
+            // if this not a match then we're going to allow the operation
+            // only if the principal has been authorized to manage
+            // services within the given domain
+            
+            try {
+                userRequest = authorizer.access("update", domain + ":service", principal, null);
+            } catch (ResourceException ex) {
+                LOGGER.error("postInstanceRefreshRequest: access check failure for {}: {}",
+                        principalName, ex.getMessage());
+            }
+           
+            if (!userRequest) {
+                throw requestError("postInstanceRefreshRequest: Principal mismatch: "
+                    + fullServiceName + " vs. " + principalName, caller, domain);
+            }
+            
+            // we set the provider to be our own service since we're
+            // going to allow this cert to refresh itself
+            
+            provider = ZTSConsts.ZTS_SERVICE;
         }
          
         // need to verify it's not a user and the public key for the NToken
         // must match what's in the CSR. Personal domain user token as users
         // should not get personal TLS certificates from ZTS
             
-        if (userDomain.equalsIgnoreCase(principal.getDomain())) {
+        if (userDomain.equalsIgnoreCase(domain)) {
             throw requestError("postInstanceRefreshRequest: TLS Certificates require ServiceTokens: " +
-                    principalName, caller, domain);
+                    fullServiceName, caller, domain);
         }
 
-        // retrieve the public key for the principal
+        // retrieve the public key for the request for verification
         
-        String publicKey = getPublicKey(domain, service, principal.getKeyId());
+        final String keyId = userRequest ? req.getKeyId() : principal.getKeyId();
+        String publicKey = getPublicKey(domain, service, keyId);
         if (publicKey == null) {
             throw requestError("postInstanceRefreshRequest: Unable to retrieve public key for " +
-                    principalName + " with key id: " + principal.getKeyId(), caller, domain);
+                    fullServiceName + " with key id: " + keyId, caller, domain);
         }
         
         // validate that the cn and public key (if required) match to
@@ -2230,18 +2321,35 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domain);
         }
         
-        if (!ZTSUtils.verifyCertificateRequest(certReq, domain, service, publicKey, null)) {
+        if (!ZTSUtils.verifyCertificateRequest(certReq, domain, service, keyId, publicKey,
+                provider, null)) {
             throw requestError("postInstanceRefreshRequest: invalid CSR - cn or public key mismatch",
                     caller, domain);
         }
         
         // generate identity with the certificate
         
-        Identity identity = ZTSUtils.generateIdentity(certSigner, req.getCsr(), principalName, null);
+        Identity identity = ZTSUtils.generateIdentity(certSigner, req.getCsr(), fullServiceName, null);
         if (identity == null) {
             throw requestError("postInstanceRefreshRequest: unable to generate identity",
                     caller, domain);
         }
+        
+        // create our audit log entry
+        
+        AuditLogMsgBuilder msgBldr = getAuditLogMsgBuilder(ctx, domain, caller, HTTP_POST);
+        msgBldr.whatEntity(fullServiceName);
+        
+        X509Certificate newCert = Crypto.loadX509Certificate(identity.getCertificate());
+        StringBuilder auditLogDetails = new StringBuilder(512);
+        auditLogDetails.append("Provider: ").append(ZTSConsts.ZTS_SERVICE)
+            .append(" Domain: ").append(domain)
+            .append(" Service: ").append(service)
+            .append(" Serial: ").append(newCert.getSerialNumber().toString())
+            .append(" Principal: ").append(principalName)
+            .append(" Type: x509");
+        msgBldr.whatDetails(auditLogDetails.toString());
+        auditLogger.log(msgBldr);
         
         metric.stopTiming(timerMetric);
         return identity;
@@ -2314,7 +2422,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domain);
         }
         
-        if (!ZTSUtils.verifyCertificateRequest(certReq, domain, service, null, null)) {
+        if (!ZTSUtils.verifyCertificateRequest(certReq, domain, service, keyId, null, null, null)) {
             throw requestError("postOSTKInstanceInformation: unable to verify certificate request, invalid csr",
                     caller, domain);
         }
@@ -2426,7 +2534,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domain);
         }
         
-        if (!ZTSUtils.verifyCertificateRequest(certReq, domain, service, null, x509CertRecord)) {
+        if (!ZTSUtils.verifyCertificateRequest(certReq, domain, service, null, null,
+                null, x509CertRecord)) {
             throw requestError("postOSTKInstanceRefreshRequest: invalid CSR - cn mismatch",
                     caller, domain);
         }

@@ -1305,134 +1305,6 @@ func (self *Identity) Validate() error {
 }
 
 //
-// InstanceInformation - Instance object that includes requested service
-// details plus host document that is signed by provider as part of the host
-// bootstrap process
-//
-type InstanceInformation struct {
-
-	//
-	// signed document containing attributes like IP address, instance-id,
-	// account#, etc.
-	//
-	Document string `json:"document"`
-
-	//
-	// the signature for the document
-	//
-	Signature string `json:"signature"`
-
-	//
-	// the keyid used to sign the document
-	//
-	KeyId string `json:"keyId"`
-
-	//
-	// the domain of the instance
-	//
-	Domain CompoundName `json:"domain"`
-
-	//
-	// the service this instance is supposed to run
-	//
-	Service SimpleName `json:"service"`
-
-	//
-	// return a certificate in the response
-	//
-	Csr string `json:"csr"`
-
-	//
-	// if present, return an SSH host certificate
-	//
-	Ssh string `json:"ssh,omitempty" rdl:"optional"`
-}
-
-//
-// NewInstanceInformation - creates an initialized InstanceInformation instance, returns a pointer to it
-//
-func NewInstanceInformation(init ...*InstanceInformation) *InstanceInformation {
-	var o *InstanceInformation
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(InstanceInformation)
-	}
-	return o
-}
-
-type rawInstanceInformation InstanceInformation
-
-//
-// UnmarshalJSON is defined for proper JSON decoding of a InstanceInformation
-//
-func (self *InstanceInformation) UnmarshalJSON(b []byte) error {
-	var m rawInstanceInformation
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := InstanceInformation(m)
-		*self = o
-		err = self.Validate()
-	}
-	return err
-}
-
-//
-// Validate - checks for missing required fields, etc
-//
-func (self *InstanceInformation) Validate() error {
-	if self.Document == "" {
-		return fmt.Errorf("InstanceInformation.document is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZTSSchema(), "String", self.Document)
-		if !val.Valid {
-			return fmt.Errorf("InstanceInformation.document does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.Signature == "" {
-		return fmt.Errorf("InstanceInformation.signature is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZTSSchema(), "String", self.Signature)
-		if !val.Valid {
-			return fmt.Errorf("InstanceInformation.signature does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.KeyId == "" {
-		return fmt.Errorf("InstanceInformation.keyId is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZTSSchema(), "String", self.KeyId)
-		if !val.Valid {
-			return fmt.Errorf("InstanceInformation.keyId does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.Domain == "" {
-		return fmt.Errorf("InstanceInformation.domain is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZTSSchema(), "CompoundName", self.Domain)
-		if !val.Valid {
-			return fmt.Errorf("InstanceInformation.domain does not contain a valid CompoundName (%v)", val.Error)
-		}
-	}
-	if self.Service == "" {
-		return fmt.Errorf("InstanceInformation.service is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZTSSchema(), "SimpleName", self.Service)
-		if !val.Valid {
-			return fmt.Errorf("InstanceInformation.service does not contain a valid SimpleName (%v)", val.Error)
-		}
-	}
-	if self.Csr == "" {
-		return fmt.Errorf("InstanceInformation.csr is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZTSSchema(), "String", self.Csr)
-		if !val.Valid {
-			return fmt.Errorf("InstanceInformation.csr does not contain a valid String (%v)", val.Error)
-		}
-	}
-	return nil
-}
-
-//
 // InstanceRefreshRequest - InstanceRefreshRequest - a certificate refresh
 // request
 //
@@ -1447,6 +1319,11 @@ type InstanceRefreshRequest struct {
 	// in seconds how long token should be valid for
 	//
 	ExpiryTime *int32 `json:"expiryTime,omitempty" rdl:"optional"`
+
+	//
+	// public key identifier
+	//
+	KeyId string `json:"keyId,omitempty" rdl:"optional"`
 }
 
 //
