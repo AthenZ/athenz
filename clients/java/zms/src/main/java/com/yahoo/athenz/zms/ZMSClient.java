@@ -15,15 +15,19 @@
  */
 package com.yahoo.athenz.zms;
 
+import java.io.Closeable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.io.Closeable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Map;
-import java.util.List;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import javax.net.ssl.SSLContext;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
 
 import org.glassfish.jersey.client.ClientProperties;
 import org.slf4j.Logger;
@@ -31,10 +35,13 @@ import org.slf4j.LoggerFactory;
 
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.auth.impl.PrincipalAuthority;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.common.config.AthenzConfig;
+import com.yahoo.athenz.common.utils.SSLUtils;
+import com.yahoo.athenz.common.utils.SSLUtils.ClientSSLContextBuilder;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Timestamp;
 
@@ -53,8 +60,36 @@ public class ZMSClient implements Closeable {
     public static final String ZMS_CLIENT_PROP_READ_TIMEOUT    = "athenz.zms.client.read_timeout";
     public static final String ZMS_CLIENT_PROP_CONNECT_TIMEOUT = "athenz.zms.client.connect_timeout";
 
+    public static final String ZMS_CLIENT_PROP_CERT_ALIAS                       = "athenz.zms.client.cert_alias";
+    
+    public static final String ZMS_CLIENT_PROP_KEYSTORE_PATH                    = "athenz.zms.client.keystore_path";
+    public static final String ZMS_CLIENT_PROP_KEYSTORE_TYPE                    = "athenz.zms.client.keystore_type";
+    public static final String ZMS_CLIENT_PROP_KEYSTORE_PASSWORD                = "athenz.zms.client.keystore_password";
+    public static final String ZMS_CLIENT_PROP_KEYSTORE_PWD_APP_NAME            = "athenz.zms.client.keystore_pwd_app_name";
+    
+    public static final String ZMS_CLIENT_PROP_KEY_MANAGER_PASSWORD             = "athenz.zms.client.keymanager_password";
+    public static final String ZMS_CLIENT_PROP_KEY_MANAGER_PWD_APP_NAME         = "athenz.zms.client.keymanager_pwd_app_name";
+    
+    public static final String ZMS_CLIENT_PROP_TRUSTSTORE_PATH                  = "athenz.zms.client.truststore_path";
+    public static final String ZMS_CLIENT_PROP_TRUSTSTORE_TYPE                  = "athenz.zms.client.truststore_type";
+    public static final String ZMS_CLIENT_PROP_TRUSTSTORE_PASSWORD              = "athenz.zms.client.truststore_password";
+    public static final String ZMS_CLIENT_PROP_TRUSTSTORE_PWD_APP_NAME          = "athenz.zms.client.truststore_pwd_app_name";
+
+    public static final String ZMS_CLIENT_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS  = "athenz.zms.client.private_keystore_factory_class";
+    public static final String ZMS_CLIENT_PROP_CLIENT_PROTOCOL                  = "athenz.zms.client.client_ssl_protocol";
+    public static final String ZMS_CLIENT_PKEY_STORE_FACTORY_CLASS              = "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory";
+    public static final String ZMS_CLIENT_DEFAULT_CLIENT_SSL_PROTOCOL           = "TLSv1.2";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(ZMSClient.class);
     private static final Authority PRINCIPAL_AUTHORITY = new PrincipalAuthority();
+    
+    private static PrivateKeyStore PRIVATE_KEY_STORE = loadServicePrivateKey();
+
+    static PrivateKeyStore loadServicePrivateKey() {
+        String pkeyFactoryClass = System.getProperty(ZMS_CLIENT_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
+                ZMS_CLIENT_PKEY_STORE_FACTORY_CLASS);
+        return SSLUtils.loadServicePrivateKey(pkeyFactoryClass);
+    }
     
     /**
      * Constructs a new ZMSClient object with default settings.
@@ -283,11 +318,87 @@ public class ZMSClient implements Closeable {
 
         /* if we are not given a url then use the default value */
  
-        client = new ZMSRDLGeneratedClient(zmsUrl)
-            .setProperty(ClientProperties.CONNECT_TIMEOUT, connectTimeout)
-            .setProperty(ClientProperties.READ_TIMEOUT, readTimeout);
+        SSLContext sslContext = createSSLContext();
+        ClientBuilder builder = ClientBuilder.newBuilder();
+        if (sslContext != null) {
+            builder.sslContext(sslContext);
+        }
+        Client rsClient = builder.property(ClientProperties.CONNECT_TIMEOUT, connectTimeout)
+            .property(ClientProperties.READ_TIMEOUT, readTimeout)
+            .build();
+        client = new ZMSRDLGeneratedClient(zmsUrl, rsClient);
     }
     
+    SSLContext createSSLContext() {
+        String certAlias = System.getProperty(ZMS_CLIENT_PROP_CERT_ALIAS);
+        String clientProtocol = System.getProperty(ZMS_CLIENT_PROP_CLIENT_PROTOCOL, ZMS_CLIENT_DEFAULT_CLIENT_SSL_PROTOCOL);
+        //keystore
+        String keyStorePath = System.getProperty(ZMS_CLIENT_PROP_KEYSTORE_PATH);
+        String keyStoreType = System.getProperty(ZMS_CLIENT_PROP_KEYSTORE_TYPE);
+        String keyStorePwd = System.getProperty(ZMS_CLIENT_PROP_KEYSTORE_PASSWORD);
+        char[] keyStorePassword = null;
+        if (null != keyStorePwd && !keyStorePwd.isEmpty()) {
+            keyStorePassword = keyStorePwd.toCharArray();
+        }
+        String keyStorePasswordAppName = System.getProperty(ZMS_CLIENT_PROP_KEYSTORE_PWD_APP_NAME);
+        char[] keyManagerPassword = null;
+        String keyManagerPwd = System.getProperty(ZMS_CLIENT_PROP_KEY_MANAGER_PASSWORD);
+        if (null != keyManagerPwd && !keyManagerPwd.isEmpty()) {
+            keyManagerPassword = keyManagerPwd.toCharArray();
+        }
+        String keyManagerPasswordAppName = System.getProperty(ZMS_CLIENT_PROP_KEY_MANAGER_PWD_APP_NAME);
+        
+        //truststore
+        String trustStorePath = System.getProperty(ZMS_CLIENT_PROP_TRUSTSTORE_PATH);
+        String trustStoreType = System.getProperty(ZMS_CLIENT_PROP_TRUSTSTORE_TYPE);
+        String trustStorePwd = System.getProperty(ZMS_CLIENT_PROP_TRUSTSTORE_PASSWORD);
+        char[] trustStorePassword = null;
+        if (null != trustStorePwd && !trustStorePwd.isEmpty()) {
+            trustStorePassword = trustStorePwd.toCharArray();
+        }
+        String trustStorePasswordAppName = System.getProperty(ZMS_CLIENT_PROP_TRUSTSTORE_PWD_APP_NAME);
+        
+        
+        ClientSSLContextBuilder builder = new SSLUtils.ClientSSLContextBuilder(clientProtocol)
+                .privateKeyStore(PRIVATE_KEY_STORE);
+            if (null != certAlias && !certAlias.isEmpty()) {
+                builder.certAlias(certAlias);
+            }
+            if (null != keyStorePath && !keyStorePath.isEmpty()) {
+                builder.keyStorePath(keyStorePath);
+            }
+            if (null != keyStoreType && !keyStoreType.isEmpty()) {
+                builder.keyStoreType(keyStoreType);
+            }
+            if (null != keyStorePassword) {
+                builder.keyStorePassword(keyStorePassword);
+            }
+            if (null != keyStorePasswordAppName) {
+                builder.keyStorePasswordAppName(keyStorePasswordAppName);
+            }
+            if (null != keyManagerPassword) {
+                builder.keyManagerPassword(keyManagerPassword);
+            }
+            if (null != keyManagerPasswordAppName) {
+                builder.keyManagerPasswordAppName(keyManagerPasswordAppName);
+            }
+
+            if (null != trustStorePath && !trustStorePath.isEmpty()) {
+                builder.trustStorePath(trustStorePath);
+            }
+            if (null != trustStoreType && !trustStoreType.isEmpty()) {
+                builder.trustStoreType(trustStoreType);
+            }
+            if (null != trustStorePassword) {
+                builder.trustStorePassword(trustStorePassword);
+            }
+            if (null != trustStorePasswordAppName) {
+                builder.trustStorePasswordAppName(trustStorePasswordAppName);
+            }
+
+        return builder.build();
+    }
+
     public String getZmsUrl() {
         return zmsUrl;
     }

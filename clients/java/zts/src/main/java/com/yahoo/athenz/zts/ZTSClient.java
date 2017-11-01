@@ -33,34 +33,38 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.ServiceLoader;
-import java.util.Set;
 
 import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
-
-import com.amazonaws.auth.AWSCredentialsProvider;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
 
 import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.operator.OperatorCreationException;
-
 import org.glassfish.jersey.client.ClientProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.auth.ServiceIdentityProvider;
 import com.yahoo.athenz.auth.impl.RoleAuthority;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.config.AthenzConfig;
+import com.yahoo.athenz.common.utils.SSLUtils;
+import com.yahoo.athenz.common.utils.SSLUtils.ClientSSLContextBuilder;
 import com.yahoo.rdl.JSON;
 
 public class ZTSClient implements Closeable {
@@ -100,7 +104,27 @@ public class ZTSClient implements Closeable {
     public static final String ZTS_CLIENT_PROP_X509CSR_DN                = "athenz.zts.client.x509csr_dn";
     public static final String ZTS_CLIENT_PROP_X509CSR_DOMAIN            = "athenz.zts.client.x509csr_domain";
     public static final String ZTS_CLIENT_PROP_DISABLE_CACHE             = "athenz.zts.client.disable_cache";
+
+    public static final String ZTS_CLIENT_PROP_CERT_ALIAS                       = "athenz.zts.client.cert_alias";
     
+    public static final String ZTS_CLIENT_PROP_KEYSTORE_PATH                    = "athenz.zts.client.keystore_path";
+    public static final String ZTS_CLIENT_PROP_KEYSTORE_TYPE                    = "athenz.zts.client.keystore_type";
+    public static final String ZTS_CLIENT_PROP_KEYSTORE_PASSWORD                = "athenz.zts.client.keystore_password";
+    public static final String ZTS_CLIENT_PROP_KEYSTORE_PWD_APP_NAME            = "athenz.zts.client.keystore_pwd_app_name";
+    
+    public static final String ZTS_CLIENT_PROP_KEY_MANAGER_PASSWORD             = "athenz.zts.client.keymanager_password";
+    public static final String ZTS_CLIENT_PROP_KEY_MANAGER_PWD_APP_NAME         = "athenz.zts.client.keymanager_pwd_app_name";
+    
+    public static final String ZTS_CLIENT_PROP_TRUSTSTORE_PATH                  = "athenz.zts.client.truststore_path";
+    public static final String ZTS_CLIENT_PROP_TRUSTSTORE_TYPE                  = "athenz.zts.client.truststore_type";
+    public static final String ZTS_CLIENT_PROP_TRUSTSTORE_PASSWORD              = "athenz.zts.client.truststore_password";
+    public static final String ZTS_CLIENT_PROP_TRUSTSTORE_PWD_APP_NAME          = "athenz.zts.client.truststore_pwd_app_name";
+
+    public static final String ZTS_CLIENT_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS  = "athenz.zts.client.private_keystore_factory_class";
+    public static final String ZTS_CLIENT_PROP_CLIENT_PROTOCOL                  = "athenz.zts.client.client_ssl_protocol";
+    public static final String ZTS_CLIENT_PKEY_STORE_FACTORY_CLASS              = "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory";
+    public static final String ZTS_CLIENT_DEFAULT_CLIENT_SSL_PROTOCOL           = "TLSv1.2";
+
     public static final String ROLE_TOKEN_HEADER = System.getProperty(RoleAuthority.ATHENZ_PROP_ROLE_HEADER,
             RoleAuthority.HTTP_HEADER);
     private static final String X509_CSR_DN = System.getProperty(ZTS_CLIENT_PROP_X509CSR_DN);
@@ -119,6 +143,8 @@ public class ZTSClient implements Closeable {
     
     private static final ServiceLoader<ZTSClientService> ZTS_TOKEN_PROVIDERS = ServiceLoader.load(ZTSClientService.class);
     private static final AtomicReference<Set<String>> SVC_LOADER_CACHE_KEYS = new AtomicReference<>();
+    private static PrivateKeyStore PRIVATE_KEY_STORE = loadServicePrivateKey();
+
     static {
         loadSvcProviderTokens();
     }
@@ -325,6 +351,82 @@ public class ZTSClient implements Closeable {
         return url;
     }
     
+    SSLContext createSSLContext() {
+        String certAlias = System.getProperty(ZTS_CLIENT_PROP_CERT_ALIAS);
+        String clientProtocol = System.getProperty(ZTS_CLIENT_PROP_CLIENT_PROTOCOL, ZTS_CLIENT_DEFAULT_CLIENT_SSL_PROTOCOL);
+        //keystore
+        String keyStorePath = System.getProperty(ZTS_CLIENT_PROP_KEYSTORE_PATH);
+        String keyStoreType = System.getProperty(ZTS_CLIENT_PROP_KEYSTORE_TYPE);
+        String keyStorePwd = System.getProperty(ZTS_CLIENT_PROP_KEYSTORE_PASSWORD);
+        char[] keyStorePassword = null;
+        if (null != keyStorePwd && !keyStorePwd.isEmpty()) {
+            keyStorePassword = keyStorePwd.toCharArray();
+        }
+        String keyStorePasswordAppName = System.getProperty(ZTS_CLIENT_PROP_KEYSTORE_PWD_APP_NAME);
+        char[] keyManagerPassword = null;
+        String keyManagerPwd = System.getProperty(ZTS_CLIENT_PROP_KEY_MANAGER_PASSWORD);
+        if (null != keyManagerPwd && !keyManagerPwd.isEmpty()) {
+            keyManagerPassword = keyManagerPwd.toCharArray();
+        }
+        String keyManagerPasswordAppName = System.getProperty(ZTS_CLIENT_PROP_KEY_MANAGER_PWD_APP_NAME);
+        
+        //truststore
+        String trustStorePath = System.getProperty(ZTS_CLIENT_PROP_TRUSTSTORE_PATH);
+        String trustStoreType = System.getProperty(ZTS_CLIENT_PROP_TRUSTSTORE_TYPE);
+        String trustStorePwd = System.getProperty(ZTS_CLIENT_PROP_TRUSTSTORE_PASSWORD);
+        char[] trustStorePassword = null;
+        if (null != trustStorePwd && !trustStorePwd.isEmpty()) {
+            trustStorePassword = trustStorePwd.toCharArray();
+        }
+        String trustStorePasswordAppName = System.getProperty(ZTS_CLIENT_PROP_TRUSTSTORE_PWD_APP_NAME);
+        
+        
+        ClientSSLContextBuilder builder = new SSLUtils.ClientSSLContextBuilder(clientProtocol)
+                .privateKeyStore(PRIVATE_KEY_STORE);
+            if (null != certAlias && !certAlias.isEmpty()) {
+                builder.certAlias(certAlias);
+            }
+            if (null != keyStorePath && !keyStorePath.isEmpty()) {
+                builder.keyStorePath(keyStorePath);
+            }
+            if (null != keyStoreType && !keyStoreType.isEmpty()) {
+                builder.keyStoreType(keyStoreType);
+            }
+            if (null != keyStorePassword) {
+                builder.keyStorePassword(keyStorePassword);
+            }
+            if (null != keyStorePasswordAppName) {
+                builder.keyStorePasswordAppName(keyStorePasswordAppName);
+            }
+            if (null != keyManagerPassword) {
+                builder.keyManagerPassword(keyManagerPassword);
+            }
+            if (null != keyManagerPasswordAppName) {
+                builder.keyManagerPasswordAppName(keyManagerPasswordAppName);
+            }
+
+            if (null != trustStorePath && !trustStorePath.isEmpty()) {
+                builder.trustStorePath(trustStorePath);
+            }
+            if (null != trustStoreType && !trustStoreType.isEmpty()) {
+                builder.trustStoreType(trustStoreType);
+            }
+            if (null != trustStorePassword) {
+                builder.trustStorePassword(trustStorePassword);
+            }
+            if (null != trustStorePasswordAppName) {
+                builder.trustStorePasswordAppName(trustStorePasswordAppName);
+            }
+
+        return builder.build();
+    }
+    
+    static PrivateKeyStore loadServicePrivateKey() {
+        String pkeyFactoryClass = System.getProperty(ZTS_CLIENT_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
+                ZTS_CLIENT_PKEY_STORE_FACTORY_CLASS);
+        return SSLUtils.loadServicePrivateKey(pkeyFactoryClass);
+    }
+    
     void initClient(String url, Principal identity, String domainName, String serviceName,
             ServiceIdentityProvider siaProvider) {
         
@@ -355,11 +457,17 @@ public class ZTSClient implements Closeable {
         if (x509CertDNSName != null && !x509CertDNSName.isEmpty()) {
             hostnameVerifier = new AWSHostNameVerifier(x509CertDNSName);
         }
-            
-        ztsClient = new ZTSRDLGeneratedClient(ztsUrl, hostnameVerifier)
-                .setProperty(ClientProperties.CONNECT_TIMEOUT, connectTimeout)
-                .setProperty(ClientProperties.READ_TIMEOUT, readTimeout);
         
+        SSLContext sslContext = createSSLContext();
+        ClientBuilder builder = ClientBuilder.newBuilder();
+        if (sslContext != null) {
+            builder.sslContext(sslContext);
+        }
+        Client rsClient = builder.hostnameVerifier(hostnameVerifier).property(ClientProperties.CONNECT_TIMEOUT, connectTimeout)
+            .property(ClientProperties.READ_TIMEOUT, readTimeout)
+            .build();
+
+        ztsClient = new ZTSRDLGeneratedClient(ztsUrl, rsClient);
         principal = identity;
         domain = domainName;
         service = serviceName;
