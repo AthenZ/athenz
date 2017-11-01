@@ -166,20 +166,11 @@ public class ZTSSchema {
             .field("serviceToken", "SignedToken", true, "service token instead of TLS certificate")
             .mapField("attributes", "String", "String", true, "other config-like attributes determined at boot time");
 
-        sb.structType("InstanceInformation")
-            .comment("Instance object that includes requested service details plus host document that is signed by provider as part of the host bootstrap process")
-            .field("document", "String", false, "signed document containing attributes like IP address, instance-id, account#, etc.")
-            .field("signature", "String", false, "the signature for the document")
-            .field("keyId", "String", false, "the keyid used to sign the document")
-            .field("domain", "CompoundName", false, "the domain of the instance")
-            .field("service", "SimpleName", false, "the service this instance is supposed to run")
-            .field("csr", "String", false, "return a certificate in the response")
-            .field("ssh", "String", true, "if present, return an SSH host certificate");
-
         sb.structType("InstanceRefreshRequest")
             .comment("InstanceRefreshRequest - a certificate refresh request")
             .field("csr", "String", false, "Cert CSR signed by the service's private key (public key registered in ZMS)")
-            .field("expiryTime", "Int32", true, "in seconds how long token should be valid for");
+            .field("expiryTime", "Int32", true, "in seconds how long token should be valid for")
+            .field("keyId", "String", true, "public key identifier");
 
         sb.structType("AWSTemporaryCredentials")
             .field("accessKeyId", "String", false, "")
@@ -429,7 +420,7 @@ public class ZTSSchema {
 ;
 
         sb.resource("InstanceRefreshRequest", "POST", "/instance/{domain}/{service}/refresh")
-            .comment("Refresh Service NToken into TLS Certificate")
+            .comment("Refresh Service tokens into TLS Certificate")
             .pathParam("domain", "CompoundName", "name of the domain requesting the refresh")
             .pathParam("service", "SimpleName", "name of the service requesting the refresh")
             .input("req", "InstanceRefreshRequest", "the refresh request")

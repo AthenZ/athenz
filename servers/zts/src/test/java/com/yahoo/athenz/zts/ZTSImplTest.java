@@ -43,7 +43,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.WebApplicationException;
 
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -84,6 +84,7 @@ import com.yahoo.athenz.zts.cert.CertRecordStore;
 import com.yahoo.athenz.zts.cert.CertRecordStoreConnection;
 import com.yahoo.athenz.zts.cert.InstanceCertManager;
 import com.yahoo.athenz.zts.cert.X509CertRecord;
+import com.yahoo.athenz.zts.cert.X509CertRequest;
 import com.yahoo.athenz.zts.cert.impl.SelfCertSigner;
 import com.yahoo.athenz.zts.store.ChangeLogStore;
 import com.yahoo.athenz.zts.store.CloudStore;
@@ -3159,7 +3160,7 @@ public class ZTSImplTest {
         CertRecordStoreConnection certConnection = Mockito.mock(CertRecordStoreConnection.class);
         Mockito.when(certStore.getConnection()).thenReturn(certConnection);
         Mockito.when(certConnection.getX509CertRecord("ostk", "1001")).thenReturn(certRecord);
-        Mockito.when(certConnection.updateX509CertRecord(Matchers.isA(X509CertRecord.class))).thenReturn(true);
+        Mockito.when(certConnection.updateX509CertRecord(ArgumentMatchers.isA(X509CertRecord.class))).thenReturn(true);
         zts.instanceCertManager.setCertStore(certStore);
         
         Identity identity = zts.postOSTKInstanceRefreshRequest(context, "athenz", "production", req);
@@ -3204,7 +3205,7 @@ public class ZTSImplTest {
         CertRecordStoreConnection certConnection = Mockito.mock(CertRecordStoreConnection.class);
         Mockito.when(certStore.getConnection()).thenReturn(certConnection);
         Mockito.when(certConnection.getX509CertRecord("ostk", "1001")).thenReturn(certRecord);
-        Mockito.when(certConnection.updateX509CertRecord(Matchers.isA(X509CertRecord.class))).thenReturn(true);
+        Mockito.when(certConnection.updateX509CertRecord(ArgumentMatchers.isA(X509CertRecord.class))).thenReturn(true);
         zts.instanceCertManager.setCertStore(certStore);
         
         Identity identity = zts.postOSTKInstanceRefreshRequest(context, "athenz", "production", req);
@@ -3249,7 +3250,7 @@ public class ZTSImplTest {
         CertRecordStoreConnection certConnection = Mockito.mock(CertRecordStoreConnection.class);
         Mockito.when(certStore.getConnection()).thenReturn(certConnection);
         Mockito.when(certConnection.getX509CertRecord("ostk", "1001")).thenReturn(certRecord);
-        Mockito.when(certConnection.updateX509CertRecord(Matchers.isA(X509CertRecord.class))).thenReturn(true);
+        Mockito.when(certConnection.updateX509CertRecord(ArgumentMatchers.isA(X509CertRecord.class))).thenReturn(true);
         zts.instanceCertManager.setCertStore(certStore);
         
         try {
@@ -3423,7 +3424,6 @@ public class ZTSImplTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
-            assertTrue(ex.getMessage().contains("Unsupported authority"), ex.getMessage());
         }
     }
     
@@ -6075,5 +6075,483 @@ public class ZTSImplTest {
         
         Status status = ztsImpl.getStatus(context);
         assertEquals(status.getCode(), ResourceException.OK);
+    }
+    
+    @Test
+    public void testPostInstanceRefreshRequestByUserPrincipalMismatch() throws IOException {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+        
+        DataStore store = new DataStore(structStore, null);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        
+        Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
+        String certCsr = new String(Files.readAllBytes(path));
+
+        InstanceRefreshRequest req = new InstanceRefreshRequest().setCsr(certCsr)
+                .setKeyId("v0");
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user",
+                "doe", "v=U1,d=user;n=doe;s=sig", 0, new PrincipalAuthority());
+        principal.setKeyId("0");
+        
+        String publicKeyName = "athenz.syncer_v0";
+        final String ztsPublicKey = "-----BEGIN PUBLIC KEY-----\n"
+                + "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAMp9ZHVDK2s/FyinpKpD7lSsU+d6TSRE\n"
+                + "NVo6sdLrEpOaCJETsh+0Qc0knhALxBD1+B9gS5F2rAFgtug0R6savvMCAwEAAQ==\n"
+                + "-----END PUBLIC KEY-----";
+        ztsImpl.dataStore.getPublicKeyCache().put(publicKeyName, ztsPublicKey);
+
+        ZTSAuthorizer authorizer = Mockito.mock(ZTSAuthorizer.class);
+        Mockito.when(authorizer.access("update", "athenz:service", principal, null)).thenReturn(false);
+        ztsImpl.authorizer = authorizer;
+        
+        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+
+        ResourceContext context = createResourceContext(principal, servletRequest);
+
+        try {
+            ztsImpl.postInstanceRefreshRequest(context, "athenz", "syncer", req);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Principal mismatch"));
+        }
+    }
+    
+    @Test
+    public void testPostInstanceRefreshRequestByUser() throws IOException {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+        
+        DataStore store = new DataStore(structStore, null);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        
+        Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
+        String certCsr = new String(Files.readAllBytes(path));
+
+        InstanceRefreshRequest req = new InstanceRefreshRequest().setCsr(certCsr)
+                .setKeyId("v0");
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user",
+                "doe", "v=U1,d=user;n=doe;s=sig", 0, new PrincipalAuthority());
+        principal.setKeyId("0");
+        
+        String publicKeyName = "athenz.syncer_v0";
+        final String ztsPublicKey = "-----BEGIN PUBLIC KEY-----\n"
+                + "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAMp9ZHVDK2s/FyinpKpD7lSsU+d6TSRE\n"
+                + "NVo6sdLrEpOaCJETsh+0Qc0knhALxBD1+B9gS5F2rAFgtug0R6savvMCAwEAAQ==\n"
+                + "-----END PUBLIC KEY-----";
+        ztsImpl.dataStore.getPublicKeyCache().put(publicKeyName, ztsPublicKey);
+
+        ZTSAuthorizer authorizer = Mockito.mock(ZTSAuthorizer.class);
+        Mockito.when(authorizer.access("update", "athenz:service", principal, null)).thenReturn(true);
+        ztsImpl.authorizer = authorizer;
+        
+        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+
+        ResourceContext context = createResourceContext(principal, servletRequest);
+
+        Identity identity = ztsImpl.postInstanceRefreshRequest(context, "athenz", "syncer", req);
+        assertNotNull(identity);
+        assertNotNull(identity.getCertificate());
+    }
+    
+    @Test
+    public void testPostInstanceRefreshRequestByUserIdentityFailure() throws IOException {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+        
+        DataStore store = new DataStore(structStore, null);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        
+        Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
+        String certCsr = new String(Files.readAllBytes(path));
+
+        InstanceRefreshRequest req = new InstanceRefreshRequest().setCsr(certCsr)
+                .setKeyId("v0");
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user",
+                "doe", "v=U1,d=user;n=doe;s=sig", 0, new PrincipalAuthority());
+        principal.setKeyId("0");
+        
+        String publicKeyName = "athenz.syncer_v0";
+        final String ztsPublicKey = "-----BEGIN PUBLIC KEY-----\n"
+                + "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAMp9ZHVDK2s/FyinpKpD7lSsU+d6TSRE\n"
+                + "NVo6sdLrEpOaCJETsh+0Qc0knhALxBD1+B9gS5F2rAFgtug0R6savvMCAwEAAQ==\n"
+                + "-----END PUBLIC KEY-----";
+        ztsImpl.dataStore.getPublicKeyCache().put(publicKeyName, ztsPublicKey);
+
+        ZTSAuthorizer authorizer = Mockito.mock(ZTSAuthorizer.class);
+        Mockito.when(authorizer.access("update", "athenz:service", principal, null)).thenReturn(true);
+        ztsImpl.authorizer = authorizer;
+        
+        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+
+        ResourceContext context = createResourceContext(principal, servletRequest);
+
+        CertSigner certSigner = Mockito.mock(CertSigner.class);
+        Mockito.when(certSigner.generateX509Certificate(Mockito.anyString(), Mockito.anyString())).thenReturn(null);
+        ztsImpl.certSigner = certSigner;
+        
+        try {
+            ztsImpl.postInstanceRefreshRequest(context, "athenz", "syncer", req);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("unable to generate identity"), ex.getMessage());
+        }
+    }
+    
+    @Test
+    public void testPostInstanceRefreshRequestByUserCert() throws IOException {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+        
+        DataStore store = new DataStore(structStore, null);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        
+        Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
+        String certCsr = new String(Files.readAllBytes(path));
+
+        InstanceRefreshRequest req = new InstanceRefreshRequest().setCsr(certCsr)
+                .setKeyId("v0");
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user",
+                "doe", "v=U1,d=user;n=doe;s=sig", 0, new PrincipalAuthority());
+        principal.setKeyId("0");
+        
+        String publicKeyName = "athenz.syncer_v0";
+        final String ztsPublicKey = "-----BEGIN PUBLIC KEY-----\n"
+                + "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAMp9ZHVDK2s/FyinpKpD7lSsU+d6TSRE\n"
+                + "NVo6sdLrEpOaCJETsh+0Qc0knhALxBD1+B9gS5F2rAFgtug0R6savvMCAwEAAQ==\n"
+                + "-----END PUBLIC KEY-----";
+        ztsImpl.dataStore.getPublicKeyCache().put(publicKeyName, ztsPublicKey);
+
+        ZTSAuthorizer authorizer = Mockito.mock(ZTSAuthorizer.class);
+        Mockito.when(authorizer.access("update", "athenz:service", principal, null)).thenReturn(true);
+        ztsImpl.authorizer = authorizer;
+        
+        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+
+        ResourceContext context = createResourceContext(principal, servletRequest);
+
+        try {
+            ztsImpl.postInstanceRefreshRequest(context, "user", "doe", req);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("TLS Certificates require ServiceTokens"), ex.getMessage());
+        }
+    }
+    
+    @Test
+    public void testPostInstanceRefreshRequestByUserNoPublicKey() throws IOException {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+        
+        DataStore store = new DataStore(structStore, null);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        
+        Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
+        String certCsr = new String(Files.readAllBytes(path));
+
+        InstanceRefreshRequest req = new InstanceRefreshRequest().setCsr(certCsr)
+                .setKeyId("v0");
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user",
+                "doe", "v=U1,d=user;n=doe;s=sig", 0, new PrincipalAuthority());
+        principal.setKeyId("1");
+
+        ZTSAuthorizer authorizer = Mockito.mock(ZTSAuthorizer.class);
+        Mockito.when(authorizer.access("update", "athenz:service", principal, null)).thenReturn(true);
+        ztsImpl.authorizer = authorizer;
+        
+        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+
+        ResourceContext context = createResourceContext(principal, servletRequest);
+
+        try {
+            ztsImpl.postInstanceRefreshRequest(context, "athenz", "syncer", req);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Unable to retrieve public key"), ex.getMessage());
+        }
+    }
+    
+    @Test
+    public void testPostInstanceRefreshRequestByUserInvalidRequest() throws IOException {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+        
+        DataStore store = new DataStore(structStore, null);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String certCsr = new String(Files.readAllBytes(path));
+
+        InstanceRefreshRequest req = new InstanceRefreshRequest().setCsr(certCsr)
+                .setKeyId("v0");
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user",
+                "doe", "v=U1,d=user;n=doe;s=sig", 0, new PrincipalAuthority());
+        principal.setKeyId("1");
+
+        String publicKeyName = "athenz.api_v0";
+        final String ztsPublicKey = "-----BEGIN PUBLIC KEY-----\n"
+                + "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAMp9ZHVDK2s/FyinpKpD7lSsU+d6TSRE\n"
+                + "NVo6sdLrEpOaCJETsh+0Qc0knhALxBD1+B9gS5F2rAFgtug0R6savvMCAwEAAQ==\n"
+                + "-----END PUBLIC KEY-----";
+        ztsImpl.dataStore.getPublicKeyCache().put(publicKeyName, ztsPublicKey);
+        
+        ZTSAuthorizer authorizer = Mockito.mock(ZTSAuthorizer.class);
+        Mockito.when(authorizer.access("update", "athenz:service", principal, null)).thenReturn(true);
+        ztsImpl.authorizer = authorizer;
+        
+        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+
+        ResourceContext context = createResourceContext(principal, servletRequest);
+
+        try {
+            ztsImpl.postInstanceRefreshRequest(context, "athenz", "api", req);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("invalid CSR - data mismatch"), ex.getMessage());
+        }
+    }
+
+    @Test
+    public void testPostInstanceRefreshRequestByUserPublicKeyMismatch() throws IOException {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+        
+        DataStore store = new DataStore(structStore, null);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String certCsr = new String(Files.readAllBytes(path));
+
+        InstanceRefreshRequest req = new InstanceRefreshRequest().setCsr(certCsr)
+                .setKeyId("v0");
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user",
+                "doe", "v=U1,d=user;n=doe;s=sig", 0, new PrincipalAuthority());
+        principal.setKeyId("1");
+
+        String publicKeyName = "athenz.syncer_v0";
+        final String ztsPublicKey = "-----BEGIN PUBLIC KEY-----\n"
+                + "ABCwDQYJKoZIhvcNAQEBBQADSwAwSAJBAMp9ZHVDK2s/FyinpKpD7lSsU+d6TSRE\n"
+                + "NVo6sdLrEpOaCJETsh+0Qc0knhALxBD1+B9gS5F2rAFgtug0R6savvMCAwEAAQ==\n"
+                + "-----END PUBLIC KEY-----";
+        ztsImpl.dataStore.getPublicKeyCache().put(publicKeyName, ztsPublicKey);
+        
+        ZTSAuthorizer authorizer = Mockito.mock(ZTSAuthorizer.class);
+        Mockito.when(authorizer.access("update", "athenz:service", principal, null)).thenReturn(true);
+        ztsImpl.authorizer = authorizer;
+        
+        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+
+        ResourceContext context = createResourceContext(principal, servletRequest);
+
+        try {
+            ztsImpl.postInstanceRefreshRequest(context, "athenz", "syncer", req);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("invalid CSR - public key mismatch"), ex.getMessage());
+        }
+    }
+    
+    @Test
+    public void testValidateServiceX509RefreshRequest() throws IOException {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+        
+        DataStore store = new DataStore(structStore, null);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
+        String csr = new String(Files.readAllBytes(path));
+        
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertNotNull(certReq);
+        
+        path = Paths.get("src/test/resources/valid_provider_refresh.pem");
+        String pem = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(pem);
+        
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz",
+                "syncer", "v=S1,d=athenz;n=syncer;s=sig", 0, new CertificateAuthority());
+        principal.setX509Certificate(cert);
+        
+        assertTrue(ztsImpl.validateServiceX509RefreshRequest(principal, certReq));
+    }
+    
+    @Test
+    public void testValidateServiceX509RefreshRequestMismatchDns() throws IOException {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+        
+        DataStore store = new DataStore(structStore, null);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        Path path = Paths.get("src/test/resources/athenz.mismatch.dns.csr");
+        String csr = new String(Files.readAllBytes(path));
+        
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertNotNull(certReq);
+        
+        path = Paths.get("src/test/resources/athenz.instanceid.pem");
+        String pem = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(pem);
+        
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz",
+                "syncer", "v=S1,d=athenz;n=syncer;s=sig", 0, new CertificateAuthority());
+        principal.setX509Certificate(cert);
+        
+        assertFalse(ztsImpl.validateServiceX509RefreshRequest(principal, certReq));
+    }
+    
+    @Test
+    public void testPostInstanceRefreshRequestByServiceCert() throws IOException {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+        
+        DataStore store = new DataStore(structStore, null);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        
+        Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
+        String certCsr = new String(Files.readAllBytes(path));
+
+        InstanceRefreshRequest req = new InstanceRefreshRequest().setCsr(certCsr)
+                .setKeyId("v0");
+
+        path = Paths.get("src/test/resources/valid_provider_refresh.pem");
+        String pem = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(pem);
+        
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz",
+                "syncer", "v=S1,d=athenz;n=syncer;s=sig", 0, new CertificateAuthority());
+        principal.setX509Certificate(cert);
+        
+        String publicKeyName = "athenz.syncer_v0";
+        final String ztsPublicKey = "-----BEGIN PUBLIC KEY-----\n"
+                + "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAMp9ZHVDK2s/FyinpKpD7lSsU+d6TSRE\n"
+                + "NVo6sdLrEpOaCJETsh+0Qc0knhALxBD1+B9gS5F2rAFgtug0R6savvMCAwEAAQ==\n"
+                + "-----END PUBLIC KEY-----";
+        ztsImpl.dataStore.getPublicKeyCache().put(publicKeyName, ztsPublicKey);
+
+        ZTSAuthorizer authorizer = Mockito.mock(ZTSAuthorizer.class);
+        Mockito.when(authorizer.access("update", "athenz:service", principal, null)).thenReturn(true);
+        ztsImpl.authorizer = authorizer;
+        
+        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+
+        ResourceContext context = createResourceContext(principal, servletRequest);
+
+        Identity identity = ztsImpl.postInstanceRefreshRequest(context, "athenz", "syncer", req);
+        assertNotNull(identity);
+        assertNotNull(identity.getCertificate());
+    }
+    
+    @Test
+    public void testPostInstanceRefreshRequestByServiceCertValidateFail() throws IOException {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+        
+        DataStore store = new DataStore(structStore, null);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        
+        Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
+        String certCsr = new String(Files.readAllBytes(path));
+
+        InstanceRefreshRequest req = new InstanceRefreshRequest().setCsr(certCsr)
+                .setKeyId("v0");
+
+        path = Paths.get("src/test/resources/athenz.instanceid.pem");
+        String pem = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(pem);
+        
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz",
+                "syncer", "v=S1,d=athenz;n=syncer;s=sig", 0, new CertificateAuthority());
+        principal.setX509Certificate(cert);
+        
+        String publicKeyName = "athenz.syncer_v0";
+        final String ztsPublicKey = "-----BEGIN PUBLIC KEY-----\n"
+                + "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAMp9ZHVDK2s/FyinpKpD7lSsU+d6TSRE\n"
+                + "NVo6sdLrEpOaCJETsh+0Qc0knhALxBD1+B9gS5F2rAFgtug0R6savvMCAwEAAQ==\n"
+                + "-----END PUBLIC KEY-----";
+        ztsImpl.dataStore.getPublicKeyCache().put(publicKeyName, ztsPublicKey);
+
+        ZTSAuthorizer authorizer = Mockito.mock(ZTSAuthorizer.class);
+        Mockito.when(authorizer.access("update", "athenz:service", principal, null)).thenReturn(true);
+        ztsImpl.authorizer = authorizer;
+        
+        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+
+        ResourceContext context = createResourceContext(principal, servletRequest);
+
+        try {
+            ztsImpl.postInstanceRefreshRequest(context, "athenz", "syncer", req);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("dns name or public key mismatch"), ex.getMessage());
+        }
+    }
+
+    @Test
+    public void testPostInstanceRefreshRequestByUserInvalidCsr() throws IOException {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+        
+        DataStore store = new DataStore(structStore, null);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        String publicKeyName = "athenz.syncer_v0";
+        final String ztsPublicKey = "-----BEGIN PUBLIC KEY-----\n"
+                + "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAMp9ZHVDK2s/FyinpKpD7lSsU+d6TSRE\n"
+                + "NVo6sdLrEpOaCJETsh+0Qc0knhALxBD1+B9gS5F2rAFgtug0R6savvMCAwEAAQ==\n"
+                + "-----END PUBLIC KEY-----";
+        ztsImpl.dataStore.getPublicKeyCache().put(publicKeyName, ztsPublicKey);
+        
+        InstanceRefreshRequest req = new InstanceRefreshRequest().setCsr("csr")
+                .setKeyId("v0");
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user",
+                "doe", "v=U1,d=user;n=doe;s=sig", 0, new PrincipalAuthority());
+        principal.setKeyId("1");
+
+        ZTSAuthorizer authorizer = Mockito.mock(ZTSAuthorizer.class);
+        Mockito.when(authorizer.access("update", "athenz:service", principal, null)).thenReturn(true);
+        ztsImpl.authorizer = authorizer;
+        
+        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+
+        ResourceContext context = createResourceContext(principal, servletRequest);
+
+        try {
+            ztsImpl.postInstanceRefreshRequest(context, "athenz", "syncer", req);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("unable to parse PKCS10 certificate request"), ex.getMessage());
+        }
     }
 }

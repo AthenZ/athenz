@@ -15,6 +15,9 @@ public class InstanceRefreshRequest {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer expiryTime;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String keyId;
 
     public InstanceRefreshRequest setCsr(String csr) {
         this.csr = csr;
@@ -30,6 +33,13 @@ public class InstanceRefreshRequest {
     public Integer getExpiryTime() {
         return expiryTime;
     }
+    public InstanceRefreshRequest setKeyId(String keyId) {
+        this.keyId = keyId;
+        return this;
+    }
+    public String getKeyId() {
+        return keyId;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -42,6 +52,9 @@ public class InstanceRefreshRequest {
                 return false;
             }
             if (expiryTime == null ? a.expiryTime != null : !expiryTime.equals(a.expiryTime)) {
+                return false;
+            }
+            if (keyId == null ? a.keyId != null : !keyId.equals(a.keyId)) {
                 return false;
             }
         }

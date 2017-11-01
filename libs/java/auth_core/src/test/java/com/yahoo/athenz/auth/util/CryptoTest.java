@@ -558,7 +558,7 @@ public class CryptoTest {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
             
-            List<String> ips = Crypto.extractX509IPAddresses(cert);
+            List<String> ips = Crypto.extractX509CertIPAddresses(cert);
             assertTrue(ips.isEmpty());
         }
         
@@ -566,7 +566,7 @@ public class CryptoTest {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
             
-            List<String> ips = Crypto.extractX509IPAddresses(cert);
+            List<String> ips = Crypto.extractX509CertIPAddresses(cert);
             assertTrue(ips.isEmpty());
         }
     }
@@ -578,7 +578,7 @@ public class CryptoTest {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
             
-            List<String> ips = Crypto.extractX509IPAddresses(cert);
+            List<String> ips = Crypto.extractX509CertIPAddresses(cert);
             assertEquals(1, ips.size());
             assertEquals(ips.get(0), "10.11.12.13");
         }
@@ -591,7 +591,7 @@ public class CryptoTest {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
             
-            List<String> ips = Crypto.extractX509IPAddresses(cert);
+            List<String> ips = Crypto.extractX509CertIPAddresses(cert);
             assertEquals(2, ips.size());
             assertEquals(ips.get(0), "10.11.12.13");
             assertEquals(ips.get(1), "10.11.12.14");
@@ -627,7 +627,7 @@ public class CryptoTest {
         String csr = new String(Files.readAllBytes(path));
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
 
-        List<String> ips = Crypto.extractX509IPAddresses(certReq);
+        List<String> ips = Crypto.extractX509CSRIPAddresses(certReq);
         assertTrue(ips.isEmpty());
     }
     
@@ -638,7 +638,7 @@ public class CryptoTest {
         String csr = new String(Files.readAllBytes(path));
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
         
-        List<String> ips = Crypto.extractX509IPAddresses(certReq);
+        List<String> ips = Crypto.extractX509CSRIPAddresses(certReq);
         assertEquals(2, ips.size());
         assertEquals(ips.get(0), "10.11.12.13");
         assertEquals(ips.get(1), "10.11.12.14");

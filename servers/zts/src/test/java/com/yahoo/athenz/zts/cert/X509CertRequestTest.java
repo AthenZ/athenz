@@ -9,6 +9,7 @@ import java.util.List;
 
 import static org.testng.Assert.*;
 
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
@@ -148,21 +149,130 @@ public class X509CertRequestTest {
     }
     
     @Test
-    public void testCompareDnsNamesMismatch() throws IOException {
+    public void testCompareDnsNamesMismatchSize() throws IOException {
         
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
         
-        StringBuilder errorMsg = new StringBuilder(256);
         X509CertRequest certReq = new X509CertRequest(csr);
         assertNotNull(certReq);
-        certReq.parseCertRequest(errorMsg);
 
         path = Paths.get("src/test/resources/valid_cn_x509.cert");
         String pem = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(pem);
         
         assertFalse(certReq.compareDnsNames(cert));
+    }
+    
+    @Test
+    public void testCompareDnsNamesMismatchValues() throws IOException {
+        
+        Path path = Paths.get("src/test/resources/athenz.mismatch.dns.csr");
+        String csr = new String(Files.readAllBytes(path));
+        
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertNotNull(certReq);
+
+        path = Paths.get("src/test/resources/athenz.instanceid.pem");
+        String pem = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(pem);
+        
+        assertFalse(certReq.compareDnsNames(cert));
+    }
+    
+    @Test
+    public void testComparePublicKeysCert() throws IOException {
+        
+        Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
+        String csr = new String(Files.readAllBytes(path));
+        
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertNotNull(certReq);
+        
+        path = Paths.get("src/test/resources/valid_provider_refresh.pem");
+        String pem = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(pem);
+        
+        assertTrue(certReq.comparePublicKeys(cert));
+    }
+    
+    @Test
+    public void testComparePublicKeysCertFailure() throws IOException {
+        
+        Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
+        String csr = new String(Files.readAllBytes(path));
+        
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertNotNull(certReq);
+
+        X509Certificate cert = Mockito.mock(X509Certificate.class);
+        Mockito.when(cert.getPublicKey()).thenReturn(null);
+        
+        assertFalse(certReq.comparePublicKeys(cert));
+    }
+    
+    @Test
+    public void testComparePublicKeysCertCSRFailure() throws IOException {
+        
+        Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
+        String csr = new String(Files.readAllBytes(path));
+        
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertNotNull(certReq);
+        
+        PKCS10CertificationRequest req = Mockito.mock(PKCS10CertificationRequest.class);
+        Mockito.when(req.getSubjectPublicKeyInfo()).thenReturn(null);
+        certReq.setCertReq(req);
+
+        path = Paths.get("src/test/resources/valid_provider_refresh.pem");
+        String pem = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(pem);
+        
+        assertFalse(certReq.comparePublicKeys(cert));
+    }
+    
+    @Test
+    public void testComparePublicKeysCertMismatch() throws IOException {
+        
+        Path path = Paths.get("src/test/resources/athenz.mismatch.dns.csr");
+        String csr = new String(Files.readAllBytes(path));
+        
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertNotNull(certReq);
+        
+        path = Paths.get("src/test/resources/athenz.instanceid.pem");
+        String pem = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(pem);
+        
+        assertFalse(certReq.comparePublicKeys(cert));
+    }
+    
+    @Test
+    public void testComparePublicKeysNull() throws IOException {
+        
+        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
+        String csr = new String(Files.readAllBytes(path));
+        
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertNotNull(certReq);
+        
+        assertFalse(certReq.comparePublicKeys((String) null));
+    }
+    
+    @Test
+    public void testComparePublicKeysFailure() throws IOException {
+        
+        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
+        String csr = new String(Files.readAllBytes(path));
+        
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertNotNull(certReq);
+        
+        PKCS10CertificationRequest req = Mockito.mock(PKCS10CertificationRequest.class);
+        Mockito.when(req.getSubjectPublicKeyInfo()).thenReturn(null);
+        certReq.setCertReq(req);
+        
+        assertFalse(certReq.comparePublicKeys("publickey"));
     }
     
     @Test
@@ -267,5 +377,74 @@ public class X509CertRequestTest {
         
         StringBuilder errorMsg = new StringBuilder(256);
         assertTrue(certReq.validate(provider, "athenz", "production", "1001", authorizer, errorMsg));
+        assertTrue(certReq.validate(provider, "athenz", "production", "1001", null, errorMsg));
+    }
+    
+    @Test
+    public void testComparePublicKeysString() throws IOException {
+        
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String csr = new String(Files.readAllBytes(path));
+        X509CertRequest certReq = new X509CertRequest(csr);
+        
+        final String ztsPublicKey = "-----BEGIN PUBLIC KEY-----\n"
+                + "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAKrvfvBgXWqWAorw5hYJu3dpOJe0gp3n\n"
+                + "TgiiPGT7+jzm6BRcssOBTPFIMkePT2a8Tq+FYSmFnHfbQjwmYw2uMK8CAwEAAQ==\n"
+                + "-----END PUBLIC KEY-----";
+        
+        assertTrue(certReq.comparePublicKeys(ztsPublicKey));
+    }
+    
+    @Test
+    public void testValidateCertReqPublicKey() throws IOException {
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String csr = new String(Files.readAllBytes(path));
+        
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertNotNull(certReq);
+        
+        final String ztsPublicKey = "-----BEGIN PUBLIC KEY-----\n"
+                + "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAKrvfvBgXWqWAorw5hYJu3dpOJe0gp3n\n"
+                + "TgiiPGT7+jzm6BRcssOBTPFIMkePT2a8Tq+FYSmFnHfbQjwmYw2uMK8CAwEAAQ==\n"
+                + "-----END PUBLIC KEY-----";
+        
+        assertTrue(certReq.comparePublicKeys(ztsPublicKey));
+    }
+
+    @Test
+    public void testValidateCertReqPublicKeyMismatch() throws IOException {
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String csr = new String(Files.readAllBytes(path));
+        
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertNotNull(certReq);
+        
+        final String ztsPublicKey = "-----BEGIN PUBLIC KEY-----\n"
+                + "MFwwDQYJKoZIhvcNasdfsdfsadfwSAJBAKrvfvBgXWqWAorw5hYJu3dpOJe0gp3n\n"
+                + "TgiiPGT7+jzm6BRcssOBTPFIMkePT2a8Tq+FYSmFnHfbQjwmYw2uMK8CAwEAAQ==\n"
+                + "-----END PUBLIC KEY-----";
+        
+        assertFalse(certReq.comparePublicKeys(ztsPublicKey));
+    }
+    
+    @Test
+    public void testValidateCertReqPublicKeyWhitespace() throws IOException {
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String csr = new String(Files.readAllBytes(path));
+        
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertNotNull(certReq);
+        
+        final String ztsPublicKey1 = "   -----BEGIN PUBLIC KEY-----\n"
+                + "MFwwDQYJKoZIhvcNA QEBBQADSwAwSAJBAKrvfvBgXWqW Aorw5hYJu3dpOJe0gp3n\n\r\r\n"
+                + "TgiiPGT7+jzm6BRcssOBTPFIMkePT2a8Tq+FYSmFnHfbQjwmYw2uMK8CAwEAAQ==\n\r"
+                + "-----END PUBLIC KEY-----  \n";
+        final String ztsPublicKey2 = "-----BEGIN PUBLIC KEY-----"
+                + "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAKrvfvBgXWqWAorw5hYJu3dpOJe0gp3n"
+                + "TgiiPGT7+jzm6BRcssOBTPFIMkePT2a8Tq+FYSmFnHfbQjwmYw2uMK8CAwEAAQ=="
+                + "-----END PUBLIC KEY-----";
+        
+        assertTrue(certReq.comparePublicKeys(ztsPublicKey1));
+        assertTrue(certReq.comparePublicKeys(ztsPublicKey2));
     }
 }

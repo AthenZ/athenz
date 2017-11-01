@@ -1,11 +1,9 @@
 package com.yahoo.athenz.zts.cert;
 
-import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.slf4j.Logger;
@@ -21,12 +19,14 @@ import com.yahoo.athenz.zts.store.DataStore;
 public class X509CertRequest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DataStore.class);
+    private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
 
     private PKCS10CertificationRequest certReq = null;
     private String instanceId = null;
     private String dnsSuffix = null;
+    private String normCsrPublicKey = null;
     private String cn = null;
-    private List<String> dnsNames = Collections.emptyList();
+    private List<String> dnsNames = null;
     private List<String> ipAddresses = null;
     
     public X509CertRequest(String csr) throws CryptoException {
@@ -34,12 +34,20 @@ public class X509CertRequest {
         if (certReq == null) {
             throw new CryptoException("Invalid csr provided");
         }
+        
+        dnsNames = Crypto.extractX509CSRDnsNames(certReq);
+        ipAddresses = Crypto.extractX509CSRIPAddresses(certReq);
+    }
+    
+    public PKCS10CertificationRequest getCertReq() {
+        return certReq;
+    }
+    
+    public void setCertReq(PKCS10CertificationRequest certReq) {
+        this.certReq = certReq;
     }
     
     public boolean parseCertRequest(StringBuilder errorMsg) {
-        
-        dnsNames = Crypto.extractX509CSRDnsNames(certReq);
-        ipAddresses = Crypto.extractX509IPAddresses(certReq);
         
         // first we need to determine our instance id and dns suffix
         
@@ -81,38 +89,18 @@ public class X509CertRequest {
      */
     public boolean compareDnsNames(X509Certificate cert) {
 
-        Collection<List<?>> certAttributes = null;
-        try {
-            certAttributes = cert.getSubjectAlternativeNames();
-        } catch (CertificateParsingException ex) {
-            LOGGER.error("compareDnsNames: Unable to get cert SANS: {}", ex.getMessage());
-            return false;
-        }
-        
-        if (certAttributes == null) {
-            LOGGER.error("compareDnsNames: Certificate does not have SANs");
-            return false;
-        }
-        
-        int dnsNameCount = 0;
-        Iterator<List<?>> certAttrs = certAttributes.iterator();
-        while (certAttrs.hasNext()) {
-            List<?> altName = (List<?>) certAttrs.next();
-            Integer nameType = (Integer) altName.get(0);
-            if (nameType == 2) {
-                final String dnsName = (String) altName.get(1);
-                if (!dnsNames.contains(dnsName)) {
-                    LOGGER.error("compareDnsNames - Unknown dnsName in certificate {}", dnsName);
-                    return false;
-                }
-                dnsNameCount += 1;
-            }
-        }
-        
-        if (dnsNameCount != dnsNames.size()) {
+        List<String> certDnsNames = Crypto.extractX509CertDnsNames(cert);
+        if (certDnsNames.size() != dnsNames.size()) {
             LOGGER.error("compareDnsNames - Mismatch of dnsNames in certificate ({}) and CSR ({})",
-                    dnsNameCount, dnsNames.size());
+                    certDnsNames.size(), dnsNames.size());
             return false;
+        }
+        
+        for (String dnsName : dnsNames) {
+            if (!certDnsNames.contains(dnsName)) {
+                LOGGER.error("compareDnsNames - Unknown dnsName in certificate {}", dnsName);
+                return false;
+            }
         }
         
         return true;
@@ -172,13 +160,93 @@ public class X509CertRequest {
         // validate that the dnsSuffix used in the dnsName attribute has
         // been authorized to be used by the given provider
         
-        if (dnsSuffix != null) {
+        if (dnsSuffix != null && authorizer != null) {
             final String dnsResource = ZTSConsts.ZTS_RESOURCE_DNS + dnsSuffix;
             if (!authorizer.access(ZTSConsts.ZTS_ACTION_LAUNCH, dnsResource, providerService, null)) {
                 errorMsg.append("Provider '").append(providerService.getFullName())
                     .append("' not authorized to handle ").append(dnsSuffix).append(" dns entries");
                 return false;
             }
+        }
+        
+        return true;
+    }
+    
+    boolean extractCsrPublicKey() {
+        
+        // if we have already extracted our public key
+        // and normalized, then there is nothing to do
+        
+        if (normCsrPublicKey != null) {
+            return true;
+        }
+        
+        // otherwise process this request
+        
+        final String csrPublicKey = Crypto.extractX509CSRPublicKey(certReq);
+        if (csrPublicKey == null) {
+            LOGGER.error("comparePublicKeys: unable to get public key");
+            return false;
+        }
+        
+        // we are going to remove all whitespace, new lines
+        // in order to compare the pem encoded keys
+        
+        Matcher matcher = WHITESPACE_PATTERN.matcher(csrPublicKey);
+        normCsrPublicKey = matcher.replaceAll("");
+        return true;
+    }
+    
+    public boolean comparePublicKeys(String publicKey) {
+
+        if (publicKey == null) {
+            LOGGER.error("comparePublicKeys: No public key provided for validation");
+            return false;
+        }
+        
+        // we are going to remove all whitespace, new lines
+        // in order to compare the pem encoded keys
+        
+        if (!extractCsrPublicKey()) {
+            LOGGER.error("comparePublicKeys: Unable to extract CSR public key");
+            return false;
+        }
+
+        Matcher matcher = WHITESPACE_PATTERN.matcher(publicKey);
+        String normZtsPublicKey = matcher.replaceAll("");
+
+        if (!normZtsPublicKey.equals(normCsrPublicKey)) {
+            LOGGER.error("comparePublicKeys: Public key mismatch: '{}' vs '{}'",
+                    normCsrPublicKey, normZtsPublicKey);
+            return false;
+        }
+        
+        return true;
+    }
+    
+    public boolean comparePublicKeys(X509Certificate cert) {
+        
+        // we are going to remove all whitespace, new lines
+        // in order to compare the pem encoded keys
+        
+        if (!extractCsrPublicKey()) {
+            LOGGER.error("comparePublicKeys: Unable to extract CSR public key");
+            return false;
+        }
+        
+        String certPublicKey = Crypto.extractX509CertPublicKey(cert);
+        if (certPublicKey == null) {
+            LOGGER.error("unable to extract certificate public key");
+            return false;
+        }
+        
+        Matcher matcher = WHITESPACE_PATTERN.matcher(certPublicKey);
+        String normCertPublicKey = matcher.replaceAll("");
+
+        if (!normCertPublicKey.equals(normCsrPublicKey)) {
+            LOGGER.error("comparePublicKeys: Public key mismatch: '{}' vs '{}'",
+                    normCsrPublicKey, normCertPublicKey);
+            return false;
         }
         
         return true;

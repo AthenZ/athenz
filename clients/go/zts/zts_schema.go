@@ -194,21 +194,11 @@ func init() {
 	tIdentity.MapField("attributes", "String", "String", true, "other config-like attributes determined at boot time")
 	sb.AddType(tIdentity.Build())
 
-	tInstanceInformation := rdl.NewStructTypeBuilder("Struct", "InstanceInformation")
-	tInstanceInformation.Comment("Instance object that includes requested service details plus host document that is signed by provider as part of the host bootstrap process")
-	tInstanceInformation.Field("document", "String", false, nil, "signed document containing attributes like IP address, instance-id, account#, etc.")
-	tInstanceInformation.Field("signature", "String", false, nil, "the signature for the document")
-	tInstanceInformation.Field("keyId", "String", false, nil, "the keyid used to sign the document")
-	tInstanceInformation.Field("domain", "CompoundName", false, nil, "the domain of the instance")
-	tInstanceInformation.Field("service", "SimpleName", false, nil, "the service this instance is supposed to run")
-	tInstanceInformation.Field("csr", "String", false, nil, "return a certificate in the response")
-	tInstanceInformation.Field("ssh", "String", true, nil, "if present, return an SSH host certificate")
-	sb.AddType(tInstanceInformation.Build())
-
 	tInstanceRefreshRequest := rdl.NewStructTypeBuilder("Struct", "InstanceRefreshRequest")
 	tInstanceRefreshRequest.Comment("InstanceRefreshRequest - a certificate refresh request")
 	tInstanceRefreshRequest.Field("csr", "String", false, nil, "Cert CSR signed by the service's private key (public key registered in ZMS)")
 	tInstanceRefreshRequest.Field("expiryTime", "Int32", true, nil, "in seconds how long token should be valid for")
+	tInstanceRefreshRequest.Field("keyId", "String", true, nil, "public key identifier")
 	sb.AddType(tInstanceRefreshRequest.Build())
 
 	tAWSTemporaryCredentials := rdl.NewStructTypeBuilder("Struct", "AWSTemporaryCredentials")
@@ -431,7 +421,7 @@ func init() {
 	sb.AddResource(mGetTenantDomains.Build())
 
 	mPostInstanceRefreshRequest := rdl.NewResourceBuilder("Identity", "POST", "/instance/{domain}/{service}/refresh")
-	mPostInstanceRefreshRequest.Comment("Refresh Service NToken into TLS Certificate")
+	mPostInstanceRefreshRequest.Comment("Refresh Service tokens into TLS Certificate")
 	mPostInstanceRefreshRequest.Input("domain", "CompoundName", true, "", "", false, nil, "name of the domain requesting the refresh")
 	mPostInstanceRefreshRequest.Input("service", "SimpleName", true, "", "", false, nil, "name of the service requesting the refresh")
 	mPostInstanceRefreshRequest.Input("req", "InstanceRefreshRequest", false, "", "", false, nil, "the refresh request")
