@@ -17,6 +17,7 @@ import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.store.DataStore;
+import com.yahoo.athenz.zts.utils.ZTSUtils;
 
 public class X509CertRequest {
 
@@ -172,7 +173,7 @@ public class X509CertRequest {
         // validate that the dnsSuffix used in the dnsName attribute has
         // been authorized to be used by the given provider
         
-        if (dnsSuffix != null) {
+        if (dnsSuffix != null && authorizer != null) {
             final String dnsResource = ZTSConsts.ZTS_RESOURCE_DNS + dnsSuffix;
             if (!authorizer.access(ZTSConsts.ZTS_ACTION_LAUNCH, dnsResource, providerService, null)) {
                 errorMsg.append("Provider '").append(providerService.getFullName())
@@ -182,6 +183,16 @@ public class X509CertRequest {
         }
         
         return true;
+    }
+    
+    public boolean comparePublicKeys(String publicKey, StringBuilder errorMsg) {
+        
+        if (publicKey == null) {
+            errorMsg.append("No public key provided for validation");
+            return false;
+        }
+        
+        return ZTSUtils.validateCertReqPublicKey(certReq, publicKey);
     }
     
     public String getCommonName() {

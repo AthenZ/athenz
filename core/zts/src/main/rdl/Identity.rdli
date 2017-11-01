@@ -4,25 +4,14 @@
 include "Names.tdl";
 include "Identity.tdl";
 
-// Instance object that includes requested service details plus host document
-// that is signed by provider as part of the host bootstrap process
-type InstanceInformation Struct {
-    String document; //signed document containing attributes like IP address, instance-id, account#, etc.
-    String signature; //the signature for the document
-    String keyId; // the keyid used to sign the document
-    CompoundName domain; //the domain of the instance
-    SimpleName service; //the service this instance is supposed to run
-    String csr; //return a certificate in the response
-    String ssh (optional); //if present, return an SSH host certificate
-}
-
 // InstanceRefreshRequest - a certificate refresh request
 type InstanceRefreshRequest Struct {
      String csr; //Cert CSR signed by the service's private key (public key registered in ZMS)
      Int32 expiryTime (optional); //in seconds how long token should be valid for
+     String keyId (optional); //public key identifier
 }
 
-// Refresh Service NToken into TLS Certificate
+// Refresh Service tokens into TLS Certificate
 resource Identity POST "/instance/{domain}/{service}/refresh" {
     CompoundName domain; //name of the domain requesting the refresh
     SimpleName service; //name of the service requesting the refresh

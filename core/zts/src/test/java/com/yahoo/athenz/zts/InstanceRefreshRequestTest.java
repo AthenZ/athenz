@@ -32,11 +32,13 @@ public class InstanceRefreshRequestTest {
         // set
         i.setCsr("test_csr");
         i.setExpiryTime(123456789);
+        i.setKeyId("v0");
         i2.setCsr("test_csr");
 
         // getter assertion
         assertEquals(i.getCsr(), "test_csr");
         assertEquals(i.getExpiryTime(), (Integer) 123456789);
+        assertEquals(i.getKeyId(), "v0");
 
         assertTrue(i.equals(i));
         assertFalse(i.equals(i2));

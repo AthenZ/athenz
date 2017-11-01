@@ -18,6 +18,8 @@ package com.yahoo.athenz.zts.utils;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.security.PublicKey;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -66,17 +68,13 @@ public class ZTSUtils {
             settingValue = Integer.parseInt(propValue);
             
             if (settingValue <= 0) {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Invalid " + property + " value: " + propValue +
-                            ", defaulting to " + defaultValue + " seconds");
-                }
+                LOGGER.error("Invalid " + property + " value: " + propValue +
+                        ", defaulting to " + defaultValue + " seconds");
                 settingValue = defaultValue;
             }
         } catch (Exception ex) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Invalid " + property + " value, defaulting to " +
-                        defaultValue + " seconds: " + ex.getMessage());
-            }
+            LOGGER.error("Invalid " + property + " value, defaulting to " +
+                    defaultValue + " seconds: " + ex.getMessage());
             settingValue = defaultValue;
         }
         
@@ -180,8 +178,9 @@ public class ZTSUtils {
         return true;
     }
     
-    public static boolean verifyCertificateRequest(PKCS10CertificationRequest certReq, String domain,
-            String service, String publicKey, X509CertRecord certRecord) {
+    public static boolean verifyCertificateRequest(PKCS10CertificationRequest certReq,
+            final String domain, final String service, final String publicKeyId,
+            final String publicKey, final String provider, X509CertRecord certRecord) {
         
         // verify that it contains the right common name
         // and the certificate matches to what we have
@@ -196,7 +195,7 @@ public class ZTSUtils {
 
             // verify we don't have invalid dnsnames in the csr
             
-            if (!validateCertReqDNSNames(certReq, domain, service)) {
+            if (!validateCertReqDNSNames(certReq, domain, service, publicKeyId, provider)) {
                 LOGGER.error("validateCertificateRequest: unable to validate PKCS10 cert request DNS Name");
                 return false;
             }
@@ -267,16 +266,77 @@ public class ZTSUtils {
         return true;
     }
     
-    public static boolean validateCertReqDNSNames(PKCS10CertificationRequest certReq,
-            String domain, String service) {
+    public static String reverseDomain(String domain) {
+        List<String> comps = Arrays.asList(domain.split("\\."));
+        Collections.reverse(comps);
+        return String.join(".", comps);
+    }
+    
+    public static String extractPublicKeyId(final String instanceId, final String domain,
+            final String service) {
         
-        List<String> dnsNames = Crypto.extractX509CSRDnsNames(certReq);
+        // the format for the instance id: <key-id>.<service>.<reverse-domain>.
+        
+        final String reverseDomain = reverseDomain(domain);
+        final String suffix = "." + service + "." + reverseDomain;
+        
+        int idx = instanceId.lastIndexOf(suffix);
+        if (idx == -1) {
+            LOGGER.error("extractPublicKeyId - Not found suffix {} in instance id {}",
+                    suffix, instanceId);
+            return null;
+        }
+        
+        return instanceId.substring(0, idx);
+    }
+    
+    static boolean validateProviderCertReqDNSNames(final List<String> dnsNames, final String domain,
+            final String service, final String publicKeyId, final String provider) {
+        
+        final String reverseDomain = reverseDomain(domain);
+        final String serviceDnsName = service + "." + reverseDomain
+            + "." + provider + ZTS_CERT_DNS_SUFFIX;
+        final String instanceIdDnsName = publicKeyId + "." + service + "." + reverseDomain
+                + ZTSConsts.ZTS_CERT_INSTANCE_ID + provider + ZTS_CERT_DNS_SUFFIX;
+        
+        // the only two formats we're allowed to have in the CSR are:
+        // 1) <service>.<reverse-domain>.<provider>.<dns-suffix>
+        // 2) <key-id>.<service>.<reverse-domain>.instanceid.athenz.<provider-dns-suffix>
+        // and both must be present in the request
+        
+        if (dnsNames.size() != 2) {
+            LOGGER.error("validateProviderCertReqDNSNames - Invalid number of SAN dns entries: {}", dnsNames.size());
+            return false;
+        }
+        
+        if (!dnsNames.contains(serviceDnsName)) {
+            LOGGER.error("validateProviderCertReqDNSNames - Service SAN dns entry {} not present in the csr",
+                    serviceDnsName);
+            return false;
+        }
+        
+        if (!dnsNames.contains(instanceIdDnsName)) {
+            LOGGER.error("validateProviderCertReqDNSNames - Instance Id SAN dns entry {} not present in the csr",
+                    instanceIdDnsName);
+            return false;
+        }
+        
+        return true;
+    }
+    
+    static boolean validateServiceCertReqDNSNames(final List<String> dnsNames, final String domain,
+            final String service) {
+        
+        // if no dns names in the CSR then we're ok
+        
         if (dnsNames.isEmpty()) {
             return true;
         }
+        
         // the only two formats we're allowed to have in the CSR are:
-        // 1) <service>.<domain-with-dashes>.<cloud>.athenz.cloud
+        // 1) <service>.<domain-with-dashes>.<provider-dns-suffix>
         // 2) <service>.<domain-with-dashes>.instanceid.athenz.<provider-dns-suffix>
+        
         final String prefix = service + "." + domain.replace('.', '-') + ".";
         for (String dnsName : dnsNames) {
             if (dnsName.startsWith(prefix) && dnsName.endsWith(ZTS_CERT_DNS_SUFFIX)) {
@@ -285,10 +345,28 @@ public class ZTSUtils {
             if (dnsName.indexOf(ZTSConsts.ZTS_CERT_INSTANCE_ID) != -1) {
                 continue;
             }
-            LOGGER.error("validateCertReqDNSNames - Invalid dnsName SAN entry: {}", dnsName);
+            LOGGER.error("validateServiceCertReqDNSNames - Invalid dnsName SAN entry: {}", dnsName);
             return false;
         }
+
         return true;
+    }
+    
+    public static boolean validateCertReqDNSNames(PKCS10CertificationRequest certReq,
+            final String domain, final String service, final String publicKeyId,
+            final String provider) {
+        
+        // retrieve the list of dns entries from the csr and process the check
+        
+        List<String> dnsNames = Crypto.extractX509CSRDnsNames(certReq);
+        
+        boolean dnsCheck = false;
+        if (provider != null) {
+            dnsCheck = validateProviderCertReqDNSNames(dnsNames, domain, service, publicKeyId, provider);
+        } else {
+            dnsCheck = validateServiceCertReqDNSNames(dnsNames, domain, service);
+        }
+        return dnsCheck;
     }
     
     public static String extractCertReqInstanceId(PKCS10CertificationRequest certReq) {

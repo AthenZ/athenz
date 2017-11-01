@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
@@ -157,7 +158,7 @@ public class ZTSUtilsTest {
     public void testGenerateIdentityFailure() throws IOException {
         
         CertSigner certSigner = Mockito.mock(CertSigner.class);
-        Mockito.when(certSigner.generateX509Certificate(Mockito.<String>any(), Mockito.anyObject())).thenReturn(null);
+        Mockito.when(certSigner.generateX509Certificate(Mockito.<String>any(), Mockito.<String>any())).thenReturn(null);
         
         Path path = Paths.get("src/test/resources/valid.csr");
         String csr = new String(Files.readAllBytes(path));
@@ -227,6 +228,16 @@ public class ZTSUtilsTest {
     }
     
     @Test
+    public void testValidateCertReqInstanceIdInvalid() throws IOException {
+        Path path = Paths.get("src/test/resources/invalid_dns.csr");
+        String csr = new String(Files.readAllBytes(path));
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
+        
+        boolean result = ZTSUtils.validateCertReqInstanceId(certReq, "1001");
+        assertFalse(result);
+    }
+    
+    @Test
     public void testVerifyCertificateRequest() throws IOException {
         
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
@@ -237,22 +248,26 @@ public class ZTSUtilsTest {
         certRecord.setInstanceId("1001");
         
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
-        boolean result = ZTSUtils.verifyCertificateRequest(certReq, "athenz", "production", null, certRecord);
+        boolean result = ZTSUtils.verifyCertificateRequest(certReq, "athenz", "production",
+                null, null, null, certRecord);
         assertTrue(result);
         
         certRecord.setService("athenz.production");
         certRecord.setInstanceId("1001");
-        result = ZTSUtils.verifyCertificateRequest(certReq, "athenz2", "production", null, certRecord);
+        result = ZTSUtils.verifyCertificateRequest(certReq, "athenz2", "production", null,
+                null, null, certRecord);
         assertFalse(result);
         
         certRecord.setService("athenz2.production");
         certRecord.setInstanceId("1001");
-        result = ZTSUtils.verifyCertificateRequest(certReq, "athenz", "production", null, certRecord);
+        result = ZTSUtils.verifyCertificateRequest(certReq, "athenz", "production", null,
+                null, null, certRecord);
         assertFalse(result);
         
         certRecord.setService("athenz.production");
         certRecord.setInstanceId("1002");
-        result = ZTSUtils.verifyCertificateRequest(certReq, "athenz", "production", null, certRecord);
+        result = ZTSUtils.verifyCertificateRequest(certReq, "athenz", "production", null,
+                null, null, certRecord);
         assertFalse(result);
     }
     
@@ -263,10 +278,12 @@ public class ZTSUtilsTest {
         String csr = new String(Files.readAllBytes(path));
         
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
-        boolean result = ZTSUtils.verifyCertificateRequest(certReq, "athenz", "production", null, null);
+        boolean result = ZTSUtils.verifyCertificateRequest(certReq, "athenz", "production", null,
+                null, null, null);
         assertTrue(result);
         
-        result = ZTSUtils.verifyCertificateRequest(certReq, "athenz2", "production", null, null);
+        result = ZTSUtils.verifyCertificateRequest(certReq, "athenz2", "production", null,
+                null, null, null);
         assertFalse(result);
     }
     
@@ -276,13 +293,13 @@ public class ZTSUtilsTest {
         String csr = new String(Files.readAllBytes(path));
         
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
-        boolean result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz", "production");
+        boolean result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz", "production", null, null);
         assertTrue(result);
         
-        result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz2", "production");
+        result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz2", "production", null, null);
         assertFalse(result);
         
-        result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz2", "productio2");
+        result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz2", "productio2", null, null);
         assertFalse(result);
     }
     
@@ -294,13 +311,13 @@ public class ZTSUtilsTest {
         // no dns names so all are valid
         
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
-        boolean result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz", "production");
+        boolean result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz", "production", null, null);
         assertTrue(result);
         
-        result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz2", "production");
+        result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz2", "production", null, null);
         assertTrue(result);
         
-        result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz2", "productio2");
+        result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz2", "productio2", null, null);
         assertTrue(result);
     }
     
@@ -312,7 +329,10 @@ public class ZTSUtilsTest {
         // includes www.athenz.io as dns name so it should be rejected
         
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
-        boolean result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz", "production");
+        boolean result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz", "production", null, null);
+        assertFalse(result);
+        
+        result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz", "production", "v0", "zts");
         assertFalse(result);
     }
     
@@ -322,7 +342,7 @@ public class ZTSUtilsTest {
         String csr = new String(Files.readAllBytes(path));
         
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
-        boolean result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz.domain", "production");
+        boolean result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz.domain", "production", null, null);
         assertTrue(result);
     }
     
@@ -332,7 +352,63 @@ public class ZTSUtilsTest {
         String csr = new String(Files.readAllBytes(path));
         
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
-        boolean result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz.domain", "production");
+        boolean result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz.domain", "production", null, null);
         assertFalse(result);
+    }
+    
+    @Test
+    public void testReverseDomain() {
+        assertEquals(ZTSUtils.reverseDomain("athenz"), "athenz");
+        assertEquals(ZTSUtils.reverseDomain("sys.auth"), "auth.sys");
+        assertEquals(ZTSUtils.reverseDomain("start.sys.auth.finish"), "finish.auth.sys.start");
+    }
+    
+    @Test
+    public void testExtractPublicKeyId() {
+        assertEquals(ZTSUtils.extractPublicKeyId("key1.api.auth.sys", "sys.auth", "api"), "key1");
+        assertEquals(ZTSUtils.extractPublicKeyId("key1-key2.api.auth.sys", "sys.auth", "api"), "key1-key2");
+        assertEquals(ZTSUtils.extractPublicKeyId("key1.test.api.auth.sys", "sys.auth", "api"), "key1.test");
+        assertNull(ZTSUtils.extractPublicKeyId("key1.test.api.auth.sys", "sys.auth", "api2"));
+        assertNull(ZTSUtils.extractPublicKeyId("key1.test.api.auth.sys", "auth.sys", "api"));
+    }
+    
+    @Test
+    public void testValidateProviderCertReqDNSNames() {
+        
+        List<String> dnsNames = new ArrayList<>();
+        dnsNames.add("single.entry");
+
+        // size error
+        
+        assertFalse(ZTSUtils.validateProviderCertReqDNSNames(dnsNames, "athenz", "api",
+                "v0", "zts"));
+        
+        // does not contain service dns name:
+        // <service>.<reverse-domain>.<provider>.<dns-suffix>
+        
+        dnsNames.add("second.entry");
+        assertFalse(ZTSUtils.validateProviderCertReqDNSNames(dnsNames, "athenz", "api",
+                "v0", "zts"));
+        
+        // does not contain instance id entry: 
+        // <key-id>.<service>.<reverse-domain>.instanceid.athenz.<provider-dns-suffix>
+        
+        dnsNames.clear();
+        dnsNames.add("first.entry");
+        dnsNames.add("api.athenz.zts.athenz.cloud");
+        assertFalse(ZTSUtils.validateProviderCertReqDNSNames(dnsNames, "athenz", "api",
+                "v0", "zts"));
+        
+        // successful response
+        
+        dnsNames.clear();
+        dnsNames.add("api.auth.sys.zts.athenz.cloud");
+        dnsNames.add("v0.api.auth.sys.instanceid.athenz.zts.athenz.cloud");
+        assertTrue(ZTSUtils.validateProviderCertReqDNSNames(dnsNames, "sys.auth", "api",
+                "v0", "zts"));
+        
+        // different domain
+        assertFalse(ZTSUtils.validateProviderCertReqDNSNames(dnsNames, "athenz", "api",
+                "v0", "zts"));
     }
 }
