@@ -15,16 +15,8 @@
  */
 package com.yahoo.athenz.zts.utils;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.security.PublicKey;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import org.bouncycastle.openssl.PEMException;
-import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
-import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.slf4j.Logger;
@@ -32,7 +24,6 @@ import org.slf4j.LoggerFactory;
 
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.auth.util.Crypto;
-import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.server.cert.CertSigner;
 import com.yahoo.athenz.zts.Identity;
@@ -51,7 +42,6 @@ public class ZTSUtils {
     public static final String ZTS_CERT_DNS_SUFFIX =
             System.getProperty(ZTSConsts.ZTS_PROP_CERT_DNS_SUFFIX, ZTSConsts.ZTS_CERT_DNS_SUFFIX);
     
-    private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
     private static String CA_X509_CERTIFICATE = null;
     
     public static int retrieveConfigSetting(String property, int defaultValue) {
@@ -66,17 +56,13 @@ public class ZTSUtils {
             settingValue = Integer.parseInt(propValue);
             
             if (settingValue <= 0) {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Invalid " + property + " value: " + propValue +
-                            ", defaulting to " + defaultValue + " seconds");
-                }
+                LOGGER.error("Invalid " + property + " value: " + propValue +
+                        ", defaulting to " + defaultValue + " seconds");
                 settingValue = defaultValue;
             }
         } catch (Exception ex) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Invalid " + property + " value, defaulting to " +
-                        defaultValue + " seconds: " + ex.getMessage());
-            }
+            LOGGER.error("Invalid " + property + " value, defaulting to " +
+                    defaultValue + " seconds: " + ex.getMessage());
             settingValue = defaultValue;
         }
         
@@ -180,58 +166,45 @@ public class ZTSUtils {
         return true;
     }
     
-    public static boolean verifyCertificateRequest(PKCS10CertificationRequest certReq, String domain,
-            String service, String publicKey, X509CertRecord certRecord) {
+    public static boolean verifyCertificateRequest(PKCS10CertificationRequest certReq,
+            final String domain, final String service, X509CertRecord certRecord) {
         
         // verify that it contains the right common name
         // and the certificate matches to what we have
         // registered in ZMS
 
         final String cn = domain + "." + service;
-        try {
-            if (!validateCertReqCommonName(certReq, cn)) {
-                LOGGER.error("validateCertificateRequest: unable to validate PKCS10 cert request common name");
-                return false;
-            }
-
-            // verify we don't have invalid dnsnames in the csr
-            
-            if (!validateCertReqDNSNames(certReq, domain, service)) {
-                LOGGER.error("validateCertificateRequest: unable to validate PKCS10 cert request DNS Name");
-                return false;
-            }
-            
-            if (publicKey != null) {
-                if (!validateCertReqPublicKey(certReq, publicKey)) {
-                    LOGGER.error("validateCertificateRequest: unable to validate PKCS10 cert request public key");
-                    return false;
-                }
-            }
-            
-            // if we have an instance id then we have to make sure the
-            // athenz instance id fields are identical
-            
-            if (certRecord != null) {
-                
-                // validate the service name matches first
-                
-                if (!cn.equals(certRecord.getService())) {
-                    LOGGER.error("verifyCertificateRequest: unable to validate cn: {} vs. cert record data: {}",
-                            cn, certRecord.getService());
-                    return false;
-                }
-                
-                // then validate instance ids
-                
-                if (!validateCertReqInstanceId(certReq, certRecord.getInstanceId())) {
-                    LOGGER.error("verifyCertificateRequest: unable to validate PKCS10 cert request instance id");
-                    return false;
-                }
-            }
-        } catch (CryptoException ex) {
-            LOGGER.error("validateCertificateRequest: unable to generate identity certificate: "
-                    + ex.getMessage());
+        if (!validateCertReqCommonName(certReq, cn)) {
+            LOGGER.error("validateCertificateRequest: unable to validate PKCS10 cert request common name");
             return false;
+        }
+
+        // verify we don't have invalid dnsnames in the csr
+        
+        if (!validateCertReqDNSNames(certReq, domain, service)) {
+            LOGGER.error("validateCertificateRequest: unable to validate PKCS10 cert request DNS Name");
+            return false;
+        }
+        
+        // if we have an instance id then we have to make sure the
+        // athenz instance id fields are identical
+        
+        if (certRecord != null) {
+            
+            // validate the service name matches first
+            
+            if (!cn.equals(certRecord.getService())) {
+                LOGGER.error("verifyCertificateRequest: unable to validate cn: {} vs. cert record data: {}",
+                        cn, certRecord.getService());
+                return false;
+            }
+            
+            // then validate instance ids
+            
+            if (!validateCertReqInstanceId(certReq, certRecord.getInstanceId())) {
+                LOGGER.error("verifyCertificateRequest: unable to validate PKCS10 cert request instance id");
+                return false;
+            }
         }
         
         return true;
@@ -267,16 +240,20 @@ public class ZTSUtils {
         return true;
     }
     
-    public static boolean validateCertReqDNSNames(PKCS10CertificationRequest certReq,
-            String domain, String service) {
+    static boolean validateCertReqDNSNames(PKCS10CertificationRequest certReq, final String domain,
+            final String service) {
+        
+        // if no dns names in the CSR then we're ok
         
         List<String> dnsNames = Crypto.extractX509CSRDnsNames(certReq);
         if (dnsNames.isEmpty()) {
             return true;
         }
+        
         // the only two formats we're allowed to have in the CSR are:
-        // 1) <service>.<domain-with-dashes>.<cloud>.athenz.cloud
+        // 1) <service>.<domain-with-dashes>.<provider-dns-suffix>
         // 2) <service>.<domain-with-dashes>.instanceid.athenz.<provider-dns-suffix>
+        
         final String prefix = service + "." + domain.replace('.', '-') + ".";
         for (String dnsName : dnsNames) {
             if (dnsName.startsWith(prefix) && dnsName.endsWith(ZTS_CERT_DNS_SUFFIX)) {
@@ -285,9 +262,10 @@ public class ZTSUtils {
             if (dnsName.indexOf(ZTSConsts.ZTS_CERT_INSTANCE_ID) != -1) {
                 continue;
             }
-            LOGGER.error("validateCertReqDNSNames - Invalid dnsName SAN entry: {}", dnsName);
+            LOGGER.error("validateServiceCertReqDNSNames - Invalid dnsName SAN entry: {}", dnsName);
             return false;
         }
+
         return true;
     }
     
@@ -310,51 +288,6 @@ public class ZTSUtils {
             return false;
         }
         return reqInstanceId.equals(instanceId);
-    }
-    
-    public static boolean validateCertReqPublicKey(PKCS10CertificationRequest certReq,
-            String ztsPublicKey) {
-
-        JcaPEMKeyConverter pemConverter = new JcaPEMKeyConverter();
-        PublicKey pubKey = null;
-        try {
-            pubKey = pemConverter.getPublicKey(certReq.getSubjectPublicKeyInfo());
-        } catch (PEMException ex) {
-            LOGGER.error("validateCertificatePublicKey: unable to get public: "
-                    + ex.getMessage());
-            return false;
-        }
-        StringWriter writer = new StringWriter();
-        String csrPublicKey = "";
-        try {
-            try (JcaPEMWriter pemWriter = new JcaPEMWriter(writer)) {
-                pemWriter.writeObject(pubKey);
-                pemWriter.flush();
-                pemWriter.close();
-            }
-            csrPublicKey = writer.toString();
-        } catch (IOException ex) {
-            LOGGER.error("validateCertificatePublicKey: unable to convert public key to PEM: "
-                    + ex.getMessage());
-            return false;
-        }
-        
-        // we are going to remove all whitespace, new lines
-        // in order to compare the pem encoded keys
-        
-        Matcher matcher = WHITESPACE_PATTERN.matcher(csrPublicKey);
-        String normCsrPublicKey = matcher.replaceAll("");
-
-        matcher = WHITESPACE_PATTERN.matcher(ztsPublicKey);
-        String normZtsPublicKey = matcher.replaceAll("");
-
-        if (!normZtsPublicKey.equals(normCsrPublicKey)) {
-            LOGGER.error("validateCertificatePublicKey: Public key mismatch: '{}' vs '{}'",
-                    csrPublicKey, ztsPublicKey);
-            return false;
-        }
-        
-        return true;
     }
     
     public static Identity generateIdentity(CertSigner certSigner, String csr, String cn, String certUsage) {

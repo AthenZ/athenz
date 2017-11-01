@@ -758,7 +758,7 @@ public class Crypto {
         return dnsNames;
     }
 
-    public static List<String> extractX509IPAddresses(PKCS10CertificationRequest certReq) {
+    public static List<String> extractX509CSRIPAddresses(PKCS10CertificationRequest certReq) {
        
         List<String> ipAddresses = new ArrayList<>();
         Attribute[] attributes = certReq.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);
@@ -778,6 +778,20 @@ public class Crypto {
             }
         }
         return ipAddresses;
+    }
+    
+    public static String extractX509CSRPublicKey(PKCS10CertificationRequest certReq) {
+        
+        JcaPEMKeyConverter pemConverter = new JcaPEMKeyConverter();
+        PublicKey publicKey = null;
+        try {
+            publicKey = pemConverter.getPublicKey(certReq.getSubjectPublicKeyInfo());
+        } catch (PEMException ex) {
+            LOG.error("extractX509CSRPublicKey: unable to get public key: {}", ex.getMessage());
+            return null;
+        }
+
+        return convertToPEMFormat(publicKey);
     }
     
     public static String generateX509CSR(PrivateKey privateKey, String x500Principal,
@@ -843,6 +857,41 @@ public class Crypto {
         return cn;
     }
 
+    public static List<String> extractX509CertDnsNames(X509Certificate x509Cert) {
+        Collection<List<?>> altNames = null;
+        try {
+            altNames = x509Cert.getSubjectAlternativeNames();
+        } catch (CertificateParsingException ex) {
+            LOG.error("extractX509IPAddresses: Caught CertificateParsingException when parsing certificate: "
+                + ex.getMessage());
+        }
+
+        if (altNames == null) {
+            return Collections.emptyList();
+        }
+
+        List<String> dnsNames = new ArrayList<>();
+        for (@SuppressWarnings("rawtypes") List item : altNames) {
+            Integer type = (Integer) item.get(0);
+
+            // GeneralName ::= CHOICE {
+            //     otherName                       [0]     OtherName,
+            //     rfc822Name                      [1]     IA5String,
+            //     dNSName                         [2]     IA5String,
+            //     x400Address                     [3]     ORAddress,
+            //     directoryName                   [4]     Name,
+            //     ediPartyName                    [5]     EDIPartyName,
+            //     uniformResourceIdentifier       [6]     IA5String,
+            //     iPAddress                       [7]     OCTET STRING,
+            //     registeredID                    [8]     OBJECT IDENTIFIER}
+
+            if (type == GeneralName.dNSName) {
+                dnsNames.add((String) item.get(1));
+            }
+        }
+        return dnsNames;
+    }
+
     public static List<String> extractX509CertEmails(X509Certificate x509Cert) {
         Collection<List<?>> altNames = null;
         try {
@@ -877,8 +926,8 @@ public class Crypto {
         }
         return emails;
     }
-
-    public static List<String> extractX509IPAddresses(X509Certificate x509Cert) {
+    
+    public static List<String> extractX509CertIPAddresses(X509Certificate x509Cert) {
         
         Collection<List<?>> altNames = null;
         try {
@@ -912,6 +961,17 @@ public class Crypto {
             }
         }
         return ipAddresses;
+    }
+    
+    public static String extractX509CertPublicKey(X509Certificate x509Cert) {
+        
+        PublicKey publicKey = x509Cert.getPublicKey();
+        if (publicKey == null) {
+            LOG.error("extractX509CertPublicKey: unable to get public key");
+            return null;
+        }
+        
+        return convertToPEMFormat(publicKey);
     }
     
     public static X509Certificate generateX509Certificate(PKCS10CertificationRequest certReq,

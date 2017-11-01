@@ -27,6 +27,11 @@ public class ProviderClient {
         base = client.target(url);
     }
 
+    public ProviderClient(String url, Client rsClient) {
+        client = rsClient;
+        base = client.target(url);
+    }
+    
     public void close() {
         client.close();
     }

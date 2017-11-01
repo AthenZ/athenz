@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
@@ -34,6 +33,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.common.server.cert.CertSigner;
 import com.yahoo.athenz.zts.Identity;
 import com.yahoo.athenz.zts.ZTSConsts;
@@ -157,60 +157,13 @@ public class ZTSUtilsTest {
     public void testGenerateIdentityFailure() throws IOException {
         
         CertSigner certSigner = Mockito.mock(CertSigner.class);
-        Mockito.when(certSigner.generateX509Certificate(Mockito.<String>any(), Mockito.anyObject())).thenReturn(null);
+        Mockito.when(certSigner.generateX509Certificate(Mockito.<String>any(), Mockito.<String>any())).thenReturn(null);
         
         Path path = Paths.get("src/test/resources/valid.csr");
         String csr = new String(Files.readAllBytes(path));
         
         Identity identity = ZTSUtils.generateIdentity(certSigner, csr, "unknown.syncer", null);
         assertNull(identity);
-    }
-    
-    @Test
-    public void testValidateCertReqPublicKey() throws IOException {
-        Path path = Paths.get("src/test/resources/valid.csr");
-        String csr = new String(Files.readAllBytes(path));
-        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
-        
-        final String ztsPublicKey = "-----BEGIN PUBLIC KEY-----\n"
-                + "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAKrvfvBgXWqWAorw5hYJu3dpOJe0gp3n\n"
-                + "TgiiPGT7+jzm6BRcssOBTPFIMkePT2a8Tq+FYSmFnHfbQjwmYw2uMK8CAwEAAQ==\n"
-                + "-----END PUBLIC KEY-----";
-        
-        assertTrue(ZTSUtils.validateCertReqPublicKey(certReq, ztsPublicKey));
-    }
-
-    @Test
-    public void testValidateCertReqPublicKeyMismatch() throws IOException {
-        Path path = Paths.get("src/test/resources/valid.csr");
-        String csr = new String(Files.readAllBytes(path));
-        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
-        
-        final String ztsPublicKey = "-----BEGIN PUBLIC KEY-----\n"
-                + "MFwwDQYJKoZIhvcNasdfsdfsadfwSAJBAKrvfvBgXWqWAorw5hYJu3dpOJe0gp3n\n"
-                + "TgiiPGT7+jzm6BRcssOBTPFIMkePT2a8Tq+FYSmFnHfbQjwmYw2uMK8CAwEAAQ==\n"
-                + "-----END PUBLIC KEY-----";
-        
-        assertFalse(ZTSUtils.validateCertReqPublicKey(certReq, ztsPublicKey));
-    }
-    
-    @Test
-    public void testValidateCertReqPublicKeyWhitespace() throws IOException {
-        Path path = Paths.get("src/test/resources/valid.csr");
-        String csr = new String(Files.readAllBytes(path));
-        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
-        
-        final String ztsPublicKey1 = "   -----BEGIN PUBLIC KEY-----\n"
-                + "MFwwDQYJKoZIhvcNA QEBBQADSwAwSAJBAKrvfvBgXWqW Aorw5hYJu3dpOJe0gp3n\n\r\r\n"
-                + "TgiiPGT7+jzm6BRcssOBTPFIMkePT2a8Tq+FYSmFnHfbQjwmYw2uMK8CAwEAAQ==\n\r"
-                + "-----END PUBLIC KEY-----  \n";
-        final String ztsPublicKey2 = "-----BEGIN PUBLIC KEY-----"
-                + "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAKrvfvBgXWqWAorw5hYJu3dpOJe0gp3n"
-                + "TgiiPGT7+jzm6BRcssOBTPFIMkePT2a8Tq+FYSmFnHfbQjwmYw2uMK8CAwEAAQ=="
-                + "-----END PUBLIC KEY-----";
-        
-        assertTrue(ZTSUtils.validateCertReqPublicKey(certReq, ztsPublicKey1));
-        assertTrue(ZTSUtils.validateCertReqPublicKey(certReq, ztsPublicKey2));
     }
     
     @Test
@@ -227,6 +180,16 @@ public class ZTSUtilsTest {
     }
     
     @Test
+    public void testValidateCertReqInstanceIdInvalid() throws IOException {
+        Path path = Paths.get("src/test/resources/invalid_dns.csr");
+        String csr = new String(Files.readAllBytes(path));
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
+        
+        boolean result = ZTSUtils.validateCertReqInstanceId(certReq, "1001");
+        assertFalse(result);
+    }
+    
+    @Test
     public void testVerifyCertificateRequest() throws IOException {
         
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
@@ -237,22 +200,33 @@ public class ZTSUtilsTest {
         certRecord.setInstanceId("1001");
         
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
-        boolean result = ZTSUtils.verifyCertificateRequest(certReq, "athenz", "production", null, certRecord);
+        boolean result = ZTSUtils.verifyCertificateRequest(certReq, "athenz", "production", certRecord);
         assertTrue(result);
         
         certRecord.setService("athenz.production");
         certRecord.setInstanceId("1001");
-        result = ZTSUtils.verifyCertificateRequest(certReq, "athenz2", "production", null, certRecord);
+        result = ZTSUtils.verifyCertificateRequest(certReq, "athenz2", "production", certRecord);
         assertFalse(result);
         
         certRecord.setService("athenz2.production");
         certRecord.setInstanceId("1001");
-        result = ZTSUtils.verifyCertificateRequest(certReq, "athenz", "production", null, certRecord);
+        result = ZTSUtils.verifyCertificateRequest(certReq, "athenz", "production", certRecord);
         assertFalse(result);
         
         certRecord.setService("athenz.production");
         certRecord.setInstanceId("1002");
-        result = ZTSUtils.verifyCertificateRequest(certReq, "athenz", "production", null, certRecord);
+        result = ZTSUtils.verifyCertificateRequest(certReq, "athenz", "production", certRecord);
+        assertFalse(result);
+    }
+    
+    @Test
+    public void testVerifyCertificateRequestMismatchDns() throws IOException {
+        
+        Path path = Paths.get("src/test/resources/athenz.mismatch.cn.csr");
+        String csr = new String(Files.readAllBytes(path));
+        
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
+        boolean result = ZTSUtils.verifyCertificateRequest(certReq, "athenz2", "production", null);
         assertFalse(result);
     }
     
@@ -263,10 +237,10 @@ public class ZTSUtilsTest {
         String csr = new String(Files.readAllBytes(path));
         
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
-        boolean result = ZTSUtils.verifyCertificateRequest(certReq, "athenz", "production", null, null);
+        boolean result = ZTSUtils.verifyCertificateRequest(certReq, "athenz", "production", null);
         assertTrue(result);
         
-        result = ZTSUtils.verifyCertificateRequest(certReq, "athenz2", "production", null, null);
+        result = ZTSUtils.verifyCertificateRequest(certReq, "athenz2", "production", null);
         assertFalse(result);
     }
     
@@ -314,6 +288,9 @@ public class ZTSUtilsTest {
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
         boolean result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz", "production");
         assertFalse(result);
+        
+        result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz", "production");
+        assertFalse(result);
     }
     
     @Test
@@ -334,5 +311,15 @@ public class ZTSUtilsTest {
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
         boolean result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz.domain", "production");
         assertFalse(result);
+    }
+    
+    @Test
+    public void testValidateCertReqCommonNameException() {
+        
+        PKCS10CertificationRequest certReq = Mockito.mock(PKCS10CertificationRequest.class);
+        Mockito.when(certReq.getSubject()).thenThrow(new CryptoException());
+        
+        assertFalse(ZTSUtils.validateCertReqCommonName(certReq, "athenz.syncer"));
+        
     }
 }
