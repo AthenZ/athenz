@@ -39,21 +39,24 @@ public class KeyRefresherTest {
     @Mocked
     private TrustManagerProxy mockedTrustManagerProxy;
 
+    @Mocked
+    private TrustStore mockedTrustStore;
+
     @Test
-    public void haveFilesBeenChangedTestFilesAltered() throws NoSuchAlgorithmException {
-        KeyRefresher keyRefresher = new KeyRefresher("", "", "", mockedKeyManagerProxy, mockedTrustManagerProxy);
+    public void haveFilesBeenChangedTestFilesAltered() throws Exception {
+        KeyRefresher keyRefresher = new KeyRefresher("", "", mockedTrustStore, mockedKeyManagerProxy, mockedTrustManagerProxy);
         assertTrue(keyRefresher.haveFilesBeenChanged(Resources.getResource("testFile").getPath(), new byte[0]));
     }
 
     @Test
-    public void filesBeenChangedTestIOException() throws NoSuchAlgorithmException {
-        KeyRefresher keyRefresher = new KeyRefresher("", "", "", mockedKeyManagerProxy, mockedTrustManagerProxy);
+    public void filesBeenChangedTestIOException() throws Exception {
+        KeyRefresher keyRefresher = new KeyRefresher("", "", mockedTrustStore, mockedKeyManagerProxy, mockedTrustManagerProxy);
         assertFalse(keyRefresher.haveFilesBeenChanged(Resources.getResource("").getPath(), new byte[0]));
     }
 
     @Test
-    public void haveFilesBeenChangedTestFilesSame(@Mocked MessageDigest mockedMessageDigest) throws NoSuchAlgorithmException {
-        KeyRefresher keyRefresher = new KeyRefresher("", "", "", mockedKeyManagerProxy, mockedTrustManagerProxy);
+    public void haveFilesBeenChangedTestFilesSame(@Mocked MessageDigest mockedMessageDigest) throws Exception {
+        KeyRefresher keyRefresher = new KeyRefresher("", "", mockedTrustStore, mockedKeyManagerProxy, mockedTrustManagerProxy);
 
         byte[] stuff = new byte[0];
         new Expectations() {{
@@ -65,49 +68,53 @@ public class KeyRefresherTest {
 
     @Test
     public void scanForFileChangesTestNoChanges(@Mocked KeyManagerProxy mockedKeyManagerProxy,
-                                                @Mocked TrustManagerProxy mockedTrustManagerProxy) throws NoSuchAlgorithmException, InterruptedException {
+                                                @Mocked TrustManagerProxy mockedTrustManagerProxy)
+        throws Exception {
 
         new Expectations() {{
            mockedKeyManagerProxy.setKeyManager((KeyManager[]) any); times = 0;
            mockedTrustManagerProxy.setTrustManager((TrustManager[]) any); times = 0;
         }};
 
-        new MockUp<KeyRefresher>() {
+        String certFile = Resources.getResource("gdpr.aws.core.cert.pem").getFile();
+        String keyFile = Resources.getResource("gdpr.aws.core.key.pem").getFile();
 
-            @Mock
-            boolean haveFilesBeenChanged(String filePath, byte[] checksum) {
+        KeyRefresher keyRefresher = new KeyRefresher(certFile, keyFile, mockedTrustStore, mockedKeyManagerProxy, mockedTrustManagerProxy){
+            @Override
+            protected boolean haveFilesBeenChanged(String filePath, byte[] checksum) {
                 return false;
             }
-
         };
-        KeyRefresher keyRefresher = new KeyRefresher("", "", "", mockedKeyManagerProxy, mockedTrustManagerProxy);
-        Deencapsulation.setField(keyRefresher, "RETRY_CHECK_FRQUENCY", 1);
-        keyRefresher.startup();
-        Thread.sleep(2);
+        keyRefresher.startup(1);
+        Thread.sleep(200);
         keyRefresher.shutdown();
     }
 
     @Test
     public void scanForFileChangesTestWithChanges(@Mocked KeyManagerProxy mockedKeyManagerProxy,
-                                                @Mocked TrustManagerProxy mockedTrustManagerProxy) throws NoSuchAlgorithmException, InterruptedException {
+        @Mocked TrustManagerProxy mockedTrustManagerProxy)
+        throws Exception {
 
         new Expectations() {{
             mockedKeyManagerProxy.setKeyManager((KeyManager[]) any); minTimes = 1;
-            mockedTrustManagerProxy.setTrustManager((TrustManager[]) any); minTimes = 1;
+            mockedTrustManagerProxy.setTrustManager((TrustManager[]) any);
+            minTimes = 1;
         }};
 
-        new MockUp<KeyRefresher>() {
+        String certFile = Resources.getResource("gdpr.aws.core.cert.pem").getFile();
+        String keyFile = Resources.getResource("gdpr.aws.core.key.pem").getFile();
 
-            @Mock
-            boolean haveFilesBeenChanged(String filePath, byte[] checksum) {
+        KeyRefresher keyRefresher = new KeyRefresher(certFile, keyFile,
+            mockedTrustStore, mockedKeyManagerProxy, mockedTrustManagerProxy) {
+            @Override
+            protected boolean haveFilesBeenChanged(String filePath, byte[] checksum) {
                 return true;
             }
-
         };
-        KeyRefresher keyRefresher = new KeyRefresher("", "", "", mockedKeyManagerProxy, mockedTrustManagerProxy);
-        Deencapsulation.setField(keyRefresher, "RETRY_CHECK_FRQUENCY", 1);
-        keyRefresher.startup();
-        Thread.sleep(2);
+
+        keyRefresher.startup(1);
+        Thread.sleep(500);
         keyRefresher.shutdown();
     }
+
 }

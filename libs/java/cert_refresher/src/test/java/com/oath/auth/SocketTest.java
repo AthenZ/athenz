@@ -59,7 +59,7 @@ public class SocketTest {
     @Before
     public void setup() throws Exception {
         keyRefresher = Utils.generateKeyRefresher(
-                Resources.getResource("key_store.jks").getPath(), //trust store
+                Resources.getResource("truststore.jks").getPath(), //trust store
                 Resources.getResource("gdpr.aws.core.cert.pem").getPath(), //public
                 Resources.getResource("gdpr.aws.core.key.pem").getPath() //private
         );
@@ -106,7 +106,7 @@ public class SocketTest {
         }).start();
     }
 
-    @Test
+//    @Test
     public void test() throws Exception {
 
         TrustManager tm = new X509TrustManager() {

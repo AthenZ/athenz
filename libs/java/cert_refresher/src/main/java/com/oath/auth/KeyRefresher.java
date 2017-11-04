@@ -24,13 +24,17 @@ import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class KeyRefresher {
+
+    private Logger logger = LoggerFactory.getLogger(KeyRefresher.class);
 
     private Thread scanForFileChangesThread;
     private boolean shutdown = false; //only for testing
     //60 seconds * 60 (min in an hour)
-    private static final int RETRY_CHECK_FREQUENCY = 60_000 * 60;
+    private static final int DEFAULT_RETRY_CHECK_FREQUENCY = 60_000 * 60;
 
     private final MessageDigest md;
     private byte[] lastPublicKeyManagerChecksum = new byte[0]; //initialize to empty to avoid NPE
@@ -40,9 +44,11 @@ public class KeyRefresher {
 
     private final String athensPublicKey;
     private final String athensPrivateKey;
-    private final String trustStorePath;
+    private final TrustStore trustStore;
     private final KeyManagerProxy keyManagerProxy;
     private final TrustManagerProxy trustManagerProxy;
+
+    private int retryFrequency = DEFAULT_RETRY_CHECK_FREQUENCY;
 
     /**
      * this method should be used in the following way
@@ -66,16 +72,17 @@ public class KeyRefresher {
      *
      * @param athensPublicKey the file path to this key
      * @param athensPrivateKey the file path to this key
-     * @param trustStorePath the file path to this store
+     * @param trustStore trust store
      * @param keyManagerProxy the keyManagerProxy used in the existing server/client
      * @param trustManagerProxy the keyManagerProxy used in the existing server/client
      * @throws NoSuchAlgorithmException this is only thrown if we cannot use MD5 hashing
      */
-    public KeyRefresher(final String athensPublicKey, final String athensPrivateKey, final String trustStorePath,
-                        final KeyManagerProxy keyManagerProxy, final TrustManagerProxy trustManagerProxy) throws NoSuchAlgorithmException {
+    public KeyRefresher(final String athensPublicKey, final String athensPrivateKey, final TrustStore trustStore,
+                        final KeyManagerProxy keyManagerProxy, final TrustManagerProxy trustManagerProxy)
+        throws NoSuchAlgorithmException {
         this.athensPublicKey = athensPublicKey;
         this.athensPrivateKey = athensPrivateKey;
-        this.trustStorePath = trustStorePath;
+        this.trustStore = trustStore;
         this.keyManagerProxy = keyManagerProxy;
         this.trustManagerProxy = trustManagerProxy;
         md = MessageDigest.getInstance("MD5");
@@ -94,8 +101,8 @@ public class KeyRefresher {
             // run loop contents here
             while (!shutdown) {
                 try {
-                    if (haveFilesBeenChanged(trustStorePath, lastTrustManagerChecksum)) {
-                        trustManagerProxy.setTrustManager(Utils.getTrustManagers(trustStorePath));
+                    if (haveFilesBeenChanged(trustStore.getFilePath(), lastTrustManagerChecksum)) {
+                        trustManagerProxy.setTrustManager(trustStore.getTrustManagers());
                     }
                     //we want to check both files (public + private) and update both checksums
                     boolean keyFilesChanged = haveFilesBeenChanged(athensPrivateKey, lastPrivateKeyManagerChecksum);
@@ -105,9 +112,10 @@ public class KeyRefresher {
                     }
                 } catch (Exception ignored) {
                     // if we could not reload the SSL context (but we tried) we will ignore it and hope it works on the next loop
+                    logger.error("Error loading ssl context", ignored);
                 }
                 try {
-                    Thread.sleep(RETRY_CHECK_FREQUENCY);
+                    Thread.sleep(retryFrequency);
                 } catch (InterruptedException ignored) {
                 }
             }
@@ -123,6 +131,11 @@ public class KeyRefresher {
     }
 
     public void startup() {
+        startup(DEFAULT_RETRY_CHECK_FREQUENCY);
+    }
+
+    public void startup(int retryFrequency) {
+        this.retryFrequency = retryFrequency;
         shutdown = false;
         scanForFileChanges();
     }
