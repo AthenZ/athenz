@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
-import com.yahoo.athenz.auth.util.Validate;
 
 public class SimplePrincipal implements Principal {
 
@@ -58,10 +57,6 @@ public class SimplePrincipal implements Principal {
      * @return a Principal for the given set of roles in a domain
      */
     public static Principal create(String domain, String creds, List<String> roles, Authority authority) {
-        if (!Validate.domainName(domain)) {
-            LOG.error("createRolePrincipal: domain name doesn't validate: " + domain);
-            return null;
-        }
         if (roles == null || roles.size() == 0) {
             LOG.error("createRolePrincipal: zero roles");
             return null;
@@ -92,15 +87,6 @@ public class SimplePrincipal implements Principal {
      */
     public static Principal create(String domain, String name, String creds, long issueTime,
             Authority authority) {
-        
-        if (!Validate.domainName(domain)) {
-            LOG.error("createPrincipal: domain name doesn't validate: " + domain);
-            return null;
-        }
-        if (!Validate.principalName(name)) {
-            LOG.error("createPrincipal: principal name doesn't validate: " + name);
-            return null;
-        }
         String matchDomain = (authority == null) ? null : authority.getDomain();
         if (matchDomain != null && !domain.equals(matchDomain)) {
             LOG.error("createPrincipal: domain mismatch for user {} in authority {}",
