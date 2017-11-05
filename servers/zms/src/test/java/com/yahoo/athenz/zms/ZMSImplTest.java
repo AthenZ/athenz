@@ -2258,9 +2258,9 @@ public class ZMSImplTest {
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
         ArrayList<RoleMember> roleMembers = new ArrayList<>();
-        roleMembers.add(new RoleMember().setMemberName("user:joe"));
         roleMembers.add(new RoleMember().setMemberName("user.joe"));
-        roleMembers.add(new RoleMember().setMemberName("user:joe"));
+        roleMembers.add(new RoleMember().setMemberName("user.joe"));
+        roleMembers.add(new RoleMember().setMemberName("user.joe"));
         roleMembers.add(new RoleMember().setMemberName("user.jane"));
         
         Role role1 = createRoleObject("CreateNormalizedUserMemberRoleDom1", "Role1", 
@@ -2307,8 +2307,8 @@ public class ZMSImplTest {
         
         ArrayList<RoleMember> roleMembers = new ArrayList<>();
         roleMembers.add(new RoleMember().setMemberName("coretech.storage"));
-        roleMembers.add(new RoleMember().setMemberName("coretech:service.storage"));
-        roleMembers.add(new RoleMember().setMemberName("user.user1.dom1:service.api"));
+        roleMembers.add(new RoleMember().setMemberName("coretech.storage"));
+        roleMembers.add(new RoleMember().setMemberName("user.user1.dom1.api"));
         
         Role role1 = createRoleObject("CreateNormalizedServiceMemberRoleDom1", "Role1", 
                 null, roleMembers);
@@ -2357,13 +2357,13 @@ public class ZMSImplTest {
         zms.postSubDomain(mockDomRsrcCtx, "user.user1", auditRef, subDom4);
         
         ArrayList<RoleMember> roleMembers = new ArrayList<>();
-        roleMembers.add(new RoleMember().setMemberName("user:joe"));
         roleMembers.add(new RoleMember().setMemberName("user.joe"));
-        roleMembers.add(new RoleMember().setMemberName("user:joe"));
+        roleMembers.add(new RoleMember().setMemberName("user.joe"));
+        roleMembers.add(new RoleMember().setMemberName("user.joe"));
         roleMembers.add(new RoleMember().setMemberName("user.jane"));
         roleMembers.add(new RoleMember().setMemberName("coretech.storage"));
-        roleMembers.add(new RoleMember().setMemberName("coretech:service.storage"));
-        roleMembers.add(new RoleMember().setMemberName("user.user1.dom1:service.api"));
+        roleMembers.add(new RoleMember().setMemberName("coretech.storage"));
+        roleMembers.add(new RoleMember().setMemberName("user.user1.dom1.api"));
         
         Role role1 = createRoleObject("CreateNormalizedCombinedMemberRoleDom1", "Role1", 
                 null, roleMembers);
@@ -2788,8 +2788,8 @@ public class ZMSImplTest {
                 "coretech.storage", "user.jane");
         zms.putRole(mockDomRsrcCtx, "MbrAddDom2", "Role1", auditRef, role1);
         
-        Membership mbr = generateMembership("Role1", "user:doe");
-        zms.putMembership(mockDomRsrcCtx, "MbrAddDom2", "Role1", "user:doe", auditRef, mbr);
+        Membership mbr = generateMembership("Role1", "user.doe");
+        zms.putMembership(mockDomRsrcCtx, "MbrAddDom2", "Role1", "user.doe", auditRef, mbr);
 
         Role role = zms.getRole(mockDomRsrcCtx, "MbrAddDom2", "Role1", false, false);
         assertNotNull(role);
@@ -2828,8 +2828,8 @@ public class ZMSImplTest {
                 "coretech.storage", "user.jane");
         zms.putRole(mockDomRsrcCtx, "MbrAddDom3", "Role1", auditRef, role1);
         
-        Membership mbr = generateMembership("Role1", "user:doe");
-        zms.putMembership(mockDomRsrcCtx, "MbrAddDom3", "Role1", "user:doe", auditRef, mbr);
+        Membership mbr = generateMembership("Role1", "user.doe");
+        zms.putMembership(mockDomRsrcCtx, "MbrAddDom3", "Role1", "user.doe", auditRef, mbr);
 
         Role role = zms.getRole(mockDomRsrcCtx, "MbrAddDom3", "Role1", false, false);
         assertNotNull(role);
@@ -2876,8 +2876,8 @@ public class ZMSImplTest {
                 "coretech.storage", "user.jane");
         zms.putRole(mockDomRsrcCtx, "MbrAddDom4", "Role1", auditRef, role1);
  
-        Membership mbr = generateMembership("Role1", "weather:service.storage");
-        zms.putMembership(mockDomRsrcCtx, "MbrAddDom4", "Role1", "weather:service.storage", auditRef, mbr);
+        Membership mbr = generateMembership("Role1", "weather.storage");
+        zms.putMembership(mockDomRsrcCtx, "MbrAddDom4", "Role1", "weather.storage", auditRef, mbr);
 
         Role role = zms.getRole(mockDomRsrcCtx, "MbrAddDom4", "Role1", false, false);
         assertNotNull(role);
@@ -3250,7 +3250,7 @@ public class ZMSImplTest {
         Role role1 = createRoleObject("MbrDelDom1", "Role1", null,
                 "user.joe", "user.jane");
         zms.putRole(mockDomRsrcCtx, "MbrDelDom1", "Role1", auditRef, role1);
-        zms.deleteMembership(mockDomRsrcCtx, "MbrDelDom1", "Role1", "user:joe", auditRef);
+        zms.deleteMembership(mockDomRsrcCtx, "MbrDelDom1", "Role1", "user.joe", auditRef);
 
         Role role = zms.getRole(mockDomRsrcCtx, "MbrDelDom1", "Role1", false, false);
         assertNotNull(role);
@@ -3273,7 +3273,7 @@ public class ZMSImplTest {
         Role role1 = createRoleObject("MbrDelDom1", "Role1", null,
                 "user.joe", "user.jane");
         zms.putRole(mockDomRsrcCtx, "MbrDelDom1", "Role1", auditRef, role1);
-        zms.deleteMembership(mockDomRsrcCtx, "MbrDelDom1", "Role1", "user:joe", auditRef);
+        zms.deleteMembership(mockDomRsrcCtx, "MbrDelDom1", "Role1", "user.joe", auditRef);
 
         Role role = zms.getRole(mockDomRsrcCtx, "MbrDelDom1", "Role1", false, false);
         assertNotNull(role);
@@ -3304,7 +3304,7 @@ public class ZMSImplTest {
         Role role1 = createRoleObject("MbrDelDom1", "Role1", null,
                 "user.joe", "coretech.storage");
         zms.putRole(mockDomRsrcCtx, "MbrDelDom1", "Role1", auditRef, role1);
-        zms.deleteMembership(mockDomRsrcCtx, "MbrDelDom1", "Role1", "coretech:service.storage", auditRef);
+        zms.deleteMembership(mockDomRsrcCtx, "MbrDelDom1", "Role1", "coretech.storage", auditRef);
 
         Role role = zms.getRole(mockDomRsrcCtx, "MbrDelDom1", "Role1", false, false);
         assertNotNull(role);
@@ -8834,26 +8834,24 @@ public class ZMSImplTest {
     public void testGetNormalizedMemberUsersWithSplit() {
         
         assertEquals(zms.getNormalizedMember(
-                new RoleMember().setMemberName("user:user")).getMemberName(), "user.user");
+                new RoleMember().setMemberName("user.user")).getMemberName(), "user.user");
         assertEquals(zms.getNormalizedMember(
-                new RoleMember().setMemberName("user:user2")).getMemberName(), "user.user2");
+                new RoleMember().setMemberName("user.user2")).getMemberName(), "user.user2");
         assertEquals(zms.getNormalizedMember(
-                new RoleMember().setMemberName("user:user1")).getMemberName(), "user.user1");
+                new RoleMember().setMemberName("user.user1")).getMemberName(), "user.user1");
     }
     
     @Test
     public void testGetNormalizedMemberServiceWithSplit() {
         
         assertEquals(zms.getNormalizedMember(
-                new RoleMember().setMemberName("coretech:service.storage")).getMemberName(), "coretech.storage");
+                new RoleMember().setMemberName("coretech.storage")).getMemberName(), "coretech.storage");
         assertEquals(zms.getNormalizedMember(
-                new RoleMember().setMemberName("weather:service.storage.api")).getMemberName(), "weather.storage.api");
+                new RoleMember().setMemberName("weather.storage.api")).getMemberName(), "weather.storage.api");
         assertEquals(zms.getNormalizedMember(
-                new RoleMember().setMemberName("weather.storage:service.api")).getMemberName(), "weather.storage.api");
+                new RoleMember().setMemberName("weather.entity.api")).getMemberName(), "weather.entity.api");
         assertEquals(zms.getNormalizedMember(
-                new RoleMember().setMemberName("weather.storage:entity.api")).getMemberName(), "weather.storage:entity.api");
-        assertEquals(zms.getNormalizedMember(
-                new RoleMember().setMemberName("weather.storage:service.")).getMemberName(), "weather.storage.");
+                new RoleMember().setMemberName("weather.storage.service.*")).getMemberName(), "weather.storage.service.*");
     }
     
     @Test
@@ -8887,59 +8885,16 @@ public class ZMSImplTest {
     }
     
     @Test
-    public void testNormalizeRoleMembersUsers() {
-
-        ArrayList<RoleMember> roleMembers = new ArrayList<>();
-        roleMembers.add(new RoleMember().setMemberName("user:joe"));
-        roleMembers.add(new RoleMember().setMemberName("user.joe"));
-        roleMembers.add(new RoleMember().setMemberName("user:joe"));
-        roleMembers.add(new RoleMember().setMemberName("user.jane"));
-        
-        Role role = createRoleObject("TestRole", "Role1", null, roleMembers);
-        zms.normalizeRoleMembers(role);
-
-        List<RoleMember> members = role.getRoleMembers();
-        assertNotNull(members);
-        assertEquals(members.size(), 2);
-        
-        List<String> checkList = new ArrayList<>();
-        checkList.add("user.joe");
-        checkList.add("user.jane");
-        checkRoleMember(checkList, members);
-    }
-    
-    @Test
-    public void testNormalizeRoleMembersServices() {
-
-        ArrayList<RoleMember> roleMembers = new ArrayList<>();
-        roleMembers.add(new RoleMember().setMemberName("coretech.storage"));
-        roleMembers.add(new RoleMember().setMemberName("coretech:service.storage"));
-        roleMembers.add(new RoleMember().setMemberName("weather:service.storage"));
-        
-        Role role = createRoleObject("TestRole", "Role1", null, roleMembers);
-        zms.normalizeRoleMembers(role);
-
-        List<RoleMember> members = role.getRoleMembers();
-        assertNotNull(members);
-        assertEquals(members.size(), 2);
-        
-        List<String> checkList = new ArrayList<>();
-        checkList.add("coretech.storage");
-        checkList.add("weather.storage");
-        checkRoleMember(checkList, members);
-    }
-    
-    @Test
     public void testNormalizeRoleMembersCombined() {
 
         ArrayList<RoleMember> roleMembers = new ArrayList<>();
-        roleMembers.add(new RoleMember().setMemberName("user:joe"));
         roleMembers.add(new RoleMember().setMemberName("user.joe"));
-        roleMembers.add(new RoleMember().setMemberName("user:joe"));
+        roleMembers.add(new RoleMember().setMemberName("user.joe"));
+        roleMembers.add(new RoleMember().setMemberName("user.joe"));
         roleMembers.add(new RoleMember().setMemberName("user.jane"));
         roleMembers.add(new RoleMember().setMemberName("coretech.storage"));
-        roleMembers.add(new RoleMember().setMemberName("coretech:service.storage"));
-        roleMembers.add(new RoleMember().setMemberName("weather:service.storage"));
+        roleMembers.add(new RoleMember().setMemberName("coretech.storage"));
+        roleMembers.add(new RoleMember().setMemberName("weather.storage"));
         roleMembers.add(new RoleMember().setMemberName("weather.api.access"));
         
         Role role = createRoleObject("TestRole", "Role1", null, roleMembers);

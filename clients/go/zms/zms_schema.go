@@ -77,8 +77,8 @@ func init() {
 	sb.AddType(tSignedToken.Build())
 
 	tMemberName := rdl.NewStringTypeBuilder("MemberName")
-	tMemberName.Comment("Role Member name - could be one of three values: *, DomainName.* or ResourceName[*]")
-	tMemberName.Pattern("\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*\\.\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(:([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?(\\*)?")
+	tMemberName.Comment("Role Member name - could be one of three values: *, DomainName.* or ServiceName[*]")
+	tMemberName.Pattern("\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*\\.\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(\\*)?")
 	sb.AddType(tMemberName.Build())
 
 	tDomain := rdl.NewStructTypeBuilder("Struct", "Domain")

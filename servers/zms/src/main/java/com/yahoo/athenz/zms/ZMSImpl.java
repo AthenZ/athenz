@@ -2383,7 +2383,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     
     RoleMember getNormalizedMember(RoleMember member) {
         
-        // first we're going to check for the domain alias
+        // we're going to check for the domain alias
         // and handle accordingly - user-alias.hga will become user.hga
         
         final String memberName = member.getMemberName();
@@ -2394,24 +2394,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             return normalizedMember;
         }
 
-        // we are going we normalize and use the common name to
-        // represent our principals. The changes are:
-        // user:hga will be replaced with user.hga
-        // coretech:service.storage will be replaced with coretech.storage
-        
-        String[] resourceParts = memberName.split(":");
-        if (resourceParts.length != 2) {
-            return member;
-        }
-        
-        RoleMember normalizedMember = member;
-        if (resourceParts[0].equalsIgnoreCase(userDomain)) {
-            normalizedMember.setMemberName(userDomainPrefix + resourceParts[1]);
-        } else if (resourceParts[1].startsWith(SERVICE_PREFIX)) {
-            normalizedMember.setMemberName(resourceParts[0] + resourceParts[1].substring(SERVICE_PREFIX.length() - 1));
-        }
-        
-        return normalizedMember;
+        return member;
     }
     
     private void addNormalizedRoleMember(Map<String, RoleMember> normalizedMembers,

@@ -90,7 +90,7 @@ type SignedToken string
 
 //
 // MemberName - Role Member name - could be one of three values: *,
-// DomainName.* or ResourceName[*]
+// DomainName.* or ServiceName[*]
 //
 type MemberName string
 

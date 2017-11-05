@@ -67,8 +67,8 @@ public class ProviderSchema {
             .pattern("[a-zA-Z0-9\\._%=:;,-]*");
 
         sb.stringType("MemberName")
-            .comment("Role Member name - could be one of three values: *, DomainName.* or ResourceName[*]")
-            .pattern("\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*\\.\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(:([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?(\\*)?");
+            .comment("Role Member name - could be one of three values: *, DomainName.* or ServiceName[*]")
+            .pattern("\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*\\.\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(\\*)?");
 
         sb.enumType("TenantState")
             .element("INACTIVE")
