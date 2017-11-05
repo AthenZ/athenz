@@ -23,8 +23,8 @@ import java.util.regex.Pattern;
  */
 public class Validate {
 
-    private static final String PRINCIPAL_REGEX = "((([a-zA-Z_][a-zA-Z0-9_-]*\\.)*[a-zA-Z_][a-zA-Z0-9_-]*):)?(([a-zA-Z_][a-zA-Z0-9_-]*\\.)*[a-zA-Z_][a-zA-Z0-9_-]*)";
-    private static final String DOMAIN_REGEX = "([a-zA-Z_][a-zA-Z0-9_-]*\\.)*[a-zA-Z_][a-zA-Z0-9_-]*";
+    private static final String PRINCIPAL_REGEX = "((([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*):)?(([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)";
+    private static final String DOMAIN_REGEX = "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*";
     
     private static Pattern principalPattern = Pattern.compile(PRINCIPAL_REGEX);
     private static Pattern domainPattern = Pattern.compile(DOMAIN_REGEX);

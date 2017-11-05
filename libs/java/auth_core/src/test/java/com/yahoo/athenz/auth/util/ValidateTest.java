@@ -55,13 +55,13 @@ public class ValidateTest {
         
         assertFalse(Validate.domainName("domain$sub"));
         assertFalse(Validate.domainName("coretech:domain"));
-        assertFalse(Validate.domainName("55"));
-        assertFalse(Validate.domainName("3com.gov"));
     }
     
     @Test
     public void testDomainNameValidationValid() {
         
+        assertTrue(Validate.domainName("55"));
+        assertTrue(Validate.domainName("3com.gov"));
         assertTrue(Validate.domainName("domain"));
         assertTrue(Validate.domainName("domain.sub.sub"));
         assertTrue(Validate.domainName("domain_"));

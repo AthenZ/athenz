@@ -73,8 +73,8 @@ public class SimplePrincipalTest {
         assertEquals(p.getFullName(), "user.jdoe");
         assertEquals(p.getFullName(), "user.jdoe");
         
-        assertNull(SimplePrincipal.create(null, "jdoe", fakeCreds));
-        assertNull(SimplePrincipal.create("user", null, fakeCreds));
+        assertNotNull(SimplePrincipal.create(null, "jdoe", fakeCreds));
+        assertNotNull(SimplePrincipal.create("user", null, fakeCreds));
         
         List<String> roles = new ArrayList<String>();
         roles.add("role1");
@@ -87,19 +87,6 @@ public class SimplePrincipalTest {
         
         Authority authority = null;
         assertNull(SimplePrincipal.create(null, null, authority));
-    }
-    
-    @Test
-    public void testSimplePrincipalInvalidDomain() {
-        
-        List<String> roles = new ArrayList<String>();
-        roles.add("storage.tenant.weather.updater");
-        
-        UserAuthority userAuthority = new UserAuthority();
-        userAuthority.initialize();
-
-        assertNull(SimplePrincipal.create("user test invalid#$%",
-                fakeCreds, roles, userAuthority));
     }
     
     @Test
@@ -128,18 +115,6 @@ public class SimplePrincipalTest {
 
         assertEquals(p.getRoles().size(), 1);
         assertTrue(p.getRoles().contains("newrole"));
-    }
-    
-    @Test
-    public void testSimplePrincipalInvalidName() {
-        
-        // we output warning but still create a principal
-        
-        UserAuthority userAuthority = new UserAuthority();
-        userAuthority.initialize();
-
-        assertNull(SimplePrincipal.create("user", "jdoe invalid#$%",
-                fakeCreds, 0, userAuthority));
     }
     
     @Test
