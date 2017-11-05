@@ -1349,6 +1349,19 @@ public class ZTSImplTest {
         assertEquals(token.getRoles().size(), 1);
         assertTrue(token.getRoles().contains("readers"));
         assertTrue(roleToken.getToken().contains(";p=user_domain.user4;"));
+        assertTrue(roleToken.getToken().contains(";c=1;"));
+        
+        // turn off the include role complete set flag
+        
+        zts.includeRoleCompleteFlag = false;
+        roleToken = zts.getRoleToken(context4, "coretech", null, Integer.valueOf(600),
+                null, null);
+        token = new com.yahoo.athenz.auth.token.RoleToken(roleToken.getToken());
+        assertEquals(token.getRoles().size(), 1);
+        assertTrue(token.getRoles().contains("readers"));
+        assertTrue(roleToken.getToken().contains(";p=user_domain.user4;"));
+        assertFalse(roleToken.getToken().contains(";c=1;"));
+        zts.includeRoleCompleteFlag = true;
     }
     
     @Test
@@ -1476,6 +1489,7 @@ public class ZTSImplTest {
         token = new com.yahoo.athenz.auth.token.RoleToken(roleToken.getToken());
         assertEquals(token.getRoles().size(), 1);
         assertTrue(token.getRoles().contains("readers"));
+        assertFalse(token.getRoles().contains(";c=1;"));
     }
     
     @Test

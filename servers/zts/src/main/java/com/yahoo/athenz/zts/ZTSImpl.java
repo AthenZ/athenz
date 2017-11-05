@@ -119,6 +119,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected int statusPort;
     protected boolean statusCertSigner = false;
     protected Status successServerStatus = null;
+    protected boolean includeRoleCompleteFlag = true;
     
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -371,6 +372,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 }
             }
         }
+        
+        // check to see if we need to include the complete role token flag
+        
+        includeRoleCompleteFlag = Boolean.parseBoolean(
+                System.getProperty(ZTSConsts.ZTS_PROP_ROLE_COMPLETE_FLAG, "true"));
     }
     
     static String getServerHostName() {
@@ -1284,13 +1290,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         long tokenTimeout = determineTokenTimeout(minExpiryTime, maxExpiryTime);
         List<String> roleList = new ArrayList<>(roles);
+        boolean domainCompleteRoleSet = (includeRoleCompleteFlag && roleName == null);
         com.yahoo.athenz.auth.token.RoleToken token =
                 new com.yahoo.athenz.auth.token.RoleToken.Builder(ZTS_ROLE_TOKEN_VERSION, domainName, roleList)
                     .expirationWindow(tokenTimeout).host(serverHostName).keyId(privateKeyId)
                     .principal(principal).ip(ServletRequestUtil.getRemoteAddress(ctx.request()))
-                    .proxyUser(proxyUser).build();
+                    .proxyUser(proxyUser).domainCompleteRoleSet(domainCompleteRoleSet).build();
         token.sign(privateKey);
-
+        
         RoleToken roleToken = new RoleToken();
         roleToken.setToken(token.getSignedToken());
         roleToken.setExpiryTime(token.getExpiryTime());
