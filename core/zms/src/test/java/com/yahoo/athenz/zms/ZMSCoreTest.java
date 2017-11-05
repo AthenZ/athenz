@@ -43,7 +43,7 @@ public class ZMSCoreTest {
         Schema schema = ZMSSchema.instance();
         Validator validator = new Validator(schema);
 
-        List<String> members = Arrays.asList("user:boynton");
+        List<String> members = Arrays.asList("user.boynton");
         Role r = new Role().setName("sys.auth:role.admin").setMembers(members);
         Result result = validator.validate(r, "Role");
         assertTrue(result.valid);
@@ -53,6 +53,11 @@ public class ZMSCoreTest {
         result = validator.validate(r, "Role");
         assertTrue(result.valid);
 
+        members = Arrays.asList("user:doe"); // new
+        r = new Role().setName("sys.auth:role.admin").setMembers(members);
+        result = validator.validate(r, "Role");
+        assertFalse(result.valid);
+        
         members = Arrays.asList("someuser@somecompany.com"); // not a valid principal
         r = new Role().setName("sys.auth:role.admin").setMembers(members);
         result = validator.validate(r, "Role");
@@ -95,7 +100,7 @@ public class ZMSCoreTest {
         List<RoleAuditLog> rall = Arrays.asList(ral);
 
         // Role test
-        List<String> members = Arrays.asList("user:boynton");
+        List<String> members = Arrays.asList("user.boynton");
         Role r = new Role().setName("sys.auth:role.admin").setMembers(members)
                 .setModified(Timestamp.fromMillis(123456789123L)).setTrust("domain.admin").setAuditLog(rall);
         result = validator.validate(r, "Role");
@@ -135,7 +140,6 @@ public class ZMSCoreTest {
         assertTrue(rs.equals(rs));
         assertFalse(rs.equals(new Roles()));
         assertFalse(rs.equals(new String()));
-
     }
 
     @Test
