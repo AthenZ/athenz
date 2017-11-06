@@ -256,7 +256,7 @@ public class ZMSRDLGeneratedClient {
 
     }
 
-    public DomainTemplate putDomainTemplate(String name, String auditRef, DomainTemplate template) {
+    public DomainTemplate putDomainTemplate(String name, String auditRef, DomainTemplate domainTemplate) {
         WebTarget target = base.path("/domain/{name}/template")
             .resolveTemplate("name", name);
         Invocation.Builder invocationBuilder = target.request("application/json");
@@ -266,7 +266,29 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(template, "application/json"));
+        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(domainTemplate, "application/json"));
+        int code = response.getStatus();
+        switch (code) {
+        case 204:
+            return null;
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
+    public DomainTemplate putDomainTemplateExt(String name, String template, String auditRef, DomainTemplate domainTemplate) {
+        WebTarget target = base.path("/domain/{name}/template/{template}")
+            .resolveTemplate("name", name)
+            .resolveTemplate("template", template);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
+        }
+        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(domainTemplate, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 204:

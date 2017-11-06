@@ -12383,6 +12383,159 @@ public class ZMSImplTest {
     }
     
     @Test
+    public void testPutDomainTemplateExtInvalidTemplate() {
+
+        TestAuditLogger alogger = new TestAuditLogger();
+        String storeFile = ZMS_DATA_STORE_FILE + "_putdomtempllistinvalid";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+        
+        String domainName = "templatelist-invalid";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        
+        final String templateName = "test validate";
+        DomainTemplate templateList = new DomainTemplate();
+        List<String> templates = new ArrayList<>();
+        templates.add(templateName);
+        templateList.setTemplateNames(templates);
+        try {
+            zmsImpl.putDomainTemplateExt(mockDomRsrcCtx, domainName, templateName,
+                    auditRef, templateList);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(400, ex.getCode());
+        }
+        
+        zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
+    }
+    
+    @Test
+    public void testPutDomainTemplateExtNotFoundTemplate() {
+        
+        String domainName = "templatelist-invalid";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        
+        final String templateName = "InvalidTemplate";
+        DomainTemplate templateList = new DomainTemplate();
+        List<String> templates = new ArrayList<>();
+        templates.add(templateName);
+        templateList.setTemplateNames(templates);
+        try {
+            zms.putDomainTemplateExt(mockDomRsrcCtx, domainName, templateName,
+                    auditRef, templateList);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(404, ex.getCode());
+        }
+        
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testPutDomainTemplateExtMultipleTemplate() {
+        
+        String domainName = "templatelist-invalid";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        
+        final String templateName = "vipng";
+        DomainTemplate templateList = new DomainTemplate();
+        List<String> templates = new ArrayList<>();
+        templates.add(templateName);
+        templates.add("pes");
+        templateList.setTemplateNames(templates);
+        try {
+            zms.putDomainTemplateExt(mockDomRsrcCtx, domainName, templateName,
+                    auditRef, templateList);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(400, ex.getCode());
+        }
+        
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+    
+    @Test
+    public void testPutDomainTemplateExtSingleTemplate() {
+        
+        String domainName = "templatelist-single";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        
+        final String templateName = "vipng";
+        DomainTemplate domTemplate = new DomainTemplate();
+        List<String> templates = new ArrayList<>();
+        templates.add(templateName);
+        domTemplate.setTemplateNames(templates);
+        
+        zms.putDomainTemplateExt(mockDomRsrcCtx, domainName, templateName,
+                auditRef, domTemplate);
+        
+        // verify that our role collection includes the roles defined in template
+        
+        List<String> names = zms.dbService.listRoles(domainName);
+        assertEquals(3, names.size());
+        assertTrue(names.contains("admin"));
+        assertTrue(names.contains("vip_admin"));
+        assertTrue(names.contains("sys_network_super_vip_admin"));
+        
+        Role role = zms.dbService.getRole(domainName, "vip_admin", false, false);
+        assertEquals(domainName + ":role.vip_admin", role.getName());
+        assertNull(role.getTrust());
+        assertNull(role.getRoleMembers());
+        
+        role = zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false);
+        assertEquals(domainName + ":role.sys_network_super_vip_admin", role.getName());
+        assertEquals("sys.network", role.getTrust());
+        
+        // verify that our policy collections includes the policies defined in the template
+        
+        names = zms.dbService.listPolicies(domainName);
+        assertEquals(3, names.size());
+        assertTrue(names.contains("admin"));
+        assertTrue(names.contains("vip_admin"));
+        assertTrue(names.contains("sys_network_super_vip_admin"));
+        
+        Policy policy = zms.dbService.getPolicy(domainName, "vip_admin");
+        assertEquals(domainName + ":policy.vip_admin", policy.getName());
+        assertEquals(1, policy.getAssertions().size());
+        Assertion assertion = policy.getAssertions().get(0);
+        assertEquals("*", assertion.getAction());
+        assertEquals(domainName + ":role.vip_admin", assertion.getRole());
+        assertEquals(domainName + ":vip*", assertion.getResource());
+        
+        policy = zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin");
+        assertEquals(domainName + ":policy.sys_network_super_vip_admin", policy.getName());
+        assertEquals(1, policy.getAssertions().size());
+        assertion = policy.getAssertions().get(0);
+        assertEquals("*", assertion.getAction());
+        assertEquals(domainName + ":role.sys_network_super_vip_admin", assertion.getRole());
+        assertEquals(domainName + ":vip*", assertion.getResource());
+
+        // delete an applied service template
+        //
+        zms.deleteDomainTemplate(mockDomRsrcCtx, domainName, templateName, auditRef);
+        
+        // verify that our role collection does NOT include the roles defined in template
+        
+        names = zms.dbService.listRoles(domainName);
+        assertEquals(1, names.size());
+        assertTrue(names.contains("admin"));
+
+        names = zms.dbService.listPolicies(domainName);
+        assertEquals(1, names.size());
+        assertTrue(names.contains("admin"));
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+    
+    @Test
     public void testGetDomainTemplateListInvalid() {
         
         try {

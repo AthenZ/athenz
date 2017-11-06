@@ -21,7 +21,8 @@ public interface ZMSHandler {
     public SubDomain deleteSubDomain(ResourceContext context, String parent, String name, String auditRef);
     public UserDomain deleteUserDomain(ResourceContext context, String name, String auditRef);
     public Domain putDomainMeta(ResourceContext context, String name, String auditRef, DomainMeta detail);
-    public DomainTemplate putDomainTemplate(ResourceContext context, String name, String auditRef, DomainTemplate template);
+    public DomainTemplate putDomainTemplate(ResourceContext context, String name, String auditRef, DomainTemplate domainTemplate);
+    public DomainTemplate putDomainTemplateExt(ResourceContext context, String name, String template, String auditRef, DomainTemplate domainTemplate);
     public DomainTemplateList getDomainTemplateList(ResourceContext context, String name);
     public DomainTemplate deleteDomainTemplate(ResourceContext context, String name, String template, String auditRef);
     public DomainDataCheck getDomainDataCheck(ResourceContext context, String domainName);

@@ -1542,6 +1542,60 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return null;
     }
 
+    public DomainTemplate putDomainTemplateExt(ResourceContext ctx, String domainName,
+            String templateName, String auditRef, DomainTemplate domainTemplate) {
+
+        final String caller = "putdomaintemplateext";
+        metric.increment(ZMSConsts.HTTP_PUT);
+        logPrincipal(ctx);
+
+        if (readOnlyMode) {
+            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+        }
+
+        validateRequest(ctx.request(), caller);
+
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(templateName, TYPE_SIMPLE_NAME, caller);
+        validate(domainTemplate, TYPE_DOMAIN_TEMPLATE, caller);
+        
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+        
+        domainName = domainName.toLowerCase();
+        templateName = templateName.toLowerCase();
+        AthenzObject.DOMAIN_TEMPLATE.convertToLowerCase(domainTemplate);
+        
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
+        metric.increment(caller, domainName);
+        Object timerMetric = metric.startTiming("putdomaintemplateext_timing", domainName);
+        
+        // verify that all template names are valid
+        
+        List<String> templateNames = domainTemplate.getTemplateNames();
+        if (templateNames == null) {
+            throw ZMSUtils.requestError("putDomainTemplateExt: No templates specified", caller);
+        }
+        
+        // the template name in the object must match to the uri
+        
+        if (!(templateNames.size() == 1 && templateNames.get(0).equals(templateName))) {
+            throw ZMSUtils.requestError("putDomainTemplateExt: template name mismatch", caller);
+        }
+        validateSolutionTemplates(templateNames, caller);
+        
+        // verify that request is properly authenticated for this request
+        // Make sure each template name is verified
+        
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(),
+                caller, "name", templateName);
+
+        dbService.executePutDomainTemplate(ctx, domainName, domainTemplate, auditRef, caller);
+        metric.stopTiming(timerMetric);
+        return null;
+    }
+    
     public DomainTemplate deleteDomainTemplate(ResourceContext ctx, String domainName, String templateName, String auditRef) {
 
         final String caller = "deletedomaintemplate";

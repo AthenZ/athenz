@@ -548,8 +548,30 @@ public class ZMSSchema {
             .comment("Update the given domain by applying the roles and policies defined in the specified solution template(s). Caller must have UPDATE privileges on the domain itself.")
             .pathParam("name", "DomainName", "name of the domain to be updated")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
-            .input("template", "DomainTemplate", "DomainTemplate object with solution template name(s)")
+            .input("domainTemplate", "DomainTemplate", "DomainTemplate object with solution template name(s)")
             .auth("update", "{name}:template")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("DomainTemplate", "PUT", "/domain/{name}/template/{template}")
+            .comment("Update the given domain by applying the roles and policies defined in the specified solution template(s). Caller must have UPDATE privileges on the domain itself.")
+            .name("PutDomainTemplateExt")
+            .pathParam("name", "DomainName", "name of the domain to be updated")
+            .pathParam("template", "SimpleName", "name of the solution template")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .input("domainTemplate", "DomainTemplate", "DomainTemplate object with a single template name to match URI")
+            .auth("update", "{name}:template.{template}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 
