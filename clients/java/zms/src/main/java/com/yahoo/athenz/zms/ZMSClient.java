@@ -1943,6 +1943,25 @@ public class ZMSClient implements Closeable {
     }
 
     /**
+     * Provision the specified solution template roles and policies in the domain
+     * @param domain name of the domain to be updated
+     * @param template name of the template to be applied
+     * @param auditRef string containing audit specification or ticket number
+     * @param templates containing the single template (must match the template parameter) to be provisioned in the domain
+     * @throws ZMSClientException in case of failure
+     */
+    public void putDomainTemplateExt(String domain, String template, String auditRef, DomainTemplate templates) {
+        updatePrincipal();
+        try {
+            client.putDomainTemplateExt(domain, template, auditRef, templates);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+    
+    /**
      * Delete the specified solution template roles and policies from the domain
      * @param domain name of the domain to be updated
      * @param template is the name of the provisioned template to be deleted

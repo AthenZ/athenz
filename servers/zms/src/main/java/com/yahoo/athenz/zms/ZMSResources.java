@@ -277,11 +277,11 @@ public class ZMSResources {
     @Path("/domain/{name}/template")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public DomainTemplate putDomainTemplate(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef, DomainTemplate template) {
+    public DomainTemplate putDomainTemplate(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef, DomainTemplate domainTemplate) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + name + ":template", null);
-            DomainTemplate e = this.delegate.putDomainTemplate(context, name, auditRef, template);
+            DomainTemplate e = this.delegate.putDomainTemplate(context, name, auditRef, domainTemplate);
             return null;
         } catch (ResourceException e) {
             int code = e.getCode();
@@ -300,6 +300,38 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             default:
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource putDomainTemplate");
+                throw typedException(code, e, ResourceError.class);
+            }
+        }
+    }
+
+    @PUT
+    @Path("/domain/{name}/template/{template}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public DomainTemplate putDomainTemplateExt(@PathParam("name") String name, @PathParam("template") String template, @HeaderParam("Y-Audit-Ref") String auditRef, DomainTemplate domainTemplate) {
+        try {
+            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context.authorize("update", "" + name + ":template." + template + "", null);
+            DomainTemplate e = this.delegate.putDomainTemplateExt(context, name, template, auditRef, domainTemplate);
+            return null;
+        } catch (ResourceException e) {
+            int code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource putDomainTemplateExt");
                 throw typedException(code, e, ResourceError.class);
             }
         }

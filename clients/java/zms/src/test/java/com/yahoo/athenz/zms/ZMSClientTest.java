@@ -1087,6 +1087,30 @@ public class ZMSClientTest {
     }
 
     @Test
+    public void testPutDomainTemplateExt() {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        List<String> tempNames = new ArrayList<String>();
+        DomainTemplate domTempl = new DomainTemplate().setTemplateNames(tempNames);
+        try {
+            Mockito.when(c.putDomainTemplateExt("name1", "template1", AUDIT_REF, domTempl)).thenThrow(new NullPointerException());
+            client.putDomainTemplateExt("name1", "template1", AUDIT_REF, domTempl);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(true);
+        }
+        try {
+            Mockito.when(c.putDomainTemplateExt("name2", "template2", AUDIT_REF, domTempl))
+                    .thenThrow(new ResourceException(404, "Domain not found"));
+            client.putDomainTemplateExt("name2", "template2", AUDIT_REF, domTempl);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(true);
+        }
+    }
+    
+    @Test
     public void testGetResourceAccessList() {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
