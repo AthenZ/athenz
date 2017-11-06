@@ -89,7 +89,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     private static String ROOT_DIR;
     
-    private static final String SERVICE_PREFIX = "service.";
     private static final String ROLE_PREFIX = "role.";
     private static final String POLICY_PREFIX = "policy.";
     
@@ -6666,7 +6665,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
     
     void logPrincipal(ResourceContext ctx) {
-        ((RsrcCtxWrapper) ctx).logPrincipal();
+        
+        // we are going to log our principal and validate that it
+        // contains expected data
+        
+        final Principal ctxPrincipal = ((RsrcCtxWrapper) ctx).principal();
+        ((RsrcCtxWrapper) ctx).logPrincipal(ctxPrincipal);
+        if (ctxPrincipal != null && ctxPrincipal.getFullName() != null) {
+            validate(ctxPrincipal.getFullName(), TYPE_SERVICE_NAME, "logPrincipal");
+        }
     }
 
     public ResourceContext newResourceContext(HttpServletRequest request,
