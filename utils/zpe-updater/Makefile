@@ -80,11 +80,11 @@ unit: vet fmt
 
 darwin:
 	@echo "Building darwin client..."
-	GOOS=darwin go install -ldflags "-X main.VERSION=$(PKG_VERSION) -X main.BUILD_DATE=$(PKG_DATE)" $(GOPKGNAME)/...
+	GOOS=darwin go build -ldflags "-X main.VERSION=$(PKG_VERSION) -X main.BUILD_DATE=$(PKG_DATE)" $(GOPKGNAME)/...
 
 linux:
 	@echo "Building linux client..."
-	GOOS=linux go install -ldflags "-X main.VERSION=$(PKG_VERSION) -X main.BUILD_DATE=$(PKG_DATE)" $(GOPKGNAME)/...
+	GOOS=linux go build -ldflags "-X main.VERSION=$(PKG_VERSION) -X main.BUILD_DATE=$(PKG_DATE)" $(GOPKGNAME)/...
 
 clean:
 	rm -rf target src bin pkg /tmp/zpu-go-build $(FMT_LOG) $(IMPORTS_LOG)
