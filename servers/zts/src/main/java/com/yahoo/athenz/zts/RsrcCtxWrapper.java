@@ -103,16 +103,16 @@ public class RsrcCtxWrapper implements ResourceContext {
         try {
             ctx.authorize(action, resource, trustedDomain);
         } catch (com.yahoo.athenz.common.server.rest.ResourceException restExc) {
-            logPrincipal();
+            logPrincipal(ctx.principal());
             throwZtsException(restExc);
         }
     }
 
-    public void logPrincipal() {
-        final Principal principal = ctx.principal();
-        if (principal != null) {
-            ctx.request().setAttribute(ZTS_REQUEST_PRINCIPAL, principal.getFullName());
+    public void logPrincipal(final Principal principal) {
+        if (principal == null) {
+            return;
         }
+        ctx.request().setAttribute(ZTS_REQUEST_PRINCIPAL, principal.getFullName());
     }
     
     public void throwZtsException(com.yahoo.athenz.common.server.rest.ResourceException restExc) {

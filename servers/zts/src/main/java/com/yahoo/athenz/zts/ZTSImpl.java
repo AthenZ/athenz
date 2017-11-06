@@ -2882,7 +2882,15 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     void logPrincipal(ResourceContext ctx) {
-        ((RsrcCtxWrapper) ctx).logPrincipal();
+        
+        // we are going to log our principal and validate that it
+        // contains expected data
+        
+        final Principal ctxPrincipal = ((RsrcCtxWrapper) ctx).principal();
+        ((RsrcCtxWrapper) ctx).logPrincipal(ctxPrincipal);
+        if (ctxPrincipal != null && ctxPrincipal.getFullName() != null) {
+            validate(ctxPrincipal.getFullName(), TYPE_SERVICE_NAME, "logPrincipal");
+        }
     }
     
     protected RuntimeException error(int code, String msg, String caller, String domainName) {
