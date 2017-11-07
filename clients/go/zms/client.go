@@ -565,12 +565,46 @@ func (client ZMSClient) PutDomainMeta(name DomainName, auditRef string, detail *
 	}
 }
 
-func (client ZMSClient) PutDomainTemplate(name DomainName, auditRef string, template *DomainTemplate) error {
+func (client ZMSClient) PutDomainTemplate(name DomainName, auditRef string, domainTemplate *DomainTemplate) error {
 	headers := map[string]string{
 		"Y-Audit-Ref": auditRef,
 	}
 	url := client.URL + "/domain/" + fmt.Sprint(name) + "/template"
-	contentBytes, err := json.Marshal(template)
+	contentBytes, err := json.Marshal(domainTemplate)
+	if err != nil {
+		return err
+	}
+	resp, err := client.httpPut(url, headers, contentBytes)
+	if err != nil {
+		return err
+	}
+	contentBytes, err = ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		return err
+	}
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
+func (client ZMSClient) PutDomainTemplateExt(name DomainName, template SimpleName, auditRef string, domainTemplate *DomainTemplate) error {
+	headers := map[string]string{
+		"Y-Audit-Ref": auditRef,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(name) + "/template/" + fmt.Sprint(template)
+	contentBytes, err := json.Marshal(domainTemplate)
 	if err != nil {
 		return err
 	}
