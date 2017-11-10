@@ -13,7 +13,7 @@
  */
 'use strict';
 
-var zpeClient = require('../../index');
+var AccessCheckStatus = require('../../src/AccessCheckStatus');
 
 var sinon = require('sinon');
 var expect = require('chai').expect;
@@ -49,7 +49,7 @@ var siaParams = {
 
 var cacheKey = 'cacheKeyRoleToken';
 
-describe('zpe_nodejs_client', function() {
+describe('AccessCheckStatus', function() {
   beforeEach(function() {
     sandbox = sinon.sandbox.create();
   });
@@ -58,6 +58,6 @@ describe('zpe_nodejs_client', function() {
     sandbox.restore();
   });
 
-  it('should test zpe_nodejs_client', function() {
+  it('should test AccessCheckStatus', function() {
   });
 });

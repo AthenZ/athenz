@@ -160,7 +160,7 @@ func loadNtokenFromFile(fileName string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return string(buf), nil
+	return strings.TrimSpace(string(buf)), nil
 }
 
 func main() {
