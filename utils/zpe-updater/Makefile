@@ -9,13 +9,13 @@
 GOPKGNAME = github.com/yahoo/athenz/utils/zpe-updater
 PKG_DATE=$(shell date '+%Y-%m-%dT%H:%M:%S')
 BINARY=zpu
+SRC=cmd/tools/main.go
 FMT_LOG=/tmp/zpu-fmt.log
 IMPORTS_LOG=/tmp/zpu-imports.log
 
-export GOPATH = $(PWD)
 # check to see if go utility is installed
 GO := $(shell command -v go 2> /dev/null)
-
+export GOPATH=$(PWD)
 
 ifdef GO
 
@@ -81,10 +81,12 @@ unit: vet fmt
 darwin:
 	@echo "Building darwin client..."
 	GOOS=darwin go build -ldflags "-X main.VERSION=$(PKG_VERSION) -X main.BUILD_DATE=$(PKG_DATE)" $(GOPKGNAME)/...
+	GOOS=darwin go build -ldflags "-X main.VERSION=$(PKG_VERSION) -X main.BUILD_DATE=$(PKG_DATE)" -o target/darwin/$(BINARY) $(SRC)
 
 linux:
 	@echo "Building linux client..."
 	GOOS=linux go build -ldflags "-X main.VERSION=$(PKG_VERSION) -X main.BUILD_DATE=$(PKG_DATE)" $(GOPKGNAME)/...
+	GOOS=linux go build -ldflags "-X main.VERSION=$(PKG_VERSION) -X main.BUILD_DATE=$(PKG_DATE)" -o target/linux/$(BINARY) $(SRC)
 
 clean:
 	rm -rf target src bin pkg /tmp/zpu-go-build $(FMT_LOG) $(IMPORTS_LOG)
