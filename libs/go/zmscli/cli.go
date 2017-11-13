@@ -25,6 +25,7 @@ type Zms struct {
 	Domain           string
 	AuditRef         string
 	UserDomain       string
+	HomeDomain       string
 	ProductIdSupport bool
 	Debug            bool
 }
