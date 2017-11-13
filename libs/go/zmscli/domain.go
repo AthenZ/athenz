@@ -28,7 +28,7 @@ func (cli Zms) DeleteDomain(dn string) (*string, error) {
 			name = dn[i+1:]
 			// special case for top level user domains
 			// where parent is just the user domain
-			if parent == cli.UserDomain {
+			if parent == cli.HomeDomain {
 				err = cli.Zms.DeleteUserDomain(zms.SimpleName(name), cli.AuditRef)
 			} else {
 				err = cli.Zms.DeleteSubDomain(zms.DomainName(parent), zms.SimpleName(name), cli.AuditRef)
@@ -274,7 +274,7 @@ func (cli Zms) createDomain(dn string, productId *int32, admins []string) (*stri
 		name = dn[i+1:]
 		// special case for top level user domains
 		// where parent is just the user domain
-		if parent == cli.UserDomain {
+		if parent == cli.HomeDomain {
 			d := zms.UserDomain{}
 			d.Name = zms.SimpleName(name)
 			_, err := cli.Zms.PostUserDomain(zms.SimpleName(name), cli.AuditRef, &d)

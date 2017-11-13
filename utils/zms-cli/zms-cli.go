@@ -173,6 +173,7 @@ func main() {
 	pProductIdSupport := flag.Bool("p", false, "Top Level Domain add operations require product ids")
 	pDomain := flag.String("d", "", "The domain for the command to execute in. If not specified, only certain commands are available")
 	pUserDomain := flag.String("u", "user", "User domain name as configured in Athenz systems")
+	pHomeDomain := flag.String("h", "user", "Home domain name as configured in Athenz systems")
 	pSocks := flag.String("s", defaultSocksProxy(), "The SOCKS5 proxy to route requests through, i.e. 127.0.0.1:1080")
 	pSkipVerify := flag.Bool("k", false, "Disable peer verification of SSL certificates")
 	pDebug := flag.Bool("debug", defaultDebug(), "debug mode (for authentication, mainly)")
@@ -212,6 +213,7 @@ func main() {
 	} else if args[0] == "help" {
 		cli := zmscli.Zms{}
 		cli.UserDomain = *pUserDomain
+		cli.HomeDomain = *pHomeDomain
 		if len(args) == 2 {
 			fmt.Println(cli.HelpSpecificCommand(false, args[1]))
 		} else {
@@ -266,6 +268,7 @@ func main() {
 		Domain:           *pDomain,
 		AuditRef:         *pAuditRef,
 		UserDomain:       *pUserDomain,
+		HomeDomain:       *pHomeDomain,
 		ProductIdSupport: *pProductIdSupport,
 		Debug:            *pDebug,
 	}
