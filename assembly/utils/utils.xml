@@ -46,6 +46,10 @@
       <directory>${basedir}/../../utils/zts-rolecert/target</directory>
       <outputDirectory>bin</outputDirectory>
     </fileSet>
+    <fileSet>
+      <directory>${basedir}/../../utils/zpe-updater/target</directory>
+      <outputDirectory>bin</outputDirectory>
+    </fileSet>
   </fileSets>
   <files>
     <file>
