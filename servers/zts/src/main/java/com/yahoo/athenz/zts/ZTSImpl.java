@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.zts;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
@@ -73,6 +75,7 @@ import com.yahoo.athenz.zts.store.ChangeLogStore;
 import com.yahoo.athenz.zts.store.ChangeLogStoreFactory;
 import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.DataStore;
+import com.yahoo.athenz.zts.utils.IPBlock;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
 import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Timestamp;
@@ -120,6 +123,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected boolean statusCertSigner = false;
     protected Status successServerStatus = null;
     protected boolean includeRoleCompleteFlag = true;
+    protected List<IPBlock> certRefreshIPBlocks = null;
     
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -220,6 +224,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // create our certsigner object
         
         loadCertSigner();
+        
+        // load our allowed cert refresh ip blocks
+        
+        loadAllowedCertRefreshIPAddresses();
         
        // create our cloud store if configured
         
@@ -377,6 +385,32 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         includeRoleCompleteFlag = Boolean.parseBoolean(
                 System.getProperty(ZTSConsts.ZTS_PROP_ROLE_COMPLETE_FLAG, "true"));
+    }
+    
+    void loadAllowedCertRefreshIPAddresses() {
+        
+        // initialize our list
+        
+        certRefreshIPBlocks = new ArrayList<>();
+        
+        // get the configured path for the list of service templates
+        
+        String certRefreshIPAddresses =  System.getProperty(ZTSConsts.ZTS_PROP_CERT_REFRESH_IP_FNAME,
+                getRootDir() + "/conf/zts_server/cert_refresh_ipblocks.txt");
+        
+        try (BufferedReader br = new BufferedReader(new FileReader(certRefreshIPAddresses))) {
+            String line = null;
+            while ((line = br.readLine()) != null) {
+                try {
+                    certRefreshIPBlocks.add(new IPBlock(line));
+                } catch (Exception ex) {
+                    LOGGER.error("Skipping invalid cert refresh ip block line: {}, error: {}",
+                            line, ex.getMessage());
+                }
+            }
+        } catch (Exception ex) {
+            LOGGER.error("Unable to process cert refresh ip block list: {}", ex.getMessage());
+        }
     }
     
     static String getServerHostName() {
@@ -1130,25 +1164,30 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
     
     private void checkRoleTokenApplicationIdRequest(ResourceContext ctx, DomainData domain, String caller) {
-        Principal principal = ((RsrcCtxWrapper) ctx).principal();
-        String applicationId = principal.getApplicationId();
-        String domainName = domain.getName();
-        String exceptionMessage = "getRoleToken: No access to any roles in domain: " + domainName;
+        
+        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        final String applicationId = principal.getApplicationId();
+        
         // if principal contains applicationId, it means that the request came through Okta Authority,
-        // so check for association with domain
-        if (null != applicationId && !applicationId.isEmpty()) {
-            String appId = domain.getApplicationId();
-            //domain has not been configured with application ID, revoke request
-            if (null == appId || appId.isEmpty()) {
-                throw forbiddenError(exceptionMessage + ", application Id " + applicationId + " is missing from domain configuration",
-                        caller, domainName);
-            }
-            //check for match
-            if (!appId.equals(applicationId)) {
-                //application Id found, but not the same from the principal, revoke request
-                throw forbiddenError(exceptionMessage + ", application Id " + appId + " does not match principal's appplication Id " + applicationId,
-                        caller, domainName);
-            }
+        // so check for association with domain, otherwise we have nothing to do
+        
+        if (applicationId == null || applicationId.isEmpty()) {
+            return;
+        }
+        
+        // domain has not been configured with application ID, revoke request
+
+        final String appId = domain.getApplicationId();
+        if (appId == null || appId.isEmpty()) {
+            throw forbiddenError("Application Id " + applicationId + " is missing from domain configuration",
+                    caller, domain.getName());
+        }
+        
+        // check for match
+         
+        if (!appId.equals(applicationId)) {
+            throw forbiddenError("Application Id " + appId + " does not match principal's appplication Id " + applicationId,
+                    caller, domain.getName());
         }
     }
     
@@ -2270,7 +2309,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // to do further validation based on the certificate we authenticated
         
         if (refreshOperation) {
-            if (!validateServiceX509RefreshRequest(principal, x509CertReq)) {
+            if (!validateServiceX509RefreshRequest(principal, x509CertReq,
+                    ServletRequestUtil.getRemoteAddress(ctx.request()))) {
                 throw requestError("postInstanceRefreshRequest: dns name or public key mismatch",
                         caller, domain);
             }
@@ -2304,7 +2344,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return identity;
     }
     
-    boolean validateServiceX509RefreshRequest(final Principal principal, final X509CertRequest certReq) {
+    boolean validateServiceX509RefreshRequest(final Principal principal, final X509CertRequest certReq,
+            final String ipAddress) {
         
         // retrieve the certificate that was used for authentication
         // and verify that the dns names in the certificate match to
@@ -2318,7 +2359,23 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // validate that the certificate and csr both are based
         // on the same public key
         
-        return certReq.comparePublicKeys(cert);
+        if (!certReq.comparePublicKeys(cert)) {
+            return false;
+        }
+        
+        // finally verify that the ip address is in the allowed range
+        
+        return verifyIPAddressAccess(ipAddress);
+    }
+    
+    boolean verifyIPAddressAccess(final String ipAddress) {
+        long ipAddr = IPBlock.convertToLong(ipAddress);
+        for (IPBlock ipBlock : certRefreshIPBlocks) {
+            if (ipBlock.ipCheck(ipAddr)) {
+                return true;
+            }
+        }
+        return false;
     }
     
     // this method will be removed and replaced with call to postInstanceRegisterInformation
