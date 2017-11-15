@@ -92,6 +92,7 @@ import com.yahoo.athenz.zts.store.DataStore;
 import com.yahoo.athenz.zts.store.MockCloudStore;
 import com.yahoo.athenz.zts.store.impl.MockZMSFileChangeLogStore;
 import com.yahoo.athenz.zts.store.impl.ZMSFileChangeLogStore;
+import com.yahoo.athenz.zts.utils.IPBlock;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
 import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Timestamp;
@@ -180,6 +181,8 @@ public class ZTSImplTest {
         System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
         System.setProperty(ZTSConsts.ZTS_PROP_FILE_NAME, "src/test/resources/zts.properties");
         System.setProperty(ZTSConsts.ZTS_PROP_NOAUTH_URI_LIST, "/zts/v1/schema,/zts/v1/status");
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_REFRESH_IP_FNAME,
+                "src/test/resources/cert_refresh_ipblocks.txt");
         System.setProperty(ZTSConsts.ZTS_PROP_OSTK_HOST_SIGNER_SERVICE, "sys.auth.hostsignd");
         auditLogger = new DefaultAuditLogger();
     }
@@ -6394,6 +6397,9 @@ public class ZTSImplTest {
         
         DataStore store = new DataStore(structStore, null);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        
+        IPBlock ipBlock = new IPBlock("10.0.0.1/255.255.255.255");
+        ztsImpl.certRefreshIPBlocks.add(ipBlock);
 
         Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
         String csr = new String(Files.readAllBytes(path));
@@ -6409,7 +6415,68 @@ public class ZTSImplTest {
                 "syncer", "v=S1,d=athenz;n=syncer;s=sig", 0, new CertificateAuthority());
         principal.setX509Certificate(cert);
         
-        assertTrue(ztsImpl.validateServiceX509RefreshRequest(principal, certReq));
+        assertTrue(ztsImpl.validateServiceX509RefreshRequest(principal, certReq, "10.0.0.1"));
+    }
+    
+    @Test
+    public void testValidateServiceX509RefreshRequestMismatchPublicKeys() throws IOException {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+        
+        DataStore store = new DataStore(structStore, null);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        
+        IPBlock ipBlock = new IPBlock("10.0.0.1/255.255.255.255");
+        ztsImpl.certRefreshIPBlocks.add(ipBlock);
+
+        Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
+        String csr = new String(Files.readAllBytes(path));
+        
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertNotNull(certReq);
+        certReq.setNormCsrPublicKey("mismatch-public-key");
+        
+        path = Paths.get("src/test/resources/valid_provider_refresh.pem");
+        String pem = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(pem);
+        
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz",
+                "syncer", "v=S1,d=athenz;n=syncer;s=sig", 0, new CertificateAuthority());
+        principal.setX509Certificate(cert);
+        
+        assertFalse(ztsImpl.validateServiceX509RefreshRequest(principal, certReq, "10.0.0.1"));
+    }
+    
+    @Test
+    public void testValidateServiceX509RefreshRequestNotAllowedIP() throws IOException {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+        
+        DataStore store = new DataStore(structStore, null);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        
+        IPBlock ipBlock = new IPBlock("10.0.0.1/255.255.255.255");
+        ztsImpl.certRefreshIPBlocks.add(ipBlock);
+
+        Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
+        String csr = new String(Files.readAllBytes(path));
+        
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertNotNull(certReq);
+        
+        path = Paths.get("src/test/resources/valid_provider_refresh.pem");
+        String pem = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(pem);
+        
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz",
+                "syncer", "v=S1,d=athenz;n=syncer;s=sig", 0, new CertificateAuthority());
+        principal.setX509Certificate(cert);
+        
+        // our ip will not match 10.0.0.1 thus failure
+        
+        assertFalse(ztsImpl.validateServiceX509RefreshRequest(principal, certReq, "10.0.0.2"));
     }
     
     @Test
@@ -6421,6 +6488,9 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
+        IPBlock ipBlock = new IPBlock("10.0.0.1/255.255.255.255");
+        ztsImpl.certRefreshIPBlocks.add(ipBlock);
+        
         Path path = Paths.get("src/test/resources/athenz.mismatch.dns.csr");
         String csr = new String(Files.readAllBytes(path));
         
@@ -6435,7 +6505,7 @@ public class ZTSImplTest {
                 "syncer", "v=S1,d=athenz;n=syncer;s=sig", 0, new CertificateAuthority());
         principal.setX509Certificate(cert);
         
-        assertFalse(ztsImpl.validateServiceX509RefreshRequest(principal, certReq));
+        assertFalse(ztsImpl.validateServiceX509RefreshRequest(principal, certReq, "10.0.0.1"));
     }
     
     @Test
@@ -6446,6 +6516,9 @@ public class ZTSImplTest {
         
         DataStore store = new DataStore(structStore, null);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        
+        IPBlock ipBlock = new IPBlock("10.0.0.1/255.255.255.255");
+        ztsImpl.certRefreshIPBlocks.add(ipBlock);
         
         Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -6474,6 +6547,7 @@ public class ZTSImplTest {
         
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
         Mockito.when(servletRequest.isSecure()).thenReturn(true);
+        Mockito.when(servletRequest.getRemoteAddr()).thenReturn("10.0.0.1");
 
         ResourceContext context = createResourceContext(principal, servletRequest);
 

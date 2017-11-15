@@ -25,6 +25,7 @@ public class X509CertRequest {
     private String instanceId = null;
     private String dnsSuffix = null;
     private String normCsrPublicKey = null;
+
     private String cn = null;
     private List<String> dnsNames = null;
     private List<String> ipAddresses = null;
@@ -250,6 +251,10 @@ public class X509CertRequest {
         }
         
         return true;
+    }
+    
+    public void setNormCsrPublicKey(String normCsrPublicKey) {
+        this.normCsrPublicKey = normCsrPublicKey;
     }
     
     public String getCommonName() {
