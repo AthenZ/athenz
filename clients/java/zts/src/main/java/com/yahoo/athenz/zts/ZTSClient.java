@@ -151,9 +151,9 @@ public class ZTSClient implements Closeable {
     
     static boolean initConfigValues() {
 
-        /* The minimum token expiry time by default is 15 minutes (900). By default the
-         * server gives out role tokens for 2 hours and with this setting we'll be able
-         * to cache tokens for 1hr45mins before requesting a new one from ZTS */
+        // The minimum token expiry time by default is 15 minutes (900). By default the
+        // server gives out role tokens for 2 hours and with this setting we'll be able
+        // to cache tokens for 1hr45mins before requesting a new one from ZTS
 
         tokenMinExpiryTime = Integer.parseInt(System.getProperty(ZTS_CLIENT_PROP_TOKEN_MIN_EXPIRY_TIME, "900"));
         if (tokenMinExpiryTime < 0) {
@@ -183,7 +183,7 @@ public class ZTSClient implements Closeable {
      * milliseconds.
      */
     public ZTSClient() {
-        initClient(null, null, null, null, null);
+        initClient(null, null, null, null, null, null);
         enablePrefetch = false; // can't use this domain and service for prefetch
     }
     
@@ -202,7 +202,7 @@ public class ZTSClient implements Closeable {
      * @param ztsUrl ZTS Server's URL (optional)
      */
     public ZTSClient(String ztsUrl) {
-        initClient(ztsUrl, null, null, null, null);
+        initClient(ztsUrl, null, null, null, null, null);
         enablePrefetch = false; // can't use this domain and service for prefetch
     }
     
@@ -238,8 +238,28 @@ public class ZTSClient implements Closeable {
         if (identity.getAuthority() == null) {
             throw new IllegalArgumentException("Principal Authority cannot be null");
         }
-        initClient(ztsUrl, identity, null, null, null);
+        initClient(ztsUrl, identity, null, null, null, null);
         enablePrefetch = false; // can't use this domain and service for prefetch
+    }
+    
+    /**
+     * Constructs a new ZTSClient object with the given SSLContext object
+     * and ZTS Server Url. Default read and connect timeout values are
+     * 30000ms (30sec). The application can change these values by using the
+     * athenz.zts.client.read_timeout and athenz.zts.client.connect_timeout
+     * system properties. The values specified for timeouts must be in milliseconds.
+     * @param ztsUrl ZTS Server's URL (optional)
+     * @param sslContext SSLContext that includes service's private key and x.509 ceriticate
+     * for authenticating requests
+     */
+    public ZTSClient(String ztsUrl, SSLContext sslContext) {
+        
+        // verify we have a valid ssl context specified
+        
+        if (sslContext == null) {
+            throw new IllegalArgumentException("SSLContext object must be specified");
+        }
+        initClient(ztsUrl, null, null, null, null, sslContext);
     }
     
     /**
@@ -283,7 +303,7 @@ public class ZTSClient implements Closeable {
         if (siaProvider == null) {
             throw new IllegalArgumentException("Service Identity Provider must be specified");
         }
-        initClient(ztsUrl, null, domainName, serviceName, siaProvider);
+        initClient(ztsUrl, null, domainName, serviceName, siaProvider, null);
     }
     
     /**
@@ -352,10 +372,15 @@ public class ZTSClient implements Closeable {
     }
     
     SSLContext createSSLContext() {
-        String certAlias = System.getProperty(ZTS_CLIENT_PROP_CERT_ALIAS);
-        String clientProtocol = System.getProperty(ZTS_CLIENT_PROP_CLIENT_PROTOCOL, ZTS_CLIENT_DEFAULT_CLIENT_SSL_PROTOCOL);
-        //keystore
+        
+        // to create the SSL context we must have the keystore path
+        // specified. If it's not specified, then we are not going
+        // to create our ssl context
+        
         String keyStorePath = System.getProperty(ZTS_CLIENT_PROP_KEYSTORE_PATH);
+        if (keyStorePath == null || keyStorePath.isEmpty()) {
+            return null;
+        }
         String keyStoreType = System.getProperty(ZTS_CLIENT_PROP_KEYSTORE_TYPE);
         String keyStorePwd = System.getProperty(ZTS_CLIENT_PROP_KEYSTORE_PASSWORD);
         char[] keyStorePassword = null;
@@ -370,7 +395,7 @@ public class ZTSClient implements Closeable {
         }
         String keyManagerPasswordAppName = System.getProperty(ZTS_CLIENT_PROP_KEY_MANAGER_PWD_APP_NAME);
         
-        //truststore
+        // truststore
         String trustStorePath = System.getProperty(ZTS_CLIENT_PROP_TRUSTSTORE_PATH);
         String trustStoreType = System.getProperty(ZTS_CLIENT_PROP_TRUSTSTORE_TYPE);
         String trustStorePwd = System.getProperty(ZTS_CLIENT_PROP_TRUSTSTORE_PASSWORD);
@@ -380,43 +405,44 @@ public class ZTSClient implements Closeable {
         }
         String trustStorePasswordAppName = System.getProperty(ZTS_CLIENT_PROP_TRUSTSTORE_PWD_APP_NAME);
         
-        
-        ClientSSLContextBuilder builder = new SSLUtils.ClientSSLContextBuilder(clientProtocol)
-                .privateKeyStore(PRIVATE_KEY_STORE);
-            if (null != certAlias && !certAlias.isEmpty()) {
-                builder.certAlias(certAlias);
-            }
-            if (null != keyStorePath && !keyStorePath.isEmpty()) {
-                builder.keyStorePath(keyStorePath);
-            }
-            if (null != keyStoreType && !keyStoreType.isEmpty()) {
-                builder.keyStoreType(keyStoreType);
-            }
-            if (null != keyStorePassword) {
-                builder.keyStorePassword(keyStorePassword);
-            }
-            if (null != keyStorePasswordAppName) {
-                builder.keyStorePasswordAppName(keyStorePasswordAppName);
-            }
-            if (null != keyManagerPassword) {
-                builder.keyManagerPassword(keyManagerPassword);
-            }
-            if (null != keyManagerPasswordAppName) {
-                builder.keyManagerPasswordAppName(keyManagerPasswordAppName);
-            }
+        // alias and protocol details
+        String certAlias = System.getProperty(ZTS_CLIENT_PROP_CERT_ALIAS);
+        String clientProtocol = System.getProperty(ZTS_CLIENT_PROP_CLIENT_PROTOCOL,
+                ZTS_CLIENT_DEFAULT_CLIENT_SSL_PROTOCOL);
 
-            if (null != trustStorePath && !trustStorePath.isEmpty()) {
-                builder.trustStorePath(trustStorePath);
-            }
-            if (null != trustStoreType && !trustStoreType.isEmpty()) {
-                builder.trustStoreType(trustStoreType);
-            }
-            if (null != trustStorePassword) {
-                builder.trustStorePassword(trustStorePassword);
-            }
-            if (null != trustStorePasswordAppName) {
-                builder.trustStorePasswordAppName(trustStorePasswordAppName);
-            }
+        ClientSSLContextBuilder builder = new SSLUtils.ClientSSLContextBuilder(clientProtocol)
+                .privateKeyStore(PRIVATE_KEY_STORE).keyStorePath(keyStorePath);
+        
+        if (null != certAlias && !certAlias.isEmpty()) {
+            builder.certAlias(certAlias);
+        }
+        if (null != keyStoreType && !keyStoreType.isEmpty()) {
+            builder.keyStoreType(keyStoreType);
+        }
+        if (null != keyStorePassword) {
+            builder.keyStorePassword(keyStorePassword);
+        }
+        if (null != keyStorePasswordAppName) {
+            builder.keyStorePasswordAppName(keyStorePasswordAppName);
+        }
+        if (null != keyManagerPassword) {
+            builder.keyManagerPassword(keyManagerPassword);
+        }
+        if (null != keyManagerPasswordAppName) {
+            builder.keyManagerPasswordAppName(keyManagerPasswordAppName);
+        }
+        if (null != trustStorePath && !trustStorePath.isEmpty()) {
+            builder.trustStorePath(trustStorePath);
+        }
+        if (null != trustStoreType && !trustStoreType.isEmpty()) {
+            builder.trustStoreType(trustStoreType);
+        }
+        if (null != trustStorePassword) {
+            builder.trustStorePassword(trustStorePassword);
+        }
+        if (null != trustStorePasswordAppName) {
+            builder.trustStorePasswordAppName(trustStorePasswordAppName);
+        }
 
         return builder.build();
     }
@@ -428,7 +454,7 @@ public class ZTSClient implements Closeable {
     }
     
     void initClient(String url, Principal identity, String domainName, String serviceName,
-            ServiceIdentityProvider siaProvider) {
+            ServiceIdentityProvider siaProvider, SSLContext sslContext) {
         
         if (url == null) {
             ztsUrl = lookupZTSUrl();
@@ -448,8 +474,8 @@ public class ZTSClient implements Closeable {
             }
         }
         
-        /* determine our read and connect timeouts */
-            
+        // determine our read and connect timeouts
+        
         int readTimeout = Integer.parseInt(System.getProperty(ZTS_CLIENT_PROP_READ_TIMEOUT, "30000"));
         int connectTimeout = Integer.parseInt(System.getProperty(ZTS_CLIENT_PROP_CONNECT_TIMEOUT, "30000"));
         String x509CertDNSName = System.getProperty(ZTS_CLIENT_PROP_X509CERT_DNS_NAME);
@@ -458,12 +484,20 @@ public class ZTSClient implements Closeable {
             hostnameVerifier = new AWSHostNameVerifier(x509CertDNSName);
         }
         
-        SSLContext sslContext = createSSLContext();
+        // if we don't have a ssl context specified, check the system
+        // properties to see if we need to create one
+        
+        if (sslContext == null) {
+            sslContext = createSSLContext();
+        }
+        
         ClientBuilder builder = ClientBuilder.newBuilder();
         if (sslContext != null) {
-            builder.sslContext(sslContext);
+            builder = builder.sslContext(sslContext);
+            enablePrefetch = true;
         }
-        Client rsClient = builder.hostnameVerifier(hostnameVerifier).property(ClientProperties.CONNECT_TIMEOUT, connectTimeout)
+        Client rsClient = builder.hostnameVerifier(hostnameVerifier)
+            .property(ClientProperties.CONNECT_TIMEOUT, connectTimeout)
             .property(ClientProperties.READ_TIMEOUT, readTimeout)
             .build();
 
@@ -563,8 +597,8 @@ public class ZTSClient implements Closeable {
     
     boolean updateServicePrincipal() {
         
-        /* if we have a service principal then we need to keep updating
-         * our PrincipalToken otherwise it might expire. */
+        // if we have a service principal then we need to keep updating
+        // our PrincipalToken otherwise it might expire.
         
         if (siaProvider == null) {
             return false;
