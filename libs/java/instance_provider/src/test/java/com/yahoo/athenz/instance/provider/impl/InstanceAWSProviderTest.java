@@ -24,6 +24,7 @@ import static org.testng.Assert.fail;
 
 import java.util.HashMap;
 
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -83,26 +84,29 @@ public class InstanceAWSProviderTest {
     @Test
     public void testValidateAWSAccount() {
         
+        StringBuilder errMsg = new StringBuilder(256);
         InstanceAWSProvider provider = new InstanceAWSProvider();
-        assertTrue(provider.validateAWSAccount("1234", "1234"));
-        assertFalse(provider.validateAWSAccount("1235", "1234"));
+        assertTrue(provider.validateAWSAccount("1234", "1234", errMsg));
+        assertFalse(provider.validateAWSAccount("1235", "1234", errMsg));
     }
 
     @Test
     public void testValidateAWSSignatureFailure() {
         
+        StringBuilder errMsg = new StringBuilder(256);
+
         InstanceAWSProvider provider = new InstanceAWSProvider();
-        assertFalse(provider.validateAWSSignature("document", null));
-        assertFalse(provider.validateAWSSignature("document", ""));
+        assertFalse(provider.validateAWSSignature("document", null, errMsg));
+        assertFalse(provider.validateAWSSignature("document", "", errMsg));
         
         // aws public key is null
-        assertFalse(provider.validateAWSSignature("document", "signature"));
+        assertFalse(provider.validateAWSSignature("document", "signature", errMsg));
         
         provider = new InstanceAWSProvider();
         System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider");
         
-        assertFalse(provider.validateAWSSignature("document", "invalid-signature"));
+        assertFalse(provider.validateAWSSignature("document", "invalid-signature", errMsg));
 
         provider.close();
         System.clearProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT);
@@ -111,11 +115,13 @@ public class InstanceAWSProviderTest {
     @Test
     public void testValidateAWSDocumentInvalidSignature() {
         
+        StringBuilder errMsg = new StringBuilder(256);
+
         InstanceAWSProvider provider = new InstanceAWSProvider();
         System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider");
         
-        assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2", "document", null, "1234", "i-1234"));
+        assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2", "document", null, "1234", "i-1234", errMsg));
     }
     
     @Test
@@ -203,40 +209,48 @@ public class InstanceAWSProviderTest {
     @Test
     public void testValidateAWSDocumentInvalidProvider() {
         
+        StringBuilder errMsg = new StringBuilder(256);
+
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
         System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider");
         
         assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2", "{\"accountId\": \"1234\"}",
-                "signature", "1235", "i-1234"));
+                "signature", "1235", "i-1234", errMsg));
     }
     
     @Test
     public void testValidateAWSDocumentInvalidAccountId() {
         
+        StringBuilder errMsg = new StringBuilder(256);
+
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
         System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider");
         
         assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2",
-                "{\"accountId\": \"1234\",\"region\": \"us-west-2\"}", "signature", "1235", "i-1234"));
+                "{\"accountId\": \"1234\",\"region\": \"us-west-2\"}", "signature", "1235", "i-1234", errMsg));
     }
     
     @Test
     public void testValidateAWSDocumentInvalidInstanceId() {
         
+        StringBuilder errMsg = new StringBuilder(256);
+
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
         System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider");
         
         assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2",
                 "{\"accountId\": \"1234\",\"region\": \"us-west-2\",\"instanceId\": \"i-234\"}",
-                "signature", "1234", "i-1234"));
+                "signature", "1234", "i-1234", errMsg));
     }
     
     @Test
     public void testValidateAWSDocumentInvalidBootTime() {
         
+        StringBuilder errMsg = new StringBuilder(256);
+
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
         System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider");
@@ -244,20 +258,22 @@ public class InstanceAWSProviderTest {
         String bootTime = Timestamp.fromMillis(System.currentTimeMillis() - 1000000).toString();
         assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2", "{\"accountId\": \"1234\",\"pendingTime\": \""
                 + bootTime + "\",\"region\": \"us-west-2\",\"instanceId\": \"i-1234\"}",
-                "signature", "1234", "i-1234"));
+                "signature", "1234", "i-1234", errMsg));
     }
     
     @Test
     public void testValidateAWSDocument() {
         
+        StringBuilder errMsg = new StringBuilder(256);
+
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
         System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider");
         
         String bootTime = Timestamp.fromMillis(System.currentTimeMillis() - 100).toString();
         assertTrue(provider.validateAWSDocument("athenz.aws.us-west-2", "{\"accountId\": \"1234\",\"pendingTime\": \""
-                        + bootTime + "\",\"region\":\"us-west-2\",\"instanceId\": \"i-1234\"}",
-                        "signature", "1234", "i-1234"));
+                + bootTime + "\",\"region\":\"us-west-2\",\"instanceId\": \"i-1234\"}",
+                "signature", "1234", "i-1234", errMsg));
     }
     
     @Test
@@ -412,26 +428,30 @@ public class InstanceAWSProviderTest {
     @Test
     public void testValidateAWSDocumentFailures() {
         
+        StringBuilder errMsg = new StringBuilder(256);
+
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
         
         // no signature
         
         assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2", "document",
-                null, "awsAccount", "instanceId"));
+                null, "awsAccount", "instanceId", errMsg));
         
         // unable to parse
         
         assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2", "document",
-                "signature", "awsAccount", "instanceId"));
+                "signature", "awsAccount", "instanceId", errMsg));
     }
     
     @Test
     public void testValidateAWSInstanceId() {
         
+        StringBuilder errMsg = new StringBuilder(256);
+
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
-        assertFalse(provider.validateAWSInstanceId("1234", "12345"));
-        assertFalse(provider.validateAWSInstanceId("1234", null));
-        assertTrue(provider.validateAWSInstanceId("1234", "1234"));
+        assertFalse(provider.validateAWSInstanceId("1234", "12345", errMsg));
+        assertFalse(provider.validateAWSInstanceId("1234", null, errMsg));
+        assertTrue(provider.validateAWSInstanceId("1234", "1234", errMsg));
     }
     
     @Test
@@ -447,7 +467,7 @@ public class InstanceAWSProviderTest {
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
         provider.setIdentitySuper(true);
         AWSSecurityTokenServiceClient mockClient = Mockito.mock(AWSSecurityTokenServiceClient.class);
-        Mockito.when(mockClient.getCallerIdentity(Mockito.anyObject())).thenReturn(null);
+        Mockito.when(mockClient.getCallerIdentity(ArgumentMatchers.any())).thenReturn(null);
         provider.setStsClient(mockClient);
         
         AWSAttestationData info = new AWSAttestationData();
@@ -459,7 +479,7 @@ public class InstanceAWSProviderTest {
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
         provider.setIdentitySuper(true);
         AWSSecurityTokenServiceClient mockClient = Mockito.mock(AWSSecurityTokenServiceClient.class);
-        Mockito.when(mockClient.getCallerIdentity(Mockito.anyObject())).thenThrow(new ResourceException(101));
+        Mockito.when(mockClient.getCallerIdentity(ArgumentMatchers.any())).thenThrow(new ResourceException(101));
         provider.setStsClient(mockClient);
         
         AWSAttestationData info = new AWSAttestationData();
@@ -473,7 +493,7 @@ public class InstanceAWSProviderTest {
         AWSSecurityTokenServiceClient mockClient = Mockito.mock(AWSSecurityTokenServiceClient.class);
         GetCallerIdentityResult result = Mockito.mock(GetCallerIdentityResult.class);
         Mockito.when(result.getArn()).thenReturn("arn:aws:sts::1235:assumed-role/athenz.service/athenz.service");
-        Mockito.when(mockClient.getCallerIdentity(Mockito.anyObject())).thenReturn(result);
+        Mockito.when(mockClient.getCallerIdentity(ArgumentMatchers.any())).thenReturn(result);
         provider.setStsClient(mockClient);
         
         AWSAttestationData info = new AWSAttestationData();
@@ -488,7 +508,7 @@ public class InstanceAWSProviderTest {
         AWSSecurityTokenServiceClient mockClient = Mockito.mock(AWSSecurityTokenServiceClient.class);
         GetCallerIdentityResult result = Mockito.mock(GetCallerIdentityResult.class);
         Mockito.when(result.getArn()).thenReturn("arn:aws:sts::1234:assumed-role/athenz.service/athenz.service");
-        Mockito.when(mockClient.getCallerIdentity(Mockito.anyObject())).thenReturn(result);
+        Mockito.when(mockClient.getCallerIdentity(ArgumentMatchers.any())).thenReturn(result);
         provider.setStsClient(mockClient);
         
         AWSAttestationData info = new AWSAttestationData();
@@ -498,12 +518,15 @@ public class InstanceAWSProviderTest {
     
     @Test
     public void testValidateAWSProvider() {
+
+        StringBuilder errMsg = new StringBuilder(256);
+
         InstanceAWSProvider provider = new InstanceAWSProvider();
-        assertFalse(provider.validateAWSProvider("provider", null));
-        assertFalse(provider.validateAWSProvider("athenz.aws.us-east-1", ""));
-        assertFalse(provider.validateAWSProvider("athenz.aws.us-east-1", "us-west-2"));
-        assertFalse(provider.validateAWSProvider("athenz.awsus-west-2", "us-west-2"));
-        assertTrue(provider.validateAWSProvider("athenz.aws.us-west-2", "us-west-2"));
+        assertFalse(provider.validateAWSProvider("provider", null, errMsg));
+        assertFalse(provider.validateAWSProvider("athenz.aws.us-east-1", "", errMsg));
+        assertFalse(provider.validateAWSProvider("athenz.aws.us-east-1", "us-west-2", errMsg));
+        assertFalse(provider.validateAWSProvider("athenz.awsus-west-2", "us-west-2", errMsg));
+        assertTrue(provider.validateAWSProvider("athenz.aws.us-west-2", "us-west-2", errMsg));
     }
     
     @Test

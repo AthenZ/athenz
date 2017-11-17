@@ -43,7 +43,7 @@ public class MockInstanceAWSProvider extends InstanceAWSProvider {
     }
     
     @Override
-    public boolean validateAWSSignature(final String document, final String signature) {
+    public boolean validateAWSSignature(final String document, final String signature, StringBuilder errMsg) {
         return signatureResult;
     }
     
