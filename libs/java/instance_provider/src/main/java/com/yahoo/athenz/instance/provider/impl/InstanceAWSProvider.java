@@ -113,53 +113,53 @@ public class InstanceAWSProvider implements InstanceProvider {
         return value;
     }
     
-    boolean validateAWSAccount(final String awsAccount, final String docAccount) {
+    boolean validateAWSAccount(final String awsAccount, final String docAccount, StringBuilder errMsg) {
         
         if (!awsAccount.equalsIgnoreCase(docAccount)) {
-            LOGGER.error("verifyInstanceDocument: mismatch between account values: "
-                    + " domain lookup: {} vs. instance document: {}", awsAccount, docAccount);
+            LOGGER.error("ZTS AWS Domain Lookup account id: {}", awsAccount);
+            errMsg.append("mismatch between account values - instance document: ").append(docAccount);
             return false;
         }
         return true;
     }
     
-    boolean validateAWSProvider(final String provider, final String region) {
+    boolean validateAWSProvider(final String provider, final String region, StringBuilder errMsg) {
         
         if (region == null) {
-            LOGGER.error("validateAWSProvider: no region provided in instance document");
+            errMsg.append("no region provided in instance document");
             return false;
         }
         
         final String suffix = "." + region;
         if (!provider.endsWith(suffix)) {
-            LOGGER.error("validateAWSProvider: provider {} does not end with expected suffix {}",
-                    provider, region);
+            errMsg.append("provider ").append(provider).append(" does not end with expected suffix ").append(region);
             return false;
         }
         
         return true;
     }
     
-    boolean validateAWSInstanceId(final String reqInstanceId, final String docInstanceId) {
+    boolean validateAWSInstanceId(final String reqInstanceId, final String docInstanceId,
+            StringBuilder errMsg) {
         
         if (!reqInstanceId.equalsIgnoreCase(docInstanceId)) {
-            LOGGER.error("validateAWSInstanceId: mismatch between instance-id values: "
-                    + " request: {} vs. instance document: {}", reqInstanceId, docInstanceId);
+            errMsg.append("mismatch between instance-id values: request: ").append(reqInstanceId)
+                .append(" vs. instance document: ").append(docInstanceId);
             return false;
         }
         
         return true;
     }
     
-    boolean validateAWSSignature(final String document, final String signature) {
+    boolean validateAWSSignature(final String document, final String signature, StringBuilder errMsg) {
         
         if (signature == null || signature.isEmpty()) {
-            LOGGER.error("AWS instance document signature is empty");
+            errMsg.append("AWS instance document signature is empty");
             return false;
         }
         
         if (awsPublicKey == null) {
-            LOGGER.error("AWS Public key is not available");
+            errMsg.append("AWS Public key is not available");
             return false;
         }
         
@@ -167,17 +167,17 @@ public class InstanceAWSProvider implements InstanceProvider {
         try {
             valid = Crypto.validatePKCS7Signature(document, signature, awsPublicKey);
         } catch (CryptoException ex) {
-             LOGGER.error("verifyInstanceDocument: unable to verify AWS instance document: {}",
-                     ex.getMessage());
+            errMsg.append("verifyInstanceDocument: unable to verify AWS instance document: ");
+            errMsg.append(ex.getMessage());
         }
         
         return valid;
     }
     
     boolean validateAWSDocument(final String provider, final String document, final String signature,
-            final String awsAccount, final String instanceId) {
+            final String awsAccount, final String instanceId, StringBuilder errMsg) {
         
-        if (!validateAWSSignature(document, signature)) {
+        if (!validateAWSSignature(document, signature, errMsg)) {
             return false;
         }
         
@@ -185,24 +185,24 @@ public class InstanceAWSProvider implements InstanceProvider {
         
         Struct instanceDocument = JSON.fromString(document, Struct.class);
         if (instanceDocument == null) {
-            LOGGER.error("validateAWSDocument: failed to parse: {}",
-                    document);
+            errMsg.append("Unable to parse identity document");
+            LOGGER.error("Identity Document: {}", document);
             return false;
         }
         
-        if (!validateAWSProvider(provider, instanceDocument.getString(ATTR_REGION))) {
+        if (!validateAWSProvider(provider, instanceDocument.getString(ATTR_REGION), errMsg)) {
             return false;
         }
         
         // verify that the account lookup and the account in the document match
         
-        if (!validateAWSAccount(awsAccount, instanceDocument.getString(ATTR_ACCOUNT_ID))) {
+        if (!validateAWSAccount(awsAccount, instanceDocument.getString(ATTR_ACCOUNT_ID), errMsg)) {
             return false;
         }
         
         // verify the request has the expected account id
         
-        if (!validateAWSInstanceId(instanceId, instanceDocument.getString(ATTR_INSTANCE_ID))) {
+        if (!validateAWSInstanceId(instanceId, instanceDocument.getString(ATTR_INSTANCE_ID), errMsg)) {
             return false;
         }
         
@@ -210,8 +210,8 @@ public class InstanceAWSProvider implements InstanceProvider {
         
         Timestamp bootTime = Timestamp.fromString(instanceDocument.getString(ATTR_PENDING_TIME));
         if (bootTime.millis() < System.currentTimeMillis() - bootTimeOffset) {
-            LOGGER.error("validateAWSDocument: Instance boot time is not recent enough: {}",
-                    bootTime.toString());
+            errMsg.append("Instance boot time is not recent enough: ");
+            errMsg.append(bootTime.toString());
             return false;
         }
         
@@ -335,9 +335,11 @@ public class InstanceAWSProvider implements InstanceProvider {
             
             // validate our document against given signature
             
+            StringBuilder errMsg = new StringBuilder(256);
             if (!validateAWSDocument(confirmation.getProvider(), document, info.getSignature(),
-                    awsAccount, instanceId.toString())) {
-                throw error("Unable to validate AWS document");
+                    awsAccount, instanceId.toString(), errMsg)) {
+                LOGGER.error("validateAWSDocument: {}", errMsg.toString());
+                throw error("Unable to validate AWS document: " + errMsg.toString());
             }
             
             // reset the attributes received from the server
@@ -356,7 +358,7 @@ public class InstanceAWSProvider implements InstanceProvider {
         // instance identity
         
         if (!verifyInstanceIdentity(info, awsAccount)) {
-            throw error("Unable to verify instance identity");
+            throw error("Unable to verify instance identity credentials");
         }
         
         return confirmation;
