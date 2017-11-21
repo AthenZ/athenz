@@ -68,7 +68,7 @@ public class InstanceProviderSchema {
 
         sb.stringType("PathElement")
             .comment("A uri-safe path element")
-            .pattern("[a-zA-Z0-9-._~=+@$,:]*");
+            .pattern("[a-zA-Z0-9-\\._~=+@$,:]*");
 
         sb.structType("InstanceConfirmation")
             .field("provider", "ServiceName", false, "provider service name")

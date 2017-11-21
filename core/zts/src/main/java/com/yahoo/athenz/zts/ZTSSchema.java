@@ -68,7 +68,7 @@ public class ZTSSchema {
 
         sb.stringType("PathElement")
             .comment("A uri-safe path element")
-            .pattern("[a-zA-Z0-9-._~=+@$,:]*");
+            .pattern("[a-zA-Z0-9-\\._~=+@$,:]*");
 
         sb.structType("ResourceAccess")
             .comment("ResourceAccess can be checked and returned as this resource. (same as ZMS.Access)")
@@ -171,6 +171,22 @@ public class ZTSSchema {
             .field("csr", "String", false, "Cert CSR signed by the service's private key (public key registered in ZMS)")
             .field("expiryTime", "Int32", true, "in seconds how long token should be valid for")
             .field("keyId", "String", true, "public key identifier");
+
+        sb.stringType("AWSRoleName")
+            .comment("AWS role name without the path")
+            .pattern("[a-zA-Z0-9-\\._=+@,]*");
+
+        sb.stringType("AWSRolePathElement")
+            .comment("AWS role path single element")
+            .pattern("[a-zA-Z0-9][a-zA-Z0-9-\\._]*");
+
+        sb.stringType("AWSRolePath")
+            .comment("AWS role path")
+            .pattern("([a-zA-Z0-9][a-zA-Z0-9-\\._]*/)+");
+
+        sb.stringType("AWSArnRoleName")
+            .comment("AWS full role name with path")
+            .pattern("(([a-zA-Z0-9][a-zA-Z0-9-\\._]*/)+)*[a-zA-Z0-9-\\._=+@,]*");
 
         sb.structType("AWSTemporaryCredentials")
             .field("accessKeyId", "String", false, "")
@@ -440,7 +456,7 @@ public class ZTSSchema {
         sb.resource("AWSTemporaryCredentials", "GET", "/domain/{domainName}/role/{role}/creds")
             .comment("perform an AWS AssumeRole of the target role and return the credentials. ZTS must have been granted the ability to assume the role in IAM, and granted the ability to ASSUME_AWS_ROLE in Athenz for this to succeed.")
             .pathParam("domainName", "DomainName", "name of the domain containing the role, which implies the target account")
-            .pathParam("role", "CompoundName", "the target AWS role name in the domain account, in Athenz terms, i.e. \"the.role\"")
+            .pathParam("role", "AWSArnRoleName", "the target AWS role name in the domain account, in Athenz terms, i.e. \"the.role\"")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")

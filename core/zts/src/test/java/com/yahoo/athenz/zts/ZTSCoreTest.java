@@ -87,7 +87,7 @@ public class ZTSCoreTest {
         
         for (String s : goodPathElements) {
             Result result = validator.validate(s, "PathElement");
-            assertTrue(result.valid);
+            assertTrue(result.valid, s);
         }
 
         String [] badPathElements = {
@@ -102,7 +102,42 @@ public class ZTSCoreTest {
 
         for (String s : badPathElements) {
             Result result = validator.validate(s, "PathElement");
-            assertFalse(result.valid);
+            assertFalse(result.valid, s);
+        }
+    }
+    
+    @Test
+    public void AWSArnRoleName() {
+        String [] goodAWSRoles = {
+            "test-role",
+            "test.role",
+            "test@role=again+plus",
+            "sso/test@role=again+plus",
+            "eng/athenz/product/role_role1-role3",
+            "eng/athenz-path/product/role_role1-role3",
+            "eng/athenz.path_path2/product/role_role1-role3"
+        };
+        
+        Schema schema = ZTSSchema.instance();
+        Validator validator = new Validator(schema);
+        
+        for (String s : goodAWSRoles) {
+            Result result = validator.validate(s, "AWSArnRoleName");
+            assertTrue(result.valid, s);
+        }
+
+        String [] badAWSRoles = {
+            "test:role",
+            "Non_ascii:��",
+            "/role1",
+            "sso:role/role1",
+            "sso+role/role2",
+            "org//unit/role1"
+        };
+
+        for (String s : badAWSRoles) {
+            Result result = validator.validate(s, "AWSArnRoleName");
+            assertFalse(result.valid, s);
         }
     }
 }

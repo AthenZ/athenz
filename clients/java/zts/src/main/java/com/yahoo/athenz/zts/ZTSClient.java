@@ -18,6 +18,8 @@ package com.yahoo.athenz.zts;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -249,7 +251,7 @@ public class ZTSClient implements Closeable {
      * athenz.zts.client.read_timeout and athenz.zts.client.connect_timeout
      * system properties. The values specified for timeouts must be in milliseconds.
      * @param ztsUrl ZTS Server's URL (optional)
-     * @param sslContext SSLContext that includes service's private key and x.509 ceriticate
+     * @param sslContext SSLContext that includes service's private key and x.509 certificate
      * for authenticating requests
      */
     public ZTSClient(String ztsUrl, SSLContext sslContext) {
@@ -740,7 +742,7 @@ public class ZTSClient implements Closeable {
         //
         for (ZTSClientService provider: ZTS_TOKEN_PROVIDERS) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("getRoleToken: found service provider=" + provider);
+                LOG.debug("getRoleToken: found service provider={}", provider);
             }
             
             // provider needs to know who the client is so we'll be passing
@@ -750,7 +752,7 @@ public class ZTSClient implements Closeable {
                     minExpiryTime, maxExpiryTime, proxyForPrincipal);
             if (roleToken != null) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("getRoleToken: service provider=" + provider + " returns token");
+                    LOG.debug("getRoleToken: service provider={} returns token", provider);
                 }
                 return roleToken;
             }
@@ -945,7 +947,8 @@ public class ZTSClient implements Closeable {
             FETCHER_LAST_RUN_AT.set(currentTime);
             
             if (LOG.isDebugEnabled()) {
-                LOG.debug("RolePrefetchTask: Fetching role token from the scheduled queue. Size=" + PREFETCH_SCHEDULED_ITEMS.size());
+                LOG.debug("RolePrefetchTask: Fetching role token from the scheduled queue. Size= {}",
+                        PREFETCH_SCHEDULED_ITEMS.size());
             }
             if (PREFETCH_SCHEDULED_ITEMS.isEmpty()) {
                 if (LOG.isDebugEnabled()) {
@@ -1121,8 +1124,8 @@ public class ZTSClient implements Closeable {
             RoleToken token = getRoleToken(domainName, roleName, minExpiryTime, maxExpiryTime, true, proxyForPrincipal);
             if (token == null) {
                 if (LOG.isWarnEnabled()) {
-                    LOG.warn("PrefetchToken: No token fetchable using given params, domain=" + domainName
-                        + ", roleSuffix=" + roleName);
+                    LOG.warn("PrefetchToken: No token fetchable using domain={}, roleSuffix={}",
+                            domainName, roleName);
                 }
                 return false;
             }
@@ -1131,8 +1134,8 @@ public class ZTSClient implements Closeable {
             AWSTemporaryCredentials awsCred = getAWSTemporaryCredentials(domainName, roleName, true);
             if (awsCred == null) {
                 if (LOG.isWarnEnabled()) {
-                    LOG.warn("PrefetchToken: No aws credential fetchable using given params, domain=" + domainName
-                        + ", roleName=" + roleName);
+                    LOG.warn("PrefetchToken: No aws credential fetchable using domain={}, roleName={}",
+                            domainName, roleName);
                 }
                 return false;
             }
@@ -1141,8 +1144,8 @@ public class ZTSClient implements Closeable {
 
         if (enablePrefetch == false || domain == null || domain.isEmpty() || service == null || service.isEmpty()) {
             if (LOG.isWarnEnabled()) {
-                LOG.warn("PrefetchToken: Failure to setup ongoing prefetch of tokens. Both domain("
-                        + domain + ") and service(" + service + ") is required");
+                LOG.warn("PrefetchToken: setup failure. Both domain({}) and service({}) are required",
+                        domain, service);
             }
             return false;
         }
@@ -1269,7 +1272,7 @@ public class ZTSClient implements Closeable {
         RoleToken roleToken = ROLE_TOKEN_CACHE.get(cacheKey);
         if (roleToken == null) {
             if (LOG.isInfoEnabled()) {
-                LOG.info("LookupRoleTokenInCache: cache-lookup key: " + cacheKey + " result: not found");
+                LOG.info("LookupRoleTokenInCache: cache-lookup key: {} result: not found", cacheKey);
             }
             return null;
         }
@@ -1300,7 +1303,7 @@ public class ZTSClient implements Closeable {
         AWSTemporaryCredentials awsCred = AWS_CREDS_CACHE.get(cacheKey);
         if (awsCred == null) {
             if (LOG.isInfoEnabled()) {
-                LOG.info("LookupAwsCredInCache: aws-cache-lookup key: " + cacheKey + " result: not found");
+                LOG.info("LookupAwsCredInCache: aws-cache-lookup key: {} result: not found", cacheKey);
             }
             return null;
         }
@@ -1466,6 +1469,15 @@ public class ZTSClient implements Closeable {
     public AWSTemporaryCredentials getAWSTemporaryCredentials(String domainName, String roleName,
             boolean ignoreCache) {
 
+        // since our aws role name can contain the path element thus /'s
+        // we need to encode the value and use that instead
+        
+        try {
+            roleName = URLEncoder.encode(roleName, "UTF-8");
+        } catch (UnsupportedEncodingException ex) {
+            LOG.error("Unable to encode {} - error {}", roleName, ex.getMessage());
+        }
+        
         // first lookup in our cache to see if it can be satisfied
         // only if we're not asked to ignore the cache
         
