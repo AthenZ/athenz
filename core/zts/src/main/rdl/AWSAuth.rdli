@@ -3,6 +3,18 @@
 
 include "Names.tdl";
 
+//AWS role name without the path
+type AWSRoleName String (pattern="[a-zA-Z0-9-\\._=+@,]*");
+
+//AWS role path single element
+type AWSRolePathElement String (pattern="[a-zA-Z0-9][a-zA-Z0-9-\\._]*");
+
+//AWS role path
+type AWSRolePath String (pattern="({AWSRolePathElement}/)+");
+
+//AWS full role name with path
+type AWSArnRoleName String (pattern="({AWSRolePath})*{AWSRoleName}");
+
 type AWSTemporaryCredentials Struct {
     String accessKeyId;
     String secretAccessKey;
@@ -15,7 +27,7 @@ type AWSTemporaryCredentials Struct {
 // the ability to ASSUME_AWS_ROLE in Athenz for this to succeed.
 resource AWSTemporaryCredentials GET "/domain/{domainName}/role/{role}/creds" {
     DomainName domainName; //name of the domain containing the role, which implies the target account
-    CompoundName role; //the target AWS role name in the domain account, in Athenz terms, i.e. "the.role"
+    AWSArnRoleName role; //the target AWS role name in the domain account, in Athenz terms, i.e. "the.role"
     authenticate;
     exceptions {
         ResourceError BAD_REQUEST;

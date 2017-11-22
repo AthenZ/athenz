@@ -78,8 +78,23 @@ func init() {
 
 	tPathElement := rdl.NewStringTypeBuilder("PathElement")
 	tPathElement.Comment("A uri-safe path element")
-	tPathElement.Pattern("[a-zA-Z0-9-._~=+@$,:]*")
+	tPathElement.Pattern("[a-zA-Z0-9-\\._~=+@$,:]*")
 	sb.AddType(tPathElement.Build())
+
+	tAWSRoleName := rdl.NewStringTypeBuilder("AWSRoleName")
+	tAWSRoleName.Comment("AWS role name without the path")
+	tAWSRoleName.Pattern("[a-zA-Z0-9-\\._=+@,]*")
+	sb.AddType(tAWSRoleName.Build())
+
+	tAWSRolePathElement := rdl.NewStringTypeBuilder("AWSRolePathElement")
+	tAWSRolePathElement.Comment("AWS role path single element")
+	tAWSRolePathElement.Pattern("[a-zA-Z0-9-\\._]*")
+	sb.AddType(tAWSRolePathElement.Build())
+
+	tAWSArnRoleName := rdl.NewStringTypeBuilder("AWSArnRoleName")
+	tAWSArnRoleName.Comment("AWS full role name with path")
+	tAWSArnRoleName.Pattern("([a-zA-Z0-9-\\._]*/)*[a-zA-Z0-9-\\._=+@,]*")
+	sb.AddType(tAWSArnRoleName.Build())
 
 	tResourceAccess := rdl.NewStructTypeBuilder("Struct", "ResourceAccess")
 	tResourceAccess.Comment("ResourceAccess can be checked and returned as this resource. (same as ZMS.Access)")
@@ -436,7 +451,7 @@ func init() {
 	mGetAWSTemporaryCredentials := rdl.NewResourceBuilder("AWSTemporaryCredentials", "GET", "/domain/{domainName}/role/{role}/creds")
 	mGetAWSTemporaryCredentials.Comment("perform an AWS AssumeRole of the target role and return the credentials. ZTS must have been granted the ability to assume the role in IAM, and granted the ability to ASSUME_AWS_ROLE in Athenz for this to succeed.")
 	mGetAWSTemporaryCredentials.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain containing the role, which implies the target account")
-	mGetAWSTemporaryCredentials.Input("role", "CompoundName", true, "", "", false, nil, "the target AWS role name in the domain account, in Athenz terms, i.e. \"the.role\"")
+	mGetAWSTemporaryCredentials.Input("role", "AWSArnRoleName", true, "", "", false, nil, "the target AWS role name in the domain account, in Athenz terms, i.e. \"the.role\"")
 	mGetAWSTemporaryCredentials.Auth("", "", true, "")
 	mGetAWSTemporaryCredentials.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetAWSTemporaryCredentials.Exception("FORBIDDEN", "ResourceError", "")

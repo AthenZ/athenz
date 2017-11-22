@@ -93,6 +93,21 @@ type SignedToken string
 type PathElement string
 
 //
+// AWSRoleName - AWS role name without the path
+//
+type AWSRoleName string
+
+//
+// AWSRolePathElement - AWS role path single element
+//
+type AWSRolePathElement string
+
+//
+// AWSArnRoleName - AWS full role name with path
+//
+type AWSArnRoleName string
+
+//
 // ResourceAccess - ResourceAccess can be checked and returned as this
 // resource. (same as ZMS.Access)
 //

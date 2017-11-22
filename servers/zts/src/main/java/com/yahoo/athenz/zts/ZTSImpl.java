@@ -140,6 +140,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private static final String TYPE_COMPOUND_NAME = "CompoundName";
     private static final String TYPE_RESOURCE_NAME = "ResourceName";
     private static final String TYPE_PATH_ELEMENT = "PathElement";
+    private static final String TYPE_AWS_ARN_ROLE_NAME = "AWSArnRoleName";
     
     private static final String ZTS_ROLE_TOKEN_VERSION = "Z1";
 
@@ -1586,7 +1587,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         validateRequest(ctx.request(), caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
-        validate(roleName, TYPE_ENTITY_NAME, caller);
+        validate(roleName, TYPE_AWS_ARN_ROLE_NAME, caller);
         
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case since ZMS Server
