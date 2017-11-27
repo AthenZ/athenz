@@ -17,18 +17,6 @@ package com.oath.auth;
  */
 
 import com.google.common.io.Resources;
-import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
-import org.bouncycastle.openssl.PEMKeyPair;
-import org.bouncycastle.openssl.PEMParser;
-import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -39,6 +27,16 @@ import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.openssl.PEMKeyPair;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Utils {
 
@@ -47,32 +45,26 @@ public class Utils {
     private static final String SSLCONTEXT_ALGORITHM = "TLSv1.2";
 
     public static KeyStore getKeyStore(final String jksFilePath) throws Exception {
+        return getKeyStore(jksFilePath, "secret");
+    }
+
+    public static KeyStore getKeyStore(final String jksFilePath, final String password) throws Exception {
         final KeyStore keyStore = KeyStore.getInstance("JKS");
         ///CLOVER:OFF
         if (Paths.get(jksFilePath).isAbsolute()) {
             // Can not cover this branch in unit test. Can not refer any files by absolute paths
             try (InputStream jksFileInputStream = new FileInputStream(jksFilePath)) {
-                keyStore.load(jksFileInputStream, "secret".toCharArray());
+                keyStore.load(jksFileInputStream, password.toCharArray());
                 return keyStore;
             }
         }
         ///CLOVER:ON
 
         try (InputStream jksFileInputStream = Resources.getResource(jksFilePath).openStream()) {
-            keyStore.load(jksFileInputStream, "secret".toCharArray());
+            keyStore.load(jksFileInputStream, password.toCharArray());
             return keyStore;
         }
     }
-
-    public static TrustManager[] getTrustManagers(final String trustStorePath) throws Exception {
-        final KeyStore keystore = getKeyStore(trustStorePath);
-        final TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-
-        trustManagerFactory.init(keystore);
-        return trustManagerFactory.getTrustManagers();
-
-    }
-
 
     public static KeyManager[] getKeyManagers(final String athensPublicKey, final String athensPrivateKey) throws Exception {
         final KeyStore keystore = createKeyStore(athensPublicKey, athensPrivateKey);
@@ -86,9 +78,20 @@ public class Utils {
      *  It requires that the proxies are created which are then stored in the KeyRefresher
      */
     public static KeyRefresher generateKeyRefresher(final String trustStorePath, final String athensPublicKey, final String athensPrivateKey) throws Exception {
+//        TrustStore trustStore = new TrustStore(trustStorePath, new JavaKeyStoreProvider(trustStorePath, "secret"));
+        TrustStore trustStore = new TrustStore(trustStorePath, new JavaKeyStoreProvider(trustStorePath, "secret"));
+        return getKeyRefresher(athensPublicKey, athensPrivateKey, trustStore);
+    }
+
+    public static KeyRefresher generateKeyRefresherFromCaCert(final String caCertPath, final String athensPublicKey, final String athensPrivateKey) throws Exception {
+        TrustStore trustStore = new TrustStore(caCertPath, new CaCertKeyStoreProvider(caCertPath));
+        return getKeyRefresher(athensPublicKey, athensPrivateKey, trustStore);
+    }
+
+    static KeyRefresher getKeyRefresher(String athensPublicKey, String athensPrivateKey, TrustStore trustStore) throws Exception {
         KeyManagerProxy keyManagerProxy = new KeyManagerProxy(getKeyManagers(athensPublicKey, athensPrivateKey));
-        TrustManagerProxy trustManagerProxy = new TrustManagerProxy(getTrustManagers(trustStorePath));
-        return new KeyRefresher(athensPublicKey, athensPrivateKey, trustStorePath, keyManagerProxy, trustManagerProxy);
+        TrustManagerProxy trustManagerProxy = new TrustManagerProxy(trustStore.getTrustManagers());
+        return new KeyRefresher(athensPublicKey, athensPrivateKey, trustStore, keyManagerProxy, trustManagerProxy);
     }
 
     /**

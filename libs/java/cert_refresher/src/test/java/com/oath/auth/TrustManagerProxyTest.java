@@ -71,7 +71,6 @@ public class TrustManagerProxyTest {
 
         X509TrustManager trustManagerSecond = Deencapsulation.getField(trustManagerProxy, "trustManager");
         assertNotNull(trustManagerSecond);
-
         assertNotSame(trustManagerFirst, trustManagerSecond);
     }
 
@@ -81,21 +80,7 @@ public class TrustManagerProxyTest {
             mockedTrustManager.checkClientTrusted((X509Certificate[]) any, "cert"); times = 1;
         }};
 
-        TrustManager[] trustManagers = new TrustManager[] { new X509TrustManager() {
-            @Override
-            public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {}
-
-            @Override
-            public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {}
-
-            @Override
-            public X509Certificate[] getAcceptedIssuers() {
-                return new X509Certificate[0];
-            }
-        }};
-
-        TrustManagerProxy trustManagerProxy = new TrustManagerProxy(trustManagers);
-
+        TrustManagerProxy trustManagerProxy = new TrustManagerProxy(new TrustManager[]{mockedTrustManager});
         trustManagerProxy.checkClientTrusted(null, "cert");
     }
 
@@ -105,20 +90,7 @@ public class TrustManagerProxyTest {
             mockedTrustManager.checkServerTrusted((X509Certificate[]) any, "cert"); times = 1;
         }};
 
-        TrustManager[] trustManagers = new TrustManager[] { new X509TrustManager() {
-            @Override
-            public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {}
-
-            @Override
-            public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {}
-
-            @Override
-            public X509Certificate[] getAcceptedIssuers() {
-                return new X509Certificate[0];
-            }
-        }};
-
-        TrustManagerProxy trustManagerProxy = new TrustManagerProxy(trustManagers);
+        TrustManagerProxy trustManagerProxy = new TrustManagerProxy(new TrustManager[]{mockedTrustManager});
 
         trustManagerProxy.checkServerTrusted(null, "cert");
     }
@@ -129,21 +101,7 @@ public class TrustManagerProxyTest {
             mockedTrustManager.getAcceptedIssuers(); times = 1; result = null;
         }};
 
-        TrustManager[] trustManagers = new TrustManager[] { new X509TrustManager() {
-            @Override
-            public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {}
-
-            @Override
-            public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {}
-
-            @Override
-            public X509Certificate[] getAcceptedIssuers() {
-                return new X509Certificate[0];
-            }
-        }};
-
-        TrustManagerProxy trustManagerProxy = new TrustManagerProxy(trustManagers);
-
+        TrustManagerProxy trustManagerProxy = new TrustManagerProxy(new TrustManager[]{mockedTrustManager});
         assertNull(trustManagerProxy.getAcceptedIssuers());
     }
 

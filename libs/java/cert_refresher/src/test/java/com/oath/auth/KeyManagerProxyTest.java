@@ -92,8 +92,7 @@ public class KeyManagerProxyTest {
             mockedKeyManager.getClientAliases("cert", (Principal[]) any); times = 1;
         }};
 
-        KeyManager[] keyManagers = new KeyManager[] { generateNewKeyManger()};
-        KeyManagerProxy keyManagerProxy = new KeyManagerProxy(keyManagers);
+        KeyManagerProxy keyManagerProxy = new KeyManagerProxy(new KeyManager[]{mockedKeyManager});
 
         keyManagerProxy.getClientAliases("cert", null);
     }
@@ -104,8 +103,7 @@ public class KeyManagerProxyTest {
             mockedKeyManager.chooseClientAlias((String[]) any, (Principal[]) any, (Socket) any); times = 1;
         }};
 
-        KeyManager[] keyManagers = new KeyManager[] { generateNewKeyManger() };
-        KeyManagerProxy keyManagerProxy = new KeyManagerProxy(keyManagers);
+        KeyManagerProxy keyManagerProxy = new KeyManagerProxy(new KeyManager[]{mockedKeyManager});
 
         keyManagerProxy.chooseClientAlias(null, null, null);
     }
@@ -116,8 +114,7 @@ public class KeyManagerProxyTest {
             mockedKeyManager.getServerAliases("cert", (Principal[]) any); times = 1;
         }};
 
-        KeyManager[] keyManagers = new KeyManager[] { generateNewKeyManger()};
-        KeyManagerProxy keyManagerProxy = new KeyManagerProxy(keyManagers);
+        KeyManagerProxy keyManagerProxy = new KeyManagerProxy(new KeyManager[]{mockedKeyManager});
 
         keyManagerProxy.getServerAliases("cert", null);
     }
@@ -128,8 +125,7 @@ public class KeyManagerProxyTest {
             mockedKeyManager.chooseServerAlias("cert", (Principal[]) any, (Socket) any); times = 1;
         }};
 
-        KeyManager[] keyManagers = new KeyManager[] { generateNewKeyManger()};
-        KeyManagerProxy keyManagerProxy = new KeyManagerProxy(keyManagers);
+        KeyManagerProxy keyManagerProxy = new KeyManagerProxy(new KeyManager[]{mockedKeyManager});
 
         keyManagerProxy.chooseServerAlias("cert", null, null);
     }
@@ -140,8 +136,7 @@ public class KeyManagerProxyTest {
             mockedKeyManager.getCertificateChain("cert"); times = 1;
         }};
 
-        KeyManager[] keyManagers = new KeyManager[] { generateNewKeyManger()};
-        KeyManagerProxy keyManagerProxy = new KeyManagerProxy(keyManagers);
+        KeyManagerProxy keyManagerProxy = new KeyManagerProxy(new KeyManager[]{mockedKeyManager});
 
         keyManagerProxy.getCertificateChain("cert");
     }
@@ -152,8 +147,7 @@ public class KeyManagerProxyTest {
             mockedKeyManager.getPrivateKey("cert"); times = 1;
         }};
 
-        KeyManager[] keyManagers = new KeyManager[] { generateNewKeyManger()};
-        KeyManagerProxy keyManagerProxy = new KeyManagerProxy(keyManagers);
+        KeyManagerProxy keyManagerProxy = new KeyManagerProxy(new KeyManager[]{mockedKeyManager});
 
         keyManagerProxy.getPrivateKey("cert");
     }
