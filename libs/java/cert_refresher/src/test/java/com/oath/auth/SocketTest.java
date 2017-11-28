@@ -36,7 +36,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
@@ -55,11 +54,11 @@ public class SocketTest {
     private boolean running = true;
     private KeyRefresher keyRefresher;
 
-
     @Before
     public void setup() throws Exception {
         keyRefresher = Utils.generateKeyRefresher(
                 Resources.getResource("truststore.jks").getPath(), //trust store
+                "123456",
                 Resources.getResource("gdpr.aws.core.cert.pem").getPath(), //public
                 Resources.getResource("gdpr.aws.core.key.pem").getPath() //private
         );
@@ -106,7 +105,7 @@ public class SocketTest {
         }).start();
     }
 
-//    @Test
+    @Test
     public void test() throws Exception {
 
         TrustManager tm = new X509TrustManager() {
@@ -122,40 +121,38 @@ public class SocketTest {
         };
 
         //setup socket for first call
-        SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
-        sslContext.init(null, new TrustManager[] { tm }, null);
-        SSLSocketFactory factory=(SSLSocketFactory)  sslContext.getSocketFactory();
-        SSLSocket s=(SSLSocket) factory.createSocket("localhost",listenPort);
+        SSLContext sslContext = Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(),
+                keyRefresher.getTrustManagerProxy());
+
+        SSLSocketFactory factory = (SSLSocketFactory) sslContext.getSocketFactory();
+        SSLSocket s = (SSLSocket) factory.createSocket("localhost", listenPort);
         //send first call
         s.getOutputStream().write("ping\n".getBytes());
         String response = new BufferedReader(new InputStreamReader(s.getInputStream())).readLine();
         assertEquals("pong", response);
-        assertEquals("gdpr.aws.core", getCN(s.getSession().getPeerCertificates()));
-
+        assertEquals("athenz.production", getCN(s.getSession().getPeerCertificates()));
 
         //update the ssl context on the server
         keyRefresher.getKeyManagerProxy().setKeyManager(Utils.getKeyManagers(
-                Resources.getResource("rsa_test.crt").getPath(),
-                Resources.getResource("rsa_test.key").getPath()));
-
+                Resources.getResource("gdpr.aws.core.cert.pem").getPath(),
+                Resources.getResource("gdpr.aws.core.key.pem").getPath()));
 
         //setup socket for the second call
         SSLContext sslContext2 = SSLContext.getInstance("TLSv1.2");
         sslContext2.init(null, new TrustManager[] { tm }, null);
-        SSLSocketFactory factory2=(SSLSocketFactory)  sslContext2.getSocketFactory();
-        SSLSocket s2=(SSLSocket) factory2.createSocket("localhost",listenPort);
+        SSLSocketFactory factory2 = (SSLSocketFactory) sslContext2.getSocketFactory();
+        SSLSocket s2 = (SSLSocket) factory2.createSocket("localhost",listenPort);
         //send second call
         s.getOutputStream().write("ping\n".getBytes());
         response = new BufferedReader(new InputStreamReader(s.getInputStream())).readLine();
         assertEquals("pong", response);
-        assertEquals("TestTest", getCN(s2.getSession().getPeerCertificates()));
-
+        assertEquals("athenz.production", getCN(s2.getSession().getPeerCertificates()));
 
         //retry the first call, it should still pass
         s.getOutputStream().write("ping\n".getBytes());
         response = new BufferedReader(new InputStreamReader(s.getInputStream())).readLine();
         assertEquals("pong", response);
-        assertEquals("gdpr.aws.core", getCN(s.getSession().getPeerCertificates()));
+        assertEquals("athenz.production", getCN(s.getSession().getPeerCertificates()));
     }
 
     private String getCN(Certificate[] certificates) throws CertificateEncodingException {
@@ -163,12 +160,5 @@ public class SocketTest {
         final X500Name certificateHolder = new JcaX509CertificateHolder(clientCerts[0]).getSubject();
         final RDN commonName = certificateHolder.getRDNs(BCStyle.CN)[0];
         return IETFUtils.valueToString(commonName.getFirst().getValue());
-
     }
-
-
-
-
-
-
 }

@@ -41,7 +41,7 @@ public class TrustStoreTest {
         X509Certificate[] acceptedIssuers = trustManager.getAcceptedIssuers();
         assertEquals(1, acceptedIssuers.length);
         X509Certificate certificate = acceptedIssuers[0];
-        assertEquals("CN=Athens AWS CA,OU=us-west-2,O=Yahoo! Inc.,L=Sunnyvale,ST=CA,C=US",
+        assertEquals("CN=athenz.production,OU=Testing Domain,O=Athenz,ST=CA,C=US",
             certificate.getIssuerX500Principal().getName());
     }
 
@@ -60,7 +60,7 @@ public class TrustStoreTest {
         X509Certificate[] acceptedIssuers = trustManager.getAcceptedIssuers();
         assertEquals(1, acceptedIssuers.length);
         X509Certificate certificate = acceptedIssuers[0];
-        assertEquals("CN=Athens AWS CA,OU=us-west-2,O=Yahoo! Inc.,L=Sunnyvale,ST=CA,C=US",
+        assertEquals("CN=athenz.production,OU=Testing Domain,O=Athenz,ST=CA,C=US",
             certificate.getIssuerX500Principal().getName());
     }
 
