@@ -27,20 +27,13 @@ which will be used for retrieving passwords. Default: `com.yahoo.athenz.auth.imp
 
 - `athenz.zts.client.client_ssl_protocol`: Client TLS protocol. Default: `TLSv1.2`
 
-Example:
+## Examples
 
-```java
-    System.setProperty("athenz.zts.client.read_timeout", "30000");
-    System.setProperty("athenz.zts.client.connect_timeout", "30000");
-    System.setProperty("athenz.zts.client.keystore_path", "src/test/resources/certs/client.pkcs12");
-    System.setProperty("athenz.zts.client.keystore_password", "changeit");
-    System.setProperty("athenz.zts.client.keymanager_password", "changeit");
-    System.setProperty("athenz.zts.client.truststore_path", "src/test/resources/certs/ca.pkcs12");
-    System.setProperty("athenz.zts.client.truststore_password", "changeit");
+### TLS Support
 
-    try (ZTSClient client = new ZTSClient()) {
-    }
-```
+Using X.509 Certificates when communicating with ZTS Server:
+
+[ZTS Client with TLS Support](https://github.com/yahoo/athenz/tree/master/clients/java/zts/examples/tls-support)
 
 ## License
 
