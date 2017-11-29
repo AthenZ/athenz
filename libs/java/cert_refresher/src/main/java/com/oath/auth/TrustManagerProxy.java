@@ -16,16 +16,14 @@ package com.oath.auth;
  * limitations under the License.
  */
 
-
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
-
 /**
- * This class creates a key manager that wraps the existing X509TrustManager.  The goal is that it watches
- * the 'key' files and when they are updated, it upates the TrustManager under the covers.  This may
+ * This class creates a key manager that wraps the existing X509TrustManager. The goal is that it watches
+ * the 'key' files and when they are updated, it updates the TrustManager under the covers.  This may
  * cause connections that are in the middle of a handshake to fail, but must NOT cause any already
  * established connections to fail.  This allow the changing of the SSL context on the fly without creating
  * new server / httpClient objects

@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 
 public class KeyRefresher {
 
-    private Logger logger = LoggerFactory.getLogger(KeyRefresher.class);
+    private static Logger LOGGER = LoggerFactory.getLogger(KeyRefresher.class);
 
     private Thread scanForFileChangesThread;
     private boolean shutdown = false; //only for testing
@@ -40,7 +40,6 @@ public class KeyRefresher {
     private byte[] lastPublicKeyManagerChecksum = new byte[0]; //initialize to empty to avoid NPE
     private byte[] lastPrivateKeyManagerChecksum = new byte[0]; //initialize to empty to avoid NPE
     private byte[] lastTrustManagerChecksum = new byte[0]; //initialize to empty to avoid NPW
-
 
     private final String athensPublicKey;
     private final String athensPrivateKey;
@@ -70,8 +69,8 @@ public class KeyRefresher {
      *
      * If you want to stop this thread, you need to call the shutdown() method
      *
-     * @param athensPublicKey the file path to this key
-     * @param athensPrivateKey the file path to this key
+     * @param athensPublicKey the file path to public certificate file
+     * @param athensPrivateKey the file path to the private key
      * @param trustStore trust store
      * @param keyManagerProxy the keyManagerProxy used in the existing server/client
      * @param trustManagerProxy the keyManagerProxy used in the existing server/client
@@ -111,8 +110,9 @@ public class KeyRefresher {
                         keyManagerProxy.setKeyManager(Utils.getKeyManagers(athensPublicKey, athensPrivateKey));
                     }
                 } catch (Exception ignored) {
-                    // if we could not reload the SSL context (but we tried) we will ignore it and hope it works on the next loop
-                    logger.error("Error loading ssl context", ignored);
+                    // if we could not reload the SSL context (but we tried) we will
+                    // ignore it and hope it works on the next loop
+                    LOGGER.error("Error loading ssl context", ignored);
                 }
                 try {
                     Thread.sleep(retryFrequency);
@@ -150,16 +150,15 @@ public class KeyRefresher {
                 ; // do nothing, just read until the EoF
             }
         } catch (IOException ignored) {
-            //this is best effort, if we couldnt read the file, assume its the same
+            //this is best effort, if we couldn't read the file, assume its the same
             return false;
         }
         byte[] digest = md.digest();
         if (!Arrays.equals(checksum, digest)) {
-            //they arent the same, overwrite old checksum
+            //they aren't the same, overwrite old checksum
             checksum = digest;
             return true;
         }
         return false;
     }
-
 }

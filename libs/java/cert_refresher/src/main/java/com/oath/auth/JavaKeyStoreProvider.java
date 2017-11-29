@@ -19,12 +19,21 @@ package com.oath.auth;
 import java.security.KeyStore;
 
 /**
- * Interface to provide a KeyStore object which could be
- * either a PrivateKey/Certificate key pair store or a
- * Trust CA Certificate store
+ * Creates a key store provider from a given jks file
+ * along with the keystore password.
  */
-public interface KeyStoreProvider {
+class JavaKeyStoreProvider implements KeyStoreProvider {
 
-    KeyStore provide() throws Exception;
+    private final String jksFilePath;
+    private final String password;
+
+    public JavaKeyStoreProvider(final String jksFilePath, final String password) {
+        this.jksFilePath = jksFilePath;
+        this.password = password;
+    }
+
+    @Override
+    public KeyStore provide() throws Exception {
+        return Utils.getKeyStore(jksFilePath, password);
+    }
 }
-

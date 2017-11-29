@@ -17,17 +17,13 @@ package com.oath.auth;
  */
 
 import com.google.common.io.Resources;
-import mockit.Deencapsulation;
 import mockit.Expectations;
-import mockit.Mock;
-import mockit.MockUp;
 import mockit.Mocked;
 import org.junit.Test;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.TrustManager;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 import static org.junit.Assert.*;
 
@@ -117,4 +113,15 @@ public class KeyRefresherTest {
         keyRefresher.shutdown();
     }
 
+    @Test
+    public void testGenerateKeyRefresherFromCaCert() throws Exception {
+        
+        KeyRefresher keyRefresher = Utils.generateKeyRefresher("ca.cert.pem", "gdpr.aws.core.cert.pem",
+                "gdpr.aws.core.key.pem");
+        assertNotNull(keyRefresher);
+        
+        keyRefresher = Utils.generateKeyRefresherFromCaCert("ca.cert.pem", "gdpr.aws.core.cert.pem",
+                "gdpr.aws.core.key.pem");
+        assertNotNull(keyRefresher);
+    }
 }
