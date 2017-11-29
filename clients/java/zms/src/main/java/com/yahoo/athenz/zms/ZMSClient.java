@@ -103,7 +103,7 @@ public class ZMSClient implements Closeable {
      * for timeouts must be in milliseconds.
      */
     public ZMSClient() {
-        initClient(null);
+        initClient(null, null);
     }
     
     /**
@@ -117,7 +117,7 @@ public class ZMSClient implements Closeable {
      * @param url ZMS Server url (e.g. https://server1.athenzcompany.com:4443/zms/v1)
      */
     public ZMSClient(String url) {
-        initClient(url);
+        initClient(url, null);
     }
     
     /**
@@ -132,7 +132,7 @@ public class ZMSClient implements Closeable {
      * @param identity Principal object that includes credentials
      */
     public ZMSClient(String url, Principal identity) {
-        initClient(url);
+        initClient(url, null);
         addCredentials(identity);
     }
     
@@ -148,8 +148,28 @@ public class ZMSClient implements Closeable {
      * @param identity Principal object that includes credentials
      */
     public ZMSClient(Principal identity) {
-        initClient(null);
+        initClient(null, null);
         addCredentials(identity);
+    }
+    
+    /**
+     * Constructs a new ZMSClient object with the given SSLContext object
+     * and ZMS Server Url. Default read and connect timeout values are 30000ms (30sec).
+     * The application can change these values by using the athenz.zms.client.read_timeout
+     * and athenz.zms.client.connect_timeout system properties. The values specified
+     * for timeouts must be in milliseconds.
+     * @param url ZMS Server url (e.g. https://server1.athenzcompany.com:4443/zms/v1)
+     * @param sslContext SSLContext that includes service's private key and x.509 certificate
+     * for authenticating requests
+     */
+    public ZMSClient(String url, SSLContext sslContext) {
+        
+        // verify we have a valid ssl context specified
+        
+        if (sslContext == null) {
+            throw new IllegalArgumentException("SSLContext object must be specified");
+        }
+        initClient(url, sslContext);
     }
     
     /**
@@ -282,13 +302,13 @@ public class ZMSClient implements Closeable {
         
         return url;
     }
+    
     /**
      * Initialize the client for class constructors
      * @param url ZMS Server url
-     * @param identity Principal identity for authentication
-     * @param mediaType media type for http content type
+     * @param sslContext SSLContext for service authentication
      */
-    private void initClient(String url) {
+    private void initClient(String url, SSLContext sslContext) {
 
         /* if we have no url specified then we're going to retrieve
          * the value from our configuration package */
@@ -318,10 +338,13 @@ public class ZMSClient implements Closeable {
 
         /* if we are not given a url then use the default value */
  
-        SSLContext sslContext = createSSLContext();
+        if (sslContext == null) {
+            sslContext = createSSLContext();
+        }
+        
         ClientBuilder builder = ClientBuilder.newBuilder();
         if (sslContext != null) {
-            builder.sslContext(sslContext);
+            builder = builder.sslContext(sslContext);
         }
         Client rsClient = builder.property(ClientProperties.CONNECT_TIMEOUT, connectTimeout)
             .property(ClientProperties.READ_TIMEOUT, readTimeout)
@@ -330,10 +353,15 @@ public class ZMSClient implements Closeable {
     }
     
     SSLContext createSSLContext() {
-        String certAlias = System.getProperty(ZMS_CLIENT_PROP_CERT_ALIAS);
-        String clientProtocol = System.getProperty(ZMS_CLIENT_PROP_CLIENT_PROTOCOL, ZMS_CLIENT_DEFAULT_CLIENT_SSL_PROTOCOL);
-        //keystore
+        
+        // to create the SSL context we must have the keystore path
+        // specified. If it's not specified, then we are not going
+        // to create our ssl context
+        
         String keyStorePath = System.getProperty(ZMS_CLIENT_PROP_KEYSTORE_PATH);
+        if (keyStorePath == null || keyStorePath.isEmpty()) {
+            return null;
+        }
         String keyStoreType = System.getProperty(ZMS_CLIENT_PROP_KEYSTORE_TYPE);
         String keyStorePwd = System.getProperty(ZMS_CLIENT_PROP_KEYSTORE_PASSWORD);
         char[] keyStorePassword = null;
@@ -348,7 +376,7 @@ public class ZMSClient implements Closeable {
         }
         String keyManagerPasswordAppName = System.getProperty(ZMS_CLIENT_PROP_KEY_MANAGER_PWD_APP_NAME);
         
-        //truststore
+        // truststore
         String trustStorePath = System.getProperty(ZMS_CLIENT_PROP_TRUSTSTORE_PATH);
         String trustStoreType = System.getProperty(ZMS_CLIENT_PROP_TRUSTSTORE_TYPE);
         String trustStorePwd = System.getProperty(ZMS_CLIENT_PROP_TRUSTSTORE_PASSWORD);
@@ -358,43 +386,44 @@ public class ZMSClient implements Closeable {
         }
         String trustStorePasswordAppName = System.getProperty(ZMS_CLIENT_PROP_TRUSTSTORE_PWD_APP_NAME);
         
-        
-        ClientSSLContextBuilder builder = new SSLUtils.ClientSSLContextBuilder(clientProtocol)
-                .privateKeyStore(PRIVATE_KEY_STORE);
-            if (null != certAlias && !certAlias.isEmpty()) {
-                builder.certAlias(certAlias);
-            }
-            if (null != keyStorePath && !keyStorePath.isEmpty()) {
-                builder.keyStorePath(keyStorePath);
-            }
-            if (null != keyStoreType && !keyStoreType.isEmpty()) {
-                builder.keyStoreType(keyStoreType);
-            }
-            if (null != keyStorePassword) {
-                builder.keyStorePassword(keyStorePassword);
-            }
-            if (null != keyStorePasswordAppName) {
-                builder.keyStorePasswordAppName(keyStorePasswordAppName);
-            }
-            if (null != keyManagerPassword) {
-                builder.keyManagerPassword(keyManagerPassword);
-            }
-            if (null != keyManagerPasswordAppName) {
-                builder.keyManagerPasswordAppName(keyManagerPasswordAppName);
-            }
+        // alias and protocol details
+        String certAlias = System.getProperty(ZMS_CLIENT_PROP_CERT_ALIAS);
+        String clientProtocol = System.getProperty(ZMS_CLIENT_PROP_CLIENT_PROTOCOL,
+                ZMS_CLIENT_DEFAULT_CLIENT_SSL_PROTOCOL);
 
-            if (null != trustStorePath && !trustStorePath.isEmpty()) {
-                builder.trustStorePath(trustStorePath);
-            }
-            if (null != trustStoreType && !trustStoreType.isEmpty()) {
-                builder.trustStoreType(trustStoreType);
-            }
-            if (null != trustStorePassword) {
-                builder.trustStorePassword(trustStorePassword);
-            }
-            if (null != trustStorePasswordAppName) {
-                builder.trustStorePasswordAppName(trustStorePasswordAppName);
-            }
+        ClientSSLContextBuilder builder = new SSLUtils.ClientSSLContextBuilder(clientProtocol)
+                .privateKeyStore(PRIVATE_KEY_STORE).keyStorePath(keyStorePath);
+        
+        if (null != certAlias && !certAlias.isEmpty()) {
+            builder.certAlias(certAlias);
+        }
+        if (null != keyStoreType && !keyStoreType.isEmpty()) {
+            builder.keyStoreType(keyStoreType);
+        }
+        if (null != keyStorePassword) {
+            builder.keyStorePassword(keyStorePassword);
+        }
+        if (null != keyStorePasswordAppName) {
+            builder.keyStorePasswordAppName(keyStorePasswordAppName);
+        }
+        if (null != keyManagerPassword) {
+            builder.keyManagerPassword(keyManagerPassword);
+        }
+        if (null != keyManagerPasswordAppName) {
+            builder.keyManagerPasswordAppName(keyManagerPasswordAppName);
+        }
+        if (null != trustStorePath && !trustStorePath.isEmpty()) {
+            builder.trustStorePath(trustStorePath);
+        }
+        if (null != trustStoreType && !trustStoreType.isEmpty()) {
+            builder.trustStoreType(trustStoreType);
+        }
+        if (null != trustStorePassword) {
+            builder.trustStorePassword(trustStorePassword);
+        }
+        if (null != trustStorePasswordAppName) {
+            builder.trustStorePasswordAppName(trustStorePasswordAppName);
+        }
 
         return builder.build();
     }
