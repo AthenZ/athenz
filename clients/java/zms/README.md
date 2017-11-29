@@ -2,7 +2,7 @@ zms-java-client
 ===============
 
 A Java client library to access the ZMS server.
-The client library encapsulates the stub generated from the ZMS RDL. 
+The client library encapsulates the stub generated from the ZMS RDL.
 It includes zms-core and all other dependencies.
 
 ## System Properties
@@ -27,21 +27,13 @@ which will be used for retrieving passwords. Default: `com.yahoo.athenz.auth.imp
 
 - `athenz.zms.client.client_ssl_protocol`: Client TLS protocol. Default: `TLSv1.2`
 
-Example:
+## Examples
 
-```java
-    System.setProperty("athenz.zms.client.read_timeout", "30000");
-    System.setProperty("athenz.zms.client.connect_timeout", "30000");
-    System.setProperty("athenz.zms.client.keystore_path", "src/test/resources/certs/client.pkcs12");
-    System.setProperty("athenz.zms.client.keystore_password", "changeit");
-    System.setProperty("athenz.zms.client.keymanager_password", "changeit");
-    System.setProperty("athenz.zms.client.truststore_path", "src/test/resources/certs/ca.pkcs12");
-    System.setProperty("athenz.zms.client.truststore_password", "changeit");
+### TLS Support
 
-    try (ZMSClient client = new ZMSClient()) {
-        DomainList domainList = client.getDomainList();
-    }
-```
+Using X.509 Certificates when communicating with ZMS Server:
+
+[ZMS Client with TLS Support](https://github.com/yahoo/athenz/tree/master/clients/java/zms/examples/tls-support)
 
 ## License
 
