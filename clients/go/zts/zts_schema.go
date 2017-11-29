@@ -81,21 +81,6 @@ func init() {
 	tPathElement.Pattern("[a-zA-Z0-9-\\._~=+@$,:]*")
 	sb.AddType(tPathElement.Build())
 
-	tAWSRoleName := rdl.NewStringTypeBuilder("AWSRoleName")
-	tAWSRoleName.Comment("AWS role name without the path")
-	tAWSRoleName.Pattern("[a-zA-Z0-9-\\._=+@,]*")
-	sb.AddType(tAWSRoleName.Build())
-
-	tAWSRolePathElement := rdl.NewStringTypeBuilder("AWSRolePathElement")
-	tAWSRolePathElement.Comment("AWS role path single element")
-	tAWSRolePathElement.Pattern("[a-zA-Z0-9-\\._]*")
-	sb.AddType(tAWSRolePathElement.Build())
-
-	tAWSArnRoleName := rdl.NewStringTypeBuilder("AWSArnRoleName")
-	tAWSArnRoleName.Comment("AWS full role name with path")
-	tAWSArnRoleName.Pattern("([a-zA-Z0-9-\\._]*/)*[a-zA-Z0-9-\\._=+@,]*")
-	sb.AddType(tAWSArnRoleName.Build())
-
 	tResourceAccess := rdl.NewStructTypeBuilder("Struct", "ResourceAccess")
 	tResourceAccess.Comment("ResourceAccess can be checked and returned as this resource. (same as ZMS.Access)")
 	tResourceAccess.Field("granted", "Bool", false, nil, "true (allowed) or false (denied)")
@@ -215,6 +200,26 @@ func init() {
 	tInstanceRefreshRequest.Field("expiryTime", "Int32", true, nil, "in seconds how long token should be valid for")
 	tInstanceRefreshRequest.Field("keyId", "String", true, nil, "public key identifier")
 	sb.AddType(tInstanceRefreshRequest.Build())
+
+	tAWSRoleName := rdl.NewStringTypeBuilder("AWSRoleName")
+	tAWSRoleName.Comment("AWS role name without the path")
+	tAWSRoleName.Pattern("[a-zA-Z0-9-\\._=+@,]*")
+	sb.AddType(tAWSRoleName.Build())
+
+	tAWSRolePathElement := rdl.NewStringTypeBuilder("AWSRolePathElement")
+	tAWSRolePathElement.Comment("AWS role path single element")
+	tAWSRolePathElement.Pattern("[a-zA-Z0-9][a-zA-Z0-9-\\._]*")
+	sb.AddType(tAWSRolePathElement.Build())
+
+	tAWSRolePath := rdl.NewStringTypeBuilder("AWSRolePath")
+	tAWSRolePath.Comment("AWS role path")
+	tAWSRolePath.Pattern("([a-zA-Z0-9][a-zA-Z0-9-\\._]*/)+")
+	sb.AddType(tAWSRolePath.Build())
+
+	tAWSArnRoleName := rdl.NewStringTypeBuilder("AWSArnRoleName")
+	tAWSArnRoleName.Comment("AWS full role name with path")
+	tAWSArnRoleName.Pattern("(([a-zA-Z0-9][a-zA-Z0-9-\\._]*/)+)*[a-zA-Z0-9-\\._=+@,]*")
+	sb.AddType(tAWSArnRoleName.Build())
 
 	tAWSTemporaryCredentials := rdl.NewStructTypeBuilder("Struct", "AWSTemporaryCredentials")
 	tAWSTemporaryCredentials.Field("accessKeyId", "String", false, nil, "")
