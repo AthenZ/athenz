@@ -38,6 +38,7 @@ public class ZTSRDLGeneratedClient {
 
     public ZTSRDLGeneratedClient setProperty(String name, Object value) {
         client = client.property(name, value);
+        base = client.target(base.getUri().toString());
         return this;
     }
 
@@ -59,7 +60,8 @@ public class ZTSRDLGeneratedClient {
         }
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
-            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
         Response response = invocationBuilder.get();
         int code = response.getStatus();
@@ -86,7 +88,8 @@ public class ZTSRDLGeneratedClient {
         }
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
-            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
         Response response = invocationBuilder.get();
         int code = response.getStatus();
@@ -105,7 +108,8 @@ public class ZTSRDLGeneratedClient {
             .resolveTemplate("serviceName", serviceName);
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
-            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
         Response response = invocationBuilder.get();
         int code = response.getStatus();
@@ -123,7 +127,8 @@ public class ZTSRDLGeneratedClient {
             .resolveTemplate("domainName", domainName);
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
-            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
         Response response = invocationBuilder.get();
         int code = response.getStatus();
@@ -143,7 +148,8 @@ public class ZTSRDLGeneratedClient {
             .resolveTemplate("keyId", keyId);
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
-            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
         Response response = invocationBuilder.get();
         int code = response.getStatus();
@@ -161,7 +167,8 @@ public class ZTSRDLGeneratedClient {
             .resolveTemplate("host", host);
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
-            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
         Response response = invocationBuilder.get();
         int code = response.getStatus();
@@ -179,7 +186,8 @@ public class ZTSRDLGeneratedClient {
             .resolveTemplate("domainName", domainName);
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
-            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
         if (matchingTag != null) {
             invocationBuilder = invocationBuilder.header("If-None-Match", matchingTag);
@@ -219,7 +227,8 @@ public class ZTSRDLGeneratedClient {
         }
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
-            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
         Response response = invocationBuilder.get();
         int code = response.getStatus();
@@ -238,7 +247,8 @@ public class ZTSRDLGeneratedClient {
             .resolveTemplate("roleName", roleName);
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
-            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
         Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(req, "application/json"));
         int code = response.getStatus();
@@ -258,7 +268,8 @@ public class ZTSRDLGeneratedClient {
             .resolveTemplate("principal", principal);
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
-            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
         Response response = invocationBuilder.get();
         int code = response.getStatus();
@@ -277,7 +288,8 @@ public class ZTSRDLGeneratedClient {
             .resolveTemplate("principal", principal);
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
-            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
         Response response = invocationBuilder.get();
         int code = response.getStatus();
@@ -302,7 +314,8 @@ public class ZTSRDLGeneratedClient {
         }
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
-            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
         Response response = invocationBuilder.get();
         int code = response.getStatus();
@@ -321,7 +334,8 @@ public class ZTSRDLGeneratedClient {
             .resolveTemplate("service", service);
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
-            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
         Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(req, "application/json"));
         int code = response.getStatus();
@@ -340,7 +354,8 @@ public class ZTSRDLGeneratedClient {
             .resolveTemplate("role", role);
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
-            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
         Response response = invocationBuilder.get();
         int code = response.getStatus();
@@ -373,7 +388,8 @@ public class ZTSRDLGeneratedClient {
             .resolveTemplate("service", service);
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
-            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
         Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(req, "application/json"));
         int code = response.getStatus();
@@ -411,7 +427,8 @@ public class ZTSRDLGeneratedClient {
             .resolveTemplate("instanceId", instanceId);
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
-            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
         Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(info, "application/json"));
         int code = response.getStatus();
@@ -432,7 +449,8 @@ public class ZTSRDLGeneratedClient {
             .resolveTemplate("instanceId", instanceId);
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
-            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
         Response response = invocationBuilder.delete();
         int code = response.getStatus();
@@ -450,7 +468,8 @@ public class ZTSRDLGeneratedClient {
             .resolveTemplate("domainName", domainName);
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
-            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
         Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(req, "application/json"));
         int code = response.getStatus();
@@ -467,7 +486,8 @@ public class ZTSRDLGeneratedClient {
         WebTarget target = base.path("/status");
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
-            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
         Response response = invocationBuilder.get();
         int code = response.getStatus();
