@@ -38,6 +38,7 @@ public class ProviderClient {
 
     public ProviderClient setProperty(String name, Object value) {
         client = client.property(name, value);
+        base = client.target(base.getUri().toString());
         return this;
     }
 
@@ -53,7 +54,8 @@ public class ProviderClient {
             .resolveTemplate("tenant", tenant);
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
-            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
@@ -75,7 +77,8 @@ public class ProviderClient {
             .resolveTemplate("tenant", tenant);
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
-            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
         Response response = invocationBuilder.get();
         int code = response.getStatus();
@@ -94,7 +97,8 @@ public class ProviderClient {
             .resolveTemplate("tenant", tenant);
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
-            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
@@ -117,7 +121,8 @@ public class ProviderClient {
             .resolveTemplate("resourceGroup", resourceGroup);
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
-            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
@@ -140,7 +145,8 @@ public class ProviderClient {
             .resolveTemplate("resourceGroup", resourceGroup);
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
-            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);

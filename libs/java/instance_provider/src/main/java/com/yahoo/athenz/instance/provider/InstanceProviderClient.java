@@ -38,6 +38,7 @@ public class InstanceProviderClient {
 
     public InstanceProviderClient setProperty(String name, Object value) {
         client = client.property(name, value);
+        base = client.target(base.getUri().toString());
         return this;
     }
 
@@ -51,7 +52,8 @@ public class InstanceProviderClient {
         WebTarget target = base.path("/instance");
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
-            invocationBuilder = invocationBuilder.header(credsHeader, credsToken);
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
         Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(confirmation, "application/json"));
         int code = response.getStatus();
