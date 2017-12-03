@@ -79,7 +79,7 @@ func getCachedNToken() string {
 	if isFreshFile(ntokenFile, 45) {
 		data, err := ioutil.ReadFile(ntokenFile)
 		if err == nil {
-			return string(data)
+			return strings.TrimSpace(string(data))
 		} else {
 			fmt.Printf("Couldn't read the file, error: %v\n", err)
 		}
@@ -146,6 +146,7 @@ func usage() string {
 	buf.WriteString("   -k                  Disable peer verification of SSL certificates.\n")
 	buf.WriteString("   -s host:port        The SOCKS5 proxy to route requests through\n")
 	buf.WriteString("   -v                  Verbose mode. Full resource names are included in output (default=false)\n")
+	buf.WriteString("   -x                  For user token output, exclude the header name (default=false)\n")
 	buf.WriteString("   -z zms_url          Base URL of the ZMS server to use\n")
 	buf.WriteString("                       (default ZMS=" + defaultZmsUrl() + ")\n")
 	buf.WriteString("   -debug              Debug mode. Generates debug NTokens (default=false)\n")
@@ -178,6 +179,7 @@ func main() {
 	pSkipVerify := flag.Bool("k", false, "Disable peer verification of SSL certificates")
 	pDebug := flag.Bool("debug", defaultDebug(), "debug mode (for authentication, mainly)")
 	pAuditRef := flag.String("a", "", "Audit Reference Token if auditing is enabled for the domain")
+	pExcludeHeader := flag.Bool("x", false, "Exclude header in user-token output")
 	flag.Usage = func() {
 		fmt.Println(usage())
 	}
@@ -283,7 +285,10 @@ func main() {
 					log.Fatalf("Unable to get NToken for service: %s error: %v", args[1], err)
 				}
 			}
-			fmt.Println("Athenz-Principal-Auth: " + ntoken)
+			if !(*pExcludeHeader) {
+				fmt.Print(authHeader + ": ")
+			}
+			fmt.Println(ntoken)
 			return
 		case "repl":
 			cli.Interactive = true
