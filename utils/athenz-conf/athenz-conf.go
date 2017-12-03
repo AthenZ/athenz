@@ -69,7 +69,7 @@ func getCachedNToken() string {
 	if isFreshFile(ntokenFile, 45) {
 		data, err := ioutil.ReadFile(ntokenFile)
 		if err == nil {
-			return string(data)
+			return strings.TrimSpace(string(data))
 		} else {
 			fmt.Printf("Couldn't read the file, error: %v\n", err)
 		}
@@ -148,7 +148,7 @@ func loadNtokenFromFile(fileName string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return string(buf), nil
+	return strings.TrimSpace(string(buf)), nil
 }
 
 func main() {
