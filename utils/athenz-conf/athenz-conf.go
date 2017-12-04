@@ -69,7 +69,7 @@ func getCachedNToken() string {
 	if isFreshFile(ntokenFile, 45) {
 		data, err := ioutil.ReadFile(ntokenFile)
 		if err == nil {
-			return string(data)
+			return strings.TrimSpace(string(data))
 		} else {
 			fmt.Printf("Couldn't read the file, error: %v\n", err)
 		}
@@ -127,10 +127,12 @@ func usage() string {
 	buf.WriteString("usage: athenz-conf -z <zms_url> [flags]\n")
 	buf.WriteString(" flags:\n")
 	buf.WriteString("   -c cacert_file  CA Certificate file path\n")
+	buf.WriteString("   -cert cert_file Service Certificate file path\n")
 	buf.WriteString("   -f ntoken_file  Principal Authority NToken file used for authentication\n")
 	buf.WriteString("   -i identity     User identity to authenticate as if NToken file is not specified\n")
 	buf.WriteString("                   (default=" + defaultIdentity() + ")\n")
 	buf.WriteString("   -k              Disable peer verification of SSL certificates.\n")
+	buf.WriteString("   -key key_file   Service Private Key file path\n")
 	buf.WriteString("   -o              Output config filename (default=athenz.conf)\n")
 	buf.WriteString("   -s host:port    The SOCKS5 proxy to route requests through\n")
 	buf.WriteString("   -t zts_url      Base URL of the ZTS server to use\n")
@@ -146,12 +148,15 @@ func loadNtokenFromFile(fileName string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return string(buf), nil
+	return strings.TrimSpace(string(buf)), nil
 }
 
 func main() {
 	pZMS := flag.String("z", defaultZmsUrl(), "Base URL of the ZMS server to use")
 	pZTS := flag.String("t", defaultZtsUrl(), "Base URL of the ZTS server to use")
+	pHdr := flag.String("hdr", "Athenz-Principal-Auth", "the authentication header name")
+	pKey := flag.String("key", "", "the service private key file")
+	pCert := flag.String("cert", "", "the service certificate file")
 	pIdentity := flag.String("i", defaultIdentity(), "the identity to authenticate as")
 	pNtokenFile := flag.String("f", "", "ntoken file path")
 	pCACert := flag.String("c", "", "CA Certificate file path")
@@ -202,13 +207,21 @@ func main() {
 	if *pCACert == "" {
 		pCACert = nil
 	}
-	tr := getHttpTransport(pSocks, pCACert, *pSkipVerify)
+	if *pKey == "" && *pCert == "" {
+		pKey = nil
+		pCert = nil
+	} else if *pKey == "" || *pCert == "" {
+		log.Fatalf("Both service key and certificate must be provided")
+	}
+	tr := getHttpTransport(pSocks, pKey, pCert, pCACert, *pSkipVerify)
 	var ntoken string
 	var err error
 	if *pNtokenFile == "" {
-		ntoken, err = getAuthNToken(identity, "", zmsUrl, tr)
-		if err != nil {
-			log.Fatalf("Unable to get NToken: %v", err)
+		if pKey == nil {
+			ntoken, err = getAuthNToken(identity, "", zmsUrl, tr)
+			if err != nil {
+				log.Fatalf("Unable to get NToken: %v", err)
+			}
 		}
 	} else {
 		ntoken, err = loadNtokenFromFile(*pNtokenFile)
@@ -217,8 +230,9 @@ func main() {
 		}
 	}
 	zmsClient := zms.NewClient(zmsUrl, tr)
-	zmsClient.AddCredentials("Athenz-Principal-Auth", ntoken)
-
+	if ntoken != "" {
+		zmsClient.AddCredentials(*pHdr, ntoken)
+	}
 	var buf bytes.Buffer
 	buf.WriteString("{\n")
 	buf.WriteString("  \"zmsUrl\": \"" + zmsConfUrl + "\",\n")
@@ -262,7 +276,7 @@ func dumpService(buf *bytes.Buffer, label string, svc *zms.ServiceIdentity) {
 	buf.WriteString("  ]")
 }
 
-func getHttpTransport(socksProxy, caCertFile *string, skipVerify bool) *http.Transport {
+func getHttpTransport(socksProxy, keyFile, certFile, caCertFile *string, skipVerify bool) *http.Transport {
 	tr := http.Transport{}
 	if socksProxy != nil {
 		dialer := &net.Dialer{}
@@ -271,18 +285,10 @@ func getHttpTransport(socksProxy, caCertFile *string, skipVerify bool) *http.Tra
 			tr.Dial = dialSocksProxy.Dial
 		}
 	}
-	if caCertFile != nil || skipVerify {
-		config := &tls.Config{}
-		if caCertFile != nil {
-			capem, err := ioutil.ReadFile(*caCertFile)
-			if err != nil {
-				log.Fatalf("Unable to read CA Certificate file %s, error: %v", *caCertFile, err)
-			}
-			certPool := x509.NewCertPool()
-			if !certPool.AppendCertsFromPEM(capem) {
-				log.Fatalf("Unable to append CA Certificate to pool")
-			}
-			config.RootCAs = certPool
+	if keyFile != nil || caCertFile != nil || skipVerify {
+		config, err := GetTLSConfigFromFiles(certFile, keyFile, caCertFile)
+		if err != nil {
+			log.Fatalf("Unable to generate TLS config object, error: %v", err)
 		}
 		if skipVerify {
 			config.InsecureSkipVerify = skipVerify
@@ -290,6 +296,51 @@ func getHttpTransport(socksProxy, caCertFile *string, skipVerify bool) *http.Tra
 		tr.TLSClientConfig = config
 	}
 	return &tr
+}
+
+func GetTLSConfigFromFiles(certFile, keyFile, caCertFile *string) (*tls.Config, error) {
+	var keyPem []byte
+	var certPem []byte
+	var caCertPem []byte
+	var err error
+	if keyFile != nil {
+		keyPem, err = ioutil.ReadFile(*keyFile)
+		if err != nil {
+			return nil, fmt.Errorf("Unable to read keyfile: %q, error: %v", *keyFile, err)
+		}
+
+		certPem, err = ioutil.ReadFile(*certFile)
+		if err != nil {
+			return nil, fmt.Errorf("Unable to read certfile: %q, error: %v", *certFile, err)
+		}
+	}
+	if caCertFile != nil {
+		caCertPem, err = ioutil.ReadFile(*caCertFile)
+		if err != nil {
+			return nil, fmt.Errorf("Unable to read ca certfile: %q, error: %v", *caCertFile, err)
+		}
+	}
+	return GetTLSConfig(certPem, keyPem, caCertPem)
+}
+
+func GetTLSConfig(certPem, keyPem, caCertPem []byte) (*tls.Config, error) {
+	config := &tls.Config{}
+	if keyPem != nil {
+		clientCert, err := tls.X509KeyPair(certPem, keyPem)
+		if err != nil {
+			return nil, fmt.Errorf("Unable to formulate clientCert from key and cert bytes, error: %v", err)
+		}
+		config.Certificates = make([]tls.Certificate, 1)
+		config.Certificates[0] = clientCert
+	}
+	if caCertPem != nil {
+		certPool := x509.NewCertPool()
+		if !certPool.AppendCertsFromPEM(caCertPem) {
+			return nil, fmt.Errorf("Unable to append CA Certificate to pool")
+		}
+		config.RootCAs = certPool
+	}
+	return config, nil
 }
 
 func normalizeServerUrl(url, suffix string) string {
