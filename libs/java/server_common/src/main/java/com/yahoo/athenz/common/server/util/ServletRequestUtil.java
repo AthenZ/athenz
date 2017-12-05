@@ -34,7 +34,7 @@ public class ServletRequestUtil {
             String xff = request.getHeader(XFF_HEADER);
             if (xff != null) {
                 String[] addrs = xff.split(",");
-                addr = addrs[addrs.length - 1].trim();
+                addr = addrs[0].trim();
             }
         }
         return addr;

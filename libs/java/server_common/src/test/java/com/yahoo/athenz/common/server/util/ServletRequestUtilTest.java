@@ -60,6 +60,6 @@ public class ServletRequestUtilTest {
         HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
         Mockito.when(httpServletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
         Mockito.when(httpServletRequest.getHeader("X-Forwarded-For")).thenReturn("1.2.3.4, 1.3.4.5, 1.4.5.6");
-        assertEquals(ServletRequestUtil.getRemoteAddress(httpServletRequest), "1.4.5.6");
+        assertEquals(ServletRequestUtil.getRemoteAddress(httpServletRequest), "1.2.3.4");
     }
 }
