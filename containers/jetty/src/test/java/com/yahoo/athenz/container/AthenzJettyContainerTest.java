@@ -21,21 +21,29 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
+import java.io.File;
+import java.net.URI;
+import java.nio.file.Paths;
+import java.util.concurrent.TimeUnit;
+
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.RequestLog;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.Slf4jRequestLog;
+import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import org.mockito.MockitoAnnotations;
+import org.testng.Assert;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.container.log.AthenzRequestLog;
@@ -520,5 +528,42 @@ public class AthenzJettyContainerTest {
         
         assertTrue(connectors[1].getProtocols().contains("http/1.1"));
         assertTrue(connectors[1].getProtocols().contains("ssl"));
+    }
+    
+    @Test
+    public void testSSLReload() throws Exception {
+        String keyStore = "src/test/resources/certs/server.pkcs12";
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH, keyStore);
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_TYPE, "PKCS12");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD, "changeit");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_ACCESS_LOG_DIR, "/tmp");
+
+        AthenzJettyContainer container = AthenzJettyContainer.createJettyContainer();
+        assertNotNull(container);
+        
+        //set the keystore to bogus path
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH, "src/test/resources/certs/none");
+
+        //touch keystore file which should trigger reloading of SSL config.
+        File file = new File(keyStore);
+        file.setLastModified(System.currentTimeMillis());
+
+        //give time for watcher to reload bogus key store
+        TimeUnit.SECONDS.sleep(10);
+        boolean existingKeyStoreCheck = false;
+        for (Connector connector: container.getServer().getConnectors()) {
+            if (connector instanceof ServerConnector) {
+                SslConnectionFactory sslConnectionFactory = connector.getConnectionFactory(SslConnectionFactory.class);
+                if (null != sslConnectionFactory) {
+                    SslContextFactory sslContextFactory = sslConnectionFactory.getSslContextFactory();
+                    //verify that we are using existing Keystore as new one is invalid.
+                    Assert.assertEquals(URI.create(sslContextFactory.getKeyStorePath()).getPath(), Paths.get(keyStore).toAbsolutePath().toString());
+                    existingKeyStoreCheck = true;
+                }
+            }
+        }
+        if (!existingKeyStoreCheck) {
+            Assert.fail("keystore should not have been updated with bad state");
+        }
     }
 }

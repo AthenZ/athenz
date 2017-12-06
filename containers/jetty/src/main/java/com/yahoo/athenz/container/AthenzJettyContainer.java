@@ -17,6 +17,7 @@
 package com.yahoo.athenz.container;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.util.EnumSet;
 
@@ -52,6 +53,8 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.oath.auth.CertWatcher;
+import com.oath.auth.CertWatcherHandler;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.auth.PrivateKeyStoreFactory;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
@@ -70,6 +73,8 @@ public class AthenzJettyContainer {
     private String banner = null;
     private HandlerCollection handlers = null;
     private PrivateKeyStore privateKeyStore;
+    
+    private SslContextFactory reloadableSslContextFactory;
     
     public AthenzJettyContainer() {
         loadServicePrivateKey();
@@ -306,6 +311,10 @@ public class AthenzJettyContainer {
     }
     
     SslContextFactory createSSLContextObject(boolean needClientAuth) {
+        return createSSLContextObject(needClientAuth, null);
+    }
+    
+    SslContextFactory createSSLContextObject(boolean needClientAuth, SslContextFactory sslContextFactory) {
         
         String keyStorePath = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH);
         String keyStorePasswordAppName = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD_APPNAME);
@@ -322,26 +331,29 @@ public class AthenzJettyContainer {
         String excludedProtocols = System.getProperty(AthenzConsts.ATHENZ_PROP_EXCLUDED_PROTOCOLS,
                 ATHENZ_DEFAULT_EXCLUDED_PROTOCOLS);
         
-        SslContextFactory sslContextFactory = new SslContextFactory();
+        if (null == sslContextFactory) {
+            sslContextFactory = new SslContextFactory();
+        }
+
         if (keyStorePath != null) {
             LOG.info("Using SSL KeyStore path: {}", keyStorePath);
             sslContextFactory.setKeyStorePath(keyStorePath);
         }
         if (keyStorePassword != null) {
             //default implementation should just return the same
-            sslContextFactory.setKeyStorePassword(this.privateKeyStore.getApplicationSecret(keyStorePasswordAppName, keyStorePassword));
+            sslContextFactory.setKeyStorePassword(privateKeyStore.getApplicationSecret(keyStorePasswordAppName, keyStorePassword));
         }
         sslContextFactory.setKeyStoreType(keyStoreType);
 
         if (keyManagerPassword != null) {
-            sslContextFactory.setKeyManagerPassword(this.privateKeyStore.getApplicationSecret(keyManagerPasswordAppName, keyManagerPassword));
+            sslContextFactory.setKeyManagerPassword(privateKeyStore.getApplicationSecret(keyManagerPasswordAppName, keyManagerPassword));
         }
         if (trustStorePath != null) {
             LOG.info("Using SSL TrustStore path: {}", trustStorePath);
             sslContextFactory.setTrustStorePath(trustStorePath);
         }
         if (trustStorePassword != null) {
-            sslContextFactory.setTrustStorePassword(this.privateKeyStore.getApplicationSecret(trustStorePasswordAppName, trustStorePassword));
+            sslContextFactory.setTrustStorePassword(privateKeyStore.getApplicationSecret(trustStorePasswordAppName, trustStorePassword));
         }
         sslContextFactory.setTrustStoreType(trustStoreType);
 
@@ -366,6 +378,40 @@ public class AthenzJettyContainer {
         return sslContextFactory;
     }
     
+    private void setCertWatcher(final String storePath, final SslContextFactory sslContextFactory, final boolean needClientAuth) {
+        if (null == storePath || storePath.isEmpty()) {
+            return;
+        }
+        try {
+            new CertWatcher(storePath, new CertWatcherHandler() {
+                public void certChanged() {
+                    if (validateSslContextFactory(needClientAuth)) {
+                        try {
+                            sslContextFactory.reload(consumer -> {
+                                createSSLContextObject(needClientAuth, sslContextFactory);
+                            });
+                        } catch (Throwable e) {
+                            LOG.warn("Error reloading SSL credentials", e);
+                        }
+                    }
+                }
+            });
+        } catch (IOException e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+    
+    private boolean validateSslContextFactory(final boolean needClientAuth) {
+        SslContextFactory sslContextFactory = createSSLContextObject(needClientAuth, null);
+        try {
+            sslContextFactory.reload((x) -> { });
+        } catch (Throwable e) {
+            LOG.error("Error trying to reload new SSL configuration:" , e);
+            return false;
+        }
+        return true;
+    }
+    
     void addHTTPConnector(HttpConfiguration httpConfig, int httpPort, boolean proxyProtocol,
             String listenHost, int idleTimeout) {
         
@@ -388,9 +434,15 @@ public class AthenzJettyContainer {
             String listenHost, int idleTimeout, boolean needClientAuth) {
         
         // SSL Context Factory
-    
-        SslContextFactory sslContextFactory = createSSLContextObject(needClientAuth);
-    
+        this.reloadableSslContextFactory = createSSLContextObject(needClientAuth, null);
+
+        if (this.reloadableSslContextFactory.getKeyStoreResource() != null) {
+            setCertWatcher(this.reloadableSslContextFactory.getKeyStorePath(), this.reloadableSslContextFactory, needClientAuth);
+        }
+        if (this.reloadableSslContextFactory.getTrustStoreResource() != null) {
+            setCertWatcher(this.reloadableSslContextFactory.getTrustStoreResource().toString(), this.reloadableSslContextFactory, needClientAuth);
+        }
+
         // SSL HTTP Configuration
         
         HttpConfiguration httpsConfig = new HttpConfiguration(httpConfig);
@@ -403,11 +455,11 @@ public class AthenzJettyContainer {
         ServerConnector sslConnector = null;
         if (proxyProtocol) {
             sslConnector = new ServerConnector(server, new ProxyConnectionFactory(),
-                    new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
+                    new SslConnectionFactory(this.reloadableSslContextFactory, HttpVersion.HTTP_1_1.asString()),
                     new HttpConnectionFactory(httpsConfig));
         } else {
             sslConnector = new ServerConnector(server,
-                    new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
+                    new SslConnectionFactory(this.reloadableSslContextFactory, HttpVersion.HTTP_1_1.asString()),
                     new HttpConnectionFactory(httpsConfig));
         }
         sslConnector.setPort(httpsPort);
