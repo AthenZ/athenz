@@ -11247,7 +11247,7 @@ public class ZMSImplTest {
         
         // our test resource json file includes two services:
         // coretech.storage - allowed for putrole and putpolicy
-        // sports.hockey - allowed for all ops 
+        // sports.hockey - not allowed for any ops
         
         zms.verifyAuthorizedServiceOperation("coretech.storage", "putrole");
         zms.verifyAuthorizedServiceOperation("coretech.storage", "putpolicy");
@@ -11262,10 +11262,26 @@ public class ZMSImplTest {
             assertEquals(ex.getCode(), 403);
         }
         
-        zms.verifyAuthorizedServiceOperation("sports.hockey", "putrole");
-        zms.verifyAuthorizedServiceOperation("sports.hockey", "putpolicy");
-        zms.verifyAuthorizedServiceOperation("sports.hockey", "deleterole");
-        zms.verifyAuthorizedServiceOperation("sports.hockey", "putserviceidentity");
+        try {
+            zms.verifyAuthorizedServiceOperation("sports.hockey", "putrole");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+        try {
+            zms.verifyAuthorizedServiceOperation("sports.hockey", "putpolicy");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+        try {
+            zms.verifyAuthorizedServiceOperation("sports.hockey", "deleterole");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+        try {
+            zms.verifyAuthorizedServiceOperation("sports.hockey", "putserviceidentity");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
         
         // ATHENZ-1528
         // Try passing along operationItem key + value to see if verification works
