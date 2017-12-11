@@ -66,7 +66,7 @@ var (
 	hangSource      = source("d500")
 	noKeySource     = source("nks")
 	badEncSource    = source("bes")
-	badJsonSource   = source("bjs")
+	badJSONSource   = source("bjs")
 	keyRotateSource = source("rotate")
 )
 
@@ -98,7 +98,7 @@ var handlerMap = map[keySource]handler{
 	hangSource:      hang,
 	noKeySource:     noKey,
 	badEncSource:    badBase64,
-	badJsonSource:   badJSON,
+	badJSONSource:   badJSON,
 	keyRotateSource: ch.getKey,
 }
 
@@ -111,8 +111,8 @@ func TestCachedValidate(t *testing.T) {
 		}
 		return s404(src)
 	}
-	s, baseUrl, err := newServer(h)
-	t.Log(baseUrl)
+	s, baseURL, err := newServer(h)
+	t.Log(baseURL)
 
 	require.Nil(t, err)
 	go func() {
@@ -121,7 +121,7 @@ func TestCachedValidate(t *testing.T) {
 	defer s.close()
 
 	config := ValidationConfig{
-		ZTSBaseUrl:            baseUrl,
+		ZTSBaseUrl:            baseURL,
 		CacheTTL:              2 * time.Second,
 		PublicKeyFetchTimeout: 1 * time.Second,
 	}
@@ -164,7 +164,7 @@ func TestCachedValidate(t *testing.T) {
 	a.Contains(err.Error(), "illegal base64 data")
 
 	// bad JSON
-	_, err = validator.Validate(makeToken(t, badJsonSource))
+	_, err = validator.Validate(makeToken(t, badJSONSource))
 	require.NotNil(t, err)
 	a.Contains(err.Error(), "JSON")
 
