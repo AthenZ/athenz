@@ -6620,13 +6620,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     operationName);
         }
         
-        // if the list is empty then we allow all the operations
+        // if the list is empty then we do not allow any operations
+        
         ArrayList<AllowedOperation> ops = authzService.getAllowedOperations();
         if (ops == null || ops.isEmpty()) {
-            return;
+            throw ZMSUtils.forbiddenError("Unauthorized Operation (" + operationName
+                    + ") for Service " + authorizedService, operationName);
         }
         
         // otherwise make sure the operation is allowed for this service
+        
         boolean opAllowed = false;
         for (AllowedOperation op : ops) {
             if (!op.getName().equalsIgnoreCase(operationName)) {
