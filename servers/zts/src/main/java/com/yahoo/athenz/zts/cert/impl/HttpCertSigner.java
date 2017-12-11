@@ -152,7 +152,7 @@ public class HttpCertSigner implements CertSigner {
     @Override
     public String generateX509Certificate(String csr, String keyUsage) {
         
-        // Key Usage value used in go - https://golang.org/src/crypto/x509/x509.go?s=18153:18173#L558
+        // Key Usage value used in Go - https://golang.org/src/crypto/x509/x509.go?s=18153:18173#L558
         // we're only interested in ExtKeyUsageClientAuth - with value of 2
         
         final String extKeyUsage = ZTSConsts.ZTS_CERT_USAGE_CLIENT.equals(keyUsage) ? "2" : null;

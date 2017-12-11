@@ -1,7 +1,7 @@
 zts-roletoken
 =============
 
-ZTS Role Token Client application in go to request a role token from
+ZTS Role Token Client application in Go to request a role token from
 ZTS Server for the given identity to access a role in a provider domain:
 
 ```shell

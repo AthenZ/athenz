@@ -1,7 +1,7 @@
 zms-svctoken
 ============
 
-ZMS Service Token Client application in go to generate service tokens
+ZMS Service Token Client application in Go to generate service tokens
 based on given private key and service details:
 
 ```shell
