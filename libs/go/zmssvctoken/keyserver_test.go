@@ -53,7 +53,7 @@ func (s *server) close() error {
 	return s.l.Close()
 }
 
-func newServer(h handler) (s *server, baseUrl string, err error) {
+func newServer(h handler) (s *server, baseURL string, err error) {
 
 	listener, err := net.Listen("tcp", ":0")
 	if err != nil {
@@ -61,10 +61,10 @@ func newServer(h handler) (s *server, baseUrl string, err error) {
 	}
 
 	port := listener.Addr().(*net.TCPAddr).Port
-	baseUrl = fmt.Sprintf("http://:%d/v1", port)
+	baseURL = fmt.Sprintf("http://:%d/v1", port)
 	s = &server{
 		l: listener,
 		h: h,
 	}
-	return s, baseUrl, nil
+	return s, baseURL, nil
 }

@@ -18,12 +18,12 @@ import (
 
 var hash = crypto.SHA256
 
-// signer signs a string and returns the signature
+// Signer signs a string and returns the signature.
 type Signer interface {
 	Sign(input string) (string, error)
 }
 
-// verifier verifies the signature for a string
+// Verifier verifies the signature for a string.
 type Verifier interface {
 	Verify(input, signature string) error
 }
@@ -40,6 +40,7 @@ func hashString(input string) ([]byte, error) {
 	return h.Sum(nil), nil
 }
 
+// NewSigner creates an instance of Signer using the given private key (ECDSA or RSA).
 func NewSigner(privateKeyPEM []byte) (Signer, error) {
 	block, _ := pem.Decode(privateKeyPEM)
 	if block == nil {
@@ -68,6 +69,7 @@ type sign struct {
 	key crypto.Signer
 }
 
+// Sign signs the given input string using the internal key.
 func (s *sign) Sign(input string) (string, error) {
 	hashed, err := hashString(input)
 	if err != nil {
@@ -88,6 +90,7 @@ type rsaVerify struct {
 	key *rsa.PublicKey
 }
 
+// Verify verifies the signature of the input using the RSA public key.
 func (r *rsaVerify) Verify(hashed []byte, sig []byte) error {
 	return rsa.VerifyPKCS1v15(r.key, hash, hashed, sig)
 }
@@ -96,6 +99,7 @@ type ecdsaVerify struct {
 	key *ecdsa.PublicKey
 }
 
+// Verify verifies the signature of the input using the ECDSA public key.
 func (e *ecdsaVerify) Verify(hashed []byte, sig []byte) error {
 	var s struct {
 		R, S *big.Int
@@ -110,6 +114,7 @@ func (e *ecdsaVerify) Verify(hashed []byte, sig []byte) error {
 	return nil
 }
 
+// NewVerifier creates an instance of Verifier using the given public key.
 func NewVerifier(publicKeyPEM []byte) (Verifier, error) {
 	block, _ := pem.Decode(publicKeyPEM)
 	if block == nil {
@@ -137,8 +142,8 @@ type verify struct {
 	iv internalVerifier
 }
 
+// Verify verifies the ybase64-encoded signature of the input.
 func (v *verify) Verify(input, signature string) error {
-
 	sigBytes, err := new(YBase64).DecodeString(signature)
 	if err != nil {
 		return err

@@ -21,12 +21,12 @@ func getEncoding() *base64.Encoding {
 type YBase64 struct {
 }
 
-// EncodeToString encodes an array of bytes to a string
+// EncodeToString encodes an array of bytes to a string.
 func (lb *YBase64) EncodeToString(b []byte) string {
 	return getEncoding().EncodeToString(b)
 }
 
-// DecodeString decodes a string encoded using EncodeToString
+// DecodeString decodes a string encoded using EncodeToString.
 func (lb *YBase64) DecodeString(s string) ([]byte, error) {
 	return getEncoding().DecodeString(s)
 }

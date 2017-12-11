@@ -1,7 +1,7 @@
 zts-svccert
 ===========
 
-ZTS Service Certificate Client application in go to generate service tokens
+ZTS Service Certificate Client application in Go to generate service tokens
 based on given private key and service details, then generate a CSR using
 the same private key and then request a X509 Certificate for that service
 token from ZTS Server. Once ZTS validates the NToken and CSR, it will issue

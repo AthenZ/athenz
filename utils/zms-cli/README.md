@@ -1,7 +1,7 @@
 zms-cli
 =======
 
-ZMS Client application in go to manage your Athenz domain in ZMS Server.
+ZMS Client application in Go to manage your Athenz domain in ZMS Server.
 
 ## License
 

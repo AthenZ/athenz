@@ -1,8 +1,8 @@
 // Copyright 2016 Yahoo Inc.
 // Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
 
-// Package svctoken produces and validates ntokens given appropriate keys.
-// It can only produce service tokens but can validate any principal token
+// Package zmssvctoken produces and validates ntokens given appropriate keys.
+// It can only produce service tokens but can validate any principal token.
 package zmssvctoken
 
 import (
@@ -33,24 +33,24 @@ const (
 	tagSignature      = "s"
 )
 
-// NToken provides access to useful fields in an ntoken
+// NToken provides access to useful fields in an ntoken.
 type NToken struct {
 	Version        string    // the token version e.g. S1, U1
 	Domain         string    // domain for which token is valid
 	Name           string    // local principal name
 	KeyVersion     string    // key version as registered in Athenz
 	Hostname       string    // optional hostname
-	IPAddress      string    // optional I/P address
+	IPAddress      string    // optional IP address
 	GenerationTime time.Time // time token was generated
 	ExpiryTime     time.Time // time token expires
 }
 
-// PrincipalName returns the fully qualified principal name for the token
+// PrincipalName returns the fully qualified principal name for the token.
 func (n *NToken) PrincipalName() string {
 	return n.Domain + "." + n.Name
 }
 
-// IsExpired is a convenience function to check token expiry
+// IsExpired is a convenience function to check token expiry.
 func (n *NToken) IsExpired() bool {
 	return n.ExpiryTime.Before(time.Now())
 }
@@ -196,21 +196,21 @@ func (n *NToken) String() string {
 }
 
 // Token is a mechanism to get an ntoken as a string.
-// It guarantees that the returned token has not expired
+// It guarantees that the returned token has not expired.
 type Token interface {
 	// Value returns the value of the current token or
-	// an error if it couldn't be generated for any reason
+	// an error if it couldn't be generated for any reason.
 	Value() (string, error)
 }
 
 // TokenBuilder provides a mechanism to set optional ntoken attributes and
-// a means to get the token value with efficient auto-refresh
+// a means to get the token value with efficient auto-refresh.
 type TokenBuilder interface {
-	// SetExpiration sets the duration for which the token is valid (default=1h)
+	// SetExpiration sets the duration for which the token is valid (default=1h).
 	SetExpiration(t time.Duration)
-	// SetHostname sets the hostname for the token (default=current hostname)
+	// SetHostname sets the hostname for the token (default=current hostname).
 	SetHostname(h string)
-	// SetIPAddress sets the I/P address for the token (default=host I/P address)
+	// SetIPAddress sets the IP address for the token (default=host IP address).
 	SetIPAddress(ip string)
 	// Token returns a Token instance with the fields correctly set for
 	// the current token. Multiple calls to Token will return the same implementation.
@@ -228,8 +228,8 @@ type tokenBuilder struct {
 }
 
 // NewTokenBuilder returns a TokenBuilder implementation for the specified
-// domain/ name, with a private key (PEM format) and its key-version. The key-version
-// should be the same string that was used to register the key with Athenz
+// domain/name, with a private key (PEM format) and its key-version. The key-version
+// should be the same string that was used to register the key with Athenz.
 func NewTokenBuilder(domain, name string, privateKeyPEM []byte, keyVersion string) (TokenBuilder, error) {
 	s, err := NewSigner(privateKeyPEM)
 	if err != nil {
@@ -308,7 +308,7 @@ func (t *token) Value() (string, error) {
 	return t.cachedToken, nil
 }
 
-// TokenValidator provides a mechanism to validate tokens
+// TokenValidator provides a mechanism to validate tokens.
 type TokenValidator interface {
 	// Validate returns an unexpired NToken object from its
 	// string representation.
@@ -332,7 +332,7 @@ func (tv *tokenValidator) Validate(token string) (*NToken, error) {
 }
 
 // NewPubKeyTokenValidator returns NToken objects from signed token strings
-// given a public key to verify signatures
+// given a public key to verify signatures.
 func NewPubKeyTokenValidator(publicKeyPEM []byte) (TokenValidator, error) {
 	v, err := NewVerifier(publicKeyPEM)
 	if err != nil {
@@ -343,6 +343,7 @@ func NewPubKeyTokenValidator(publicKeyPEM []byte) (TokenValidator, error) {
 	}, nil
 }
 
+// ValidationConfig contains data to change runtime parameters from the default values.
 type ValidationConfig struct {
 	ZTSBaseUrl            string        // the ZTS base url including the /zts/v1 version path, default
 	PublicKeyFetchTimeout time.Duration // timeout for fetching the public key from ZTS, default: 5s
