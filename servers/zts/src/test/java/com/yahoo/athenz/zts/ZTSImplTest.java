@@ -1258,15 +1258,15 @@ public class ZTSImplTest {
     
     
     @Test
-    public void testGetRoleTokenApplicationId() {
+    public void testGetRoleTokenAuthorizedService() {
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         signedDomain.domain.setApplicationId("application_id");
         store.processDomain(signedDomain, false);
         
-        //sucess
+        //success
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
-        principal.setApplicationId("application_id");
+        principal.setApplicationId("coretech.api");
         ResourceContext context = createResourceContext(principal);
         
         RoleToken roleToken = zts.getRoleToken(context, "coretech", null, Integer.valueOf(600),
@@ -1274,33 +1274,17 @@ public class ZTSImplTest {
         com.yahoo.athenz.auth.token.RoleToken token = new com.yahoo.athenz.auth.token.RoleToken(roleToken.getToken());
         assertEquals(token.getRoles().size(), 1);
         
-        //sucess - domain application id exists but principal application id doesn't
+        //success - no authorized service available
         principal = (SimplePrincipal) SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
         context = createResourceContext(principal);
         token = new com.yahoo.athenz.auth.token.RoleToken(roleToken.getToken());
         assertEquals(token.getRoles().size(), 1);
         
-        //failure - domain application id and principal application id doesn't match
+        //failure - domain name and principal authorized service doesn't match
         principal = (SimplePrincipal) SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
-        principal.setApplicationId("invalid_application_id");
-        context = createResourceContext(principal);
-        
-        try {
-            zts.getRoleToken(context, "coretech", null, Integer.valueOf(600),
-                    Integer.valueOf(1200), null);
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 403);
-        }
-        
-        //failure - domain application id missing
-        signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
-        principal = (SimplePrincipal) SimplePrincipal.create("user_domain", "user",
-                "v=U1;d=user_domain;n=user;s=signature", 0, null);
-        principal.setApplicationId("application_id");
+        principal.setAuthorizedService("sports.hockey.api");
         context = createResourceContext(principal);
         
         try {
@@ -1311,7 +1295,6 @@ public class ZTSImplTest {
             assertEquals(ex.getCode(), 403);
         }
     }
-    
     
     @Test
     public void testGetRoleToken() {
@@ -6640,6 +6623,48 @@ public class ZTSImplTest {
             fail();
         } catch (Exception ex) {
             assertTrue(ex.getMessage().contains("unable to parse PKCS10 certificate request"), ex.getMessage());
+        }
+    }
+    
+    @Test
+    public void testCheckRoleTokenAuthorizedServiceRequestNoAuthzService() {
+        
+        // null authorized service
+        
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user",
+                "doe", "v=U1,d=user;n=doe;s=sig", 0, new PrincipalAuthority());
+        zts.checkRoleTokenAuthorizedServiceRequest(principal, "athenz", "caller");
+        
+        // empty authorized service
+        
+        principal.setAuthorizedService("");
+        zts.checkRoleTokenAuthorizedServiceRequest(principal, "athenz", "caller");
+    }
+    
+    @Test
+    public void testCheckRoleTokenAuthorizedServiceRequest() {
+        
+        // match authorized service - top level domain
+        
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user",
+                "doe", "v=U1,d=user;n=doe;s=sig", 0, new PrincipalAuthority());
+        principal.setAuthorizedService("sports.api");
+
+        zts.checkRoleTokenAuthorizedServiceRequest(principal, "sports", "caller");
+        
+        // match authorized service - subdomain
+        
+        principal.setAuthorizedService("sports.hockey.api");
+        zts.checkRoleTokenAuthorizedServiceRequest(principal, "sports.hockey", "caller");
+        
+        // mismatch
+        
+        principal.setAuthorizedService("weather.api");
+        try {
+            zts.checkRoleTokenAuthorizedServiceRequest(principal, "sports", "caller");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
         }
     }
 }

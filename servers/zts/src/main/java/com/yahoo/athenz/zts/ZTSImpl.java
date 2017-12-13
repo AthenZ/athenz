@@ -1164,31 +1164,27 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return proxyUsers.contains(principal);
     }
     
-    private void checkRoleTokenApplicationIdRequest(ResourceContext ctx, DomainData domain, String caller) {
+    void checkRoleTokenAuthorizedServiceRequest(final Principal principal,
+            final String domainName, final String caller) {
         
-        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
-        final String applicationId = principal.getApplicationId();
+        final String authorizedService = principal.getAuthorizedService();
         
-        // if principal contains applicationId, it means that the request came through Okta Authority,
-        // so check for association with domain, otherwise we have nothing to do
+        // if principal is not an authorized service token then
+        // we have nothing to check for
         
-        if (applicationId == null || applicationId.isEmpty()) {
+        if (authorizedService == null || authorizedService.isEmpty()) {
             return;
         }
         
-        // domain has not been configured with application ID, revoke request
-
-        final String appId = domain.getApplicationId();
-        if (appId == null || appId.isEmpty()) {
-            throw forbiddenError("Application Id " + applicationId + " is missing from domain configuration",
-                    caller, domain.getName());
-        }
+        // extract the domain from the authorized service and make
+        // sure it matches to the requested domain value
         
-        // check for match
-         
-        if (!appId.equals(applicationId)) {
-            throw forbiddenError("Application Id " + appId + " does not match principal's appplication Id " + applicationId,
-                    caller, domain.getName());
+        int idx = authorizedService.lastIndexOf('.');
+        final String checkDomain = authorizedService.substring(0, idx);
+        
+        if (!domainName.equals(checkDomain)) {
+            throw forbiddenError("Authorized service domain " + checkDomain +
+                    " does not match request domain " + domainName, caller, domainName);
         }
     }
     
@@ -1225,10 +1221,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         Object timerMetric = metric.startTiming(callerTiming, domainName);
         
         // get our principal's name
-        String principal = ((RsrcCtxWrapper) ctx).principal().getFullName();
+        
+        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        String principalName = principal.getFullName();
         
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("getRoleToken(domain: " + domainName + ", principal: " + principal +
+            LOGGER.debug("getRoleToken(domain: " + domainName + ", principal: " + principalName +
                     ", role-name: " + roleName + ", proxy-for: " + proxyForPrincipal + ")");
         }
         
@@ -1245,10 +1243,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // we can only have a proxy for principal request if the original
         // caller is authorized for such operations
         
-        if (proxyForPrincipal != null && !isAuthorizedProxyUser(authorizedProxyUsers, principal)) {
-            LOGGER.error("getRoleToken: Principal: " + principal +
+        if (proxyForPrincipal != null && !isAuthorizedProxyUser(authorizedProxyUsers, principalName)) {
+            LOGGER.error("getRoleToken: Principal: " + principalName +
                     " not authorized for proxy role token request");
-            throw forbiddenError("getRoleToken: Principal: " + principal
+            throw forbiddenError("getRoleToken: Principal: " + principalName
                     + " not authorized for proxy role token request", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
         }
         
@@ -1280,9 +1278,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_REQUEST, domainName);
         metric.increment(caller, domainName);
         
-        // check if application id matches the principal's application id
+        // check if the authorized service domain matches to the
+        // requested domain name
         
-        checkRoleTokenApplicationIdRequest(ctx, data.getDomainData(), caller);
+        checkRoleTokenAuthorizedServiceRequest(principal, domainName, caller);
         
         // we need to convert our request role name into array since
         // it could contain multiple values separated by commas
@@ -1295,7 +1294,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // process our request and retrieve the roles for the principal
         
         Set<String> roles = new HashSet<>();
-        dataStore.getAccessibleRoles(data, domainName, principal, requestedRoleList,
+        dataStore.getAccessibleRoles(data, domainName, principalName, requestedRoleList,
                 roles, false);
         
         if (roles.isEmpty()) {
@@ -1324,8 +1323,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             
             // we need to switch our principal and proxy for user
             
-            proxyUser = principal;
-            principal = proxyForPrincipal;
+            proxyUser = principalName;
+            principalName = proxyForPrincipal;
         }
 
         long tokenTimeout = determineTokenTimeout(minExpiryTime, maxExpiryTime);
@@ -1334,7 +1333,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         com.yahoo.athenz.auth.token.RoleToken token =
                 new com.yahoo.athenz.auth.token.RoleToken.Builder(ZTS_ROLE_TOKEN_VERSION, domainName, roleList)
                     .expirationWindow(tokenTimeout).host(serverHostName).keyId(privateKeyId)
-                    .principal(principal).ip(ServletRequestUtil.getRemoteAddress(ctx.request()))
+                    .principal(principalName).ip(ServletRequestUtil.getRemoteAddress(ctx.request()))
                     .proxyUser(proxyUser).domainCompleteRoleSet(domainCompleteRoleSet).build();
         token.sign(privateKey);
         
