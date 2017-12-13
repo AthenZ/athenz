@@ -2,8 +2,7 @@
 
 ## Scenario
 
-Use the service cert present locally on the box to talk to ZMS, find out if the current principal has "Access"
-to a specified resource, in a given domain.
+Use the service cert present locally on the box to talk to ZMS, find out if the current principal has "Access" to a specified resource, in a given domain.
 
 Principal Domain: home.userid
 Principal identity: home.userid.helloworld
