@@ -13,13 +13,13 @@ import (
 )
 
 var (
-	indent_level1          string = "    "
-	indent_level1_dash     string = "    - "
-	indent_level1_dash_lvl string = "      "
-	indent_level2          string = "        "
-	indent_level2_dash     string = "        - "
-	indent_level2_dash_lvl string = "          "
-	indent_level3          string = "            "
+	indent_level1          = "    "
+	indent_level1_dash     = "    - "
+	indent_level1_dash_lvl = "      "
+	indent_level2          = "        "
+	indent_level2_dash     = "        - "
+	indent_level2_dash_lvl = "          "
+	indent_level3          = "            "
 )
 
 func (cli Zms) dumpDomain(buf *bytes.Buffer, domain *zms.Domain) {
@@ -42,11 +42,11 @@ func (cli Zms) dumpDomain(buf *bytes.Buffer, domain *zms.Domain) {
 		buf.WriteString(domain.Account)
 		buf.WriteString("\n")
 	}
-	productId := int(*domain.YpmId)
-	if productId != 0 {
+	productID := int(*domain.YpmId)
+	if productID != 0 {
 		buf.WriteString(indent_level1)
 		buf.WriteString("product_id: ")
-		buf.WriteString(strconv.Itoa(productId))
+		buf.WriteString(strconv.Itoa(productID))
 		buf.WriteString("\n")
 	}
 	if domain.Org != "" {

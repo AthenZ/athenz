@@ -15,6 +15,7 @@ import (
 	"github.com/yahoo/athenz/utils/zpe-updater/util"
 )
 
+// Default and maximal startup delay values.
 const (
 	DEFAULT_STARTUP_DELAY = 0
 	MAX_STARTUP_DELAY     = 86400

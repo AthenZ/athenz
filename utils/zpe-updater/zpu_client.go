@@ -33,8 +33,8 @@ func PolicyUpdater(config *ZpuConfiguration) error {
 	}
 	success := true
 	domains := strings.Split(config.DomainList, ",")
-	ztsUrl := formatUrl(config.Zts, "zts/v1")
-	ztsClient := zts.NewClient(ztsUrl, nil)
+	ztsURL := formatURL(config.Zts, "zts/v1")
+	ztsClient := zts.NewClient(ztsURL, nil)
 	policyFileDir := config.PolicyFileDir
 	failedDomains := ""
 	for _, domain := range domains {
@@ -77,11 +77,10 @@ func GetPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, policyFileDi
 		if etag != "" {
 			log.Printf("Policies not updated since last fetch for domain: %v", domain)
 			return nil
-		} else {
-			return fmt.Errorf("Empty policies data returned for domain: %v", domain)
 		}
+		return fmt.Errorf("Empty policies data returned for domain: %v", domain)
 	}
-	//validate data using zts public key and signature
+	// validate data using zts public key and signature
 	err = ValidateSignedPolicies(config, ztsClient, data)
 	if err != nil {
 		return fmt.Errorf("Failed to validate policy data for domain: %v, Error: %v", domain, err)
@@ -100,8 +99,9 @@ func GetEtagForExistingPolicy(config *ZpuConfiguration, ztsClient zts.ZTSClient,
 
 	policyFile := fmt.Sprintf("%s/%s.pol", policyFileDir, domain)
 
-	// If Policies file is not found, return empty etag the first time
-	// else load the file contents, if data has expired return empty etag, else construct etag from modified field in Json
+	// If Policies file is not found, return empty etag the first time.
+	// Otherwise load the file contents, if data has expired return empty etag,
+	// else construct etag from modified field in JSON.
 	exists := util.Exists(policyFile)
 	if !exists {
 		return "", nil
@@ -139,17 +139,17 @@ func ValidateSignedPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, d
 	}
 	signedPolicyData := data.SignedPolicyData
 	ztsSignature := data.Signature
-	ztsKeyId := data.KeyId
+	ztsKeyID := data.KeyId
 
-	ztsPublicKey := config.GetZtsPublicKey(ztsKeyId)
+	ztsPublicKey := config.GetZtsPublicKey(ztsKeyID)
 	if ztsPublicKey == "" {
-		key, err := ztsClient.GetPublicKeyEntry("sys.auth", "zts", ztsKeyId)
+		key, err := ztsClient.GetPublicKeyEntry("sys.auth", "zts", ztsKeyID)
 		if err != nil {
-			return fmt.Errorf("Unable to get the Zts public key with id:\"%v\" to verify data", ztsKeyId)
+			return fmt.Errorf("Unable to get the Zts public key with id:\"%v\" to verify data", ztsKeyID)
 		}
 		decodedKey, err := new(zmssvctoken.YBase64).DecodeString(key.Key)
 		if err != nil {
-			return fmt.Errorf("Unable to decode the Zts public key with id:\"%v\" to verify data", ztsKeyId)
+			return fmt.Errorf("Unable to decode the Zts public key with id:\"%v\" to verify data", ztsKeyID)
 		}
 		ztsPublicKey = string(decodedKey)
 	}
@@ -159,19 +159,19 @@ func ValidateSignedPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, d
 	}
 	err = verify(input, ztsSignature, ztsPublicKey)
 	if err != nil {
-		return fmt.Errorf("Verification of data with zts key having id:\"%v\" failed, Error :%v", ztsKeyId, err)
+		return fmt.Errorf("Verification of data with zts key having id:\"%v\" failed, Error :%v", ztsKeyID, err)
 	}
 	zmsSignature := data.SignedPolicyData.ZmsSignature
-	zmsKeyId := data.SignedPolicyData.ZmsKeyId
-	zmsPublicKey := config.GetZmsPublicKey(zmsKeyId)
+	zmsKeyID := data.SignedPolicyData.ZmsKeyId
+	zmsPublicKey := config.GetZmsPublicKey(zmsKeyID)
 	if zmsPublicKey == "" {
-		key, err := ztsClient.GetPublicKeyEntry("sys.auth", "zms", zmsKeyId)
+		key, err := ztsClient.GetPublicKeyEntry("sys.auth", "zms", zmsKeyID)
 		if err != nil {
-			return fmt.Errorf("Unable to get the Zms public key with id:\"%v\" to verify data", zmsKeyId)
+			return fmt.Errorf("Unable to get the Zms public key with id:\"%v\" to verify data", zmsKeyID)
 		}
 		decodedKey, err := new(zmssvctoken.YBase64).DecodeString(key.Key)
 		if err != nil {
-			return fmt.Errorf("Unable to decode the Zms public key with id:\"%v\" to verify data", zmsKeyId)
+			return fmt.Errorf("Unable to decode the Zms public key with id:\"%v\" to verify data", zmsKeyID)
 		}
 		zmsPublicKey = string(decodedKey)
 	}
@@ -182,7 +182,7 @@ func ValidateSignedPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, d
 	}
 	err = verify(input, zmsSignature, zmsPublicKey)
 	if err != nil {
-		return fmt.Errorf("Verification of data with zms key with id:\"%v\" failed, Error :%v", zmsKeyId, err)
+		return fmt.Errorf("Verification of data with zms key with id:\"%v\" failed, Error :%v", zmsKeyID, err)
 	}
 	return nil
 }
@@ -197,15 +197,11 @@ func verify(input, signature, publicKey string) error {
 }
 
 func expired(expires rdl.Timestamp) bool {
-	if rdl.TimestampNow().Millis() > expires.Millis() {
-		return true
-	} else {
-		return false
-	}
+	return rdl.TimestampNow().Millis() > expires.Millis()
 }
 
-// If domain policy file is not found, create the policy file and write policies in it
-// else delete the existing file and write the modified policies to new file
+// If domain policy file is not found, create the policy file and write policies in it.
+// Else delete the existing file and write the modified policies to new file.
 func WritePolicies(config *ZpuConfiguration, data *zts.DomainSignedPolicyData, domain, policyFileDir string) error {
 	tempPolicyFileDir := config.TmpPolicyFileDir
 	if tempPolicyFileDir == "" || data == nil {
@@ -233,10 +229,7 @@ func WritePolicies(config *ZpuConfiguration, data *zts.DomainSignedPolicyData, d
 		return err
 	}
 	os.Rename(tempPolicyFile, policyFile)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func verifyTmpDirSetup(TempPolicyFileDir string) error {
@@ -244,10 +237,7 @@ func verifyTmpDirSetup(TempPolicyFileDir string) error {
 		return nil
 	}
 	err := os.MkdirAll(TempPolicyFileDir, 0755)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func PostAllDomainMetric(ztsClient zts.ZTSClient, metricFilePath string) error {
@@ -319,23 +309,23 @@ func aggregateAllDomainMetrics(metricFilePath string) (map[string]map[string]int
 func buildDomainMetrics(key string, value map[string]int) (*zts.DomainMetrics, error) {
 	var data *zts.DomainMetrics
 	counter := 1
-	metricJson := `{"domainName":"` + key + `","metricList":[`
+	metricJSON := `{"domainName":"` + key + `","metricList":[`
 	valuekeys := []string{}
-	for k, _ := range value {
+	for k := range value {
 		valuekeys = append(valuekeys, k)
 	}
 	sort.Strings(valuekeys)
 	for _, innerKey := range valuekeys {
 		size := len(value)
 		if counter == size {
-			metricJson += `{"metricType":"` + innerKey + `","metricVal":` + strconv.Itoa(value[innerKey]) + `}`
+			metricJSON += `{"metricType":"` + innerKey + `","metricVal":` + strconv.Itoa(value[innerKey]) + `}`
 		} else {
-			metricJson += `{"metricType":"` + innerKey + `","metricVal":` + strconv.Itoa(value[innerKey]) + `},`
+			metricJSON += `{"metricType":"` + innerKey + `","metricVal":` + strconv.Itoa(value[innerKey]) + `},`
 		}
-		counter += 1
+		counter++
 	}
-	metricJson += `]}`
-	err := json.Unmarshal([]byte(metricJson), &data)
+	metricJSON += `]}`
+	err := json.Unmarshal([]byte(metricJSON), &data)
 	if err != nil {
 		return nil, err
 	}
@@ -359,7 +349,7 @@ func deleteDomainMetricFiles(path, domainName string) {
 	}
 }
 
-func formatUrl(url, suffix string) string {
+func formatURL(url, suffix string) string {
 	if !strings.HasSuffix(url, suffix) {
 		if strings.LastIndex(url, "/") != len(url)-1 {
 			url += "/"

@@ -70,12 +70,11 @@ func (cli Zms) AddDelegatedRole(dn string, rn string, trusted string) (*string, 
 	_, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil)
 	if err == nil {
 		return nil, fmt.Errorf("Role already exists: %v", fullResourceName)
-	} else {
-		switch v := err.(type) {
-		case rdl.ResourceError:
-			if v.Code != 404 {
-				return nil, v
-			}
+	}
+	switch v := err.(type) {
+	case rdl.ResourceError:
+		if v.Code != 404 {
+			return nil, v
 		}
 	}
 	if rn == "admin" {
@@ -91,9 +90,8 @@ func (cli Zms) AddDelegatedRole(dn string, rn string, trusted string) (*string, 
 	if cli.Bulkmode {
 		s := ""
 		return &s, nil
-	} else {
-		return cli.ShowRole(dn, rn, false, false)
 	}
+	return cli.ShowRole(dn, rn, false, false)
 }
 
 func (cli Zms) AddGroupRole(dn string, rn string, roleMembers []*zms.RoleMember) (*string, error) {
@@ -102,12 +100,11 @@ func (cli Zms) AddGroupRole(dn string, rn string, roleMembers []*zms.RoleMember)
 	_, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil)
 	if err == nil {
 		return nil, fmt.Errorf("Role already exists: %v", fullResourceName)
-	} else {
-		switch v := err.(type) {
-		case rdl.ResourceError:
-			if v.Code != 404 {
-				return nil, v
-			}
+	}
+	switch v := err.(type) {
+	case rdl.ResourceError:
+		if v.Code != 404 {
+			return nil, v
 		}
 	}
 	if rn == "admin" {
@@ -123,9 +120,8 @@ func (cli Zms) AddGroupRole(dn string, rn string, roleMembers []*zms.RoleMember)
 	if cli.Bulkmode {
 		s := ""
 		return &s, nil
-	} else {
-		return cli.ShowRole(dn, rn, false, false)
 	}
+	return cli.ShowRole(dn, rn, false, false)
 }
 
 func (cli Zms) DeleteRole(dn string, rn string) (*string, error) {

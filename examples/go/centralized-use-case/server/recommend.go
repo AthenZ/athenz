@@ -17,7 +17,7 @@ import (
 
 var (
 	authHeader     string
-	zmsUrl         string
+	zmsURL         string
 	providerDomain string
 )
 
@@ -29,7 +29,7 @@ func authorizeRequest(ntoken, resource, action string) bool {
 	config.InsecureSkipVerify = true
 	tr.TLSClientConfig = config
 	zmsClient := zms.ZMSClient{
-		URL:       zmsUrl,
+		URL:       zmsURL,
 		Transport: &tr,
 	}
 	zmsClient.AddCredentials(authHeader, ntoken)
@@ -76,7 +76,7 @@ func tvshowHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	flag.StringVar(&zmsUrl, "zms", "https://localhost:4443/zms/v1", "url of the ZMS Service")
+	flag.StringVar(&zmsURL, "zms", "https://localhost:4443/zms/v1", "url of the ZMS Service")
 	flag.StringVar(&authHeader, "hdr", "Athenz-Principal-Auth", "The NToken header name")
 	flag.StringVar(&providerDomain, "domain", "recommend", "The provider domain name")
 	flag.Parse()

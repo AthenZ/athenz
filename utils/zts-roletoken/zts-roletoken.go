@@ -15,18 +15,18 @@ import (
 
 func main() {
 
-	var domain, role, ntoken, ntokenFile, ztsUrl, hdr string
+	var domain, role, ntoken, ntokenFile, ztsURL, hdr string
 	var expireTime int
 	flag.StringVar(&domain, "domain", "", "name of provider domain")
 	flag.StringVar(&role, "role", "", "name of provider role")
 	flag.StringVar(&ntoken, "ntoken", "", "service identity token")
 	flag.StringVar(&ntokenFile, "ntoken-file", "", "service identity token file")
-	flag.StringVar(&ztsUrl, "zts", "", "url of the ZTS Service")
+	flag.StringVar(&ztsURL, "zts", "", "url of the ZTS Service")
 	flag.StringVar(&hdr, "hdr", "Athenz-Principal-Auth", "Header name")
 	flag.IntVar(&expireTime, "expire-time", 120, "token expire time in minutes")
 	flag.Parse()
 
-	if domain == "" || (ntoken == "" && ntokenFile == "") || ztsUrl == "" {
+	if domain == "" || (ntoken == "" && ntokenFile == "") || ztsURL == "" {
 		log.Fatalln("usage: zts-roletoken -domain <domain> [-role <role>] -ntoken <ntoken> [-ntoken-file <ntoken-file>] -zts <zts-server-url> [-hdr <auth-header-name>] [-expire-time <time-in-mins>]")
 	}
 
@@ -41,7 +41,7 @@ func main() {
 	}
 
 	// use the ntoken to talk to Athenz
-	client := zts.NewClient(ztsUrl, nil)
+	client := zts.NewClient(ztsURL, nil)
 	client.AddCredentials(hdr, ntoken)
 
 	// zts timeout is in seconds so we'll convert our value

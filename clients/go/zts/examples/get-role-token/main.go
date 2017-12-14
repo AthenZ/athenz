@@ -17,21 +17,21 @@ import (
 )
 
 func main() {
-	var key, cert, role, domain, ztsUrl string
+	var key, cert, role, domain, ztsURL string
 	var skipVerify bool
 	flag.StringVar(&cert, "cert", "", "certificate file")
 	flag.StringVar(&key, "key", "", "key file")
-	flag.StringVar(&ztsUrl, "zts", "", "zts endpoint")
+	flag.StringVar(&ztsURL, "zts", "", "zts endpoint")
 	flag.StringVar(&domain, "domain", "", "domain the principal is from")
 	flag.StringVar(&role, "role", "", "role for which role-token needs to be fetched")
 	flag.BoolVar(&skipVerify, "skipVerify", false, "boolean flag to skip verifying server for TLS connection, if using self-signed certs")
 	flag.Parse()
 
-	if ztsUrl == "" {
+	if ztsURL == "" {
 		log.Fatalf("A valid zts url needs to be specified")
 	}
 
-	tlsConfig, err := GetTLSConfigFromFiles(key, cert)
+	tlsConfig, err := getTLSConfigFromFiles(key, cert)
 	if err != nil {
 		log.Fatalf("Unable to load client TLS Config, error: %v", err)
 	}
@@ -44,7 +44,7 @@ func main() {
 		transport.TLSClientConfig.InsecureSkipVerify = true
 	}
 
-	client := zts.NewClient(ztsUrl, transport)
+	client := zts.NewClient(ztsURL, transport)
 
 	rt, err := client.GetRoleToken(zts.DomainName(domain), zts.EntityList(role), nil, nil, zts.EntityName(""))
 	if err != nil {
@@ -54,7 +54,7 @@ func main() {
 	log.Printf("RoleToken: %q", rt.Token)
 }
 
-func GetTLSConfigFromFiles(keyFile, certFile string) (*tls.Config, error) {
+func getTLSConfigFromFiles(keyFile, certFile string) (*tls.Config, error) {
 	keypem, err := ioutil.ReadFile(keyFile)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to read keyfile: %q, error: %v", keyFile, err)
@@ -65,10 +65,10 @@ func GetTLSConfigFromFiles(keyFile, certFile string) (*tls.Config, error) {
 		return nil, fmt.Errorf("Unable to read certfile: %q, error: %v", certFile, err)
 	}
 
-	return GetTLSConfig(certpem, keypem)
+	return getTLSConfig(certpem, keypem)
 }
 
-func GetTLSConfig(certpem, keypem []byte) (*tls.Config, error) {
+func getTLSConfig(certpem, keypem []byte) (*tls.Config, error) {
 	clientCert, err := tls.X509KeyPair(certpem, keypem)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to formulate clientCert from key and cert bytes, error: %v", err)

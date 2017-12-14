@@ -24,11 +24,15 @@ import (
 	"github.com/yahoo/athenz/libs/go/zmscli"
 )
 
-//these get set by the build script via the LDFLAGS
-var VERSION string
-var BUILD_DATE string
+var (
+	// VERSION gets set by the build script via the LDFLAGS.
+	VERSION string
 
-func defaultZmsUrl() string {
+	// BUILD_DATE gets set by the build script via the LDFLAGS.
+	BUILD_DATE string
+)
+
+func defaultZmsURL() string {
 	s := os.Getenv("ZMS")
 	if s != "" {
 		return s
@@ -46,10 +50,7 @@ func defaultSocksProxy() string {
 
 func defaultDebug() bool {
 	sDebug := os.Getenv("ZMS_DEBUG")
-	if sDebug == "true" {
-		return true
-	}
-	return false
+	return sDebug == "true"
 }
 
 func debugAuthNToken(identity string) string {
@@ -61,17 +62,18 @@ func debugAuthNToken(identity string) string {
 	return "v=U1;d=" + domain + ";n=" + name + ";s=fakesignature"
 }
 
+// isFreshFile checks the file's last modification time
+// and returns true the file was updated within maxAge
+// (file is "fresh"), false otherwise (file is "stale").
 func isFreshFile(filename string, maxAge float64) bool {
 	info, err := os.Stat(filename)
 	if err != nil {
 		return false
 	}
 	delta := time.Since(info.ModTime())
-	duration := delta
-	if duration.Minutes() > maxAge {
-		return false
-	}
-	return true
+	// return false if duration exceeds maxAge
+	tooOld := delta.Minutes() > maxAge
+	return !tooOld
 }
 
 func getCachedNToken() string {
@@ -80,17 +82,18 @@ func getCachedNToken() string {
 		data, err := ioutil.ReadFile(ntokenFile)
 		if err == nil {
 			return strings.TrimSpace(string(data))
-		} else {
-			fmt.Printf("Couldn't read the file, error: %v\n", err)
 		}
+		fmt.Printf("Couldn't read the file, error: %v\n", err)
 	}
 	return ""
 }
 
+const identityPrefix = "user."
+
 func getAuthNToken(identity, authorizedServices, zmsUrl string, tr *http.Transport) (string, error) {
 	// our identity must be user
-	if !strings.HasPrefix(identity, "user.") {
-		return "", errors.New("Identity must start with user.")
+	if !strings.HasPrefix(identity, identityPrefix) {
+		return "", errors.New("identity must start with " + identityPrefix)
 	}
 	user := identity[5:]
 	ntoken := getCachedNToken()
@@ -148,7 +151,7 @@ func usage() string {
 	buf.WriteString("   -v                  Verbose mode. Full resource names are included in output (default=false)\n")
 	buf.WriteString("   -x                  For user token output, exclude the header name (default=false)\n")
 	buf.WriteString("   -z zms_url          Base URL of the ZMS server to use\n")
-	buf.WriteString("                       (default ZMS=" + defaultZmsUrl() + ")\n")
+	buf.WriteString("                       (default ZMS=" + defaultZmsURL() + ")\n")
 	buf.WriteString("   -debug              Debug mode. Generates debug NTokens (default=false)\n")
 	buf.WriteString("\n")
 	buf.WriteString(" type 'zms-cli help' to see all available commands\n")
@@ -165,13 +168,13 @@ func loadNtokenFromFile(fileName string) (string, error) {
 }
 
 func main() {
-	pZMS := flag.String("z", defaultZmsUrl(), "Base URL of the ZMS server to use")
+	pZMS := flag.String("z", defaultZmsURL(), "Base URL of the ZMS server to use")
 	pIdentity := flag.String("i", defaultIdentity(), "the identity to authenticate as")
 	pNtokenFile := flag.String("f", "", "ntoken file path")
 	pCACert := flag.String("c", "", "CA Certificate file path")
 	pVerbose := flag.Bool("v", false, "verbose mode. Full resource names are included in output")
 	pBulkmode := flag.Bool("b", false, "bulk mode. Do not display updated role/policy/service in output")
-	pProductIdSupport := flag.Bool("p", false, "Top Level Domain add operations require product ids")
+	pProductIDSupport := flag.Bool("p", false, "Top Level Domain add operations require product ids")
 	pDomain := flag.String("d", "", "The domain for the command to execute in. If not specified, only certain commands are available")
 	pUserDomain := flag.String("u", "user", "User domain name as configured in Athenz systems")
 	pHomeDomain := flag.String("h", "user", "Home domain name as configured in Athenz systems")
@@ -232,7 +235,7 @@ func main() {
 	}
 
 	identity := *pIdentity
-	if strings.Index(identity, ".") < 0 {
+	if !strings.Contains(identity, ".") {
 		identity = "user." + identity
 	}
 	if *pSocks == "" {
@@ -271,7 +274,7 @@ func main() {
 		AuditRef:         *pAuditRef,
 		UserDomain:       *pUserDomain,
 		HomeDomain:       *pHomeDomain,
-		ProductIdSupport: *pProductIdSupport,
+		ProductIdSupport: *pProductIDSupport,
 		Debug:            *pDebug,
 	}
 	cli.SetClient(tr, &authHeader, &ntoken)

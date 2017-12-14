@@ -37,7 +37,7 @@ var port string
 func TestMain(m *testing.M) {
 
 	address := devel.StartMockServer(test_data.EndPoints, test_data.MetricEndPoints)
-	port = address[5:len(address)]
+	port = address[5:]
 	log.Printf("The port assigned to test server is; %v", port)
 	err := setUp()
 	if err != nil {
@@ -55,7 +55,7 @@ func TestWritePolicies(t *testing.T) {
 	a := assert.New(t)
 	policyData, _, err := ztsClient.GetDomainSignedPolicyData(zts.DomainName(DOMAIN), "")
 	a.Nil(err)
-	policyJson, err := json.Marshal(policyData)
+	policyJSON, err := json.Marshal(policyData)
 	a.Nil(err)
 
 	err = WritePolicies(testConfig, policyData, DOMAIN, POLICIES_DIR)
@@ -66,7 +66,7 @@ func TestWritePolicies(t *testing.T) {
 	a.Equal(util.Exists(policyFile), true)
 	data, err := ioutil.ReadFile(policyFile)
 	a.Nil(err)
-	a.Equal(string(data), string(policyJson))
+	a.Equal(string(data), string(policyJSON))
 	err = os.Remove(policyFile)
 	a.Nil(err)
 }
@@ -83,9 +83,9 @@ func TestGetEtagForExistingPolicy(t *testing.T) {
 	//Correct Policy File Exist
 	policyData, _, err := ztsClient.GetDomainSignedPolicyData(zts.DomainName(DOMAIN), "")
 	a.Nil(err)
-	policyJson, err := json.Marshal(policyData)
+	policyJSON, err := json.Marshal(policyData)
 	a.Nil(err)
-	err = ioutil.WriteFile(POLICIES_DIR+"/test.pol", policyJson, 0755)
+	err = ioutil.WriteFile(POLICIES_DIR+"/test.pol", policyJSON, 0755)
 	a.Nil(err)
 	etag, err = GetEtagForExistingPolicy(testConfig, ztsClient, "test", POLICIES_DIR)
 	errv := ValidateSignedPolicies(testConfig, ztsClient, policyData)
@@ -237,9 +237,9 @@ func TestBuildDomainMetric(t *testing.T) {
 	m := map[string]int{"ACCESS_ALLOWED_TOKEN_CACHE_FAILURE": 1, "LOAD_FILE_GOOD": 0, "ACCESS_ALLOWED_DENY_NO_MATCH": 2}
 	data, err := buildDomainMetrics("test", m)
 	a.Nil(err)
-	metricJson, err := json.Marshal(data)
+	metricJSON, err := json.Marshal(data)
 	a.Nil(err)
-	a.Equal(string(metricJson), `{"domainName":"test","metricList":[{"metricType":"ACCESS_ALLOWED_DENY_NO_MATCH","metricVal":2},{"metricType":"ACCESS_ALLOWED_TOKEN_CACHE_FAILURE","metricVal":1},{"metricType":"LOAD_FILE_GOOD","metricVal":0}]}`)
+	a.Equal(string(metricJSON), `{"domainName":"test","metricList":[{"metricType":"ACCESS_ALLOWED_DENY_NO_MATCH","metricVal":2},{"metricType":"ACCESS_ALLOWED_TOKEN_CACHE_FAILURE","metricVal":1},{"metricType":"LOAD_FILE_GOOD","metricVal":0}]}`)
 }
 
 func TestDeleteDomainFiles(t *testing.T) {
@@ -288,15 +288,15 @@ func TestPostAllDomainMetric(t *testing.T) {
 
 func TestFormatUrl(t *testing.T) {
 	a := assert.New(t)
-	url := formatUrl("ztsUrl/", "zts/v1")
-	a.Equal(url, "ztsUrl/zts/v1")
-	url = formatUrl("ztsUrl", "zts/v1")
-	a.Equal(url, "ztsUrl/zts/v1")
+	url := formatURL("ztsURL/", "zts/v1")
+	a.Equal(url, "ztsURL/zts/v1")
+	url = formatURL("ztsURL", "zts/v1")
+	a.Equal(url, "ztsURL/zts/v1")
 
-	url = formatUrl("zmsUrl/", "zms/v1")
-	a.Equal(url, "zmsUrl/zms/v1")
-	url = formatUrl("zmsUrl", "zms/v1")
-	a.Equal(url, "zmsUrl/zms/v1")
+	url = formatURL("zmsURL/", "zms/v1")
+	a.Equal(url, "zmsURL/zms/v1")
+	url = formatURL("zmsURL", "zms/v1")
+	a.Equal(url, "zmsURL/zms/v1")
 }
 
 func setUp() error {
@@ -346,9 +346,9 @@ func cleanUp() error {
 }
 
 func getTestConfiguration() (*ZpuConfiguration, error) {
-	zmsUrl := fmt.Sprintf("http://localhost:%s/zms/v1", port)
-	ztsUrl := fmt.Sprintf("http://localhost:%s/zts/v1", port)
-	athenzConf := `{"zmsUrl":"` + zmsUrl + `","ztsUrl":"` + ztsUrl + `","ztsPublicKeys":[{"id":"0","key":"LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZ3d0RRWUpLb1pJaHZjTkFRRUJCUUFEU3dBd1NBSkJBTHpmU09UUUpmRW0xZW00TDNza3lOVlEvYngwTU9UcQphK1J3T0gzWmNNS3lvR3hPSm85QXllUmE2RlhNbXZKSkdZczVQMzRZc3pGcG5qMnVBYmkyNG5FQ0F3RUFBUT09Ci0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQo-"}],"zmsPublicKeys":[{"id":"0","key":"LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZ3d0RRWUpLb1pJaHZjTkFRRUJCUUFEU3dBd1NBSkJBTHpmU09UUUpmRW0xZW00TDNza3lOVlEvYngwTU9UcQphK1J3T0gzWmNNS3lvR3hPSm85QXllUmE2RlhNbXZKSkdZczVQMzRZc3pGcG5qMnVBYmkyNG5FQ0F3RUFBUT09Ci0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQo-"}]}`
+	zmsURL := fmt.Sprintf("http://localhost:%s/zms/v1", port)
+	ztsURL := fmt.Sprintf("http://localhost:%s/zts/v1", port)
+	athenzConf := `{"zmsURL":"` + zmsURL + `","ztsURL":"` + ztsURL + `","ztsPublicKeys":[{"id":"0","key":"LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZ3d0RRWUpLb1pJaHZjTkFRRUJCUUFEU3dBd1NBSkJBTHpmU09UUUpmRW0xZW00TDNza3lOVlEvYngwTU9UcQphK1J3T0gzWmNNS3lvR3hPSm85QXllUmE2RlhNbXZKSkdZczVQMzRZc3pGcG5qMnVBYmkyNG5FQ0F3RUFBUT09Ci0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQo-"}],"zmsPublicKeys":[{"id":"0","key":"LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZ3d0RRWUpLb1pJaHZjTkFRRUJCUUFEU3dBd1NBSkJBTHpmU09UUUpmRW0xZW00TDNza3lOVlEvYngwTU9UcQphK1J3T0gzWmNNS3lvR3hPSm85QXllUmE2RlhNbXZKSkdZczVQMzRZc3pGcG5qMnVBYmkyNG5FQ0F3RUFBUT09Ci0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQo-"}]}`
 	devel.CreateFile(CONF_PATH+"/athenz.conf", athenzConf)
 	zpuConf := `{"domains":"test"}`
 	devel.CreateFile(CONF_PATH+"/zpu.conf", zpuConf)

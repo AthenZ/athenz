@@ -7,6 +7,8 @@ import (
 	"os"
 )
 
+// Exists checks if the file with the given name
+// exists or not.
 func Exists(name string) bool {
 	if _, err := os.Stat(name); os.IsNotExist(err) {
 		return false

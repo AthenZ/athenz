@@ -52,7 +52,7 @@ type roleToken struct {
 	expireTime time.Time
 }
 
-func getClientTlsConfig(certFile, keyFile string) (*tls.Config, error) {
+func getClientTLSConfig(certFile, keyFile string) (*tls.Config, error) {
 	certpem, err := ioutil.ReadFile(certFile)
 	if err != nil {
 		return nil, err
@@ -94,7 +94,7 @@ func (r *roleToken) updateRoleToken() (string, error) {
 	var z zts.ZTSClient
 	if r.certFile != "" && r.keyFile != "" {
 		// Use ZTS Client with TLS cert
-		config, err := getClientTlsConfig(r.certFile, r.keyFile)
+		config, err := getClientTLSConfig(r.certFile, r.keyFile)
 		if err != nil {
 			return "", err
 		}

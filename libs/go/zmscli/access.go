@@ -31,7 +31,7 @@ func (cli Zms) getAccessParameters(dn string, action string, resource string, al
 	altPrincipal := ""
 	if altIdent != nil {
 		altPrincipal = *altIdent
-		if strings.Index(altPrincipal, ".") < 0 {
+		if !strings.Contains(altPrincipal, ".") {
 			altPrincipal = cli.UserDomain + "." + altPrincipal
 		}
 	}
@@ -42,6 +42,8 @@ func (cli Zms) getAccessParameters(dn string, action string, resource string, al
 	return fullResourceName, trustDomain, altPrincipal, nil
 }
 
+// ShowAccess returns access indicator as string:
+// 'access: granted' or 'access: denied'.
 func (cli Zms) ShowAccess(dn string, action string, resource string, altIdent *string, altDomain *string) (*string, error) {
 	fullResourceName, trustDomain, altPrincipal, err := cli.getAccessParameters(dn, action, resource, altIdent, altDomain)
 	if err != nil {
@@ -58,6 +60,8 @@ func (cli Zms) ShowAccess(dn string, action string, resource string, altIdent *s
 	return &s, nil
 }
 
+// ShowAccessExt returns access indicator as string:
+// 'access: granted' or 'access: denied'.
 func (cli Zms) ShowAccessExt(dn string, action string, resource string, altIdent *string, altDomain *string) (*string, error) {
 	fullResourceName, trustDomain, altPrincipal, err := cli.getAccessParameters(dn, action, resource, altIdent, altDomain)
 	if err != nil {
