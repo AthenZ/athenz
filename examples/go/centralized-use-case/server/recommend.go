@@ -1,6 +1,8 @@
 // Copyright 2016 Yahoo Inc.
 // Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
 
+// Server is a program to demonstrate the use of ZMS Go client to implement
+// Athenz centralized authorization support in a server.
 package main
 
 import (
@@ -13,9 +15,11 @@ import (
 	"github.com/yahoo/athenz/clients/go/zms"
 )
 
-var authHeader string
-var zmsUrl string
-var providerDomain string
+var (
+	authHeader     string
+	zmsUrl         string
+	providerDomain string
+)
 
 func authorizeRequest(ntoken, resource, action string) bool {
 	// for our test example we're just going to skip
