@@ -1,6 +1,8 @@
 // Copyright 2017 Yahoo Holdings, Inc.
 // Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
 
+// Get-access is a demo program to query if the current principal has
+// "Access" to a specified resource, in a given domain.
 package main
 
 import (
@@ -10,7 +12,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-
 	"strings"
 
 	"github.com/yahoo/athenz/clients/go/zms"
