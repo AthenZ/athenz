@@ -1,6 +1,7 @@
 // Copyright 2017 Yahoo Holdings, Inc.
 // Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
 
+// Package test_data contains test data packed as Go files.
 package test_data
 
 var EndPoints = map[string]string{
