@@ -78,6 +78,7 @@ public class ZTSClient implements Closeable {
     private String service = null;
     protected ZTSRDLGeneratedClient ztsClient;
     protected ServiceIdentityProvider siaProvider = null;
+    private SSLContext sslContext = null;
 
     // configurable fields
     //
@@ -185,7 +186,7 @@ public class ZTSClient implements Closeable {
      * milliseconds.
      */
     public ZTSClient() {
-        initClient(null, null, null, null, null, null);
+        initClient(null, null, null, null, null);
         enablePrefetch = false; // can't use this domain and service for prefetch
     }
     
@@ -204,7 +205,7 @@ public class ZTSClient implements Closeable {
      * @param ztsUrl ZTS Server's URL (optional)
      */
     public ZTSClient(String ztsUrl) {
-        initClient(ztsUrl, null, null, null, null, null);
+        initClient(ztsUrl, null, null, null, null);
         enablePrefetch = false; // can't use this domain and service for prefetch
     }
     
@@ -240,7 +241,7 @@ public class ZTSClient implements Closeable {
         if (identity.getAuthority() == null) {
             throw new IllegalArgumentException("Principal Authority cannot be null");
         }
-        initClient(ztsUrl, identity, null, null, null, null);
+        initClient(ztsUrl, identity, null, null, null);
         enablePrefetch = false; // can't use this domain and service for prefetch
     }
     
@@ -261,7 +262,8 @@ public class ZTSClient implements Closeable {
         if (sslContext == null) {
             throw new IllegalArgumentException("SSLContext object must be specified");
         }
-        initClient(ztsUrl, null, null, null, null, sslContext);
+        this.sslContext = sslContext;
+        initClient(ztsUrl, null, null, null, null);
     }
     
     /**
@@ -305,7 +307,7 @@ public class ZTSClient implements Closeable {
         if (siaProvider == null) {
             throw new IllegalArgumentException("Service Identity Provider must be specified");
         }
-        initClient(ztsUrl, null, domainName, serviceName, siaProvider, null);
+        initClient(ztsUrl, null, domainName, serviceName, siaProvider);
     }
     
     /**
@@ -456,7 +458,7 @@ public class ZTSClient implements Closeable {
     }
     
     void initClient(String url, Principal identity, String domainName, String serviceName,
-            ServiceIdentityProvider siaProvider, SSLContext sslContext) {
+            ServiceIdentityProvider siaProvider) {
         
         if (url == null) {
             ztsUrl = lookupZTSUrl();
@@ -1197,7 +1199,16 @@ public class ZTSClient implements Closeable {
     }
     
     String getRoleTokenCacheKey(String domainName, String roleName, String proxyForPrincipal) {
-        return getRoleTokenCacheKey(domain, service, domainName, roleName, proxyForPrincipal);
+
+        // if we don't have a tenant domain specified but we have a ssl context
+        // then we're going to use the hash code for our sslcontext as the
+        // value for our tenant
+        
+        String tenantDomain = domain;
+        if (domain == null && sslContext != null) {
+            tenantDomain = sslContext.toString();
+        }
+        return getRoleTokenCacheKey(tenantDomain, service, domainName, roleName, proxyForPrincipal);
     }
     
     static String getRoleTokenCacheKey(String tenantDomain, String tenantService, String domainName,
