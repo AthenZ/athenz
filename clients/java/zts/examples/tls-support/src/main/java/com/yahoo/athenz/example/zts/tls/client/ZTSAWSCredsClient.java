@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import com.yahoo.athenz.zts.PublicKeyEntry;
 import com.yahoo.athenz.zts.ZTSClient;
+import com.yahoo.athenz.zts.AWSCredentialsProviderImpl;
 import com.yahoo.athenz.zts.ZTSClientException;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
@@ -66,19 +67,24 @@ public class ZTSAWSCredsClient {
             SSLContext sslContext = Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(),
                     keyRefresher.getTrustManagerProxy());
             
-            // we must not close this client as long as we're using the
-            // AWS credentials provider since it needs this client to
-            // refresh the certs when required
+            // obtain temporary credential provider for our domain and role
             
-            ZTSClient ztsClient = new ZTSClient(ztsUrl, sslContext);
+            AWSCredentialsProviderImpl awsCredProvider = new AWSCredentialsProviderImpl(ztsUrl,
+                    sslContext, domainName, roleName);
 
-            // retrieve and display aws temporary creds
+            // retrieve and display aws temporary creds. Typically you just pass
+            // the AWSCredentialsProvider object to any AWS api that requires it.
+            // for example, when creating an AWS S3 client
+            //      AmazonS3 s3client = AmazonS3ClientBuilder.standard()
+            //          .withCredentials(awsCredProvider).withClientConfiguration(cltConf)
+            //          .withRegion(getRegion()).build();
+          
+            retrieveAWSTempCreds(awsCredProvider);
             
-            retrieveAWSTempCreds(ztsClient, domainName, roleName);
-
-            // we're done with our provider so we can close our client
+            // once we're done with our api and we no longer need our
+            // provider we need to make sure to close it
             
-            ztsClient.close();
+            awsCredProvider.close();
             
         } catch (Exception ex) {
             System.out.println("Exception: " + ex.getMessage());
@@ -87,19 +93,28 @@ public class ZTSAWSCredsClient {
         }
     }
     
-    private static boolean retrieveAWSTempCreds(ZTSClient ztsClient, final String domainName,
-            final String roleName) {
+    private static boolean retrieveAWSTempCreds(AWSCredentialsProvider awsCredProvider) {
         
         try {
-            AWSCredentialsProvider awsCredProvider = ztsClient.getAWSCredentialProvider(domainName, roleName);
-            AWSCredentials awsCreds = awsCredProvider.getCredentials();
-            if (awsCreds == null) {
-                System.out.println("Error: AWS Credentials are not available");
-                return false;
+            // just for testing purposes we're going to run this code
+            // for 2 hours and keep asking for credentials every minute
+            // to make sure zts client is caching the creds and giving
+            // us new ones when they're about to expire
+            
+            for (int i = 0; i < 120; i++) {
+                AWSCredentials awsCreds = awsCredProvider.getCredentials();
+                if (awsCreds == null) {
+                    System.out.println("Error: AWS Credentials are not available");
+                    return false;
+                }
+                System.out.println("AWS Temporary Credentials:\n");
+                System.out.println("\tAccess Key Id : " + awsCreds.getAWSAccessKeyId());
+                System.out.println("\tSecret Key    : " + awsCreds.getAWSSecretKey());
+                try {
+                    Thread.sleep(60000);
+                } catch (InterruptedException ex) {
+                }
             }
-            System.out.println("AWS Temporary Credentials:\n");
-            System.out.println("\tAccess Key Id : " + awsCreds.getAWSAccessKeyId());
-            System.out.println("\tSecret Key    : " + awsCreds.getAWSSecretKey());
         } catch (ZTSClientException ex) {
             System.out.println("Unable to retrieve AWS credentials: " + ex.getMessage());
             return false;
