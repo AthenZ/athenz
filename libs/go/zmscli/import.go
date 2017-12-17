@@ -149,27 +149,25 @@ func (cli Zms) importPolicies(dn string, lstPolicies []interface{}, skipErrors b
 
 func (cli Zms) generatePublicKeys(lstPublicKeys []interface{}) []*zms.PublicKeyEntry {
 	publicKeys := make([]*zms.PublicKeyEntry, 0)
-	if lstPublicKeys != nil {
-		for _, pubKey := range lstPublicKeys {
-			publicKeyMap := pubKey.(map[interface{}]interface{})
-			// if we're using just version numbers then yaml
-			// will interpret the key id as integer
-			var keyId string
-			switch v := publicKeyMap["keyId"].(type) {
-			case int:
-				keyId = strconv.Itoa(v)
-			case string:
-				keyId = v
-			default:
-				panic("Unknown data type for keyid")
-			}
-			value := publicKeyMap["value"].(string)
-			publicKey := zms.PublicKeyEntry{
-				Key: value,
-				Id:  keyId,
-			}
-			publicKeys = append(publicKeys, &publicKey)
+	for _, pubKey := range lstPublicKeys {
+		publicKeyMap := pubKey.(map[interface{}]interface{})
+		// if we're using just version numbers then yaml
+		// will interpret the key id as integer
+		var keyID string
+		switch v := publicKeyMap["keyID"].(type) {
+		case int:
+			keyID = strconv.Itoa(v)
+		case string:
+			keyID = v
+		default:
+			panic("Unknown data type for keyid")
 		}
+		value := publicKeyMap["value"].(string)
+		publicKey := zms.PublicKeyEntry{
+			Key: value,
+			Id:  keyID,
+		}
+		publicKeys = append(publicKeys, &publicKey)
 	}
 	return publicKeys
 }

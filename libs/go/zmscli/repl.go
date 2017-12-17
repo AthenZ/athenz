@@ -18,9 +18,8 @@ func (cli *Zms) Eval(expr string) (string, bool, error) {
 	result, err := cli.EvalCommand(params)
 	if result == nil || err != nil {
 		return "", false, err
-	} else {
-		return *result, false, err
 	}
+	return *result, false, err
 }
 
 func (cli *Zms) Prompt() string {

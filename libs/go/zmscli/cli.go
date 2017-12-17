@@ -53,10 +53,7 @@ func (cli Zms) getInt32(str string) (int32, error) {
 
 func getTimestamp(str string) (rdl.Timestamp, error) {
 	value, err := rdl.TimestampParse(str)
-	if err != nil {
-		return value, err
-	}
-	return value, nil
+	return value, err
 }
 
 func (cli *Zms) EvalCommand(params []string) (*string, error) {
@@ -101,11 +98,11 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			return cli.helpCommand(params)
 		case "lookup-domain-by-product-id":
 			if argc == 1 {
-				productId, err := cli.getInt32(args[0])
+				productID, err := cli.getInt32(args[0])
 				if err != nil {
 					return nil, err
 				}
-				return cli.LookupDomainById("", &productId)
+				return cli.LookupDomainById("", &productID)
 			}
 			return cli.helpCommand(params)
 		case "use-domain":
@@ -125,9 +122,8 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			}
 			if dn != "" {
 				return cli.ShowDomain(dn)
-			} else {
-				return nil, fmt.Errorf("No domain specified")
 			}
+			return nil, fmt.Errorf("No domain specified")
 		case "check-domain":
 			if argc == 1 {
 				//override the default domain, this command can check any of them
@@ -135,9 +131,8 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			}
 			if dn != "" {
 				return cli.CheckDomain(dn)
-			} else {
-				return nil, fmt.Errorf("No domain specified")
 			}
+			return nil, fmt.Errorf("No domain specified")
 		case "export-domain":
 			if argc == 1 || argc == 2 {
 				dn = args[0]
@@ -184,11 +179,11 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 					if argc < 2 {
 						return nil, fmt.Errorf("Top Level Domains require a number specified for the product id")
 					}
-					productId, err := cli.getInt32(args[1])
+					productID, err := cli.getInt32(args[1])
 					if err != nil {
 						return nil, fmt.Errorf("Top Level Domains require an integer number specified for the product id")
 					}
-					return cli.AddDomain(dn, &productId, args[2:])
+					return cli.AddDomain(dn, &productID, args[2:])
 				}
 				return cli.AddDomain(dn, nil, args[1:])
 			}
@@ -220,9 +215,8 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			}
 			if dn != "" {
 				return cli.ListDomainTemplates(dn)
-			} else {
-				return nil, fmt.Errorf("No domain specified")
 			}
+			return nil, fmt.Errorf("No domain specified")
 		case "show-server-template":
 			if argc == 1 {
 				return cli.ShowServerTemplate(args[0])
@@ -341,9 +335,8 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				value, err := getTimestamp(args[2])
 				if err == nil {
 					return cli.AddTemporaryMember(dn, args[0], args[1], value)
-				} else {
-					return nil, err
 				}
+				return nil, err
 			}
 		case "delete-member", "delete-members":
 			if argc >= 2 {
@@ -370,9 +363,8 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				pubkey, err := cli.getPublicKey(args[2])
 				if err == nil {
 					return cli.AddService(dn, args[0], args[1], pubkey)
-				} else {
-					return nil, err
 				}
+				return nil, err
 			} else if argc == 1 {
 				return cli.AddService(dn, args[0], "", nil)
 			}
@@ -381,9 +373,8 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				pubkey, err := cli.getPublicKey(args[2])
 				if err == nil {
 					return cli.AddProviderService(dn, args[0], args[1], pubkey)
-				} else {
-					return nil, err
 				}
+				return nil, err
 			}
 		case "set-service-endpoint":
 			if argc == 2 {
@@ -406,9 +397,8 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				pubkey, err := cli.getPublicKey(args[2])
 				if err == nil {
 					return cli.AddServicePublicKey(dn, args[0], args[1], pubkey)
-				} else {
-					return nil, err
 				}
+				return nil, err
 			}
 		case "show-public-key":
 			if argc == 2 {
@@ -510,11 +500,11 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			}
 		case "set-product-id", "set-domain-product-id":
 			if argc == 1 {
-				productId, err := cli.getInt32(args[0])
+				productID, err := cli.getInt32(args[0])
 				if err != nil {
 					return nil, err
 				}
-				return cli.SetDomainProductId(dn, productId)
+				return cli.SetDomainProductId(dn, productID)
 			}
 		case "set-application-id":
 			if argc == 1 {
@@ -550,7 +540,7 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 
 func (cli Zms) helpCommand(params []string) (*string, error) {
 	s := ""
-	if params != nil && len(params) == 1 {
+	if len(params) == 1 {
 		s = cli.HelpSpecificCommand(cli.Interactive, params[0])
 	} else {
 		s = cli.HelpListCommand()
@@ -558,6 +548,7 @@ func (cli Zms) helpCommand(params []string) (*string, error) {
 	return &s, nil
 }
 
+// HelpSpecificCommand returns the help string for the given command.
 func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 	var buf bytes.Buffer
 
@@ -1533,6 +1524,8 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 	return buf.String()
 }
 
+// HelpListCommand builds and returns the overall help text
+// for all commands.
 func (cli Zms) HelpListCommand() string {
 	var buf bytes.Buffer
 	buf.WriteString(" Domain commands:\n")
@@ -1649,7 +1642,6 @@ func (cli Zms) getPublicKey(s string) (*string, error) {
 		var lb64 yBase64
 		yb64 := lb64.EncodeToString(bytes)
 		return &yb64, nil
-	} else {
-		return &s, nil
 	}
+	return &s, nil
 }

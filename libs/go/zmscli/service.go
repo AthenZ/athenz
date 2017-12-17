@@ -60,7 +60,7 @@ func (cli Zms) ShowService(dn string, sn string) (*string, error) {
 	return &s, nil
 }
 
-func (cli Zms) AddService(dn string, sn string, keyId string, pubKey *string) (*string, error) {
+func (cli Zms) AddService(dn string, sn string, keyID string, pubKey *string) (*string, error) {
 	shortName := shortname(dn, sn)
 	service, err := cli.Zms.GetServiceIdentity(zms.DomainName(dn), zms.SimpleName(shortName))
 	if err == nil {
@@ -72,7 +72,7 @@ func (cli Zms) AddService(dn string, sn string, keyId string, pubKey *string) (*
 		publicKeys = make([]*zms.PublicKeyEntry, 0)
 		publicKey := zms.PublicKeyEntry{
 			Key: *pubKey,
-			Id:  keyId,
+			Id:  keyID,
 		}
 		publicKeys = append(publicKeys, &publicKey)
 	}
@@ -93,12 +93,11 @@ func (cli Zms) AddService(dn string, sn string, keyId string, pubKey *string) (*
 	if cli.Bulkmode {
 		s := ""
 		return &s, nil
-	} else {
-		return cli.ShowService(dn, shortName)
 	}
+	return cli.ShowService(dn, shortName)
 }
 
-func (cli Zms) AddProviderService(dn string, sn string, keyId string, pubKey *string) (*string, error) {
+func (cli Zms) AddProviderService(dn string, sn string, keyID string, pubKey *string) (*string, error) {
 	shortName := shortname(dn, sn)
 	service, err := cli.Zms.GetServiceIdentity(zms.DomainName(dn), zms.SimpleName(shortName))
 	if err == nil {
@@ -108,7 +107,7 @@ func (cli Zms) AddProviderService(dn string, sn string, keyId string, pubKey *st
 	publicKeys := make([]*zms.PublicKeyEntry, 0)
 	publicKey := zms.PublicKeyEntry{
 		Key: *pubKey,
-		Id:  keyId,
+		Id:  keyID,
 	}
 	publicKeys = append(publicKeys, &publicKey)
 	detail := zms.ServiceIdentity{
@@ -133,12 +132,11 @@ func (cli Zms) AddProviderService(dn string, sn string, keyId string, pubKey *st
 	_, err = cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil)
 	if err == nil {
 		return nil, fmt.Errorf("Provider Service created but Self Serve Role already exists: %v", fullResourceName)
-	} else {
-		switch v := err.(type) {
-		case rdl.ResourceError:
-			if v.Code != 404 {
-				return nil, v
-			}
+	}
+	switch v := err.(type) {
+	case rdl.ResourceError:
+		if v.Code != 404 {
+			return nil, v
 		}
 	}
 	role.Name = zms.ResourceName(fullResourceName)
@@ -156,12 +154,11 @@ func (cli Zms) AddProviderService(dn string, sn string, keyId string, pubKey *st
 	_, err = cli.Zms.GetPolicy(zms.DomainName(dn), zms.EntityName(pn))
 	if err == nil {
 		return nil, fmt.Errorf("Provider Service created but Self Serve Policy already exists: %v", fullResourceName)
-	} else {
-		switch v := err.(type) {
-		case rdl.ResourceError:
-			if v.Code != 404 {
-				return nil, v
-			}
+	}
+	switch v := err.(type) {
+	case rdl.ResourceError:
+		if v.Code != 404 {
+			return nil, v
 		}
 	}
 	policy := zms.Policy{}
@@ -186,9 +183,8 @@ func (cli Zms) AddProviderService(dn string, sn string, keyId string, pubKey *st
 	if cli.Bulkmode {
 		s := ""
 		return &s, nil
-	} else {
-		return cli.ShowService(dn, shortName)
 	}
+	return cli.ShowService(dn, shortName)
 }
 
 func (cli Zms) AddServiceWithKeys(dn string, sn string, publicKeys []*zms.PublicKeyEntry) (*string, error) {
@@ -215,9 +211,8 @@ func (cli Zms) AddServiceWithKeys(dn string, sn string, publicKeys []*zms.Public
 	if cli.Bulkmode {
 		s := ""
 		return &s, nil
-	} else {
-		return cli.ShowService(dn, shortName)
 	}
+	return cli.ShowService(dn, shortName)
 }
 
 func (cli Zms) SetServiceEndpoint(dn string, sn string, endpoint string) (*string, error) {
@@ -234,9 +229,8 @@ func (cli Zms) SetServiceEndpoint(dn string, sn string, endpoint string) (*strin
 	if cli.Bulkmode {
 		s := ""
 		return &s, nil
-	} else {
-		return cli.ShowService(dn, shortName)
 	}
+	return cli.ShowService(dn, shortName)
 }
 
 func (cli Zms) SetServiceExe(dn string, sn string, exe string, user string, group string) (*string, error) {
@@ -255,9 +249,8 @@ func (cli Zms) SetServiceExe(dn string, sn string, exe string, user string, grou
 	if cli.Bulkmode {
 		s := ""
 		return &s, nil
-	} else {
-		return cli.ShowService(dn, shortName)
 	}
+	return cli.ShowService(dn, shortName)
 }
 
 func (cli Zms) AddServiceHost(dn string, sn string, hosts []string) (*string, error) {
@@ -282,9 +275,8 @@ func (cli Zms) AddServiceHost(dn string, sn string, hosts []string) (*string, er
 	if cli.Bulkmode {
 		s := ""
 		return &s, nil
-	} else {
-		return cli.ShowService(dn, shortName)
 	}
+	return cli.ShowService(dn, shortName)
 }
 
 func (cli Zms) DeleteServiceHost(dn string, sn string, hosts []string) (*string, error) {
@@ -303,63 +295,59 @@ func (cli Zms) DeleteServiceHost(dn string, sn string, hosts []string) (*string,
 	if cli.Bulkmode {
 		s := ""
 		return &s, nil
-	} else {
-		return cli.ShowService(dn, shortName)
 	}
+	return cli.ShowService(dn, shortName)
 }
 
-func (cli Zms) AddServicePublicKey(dn string, sn string, keyId string, pubKey *string) (*string, error) {
+func (cli Zms) AddServicePublicKey(dn string, sn string, keyID string, pubKey *string) (*string, error) {
 	shortName := shortname(dn, sn)
 	publicKey := zms.PublicKeyEntry{
 		Key: *pubKey,
-		Id:  keyId,
+		Id:  keyID,
 	}
-	err := cli.Zms.PutPublicKeyEntry(zms.DomainName(dn), zms.SimpleName(shortName), keyId, cli.AuditRef, &publicKey)
+	err := cli.Zms.PutPublicKeyEntry(zms.DomainName(dn), zms.SimpleName(shortName), keyID, cli.AuditRef, &publicKey)
 	if err != nil {
 		return nil, err
 	}
 	if cli.Bulkmode {
 		s := ""
 		return &s, nil
-	} else {
-		return cli.ShowService(dn, shortName)
 	}
+	return cli.ShowService(dn, shortName)
 }
 
-func (cli Zms) ShowServicePublicKey(dn string, sn string, keyId string) (*string, error) {
+func (cli Zms) ShowServicePublicKey(dn string, sn string, keyID string) (*string, error) {
 	var buf bytes.Buffer
 	shortName := shortname(dn, sn)
-	pkey, err := cli.Zms.GetPublicKeyEntry(zms.DomainName(dn), zms.SimpleName(shortName), keyId)
+	pkey, err := cli.Zms.GetPublicKeyEntry(zms.DomainName(dn), zms.SimpleName(shortName), keyID)
 	if err != nil {
 		return nil, err
 	}
 	buf.WriteString("public-key:\n")
-	buf.WriteString(indent_level1 + "keyId: " + pkey.Id + "\n")
+	buf.WriteString(indent_level1 + "keyID: " + pkey.Id + "\n")
 	buf.WriteString(indent_level1 + "value: " + pkey.Key + "\n")
 	s := buf.String()
 	return &s, nil
 }
 
-func (cli Zms) DeleteServicePublicKey(dn string, sn string, keyId string) (*string, error) {
+func (cli Zms) DeleteServicePublicKey(dn string, sn string, keyID string) (*string, error) {
 	shortName := shortname(dn, sn)
-	err := cli.Zms.DeletePublicKeyEntry(zms.DomainName(dn), zms.SimpleName(shortName), keyId, cli.AuditRef)
+	err := cli.Zms.DeletePublicKeyEntry(zms.DomainName(dn), zms.SimpleName(shortName), keyID, cli.AuditRef)
 	if err != nil {
 		return nil, err
 	}
 	if cli.Bulkmode {
 		s := ""
 		return &s, nil
-	} else {
-		return cli.ShowService(dn, shortName)
 	}
+	return cli.ShowService(dn, shortName)
 }
 
 func (cli Zms) DeleteService(dn string, sn string) (*string, error) {
 	err := cli.Zms.DeleteServiceIdentity(zms.DomainName(dn), zms.SimpleName(sn), cli.AuditRef)
 	if err != nil {
 		return nil, err
-	} else {
-		s := "[Deleted service identity: " + dn + "." + sn + "]"
-		return &s, nil
 	}
+	s := "[Deleted service identity: " + dn + "." + sn + "]"
+	return &s, nil
 }

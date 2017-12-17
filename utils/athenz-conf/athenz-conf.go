@@ -23,11 +23,15 @@ import (
 	"github.com/yahoo/athenz/clients/go/zms"
 )
 
-//these get set by the build script via the LDFLAGS
-var VERSION string
-var BUILD_DATE string
+var (
+	// VERSION gets set by the build script via the LDFLAGS.
+	VERSION string
 
-func defaultZmsUrl() string {
+	// BUILD_DATE gets set by the build script via the LDFLAGS.
+	BUILD_DATE string
+)
+
+func defaultZmsURL() string {
 	s := os.Getenv("ZMS")
 	if s != "" {
 		return s
@@ -35,7 +39,7 @@ func defaultZmsUrl() string {
 	return "https://localhost:4443/"
 }
 
-func defaultZtsUrl() string {
+func defaultZtsURL() string {
 	s := os.Getenv("ZTS")
 	if s != "" {
 		return s
@@ -51,17 +55,18 @@ func defaultSocksProxy() string {
 	return os.Getenv("SOCKS5_PROXY")
 }
 
+// isFreshFile checks the file's last modification time
+// and returns true the file was updated within maxAge
+// (file is "fresh"), false otherwise (file is "stale").
 func isFreshFile(filename string, maxAge float64) bool {
 	info, err := os.Stat(filename)
 	if err != nil {
 		return false
 	}
 	delta := time.Since(info.ModTime())
-	duration := delta
-	if duration.Minutes() > maxAge {
-		return false
-	}
-	return true
+	// return false if delta exceeds maxAge
+	tooOld := delta.Minutes() > maxAge
+	return !tooOld
 }
 
 func getCachedNToken() string {
@@ -70,17 +75,18 @@ func getCachedNToken() string {
 		data, err := ioutil.ReadFile(ntokenFile)
 		if err == nil {
 			return strings.TrimSpace(string(data))
-		} else {
-			fmt.Printf("Couldn't read the file, error: %v\n", err)
 		}
+		fmt.Printf("Couldn't read the file, error: %v\n", err)
 	}
 	return ""
 }
 
-func getAuthNToken(identity, authorizedServices, zmsUrl string, tr *http.Transport) (string, error) {
+const identityPrefix = "user."
+
+func getAuthNToken(identity, authorizedServices, zmsURL string, tr *http.Transport) (string, error) {
 	// our identity must be user
-	if !strings.HasPrefix(identity, "user.") {
-		return "", errors.New("Identity must start with user.")
+	if !strings.HasPrefix(identity, identityPrefix) {
+		return "", errors.New("identity must start with " + identityPrefix)
 	}
 	user := identity[5:]
 	ntoken := getCachedNToken()
@@ -104,7 +110,7 @@ func getAuthNToken(identity, authorizedServices, zmsUrl string, tr *http.Transpo
 	var authHeader = "Authorization"
 	var authCreds = "Basic " + str
 	zmsClient := zms.ZMSClient{
-		URL:         zmsUrl,
+		URL:         zmsURL,
 		Transport:   tr,
 		CredsHeader: &authHeader,
 		CredsToken:  &authCreds,
@@ -136,9 +142,9 @@ func usage() string {
 	buf.WriteString("   -o              Output config filename (default=athenz.conf)\n")
 	buf.WriteString("   -s host:port    The SOCKS5 proxy to route requests through\n")
 	buf.WriteString("   -t zts_url      Base URL of the ZTS server to use\n")
-	buf.WriteString("                   (default ZTS=" + defaultZtsUrl() + ")\n")
+	buf.WriteString("                   (default ZTS=" + defaultZtsURL() + ")\n")
 	buf.WriteString("   -z zms_url      Base URL of the ZS server to use\n")
-	buf.WriteString("                   (default ZMS=" + defaultZmsUrl() + ")\n")
+	buf.WriteString("                   (default ZMS=" + defaultZmsURL() + ")\n")
 	buf.WriteString("\n")
 	return buf.String()
 }
@@ -152,8 +158,8 @@ func loadNtokenFromFile(fileName string) (string, error) {
 }
 
 func main() {
-	pZMS := flag.String("z", defaultZmsUrl(), "Base URL of the ZMS server to use")
-	pZTS := flag.String("t", defaultZtsUrl(), "Base URL of the ZTS server to use")
+	pZMS := flag.String("z", defaultZmsURL(), "Base URL of the ZMS server to use")
+	pZTS := flag.String("t", defaultZtsURL(), "Base URL of the ZTS server to use")
 	pHdr := flag.String("hdr", "Athenz-Principal-Auth", "the authentication header name")
 	pKey := flag.String("key", "", "the service private key file")
 	pCert := flag.String("cert", "", "the service certificate file")
@@ -172,11 +178,11 @@ func main() {
 
 	flag.Parse()
 
-	zmsConfUrl := normalizeServerUrl(*pZMS, "/zms/v1")
-	ztsConfUrl := normalizeServerUrl(*pZTS, "/zts/v1")
-	zmsUrl := zmsConfUrl + "zms/v1"
+	zmsConfURL := normalizeServerURL(*pZMS, "/zms/v1")
+	ztsConfURL := normalizeServerURL(*pZTS, "/zts/v1")
+	zmsURL := zmsConfURL + "zms/v1"
 
-	if zmsUrl == "" {
+	if zmsURL == "" {
 		log.Fatalf("No ZMS Url specified")
 	}
 
@@ -198,7 +204,7 @@ func main() {
 	}
 
 	identity := *pIdentity
-	if strings.Index(identity, ".") < 0 {
+	if !strings.Contains(identity, ".") {
 		identity = "user." + identity
 	}
 	if *pSocks == "" {
@@ -218,7 +224,7 @@ func main() {
 	var err error
 	if *pNtokenFile == "" {
 		if pKey == nil {
-			ntoken, err = getAuthNToken(identity, "", zmsUrl, tr)
+			ntoken, err = getAuthNToken(identity, "", zmsURL, tr)
 			if err != nil {
 				log.Fatalf("Unable to get NToken: %v", err)
 			}
@@ -229,15 +235,15 @@ func main() {
 			log.Fatalf("Unable to load ntoken from file: '%s' err: %v", *pNtokenFile, err)
 		}
 	}
-	zmsClient := zms.NewClient(zmsUrl, tr)
+	zmsClient := zms.NewClient(zmsURL, tr)
 	if ntoken != "" {
 		zmsClient.AddCredentials(*pHdr, ntoken)
 	}
 	var buf bytes.Buffer
 	buf.WriteString("{\n")
-	buf.WriteString("  \"zmsUrl\": \"" + zmsConfUrl + "\",\n")
-	if ztsConfUrl != "" {
-		buf.WriteString("  \"ztsUrl\": \"" + ztsConfUrl + "\",\n")
+	buf.WriteString("  \"zmsURL\": \"" + zmsConfURL + "\",\n")
+	if ztsConfURL != "" {
+		buf.WriteString("  \"ztsUrl\": \"" + ztsConfURL + "\",\n")
 	}
 
 	zmsService, err := zmsClient.GetServiceIdentity(zms.DomainName("sys.auth"), zms.SimpleName("zms"))
@@ -343,14 +349,14 @@ func GetTLSConfig(certPem, keyPem, caCertPem []byte) (*tls.Config, error) {
 	return config, nil
 }
 
-func normalizeServerUrl(url, suffix string) string {
-	normUrl := ""
+func normalizeServerURL(url, suffix string) string {
+	normURL := ""
 	if strings.HasSuffix(url, suffix) {
-		normUrl = url[:len(url)-len(suffix)] + "/"
+		normURL = url[:len(url)-len(suffix)] + "/"
 	} else if last := len(url) - 1; last >= 0 && url[last] == '/' {
-		normUrl = url
+		normURL = url
 	} else {
-		normUrl = url + "/"
+		normURL = url + "/"
 	}
-	return normUrl
+	return normURL
 }

@@ -75,12 +75,12 @@ func parseAssertion(dn string, lst []string) (*zms.Assertion, error) {
 	assertion.Effect = &assertionEffect
 	assertion.Action = lst[1]
 	role := lst[3]
-	if strings.Index(role, ":") < 0 {
+	if !strings.Contains(role, ":") {
 		role = dn + ":role." + role
 	}
 	assertion.Role = role
 	resource := lst[5]
-	if strings.Index(resource, ":") < 0 {
+	if !strings.Contains(resource, ":") {
 		resource = dn + ":" + resource
 	}
 	assertion.Resource = resource
@@ -101,9 +101,8 @@ func (cli Zms) AddPolicyWithAssertions(dn string, pn string, assertions []*zms.A
 	if cli.Bulkmode {
 		s := ""
 		return &s, nil
-	} else {
-		return cli.ShowPolicy(dn, pn)
 	}
+	return cli.ShowPolicy(dn, pn)
 }
 
 func (cli Zms) AddPolicy(dn string, pn string, assertion []string) (*string, error) {
@@ -111,17 +110,16 @@ func (cli Zms) AddPolicy(dn string, pn string, assertion []string) (*string, err
 	_, err := cli.Zms.GetPolicy(zms.DomainName(dn), zms.EntityName(pn))
 	if err == nil {
 		return nil, fmt.Errorf("Policy already exists: %v", fullResourceName)
-	} else {
-		switch v := err.(type) {
-		case rdl.ResourceError:
-			if v.Code != 404 {
-				return nil, v
-			}
+	}
+	switch v := err.(type) {
+	case rdl.ResourceError:
+		if v.Code != 404 {
+			return nil, v
 		}
 	}
 	policy := zms.Policy{}
 	policy.Name = zms.ResourceName(fullResourceName)
-	if assertion == nil || len(assertion) == 0 {
+	if len(assertion) == 0 {
 		policy.Assertions = make([]*zms.Assertion, 0)
 	} else {
 		newAssertion, err := parseAssertion(dn, assertion)
@@ -138,9 +136,8 @@ func (cli Zms) AddPolicy(dn string, pn string, assertion []string) (*string, err
 	if cli.Bulkmode {
 		s := ""
 		return &s, nil
-	} else {
-		return cli.ShowPolicy(dn, pn)
 	}
+	return cli.ShowPolicy(dn, pn)
 }
 
 func (cli Zms) AddAssertion(dn string, pn string, assertion []string) (*string, error) {
@@ -155,9 +152,8 @@ func (cli Zms) AddAssertion(dn string, pn string, assertion []string) (*string, 
 	if cli.Bulkmode {
 		s := ""
 		return &s, nil
-	} else {
-		return cli.ShowPolicy(dn, pn)
 	}
+	return cli.ShowPolicy(dn, pn)
 }
 
 func (cli Zms) assertionMatch(assertion1 *zms.Assertion, assertion2 *zms.Assertion) bool {
@@ -219,9 +215,8 @@ func (cli Zms) DeleteAssertion(dn string, pn string, assertion []string) (*strin
 	if cli.Bulkmode {
 		s := ""
 		return &s, nil
-	} else {
-		return cli.ShowPolicy(dn, pn)
 	}
+	return cli.ShowPolicy(dn, pn)
 }
 
 func (cli Zms) DeletePolicy(dn string, pn string) (*string, error) {

@@ -45,10 +45,9 @@ func (cli Zms) DeleteEntity(dn string, en string) (*string, error) {
 	err := cli.Zms.DeleteEntity(zms.DomainName(dn), zms.EntityName(en), cli.AuditRef)
 	if err != nil {
 		return nil, err
-	} else {
-		s := "[Deleted entity: " + dn + "." + en + "]"
-		return &s, nil
 	}
+	s := "[Deleted entity: " + dn + "." + en + "]"
+	return &s, nil
 }
 
 func (cli Zms) entityNames(dn string) ([]string, error) {

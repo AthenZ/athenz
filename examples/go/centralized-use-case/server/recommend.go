@@ -1,6 +1,8 @@
 // Copyright 2016 Yahoo Inc.
 // Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
 
+// Server is a program to demonstrate the use of ZMS Go client to implement
+// Athenz centralized authorization support in a server.
 package main
 
 import (
@@ -13,9 +15,11 @@ import (
 	"github.com/yahoo/athenz/clients/go/zms"
 )
 
-var authHeader string
-var zmsUrl string
-var providerDomain string
+var (
+	authHeader     string
+	zmsURL         string
+	providerDomain string
+)
 
 func authorizeRequest(ntoken, resource, action string) bool {
 	// for our test example we're just going to skip
@@ -25,7 +29,7 @@ func authorizeRequest(ntoken, resource, action string) bool {
 	config.InsecureSkipVerify = true
 	tr.TLSClientConfig = config
 	zmsClient := zms.ZMSClient{
-		URL:       zmsUrl,
+		URL:       zmsURL,
 		Transport: &tr,
 	}
 	zmsClient.AddCredentials(authHeader, ntoken)
@@ -72,7 +76,7 @@ func tvshowHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	flag.StringVar(&zmsUrl, "zms", "https://localhost:4443/zms/v1", "url of the ZMS Service")
+	flag.StringVar(&zmsURL, "zms", "https://localhost:4443/zms/v1", "url of the ZMS Service")
 	flag.StringVar(&authHeader, "hdr", "Athenz-Principal-Auth", "The NToken header name")
 	flag.StringVar(&providerDomain, "domain", "recommend", "The provider domain name")
 	flag.Parse()

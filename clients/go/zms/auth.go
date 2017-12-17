@@ -5,16 +5,15 @@ package zms
 
 import (
 	"fmt"
-	"github.com/ardielle/ardielle-go/rdl"
 	"log"
 	"strings"
+
+	"github.com/ardielle/ardielle-go/rdl"
 )
 
-//
-// Authenticator - an unoptimized authenticator that delegates to ZMS.
+// Authenticator is an unoptimized authenticator that delegates to ZMS.
 // The advantage is that there is no local state or config other than the
 // url of ZMS (we don't need ZMS's public key to be local).
-//
 func Authenticator(url string) rdl.Authenticator {
 	return &zmsAuthenticator{url}
 }
@@ -71,10 +70,8 @@ func (p zmsPrincipal) GetHTTPHeaderName() string {
 	return p.header
 }
 
-//
 // Authorizer returns an authorizer that calls zms. If the url is set to
-// "", then the access is logged, but always succeeds (for debug purposes)
-//
+// "", then the access is logged, but always succeeds (for debug purposes).
 func Authorizer(domain string, url string) rdl.Authorizer {
 	return &zmsAuthorizer{domain: domain, url: url}
 }
@@ -85,28 +82,24 @@ type zmsAuthorizer struct {
 }
 
 func (auth zmsAuthorizer) Authorize(action string, resource string, principal rdl.Principal) (bool, error) {
-	//this should be done before getting here!
-	if strings.Index(resource, ":") < 0 {
-		//the resource is relative to the service's domain
+	// this should be done before getting here!
+	if !strings.Contains(resource, ":") {
+		// the resource is relative to the service's domain
 		resource = auth.domain + ":" + resource
 	}
 	if auth.url == "" {
 		log.Printf("[DEBUG Authorize %s on %s for %s]\n", action, resource, principal.GetYRN())
 		return true, nil
-	} else {
-		if principal.GetHTTPHeaderName() != "Athenz-Principal-Auth" {
-			return false, fmt.Errorf("Authorizer using" + principal.GetHTTPHeaderName() + " not supported")
-		}
-		zmsClient := NewClient(auth.url, nil)
-		zmsClient.AddCredentials(principal.GetHTTPHeaderName(), principal.GetCredentials())
-		check, err := zmsClient.GetAccess(ActionName(action), ResourceName(resource), "", "")
-		if err != nil {
-			return false, err
-		}
-		log.Printf("[Authorize %s on %s for %s: %v]\n", action, resource, principal.GetYRN(), check.Granted)
-		if check.Granted {
-			return true, nil
-		}
-		return false, nil
 	}
+	if principal.GetHTTPHeaderName() != "Athenz-Principal-Auth" {
+		return false, fmt.Errorf("Authorizer using" + principal.GetHTTPHeaderName() + " not supported")
+	}
+	zmsClient := NewClient(auth.url, nil)
+	zmsClient.AddCredentials(principal.GetHTTPHeaderName(), principal.GetCredentials())
+	check, err := zmsClient.GetAccess(ActionName(action), ResourceName(resource), "", "")
+	if err != nil {
+		return false, err
+	}
+	log.Printf("[Authorize %s on %s for %s: %v]\n", action, resource, principal.GetYRN(), check.Granted)
+	return check.Granted, nil
 }

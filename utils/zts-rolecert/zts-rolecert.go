@@ -28,7 +28,7 @@ type signer struct {
 
 func main() {
 
-	var ztsUrl, svcKeyFile, svcCertFile, domain, service string
+	var ztsURL, svcKeyFile, svcCertFile, domain, service string
 	var caCertFile, roleCertFile, roleDomain, roleName, dnsDomain string
 	flag.StringVar(&roleCertFile, "role-cert-file", "", "output role certificate file")
 	flag.StringVar(&caCertFile, "cacert", "", "CA certificate file")
@@ -36,14 +36,14 @@ func main() {
 	flag.StringVar(&svcCertFile, "svc-cert-file", "", "service identity certificate file")
 	flag.StringVar(&domain, "domain", "", "domain of service")
 	flag.StringVar(&service, "service", "", "name of service")
-	flag.StringVar(&ztsUrl, "zts", "", "url of the ZTS Service")
+	flag.StringVar(&ztsURL, "zts", "", "url of the ZTS Service")
 	flag.StringVar(&roleDomain, "role-domain", "", "requested role domain name")
 	flag.StringVar(&roleName, "role-name", "", "requested role name in the role-domain")
 	flag.StringVar(&dnsDomain, "dns-domain", "", "dns domain suffix to be included in the csr")
 	flag.Parse()
 
 	if svcKeyFile == "" || svcCertFile == "" || domain == "" || service == "" ||
-		ztsUrl == "" || dnsDomain == "" || roleDomain == "" || roleName == "" {
+		ztsURL == "" || dnsDomain == "" || roleDomain == "" || roleName == "" {
 		log.Fatalf("usage: zts-rolecert -domain <domain> -service <service> -svc-key-file <key-file> -svc-cert-file <cert-file> -zts <zts-server-url> -role-domain <domain> -role-name <name> -dns-domain <dns-domain> [-role-cert-file <output-cert-file>] [-cacert <ca-certificate-file>]\n")
 	}
 
@@ -51,9 +51,9 @@ func main() {
 	host := fmt.Sprintf("%s.%s.%s", service, hyphenDomain, dnsDomain)
 	rfc822 := fmt.Sprintf("%s.%s@%s", domain, service, dnsDomain)
 
-	client, err := ztsClient(ztsUrl, host, svcKeyFile, svcCertFile, caCertFile)
+	client, err := ztsClient(ztsURL, host, svcKeyFile, svcCertFile, caCertFile)
 	if err != nil {
-		log.Fatalf("Unable to initialize ZTS Client for %s, err: %v\n", ztsUrl, err)
+		log.Fatalf("Unable to initialize ZTS Client for %s, err: %v\n", ztsURL, err)
 	}
 
 	// load private key
@@ -137,7 +137,7 @@ func getRoleCertificate(client *zts.ZTSClient, keySigner *signer, host, rfc822, 
 	return true
 }
 
-func ztsClient(ztsUrl, ztsHostName, keyFile, certFile, caFile string) (*zts.ZTSClient, error) {
+func ztsClient(ztsURL, ztsHostName, keyFile, certFile, caFile string) (*zts.ZTSClient, error) {
 	config, err := tlsConfiguration(keyFile, certFile, caFile)
 	if err != nil {
 		return nil, err
@@ -145,7 +145,7 @@ func ztsClient(ztsUrl, ztsHostName, keyFile, certFile, caFile string) (*zts.ZTSC
 	tr := &http.Transport{
 		TLSClientConfig: config,
 	}
-	client := zts.NewClient(ztsUrl, tr)
+	client := zts.NewClient(ztsURL, tr)
 	return &client, nil
 }
 
