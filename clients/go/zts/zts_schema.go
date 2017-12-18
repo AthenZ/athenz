@@ -254,6 +254,7 @@ func init() {
 	sb.AddType(tInstanceRegisterInformation.Build())
 
 	tInstanceRefreshInformation := rdl.NewStructTypeBuilder("Struct", "InstanceRefreshInformation")
+	tInstanceRefreshInformation.Field("attestationData", "String", true, nil, "identity attestation data including document with its signature containing attributes like IP address, instance-id, account#, etc.")
 	tInstanceRefreshInformation.Field("csr", "String", true, nil, "the Certificate Signing Request for the expected X.509 certificate in the response")
 	tInstanceRefreshInformation.Field("ssh", "String", true, nil, "if present, return an SSH host certificate. Format is JSON.")
 	tInstanceRefreshInformation.Field("token", "Bool", true, nil, "if true, return a service token signed by ZTS for this service")

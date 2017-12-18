@@ -89,6 +89,18 @@ public class InstanceProviderSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
+        sb.resource("InstanceConfirmation", "POST", "/refresh")
+            .name("PostRefreshConfirmation")
+            .input("confirmation", "InstanceConfirmation", "")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
 
         return sb.build();
     }

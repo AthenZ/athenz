@@ -1759,6 +1759,12 @@ func (self *InstanceRegisterInformation) Validate() error {
 type InstanceRefreshInformation struct {
 
 	//
+	// identity attestation data including document with its signature containing
+	// attributes like IP address, instance-id, account#, etc.
+	//
+	AttestationData string `json:"attestationData,omitempty" rdl:"optional"`
+
+	//
 	// the Certificate Signing Request for the expected X.509 certificate in the
 	// response
 	//
