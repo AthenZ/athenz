@@ -12,6 +12,9 @@ import com.yahoo.rdl.*;
 public class InstanceRefreshInformation {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String attestationData;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String csr;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -20,6 +23,13 @@ public class InstanceRefreshInformation {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean token;
 
+    public InstanceRefreshInformation setAttestationData(String attestationData) {
+        this.attestationData = attestationData;
+        return this;
+    }
+    public String getAttestationData() {
+        return attestationData;
+    }
     public InstanceRefreshInformation setCsr(String csr) {
         this.csr = csr;
         return this;
@@ -49,6 +59,9 @@ public class InstanceRefreshInformation {
                 return false;
             }
             InstanceRefreshInformation a = (InstanceRefreshInformation) another;
+            if (attestationData == null ? a.attestationData != null : !attestationData.equals(a.attestationData)) {
+                return false;
+            }
             if (csr == null ? a.csr != null : !csr.equals(a.csr)) {
                 return false;
             }

@@ -217,6 +217,7 @@ public class ZTSSchema {
             .field("token", "Bool", true, "if true, return a service token signed by ZTS for this service");
 
         sb.structType("InstanceRefreshInformation")
+            .field("attestationData", "String", true, "identity attestation data including document with its signature containing attributes like IP address, instance-id, account#, etc.")
             .field("csr", "String", true, "the Certificate Signing Request for the expected X.509 certificate in the response")
             .field("ssh", "String", true, "if present, return an SSH host certificate. Format is JSON.")
             .field("token", "Bool", true, "if true, return a service token signed by ZTS for this service");
