@@ -115,17 +115,17 @@ public class CloudStoreTest {
     public void testUpdateAccountUpdate() {
         
         CloudStore store = new CloudStore(null);
-        assertNull(store.getAWSAccount("iaas"));
+        assertNull(store.getCloudAccount("iaas"));
         
         // set the account to 1234
         
         store.updateAccount("iaas", "1234");
-        assertEquals("1234", store.getAWSAccount("iaas"));
+        assertEquals("1234", store.getCloudAccount("iaas"));
         
         // update the account value
         
         store.updateAccount("iaas", "1235");
-        assertEquals("1235", store.getAWSAccount("iaas"));
+        assertEquals("1235", store.getCloudAccount("iaas"));
         store.close();
     }
     
@@ -137,22 +137,22 @@ public class CloudStoreTest {
         // set the account to 1234
         
         store.updateAccount("iaas", "1234");
-        assertEquals("1234", store.getAWSAccount("iaas"));
+        assertEquals("1234", store.getCloudAccount("iaas"));
         
         // delete the account with null
         
         store.updateAccount("iaas", null);
-        assertNull(store.getAWSAccount("iaas"));
+        assertNull(store.getCloudAccount("iaas"));
 
         // update the account value
         
         store.updateAccount("iaas", "1235");
-        assertEquals("1235", store.getAWSAccount("iaas"));
+        assertEquals("1235", store.getCloudAccount("iaas"));
         
         // delete the account with empty string
         
         store.updateAccount("iaas", "");
-        assertNull(store.getAWSAccount("iaas"));
+        assertNull(store.getCloudAccount("iaas"));
         store.close();
     }
     

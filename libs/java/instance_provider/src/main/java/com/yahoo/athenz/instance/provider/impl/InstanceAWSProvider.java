@@ -52,7 +52,7 @@ public class InstanceAWSProvider implements InstanceProvider {
     private static final String ZTS_CERT_INSTANCE_ID    = ".instanceid.athenz.";
 
     public static final String ZTS_INSTANCE_SAN_DNS     = "sanDNS";
-    public static final String ZTS_INSTANCE_AWS_ACCOUNT = "awsAccount";
+    public static final String ZTS_INSTANCE_AWS_ACCOUNT = "cloudAccount";
     
     public static final String AWS_PROP_PUBLIC_CERT      = "athenz.zts.aws_public_cert";
     public static final String AWS_PROP_BOOT_TIME_OFFSET = "athenz.zts.aws_boot_time_offset";
@@ -61,6 +61,7 @@ public class InstanceAWSProvider implements InstanceProvider {
     PublicKey awsPublicKey = null;      // AWS public key for validating instance documents
     long bootTimeOffset;                // boot time offset in milliseconds
     String dnsSuffix = null;
+    boolean supportRefresh = false;
     
     @Override
     public void initialize(String provider, String providerEndpoint) {
@@ -93,8 +94,12 @@ public class InstanceAWSProvider implements InstanceProvider {
     }
 
     ResourceException error(String message) {
+        return error(ResourceException.FORBIDDEN, message);
+    }
+    
+    ResourceException error(int errorCode, String message) {
         LOGGER.error(message);
-        return new ResourceException(ResourceException.FORBIDDEN, message);
+        return new ResourceException(errorCode, message);
     }
     
     String getInstanceProperty(final Map<String, String> attributes, final String propertyName) {
@@ -120,6 +125,7 @@ public class InstanceAWSProvider implements InstanceProvider {
             errMsg.append("mismatch between account values - instance document: ").append(docAccount);
             return false;
         }
+        
         return true;
     }
     
@@ -207,6 +213,21 @@ public class InstanceAWSProvider implements InstanceProvider {
         }
         
         // verify that the boot up time for the instance is now
+        
+        if (!validateInstanceBootTime(instanceDocument, errMsg)) {
+            return false;
+        }
+        
+        return true;
+    }
+    
+    boolean validateInstanceBootTime(Struct instanceDocument, StringBuilder errMsg) {
+        
+        // first check to see if the boot time enforcement is enabled
+        
+        if (bootTimeOffset <= 0) {
+            return true;
+        }
         
         Timestamp bootTime = Timestamp.fromString(instanceDocument.getString(ATTR_PENDING_TIME));
         if (bootTime.millis() < System.currentTimeMillis() - bootTimeOffset) {
@@ -364,6 +385,56 @@ public class InstanceAWSProvider implements InstanceProvider {
         return confirmation;
     }
 
+    @Override
+    public InstanceConfirmation refreshInstance(InstanceConfirmation confirmation) {
+        
+        // if we don't have an attestation data then we're going to
+        // return not found exception unless the provider is required
+        // to support refresh and in that case we'll return forbidden
+        
+        final String attestationData = confirmation.getAttestationData();
+        if (attestationData == null || attestationData.isEmpty()) {
+            int errorCode = supportRefresh ? ResourceException.FORBIDDEN : ResourceException.NOT_FOUND;
+            throw error(errorCode, "No attestation data provided");
+        }
+        
+        AWSAttestationData info = JSON.fromString(attestationData, AWSAttestationData.class);
+        
+        final Map<String, String> instanceAttributes = confirmation.getAttributes();
+        final String instanceDomain = confirmation.getDomain();
+        final String instanceService = confirmation.getService();
+        
+        // before doing anything else we want to make sure our
+        // object has an associated aws account id
+        
+        final String awsAccount = getInstanceProperty(instanceAttributes, ZTS_INSTANCE_AWS_ACCOUNT);
+        if (awsAccount == null) {
+            throw error("Unable to extract AWS Account id");
+        }
+        
+        // validate that the domain/service given in the confirmation
+        // request match the attestation data
+        
+        final String serviceName = instanceDomain + "." + instanceService;
+        if (!serviceName.equals(info.getRole())) {
+            throw error("Service name mismatch: " + info.getRole() + " vs. " + serviceName);
+        }
+        
+        // reset the attributes received from the server
+
+        confirmation.setAttributes(null);
+        
+        // verify that the temporary credentials specified in the request
+        // can be used to assume the given role thus verifying the
+        // instance identity
+        
+        if (!verifyInstanceIdentity(info, awsAccount)) {
+            throw error("Unable to verify instance identity credentials");
+        }
+        
+        return confirmation;
+    }
+    
     AWSSecurityTokenServiceClient getInstanceClient(AWSAttestationData info) {
         
         String access = info.getAccess();

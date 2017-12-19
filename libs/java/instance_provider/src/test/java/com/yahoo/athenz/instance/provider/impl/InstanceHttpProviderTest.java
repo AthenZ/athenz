@@ -26,7 +26,7 @@ import com.yahoo.athenz.instance.provider.InstanceProviderClient;
 public class InstanceHttpProviderTest {
 
     @Test
-    public void testInstanceHttpProvider() {
+    public void testInstanceHttpProviderConfirmInstance() {
         
         InstanceHttpProvider provider = new InstanceHttpProvider();
         provider.initialize("provider", "https://localhost:4443/instance");
@@ -40,6 +40,29 @@ public class InstanceHttpProviderTest {
         Mockito.when(client.postInstanceConfirmation(confirmation)).thenReturn(confirmation);
         
         InstanceConfirmation result = provider.confirmInstance(confirmation);
+        assertEquals(result.getAttestationData(), "data");
+        assertEquals(result.getDomain(), "athenz");
+        assertEquals(result.getProvider(), "provider");
+        assertEquals(result.getService(), "service");
+        
+        provider.close();
+    }
+    
+    @Test
+    public void testInstanceHttpProviderRefreshInstance() {
+        
+        InstanceHttpProvider provider = new InstanceHttpProvider();
+        provider.initialize("provider", "https://localhost:4443/instance");
+        
+        InstanceProviderClient client = Mockito.mock(InstanceProviderClient.class);
+        provider.client = client;
+        
+        InstanceConfirmation confirmation = new InstanceConfirmation()
+                .setAttestationData("data").setDomain("athenz")
+                .setProvider("provider").setService("service");
+        Mockito.when(client.postRefreshConfirmation(confirmation)).thenReturn(confirmation);
+        
+        InstanceConfirmation result = provider.refreshInstance(confirmation);
         assertEquals(result.getAttestationData(), "data");
         assertEquals(result.getDomain(), "athenz");
         assertEquals(result.getProvider(), "provider");
