@@ -1715,8 +1715,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         if (!instanceCertManager.authorizeLaunch(providerService, domain, service,
                 authorizer, errorMsg)) {
-            throw forbiddenError("postInstanceRegisterInformation: " + errorMsg.toString(),
-                    caller, domain);
+            throw forbiddenError(errorMsg.toString(), caller, domain);
         }
 
         // validate request/csr details
@@ -1725,13 +1724,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         try {
             certReq = new X509CertRequest(info.getCsr());
         } catch (CryptoException ex) {
-            throw requestError("postInstanceRegisterInformation: unable to parse PKCS10 CSR: "
-                    + ex.getMessage(), caller, domain);
+            throw requestError("unable to parse PKCS10 CSR: " + ex.getMessage(), caller, domain);
         }
         
         if (!certReq.validate(providerService, domain, service, null, authorizer, errorMsg)) {
-            throw requestError("postInstanceRegisterInformation: CSR validation failed - "
-                    + errorMsg.toString(), caller, domain);
+            throw requestError("CSR validation failed - " + errorMsg.toString(), caller, domain);
         }
         
         final String certReqInstanceId = certReq.getInstanceId();
@@ -1740,42 +1737,18 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         InstanceProvider instanceProvider = instanceProviderManager.getProvider(provider);
         if (instanceProvider == null) {
-            throw requestError("postInstanceRegisterInformation: unable to get instance for provider: "
-                    + provider, caller, domain);
+            throw requestError("unable to get instance for provider: " + provider, caller, domain);
         }
         
-        InstanceConfirmation instance = new InstanceConfirmation()
-                .setAttestationData(info.getAttestationData())
-                .setDomain(domain).setService(service).setProvider(provider);
-
-        // we're going to include the hostnames and optional IP addresses
-        // from the CSR for provider validation
-        
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(ZTSConsts.ZTS_INSTANCE_SAN_DNS, String.join(",", certReq.getDnsNames()));
-        
-        attributes.put(ZTSConsts.ZTS_INSTANCE_CLIENT_IP, ServletRequestUtil.getRemoteAddress(ctx.request()));
-        final List<String> certReqIps = certReq.getIpAddresses();
-        if (certReqIps != null && !certReqIps.isEmpty()) {
-            attributes.put(ZTSConsts.ZTS_INSTANCE_SAN_IP, String.join(",", certReqIps));
-        }
-        
-        // if we have an aws account setup for this domain, we're going
-        // to include it in the optional attributes
-        
-        final String account = cloudStore.getAWSAccount(domain);
-        if (account != null) {
-            attributes.put(ZTSConsts.ZTS_INSTANCE_AWS_ACCOUNT, account);
-        }
-        instance.setAttributes(attributes);
+        InstanceConfirmation instance = generateInstanceConfirmObject(ctx, provider,
+                domain, service, info.getAttestationData(), certReq);
 
         // make sure to close our provider when its no longer needed
 
         try {
             instance = instanceProvider.confirmInstance(instance);
         } catch (Exception ex) {
-            throw forbiddenError("postInstanceRegisterInformation: unable to verify attestation data: "
-                    + ex.getMessage(), caller, domain);
+            throw forbiddenError("unable to verify attestation data: " + ex.getMessage(), caller, domain);
         } finally {
             instanceProvider.close();
         }
@@ -1794,16 +1767,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         InstanceIdentity identity = instanceCertManager.generateIdentity(info.getCsr(), cn, certUsage);
         if (identity == null) {
-            throw serverError("postInstanceRegisterInformation: unable to generate identity",
-                    caller, domain);
+            throw serverError("unable to generate identity", caller, domain);
         }
         
         // if we're asked then we should also generate a ssh
         // certificate for the instance as well
         
         if (!instanceCertManager.generateSshIdentity(identity, info.getSsh(), ZTSConsts.ZTS_SSH_HOST)) {
-            throw serverError("postInstanceRegisterInformation: unable to generate ssh identity",
-                    caller, domain);
+            throw serverError("unable to generate ssh identity", caller, domain);
         }
 
         // set the other required attributes in the identity object
@@ -1833,8 +1804,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // able to validate the certificate during refresh operations
         
         if (!instanceCertManager.insertX509CertRecord(x509CertRecord)) {
-            throw serverError("postInstanceRegisterInformation: unable to update cert db",
-                    caller, domain);
+            throw serverError("unable to update cert db", caller, domain);
         }
         
         // if we're asked to return an NToken in addition to ZTS Certificate
@@ -1869,6 +1839,37 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         instanceResult.done(ResourceException.CREATED, identity, location);
     }
 
+    InstanceConfirmation generateInstanceConfirmObject(ResourceContext ctx, final String provider,
+            final String domain, final String service, final String attestationData,
+            X509CertRequest certReq) {
+        
+        InstanceConfirmation instance = new InstanceConfirmation()
+                .setAttestationData(attestationData)
+                .setDomain(domain).setService(service).setProvider(provider);
+    
+        // we're going to include the hostnames and optional IP addresses
+        // from the CSR for provider validation
+        
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(ZTSConsts.ZTS_INSTANCE_SAN_DNS, String.join(",", certReq.getDnsNames()));
+        
+        attributes.put(ZTSConsts.ZTS_INSTANCE_CLIENT_IP, ServletRequestUtil.getRemoteAddress(ctx.request()));
+        final List<String> certReqIps = certReq.getIpAddresses();
+        if (certReqIps != null && !certReqIps.isEmpty()) {
+            attributes.put(ZTSConsts.ZTS_INSTANCE_SAN_IP, String.join(",", certReqIps));
+        }
+        
+        // if we have an aws account setup for this domain, we're going
+        // to include it in the optional attributes
+        
+        final String account = cloudStore.getAWSAccount(domain);
+        if (account != null) {
+            attributes.put(ZTSConsts.ZTS_INSTANCE_AWS_ACCOUNT, account);
+        }
+        instance.setAttributes(attributes);
+        return instance;
+    }
+    
     @Override
     public InstanceIdentity postInstanceRefreshInformation(ResourceContext ctx, String provider,
             String domain, String service, String instanceId, InstanceRefreshInformation info) {
@@ -1991,6 +1992,34 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         X509Certificate cert = principal.getX509Certificate();
         if (!certReq.compareDnsNames(cert)) {
             throw requestError("dnsName attribute mismatch in CSR", caller, domain);
+        }
+        
+        // validate attestation data is included in the request
+        
+        InstanceProvider instanceProvider = instanceProviderManager.getProvider(provider);
+        if (instanceProvider == null) {
+            throw requestError("unable to get instance for provider: " + provider, caller, domain);
+        }
+        
+        InstanceConfirmation instance = generateInstanceConfirmObject(ctx, provider,
+                domain, service, info.getAttestationData(), certReq);
+        
+        // make sure to close our provider when its no longer needed
+
+        try {
+            instance = instanceProvider.refreshInstance(instance);
+        } catch (com.yahoo.athenz.instance.provider.ResourceException ex) {
+            
+            // for backward compatibility initially we'll only look for
+            // specifically 403 response and treat responses like 404
+            // as success. Later, we'll change the behavior to only
+            // accept 200 as the excepted response
+            
+            if (ex.getCode() == com.yahoo.athenz.instance.provider.ResourceException.FORBIDDEN) {
+                throw forbiddenError("unable to verify attestation data: " + ex.getMessage(), caller, domain);
+            }
+        } finally {
+            instanceProvider.close();
         }
         
         // validate that the tenant domain/service matches to the values

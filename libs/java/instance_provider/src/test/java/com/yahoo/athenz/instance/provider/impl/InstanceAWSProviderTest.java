@@ -648,4 +648,18 @@ public class InstanceAWSProviderTest {
         assertFalse(provider.validateCertRequestHostnames(attributes, "athenz", "api", id));
         provider.close();
     }
+    
+    @Test
+    public void testEmptyRefreshAttestationData() {
+        InstanceAWSProvider provider = new InstanceAWSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider");
+
+        InstanceConfirmation confirmation = new InstanceConfirmation();
+        try {
+            provider.refreshInstance(confirmation);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+    }
 }
