@@ -36,6 +36,17 @@ public interface InstanceProvider {
     public InstanceConfirmation confirmInstance(InstanceConfirmation confirmation);
     
     /**
+     * Contact the Instance provider and confirm that the requested
+     * instance details are valid in order for ZTS to refresh a
+     * service identity certificate for the instance
+     * @param confirmation refresh confirmation details (including instance
+     * identity document, its signature and other details)
+     * @return InstanceConfirmation object if the confirmation is successful
+     * @throws ResourceException in case of any errors
+     */
+    public InstanceConfirmation refreshInstance(InstanceConfirmation confirmation);
+    
+    /**
      * Close the client and, if necessary, release any allocated resources
      */
     default public void close() {

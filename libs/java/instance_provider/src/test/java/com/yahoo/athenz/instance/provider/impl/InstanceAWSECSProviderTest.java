@@ -1,0 +1,88 @@
+/**
+ * Copyright 2017 Yahoo Holdings, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.yahoo.athenz.instance.provider.impl;
+
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
+
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
+import com.yahoo.athenz.instance.provider.InstanceConfirmation;
+import com.yahoo.athenz.instance.provider.ResourceException;
+import com.yahoo.rdl.Timestamp;
+
+public class InstanceAWSECSProviderTest {
+    
+    @BeforeMethod
+    public void setup() {
+        System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "athenz.cloud");
+    }
+    
+    @AfterMethod
+    public void shutdown() {
+        System.clearProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX);
+    }
+    
+    @Test
+    public void testInitializeDefaults() {
+        InstanceAWSECSProvider provider = new InstanceAWSECSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSECSProvider");
+        assertNull(provider.awsPublicKey);
+        assertEquals(provider.bootTimeOffset, 0);
+        provider.close();
+    }
+    
+    @Test
+    public void testValidateAWSDocumentInvalidBootTime() {
+        
+        StringBuilder errMsg = new StringBuilder(256);
+
+        MockInstanceAWSECSProvider provider = new MockInstanceAWSECSProvider();
+        System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        provider.initialize("athenz.aws-ecs.us-west-2", "com.yahoo.athenz.instance.provider.impl.InstanceAWSECSProvider");
+        
+        String bootTime = Timestamp.fromMillis(System.currentTimeMillis() - 1000000).toString();
+        assertTrue(provider.validateAWSDocument("athenz.aws-ecs.us-west-2", "{\"accountId\": \"1234\",\"pendingTime\": \""
+                + bootTime + "\",\"region\": \"us-west-2\",\"instanceId\": \"i-1234\"}",
+                "signature", "1234", "i-1234", errMsg));
+    }
+    
+    @Test
+    public void testEmptyRefreshAttestationData() {
+        InstanceAWSECSProvider provider = new InstanceAWSECSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSECSProvider");
+
+        InstanceConfirmation confirmation = new InstanceConfirmation();
+        try {
+            provider.refreshInstance(confirmation);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+        }
+        
+        confirmation.setAttestationData("");
+        try {
+            provider.refreshInstance(confirmation);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+        }
+    }
+}

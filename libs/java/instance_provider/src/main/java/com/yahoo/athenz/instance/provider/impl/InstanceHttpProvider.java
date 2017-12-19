@@ -35,6 +35,11 @@ public class InstanceHttpProvider implements InstanceProvider {
     }
 
     @Override
+    public InstanceConfirmation refreshInstance(InstanceConfirmation confirmation) {
+        return client.postRefreshConfirmation(confirmation);
+    }
+    
+    @Override
     public void close() {
         client.close();
     }

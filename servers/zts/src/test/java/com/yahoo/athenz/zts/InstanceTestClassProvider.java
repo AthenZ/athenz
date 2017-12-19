@@ -32,4 +32,8 @@ public class InstanceTestClassProvider implements InstanceProvider {
         return null;
     }
 
+    @Override
+    public InstanceConfirmation refreshInstance(InstanceConfirmation confirmation) {
+        return null;
+    }
 }

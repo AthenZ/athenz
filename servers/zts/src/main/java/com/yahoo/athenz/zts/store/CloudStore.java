@@ -469,7 +469,7 @@ public class CloudStore {
         return tempCreds;
     }
 
-    public String getAWSAccount(String domainName) {
+    public String getCloudAccount(String domainName) {
         return cloudAccountCache.get(domainName);
     }
     

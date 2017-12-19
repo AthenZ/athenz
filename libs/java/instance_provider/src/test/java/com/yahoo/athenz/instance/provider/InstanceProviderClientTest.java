@@ -17,6 +17,8 @@ package com.yahoo.athenz.instance.provider;
 
 import static org.testng.Assert.*;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
@@ -30,7 +32,7 @@ import com.yahoo.athenz.instance.provider.impl.ProviderHostnameVerifier;
 public class InstanceProviderClientTest {
 
     @Test
-    public void testInstanceProviderClient() {
+    public void testInstanceProviderClientInstanceConfirmation() {
         String url = "http://localhost:10099/instance";
         InstanceProviderClient provClient = new InstanceProviderClient(url);
         provClient.addCredentials("Athenz-Principal-Token", "v=S1;d=athenz;n=service;s=signature");
@@ -59,6 +61,120 @@ public class InstanceProviderClientTest {
         Mockito.when(response.readEntity(InstanceConfirmation.class)).thenReturn(confirmation);
         
         InstanceConfirmation result = provClient.postInstanceConfirmation(confirmation);
+        assertEquals(result.getAttestationData(), "data");
+        assertEquals(result.getDomain(), "athenz");
+        assertEquals(result.getProvider(), "provider");
+        assertEquals(result.getService(), "service");
+        
+        provClient.close();
+    }
+    
+    @Test
+    public void testInstanceProviderClientInstanceConfirmationCookieHeader() {
+        String url = "http://localhost:10099/instance";
+        InstanceProviderClient provClient = new InstanceProviderClient(url);
+        provClient.addCredentials("Cookie.ntoken", "v=S1;d=athenz;n=service;s=signature");
+        provClient.setProperty("prop-name", "prop-value");
+        
+        assertEquals(provClient.credsHeader, "Cookie.ntoken");
+        assertEquals(provClient.credsToken, "v=S1;d=athenz;n=service;s=signature");
+        
+        WebTarget base = Mockito.mock(WebTarget.class);
+        provClient.base = base;
+        
+        WebTarget target = Mockito.mock(WebTarget.class);
+        Mockito.when(base.path("/instance")).thenReturn(target);
+
+        Invocation.Builder builder = Mockito.mock(Invocation.Builder.class);
+        Mockito.when(target.request("application/json")).thenReturn(builder);
+        Mockito.when(builder.cookie("ntoken", "v=S1;d=athenz;n=service;s=signature")).thenReturn(builder);
+
+        InstanceConfirmation confirmation = new InstanceConfirmation()
+                .setAttestationData("data").setDomain("athenz")
+                .setProvider("provider").setService("service");
+        Entity<?> entity = Entity.entity(confirmation, "application/json");
+        Response response = Mockito.mock(Response.class);
+        Mockito.when(builder.post(entity)).thenReturn(response);
+        Mockito.when(response.getStatus()).thenReturn(200);
+        Mockito.when(response.readEntity(InstanceConfirmation.class)).thenReturn(confirmation);
+        
+        InstanceConfirmation result = provClient.postInstanceConfirmation(confirmation);
+        assertEquals(result.getAttestationData(), "data");
+        assertEquals(result.getDomain(), "athenz");
+        assertEquals(result.getProvider(), "provider");
+        assertEquals(result.getService(), "service");
+        
+        provClient.close();
+    }
+    
+    @Test
+    public void testInstanceProviderClientRefreshConfirmation() {
+        String url = "http://localhost:10099/instance";
+        InstanceProviderClient provClient = new InstanceProviderClient(url);
+        provClient.addCredentials("Athenz-Principal-Token", "v=S1;d=athenz;n=service;s=signature");
+        provClient.setProperty("prop-name", "prop-value");
+        
+        assertEquals(provClient.credsHeader, "Athenz-Principal-Token");
+        assertEquals(provClient.credsToken, "v=S1;d=athenz;n=service;s=signature");
+        
+        WebTarget base = Mockito.mock(WebTarget.class);
+        provClient.base = base;
+        
+        WebTarget target = Mockito.mock(WebTarget.class);
+        Mockito.when(base.path("/refresh")).thenReturn(target);
+
+        Invocation.Builder builder = Mockito.mock(Invocation.Builder.class);
+        Mockito.when(target.request("application/json")).thenReturn(builder);
+        Mockito.when(builder.header("Athenz-Principal-Token", "v=S1;d=athenz;n=service;s=signature")).thenReturn(builder);
+
+        InstanceConfirmation confirmation = new InstanceConfirmation()
+                .setAttestationData("data").setDomain("athenz")
+                .setProvider("provider").setService("service");
+        Entity<?> entity = Entity.entity(confirmation, "application/json");
+        Response response = Mockito.mock(Response.class);
+        Mockito.when(builder.post(entity)).thenReturn(response);
+        Mockito.when(response.getStatus()).thenReturn(200);
+        Mockito.when(response.readEntity(InstanceConfirmation.class)).thenReturn(confirmation);
+        
+        InstanceConfirmation result = provClient.postRefreshConfirmation(confirmation);
+        assertEquals(result.getAttestationData(), "data");
+        assertEquals(result.getDomain(), "athenz");
+        assertEquals(result.getProvider(), "provider");
+        assertEquals(result.getService(), "service");
+        
+        provClient.close();
+    }
+    
+    @Test
+    public void testInstanceProviderClientRefreshConfirmationCookieHeader() {
+        String url = "http://localhost:10099/instance";
+        InstanceProviderClient provClient = new InstanceProviderClient(url);
+        provClient.addCredentials("Cookie.NToken", "v=S1;d=athenz;n=service;s=signature");
+        provClient.setProperty("prop-name", "prop-value");
+        
+        assertEquals(provClient.credsHeader, "Cookie.NToken");
+        assertEquals(provClient.credsToken, "v=S1;d=athenz;n=service;s=signature");
+        
+        WebTarget base = Mockito.mock(WebTarget.class);
+        provClient.base = base;
+        
+        WebTarget target = Mockito.mock(WebTarget.class);
+        Mockito.when(base.path("/refresh")).thenReturn(target);
+
+        Invocation.Builder builder = Mockito.mock(Invocation.Builder.class);
+        Mockito.when(target.request("application/json")).thenReturn(builder);
+        Mockito.when(builder.cookie("NToken", "v=S1;d=athenz;n=service;s=signature")).thenReturn(builder);
+
+        InstanceConfirmation confirmation = new InstanceConfirmation()
+                .setAttestationData("data").setDomain("athenz")
+                .setProvider("provider").setService("service");
+        Entity<?> entity = Entity.entity(confirmation, "application/json");
+        Response response = Mockito.mock(Response.class);
+        Mockito.when(builder.post(entity)).thenReturn(response);
+        Mockito.when(response.getStatus()).thenReturn(200);
+        Mockito.when(response.readEntity(InstanceConfirmation.class)).thenReturn(confirmation);
+        
+        InstanceConfirmation result = provClient.postRefreshConfirmation(confirmation);
         assertEquals(result.getAttestationData(), "data");
         assertEquals(result.getDomain(), "athenz");
         assertEquals(result.getProvider(), "provider");
@@ -117,6 +233,7 @@ public class InstanceProviderClientTest {
         
         WebTarget target = Mockito.mock(WebTarget.class);
         Mockito.when(base.path("/instance")).thenReturn(target);
+        Mockito.when(base.path("/refresh")).thenReturn(target);
 
         Invocation.Builder builder = Mockito.mock(Invocation.Builder.class);
         Mockito.when(target.request("application/json")).thenReturn(builder);
@@ -136,6 +253,23 @@ public class InstanceProviderClientTest {
             assertEquals(ex.getCode(), 401);
         }
         
+        try {
+            provClient.postRefreshConfirmation(confirmation);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 401);
+        }
+        
         provClient.close();
+    }
+    
+    @Test
+    public void testInstanceProviderClientConstructor() {
+        String url = "http://localhost:10099/instance";
+        ClientBuilder builder = ClientBuilder.newBuilder();
+        Client client = builder.build();
+        InstanceProviderClient provClient = new InstanceProviderClient(url, client);
+        assertNotNull(provClient);
+        assertEquals(provClient.client, client);
     }
 }
