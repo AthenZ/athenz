@@ -539,14 +539,21 @@ public class ZTSClient implements Closeable {
     }
 
     /**
-     * Clear the principal identity set for the client. Unless a new principal is set
-     * using the addCredentials method, the client can only be used to requests data
-     * from the ZTS Server that doesn't require any authentication.
+     * Set client credentials based on the given principal.
      * @param identity Principal identity for authenticating requests
      * @return self ZTSClient object
      */
     public ZTSClient addCredentials(Principal identity) {
         return addPrincipalCredentials(identity, true);
+    }
+    
+    /**
+     * Set the client credentials using the specified header and token.
+     * @param credHeader authentication header name
+     * @param credToken authentication credentials
+     */
+    public void addCredentials(String credHeader, String credToken) {
+        ztsClient.addCredentials(credHeader, credToken);
     }
     
     /**

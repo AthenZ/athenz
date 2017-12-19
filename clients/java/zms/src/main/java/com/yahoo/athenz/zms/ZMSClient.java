@@ -184,6 +184,15 @@ public class ZMSClient implements Closeable {
     }
     
     /**
+     * Set the client credentials using the specified header and token.
+     * @param credHeader authentication header name
+     * @param credToken authentication credentials
+     */
+    public void addCredentials(String credHeader, String credToken) {
+        client.addCredentials(credHeader, credToken);
+    }
+    
+    /**
      * Sets or overrides the current principal identity set in the client.
      * @param identity Principal identity for authenticating requests
      * @return self ZMSClient object
@@ -211,17 +220,7 @@ public class ZMSClient implements Closeable {
         final Authority authority = principal.getAuthority();
         if (authority != null) {
             
-            // special handling for cookie headers since we want to keep
-            // cookie name in the authority header name
-            
-            String headerName = authority.getHeader();
-            String credentials = principal.getCredentials();
-            if (headerName.startsWith("Cookie.")) {
-                credentials = headerName.substring(7) + "=" + credentials;
-                headerName = "Cookie";
-            }
-            
-            client.addCredentials(headerName, credentials);
+            client.addCredentials(authority.getHeader(), principal.getCredentials());
         
             // final check if the authority does not support authorization
             // by the zms server then it's most likely a user authority and
