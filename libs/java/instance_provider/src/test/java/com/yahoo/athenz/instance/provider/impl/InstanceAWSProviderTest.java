@@ -661,7 +661,7 @@ public class InstanceAWSProviderTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
-        
+
         confirmation.setAttestationData("");
         try {
             provider.refreshInstance(confirmation);
