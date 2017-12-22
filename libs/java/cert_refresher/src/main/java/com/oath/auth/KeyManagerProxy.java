@@ -1,5 +1,10 @@
 package com.oath.auth;
 
+import java.net.Socket;
+import java.security.Principal;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
+
 /**
  * Copyright 2017 Yahoo Holdings, Inc.
  *
@@ -17,22 +22,19 @@ package com.oath.auth;
  */
 
 import javax.net.ssl.KeyManager;
-import javax.net.ssl.X509KeyManager;
-import java.net.Socket;
-import java.security.Principal;
-import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.X509ExtendedKeyManager;
 
 /**
- * This class creates a key manager that wraps the existing X509KeyManager.  The goal is that it watches
+ * This class creates a key manager that wraps the existing X509ExtendedKeyManager.  The goal is that it watches
  * the 'key' files and when they are updated, it upates the KeyManager under the covers.  This may
  * cause connections that are in the middle of a handshake to fail, but must NOT cause any already
  * established connections to fail.  This allow the changing of the SSL context on the fly without creating
  * new server / httpClient objects
  */
-public class KeyManagerProxy implements X509KeyManager {
+public class KeyManagerProxy extends X509ExtendedKeyManager {
 
-    private volatile X509KeyManager keyManager;
+    private volatile X509ExtendedKeyManager keyManager;
 
     public KeyManagerProxy(KeyManager[] keyManagers) {
         this.setKeyManager(keyManagers);
@@ -40,10 +42,10 @@ public class KeyManagerProxy implements X509KeyManager {
 
     /**
      * overwrites the existing key manager.
-     * @param keyManagers only the first element will be used, and MUST be a X509KeyManager
+     * @param keyManagers only the first element will be used, and MUST be a X509ExtendedKeyManager
      */
     public void setKeyManager(final KeyManager[] keyManagers) {
-        keyManager = (X509KeyManager) keyManagers[0];
+        keyManager = (X509ExtendedKeyManager) keyManagers[0];
     }
 
     @Override
@@ -75,4 +77,15 @@ public class KeyManagerProxy implements X509KeyManager {
     public PrivateKey getPrivateKey(String s) {
         return keyManager.getPrivateKey(s);
     }
+    
+    @Override
+    public String chooseEngineClientAlias(String[] keyType, Principal[] issuers, SSLEngine engine) {
+        return keyManager.chooseEngineClientAlias(keyType, issuers, engine);
+    }
+    
+    @Override
+    public String chooseEngineServerAlias(String keyType, Principal[] issuers, SSLEngine engine) {
+        return keyManager.chooseEngineServerAlias(keyType, issuers, engine);
+    }
+    
 }
