@@ -22,7 +22,7 @@ import mockit.Mocked;
 import org.junit.Test;
 
 import javax.net.ssl.KeyManager;
-import javax.net.ssl.X509KeyManager;
+import javax.net.ssl.X509ExtendedKeyManager;
 
 import java.net.Socket;
 import java.security.Principal;
@@ -34,8 +34,8 @@ import static org.junit.Assert.*;
 
 public class KeyManagerProxyTest {
 
-    private X509KeyManager generateNewKeyManger() {
-        return new X509KeyManager() {
+    private X509ExtendedKeyManager generateNewKeyManger() {
+        return new X509ExtendedKeyManager() {
             @Override
             public String[] getClientAliases(String s, Principal[] principals) {
                 return new String[0];
@@ -73,21 +73,21 @@ public class KeyManagerProxyTest {
         KeyManager[] keyManagers = new KeyManager[] { generateNewKeyManger() };
 
         KeyManagerProxy keyManagerProxy = new KeyManagerProxy(keyManagers);
-        X509KeyManager keyManagerFirst = Deencapsulation.getField(keyManagerProxy, "keyManager");
+        X509ExtendedKeyManager keyManagerFirst = Deencapsulation.getField(keyManagerProxy, "keyManager");
 
         assertNotNull(keyManagerFirst);
 
 
         keyManagerProxy.setKeyManager(new KeyManager[] { generateNewKeyManger() });
 
-        X509KeyManager keyManagerSecond = Deencapsulation.getField(keyManagerProxy, "keyManager");
+        X509ExtendedKeyManager keyManagerSecond = Deencapsulation.getField(keyManagerProxy, "keyManager");
         assertNotNull(keyManagerSecond);
 
         assertNotSame(keyManagerFirst, keyManagerSecond);
     }
 
     @Test
-    public void testKeyManagerProxyGeClientAliases(@Mocked X509KeyManager mockedKeyManager) throws CertificateException {
+    public void testKeyManagerProxyGeClientAliases(@Mocked X509ExtendedKeyManager mockedKeyManager) throws CertificateException {
         new Expectations() {{
             mockedKeyManager.getClientAliases("cert", (Principal[]) any); times = 1;
         }};
@@ -98,7 +98,7 @@ public class KeyManagerProxyTest {
     }
 
     @Test
-    public void testKeyManagerProxyChooseClientAlias(@Mocked X509KeyManager mockedKeyManager) throws CertificateException {
+    public void testKeyManagerProxyChooseClientAlias(@Mocked X509ExtendedKeyManager mockedKeyManager) throws CertificateException {
         new Expectations() {{
             mockedKeyManager.chooseClientAlias((String[]) any, (Principal[]) any, (Socket) any); times = 1;
         }};
@@ -109,7 +109,7 @@ public class KeyManagerProxyTest {
     }
 
     @Test
-    public void testKeyManagerProxyGetServerAliases(@Mocked X509KeyManager mockedKeyManager) throws CertificateException {
+    public void testKeyManagerProxyGetServerAliases(@Mocked X509ExtendedKeyManager mockedKeyManager) throws CertificateException {
         new Expectations() {{
             mockedKeyManager.getServerAliases("cert", (Principal[]) any); times = 1;
         }};
@@ -120,7 +120,7 @@ public class KeyManagerProxyTest {
     }
 
     @Test
-    public void testKeyManagerProxyChooseServerAlias(@Mocked X509KeyManager mockedKeyManager) throws CertificateException {
+    public void testKeyManagerProxyChooseServerAlias(@Mocked X509ExtendedKeyManager mockedKeyManager) throws CertificateException {
         new Expectations() {{
             mockedKeyManager.chooseServerAlias("cert", (Principal[]) any, (Socket) any); times = 1;
         }};
@@ -131,7 +131,7 @@ public class KeyManagerProxyTest {
     }
 
     @Test
-    public void testKeyManagerProxyGetCertificateChain(@Mocked X509KeyManager mockedKeyManager) throws CertificateException {
+    public void testKeyManagerProxyGetCertificateChain(@Mocked X509ExtendedKeyManager mockedKeyManager) throws CertificateException {
         new Expectations() {{
             mockedKeyManager.getCertificateChain("cert"); times = 1;
         }};
@@ -142,7 +142,7 @@ public class KeyManagerProxyTest {
     }
 
     @Test
-    public void testKeyManagerProxyGetPrivateKey(@Mocked X509KeyManager mockedKeyManager) throws CertificateException {
+    public void testKeyManagerProxyGetPrivateKey(@Mocked X509ExtendedKeyManager mockedKeyManager) throws CertificateException {
         new Expectations() {{
             mockedKeyManager.getPrivateKey("cert"); times = 1;
         }};

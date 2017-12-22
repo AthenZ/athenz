@@ -1,5 +1,11 @@
 package com.oath.auth;
 
+import java.net.Socket;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+
+import javax.net.ssl.SSLEngine;
+
 /**
  * Copyright 2017 Yahoo Holdings, Inc.
  *
@@ -17,20 +23,18 @@ package com.oath.auth;
  */
 
 import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
+import javax.net.ssl.X509ExtendedTrustManager;
 
 /**
- * This class creates a key manager that wraps the existing X509TrustManager. The goal is that it watches
+ * This class creates a key manager that wraps the existing X509ExtendedTrustManager.  The goal is that it watches
  * the 'key' files and when they are updated, it updates the TrustManager under the covers.  This may
  * cause connections that are in the middle of a handshake to fail, but must NOT cause any already
  * established connections to fail.  This allow the changing of the SSL context on the fly without creating
  * new server / httpClient objects
  */
-public class TrustManagerProxy implements X509TrustManager {
+public class TrustManagerProxy extends X509ExtendedTrustManager {
 
-    private volatile X509TrustManager trustManager;
+    private volatile X509ExtendedTrustManager trustManager;
 
     public TrustManagerProxy(TrustManager[] trustManagers) {
         this.setTrustManager(trustManagers);
@@ -38,10 +42,10 @@ public class TrustManagerProxy implements X509TrustManager {
 
     /**
      * overwrites the existing key manager.
-     * @param trustManagers only the first element will be used, and MUST be a X509TrustManager
+     * @param trustManagers only the first element will be used, and MUST be a X509ExtendedTrustManager
      */
     public void setTrustManager(final TrustManager[] trustManagers) {
-        trustManager = (X509TrustManager) trustManagers[0];
+        trustManager = (X509ExtendedTrustManager) trustManagers[0];
     }
 
     @Override
@@ -57,5 +61,29 @@ public class TrustManagerProxy implements X509TrustManager {
     @Override
     public X509Certificate[] getAcceptedIssuers() {
         return trustManager.getAcceptedIssuers();
+    }
+
+    @Override
+    public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket)
+            throws CertificateException {
+        trustManager.checkClientTrusted(chain, authType, socket);
+    }
+
+    @Override
+    public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine engine)
+            throws CertificateException {
+        trustManager.checkClientTrusted(chain, authType, engine);
+    }
+
+    @Override
+    public void checkServerTrusted(X509Certificate[] chain, String authType, Socket socket)
+            throws CertificateException {
+        trustManager.checkServerTrusted(chain, authType, socket);
+    }
+
+    @Override
+    public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine engine)
+            throws CertificateException {
+        trustManager.checkServerTrusted(chain, authType, engine);
     }
 }
