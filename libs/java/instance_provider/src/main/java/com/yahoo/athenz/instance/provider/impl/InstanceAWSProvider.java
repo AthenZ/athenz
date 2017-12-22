@@ -42,17 +42,17 @@ public class InstanceAWSProvider implements InstanceProvider {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceAWSProvider.class);
     
-    private static final String ATTR_ACCOUNT_ID   = "accountId";
-    private static final String ATTR_REGION       = "region";
-    private static final String ATTR_PENDING_TIME = "pendingTime";
-    private static final String ATTR_INSTANCE_ID  = "instanceId";
+    public static final String ATTR_ACCOUNT_ID   = "accountId";
+    public static final String ATTR_REGION       = "region";
+    public static final String ATTR_PENDING_TIME = "pendingTime";
+    public static final String ATTR_INSTANCE_ID  = "instanceId";
     
-    private static final String ZTS_CERT_USAGE          = "certUsage";
-    private static final String ZTS_CERT_USAGE_CLIENT   = "client";
-    private static final String ZTS_CERT_INSTANCE_ID    = ".instanceid.athenz.";
+    public static final String ZTS_CERT_USAGE            = "certUsage";
+    public static final String ZTS_CERT_USAGE_CLIENT     = "client";
+    public static final String ZTS_CERT_INSTANCE_ID      = ".instanceid.athenz.";
 
-    public static final String ZTS_INSTANCE_SAN_DNS     = "sanDNS";
-    public static final String ZTS_INSTANCE_AWS_ACCOUNT = "cloudAccount";
+    public static final String ZTS_INSTANCE_SAN_DNS      = "sanDNS";
+    public static final String ZTS_INSTANCE_AWS_ACCOUNT  = "cloudAccount";
     
     public static final String AWS_PROP_PUBLIC_CERT      = "athenz.zts.aws_public_cert";
     public static final String AWS_PROP_BOOT_TIME_OFFSET = "athenz.zts.aws_boot_time_offset";
@@ -180,10 +180,11 @@ public class InstanceAWSProvider implements InstanceProvider {
         return valid;
     }
     
-    boolean validateAWSDocument(final String provider, final String document, final String signature,
+    boolean validateAWSDocument(final String provider, AWSAttestationData info,
             final String awsAccount, final String instanceId, StringBuilder errMsg) {
         
-        if (!validateAWSSignature(document, signature, errMsg)) {
+        final String document = info.getDocument();
+        if (!validateAWSSignature(document, info.getSignature(), errMsg)) {
             return false;
         }
         
@@ -208,7 +209,8 @@ public class InstanceAWSProvider implements InstanceProvider {
         
         // verify the request has the expected account id
         
-        if (!validateAWSInstanceId(instanceId, instanceDocument.getString(ATTR_INSTANCE_ID), errMsg)) {
+        final String infoInstanceId = getInstanceId(info, instanceDocument);
+        if (!validateAWSInstanceId(instanceId, infoInstanceId, errMsg)) {
             return false;
         }
         
@@ -219,6 +221,10 @@ public class InstanceAWSProvider implements InstanceProvider {
         }
         
         return true;
+    }
+    
+    String getInstanceId(AWSAttestationData info, Struct instanceDocument) {
+        return instanceDocument.getString(ATTR_INSTANCE_ID);
     }
     
     boolean validateInstanceBootTime(Struct instanceDocument, StringBuilder errMsg) {
@@ -357,7 +363,7 @@ public class InstanceAWSProvider implements InstanceProvider {
             // validate our document against given signature
             
             StringBuilder errMsg = new StringBuilder(256);
-            if (!validateAWSDocument(confirmation.getProvider(), document, info.getSignature(),
+            if (!validateAWSDocument(confirmation.getProvider(), info,
                     awsAccount, instanceId.toString(), errMsg)) {
                 LOGGER.error("validateAWSDocument: {}", errMsg.toString());
                 throw error("Unable to validate AWS document: " + errMsg.toString());

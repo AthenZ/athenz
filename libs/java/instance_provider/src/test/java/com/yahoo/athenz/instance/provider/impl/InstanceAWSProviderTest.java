@@ -121,7 +121,10 @@ public class InstanceAWSProviderTest {
         System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider");
         
-        assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2", "document", null, "1234", "i-1234", errMsg));
+        AWSAttestationData data = new AWSAttestationData();
+        data.setDocument("document");
+        data.setSignature(null);
+        assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2", data, "1234", "i-1234", errMsg));
     }
     
     @Test
@@ -215,8 +218,10 @@ public class InstanceAWSProviderTest {
         System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider");
         
-        assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2", "{\"accountId\": \"1234\"}",
-                "signature", "1235", "i-1234", errMsg));
+        AWSAttestationData data = new AWSAttestationData();
+        data.setDocument("{\"accountId\": \"1234\"}");
+        data.setSignature("signature");
+        assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2", data, "1235", "i-1234", errMsg));
     }
     
     @Test
@@ -228,8 +233,11 @@ public class InstanceAWSProviderTest {
         System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider");
         
+        AWSAttestationData data = new AWSAttestationData();
+        data.setDocument("{\"accountId\": \"1234\",\"region\": \"us-west-2\"}");
+        data.setSignature("signature");
         assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2",
-                "{\"accountId\": \"1234\",\"region\": \"us-west-2\"}", "signature", "1235", "i-1234", errMsg));
+                data, "1235", "i-1234", errMsg));
     }
     
     @Test
@@ -240,10 +248,12 @@ public class InstanceAWSProviderTest {
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
         System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider");
-        
+       
+        AWSAttestationData data = new AWSAttestationData();
+        data.setDocument("{\"accountId\": \"1234\",\"region\": \"us-west-2\",\"instanceId\": \"i-234\"}");
+        data.setSignature("signature");
         assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2",
-                "{\"accountId\": \"1234\",\"region\": \"us-west-2\",\"instanceId\": \"i-234\"}",
-                "signature", "1234", "i-1234", errMsg));
+                data, "1234", "i-1234", errMsg));
     }
     
     @Test
@@ -256,9 +266,12 @@ public class InstanceAWSProviderTest {
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider");
         
         String bootTime = Timestamp.fromMillis(System.currentTimeMillis() - 1000000).toString();
-        assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2", "{\"accountId\": \"1234\",\"pendingTime\": \""
-                + bootTime + "\",\"region\": \"us-west-2\",\"instanceId\": \"i-1234\"}",
-                "signature", "1234", "i-1234", errMsg));
+        AWSAttestationData data = new AWSAttestationData();
+        data.setDocument("{\"accountId\": \"1234\",\"pendingTime\": \""
+                + bootTime + "\",\"region\": \"us-west-2\",\"instanceId\": \"i-1234\"}");
+        data.setSignature("signature");
+        assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2", data,
+                "1234", "i-1234", errMsg));
     }
     
     @Test
@@ -271,9 +284,12 @@ public class InstanceAWSProviderTest {
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider");
         
         String bootTime = Timestamp.fromMillis(System.currentTimeMillis() - 100).toString();
-        assertTrue(provider.validateAWSDocument("athenz.aws.us-west-2", "{\"accountId\": \"1234\",\"pendingTime\": \""
-                + bootTime + "\",\"region\":\"us-west-2\",\"instanceId\": \"i-1234\"}",
-                "signature", "1234", "i-1234", errMsg));
+        AWSAttestationData data = new AWSAttestationData();
+        data.setDocument("{\"accountId\": \"1234\",\"pendingTime\": \""
+                + bootTime + "\",\"region\":\"us-west-2\",\"instanceId\": \"i-1234\"}");
+        data.setSignature("signature");
+        assertTrue(provider.validateAWSDocument("athenz.aws.us-west-2", data,
+                "1234", "i-1234", errMsg));
     }
     
     @Test
@@ -434,13 +450,18 @@ public class InstanceAWSProviderTest {
         
         // no signature
         
-        assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2", "document",
-                null, "cloudAccount", "instanceId", errMsg));
+        AWSAttestationData data = new AWSAttestationData();
+        data.setDocument("document");
+        data.setSignature(null);
+        assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2", data,
+                "cloudAccount", "instanceId", errMsg));
         
         // unable to parse
         
-        assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2", "document",
-                "signature", "cloudAccount", "instanceId", errMsg));
+        data.setDocument("document");
+        data.setSignature("signature");
+        assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2", data,
+                "cloudAccount", "instanceId", errMsg));
     }
     
     @Test
