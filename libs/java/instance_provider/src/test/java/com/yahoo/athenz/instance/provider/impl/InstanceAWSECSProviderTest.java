@@ -26,6 +26,7 @@ import org.testng.annotations.Test;
 
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.ResourceException;
+import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
 
 public class InstanceAWSECSProviderTest {
@@ -59,9 +60,12 @@ public class InstanceAWSECSProviderTest {
         provider.initialize("athenz.aws-ecs.us-west-2", "com.yahoo.athenz.instance.provider.impl.InstanceAWSECSProvider");
         
         String bootTime = Timestamp.fromMillis(System.currentTimeMillis() - 1000000).toString();
-        assertTrue(provider.validateAWSDocument("athenz.aws-ecs.us-west-2", "{\"accountId\": \"1234\",\"pendingTime\": \""
-                + bootTime + "\",\"region\": \"us-west-2\",\"instanceId\": \"i-1234\"}",
-                "signature", "1234", "i-1234", errMsg));
+        AWSAttestationData data = new AWSAttestationData();
+        data.setDocument("{\"accountId\": \"1234\",\"pendingTime\": \""
+                + bootTime + "\",\"region\": \"us-west-2\",\"instanceId\": \"i-1234\"}");
+        data.setSignature("signature");
+        assertTrue(provider.validateAWSDocument("athenz.aws-ecs.us-west-2", data,
+                "1234", "i-1234", errMsg));
     }
     
     @Test
@@ -84,5 +88,26 @@ public class InstanceAWSECSProviderTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
         }
+    }
+    
+    @Test
+    public void testGetInstanceId() {
+        InstanceAWSECSProvider provider = new InstanceAWSECSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSECSProvider");
+
+        AWSAttestationData data = new AWSAttestationData();
+        data.setTaskid("task1234");
+        assertEquals(provider.getInstanceId(data, null), "task1234");
+        
+        data.setTaskid(null);
+        Struct doc = new Struct();
+        doc.put(InstanceAWSProvider.ATTR_INSTANCE_ID, "data1234");
+        assertEquals(provider.getInstanceId(data, doc), "data1234");
+
+        data.setTaskid("");
+        assertEquals(provider.getInstanceId(data, doc), "data1234");
+        
+        data.setTaskid("task1234");
+        assertEquals(provider.getInstanceId(data, doc), "task1234");
     }
 }

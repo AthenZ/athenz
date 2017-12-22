@@ -29,6 +29,7 @@ public class AWSAttestationData {
     public String access;
     public String secret;
     public String token;
+    public String taskid;
 
     public void setDocument(String document) {
         this.document = document;
@@ -65,5 +66,11 @@ public class AWSAttestationData {
     }
     public String getToken() {
         return token;
+    }
+    public void setTaskid(String taskid) {
+        this.taskid = taskid;
+    }
+    public String getTaskid() {
+        return taskid;
     }
 }
