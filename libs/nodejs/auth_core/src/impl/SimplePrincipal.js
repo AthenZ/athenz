@@ -64,11 +64,11 @@ class SimplePrincipal {
    */
   static createByRoles(domain, creds, roles, authority) {
     if (!Validate.domainName(domain)) {
-      winston.warn('WARNING: domain name doesn\'t validate: ' + creds);
+      winston.warn('createByRoles: failed to validate domain ' + domain);
     }
 
     if (!roles || roles.length === 0) {
-      winston.warn('WARNING: zero roles: ' + creds);
+      winston.warn('zero roles: ' + creds);
     }
 
     return this._simplePrincipalByRoles(domain, creds, roles, authority);
@@ -96,19 +96,23 @@ class SimplePrincipal {
    * @return a Principal for the identity
    */
   static createByUserIdentity(domain, name, creds, issueTime, authority) {
+    if (!Validate.domainName(domain)) {
+      winston.warn('createByUserIdentity: failed to validate domain ' + domain);
+    }
+
     if (!Validate.principalName(name)) {
-      winston.warn('WARNING: principal name doesn\'t validate: ' + name);
+      winston.warn('createByUserIdentity: failed to validate name ' + name);
     }
 
     if (domain) {
       var matchDomain = (!authority) ? null : authority.getDomain();
       if (matchDomain && domain !== matchDomain) {
-        winston.warn('FAIL: domain mismatch for user ' + name + ' in authority + ' + authority);
+        winston.warn('domain mismatch for user ' + name + ' in authority + ' + authority);
         return null;
       }
     } else if (authority) {
       if (authority.getDomain()) {
-        winston.warn('FAIL: domain mismatch for user ' + name + ' in authority + ' + authority);
+        winston.warn('domain mismatch for user ' + name + ' in authority + ' + authority);
         return null;
       }
     }
