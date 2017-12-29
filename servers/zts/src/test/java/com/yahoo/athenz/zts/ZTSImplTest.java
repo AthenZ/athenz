@@ -78,6 +78,7 @@ import com.yahoo.athenz.zms.RoleMember;
 import com.yahoo.athenz.zms.ServiceIdentity;
 import com.yahoo.athenz.zms.SignedDomain;
 import com.yahoo.athenz.zts.ZTSImpl.AthenzObject;
+import com.yahoo.athenz.zts.ZTSImpl.ServiceX509RefreshRequestStatus;
 import com.yahoo.athenz.zts.ZTSAuthorizer.AccessStatus;
 import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.cert.CertRecordStore;
@@ -6663,7 +6664,7 @@ public class ZTSImplTest {
                 "syncer", "v=S1,d=athenz;n=syncer;s=sig", 0, new CertificateAuthority());
         principal.setX509Certificate(cert);
         
-        assertTrue(ztsImpl.validateServiceX509RefreshRequest(principal, certReq, "10.0.0.1"));
+        assertTrue(ztsImpl.validateServiceX509RefreshRequest(principal, certReq, "10.0.0.1") == ServiceX509RefreshRequestStatus.SUCCESS);
     }
     
     @Test
@@ -6693,7 +6694,7 @@ public class ZTSImplTest {
                 "syncer", "v=S1,d=athenz;n=syncer;s=sig", 0, new CertificateAuthority());
         principal.setX509Certificate(cert);
         
-        assertFalse(ztsImpl.validateServiceX509RefreshRequest(principal, certReq, "10.0.0.1"));
+        assertTrue(ztsImpl.validateServiceX509RefreshRequest(principal, certReq, "10.0.0.1") == ServiceX509RefreshRequestStatus.PUBLIC_KEY_MISMATCH);
     }
     
     @Test
@@ -6724,7 +6725,7 @@ public class ZTSImplTest {
         
         // our ip will not match 10.0.0.1 thus failure
         
-        assertFalse(ztsImpl.validateServiceX509RefreshRequest(principal, certReq, "10.0.0.2"));
+        assertTrue(ztsImpl.validateServiceX509RefreshRequest(principal, certReq, "10.0.0.2") == ServiceX509RefreshRequestStatus.IP_NOT_ALLOWED);
     }
     
     @Test
@@ -6753,7 +6754,7 @@ public class ZTSImplTest {
                 "syncer", "v=S1,d=athenz;n=syncer;s=sig", 0, new CertificateAuthority());
         principal.setX509Certificate(cert);
         
-        assertFalse(ztsImpl.validateServiceX509RefreshRequest(principal, certReq, "10.0.0.1"));
+        assertTrue(ztsImpl.validateServiceX509RefreshRequest(principal, certReq, "10.0.0.1") == ServiceX509RefreshRequestStatus.DNS_NAME_MISMATCH);
     }
     
     @Test
@@ -6847,7 +6848,7 @@ public class ZTSImplTest {
             ztsImpl.postInstanceRefreshRequest(context, "athenz", "syncer", req);
             fail();
         } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("dns name or public key mismatch"), ex.getMessage());
+            assertTrue(ex.getMessage().contains("DNS_NAME_MISMATCH"), ex.getMessage());
         }
     }
 
