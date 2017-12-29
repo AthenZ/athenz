@@ -23,7 +23,14 @@ services to support centralized access control are as follows:
   role to grant access.
 * Tenant Domain administrator installs the private key on the host
   that will be running the client/tenant service.
-  
+
+One important security requirement for this model is that the service
+identity must be unique for each provider. If the same identity is
+used to access data from multiple providers, then the first target
+service provider, if compromised, might use the service's NToken to
+pretend to be that service and request data from the second target
+service provider.
+
 The next two sections describe the code changes that the developers
 must make to their services to support authorized access.
 
@@ -39,6 +46,14 @@ the dependency on the Athenz auth_core Library:
     <artifactId>athenz-auth-core</artifactId>
     <version>1.X.Y</version>
 </dependency>
+
+<repositories>
+  <repository>
+    <id>bintray-yahoo-maven</id>
+    <name>bintray</name>
+    <url>http://yahoo.bintray.com/maven</url>
+  </repository>
+</repositories>
 ```
 
 The domain administrator must have already generated a public/private key pair
@@ -88,6 +103,14 @@ the dependency on the Athenz zms java client Library:
     <artifactId>athenz-zms-java-client</artifactId>
     <version>1.X.Y</version>
 </dependency>
+
+<repositories>
+  <repository>
+    <id>bintray-yahoo-maven</id>
+    <name>bintray</name>
+    <url>http://yahoo.bintray.com/maven</url>
+  </repository>
+</repositories>
 ```
 
 Now, the most important part of the rest of the required code is to

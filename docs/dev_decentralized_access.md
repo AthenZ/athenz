@@ -58,6 +58,14 @@ the dependency on the Athenz auth_core Library:
     <artifactId>athenz-auth-core</artifactId>
     <version>1.X.Y</version>
 </dependency>
+
+<repositories>
+  <repository>
+    <id>bintray-yahoo-maven</id>
+    <name>bintray</name>
+    <url>http://yahoo.bintray.com/maven</url>
+  </repository>
+</repositories>
 ```
 
 The domain administrator must have already generated a public/private key pair
@@ -95,6 +103,14 @@ the dependency on the ZTS Java Client Library:
     <artifactId>athenz-zts-java-client</artifactId>
     <version>1.X.Y</version>
 </dependency>
+
+<repositories>
+  <repository>
+    <id>bintray-yahoo-maven</id>
+    <name>bintray</name>
+    <url>http://yahoo.bintray.com/maven</url>
+  </repository>
+</repositories>
 ```
 
 ZTS Client Library provides several constructors; however, the most
@@ -396,6 +412,14 @@ your dependency on the ZPE Java Client Library:
     <artifactId>athenz-zpe-java-client</artifactId>
     <version>1.X.Y</version>
 </dependency>
+
+<repositories>
+  <repository>
+    <id>bintray-yahoo-maven</id>
+    <name>bintray</name>
+    <url>http://yahoo.bintray.com/maven</url>
+  </repository>
+</repositories>
 ```
 
 In your server startup code you must initialize the Athenz
