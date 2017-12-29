@@ -15,14 +15,19 @@
  */
 package com.yahoo.athenz.instance.provider;
 
+import com.yahoo.athenz.auth.KeyStore;
+
 public interface InstanceProvider {
 
     /**
      * Set provider details and initialize the provider object
      * @param provider name of the provider (service identity name)
      * @param endpoint endpoint for the provider
+     * @param keyStore Athenz Keystore provider in case
+     * it needs to retrieve public key for a service to validate
+     * attestation data.
      */
-    public void initialize(String provider, String endpoint);
+    public void initialize(String provider, String endpoint, KeyStore keyStore);
     
     /**
      * Contact the Instance provider and confirm that the requested

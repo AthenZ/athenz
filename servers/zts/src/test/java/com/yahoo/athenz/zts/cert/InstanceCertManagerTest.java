@@ -37,11 +37,11 @@ public class InstanceCertManagerTest {
         final String cert = "cert";
         final String caCert = "caCert";
         CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class);
-        Mockito.when(certSigner.generateX509Certificate(Mockito.<String>any(), Mockito.anyObject())).thenReturn(cert);
+        Mockito.when(certSigner.generateX509Certificate(Mockito.<String>any(), Mockito.any(), Mockito.any())).thenReturn(cert);
         Mockito.when(certSigner.getCACertificate()).thenReturn(caCert);
         
         InstanceCertManager instanceManager = new InstanceCertManager(null, certSigner);
-        InstanceIdentity identity = instanceManager.generateIdentity("csr", "cn", null);
+        InstanceIdentity identity = instanceManager.generateIdentity("csr", "cn", null, null);
         
         assertNotNull(identity);
         assertEquals(identity.getName(), "cn");
@@ -53,10 +53,10 @@ public class InstanceCertManagerTest {
     public void testGenerateIdentityNullCert() {
         
         CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class);
-        Mockito.when(certSigner.generateX509Certificate(Mockito.<String>any(), Mockito.anyObject())).thenReturn(null);
+        Mockito.when(certSigner.generateX509Certificate(Mockito.<String>any(), Mockito.any(), Mockito.any())).thenReturn(null);
 
         InstanceCertManager instanceManager = new InstanceCertManager(null, certSigner);
-        InstanceIdentity identity = instanceManager.generateIdentity("csr", "cn", null);
+        InstanceIdentity identity = instanceManager.generateIdentity("csr", "cn", null, null);
         assertNull(identity);
     }
     
@@ -64,10 +64,10 @@ public class InstanceCertManagerTest {
     public void testGenerateIdentityEmptyCert() {
         
         CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class);
-        Mockito.when(certSigner.generateX509Certificate(Mockito.<String>any(), Mockito.anyObject())).thenReturn("");
+        Mockito.when(certSigner.generateX509Certificate(Mockito.<String>any(), Mockito.any(), Mockito.any())).thenReturn("");
 
         InstanceCertManager instanceManager = new InstanceCertManager(null, certSigner);
-        InstanceIdentity identity = instanceManager.generateIdentity("csr", "cn", null);
+        InstanceIdentity identity = instanceManager.generateIdentity("csr", "cn", null, null);
         assertNull(identity);
     }
     

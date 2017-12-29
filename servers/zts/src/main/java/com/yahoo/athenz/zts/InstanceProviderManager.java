@@ -25,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.instance.provider.impl.InstanceHttpProvider;
 import com.yahoo.athenz.zts.cache.DataCache;
@@ -36,8 +37,9 @@ public class InstanceProviderManager {
     private static final String SCHEME_HTTPS = "https";
     private static final String SCHEME_CLASS = "class";
 
-    private ConcurrentHashMap<String, Class<?>> classMap;
+    private ConcurrentHashMap<String, InstanceProvider> providerMap;
     private DataStore dataStore;
+    private KeyStore keyStore;
     List<String> providerEndpoints = Collections.emptyList();
 
     enum ProviderScheme {
@@ -46,10 +48,11 @@ public class InstanceProviderManager {
         CLASS
     }
     
-    public InstanceProviderManager(DataStore dataStore) {
+    public InstanceProviderManager(DataStore dataStore, KeyStore keyStore) {
         
         this.dataStore = dataStore;
-        classMap = new ConcurrentHashMap<>();
+        this.keyStore = keyStore;
+        providerMap = new ConcurrentHashMap<>();
         
         // get the list of valid provider endpoints
         
@@ -119,39 +122,40 @@ public class InstanceProviderManager {
         switch (schemeType) {
         case HTTPS:
             instanceProvider = new InstanceHttpProvider();
+            instanceProvider.initialize(provider, providerEndpoint, keyStore);
             break;
         case CLASS:
-            instanceProvider = getClassInstance(uri.getHost());
+            instanceProvider = getClassProvider(uri.getHost(), provider);
             break;
         default:
             break;
         }
         
-        if (instanceProvider != null) {
-            instanceProvider.initialize(provider, providerEndpoint);
-        }
-        
         return instanceProvider;
     }
     
-    InstanceProvider getClassInstance(String className) {
-        InstanceProvider provider = null;
-        Class<?> instanceClass = classMap.get(className);
-        if (instanceClass == null) {
-            try {
-                instanceClass = Class.forName(className);
-            } catch (ClassNotFoundException e) {
-                LOGGER.error("getClassInstance: Provider class {} not found", className);
-                return null;
-            }
-            classMap.put(className, instanceClass);
+    InstanceProvider getClassProvider(String className, String providerName) {
+        final String classKey = className + "-" + providerName;
+        InstanceProvider provider = providerMap.get(classKey);
+        if (provider != null) {
+            return provider;
+        }
+        Class<?> instanceClass = null;
+        try {
+            instanceClass = Class.forName(className);
+        } catch (ClassNotFoundException e) {
+            LOGGER.error("getClassInstance: Provider class {} not found", className);
+            return null;
         }
         try {
             provider = (InstanceProvider) instanceClass.newInstance();
         } catch (InstantiationException | IllegalAccessException ex) {
             LOGGER.error("getClassInstance: Unable to get new instance for provider {} error {}",
                     className, ex.getMessage());
+            return null;
         }
+        provider.initialize(providerName, className, keyStore);
+        providerMap.put(classKey, provider);
         return provider;
     }
     

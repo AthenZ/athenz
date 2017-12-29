@@ -29,6 +29,7 @@ import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
 import com.amazonaws.services.securitytoken.model.GetCallerIdentityRequest;
 import com.amazonaws.services.securitytoken.model.GetCallerIdentityResult;
+import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
@@ -64,7 +65,7 @@ public class InstanceAWSProvider implements InstanceProvider {
     boolean supportRefresh = false;
     
     @Override
-    public void initialize(String provider, String providerEndpoint) {
+    public void initialize(String provider, String providerEndpoint, KeyStore keyStore) {
         
         String awsCertFileName = System.getProperty(AWS_PROP_PUBLIC_CERT);
         if (awsCertFileName != null && !awsCertFileName.isEmpty()) {

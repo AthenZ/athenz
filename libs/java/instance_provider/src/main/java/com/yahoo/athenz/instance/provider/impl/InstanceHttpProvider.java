@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.instance.provider.impl;
 
+import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.instance.provider.InstanceProviderClient;
@@ -24,7 +25,7 @@ public class InstanceHttpProvider implements InstanceProvider {
     InstanceProviderClient client;
     
     @Override
-    public void initialize(String provider, String providerEndpoint) {
+    public void initialize(String provider, String providerEndpoint, KeyStore keyStore) {
         ProviderHostnameVerifier hostnameVerifier = new ProviderHostnameVerifier(provider);
         client = new InstanceProviderClient(providerEndpoint, hostnameVerifier);
     }

@@ -115,7 +115,8 @@ public class HttpCertSigner implements CertSigner {
         }
     }
 
-    ContentResponse processX509CertRequest(final String csr, final String keyUsage, int retryCount) {
+    ContentResponse processX509CertRequest(final String csr, final String keyUsage,
+            final String expiryTime, int retryCount) {
         
         ContentResponse response = null;
         try {
@@ -125,6 +126,9 @@ public class HttpCertSigner implements CertSigner {
             
             X509CertSignObject csrCert = new X509CertSignObject()
                     .setPem(csr).setExtusage(keyUsage);
+            if (expiryTime != null && !expiryTime.isEmpty()) {
+                csrCert.setExpire(Integer.parseInt(expiryTime));
+            }
             request.content(new StringContentProvider(JSON.string(csrCert)), CONTENT_JSON);
             
             // our max timeout is going to be 30 seconds. By default
@@ -150,7 +154,7 @@ public class HttpCertSigner implements CertSigner {
     }
     
     @Override
-    public String generateX509Certificate(String csr, String keyUsage) {
+    public String generateX509Certificate(String csr, String keyUsage, String expiryTime) {
         
         // Key Usage value used in Go - https://golang.org/src/crypto/x509/x509.go?s=18153:18173#L558
         // we're only interested in ExtKeyUsageClientAuth - with value of 2
@@ -159,7 +163,7 @@ public class HttpCertSigner implements CertSigner {
 
         ContentResponse response = null;
         for (int i = 0; i < requestRetryCount; i++) {
-            if ((response = processX509CertRequest(csr, extKeyUsage, i + 1)) != null) {
+            if ((response = processX509CertRequest(csr, extKeyUsage, expiryTime, i + 1)) != null) {
                 break;
             }
         }

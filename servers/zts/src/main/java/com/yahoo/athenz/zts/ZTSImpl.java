@@ -266,7 +266,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // create our instance manager and provider
         
         instanceCertManager = new InstanceCertManager(privateKeyStore, certSigner);
-        instanceProviderManager = new InstanceProviderManager(dataStore);
+        instanceProviderManager = new InstanceProviderManager(dataStore, this);
         
         // make sure to set the keystore for any instance that requires it
         
@@ -949,7 +949,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
     String convertEmptyStringToNull(String value) {
         
-        if (value != null && value.length() == 0) {
+        if (value != null && value.isEmpty()) {
             return null;
         } else {
             return value;
@@ -1495,7 +1495,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domainName);
         }
         
-        String x509Cert = certSigner.generateX509Certificate(req.getCsr(), ZTSConsts.ZTS_CERT_USAGE_CLIENT);
+        String x509Cert = certSigner.generateX509Certificate(req.getCsr(), ZTSConsts.ZTS_CERT_USAGE_CLIENT, null);
         if (null == x509Cert || x509Cert.isEmpty()) {
             throw serverError("postRoleCertificateRequest: Unable to create certificate from the cert signer",
                     caller, domainName);
@@ -1754,17 +1754,29 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // determine what type of certificate the provider is authorizing
         // this instance to get - possible values are: server, client or
-        // null (indicating both client and server)
+        // null (indicating both client and server). Additionally, we're
+        // going to see if the provider wants to impose an expiry time
+        // though the certificate signer might decide to ignore that
+        // request and override it with its own value.
         
         String certUsage = null;
+        String certExpirtyTime = null;
+        boolean certRefreshAllowed = true;
+        
         Map<String, String> instanceAttrs = instance.getAttributes();
         if (instanceAttrs != null) {
             certUsage = instanceAttrs.remove(ZTSConsts.ZTS_CERT_USAGE);
+            certExpirtyTime = instanceAttrs.remove(ZTSConsts.ZTS_CERT_EXPIRY_TIME);
+            final String certRefreshState = instanceAttrs.remove(ZTSConsts.ZTS_CERT_REFRESH);
+            if (certRefreshState != null && !certRefreshState.isEmpty()) {
+                certRefreshAllowed = Boolean.parseBoolean(certRefreshState);
+            }
         }
         
         // generate certificate for the instance
 
-        InstanceIdentity identity = instanceCertManager.generateIdentity(info.getCsr(), cn, certUsage);
+        InstanceIdentity identity = instanceCertManager.generateIdentity(info.getCsr(), cn,
+                certUsage, certExpirtyTime);
         if (identity == null) {
             throw serverError("unable to generate identity", caller, domain);
         }
@@ -1782,28 +1794,33 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         identity.setProvider(provider);
         identity.setInstanceId(certReqInstanceId);
 
-        // need to update our cert record with new certificate details
-        
-        X509CertRecord x509CertRecord = new X509CertRecord();
-        x509CertRecord.setService(cn);
-        x509CertRecord.setProvider(provider);
-        x509CertRecord.setInstanceId(certReqInstanceId);
-        
         X509Certificate newCert = Crypto.loadX509Certificate(identity.getX509Certificate());
-        x509CertRecord.setCurrentSerial(newCert.getSerialNumber().toString());
-        x509CertRecord.setCurrentIP(ServletRequestUtil.getRemoteAddress(ctx.request()));
-        x509CertRecord.setCurrentTime(new Date());
-
-        x509CertRecord.setPrevSerial(x509CertRecord.getCurrentSerial());
-        x509CertRecord.setPrevIP(x509CertRecord.getCurrentIP());
-        x509CertRecord.setPrevTime(x509CertRecord.getCurrentTime());
-        x509CertRecord.setClientCert(ZTSConsts.ZTS_CERT_USAGE_CLIENT.equalsIgnoreCase(certUsage));
+        final String certSerial = newCert.getSerialNumber().toString();
         
-        // we must be able to update our database otherwise we will not be
-        // able to validate the certificate during refresh operations
+        // need to update our cert record with new certificate details
+        // unless we're told by the provider that refresh is not allowed
         
-        if (!instanceCertManager.insertX509CertRecord(x509CertRecord)) {
-            throw serverError("unable to update cert db", caller, domain);
+        if (certRefreshAllowed) {
+            X509CertRecord x509CertRecord = new X509CertRecord();
+            x509CertRecord.setService(cn);
+            x509CertRecord.setProvider(provider);
+            x509CertRecord.setInstanceId(certReqInstanceId);
+            
+            x509CertRecord.setCurrentSerial(certSerial);
+            x509CertRecord.setCurrentIP(ServletRequestUtil.getRemoteAddress(ctx.request()));
+            x509CertRecord.setCurrentTime(new Date());
+    
+            x509CertRecord.setPrevSerial(x509CertRecord.getCurrentSerial());
+            x509CertRecord.setPrevIP(x509CertRecord.getCurrentIP());
+            x509CertRecord.setPrevTime(x509CertRecord.getCurrentTime());
+            x509CertRecord.setClientCert(ZTSConsts.ZTS_CERT_USAGE_CLIENT.equalsIgnoreCase(certUsage));
+        
+            // we must be able to update our database otherwise we will not be
+            // able to validate the certificate during refresh operations
+            
+            if (!instanceCertManager.insertX509CertRecord(x509CertRecord)) {
+                throw serverError("unable to update cert db", caller, domain);
+            }
         }
         
         // if we're asked to return an NToken in addition to ZTS Certificate
@@ -1828,7 +1845,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             .append(" Domain: ").append(domain)
             .append(" Service: ").append(service)
             .append(" InstanceId: ").append(certReqInstanceId)
-            .append(" Serial: ").append(x509CertRecord.getCurrentSerial());
+            .append(" Serial: ").append(certSerial);
         msgBldr.whatDetails(auditLogDetails.toString());
         auditLogger.log(msgBldr);
         
@@ -1898,7 +1915,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(caller, domain);
         
         // we are going to get two use cases here. client asking for:
-        // * x509 cert (optionally with ssh certificate
+        // * x509 cert (optionally with ssh certificate)
         // * only ssh certificate
         // both CSRs are marked as optional so we need to make sure
         // at least one of the CSRs is provided
@@ -2021,6 +2038,21 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             instanceProvider.close();
         }
         
+        // determine what type of certificate the provider is authorizing
+        // this instance to refresh - possible values are: server, client or
+        // null (indicating both client and server). Additionally, we're
+        // going to see if the provider wants to impose an expiry time
+        // though the certificate signer might decide to ignore that
+        // request and override it with its own value.
+        
+        String certUsage = null;
+        String certExpirtyTime = null;
+        Map<String, String> instanceAttrs = instance.getAttributes();
+        if (instanceAttrs != null) {
+            certUsage = instanceAttrs.remove(ZTSConsts.ZTS_CERT_USAGE);
+            certExpirtyTime = instanceAttrs.remove(ZTSConsts.ZTS_CERT_EXPIRY_TIME);
+        }
+        
         // validate that the tenant domain/service matches to the values
         // in the cert record when it was initially issued
         
@@ -2061,8 +2093,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // generate identity with the certificate
         
-        InstanceIdentity identity = instanceCertManager.generateIdentity(info.getCsr(),
-                principalName, x509CertRecord.getClientCert() ? ZTSConsts.ZTS_CERT_USAGE_CLIENT : null);
+        InstanceIdentity identity = instanceCertManager.generateIdentity(info.getCsr(), principalName,
+                x509CertRecord.getClientCert() ? ZTSConsts.ZTS_CERT_USAGE_CLIENT : certUsage, certExpirtyTime);
         if (identity == null) {
             throw serverError("unable to generate identity", caller, domain);
         }
