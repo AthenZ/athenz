@@ -2343,6 +2343,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (refreshOperation) {
             ServiceX509RefreshRequestStatus status =  validateServiceX509RefreshRequest(principal, x509CertReq,
                     ServletRequestUtil.getRemoteAddress(ctx.request()));
+            if (status == ServiceX509RefreshRequestStatus.IP_NOT_ALLOWED) {
+                throw forbiddenError("postInstanceRefreshRequest: " + status,
+                        caller, domain); 
+            }
             if (status != ServiceX509RefreshRequestStatus.SUCCESS) {
                 throw requestError("postInstanceRefreshRequest: " + status,
                         caller, domain); 
