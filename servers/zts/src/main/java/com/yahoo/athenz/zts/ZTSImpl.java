@@ -181,6 +181,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         abstract void convertToLowerCase(Object obj);
     }
     
+    enum ServiceX509RefreshRequestStatus {
+        SUCCESS, DNS_NAME_MISMATCH, PUBLIC_KEY_MISMATCH, IP_NOT_ALLOWED
+     }
+    
     public ZTSImpl() {
         this(null, null);
     }
@@ -2369,10 +2373,15 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // to do further validation based on the certificate we authenticated
         
         if (refreshOperation) {
-            if (!validateServiceX509RefreshRequest(principal, x509CertReq,
-                    ServletRequestUtil.getRemoteAddress(ctx.request()))) {
-                throw requestError("postInstanceRefreshRequest: dns name or public key mismatch",
-                        caller, domain);
+            ServiceX509RefreshRequestStatus status =  validateServiceX509RefreshRequest(principal, x509CertReq,
+                    ServletRequestUtil.getRemoteAddress(ctx.request()));
+            if (status == ServiceX509RefreshRequestStatus.IP_NOT_ALLOWED) {
+                throw forbiddenError("postInstanceRefreshRequest: " + status,
+                        caller, domain); 
+            }
+            if (status != ServiceX509RefreshRequestStatus.SUCCESS) {
+                throw requestError("postInstanceRefreshRequest: " + status,
+                        caller, domain); 
             }
         }
         
@@ -2404,7 +2413,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return identity;
     }
     
-    boolean validateServiceX509RefreshRequest(final Principal principal, final X509CertRequest certReq,
+    ServiceX509RefreshRequestStatus validateServiceX509RefreshRequest(final Principal principal, final X509CertRequest certReq,
             final String ipAddress) {
         
         // retrieve the certificate that was used for authentication
@@ -2413,22 +2422,22 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         X509Certificate cert = principal.getX509Certificate();
         if (!certReq.compareDnsNames(cert)) {
-            return false;
+            return ServiceX509RefreshRequestStatus.DNS_NAME_MISMATCH;
         }
         
         // validate that the certificate and csr both are based
         // on the same public key
         
         if (!certReq.comparePublicKeys(cert)) {
-            return false;
+            return ServiceX509RefreshRequestStatus.PUBLIC_KEY_MISMATCH;
         }
         
         // finally verify that the ip address is in the allowed range
         
-        return verifyIPAddressAccess(ipAddress);
+        return verifyIPAddressAccess(ipAddress) ? ServiceX509RefreshRequestStatus.SUCCESS : ServiceX509RefreshRequestStatus.IP_NOT_ALLOWED;
     }
     
-    boolean verifyIPAddressAccess(final String ipAddress) {
+    final boolean verifyIPAddressAccess(final String ipAddress) {
         long ipAddr = IPBlock.convertToLong(ipAddress);
         for (IPBlock ipBlock : certRefreshIPBlocks) {
             if (ipBlock.ipCheck(ipAddr)) {
