@@ -48,11 +48,13 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
     static final String ATHENZ_DB_USE_SSL            = "useSSL";
     static final String ATHENZ_DB_VERIFY_SERVER_CERT = "verifyServerCertificate";
     
-    private static Properties mysqlConnectionProperties = new Properties();
+    private static Properties mysqlMasterConnectionProperties = new Properties();
+    private static Properties mysqlReplicaConnectionProperties = new Properties();
     private static ScheduledExecutorService scheduledThreadPool;
     private static String rdsUser = null;
     private static String rdsIamRole = null;
     private static String rdsMaster = null;
+    private static String rdsReplica = null;
     private int rdsPort = 3306;
     
     @Override
@@ -61,25 +63,52 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
         rdsUser = System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_USER);
         rdsIamRole = System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_IAM_ROLE);
         rdsMaster = System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_MASTER_INSTANCE);
+        rdsReplica = System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_REPLICA_INSTANCE);
         rdsPort = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_MASTER_PORT, "3306"));
         
         final String rdsEngine = System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_ENGINE, "mysql");
         final String rdsDatabase = System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_DATABASE, "zms_store");
-        final String jdbcStore = String.format("jdbc:%s://%s:%d/%s", rdsEngine, rdsMaster, rdsPort, rdsDatabase);
-        String rdsToken = getAuthToken(rdsMaster, rdsPort, rdsUser, rdsIamRole);
+        final String jdbcMasterStore = String.format("jdbc:%s://%s:%d/%s", rdsEngine,
+                rdsMaster, rdsPort, rdsDatabase);
+        final String rdsMasterToken = getAuthToken(rdsMaster, rdsPort, rdsUser, rdsIamRole);
         
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Connecting to {} with auth token {}", jdbcStore, rdsToken);
+            LOG.debug("Connecting to master {} with auth token {}", jdbcMasterStore, rdsMasterToken);
         }
         
-        mysqlConnectionProperties.setProperty(ATHENZ_DB_VERIFY_SERVER_CERT,
+        mysqlMasterConnectionProperties.setProperty(ATHENZ_DB_VERIFY_SERVER_CERT,
                 System.getProperty(ATHENZ_PROP_DB_VERIFY_SERVER_CERT, "true"));
-        mysqlConnectionProperties.setProperty(ATHENZ_DB_USE_SSL,
+        mysqlMasterConnectionProperties.setProperty(ATHENZ_DB_USE_SSL,
                 System.getProperty(ATHENZ_PROP_DB_USE_SSL, "true"));
-        mysqlConnectionProperties.setProperty(ATHENZ_DB_USER, rdsUser);
-        mysqlConnectionProperties.setProperty(ATHENZ_DB_PASSWORD, rdsToken);
+        mysqlMasterConnectionProperties.setProperty(ATHENZ_DB_USER, rdsUser);
+        mysqlMasterConnectionProperties.setProperty(ATHENZ_DB_PASSWORD, rdsMasterToken);
         
-        PoolableDataSource dataSource = DataSourceFactory.create(jdbcStore, mysqlConnectionProperties);
+        PoolableDataSource dataMasterSource = DataSourceFactory.create(jdbcMasterStore, mysqlMasterConnectionProperties);
+        
+        // now check to see if we also have a read-only replica jdbc store configured
+
+        PoolableDataSource dataReplicaSource = null;
+        if (rdsReplica != null) {
+            
+            final String jdbcReplicaStore = String.format("jdbc:%s://%s:%d/%s", rdsEngine,
+                    rdsReplica, rdsPort, rdsDatabase);
+            final String rdsReplicaToken = getAuthToken(rdsReplica, rdsPort, rdsUser, rdsIamRole);
+            
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Connecting to replica {} with auth token {}", jdbcReplicaStore, rdsReplicaToken);
+            }
+            
+            mysqlReplicaConnectionProperties.setProperty(ATHENZ_DB_VERIFY_SERVER_CERT,
+                    System.getProperty(ATHENZ_PROP_DB_VERIFY_SERVER_CERT, "true"));
+            mysqlReplicaConnectionProperties.setProperty(ATHENZ_DB_USE_SSL,
+                    System.getProperty(ATHENZ_PROP_DB_USE_SSL, "true"));
+            mysqlReplicaConnectionProperties.setProperty(ATHENZ_DB_USER, rdsUser);
+            mysqlReplicaConnectionProperties.setProperty(ATHENZ_DB_PASSWORD, rdsReplicaToken);
+            
+            dataReplicaSource = DataSourceFactory.create(jdbcReplicaStore, mysqlReplicaConnectionProperties);
+        }
+        
+        // start our credentials refresh task
         
         long credsRefreshTime = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_CREDS_REFRESH_TIME, "300"));
 
@@ -87,7 +116,7 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
         scheduledThreadPool.scheduleAtFixedRate(new CredentialsUpdater(), credsRefreshTime,
                 credsRefreshTime, TimeUnit.SECONDS);
         
-        return new JDBCObjectStore(dataSource, null);
+        return new JDBCObjectStore(dataMasterSource, dataReplicaSource);
     }
     
     String getAuthToken(String hostname, int port, String rdsUser, String rdsIamRole) {
@@ -113,7 +142,25 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
                .build());
     }
     
-   class CredentialsUpdater implements Runnable {
+    void updateCredentials(String hostname, Properties mysqlProperties) {
+        
+        // if we have no hostname specified then we have nothing to do
+        
+        if (hostname == null) {
+            return;
+        }
+        
+        // obtain iam role credentials and update the properties object
+        
+        try {
+            final String rdsToken = getAuthToken(hostname, rdsPort, rdsUser, rdsIamRole);
+            mysqlProperties.setProperty(ATHENZ_DB_PASSWORD, rdsToken);
+        } catch (Throwable t) {
+            LOG.error("CredentialsUpdater: unable to update auth token: " + t.getMessage());
+        }
+    }
+    
+    class CredentialsUpdater implements Runnable {
         
         @Override
         public void run() {
@@ -122,13 +169,8 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
                 LOG.debug("CredentialsUpdater: Starting credential updater thread...");
             }
             
-            try {
-                final String rdsToken = getAuthToken(rdsMaster, rdsPort, rdsUser, rdsIamRole);
-                mysqlConnectionProperties.setProperty(ATHENZ_DB_PASSWORD, rdsToken);
-                
-            } catch (Throwable t) {
-                LOG.error("CredentialsUpdater: unable to update auth token: " + t.getMessage());
-            }
+            updateCredentials(rdsMaster, mysqlMasterConnectionProperties);
+            updateCredentials(rdsReplica, mysqlReplicaConnectionProperties);
         }
     }
 }
