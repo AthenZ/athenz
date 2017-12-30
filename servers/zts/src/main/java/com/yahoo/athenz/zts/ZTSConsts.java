@@ -104,6 +104,9 @@ public final class ZTSConsts {
     public static final String ZTS_SSH_TYPE = "certtype";
     
     public static final String ZTS_CERT_USAGE        = "certUsage";
+    public static final String ZTS_CERT_EXPIRY_TIME  = "certExpiryTime";
+    public static final String ZTS_CERT_REFRESH      = "certRefresh";
+    
     public static final String ZTS_CERT_USAGE_CLIENT = "client";
     public static final String ZTS_CERT_USAGE_SERVER = "server";
     

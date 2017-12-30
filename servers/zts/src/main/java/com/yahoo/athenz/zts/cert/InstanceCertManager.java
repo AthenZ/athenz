@@ -196,11 +196,12 @@ public class InstanceCertManager {
         return result;
     }
     
-    public InstanceIdentity generateIdentity(String csr, String cn, String keyUsage) {
+    public InstanceIdentity generateIdentity(String csr, String cn, String keyUsage,
+            String expiryTime) {
         
         // generate a certificate for this certificate request
 
-        String pemCert = certSigner.generateX509Certificate(csr, keyUsage);
+        String pemCert = certSigner.generateX509Certificate(csr, keyUsage, expiryTime);
         if (pemCert == null || pemCert.isEmpty()) {
             LOGGER.error("generateIdentity: CertSigner was unable to generate X509 certificate");
             return null;

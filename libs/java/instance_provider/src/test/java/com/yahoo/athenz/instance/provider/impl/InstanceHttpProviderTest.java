@@ -29,7 +29,7 @@ public class InstanceHttpProviderTest {
     public void testInstanceHttpProviderConfirmInstance() {
         
         InstanceHttpProvider provider = new InstanceHttpProvider();
-        provider.initialize("provider", "https://localhost:4443/instance");
+        provider.initialize("provider", "https://localhost:4443/instance", null);
         
         InstanceProviderClient client = Mockito.mock(InstanceProviderClient.class);
         provider.client = client;
@@ -52,7 +52,7 @@ public class InstanceHttpProviderTest {
     public void testInstanceHttpProviderRefreshInstance() {
         
         InstanceHttpProvider provider = new InstanceHttpProvider();
-        provider.initialize("provider", "https://localhost:4443/instance");
+        provider.initialize("provider", "https://localhost:4443/instance", null);
         
         InstanceProviderClient client = Mockito.mock(InstanceProviderClient.class);
         provider.client = client;

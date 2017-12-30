@@ -294,7 +294,7 @@ public class ZTSUtils {
         
         // generate a certificate for this certificate request
 
-        String pemCert = certSigner.generateX509Certificate(csr, certUsage);
+        String pemCert = certSigner.generateX509Certificate(csr, certUsage, null);
         if (pemCert == null || pemCert.isEmpty()) {
             LOGGER.error("generateIdentity: CertSigner was unable to generate X509 certificate");
             return null;
