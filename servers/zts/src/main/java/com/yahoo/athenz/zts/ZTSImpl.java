@@ -1580,6 +1580,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         return true;
     }
+    
     public AWSTemporaryCredentials getAWSTemporaryCredentials(ResourceContext ctx, String domainName,
             String roleName) {
 
@@ -1594,10 +1595,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case since ZMS Server
-        // saves all of its object names in lower case
+        // saves all of its object names in lower case. However, since
+        // for roleName we need to pass that to AWS, we're not going to
+        // convert here instead only for the authz check
         
         domainName = domainName.toLowerCase();
-        roleName = roleName.toLowerCase();
         
         Object timerMetric = metric.startTiming(callerTiming, domainName);
         metric.increment(HTTP_REQUEST, domainName);
@@ -1615,7 +1617,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // get our principal's name
         
         String principal = ((RsrcCtxWrapper) ctx).principal().getFullName();
-        String roleResource = domainName + ":" + roleName;
+        String roleResource = domainName + ":" + roleName.toLowerCase();
         
         // we need to first verify that our principal is indeed configured
         // with aws assume role assertion for the specified role and domain
