@@ -94,4 +94,39 @@ public class InstanceProviderHandlerImpl implements InstanceProviderHandler {
         
         return confirmation;
     }
+    
+    @Override
+    public InstanceConfirmation postRefreshConfirmation(ResourceContext context,
+            InstanceConfirmation confirmation) {
+        
+        System.out.println("Processing postRefreshConfirmation...");
+        System.out.println(JSON.string(confirmation));
+        
+        // our attestation data is jws so we're going to validate
+        // the signature first to make sure that it was signed by us
+        
+        Jws<Claims> claims = null;
+        try {
+            claims = Jwts.parser().setSigningKey(providerKey)
+                .parseClaimsJws(confirmation.getAttestationData());
+        } catch (SignatureException e) {
+            throw new ResourceException(ResourceException.UNAUTHORIZED);
+        }
+        
+        // we're going to verify that issuer specified in jwt
+        // is indeed ourselves
+        
+        final String provider = claims.getBody().getIssuer();
+        if (!instanceProvider.equals(provider)) {
+            throw new ResourceException(ResourceException.BAD_REQUEST,
+                    "Unknown provider: " + provider);
+        }
+        
+        // we can do other validation possibly - maybe checking
+        // with our manager service that the given instance
+        // was indeed booted for the given domain and service
+        // and it is still running
+        
+        return confirmation;
+    }
 }
