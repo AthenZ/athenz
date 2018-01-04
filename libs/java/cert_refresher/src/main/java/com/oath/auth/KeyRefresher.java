@@ -102,12 +102,18 @@ public class KeyRefresher {
                 try {
                     if (haveFilesBeenChanged(trustStore.getFilePath(), lastTrustManagerChecksum)) {
                         trustManagerProxy.setTrustManager(trustStore.getTrustManagers());
+                        if (LOGGER.isDebugEnabled()) {
+                            LOGGER.debug("KeyRefresher detected changes. Reloaded Trust Managers");
+                        }
                     }
                     //we want to check both files (public + private) and update both checksums
                     boolean keyFilesChanged = haveFilesBeenChanged(athensPrivateKey, lastPrivateKeyManagerChecksum);
                     keyFilesChanged = haveFilesBeenChanged(athensPublicKey, lastPublicKeyManagerChecksum) || keyFilesChanged;
                     if (keyFilesChanged) {
                         keyManagerProxy.setKeyManager(Utils.getKeyManagers(athensPublicKey, athensPrivateKey));
+                        if (LOGGER.isDebugEnabled()) {
+                            LOGGER.debug("KeyRefresher detected changes. Reloaded Key managers");
+                        }
                     }
                 } catch (Exception ignored) {
                     // if we could not reload the SSL context (but we tried) we will
@@ -115,6 +121,9 @@ public class KeyRefresher {
                     LOGGER.error("Error loading ssl context", ignored);
                 }
                 try {
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("KeyRefresher sleeping for {} ms", retryFrequency);
+                    }
                     Thread.sleep(retryFrequency);
                 } catch (InterruptedException ignored) {
                 }
@@ -123,6 +132,7 @@ public class KeyRefresher {
         scanForFileChangesThread.setDaemon(true);
         scanForFileChangesThread.setName("scanForFileChanges" + " started at:" + System.currentTimeMillis());
         scanForFileChangesThread.start();
+        LOGGER.info("Started KeyRefresher thread.");
     }
 
 
@@ -151,6 +161,7 @@ public class KeyRefresher {
             }
         } catch (IOException ignored) {
             //this is best effort, if we couldn't read the file, assume its the same
+            LOGGER.warn("Error reading file " + filePath, ignored);
             return false;
         }
         byte[] digest = md.digest();
