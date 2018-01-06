@@ -19,15 +19,21 @@ import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.instance.provider.InstanceProviderClient;
+import com.yahoo.athenz.instance.provider.ProviderHostnameVerifier;
 
 public class InstanceHttpProvider implements InstanceProvider {
 
     InstanceProviderClient client;
-    
+    public static final String PROP_READ_TIMEOUT     = "athenz.instance.provider.client.read_timeout";
+    public static final String PROP_CONNECT_TIMEOUT  = "athenz.instance.provider.client.connect_timeout";
+
     @Override
     public void initialize(String provider, String providerEndpoint, KeyStore keyStore) {
         ProviderHostnameVerifier hostnameVerifier = new ProviderHostnameVerifier(provider);
-        client = new InstanceProviderClient(providerEndpoint, hostnameVerifier);
+        int readTimeout = Integer.parseInt(System.getProperty(PROP_READ_TIMEOUT, "30000"));
+        int connectTimeout = Integer.parseInt(System.getProperty(PROP_CONNECT_TIMEOUT, "30000"));
+        client = new InstanceProviderClient(providerEndpoint, hostnameVerifier,
+                connectTimeout, readTimeout);
     }
 
     @Override

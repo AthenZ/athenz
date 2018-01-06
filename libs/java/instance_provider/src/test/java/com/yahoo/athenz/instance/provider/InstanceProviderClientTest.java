@@ -17,8 +17,6 @@ package com.yahoo.athenz.instance.provider;
 
 import static org.testng.Assert.*;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
@@ -27,20 +25,14 @@ import javax.ws.rs.core.Response;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
-import com.yahoo.athenz.instance.provider.impl.ProviderHostnameVerifier;
-
 public class InstanceProviderClientTest {
 
     @Test
     public void testInstanceProviderClientInstanceConfirmation() {
         String url = "http://localhost:10099/instance";
-        InstanceProviderClient provClient = new InstanceProviderClient(url);
-        provClient.addCredentials("Athenz-Principal-Token", "v=S1;d=athenz;n=service;s=signature");
-        provClient.setProperty("prop-name", "prop-value");
-        
-        assertEquals(provClient.credsHeader, "Athenz-Principal-Token");
-        assertEquals(provClient.credsToken, "v=S1;d=athenz;n=service;s=signature");
-        
+        ProviderHostnameVerifier hostnameVerifier = new ProviderHostnameVerifier("athenz.provider");
+        InstanceProviderClient provClient = new InstanceProviderClient(url, hostnameVerifier, 10000, 10000);
+
         WebTarget base = Mockito.mock(WebTarget.class);
         provClient.base = base;
         
@@ -72,13 +64,9 @@ public class InstanceProviderClientTest {
     @Test
     public void testInstanceProviderClientInstanceConfirmationCookieHeader() {
         String url = "http://localhost:10099/instance";
-        InstanceProviderClient provClient = new InstanceProviderClient(url);
-        provClient.addCredentials("Cookie.ntoken", "v=S1;d=athenz;n=service;s=signature");
-        provClient.setProperty("prop-name", "prop-value");
-        
-        assertEquals(provClient.credsHeader, "Cookie.ntoken");
-        assertEquals(provClient.credsToken, "v=S1;d=athenz;n=service;s=signature");
-        
+        ProviderHostnameVerifier hostnameVerifier = new ProviderHostnameVerifier("athenz.provider");
+        InstanceProviderClient provClient = new InstanceProviderClient(url, hostnameVerifier, 10000, 10000);
+
         WebTarget base = Mockito.mock(WebTarget.class);
         provClient.base = base;
         
@@ -110,13 +98,9 @@ public class InstanceProviderClientTest {
     @Test
     public void testInstanceProviderClientRefreshConfirmation() {
         String url = "http://localhost:10099/instance";
-        InstanceProviderClient provClient = new InstanceProviderClient(url);
-        provClient.addCredentials("Athenz-Principal-Token", "v=S1;d=athenz;n=service;s=signature");
-        provClient.setProperty("prop-name", "prop-value");
-        
-        assertEquals(provClient.credsHeader, "Athenz-Principal-Token");
-        assertEquals(provClient.credsToken, "v=S1;d=athenz;n=service;s=signature");
-        
+        ProviderHostnameVerifier hostnameVerifier = new ProviderHostnameVerifier("athenz.provider");
+        InstanceProviderClient provClient = new InstanceProviderClient(url, hostnameVerifier, 10000, 10000);
+
         WebTarget base = Mockito.mock(WebTarget.class);
         provClient.base = base;
         
@@ -148,12 +132,8 @@ public class InstanceProviderClientTest {
     @Test
     public void testInstanceProviderClientRefreshConfirmationCookieHeader() {
         String url = "http://localhost:10099/instance";
-        InstanceProviderClient provClient = new InstanceProviderClient(url);
-        provClient.addCredentials("Cookie.NToken", "v=S1;d=athenz;n=service;s=signature");
-        provClient.setProperty("prop-name", "prop-value");
-        
-        assertEquals(provClient.credsHeader, "Cookie.NToken");
-        assertEquals(provClient.credsToken, "v=S1;d=athenz;n=service;s=signature");
+        ProviderHostnameVerifier hostnameVerifier = new ProviderHostnameVerifier("athenz.provider");
+        InstanceProviderClient provClient = new InstanceProviderClient(url, hostnameVerifier, 10000, 10000);
         
         WebTarget base = Mockito.mock(WebTarget.class);
         provClient.base = base;
@@ -187,12 +167,7 @@ public class InstanceProviderClientTest {
     public void testInstanceProviderClientHostnameVerifier() {
         String url = "http://localhost:10099/instance";
         ProviderHostnameVerifier verifier = new ProviderHostnameVerifier("athenz.production");
-        InstanceProviderClient provClient = new InstanceProviderClient(url, verifier);
-        provClient.addCredentials("Athenz-Principal-Token", "v=S1;d=athenz;n=service;s=signature");
-        provClient.setProperty("prop-name", "prop-value");
-        
-        assertEquals(provClient.credsHeader, "Athenz-Principal-Token");
-        assertEquals(provClient.credsToken, "v=S1;d=athenz;n=service;s=signature");
+        InstanceProviderClient provClient = new InstanceProviderClient(url, verifier, 10000, 10000);
         
         WebTarget base = Mockito.mock(WebTarget.class);
         provClient.base = base;
@@ -225,8 +200,8 @@ public class InstanceProviderClientTest {
     @Test
     public void testInstanceProviderClientFailure() {
         String url = "http://localhost:10099/instance";
-        InstanceProviderClient provClient = new InstanceProviderClient(url);
-        provClient.setProperty("prop-name", "prop-value");
+        ProviderHostnameVerifier hostnameVerifier = new ProviderHostnameVerifier("athenz.provider");
+        InstanceProviderClient provClient = new InstanceProviderClient(url, hostnameVerifier, 10000, 10000);
         
         WebTarget base = Mockito.mock(WebTarget.class);
         provClient.base = base;
@@ -261,15 +236,5 @@ public class InstanceProviderClientTest {
         }
         
         provClient.close();
-    }
-    
-    @Test
-    public void testInstanceProviderClientConstructor() {
-        String url = "http://localhost:10099/instance";
-        ClientBuilder builder = ClientBuilder.newBuilder();
-        Client client = builder.build();
-        InstanceProviderClient provClient = new InstanceProviderClient(url, client);
-        assertNotNull(provClient);
-        assertEquals(provClient.client, client);
     }
 }
