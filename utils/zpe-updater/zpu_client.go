@@ -64,10 +64,7 @@ func PolicyUpdater(config *ZpuConfiguration) error {
 
 func GetPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, policyFileDir, domain string) error {
 	log.Printf("Getting policies for domain: %v", domain)
-	etag, err := GetEtagForExistingPolicy(config, ztsClient, domain, policyFileDir)
-	if err != nil {
-		return fmt.Errorf("Failed to get Etag for domain: %v, Error: %v", domain, err)
-	}
+	etag := GetEtagForExistingPolicy(config, ztsClient, domain, policyFileDir)
 	data, _, err := ztsClient.GetDomainSignedPolicyData(zts.DomainName(domain), etag)
 	if err != nil {
 		return fmt.Errorf("Failed to get domain signed policy data for domain: %v, Error:%v", domain, err)
@@ -93,7 +90,7 @@ func GetPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, policyFileDi
 	return nil
 }
 
-func GetEtagForExistingPolicy(config *ZpuConfiguration, ztsClient zts.ZTSClient, domain, policyFileDir string) (string, error) {
+func GetEtagForExistingPolicy(config *ZpuConfiguration, ztsClient zts.ZTSClient, domain, policyFileDir string) string {
 	var etag string
 	var domainSignedPolicyData *zts.DomainSignedPolicyData
 
@@ -104,32 +101,31 @@ func GetEtagForExistingPolicy(config *ZpuConfiguration, ztsClient zts.ZTSClient,
 	// else construct etag from modified field in JSON.
 	exists := util.Exists(policyFile)
 	if !exists {
-		return "", nil
+		return ""
 	}
 
 	readFile, err := os.OpenFile(policyFile, os.O_RDONLY, 0444)
 	defer readFile.Close()
 	if err != nil {
-		return "", err
+		return ""
 	}
 	err = json.NewDecoder(readFile).Decode(&domainSignedPolicyData)
 	if err != nil {
-		return "", err
+		return ""
 	}
 	err = ValidateSignedPolicies(config, ztsClient, domainSignedPolicyData)
 	if err != nil {
-		return "", err
+		return ""
 	}
 	expires := domainSignedPolicyData.SignedPolicyData.Expires
-	if expired(rdl.NewTimestamp(expires.Time.Add(time.Duration(int64(config.StartUpDelay)) * time.Second))) {
-		return "", nil
+	if expired(rdl.NewTimestamp(expires.Time.Add(time.Duration(int64(config.ExpiryCheck)) * time.Second))) {
+		return ""
 	}
 	modified := domainSignedPolicyData.SignedPolicyData.Modified
 	if !modified.IsZero() {
-
 		etag = "\"" + string(modified.String()) + "\""
 	}
-	return etag, nil
+	return etag
 }
 
 func ValidateSignedPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, data *zts.DomainSignedPolicyData) error {

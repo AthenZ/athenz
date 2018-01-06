@@ -18,7 +18,8 @@ import (
 // Default and maximal startup delay values.
 const (
 	DEFAULT_STARTUP_DELAY = 0
-	MAX_STARTUP_DELAY     = 86400
+	MAX_STARTUP_DELAY     = 1440
+	DEFAULT_EXPIRY_CHECK  = 2880
 )
 
 type ZpuConfiguration struct {
@@ -32,6 +33,7 @@ type ZpuConfiguration struct {
 	ZmsKeysmap       map[string]string
 	ZtsKeysmap       map[string]string
 	StartUpDelay     int
+	ExpiryCheck      int
 	LogSize          int
 	LogAge           int
 	LogBackups       int
@@ -65,7 +67,6 @@ type ZpuConf struct {
 func NewZpuConfiguration(root, athensConfFile, zpuConfFile, tmpPolicyFileDir string) (*ZpuConfiguration, error) {
 	zmsKeysmap := make(map[string]string)
 	ztsKeysmap := make(map[string]string)
-	startupDelay := 0
 	athenzConf, err := ReadAthenzConf(athensConfFile)
 	if err != nil {
 		return nil, err
@@ -96,26 +97,24 @@ func NewZpuConfiguration(root, athensConfFile, zpuConfFile, tmpPolicyFileDir str
 		}
 		zmsKeysmap[publicKey.Id] = string(key)
 	}
-	startupDelayString := os.Getenv("STARTUP_DELAY")
 
+	startupDelay := DEFAULT_STARTUP_DELAY
+	startupDelayString := os.Getenv("STARTUP_DELAY")
 	if startupDelayString != "" {
 		startupDelay, err = strconv.Atoi(startupDelayString)
 		if err != nil {
 			return nil, fmt.Errorf("Unable to set start up delay, Error: %v", err)
 		}
-	} else {
-		startupDelay = DEFAULT_STARTUP_DELAY
 	}
-
-	startupDelay *= 60 // convert from min to secs
-
 	if startupDelay < 0 {
 		startupDelay = DEFAULT_STARTUP_DELAY
 	}
-
 	if startupDelay > MAX_STARTUP_DELAY {
 		startupDelay = MAX_STARTUP_DELAY
 	}
+	startupDelay *= 60 // convert from min to secs
+	expiryCheck := DEFAULT_EXPIRY_CHECK * 60
+
 	policyDir := zpuConf.PolicyDir
 	defaultPolicyDir := fmt.Sprintf("%s/var/zpe", root)
 	if policyDir == "" {
@@ -141,6 +140,7 @@ func NewZpuConfiguration(root, athensConfFile, zpuConfFile, tmpPolicyFileDir str
 		ZtsKeysmap:       ztsKeysmap,
 		ZmsKeysmap:       zmsKeysmap,
 		StartUpDelay:     startupDelay,
+		ExpiryCheck:      expiryCheck,
 		LogAge:           zpuConf.LogMaxAge,
 		LogSize:          zpuConf.LogMaxSize,
 		LogBackups:       zpuConf.LogMaxBackups,
