@@ -147,53 +147,19 @@ public class AuthZpeClient {
 
         // load public keys
 
-        String pkeyFactoryClass = System.getProperty(ZpeConsts.ZPE_PROP_PUBLIC_KEY_CLASS, ZPE_PKEY_CLASS);
-
-        PublicKeyStoreFactory publicKeyStoreFactory = null;
-        try {
-            publicKeyStoreFactory = (PublicKeyStoreFactory) Class.forName(pkeyFactoryClass).newInstance();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
-            LOG.error("Invalid PublicKeyStore class: " + pkeyFactoryClass
-                    + ", error: " + ex.getMessage());
-            throw new RuntimeException(ex);
-        }
-        publicKeyStore = publicKeyStoreFactory.create();
+        setPublicKeyStoreFactoryClass(System.getProperty(ZpeConsts.ZPE_PROP_PUBLIC_KEY_CLASS, ZPE_PKEY_CLASS));
 
         // instantiate implementation classes
         
-        zpeClientImplName = System.getProperty(ZpeConsts.ZPE_PROP_CLIENT_IMPL, ZPE_UPDATER_CLASS);
-        try {
-            zpeClt = getZpeClient();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
-            LOG.error("Unable to instantiate zpe class: " + zpeClientImplName
-                    + ", error: " + ex.getMessage());
-            throw new RuntimeException(ex);
-        }
-        zpeClt.init(null);
+        setZPEClientClass(System.getProperty(ZpeConsts.ZPE_PROP_CLIENT_IMPL, ZPE_UPDATER_CLASS));
 
-        allowedOffset = Integer.parseInt(System.getProperty(ZpeConsts.ZPE_PROP_TOKEN_OFFSET, "300"));
-
-        // case of invalid value, we'll default back to 5 minutes
-
-        if (allowedOffset < 0) {
-            allowedOffset = 300;
-        }
+        // set the allowed offset
         
-        loadX509CAIssuers();
-    }
-    
-    private static void loadX509CAIssuers() {
-        String issuers = System.getProperty(ZpeConsts.ZPE_PROP_X509_CA_ISSUERS);
-        if (null != issuers && !issuers.isEmpty()) {
-            issuers = issuers.replaceAll("\\s+" , "");
-            String[] issuerArray = issuers.split("\\|");
-            for (String issuer: issuerArray) {
-                X509_ISSUERS.add(issuer);
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("x509 issuer: {}", issuer);
-                }
-            }
-        }
+        setTokenAllowedOffset(Integer.parseInt(System.getProperty(ZpeConsts.ZPE_PROP_TOKEN_OFFSET, "300")));
+
+        // load the x509 issuers
+        
+        setX509CAIssuers(System.getProperty(ZpeConsts.ZPE_PROP_X509_CA_ISSUERS));
     }
     
     public static void init() {
@@ -202,6 +168,81 @@ public class AuthZpeClient {
         }
     }
 
+    /**
+     * Set the role token allowed offset. this might be necessary
+     * if the client and server are not ntp synchronized and we
+     * don't want the server to reject valid role tokens
+     * @param offset value in seconds
+     */
+    public static void setTokenAllowedOffset(int offset) {
+        
+        allowedOffset = offset;
+        
+        // case of invalid value, we'll default back to 5 minutes
+
+        if (allowedOffset < 0) {
+            allowedOffset = 300;
+        }
+    }
+    
+    /**
+     * Set the list of Athenz CA issuers with their full DNs that
+     * ZPE should honor.
+     * @param issuers list of Athenz CA issuers separated by |
+     */
+    public static void setX509CAIssuers(final String issuers) {
+        if (issuers == null || issuers.isEmpty()) {
+            return;
+        }
+        
+        String[] issuerArray = issuers.replaceAll("\\s+" , "").split("\\|");
+        for (String issuer: issuerArray) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("x509 issuer: {}", issuer);
+            }
+            X509_ISSUERS.add(issuer);
+        }
+    }
+    
+    /**
+     * Set the com.yahoo.athenz.zpe.pkey.PublicKeyStoreFactory interface
+     * implementation class. This factory will be used to create the PublicKeyStore
+     * object that the ZPE library will use to retrieve the ZMS and ZTS
+     * public keys to validate the policy files and role tokens.
+     * @param className com.yahoo.athenz.zpe.pkey.PublicKeyStoreFactory interface
+     * implementation class name.
+     */
+    public static void setPublicKeyStoreFactoryClass(final String className) {
+        
+        PublicKeyStoreFactory publicKeyStoreFactory = null;
+        try {
+            publicKeyStoreFactory = (PublicKeyStoreFactory) Class.forName(className).newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
+            LOG.error("Invalid PublicKeyStore class: " + className
+                    + ", error: " + ex.getMessage());
+            throw new RuntimeException(ex);
+        }
+        publicKeyStore = publicKeyStoreFactory.create();
+    }
+    
+    /**
+     * Set the ZPE Client implementation class name in case the default
+     * ZPE client is not sufficient for some reason.
+     * @param className ZPE Client implementation class name
+     */
+    public static void setZPEClientClass(final String className) {
+        
+        zpeClientImplName = className;
+        try {
+            zpeClt = getZpeClient();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
+            LOG.error("Unable to instantiate zpe class: " + zpeClientImplName
+                    + ", error: " + ex.getMessage());
+            throw new RuntimeException(ex);
+        }
+        zpeClt.init(null);
+    }
+    
     public static PublicKey getZtsPublicKey(String keyId) {
         return publicKeyStore.getZtsKey(keyId);
     }
