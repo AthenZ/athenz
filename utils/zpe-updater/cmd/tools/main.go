@@ -70,6 +70,7 @@ func main() {
 	}
 
 	if zpuConfig.StartUpDelay > 0 {
+		rand.Seed(time.Now().Unix())
 		randmonSleepInterval := rand.Intn(zpuConfig.StartUpDelay)
 		log.Printf("Launching zpe_policy_updater in %v seconds", randmonSleepInterval)
 		time.Sleep(time.Duration(randmonSleepInterval) * time.Second)

@@ -118,7 +118,12 @@ func GetEtagForExistingPolicy(config *ZpuConfiguration, ztsClient zts.ZTSClient,
 		return ""
 	}
 	expires := domainSignedPolicyData.SignedPolicyData.Expires
-	if expired(rdl.NewTimestamp(expires.Time.Add(time.Duration(int64(config.ExpiryCheck)) * time.Second))) {
+	// We are going to see if we should consider the policy expired
+	// and retrieve the latest policy. We're going to take the current
+	// expiry timestamp from the policy file, subtract the expected
+	// expiry check time (default 2 days) and then see if the date we
+	// get should be considered as expired.
+	if expired(expires, config.ExpiryCheck) {
 		return ""
 	}
 	modified := domainSignedPolicyData.SignedPolicyData.Modified
@@ -130,7 +135,7 @@ func GetEtagForExistingPolicy(config *ZpuConfiguration, ztsClient zts.ZTSClient,
 
 func ValidateSignedPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, data *zts.DomainSignedPolicyData) error {
 	expires := data.SignedPolicyData.Expires
-	if expired(expires) {
+	if expired(expires, 0) {
 		return fmt.Errorf("The policy data is expired on %v", expires)
 	}
 	signedPolicyData := data.SignedPolicyData
@@ -192,8 +197,9 @@ func verify(input, signature, publicKey string) error {
 	return err
 }
 
-func expired(expires rdl.Timestamp) bool {
-	return rdl.TimestampNow().Millis() > expires.Millis()
+func expired(expires rdl.Timestamp, offset int) bool {
+	expiryCheck := rdl.NewTimestamp(expires.Time.Add(-1 * time.Duration(int64(offset)) * time.Second))
+	return rdl.TimestampNow().Millis() > expiryCheck.Millis()
 }
 
 // If domain policy file is not found, create the policy file and write policies in it.

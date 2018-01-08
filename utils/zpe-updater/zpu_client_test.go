@@ -132,12 +132,17 @@ func TestPolicyUpdaterEmptyzts(t *testing.T) {
 func TestExpired(t *testing.T) {
 	a := assert.New(t)
 	current := time.Now()
-	future := rdl.NewTimestamp(current.AddDate(0, 0, 4))
-	past := rdl.NewTimestamp(current.AddDate(0, 0, -4))
-	expireFlag := expired(past)
+	future := rdl.NewTimestamp(current.AddDate(0, 0, 2))
+	past := rdl.NewTimestamp(current.AddDate(0, 0, -2))
+	expireFlag := expired(past, 0)
 	a.Equal(expireFlag, true, "The date is in past")
-	expireFlag = expired(future)
+	expireFlag = expired(future, 0)
 	a.Equal(expireFlag, false, "The date is in future")
+	// We're going to pass offset longer than the 2 days
+	// in the future thus making the future date to be
+	// considered expired
+	expireFlag = expired(future, 2*86400+10)
+	a.Equal(expireFlag, true, "With offset the date is in past")
 }
 
 func TestVerifierPositiveTest(t *testing.T) {
