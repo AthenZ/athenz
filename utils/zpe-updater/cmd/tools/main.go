@@ -79,7 +79,6 @@ func main() {
 	err = zpu.PolicyUpdater(zpuConfig)
 	if err != nil {
 		log.Fatalf("Policy updator failed, %v", err)
-
 	}
-	log.Println("Policy updator finished successfully ")
+	log.Println("Policy updator finished successfully")
 }

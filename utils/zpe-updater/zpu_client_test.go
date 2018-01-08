@@ -76,8 +76,7 @@ func TestGetEtagForExistingPolicy(t *testing.T) {
 	ztsClient := zts.NewClient((*testConfig).Zts, nil)
 
 	//Policy File does not exist
-	etag, err := GetEtagForExistingPolicy(testConfig, ztsClient, DOMAIN, POLICIES_DIR)
-	a.Nil(err, "Empty Etag should be returned")
+	etag := GetEtagForExistingPolicy(testConfig, ztsClient, DOMAIN, POLICIES_DIR)
 	a.Empty(etag, "Empty Etag should be returned")
 
 	//Correct Policy File Exist
@@ -87,19 +86,15 @@ func TestGetEtagForExistingPolicy(t *testing.T) {
 	a.Nil(err)
 	err = ioutil.WriteFile(POLICIES_DIR+"/test.pol", policyJSON, 0755)
 	a.Nil(err)
-	etag, err = GetEtagForExistingPolicy(testConfig, ztsClient, "test", POLICIES_DIR)
+	etag = GetEtagForExistingPolicy(testConfig, ztsClient, "test", POLICIES_DIR)
 	errv := ValidateSignedPolicies(testConfig, ztsClient, policyData)
 	if errv != nil {
-		a.NotNil(err)
 		a.Empty(etag)
 	} else {
-		a.Nil(err)
 		a.NotEmpty(etag)
 	}
-
 	err = os.Remove(POLICIES_DIR + "/test.pol")
 	a.Nil(err)
-
 }
 
 func TestPolicyUpdaterEmptyDomain(t *testing.T) {
