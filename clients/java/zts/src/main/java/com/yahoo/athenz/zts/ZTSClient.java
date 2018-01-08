@@ -76,9 +76,11 @@ public class ZTSClient implements Closeable {
     private String ztsUrl = null;
     private String domain = null;
     private String service = null;
-    protected ZTSRDLGeneratedClient ztsClient;
-    protected ServiceIdentityProvider siaProvider = null;
     private SSLContext sslContext = null;
+    
+    ZTSRDLGeneratedClient ztsClient = null;
+    ServiceIdentityProvider siaProvider = null;
+    Principal principal = null;
 
     // configurable fields
     //
@@ -86,13 +88,18 @@ public class ZTSClient implements Closeable {
     static private int tokenMinExpiryTime = 900;
     static private long prefetchInterval = 60; // seconds
     static private boolean prefetchAutoEnable = false;
-    
-    @SuppressWarnings("unused")
-    static private boolean initialized = initConfigValues();
+    static private String x509CsrDn = null;
+    static private String x509CsrDomain = null;
+    static private int reqReadTimeout = 30000;
+    static private int reqConnectTimeout = 30000;
+    static private String x509CertDNSName = null;
+    static private String confZtsUrl = null;
     
     private boolean enablePrefetch = true;
     private boolean ztsClientOverride = false;
-    Principal principal = null;
+    
+    @SuppressWarnings("unused")
+    static private boolean initialized = initConfigValues();
     
     // system properties
 
@@ -130,8 +137,6 @@ public class ZTSClient implements Closeable {
 
     public static final String ROLE_TOKEN_HEADER = System.getProperty(RoleAuthority.ATHENZ_PROP_ROLE_HEADER,
             RoleAuthority.HTTP_HEADER);
-    private static final String X509_CSR_DN = System.getProperty(ZTS_CLIENT_PROP_X509CSR_DN);
-    private static final String X509_CSR_DOMAIN = System.getProperty(ZTS_CLIENT_PROP_X509CSR_DOMAIN);
     
     final static ConcurrentHashMap<String, RoleToken> ROLE_TOKEN_CACHE = new ConcurrentHashMap<>();
     final static ConcurrentHashMap<String, AWSTemporaryCredentials> AWS_CREDS_CACHE = new ConcurrentHashMap<>();
@@ -144,33 +149,159 @@ public class ZTSClient implements Closeable {
     
     // allows outside implementations to get role tokens for special environments - ex. hadoop
     
-    private static final ServiceLoader<ZTSClientService> ZTS_TOKEN_PROVIDERS = ServiceLoader.load(ZTSClientService.class);
-    private static final AtomicReference<Set<String>> SVC_LOADER_CACHE_KEYS = new AtomicReference<>();
+    private static ServiceLoader<ZTSClientService> ztsTokenProviders;
+    private static AtomicReference<Set<String>> svcLoaderCacheKeys;
     private static PrivateKeyStore PRIVATE_KEY_STORE = loadServicePrivateKey();
 
-    static {
-        loadSvcProviderTokens();
-    }
-    
     static boolean initConfigValues() {
 
+        // load our service providers tokens
+        
+        loadSvcProviderTokens();
+        
+        // set the token min expiry time
+        
+        setTokenMinExpiryTime(Integer.parseInt(System.getProperty(ZTS_CLIENT_PROP_TOKEN_MIN_EXPIRY_TIME, "900")));
+
+        // set the prefetch interval
+        
+        setPrefetchInterval(Integer.parseInt(System.getProperty(ZTS_CLIENT_PROP_PREFETCH_SLEEP_INTERVAL, "60")));
+
+        // set the prefetch support
+        
+        setPrefetchAutoEnable(Boolean.parseBoolean(System.getProperty(ZTS_CLIENT_PROP_PREFETCH_AUTO_ENABLE, "false")));
+        
+        // disable the cache if configured
+        
+        setCacheDisable(Boolean.parseBoolean(System.getProperty(ZTS_CLIENT_PROP_DISABLE_CACHE, "false")));
+
+        // set x509 csr details
+        
+        setX509CsrDetails(System.getProperty(ZTS_CLIENT_PROP_X509CSR_DN),
+                System.getProperty(ZTS_CLIENT_PROP_X509CSR_DOMAIN));
+        
+        // set connection timeouts
+        
+        setConnectionTimeouts(Integer.parseInt(System.getProperty(ZTS_CLIENT_PROP_CONNECT_TIMEOUT, "30000")),
+                Integer.parseInt(System.getProperty(ZTS_CLIENT_PROP_READ_TIMEOUT, "30000")));
+        
+        // set our server certificate dns name
+        
+        setX509CertDnsName(System.getProperty(ZTS_CLIENT_PROP_X509CERT_DNS_NAME));
+        
+        // finally retrieve our configuration ZTS url from our config file
+        
+        lookupZTSUrl();
+        
+        return true;
+    }
+    
+    /**
+     * Set the X509 Cert DNS Name in case ZTS Server is running with
+     * a certificate not matching its hostname
+     * @param dnsName name of the ZTS Servers X.509 Cert dns value
+     */
+    public static void setX509CertDnsName(final String dnsName) {
+        x509CertDNSName = dnsName;
+    }
+    
+    /**
+     * Set request connection and read timeout
+     * @param connectTimeout timeout for initial connection in milliseconds
+     * @param readTimeout timeout for read response in milliseconds
+     */
+    public static void setConnectionTimeouts(int connectTimeout, int readTimeout) {
+         reqConnectTimeout = connectTimeout;
+         reqReadTimeout = readTimeout;
+    }
+    
+    /**
+     * Set X509 CSR Details - DN and domain name. These values can be specified
+     * in the generate csr function as well in which case these will be ignored.
+     * @param csrDn string identifying the dn for the csr without the cn component
+     * @param csrDomain string identifying the dns domain for generating SAN fields
+     */
+    public static void setX509CsrDetails(final String csrDn, final String csrDomain) {
+        x509CsrDn = csrDn;
+        x509CsrDomain = csrDomain;
+    }
+    
+    /**
+     * Disable the cache of role tokens if configured.
+     * @param cacheState false to disable the cache
+     */
+    public static void setCacheDisable(boolean cacheState) {
+        cacheDisabled = cacheState;
+    }
+    
+    /**
+     * Enable prefetch of role tokens
+     * @param fetchState state of prefetch
+     */
+    public static void setPrefetchAutoEnable(boolean fetchState) {
+        prefetchAutoEnable = fetchState;
+    }
+    
+    /**
+     * Set the prefetch interval. if the prefetch interval is longer than
+     * our token min expiry time, then we'll default back to 60 seconds
+     * @param interval time in seconds
+     */
+    public static void setPrefetchInterval(int interval) {
+        
+        prefetchInterval = interval;
+        if (prefetchInterval >= tokenMinExpiryTime) {
+            prefetchInterval = 60;
+        }
+    }
+    /**
+     * Set the minimum token expiry time. The server will not give out tokens
+     * less than configured expirty time
+     * @param minExpiryTime expiry time in seconds
+     */
+    public static void setTokenMinExpiryTime(int minExpiryTime) {
+        
         // The minimum token expiry time by default is 15 minutes (900). By default the
         // server gives out role tokens for 2 hours and with this setting we'll be able
         // to cache tokens for 1hr45mins before requesting a new one from ZTS
 
-        tokenMinExpiryTime = Integer.parseInt(System.getProperty(ZTS_CLIENT_PROP_TOKEN_MIN_EXPIRY_TIME, "900"));
+        tokenMinExpiryTime = minExpiryTime;
         if (tokenMinExpiryTime < 0) {
             tokenMinExpiryTime = 900;
         }
-
-        prefetchInterval = Integer.parseInt(System.getProperty(ZTS_CLIENT_PROP_PREFETCH_SLEEP_INTERVAL, "60"));
-        if (prefetchInterval >= tokenMinExpiryTime) {
-            prefetchInterval = 60;
+    }
+    
+    public static void lookupZTSUrl() {
+        
+        String rootDir = System.getenv("ROOT");
+        if (rootDir == null) {
+            rootDir = "/home/athenz";
         }
+        
+        String confFileName = System.getProperty(ZTS_CLIENT_PROP_ATHENZ_CONF,
+                rootDir + "/conf/athenz/athenz.conf");
 
-        prefetchAutoEnable = Boolean.parseBoolean(System.getProperty(ZTS_CLIENT_PROP_PREFETCH_AUTO_ENABLE, "false"));
-        cacheDisabled = Boolean.parseBoolean(System.getProperty(ZTS_CLIENT_PROP_DISABLE_CACHE, "false"));
-        return true;
+        try {
+            Path path = Paths.get(confFileName);
+            AthenzConfig conf = JSON.fromBytes(Files.readAllBytes(path), AthenzConfig.class);
+            confZtsUrl = conf.getZtsUrl();
+        } catch (Exception ex) {
+            // if we have a zts client service specified and we have keys
+            // in our service loader cache then we're running within
+            // some managed framework (e.g. hadoop) so we're going to
+            // report this exception as a warning rather than an error
+            // and default to localhost as the url to avoid further
+            // warnings from our generated client
+
+            if (!svcLoaderCacheKeys.get().isEmpty()) {
+                LOG.warn("Unable to extract ZTS Url from conf file {}, exc: {}",
+                        confFileName, ex.getMessage());
+                confZtsUrl = "https://localhost:4443/";
+            } else {
+                LOG.error("Unable to extract ZTS Url from conf file {}, exc: {}",
+                        confFileName, ex.getMessage());
+            }
+        }
     }
     
     /**
@@ -340,41 +471,6 @@ public class ZTSClient implements Closeable {
         ztsClientOverride = true;
     }
     
-    String lookupZTSUrl() {
-        
-        String rootDir = System.getenv("ROOT");
-        if (rootDir == null) {
-            rootDir = "/home/athenz";
-        }
-        
-        String confFileName = System.getProperty(ZTS_CLIENT_PROP_ATHENZ_CONF,
-                rootDir + "/conf/athenz/athenz.conf");
-        String url = null;
-        try {
-            Path path = Paths.get(confFileName);
-            AthenzConfig conf = JSON.fromBytes(Files.readAllBytes(path), AthenzConfig.class);
-            url = conf.getZtsUrl();
-        } catch (Exception ex) {
-            // if we have a zts client service specified and we have keys
-            // in our service loader cache then we're running within
-            // some managed framework (e.g. hadoop) so we're going to
-            // report this exception as a warning rather than an error
-            // and default to localhost as the url to avoid further
-            // warnings from our generated client
-
-            if (!SVC_LOADER_CACHE_KEYS.get().isEmpty()) {
-                LOG.warn("Unable to extract ZTS Url from conf file {}, exc: {}",
-                        confFileName, ex.getMessage());
-                url = "https://localhost:4443/";
-            } else {
-                LOG.error("Unable to extract ZTS Url from conf file {}, exc: {}",
-                        confFileName, ex.getMessage());
-            }
-        }
-        
-        return url;
-    }
-    
     SSLContext createSSLContext() {
         
         // to create the SSL context we must have the keystore path
@@ -460,14 +556,10 @@ public class ZTSClient implements Closeable {
     void initClient(String url, Principal identity, String domainName, String serviceName,
             ServiceIdentityProvider siaProvider) {
         
-        if (url == null) {
-            ztsUrl = lookupZTSUrl();
-        } else {
-            ztsUrl = url;
-        }
+        ztsUrl = (url == null) ? confZtsUrl : url;
         
-        /* verify if the url is ending with /zts/v1 and if it's
-         * not we'll automatically append it */
+        // verify if the url is ending with /zts/v1 and if it's
+        // not we'll automatically append it
         
         if (ztsUrl != null && !ztsUrl.isEmpty()) {
             if (!ztsUrl.endsWith("/zts/v1")) {
@@ -477,12 +569,9 @@ public class ZTSClient implements Closeable {
                 ztsUrl += "zts/v1";
             }
         }
+
+        // determine to see if we need a host verifier for our ssl connections
         
-        // determine our read and connect timeouts
-        
-        int readTimeout = Integer.parseInt(System.getProperty(ZTS_CLIENT_PROP_READ_TIMEOUT, "30000"));
-        int connectTimeout = Integer.parseInt(System.getProperty(ZTS_CLIENT_PROP_CONNECT_TIMEOUT, "30000"));
-        String x509CertDNSName = System.getProperty(ZTS_CLIENT_PROP_X509CERT_DNS_NAME);
         HostnameVerifier hostnameVerifier = null;
         if (x509CertDNSName != null && !x509CertDNSName.isEmpty()) {
             hostnameVerifier = new AWSHostNameVerifier(x509CertDNSName);
@@ -501,8 +590,8 @@ public class ZTSClient implements Closeable {
             enablePrefetch = true;
         }
         Client rsClient = builder.hostnameVerifier(hostnameVerifier)
-            .property(ClientProperties.CONNECT_TIMEOUT, connectTimeout)
-            .property(ClientProperties.READ_TIMEOUT, readTimeout)
+            .property(ClientProperties.CONNECT_TIMEOUT, reqConnectTimeout)
+            .property(ClientProperties.READ_TIMEOUT, reqReadTimeout)
             .build();
 
         ztsClient = new ZTSRDLGeneratedClient(ztsUrl, rsClient);
@@ -749,7 +838,7 @@ public class ZTSClient implements Closeable {
         
         // 2nd look in service providers
         //
-        for (ZTSClientService provider: ZTS_TOKEN_PROVIDERS) {
+        for (ZTSClientService provider: ztsTokenProviders) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("getRoleToken: found service provider={}", provider);
             }
@@ -821,13 +910,14 @@ public class ZTSClient implements Closeable {
      * @param roleDomainName name of the domain where role is defined
      * @param roleName name of the role to get a certificate request for
      * @param privateKey private key for the service identity for the caller
-     * @param cloud string identifying the environment, e.g. aws
+     * @param csrDn string identifying the dn for the csr without the cn component
+     * @param csrDomain string identifying the dns domain for generating SAN fields
      * @param expiryTime number of seconds to request certificate to be valid for
      * @return RoleCertificateRequest object
      */
-    static public RoleCertificateRequest generateRoleCertificateRequest(String principalDomain,
-            String principalService, String roleDomainName, String roleName, PrivateKey privateKey,
-            String cloud, int expiryTime) {
+    static public RoleCertificateRequest generateRoleCertificateRequest(final String principalDomain,
+            final String principalService, final String roleDomainName, final String roleName,
+            PrivateKey privateKey, final String csrDn, final String csrDomain, int expiryTime) {
         
         if (principalDomain == null || principalService == null) {
             throw new IllegalArgumentException("Principal's Domain and Service must be specified");
@@ -837,42 +927,33 @@ public class ZTSClient implements Closeable {
             throw new IllegalArgumentException("Role DomainName and Name must be specified");
         }
         
-        if (cloud == null) {
-            throw new IllegalArgumentException("Cloud Environment must be specified");
+        if (csrDomain == null) {
+            throw new IllegalArgumentException("X509 CSR Domain must be specified");
         }
         
         // Athenz uses lower case for all elements, so let's
         // generate our dn which will be our role resource value
         
-        principalDomain = principalDomain.toLowerCase();
-        principalService = principalService.toLowerCase();
+        final String domain = principalDomain.toLowerCase();
+        final String service = principalService.toLowerCase();
         
-        roleDomainName = roleDomainName.toLowerCase();
-        roleName = roleName.toLowerCase();
-        String dn = "cn=" + roleDomainName + ":role." + roleName;
-        if (X509_CSR_DN != null) {
-            dn = dn.concat(",").concat(X509_CSR_DN);
+        String dn = "cn=" + roleDomainName.toLowerCase() + ":role." + roleName.toLowerCase();
+        if (csrDn != null) {
+            dn = dn.concat(",").concat(csrDn);
         }
         
         // now let's generate our dsnName and email fields which will based on
         // our principal's details
         
         StringBuilder hostBuilder = new StringBuilder(128);
-        hostBuilder.append(principalService);
+        hostBuilder.append(service);
         hostBuilder.append('.');
-        hostBuilder.append(principalDomain.replace('.', '-'));
+        hostBuilder.append(domain.replace('.', '-'));
         hostBuilder.append('.');
-        hostBuilder.append(cloud);
-        if (X509_CSR_DOMAIN != null) {
-            hostBuilder.append('.');
-            hostBuilder.append(X509_CSR_DOMAIN);
-        }
+        hostBuilder.append(csrDomain);
         String hostName = hostBuilder.toString();
 
-        String email = principalDomain + "." + principalService + "@" + cloud;
-        if (X509_CSR_DOMAIN != null) {
-            email = email.concat(".").concat(X509_CSR_DOMAIN);
-        }
+        String email = domain + "." + service + "@" + csrDomain;
         
         GeneralName[] sanArray = new GeneralName[2];
         sanArray[0] = new GeneralName(GeneralName.dNSName, new DERIA5String(hostName));
@@ -891,46 +972,80 @@ public class ZTSClient implements Closeable {
     }
     
     /**
+     * Generate a Role Certificate request that could be sent to ZTS
+     * to obtain a X509 Certificate for the requested role.
+     * @param principalDomain name of the principal's domain
+     * @param principalService name of the principal's service
+     * @param roleDomainName name of the domain where role is defined
+     * @param roleName name of the role to get a certificate request for
+     * @param privateKey private key for the service identity for the caller
+     * @param cloud string identifying the environment, e.g. aws
+     * @param expiryTime number of seconds to request certificate to be valid for
+     * @return RoleCertificateRequest object
+     */
+    static public RoleCertificateRequest generateRoleCertificateRequest(final String principalDomain,
+            final String principalService, final String roleDomainName, final String roleName,
+            final PrivateKey privateKey, final String cloud, int expiryTime) {
+        
+        if (cloud == null) {
+            throw new IllegalArgumentException("Cloud Environment must be specified");
+        }
+        
+        String csrDomain;
+        if (x509CsrDomain != null) {
+            csrDomain = cloud + "." + x509CsrDomain;
+        } else {
+            csrDomain = cloud;
+        }
+
+        return generateRoleCertificateRequest(principalDomain, principalService,
+                roleDomainName, roleName, privateKey, x509CsrDn, csrDomain,
+                expiryTime);
+    }
+    
+    /**
      * Generate a Instance Refresh request that could be sent to ZTS to
      * request a TLS certificate for a service.
      * @param principalDomain name of the principal's domain
      * @param principalService name of the principal's service
      * @param privateKey private key for the service identity for the caller
-     * @param cloud string identifying the environment, e.g. aws
+     * @param csrDn string identifying the dn for the csr without the cn component
+     * @param csrDomain string identifying the dns domain for generating SAN fields
      * @param expiryTime number of seconds to request certificate to be valid for
      * @return InstanceRefreshRequest object
      */
-    static public InstanceRefreshRequest generateInstanceRefreshRequest(String principalDomain,
-            String principalService, PrivateKey privateKey, String cloud, int expiryTime) {
+    static public InstanceRefreshRequest generateInstanceRefreshRequest(final String principalDomain,
+            final String principalService, PrivateKey privateKey, final String csrDn,
+            final String csrDomain, int expiryTime) {
         
         if (principalDomain == null || principalService == null) {
             throw new IllegalArgumentException("Principal's Domain and Service must be specified");
         }
         
+        if (csrDomain == null) {
+            throw new IllegalArgumentException("X509 CSR Domain must be specified");
+        }
+        
         // Athenz uses lower case for all elements, so let's
         // generate our dn which will be based on our service name
         
-        principalDomain = principalDomain.toLowerCase();
-        principalService = principalService.toLowerCase();
-        final String cn = principalDomain + "." + principalService;
+        final String domain = principalDomain.toLowerCase();
+        final String service = principalService.toLowerCase();
+        final String cn = domain + "." + service;
         
         String dn = "cn=" + cn;
-        if (X509_CSR_DN != null) {
-            dn = dn.concat(",").concat(X509_CSR_DN);
+        if (csrDn != null) {
+            dn = dn.concat(",").concat(csrDn);
         }
         
         // now let's generate our dsnName field based on our principal's details
         
         StringBuilder hostBuilder = new StringBuilder(128);
-        hostBuilder.append(principalService);
+        hostBuilder.append(service);
         hostBuilder.append('.');
-        hostBuilder.append(principalDomain.replace('.', '-'));
+        hostBuilder.append(domain.replace('.', '-'));
         hostBuilder.append('.');
-        hostBuilder.append(cloud);
-        if (X509_CSR_DOMAIN != null) {
-            hostBuilder.append('.');
-            hostBuilder.append(X509_CSR_DOMAIN);
-        }
+        hostBuilder.append(csrDomain);
         String hostName = hostBuilder.toString();
         
         GeneralName[] sanArray = new GeneralName[1];
@@ -946,6 +1061,34 @@ public class ZTSClient implements Closeable {
         InstanceRefreshRequest req = new InstanceRefreshRequest().setCsr(csr)
                 .setExpiryTime(Integer.valueOf(expiryTime));
         return req;
+    }
+    
+    /**
+     * Generate a Instance Refresh request that could be sent to ZTS to
+     * request a TLS certificate for a service.
+     * @param principalDomain name of the principal's domain
+     * @param principalService name of the principal's service
+     * @param privateKey private key for the service identity for the caller
+     * @param cloud string identifying the environment, e.g. aws
+     * @param expiryTime number of seconds to request certificate to be valid for
+     * @return InstanceRefreshRequest object
+     */
+    static public InstanceRefreshRequest generateInstanceRefreshRequest(String principalDomain,
+            String principalService, PrivateKey privateKey, String cloud, int expiryTime) {
+        
+        if (cloud == null) {
+            throw new IllegalArgumentException("Cloud Environment must be specified");
+        }
+        
+        String csrDomain;
+        if (x509CsrDomain != null) {
+            csrDomain = cloud + "." + x509CsrDomain;
+        } else {
+            csrDomain = cloud;
+        }
+        
+        return generateInstanceRefreshRequest(principalDomain, principalService, privateKey,
+                x509CsrDn, csrDomain, expiryTime);
     }
     
     private static class RolePrefetchTask extends TimerTask {
@@ -990,7 +1133,7 @@ public class ZTSClient implements Closeable {
             
             // if toFetch is not empty, fetch those tokens, and add refreshed scheduled items back to the queue
             if (!toFetch.isEmpty()) {
-                Set<String> oldSvcLoaderCache = SVC_LOADER_CACHE_KEYS.get();
+                Set<String> oldSvcLoaderCache = svcLoaderCacheKeys.get();
                 Set<String> newSvcLoaderCache = null;
                 // fetch items
                 for (PrefetchRoleTokenScheduledItem item : toFetch) {
@@ -1927,12 +2070,15 @@ public class ZTSClient implements Closeable {
     
     private static Set<String> loadSvcProviderTokens() {
         
+        ztsTokenProviders = ServiceLoader.load(ZTSClientService.class);
+        svcLoaderCacheKeys = new AtomicReference<>();
+
         // if have service loader implementations, then stuff role tokens into cache
         // and keep track of these tokens so that they will get refreshed from
         // service loader and not zts server
         
         Set<String> cacheKeySet = new HashSet<>();
-        for (ZTSClientService provider: ZTS_TOKEN_PROVIDERS) {
+        for (ZTSClientService provider: ztsTokenProviders) {
             Collection<ZTSClientService.RoleTokenDescriptor> descs = provider.loadTokens();
             if (descs == null) {
                 if (LOG.isInfoEnabled()) {
@@ -1951,7 +2097,7 @@ public class ZTSClient implements Closeable {
             }
         }
 
-        SVC_LOADER_CACHE_KEYS.set(cacheKeySet);
+        svcLoaderCacheKeys.set(cacheKeySet);
         return cacheKeySet;
     }
     
