@@ -634,7 +634,7 @@ public class ZTSClientTest {
     public void testAddandClearCredentials() {
         
         // add credential
-        ZTSClient client = new ZTSClient(null, "coretech", "storage", siaMockProvider);
+        ZTSClient client = new ZTSClient("http://localhost:4080", "coretech", "storage", siaMockProvider);
         Principal principal = SimplePrincipal.create("user_domain", "user", "auth_creds",
                 PRINCIPAL_AUTHORITY);
         client.addCredentials(principal);
@@ -650,7 +650,7 @@ public class ZTSClientTest {
     @Test
     public void testAddPrincipalCredentialsNoSIAReset() {
         
-        ZTSClient client = new ZTSClient(null, "coretech", "storage", siaMockProvider);
+        ZTSClient client = new ZTSClient("http://localhost:4080", "coretech", "storage", siaMockProvider);
         Principal principal = SimplePrincipal.create("user_domain", "user", "auth_creds",
                 PRINCIPAL_AUTHORITY);
         client.addPrincipalCredentials(principal, false);
@@ -661,7 +661,7 @@ public class ZTSClientTest {
     @Test
     public void testAddPrincipalCredentialsSIAReset() {
         
-        ZTSClient client = new ZTSClient(null, "coretech", "storage", siaMockProvider);
+        ZTSClient client = new ZTSClient("http://localhost:4080", "coretech", "storage", siaMockProvider);
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "auth_creds", PRINCIPAL_AUTHORITY);
         client.addPrincipalCredentials(principal, true);
@@ -674,7 +674,7 @@ public class ZTSClientTest {
         
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "auth_creds", PRINCIPAL_AUTHORITY);
-        ZTSClient client = new ZTSClient(null, principal);
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
         assertNotNull(client);
         assertNotNull(client.ztsClient);
         assertEquals(client.principal, principal);
@@ -795,7 +795,7 @@ public class ZTSClientTest {
         SimpleServiceIdentityProvider siaProvider = Mockito.mock(SimpleServiceIdentityProvider.class);
         Mockito.when(siaProvider.getIdentity("user_domain", "user")).thenReturn(principal);
         
-        ZTSClient client2 = new ZTSClient(null, "user_domain", "user", siaProvider);
+        ZTSClient client2 = new ZTSClient("http://localhost:4080", "user_domain", "user", siaProvider);
         client2.setZTSRDLGeneratedClient(ztsClientMock);
         
         RoleToken roleToken2 = client2.getRoleToken("coretech");
