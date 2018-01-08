@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.instance.provider.impl;
+package com.yahoo.athenz.instance.provider;
 
 import javax.net.ssl.SSLSession;
 import static org.testng.Assert.assertTrue;
@@ -30,7 +30,7 @@ import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.auth.util.Crypto;
-import com.yahoo.athenz.instance.provider.impl.ProviderHostnameVerifier;
+import com.yahoo.athenz.instance.provider.ProviderHostnameVerifier;
 
 public class ProviderHostnameVerifierTest {
 

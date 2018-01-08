@@ -286,20 +286,6 @@ public class InstanceProviderManagerTest {
     }
     
     @Test
-    public void testInstanceProviderClient() {
-        InstanceProviderClient client = new InstanceProviderClient("https://localhost:8443");
-        assertNotNull(client);
-        
-        client = client.setProperty("Property", "Value");
-        assertNotNull(client);
-        
-        client = client.addCredentials("Header", "token");
-        assertNotNull(client);
-        
-        client.close();
-    }
-    
-    @Test
     public void testGetProviderScheme() throws URISyntaxException {
 
         InstanceProviderManager provider = new InstanceProviderManager(null, null);
