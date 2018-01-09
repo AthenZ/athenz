@@ -32,14 +32,14 @@ describe('YBase64 util', function() {
 
   it('should ybase64 string eqals test data', function() {
     expect(ybase64.ybase64Encode(testMessage)).to.equal('dGVzdE1lc3NhZ2VUb0VuY29kZVdpdGhZQmFzZTY0Cg--');
-    expect(new Buffer(testMessage).toString('base64').replace(/\+/g, '.').replace(/\//g, '_').replace(/=/g, '-')).to
+    expect(Buffer.from(testMessage).toString('base64').replace(/\+/g, '.').replace(/\//g, '_').replace(/=/g, '-')).to
       .equal('dGVzdE1lc3NhZ2VUb0VuY29kZVdpdGhZQmFzZTY0Cg--');
   });
 
   it('should string eqals ybase64 decoded test data', function() {
     expect(ybase64.ybase64Decode('dGVzdE1lc3NhZ2VUb0VuY29kZVdpdGhZQmFzZTY0Cg--').toString('UTF-8')).to.equal(testMessage);
     expect(ybase64.ybase64Decode('dGVzdE1lc3NhZ2VUb0VuY29kZVdpdGhZQmFzZTY0Cg--').toString('UTF-8')).to
-      .equal(new Buffer(ybase64.ybase64Encode(testMessage).replace(/\./g, '+').replace(/_/g, '/').replace(/-/g, '='), 'base64').toString());
+      .equal(Buffer.from(ybase64.ybase64Encode(testMessage).replace(/\./g, '+').replace(/_/g, '/').replace(/-/g, '='), 'base64').toString());
   });
 
   it('should test ybase64Decode: invalid input: result error', function() {

@@ -23,8 +23,8 @@ var sinon = require('sinon');
 var expect = require('chai').expect;
 var sandbox;
 
-var privateKey = new Buffer(fs.readFileSync(process.cwd() + '/test/resources/private_k0.pem', 'utf8'));
-var publicKey = new Buffer(fs.readFileSync(process.cwd() + '/test/resources/public_k0.pem', 'utf8'));
+var privateKey = Buffer.from(fs.readFileSync(process.cwd() + '/test/resources/private_k0.pem', 'utf8'));
+var publicKey = Buffer.from(fs.readFileSync(process.cwd() + '/test/resources/public_k0.pem', 'utf8'));
 
 var testSharedSecret = 'testSharedSecretString';
 var testMessage = 'testMessageString\n';
