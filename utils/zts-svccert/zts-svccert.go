@@ -29,7 +29,9 @@ func main() {
 	var ztsURL, serviceKey, serviceCert, domain, service, keyID string
 	var caCertFile, certFile, signerCertFile, dnsDomain, hdr string
 	var csr bool
+	var expiryTime int
 	flag.BoolVar(&csr, "csr", false, "request csr only")
+	flag.IntVar(&expiryTime, "expiry-time", 0, "expiry time in seconds")
 	flag.StringVar(&certFile, "cert-file", "", "output certificate file")
 	flag.StringVar(&signerCertFile, "signer-cert-file", "", "output signer certificate file")
 	flag.StringVar(&caCertFile, "cacert", "", "CA certificate file")
@@ -95,7 +97,8 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	req := &zts.InstanceRefreshRequest{Csr: csrData, KeyId: keyID}
+	expiryTime32 := int32(expiryTime)
+	req := &zts.InstanceRefreshRequest{Csr: csrData, KeyId: keyID, ExpiryTime: &expiryTime32}
 
 	// request a tls certificate for this service
 	identity, err := client.PostInstanceRefreshRequest(zts.CompoundName(domain), zts.SimpleName(service), req)

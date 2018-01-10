@@ -36,8 +36,8 @@ public class SelfCertSigner implements CertSigner {
     }
 
     @Override
-    public String generateX509Certificate(String csr, String keyUsage, String expiryTime) {
-        int certExpiryTime = expiryTime == null ? certValidityTime : Integer.parseInt(expiryTime);
+    public String generateX509Certificate(String csr, String keyUsage, int expiryTime) {
+        int certExpiryTime = expiryTime == 0 ? certValidityTime : expiryTime;
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
         X509Certificate cert = Crypto.generateX509Certificate(certReq, caPrivateKey,
                 caCertificate, certExpiryTime, false);

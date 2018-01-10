@@ -28,7 +28,7 @@ public interface CertSigner {
      * CertSigner might override this value with a smaller value.
      * @return X509 Certificate in PEM format
      */
-    default String generateX509Certificate(String csr, String keyUsage, String expiryTime) {
+    default String generateX509Certificate(String csr, String keyUsage, int expiryTime) {
         return null;
     }
 
