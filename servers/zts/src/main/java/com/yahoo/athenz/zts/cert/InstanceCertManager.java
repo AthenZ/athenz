@@ -197,7 +197,7 @@ public class InstanceCertManager {
     }
     
     public InstanceIdentity generateIdentity(String csr, String cn, String keyUsage,
-            String expiryTime) {
+            int expiryTime) {
         
         // generate a certificate for this certificate request
 

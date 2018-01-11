@@ -1499,7 +1499,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domainName);
         }
         
-        String x509Cert = certSigner.generateX509Certificate(req.getCsr(), ZTSConsts.ZTS_CERT_USAGE_CLIENT, null);
+        String x509Cert = certSigner.generateX509Certificate(req.getCsr(),
+                ZTSConsts.ZTS_CERT_USAGE_CLIENT, (int) req.getExpiryTime());
         if (null == x509Cert || x509Cert.isEmpty()) {
             throw serverError("postRoleCertificateRequest: Unable to create certificate from the cert signer",
                     caller, domainName);
@@ -1766,13 +1767,16 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // request and override it with its own value.
         
         String certUsage = null;
-        String certExpirtyTime = null;
+        int certExpiryTime = 0;
         boolean certRefreshAllowed = true;
         
         Map<String, String> instanceAttrs = instance.getAttributes();
         if (instanceAttrs != null) {
             certUsage = instanceAttrs.remove(ZTSConsts.ZTS_CERT_USAGE);
-            certExpirtyTime = instanceAttrs.remove(ZTSConsts.ZTS_CERT_EXPIRY_TIME);
+            final String expiryTime = instanceAttrs.remove(ZTSConsts.ZTS_CERT_EXPIRY_TIME);
+            if (expiryTime != null && !expiryTime.isEmpty()) {
+                certExpiryTime = Integer.parseInt(expiryTime);
+            }
             final String certRefreshState = instanceAttrs.remove(ZTSConsts.ZTS_CERT_REFRESH);
             if (certRefreshState != null && !certRefreshState.isEmpty()) {
                 certRefreshAllowed = Boolean.parseBoolean(certRefreshState);
@@ -1782,7 +1786,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // generate certificate for the instance
 
         InstanceIdentity identity = instanceCertManager.generateIdentity(info.getCsr(), cn,
-                certUsage, certExpirtyTime);
+                certUsage, certExpiryTime);
         if (identity == null) {
             throw serverError("unable to generate identity", caller, domain);
         }
@@ -2052,11 +2056,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // request and override it with its own value.
         
         String certUsage = null;
-        String certExpirtyTime = null;
+        int certExpiryTime = 0;
         Map<String, String> instanceAttrs = instance.getAttributes();
         if (instanceAttrs != null) {
             certUsage = instanceAttrs.remove(ZTSConsts.ZTS_CERT_USAGE);
-            certExpirtyTime = instanceAttrs.remove(ZTSConsts.ZTS_CERT_EXPIRY_TIME);
+            final String expiryTime = instanceAttrs.remove(ZTSConsts.ZTS_CERT_EXPIRY_TIME);
+            if (expiryTime != null && !expiryTime.isEmpty()) {
+                certExpiryTime = Integer.parseInt(expiryTime);
+            }
         }
         
         // validate that the tenant domain/service matches to the values
@@ -2100,7 +2107,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // generate identity with the certificate
         
         InstanceIdentity identity = instanceCertManager.generateIdentity(info.getCsr(), principalName,
-                x509CertRecord.getClientCert() ? ZTSConsts.ZTS_CERT_USAGE_CLIENT : certUsage, certExpirtyTime);
+                x509CertRecord.getClientCert() ? ZTSConsts.ZTS_CERT_USAGE_CLIENT : certUsage,
+                certExpiryTime);
         if (identity == null) {
             throw serverError("unable to generate identity", caller, domain);
         }
@@ -2389,7 +2397,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // generate identity with the certificate
         
-        Identity identity = ZTSUtils.generateIdentity(certSigner, req.getCsr(), fullServiceName, null);
+        int expiryTime = req.getExpiryTime() != null ? req.getExpiryTime() : 0;
+        Identity identity = ZTSUtils.generateIdentity(certSigner, req.getCsr(),
+                fullServiceName, null, expiryTime);
         if (identity == null) {
             throw requestError("postInstanceRefreshRequest: unable to generate identity",
                     caller, domain);
@@ -2529,7 +2539,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // generate certificate for the instance
 
-        Identity identity = ZTSUtils.generateIdentity(certSigner, info.getCsr(), cn, null);
+        Identity identity = ZTSUtils.generateIdentity(certSigner, info.getCsr(), cn, null, 0);
         if (identity == null) {
             throw requestError("postOSTKInstanceInformation: unable to generate identity",
                     caller, domain);
@@ -2669,7 +2679,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // generate identity with the certificate
         
-        Identity identity = ZTSUtils.generateIdentity(certSigner, req.getCsr(), principalName, null);
+        Identity identity = ZTSUtils.generateIdentity(certSigner, req.getCsr(), principalName, null, 0);
         if (identity == null) {
             throw requestError("postInstanceRefreshRequest: unable to generate identity",
                     caller, domain);

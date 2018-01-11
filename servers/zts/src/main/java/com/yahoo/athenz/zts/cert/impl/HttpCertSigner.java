@@ -116,7 +116,7 @@ public class HttpCertSigner implements CertSigner {
     }
 
     ContentResponse processX509CertRequest(final String csr, final String keyUsage,
-            final String expiryTime, int retryCount) {
+            int expiryTime, int retryCount) {
         
         ContentResponse response = null;
         try {
@@ -126,8 +126,8 @@ public class HttpCertSigner implements CertSigner {
             
             X509CertSignObject csrCert = new X509CertSignObject()
                     .setPem(csr).setExtusage(keyUsage);
-            if (expiryTime != null && !expiryTime.isEmpty()) {
-                csrCert.setExpire(Integer.parseInt(expiryTime));
+            if (expiryTime > 0) {
+                csrCert.setExpire(expiryTime);
             }
             request.content(new StringContentProvider(JSON.string(csrCert)), CONTENT_JSON);
             
@@ -147,14 +147,14 @@ public class HttpCertSigner implements CertSigner {
             if (msg == null) {
                 msg = ex.getClass().getName();
             }
-            LOGGER.error("generateX509Certificate: Unable to fetch requested uri '{}': {}",
+            LOGGER.error("Unable to fetch requested uri '{}': {}",
                     x509CertUri, msg);
         }
         return response;
     }
     
     @Override
-    public String generateX509Certificate(String csr, String keyUsage, String expiryTime) {
+    public String generateX509Certificate(String csr, String keyUsage, int expiryTime) {
         
         // Key Usage value used in Go - https://golang.org/src/crypto/x509/x509.go?s=18153:18173#L558
         // we're only interested in ExtKeyUsageClientAuth - with value of 2
@@ -172,14 +172,14 @@ public class HttpCertSigner implements CertSigner {
         }
         
         if (response.getStatus() != HttpStatus.CREATED_201) {
-            LOGGER.error("generateX509Certificate: unable to fetch requested uri '" + x509CertUri +
+            LOGGER.error("unable to fetch requested uri '" + x509CertUri +
                     "' status: " + response.getStatus());
             return null;
         }
 
         String data = response.getContentAsString();
         if (data == null || data.isEmpty()) {
-            LOGGER.error("generateX509Certificate: received empty response from uri '" + x509CertUri +
+            LOGGER.error("received empty response from uri '" + x509CertUri +
                     "' status: " + response.getStatus());
             return null;
         }
@@ -188,7 +188,7 @@ public class HttpCertSigner implements CertSigner {
         try {
             pemCert = JSON.fromString(data, X509CertSignObject.class);
         } catch (Exception ex) {
-            LOGGER.error("generateX509Certificate: unable to decode object from '" + x509CertUri +
+            LOGGER.error("unable to decode object from '" + x509CertUri +
                     "' error: " + ex.getMessage());
         }
         return (pemCert != null) ? pemCert.getPem() : null;
