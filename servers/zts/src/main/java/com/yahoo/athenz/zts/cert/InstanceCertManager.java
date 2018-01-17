@@ -232,7 +232,8 @@ public class InstanceCertManager {
         
         final String sshCert = certSigner.generateSSHCertificate(sshCsr);
         if (sshCert == null || sshCert.isEmpty()) {
-            LOGGER.error("generateSshIdentity: CertSigner was unable to generate SSH certificate");
+            LOGGER.error("CertSigner was unable to generate SSH certificate for {}/{}",
+                    identity.getInstanceId(), identity.getName());
             return false;
         }
 

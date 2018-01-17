@@ -1794,9 +1794,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // if we're asked then we should also generate a ssh
         // certificate for the instance as well
         
-        if (!instanceCertManager.generateSshIdentity(identity, info.getSsh(), ZTSConsts.ZTS_SSH_HOST)) {
-            throw serverError("unable to generate ssh identity", caller, domain);
-        }
+        instanceCertManager.generateSshIdentity(identity, info.getSsh(), ZTSConsts.ZTS_SSH_HOST);
 
         // set the other required attributes in the identity object
 
@@ -2116,9 +2114,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // if we're asked then we should also generate a ssh
         // certificate for the instance as well
         
-        if (!instanceCertManager.generateSshIdentity(identity, info.getSsh(), null)) {
-            throw serverError("unable to generate ssh identity", caller, domain);
-        }
+        instanceCertManager.generateSshIdentity(identity, info.getSsh(), null);
         
         // set the other required attributes in the identity object
 
