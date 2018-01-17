@@ -241,6 +241,7 @@ func certClient(ztsURL string, keyBytes []byte, certfile, caCertFile string) (*z
 		return nil, err
 	}
 	transport := &http.Transport{
+		Proxy:           http.ProxyFromEnvironment,
 		TLSClientConfig: config,
 	}
 	client := zts.NewClient(ztsURL, transport)
