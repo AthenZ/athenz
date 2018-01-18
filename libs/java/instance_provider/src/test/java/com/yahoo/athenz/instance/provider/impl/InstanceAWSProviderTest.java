@@ -344,7 +344,7 @@ public class InstanceAWSProviderTest {
     }
     
     @Test
-    public void testConfirmInstanceLambdaEmptyDocument() {
+    public void testConfirmInstanceEmptyDocument() {
         
         System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "athenz.cloud");
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
@@ -359,14 +359,17 @@ public class InstanceAWSProviderTest {
         attributes.put("sanDNS", "service.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
         confirmation.setAttributes(attributes);
         
-        InstanceConfirmation result = provider.confirmInstance(confirmation);
-        assertEquals(result.getAttributes().get("certUsage"), "client");
-        assertEquals(result.getDomain(), "athenz");
+        try {
+            provider.confirmInstance(confirmation);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
         System.clearProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX);
     }
     
     @Test
-    public void testConfirmInstanceLambdaNullDocument() {
+    public void testConfirmInstanceNullDocument() {
         
         System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "athenz.cloud");
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
@@ -381,9 +384,12 @@ public class InstanceAWSProviderTest {
         attributes.put("sanDNS", "service.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
         confirmation.setAttributes(attributes);
         
-        InstanceConfirmation result = provider.confirmInstance(confirmation);
-        assertEquals(result.getAttributes().get("certUsage"), "client");
-        assertEquals(result.getDomain(), "athenz");
+        try {
+            provider.confirmInstance(confirmation);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
         System.clearProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX);
     }
     
