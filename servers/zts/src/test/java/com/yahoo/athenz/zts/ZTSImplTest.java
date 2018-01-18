@@ -4674,7 +4674,7 @@ public class ZTSImplTest {
         InstanceRegisterInformation info = new InstanceRegisterInformation()
                 .setAttestationData("attestationData").setCsr(certCsr)
                 .setDomain("athenz").setService("production")
-                .setProvider("athenz.provider").setSsh("ssh").setToken(false);
+                .setProvider("athenz.provider").setToken(false);
         
         Mockito.doReturn(false).when(instanceManager).generateSshIdentity(Mockito.any(),
                 Mockito.any(), Mockito.any());
@@ -4682,13 +4682,14 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(null);
         PostInstanceRegisterInformationResult result = new PostInstanceRegisterInformationResult(context);
         
+        int code = 0;
         try {
             ztsImpl.postInstanceRegisterInformation(context, info, result);
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 500);
-            assertTrue(ex.getMessage().contains("unable to generate ssh identity"));
+        } catch (WebApplicationException ex) {
+            code = ex.getResponse().getStatus();
         }
+        assertEquals(code, 201);
+        assertNull(info.getSsh());
     }
     
     @Test
@@ -5069,13 +5070,9 @@ public class ZTSImplTest {
         
         ResourceContext context = createResourceContext(principal);
         
-        try {
-            ztsImpl.postInstanceRefreshInformation(context, "athenz.provider", "athenz",
-                    "production", "1001", info);
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 500);
-        }
+        identity = ztsImpl.postInstanceRefreshInformation(context, "athenz.provider",
+                "athenz", "production", "1001", info);
+        assertNull(identity.getSshCertificate());
     }
     
     @Test
@@ -6470,7 +6467,7 @@ public class ZTSImplTest {
             ztsImpl.postInstanceRefreshRequest(context, "athenz", "syncer", req);
             fail();
         } catch (Exception ex) {
-            assertTrue(ex.getMessage().contains("unable to generate identity"), ex.getMessage());
+            assertTrue(ex.getMessage().contains("Unable to generate identity"), ex.getMessage());
         }
     }
     
@@ -6592,7 +6589,7 @@ public class ZTSImplTest {
             ztsImpl.postInstanceRefreshRequest(context, "athenz", "api", req);
             fail();
         } catch (Exception ex) {
-            assertTrue(ex.getMessage().contains("invalid CSR - data mismatch"), ex.getMessage());
+            assertTrue(ex.getMessage().contains("Invalid CSR - data mismatch"), ex.getMessage());
         }
     }
 
@@ -6635,7 +6632,7 @@ public class ZTSImplTest {
             ztsImpl.postInstanceRefreshRequest(context, "athenz", "syncer", req);
             fail();
         } catch (Exception ex) {
-            assertTrue(ex.getMessage().contains("invalid CSR - public key mismatch"), ex.getMessage());
+            assertTrue(ex.getMessage().contains("Invalid CSR - public key mismatch"), ex.getMessage());
         }
     }
     
@@ -6889,7 +6886,7 @@ public class ZTSImplTest {
             ztsImpl.postInstanceRefreshRequest(context, "athenz", "syncer", req);
             fail();
         } catch (Exception ex) {
-            assertTrue(ex.getMessage().contains("unable to parse PKCS10 certificate request"), ex.getMessage());
+            assertTrue(ex.getMessage().contains("Unable to parse PKCS10 certificate request"), ex.getMessage());
         }
     }
     

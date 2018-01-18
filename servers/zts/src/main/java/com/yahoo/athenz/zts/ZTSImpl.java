@@ -1794,9 +1794,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // if we're asked then we should also generate a ssh
         // certificate for the instance as well
         
-        if (!instanceCertManager.generateSshIdentity(identity, info.getSsh(), ZTSConsts.ZTS_SSH_HOST)) {
-            throw serverError("unable to generate ssh identity", caller, domain);
-        }
+        instanceCertManager.generateSshIdentity(identity, info.getSsh(), ZTSConsts.ZTS_SSH_HOST);
 
         // set the other required attributes in the identity object
 
@@ -2116,9 +2114,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // if we're asked then we should also generate a ssh
         // certificate for the instance as well
         
-        if (!instanceCertManager.generateSshIdentity(identity, info.getSsh(), null)) {
-            throw serverError("unable to generate ssh identity", caller, domain);
-        }
+        instanceCertManager.generateSshIdentity(identity, info.getSsh(), null);
         
         // set the other required attributes in the identity object
 
@@ -2325,8 +2321,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             }
            
             if (!userRequest) {
-                throw requestError("postInstanceRefreshRequest: Principal mismatch: "
-                    + fullServiceName + " vs. " + principalName, caller, domain);
+                throw requestError("Principal mismatch: " + fullServiceName + " vs. " +
+                        principalName, caller, domain);
             }
         }
          
@@ -2335,7 +2331,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // TLS certificates from ZTS
         
         if (userDomain.equalsIgnoreCase(domain)) {
-            throw requestError("postInstanceRefreshRequest: TLS Certificates require ServiceTokens: " +
+            throw requestError("TLS Certificates require ServiceTokens: " +
                     fullServiceName, caller, domain);
         }
         
@@ -2349,8 +2345,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String keyId = userRequest || refreshOperation ? req.getKeyId() : principal.getKeyId();
         String publicKey = getPublicKey(domain, service, keyId);
         if (publicKey == null) {
-            throw requestError("postInstanceRefreshRequest: Unable to retrieve public key for " +
-                    fullServiceName + " with key id: " + keyId, caller, domain);
+            throw requestError("Unable to retrieve public key for " + fullServiceName +
+                    " with key id: " + keyId, caller, domain);
         }
         
         // validate that the cn and public key match to the provided details
@@ -2359,22 +2355,20 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         try {
             x509CertReq = new X509CertRequest(req.getCsr());
         } catch (CryptoException ex) {
-            throw requestError("postInstanceRefreshRequest: unable to parse PKCS10 certificate request",
+            throw requestError("Unable to parse PKCS10 certificate request",
                     caller, domain);
         }
         
         final PKCS10CertificationRequest certReq = x509CertReq.getCertReq();
         if (!ZTSUtils.verifyCertificateRequest(certReq, domain, service, null)) {
-            throw requestError("postInstanceRefreshRequest: invalid CSR - data mismatch",
-                    caller, domain);
+            throw requestError("Invalid CSR - data mismatch", caller, domain);
         }
         
         // verify that the public key in the csr matches to the service
         // public key registered in Athenz
         
         if (!x509CertReq.comparePublicKeys(publicKey)) {
-            throw requestError("postInstanceRefreshRequest: invalid CSR - public key mismatch",
-                    caller, domain);
+            throw requestError("Invalid CSR - public key mismatch", caller, domain);
         }
         
         // if this is not a user request and the principal authority is the
@@ -2383,14 +2377,15 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // to do further validation based on the certificate we authenticated
         
         if (refreshOperation) {
-            ServiceX509RefreshRequestStatus status =  validateServiceX509RefreshRequest(principal, x509CertReq,
-                    ServletRequestUtil.getRemoteAddress(ctx.request()));
+            final String ipAddress = ServletRequestUtil.getRemoteAddress(ctx.request());
+            ServiceX509RefreshRequestStatus status =  validateServiceX509RefreshRequest(principal,
+                    x509CertReq, ipAddress);
             if (status == ServiceX509RefreshRequestStatus.IP_NOT_ALLOWED) {
-                throw forbiddenError("postInstanceRefreshRequest: " + status,
+                throw forbiddenError("IP not allowed for refresh: " + ipAddress,
                         caller, domain); 
             }
             if (status != ServiceX509RefreshRequestStatus.SUCCESS) {
-                throw requestError("postInstanceRefreshRequest: " + status,
+                throw requestError("Request valiation failed: " + status,
                         caller, domain); 
             }
         }
@@ -2401,8 +2396,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         Identity identity = ZTSUtils.generateIdentity(certSigner, req.getCsr(),
                 fullServiceName, null, expiryTime);
         if (identity == null) {
-            throw requestError("postInstanceRefreshRequest: unable to generate identity",
-                    caller, domain);
+            throw requestError("Unable to generate identity", caller, domain);
         }
         
         // create our audit log entry
