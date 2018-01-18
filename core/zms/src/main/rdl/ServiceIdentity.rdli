@@ -9,7 +9,7 @@ resource ServiceIdentity PUT "/domain/{domain}/service/{service}" {
     SimpleName service; //name of the service
     String      auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     ServiceIdentity detail; //ServiceIdentity object to be added/updated in the domain
-    authorize ("update", "{domain}:service");
+    authorize ("update", "{domain}:service.{service}");
     expected NO_CONTENT;
     exceptions {
         ResourceError NOT_FOUND;
@@ -42,7 +42,7 @@ resource ServiceIdentity DELETE "/domain/{domain}/service/{service}" {
     DomainName domain; //name of the domain
     SimpleName service; //name of the service to be deleted
     String      auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
-    authorize ("delete", "{domain}:service"); 
+    authorize ("delete", "{domain}:service.{service}");
     expected NO_CONTENT;
     exceptions {
         ResourceError NOT_FOUND;

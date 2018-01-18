@@ -1035,7 +1035,7 @@ public class ZMSSchema {
             .pathParam("service", "SimpleName", "name of the service")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .input("detail", "ServiceIdentity", "ServiceIdentity object to be added/updated in the domain")
-            .auth("update", "{domain}:service")
+            .auth("update", "{domain}:service.{service}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 
@@ -1072,7 +1072,7 @@ public class ZMSSchema {
             .pathParam("domain", "DomainName", "name of the domain")
             .pathParam("service", "SimpleName", "name of the service to be deleted")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
-            .auth("delete", "{domain}:service")
+            .auth("delete", "{domain}:service.{service}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 
