@@ -1060,7 +1060,7 @@ public class ZMSResources {
     public ServiceIdentity putServiceIdentity(@PathParam("domain") String domain, @PathParam("service") String service, @HeaderParam("Y-Audit-Ref") String auditRef, ServiceIdentity detail) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
-            context.authorize("update", "" + domain + ":service", null);
+            context.authorize("update", "" + domain + ":service." + service + "", null);
             ServiceIdentity e = this.delegate.putServiceIdentity(context, domain, service, auditRef, detail);
             return null;
         } catch (ResourceException e) {
@@ -1120,7 +1120,7 @@ public class ZMSResources {
     public ServiceIdentity deleteServiceIdentity(@PathParam("domain") String domain, @PathParam("service") String service, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
-            context.authorize("delete", "" + domain + ":service", null);
+            context.authorize("delete", "" + domain + ":service." + service + "", null);
             ServiceIdentity e = this.delegate.deleteServiceIdentity(context, domain, service, auditRef);
             return null;
         } catch (ResourceException e) {
