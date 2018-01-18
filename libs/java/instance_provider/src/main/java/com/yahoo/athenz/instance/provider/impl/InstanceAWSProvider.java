@@ -18,7 +18,6 @@ package com.yahoo.athenz.instance.provider.impl;
 import java.io.File;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -355,32 +354,19 @@ public class InstanceAWSProvider implements InstanceProvider {
             throw error("Unable to validate certificate request hostnames");
         }
         
-        // if we have no document then we can only issue client
-        // certs (e.g. support for lambda)
+        // validate our document against given signature
         
-        final String document = info.getDocument();
-        if (document != null && !document.isEmpty()) {
-            
-            // validate our document against given signature
-            
-            StringBuilder errMsg = new StringBuilder(256);
-            if (!validateAWSDocument(confirmation.getProvider(), info,
-                    awsAccount, instanceId.toString(), errMsg)) {
-                LOGGER.error("validateAWSDocument: {}", errMsg.toString());
-                throw error("Unable to validate AWS document: " + errMsg.toString());
-            }
-            
-            // reset the attributes received from the server
-
-            confirmation.setAttributes(null);
-
-        } else {
-            
-            Map<String, String> attributes = new HashMap<>();
-            attributes.put(ZTS_CERT_USAGE, ZTS_CERT_USAGE_CLIENT);
-            confirmation.setAttributes(attributes);
+        StringBuilder errMsg = new StringBuilder(256);
+        if (!validateAWSDocument(confirmation.getProvider(), info,
+                awsAccount, instanceId.toString(), errMsg)) {
+            LOGGER.error("validateAWSDocument: {}", errMsg.toString());
+            throw error("Unable to validate AWS document: " + errMsg.toString());
         }
-        
+            
+        // set the attributes received from the server
+
+        setConfirmationAttributes(confirmation);
+
         // verify that the temporary credentials specified in the request
         // can be used to assume the given role thus verifying the
         // instance identity
@@ -440,6 +426,13 @@ public class InstanceAWSProvider implements InstanceProvider {
         }
         
         return confirmation;
+    }
+    
+    void setConfirmationAttributes(InstanceConfirmation confirmation) {
+        
+        // reset the attributes received from the server
+
+        confirmation.setAttributes(null);
     }
     
     AWSSecurityTokenServiceClient getInstanceClient(AWSAttestationData info) {
