@@ -16,8 +16,10 @@
 package com.yahoo.athenz.instance.provider.impl;
 
 import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 
 import java.util.HashMap;
 
@@ -75,7 +77,7 @@ public class InstanceAWSLambdaProviderTest {
                 .setDomain("athenz").setProvider("provider").setService("service");
         HashMap<String, String> attributes = new HashMap<>();
         attributes.put("cloudAccount", "1234");
-        attributes.put("sanDNS", "service.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
+        attributes.put("sanDNS", "service.athenz.athenz.cloud");
         confirmation.setAttributes(attributes);
         
         InstanceConfirmation result = provider.confirmInstance(confirmation);
@@ -97,12 +99,90 @@ public class InstanceAWSLambdaProviderTest {
                 .setDomain("athenz").setProvider("provider").setService("service");
         HashMap<String, String> attributes = new HashMap<>();
         attributes.put("cloudAccount", "1234");
-        attributes.put("sanDNS", "service.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
+        attributes.put("sanDNS", "service.athenz.athenz.cloud");
         confirmation.setAttributes(attributes);
         
         InstanceConfirmation result = provider.confirmInstance(confirmation);
         assertEquals(result.getAttributes().get("certUsage"), "client");
         assertEquals(result.getDomain(), "athenz");
         System.clearProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX);
+    }
+    
+    @Test
+    public void testValidateCertRequestHostnamesNullSuffix() {
+        System.clearProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX);
+        InstanceAWSLambdaProvider provider = new InstanceAWSLambdaProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", null);
+
+        assertFalse(provider.validateCertRequestHostnames(null,  null,  null,  null));
+        provider.close();
+    }
+    
+    @Test
+    public void testValidateCertRequestHostnamesEmptySuffix() {
+        System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "");
+        InstanceAWSLambdaProvider provider = new InstanceAWSLambdaProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", null);
+
+        assertFalse(provider.validateCertRequestHostnames(null,  null,  null,  null));
+        provider.close();
+    }
+    
+    @Test
+    public void testValidateCertRequestHostnamesNullHostnames() {
+        InstanceAWSLambdaProvider provider = new InstanceAWSLambdaProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", null);
+        
+        HashMap<String, String> attributes = new HashMap<>();
+        StringBuilder id = new StringBuilder(256);
+        assertFalse(provider.validateCertRequestHostnames(attributes, "athenz", "api", id));
+        provider.close();
+    }
+    
+    @Test
+    public void testValidateCertRequestHostnamesEmptyHostnames() {
+        InstanceAWSLambdaProvider provider = new InstanceAWSLambdaProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", null);
+        
+        HashMap<String, String> attributes = new HashMap<>();
+        attributes.put("sanDNS", "");
+        StringBuilder id = new StringBuilder(256);
+        assertFalse(provider.validateCertRequestHostnames(attributes, "athenz", "api", id));
+        provider.close();
+    }
+    
+    @Test
+    public void testValidateCertRequestHostnamesInvalidHost() {
+        InstanceAWSLambdaProvider provider = new InstanceAWSLambdaProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", null);
+        
+        HashMap<String, String> attributes = new HashMap<>();
+        attributes.put("sanDNS", "storage.athenz.athenz.cloud");
+        
+        StringBuilder id = new StringBuilder(256);
+        assertFalse(provider.validateCertRequestHostnames(attributes, "athenz", "api",  id));
+        provider.close();
+    }
+    
+    @Test
+    public void testValidateCertRequestHostnames() {
+        InstanceAWSLambdaProvider provider = new InstanceAWSLambdaProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", null);
+        
+        HashMap<String, String> attributes = new HashMap<>();
+        attributes.put("sanDNS", "api.athenz.athenz.cloud");
+        assertTrue(provider.validateCertRequestHostnames(attributes, "athenz", "api", null));
+        provider.close();
+    }
+    
+    @Test
+    public void testValidateCertRequestHostnamesSubdomain() {
+        InstanceAWSLambdaProvider provider = new InstanceAWSLambdaProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", null);
+        
+        HashMap<String, String> attributes = new HashMap<>();
+        attributes.put("sanDNS", "api.athenz-platforms.athenz.cloud");
+        assertTrue(provider.validateCertRequestHostnames(attributes, "athenz.platforms", "api", null));
+        provider.close();
     }
 }

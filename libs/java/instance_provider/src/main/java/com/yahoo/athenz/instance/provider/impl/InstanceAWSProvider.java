@@ -40,7 +40,7 @@ import com.yahoo.rdl.Timestamp;
 
 public class InstanceAWSProvider implements InstanceProvider {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(InstanceAWSProvider.class);
+    protected static final Logger LOGGER = LoggerFactory.getLogger(InstanceAWSProvider.class);
     
     public static final String ATTR_ACCOUNT_ID   = "accountId";
     public static final String ATTR_REGION       = "region";
@@ -254,6 +254,7 @@ public class InstanceAWSProvider implements InstanceProvider {
             LOGGER.error("No AWS DNS suffix specified for validation");
             return false;
         }
+        
         // first check to see if we're given any hostnames to validate
         // if the list is empty then something is not right thus we'll
         // reject the request
