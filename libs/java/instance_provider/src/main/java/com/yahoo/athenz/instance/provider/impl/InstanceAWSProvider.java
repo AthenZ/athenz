@@ -40,7 +40,7 @@ import com.yahoo.rdl.Timestamp;
 
 public class InstanceAWSProvider implements InstanceProvider {
 
-    protected static final Logger LOGGER = LoggerFactory.getLogger(InstanceAWSProvider.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(InstanceAWSProvider.class);
     
     public static final String ATTR_ACCOUNT_ID   = "accountId";
     public static final String ATTR_REGION       = "region";

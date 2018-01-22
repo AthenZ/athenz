@@ -41,41 +41,4 @@ public class InstanceAWSLambdaProvider extends InstanceAWSProvider {
         attributes.put(ZTS_CERT_USAGE, ZTS_CERT_USAGE_CLIENT);
         confirmation.setAttributes(attributes);
     }
-    
-    @Override
-    boolean validateCertRequestHostnames(final Map<String, String> attributes, final String domain,
-            final String service, StringBuilder instanceId) {
-        
-        // make sure we have valid dns suffix specified
-        
-        if (dnsSuffix == null || dnsSuffix.isEmpty()) {
-            LOGGER.error("No AWS DNS suffix specified for validation");
-            return false;
-        }
-        
-        // first check to see if we're given any hostnames to validate
-        // if the list is empty then something is not right thus we'll
-        // reject the request
-        
-        final String hostnames = getInstanceProperty(attributes, ZTS_INSTANCE_SAN_DNS);
-        if (hostnames == null || hostnames.isEmpty()) {
-            LOGGER.error("Request contains no SAN DNS entries for validation");
-            return false;
-        }
-        
-        // generate the expected hostname for check
-        
-        final String hostNameCheck = service + "." + domain.replace('.', '-') + "." + dnsSuffix;
-        
-        // we only allow a single hostname in our AWS Lambda CSR:
-        // service.<domain-with-dashes>.<dns-suffix>
-        
-        if (!hostNameCheck.equals(hostnames)) {
-            LOGGER.error("Unable to verify SAN DNS entry: {}, expecting {}",
-                    hostnames, hostNameCheck);
-            return false;
-        }
-
-        return true;
-    }
 }

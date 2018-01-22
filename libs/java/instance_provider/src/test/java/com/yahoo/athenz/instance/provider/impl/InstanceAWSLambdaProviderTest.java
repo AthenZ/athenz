@@ -77,7 +77,7 @@ public class InstanceAWSLambdaProviderTest {
                 .setDomain("athenz").setProvider("provider").setService("service");
         HashMap<String, String> attributes = new HashMap<>();
         attributes.put("cloudAccount", "1234");
-        attributes.put("sanDNS", "service.athenz.athenz.cloud");
+        attributes.put("sanDNS", "service.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
         confirmation.setAttributes(attributes);
         
         InstanceConfirmation result = provider.confirmInstance(confirmation);
@@ -99,7 +99,7 @@ public class InstanceAWSLambdaProviderTest {
                 .setDomain("athenz").setProvider("provider").setService("service");
         HashMap<String, String> attributes = new HashMap<>();
         attributes.put("cloudAccount", "1234");
-        attributes.put("sanDNS", "service.athenz.athenz.cloud");
+        attributes.put("sanDNS", "service.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
         confirmation.setAttributes(attributes);
         
         InstanceConfirmation result = provider.confirmInstance(confirmation);
@@ -171,7 +171,9 @@ public class InstanceAWSLambdaProviderTest {
         
         HashMap<String, String> attributes = new HashMap<>();
         attributes.put("sanDNS", "api.athenz.athenz.cloud");
-        assertTrue(provider.validateCertRequestHostnames(attributes, "athenz", "api", null));
+        attributes.put("sanDNS", "api.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
+        StringBuilder id = new StringBuilder(256);
+        assertTrue(provider.validateCertRequestHostnames(attributes, "athenz", "api", id));
         provider.close();
     }
     
@@ -181,8 +183,9 @@ public class InstanceAWSLambdaProviderTest {
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", null);
         
         HashMap<String, String> attributes = new HashMap<>();
-        attributes.put("sanDNS", "api.athenz-platforms.athenz.cloud");
-        assertTrue(provider.validateCertRequestHostnames(attributes, "athenz.platforms", "api", null));
+        attributes.put("sanDNS", "api.athenz-platforms.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
+        StringBuilder id = new StringBuilder(256);
+        assertTrue(provider.validateCertRequestHostnames(attributes, "athenz.platforms", "api", id));
         provider.close();
     }
 }
