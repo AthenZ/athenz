@@ -643,4 +643,10 @@ public class CryptoTest {
         assertEquals(ips.get(0), "10.11.12.13");
         assertEquals(ips.get(1), "10.11.12.14");
     }
+    
+    @Test
+    public void testGenerateRSAPrivateKey() {
+        PrivateKey pkey = Crypto.generateRSAPrivateKey(1024);
+        assertNotNull(pkey);
+    }
 }
