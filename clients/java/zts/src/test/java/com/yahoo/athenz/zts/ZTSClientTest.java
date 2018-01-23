@@ -53,6 +53,8 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.ServiceIdentityProvider;
@@ -523,7 +525,7 @@ public class ZTSClientTest {
         Principal principal = SimplePrincipal.create("sports", "hockey",
                 "v=S1;d=sports;n=hockey;s=sig", principalAuthority);
         
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         ztsClientMock.setRoleName("role1");
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
         client.setZTSRDLGeneratedClient(ztsClientMock);
@@ -742,7 +744,7 @@ public class ZTSClientTest {
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "auth_creds", PRINCIPAL_AUTHORITY);
         
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         ztsClientMock.setRoleName("role1");
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
         client.setZTSRDLGeneratedClient(ztsClientMock);
@@ -775,7 +777,7 @@ public class ZTSClientTest {
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "auth_creds", PRINCIPAL_AUTHORITY);
         
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         ztsClientMock.setRoleName("role1");
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
         client.setZTSRDLGeneratedClient(ztsClientMock);
@@ -815,7 +817,7 @@ public class ZTSClientTest {
     @Test
     public void testPrefetchRoleTokenShouldNotCallServer() throws Exception {
 
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         ztsClientMock.setRoleName("role1");
         long intervalSecs = Integer.parseInt(System.getProperty(ZTSClient.ZTS_CLIENT_PROP_PREFETCH_SLEEP_INTERVAL, "5"));
         ztsClientMock.setTestSleepInterval(intervalSecs);
@@ -915,7 +917,7 @@ public class ZTSClientTest {
     public void testPrefetchRoleTokenWithUserDataShouldNotCallServer() throws Exception {
         System.out.println("testPrefetchRoleTokenShouldNotCallServer");
 
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         ztsClientMock.setRoleName("role1");
         long intervalSecs = Integer.parseInt(System.getProperty(ZTSClient.ZTS_CLIENT_PROP_PREFETCH_SLEEP_INTERVAL, "5"));
         ztsClientMock.setTestSleepInterval(intervalSecs);
@@ -1027,7 +1029,7 @@ public class ZTSClientTest {
     public void testPrefetchAwsCredShouldNotCallServer() throws Exception {
         System.out.println("testPrefetchAwsCredShouldNotCallServer");
 
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         ztsClientMock.setRoleName("role1");
         long intervalSecs = Integer.parseInt(System.getProperty(ZTSClient.ZTS_CLIENT_PROP_PREFETCH_SLEEP_INTERVAL, "5"));
         ztsClientMock.setTestSleepInterval(intervalSecs);
@@ -1151,7 +1153,7 @@ public class ZTSClientTest {
     public void testPrefetchShouldNotCallServer() throws Exception {
         System.out.println("testPrefetchShouldNotCallServer");
 
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         ztsClientMock.setRoleName("role1");
         long intervalSecs = Integer.parseInt(System.getProperty(ZTSClient.ZTS_CLIENT_PROP_PREFETCH_SLEEP_INTERVAL, "5"));
         ztsClientMock.setTestSleepInterval(intervalSecs);
@@ -1294,7 +1296,7 @@ public class ZTSClientTest {
     public void testPrefetchRoleTokenShouldCallServer() throws Exception {
         System.out.println("testPrefetchRoleTokenShouldCallServer");
         
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         int intervalSecs = Integer.parseInt(System.getProperty(ZTSClient.ZTS_CLIENT_PROP_PREFETCH_SLEEP_INTERVAL, "5"));
         ztsClientMock.setTestSleepInterval(intervalSecs);
         ztsClientMock.setExpiryTime(intervalSecs); // token expires in 5 seconds
@@ -1388,7 +1390,7 @@ public class ZTSClientTest {
     public void testPrefetchAwsCredShouldCallServer() throws Exception {
         System.out.println("testPrefetchAwsCredShouldCallServer");
         
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         int intervalSecs = Integer.parseInt(System.getProperty(ZTSClient.ZTS_CLIENT_PROP_PREFETCH_SLEEP_INTERVAL, "5"));
         ztsClientMock.setTestSleepInterval(intervalSecs);
         ztsClientMock.setExpiryTime(intervalSecs); // token expires in 5 seconds
@@ -1499,7 +1501,7 @@ public class ZTSClientTest {
     public void testPrefetchShouldCallServer() throws Exception {
         System.out.println("testPrefetchShouldCallServer");
         
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         int intervalSecs = Integer.parseInt(System.getProperty(ZTSClient.ZTS_CLIENT_PROP_PREFETCH_SLEEP_INTERVAL, "5"));
         ztsClientMock.setTestSleepInterval(intervalSecs);
         ztsClientMock.setExpiryTime(intervalSecs); // token expires in 5 seconds
@@ -1632,7 +1634,7 @@ public class ZTSClientTest {
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "auth_creds", PRINCIPAL_AUTHORITY);
 
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
         client.removePrefetcher();
         client.setZTSRDLGeneratedClient(ztsClientMock);
@@ -1658,7 +1660,7 @@ public class ZTSClientTest {
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "auth_creds", PRINCIPAL_AUTHORITY);
 
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
         client.removePrefetcher();
         client.setZTSRDLGeneratedClient(ztsClientMock);
@@ -1683,7 +1685,7 @@ public class ZTSClientTest {
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "auth_creds", PRINCIPAL_AUTHORITY);
 
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
         client.removePrefetcher();
         client.setZTSRDLGeneratedClient(ztsClientMock);
@@ -1707,7 +1709,7 @@ public class ZTSClientTest {
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "auth_creds", PRINCIPAL_AUTHORITY);
 
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
         client.removePrefetcher();
         client.setZTSRDLGeneratedClient(ztsClientMock);
@@ -1731,7 +1733,7 @@ public class ZTSClientTest {
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "auth_creds", PRINCIPAL_AUTHORITY);
         
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         ztsClientMock.setRoleName("role1");
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
         client.removePrefetcher();
@@ -1760,7 +1762,7 @@ public class ZTSClientTest {
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "auth_creds", PRINCIPAL_AUTHORITY);
         
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         ztsClientMock.setRoleName("role1");
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
         client.removePrefetcher();
@@ -1794,7 +1796,7 @@ public class ZTSClientTest {
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "auth_creds", PRINCIPAL_AUTHORITY);
         
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         ztsClientMock.setRoleName("role1");
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
         client.removePrefetcher();
@@ -1825,7 +1827,7 @@ public class ZTSClientTest {
     
     @Test
     public void testGetDomainSignedPolicyDataNull() {
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
@@ -1840,7 +1842,7 @@ public class ZTSClientTest {
     
     @Test
     public void testGetDomainSignedPolicyData() {
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         ztsClientMock.setPolicyName("policy1");
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
@@ -1877,7 +1879,7 @@ public class ZTSClientTest {
     
     @Test
     public void testGetTenantDomains() {
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         List<String> tenantDomains = new ArrayList<>();
         tenantDomains.add("iaas.athenz");
         tenantDomains.add("coretech.storage");
@@ -1908,7 +1910,7 @@ public class ZTSClientTest {
     public void testGetAWSTemporaryCredentials() {
         
         Timestamp currentTime = Timestamp.fromCurrentTime();
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         ztsClientMock.setAwsCreds(currentTime, "coretech", "role", "sessionToken",
                 "secretAccessKey", "accessKeyId");
         Principal principal = SimplePrincipal.create("user_domain", "user",
@@ -1940,7 +1942,7 @@ public class ZTSClientTest {
     
     @Test
     public void testGetAWSTemporaryCredentialsException() {
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
@@ -1969,7 +1971,7 @@ public class ZTSClientTest {
     @Test
     public void testHostnamVerifierDnsMatchStandard() {
         
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
@@ -2008,7 +2010,7 @@ public class ZTSClientTest {
     @Test
     public void testHostnamVerifierDnsMatchWildcard() {
         
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
@@ -2047,7 +2049,7 @@ public class ZTSClientTest {
     @Test
     public void testHostnamVerifierDnsMatchNone() {
         
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
@@ -2072,7 +2074,7 @@ public class ZTSClientTest {
     @Test
     public void testHostnamVerifierDnsNull() {
         
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
@@ -2096,7 +2098,7 @@ public class ZTSClientTest {
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "auth_creds", PRINCIPAL_AUTHORITY);
         
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
         client.setZTSRDLGeneratedClient(ztsClientMock);
 
@@ -2113,7 +2115,7 @@ public class ZTSClientTest {
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "auth_creds", PRINCIPAL_AUTHORITY);
         
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
         client.setZTSRDLGeneratedClient(ztsClientMock);
 
@@ -2133,7 +2135,7 @@ public class ZTSClientTest {
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "auth_creds", PRINCIPAL_AUTHORITY);
         
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         ztsClientMock.setRoleName("role1");
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
         client.setZTSRDLGeneratedClient(ztsClientMock);
@@ -2154,7 +2156,7 @@ public class ZTSClientTest {
     @Test
     public void testGetRoleAccess() {
         
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
@@ -2184,7 +2186,7 @@ public class ZTSClientTest {
     @Test
     public void testGetAccess() {
     
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
@@ -2209,7 +2211,7 @@ public class ZTSClientTest {
     @Test
     public void testGetResourceAccess() {
     
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
@@ -2237,7 +2239,7 @@ public class ZTSClientTest {
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "auth_creds", PRINCIPAL_AUTHORITY);
         
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
         client.setZTSRDLGeneratedClient(ztsClientMock);
 
@@ -2259,7 +2261,7 @@ public class ZTSClientTest {
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "auth_creds", PRINCIPAL_AUTHORITY);
         
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
         client.setZTSRDLGeneratedClient(ztsClientMock);
 
@@ -2310,7 +2312,7 @@ public class ZTSClientTest {
     
     @Test
     public void testHostNameVerifierVerifyCertNull() throws SSLPeerUnverifiedException {
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
@@ -2353,7 +2355,7 @@ public class ZTSClientTest {
     
     @Test
     public void testHostNameVerifierVerifyCert() throws CertificateException, IOException {
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
@@ -2380,7 +2382,7 @@ public class ZTSClientTest {
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "auth_creds", PRINCIPAL_AUTHORITY);
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         client.setZTSRDLGeneratedClient(ztsClientMock);
 
         RoleCertificateRequest req = new RoleCertificateRequest().setCsr("csr");
@@ -2458,7 +2460,7 @@ public class ZTSClientTest {
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "auth_creds", PRINCIPAL_AUTHORITY);
         
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
         client.setZTSRDLGeneratedClient(ztsClientMock);
 
@@ -2482,7 +2484,7 @@ public class ZTSClientTest {
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "auth_creds", PRINCIPAL_AUTHORITY);
         
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
         client.setZTSRDLGeneratedClient(ztsClientMock);
 
@@ -2508,7 +2510,7 @@ public class ZTSClientTest {
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "auth_creds", PRINCIPAL_AUTHORITY);
         
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
         client.setZTSRDLGeneratedClient(ztsClientMock);
 
@@ -2529,7 +2531,7 @@ public class ZTSClientTest {
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "auth_creds", PRINCIPAL_AUTHORITY);
         
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
         client.setZTSRDLGeneratedClient(ztsClientMock);
 
@@ -2552,7 +2554,7 @@ public class ZTSClientTest {
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "auth_creds", PRINCIPAL_AUTHORITY);
         
-        ZTSClientMock ztsClientMock = new ZTSClientMock();
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
         client.setZTSRDLGeneratedClient(ztsClientMock);
 
@@ -2585,5 +2587,47 @@ public class ZTSClientTest {
         roles.add("ones");
         
         assertEquals(ZTSClient.multipleRoleKey(roles), "apple,one,ones,role,yellow");
+    }
+    
+    @Test
+    public void testGetAssumeRoleRequest() {
+
+        ZTSClient client = new ZTSClient("http://localhost:4080");
+        AssumeRoleRequest req = client.getAssumeRoleRequest("1234", "role1");
+        assertNotNull(req);
+        assertEquals(req.getRoleArn(), "arn:aws:iam::1234:role/role1");
+        assertEquals(req.getRoleSessionName(), "role1");
+        client.close();
+    }
+    
+    @Test
+    public void testGetAWSLambdaAttestationData() throws IOException {
+        ZTSClientMock client = new ZTSClientMock("http://localhost:4080");
+        String jsonData = client.getAWSLambdaAttestationData("athenz.service", "12345");
+        
+        // convert data into our object
+        
+        ObjectMapper mapper = new ObjectMapper();
+        AWSAttestationData data = mapper.readValue(jsonData, AWSAttestationData.class);
+        assertEquals(data.getAccess(), "access");
+        assertEquals(data.getRole(), "athenz.service");
+        assertEquals(data.getSecret(), "secret");
+        assertEquals(data.getToken(), "token");
+        
+        client.close();
+    }
+    
+    @Test
+    public void testGetAWSLambdaServiceCertificate() {
+        
+        ZTSClientMock client = new ZTSClientMock("http://localhost:4080");
+        ZTSClientMock.setX509CsrDetails("o=Athenz", "athenz.cloud");
+        
+        AWSLambdaIdentity identity = client.getAWSLambdaServiceCertificate("athenz", "service", "1234", "provider");
+        assertNotNull(identity);
+        assertNotNull(identity.getPrivateKey());
+        assertNotNull(identity.getX509Certificate());
+        
+        client.close();
     }
 }

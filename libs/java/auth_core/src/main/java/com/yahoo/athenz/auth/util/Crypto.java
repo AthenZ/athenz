@@ -31,6 +31,7 @@ import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
+import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
@@ -648,6 +649,24 @@ public class Crypto {
         }
     }
 
+    /**
+     * Generate a RSA private with the given number of bits
+     * @param bits numbers of bits
+     * @return PrivateKey private key
+     * @throws CryptoException
+     */
+    public static PrivateKey generateRSAPrivateKey(int bits) throws CryptoException {
+        KeyPairGenerator keyGen;
+        try {
+            keyGen = KeyPairGenerator.getInstance(RSA);
+        } catch (NoSuchAlgorithmException e) {
+            LOG.error("generatePrivateKey: Caught NoSuchAlgorithmException, check to make sure the algorithm is supported by the provider.");
+            throw new CryptoException(e);
+        }
+        keyGen.initialize(bits);
+        return keyGen.genKeyPair().getPrivate();
+    }
+    
     public static String randomSalt() {
         long v = RANDOM.nextLong();
         return Long.toHexString(v);

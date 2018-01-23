@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -59,11 +60,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
+import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
+import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
+import com.amazonaws.services.securitytoken.model.Credentials;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.auth.ServiceIdentityProvider;
 import com.yahoo.athenz.auth.impl.RoleAuthority;
 import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.common.config.AthenzConfig;
 import com.yahoo.athenz.common.utils.SSLUtils;
 import com.yahoo.athenz.common.utils.SSLUtils.ClientSSLContextBuilder;
@@ -1600,6 +1608,156 @@ public class ZTSClient implements Closeable {
     }
 
     /**
+     * For AWS Lambda functions generate a new private key, request a
+     * x.509 certificate based on the requested CSR and return both to
+     * the client in order to establish tls connections with other
+     * Athenz enabled services.
+     * @param domainName name of the domain
+     * @param serviceName name of the service
+     * @param account AWS account name that the function runs in
+     * @param provider name of the provider service for AWS Lambda
+     * @return AWSLambdaIdentity with private key and certificate
+     */
+    public AWSLambdaIdentity getAWSLambdaServiceCertificate(String domainName,
+            String serviceName, String account, String provider) {
+        
+        if (domainName == null || serviceName == null) {
+            throw new IllegalArgumentException("Domain and Service must be specified");
+        }
+        
+        if (account == null || provider == null) {
+            throw new IllegalArgumentException("AWS Account and Provider must be specified");
+        }
+        
+        if (x509CsrDomain == null) {
+            throw new IllegalArgumentException("X509 CSR Domain must be specified");
+        }
+        
+        // first we're going to generate a private key for the request
+        
+        AWSLambdaIdentity lambdaIdentity = new AWSLambdaIdentity();
+        try {
+            lambdaIdentity.setPrivateKey(Crypto.generateRSAPrivateKey(2048));
+        } catch (CryptoException ex) {
+            throw new ZTSClientException(ZTSClientException.BAD_REQUEST, ex.getMessage());
+        }
+
+        // we need to generate an csr with an instance register object
+        
+        InstanceRegisterInformation info = new InstanceRegisterInformation();
+        info.setDomain(domainName.toLowerCase());
+        info.setService(serviceName.toLowerCase());
+        info.setProvider(provider.toLowerCase());
+
+        final String athenzService = info.getDomain() + "." + info.getService();
+        
+        // generate our dn which will be based on our service name
+
+        StringBuilder dnBuilder = new StringBuilder(128);
+        dnBuilder.append("cn=");
+        dnBuilder.append(athenzService);
+        if (x509CsrDn != null) {
+            dnBuilder.append(',');
+            dnBuilder.append(x509CsrDn);
+        }
+        
+        // now let's generate our dsnName field based on our principal's details
+        
+        StringBuilder hostBuilder = new StringBuilder(128);
+        hostBuilder.append(info.getService());
+        hostBuilder.append('.');
+        hostBuilder.append(info.getDomain().replace('.', '-'));
+        hostBuilder.append('.');
+        hostBuilder.append(x509CsrDomain);
+        
+        StringBuilder instanceHostBuilder = new StringBuilder(128);
+        instanceHostBuilder.append("lambda-");
+        instanceHostBuilder.append(account);
+        instanceHostBuilder.append('-');
+        instanceHostBuilder.append(info.getService());
+        instanceHostBuilder.append(".instanceid.athenz.");
+        instanceHostBuilder.append(x509CsrDomain);
+        
+        GeneralName[] sanArray = new GeneralName[2];
+        sanArray[0] = new GeneralName(GeneralName.dNSName, new DERIA5String(hostBuilder.toString()));
+        sanArray[1] = new GeneralName(GeneralName.dNSName, new DERIA5String(instanceHostBuilder.toString()));
+        
+        // next generate the csr based on our private key and data
+        
+        try {
+            info.setCsr(Crypto.generateX509CSR(lambdaIdentity.getPrivateKey(),
+                    dnBuilder.toString(), sanArray));
+        } catch (OperatorCreationException | IOException ex) {
+            throw new ZTSClientException(ZTSClientException.BAD_REQUEST, ex.getMessage());
+        }
+        
+        // finally obtain attestation data for lambda
+        
+        info.setAttestationData(getAWSLambdaAttestationData(athenzService, account));
+        
+        // request the x.509 certificate from zts server
+        
+        Map<String, List<String>> responseHeaders = new HashMap<>();
+        InstanceIdentity identity = postInstanceRegisterInformation(info, responseHeaders);
+        
+        try {
+            lambdaIdentity.setX509Certificate(Crypto.loadX509Certificate(identity.getX509Certificate()));
+        } catch (CryptoException ex) {
+            throw new ZTSClientException(ZTSClientException.BAD_REQUEST, ex.getMessage());
+        }
+
+        return lambdaIdentity;
+    }
+    
+    String getAWSLambdaAttestationData(final String athenzService, final String account) {
+        
+        AWSAttestationData data = new AWSAttestationData();
+        data.setRole(athenzService);
+        
+        Credentials awsCreds = assumeAWSRole(account, athenzService);
+        data.setAccess(awsCreds.getAccessKeyId());
+        data.setSecret(awsCreds.getSecretAccessKey());
+        data.setToken(awsCreds.getSessionToken());
+        
+        ObjectMapper mapper = new ObjectMapper();
+        String jsonData = null;
+        try {
+            jsonData = mapper.writeValueAsString(data);
+        } catch (JsonProcessingException ex) {
+            LOG.error("Unable to generate attestation json data: {}", ex.getMessage());
+        }
+        
+        return jsonData;
+    }
+    
+    AssumeRoleRequest getAssumeRoleRequest(String account, String roleName) {
+        
+        // assume the target role to get the credentials for the client
+        // aws format is arn:aws:iam::<account-id>:role/<role-name>
+        
+        final String arn = "arn:aws:iam::" + account + ":role/" + roleName;
+        
+        AssumeRoleRequest req = new AssumeRoleRequest();
+        req.setRoleArn(arn);
+        req.setRoleSessionName(roleName);
+        
+        return req;
+    }
+    
+    Credentials assumeAWSRole(String account, String roleName) {
+        
+        try {
+            AssumeRoleRequest req = getAssumeRoleRequest(account, roleName);
+            AWSSecurityTokenServiceClient client = new AWSSecurityTokenServiceClient();
+            AssumeRoleResult res = client.assumeRole(req);
+            return res.getCredentials();
+        } catch (Exception ex) {
+            LOG.error("assumeAWSRole - unable to assume role: " + ex.getMessage());
+            return null;
+        }
+    }
+    
+    /**
      * AWSCredential Provider provides AWS Credentials which the caller can
      * use to authorize an AWS request. It automatically refreshes the credentials
      * when the current credentials become invalid.
@@ -1619,11 +1777,10 @@ public class ZTSClient implements Closeable {
      * For a given domain and role return AWS temporary credentials
      *
      * @param domainName name of the domain
-     * @param roleName   is the name of the role
+     * @param roleName is the name of the role
      * @return AWSTemporaryCredentials AWS credentials
      */
     public AWSTemporaryCredentials getAWSTemporaryCredentials(String domainName, String roleName) {
-        
         return getAWSTemporaryCredentials(domainName, roleName, false);
     }
     
@@ -1649,7 +1806,9 @@ public class ZTSClient implements Closeable {
             if (awsCred != null) {
                 return awsCred;
             }
+            
             // start prefetch for this token if prefetch is enabled
+            
             if (enablePrefetch && prefetchAutoEnable) {
                 if (prefetchAwsCred(domainName, roleName, null, null)) {
                     awsCred = lookupAwsCredInCache(cacheKey, null, null);
