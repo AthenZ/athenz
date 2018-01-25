@@ -1477,7 +1477,7 @@ type TemplateParam struct {
 	//
 	// value of the parameter
 	//
-	Value SimpleName `json:"value"`
+	Value CompoundName `json:"value"`
 }
 
 //
@@ -1524,9 +1524,9 @@ func (self *TemplateParam) Validate() error {
 	if self.Value == "" {
 		return fmt.Errorf("TemplateParam.value is missing but is a required field")
 	} else {
-		val := rdl.Validate(ZMSSchema(), "SimpleName", self.Value)
+		val := rdl.Validate(ZMSSchema(), "CompoundName", self.Value)
 		if !val.Valid {
-			return fmt.Errorf("TemplateParam.value does not contain a valid SimpleName (%v)", val.Error)
+			return fmt.Errorf("TemplateParam.value does not contain a valid CompoundName (%v)", val.Error)
 		}
 	}
 	return nil
