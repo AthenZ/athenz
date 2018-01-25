@@ -69,7 +69,7 @@ func (cli Zms) SetDomainTemplate(dn string, templateArgs []string) (*string, err
 		} else {
 			param := zms.TemplateParam{
 				Name:  zms.SimpleName(value[0:idx]),
-				Value: zms.SimpleName(value[idx+1:]),
+				Value: zms.CompoundName(value[idx+1:]),
 			}
 			templateParams = append(templateParams, &param)
 		}

@@ -22,7 +22,7 @@ type TemplateList Struct {
 
 type TemplateParam Struct {
     SimpleName name; //name of the parameter
-    SimpleName value; //value of the parameter
+    CompoundName value; //value of the parameter
 }
 
 //solution template(s) to be applied to a domain

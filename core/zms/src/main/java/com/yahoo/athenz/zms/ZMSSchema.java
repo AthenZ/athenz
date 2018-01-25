@@ -185,7 +185,7 @@ public class ZMSSchema {
 
         sb.structType("TemplateParam")
             .field("name", "SimpleName", false, "name of the parameter")
-            .field("value", "SimpleName", false, "value of the parameter");
+            .field("value", "CompoundName", false, "value of the parameter");
 
         sb.structType("DomainTemplate", "TemplateList")
             .comment("solution template(s) to be applied to a domain")
