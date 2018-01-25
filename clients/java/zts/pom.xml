@@ -70,6 +70,11 @@
       <version>${jersey.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.glassfish.jersey.connectors</groupId>
+      <artifactId>jersey-apache-connector</artifactId>
+      <version>${jersey.version}</version>
+    </dependency>
+    <dependency>
       <groupId>com.yahoo.rdl</groupId>
       <artifactId>rdl-java</artifactId>
       <version>${rdl.version}</version>
@@ -165,6 +170,8 @@
                   <include>com.fasterxml.jackson.core</include>
                   <include>com.fasterxml.jackson.jaxrs</include>
                   <include>com.fasterxml.jackson.module</include>
+                  <include>org.glassfish.jersey.connectors</include>
+                  <include>org.apache.httpcomponents</include>
                   <include>javax.ws.rs</include>
                   <include>javax.annotation</include>
                   <include>javax.inject</include>
@@ -196,6 +203,10 @@
                 <relocation>
                   <pattern>org.glassfish.jersey</pattern>
                   <shadedPattern>athenz.shade.zts.org.glassfish.jersey</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.httpcomponents</pattern>
+                  <shadedPattern>athenz.shade.zts.org.apache.httpcomponents</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.glassfish.hk2</pattern>

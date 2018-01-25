@@ -50,6 +50,7 @@ public class ZTSTLSClient {
         final String certPath = cmd.getOptionValue("cert");
         final String trustStorePath = cmd.getOptionValue("trustStorePath");
         final String trustStorePassword = cmd.getOptionValue("trustStorePassword");
+        final String proxyUrl = cmd.getOptionValue("proxy");
 
         // we are going to setup our service private key and
         // certificate into a ssl context that we can use with
@@ -61,7 +62,7 @@ public class ZTSTLSClient {
             SSLContext sslContext = Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(),
                     keyRefresher.getTrustManagerProxy());
             
-            try (ZTSClient ztsClient = new ZTSClient(ztsUrl, sslContext)) {
+            try (ZTSClient ztsClient = new ZTSClient(ztsUrl, proxyUrl, sslContext)) {
                 try {
                     PublicKeyEntry publicKey = ztsClient.getPublicKeyEntry(domainName, serviceName, keyId);
                     System.out.println("PublicKey: " + publicKey.getKey());
@@ -112,6 +113,10 @@ public class ZTSTLSClient {
         Option ztsUrl = new Option("z", "ztsurl", true, "ZTS Server url");
         ztsUrl.setRequired(true);
         options.addOption(ztsUrl);
+        
+        Option proxyUrl = new Option("x", "proxy", true, "Proxy Server url");
+        proxyUrl.setRequired(false);
+        options.addOption(proxyUrl);
         
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();

@@ -179,6 +179,21 @@ public class ZMSClient implements Closeable {
         client.close();
     }
 
+    /**
+     * Set new ZMS Client configuration property. This method calls
+     * internal javax.ws.rs.client.Client client's property method.
+     * If already set, the existing value of the property will be updated.
+     * Setting a null value into a property effectively removes the property
+     * from the property bag.
+     * @param name property name.
+     * @param value property value. null value removes the property with the given name.
+     */
+    public void setProperty(String name, Object value) {
+        if (client != null) {
+            client.setProperty(name, value);
+        }
+    }
+    
     public void setZMSRDLGeneratedClient(ZMSRDLGeneratedClient client) {
         this.client = client;
     }
