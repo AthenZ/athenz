@@ -55,6 +55,8 @@ import javax.ws.rs.client.ClientBuilder;
 import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
+import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -256,7 +258,6 @@ public class ZTSClient implements Closeable {
      * @param interval time in seconds
      */
     public static void setPrefetchInterval(int interval) {
-        
         prefetchInterval = interval;
         if (prefetchInterval >= tokenMinExpiryTime) {
             prefetchInterval = 60;
@@ -264,7 +265,7 @@ public class ZTSClient implements Closeable {
     }
     /**
      * Set the minimum token expiry time. The server will not give out tokens
-     * less than configured expirty time
+     * less than configured expiry time
      * @param minExpiryTime expiry time in seconds
      */
     public static void setTokenMinExpiryTime(int minExpiryTime) {
@@ -325,7 +326,7 @@ public class ZTSClient implements Closeable {
      * milliseconds.
      */
     public ZTSClient() {
-        initClient(null, null, null, null, null);
+        initClient(null, null, null, null, null, null);
         enablePrefetch = false; // can't use this domain and service for prefetch
     }
     
@@ -344,7 +345,7 @@ public class ZTSClient implements Closeable {
      * @param ztsUrl ZTS Server's URL (optional)
      */
     public ZTSClient(String ztsUrl) {
-        initClient(ztsUrl, null, null, null, null);
+        initClient(ztsUrl, null, null, null, null, null);
         enablePrefetch = false; // can't use this domain and service for prefetch
     }
     
@@ -380,7 +381,7 @@ public class ZTSClient implements Closeable {
         if (identity.getAuthority() == null) {
             throw new IllegalArgumentException("Principal Authority cannot be null");
         }
-        initClient(ztsUrl, identity, null, null, null);
+        initClient(ztsUrl, null, identity, null, null, null);
         enablePrefetch = false; // can't use this domain and service for prefetch
     }
     
@@ -395,6 +396,22 @@ public class ZTSClient implements Closeable {
      * for authenticating requests
      */
     public ZTSClient(String ztsUrl, SSLContext sslContext) {
+        this(ztsUrl, null, sslContext);
+    }
+    
+    /**
+     * Constructs a new ZTSClient object with the given SSLContext object
+     * and ZTS Server Url through the specified Proxy URL. Default read
+     * and connect timeout values are 30000ms (30sec). The application can
+     * change these values by using the athenz.zts.client.read_timeout and
+     * athenz.zts.client.connect_timeout system properties. The values
+     * specified for timeouts must be in milliseconds.
+     * @param ztsUrl ZTS Server's URL
+     * @param proxyUrl Proxy Server's URL
+     * @param sslContext SSLContext that includes service's private key and x.509 certificate
+     * for authenticating requests
+     */
+    public ZTSClient(String ztsUrl, String proxyUrl, SSLContext sslContext) {
         
         // verify we have a valid ssl context specified
         
@@ -402,7 +419,7 @@ public class ZTSClient implements Closeable {
             throw new IllegalArgumentException("SSLContext object must be specified");
         }
         this.sslContext = sslContext;
-        initClient(ztsUrl, null, null, null, null);
+        initClient(ztsUrl, proxyUrl, null, null, null, null);
     }
     
     /**
@@ -446,7 +463,7 @@ public class ZTSClient implements Closeable {
         if (siaProvider == null) {
             throw new IllegalArgumentException("Service Identity Provider must be specified");
         }
-        initClient(ztsUrl, null, domainName, serviceName, siaProvider);
+        initClient(ztsUrl, null, null, domainName, serviceName, siaProvider);
     }
     
     /**
@@ -455,6 +472,21 @@ public class ZTSClient implements Closeable {
     @Override
     public void close() {
         ztsClient.close();
+    }
+    
+    /**
+     * Set new ZTS Client configuration property. This method calls
+     * internal javax.ws.rs.client.Client client's property method.
+     * If already set, the existing value of the property will be updated.
+     * Setting a null value into a property effectively removes the property
+     * from the property bag.
+     * @param name property name.
+     * @param value property value. null value removes the property with the given name.
+     */
+    public void setProperty(String name, Object value) {
+        if (ztsClient != null) {
+            ztsClient.setProperty(name, value);
+        }
     }
     
     void removePrefetcher() {
@@ -561,10 +593,11 @@ public class ZTSClient implements Closeable {
         return SSLUtils.loadServicePrivateKey(pkeyFactoryClass);
     }
     
-    void initClient(String url, Principal identity, String domainName, String serviceName,
-            ServiceIdentityProvider siaProvider) {
+    void initClient(final String serverUrl, final String proxyUrl, Principal identity,
+            final String domainName, final String serviceName,
+            final ServiceIdentityProvider siaProvider) {
         
-        ztsUrl = (url == null) ? confZtsUrl : url;
+        ztsUrl = (serverUrl == null) ? confZtsUrl : serverUrl;
         
         // verify if the url is ending with /zts/v1 and if it's
         // not we'll automatically append it
@@ -592,14 +625,28 @@ public class ZTSClient implements Closeable {
             sslContext = createSSLContext();
         }
         
+        // setup our client config object with timeouts
+        
+        final ClientConfig config = new ClientConfig();
+        config.property(ClientProperties.CONNECT_TIMEOUT, reqConnectTimeout);
+        config.property(ClientProperties.READ_TIMEOUT, reqReadTimeout);
+        
+        // if we're asked to use a proxy for our request
+        // we're going to set the property that is supported
+        // by the apache connector and use that
+        
+        if (proxyUrl != null) {
+            config.connectorProvider(new ApacheConnectorProvider());
+            config.property(ClientProperties.PROXY_URI, proxyUrl);
+        }
+        
         ClientBuilder builder = ClientBuilder.newBuilder();
         if (sslContext != null) {
             builder = builder.sslContext(sslContext);
             enablePrefetch = true;
         }
         Client rsClient = builder.hostnameVerifier(hostnameVerifier)
-            .property(ClientProperties.CONNECT_TIMEOUT, reqConnectTimeout)
-            .property(ClientProperties.READ_TIMEOUT, reqReadTimeout)
+            .withConfig(config)
             .build();
 
         ztsClient = new ZTSRDLGeneratedClient(ztsUrl, rsClient);
