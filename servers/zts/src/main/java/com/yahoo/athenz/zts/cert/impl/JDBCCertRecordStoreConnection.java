@@ -41,7 +41,7 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
             "(provider, instanceId, service, currentSerial, currentTime, currentIP, prevSerial, prevTime, prevIP, clientCert) " +
             "VALUES (?, ?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_X509_RECORD = "UPDATE certificates SET " +
-            "currentSerial=?, currentTime=?, currentIP=?, prevSerial=?, prevTime=?, prevIP=? " +
+            "currentSerial=?, currentTime=?, currentIP=?, prevSerial=?, prevTime=?, prevIP=?, service=?" +
             "WHERE provider=? AND instanceId=?;";
     private static final String SQL_DELETE_X509_RECORD = "DELETE from certificates " +
             "WHERE provider=? AND instanceId=?;";
@@ -144,8 +144,9 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
             ps.setString(4, certRecord.getPrevSerial());
             ps.setTimestamp(5, new java.sql.Timestamp(certRecord.getPrevTime().getTime()));
             ps.setString(6, certRecord.getPrevIP());
-            ps.setString(7, certRecord.getProvider());
-            ps.setString(8, certRecord.getInstanceId());
+            ps.setString(7, certRecord.getService());
+            ps.setString(8, certRecord.getProvider());
+            ps.setString(9, certRecord.getInstanceId());
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
