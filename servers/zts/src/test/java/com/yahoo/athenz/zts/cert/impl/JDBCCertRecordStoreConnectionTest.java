@@ -178,8 +178,9 @@ public class JDBCCertRecordStoreConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(3, "current-ip");
         Mockito.verify(mockPrepStmt, times(1)).setString(4, "prev-serial");
         Mockito.verify(mockPrepStmt, times(1)).setString(6, "prev-ip");
-        Mockito.verify(mockPrepStmt, times(1)).setString(7, "ostk");
-        Mockito.verify(mockPrepStmt, times(1)).setString(8, "instance-id");
+        Mockito.verify(mockPrepStmt, times(1)).setString(7, "cn");
+        Mockito.verify(mockPrepStmt, times(1)).setString(8, "ostk");
+        Mockito.verify(mockPrepStmt, times(1)).setString(9, "instance-id");
         
         // common between insert/update so count is 2 times
         Mockito.verify(mockPrepStmt, times(2)).setTimestamp(5, new java.sql.Timestamp(now.getTime()));
@@ -215,8 +216,9 @@ public class JDBCCertRecordStoreConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(4, "prev-serial");
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(5, new java.sql.Timestamp(now.getTime()));
         Mockito.verify(mockPrepStmt, times(1)).setString(6, "prev-ip");
-        Mockito.verify(mockPrepStmt, times(1)).setString(7, "ostk");
-        Mockito.verify(mockPrepStmt, times(1)).setString(8, "instance-id");
+        Mockito.verify(mockPrepStmt, times(1)).setString(7, "cn");
+        Mockito.verify(mockPrepStmt, times(1)).setString(8, "ostk");
+        Mockito.verify(mockPrepStmt, times(1)).setString(9, "instance-id");
 
         jdbcConn.close();
     }
