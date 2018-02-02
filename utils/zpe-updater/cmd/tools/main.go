@@ -21,16 +21,13 @@ func main() {
 	if root == "" {
 		root = "/home/athenz"
 	}
-	var athenzConf, zpuConf, tempPolicyDir, logFile string
+	var athenzConf, zpuConf, logFile string
 	flag.StringVar(&athenzConf, "athenzConf",
 		fmt.Sprintf("%s/conf/athenz/athenz.conf", root),
 		"Athenz configuration file path for ZMS/ZTS urls and public keys")
 	flag.StringVar(&zpuConf, "zpuConf",
 		fmt.Sprintf("%s/conf/zpu/zpu.conf", root),
 		"ZPU utility configuration path")
-	flag.StringVar(&tempPolicyDir, "tempPolicyDir",
-		fmt.Sprintf("%s/tmp/zpe", root),
-		"Temporary policy file directory")
 	flag.StringVar(&logFile, "logFile",
 		fmt.Sprintf("%s/logs/zpu/zpu.log", root),
 		"Log file name")
@@ -49,7 +46,7 @@ func main() {
 		log.SetOutput(&logger)
 	}
 
-	zpuConfig, err := zpu.NewZpuConfiguration(root, athenzConf, zpuConf, tempPolicyDir)
+	zpuConfig, err := zpu.NewZpuConfiguration(root, athenzConf, zpuConf)
 	if err != nil {
 		log.Fatalf("Unable to get zpu configuration, Error: %v", err)
 	}

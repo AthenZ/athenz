@@ -86,7 +86,7 @@ public class ZpeMetric {
     //to increment a metric counter by 1
     public void increment(String metricName, String domainName) {
         if (statsEnabled) {
-            if (!counter.contains(domainName)) {
+            if (!counter.containsKey(domainName)) {
                 counter.putIfAbsent(domainName, new AtomicIntegerArray(DomainMetricType.LOAD_DOMAIN_GOOD.ordinal() + 1));
             }
             Integer index = com.yahoo.athenz.zts.DomainMetricType.valueOf(metricName).ordinal();
