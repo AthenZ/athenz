@@ -2396,7 +2396,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         Identity identity = ZTSUtils.generateIdentity(certSigner, req.getCsr(),
                 fullServiceName, null, expiryTime);
         if (identity == null) {
-            throw requestError("Unable to generate identity", caller, domain);
+            throw serverError("Unable to generate identity", caller, domain);
         }
         
         // create our audit log entry
@@ -2675,8 +2675,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         Identity identity = ZTSUtils.generateIdentity(certSigner, req.getCsr(), principalName, null, 0);
         if (identity == null) {
-            throw requestError("postInstanceRefreshRequest: unable to generate identity",
-                    caller, domain);
+            throw serverError("Unable to generate identity", caller, domain);
         }
         
         // need to update our cert record with new certificate details
