@@ -15198,5 +15198,20 @@ public class ZMSImplTest {
         Status status = zmsImpl.getStatus(mockDomRsrcCtx);
         assertEquals(status.getCode(), ResourceException.OK);
     }
+    
+    @Test
+    public void testValidateString() {
+        ZMSImpl zmsImpl = zmsInit();
+        zmsImpl.validateString(null, "CompoundName", "unit-test");
+        zmsImpl.validateString("", "CompoundName", "unit-test");
+        zmsImpl.validateString("124356789012", "CompoundName", "unit-test");
+        zmsImpl.validateString("unit-test_test-101", "CompoundName", "unit-test");
+        try {
+            zmsImpl.validateString("unit test", "CompoundName", "unit-test");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+    }
 }
 
