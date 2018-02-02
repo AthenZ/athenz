@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -230,8 +231,38 @@ func WritePolicies(config *ZpuConfiguration, data *zts.DomainSignedPolicyData, d
 	if err != nil {
 		return err
 	}
-	os.Rename(tempPolicyFile, policyFile)
-	return err
+	err = os.Rename(tempPolicyFile, policyFile)
+
+	if err != nil {
+		// Do the actual copy
+		fsrc, err := os.Open(tempPolicyFile)
+		if err != nil {
+			return err
+		}
+		defer fsrc.Close()
+
+		fdst, err := os.Create(policyFile)
+		if err != nil {
+			return err
+		}
+		defer fdst.Close()
+
+		size, err := io.Copy(fdst, fsrc)
+		if err != nil {
+			return err
+		}
+
+		srcStat, err := os.Stat(tempPolicyFile)
+		if err != nil {
+			return err
+		}
+		if size != srcStat.Size() {
+			return fmt.Errorf("%s: %d/%d copied", tempPolicyFile, size, srcStat.Size())
+		}
+	}
+
+	return nil
+
 }
 
 func verifyTmpDirSetup(TempPolicyFileDir string) error {
