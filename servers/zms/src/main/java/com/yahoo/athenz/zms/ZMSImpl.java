@@ -1404,6 +1404,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return (userAuthority == null) ? userName : userAuthority.getUserDomainName(userName);
     }
     
+    void validateString(final String value, final String type, final String caller) {
+        if (value != null && !value.isEmpty()) {
+            validate(value, type, caller);
+        }
+    }
+    
     public Domain putDomainMeta(ResourceContext ctx, String domainName, String auditRef,
             DomainMeta meta) {
 
@@ -1418,6 +1424,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateRequest(ctx.request(), caller);
 
         validate(meta, TYPE_DOMAIN_META, caller);
+        validateString(meta.getAccount(), TYPE_COMPOUND_NAME, caller);
+        validateString(meta.getApplicationId(), TYPE_COMPOUND_NAME, caller);
 
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
