@@ -98,18 +98,18 @@ func TestReadZpuConf(t *testing.T) {
 func TestNewZpuConfiguration(t *testing.T) {
 	a := assert.New(t)
 	os.Setenv("STARTUP_DELAY", "60")
-	err := devel.CreateFile(ZPU_CONF, `{"domains":"domain","user":"user","policyDir":"/policy","metricsDir":"/metric","logMaxsize":10,"logMaxage":7,"logMaxbackups":2,"logCompress":true}`)
+	err := devel.CreateFile(ZPU_CONF, `{"domains":"domain","user":"user","tempPolicyDir": "/tmp/zpu_temp","policyDir":"/policy","metricsDir":"/metric","logMaxsize":10,"logMaxage":7,"logMaxbackups":2,"logCompress":true}`)
 	a.Nil(err)
 	a.Nil(err)
 	err = devel.CreateFile(ATHENZ_CONF, `{"zmsUrl":"zms_url","ztsUrl":"zts_url","ztsPublicKeys":[{"id":"0","key":"key0"}],"zmsPublicKeys":[{"id":"1","key":"key1"}]}`)
 	a.Nil(err)
-	config, err := NewZpuConfiguration("", ATHENZ_CONF, ZPU_CONF, TEMP_POLICIES_DIR)
+	config, err := NewZpuConfiguration("", ATHENZ_CONF, ZPU_CONF)
 	a.Nil(err)
 	a.Equal(config.StartUpDelay, 3600)
 	a.Equal(config.Zts, "zts_url")
 	a.Equal(config.Zms, "zms_url")
 	a.Equal(config.PolicyFileDir, "/policy")
-	a.Equal(config.TmpPolicyFileDir, TEMP_POLICIES_DIR)
+	a.Equal(config.TempPolicyFileDir, "/tmp/zpu_temp")
 	a.Equal(config.DomainList, "domain")
 	a.Equal(config.ZpuOwner, "user")
 	a.Equal(config.MetricsDir, "/metric")
@@ -123,13 +123,13 @@ func TestNewZpuConfiguration(t *testing.T) {
 	os.Unsetenv("STARTUP_DELAY")
 	err = devel.CreateFile(ZPU_CONF, `{"domains":"domain"}`)
 	a.Nil(err)
-	config, err = NewZpuConfiguration("", ATHENZ_CONF, ZPU_CONF, TEMP_POLICIES_DIR)
+	config, err = NewZpuConfiguration("", ATHENZ_CONF, ZPU_CONF)
 	a.Nil(err)
 	a.Equal(config.StartUpDelay, 0)
 	a.Equal(config.Zts, "zts_url")
 	a.Equal(config.Zms, "zms_url")
 	a.Equal(config.PolicyFileDir, "/var/zpe")
-	a.Equal(config.TmpPolicyFileDir, TEMP_POLICIES_DIR)
+	a.Equal(config.TempPolicyFileDir, TEMP_POLICIES_DIR)
 	a.Equal(config.DomainList, "domain")
 	a.Equal(config.ZpuOwner, "root")
 	a.Equal(config.MetricsDir, "/var/zpe_stat")
@@ -142,32 +142,32 @@ func TestNewZpuConfiguration(t *testing.T) {
 
 	//Start up delay more than than max startup delay
 	os.Setenv("STARTUP_DELAY", "2000")
-	config, err = NewZpuConfiguration("", ATHENZ_CONF, ZPU_CONF, TEMP_POLICIES_DIR)
+	config, err = NewZpuConfiguration("", ATHENZ_CONF, ZPU_CONF)
 	a.Nil(err)
 	a.Equal(config.StartUpDelay, 86400)
 
 	//Start up delay less than than min startup delay
 	os.Setenv("STARTUP_DELAY", "-10")
-	config, err = NewZpuConfiguration("", ATHENZ_CONF, ZPU_CONF, TEMP_POLICIES_DIR)
+	config, err = NewZpuConfiguration("", ATHENZ_CONF, ZPU_CONF)
 	a.Nil(err)
 	a.Equal(config.StartUpDelay, 0)
 
 	//invalid environment variable
 	os.Setenv("STARTUP_DELAY", "invalid")
-	config, err = NewZpuConfiguration("", ATHENZ_CONF, ZPU_CONF, TEMP_POLICIES_DIR)
+	config, err = NewZpuConfiguration("", ATHENZ_CONF, ZPU_CONF)
 	a.NotNil(err)
 	a.Nil(config)
 
 	//invalid keys
 	err = devel.CreateFile(ATHENZ_CONF, `{"ztsPublicKeys":[{"id":"0","key":"key_0"}],"zmsPublicKeys":[{"id":"1","key":"key_1"}]}`)
 	a.Nil(err)
-	config, err = NewZpuConfiguration("", ATHENZ_CONF, ZPU_CONF, TEMP_POLICIES_DIR)
+	config, err = NewZpuConfiguration("", ATHENZ_CONF, ZPU_CONF)
 	a.NotNil(err)
 	a.Nil(config)
 
 	//incorrect json
 	err = devel.CreateFile(ZPU_CONF, `{"domains":"domain""user":"user"`)
-	config, err = NewZpuConfiguration("", ATHENZ_CONF, ZPU_CONF, TEMP_POLICIES_DIR)
+	config, err = NewZpuConfiguration("", ATHENZ_CONF, ZPU_CONF)
 	a.NotNil(err)
 	a.Nil(config)
 

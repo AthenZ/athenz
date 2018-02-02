@@ -23,21 +23,21 @@ const (
 )
 
 type ZpuConfiguration struct {
-	Zts              string
-	Zms              string
-	DomainList       string
-	ZpuOwner         string
-	PolicyFileDir    string
-	TmpPolicyFileDir string
-	MetricsDir       string
-	ZmsKeysmap       map[string]string
-	ZtsKeysmap       map[string]string
-	StartUpDelay     int
-	ExpiryCheck      int
-	LogSize          int
-	LogAge           int
-	LogBackups       int
-	LogCompression   bool
+	Zts               string
+	Zms               string
+	DomainList        string
+	ZpuOwner          string
+	PolicyFileDir     string
+	TempPolicyFileDir string
+	MetricsDir        string
+	ZmsKeysmap        map[string]string
+	ZtsKeysmap        map[string]string
+	StartUpDelay      int
+	ExpiryCheck       int
+	LogSize           int
+	LogAge            int
+	LogBackups        int
+	LogCompression    bool
 }
 
 type AthenzConf struct {
@@ -57,6 +57,7 @@ type ZpuConf struct {
 	Domains       string `json:"domains"`
 	User          string `json:"user"`
 	PolicyDir     string `json:"policyDir"`
+	TempPolicyDir string `json:"tempPolicyDir"`
 	MetricsDir    string `json:"metricsDir"`
 	LogMaxSize    int    `json:"logMaxsize"`
 	LogMaxAge     int    `json:"logMaxage"`
@@ -64,7 +65,7 @@ type ZpuConf struct {
 	LogCompress   bool   `json:"logCompress"`
 }
 
-func NewZpuConfiguration(root, athensConfFile, zpuConfFile, tmpPolicyFileDir string) (*ZpuConfiguration, error) {
+func NewZpuConfiguration(root, athensConfFile, zpuConfFile string) (*ZpuConfiguration, error) {
 	zmsKeysmap := make(map[string]string)
 	ztsKeysmap := make(map[string]string)
 	athenzConf, err := ReadAthenzConf(athensConfFile)
@@ -120,6 +121,13 @@ func NewZpuConfiguration(root, athensConfFile, zpuConfFile, tmpPolicyFileDir str
 	if policyDir == "" {
 		policyDir = defaultPolicyDir
 	}
+
+	tempPolicyDir := zpuConf.TempPolicyDir
+	defaultTempPolicyDir := fmt.Sprintf("%s/tmp/zpe", root)
+	if tempPolicyDir == "" {
+		tempPolicyDir = defaultTempPolicyDir
+	}
+
 	metricDir := zpuConf.MetricsDir
 	defaultMetricDir := fmt.Sprintf("%s/var/zpe_stat", root)
 	if metricDir == "" {
@@ -130,21 +138,21 @@ func NewZpuConfiguration(root, athensConfFile, zpuConfFile, tmpPolicyFileDir str
 		user = "root"
 	}
 	return &ZpuConfiguration{
-		Zts:              athenzConf.ZtsUrl,
-		Zms:              athenzConf.ZmsUrl,
-		DomainList:       zpuConf.Domains,
-		ZpuOwner:         user,
-		PolicyFileDir:    policyDir,
-		TmpPolicyFileDir: tmpPolicyFileDir,
-		MetricsDir:       metricDir,
-		ZtsKeysmap:       ztsKeysmap,
-		ZmsKeysmap:       zmsKeysmap,
-		StartUpDelay:     startupDelay,
-		ExpiryCheck:      expiryCheck,
-		LogAge:           zpuConf.LogMaxAge,
-		LogSize:          zpuConf.LogMaxSize,
-		LogBackups:       zpuConf.LogMaxBackups,
-		LogCompression:   zpuConf.LogCompress,
+		Zts:               athenzConf.ZtsUrl,
+		Zms:               athenzConf.ZmsUrl,
+		DomainList:        zpuConf.Domains,
+		ZpuOwner:          user,
+		PolicyFileDir:     policyDir,
+		TempPolicyFileDir: tempPolicyDir,
+		MetricsDir:        metricDir,
+		ZtsKeysmap:        ztsKeysmap,
+		ZmsKeysmap:        zmsKeysmap,
+		StartUpDelay:      startupDelay,
+		ExpiryCheck:       expiryCheck,
+		LogAge:            zpuConf.LogMaxAge,
+		LogSize:           zpuConf.LogMaxSize,
+		LogBackups:        zpuConf.LogMaxBackups,
+		LogCompression:    zpuConf.LogCompress,
 	}, nil
 }
 

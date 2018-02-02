@@ -205,7 +205,7 @@ func expired(expires rdl.Timestamp, offset int) bool {
 // If domain policy file is not found, create the policy file and write policies in it.
 // Else delete the existing file and write the modified policies to new file.
 func WritePolicies(config *ZpuConfiguration, data *zts.DomainSignedPolicyData, domain, policyFileDir string) error {
-	tempPolicyFileDir := config.TmpPolicyFileDir
+	tempPolicyFileDir := config.TempPolicyFileDir
 	if tempPolicyFileDir == "" || data == nil {
 		return errors.New("Empty parameters are not valid arguments")
 	}
