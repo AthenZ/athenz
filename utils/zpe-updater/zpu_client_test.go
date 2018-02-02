@@ -25,7 +25,7 @@ import (
 const (
 	CONF_PATH         = "/tmp"
 	POLICIES_DIR      = "/tmp/zpu"
-	TEMP_POLICIES_DIR = "/tmp/zpu_temp"
+	TEMP_POLICIES_DIR = "/tmp/zpe"
 	METRIC_DIR        = "/tmp/zpu_metrics"
 	DOMAIN            = "test"
 )
@@ -352,7 +352,7 @@ func getTestConfiguration() (*ZpuConfiguration, error) {
 	devel.CreateFile(CONF_PATH+"/athenz.conf", athenzConf)
 	zpuConf := `{"domains":"test"}`
 	devel.CreateFile(CONF_PATH+"/zpu.conf", zpuConf)
-	config, err := NewZpuConfiguration("", CONF_PATH+"/athenz.conf", CONF_PATH+"/zpu.conf", TEMP_POLICIES_DIR)
+	config, err := NewZpuConfiguration("", CONF_PATH+"/athenz.conf", CONF_PATH+"/zpu.conf")
 	if err != nil {
 		return nil, fmt.Errorf("Failed to return test configuration object, Error:%v", err)
 	}
