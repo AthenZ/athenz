@@ -101,6 +101,7 @@
     <module>clients/go/zts</module>
     <module>libs/go/zmscli</module>
     <module>libs/go/zmssvctoken</module>
+    <module>libs/go/ztsclientutil</module>
     <module>utils/zms-cli</module>
     <module>utils/athenz-conf</module>
     <module>utils/zms-svctoken</module>
