@@ -2932,17 +2932,42 @@ public class DataStoreTest {
     }
     
     @Test
-    public void testProcessSignedDomainsInvalidDomain() {
+    public void testProcessSignedDomainsInvalidDomainWithSuccess() {
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
         
         List<SignedDomain> list = new ArrayList<>();
         
+        // if we have one successful domain and one failure
+        // then our result is going to be success
+        
         SignedDomain signedDomain = createSignedDomain("coretech", "weather");
         list.add(signedDomain);
         
         signedDomain = createSignedDomain("sports", "weather");
+        signedDomain.setSignature("Invalid0");
+        list.add(signedDomain);
+        
+        SignedDomains signedDomains = new SignedDomains();
+        signedDomains.setDomains(list);
+
+        boolean result = store.processSignedDomains(signedDomains);
+        assertTrue(result);
+    }
+    
+    @Test
+    public void testProcessSignedDomainsAllInvalidDomain() {
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+        DataStore store = new DataStore(clogStore, null);
+        
+        List<SignedDomain> list = new ArrayList<>();
+        
+        // if we have only failures, then our result
+        // is going to be failure
+        
+        SignedDomain signedDomain = createSignedDomain("sports", "weather");
         signedDomain.setSignature("Invalid0");
         list.add(signedDomain);
         

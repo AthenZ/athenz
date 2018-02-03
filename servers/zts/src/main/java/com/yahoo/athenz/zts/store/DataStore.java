@@ -489,13 +489,18 @@ public class DataStore implements DataCacheProvider {
             return true;
         }
         
+        // we're going to return success as long as one of the
+        // domains was successfully processed, otherwise there is
+        // no point of retrying all domains over and over again
+        
+        boolean result = false;
         for (SignedDomain domain : domains) {
-            if (!processDomain(domain, true)) {
-                return false;
+            if (processDomain(domain, true)) {
+                result = true;
             }
         }
         
-        return true;
+        return result;
     }
     
     /**
