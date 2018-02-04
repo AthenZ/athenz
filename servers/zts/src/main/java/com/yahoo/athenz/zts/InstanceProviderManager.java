@@ -160,22 +160,23 @@ public class InstanceProviderManager {
     }
     
     ProviderScheme getProviderScheme(URI uri) {
-        String scheme = uri.getScheme();
+        final String scheme = uri.getScheme();
         if (scheme == null) {
             LOGGER.error("verifyProviderEndpoint: Provider endpoint {} has no scheme component",
                     uri.toString());
             return ProviderScheme.UNKNOWN;
         }
         
-        ProviderScheme schemeType = ProviderScheme.UNKNOWN;
-        scheme = scheme.toLowerCase();
-        switch (scheme) {
+        ProviderScheme schemeType;
+        switch (scheme.toLowerCase()) {
         case SCHEME_HTTPS:
             schemeType = ProviderScheme.HTTPS;
             break;
         case SCHEME_CLASS:
             schemeType = ProviderScheme.CLASS;
             break;
+        default:
+            schemeType = ProviderScheme.UNKNOWN;
         }
         
         return schemeType;

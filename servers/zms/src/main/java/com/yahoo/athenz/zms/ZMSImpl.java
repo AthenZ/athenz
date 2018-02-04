@@ -1064,7 +1064,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // not to match other users who have the same prefix
         
         String userDomainCheck = null;
-        int idx = domain.indexOf(".", homeDomainPrefix.length());
+        int idx = domain.indexOf('.', homeDomainPrefix.length());
         if (idx == -1) {
             userDomainCheck = domain + ".";
         } else {
@@ -3652,7 +3652,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // that's often used for dev testing
         
         boolean valid = host.equals(ZMSConsts.LOCALHOST);
-        if (!valid && providerEndpoints != null) {
+        if (!valid) {
             for (String endpoint : providerEndpoints) {
                 valid = host.endsWith(endpoint);
                 if (valid) {
@@ -6651,7 +6651,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (!opAllowed) {
             throw ZMSUtils.forbiddenError("Unauthorized Operation (" + operationName
                     + ") for Service " + authorizedService
-                    + (opItemType != null && opItemType != "" ? " on opItemKey " + opItemType + " and opItemVal " + opItemVal : ""),
+                    + (opItemType != null && !opItemType.isEmpty() ? " on opItemKey " + opItemType + " and opItemVal " + opItemVal : ""),
                     operationName);
         }
     }
