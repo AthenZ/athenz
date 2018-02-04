@@ -17,6 +17,9 @@ package com.yahoo.athenz.zts.cert;
 
 import static org.testng.Assert.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.testng.annotations.Test;
 
 import com.yahoo.rdl.JSON;
@@ -32,11 +35,14 @@ public class X509CertSignObjectTest {
         cert.setPem("pem-value");
         assertEquals(cert.getPem(), "pem-value");
         
-        cert.setExpire(30);
-        assertEquals(cert.getExpire(), 30);
+        cert.setExpiryTime(30);
+        assertEquals(cert.getExpiryTime().intValue(), 30);
         
-        cert.setExtusage("1,2");
-        assertEquals(cert.getExtusage(), "1,2");
+        List<Integer> extKeyUsage = new ArrayList<>();
+        extKeyUsage.add(1);
+        extKeyUsage.add(2);
+        cert.setX509ExtKeyUsage(extKeyUsage);
+        assertEquals(cert.getX509ExtKeyUsage(), extKeyUsage);
     }
     
     @Test
@@ -44,12 +50,16 @@ public class X509CertSignObjectTest {
 
         X509CertSignObject cert = JSON.fromString("{\"pem\":\"pem-value\"}", X509CertSignObject.class);
         assertEquals(cert.getPem(), "pem-value");
-        assertNull(cert.getExtusage());
-        assertEquals(cert.getExpire(), 0);
+        assertNull(cert.getX509ExtKeyUsage());
+        assertNull(cert.getExpiryTime());
         
-        cert = JSON.fromString("{\"pem\":\"pem-value\",\"extusage\":\"1,2\",\"expire\":10}", X509CertSignObject.class);
+        cert = JSON.fromString("{\"pem\":\"pem-value\",\"x509ExtKeyUsage\":[1,2],\"expiryTime\":10}", X509CertSignObject.class);
         assertEquals(cert.getPem(), "pem-value");
-        assertEquals(cert.getExtusage(), "1,2");
-        assertEquals(cert.getExpire(), 10);
+        List<Integer> keyExtUsage = cert.getX509ExtKeyUsage();
+        assertNotNull(keyExtUsage);
+        assertEquals(keyExtUsage.size(), 2);
+        assertTrue(keyExtUsage.contains(1));
+        assertTrue(keyExtUsage.contains(2));
+        assertEquals(cert.getExpiryTime().intValue(), 10);
     }
 }

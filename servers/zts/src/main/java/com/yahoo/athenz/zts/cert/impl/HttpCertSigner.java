@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.zts.cert.impl;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -115,7 +117,7 @@ public class HttpCertSigner implements CertSigner {
         }
     }
 
-    ContentResponse processX509CertRequest(final String csr, final String keyUsage,
+    ContentResponse processX509CertRequest(final String csr, final List<Integer> extKeyUsage,
             int expiryTime, int retryCount) {
         
         ContentResponse response = null;
@@ -124,10 +126,11 @@ public class HttpCertSigner implements CertSigner {
             request.header(HttpHeader.ACCEPT, CONTENT_JSON);
             request.header(HttpHeader.CONTENT_TYPE, CONTENT_JSON);
             
-            X509CertSignObject csrCert = new X509CertSignObject()
-                    .setPem(csr).setExtusage(keyUsage);
+            X509CertSignObject csrCert = new X509CertSignObject();
+            csrCert.setPem(csr);
+            csrCert.setX509ExtKeyUsage(extKeyUsage);
             if (expiryTime > 0) {
-                csrCert.setExpire(expiryTime);
+                csrCert.setExpiryTime(expiryTime);
             }
             request.content(new StringContentProvider(JSON.string(csrCert)), CONTENT_JSON);
             
@@ -154,16 +157,20 @@ public class HttpCertSigner implements CertSigner {
     }
     
     @Override
-    public String generateX509Certificate(String csr, String keyUsage, int expiryTime) {
+    public String generateX509Certificate(String csr, String keyUsage, int expireMins) {
         
         // Key Usage value used in Go - https://golang.org/src/crypto/x509/x509.go?s=18153:18173#L558
         // we're only interested in ExtKeyUsageClientAuth - with value of 2
         
-        final String extKeyUsage = ZTSConsts.ZTS_CERT_USAGE_CLIENT.equals(keyUsage) ? "2" : null;
+        List<Integer> extKeyUsage = null;
+        if (ZTSConsts.ZTS_CERT_USAGE_CLIENT.equals(keyUsage)) {
+            extKeyUsage = new ArrayList<>();
+            extKeyUsage.add(2);
+        }
 
         ContentResponse response = null;
         for (int i = 0; i < requestRetryCount; i++) {
-            if ((response = processX509CertRequest(csr, extKeyUsage, expiryTime, i + 1)) != null) {
+            if ((response = processX509CertRequest(csr, extKeyUsage, expireMins, i + 1)) != null) {
                 break;
             }
         }
