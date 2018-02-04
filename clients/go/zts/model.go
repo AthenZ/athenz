@@ -1316,7 +1316,7 @@ type InstanceRefreshRequest struct {
 	Csr string `json:"csr"`
 
 	//
-	// in seconds how long token should be valid for
+	// in minutes how long token should be valid for
 	//
 	ExpiryTime *int32 `json:"expiryTime,omitempty" rdl:"optional"`
 
