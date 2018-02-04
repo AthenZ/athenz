@@ -7,7 +7,7 @@ include "Identity.tdl";
 // InstanceRefreshRequest - a certificate refresh request
 type InstanceRefreshRequest Struct {
      String csr; //Cert CSR signed by the service's private key (public key registered in ZMS)
-     Int32 expiryTime (optional); //in seconds how long token should be valid for
+     Int32 expiryTime (optional); //in minutes how long token should be valid for
      String keyId (optional); //public key identifier
 }
 

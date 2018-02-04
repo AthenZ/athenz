@@ -31,7 +31,7 @@ func main() {
 	var csr bool
 	var expiryTime int
 	flag.BoolVar(&csr, "csr", false, "request csr only")
-	flag.IntVar(&expiryTime, "expiry-time", 0, "expiry time in seconds")
+	flag.IntVar(&expiryTime, "expiry-time", 0, "expiry time in minutes")
 	flag.StringVar(&certFile, "cert-file", "", "output certificate file")
 	flag.StringVar(&signerCertFile, "signer-cert-file", "", "output signer certificate file")
 	flag.StringVar(&caCertFile, "cacert", "", "CA certificate file")
