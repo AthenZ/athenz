@@ -112,7 +112,14 @@ public class RsrcCtxWrapper implements ResourceContext {
         if (principal == null) {
             return;
         }
-        ctx.request().setAttribute(ZTS_REQUEST_PRINCIPAL, principal.getFullName());
+        logPrincipal(principal.getFullName());
+    }
+    
+    public void logPrincipal(final String principal) {
+        if (principal == null) {
+            return;
+        }
+        ctx.request().setAttribute(ZTS_REQUEST_PRINCIPAL, principal);
     }
     
     public void throwZtsException(com.yahoo.athenz.common.server.rest.ResourceException restExc) {
