@@ -24,7 +24,7 @@ public interface CertSigner {
      * @param csr Certificate request
      * @param keyUsage Requested key usage (null for both server and client,
      * otherwise specified usage type: server or client)
-     * @param expiryTime Requested certificate expiration time in seconds.
+     * @param expiryTime Requested certificate expiration time in minutes.
      * CertSigner might override this value with a smaller value.
      * @return X509 Certificate in PEM format
      */

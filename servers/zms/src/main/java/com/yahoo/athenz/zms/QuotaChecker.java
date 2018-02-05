@@ -59,7 +59,7 @@ public class QuotaChecker {
         // creating a top level domain then there is no need for
         // quota check
         
-        int idx = domainName.indexOf(".");
+        int idx = domainName.indexOf('.');
         if (idx == -1) {
             return;
         }

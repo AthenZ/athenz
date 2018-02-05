@@ -169,7 +169,7 @@ public class ZTSSchema {
         sb.structType("InstanceRefreshRequest")
             .comment("InstanceRefreshRequest - a certificate refresh request")
             .field("csr", "String", false, "Cert CSR signed by the service's private key (public key registered in ZMS)")
-            .field("expiryTime", "Int32", true, "in seconds how long token should be valid for")
+            .field("expiryTime", "Int32", true, "in minutes how long token should be valid for")
             .field("keyId", "String", true, "public key identifier");
 
         sb.stringType("AWSRoleName")

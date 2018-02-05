@@ -17,6 +17,7 @@ package com.yahoo.athenz.zts;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
@@ -413,7 +414,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                             line, ex.getMessage());
                 }
             }
-        } catch (Exception ex) {
+        } catch (IOException  ex) {
             LOGGER.error("Unable to process cert refresh ip block list: {}", ex.getMessage());
         }
     }
@@ -1692,7 +1693,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String caller = "postinstanceregisterinformation";
         final String callerTiming = "postinstanceregisterinformation_timing";
         metric.increment(HTTP_POST);
-        logPrincipal(ctx);
 
         validateRequest(ctx.request(), caller);
         validate(info, TYPE_INSTANCE_REGISTER_INFO, caller);
@@ -1706,6 +1706,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String domain = info.getDomain();
         final String service = info.getService();
         final String cn = domain + "." + service;
+        ((RsrcCtxWrapper) ctx).logPrincipal(cn);
         
         Object timerMetric = metric.startTiming(callerTiming, domain);
         metric.increment(HTTP_REQUEST, domain);

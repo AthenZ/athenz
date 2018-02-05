@@ -199,7 +199,7 @@ func init() {
 	tInstanceRefreshRequest := rdl.NewStructTypeBuilder("Struct", "InstanceRefreshRequest")
 	tInstanceRefreshRequest.Comment("InstanceRefreshRequest - a certificate refresh request")
 	tInstanceRefreshRequest.Field("csr", "String", false, nil, "Cert CSR signed by the service's private key (public key registered in ZMS)")
-	tInstanceRefreshRequest.Field("expiryTime", "Int32", true, nil, "in seconds how long token should be valid for")
+	tInstanceRefreshRequest.Field("expiryTime", "Int32", true, nil, "in minutes how long token should be valid for")
 	tInstanceRefreshRequest.Field("keyId", "String", true, nil, "public key identifier")
 	sb.AddType(tInstanceRefreshRequest.Build())
 

@@ -15,14 +15,19 @@
  */
 package com.yahoo.athenz.zts.cert;
 
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 @JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
 public class X509CertSignObject {
 
     private String pem;
-    private String extusage;
-    private int expire;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer expiryTime;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public List<Integer> x509ExtKeyUsage;
     
     public X509CertSignObject() {
     }
@@ -31,26 +36,23 @@ public class X509CertSignObject {
         return pem;
     }
     
-    public X509CertSignObject setPem(String pem) {
+    public void setPem(String pem) {
         this.pem = pem;
-        return this;
     }
 
-    public String getExtusage() {
-        return extusage;
+    public List<Integer> getX509ExtKeyUsage() {
+        return x509ExtKeyUsage;
     }
 
-    public X509CertSignObject setExtusage(String extusage) {
-        this.extusage = extusage;
-        return this;
+    public void setX509ExtKeyUsage(List<Integer> x509ExtKeyUsage) {
+        this.x509ExtKeyUsage = x509ExtKeyUsage;
     }
 
-    public int getExpire() {
-        return expire;
+    public void setExpiryTime(Integer expiryTime) {
+        this.expiryTime = expiryTime;
     }
 
-    public X509CertSignObject setExpire(int expire) {
-        this.expire = expire;
-        return this;
+    public Integer getExpiryTime() {
+        return expiryTime;
     }
 }
