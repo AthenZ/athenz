@@ -230,7 +230,7 @@ func WritePolicies(config *ZpuConfiguration, data *zts.DomainSignedPolicyData, d
 	if err != nil {
 		return err
 	}
-	os.Rename(tempPolicyFile, policyFile)
+	err = os.Rename(tempPolicyFile, policyFile)
 	return err
 }
 
