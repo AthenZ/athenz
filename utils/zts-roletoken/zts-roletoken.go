@@ -11,38 +11,52 @@ import (
 	"strings"
 
 	"github.com/yahoo/athenz/clients/go/zts"
+	"github.com/yahoo/athenz/libs/go/ztsclientutil"
 )
+
+func usage() {
+	log.Fatalln("usage: zts-roletoken -domain <domain> [-role <role>] <credentials> -zts <zts-server-url> [-hdr <auth-header-name>] [-expire-time <time-in-mins>]\n\t<credentials> := -ntoken <ntoken> | -ntoken-file <ntoken-file> | -private-key <private-key-file> -service-cert <service-cert-file>")
+}
 
 func main() {
 
-	var domain, role, ntoken, ntokenFile, ztsURL, hdr string
+	var domain, serviceKey, serviceCert, role, ntoken, ntokenFile, ztsURL, hdr string
 	var expireTime int
+	var proxy bool
 	flag.StringVar(&domain, "domain", "", "name of provider domain")
 	flag.StringVar(&role, "role", "", "name of provider role")
 	flag.StringVar(&ntoken, "ntoken", "", "service identity token")
 	flag.StringVar(&ntokenFile, "ntoken-file", "", "service identity token file")
+	flag.StringVar(&serviceKey, "private-key", "", "private key file")
+	flag.StringVar(&serviceCert, "service-cert", "", "service certificate file")
 	flag.StringVar(&ztsURL, "zts", "", "url of the ZTS Service")
 	flag.StringVar(&hdr, "hdr", "Athenz-Principal-Auth", "Header name")
 	flag.IntVar(&expireTime, "expire-time", 120, "token expire time in minutes")
+	flag.BoolVar(&proxy, "proxy", false, "enable proxy mode for request")
 	flag.Parse()
 
-	if domain == "" || (ntoken == "" && ntokenFile == "") || ztsURL == "" {
-		log.Fatalln("usage: zts-roletoken -domain <domain> [-role <role>] -ntoken <ntoken> [-ntoken-file <ntoken-file>] -zts <zts-server-url> [-hdr <auth-header-name>] [-expire-time <time-in-mins>]")
+	// validate required attributes
+	if domain == "" || ztsURL == "" {
+		usage()
 	}
 
-	// if our ntoken is empty then we have a file so we
-	// we need to load our ntoken from the given file
-	if ntoken == "" {
-		bytes, err := ioutil.ReadFile(ntokenFile)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		ntoken = strings.TrimSpace(string(bytes))
+	certCredentials := false
+	if serviceKey != "" && serviceCert != "" {
+		certCredentials = true
+	} else if ntoken == "" && ntokenFile == "" {
+		usage()
 	}
 
-	// use the ntoken to talk to Athenz
-	client := zts.NewClient(ztsURL, nil)
-	client.AddCredentials(hdr, ntoken)
+	var client *zts.ZTSClient
+	var err error
+	if certCredentials {
+		client, err = ztsclientutil.ZtsClient(ztsURL, serviceKey, serviceCert, "", proxy)
+	} else {
+		client, err = ztsNtokenClient(ztsURL, ntoken, ntokenFile, hdr)
+	}
+	if err != nil {
+		log.Fatalf("unable to create zts client: %v\n", err)
+	}
 
 	// zts timeout is in seconds so we'll convert our value
 	expireTimeMs := int32(expireTime * 60)
@@ -54,4 +68,21 @@ func main() {
 	}
 
 	fmt.Println(roleToken.Token)
+}
+
+func ztsNtokenClient(ztsURL, ntoken, ntokenFile, hdr string) (*zts.ZTSClient, error) {
+	// if our ntoken is empty then we have a file so we
+	// we need to load our ntoken from the given file
+	if ntoken == "" {
+		bytes, err := ioutil.ReadFile(ntokenFile)
+		if err != nil {
+			return nil, err
+		}
+		ntoken = strings.TrimSpace(string(bytes))
+	}
+
+	// use the ntoken to talk to Athenz
+	client := zts.NewClient(ztsURL, nil)
+	client.AddCredentials(hdr, ntoken)
+	return &client, nil
 }

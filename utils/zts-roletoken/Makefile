@@ -57,6 +57,7 @@ source:
 	cp -r ../../clients/go/zts $(GOPATH)/src/github.com/yahoo/athenz/clients/go
 	mkdir -p $(GOPATH)/src/github.com/yahoo/athenz/libs/go
 	cp -r ../../libs/go/zmssvctoken $(GOPATH)/src/github.com/yahoo/athenz/libs/go
+	cp -r ../../libs/go/ztsclientutil $(GOPATH)/src/github.com/yahoo/athenz/libs/go
 	@echo "Getting dependency packages..."
 	go get -t -d -tags testing $(GOPKGNAME)/...
 
