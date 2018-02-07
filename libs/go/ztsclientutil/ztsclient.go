@@ -5,13 +5,14 @@ package ztsclientutil
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"io/ioutil"
 	"net/http"
 
 	"github.com/yahoo/athenz/clients/go/zts"
 )
 
-func ZtsClient(ztsUrl, keyFile, certFile string) (*zts.ZTSClient, error) {
+func ZtsClient(ztsUrl, keyFile, certFile, caCertFile string, proxy bool) (*zts.ZTSClient, error) {
 	keypem, err := ioutil.ReadFile(keyFile)
 	if err != nil {
 		return nil, err
@@ -20,18 +21,28 @@ func ZtsClient(ztsUrl, keyFile, certFile string) (*zts.ZTSClient, error) {
 	if err != nil {
 		return nil, err
 	}
-	config, err := tlsConfiguration(keypem, certpem)
+	var cacertpem []byte
+	if caCertFile != "" {
+		cacertpem, err = ioutil.ReadFile(caCertFile)
+		if err != nil {
+			return nil, err
+		}
+	}
+	config, err := tlsConfiguration(keypem, certpem, cacertpem)
 	if err != nil {
 		return nil, err
 	}
 	tr := &http.Transport{
 		TLSClientConfig: config,
 	}
+	if proxy {
+		tr.Proxy = http.ProxyFromEnvironment
+	}
 	client := zts.NewClient(ztsUrl, tr)
 	return &client, nil
 }
 
-func tlsConfiguration(keypem, certpem []byte) (*tls.Config, error) {
+func tlsConfiguration(keypem, certpem, cacertpem []byte) (*tls.Config, error) {
 	config := &tls.Config{}
 	if certpem != nil && keypem != nil {
 		mycert, err := tls.X509KeyPair(certpem, keypem)
@@ -40,6 +51,11 @@ func tlsConfiguration(keypem, certpem []byte) (*tls.Config, error) {
 		}
 		config.Certificates = make([]tls.Certificate, 1)
 		config.Certificates[0] = mycert
+	}
+	if cacertpem != nil {
+		certPool := x509.NewCertPool()
+		certPool.AppendCertsFromPEM(cacertpem)
+		config.RootCAs = certPool
 	}
 	return config, nil
 }
