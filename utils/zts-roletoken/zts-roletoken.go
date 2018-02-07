@@ -15,20 +15,20 @@ import (
 )
 
 func usage() {
-	log.Fatalln("usage: zts-roletoken -domain <domain> [-role <role>] <credentials> -zts <zts-server-url> [-hdr <auth-header-name>] [-expire-time <time-in-mins>]\n\t<credentials> := -ntoken <ntoken> | -ntoken-file <ntoken-file> | -private-key <private-key-file> -service-cert <service-cert-file>")
+	log.Fatalln("usage: zts-roletoken -domain <domain> [-role <role>] <credentials> -zts <zts-server-url> [-hdr <auth-header-name>] [-expire-time <time-in-mins>]\n\t<credentials> := -ntoken <ntoken> | -ntoken-file <ntoken-file> | -svc-key-file <private-key-file> -svc-cert-file <service-cert-file>")
 }
 
 func main() {
 
-	var domain, serviceKey, serviceCert, role, ntoken, ntokenFile, ztsURL, hdr string
+	var domain, svcKeyFile, svcCertFile, role, ntoken, ntokenFile, ztsURL, hdr string
 	var expireTime int
 	var proxy bool
 	flag.StringVar(&domain, "domain", "", "name of provider domain")
 	flag.StringVar(&role, "role", "", "name of provider role")
 	flag.StringVar(&ntoken, "ntoken", "", "service identity token")
 	flag.StringVar(&ntokenFile, "ntoken-file", "", "service identity token file")
-	flag.StringVar(&serviceKey, "private-key", "", "private key file")
-	flag.StringVar(&serviceCert, "service-cert", "", "service certificate file")
+	flag.StringVar(&svcKeyFile, "svc-key-file", "", "service identity private key file")
+	flag.StringVar(&svcCertFile, "svc-cert-file", "", "service identity certificate file")
 	flag.StringVar(&ztsURL, "zts", "", "url of the ZTS Service")
 	flag.StringVar(&hdr, "hdr", "Athenz-Principal-Auth", "Header name")
 	flag.IntVar(&expireTime, "expire-time", 120, "token expire time in minutes")
@@ -41,7 +41,7 @@ func main() {
 	}
 
 	certCredentials := false
-	if serviceKey != "" && serviceCert != "" {
+	if svcKeyFile != "" && svcCertFile != "" {
 		certCredentials = true
 	} else if ntoken == "" && ntokenFile == "" {
 		usage()
@@ -50,7 +50,7 @@ func main() {
 	var client *zts.ZTSClient
 	var err error
 	if certCredentials {
-		client, err = ztsclientutil.ZtsClient(ztsURL, serviceKey, serviceCert, "", proxy)
+		client, err = ztsclientutil.ZtsClient(ztsURL, svcKeyFile, svcCertFile, "", proxy)
 	} else {
 		client, err = ztsNtokenClient(ztsURL, ntoken, ntokenFile, hdr)
 	}

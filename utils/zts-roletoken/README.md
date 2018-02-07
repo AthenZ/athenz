@@ -9,7 +9,7 @@ There are three possible ways to use the utility:
 1) using your athenz service identity certificate
 
 ```shell
-$ zts-roletoken -domain <domain> [-role <role>] -private-key <private-key-file> -service-cert <service-cert-file> -zts <ZTS url> [-expire-time <expire-time-in-mins>]
+$ zts-roletoken -domain <domain> [-role <role>] -svc-key-file <private-key-file> -svc-cert-file <service-cert-file> -zts <ZTS url> [-expire-time <expire-time-in-mins>]
 ```
 
 2) using ntoken from a file
