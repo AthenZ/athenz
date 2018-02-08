@@ -302,13 +302,11 @@ public class ZTSClient implements Closeable {
             // and default to localhost as the url to avoid further
             // warnings from our generated client
 
+            LOG.warn("Unable to extract ZTS Url from conf file {}, exc: {}",
+                    confFileName, ex.getMessage());
+            
             if (!svcLoaderCacheKeys.get().isEmpty()) {
-                LOG.warn("Unable to extract ZTS Url from conf file {}, exc: {}",
-                        confFileName, ex.getMessage());
                 confZtsUrl = "https://localhost:4443/";
-            } else {
-                LOG.error("Unable to extract ZTS Url from conf file {}, exc: {}",
-                        confFileName, ex.getMessage());
             }
         }
     }
