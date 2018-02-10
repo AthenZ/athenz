@@ -209,6 +209,10 @@
                   <shadedPattern>athenz.shade.zts.org.apache.httpcomponents</shadedPattern>
                 </relocation>
                 <relocation>
+                  <pattern>org.apache.http</pattern>
+                  <shadedPattern>athenz.shade.zts.org.apache.http</shadedPattern>
+                </relocation>
+                <relocation>
                   <pattern>org.glassfish.hk2</pattern>
                   <shadedPattern>athenz.shade.zts.org.glassfish.hk2</shadedPattern>
                 </relocation>
