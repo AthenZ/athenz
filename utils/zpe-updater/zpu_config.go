@@ -38,6 +38,10 @@ type ZpuConfiguration struct {
 	LogAge            int
 	LogBackups        int
 	LogCompression    bool
+	PrivateKeyFile    string
+	CertFile          string
+	CaCertFile        string
+	Proxy             bool
 }
 
 type AthenzConf struct {
@@ -55,6 +59,7 @@ type AthenzConf struct {
 
 type ZpuConf struct {
 	Domains       string `json:"domains"`
+	ZtsUrl        string `json:"ztsUrl"`
 	User          string `json:"user"`
 	PolicyDir     string `json:"policyDir"`
 	TempPolicyDir string `json:"tempPolicyDir"`
@@ -63,6 +68,10 @@ type ZpuConf struct {
 	LogMaxAge     int    `json:"logMaxage"`
 	LogMaxBackups int    `json:"logMaxbackups"`
 	LogCompress   bool   `json:"logCompress"`
+	PrivateKey    string `json:"privateKeyFile"`
+	CertFile      string `json:"certFile"`
+	CaCertFile    string `json:"caCertFile"`
+	Proxy         bool   `json:"proxy"`
 }
 
 func NewZpuConfiguration(root, athensConfFile, zpuConfFile string) (*ZpuConfiguration, error) {
@@ -138,7 +147,7 @@ func NewZpuConfiguration(root, athensConfFile, zpuConfFile string) (*ZpuConfigur
 		user = "root"
 	}
 	return &ZpuConfiguration{
-		Zts:               athenzConf.ZtsUrl,
+		Zts:               zpuConf.ZtsUrl,
 		Zms:               athenzConf.ZmsUrl,
 		DomainList:        zpuConf.Domains,
 		ZpuOwner:          user,
@@ -153,6 +162,10 @@ func NewZpuConfiguration(root, athensConfFile, zpuConfFile string) (*ZpuConfigur
 		LogSize:           zpuConf.LogMaxSize,
 		LogBackups:        zpuConf.LogMaxBackups,
 		LogCompression:    zpuConf.LogCompress,
+		PrivateKeyFile:    zpuConf.PrivateKey,
+		CaCertFile:        zpuConf.CaCertFile,
+		CertFile:          zpuConf.CertFile,
+		Proxy:             zpuConf.Proxy,
 	}, nil
 }
 

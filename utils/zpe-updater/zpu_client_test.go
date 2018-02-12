@@ -15,6 +15,7 @@ import (
 	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"github.com/yahoo/athenz/clients/go/zts"
 	"github.com/yahoo/athenz/libs/go/zmssvctoken"
 	"github.com/yahoo/athenz/utils/zpe-updater/devel"
@@ -71,6 +72,15 @@ func TestWritePolicies(t *testing.T) {
 	a.Nil(err)
 }
 
+func TestWritePoliciesEmptyPolicyDir(t *testing.T) {
+	a := assert.New(t)
+	policyData, _, err := ztsClient.GetDomainSignedPolicyData(zts.DomainName(DOMAIN), "")
+	a.Nil(err)
+	err = WritePolicies(testConfig, policyData, DOMAIN, "/random")
+	fmt.Print(err)
+	a.NotNil(err)
+}
+
 func TestGetEtagForExistingPolicy(t *testing.T) {
 	a := assert.New(t)
 	ztsClient := zts.NewClient((*testConfig).Zts, nil)
@@ -107,18 +117,7 @@ func TestPolicyUpdaterEmptyDomain(t *testing.T) {
 	a.NotNil(err)
 }
 
-func TestPolicyUpdaterEmptyPolicyDir(t *testing.T) {
-	a := assert.New(t)
-	conf := &ZpuConfiguration{
-		Zts:        "zts_url",
-		DomainList: "test",
-		MetricsDir: "",
-	}
-	err := PolicyUpdater(conf)
-	a.NotNil(err)
-}
-
-func TestPolicyUpdaterEmptyzts(t *testing.T) {
+func TestPolicyUpdaterWrongzts(t *testing.T) {
 	a := assert.New(t)
 	conf := &ZpuConfiguration{
 		Zts:        "zts_url",
@@ -348,9 +347,9 @@ func cleanUp() error {
 func getTestConfiguration() (*ZpuConfiguration, error) {
 	zmsURL := fmt.Sprintf("http://localhost:%s/zms/v1", port)
 	ztsURL := fmt.Sprintf("http://localhost:%s/zts/v1", port)
-	athenzConf := `{"zmsURL":"` + zmsURL + `","ztsURL":"` + ztsURL + `","ztsPublicKeys":[{"id":"0","key":"LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZ3d0RRWUpLb1pJaHZjTkFRRUJCUUFEU3dBd1NBSkJBTHpmU09UUUpmRW0xZW00TDNza3lOVlEvYngwTU9UcQphK1J3T0gzWmNNS3lvR3hPSm85QXllUmE2RlhNbXZKSkdZczVQMzRZc3pGcG5qMnVBYmkyNG5FQ0F3RUFBUT09Ci0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQo-"}],"zmsPublicKeys":[{"id":"0","key":"LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZ3d0RRWUpLb1pJaHZjTkFRRUJCUUFEU3dBd1NBSkJBTHpmU09UUUpmRW0xZW00TDNza3lOVlEvYngwTU9UcQphK1J3T0gzWmNNS3lvR3hPSm85QXllUmE2RlhNbXZKSkdZczVQMzRZc3pGcG5qMnVBYmkyNG5FQ0F3RUFBUT09Ci0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQo-"}]}`
+	athenzConf := `{"zmsURL":"` + zmsURL + `","ztsPublicKeys":[{"id":"0","key":"LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZ3d0RRWUpLb1pJaHZjTkFRRUJCUUFEU3dBd1NBSkJBTHpmU09UUUpmRW0xZW00TDNza3lOVlEvYngwTU9UcQphK1J3T0gzWmNNS3lvR3hPSm85QXllUmE2RlhNbXZKSkdZczVQMzRZc3pGcG5qMnVBYmkyNG5FQ0F3RUFBUT09Ci0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQo-"}],"zmsPublicKeys":[{"id":"0","key":"LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZ3d0RRWUpLb1pJaHZjTkFRRUJCUUFEU3dBd1NBSkJBTHpmU09UUUpmRW0xZW00TDNza3lOVlEvYngwTU9UcQphK1J3T0gzWmNNS3lvR3hPSm85QXllUmE2RlhNbXZKSkdZczVQMzRZc3pGcG5qMnVBYmkyNG5FQ0F3RUFBUT09Ci0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQo-"}]}`
 	devel.CreateFile(CONF_PATH+"/athenz.conf", athenzConf)
-	zpuConf := `{"domains":"test"}`
+	zpuConf := `{"ztsURL":"` + ztsURL + `","domains":"test"}`
 	devel.CreateFile(CONF_PATH+"/zpu.conf", zpuConf)
 	config, err := NewZpuConfiguration("", CONF_PATH+"/athenz.conf", CONF_PATH+"/zpu.conf")
 	if err != nil {
