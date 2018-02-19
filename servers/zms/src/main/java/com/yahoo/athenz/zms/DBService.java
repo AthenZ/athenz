@@ -2780,8 +2780,10 @@ public class DBService {
                 // provider prefix
                 
                 List<String> pnames = con.listPolicies(tenantDomain, null);
+                
                 for (String pname : pnames) {
-                    if (!pname.startsWith(pnamePrefix)) {
+                    
+                    if (!validResourceGroupObjectToDelete(pname, pnamePrefix)) {
                         if (LOG.isDebugEnabled()) {
                             LOG.debug(caller + ": --ignore policy " + pname);
                         }
@@ -2801,7 +2803,8 @@ public class DBService {
                 
                 List<String> rnames = con.listRoles(tenantDomain);
                 for (String rname : rnames) {
-                    if (!rname.startsWith(rnamePrefix)) {
+                    
+                    if (!validResourceGroupObjectToDelete(rname, rnamePrefix)) {
                         if (LOG.isDebugEnabled()) {
                             LOG.debug(caller + ": --ignore role " + rname);
                         }
@@ -2842,6 +2845,21 @@ public class DBService {
         } while (retryCount > 0);
     }
 
+    boolean validResourceGroupObjectToDelete(String name, String prefix) {
+        
+        if (!name.startsWith(prefix)) {
+            return false;
+        }
+        
+        // the suffix must be the action which should only be
+        // simple-name thus it cannot contain any more .'s
+        // otherwise we don't want to make a mistake
+        // and match substring resource groups - e.g:
+        // system.engine and system.engine.test
+        
+        return (name.indexOf('.', prefix.length()) == -1);
+    }
+    
     void executeDeleteTenantRoles(ResourceContext ctx, String provSvcDomain, String provSvcName,
             String tenantDomain, String resourceGroup, String auditRef, String caller) {
 
@@ -2860,11 +2878,13 @@ public class DBService {
                 // find roles and policies matching the prefix
                 
                 List<String> rnames = con.listRoles(provSvcDomain);
+                
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
                 auditDetails.append("{\"tenant-roles\": [");
                 boolean firstEntry = true;
                 for (String rname: rnames) {
-                    if (isTrustRoleForTenant(con, provSvcDomain, rname, rolePrefix, tenantDomain)) {
+                    if (isTrustRoleForTenant(con, provSvcDomain, rname, rolePrefix,
+                            resourceGroup, tenantDomain)) {
 
                         // good, its exactly what we are looking for
                         
@@ -2896,11 +2916,11 @@ public class DBService {
     }
     
     boolean isTrustRoleForTenant(ObjectStoreConnection con, String provSvcDomain, String roleName,
-            String rolePrefix, String tenantDomain) {
+            String rolePrefix, String resourceGroup, String tenantDomain) {
         
         // first make sure the role name starts with the given prefix
         
-        if (!isTenantRolePrefixMatch(con, roleName, rolePrefix, tenantDomain)) {
+        if (!isTenantRolePrefixMatch(con, roleName, rolePrefix, resourceGroup, tenantDomain)) {
             return false;
         }
         
@@ -2920,25 +2940,27 @@ public class DBService {
     }
 
     boolean isTrustRoleForTenant(String provSvcDomain, String roleName, String rolePrefix,
+            String resourceGroup, String tenantDomain) {
+
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            return isTrustRoleForTenant(con, provSvcDomain, roleName, rolePrefix, resourceGroup, tenantDomain);
+        }
+    }
+
+    boolean isTenantRolePrefixMatch(String roleName, String rolePrefix, String resourceGroup,
             String tenantDomain) {
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            return isTrustRoleForTenant(con, provSvcDomain, roleName, rolePrefix, tenantDomain);
-        }
-    }
-
-    boolean isTenantRolePrefixMatch(String roleName, String rolePrefix, String tenantDomain) {
-
-        try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            return isTenantRolePrefixMatch(con, roleName, rolePrefix, tenantDomain);
+            return isTenantRolePrefixMatch(con, roleName, rolePrefix, resourceGroup, tenantDomain);
         }
     }
     
-    boolean isTenantRolePrefixMatch(ObjectStoreConnection con, String roleName, String rolePrefix, String tenantDomain) {
+    boolean isTenantRolePrefixMatch(ObjectStoreConnection con, String roleName, String rolePrefix,
+            String resourceGroup, String tenantDomain) {
         
         if (LOG.isDebugEnabled()) {
             LOG.debug("isTenantRolePrefixMatch: role-name=" + roleName + ", role-prefix=" +
-                    rolePrefix + ", tenant-domain=" + tenantDomain);
+                    rolePrefix + ", reosurce-group=" + resourceGroup + ", tenant-domain=" + tenantDomain);
         }
         
         // first make sure the role name starts with the given prefix
@@ -2946,49 +2968,46 @@ public class DBService {
         if (!roleName.startsWith(rolePrefix)) {
             return false;
         }
-        
-        // also make sure that the last part after the prefix
-        // does not include other components which could
-        // indicate support for subdomains and resource groups
-        // this check is only done if we have no tenantDomain
-        // specified since that indicates we're processing a resource
-        // group operation
-        
-        if (tenantDomain == null) {
-            if (roleName.indexOf('.', rolePrefix.length()) != -1) {
-                return false;
-            }
-        } else {
-            
-            // otherwise we're going to split the remaining value
-            // into components. If we have 2 components then we'll
-            // check if we have a domain for the first component
-            // if we don't then it's a resource group and as such
-            // it can be removed otherwise, we'll leave it alone
-            
-            String[] comps = roleName.substring(rolePrefix.length()).split("\\.");
-            if (comps.length == 2) {
-                
-                // check to see if we have a subdomain - if we do then
-                // we're not going to include this role as we don't know
-                // for sure if this for a resource group or not
-                
-                String subDomain = tenantDomain + "." + comps[0];
 
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("isTenantRolePrefixMatch: verifying tenant subdomain: " + subDomain);
-                }
-                
-                if (con.getDomain(subDomain) != null) {
-                    return false;
-                }
-            } else if (comps.length > 2) {
-                
-                // if we have more than 2 subcomponents then we're
-                // definitely not dealing with resource groups
-                
+        // if we're dealing with a resource group then we need
+        // to make sure we're not going to match a substring
+        // resource group. Since we expect to see a SimpleName
+        // action after the name, if we get another '.' then
+        // we're dealing with a substring so the role does
+        // match the expected format
+        
+        if (resourceGroup != null) {
+            return (roleName.indexOf('.', rolePrefix.length()) == -1);
+        }
+        
+        // otherwise we're going to split the remaining value
+        // into components. If we have 2 components then we'll
+        // check if we have a domain for the first component
+        // if we don't then it's a resource group and as such
+        // it can be removed otherwise, we'll leave it alone
+            
+        String[] comps = roleName.substring(rolePrefix.length()).split("\\.");
+        if (comps.length == 2) {
+            
+            // check to see if we have a subdomain - if we do then
+            // we're not going to include this role as we don't know
+            // for sure if this for a resource group or not
+            
+            String subDomain = tenantDomain + "." + comps[0];
+            
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("isTenantRolePrefixMatch: verifying tenant subdomain: " + subDomain);
+            }
+            
+            if (con.getDomain(subDomain) != null) {
                 return false;
             }
+        } else if (comps.length > 2) {
+            
+            // if we have more than 2 subcomponents then we're
+            // definitely not dealing with resource groups
+            
+            return false;
         }
         
         return true;

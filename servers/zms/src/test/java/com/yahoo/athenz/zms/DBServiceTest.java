@@ -606,25 +606,31 @@ public class DBServiceTest {
     @Test
     public void testIsTenantRolePrefixMatchNoPrefixMatch() {
         assertFalse(zms.dbService.isTenantRolePrefixMatch(mockFileConn, "coretech.storage.role1",
-                "coretech2.role.", "tenant"));
+                "coretech2.role.", null, "tenant"));
     }
     
     @Test
     public void testIsTenantRolePrefixMatchResGroupNullTenant() {
         assertFalse(zms.dbService.isTenantRolePrefixMatch(mockFileConn, "coretech.storage.res_group.reader",
-                "coretech.storage.", null));
+                "coretech.storage.", "reader", "tenant"));
     }
     
     @Test
     public void testIsTenantRolePrefixMatchResGroupMultipleComponents() {
-        assertFalse(zms.dbService.isTenantRolePrefixMatch(mockFileConn, "coretech.storage.group1.group2.group3.reader",
-                "coretech.storage.", "tenant"));
+        assertFalse(zms.dbService.isTenantRolePrefixMatch(mockFileConn, "coretech.storage.res_group.group1.group2.group3.reader",
+                "coretech.storage.", "group1.group2.group3", "tenant"));
     }
     
     @Test
     public void testIsTenantRolePrefixMatchResGroupSingleComponent() {
-        assertTrue(zms.dbService.isTenantRolePrefixMatch(mockFileConn, "coretech.storage.group1",
-                "coretech.storage.", "tenant"));
+        assertTrue(zms.dbService.isTenantRolePrefixMatch(mockFileConn, "coretech.storage.res_group.group1.access",
+                "coretech.storage.res_group.group1.", "group1", "tenant"));
+    }
+    
+    @Test
+    public void testIsTenantRolePrefixMatchResGroupSubstring() {
+        assertFalse(zms.dbService.isTenantRolePrefixMatch(mockFileConn, "coretech.storage.res_group.group1.group2.access",
+                "coretech.storage.res_group1.group1.", "group1", "tenant"));
     }
     
     @Test
@@ -636,7 +642,7 @@ public class DBServiceTest {
         // since subdomain exists - we're assuming is not a tenant role
         
         assertFalse(zms.dbService.isTenantRolePrefixMatch(mockFileConn, "coretech.storage.sub.reader",
-                "coretech.storage.", "tenant"));
+                "coretech.storage.", null, "tenant"));
     }
     
     @Test
@@ -647,14 +653,14 @@ public class DBServiceTest {
         // subdomain does not exist thus this is a tenant role
         
         assertTrue(zms.dbService.isTenantRolePrefixMatch(mockFileConn, "coretech.storage.sub.reader",
-                "coretech.storage.", "tenant"));
+                "coretech.storage.", null, "tenant"));
     }
 
     @Test
     public void testIsTrustRoleForTenantPrefixNoMatch() {
         
         assertFalse(zms.dbService.isTrustRoleForTenant(mockFileConn, "sports", "coretech.storage.tenant.admin",
-                "coretech2.storage.tenant.", "athenz"));
+                "coretech2.storage.tenant.", null, "athenz"));
     }
     
     @Test
@@ -663,7 +669,7 @@ public class DBServiceTest {
         Mockito.doReturn(null).when(mockFileConn).getRole("sports", "coretech.storage.tenant.admin");
 
         assertFalse(zms.dbService.isTrustRoleForTenant(mockFileConn, "sports", "coretech.storage.tenant.admin",
-                "coretech.storage.tenant.", "athenz"));
+                "coretech.storage.tenant.", null, "athenz"));
     }
     
     @Test
@@ -673,7 +679,7 @@ public class DBServiceTest {
         Mockito.doReturn(role).when(mockFileConn).getRole("sports", "coretech.storage.tenant.admin");
         
         assertFalse(zms.dbService.isTrustRoleForTenant(mockFileConn, "sports", "coretech.storage.tenant.admin",
-                "coretech.storage.tenant.", "athenz"));
+                "coretech.storage.tenant.", null, "athenz"));
     }
     
     @Test
@@ -684,7 +690,7 @@ public class DBServiceTest {
         Mockito.doReturn(role).when(mockFileConn).getRole("sports", "coretech.storage.tenant.admin");
         
         assertTrue(zms.dbService.isTrustRoleForTenant(mockFileConn, "sports", "coretech.storage.tenant.admin",
-                "coretech.storage.tenant.", "athenz"));
+                "coretech.storage.tenant.", null, "athenz"));
     }
     
     @Test
@@ -695,7 +701,7 @@ public class DBServiceTest {
         Mockito.doReturn(role).when(mockFileConn).getRole("sports", "coretech.storage.tenant.admin");
         
         assertFalse(zms.dbService.isTrustRoleForTenant(mockFileConn, "sports", "coretech.storage.tenant.admin",
-                "coretech.storage.tenant.", "athenz"));
+                "coretech.storage.tenant.", null, "athenz"));
     }
     
     @Test
@@ -3296,5 +3302,13 @@ public class DBServiceTest {
             fail();
         } catch (ResourceException ex) {
         }
+    }
+    
+    @Test
+    public void testValidResourceToDelete() {
+        assertFalse(zms.dbService.validResourceGroupObjectToDelete("role.name", "roles."));
+        assertFalse(zms.dbService.validResourceGroupObjectToDelete("role.name", "role.name."));
+        assertFalse(zms.dbService.validResourceGroupObjectToDelete("role.name.test.name", "role.name."));
+        assertTrue(zms.dbService.validResourceGroupObjectToDelete("role.name.test", "role.name."));
     }
 }

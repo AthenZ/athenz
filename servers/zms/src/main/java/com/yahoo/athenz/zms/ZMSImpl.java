@@ -5693,7 +5693,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         List<String> rcollection = dbService.listRoles(tenantDomain);
         for (String rname: rcollection) {
 
-            if (dbService.isTenantRolePrefixMatch(rname, rolePrefix, null)) {
+            if (dbService.isTenantRolePrefixMatch(rname, rolePrefix, resourceGroup, null)) {
 
                 // for provider roles we don't have the action, that's
                 // for the provider domain only so we're just going
@@ -5901,7 +5901,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // find roles matching the prefix
         List<String> rcollection = dbService.listRoles(provSvcDomain);
         for (String rname: rcollection) {
-            if (dbService.isTrustRoleForTenant(provSvcDomain, rname, rolePrefix, tenantDomain)) {
+            if (dbService.isTrustRoleForTenant(provSvcDomain, rname, rolePrefix, null, tenantDomain)) {
                 // good, its exactly what we are looking for, but
                 // now we want the ACTION that was set in the provider
                 
@@ -5965,7 +5965,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         List<String> rcollection = dbService.listRoles(provSvcDomain);
         for (String rname: rcollection) {
-            if (dbService.isTrustRoleForTenant(provSvcDomain, rname, rolePrefix, tenantDomain)) {
+            if (dbService.isTrustRoleForTenant(provSvcDomain, rname, rolePrefix, resourceGroup, tenantDomain)) {
                 
                 // good, its exactly what we are looking for, but
                 // now we want the ACTION that was set in the provider
