@@ -1666,7 +1666,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         if (roles.isEmpty()) {
             LOGGER.error("verifyAWSAssumeRole: Principal: {}" +
-                    " has no acccess to any roles in domain: ", principal, domainName);
+                    " has no acccess to any roles in domain: {}", principal, domainName);
             return false;
         }
 
@@ -1681,7 +1681,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
         
         LOGGER.error("verifyAWSAssumeRole: Principal: {} has no acccess to resource: {}" +
-                " in domain: ", principal, roleResource, domainName);
+                " in domain: {}", principal, roleResource, domainName);
         
         return false;
     }
