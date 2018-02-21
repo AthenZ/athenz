@@ -5,11 +5,16 @@ package zmscli
 
 import (
 	"bytes"
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"golang.org/x/net/proxy"
 
 	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/yahoo/athenz/clients/go/zms"
@@ -30,7 +35,7 @@ type Zms struct {
 	Debug            bool
 }
 
-func (cli *Zms) SetClient(tr *http.Transport, authHeader *string, ntoken *string) {
+func (cli *Zms) SetClient(tr *http.Transport, authHeader, ntoken *string) {
 	cli.Zms = zms.NewClient(cli.ZmsUrl, tr)
 	cli.Zms.AddCredentials(*authHeader, *ntoken)
 }
@@ -1644,4 +1649,62 @@ func (cli Zms) getPublicKey(s string) (*string, error) {
 		return &yb64, nil
 	}
 	return &s, nil
+}
+
+func (cli *Zms) SetX509CertClient(keyFile, certFile, caCertFile, socksProxy string, httpProxy, skipVerify bool) error {
+	keypem, err := ioutil.ReadFile(keyFile)
+	if err != nil {
+		return err
+	}
+	certpem, err := ioutil.ReadFile(certFile)
+	if err != nil {
+		return err
+	}
+	var cacertpem []byte
+	if caCertFile != "" {
+		cacertpem, err = ioutil.ReadFile(caCertFile)
+		if err != nil {
+			return err
+		}
+	}
+	config, err := tlsConfiguration(keypem, certpem, cacertpem)
+	if err != nil {
+		return err
+	}
+	if skipVerify {
+		config.InsecureSkipVerify = skipVerify
+	}
+	tr := &http.Transport{
+		TLSClientConfig: config,
+	}
+	if httpProxy {
+		tr.Proxy = http.ProxyFromEnvironment
+	}
+	if socksProxy != "" {
+		dialer := &net.Dialer{}
+		dialSocksProxy, err := proxy.SOCKS5("tcp", socksProxy, nil, dialer)
+		if err == nil {
+			tr.Dial = dialSocksProxy.Dial
+		}
+	}
+	cli.Zms = zms.NewClient(cli.ZmsUrl, tr)
+	return nil
+}
+
+func tlsConfiguration(keypem, certpem, cacertpem []byte) (*tls.Config, error) {
+	config := &tls.Config{}
+	if certpem != nil && keypem != nil {
+		mycert, err := tls.X509KeyPair(certpem, keypem)
+		if err != nil {
+			return nil, err
+		}
+		config.Certificates = make([]tls.Certificate, 1)
+		config.Certificates[0] = mycert
+	}
+	if cacertpem != nil {
+		certPool := x509.NewCertPool()
+		certPool.AppendCertsFromPEM(cacertpem)
+		config.RootCAs = certPool
+	}
+	return config, nil
 }
