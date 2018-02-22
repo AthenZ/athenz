@@ -83,10 +83,9 @@ class RoleAuthority {
       var idx = tokenPrincipal.lastIndexOf('.');
 
       if (idx <= 0 || idx === tokenPrincipal.length - 1) {
-        var err = new Error('RoleAuthority:authenticate failed: Invalid principal specified: ' +
+        winston.error('RoleAuthority:authenticate failed: Invalid principal specified: ' +
           tokenPrincipal + ': credential=' +
           RoleToken.getUnsignedToken(signedToken));
-        winston.error(err);
         return null;
       }
 

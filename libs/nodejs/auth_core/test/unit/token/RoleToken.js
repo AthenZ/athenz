@@ -35,9 +35,9 @@ var tokenObject = {
   ip: '172.168.0.1'
 };
 
-var privateKey = new Buffer(fs.readFileSync(process.cwd() + '/test/resources/private_k0.pem', 'utf8'));
-var publicKey = new Buffer(fs.readFileSync(process.cwd() + '/test/resources/public_k0.pem', 'utf8'));
-var publicKey01 = new Buffer(fs.readFileSync(process.cwd() + '/test/resources/public_k1.pem', 'utf8'));
+var privateKey = Buffer.from(fs.readFileSync(process.cwd() + '/test/resources/private_k0.pem', 'utf8'));
+var publicKey = Buffer.from(fs.readFileSync(process.cwd() + '/test/resources/public_k0.pem', 'utf8'));
+var publicKey01 = Buffer.from(fs.readFileSync(process.cwd() + '/test/resources/public_k1.pem', 'utf8'));
 
 describe('RoleToken impl', function() {
   beforeEach(function() {

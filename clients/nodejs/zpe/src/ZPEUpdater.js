@@ -238,6 +238,8 @@ class ZPEUpdater {
         res = matchGen.equal;
       } else if (anyCharMatch === value.length - 1 && singleCharMatch === -1) {
         res = matchGen.startswith;
+      } else if (anyCharMatch === 0 && singleCharMatch === -1) {
+        res = matchGen.endswith;
       } else {
         res = matchGen.regex;
       }

@@ -20,9 +20,9 @@ var sinon = require('sinon');
 var expect = require('chai').expect;
 var sandbox;
 
-var privateKey = new Buffer(fs.readFileSync(process.cwd() + '/test/resources/private_k0.pem', 'utf8'));
-var publicKey = new Buffer(fs.readFileSync(process.cwd() + '/test/resources/public_k0.pem', 'utf8'));
-var publicKey01 = new Buffer(fs.readFileSync(process.cwd() + '/test/resources/public_k1.pem', 'utf8'));
+var privateKey = Buffer.from(fs.readFileSync(process.cwd() + '/test/resources/private_k0.pem', 'utf8'));
+var publicKey = Buffer.from(fs.readFileSync(process.cwd() + '/test/resources/public_k0.pem', 'utf8'));
+var publicKey01 = Buffer.from(fs.readFileSync(process.cwd() + '/test/resources/public_k1.pem', 'utf8'));
 
 var unsignedToken = 'testUnsignedToken';
 var signature = 'FKO8UyQ4zWolsfAGrD5oFj46kcC8c9Vv24F4K8Lt8XFrh_DBZw7QcBn8ctK8y3twVX10OgTKgLN4IsHlcp6GIHiBZPS0QEKPnXAWfUfJnzwt_bvbDMwSG4xQeyNQnuQZmwKvB.NOL7VF7xJd3BuffN66nzFIepysqzd0.4HuTfi8a4jim6xxYeU3npW1_8c5HUMr72MDb5.JEoAJ1nuq.LlCWIxmH0gdgXeJ9BjxwNfj4FKCvsfltG2x6Gpizp0xRJjyZl72yhI6zVR87_9vRyJvj05jUeJXtZSVLl3mxVoRHef4PVGIftDVmE1eaUi_4RgAifN25ch4EDr18VrXvQ--';

@@ -211,15 +211,13 @@ class PrincipalAuthority {
     var err = null;
     if (!serviceName) {
       if (authorizedServices.length !== 1) {
-        err = new Error('getAuthorizedServiceName() failed: No authorized service name specified');
-        winston.error(err);
+        winston.error('getAuthorizedServiceName() failed: No authorized service name specified');
         return null;
       }
       serviceName = authorizedServices[0];
     } else {
       if (authorizedServices.indexOf(serviceName) === -1) {
-        err = new Error('getAuthorizedServiceName() failed: Invalid authorized service name specified:' + serviceName);
-        winston.error(err);
+        winston.error('getAuthorizedServiceName() failed: Invalid authorized service name specified:' + serviceName);
         return null;
       }
     }
@@ -235,9 +233,8 @@ class PrincipalAuthority {
     if (!authorizedServiceName) {
       var authorizedServices = userToken.getAuthorizedServices();
       if (!authorizedServices || authorizedServices.length !== 1) {
-        err = new Error('PrincipalAuthority:validateAuthorizeService: ' +
+        winston.error('PrincipalAuthority:validateAuthorizeService: ' +
           'No service name and services list empty OR contains multiple entries: token=' + userToken.getUnsignedToken());
-        winston.error(err);
         return null;
       } else {
         authorizedServiceName = authorizedServices[0];
@@ -247,10 +244,9 @@ class PrincipalAuthority {
     /* need to extract domain and service name from our full service name value */
     var idx = authorizedServiceName.lastIndexOf('.');
     if (idx <= 0 || idx === authorizedServiceName.length - 1) {
-      err = new Error('PrincipalAuthority:validateAuthorizeService: ' +
+      winston.error('PrincipalAuthority:validateAuthorizeService: ' +
         'failed: token=' + userToken.getUnsignedToken() +
         ' : Invalid authorized service name specified=' + authorizedServiceName);
-      winston.error(err);
       return null;
     }
 
@@ -258,8 +254,7 @@ class PrincipalAuthority {
 
     /* the token method reports all error messages */
     if (!userToken.validateForAuthorizedService(publicKey)) {
-      err = new Error('PrincipalAuthority:validateAuthorizeService: token validation for authorized service failed');
-      winston.error(err);
+      winston.error('PrincipalAuthority:validateAuthorizeService: token validation for authorized service failed');
       return null;
     }
     return authorizedServiceName;

@@ -9,6 +9,10 @@ const ZPEMatch = function (value) {
     return val.startsWith(value.substring(0, value.length - 1));
   };
 
+  const endswitchMatches = function (val) {
+    return val.endsWith(value.substring(1,value.length));
+  };
+
   const allMatches = function (val) { return true; };
 
   const regexMatches = function (val) {
@@ -25,6 +29,10 @@ const ZPEMatch = function (value) {
     startswith: {
       name: 'startswith',
       matches: startswithMatches
+    },
+    endswith: {
+      name: 'endswith',
+      matches: endswitchMatches
     },
     all: {
       name: 'all',

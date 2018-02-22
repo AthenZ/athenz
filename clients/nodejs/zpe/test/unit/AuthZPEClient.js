@@ -20,7 +20,7 @@ var AuthZPEClient = require('../../src/AuthZPEClient');
 var RoleToken = require('@athenz/auth-core').RoleToken;
 var YBase64 = require('@athenz/auth-core').YBase64;
 
-var privateKeyK0 = new Buffer(fs.readFileSync(process.cwd() + '/test/resources/private_k0.pem', 'utf8'));
+var privateKeyK0 = Buffer.from(fs.readFileSync(process.cwd() + '/test/resources/private_k0.pem', 'utf8'));
 var policyDir = process.cwd() + '/test/resources/pol';
 var confFileName = process.cwd() + '/test/resources/athenz.conf';
 
@@ -47,6 +47,7 @@ var roleTokenParams = {
 };
 var rToken = new RoleToken(roleTokenParams);
 rToken.sign(privateKeyK0);
+
 var roleToken = rToken.getSignedToken();
 var resource = 'athenz.test:testresgroup.allow';
 var action = 'read';
@@ -61,11 +62,11 @@ describe('AuthZPEClient', function() {
   });
 
   it('should test AuthZPEClient getZmsPublicKey', function() {
-    expect(AuthZPEClient.getZmsPublicKey('0')).to.deep.equal(YBase64.ybase64Decode('LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUF3V2ZNcU9KQTJLbFBPVW1Fa1F2SworcU9BbGFiNkZ5aUtvQTkwcnBxTldPRDAyV2x3eHpZcWtFTDBtbFQ4NWUzQzBUViszVzRwM2Vkci9TS285ZDdzCk9GQ1k3NUpTM0V4eFQrU3ZobHA2M2lSdCtuOHVleE1LUk5tRnBlTkczYUZ0RHpqUFR2Y2o0TEJCOVl0UjRsb0QKbVY0WVA1aUpFbU5pSENkYXVocVBvWGZNMldDNXZub0NrUUZ4WWExQkh4UWt1TXNQQzdBWjUrUjdqRDdKMnN2KwpUMlF5UWxjNGl4ZXlZY0VWZHhxdUE0cW9vRVRGTnVuS1hnaWZPbFdYM3JYOVQ1WDhJODNEUUY2VnB3VHorckhGCmFydDVacUlZd1NhS1BETkhjRWZaZldOOVZHZk5DNDdEZWpXOWNUTURRRmZVdUViMG02WEViajEyNnplZVloTFYKaVFJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg--'));
+    expect(AuthZPEClient.getZmsPublicKey('0')).to.deep.equal(YBase64.ybase64Decode('LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUF5NEVMbFh3SHRXcU1TWDNwMkNpOAoyaW1rWktlSTVVWlpuT0tqMDJIVlAzNHhtYlR2Ykd5ZG56MjRjUWdLZi82c2JJQzI2amI5NUhMOXd2Q084K0ZLCkxOcXp5MHB5eFJBaStRTE5LOUdQZkJGc0NWdmlIclFGSzB5YkhwczJkTFlTZjRTbHgzTE44ZUgxTC9Oc3pQd2kKTCtteEZubS9WS29jU3lDK3g2MUtoMFBGSks5djBsUlBYQS9XckZRbzFmcUczNC9NY1I2a2t3bU9EaTJJVGhDKwp6ZGczNVh0Q0JhbXg5N09EODUvVUpIR2ZNdmk1R09HRUdqMEpONVBtS2J1akdZZDhKOFdsTkZYQ3NzaXgxd2hPCi9tWXF5ZWk1NndXemx5RUtyN1ZSekt5TmtDNGdBWVIvQlU2ekhtc1cvclJQbXEzZHRmdU1GRklMdWI0L2kvclkKUlFJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg--'));
   });
 
   it('should test AuthZPEClient getZtsPublicKey', function() {
-    expect(AuthZPEClient.getZtsPublicKey('0')).to.deep.equal(YBase64.ybase64Decode('LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUFxY2N0QnhzbXRGZ0NSV3drLzF2NgpnVURCTmRTa1RRUkg2UDM5ejU1bVEyQ09USHdlTW5BZG0yQ1hQMm56RHV5dnVjaHdpOENnaVFEMUdnMzdBN2ZPCjZCVCt1NkgxaGJnU0t4NnphQ1pXRGg1NkEwOUtvUTdTVEN4cFVQUkgvZmFobGVuNDU2d2pWejQyMjVndG1NcWsKbU96cHYyZWZqenFnQUYxVWhnWWRwRTUwNDZjMGVKSGIwdWtHUmZvcytkZWVtbFdZL3VmZTBrUnAxQUd0RzVrNQp4aXN0YjVLdW9TL1JJTG1NK3NzbWhqR1FSS3ZiZG9QTkowQTdXeHJ1akYxVTVldFp3NFdKK1FCMnNpeVVRdXhvClY0bUQ2cjNia0U1S0Z3UWlXV2NjaWpUN2J4Mmw0NER1dUU2YjhTbUovajRvNVdDS3pXNjJhWGE5aklnUjRDcjkKS3dJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg--'));
+    expect(AuthZPEClient.getZtsPublicKey('0')).to.deep.equal(YBase64.ybase64Decode('LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUFzdXBTOVJrUFQvMDdEcEVLUjZpRQp2Umh4S0NDQ0JlQUFnU3hJcHk3MUhqOHZkU21hNUdQTktpYUthczBOaVdpUXRCZW9OYTZia1NabE04bE9Sb1BwCjFzSy9uUjVCSWRwTjdWZ0NrWEdtSjY5THJmYm44ODdHWjBPV0tFZFlKcXI0S2tpMktHOFFzYTgxNXE4ei9LRk4KRjg4NjlqYzRRbDdkVnY3NUZDays4SXNJcnBCZ3I1eU1RTnZNb24xYmY4MUZka0lJdE9iUnZIMm9NeHZLQVRqVworRUpvcytTbENITmQreDR1WUM5bE40SGk2cXFKTWNBZ3I0aTRhM0JNV2pHSk1DclY3UWpibzcwOW1jS2JqUE9JCmwvMEs3YjczZ2ZhSEZCZnBmaXFlanNsa2xab3VoSUhvdWxoZk93dXdSZStmMW14UkpsWmlhMjh6K29VZEVYSVUKZlFJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg--'));
   });
 
   it('should test AuthZPEClient stripDomainPrefix', function() {
@@ -84,11 +85,24 @@ describe('AuthZPEClient', function() {
     DENY_DOMAIN_EMPTY: "Access denied due to no policies in the domain file",
     DENY_INVALID_PARAMETERS: "Access denied due to invalid/empty action/resource values",
   */
-  it('should test AuthZPEClient allowAccess expecting result ALLOW', function() {
+  it('should test AuthZPEClient allowAccess expecting result ALLOW (Begin-with match)', function() {
     AuthZPEClient.allowAccess(
       {
         roleToken: roleToken,
         resource: resource,
+        action: action
+      },
+      (err, accessCheckStatus) => {
+        expect(accessCheckStatus).to.deep.equal('Access Check was explicitly allowed');
+      }
+    );
+  });
+
+  it('should test AuthZPEClient allowAccess expecting result ALLOW (End-with match)', function() {
+    AuthZPEClient.allowAccess(
+      {
+        roleToken: roleToken,
+        resource: 'allow.testresgroup',
         action: action
       },
       (err, accessCheckStatus) => {

@@ -15,7 +15,7 @@
 
 class YBase64 {
   static ybase64Encode(input) {
-    var buffer = (Buffer.isBuffer(input)) ? input : new Buffer(input);
+    var buffer = (Buffer.isBuffer(input)) ? input : Buffer.from(input);
     var encoded = buffer.toString('base64');
     return encoded.replace(/\+/g, '.').replace(/\//g, '_').replace(/=/g, '-');
   }
@@ -25,7 +25,7 @@ class YBase64 {
       throw new Error(input + ' is not string');
     }
     var encoded = input.replace(/\./g, '+').replace(/_/g, '/').replace(/-/g, '=');
-    return new Buffer(encoded, 'base64');
+    return Buffer.from(encoded, 'base64');
   }
 }
 

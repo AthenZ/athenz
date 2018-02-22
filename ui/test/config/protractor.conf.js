@@ -97,7 +97,7 @@ var config = {
           return new PromiseLib(function(fulfill) {
             mkdirp(path.dirname(filename), function() {
               var stream = fs.createWriteStream(filename);
-              stream.write(new Buffer(png, 'base64'));
+              stream.write(Buffer.from(png, 'base64'));
               stream.end(function() {
                 fulfill();
               });

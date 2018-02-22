@@ -34,9 +34,9 @@ var tokenObject = {
   originalRequestor: 'athenz.ci.service'
 };
 
-var privateKey = new Buffer(fs.readFileSync(process.cwd() + '/test/resources/private_k0.pem', 'utf8'));
-var publicKey = new Buffer(fs.readFileSync(process.cwd() + '/test/resources/public_k0.pem', 'utf8'));
-var publicKey01 = new Buffer(fs.readFileSync(process.cwd() + '/test/resources/public_k1.pem', 'utf8'));
+var privateKey = Buffer.from(fs.readFileSync(process.cwd() + '/test/resources/private_k0.pem', 'utf8'));
+var publicKey = Buffer.from(fs.readFileSync(process.cwd() + '/test/resources/public_k0.pem', 'utf8'));
+var publicKey01 = Buffer.from(fs.readFileSync(process.cwd() + '/test/resources/public_k1.pem', 'utf8'));
 
 describe('PrincipalToken impl', function() {
   beforeEach(function() {

@@ -72,6 +72,13 @@ describe('ZPEMatch', function() {
     expect(zpeMatch.startswith.matches('athenz.test.aaa')).to.equal(false);
   });
 
+  it('should test ZPEMatch endswithMatches', function() {
+    var zpeMatch = ZPEMatch('test.aaa');
+    expect(zpeMatch.endswith.matches('athenz.test.aaa')).to.equal(true);
+    zpeMatch = ZPEMatch('athenz');
+    expect(zpeMatch.endswith.matches('athenz.test.aaa')).to.equal(false);
+  });
+
   it('should test ZPEMatch allMatches', function() {
     var zpeMatch = ZPEMatch('anything');
     expect(zpeMatch.all.matches('athenz.test.aaa')).to.equal(true);

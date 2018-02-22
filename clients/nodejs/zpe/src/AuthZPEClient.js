@@ -166,8 +166,6 @@ class AuthZPEClient {
 
     params.status = AccessCheckStatus.DENY_DOMAIN_NOT_FOUND;
 
-    console.log(params);
-
     return this._checkDenyAssertion(params, cb);
   }
 

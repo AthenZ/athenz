@@ -23,7 +23,7 @@ var fs = require('fs');
 var domain = 'athenz.user';
 var service = 'test';
 var keyId = '0';
-var privateKeyK0 = new Buffer(fs.readFileSync(process.cwd() + '/test/resources/private_k0.pem', 'utf8'));
+var privateKeyK0 = Buffer.from(fs.readFileSync(process.cwd() + '/test/resources/private_k0.pem', 'utf8'));
 
 
 describe('SimpleServiceIdentityProvider impl', function() {
