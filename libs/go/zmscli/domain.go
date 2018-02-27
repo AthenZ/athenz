@@ -327,7 +327,6 @@ func (cli Zms) LookupDomainById(account string, productID *int32) (*string, erro
 
 func (cli Zms) ListDomains(limit *int32, skip string, prefix string, depth *int32) (*string, error) {
 	var buf bytes.Buffer
-	fmt.Printf("Our url: " + cli.ZmsUrl + " : " + cli.Zms.URL + "\n")
 	res, err := cli.Zms.GetDomainList(limit, skip, prefix, depth, "", nil, "", "", "")
 	if err == nil {
 		buf.WriteString("domains:\n")
