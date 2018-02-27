@@ -18,7 +18,9 @@ package com.yahoo.athenz.zts;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
@@ -1593,6 +1595,15 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         validateRequest(ctx.request(), caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
+        
+        // since the role name might contain a path and thus it has
+        // been encoded, we're going to decode it first before using it
+        
+        try {
+            roleName = URLDecoder.decode(roleName, "UTF-8");
+        } catch (UnsupportedEncodingException ex) {
+            LOGGER.error("Unable to decode {} - error {}", roleName, ex.getMessage());
+        }
         validate(roleName, TYPE_AWS_ARN_ROLE_NAME, caller);
         
         // for consistent handling of all requests, we're going to convert
