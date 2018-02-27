@@ -128,13 +128,14 @@ public class Http {
         
         if (authErrMsg.length() > 0) {
             request.setAttribute(INVALID_CRED_ATTR, authErrMsg.toString());
-            LOG.error("authenticate: {}", authErrMsg.toString());
+            authErrMsg.insert(0, "authenticate: ");
         } else {
             request.setAttribute(INVALID_CRED_ATTR, "No credentials provided");
-            LOG.error("authenticate: No credentials provided");
+            authErrMsg.insert(0, "authenticate: No credentials provided");
         }
+        LOG.error(authErrMsg.toString());
 
-        throw new ResourceException (ResourceException.UNAUTHORIZED, "Invalid credentials");
+        throw new ResourceException (ResourceException.UNAUTHORIZED, "Invalid credentials: " + authErrMsg.toString());
     }
 
     public static String authenticatedUser(HttpServletRequest request,
