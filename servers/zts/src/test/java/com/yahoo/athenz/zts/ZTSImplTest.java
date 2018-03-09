@@ -140,6 +140,9 @@ public class ZTSImplTest {
             + "  \"ramdiskId\" : null,\n"
             + "  \"region\" : \"us-west-2\"\n"
             + "}";
+    final static String ATTETATION_DATA = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e"
+            + "yJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM"
+            + "5MDIyfQ.XbPfbIHMI6arZ3Y922BhjWgQzWXcXNrz0ogtVhfEd2o";
     final static String ROLE_CERT_DB_REQUEST = "-----BEGIN CERTIFICATE REQUEST-----\n"
             + "MIIBujCCASMCAQAwOzELMAkGA1UEBhMCVVMxDjAMBgNVBAoTBVlhaG9vMRwwGgYD\n"
             + "VQQDExNzcG9ydHM6cm9sZS5yZWFkZXJzMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCB\n"
@@ -4796,7 +4799,7 @@ public class ZTSImplTest {
         ztsImpl.instanceCertManager = instanceManager;
         
         InstanceRefreshInformation info = new InstanceRefreshInformation()
-                .setCsr(certCsr).setToken(true);
+                .setAttestationData(ATTETATION_DATA).setCsr(certCsr).setToken(true);
         
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
@@ -4862,7 +4865,7 @@ public class ZTSImplTest {
         ztsImpl.instanceCertManager = instanceManager;
         
         InstanceRefreshInformation info = new InstanceRefreshInformation()
-                .setCsr(certCsr).setToken(true);
+                .setAttestationData(ATTETATION_DATA).setCsr(certCsr).setToken(true);
         
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
@@ -4925,7 +4928,7 @@ public class ZTSImplTest {
         ztsImpl.instanceCertManager = instanceManager;
         
         InstanceRefreshInformation info = new InstanceRefreshInformation()
-                .setCsr(certCsr).setToken(true);
+                .setAttestationData(ATTETATION_DATA).setCsr(certCsr).setToken(true);
         
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
@@ -4992,7 +4995,7 @@ public class ZTSImplTest {
         ztsImpl.instanceCertManager = instanceManager;
         
         InstanceRefreshInformation info = new InstanceRefreshInformation()
-                .setCsr(certCsr).setToken(true);
+                .setAttestationData(ATTETATION_DATA).setCsr(certCsr).setToken(true);
         
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
@@ -5059,7 +5062,7 @@ public class ZTSImplTest {
         ztsImpl.instanceCertManager = instanceManager;
         
         InstanceRefreshInformation info = new InstanceRefreshInformation()
-                .setCsr(certCsr).setSsh("ssh-csr").setToken(true);
+                .setAttestationData(ATTETATION_DATA).setCsr(certCsr).setSsh("ssh-csr").setToken(true);
         
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
@@ -5123,7 +5126,7 @@ public class ZTSImplTest {
         ztsImpl.instanceCertManager = instanceManager;
         
         InstanceRefreshInformation info = new InstanceRefreshInformation()
-                .setCsr(certCsr);
+                .setAttestationData(ATTETATION_DATA).setCsr(certCsr);
         
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
@@ -5533,7 +5536,7 @@ public class ZTSImplTest {
         ztsImpl.instanceCertManager = instanceManager;
         
         InstanceRefreshInformation info = new InstanceRefreshInformation()
-                .setCsr(certCsr);
+                .setAttestationData(ATTETATION_DATA).setCsr(certCsr);
         
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
@@ -5600,7 +5603,7 @@ public class ZTSImplTest {
         ztsImpl.instanceCertManager = instanceManager;
         
         InstanceRefreshInformation info = new InstanceRefreshInformation()
-                .setCsr(certCsr);
+                .setAttestationData(ATTETATION_DATA).setCsr(certCsr);
         
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
@@ -5669,7 +5672,7 @@ public class ZTSImplTest {
         ztsImpl.instanceCertManager = instanceManager;
         
         InstanceRefreshInformation info = new InstanceRefreshInformation()
-                .setCsr(certCsr);
+                .setAttestationData(ATTETATION_DATA).setCsr(certCsr);
         
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
@@ -5827,7 +5830,7 @@ public class ZTSImplTest {
         ztsImpl.instanceCertManager = instanceManager;
         
         InstanceRefreshInformation info = new InstanceRefreshInformation()
-                .setCsr(certCsr);
+                .setAttestationData(ATTETATION_DATA).setCsr(certCsr);
         
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
