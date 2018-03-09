@@ -2030,32 +2030,35 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw requestError("dnsName attribute mismatch in CSR", caller, domain);
         }
         
-        // validate attestation data is included in the request
-        
-        InstanceProvider instanceProvider = instanceProviderManager.getProvider(provider);
-        if (instanceProvider == null) {
-            throw requestError("unable to get instance for provider: " + provider, caller, domain);
-        }
-        
         InstanceConfirmation instance = generateInstanceConfirmObject(ctx, provider,
                 domain, service, info.getAttestationData(), certReq);
         
-        // make sure to close our provider when its no longer needed
-
-        try {
-            instance = instanceProvider.refreshInstance(instance);
-        } catch (com.yahoo.athenz.instance.provider.ResourceException ex) {
+        // validate attestation data if it is included in the request
+        
+        if (!instance.getAttestationData().isEmpty()) {
             
-            // for backward compatibility initially we'll only look for
-            // specifically 403 response and treat responses like 404
-            // as success. Later, we'll change the behavior to only
-            // accept 200 as the excepted response
-            
-            if (ex.getCode() == com.yahoo.athenz.instance.provider.ResourceException.FORBIDDEN) {
-                throw forbiddenError("unable to verify attestation data: " + ex.getMessage(), caller, domain);
+            InstanceProvider instanceProvider = instanceProviderManager.getProvider(provider);
+            if (instanceProvider == null) {
+                throw requestError("unable to get instance for provider: " + provider, caller, domain);
             }
-        } finally {
-            instanceProvider.close();
+            
+            // make sure to close our provider when its no longer needed
+            
+            try {
+                instance = instanceProvider.refreshInstance(instance);
+            } catch (com.yahoo.athenz.instance.provider.ResourceException ex) {
+                
+                // for backward compatibility initially we'll only look for
+                // specifically 403 response and treat responses like 404
+                // as success. Later, we'll change the behavior to only
+                // accept 200 as the excepted response
+                
+                if (ex.getCode() == com.yahoo.athenz.instance.provider.ResourceException.FORBIDDEN) {
+                    throw forbiddenError("unable to verify attestation data: " + ex.getMessage(), caller, domain);
+                }
+            } finally {
+                instanceProvider.close();
+            }
         }
         
         // determine what type of certificate the provider is authorizing
