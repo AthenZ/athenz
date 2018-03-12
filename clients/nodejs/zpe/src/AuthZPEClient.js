@@ -88,6 +88,10 @@ class AuthZPEClient {
     return this._allowAccessByTokenObj(params, cb);
   }
 
+  static close() {
+    ZPEUpdater.close();
+  }
+
   static _allowAccessByTokenObj(params, cb) {
     let rToken = params.rToken,
         resource = params.resource,

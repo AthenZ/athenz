@@ -94,6 +94,11 @@ class ZPEUpdater {
     }
   }
 
+  static close() {
+    _roleCache.clear();
+    _policyCache.clear();
+  }
+
   static _loadPolicies(policyData, fileName) {
     // HAVE: valid policy file
     let domainName = policyData.domain;
