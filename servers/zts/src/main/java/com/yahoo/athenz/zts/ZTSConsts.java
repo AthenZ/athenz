@@ -50,13 +50,16 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_CHANGE_LOG_STORE_DIR   = "athenz.zts.change_log_store_dir";
     public static final String ZTS_PROP_NOAUTH_URI_LIST        = "athenz.zts.no_auth_uri_list";
     public static final String ZTS_PROP_ROLE_COMPLETE_FLAG     = "athenz.zts.role_complete_flag";
+    
     public static final String ZTS_PROP_CERT_REFRESH_IP_FNAME  = "athenz.zts.cert_refresh_ip_fname";
+    public static final String ZTS_PROP_INSTANCE_CERT_IP_FNAME = "athenz.zts.instance_cert_ip_fname";
     
     public static final String ZTS_PROP_CERTSIGN_BASE_URI        = "athenz.zts.certsign_base_uri";
     public static final String ZTS_PROP_CERTSIGN_REQUEST_TIMEOUT = "athenz.zts.certsign_request_timeout";
     public static final String ZTS_PROP_CERTSIGN_CONNECT_TIMEOUT = "athenz.zts.certsign_connect_timeout";
     public static final String ZTS_PROP_CERTSIGN_RETRY_COUNT     = "athenz.zts.certsign_retry_count";
-
+    public static final String ZTS_PROP_CERTSIGN_MAX_EXPIRY_TIME = "athenz.zts.certsign_max_expiry_time";
+    
     public static final String ZTS_PROP_LEAST_PRIVILEGE_PRINCIPLE  = "athenz.zts.least_privilege_principle";
     public static final String ZTS_PROP_ROLE_TOKEN_MAX_TIMEOUT     = "athenz.zts.role_token_max_timeout";
     public static final String ZTS_PROP_ROLE_TOKEN_DEFAULT_TIMEOUT = "athenz.zts.role_token_default_timeout";

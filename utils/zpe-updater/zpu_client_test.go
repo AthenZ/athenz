@@ -71,6 +71,15 @@ func TestWritePolicies(t *testing.T) {
 	a.Nil(err)
 }
 
+func TestWritePoliciesEmptyPolicyDir(t *testing.T) {
+	a := assert.New(t)
+	policyData, _, err := ztsClient.GetDomainSignedPolicyData(zts.DomainName(DOMAIN), "")
+	a.Nil(err)
+	err = WritePolicies(testConfig, policyData, DOMAIN, "/random")
+	fmt.Print(err)
+	a.NotNil(err)
+}
+
 func TestGetEtagForExistingPolicy(t *testing.T) {
 	a := assert.New(t)
 	ztsClient := zts.NewClient((*testConfig).Zts, nil)
@@ -107,18 +116,7 @@ func TestPolicyUpdaterEmptyDomain(t *testing.T) {
 	a.NotNil(err)
 }
 
-func TestPolicyUpdaterEmptyPolicyDir(t *testing.T) {
-	a := assert.New(t)
-	conf := &ZpuConfiguration{
-		Zts:        "zts_url",
-		DomainList: "test",
-		MetricsDir: "",
-	}
-	err := PolicyUpdater(conf)
-	a.NotNil(err)
-}
-
-func TestPolicyUpdaterEmptyzts(t *testing.T) {
+func TestPolicyUpdaterWrongzts(t *testing.T) {
 	a := assert.New(t)
 	conf := &ZpuConfiguration{
 		Zts:        "zts_url",

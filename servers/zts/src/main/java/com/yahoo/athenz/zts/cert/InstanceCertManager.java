@@ -1,7 +1,11 @@
 package com.yahoo.athenz.zts.cert;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -15,6 +19,7 @@ import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.cert.CertSigner;
 import com.yahoo.athenz.zts.InstanceIdentity;
 import com.yahoo.athenz.zts.ZTSConsts;
+import com.yahoo.athenz.zts.utils.IPBlock;
 
 public class InstanceCertManager {
 
@@ -23,11 +28,13 @@ public class InstanceCertManager {
 
     private CertSigner certSigner = null;
     private CertRecordStore certStore = null;
+    private List<IPBlock> certRefreshIPBlocks = null;
+    private List<IPBlock> instanceCertIPBlocks = null;
     private static String CA_X509_CERTIFICATE = null;
     private static String SSH_USER_CERTIFICATE = null;
     private static String SSH_HOST_CERTIFICATE = null;
     
-    public InstanceCertManager(PrivateKeyStore keyStore, CertSigner certSigner) {
+    public InstanceCertManager(final PrivateKeyStore keyStore, final CertSigner certSigner) {
         
         this.certSigner = certSigner;
         
@@ -36,6 +43,38 @@ public class InstanceCertManager {
         // certificate is not asked to be refreshed by multiple hosts
         
         loadCertificateObjectStore(keyStore);
+        
+        // load our allowed cert refresh and instance register ip blocks
+        
+        certRefreshIPBlocks = new ArrayList<>();
+        loadAllowedIPAddresses(certRefreshIPBlocks, ZTSConsts.ZTS_PROP_CERT_REFRESH_IP_FNAME);
+        
+        instanceCertIPBlocks = new ArrayList<>();
+        loadAllowedIPAddresses(instanceCertIPBlocks, ZTSConsts.ZTS_PROP_INSTANCE_CERT_IP_FNAME);
+    }
+    
+    void loadAllowedIPAddresses(List<IPBlock> ipBlocks, final String propName) {
+        
+        // get the configured path for the list of ip addresses
+        
+        final String ipAddresses =  System.getProperty(propName);
+        if (ipAddresses == null) {
+            return;
+        }
+        
+        try (BufferedReader br = new BufferedReader(new FileReader(ipAddresses))) {
+            String line = null;
+            while ((line = br.readLine()) != null) {
+                try {
+                    ipBlocks.add(new IPBlock(line));
+                } catch (Exception ex) {
+                    LOGGER.error("Skipping invalid ip block line: {}, error: {}",
+                            line, ex.getMessage());
+                }
+            }
+        } catch (IOException  ex) {
+            LOGGER.error("Unable to process ip block list: {}", ex.getMessage());
+        }
     }
     
     void loadCertificateObjectStore(PrivateKeyStore keyStore) {
@@ -289,5 +328,30 @@ public class InstanceCertManager {
         }
         
         return true;
+    }
+    
+    public boolean verifyCertRefreshIPAddress(final String ipAddress) {
+        return verifyIPAddressAccess(ipAddress, certRefreshIPBlocks);
+    }
+    
+    public boolean verifyInstanceCertIPAddress(final String ipAddress) {
+        return verifyIPAddressAccess(ipAddress, instanceCertIPBlocks);
+    }
+    
+    boolean verifyIPAddressAccess(final String ipAddress, final List<IPBlock> ipBlocks) {
+        
+        // if the list has no IP addresses then we allow all
+        
+        if (ipBlocks.isEmpty()) {
+            return true;
+        }
+        
+        long ipAddr = IPBlock.convertToLong(ipAddress);
+        for (IPBlock ipBlock : ipBlocks) {
+            if (ipBlock.ipCheck(ipAddr)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -93,7 +93,6 @@ import com.yahoo.athenz.zts.store.DataStore;
 import com.yahoo.athenz.zts.store.MockCloudStore;
 import com.yahoo.athenz.zts.store.impl.MockZMSFileChangeLogStore;
 import com.yahoo.athenz.zts.store.impl.ZMSFileChangeLogStore;
-import com.yahoo.athenz.zts.utils.IPBlock;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
 import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Timestamp;
@@ -6644,9 +6643,6 @@ public class ZTSImplTest {
         
         DataStore store = new DataStore(structStore, null);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
-        
-        IPBlock ipBlock = new IPBlock("10.0.0.1/255.255.255.255");
-        ztsImpl.certRefreshIPBlocks.add(ipBlock);
 
         Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
         String csr = new String(Files.readAllBytes(path));
@@ -6673,9 +6669,6 @@ public class ZTSImplTest {
         
         DataStore store = new DataStore(structStore, null);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
-        
-        IPBlock ipBlock = new IPBlock("10.0.0.1/255.255.255.255");
-        ztsImpl.certRefreshIPBlocks.add(ipBlock);
 
         Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
         String csr = new String(Files.readAllBytes(path));
@@ -6703,9 +6696,6 @@ public class ZTSImplTest {
         
         DataStore store = new DataStore(structStore, null);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
-        
-        IPBlock ipBlock = new IPBlock("10.0.0.1/255.255.255.255");
-        ztsImpl.certRefreshIPBlocks.add(ipBlock);
 
         Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
         String csr = new String(Files.readAllBytes(path));
@@ -6734,9 +6724,6 @@ public class ZTSImplTest {
         
         DataStore store = new DataStore(structStore, null);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
-
-        IPBlock ipBlock = new IPBlock("10.0.0.1/255.255.255.255");
-        ztsImpl.certRefreshIPBlocks.add(ipBlock);
         
         Path path = Paths.get("src/test/resources/athenz.mismatch.dns.csr");
         String csr = new String(Files.readAllBytes(path));
@@ -6763,9 +6750,6 @@ public class ZTSImplTest {
         
         DataStore store = new DataStore(structStore, null);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
-        
-        IPBlock ipBlock = new IPBlock("10.0.0.1/255.255.255.255");
-        ztsImpl.certRefreshIPBlocks.add(ipBlock);
         
         Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
         String certCsr = new String(Files.readAllBytes(path));

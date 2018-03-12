@@ -7,7 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.cert.X509Certificate;
 
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -163,7 +163,7 @@ public class InstanceCertManagerTest {
         CertRecordStoreConnection certConnection = Mockito.mock(CertRecordStoreConnection.class);
         Mockito.when(certStore.getConnection()).thenReturn(certConnection);
         
-        Mockito.when(certConnection.updateX509CertRecord(Matchers.isA(X509CertRecord.class))).thenReturn(true);
+        Mockito.when(certConnection.updateX509CertRecord(ArgumentMatchers.isA(X509CertRecord.class))).thenReturn(true);
         instance.setCertStore(certStore);
 
         X509CertRecord x509CertRecord = new X509CertRecord();
@@ -201,7 +201,7 @@ public class InstanceCertManagerTest {
         CertRecordStoreConnection certConnection = Mockito.mock(CertRecordStoreConnection.class);
         Mockito.when(certStore.getConnection()).thenReturn(certConnection);
         
-        Mockito.when(certConnection.insertX509CertRecord(Matchers.isA(X509CertRecord.class))).thenReturn(true);
+        Mockito.when(certConnection.insertX509CertRecord(ArgumentMatchers.isA(X509CertRecord.class))).thenReturn(true);
         instance.setCertStore(certStore);
 
         X509CertRecord x509CertRecord = new X509CertRecord();
@@ -353,5 +353,73 @@ public class InstanceCertManagerTest {
         assertTrue(result);
         assertEquals(identity.getSshCertificate(), "ssh-cert");
         assertEquals(identity.getSshCertificateSigner(), "ssh-host");
+    }
+    
+    @Test
+    public void testVerifyIPAddressAccessEmptyList() {
+        
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_REFRESH_IP_FNAME);
+        System.clearProperty(ZTSConsts.ZTS_PROP_INSTANCE_CERT_IP_FNAME);
+        
+        InstanceCertManager instance = new InstanceCertManager(null, null);
+        
+        // empty list matches everything
+        
+        assertTrue(instance.verifyInstanceCertIPAddress("11.1.3.25"));
+        assertTrue(instance.verifyInstanceCertIPAddress("11.1.9.25"));
+        assertTrue(instance.verifyInstanceCertIPAddress("11.2.3.25"));
+        assertTrue(instance.verifyInstanceCertIPAddress("11.2.9.25"));
+        assertTrue(instance.verifyInstanceCertIPAddress("10.1.3.25"));
+        assertTrue(instance.verifyInstanceCertIPAddress("10.1.9.25"));
+        
+        assertTrue(instance.verifyCertRefreshIPAddress("10.1.3.25"));
+        assertTrue(instance.verifyCertRefreshIPAddress("10.1.9.25"));
+        assertTrue(instance.verifyCertRefreshIPAddress("10.2.3.25"));
+        assertTrue(instance.verifyCertRefreshIPAddress("10.2.9.25"));
+        assertTrue(instance.verifyCertRefreshIPAddress("11.1.3.25"));
+        assertTrue(instance.verifyCertRefreshIPAddress("11.1.9.25"));
+    }
+    
+    @Test
+    public void testVerifyIPAddressAccessSpecifiedList() {
+        
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_REFRESH_IP_FNAME,
+                "src/test/resources/cert_refresh_ipblocks.txt");
+        System.setProperty(ZTSConsts.ZTS_PROP_INSTANCE_CERT_IP_FNAME,
+                "src/test/resources/instance_cert_ipblocks.txt");
+        
+        InstanceCertManager instance = new InstanceCertManager(null, null);
+        
+        // refresh cert
+        
+        // subnet/netmask: 10.1.0.0/255.255.248.0
+        // address range: 10.1.0.0 - 10.1.7.255
+        
+        // subnet/netmask: 10.2.0.0/255.255.248.0
+        // address range: 10.2.0.0 - 10.2.7.255
+        
+        assertTrue(instance.verifyCertRefreshIPAddress("10.1.3.25"));
+        assertFalse(instance.verifyCertRefreshIPAddress("10.1.9.25"));
+        assertTrue(instance.verifyCertRefreshIPAddress("10.2.3.25"));
+        assertFalse(instance.verifyCertRefreshIPAddress("10.2.9.25"));
+        
+        assertFalse(instance.verifyCertRefreshIPAddress("11.1.3.25"));
+        assertFalse(instance.verifyCertRefreshIPAddress("11.1.9.25"));
+        
+        // instance register and refresh 
+        
+        // subnet/netmask: 11.1.0.0/255.255.248.0
+        // address range: 11.1.0.0 - 11.1.7.255
+        
+        // subnet/netmask: 11.2.0.0/255.255.248.0
+        // address range: 11.2.0.0 - 11.2.7.255
+        
+        assertTrue(instance.verifyInstanceCertIPAddress("11.1.3.25"));
+        assertFalse(instance.verifyInstanceCertIPAddress("11.1.9.25"));
+        assertTrue(instance.verifyInstanceCertIPAddress("11.2.3.25"));
+        assertFalse(instance.verifyInstanceCertIPAddress("11.2.9.25"));
+        
+        assertFalse(instance.verifyInstanceCertIPAddress("10.1.3.25"));
+        assertFalse(instance.verifyInstanceCertIPAddress("10.1.9.25"));
     }
 }
