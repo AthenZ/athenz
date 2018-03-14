@@ -18,6 +18,7 @@ import (
 	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/yahoo/athenz/clients/go/zts"
 	"github.com/yahoo/athenz/libs/go/zmssvctoken"
+	"github.com/yahoo/athenz/libs/go/ztsclientutil"
 	"github.com/yahoo/athenz/utils/zpe-updater/util"
 )
 
@@ -33,9 +34,25 @@ func PolicyUpdater(config *ZpuConfiguration) error {
 	}
 	success := true
 	domains := strings.Split(config.DomainList, ",")
+
 	ztsURL := formatURL(config.Zts, "zts/v1")
-	ztsClient := zts.NewClient(ztsURL, nil)
+	var ztsClient zts.ZTSClient
+	if config.PrivateKeyFile != "" && config.CertFile != "" {
+		ztsCli, err := ztsclientutil.ZtsClient(ztsURL, config.PrivateKeyFile, config.CertFile, config.CaCertFile, config.Proxy)
+		if err != nil {
+			return fmt.Errorf("Failed to create Zts Client, Error:%v", err)
+		}
+		ztsClient = *ztsCli
+	} else if config.PrivateKeyFile == "" && config.CertFile != "" {
+		return errors.New("Both private key and cert file are required, missing private key file")
+	} else if config.PrivateKeyFile != "" && config.CertFile == "" {
+		return errors.New("Both private key and cert file are required, missing certificate file")
+	} else {
+		ztsClient = zts.NewClient(ztsURL, nil)
+	}
+
 	policyFileDir := config.PolicyFileDir
+
 	failedDomains := ""
 	for _, domain := range domains {
 		err := GetPolicies(config, ztsClient, policyFileDir, domain)

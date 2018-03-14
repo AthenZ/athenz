@@ -21,7 +21,7 @@ func main() {
 	if root == "" {
 		root = "/home/athenz"
 	}
-	var athenzConf, zpuConf, logFile string
+	var athenzConf, zpuConf, logFile, ztsURL, privateKeyFile, certFile, caCertFile string
 	flag.StringVar(&athenzConf, "athenzConf",
 		fmt.Sprintf("%s/conf/athenz/athenz.conf", root),
 		"Athenz configuration file path for ZMS/ZTS urls and public keys")
@@ -31,6 +31,14 @@ func main() {
 	flag.StringVar(&logFile, "logFile",
 		fmt.Sprintf("%s/logs/zpu/zpu.log", root),
 		"Log file name")
+	flag.StringVar(&ztsURL, "zts",
+		"", "url of the ZTS Service")
+	flag.StringVar(&caCertFile, "cacert",
+		"", "CA certificate file")
+	flag.StringVar(&privateKeyFile, "private-key",
+		"", "private key file")
+	flag.StringVar(&certFile, "cert-file",
+		"", "certificate file")
 
 	flag.Parse()
 
@@ -43,6 +51,14 @@ func main() {
 	}
 
 	if logFile != "" {
+
+		f, err := os.OpenFile(logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			log.Fatalf("The log file:%v cannot be opened, Error:%v. \n "+
+				"If you do not have write access to the log file at \"%v\", use the -logFile flag to overwrite the default value. \n"+
+				"Usage : zpu -athenzConf <Athenz log file> -zpuConf <zpu conf file> -logFile <log file name>. ", logFile, logFile, err)
+		}
+		f.Close()
 		log.SetOutput(&logger)
 	}
 
@@ -64,6 +80,21 @@ func main() {
 
 	if zpuConfig.LogSize != 0 {
 		logger.MaxSize = zpuConfig.LogSize
+	}
+
+	if privateKeyFile != "" {
+		zpuConfig.PrivateKeyFile = privateKeyFile
+	}
+
+	if caCertFile != "" {
+		zpuConfig.CaCertFile = caCertFile
+	}
+	if certFile != "" {
+		zpuConfig.CertFile = certFile
+	}
+
+	if ztsURL != "" {
+		zpuConfig.Zts = ztsURL
 	}
 
 	if zpuConfig.StartUpDelay > 0 {
