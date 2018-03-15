@@ -53,6 +53,7 @@ public class HttpCertSigner implements CertSigner {
     String sshCertUri = null;
     long requestTimeout;
     int requestRetryCount;
+    int maxCertExpiryTime;
 
     public HttpCertSigner() {
 
@@ -66,6 +67,10 @@ public class HttpCertSigner implements CertSigner {
         requestTimeout = Long.parseLong(System.getProperty(ZTSConsts.ZTS_PROP_CERTSIGN_REQUEST_TIMEOUT, "5"));
         requestRetryCount = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_CERTSIGN_RETRY_COUNT, "3"));
 
+        // max expiry time in minutes
+        
+        maxCertExpiryTime = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_CERTSIGN_MAX_EXPIRY_TIME, "43200"));
+        
         // Instantiate and start our HttpClient
         
         httpClient = new HttpClient(ZTSUtils.createSSLContextObject(new String[] {"TLSv1.2"}, privateKeyStore));
@@ -129,7 +134,7 @@ public class HttpCertSigner implements CertSigner {
             X509CertSignObject csrCert = new X509CertSignObject();
             csrCert.setPem(csr);
             csrCert.setX509ExtKeyUsage(extKeyUsage);
-            if (expiryTime > 0) {
+            if (expiryTime > 0 && expiryTime < maxCertExpiryTime) {
                 csrCert.setExpiryTime(expiryTime);
             }
             request.content(new StringContentProvider(JSON.string(csrCert)), CONTENT_JSON);
