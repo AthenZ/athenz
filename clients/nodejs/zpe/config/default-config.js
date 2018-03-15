@@ -21,7 +21,8 @@ const config = {
     tokenRefresh: 1800,
     policyRefresh: 1800,
     allowedOffset: 300,
-    disableCache: false
+    disableCache: false,
+    updater: './ZPEUpdater'
   },
   production: {
     logLevel: 'info',
@@ -30,7 +31,8 @@ const config = {
     tokenRefresh: 1800,
     policyRefresh: 1800,
     allowedOffset: 300,
-    disableCache: false
+    disableCache: false,
+    updater: './ZPEUpdater'
   }
 };
 
@@ -45,6 +47,7 @@ module.exports = function() {
   c.policyRefresh = c.policyRefresh || 1800;
   c.allowedOffset = c.allowedOffset || 300;
   c.disableCache = c.disableCache || false;
+  c.updater = c.updater || './ZPEUpdater';
 
   return c;
 };

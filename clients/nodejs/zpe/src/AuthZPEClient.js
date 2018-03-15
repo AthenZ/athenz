@@ -6,12 +6,12 @@ let config = require('../config/config')();
 const RoleToken = require('@athenz/auth-core').RoleToken;
 const AccessCheckStatus = require('./AccessCheckStatus');
 const PublicKeyStore = require('./PublicKeyStore');
-const ZPEUpdater = require('./ZPEUpdater');
 
 let _publicKeyStore,
   _allowedOffset;
 
 let initialized = false;
+let ZPEUpdater;
 
 class AuthZPEClient {
 
@@ -25,6 +25,15 @@ class AuthZPEClient {
         _allowedOffset = 300;
       }
 
+      /*
+      * Since ZPEUpdater is still undefined while setConfig is called,
+      * we are going to set configuration settings for ZPEUpdater before AuthZPEClient is initialized.
+      */
+     
+      ZPEUpdater = require(config.updater);
+      ZPEUpdater.setConfig({
+        zpeClient: config
+      });
       ZPEUpdater.setZPEClient(AuthZPEClient);
 
       initialized = true;
@@ -34,7 +43,6 @@ class AuthZPEClient {
   static setConfig(c) {
     config = Object.assign({}, config, c.zpeClient);
     PublicKeyStore.setConfig(c);
-    ZPEUpdater.setConfig(c);
   }
 
   static getZtsPublicKey(keyId) {
