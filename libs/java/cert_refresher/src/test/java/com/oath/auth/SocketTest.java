@@ -58,7 +58,7 @@ public class SocketTest {
     public void setup() throws Exception {
         keyRefresher = Utils.generateKeyRefresher(
                 Resources.getResource("truststore.jks").getPath(), //trust store
-                "123456",
+                "123456".toCharArray(),
                 Resources.getResource("gdpr.aws.core.cert.pem").getPath(), //public
                 Resources.getResource("gdpr.aws.core.key.pem").getPath() //private
         );

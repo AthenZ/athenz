@@ -31,7 +31,7 @@ public class TrustStoreTest {
 
         String filePath = Resources.getResource("truststore.jks").getFile();
 
-        JavaKeyStoreProvider provider = new JavaKeyStoreProvider(filePath, "123456");
+        JavaKeyStoreProvider provider = new JavaKeyStoreProvider(filePath, "123456".toCharArray());
         TrustStore trustStore = new TrustStore(filePath, provider);
 
         assertEquals(filePath, trustStore.getFilePath());

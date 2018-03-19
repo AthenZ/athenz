@@ -25,9 +25,9 @@ import java.security.KeyStore;
 class JavaKeyStoreProvider implements KeyStoreProvider {
 
     private final String jksFilePath;
-    private final String password;
+    private final char[] password;
 
-    public JavaKeyStoreProvider(final String jksFilePath, final String password) {
+    public JavaKeyStoreProvider(final String jksFilePath, final char[] password) {
         this.jksFilePath = jksFilePath;
         this.password = password;
     }

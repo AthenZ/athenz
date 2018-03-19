@@ -1,5 +1,29 @@
 package com.oath.auth;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.file.Paths;
+import java.security.KeyStore;
+import java.security.PrivateKey;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.util.concurrent.TimeUnit;
+
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.openssl.PEMKeyPair;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Copyright 2017 Yahoo Holdings, Inc.
  *
@@ -17,52 +41,34 @@ package com.oath.auth;
  */
 
 import com.google.common.io.Resources;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.file.Paths;
-import java.security.KeyStore;
-import java.security.PrivateKey;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
-import org.bouncycastle.openssl.PEMKeyPair;
-import org.bouncycastle.openssl.PEMParser;
-import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class Utils {
 
     private static final Logger LOG = LoggerFactory.getLogger(Utils.class);
 
     private static final String SSLCONTEXT_ALGORITHM = "TLSv1.2";
-    private static final String KEYSTORE_PASSWORD = "secret";
+    private static final char[] KEYSTORE_PASSWORD = "secret".toCharArray();
+    //10 minutes
+    private static final long KEY_WAIT_TIME_MILLIS = TimeUnit.MINUTES.toMillis(10);
     
     public static KeyStore getKeyStore(final String jksFilePath) throws Exception {
         return getKeyStore(jksFilePath, KEYSTORE_PASSWORD);
     }
 
-    public static KeyStore getKeyStore(final String jksFilePath, final String password) throws Exception {
+    public static KeyStore getKeyStore(final String jksFilePath, final char[] password) throws Exception {
         final KeyStore keyStore = KeyStore.getInstance("JKS");
         ///CLOVER:OFF
         if (Paths.get(jksFilePath).isAbsolute()) {
             // Can not cover this branch in unit test. Can not refer any files by absolute paths
             try (InputStream jksFileInputStream = new FileInputStream(jksFilePath)) {
-                keyStore.load(jksFileInputStream, password.toCharArray());
+                keyStore.load(jksFileInputStream, password);
                 return keyStore;
             }
         }
         ///CLOVER:ON
 
         try (InputStream jksFileInputStream = Resources.getResource(jksFilePath).openStream()) {
-            keyStore.load(jksFileInputStream, password.toCharArray());
+            keyStore.load(jksFileInputStream, password);
             return keyStore;
         }
     }
@@ -70,7 +76,7 @@ public class Utils {
     public static KeyManager[] getKeyManagers(final String athensPublicKey, final String athensPrivateKey) throws Exception {
         final KeyStore keystore = createKeyStore(athensPublicKey, athensPrivateKey);
         final KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        keyManagerFactory.init(keystore, KEYSTORE_PASSWORD.toCharArray());
+        keyManagerFactory.init(keystore, KEYSTORE_PASSWORD);
         return keyManagerFactory.getKeyManagers();
     }
 
@@ -106,7 +112,7 @@ public class Utils {
      * @return KeyRefresher object
      */
     public static KeyRefresher generateKeyRefresher(final String trustStorePath,
-            final String trustStorePassword, final String athensPublicKey,
+            final char[] trustStorePassword, final String athensPublicKey,
             final String athensPrivateKey) throws Exception {
         TrustStore trustStore = new TrustStore(trustStorePath,
                 new JavaKeyStoreProvider(trustStorePath, trustStorePassword));
@@ -164,38 +170,41 @@ public class Utils {
      */
     public static KeyStore createKeyStore(final String athensPublicKey, final String athensPrivateKey) throws Exception {
 
-        final CertificateFactory cf = CertificateFactory.getInstance("X.509");
-        final JcaPEMKeyConverter pemConverter = new JcaPEMKeyConverter();
-
         X509Certificate certificate;
         PrivateKey privateKey = null;
-
-        final InputStream publicCertStream;
-        final InputStream privateKeyStream;
+        KeyStore keyStore = null;
+        File certFile = null;
+        File keyFile = null;
 
         try {
             if (Paths.get(athensPublicKey).isAbsolute() && Paths.get(athensPrivateKey).isAbsolute()) {
-                // Can not cover this branch in unit test. Can not refer any files by absolute paths
-                File certFile = new File(athensPublicKey);
-                File keyFile = new File(athensPrivateKey);
-
+                certFile = new File(athensPublicKey);
+                keyFile = new File(athensPrivateKey);
+                long startTime = System.currentTimeMillis();
                 while (!certFile.exists() || !keyFile.exists()) {
-                    LOG.error("Missing Athenz public or private key files");
+                    long durationInMillis = System.currentTimeMillis() - startTime;
+                    if (durationInMillis > KEY_WAIT_TIME_MILLIS) {
+                        throw new RuntimeException("Keyfresher waited " + durationInMillis + " ms for valid public or private key files. Giving up.");
+                    }
+                    LOG.error("Missing Athenz public or private key files. Waiting {} ms", durationInMillis);
                     Thread.sleep(1000);
                 }
-                publicCertStream = new FileInputStream(athensPublicKey);
-                privateKeyStream = new FileInputStream(athensPrivateKey);
             } else {
-                publicCertStream = Resources.getResource(athensPublicKey).openStream();
-                privateKeyStream = Resources.getResource(athensPrivateKey).openStream();
+                certFile = new File(Resources.getResource(athensPublicKey).getFile());
+                keyFile = new File(Resources.getResource(athensPrivateKey).getFile());
             }
-        } catch (IOException e) {
-            throw new IllegalArgumentException(e);
+        } catch (Throwable t) {
+            throw new IllegalArgumentException(t);
         }
 
-        try (PEMParser pemParser = new PEMParser(new InputStreamReader(privateKeyStream))) {
+        try (InputStream publicCertStream  = new FileInputStream(certFile);
+                InputStream privateKeyStream =  new FileInputStream(keyFile);
+                PEMParser pemParser = new PEMParser(new InputStreamReader(privateKeyStream))) {
 
+            final CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            final JcaPEMKeyConverter pemConverter = new JcaPEMKeyConverter();
             Object key = pemParser.readObject();
+            
             if (key instanceof PEMKeyPair) {
                 PrivateKeyInfo pKeyInfo = ((PEMKeyPair) key).getPrivateKeyInfo();
                 privateKey = pemConverter.getPrivateKey(pKeyInfo);
@@ -204,15 +213,17 @@ public class Utils {
             } else {
                 throw new IllegalStateException("Unknown object type: " + key.getClass().getName());
             }
+            
+            certificate = (X509Certificate) cf.generateCertificate(publicCertStream);
+            keyStore = KeyStore.getInstance("JKS");
+            String alias = certificate.getSubjectX500Principal().getName();
+            keyStore.load(null);
+            keyStore.setKeyEntry(alias, privateKey, KEYSTORE_PASSWORD, new X509Certificate[]{certificate});
+        
         } catch (IOException e) {
-            throw new IllegalStateException("Unable to parse private key", e);
+            throw new IllegalArgumentException(e);
         }
-
-        certificate = (X509Certificate) cf.generateCertificate(publicCertStream);
-        KeyStore keyStore = KeyStore.getInstance("JKS");
-        String alias = certificate.getSubjectX500Principal().getName();
-        keyStore.load(null);
-        keyStore.setKeyEntry(alias, privateKey, KEYSTORE_PASSWORD.toCharArray(), new X509Certificate[]{certificate});
+        
         return keyStore;
     }
 }

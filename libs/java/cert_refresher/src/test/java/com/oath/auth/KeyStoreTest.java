@@ -27,7 +27,7 @@ public class KeyStoreTest {
     @Test
     public void testGetKeyStore() throws Exception {
 
-        KeyStore keyStore = Utils.getKeyStore("truststore.jks", "123456");
+        KeyStore keyStore = Utils.getKeyStore("truststore.jks", "123456".toCharArray());
         assertNotNull(keyStore);
         
         // default password is secret - key exception
@@ -41,7 +41,6 @@ public class KeyStoreTest {
     
     @Test
     public void testCreateKeyStore() throws Exception {
-        
         KeyStore keyStore = Utils.createKeyStore("rsa_public_x509.cert", "rsa_private.key");
         assertNotNull(keyStore);
     }
