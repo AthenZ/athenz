@@ -73,7 +73,8 @@ public class ZTSUtils {
         return createSSLContextObject(clientProtocols, null);
     }
     
-    public static SslContextFactory createSSLContextObject(String[] clientProtocols, PrivateKeyStore privateKeyStore) {
+    public static SslContextFactory createSSLContextObject(final String[] clientProtocols,
+            final PrivateKeyStore privateKeyStore) {
         
         String keyStorePath = System.getProperty(ZTSConsts.ZTS_PROP_KEYSTORE_PATH);
         String keyStorePasswordAppName = System.getProperty(ZTSConsts.ZTS_PROP_KEYSTORE_PASSWORD_APPNAME);
@@ -98,39 +99,30 @@ public class ZTSUtils {
             LOGGER.info("createSSLContextObject: using SSL KeyStore path: " + keyStorePath);
             sslContextFactory.setKeyStorePath(keyStorePath);
         }
+        
         if (keyStorePassword != null) {
-            if (null != privateKeyStore) {
-                keyStorePassword = privateKeyStore.getApplicationSecret(keyStorePasswordAppName, keyStorePassword);
-            }
+            keyStorePassword = getApplicationSecret(privateKeyStore, keyStorePasswordAppName, keyStorePassword);
             sslContextFactory.setKeyStorePassword(keyStorePassword);
         }
         sslContextFactory.setKeyStoreType(keyStoreType);
 
         if (keyManagerPassword != null) {
-            if (null != privateKeyStore) {
-                keyManagerPassword = privateKeyStore.getApplicationSecret(keyManagerPasswordAppName, keyManagerPassword);
-            }
+            keyManagerPassword = getApplicationSecret(privateKeyStore, keyManagerPasswordAppName, keyManagerPassword);
             sslContextFactory.setKeyManagerPassword(keyManagerPassword);
         }
+        
         if (trustStorePath != null) {
             LOGGER.info("createSSLContextObject: using SSL TrustStore path: " + trustStorePath);
             sslContextFactory.setTrustStorePath(trustStorePath);
         }
         if (trustStorePassword != null) {
-            if (null != privateKeyStore) {
-                trustStorePassword = privateKeyStore.getApplicationSecret(trustStorePasswordAppName, trustStorePassword);
-            }
+            trustStorePassword = getApplicationSecret(privateKeyStore, trustStorePasswordAppName, trustStorePassword);
             sslContextFactory.setTrustStorePassword(trustStorePassword);
         }
         sslContextFactory.setTrustStoreType(trustStoreType);
 
-        if (excludedCipherSuites.length() != 0) {
-            sslContextFactory.setExcludeCipherSuites(excludedCipherSuites.split(","));
-        }
-        
-        if (excludedProtocols.length() != 0) {
-            sslContextFactory.setExcludeProtocols(excludedProtocols.split(","));
-        }
+        sslContextFactory.setExcludeCipherSuites(excludedCipherSuites.split(","));
+        sslContextFactory.setExcludeProtocols(excludedProtocols.split(","));
 
         sslContextFactory.setWantClientAuth(wantClientAuth);
         if (clientProtocols != null) {
@@ -138,6 +130,15 @@ public class ZTSUtils {
         }
 
         return sslContextFactory;
+    }
+    
+    public static String getApplicationSecret(final PrivateKeyStore privateKeyStore,
+            final String keyStorePasswordAppName, final String keyStorePassword) {
+
+        if (privateKeyStore == null || keyStorePasswordAppName == null) {
+            return keyStorePassword;
+        }
+        return privateKeyStore.getApplicationSecret(keyStorePasswordAppName, keyStorePassword);
     }
     
     public static final boolean emitMonmetricError(int errorCode, String caller,
@@ -311,6 +312,4 @@ public class ZTSUtils {
         
         return new Identity().setName(cn).setCertificate(pemCert).setCaCertBundle(CA_X509_CERTIFICATE);
     }
-
-
 }

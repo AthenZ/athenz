@@ -32,6 +32,7 @@ import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
+import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.common.server.cert.CertSigner;
@@ -321,6 +322,16 @@ public class ZTSUtilsTest {
         Mockito.when(certReq.getSubject()).thenThrow(new CryptoException());
         
         assertFalse(ZTSUtils.validateCertReqCommonName(certReq, "athenz.syncer"));
+    }
+    
+    @Test
+    public void testGetApplicationSecret() {
+        assertEquals(ZTSUtils.getApplicationSecret(null, "appname", "pass"), "pass");
         
+        PrivateKeyStore keyStore = Mockito.mock(PrivateKeyStore.class);
+        assertEquals(ZTSUtils.getApplicationSecret(keyStore, null, "pass"), "pass");
+        
+        Mockito.when(keyStore.getApplicationSecret("appname", "passname")).thenReturn("app123");
+        assertEquals(ZTSUtils.getApplicationSecret(keyStore, "appname", "passname"), "app123");
     }
 }
