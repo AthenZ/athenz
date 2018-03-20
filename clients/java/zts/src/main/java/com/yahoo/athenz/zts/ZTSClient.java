@@ -410,6 +410,23 @@ public class ZTSClient implements Closeable {
      * for authenticating requests
      */
     public ZTSClient(String ztsUrl, String proxyUrl, SSLContext sslContext) {
+        this(ztsUrl, proxyUrl, sslContext, null, null);
+    }
+    
+    /**
+     * Constructs a new ZTSClient object with the given SSLContext object
+     * and ZTS Server Url through the specified Proxy URL. Default read
+     * and connect timeout values are 30000ms (30sec). The application can
+     * change these values by using the athenz.zts.client.read_timeout and
+     * athenz.zts.client.connect_timeout system properties. The values
+     * specified for timeouts must be in milliseconds.
+     * @param ztsUrl ZTS Server's URL
+     * @param proxyUrl Proxy Server's URL
+     * @param sslContext SSLContext that includes service's private key and x.509 certificate
+     * @param domainName name of the domain
+     * @param serviceName name of the service
+     */
+    public ZTSClient(String ztsUrl, String proxyUrl, SSLContext sslContext, String domainName, String serviceName) {
         
         // verify we have a valid ssl context specified
         
@@ -417,9 +434,8 @@ public class ZTSClient implements Closeable {
             throw new IllegalArgumentException("SSLContext object must be specified");
         }
         this.sslContext = sslContext;
-        initClient(ztsUrl, proxyUrl, null, null, null, null);
+        initClient(ztsUrl, proxyUrl, null, domainName, serviceName, null);
     }
-    
     /**
      * Constructs a new ZTSClient object with the given service details
      * identity provider (which will provide the ntoken for the service)

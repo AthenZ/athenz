@@ -56,9 +56,25 @@ public class AWSCredentialsProviderImpl implements AWSCredentialsProvider, Close
      */
     public AWSCredentialsProviderImpl(String ztsUrl, SSLContext sslContext,
             String domainName, String roleName) {
+        this(ztsUrl, sslContext, domainName, roleName, null);
+    }
+
+    /**
+     * ZTS Server Url, Athenz domain name, service name and AWS Role Name to retrieve temporary
+     * credentials for. The constructor will automatically create and use the ZTS
+     * client object for retrieving credentials. This object must be closed so
+     * the ZTS client object is closed as well. 
+     * @param ztsUrl ZTS Server's URL
+     * @param sslContext SSLContext that includes service's private key and x.509 certificate
+     * @param domainName name of the domain
+     * @param roleName is the name of the role
+     * @param serviceName name of the service
+     */
+    public AWSCredentialsProviderImpl(String ztsUrl, SSLContext sslContext,
+            String domainName, String roleName, String serviceName) {
         this.domainName = domainName;
         this.roleName = roleName;
-        this.ztsClient = new ZTSClient(ztsUrl, sslContext);
+        this.ztsClient = new ZTSClient(ztsUrl, null, sslContext, domainName, serviceName);
         this.closeZTSClient = true;
     }
 
