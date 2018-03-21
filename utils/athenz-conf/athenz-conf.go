@@ -241,7 +241,7 @@ func main() {
 	}
 	var buf bytes.Buffer
 	buf.WriteString("{\n")
-	buf.WriteString("  \"zmsURL\": \"" + zmsConfURL + "\",\n")
+	buf.WriteString("  \"zmsUrl\": \"" + zmsConfURL + "\",\n")
 	if ztsConfURL != "" {
 		buf.WriteString("  \"ztsUrl\": \"" + ztsConfURL + "\",\n")
 	}
