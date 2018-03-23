@@ -35,6 +35,9 @@ class AuthZPEClient {
         zpeClient: config
       });
       ZPEUpdater.setZPEClient(AuthZPEClient);
+      if (config.disableWatch === false) {
+        ZPEUpdater.watchPolicyDir();
+      }
 
       initialized = true;
     }
@@ -97,6 +100,9 @@ class AuthZPEClient {
   }
 
   static close() {
+    if (config.disableWatch === false) {
+      ZPEUpdater.closeWatcher();
+    }
     ZPEUpdater.close();
   }
 
@@ -340,7 +346,7 @@ class AuthZPEClient {
         if (!matchStruct.matches(role)) {
           const polName = assert.polName;
           winston.debug(msgPrefix + ": policy(" + polName +
-              ") regexpr-match: FAILed: assert-role(" + roleName +
+              ") regexpr-match: Failed: assert-role(" + roleName +
               ") doesnt match role(" + role + ")");
           continue;
         }
@@ -368,19 +374,19 @@ class AuthZPEClient {
 
       matchStruct = assert.actionMatchStruct;
       if (!matchStruct.matches(action)) {
-        winston.debug(msgPrefix + ": policy(" + polname + ") regexpr-match: FAILed: assert-action(" +
+        winston.debug(msgPrefix + ": policy(" + polname + ") regexpr-match: Failed: assert-action(" +
           assertAction + ") doesn't match action(" + action + ")");
         continue;
       }
 
       matchStruct = assert.resourceMatchStruct;
       if (!matchStruct.matches(resource)) {
-        winston.debug(msgPrefix + ": policy(" + polname + ") regexpr-match: FAILed: assert-resource(" +
+        winston.debug(msgPrefix + ": policy(" + polname + ") regexpr-match: Failed: assert-resource(" +
           assertResource + ") doesn't match resource(" + resource + ")");
         continue;
       }
 
-      winston.debug(msgPrefix + ": policy(" + polname + ") MATCHed: role(" + role +
+      winston.debug(msgPrefix + ": policy(" + polname + ") Matched: role(" + role +
         ") resource(" + resource + ") action(" + action + ")");
       return true;
     }
