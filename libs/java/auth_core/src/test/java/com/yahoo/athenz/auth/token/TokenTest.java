@@ -116,15 +116,15 @@ public class TokenTest {
         long timestamp = System.currentTimeMillis() / 1000;
         PrincipalToken token = new PrincipalToken.Builder(svcVersion, svcDomain, svcName)
             .host(host).salt(salt).issueTime(timestamp).build();
-        token.expiryTime = 0;
+        token.expiryTime = 10;
         token.sign(servicePrivateKeyStringK0);
 
         Token.ATHENZ_TOKEN_NO_EXPIRY = false;
         assertFalse(token.validate(servicePublicKeyStringK0, 20, false));
-        assertFalse(token.validate(servicePublicKeyStringK0, 20, true));
+        assertTrue(token.validate(servicePublicKeyStringK0, 20, true));
         
         Token.ATHENZ_TOKEN_NO_EXPIRY = true;
-        assertFalse(token.validate(servicePublicKeyStringK0, 20, false));
+        assertTrue(token.validate(servicePublicKeyStringK0, 20, false));
         assertTrue(token.validate(servicePublicKeyStringK0, 20, true));
 
         Token.ATHENZ_TOKEN_NO_EXPIRY = false;
