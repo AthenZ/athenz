@@ -213,7 +213,7 @@ class AuthZPEClient {
 
     roleMap = ZPEUpdater.getWildcardDenyAssertions(domain);
     if (roleMap && Object.keys(roleMap).length > 0) {
-      if (this._actionWildcardByRole(action, domain, resource, roles, roleMap)) {
+      if (this._actionByWildcardRole(action, domain, resource, roles, roleMap)) {
         return cb(null, AccessCheckStatus.DENY);
       } else {
         status = AccessCheckStatus.DENY_NO_MATCH;
@@ -254,7 +254,7 @@ class AuthZPEClient {
 
     roleMap = ZPEUpdater.getWildcardAllowAssertions(domain);
     if (roleMap && Object.keys(roleMap).length > 0) {
-      if (this._actionWildcardByRole(action, domain, resource, roles, roleMap)) {
+      if (this._actionByWildcardRole(action, domain, resource, roles, roleMap)) {
         return cb(null, AccessCheckStatus.ALLOW);
       } else {
         status = AccessCheckStatus.DENY_NO_MATCH;
@@ -324,7 +324,7 @@ class AuthZPEClient {
     return false;
   }
 
-  static _actionWildcardByRole(action, domain, resource, roles, roleMap) {
+  static _actionByWildcardRole(action, domain, resource, roles, roleMap) {
     let msgPrefix = "allowActionByRole: domain(" + domain +
       ") action(" + action + ") resource(" + resource + ")";
     let keys = Object.keys(roleMap);

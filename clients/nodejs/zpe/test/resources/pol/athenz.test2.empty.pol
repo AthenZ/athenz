@@ -1,0 +1,14 @@
+{
+  "signedPolicyData": {
+    "policyData": {
+      "domain": "athenz.test.empty",
+      "policies": []
+    },
+    "zmsSignature": "",
+    "zmsKeyId": "0",
+    "modified": "2018-02-04T14:40:27.481Z",
+    "expires": "2018-02-11T15:10:36.516Z"
+  },
+  "signature": "",
+  "keyId": "0"
+}

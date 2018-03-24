@@ -33,6 +33,7 @@ const config = {
 };
 
 // Fetches 'service' specific config sub-section, and fills defaults if not present
+/* istanbul ignore next */
 module.exports = function() {
   let c = config[process.env.SERVICE_NAME || 'development'];
 

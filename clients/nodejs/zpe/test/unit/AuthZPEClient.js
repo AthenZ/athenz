@@ -38,7 +38,7 @@ AuthZPEClient.setConfig({
     allowedOffset: 300,
     disableCache: false,
     updater: './ZPEUpdater',
-    disableWatch: false
+    disableWatch: true
   }
 });
 
@@ -78,6 +78,16 @@ var emptyRoleTokenParams = {
 var eRToken = new RoleToken(emptyRoleTokenParams);
 eRToken.sign(privateKeyK0);
 var emptyRoleToken = eRToken.getSignedToken();
+
+var expiredRoleTokenParams = {
+  version: 'Z1',
+  domain: 'athenz.test',
+  roles: ['users']
+};
+var expiredRToken = new RoleToken('v=Z1;d=athenz.test;r=users;a=2fff22fa;t=1521813351;e=1521813351;k=0;s=dummy');
+expiredRToken.sign(privateKeyK0);
+var expiredRoleToken = expiredRToken.getSignedToken();
+console.log(expiredRoleToken);
 // RoleTokens
 
 describe('AuthZPEClient', function() {
@@ -96,7 +106,7 @@ describe('AuthZPEClient', function() {
         allowedOffset: 300,
         disableCache: false,
         updater: './ZPEUpdater',
-        disableWatch: false
+        disableWatch: true
       }
     });
     sandbox.restore();
@@ -182,7 +192,7 @@ describe('AuthZPEClient', function() {
     );
   });
 
-  it('should test AuthZPEClient allowAccess expecting result ALLOW (End-with match)', function() {
+  it('should test AuthZPEClient allowAccess expecting result ALLOW', function() {
     var resource = 'allow.testresgroup';
     var action = 'read';
     AuthZPEClient.setConfig({
@@ -195,7 +205,7 @@ describe('AuthZPEClient', function() {
         allowedOffset: 300,
         disableCache: false,
         updater: './ZPEUpdater',
-        disableWatch: true
+        disableWatch: false
       }
     });
     AuthZPEClient.allowAccess(
@@ -251,9 +261,11 @@ describe('AuthZPEClient', function() {
         expect(accessCheckStatus).to.deep.equal('Access denied due to no match to any of the assertions defined in domain policy file');
       }
     );
+  });
 
-    resource = 'allow.testresgroup';
-    action = 'read';
+  it('should test AuthZPEClient allowAccess expecting result DENY_DOMAIN_EMPTY', function() {
+    var resource = 'allow.testresgroup';
+    var action = 'read';
     AuthZPEClient.allowAccess(
       {
         roleToken: emptyRoleToken,
@@ -261,7 +273,22 @@ describe('AuthZPEClient', function() {
         action: action
       },
       (err, accessCheckStatus) => {
-        expect(accessCheckStatus).to.deep.equal('Access denied due to no match to any of the assertions defined in domain policy file');
+        expect(accessCheckStatus).to.deep.equal('Access denied due to no policies in the domain file');
+      }
+    );
+  });
+
+  it('should test AuthZPEClient allowAccess expecting result DENY_ROLETOKEN_EXPIRED', function() {
+    var resource = 'allow.testresgroup';
+    var action = 'read';
+    AuthZPEClient.allowAccess(
+      {
+        roleToken: expiredRoleToken,
+        resource: resource,
+        action: action
+      },
+      (err, accessCheckStatus) => {
+        expect(accessCheckStatus).to.deep.equal('Access denied due to expired RoleToken');
       }
     );
   });
@@ -323,6 +350,21 @@ describe('AuthZPEClient', function() {
       },
       (err, accessCheckStatus) => {
         expect(accessCheckStatus).to.deep.equal('Access denied due to domain not found in library cache');
+      }
+    );
+  });
+
+  it('should test AuthZPEClient allowAccess expecting result DENY_INVALID_PARAMETERS', function() {
+    var resource = '';
+    var action = 'read';
+    AuthZPEClient.allowAccess(
+      {
+        roleToken: roleToken,
+        resource: resource,
+        action: action
+      },
+      (err, accessCheckStatus) => {
+        expect(accessCheckStatus).to.deep.equal('Access denied due to invalid/empty action/resource values');
       }
     );
   });
