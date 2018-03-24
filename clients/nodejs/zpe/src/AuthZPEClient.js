@@ -79,10 +79,25 @@ class AuthZPEClient {
 
       rToken = new RoleToken(roleToken);
 
-      let pubKey = this.getZtsPublicKey(rToken.getKeyId());
-      if (rToken.validate(pubKey, _allowedOffset, true) === false) {
+      // validate the token
+      if (rToken.validate(this.getZtsPublicKey(rToken.getKeyId()), _allowedOffset, true) === false) {
         winston.error("allowAccess: Authorization denied. Authentication of token failed for token=" +
           rToken.getSignedToken());
+
+        // check the token expiration
+        const now = Date.now() / 1000;
+        const expiry = Number(rToken.getExpiryTime());
+        if (expiry !== 0 && expiry < now) {
+          const signedToken = rToken.getSignedToken();
+          winston.error("allowAccess: Authorization denied. Token expired. now=" +
+            now + " expiry=" + expiry + " token=" + signedToken);
+
+          const tokenCache = ZPEUpdater.getRoleTokenCacheMap();
+          tokenCache.del(signedToken);
+
+          return cb('ERROR: Role Token is Expired', AccessCheckStatus.DENY_ROLETOKEN_EXPIRED);
+        }
+
         return cb('ERROR: Invalid Role Token', AccessCheckStatus.DENY_ROLETOKEN_INVALID);
       }
 
@@ -113,19 +128,6 @@ class AuthZPEClient {
     if (!rToken) {
       winston.error("allowAccess: Authorization denied. Token is null");
       return cb(null, AccessCheckStatus.DENY_ROLETOKEN_INVALID);
-    }
-
-    const now = Date.now() / 1000;
-    const expiry = Number(rToken.getExpiryTime());
-    if (expiry !== 0 && expiry < now) {
-      const signedToken = rToken.getSignedToken();
-      winston.error("allowAccess: Authorization denied. Token expired. now=" +
-        now + " expiry=" + expiry + " token=" + signedToken);
-
-      const tokenCache = ZPEUpdater.getRoleTokenCacheMap();
-      tokenCache.del(signedToken);
-
-      return cb('ERROR: Role Token is Expired', AccessCheckStatus.DENY_ROLETOKEN_EXPIRED);
     }
 
     delete params.rToken;
