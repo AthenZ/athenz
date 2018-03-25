@@ -133,7 +133,7 @@ public class Token {
         // explicitly enabled that option for our system. by default
         // they should have an expiration date of less than 30 days
         
-        if (expiryTime != 0 && !ATHENZ_TOKEN_NO_EXPIRY && !allowNoExpiry) {
+        if (expiryTime != 0 || !ATHENZ_TOKEN_NO_EXPIRY || !allowNoExpiry) {
             if (expiryTime < now) {
                 errMsg.append("Token:validate: token=").append(unsignedToken).
                        append(" : has expired time=").append(expiryTime).

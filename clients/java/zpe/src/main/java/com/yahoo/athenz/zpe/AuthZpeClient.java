@@ -386,6 +386,24 @@ public class AuthZpeClient {
             if (rToken.validate(getZtsPublicKey(rToken.getKeyId()), allowedOffset, false, null) == false) {
                 LOG.error("allowAccess: Authorization denied. Authentication of token failed for token="
                         + rToken.getSignedToken());
+
+                // check the token expiration
+                long now    = System.currentTimeMillis() / 1000;
+                long expiry = rToken.getExpiryTime();
+                if (expiry != 0 && expiry < now) {
+                    String signedToken = rToken.getSignedToken();
+                    LOG.error("allowAccess: Authorization denied. Token expired. now=" +
+                            now + " expiry=" + expiry + " token=" + signedToken);
+                    try {
+                        tokenCache.remove(signedToken);
+                    } catch (Exception exc) {
+                        LOG.error("allowAccess: token cache failure, exc: " + exc.getMessage());
+                    }
+
+                    zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_EXPIRED_TOKEN, rToken.getDomain());
+                    return AccessCheckStatus.DENY_ROLETOKEN_EXPIRED;
+                }
+
                 zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_INVALID_TOKEN, rToken.getDomain());
                 return AccessCheckStatus.DENY_ROLETOKEN_INVALID;
             }
