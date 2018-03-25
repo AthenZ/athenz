@@ -6,8 +6,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -22,6 +24,10 @@ import com.yahoo.athenz.common.server.cert.CertSigner;
 import com.yahoo.athenz.zts.InstanceIdentity;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.store.impl.ZMSFileChangeLogStore;
+import com.yahoo.athenz.zts.utils.IPBlock;
+import com.yahoo.athenz.zts.utils.IPPrefix;
+import com.yahoo.athenz.zts.utils.IPPrefixes;
+import com.yahoo.rdl.JSON;
 
 public class InstanceCertManagerTest {
 
@@ -163,7 +169,7 @@ public class InstanceCertManagerTest {
         CertRecordStoreConnection certConnection = Mockito.mock(CertRecordStoreConnection.class);
         Mockito.when(certStore.getConnection()).thenReturn(certConnection);
         
-        Mockito.when(certConnection.updateX509CertRecord(Matchers.isA(X509CertRecord.class))).thenReturn(true);
+        Mockito.when(certConnection.updateX509CertRecord(ArgumentMatchers.isA(X509CertRecord.class))).thenReturn(true);
         instance.setCertStore(certStore);
 
         X509CertRecord x509CertRecord = new X509CertRecord();
@@ -201,7 +207,7 @@ public class InstanceCertManagerTest {
         CertRecordStoreConnection certConnection = Mockito.mock(CertRecordStoreConnection.class);
         Mockito.when(certStore.getConnection()).thenReturn(certConnection);
         
-        Mockito.when(certConnection.insertX509CertRecord(Matchers.isA(X509CertRecord.class))).thenReturn(true);
+        Mockito.when(certConnection.insertX509CertRecord(ArgumentMatchers.isA(X509CertRecord.class))).thenReturn(true);
         instance.setCertStore(certStore);
 
         X509CertRecord x509CertRecord = new X509CertRecord();
@@ -353,5 +359,104 @@ public class InstanceCertManagerTest {
         assertTrue(result);
         assertEquals(identity.getSshCertificate(), "ssh-cert");
         assertEquals(identity.getSshCertificateSigner(), "ssh-host");
+    }
+    
+    @Test
+    public void testVerifyIPAddressAccessEmptyList() {
+        
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_REFRESH_IP_FNAME);
+        System.clearProperty(ZTSConsts.ZTS_PROP_INSTANCE_CERT_IP_FNAME);
+        
+        InstanceCertManager instance = new InstanceCertManager(null, null);
+        
+        // empty list matches everything
+        
+        assertTrue(instance.verifyInstanceCertIPAddress("11.1.3.25"));
+        assertTrue(instance.verifyInstanceCertIPAddress("11.1.9.25"));
+        assertTrue(instance.verifyInstanceCertIPAddress("11.2.3.25"));
+        assertTrue(instance.verifyInstanceCertIPAddress("11.2.9.25"));
+        assertTrue(instance.verifyInstanceCertIPAddress("10.1.3.25"));
+        assertTrue(instance.verifyInstanceCertIPAddress("10.1.9.25"));
+        
+        assertTrue(instance.verifyCertRefreshIPAddress("10.1.3.25"));
+        assertTrue(instance.verifyCertRefreshIPAddress("10.1.9.25"));
+        assertTrue(instance.verifyCertRefreshIPAddress("10.2.3.25"));
+        assertTrue(instance.verifyCertRefreshIPAddress("10.2.9.25"));
+        assertTrue(instance.verifyCertRefreshIPAddress("11.1.3.25"));
+        assertTrue(instance.verifyCertRefreshIPAddress("11.1.9.25"));
+    }
+    
+    @Test
+    public void testVerifyIPAddressAccessSpecifiedList() {
+        
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_REFRESH_IP_FNAME,
+                "src/test/resources/cert_refresh_ipblocks.txt");
+        System.setProperty(ZTSConsts.ZTS_PROP_INSTANCE_CERT_IP_FNAME,
+                "src/test/resources/instance_cert_ipblocks.txt");
+        
+        InstanceCertManager instance = new InstanceCertManager(null, null);
+        
+        // refresh cert
+        
+        // subnet/netmask: 10.1.0.0/255.255.248.0
+        // address range: 10.1.0.0 - 10.1.7.255
+        
+        // subnet/netmask: 10.2.0.0/255.255.248.0
+        // address range: 10.2.0.0 - 10.2.7.255
+        
+        assertTrue(instance.verifyCertRefreshIPAddress("10.1.3.25"));
+        assertFalse(instance.verifyCertRefreshIPAddress("10.1.9.25"));
+        assertTrue(instance.verifyCertRefreshIPAddress("10.2.3.25"));
+        assertFalse(instance.verifyCertRefreshIPAddress("10.2.9.25"));
+        
+        assertFalse(instance.verifyCertRefreshIPAddress("11.1.3.25"));
+        assertFalse(instance.verifyCertRefreshIPAddress("11.1.9.25"));
+        
+        // instance register and refresh 
+        
+        // subnet/netmask: 11.1.0.0/255.255.248.0
+        // address range: 11.1.0.0 - 11.1.7.255
+        
+        // subnet/netmask: 11.2.0.0/255.255.248.0
+        // address range: 11.2.0.0 - 11.2.7.255
+        
+        assertTrue(instance.verifyInstanceCertIPAddress("11.1.3.25"));
+        assertFalse(instance.verifyInstanceCertIPAddress("11.1.9.25"));
+        assertTrue(instance.verifyInstanceCertIPAddress("11.2.3.25"));
+        assertFalse(instance.verifyInstanceCertIPAddress("11.2.9.25"));
+        
+        assertFalse(instance.verifyInstanceCertIPAddress("10.1.3.25"));
+        assertFalse(instance.verifyInstanceCertIPAddress("10.1.9.25"));
+    }
+    
+    @Test
+    public void testLoadAllowedIPAddresses() {
+        
+        final String propName = "test_ip_property";
+        List<IPBlock> ipBlocks = new ArrayList<>();
+
+        System.clearProperty(propName);
+        InstanceCertManager instance = new InstanceCertManager(null, null);
+        
+        // not set property returns true
+        
+        assertTrue(instance.loadAllowedIPAddresses(ipBlocks, propName));
+        
+        // file does not exist returns failure
+        
+        System.setProperty(propName, "some-invalid-filename");
+        assertFalse(instance.loadAllowedIPAddresses(ipBlocks, propName));
+
+        // invalid json returns failure
+        
+        System.setProperty(propName, "src/test/resources/invalid_ipblocks.txt");
+        assertFalse(instance.loadAllowedIPAddresses(ipBlocks, propName));
+        
+        // valid json with empty set returns failure
+        
+        System.setProperty(propName, "src/test/resources/empty_ipblocks.txt");
+        assertFalse(instance.loadAllowedIPAddresses(ipBlocks, propName));
+
+        System.clearProperty(propName);
     }
 }

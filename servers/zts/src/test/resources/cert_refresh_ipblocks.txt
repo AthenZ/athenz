@@ -1,3 +1,31 @@
-172.0.0.1/255.255.255.255
-172.0.0.2/ 255.255.255.255
-172.300.10.2/255.255.255.255
+{
+  "syncToken": "123456",
+  "createDate": "2018-03-17-01-16-14",
+  "prefixes": [
+    {
+      "ip_prefix": "10.0.0.1/32",
+      "region": "GLOBAL",
+      "service": "ATHENZ"
+    },
+    {
+      "ip_prefix": "10.1.0.0/21",
+      "service": "ATHENZ"
+    },
+    {
+      "ip_prefix": "10.2.0.0/ 21",
+      "service": "ATHENZ"
+    },
+    {
+      "ip_prefix": "172.300.10.2/32",
+      "region": "GLOBAL"
+    },
+    {
+      "ip_prefix": "13.32.0.0/15"
+    },
+    {
+      "ipv6_prefix": "2a05:d07f:8000::/40",
+      "region": "GLOBAL",
+      "service": "ATHENZ"
+    }
+  ]
+}

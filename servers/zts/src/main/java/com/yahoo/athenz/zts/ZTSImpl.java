@@ -15,9 +15,6 @@
  */
 package com.yahoo.athenz.zts;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.URLDecoder;
@@ -78,7 +75,6 @@ import com.yahoo.athenz.zts.store.ChangeLogStore;
 import com.yahoo.athenz.zts.store.ChangeLogStoreFactory;
 import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.DataStore;
-import com.yahoo.athenz.zts.utils.IPBlock;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
 import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Timestamp;
@@ -126,7 +122,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected boolean statusCertSigner = false;
     protected Status successServerStatus = null;
     protected boolean includeRoleCompleteFlag = true;
-    protected List<IPBlock> certRefreshIPBlocks = null;
     
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -232,10 +227,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // create our certsigner object
         
         loadCertSigner();
-        
-        // load our allowed cert refresh ip blocks
-        
-        loadAllowedCertRefreshIPAddresses();
         
        // create our cloud store if configured
         
@@ -393,32 +384,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         includeRoleCompleteFlag = Boolean.parseBoolean(
                 System.getProperty(ZTSConsts.ZTS_PROP_ROLE_COMPLETE_FLAG, "true"));
-    }
-    
-    void loadAllowedCertRefreshIPAddresses() {
-        
-        // initialize our list
-        
-        certRefreshIPBlocks = new ArrayList<>();
-        
-        // get the configured path for the list of service templates
-        
-        String certRefreshIPAddresses =  System.getProperty(ZTSConsts.ZTS_PROP_CERT_REFRESH_IP_FNAME,
-                getRootDir() + "/conf/zts_server/cert_refresh_ipblocks.txt");
-        
-        try (BufferedReader br = new BufferedReader(new FileReader(certRefreshIPAddresses))) {
-            String line = null;
-            while ((line = br.readLine()) != null) {
-                try {
-                    certRefreshIPBlocks.add(new IPBlock(line));
-                } catch (Exception ex) {
-                    LOGGER.error("Skipping invalid cert refresh ip block line: {}, error: {}",
-                            line, ex.getMessage());
-                }
-            }
-        } catch (IOException  ex) {
-            LOGGER.error("Unable to process cert refresh ip block list: {}", ex.getMessage());
-        }
     }
     
     static String getServerHostName() {
@@ -1723,6 +1688,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_REQUEST, domain);
         metric.increment(caller, domain);
 
+        // before running any checks make sure it's coming from
+        // an authorized ip address
+        
+        final String ipAddress = ServletRequestUtil.getRemoteAddress(ctx.request());
+        if (!instanceCertManager.verifyInstanceCertIPAddress(ipAddress)) {
+            throw forbiddenError("Unknown IP: " + ipAddress, caller, domain);
+        }
+        
         // run the authorization checks to make sure the provider has been
         // authorized to launch instances in Athenz and the service has
         // authorized this provider to launch its instances
@@ -1933,6 +1906,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         Object timerMetric = metric.startTiming(callerTiming, domain);
         metric.increment(HTTP_REQUEST, domain);
         metric.increment(caller, domain);
+        
+        // before running any checks make sure it's coming from
+        // an authorized ip address
+        
+        final String ipAddress = ServletRequestUtil.getRemoteAddress(ctx.request());
+        if (!instanceCertManager.verifyInstanceCertIPAddress(ipAddress)) {
+            throw forbiddenError("Unknown IP: " + ipAddress, caller, domain);
+        }
         
         // we are going to get two use cases here. client asking for:
         // * x509 cert (optionally with ssh certificate)
@@ -2431,8 +2412,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return identity;
     }
     
-    ServiceX509RefreshRequestStatus validateServiceX509RefreshRequest(final Principal principal, final X509CertRequest certReq,
-            final String ipAddress) {
+    ServiceX509RefreshRequestStatus validateServiceX509RefreshRequest(final Principal principal,
+            final X509CertRequest certReq, final String ipAddress) {
         
         // retrieve the certificate that was used for authentication
         // and verify that the dns names in the certificate match to
@@ -2452,17 +2433,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // finally verify that the ip address is in the allowed range
         
-        return verifyIPAddressAccess(ipAddress) ? ServiceX509RefreshRequestStatus.SUCCESS : ServiceX509RefreshRequestStatus.IP_NOT_ALLOWED;
-    }
-    
-    final boolean verifyIPAddressAccess(final String ipAddress) {
-        long ipAddr = IPBlock.convertToLong(ipAddress);
-        for (IPBlock ipBlock : certRefreshIPBlocks) {
-            if (ipBlock.ipCheck(ipAddr)) {
-                return true;
-            }
+        if (!instanceCertManager.verifyCertRefreshIPAddress(ipAddress)) {
+            return ServiceX509RefreshRequestStatus.IP_NOT_ALLOWED;
         }
-        return false;
+        
+        return ServiceX509RefreshRequestStatus.SUCCESS;
     }
     
     // this method will be removed and replaced with call to postInstanceRegisterInformation
@@ -2783,8 +2758,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String domainName = principal.getDomain();
         Object timerMetric = metric.startTiming(callerTiming, domainName);
 
-        /* if the check principal is given then we need to carry out the access
-         * check against that principal */
+        // if the check principal is given then we need to carry out the access
+        // check against that principal
         
         if (checkPrincipal != null) {
             principal = createPrincipalForName(checkPrincipal);

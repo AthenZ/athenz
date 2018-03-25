@@ -18,25 +18,43 @@ public class IPBlockTest {
         }
         
         try {
-            new IPBlock("10.1.1.1%255.255.255.255");
+            new IPBlock("10.1.1.1%32");
             fail();
         } catch (IllegalArgumentException ex) {
         }
         
         try {
-            new IPBlock("10.1.1.1-255.255.255.0");
+            new IPBlock("10.1.1.1-24");
             fail();
         } catch (IllegalArgumentException ex) {
         }
         
         try {
-            new IPBlock("10.1.1.256/255.255.255.0");
+            new IPBlock("10.1.1.256/24");
             fail();
         } catch (IllegalArgumentException ex) {
         }
         
         try {
-            new IPBlock("10.1.1.0/255.265.255.0");
+            new IPBlock("10.1.1.0/33");
+            fail();
+        } catch (IllegalArgumentException ex) {
+        }
+        
+        try {
+            new IPBlock("10.1.1.0/-1");
+            fail();
+        } catch (IllegalArgumentException ex) {
+        }
+        
+        try {
+            new IPBlock("10.1.1.0/0");
+            fail();
+        } catch (IllegalArgumentException ex) {
+        }
+        
+        try {
+            new IPBlock("172.300.10.2/32");
             fail();
         } catch (IllegalArgumentException ex) {
         }
@@ -45,49 +63,49 @@ public class IPBlockTest {
     @Test
     public void testIpCheck() {
         
-        // subnet/netmask: 10.1.0.1/255.255.255.255
+        // subnet/netmask: 10.1.0.1/32
         // address range: 10.1.0.1
         
-        IPBlock ipBlock = new IPBlock("10.1.0.1/255.255.255.255");
-        assertTrue(ipBlock.ipCheck(IPBlock.convertToLong("10.1.0.1")));
-        assertFalse(ipBlock.ipCheck(IPBlock.convertToLong("10.1.0.2")));
+        IPBlock ipBlock = new IPBlock("10.1.0.1/32");
+        assertTrue(ipBlock.ipCheck(IPBlock.convertIPToLong("10.1.0.1")));
+        assertFalse(ipBlock.ipCheck(IPBlock.convertIPToLong("10.1.0.2")));
         
-        // subnet/netmask: 10.1.0.0/255.255.248.0
+        // subnet/netmask: 10.1.0.0/21
         // address range: 10.1.0.0 - 10.1.7.255
         
-        ipBlock = new IPBlock("10.1.0.0/255.255.248.0");
-        assertTrue(ipBlock.ipCheck(IPBlock.convertToLong("10.1.0.0")));
-        assertTrue(ipBlock.ipCheck(IPBlock.convertToLong("10.1.7.255")));
-        assertTrue(ipBlock.ipCheck(IPBlock.convertToLong("10.1.3.25")));
-        assertTrue(ipBlock.ipCheck(IPBlock.convertToLong("10.1.0.24")));
-        assertFalse(ipBlock.ipCheck(IPBlock.convertToLong("10.1.8.0")));
-        assertFalse(ipBlock.ipCheck(IPBlock.convertToLong("10.0.0.0")));
-        assertFalse(ipBlock.ipCheck(IPBlock.convertToLong("10.2.0.0")));
-        assertFalse(ipBlock.ipCheck(IPBlock.convertToLong("10.2.1.255")));
+        ipBlock = new IPBlock("10.1.0.0/21");
+        assertTrue(ipBlock.ipCheck(IPBlock.convertIPToLong("10.1.0.0")));
+        assertTrue(ipBlock.ipCheck(IPBlock.convertIPToLong("10.1.7.255")));
+        assertTrue(ipBlock.ipCheck(IPBlock.convertIPToLong("10.1.3.25")));
+        assertTrue(ipBlock.ipCheck(IPBlock.convertIPToLong("10.1.0.24")));
+        assertFalse(ipBlock.ipCheck(IPBlock.convertIPToLong("10.1.8.0")));
+        assertFalse(ipBlock.ipCheck(IPBlock.convertIPToLong("10.0.0.0")));
+        assertFalse(ipBlock.ipCheck(IPBlock.convertIPToLong("10.2.0.0")));
+        assertFalse(ipBlock.ipCheck(IPBlock.convertIPToLong("10.2.1.255")));
     }
     
     @Test
     public void testIpCheckWithSpaces() {
         
-        // subnet/netmask: 10.1.0.1/255.255.255.255
+        // subnet/netmask: 10.1.0.1/32
         // address range: 10.1.0.1
         
-        IPBlock ipBlock = new IPBlock("10.1.0.1 / 255.255.255.255 ");
-        assertTrue(ipBlock.ipCheck(IPBlock.convertToLong("10.1.0.1")));
-        assertFalse(ipBlock.ipCheck(IPBlock.convertToLong("10.1.0.2")));
+        IPBlock ipBlock = new IPBlock("10.1.0.1 / 32 ");
+        assertTrue(ipBlock.ipCheck(IPBlock.convertIPToLong("10.1.0.1")));
+        assertFalse(ipBlock.ipCheck(IPBlock.convertIPToLong("10.1.0.2")));
     }
     
     @Test
     public void testIpCheckInvalidIPs() {
         
-        IPBlock ipBlock = new IPBlock("10.3.0.1/255.255.255.255");
+        IPBlock ipBlock = new IPBlock("10.3.0.1/32");
         try {
-            ipBlock.ipCheck(IPBlock.convertToLong("10.1987.0.1"));
+            ipBlock.ipCheck(IPBlock.convertIPToLong("10.1987.0.1"));
             fail();
         } catch (IllegalArgumentException ex) {
         }
         try {
-            ipBlock.ipCheck(IPBlock.convertToLong("10.0.0.256"));
+            ipBlock.ipCheck(IPBlock.convertIPToLong("10.0.0.256"));
             fail();
         } catch (IllegalArgumentException ex) {
         }
