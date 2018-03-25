@@ -23,7 +23,7 @@ const config = {
     roleUserDomain: 'user',
     roleHeader: 'Athenz-Role-Auth',
     tokenMaxExpiry: String(30 * 24 * 60 * 60),
-    tokenNoExpiry: true,
+    tokenNoExpiry: false,
     logLevel: 'debug'
   },
   production: {
@@ -41,6 +41,7 @@ const config = {
 };
 
 // Fetches 'service' specific config sub-section, and fills defaults if not present
+/* istanbul ignore next */
 module.exports = function() {
   let c = config[process.env.SERVICE_NAME || 'development'];
 

@@ -6,12 +6,12 @@ let config = require('../config/config')();
 const RoleToken = require('@athenz/auth-core').RoleToken;
 const AccessCheckStatus = require('./AccessCheckStatus');
 const PublicKeyStore = require('./PublicKeyStore');
-const ZPEUpdater = require('./ZPEUpdater');
 
 let _publicKeyStore,
   _allowedOffset;
 
 let initialized = false;
+let ZPEUpdater;
 
 class AuthZPEClient {
 
@@ -25,7 +25,19 @@ class AuthZPEClient {
         _allowedOffset = 300;
       }
 
+      /*
+      * Since ZPEUpdater is still undefined while setConfig is called,
+      * we are going to set configuration settings for ZPEUpdater before AuthZPEClient is initialized.
+      */
+     
+      ZPEUpdater = require(config.updater);
+      ZPEUpdater.setConfig({
+        zpeClient: config
+      });
       ZPEUpdater.setZPEClient(AuthZPEClient);
+      if (config.disableWatch === false) {
+        ZPEUpdater.watchPolicyDir();
+      }
 
       initialized = true;
     }
@@ -34,7 +46,6 @@ class AuthZPEClient {
   static setConfig(c) {
     config = Object.assign({}, config, c.zpeClient);
     PublicKeyStore.setConfig(c);
-    ZPEUpdater.setConfig(c);
   }
 
   static getZtsPublicKey(keyId) {
@@ -68,10 +79,25 @@ class AuthZPEClient {
 
       rToken = new RoleToken(roleToken);
 
-      let pubKey = this.getZtsPublicKey(rToken.getKeyId());
-      if (rToken.validate(pubKey, _allowedOffset, true) === false) {
+      // validate the token
+      if (rToken.validate(this.getZtsPublicKey(rToken.getKeyId()), _allowedOffset, true) === false) {
         winston.error("allowAccess: Authorization denied. Authentication of token failed for token=" +
           rToken.getSignedToken());
+
+        // check the token expiration
+        const now = Date.now() / 1000;
+        const expiry = Number(rToken.getExpiryTime());
+        if (expiry !== 0 && expiry < now) {
+          const signedToken = rToken.getSignedToken();
+          winston.error("allowAccess: Authorization denied. Token expired. now=" +
+            now + " expiry=" + expiry + " token=" + signedToken);
+
+          const tokenCache = ZPEUpdater.getRoleTokenCacheMap();
+          tokenCache.del(signedToken);
+
+          return cb('ERROR: Role Token is Expired', AccessCheckStatus.DENY_ROLETOKEN_EXPIRED);
+        }
+
         return cb('ERROR: Invalid Role Token', AccessCheckStatus.DENY_ROLETOKEN_INVALID);
       }
 
@@ -88,6 +114,13 @@ class AuthZPEClient {
     return this._allowAccessByTokenObj(params, cb);
   }
 
+  static close() {
+    if (config.disableWatch === false) {
+      ZPEUpdater.closeWatcher();
+    }
+    ZPEUpdater.close();
+  }
+
   static _allowAccessByTokenObj(params, cb) {
     let rToken = params.rToken,
         resource = params.resource,
@@ -95,19 +128,6 @@ class AuthZPEClient {
     if (!rToken) {
       winston.error("allowAccess: Authorization denied. Token is null");
       return cb(null, AccessCheckStatus.DENY_ROLETOKEN_INVALID);
-    }
-
-    const now = Date.now() / 1000;
-    const expiry = Number(rToken.getExpiryTime());
-    if (expiry !== 0 && expiry < now) {
-      const signedToken = rToken.getSignedToken();
-      winston.error("allowAccess: Authorization denied. Token expired. now=" +
-        now + " expiry=" + expiry + " token=" + signedToken);
-
-      const tokenCache = ZPEUpdater.getRoleTokenCacheMap();
-      tokenCache.del(signedToken);
-
-      return cb('ERROR: Role Token is Expired', AccessCheckStatus.DENY_ROLETOKEN_EXPIRED);
     }
 
     delete params.rToken;
@@ -195,7 +215,7 @@ class AuthZPEClient {
 
     roleMap = ZPEUpdater.getWildcardDenyAssertions(domain);
     if (roleMap && Object.keys(roleMap).length > 0) {
-      if (this._actionWildcardByRole(action, domain, resource, roles, roleMap)) {
+      if (this._actionByWildcardRole(action, domain, resource, roles, roleMap)) {
         return cb(null, AccessCheckStatus.DENY);
       } else {
         status = AccessCheckStatus.DENY_NO_MATCH;
@@ -236,7 +256,7 @@ class AuthZPEClient {
 
     roleMap = ZPEUpdater.getWildcardAllowAssertions(domain);
     if (roleMap && Object.keys(roleMap).length > 0) {
-      if (this._actionWildcardByRole(action, domain, resource, roles, roleMap)) {
+      if (this._actionByWildcardRole(action, domain, resource, roles, roleMap)) {
         return cb(null, AccessCheckStatus.ALLOW);
       } else {
         status = AccessCheckStatus.DENY_NO_MATCH;
@@ -306,7 +326,7 @@ class AuthZPEClient {
     return false;
   }
 
-  static _actionWildcardByRole(action, domain, resource, roles, roleMap) {
+  static _actionByWildcardRole(action, domain, resource, roles, roleMap) {
     let msgPrefix = "allowActionByRole: domain(" + domain +
       ") action(" + action + ") resource(" + resource + ")";
     let keys = Object.keys(roleMap);
@@ -328,7 +348,7 @@ class AuthZPEClient {
         if (!matchStruct.matches(role)) {
           const polName = assert.polName;
           winston.debug(msgPrefix + ": policy(" + polName +
-              ") regexpr-match: FAILed: assert-role(" + roleName +
+              ") regexpr-match: Failed: assert-role(" + roleName +
               ") doesnt match role(" + role + ")");
           continue;
         }
@@ -356,19 +376,19 @@ class AuthZPEClient {
 
       matchStruct = assert.actionMatchStruct;
       if (!matchStruct.matches(action)) {
-        winston.debug(msgPrefix + ": policy(" + polname + ") regexpr-match: FAILed: assert-action(" +
+        winston.debug(msgPrefix + ": policy(" + polname + ") regexpr-match: Failed: assert-action(" +
           assertAction + ") doesn't match action(" + action + ")");
         continue;
       }
 
       matchStruct = assert.resourceMatchStruct;
       if (!matchStruct.matches(resource)) {
-        winston.debug(msgPrefix + ": policy(" + polname + ") regexpr-match: FAILed: assert-resource(" +
+        winston.debug(msgPrefix + ": policy(" + polname + ") regexpr-match: Failed: assert-resource(" +
           assertResource + ") doesn't match resource(" + resource + ")");
         continue;
       }
 
-      winston.debug(msgPrefix + ": policy(" + polname + ") MATCHed: role(" + role +
+      winston.debug(msgPrefix + ": policy(" + polname + ") Matched: role(" + role +
         ") resource(" + resource + ") action(" + action + ")");
       return true;
     }

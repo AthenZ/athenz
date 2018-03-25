@@ -1,0 +1,81 @@
+{
+  "signedPolicyData": {
+    "policyData": {
+      "domain": "athenz.test",
+      "policies": [
+        {
+          "name": "athenz.test:policy.admin",
+          "modified": "2018-02-04T14:39:23.506Z",
+          "assertions": [
+            {
+              "role": "athenz.test:role.admin",
+              "resource": "athenz.test:*",
+              "action": "*",
+              "effect": "ALLOW"
+            }
+          ]
+        },
+        {
+          "name": "athenz.test:policy.users",
+          "modified": "2018-02-04T14:40:27.479Z",
+          "assertions": [
+            {
+              "role": "athenz.test:role.users",
+              "resource": "athenz.test:testresgroup.*",
+              "action": "read*",
+              "effect": "ALLOW"
+            },
+            {
+              "role": "athenz.test:role.users",
+              "resource": "athenz.test:testresgroup.*",
+              "action": "*read",
+              "effect": "ALLOW"
+            },
+            {
+              "role": "athenz.test:role.wildcardrole*",
+              "resource": "athenz.test:testresgroup.*",
+              "action": "*read",
+              "effect": "ALLOW"
+            },
+            {
+              "role": "athenz.test:role.users",
+              "resource": "athenz.test:testresgroup.deny",
+              "action": "write",
+              "effect": "DENY"
+            },
+            {
+              "role": "athenz.test:role.wildcardrole*",
+              "resource": "athenz.test:testresgroup.deny",
+              "action": "write",
+              "effect": "DENY"
+            },
+            {
+              "role": "athenz.test:role.users",
+              "resource": "athenz.test:*.testresgroup",
+              "action": "read",
+              "effect": "ALLOW"
+            },
+            {
+              "role": "athenz.test:role.users",
+              "resource": "athenz.test:testresgroup.deny",
+              "action": "delete*",
+              "effect": "DENY"
+            },
+            {
+              "role": "athenz.test:role.users",
+              "resource": "athenz.test:testresgroup.deny",
+              "action": "*delete",
+              "effect": "DENY"
+            }
+          ]
+        }
+      ]
+    },
+    "zmsSignature": "",
+    "zmsKeyId": "0",
+    "modified": "2018-02-04T14:40:27.481Z",
+    "expires": "2018-02-11T15:10:36.516Z"
+  },
+  "signature": "",
+  "keyId": "0"
+}

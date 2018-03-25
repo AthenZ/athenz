@@ -36,10 +36,13 @@ AuthZPEClient.setConfig({
     tokenRefresh: 1800,
     policyRefresh: 1800,
     allowedOffset: 300,
-    disableCache: false
+    disableCache: false,
+    updater: './ZPEUpdater',
+    disableWatch: true
   }
 });
 
+// RoleTokens
 var roleTokenParams = {
   version: 'Z1',
   domain: 'athenz.test',
@@ -47,10 +50,45 @@ var roleTokenParams = {
 };
 var rToken = new RoleToken(roleTokenParams);
 rToken.sign(privateKeyK0);
-
 var roleToken = rToken.getSignedToken();
-var resource = 'athenz.test:testresgroup.allow';
-var action = 'read';
+
+var wildcardRoleTokenParams = {
+  version: 'Z1',
+  domain: 'athenz.test',
+  roles: ['wildcardroletest']
+};
+var wildcardRToken = new RoleToken(wildcardRoleTokenParams);
+wildcardRToken.sign(privateKeyK0);
+var wildcardRoleToken = wildcardRToken.getSignedToken();
+
+var noSuchRoleTokenParams = {
+  version: 'Z1',
+  domain: 'athenz.test',
+  roles: ['nosuchrole']
+};
+var nRToken = new RoleToken(noSuchRoleTokenParams);
+nRToken.sign(privateKeyK0);
+var noSuchRoleToken = nRToken.getSignedToken();
+
+var emptyRoleTokenParams = {
+  version: 'Z1',
+  domain: 'athenz.test.empty',
+  roles: ['users']
+};
+var eRToken = new RoleToken(emptyRoleTokenParams);
+eRToken.sign(privateKeyK0);
+var emptyRoleToken = eRToken.getSignedToken();
+
+var expiredRoleTokenParams = {
+  version: 'Z1',
+  domain: 'athenz.test',
+  roles: ['users']
+};
+var expiredRToken = new RoleToken('v=Z1;d=athenz.test;r=users;a=2fff22fa;t=1521813351;e=1521813351;k=0;s=dummy');
+expiredRToken.sign(privateKeyK0);
+var expiredRoleToken = expiredRToken.getSignedToken();
+console.log(expiredRoleToken);
+// RoleTokens
 
 describe('AuthZPEClient', function() {
   beforeEach(function() {
@@ -58,11 +96,24 @@ describe('AuthZPEClient', function() {
   });
 
   afterEach(function() {
+    AuthZPEClient.setConfig({
+      zpeClient: {
+        logLevel: 'debug',
+        policyDir: policyDir,
+        confFileName: confFileName,
+        tokenRefresh: 1800,
+        policyRefresh: 1800,
+        allowedOffset: 300,
+        disableCache: false,
+        updater: './ZPEUpdater',
+        disableWatch: true
+      }
+    });
     sandbox.restore();
   });
 
   it('should test AuthZPEClient getZmsPublicKey', function() {
-    expect(AuthZPEClient.getZmsPublicKey('0')).to.deep.equal(YBase64.ybase64Decode('LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUF5NEVMbFh3SHRXcU1TWDNwMkNpOAoyaW1rWktlSTVVWlpuT0tqMDJIVlAzNHhtYlR2Ykd5ZG56MjRjUWdLZi82c2JJQzI2amI5NUhMOXd2Q084K0ZLCkxOcXp5MHB5eFJBaStRTE5LOUdQZkJGc0NWdmlIclFGSzB5YkhwczJkTFlTZjRTbHgzTE44ZUgxTC9Oc3pQd2kKTCtteEZubS9WS29jU3lDK3g2MUtoMFBGSks5djBsUlBYQS9XckZRbzFmcUczNC9NY1I2a2t3bU9EaTJJVGhDKwp6ZGczNVh0Q0JhbXg5N09EODUvVUpIR2ZNdmk1R09HRUdqMEpONVBtS2J1akdZZDhKOFdsTkZYQ3NzaXgxd2hPCi9tWXF5ZWk1NndXemx5RUtyN1ZSekt5TmtDNGdBWVIvQlU2ekhtc1cvclJQbXEzZHRmdU1GRklMdWI0L2kvclkKUlFJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg--'));
+    expect(AuthZPEClient.getZmsPublicKey('0')).to.deep.equal(YBase64.ybase64Decode('LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUFzdXBTOVJrUFQvMDdEcEVLUjZpRQp2Umh4S0NDQ0JlQUFnU3hJcHk3MUhqOHZkU21hNUdQTktpYUthczBOaVdpUXRCZW9OYTZia1NabE04bE9Sb1BwCjFzSy9uUjVCSWRwTjdWZ0NrWEdtSjY5THJmYm44ODdHWjBPV0tFZFlKcXI0S2tpMktHOFFzYTgxNXE4ei9LRk4KRjg4NjlqYzRRbDdkVnY3NUZDays4SXNJcnBCZ3I1eU1RTnZNb24xYmY4MUZka0lJdE9iUnZIMm9NeHZLQVRqVworRUpvcytTbENITmQreDR1WUM5bE40SGk2cXFKTWNBZ3I0aTRhM0JNV2pHSk1DclY3UWpibzcwOW1jS2JqUE9JCmwvMEs3YjczZ2ZhSEZCZnBmaXFlanNsa2xab3VoSUhvdWxoZk93dXdSZStmMW14UkpsWmlhMjh6K29VZEVYSVUKZlFJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg--'));
   });
 
   it('should test AuthZPEClient getZtsPublicKey', function() {
@@ -86,6 +137,49 @@ describe('AuthZPEClient', function() {
     DENY_INVALID_PARAMETERS: "Access denied due to invalid/empty action/resource values",
   */
   it('should test AuthZPEClient allowAccess expecting result ALLOW (Begin-with match)', function() {
+    var resource = 'athenz.test:testresgroup.allow';
+    var action = 'read';
+    AuthZPEClient.allowAccess(
+      {
+        roleToken: roleToken,
+        resource: resource,
+        action: action
+      },
+      (err, accessCheckStatus) => {
+        expect(accessCheckStatus).to.deep.equal('Access Check was explicitly allowed');
+      }
+    );
+
+    resource = 'athenz.test:testresgroup.allow';
+    action = 'readandwrite';
+    AuthZPEClient.allowAccess(
+      {
+        roleToken: roleToken,
+        resource: resource,
+        action: action
+      },
+      (err, accessCheckStatus) => {
+        expect(accessCheckStatus).to.deep.equal('Access Check was explicitly allowed');
+      }
+    );
+
+    resource = 'athenz.test:testresgroup.allow';
+    action = 'read';
+    AuthZPEClient.allowAccess(
+      {
+        roleToken: wildcardRoleToken,
+        resource: resource,
+        action: action
+      },
+      (err, accessCheckStatus) => {
+        expect(accessCheckStatus).to.deep.equal('Access Check was explicitly allowed');
+      }
+    );
+  });
+
+  it('should test AuthZPEClient allowAccess expecting result ALLOW (End-with match)', function() {
+    var resource = 'allow.testresgroup';
+    var action = 'read';
     AuthZPEClient.allowAccess(
       {
         roleToken: roleToken,
@@ -98,11 +192,26 @@ describe('AuthZPEClient', function() {
     );
   });
 
-  it('should test AuthZPEClient allowAccess expecting result ALLOW (End-with match)', function() {
+  it('should test AuthZPEClient allowAccess expecting result ALLOW', function() {
+    var resource = 'allow.testresgroup';
+    var action = 'read';
+    AuthZPEClient.setConfig({
+      zpeClient: {
+        logLevel: 'debug',
+        policyDir: policyDir,
+        confFileName: confFileName,
+        tokenRefresh: 1800,
+        policyRefresh: 1800,
+        allowedOffset: 300,
+        disableCache: false,
+        updater: './ZPEUpdater',
+        disableWatch: false
+      }
+    });
     AuthZPEClient.allowAccess(
       {
         roleToken: roleToken,
-        resource: 'allow.testresgroup',
+        resource: resource,
         action: action
       },
       (err, accessCheckStatus) => {
@@ -112,11 +221,13 @@ describe('AuthZPEClient', function() {
   });
 
   it('should test AuthZPEClient allowAccess expecting result DENY', function() {
+    var resource = 'athenz.test:testresgroup.deny';
+    var action = 'write';
     AuthZPEClient.allowAccess(
       {
         roleToken: roleToken,
-        resource: 'athenz.test:testresgroup.deny',
-        action: 'write'
+        resource: resource,
+        action: action
       },
       (err, accessCheckStatus) => {
         expect(accessCheckStatus).to.deep.equal('Access Check was explicitly denied');
@@ -125,10 +236,25 @@ describe('AuthZPEClient', function() {
   });
 
   it('should test AuthZPEClient allowAccess expecting result DENY_NO_MATCH', function() {
+    var resource = 'athenz.test:nosuchresource';
+    var action = 'read';
     AuthZPEClient.allowAccess(
       {
         roleToken: roleToken,
-        resource: 'athenz.test:nosuchresource',
+        resource: resource,
+        action: action
+      },
+      (err, accessCheckStatus) => {
+        expect(accessCheckStatus).to.deep.equal('Access denied due to no match to any of the assertions defined in domain policy file');
+      }
+    );
+
+    resource = 'allow.testresgroup';
+    action = 'read';
+    AuthZPEClient.allowAccess(
+      {
+        roleToken: noSuchRoleToken,
+        resource: resource,
         action: action
       },
       (err, accessCheckStatus) => {
@@ -137,11 +263,43 @@ describe('AuthZPEClient', function() {
     );
   });
 
+  it('should test AuthZPEClient allowAccess expecting result DENY_DOMAIN_EMPTY', function() {
+    var resource = 'allow.testresgroup';
+    var action = 'read';
+    AuthZPEClient.allowAccess(
+      {
+        roleToken: emptyRoleToken,
+        resource: resource,
+        action: action
+      },
+      (err, accessCheckStatus) => {
+        expect(accessCheckStatus).to.deep.equal('Access denied due to no policies in the domain file');
+      }
+    );
+  });
+
+  it('should test AuthZPEClient allowAccess expecting result DENY_ROLETOKEN_EXPIRED', function() {
+    var resource = 'allow.testresgroup';
+    var action = 'read';
+    AuthZPEClient.allowAccess(
+      {
+        roleToken: expiredRoleToken,
+        resource: resource,
+        action: action
+      },
+      (err, accessCheckStatus) => {
+        expect(accessCheckStatus).to.deep.equal('Access denied due to expired RoleToken');
+      }
+    );
+  });
+
   it('should test AuthZPEClient allowAccess expecting result DENY_ROLETOKEN_INVALID', function() {
+    var resource = 'athenz.test:nosuchresource';
+    var action = 'read';
     AuthZPEClient.allowAccess(
       {
         roleToken: 'v=Z1;d=athenz.test;r=users',
-        resource: 'athenz.test:nosuchresource',
+        resource: resource,
         action: action
       },
       (err, accessCheckStatus) => {
@@ -151,6 +309,8 @@ describe('AuthZPEClient', function() {
   });
 
   it('should test AuthZPEClient allowAccess expecting result DENY_DOMAIN_MISMATCH', function() {
+    var resource = 'athenz.test:testresgroup.allow';
+    var action = 'read';
     var roleTokenParams = {
       version: 'Z1',
       domain: 'athenz.test.nosuchdomain',
@@ -172,6 +332,8 @@ describe('AuthZPEClient', function() {
   });
 
   it('should test AuthZPEClient allowAccess expecting result DENY_DOMAIN_NOT_FOUND', function() {
+    var resource = 'athenz.test.nosuchdomain:testresgroup.allow';
+    var action = 'read';
     var roleTokenParams = {
       version: 'Z1',
       domain: 'athenz.test.nosuchdomain',
@@ -183,11 +345,26 @@ describe('AuthZPEClient', function() {
     AuthZPEClient.allowAccess(
       {
         roleToken: roleToken,
-        resource: 'athenz.test.nosuchdomain:testresgroup.allow',
+        resource: resource,
         action: action
       },
       (err, accessCheckStatus) => {
         expect(accessCheckStatus).to.deep.equal('Access denied due to domain not found in library cache');
+      }
+    );
+  });
+
+  it('should test AuthZPEClient allowAccess expecting result DENY_INVALID_PARAMETERS', function() {
+    var resource = '';
+    var action = 'read';
+    AuthZPEClient.allowAccess(
+      {
+        roleToken: roleToken,
+        resource: resource,
+        action: action
+      },
+      (err, accessCheckStatus) => {
+        expect(accessCheckStatus).to.deep.equal('Access denied due to invalid/empty action/resource values');
       }
     );
   });

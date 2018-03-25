@@ -21,7 +21,9 @@ const config = {
     tokenRefresh: 1800,
     policyRefresh: 1800,
     allowedOffset: 300,
-    disableCache: false
+    disableCache: false,
+    updater: './ZPEUpdater',
+    disableWatch: false
   },
   production: {
     logLevel: 'info',
@@ -30,11 +32,14 @@ const config = {
     tokenRefresh: 1800,
     policyRefresh: 1800,
     allowedOffset: 300,
-    disableCache: false
+    disableCache: false,
+    updater: './ZPEUpdater',
+    disableWatch: false
   }
 };
 
 // Fetches 'service' specific config sub-section, and fills defaults if not present
+/* istanbul ignore next */
 module.exports = function() {
   let c = config[process.env.SERVICE_NAME || 'development'];
 
@@ -45,6 +50,8 @@ module.exports = function() {
   c.policyRefresh = c.policyRefresh || 1800;
   c.allowedOffset = c.allowedOffset || 300;
   c.disableCache = c.disableCache || false;
+  c.updater = c.updater || './ZPEUpdater';
+  c.disableWatch = c.disableWatch || false;
 
   return c;
 };

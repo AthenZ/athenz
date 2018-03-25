@@ -9,7 +9,7 @@ const ZPEMatch = require('./ZPEMatch');
 
 let _roleCache = require('memory-cache');
 let _policyCache = require('memory-cache');
-let _zpeClt;
+let _zpeClt, _dirWatcher;
 
 class ZPEUpdater {
   static setConfig(c) {
@@ -44,54 +44,81 @@ class ZPEUpdater {
     return roleMap.standardRoleDenyMap;
   }
 
+  static watchPolicyDir() {
+    try {
+      _dirWatcher = fs.watch(config.policyDir, function(ev, fileName) {
+        if (fs.existsSync(config.policyDir + '/' + fileName) && ev === 'change') {
+          ZPEUpdater._loadFile(config.policyDir, fileName);
+        }
+      });
+    } catch(e) {
+      winston.error("watchPolicyDir: invalid filePath: " + e.fileName);
+      _dirWatcher.close();
+    }
+  }
+
+  static closeWatcher() {
+    if (!_dirWatcher) {
+      _dirWatcher.close();
+    }
+  }
+
+  static close() {
+    _roleCache.clear();
+    _policyCache.clear();
+  }
+
   static loadFiles(polDir) {
     winston.debug("loadFiles: load start directory=" + polDir);
     let files = fs.readdirSync(polDir)
                   .filter((fileName) => fileName.endsWith(".pol"));
 
     for (let fileName of files) {
-      winston.debug("loadFiles: load start file name=" + fileName);
-      let path = polDir + '/' + fileName;
-
-      let spols = JSON.parse(fs.readFileSync(path, 'utf8'));
-
-      if (!spols) {
-        winston.error("loadFile: unable to decode domain file=" + fileName);
-        return;
-      }
-
-      let signedPolicyData = spols.signedPolicyData;
-      let signature = spols.signature;
-      let keyId = spols.keyId;
-
-      // first let's verify the ZTS signature for our policy file
-      let verified = false;
-
-      if (signedPolicyData) {
-        let pubKey = _zpeClt.getZtsPublicKey(keyId);
-        verified = Crypto.verify(this._asCanonicalString(signedPolicyData), pubKey, signature, 'SHA256');
-      }
-
-      let policyData = null;
-      if (verified) {
-        // now let's verify that the ZMS signature for our policy file
-        policyData = signedPolicyData.policyData;
-        signature = signedPolicyData.zmsSignature;
-        keyId = signedPolicyData.zmsKeyId;
-
-        if (policyData) {
-          let pubKey = _zpeClt.getZmsPublicKey(keyId);
-          verified = Crypto.verify(this._asCanonicalString(policyData), pubKey, signature, 'SHA256');
-        }
-      }
-
-      if (!verified) {
-        winston.error("loadFile: policy file=" + fileName + " is invalid");
-        return;
-      }
-
-      this._loadPolicies(policyData, fileName);
+      this._loadFile(polDir, fileName);
     }
+  }
+
+  static _loadFile(polDir, fileName) {
+    winston.debug("loadFiles: load start file name=" + fileName);
+    let path = polDir + '/' + fileName;
+    let spols = JSON.parse(fs.readFileSync(path, 'utf8'));
+
+    if (!spols) {
+      winston.error("_loadFile: unable to decode policy file=" + fileName);
+      return;
+    }
+
+    let signedPolicyData = spols.signedPolicyData;
+    let signature = spols.signature;
+    let keyId = spols.keyId;
+
+    // first let's verify the ZTS signature for our policy file
+    let verified = false;
+
+    if (signedPolicyData) {
+      let pubKey = _zpeClt.getZtsPublicKey(keyId);
+      verified = Crypto.verify(this._asCanonicalString(signedPolicyData), pubKey, signature, 'SHA256');
+    }
+
+    let policyData = null;
+    if (verified) {
+      // now let's verify that the ZMS signature for our policy file
+      policyData = signedPolicyData.policyData;
+      signature = signedPolicyData.zmsSignature;
+      keyId = signedPolicyData.zmsKeyId;
+
+      if (policyData) {
+        let pubKey = _zpeClt.getZmsPublicKey(keyId);
+        verified = Crypto.verify(this._asCanonicalString(policyData), pubKey, signature, 'SHA256');
+      }
+    }
+
+    if (!verified) {
+      winston.error("loadFile: policy file=" + fileName + " is invalid");
+      return;
+    }
+
+    this._loadPolicies(policyData, fileName);
   }
 
   static _loadPolicies(policyData, fileName) {

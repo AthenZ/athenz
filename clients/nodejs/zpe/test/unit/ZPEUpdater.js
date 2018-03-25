@@ -19,35 +19,7 @@ var sinon = require('sinon');
 var expect = require('chai').expect;
 var cache = require('memory-cache');
 
-var siaProviderMock = require('../config/SiaProviderMock');
-var identityMock = require('../config/IdentityMock');
-var roleTokenMock = require('../config/RoleTokenMock');
-var rdlMock = require('../config/RdlMock');
-
 var sandbox;
-
-var params = {
-  zts: 'zts.athenz.com',
-  domainName: null,
-  serviceName: null,
-  siaProvider: null,
-  identity: null
-};
-
-var domainName = 'athenz.user';
-var serviceName = 'test';
-
-var siaMock = new siaProviderMock(domainName, serviceName);
-var ideMock = new identityMock(domainName, serviceName);
-
-var siaParams = {
-  domainName: domainName,
-  serviceName: serviceName,
-  siaProvider: siaMock,
-  identity: null
-};
-
-var cacheKey = 'cacheKeyRoleToken';
 
 describe('ZPEUpdater', function() {
   beforeEach(function() {
