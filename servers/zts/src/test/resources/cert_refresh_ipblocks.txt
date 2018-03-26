@@ -26,6 +26,9 @@
       "ipv6_prefix": "2a05:d07f:8000::/40",
       "region": "GLOBAL",
       "service": "ATHENZ"
+    },
+    {
+      "ip_prefix": "10.11.12.13/32"
     }
   ]
 }
