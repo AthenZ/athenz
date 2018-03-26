@@ -14595,18 +14595,18 @@ public class ZMSImplTest {
     public static Object[][] getRoles() {
         final String memberName="member1";
         final String memberNameToSearch="notFound";
-        final Timestamp expiredTimestamp = Timestamp.fromMillis(System.currentTimeMillis() - 100);
-        final Timestamp notExpiredTimestamp = Timestamp.fromMillis(System.currentTimeMillis() + 100);
+        final Timestamp expiredTimestamp = Timestamp.fromMillis(System.currentTimeMillis() - 10000);
+        final Timestamp notExpiredTimestamp = Timestamp.fromMillis(System.currentTimeMillis() + 10000);
         
         return new Object[][] {
             //expired
-            {memberName, memberName, expiredTimestamp, true, false}, 
+            {memberName, memberName, expiredTimestamp, true, false},
             //not expired
-            {memberName, memberName, notExpiredTimestamp, true, true}, 
+            {memberName, memberName, notExpiredTimestamp, true, true},
             //not found
-            {memberName, memberNameToSearch, notExpiredTimestamp, true, false}, 
+            {memberName, memberNameToSearch, notExpiredTimestamp, true, false},
             //set not filled which means no members are defined
-            {memberName, memberName, notExpiredTimestamp, false, false}, 
+            {memberName, memberName, notExpiredTimestamp, false, false},
             //null expiration
             {memberName, memberName, null, true, true}, 
         };

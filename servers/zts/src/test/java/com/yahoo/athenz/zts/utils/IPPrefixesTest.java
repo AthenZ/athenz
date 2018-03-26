@@ -22,7 +22,7 @@ public class IPPrefixesTest {
         IPPrefixes prefixes = JSON.fromBytes(Files.readAllBytes(Paths.get(ipFile.toURI())), IPPrefixes.class);
         
         List<IPPrefix> prefixList = prefixes.getPrefixes();
-        assertEquals(prefixList.size(), 6);
+        assertEquals(prefixList.size(), 7);
         
         assertEquals(prefixes.getCreateDate(), "2018-03-17-01-16-14");
         assertEquals(prefixes.getSyncToken(), "123456");
