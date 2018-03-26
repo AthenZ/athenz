@@ -389,15 +389,8 @@ public class AuthZpeClient {
                 long now    = System.currentTimeMillis() / 1000;
                 long expiry = rToken.getExpiryTime();
                 if (expiry != 0 && expiry < now) {
-                    String signedToken = rToken.getSignedToken();
                     LOG.error("allowAccess: Authorization denied. Token expired. now=" +
-                            now + " expiry=" + expiry + " token=" + signedToken);
-                    try {
-                        tokenCache.remove(signedToken);
-                    } catch (Exception exc) {
-                        LOG.error("allowAccess: token cache failure, exc: " + exc.getMessage());
-                    }
-
+                            now + " expiry=" + expiry + " token=" + rToken.getSignedToken());
                     zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_EXPIRED_TOKEN, rToken.getDomain());
                     return AccessCheckStatus.DENY_ROLETOKEN_EXPIRED;
                 }
