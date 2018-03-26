@@ -394,7 +394,7 @@ public class TestAuthZpe {
         // test again. so for know we'll just get invalid token
         
         AccessCheckStatus status = AuthZpeClient.allowAccess(rToken0AnglerExpirePublic.getSignedToken(), angResource, action);
-        Assert.assertEquals(status, AccessCheckStatus.DENY_ROLETOKEN_INVALID);
+        Assert.assertEquals(status, AccessCheckStatus.DENY_ROLETOKEN_EXPIRED);
 
         // multi tokens test
         List<String> tokenList = new ArrayList<String>();

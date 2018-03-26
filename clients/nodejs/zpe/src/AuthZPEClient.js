@@ -81,8 +81,6 @@ class AuthZPEClient {
 
       // validate the token
       if (rToken.validate(this.getZtsPublicKey(rToken.getKeyId()), _allowedOffset, true) === false) {
-        winston.error("allowAccess: Authorization denied. Authentication of token failed for token=" +
-          rToken.getSignedToken());
 
         // check the token expiration
         const now = Date.now() / 1000;
@@ -98,6 +96,8 @@ class AuthZPEClient {
           return cb('ERROR: Role Token is Expired', AccessCheckStatus.DENY_ROLETOKEN_EXPIRED);
         }
 
+        winston.error("allowAccess: Authorization denied. Authentication of token failed for token=" +
+          rToken.getSignedToken());
         return cb('ERROR: Invalid Role Token', AccessCheckStatus.DENY_ROLETOKEN_INVALID);
       }
 
