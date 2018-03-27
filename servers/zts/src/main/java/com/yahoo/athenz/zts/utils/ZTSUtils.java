@@ -135,7 +135,7 @@ public class ZTSUtils {
     public static String getApplicationSecret(final PrivateKeyStore privateKeyStore,
             final String keyStorePasswordAppName, final String keyStorePassword) {
 
-        if (privateKeyStore == null || keyStorePasswordAppName == null) {
+        if (privateKeyStore == null) {
             return keyStorePassword;
         }
         return privateKeyStore.getApplicationSecret(keyStorePasswordAppName, keyStorePassword);
