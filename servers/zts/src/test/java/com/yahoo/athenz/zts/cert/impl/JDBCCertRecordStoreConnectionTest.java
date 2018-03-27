@@ -26,7 +26,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.Date;
 
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -37,6 +37,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import com.yahoo.athenz.common.server.db.PoolableDataSource;
 import com.yahoo.athenz.zts.ResourceException;
@@ -59,8 +60,8 @@ public class JDBCCertRecordStoreConnectionTest {
         Mockito.doReturn(mockConn).when(mockDataSrc).getConnection();
         Mockito.doReturn(mockStmt).when(mockConn).createStatement();
         Mockito.doReturn(mockResultSet).when(mockPrepStmt).executeQuery();
-        Mockito.doReturn(mockPrepStmt).when(mockConn).prepareStatement(Matchers.isA(String.class));
-        Mockito.doReturn(true).when(mockStmt).execute(Matchers.isA(String.class));
+        Mockito.doReturn(mockPrepStmt).when(mockConn).prepareStatement(ArgumentMatchers.isA(String.class));
+        Mockito.doReturn(true).when(mockStmt).execute(ArgumentMatchers.isA(String.class));
     }
     
     @Test
@@ -261,6 +262,46 @@ public class JDBCCertRecordStoreConnectionTest {
     public void testConnectionNullClose() throws SQLException {
         JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn);
         jdbcConn.con = null;
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testdeleteExpiredX509CertRecords() throws Exception {
+        
+        JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn);
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+        jdbcConn.deleteExpiredX509CertRecords(360);
+        
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 360);
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testdeleteExpiredX509CertRecordsInvalidValue() throws Exception {
+        
+        JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn);
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+        jdbcConn.deleteExpiredX509CertRecords(0);
+        
+        Mockito.verify(mockPrepStmt, times(0)).setInt(1, 0);
+        jdbcConn.close();
+    }
+    
+    @Test
+    public void testdeleteExpiredX509CertRecordsException() throws SQLException {
+        
+        JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn);
+
+        Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("exc", "exc", 101));
+        try {
+            jdbcConn.deleteExpiredX509CertRecords(360);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
+        
         jdbcConn.close();
     }
 }

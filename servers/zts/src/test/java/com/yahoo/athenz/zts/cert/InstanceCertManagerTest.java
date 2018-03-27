@@ -145,23 +145,6 @@ public class InstanceCertManagerTest {
     }
     
     @Test
-    public void testGetX509CertRecordNoConnection() throws IOException {
-        
-        InstanceCertManager instance = new InstanceCertManager(null, null);
-
-        Path path = Paths.get("src/test/resources/athenz.instanceid.pem");
-        String pem = new String(Files.readAllBytes(path));
-        X509Certificate cert = Crypto.loadX509Certificate(pem);
-        
-        CertRecordStore certStore = Mockito.mock(CertRecordStore.class);
-        Mockito.when(certStore.getConnection()).thenReturn(null);
-        instance.setCertStore(certStore);
-
-        X509CertRecord certRecord = instance.getX509CertRecord("ostk", cert);
-        assertNull(certRecord);
-    }
-    
-    @Test
     public void testUpdateX509CertRecord() {
         InstanceCertManager instance = new InstanceCertManager(null, null);
 
@@ -181,19 +164,6 @@ public class InstanceCertManagerTest {
     public void testUpdateX509CertRecordNoCertStore() {
         InstanceCertManager instance = new InstanceCertManager(null, null);
         instance.setCertStore(null);
-        X509CertRecord x509CertRecord = new X509CertRecord();
-        boolean result = instance.updateX509CertRecord(x509CertRecord);
-        assertFalse(result);
-    }
-    
-    @Test
-    public void testUpdateX509CertRecordNoConnection() {
-        InstanceCertManager instance = new InstanceCertManager(null, null);
-
-        CertRecordStore certStore = Mockito.mock(CertRecordStore.class);
-        Mockito.when(certStore.getConnection()).thenReturn(null);
-        instance.setCertStore(certStore);
-
         X509CertRecord x509CertRecord = new X509CertRecord();
         boolean result = instance.updateX509CertRecord(x509CertRecord);
         assertFalse(result);
@@ -225,19 +195,6 @@ public class InstanceCertManagerTest {
     }
     
     @Test
-    public void testInsertX509CertRecordNoConnection() {
-        InstanceCertManager instance = new InstanceCertManager(null, null);
-
-        CertRecordStore certStore = Mockito.mock(CertRecordStore.class);
-        Mockito.when(certStore.getConnection()).thenReturn(null);
-        instance.setCertStore(certStore);
-
-        X509CertRecord x509CertRecord = new X509CertRecord();
-        boolean result = instance.insertX509CertRecord(x509CertRecord);
-        assertFalse(result);
-    }
-    
-    @Test
     public void testDeleteX509CertRecord() {
         InstanceCertManager instance = new InstanceCertManager(null, null);
 
@@ -256,18 +213,6 @@ public class InstanceCertManagerTest {
     public void testDeleteX509CertRecordNoCertStore() {
         InstanceCertManager instance = new InstanceCertManager(null, null);
         instance.setCertStore(null);
-        boolean result = instance.deleteX509CertRecord("provider", "instance");
-        assertFalse(result);
-    }
-    
-    @Test
-    public void testDeleteX509CertRecordNoConnection() {
-        InstanceCertManager instance = new InstanceCertManager(null, null);
-
-        CertRecordStore certStore = Mockito.mock(CertRecordStore.class);
-        Mockito.when(certStore.getConnection()).thenReturn(null);
-        instance.setCertStore(certStore);
-
         boolean result = instance.deleteX509CertRecord("provider", "instance");
         assertFalse(result);
     }

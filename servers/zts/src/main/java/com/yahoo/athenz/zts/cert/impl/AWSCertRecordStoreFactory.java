@@ -127,7 +127,7 @@ public class AWSCertRecordStoreFactory implements CertRecordStoreFactory {
                 mysqlConnectionProperties.setProperty(ATHENZ_DB_PASSWORD, rdsToken);
                 
             } catch (Throwable t) {
-                LOG.error("CredentialsUpdater: unable to update auth token: " + t.getMessage());
+                LOG.error("CredentialsUpdater: unable to update auth token: {}", t.getMessage());
             }
         }
     }

@@ -17,27 +17,33 @@ package com.yahoo.athenz.zts.cert.impl;
 
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
-import java.util.concurrent.TimeUnit;
 
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.server.cert.CertSigner;
+import com.yahoo.athenz.zts.ZTSConsts;
 
 public class SelfCertSigner implements CertSigner {
 
     X509Certificate caCertificate = null;
     PrivateKey caPrivateKey = null;
-    int certValidityTime = (int) TimeUnit.SECONDS.convert(30, TimeUnit.DAYS);
+    int maxCertExpiryTimeMins;
 
     public SelfCertSigner(PrivateKey caPrivateKey, X509Certificate caCertificate) {
+        
         this.caCertificate = caCertificate;
         this.caPrivateKey = caPrivateKey;
+        
+        // max certificate validity time in minutes and convert
+        // value to seconds for the certificate signer
+        
+        maxCertExpiryTimeMins = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_CERTSIGN_MAX_EXPIRY_TIME, "43200"));
     }
 
     @Override
     public String generateX509Certificate(String csr, String keyUsage, int expiryTime) {
-        int certExpiryTime = expiryTime == 0 ? certValidityTime : expiryTime;
+        int certExpiryTime = expiryTime == 0 ? maxCertExpiryTimeMins * 60 : expiryTime;
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
         X509Certificate cert = Crypto.generateX509Certificate(certReq, caPrivateKey,
                 caCertificate, certExpiryTime, false);
@@ -49,6 +55,11 @@ public class SelfCertSigner implements CertSigner {
         return Crypto.convertToPEMFormat(caCertificate);
     }
 
+    @Override
+    public int getMaxCertExpiryTimeMins() {
+        return maxCertExpiryTimeMins;
+    }
+    
     @Override
     public void close() {
     }

@@ -53,7 +53,7 @@ public class HttpCertSigner implements CertSigner {
     String sshCertUri = null;
     long requestTimeout;
     int requestRetryCount;
-    int maxCertExpiryTime;
+    int maxCertExpiryTimeMins;
 
     public HttpCertSigner() {
 
@@ -69,7 +69,7 @@ public class HttpCertSigner implements CertSigner {
 
         // max expiry time in minutes
         
-        maxCertExpiryTime = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_CERTSIGN_MAX_EXPIRY_TIME, "43200"));
+        maxCertExpiryTimeMins = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_CERTSIGN_MAX_EXPIRY_TIME, "43200"));
         
         // Instantiate and start our HttpClient
         
@@ -79,7 +79,7 @@ public class HttpCertSigner implements CertSigner {
         try {
             httpClient.start();
         } catch (Exception ex) {
-            LOGGER.error("HttpCertSigner: unable to start http client: " + ex.getMessage());
+            LOGGER.error("HttpCertSigner: unable to start http client", ex);
             throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
                     "Http client not available");
         }
@@ -94,9 +94,13 @@ public class HttpCertSigner implements CertSigner {
         }
         x509CertUri = serverBaseUri + "/x509";
         sshCertUri = serverBaseUri + "/ssh";
-        
     }
 
+    @Override
+    public int getMaxCertExpiryTimeMins() {
+        return maxCertExpiryTimeMins;
+    }
+    
     private PrivateKeyStore loadServicePrivateKey() {
         String pkeyFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
                 ZTSConsts.ZTS_PKEY_STORE_FACTORY_CLASS);
@@ -118,7 +122,7 @@ public class HttpCertSigner implements CertSigner {
                 httpClient.stop();
             }
         } catch (Exception ex) {
-            LOGGER.error("close: unable to stop httpClient" + ex.getMessage());
+            LOGGER.error("close: unable to stop httpClient", ex);
         }
     }
 
@@ -134,7 +138,7 @@ public class HttpCertSigner implements CertSigner {
             X509CertSignObject csrCert = new X509CertSignObject();
             csrCert.setPem(csr);
             csrCert.setX509ExtKeyUsage(extKeyUsage);
-            if (expiryTime > 0 && expiryTime < maxCertExpiryTime) {
+            if (expiryTime > 0 && expiryTime < maxCertExpiryTimeMins) {
                 csrCert.setExpiryTime(expiryTime);
             }
             request.content(new StringContentProvider(JSON.string(csrCert)), CONTENT_JSON);
@@ -151,12 +155,7 @@ public class HttpCertSigner implements CertSigner {
             request.timeout(timeout, TimeUnit.SECONDS);
             response = request.send();
         } catch (Exception ex) {
-            String msg = ex.getMessage();
-            if (msg == null) {
-                msg = ex.getClass().getName();
-            }
-            LOGGER.error("Unable to fetch requested uri '{}': {}",
-                    x509CertUri, msg);
+            LOGGER.error("Unable to process x509 certificate request", ex);
         }
         return response;
     }
@@ -196,13 +195,7 @@ public class HttpCertSigner implements CertSigner {
             return null;
         }
 
-        X509CertSignObject pemCert = null;
-        try {
-            pemCert = JSON.fromString(data, X509CertSignObject.class);
-        } catch (Exception ex) {
-            LOGGER.error("unable to decode object from '" + x509CertUri +
-                    "' error: " + ex.getMessage());
-        }
+        X509CertSignObject pemCert = JSON.fromString(data, X509CertSignObject.class);
         return (pemCert != null) ? pemCert.getPem() : null;
     }
 
@@ -228,12 +221,7 @@ public class HttpCertSigner implements CertSigner {
             request.timeout(timeout, TimeUnit.SECONDS);
             response = request.send();
         } catch (Exception ex) {
-            String msg = ex.getMessage();
-            if (msg == null) {
-                msg = ex.getClass().getName();
-            }
-            LOGGER.error("processSSHKeyRequest: Unable to fetch requested uri '{}': {}",
-                    sshCertUri, msg);
+            LOGGER.error("Unable to process ssh certificate request", ex);
         }
         return response;
     }
@@ -264,13 +252,7 @@ public class HttpCertSigner implements CertSigner {
             return null;
         }
 
-        SSHCertificate cert = null;
-        try {
-            cert = JSON.fromString(data, SSHCertificate.class);
-        } catch (Exception ex) {
-            LOGGER.error("generateSSHCertificate: unable to decode object from '" + sshCertUri +
-                    "' error: " + ex.getMessage());
-        }
+        SSHCertificate cert = JSON.fromString(data, SSHCertificate.class);
         return (cert != null) ? cert.getOpensshkey() : null;
     }
     
@@ -302,13 +284,7 @@ public class HttpCertSigner implements CertSigner {
             LOGGER.debug("getCACertificate: CA Certificate" + data);
         }
 
-        X509CertSignObject pemCert = null;
-        try {
-            pemCert = JSON.fromString(data, X509CertSignObject.class);
-        } catch (Exception ex) {
-            LOGGER.error("getCACertificate: unable to decode object from '" + x509CertUri +
-                    "' error: " + ex.getMessage());
-        }
+        X509CertSignObject pemCert = JSON.fromString(data, X509CertSignObject.class);
         return (pemCert != null) ? pemCert.getPem() : null;
     }
     
@@ -340,15 +316,7 @@ public class HttpCertSigner implements CertSigner {
             LOGGER.debug("getSSHCertificate: SSH Certificate" + data);
         }
 
-        SSHCertificates sshCerts = null;
-        try {
-            sshCerts = JSON.fromString(data, SSHCertificates.class);
-        } catch (Exception ex) {
-            LOGGER.error("getSSHCertificate: unable to decode object from '" + sshCertUri +
-                    "' error: " + ex.getMessage());
-            return null;
-        }
-        
+        SSHCertificates sshCerts = JSON.fromString(data, SSHCertificates.class);
         if (sshCerts != null && sshCerts.getCerts() != null) {
             for (SSHCertificate sshCert : sshCerts.getCerts()) {
                 if (sshCert.getType().equals(type)) {
