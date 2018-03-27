@@ -22,17 +22,14 @@ import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.impl.S3ChangeLogStore;
 
 public class MockS3ChangeLogStore extends S3ChangeLogStore {
-
-    AmazonS3 s3 = null;
     
     public MockS3ChangeLogStore(CloudStore cloudStore) {
         super(cloudStore);
-        s3 = mock(AmazonS3.class);
+        awsS3Client = mock(AmazonS3.class);
     }
     
     @Override
     AmazonS3 getS3Client() {
-        return s3;
+        return awsS3Client;
     }
-    
 }
