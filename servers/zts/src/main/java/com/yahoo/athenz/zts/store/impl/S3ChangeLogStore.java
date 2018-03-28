@@ -46,6 +46,7 @@ public class S3ChangeLogStore implements ChangeLogStore {
     long lastModTime = 0;
     CloudStore cloudStore = null;
     String s3BucketName = null;
+    AmazonS3 awsS3Client = null;
     
     public S3ChangeLogStore(CloudStore cloudStore) {
         this.cloudStore = cloudStore;
@@ -63,8 +64,24 @@ public class S3ChangeLogStore implements ChangeLogStore {
     
     @Override
     public SignedDomain getSignedDomain(String domainName) {
-        AmazonS3 s3 = getS3Client();
-        return getSignedDomain(s3, domainName);
+        
+        // make sure we have an aws s3 client for our request
+        
+        if (awsS3Client == null) {
+            awsS3Client = getS3Client();
+        }
+        
+        SignedDomain signedDomain = getSignedDomain(awsS3Client, domainName);
+
+        // if we got a failure for any reason, we're going
+        // get a new aws s3 cilent and try again
+        
+        if (signedDomain == null) {
+            awsS3Client = getS3Client();
+            signedDomain = getSignedDomain(awsS3Client, domainName);
+        }
+        
+        return signedDomain;
     }
     
     SignedDomain getSignedDomain(AmazonS3 s3, String domainName) {
@@ -182,13 +199,24 @@ public class S3ChangeLogStore implements ChangeLogStore {
             lastModTime = System.currentTimeMillis();
         }
         
+        // we are going to initialize our s3 client here since
+        // this is the first entry point before we start
+        // fetching all the domains individually
+        
+        awsS3Client = getS3Client();
+        
         ArrayList<String> domains = new ArrayList<>();
-        listObjects(getS3Client(), domains, 0);
+        listObjects(awsS3Client, domains, 0);
         return domains;
     }
 
     @Override
     public Set<String> getServerDomainList() {
+        
+        // for the server domain list operation since it's called
+        // periodically by the thread to see if any domains have
+        // been deleted, we're going to get a new s3 client
+        // insetad of using our original client
         
         HashSet<String> domains = new HashSet<>();
         listObjects(getS3Client(), domains, 0);
@@ -211,6 +239,9 @@ public class S3ChangeLogStore implements ChangeLogStore {
         // AWS S3 API does not provide support for listing objects filtered
         // based on its last modification timestamp so we need to get
         // the full list and filter ourselves
+        
+        // instead of using our fetched s3 client, we're going to
+        // obtain a new one to get the changes
         
         AmazonS3 s3 = getS3Client();
         ArrayList<String> domains = new ArrayList<>();
