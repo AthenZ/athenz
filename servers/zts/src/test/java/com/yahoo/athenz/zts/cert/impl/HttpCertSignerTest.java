@@ -34,7 +34,7 @@ import org.testng.annotations.Test;
 public class HttpCertSignerTest {
     
     @BeforeClass
-    public void stup() {
+    public void setup() {
         System.setProperty(ZTSConsts.ZTS_PROP_CERTSIGN_BASE_URI, "https://localhost:443/certsign/v2");
     }
     
@@ -308,5 +308,24 @@ public class HttpCertSignerTest {
         String pem = certSigner.getSSHCertificate("user");
         assertNotNull(pem);
         assertEquals(pem, "user-key");
+    }
+    
+    @Test
+    public void testGetMaxCertExpiryTime() {
+        
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERTSIGN_MAX_EXPIRY_TIME);
+        
+        HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
+        
+        HttpCertSigner certSigner = (HttpCertSigner) certFactory.create();
+        assertEquals(certSigner.getMaxCertExpiryTimeMins(), 43200);
+        certSigner.close();
+        
+        System.setProperty(ZTSConsts.ZTS_PROP_CERTSIGN_MAX_EXPIRY_TIME, "1200");
+        certSigner = (HttpCertSigner) certFactory.create();
+        assertEquals(certSigner.getMaxCertExpiryTimeMins(), 1200);
+        certSigner.close();
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERTSIGN_MAX_EXPIRY_TIME);
     }
 }

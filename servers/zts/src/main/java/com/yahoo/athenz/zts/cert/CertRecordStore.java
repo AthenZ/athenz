@@ -17,12 +17,21 @@ package com.yahoo.athenz.zts.cert;
 
 public interface CertRecordStore {
 
-    // get a new connection to the cert record store
+    /**
+     * Get a new connection to the certificate record store. In case
+     * of failure, a ResourceException is thrown.
+     * @return CertRecordStoreConnection object
+     */
     CertRecordStoreConnection getConnection();
     
-    // operation timeout in seconds
+    /**
+     * Set the operation timeout in seconds
+     * @param opTimeout timeout in seconds
+     */
     void setOperationTimeout(int opTimeout);
     
-    // clear all connections to the cert record store
+    /**
+     * Clear all connections to the cert record store
+     */
     void clearConnections();
 }

@@ -68,6 +68,29 @@ public class FileCertRecordStoreConnection implements CertRecordStoreConnection 
         return true;
     }
     
+    @Override
+    public int deleteExpiredX509CertRecords(int expiryTimeMins) {
+        String[] fnames = rootDir.list();
+        if (fnames == null) {
+            return 0;
+        }
+        long currentTime = System.currentTimeMillis();
+        int count = 0;
+        for (String fname : fnames) {
+            
+            // if the modification timestamp is older than
+            // specified number of minutes then we'll delete it
+            
+            File f = new File(rootDir, fname);
+            if (currentTime - f.lastModified() < expiryTimeMins * 60 * 1000) {
+                continue;
+            }
+            f.delete();
+            count += 1;
+        }
+        return count;
+    }
+    
     private synchronized X509CertRecord getCertRecord(String provider, String instanceId) {
         File f = new File(rootDir, provider + "-" + instanceId);
         if (!f.exists()) {

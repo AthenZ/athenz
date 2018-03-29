@@ -59,6 +59,14 @@ public interface CertSigner {
         return null;
     }
 
+    /** Retrieve the certificate max expiry time supported
+     * by the given signer
+     * @return expiry time in minutes
+     */
+    default int getMaxCertExpiryTimeMins() {
+        return 0;
+    }
+    
     /**
      * Close the certSigner signer object and release all
      * allocated resources (if any)

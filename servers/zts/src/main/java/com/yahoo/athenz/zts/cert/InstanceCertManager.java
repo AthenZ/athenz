@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +35,7 @@ public class InstanceCertManager {
 
     private CertSigner certSigner = null;
     private CertRecordStore certStore = null;
+    private ScheduledExecutorService scheduledExecutor;
     private List<IPBlock> certRefreshIPBlocks = null;
     private List<IPBlock> instanceCertIPBlocks = null;
     private static String CA_X509_CERTIFICATE = null;
@@ -55,6 +59,15 @@ public class InstanceCertManager {
         
         instanceCertIPBlocks = new ArrayList<>();
         loadAllowedIPAddresses(instanceCertIPBlocks, ZTSConsts.ZTS_PROP_INSTANCE_CERT_IP_FNAME);
+        
+        // start our thread to delete expired cert records once a day
+
+        if (certStore != null && certSigner != null) {
+            scheduledExecutor = Executors.newScheduledThreadPool(1);
+            scheduledExecutor.scheduleAtFixedRate(
+                    new ExpiredX509CertRecordCleaner(certStore, certSigner.getMaxCertExpiryTimeMins()),
+                    0, 1, TimeUnit.DAYS);
+        }
     }
     
     boolean loadAllowedIPAddresses(List<IPBlock> ipBlocks, final String propName) {
@@ -119,8 +132,8 @@ public class InstanceCertManager {
         try {
             certRecordStoreFactory = (CertRecordStoreFactory) Class.forName(certRecordStoreFactoryClass).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOGGER.error("Invalid CertRecordStoreFactory class: " + certRecordStoreFactoryClass
-                    + " error: " + e.getMessage());
+            LOGGER.error("Invalid CertRecordStoreFactory class: {} error: {}",
+                    certRecordStoreFactoryClass, e.getMessage());
             throw new IllegalArgumentException("Invalid cert record store factory class");
         }
 
@@ -184,11 +197,6 @@ public class InstanceCertManager {
 
         X509CertRecord certRecord = null;
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
-            if (storeConnection == null) {
-                LOGGER.error("getX509CertRecord: Unable to get certstore connection");
-                return null;
-            }
-        
             certRecord = storeConnection.getX509CertRecord(provider, instanceId);
         }
         
@@ -203,11 +211,6 @@ public class InstanceCertManager {
 
         X509CertRecord certRecord = null;
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
-            if (storeConnection == null) {
-                LOGGER.error("getX509CertRecord: Unable to get certstore connection");
-                return null;
-            }
-        
             certRecord = storeConnection.getX509CertRecord(provider, instanceId);
         }
         
@@ -222,11 +225,6 @@ public class InstanceCertManager {
         
         boolean result = false;
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
-            if (storeConnection == null) {
-                LOGGER.error("Unable to get certstore connection");
-                return false;
-            }
-            
             result = storeConnection.updateX509CertRecord(certRecord);
         }
         return result;
@@ -240,11 +238,6 @@ public class InstanceCertManager {
         
         boolean result = false;
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
-            if (storeConnection == null) {
-                LOGGER.error("Unable to get certstore connection");
-                return false;
-            }
-            
             result = storeConnection.deleteX509CertRecord(provider, instanceId);
         }
         return result;
@@ -258,11 +251,6 @@ public class InstanceCertManager {
         
         boolean result = false;
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
-            if (storeConnection == null) {
-                LOGGER.error("Unable to get certstore connection");
-                return false;
-            }
-        
             result = storeConnection.insertX509CertRecord(certRecord);
         }
         
@@ -387,5 +375,42 @@ public class InstanceCertManager {
             }
         }
         return false;
+    }
+    
+    class ExpiredX509CertRecordCleaner implements Runnable {
+        
+        private CertRecordStore store;
+        private int expiryTimeMins;
+        
+        public ExpiredX509CertRecordCleaner(CertRecordStore store, int expiryTimeMins) {
+            this.store = store;
+            this.expiryTimeMins = expiryTimeMins;
+        }
+        
+        @Override
+        public void run() {
+
+            LOGGER.info("ExpiredX509CertRecordCleaner: Starting expired cert record cleaner thread...");
+            
+            int deletedRecords = 0;
+            try {
+                deletedRecords = cleanupExpiredX509CertRecords();
+            } catch (Throwable t) {
+                LOGGER.error("ExpiredX509CertRecordCleaner: unable to cleanup expired cert records: {}",
+                        t.getMessage());
+            }
+            
+            LOGGER.info("ExpiredX509CertRecordCleaner: Completed cleanup of {} expired cert records",
+                    deletedRecords);
+        }
+        
+        int cleanupExpiredX509CertRecords() {
+            
+            int deletedRecords = 0;
+            try (CertRecordStoreConnection storeConnection = store.getConnection()) {
+                deletedRecords = storeConnection.deleteExpiredX509CertRecords(expiryTimeMins);
+            }
+            return deletedRecords;
+        }
     }
 }

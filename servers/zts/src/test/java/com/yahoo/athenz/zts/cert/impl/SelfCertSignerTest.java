@@ -1,0 +1,56 @@
+/**
+ * Copyright 2018 Oath Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.yahoo.athenz.zts.cert.impl;
+
+import static org.testng.Assert.*;
+
+import com.yahoo.athenz.common.server.cert.CertSigner;
+import com.yahoo.athenz.zts.ZTSConsts;
+
+import org.testng.annotations.Test;
+
+public class SelfCertSignerTest {
+    
+    @Test
+    public void testSelfCertSignerFactory() {
+        SelfCertSignerFactory certFactory = new SelfCertSignerFactory();
+        assertNotNull(certFactory);
+
+        CertSigner certSigner = certFactory.create();
+        assertNotNull(certSigner);
+
+        certSigner.close();
+    }
+
+    @Test
+    public void testGetMaxCertExpiryTime() {
+        
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERTSIGN_MAX_EXPIRY_TIME);
+        
+        SelfCertSignerFactory certFactory = new SelfCertSignerFactory();
+        
+        SelfCertSigner certSigner = (SelfCertSigner) certFactory.create();
+        assertEquals(certSigner.getMaxCertExpiryTimeMins(), 43200);
+        certSigner.close();
+        
+        System.setProperty(ZTSConsts.ZTS_PROP_CERTSIGN_MAX_EXPIRY_TIME, "1200");
+        certSigner = (SelfCertSigner) certFactory.create();
+        assertEquals(certSigner.getMaxCertExpiryTimeMins(), 1200);
+        certSigner.close();
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERTSIGN_MAX_EXPIRY_TIME);
+    }
+}

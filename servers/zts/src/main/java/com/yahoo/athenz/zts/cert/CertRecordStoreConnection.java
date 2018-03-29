@@ -19,11 +19,53 @@ import java.io.Closeable;
 
 public interface CertRecordStoreConnection extends Closeable {
 
+    /**
+     * Close the connection to the certificate record store
+     */
     void close();
+    
+    /**
+     * Set the timeout for the certificate record store operation
+     * @param opTimout operation timeout in seconds
+     */
     void setOperationTimeout(int opTimout);
 
+    /**
+     * Retrieve the certificate record for the given instance
+     * @param provider name of the provider
+     * @param instanceId instance id
+     * @return X509CertRecord object or null if not found
+     */
     X509CertRecord getX509CertRecord(String provider, String instanceId);
+    
+    /**
+     * Update the specified certificate record in the store
+     * @param certRecord X509CertRecord to be updated
+     * @return true on success otherwise false
+     */
     boolean updateX509CertRecord(X509CertRecord certRecord);
+    
+    /**
+     * Insert a new certificate record in the store
+     * @param certRecord X509CertRecord to be created
+     * @return true on success otherwise false
+     */
     boolean insertX509CertRecord(X509CertRecord certRecord);
+    
+    /**
+     * Delete the certificate record for the given instance
+     * @param provider name of the provider
+     * @param instanceId instance id
+     * @return true on success otherwise false
+     */
     boolean deleteX509CertRecord(String provider, String instanceId);
+    
+    /**
+     * Delete all expired x509 certificate records. A certificate is
+     * considered expired if it hasn't been updated within the
+     * specified number of minutes
+     * @param expiryTimeMins expiry time in minutes
+     * @return number of records deleted
+     */
+    int deleteExpiredX509CertRecords(int expiryTimeMins);
 }

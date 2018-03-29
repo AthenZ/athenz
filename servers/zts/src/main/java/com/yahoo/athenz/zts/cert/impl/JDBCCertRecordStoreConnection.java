@@ -33,7 +33,6 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
 
     private static final Logger LOG = LoggerFactory.getLogger(JDBCCertRecordStoreConnection.class);
 
-    private static final String PREFIX = "ZTS-JDBCConnection: ";
     private static final int MYSQL_ER_OPTION_DUPLICATE_ENTRY = 1062;
 
     private static final String SQL_GET_X509_RECORD = "SELECT * FROM certificates WHERE provider=? AND instanceId=?;";
@@ -45,6 +44,8 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
             "WHERE provider=? AND instanceId=?;";
     private static final String SQL_DELETE_X509_RECORD = "DELETE from certificates " +
             "WHERE provider=? AND instanceId=?;";
+    private static final String SQL_DELETE_EXPIRED_X509_RECORDS = "DELETE FROM certificates " +
+            "WHERE currentTime < ADDDATE(NOW(), INTERVAL -? MINUTE);";
     
     public static final String DB_COLUMN_SERVICE        = "service";
     public static final String DB_COLUMN_CURRENT_IP     = "currentIP";
@@ -79,14 +80,14 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
             con.close();
             con = null;
         } catch (SQLException ex) {
-            LOG.error(PREFIX + "close: state - " + ex.getSQLState() +
-                    ", code - " + ex.getErrorCode() + ", message - " + ex.getMessage());
+            LOG.error("Failed to close connection: state - {}, code - {}, message - {}",
+                    ex.getSQLState(), ex.getErrorCode(), ex.getMessage());
         }
     }
     
     int executeUpdate(PreparedStatement ps, String caller) throws SQLException {
         if (LOG.isDebugEnabled()) {
-            LOG.debug(caller + ": " + ps.toString());
+            LOG.debug("{}: {}", caller, ps.toString());
         }
         ps.setQueryTimeout(queryTimeout);
         return ps.executeUpdate();
@@ -94,7 +95,7 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
 
     ResultSet executeQuery(PreparedStatement ps, String caller) throws SQLException {
         if (LOG.isDebugEnabled()) {
-            LOG.debug(caller + ": " + ps.toString());
+            LOG.debug("{}: {}", caller, ps.toString());
         }
         ps.setQueryTimeout(queryTimeout);
         return ps.executeQuery();
@@ -180,8 +181,8 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
             
             if (ex.getErrorCode() == MYSQL_ER_OPTION_DUPLICATE_ENTRY) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug(caller + ": Resetting state for instance {} - {}",
-                            certRecord.getProvider(), certRecord.getInstanceId());
+                    LOG.debug("{}: Resetting state for instance {} - {}",
+                            caller, certRecord.getProvider(), certRecord.getInstanceId());
                 }
                 return updateX509CertRecord(certRecord);
             }
@@ -205,6 +206,27 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
             throw sqlError(ex, caller);
         }
         return (affectedRows > 0);
+    }
+    
+    @Override
+    public int deleteExpiredX509CertRecords(int expiryTimeMins) {
+        
+        int affectedRows = 0;
+        final String caller = "deleteExpiredX509CertRecords";
+        
+        // make sure we have a valid value specified for expiry time
+        
+        if (expiryTimeMins <= 0) {
+            return 0;
+        }
+        
+        try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_EXPIRED_X509_RECORDS)) {
+            ps.setInt(1, expiryTimeMins);
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return affectedRows;
     }
     
     RuntimeException sqlError(SQLException ex, String caller) {

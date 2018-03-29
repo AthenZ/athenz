@@ -109,5 +109,44 @@ public class FileCertRecordStoreConnectionTest {
         assertTrue(result);
         
         con.deleteX509CertRecord("unknown", "instance-id");
+        con.close();
+    }
+    
+    @Test
+    public void testdeleteExpiredX509CertRecords() throws Exception {
+        
+        // make sure the directory does not exist
+        
+        ZMSFileChangeLogStore.deleteDirectory(new File("/tmp/zts-cert-tests"));
+
+        FileCertRecordStore store = new FileCertRecordStore(new File("/tmp/zts-cert-tests"));
+        FileCertRecordStoreConnection con = (FileCertRecordStoreConnection) store.getConnection();
+        assertNotNull(con);
+        
+        X509CertRecord certRecord = new X509CertRecord();
+        Date now = new Date();
+
+        certRecord.setService("cn");
+        certRecord.setProvider("ostk");
+        certRecord.setInstanceId("instance-id");
+        certRecord.setCurrentIP("current-ip");
+        certRecord.setCurrentSerial("current-serial");
+        certRecord.setCurrentTime(now);
+        certRecord.setPrevIP("prev-ip");
+        certRecord.setPrevSerial("prev-serial");
+        certRecord.setPrevTime(now);
+        
+        boolean result = con.insertX509CertRecord(certRecord);
+        assertTrue(result);
+        
+        X509CertRecord certRecordCheck = con.getX509CertRecord("ostk", "instance-id");
+        assertNotNull(certRecordCheck);
+        
+        Thread.sleep(1000);
+        con.deleteExpiredX509CertRecords(0);
+
+        certRecordCheck = con.getX509CertRecord("ostk", "instance-id");
+        assertNull(certRecordCheck);
+        con.close();
     }
 }
