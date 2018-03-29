@@ -65,9 +65,9 @@ public class KerberosToken extends Token {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public boolean validate(Subject serviceSubject, StringBuilder errMsg) {
     
-        byte[] kerberosTicket = Base64.decode(unsignedToken.getBytes(StandardCharsets.UTF_8));
         PrivilegedExceptionAction<String> privExcAction = null;
         try {
+            byte[] kerberosTicket = Base64.decode(unsignedToken.getBytes(StandardCharsets.UTF_8));
             if (krbPrivActionClass == null) {
                 privExcAction = new KerberosValidateAction(kerberosTicket);
             } else {

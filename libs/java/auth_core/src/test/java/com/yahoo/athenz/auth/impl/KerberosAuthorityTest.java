@@ -114,7 +114,7 @@ public class KerberosAuthorityTest {
 
         System.setProperty(KerberosToken.KRB_PROP_TOKEN_PRIV_ACTION, "com.yahoo.athenz.auth.impl.MockPrivExcAction");
         System.setProperty(KerberosToken.KRB_PROP_TOKEN_PRIV_ACTION + "_TEST_REALM", "USER_REALM");
-        String token = "YIGeBgYrBgEFBQKggZMwgZCgGjAYBgorBgEEAYI3AgIeBgorBgEEAYI3AgIKonIEcE5FR09FWFRTAAfakecreds";
+        String token = "YWJjdGVzdA==";
         System.setProperty(KerberosAuthority.KRB_PROP_SVCPRPL, "myserver@EXAMPLE.COM");
         System.setProperty(KerberosAuthority.KRB_PROP_LOGIN_CB_CLASS, KRB_LOGIN_CB_CLASS);
         System.setProperty(KerberosAuthority.KRB_PROP_KEYTAB, "src/test/resources/example.keytab");
