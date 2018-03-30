@@ -41,8 +41,8 @@ public class KeyRefresher {
     private byte[] lastPrivateKeyManagerChecksum = new byte[0]; //initialize to empty to avoid NPE
     private byte[] lastTrustManagerChecksum = new byte[0]; //initialize to empty to avoid NPW
 
-    private final String athensPublicKey;
-    private final String athensPrivateKey;
+    private final String athenzPublicCert;
+    private final String athenzPrivateKey;
     private final TrustStore trustStore;
     private final KeyManagerProxy keyManagerProxy;
     private final TrustManagerProxy trustManagerProxy;
@@ -69,18 +69,18 @@ public class KeyRefresher {
      *
      * If you want to stop this thread, you need to call the shutdown() method
      *
-     * @param athensPublicKey the file path to public certificate file
-     * @param athensPrivateKey the file path to the private key
+     * @param athenzPublicCert the file path to public certificate file
+     * @param athenzPrivateKey the file path to the private key
      * @param trustStore trust store
      * @param keyManagerProxy the keyManagerProxy used in the existing server/client
      * @param trustManagerProxy the keyManagerProxy used in the existing server/client
      * @throws NoSuchAlgorithmException this is only thrown if we cannot use MD5 hashing
      */
-    public KeyRefresher(final String athensPublicKey, final String athensPrivateKey, final TrustStore trustStore,
+    public KeyRefresher(final String athenzPublicCert, final String athenzPrivateKey, final TrustStore trustStore,
                         final KeyManagerProxy keyManagerProxy, final TrustManagerProxy trustManagerProxy)
         throws NoSuchAlgorithmException {
-        this.athensPublicKey = athensPublicKey;
-        this.athensPrivateKey = athensPrivateKey;
+        this.athenzPublicCert = athenzPublicCert;
+        this.athenzPrivateKey = athenzPrivateKey;
         this.trustStore = trustStore;
         this.keyManagerProxy = keyManagerProxy;
         this.trustManagerProxy = trustManagerProxy;
@@ -107,10 +107,10 @@ public class KeyRefresher {
                         }
                     }
                     //we want to check both files (public + private) and update both checksums
-                    boolean keyFilesChanged = haveFilesBeenChanged(athensPrivateKey, lastPrivateKeyManagerChecksum);
-                    keyFilesChanged = haveFilesBeenChanged(athensPublicKey, lastPublicKeyManagerChecksum) || keyFilesChanged;
+                    boolean keyFilesChanged = haveFilesBeenChanged(athenzPrivateKey, lastPrivateKeyManagerChecksum);
+                    keyFilesChanged = haveFilesBeenChanged(athenzPublicCert, lastPublicKeyManagerChecksum) || keyFilesChanged;
                     if (keyFilesChanged) {
-                        keyManagerProxy.setKeyManager(Utils.getKeyManagers(athensPublicKey, athensPrivateKey));
+                        keyManagerProxy.setKeyManager(Utils.getKeyManagers(athenzPublicCert, athenzPrivateKey));
                         if (LOGGER.isDebugEnabled()) {
                             LOGGER.debug("KeyRefresher detected changes. Reloaded Key managers");
                         }
