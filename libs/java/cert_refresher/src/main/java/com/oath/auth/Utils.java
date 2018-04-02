@@ -1,3 +1,18 @@
+/**
+ * Copyright 2017 Yahoo Holdings, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.oath.auth;
 
 import java.io.File;
@@ -24,22 +39,6 @@ import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Copyright 2017 Yahoo Holdings, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import com.google.common.io.Resources;
 
 public class Utils {
@@ -47,9 +46,14 @@ public class Utils {
     private static final Logger LOG = LoggerFactory.getLogger(Utils.class);
 
     private static final String SSLCONTEXT_ALGORITHM = "TLSv1.2";
+    private static final String PROP_KEY_WAIT_TIME = "athenz.cert_refresher.key_wait_time";
+    
     private static final char[] KEYSTORE_PASSWORD = "secret".toCharArray();
-    //10 minutes
-    private static final long KEY_WAIT_TIME_MILLIS = TimeUnit.MINUTES.toMillis(10);
+    
+    // how long to wait for keys - default 10 mins
+    
+    private static final long KEY_WAIT_TIME_MILLIS = TimeUnit.MINUTES.toMillis(
+            Integer.parseInt(System.getProperty(PROP_KEY_WAIT_TIME, "10")));
     
     public static KeyStore getKeyStore(final String jksFilePath) throws Exception {
         return getKeyStore(jksFilePath, KEYSTORE_PASSWORD);
@@ -73,8 +77,8 @@ public class Utils {
         }
     }
 
-    public static KeyManager[] getKeyManagers(final String athensPublicKey, final String athensPrivateKey) throws Exception {
-        final KeyStore keystore = createKeyStore(athensPublicKey, athensPrivateKey);
+    public static KeyManager[] getKeyManagers(final String athenzPublicCert, final String athenzPrivateKey) throws Exception {
+        final KeyStore keystore = createKeyStore(athenzPublicCert, athenzPrivateKey);
         final KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
         keyManagerFactory.init(keystore, KEYSTORE_PASSWORD);
         return keyManagerFactory.getKeyManagers();
@@ -93,9 +97,9 @@ public class Utils {
      * @return KeyRefresher object
      */
     public static KeyRefresher generateKeyRefresher(final String trustStorePath,
-            final String athensPublicKey, final String athensPrivateKey) throws Exception {
-        return generateKeyRefresher(trustStorePath, KEYSTORE_PASSWORD, athensPublicKey,
-                athensPrivateKey);
+            final String athenzPublicCert, final String athenzPrivateKey) throws Exception {
+        return generateKeyRefresher(trustStorePath, KEYSTORE_PASSWORD, athenzPublicCert,
+                athenzPrivateKey);
     }
 
     /**
@@ -112,11 +116,31 @@ public class Utils {
      * @return KeyRefresher object
      */
     public static KeyRefresher generateKeyRefresher(final String trustStorePath,
-            final char[] trustStorePassword, final String athensPublicKey,
-            final String athensPrivateKey) throws Exception {
+            final String trustStorePassword, final String athenzPublicCert,
+            final String athenzPrivateKey) throws Exception {
+        return generateKeyRefresher(trustStorePath, trustStorePassword.toCharArray(),
+                athenzPublicCert, athenzPrivateKey);
+    }
+    
+    /**
+     * Generate the KeyRefresher object first as the server will need access to
+     * it (to turn it off and on as needed). It requires that the proxies are
+     * created which are then stored in the KeyRefresher. This method requires
+     * the paths to the private key and certificate files along with the
+     * trust-store path which has been created already and just needs to be
+     * monitored for changes.
+     * @param trustStorePath path to the trust-store
+     * @param trustStorePassword trust store password
+     * @param certPath path to the certificate file
+     * @param keyPath path to the private key file
+     * @return KeyRefresher object
+     */
+    public static KeyRefresher generateKeyRefresher(final String trustStorePath,
+            final char[] trustStorePassword, final String athenzPublicCert,
+            final String athenzPrivateKey) throws Exception {
         TrustStore trustStore = new TrustStore(trustStorePath,
                 new JavaKeyStoreProvider(trustStorePath, trustStorePassword));
-        return getKeyRefresher(athensPublicKey, athensPrivateKey, trustStore);
+        return getKeyRefresher(athenzPublicCert, athenzPrivateKey, trustStore);
     }
     
     /**
@@ -132,17 +156,17 @@ public class Utils {
      * @return KeyRefresher object
      */
     public static KeyRefresher generateKeyRefresherFromCaCert(final String caCertPath,
-            final String athensPublicKey, final String athensPrivateKey) throws Exception {
+            final String athenzPublicCert, final String athenzPrivateKey) throws Exception {
         TrustStore trustStore = new TrustStore(caCertPath, new CaCertKeyStoreProvider(caCertPath));
-        return getKeyRefresher(athensPublicKey, athensPrivateKey, trustStore);
+        return getKeyRefresher(athenzPublicCert, athenzPrivateKey, trustStore);
     }
     
-    static KeyRefresher getKeyRefresher(String athensPublicKey, String athensPrivateKey,
+    static KeyRefresher getKeyRefresher(String athenzPublicCert, String athenzPrivateKey,
             TrustStore trustStore) throws Exception {
         KeyManagerProxy keyManagerProxy =
-                new KeyManagerProxy(getKeyManagers(athensPublicKey, athensPrivateKey));
+                new KeyManagerProxy(getKeyManagers(athenzPublicCert, athenzPrivateKey));
         TrustManagerProxy trustManagerProxy = new TrustManagerProxy(trustStore.getTrustManagers());
-        return new KeyRefresher(athensPublicKey, athensPrivateKey, trustStore, keyManagerProxy, trustManagerProxy);
+        return new KeyRefresher(athenzPublicCert, athenzPrivateKey, trustStore, keyManagerProxy, trustManagerProxy);
         }
 
     /**
@@ -163,12 +187,12 @@ public class Utils {
     }
     
     /**
-     * @param athensPublicKey the location on the public key file
-     * @param athensPrivateKey the location of the private key file
+     * @param athenzPublicCert the location on the public certificate file
+     * @param athenzPrivateKey the location of the private key file
      * @return a KeyStore with loaded key and certificate
      * @throws Exception KeyStore generation can throw Exception for many reasons
      */
-    public static KeyStore createKeyStore(final String athensPublicKey, final String athensPrivateKey) throws Exception {
+    public static KeyStore createKeyStore(final String athenzPublicCert, final String athenzPrivateKey) throws Exception {
 
         X509Certificate certificate;
         PrivateKey privateKey = null;
@@ -177,21 +201,21 @@ public class Utils {
         File keyFile = null;
 
         try {
-            if (Paths.get(athensPublicKey).isAbsolute() && Paths.get(athensPrivateKey).isAbsolute()) {
-                certFile = new File(athensPublicKey);
-                keyFile = new File(athensPrivateKey);
+            if (Paths.get(athenzPublicCert).isAbsolute() && Paths.get(athenzPrivateKey).isAbsolute()) {
+                certFile = new File(athenzPublicCert);
+                keyFile = new File(athenzPrivateKey);
                 long startTime = System.currentTimeMillis();
                 while (!certFile.exists() || !keyFile.exists()) {
                     long durationInMillis = System.currentTimeMillis() - startTime;
                     if (durationInMillis > KEY_WAIT_TIME_MILLIS) {
                         throw new RuntimeException("Keyfresher waited " + durationInMillis + " ms for valid public or private key files. Giving up.");
                     }
-                    LOG.error("Missing Athenz public or private key files. Waiting {} ms", durationInMillis);
+                    LOG.error("Missing Athenz public certificate or private key files. Waiting {} ms", durationInMillis);
                     Thread.sleep(1000);
                 }
             } else {
-                certFile = new File(Resources.getResource(athensPublicKey).getFile());
-                keyFile = new File(Resources.getResource(athensPrivateKey).getFile());
+                certFile = new File(Resources.getResource(athenzPublicCert).getFile());
+                keyFile = new File(Resources.getResource(athenzPrivateKey).getFile());
             }
         } catch (Throwable t) {
             throw new IllegalArgumentException(t);
