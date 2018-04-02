@@ -1055,11 +1055,11 @@ public class ZTSClientTest {
         assertTrue(ztsClientMock.getLastRoleTokenFetchedTime(domain1, "role1", null) < 0);
         
         // initialize the prefetch token process.
-        client.prefetchAwsCred(domain1, "role1", null, null);
+        client.prefetchAwsCreds(domain1, "role1", null, null);
         int scheduledItemsSize = client.getScheduledItemsSize();
         
         // make sure only unique items are in the queue
-        client.prefetchAwsCred(domain1, "role1", null, null);
+        client.prefetchAwsCreds(domain1, "role1", null, null);
         int scheduledItemsSize2 = client.getScheduledItemsSize();
         assertEquals(scheduledItemsSize, scheduledItemsSize2);
 
@@ -1067,7 +1067,7 @@ public class ZTSClientTest {
         assertTrue(awsCred1 != null);
         long rt1Expiry = awsCred1.getExpiration().millis();
 
-        client.prefetchAwsCred(domain2, "role1", null, null);
+        client.prefetchAwsCreds(domain2, "role1", null, null);
         assertEquals(client.getScheduledItemsSize(), scheduledItemsSize + 1);
 
         AWSTemporaryCredentials awsCred2 = client.getAWSTemporaryCredentials(domain2, "role1");
@@ -1128,7 +1128,7 @@ public class ZTSClientTest {
         assertNotEquals(lastTimerTriggered1, lastTimerTriggered2);
         assertTrue(lastTimerTriggered2 > lastTimerTriggered1);
         
-        client.prefetchAwsCred(domain2, "role2", null, null);
+        client.prefetchAwsCreds(domain2, "role2", null, null);
         assertEquals(client.getScheduledItemsSize(), scheduledItemsSize + 2);
 
         AWSTemporaryCredentials awsCred4 = client.getAWSTemporaryCredentials(domain2, "role2");
@@ -1188,12 +1188,12 @@ public class ZTSClientTest {
         
         // repeat for aws cred
         //
-        client.prefetchAwsCred(domain1, "role1", null, null);
+        client.prefetchAwsCreds(domain1, "role1", null, null);
         scheduledItemsSize = client.getScheduledItemsSize();
         assertTrue(scheduledItemsSize > scheduledItemsSize2);
         
         // make sure only unique items are in the queue
-        client.prefetchAwsCred(domain1, "role1", null, null);
+        client.prefetchAwsCreds(domain1, "role1", null, null);
         scheduledItemsSize2 = client.getScheduledItemsSize();
         assertEquals(scheduledItemsSize, scheduledItemsSize2);
         
@@ -1214,7 +1214,7 @@ public class ZTSClientTest {
         scheduledItemsSize2 = client.getScheduledItemsSize();
         assertEquals(scheduledItemsSize2, scheduledItemsSize + 1);
         
-        client.prefetchAwsCred(domain2, "role1", null, null);
+        client.prefetchAwsCreds(domain2, "role1", null, null);
         scheduledItemsSize2 = client.getScheduledItemsSize();
         assertEquals(scheduledItemsSize2, scheduledItemsSize + 2);
 
@@ -1416,7 +1416,7 @@ public class ZTSClientTest {
         assertTrue(ztsClientMock.getLastRoleTokenFetchedTime(domain1, "role1", null) < 0);
 
         // initialize the prefetch token process.
-        client.prefetchAwsCred(domain1, "role1", null, null);
+        client.prefetchAwsCreds(domain1, "role1", null, null);
         // make sure only unique items are in the queue
         long scheduledItemsSize = client.getScheduledItemsSize();
         assertEquals(scheduledItemsSize, 1);
@@ -1476,7 +1476,7 @@ public class ZTSClientTest {
         assertNotEquals(lastTimerTriggered1, lastTimerTriggered2);
         assertTrue(lastTimerTriggered2 > lastTimerTriggered1);
         
-        client.prefetchAwsCred(domain1, "role2", null, null);
+        client.prefetchAwsCreds(domain1, "role2", null, null);
         assertEquals(client.getScheduledItemsSize(), scheduledItemsSize + 1);
 
         AWSTemporaryCredentials awsCred4 = client.getAWSTemporaryCredentials(domain1, "role2");
@@ -1532,7 +1532,7 @@ public class ZTSClientTest {
         assertEquals(client.getScheduledItemsSize(), 1);
         
         // initialize the prefetch aws processing
-        client.prefetchAwsCred(domain1, "role1", null, null);
+        client.prefetchAwsCreds(domain1, "role1", null, null);
         assertEquals(client.getScheduledItemsSize(), 2);
 
         RoleToken roleToken1 = client.getRoleToken(domain1);

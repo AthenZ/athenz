@@ -49,7 +49,7 @@ public class ZTSClientTokenCacher {
                 domainName, roleName, null);
         
         if (LOG.isInfoEnabled()) {
-            LOG.info("ZTSTokenCache: cache-add key: " + key + " expiry: " + expiryTime);
+            LOG.info("ZTSTokenCache: cache-add key: {} expiry: {}", key, expiryTime);
         }
         
         ZTSClient.ROLE_TOKEN_CACHE.put(key, roleToken);
