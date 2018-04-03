@@ -76,6 +76,7 @@ public class HttpCertSigner implements CertSigner {
         httpClient = new HttpClient(ZTSUtils.createSSLContextObject(new String[] {"TLSv1.2"}, privateKeyStore));
         httpClient.setFollowRedirects(false);
         httpClient.setConnectTimeout(connectTimeout);
+        httpClient.setStopTimeout(TimeUnit.MILLISECONDS.convert(requestTimeout, TimeUnit.SECONDS));
         try {
             httpClient.start();
         } catch (Exception ex) {
@@ -95,7 +96,18 @@ public class HttpCertSigner implements CertSigner {
         x509CertUri = serverBaseUri + "/x509";
         sshCertUri = serverBaseUri + "/ssh";
     }
-
+    
+    @Override
+    public void close() {
+        try {
+            if (httpClient != null) {
+                httpClient.stop();
+            }
+        } catch (Exception ex) {
+            LOGGER.error("close: unable to stop httpClient", ex);
+        }
+    }
+    
     @Override
     public int getMaxCertExpiryTimeMins() {
         return maxCertExpiryTimeMins;
@@ -113,17 +125,6 @@ public class HttpCertSigner implements CertSigner {
             throw new IllegalArgumentException("Invalid private key store");
         }
         return pkeyFactory.create();
-    }
-    
-    @Override
-    public void close() {
-        try {
-            if (httpClient != null) {
-                httpClient.stop();
-            }
-        } catch (Exception ex) {
-            LOGGER.error("close: unable to stop httpClient", ex);
-        }
     }
 
     ContentResponse processX509CertRequest(final String csr, final List<Integer> extKeyUsage,

@@ -108,6 +108,7 @@ public class ZTSImplTest {
     PrivateKey privateKey = null;
     PublicKey publicKey = null;
     AuditLogger auditLogger = null;
+    CloudStore cloudStore = null;
     @Mock CloudStore mockCloudStore;
     
     static final String ZTS_DATA_STORE_PATH = "/tmp/zts_server_unit_tests/zts_root";
@@ -167,7 +168,7 @@ public class ZTSImplTest {
     @Mock HttpServletResponse mockServletResponse;
     
     @BeforeClass
-    public void setUpClass() throws Exception {
+    public void setupClass() throws Exception {
         MockitoAnnotations.initMocks(this);
         Mockito.when(mockServletRequest.getRemoteAddr()).thenReturn(MOCKCLIENTADDR);
         
@@ -216,7 +217,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        CloudStore cloudStore = new CloudStore(null);
+        cloudStore = new CloudStore(null);
         cloudStore.setHttpClient(null);
         
         System.setProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_FNAME,
@@ -231,6 +232,14 @@ public class ZTSImplTest {
         ZTSImpl.serverHostName = "localhost";
 
         authorizer = new ZTSAuthorizer(store);
+    }
+    
+    @AfterMethod
+    public void shutdown() {
+        cloudStore.close();
+        ZMSFileChangeLogStore.deleteDirectory(new File(ZTS_DATA_STORE_PATH));
+        System.clearProperty(ZTSConsts.ZTS_PROP_ROLE_TOKEN_MAX_TIMEOUT);
+        System.clearProperty(ZTSConsts.ZTS_PROP_ROLE_TOKEN_DEFAULT_TIMEOUT);
     }
     
     static class ZtsMetricTester extends com.yahoo.athenz.common.metrics.impl.NoOpMetric {
@@ -357,13 +366,6 @@ public class ZTSImplTest {
             metric = new com.yahoo.athenz.common.metrics.impl.NoOpMetric();
         }
         return metric;
-    }
-    
-    @AfterMethod
-    public void shutdown() {
-        ZMSFileChangeLogStore.deleteDirectory(new File(ZTS_DATA_STORE_PATH));
-        System.clearProperty(ZTSConsts.ZTS_PROP_ROLE_TOKEN_MAX_TIMEOUT);
-        System.clearProperty(ZTSConsts.ZTS_PROP_ROLE_TOKEN_DEFAULT_TIMEOUT);
     }
     
     private String generateRoleName(String domain, String role) {
