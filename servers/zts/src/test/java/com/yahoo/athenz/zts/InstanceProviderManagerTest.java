@@ -38,7 +38,6 @@ import org.testng.annotations.Test;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
-import com.yahoo.athenz.instance.provider.InstanceProviderClient;
 import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zms.Role;
 import com.yahoo.athenz.zms.RoleMember;

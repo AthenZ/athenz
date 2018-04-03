@@ -682,6 +682,7 @@ public class CloudStoreTest {
         assertEquals(awsCreds.getAccessKeyId(), "accesskeyid");
         assertEquals(awsCreds.getSessionToken(), "sessiontoken");
         assertEquals(awsCreds.getSecretAccessKey(), "secretaccesskey");
+        cloudStore.close();
     }
     
     @Test
@@ -697,5 +698,6 @@ public class CloudStoreTest {
         
         final String req3 = "{invalid-json";
         assertNull(cloudStore.getSshKeyReqType(req3));
+        cloudStore.close();
     }
 }

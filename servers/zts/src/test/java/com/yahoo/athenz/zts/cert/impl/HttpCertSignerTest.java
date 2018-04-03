@@ -63,6 +63,7 @@ public class HttpCertSignerTest {
         Mockito.when(request.send()).thenThrow(new TimeoutException());
 
         assertNull(certSigner.generateX509Certificate("csr", null, 0));
+        certSigner.close();
     }
 
     @Test
@@ -82,6 +83,7 @@ public class HttpCertSignerTest {
         Mockito.when(response.getStatus()).thenReturn(400);
 
         assertNull(certSigner.generateX509Certificate("csr", null, 0));
+        certSigner.close();
     }
 
     @Test
@@ -102,6 +104,7 @@ public class HttpCertSignerTest {
         Mockito.when(response.getContentAsString()).thenReturn(null);
 
         assertNull(certSigner.generateX509Certificate("csr", null, 0));
+        certSigner.close();
     }
 
     @Test
@@ -122,6 +125,7 @@ public class HttpCertSignerTest {
         Mockito.when(response.getContentAsString()).thenReturn("");
 
         assertNull(certSigner.generateX509Certificate("csr", null, 0));
+        certSigner.close();
     }
 
     @Test
@@ -143,6 +147,7 @@ public class HttpCertSignerTest {
 
         String pem = certSigner.generateX509Certificate("csr", null, 0);
         assertEquals(pem, "pem-value");
+        certSigner.close();
     }
 
     @Test
@@ -166,6 +171,7 @@ public class HttpCertSignerTest {
 
         Mockito.when(response.getContentAsString()).thenReturn("invalid-json");
         assertNull(certSigner.generateX509Certificate("csr", null, 0));
+        certSigner.close();
     }
 
     @Test
@@ -180,6 +186,7 @@ public class HttpCertSignerTest {
         Mockito.when(httpClient.GET("https://localhost:443/certsign/v2/x509")).thenThrow(new TimeoutException());
 
         assertNull(certSigner.getCACertificate());
+        certSigner.close();
     }
 
     @Test
@@ -196,6 +203,7 @@ public class HttpCertSignerTest {
         Mockito.when(response.getStatus()).thenReturn(400);
 
         assertNull(certSigner.getCACertificate());
+        certSigner.close();
     }
 
     @Test
@@ -213,6 +221,7 @@ public class HttpCertSignerTest {
         Mockito.when(response.getContentAsString()).thenReturn(null);
 
         assertNull(certSigner.getCACertificate());
+        certSigner.close();
     }
 
     @Test
@@ -230,6 +239,7 @@ public class HttpCertSignerTest {
         Mockito.when(response.getContentAsString()).thenReturn("");
 
         assertNull(certSigner.getCACertificate());
+        certSigner.close();
     }
 
     @Test
@@ -248,6 +258,7 @@ public class HttpCertSignerTest {
 
         String pem = certSigner.getCACertificate();
         assertEquals(pem, "pem-value");
+        certSigner.close();
     }
 
     @Test
@@ -268,6 +279,7 @@ public class HttpCertSignerTest {
 
         Mockito.when(response.getContentAsString()).thenReturn("invalid-json");
         assertNull(certSigner.getCACertificate());
+        certSigner.close();
     }
     
     @Test
@@ -289,6 +301,7 @@ public class HttpCertSignerTest {
 
         String pem = certSigner.generateSSHCertificate("ssh-key-req");
         assertEquals(pem, "ssh-key");
+        certSigner.close();
     }
     
     @Test
@@ -308,6 +321,7 @@ public class HttpCertSignerTest {
         String pem = certSigner.getSSHCertificate("user");
         assertNotNull(pem);
         assertEquals(pem, "user-key");
+        certSigner.close();
     }
     
     @Test

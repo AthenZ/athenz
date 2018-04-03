@@ -90,6 +90,7 @@ public class CloudStore {
         
         httpClient = new HttpClient();
         httpClient.setFollowRedirects(false);
+        httpClient.setStopTimeout(1000);
         try {
             httpClient.start();
         } catch (Exception ex) {
@@ -125,23 +126,26 @@ public class CloudStore {
         initializeAwsSupport();
     }
     
-    void close() {
-        if (httpClient != null) {
-            try {
-                httpClient.stop();
-            } catch (Exception e) {
-            }
+    public void close() {
+        if (scheduledThreadPool != null) {
+            scheduledThreadPool.shutdownNow();
         }
+        stopHttpClient();
     }
     
     public void setHttpClient(HttpClient client) {
-        if (httpClient != null) {
-            try {
-                httpClient.stop();
-            } catch (Exception e) {
-            }
-        }
+        stopHttpClient();
         httpClient = client;
+    }
+    
+    void stopHttpClient() {
+        if (httpClient == null) {
+            return;
+        }
+        try {
+            httpClient.stop();
+        } catch (Exception e) {
+        }
     }
     
     public boolean isAwsEnabled() {

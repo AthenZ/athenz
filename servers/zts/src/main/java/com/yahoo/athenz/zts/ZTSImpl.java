@@ -122,7 +122,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected boolean statusCertSigner = false;
     protected Status successServerStatus = null;
     protected boolean includeRoleCompleteFlag = true;
-    
+    protected boolean readOnlyMode = false;
+
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
     private static final String TYPE_ENTITY_NAME = "EntityName";
@@ -384,6 +385,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         includeRoleCompleteFlag = Boolean.parseBoolean(
                 System.getProperty(ZTSConsts.ZTS_PROP_ROLE_COMPLETE_FLAG, "true"));
+        
+        // check if we need to run in maintenance read only mode
+        
+        readOnlyMode = Boolean.parseBoolean(
+                System.getProperty(ZTSConsts.ZTS_PROP_READ_ONLY_MODE, "false"));
     }
     
     static String getServerHostName() {
@@ -1399,6 +1405,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_POST);
         logPrincipal(ctx);
 
+        if (readOnlyMode) {
+            throw requestError("Server in Maintenance Read-Only mode. Please try your request later",
+                    caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+        }
+        
         validateRequest(ctx.request(), caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(roleName, TYPE_ENTITY_NAME, caller);
@@ -1670,6 +1681,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String callerTiming = "postinstanceregisterinformation_timing";
         metric.increment(HTTP_POST);
 
+        if (readOnlyMode) {
+            throw requestError("Server in Maintenance Read-Only mode. Please try your request later",
+                    caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+        }
+        
         validateRequest(ctx.request(), caller);
         validate(info, TYPE_INSTANCE_REGISTER_INFO, caller);
         
@@ -1888,6 +1904,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_POST);
         logPrincipal(ctx);
 
+        if (readOnlyMode) {
+            throw requestError("Server in Maintenance Read-Only mode. Please try your request later",
+                    caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+        }
+        
         validateRequest(ctx.request(), caller);
         validate(provider, TYPE_SERVICE_NAME, caller);
         validate(domain, TYPE_DOMAIN_NAME, caller);
@@ -2229,6 +2250,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_POST);
         logPrincipal(ctx);
 
+        if (readOnlyMode) {
+            throw requestError("Server in Maintenance Read-Only mode. Please try your request later",
+                    caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+        }
+        
         validateRequest(ctx.request(), caller);
         validate(provider, TYPE_SERVICE_NAME, caller);
         validate(domain, TYPE_DOMAIN_NAME, caller);
@@ -2277,6 +2303,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_POST);
         logPrincipal(ctx);
 
+        if (readOnlyMode) {
+            throw requestError("Server in Maintenance Read-Only mode. Please try your request later",
+                    caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+        }
+        
         validateRequest(ctx.request(), caller);
         validate(domain, TYPE_DOMAIN_NAME, caller);
         validate(service, TYPE_SIMPLE_NAME, caller);
@@ -2449,8 +2480,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_POST);
         logPrincipal(ctx);
 
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("postOSTKInstanceInformation: " + info);
+        if (readOnlyMode) {
+            throw requestError("Server in Maintenance Read-Only mode. Please try your request later",
+                    caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
         }
         
         validateRequest(ctx.request(), caller);
@@ -2565,8 +2597,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_POST);
         logPrincipal(ctx);
 
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("postOSTKInstanceRefreshRequest: " + req);
+        if (readOnlyMode) {
+            throw requestError("Server in Maintenance Read-Only mode. Please try your request later",
+                    caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
         }
         
         validateRequest(ctx.request(), caller);
@@ -2854,6 +2887,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_POST);
         logPrincipal(ctx);
 
+        if (readOnlyMode) {
+            throw requestError("Server in Maintenance Read-Only mode. Please try your request later",
+                    caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+        }
+        
         validateRequest(ctx.request(), caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(domainMetrics, TYPE_DOMAIN_METRICS, caller);

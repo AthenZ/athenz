@@ -70,6 +70,12 @@ public class InstanceCertManager {
         }
     }
     
+    public void shutdown() {
+        if (scheduledExecutor != null) {
+            scheduledExecutor.shutdownNow();
+        }
+    }
+    
     boolean loadAllowedIPAddresses(List<IPBlock> ipBlocks, final String propName) {
         
         // get the configured path for the list of ip addresses

@@ -25,9 +25,6 @@ import com.yahoo.athenz.zts.InstanceIdentity;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.store.impl.ZMSFileChangeLogStore;
 import com.yahoo.athenz.zts.utils.IPBlock;
-import com.yahoo.athenz.zts.utils.IPPrefix;
-import com.yahoo.athenz.zts.utils.IPPrefixes;
-import com.yahoo.rdl.JSON;
 
 public class InstanceCertManagerTest {
 
@@ -53,6 +50,7 @@ public class InstanceCertManagerTest {
         assertEquals(identity.getName(), "cn");
         assertEquals(identity.getX509Certificate(), cert);
         assertEquals(identity.getX509CertificateSigner(), caCert);
+        instanceManager.shutdown();
     }
     
     @Test
@@ -64,6 +62,7 @@ public class InstanceCertManagerTest {
         InstanceCertManager instanceManager = new InstanceCertManager(null, certSigner);
         InstanceIdentity identity = instanceManager.generateIdentity("csr", "cn", null, 0);
         assertNull(identity);
+        instanceManager.shutdown();
     }
     
     @Test
@@ -75,6 +74,7 @@ public class InstanceCertManagerTest {
         InstanceCertManager instanceManager = new InstanceCertManager(null, certSigner);
         InstanceIdentity identity = instanceManager.generateIdentity("csr", "cn", null, 0);
         assertNull(identity);
+        instanceManager.shutdown();
     }
     
     @Test
@@ -96,6 +96,7 @@ public class InstanceCertManagerTest {
         
         X509CertRecord certRecord = instance.getX509CertRecord("ostk", cert);
         assertNotNull(certRecord);
+        instance.shutdown();
     }
     
     @Test
@@ -113,6 +114,7 @@ public class InstanceCertManagerTest {
         
         X509CertRecord certRecord = instance.getX509CertRecord("ostk", "1001");
         assertNotNull(certRecord);
+        instance.shutdown();
     }
     
     @Test
@@ -121,6 +123,7 @@ public class InstanceCertManagerTest {
         instance.setCertStore(null);
         X509CertRecord certRecord = instance.getX509CertRecord("ostk", (X509Certificate) null);
         assertNull(certRecord);
+        instance.shutdown();
     }
     
     @Test
@@ -142,6 +145,7 @@ public class InstanceCertManagerTest {
 
         X509CertRecord certRecord = instance.getX509CertRecord("ostk", cert);
         assertNull(certRecord);
+        instance.shutdown();
     }
     
     @Test
@@ -158,6 +162,7 @@ public class InstanceCertManagerTest {
         X509CertRecord x509CertRecord = new X509CertRecord();
         boolean result = instance.updateX509CertRecord(x509CertRecord);
         assertTrue(result);
+        instance.shutdown();
     }
     
     @Test
@@ -167,6 +172,7 @@ public class InstanceCertManagerTest {
         X509CertRecord x509CertRecord = new X509CertRecord();
         boolean result = instance.updateX509CertRecord(x509CertRecord);
         assertFalse(result);
+        instance.shutdown();
     }
     
     @Test
@@ -183,6 +189,7 @@ public class InstanceCertManagerTest {
         X509CertRecord x509CertRecord = new X509CertRecord();
         boolean result = instance.insertX509CertRecord(x509CertRecord);
         assertTrue(result);
+        instance.shutdown();
     }
     
     @Test
@@ -192,6 +199,7 @@ public class InstanceCertManagerTest {
         X509CertRecord x509CertRecord = new X509CertRecord();
         boolean result = instance.insertX509CertRecord(x509CertRecord);
         assertFalse(result);
+        instance.shutdown();
     }
     
     @Test
@@ -207,6 +215,7 @@ public class InstanceCertManagerTest {
 
         boolean result = instance.deleteX509CertRecord("provider", "instance");
         assertTrue(result);
+        instance.shutdown();
     }
     
     @Test
@@ -234,6 +243,7 @@ public class InstanceCertManagerTest {
         Mockito.when(certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_USER)).thenReturn(null);
         assertEquals(instanceManager.getSshCertificateSigner("host"), "ssh-host");
         assertEquals(instanceManager.getSshCertificateSigner("user"), "ssh-user");
+        instanceManager.shutdown();
     }
     
     @Test
@@ -248,6 +258,7 @@ public class InstanceCertManagerTest {
         result = instanceManager.generateSshIdentity(identity, "", null);
         assertTrue(result);
         assertNull(identity.getSshCertificate());
+        instanceManager.shutdown();
     }
     
     @Test
@@ -272,6 +283,7 @@ public class InstanceCertManagerTest {
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.service");
         boolean result = instanceManager.generateSshIdentity(identity, sshCsr, "host");
         assertFalse(result);
+        instanceManager.shutdown();
     }
     
     @Test
@@ -287,6 +299,7 @@ public class InstanceCertManagerTest {
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.service");
         boolean result = instanceManager.generateSshIdentity(identity, sshCsr, "host");
         assertFalse(result);
+        instanceManager.shutdown();
     }
     
     @Test
@@ -304,6 +317,7 @@ public class InstanceCertManagerTest {
         assertTrue(result);
         assertEquals(identity.getSshCertificate(), "ssh-cert");
         assertEquals(identity.getSshCertificateSigner(), "ssh-host");
+        instanceManager.shutdown();
     }
     
     @Test
@@ -329,6 +343,7 @@ public class InstanceCertManagerTest {
         assertTrue(instance.verifyCertRefreshIPAddress("10.2.9.25"));
         assertTrue(instance.verifyCertRefreshIPAddress("11.1.3.25"));
         assertTrue(instance.verifyCertRefreshIPAddress("11.1.9.25"));
+        instance.shutdown();
     }
     
     @Test
@@ -372,6 +387,7 @@ public class InstanceCertManagerTest {
         
         assertFalse(instance.verifyInstanceCertIPAddress("10.1.3.25"));
         assertFalse(instance.verifyInstanceCertIPAddress("10.1.9.25"));
+        instance.shutdown();
     }
     
     @Test
@@ -403,5 +419,6 @@ public class InstanceCertManagerTest {
         assertFalse(instance.loadAllowedIPAddresses(ipBlocks, propName));
 
         System.clearProperty(propName);
+        instance.shutdown();
     }
 }

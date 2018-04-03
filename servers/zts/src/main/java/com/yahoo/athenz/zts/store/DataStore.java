@@ -974,6 +974,9 @@ public class DataStore implements DataCacheProvider {
     }
 
     public void setCloudStore(CloudStore cloudStore) {
+        if (this.cloudStore != null) {
+            this.cloudStore.close();
+        }
         this.cloudStore = cloudStore;
     }
 
