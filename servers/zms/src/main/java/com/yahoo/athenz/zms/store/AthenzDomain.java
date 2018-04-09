@@ -25,11 +25,11 @@ import com.yahoo.athenz.zms.ServiceIdentity;
 
 public class AthenzDomain {
 
-    String name;
-    List<Role> roles;
-    List<Policy> policies;
-    List<ServiceIdentity> services;
-    Domain domain = null;
+    private String name;
+    private List<Role> roles;
+    private List<Policy> policies;
+    private List<ServiceIdentity> services;
+    private Domain domain = null;
     
     public AthenzDomain(String name) {
         this.name = name;

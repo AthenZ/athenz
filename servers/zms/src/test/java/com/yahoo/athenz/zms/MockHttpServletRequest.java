@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,10 +40,11 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpUpgradeHandler;
 import javax.servlet.http.Part;
 
-public class MockHttpServletRequest implements HttpServletRequest {
+@SuppressWarnings("RedundantThrows")
+class MockHttpServletRequest implements HttpServletRequest {
 
-    Map<String, String> headers = new HashMap<>();
-    Map<String, Object> attributes = new HashMap<>();
+    private final Map<String, String> headers = new HashMap<>();
+    private Map<String, Object> attributes = new HashMap<>();
     
     public MockHttpServletRequest() {
     }
@@ -51,7 +52,11 @@ public class MockHttpServletRequest implements HttpServletRequest {
     public void addHeader(String name, String value) {
         headers.put(name, value);
     }
-    
+
+    public Map<String, Object> getAttributes() {
+        return attributes;
+    }
+
     @Override
     public Object getAttribute(String name) {
         return attributes.get(name);

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,6 +54,9 @@ public class ZMSUtils {
                 .setAction(action)
                 .setResource(resource)
                 .setRole(role);
+        if (effect != AssertionEffect.ALLOW) {
+            assertion.setEffect(effect);
+        }
         assertions.add(assertion);
     }
     
@@ -64,10 +67,9 @@ public class ZMSUtils {
             roleMember.setMemberName(admin);
             roleMembers.add(roleMember);
         }
-        Role role = new Role()
+        return new Role()
                 .setName(roleResourceName(domainName, ZMSConsts.ADMIN_ROLE_NAME))
                 .setRoleMembers(roleMembers);
-        return role;
     }
     
     public static Policy makeAdminPolicy(String domainName, Role adminsRole) {
@@ -79,7 +81,7 @@ public class ZMSUtils {
         return policy;
     }
     
-    static String generateResourceName(String domainName, String resName, String resType) {
+    private static String generateResourceName(String domainName, String resName, String resType) {
         StringBuilder name = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT).append(domainName);
         if (!resType.isEmpty()) {
             name.append(':');
@@ -161,14 +163,10 @@ public class ZMSUtils {
         }
         
         String rezPattern = StringUtils.patternFromGlob(assertion.getResource());
-        if (!roleName.matches(rezPattern)) {
-            return false;
-        }
-        
-        return true;
+        return roleName.matches(rezPattern);
     }
     
-    public static final void validateRoleMembers(final Role role, final String caller,
+    public static void validateRoleMembers(final Role role, final String caller,
             final String domainName) {
         
         if ((role.getMembers() != null && !role.getMembers().isEmpty()) 
@@ -196,13 +194,13 @@ public class ZMSUtils {
         }
     }
     
-    public static final void removeMembers(List<RoleMember> originalRoleMembers,
+    public static void removeMembers(List<RoleMember> originalRoleMembers,
             List<RoleMember> removeRoleMembers) {
         if (removeRoleMembers == null || originalRoleMembers == null) {
             return;
         }
-        for (int i = 0; i < removeRoleMembers.size(); i ++) {
-            String removeName = removeRoleMembers.get(i).getMemberName();
+        for (RoleMember removeMember : removeRoleMembers) {
+            String removeName = removeMember.getMemberName();
             for (int j = 0; j < originalRoleMembers.size(); j ++) {
                 if (removeName.equalsIgnoreCase(originalRoleMembers.get(j).getMemberName())) {
                     originalRoleMembers.remove(j);
@@ -211,8 +209,8 @@ public class ZMSUtils {
         }
     }
     
-    public static final List<String> convertRoleMembersToMembers(List<RoleMember> members) {
-        List<String> memberList = new ArrayList<String>();
+    public static List<String> convertRoleMembersToMembers(List<RoleMember> members) {
+        List<String> memberList = new ArrayList<>();
         if (members == null) {
             return memberList;
         }
@@ -222,8 +220,8 @@ public class ZMSUtils {
         return memberList;
     }
     
-    public static final List<RoleMember> convertMembersToRoleMembers(List<String> members) {
-        List<RoleMember> roleMemberList = new ArrayList<RoleMember>();
+    public static List<RoleMember> convertMembersToRoleMembers(List<String> members) {
+        List<RoleMember> roleMemberList = new ArrayList<>();
         if (members == null) {
             return roleMemberList;
         }
@@ -290,10 +288,6 @@ public class ZMSUtils {
         return error(ResourceException.BAD_REQUEST, msg, caller);
     }
 
-    public static RuntimeException redirectError(String msg, String caller) {
-        return error(ResourceException.FOUND, msg, caller);
-    }
-
     public static RuntimeException unauthorizedError(String msg, String caller) {
         return error(ResourceException.UNAUTHORIZED, msg, caller);
     }
@@ -335,5 +329,12 @@ public class ZMSUtils {
         ZMSImpl.metric.increment("error_" + errCode);
         
         return true;
+    }
+
+    public static void threadSleep(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException ignore) {
+        }
     }
 }

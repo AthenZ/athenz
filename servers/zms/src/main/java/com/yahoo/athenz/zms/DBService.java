@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,15 +15,7 @@
  */
 package com.yahoo.athenz.zms;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,13 +37,13 @@ import com.yahoo.rdl.UUID;
 public class DBService {
     
     ObjectStore store;
-    String userDomain;
+    final String userDomain;
     AuditLogger auditLogger;
     Cache<String, DataCache> cacheStore;
     QuotaChecker quotaCheck;
-    int retrySleepTime = 250;
-    int defaultRetryCount = 120;
-    int defaultOpTimeout = 60;
+    int retrySleepTime;
+    int defaultRetryCount;
+    int defaultOpTimeout;
     
     private static final Logger LOG = LoggerFactory.getLogger(DBService.class);
 
@@ -302,7 +294,7 @@ public class DBService {
 
         // check to see if we need to insert the policy or update it
         
-        boolean requestSuccess = false;
+        boolean requestSuccess;
         if (originalPolicy == null) {
             requestSuccess = con.insertPolicy(domainName, policy);
         } else {
@@ -379,7 +371,7 @@ public class DBService {
         Iterator<Assertion> itr = assertions.iterator();
         while (itr.hasNext()) {
             
-            Assertion checkAssertion = (Assertion) itr.next();
+            Assertion checkAssertion = itr.next();
             
             if (!assertion.getAction().equals(checkAssertion.getAction())) {
                 continue;
@@ -414,7 +406,7 @@ public class DBService {
         // let's iterate through the new list and the ones that are
         // not in the current list should be added to the add list
         
-        List<Assertion> matchedAssertions = new ArrayList<Assertion>();
+        List<Assertion> matchedAssertions = new ArrayList<>();
         if (newAssertions != null) {
             for (Assertion assertion : newAssertions) {
                 if (!removeMatchedAssertion(assertion, curAssertions, matchedAssertions)) {
@@ -442,7 +434,7 @@ public class DBService {
         
         // check to see if we need to insert the role or update it
         
-        boolean requestSuccess = false;
+        boolean requestSuccess;
         if (originalRole == null) {
             requestSuccess = con.insertRole(domainName, role);
         } else {
@@ -537,7 +529,7 @@ public class DBService {
     boolean processServiceIdentity(ObjectStoreConnection con, ServiceIdentity originalService, String domainName,
             String serviceName, ServiceIdentity service, StringBuilder auditDetails) {
         
-        boolean requestSuccess = false;
+        boolean requestSuccess;
         if (originalService == null) {
             requestSuccess = con.insertServiceIdentity(domainName, service);
         } else {
@@ -617,14 +609,14 @@ public class DBService {
         
         // now we need to process the hosts defined for this service
         
-        Set<String> curHosts = null;
+        Set<String> curHosts;
         if (originalService != null && originalService.getHosts() != null) {
             curHosts = new HashSet<>(originalService.getHosts());
         } else {
             curHosts = new HashSet<>();
         }
 
-        Set<String> newHosts = null;
+        Set<String> newHosts;
         if (service.getHosts() != null) {
             newHosts = new HashSet<>(service.getHosts());
         } else {
@@ -696,11 +688,8 @@ public class DBService {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(": possible deadlock, retries available: " + retryCount);
             }
-            
-            try {
-                Thread.sleep(retrySleepTime);
-            } catch (InterruptedException exc) {
-            }
+
+            ZMSUtils.threadSleep(retrySleepTime);
         }
         
         // return our response
@@ -875,7 +864,7 @@ public class DBService {
                 
                 // now process the request
                 
-                boolean requestSuccess = false;
+                boolean requestSuccess;
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
 
                 if (originalKeyEntry == null) {
@@ -968,12 +957,8 @@ public class DBService {
         if (role == null) {
             return false;
         }
-        
-        if (role.getTrust() == null || role.getTrust().isEmpty()) {
-            return false;
-        }
-        
-        return true;
+
+        return role.getTrust() != null && !role.getTrust().isEmpty();
     }
     
     void executePutMembership(ResourceContext ctx, String domainName, String roleName,
@@ -1018,11 +1003,8 @@ public class DBService {
                 
                 // audit log the request
 
-                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-                auditDetails.append("{\"member\": \"").append(roleMember.getMemberName()).append("\"}");
-                
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
-                        roleName, auditDetails.toString());
+                        roleName, "{\"member\": \"" + roleMember.getMemberName() + "\"}");
                 
                 return;
                 
@@ -1059,7 +1041,7 @@ public class DBService {
                 
                 // now process the request
                 
-                boolean requestSuccess = false;
+                boolean requestSuccess;
                 if (originalEntity == null) {
                     requestSuccess = con.insertEntity(domainName, entity);
                 } else {
@@ -1132,11 +1114,8 @@ public class DBService {
 
                 // audit log the request
 
-                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-                auditDetails.append("{\"member\": \"").append(normalizedMember).append("\"}");
-
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
-                        roleName, auditDetails.toString());
+                        roleName, "{\"member\": \"" + normalizedMember + "\"}");
                 
                 return;
                 
@@ -1418,7 +1397,7 @@ public class DBService {
         // entries in the role member audit logs and the domain
         // entries are properly invalidated
         
-        List<PrincipalRole> roles = null;
+        List<PrincipalRole> roles;
         try {
             roles = con.listPrincipalRoles(principalName);
         } catch (ResourceException ex) {
@@ -1653,7 +1632,7 @@ public class DBService {
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             String domain = con.lookupDomainById(account, productId);
             if (domain != null) {
-                List<String> list = Arrays.asList(domain);
+                List<String> list = Collections.singletonList(domain);
                 domList.setNames(list);
             }
         }
@@ -1728,11 +1707,11 @@ public class DBService {
                 role.setMembers(ZMSUtils.convertRoleMembersToMembers(
                         role.getRoleMembers()));
 
-                if (auditLog != null && auditLog.booleanValue()) {
+                if (auditLog == Boolean.TRUE) {
                     role.setAuditLog(con.listRoleAuditLogs(domainName, roleName));
                 }
                 
-            } else if (expand != null && expand.booleanValue()) {
+            } else if (expand == Boolean.TRUE) {
 
                 // otherwise, if asked, let's expand the delegated
                 // membership and return the list of members
@@ -1760,7 +1739,7 @@ public class DBService {
         AthenzDomain domain = null;
         try {
             domain = getAthenzDomain(trustDomain, false);
-        } catch (ResourceException ex) {
+        } catch (ResourceException ignore) {
         }
         
         if (domain == null) {
@@ -1817,7 +1796,7 @@ public class DBService {
             }
         }
 
-        return new ArrayList<RoleMember>(roleMembers.values());
+        return new ArrayList<>(roleMembers.values());
     }
     
     Policy getPolicy(String domainName, String policyName) {
@@ -1912,12 +1891,10 @@ public class DBService {
                 
                 // audit log the request
 
-                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-                auditDetails.append("{\"policy\": \"").append(policyName).
-                    append("\", \"assertionId\": \"").append(assertionId).append("\"}");
-                
+                final String auditDetails = "{\"policy\": \"" + policyName +
+                        "\", \"assertionId\": \"" + assertionId + "\"}";
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
-                        policyName, auditDetails.toString());
+                        policyName, auditDetails);
                 
                 return;
                 
@@ -1974,7 +1951,7 @@ public class DBService {
             String auditRef, String caller) {
         
         int retryCount = defaultRetryCount;
-        Domain domain = null;
+        Domain domain;
         do {
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
                 
@@ -2263,7 +2240,6 @@ public class DBService {
                 con.deleteRole(domainName, roleName);
                 firstEntry = auditLogSeparator(auditDetails, firstEntry);
                 auditDetails.append(" \"delete-role\": \"").append(roleName).append('\"');
-                continue;
             }
         }
         
@@ -2281,7 +2257,6 @@ public class DBService {
                 con.deletePolicy(domainName, policyName);
                 firstEntry = auditLogSeparator(auditDetails, firstEntry);
                 auditDetails.append(" \"delete-policy\": \"").append(policyName).append('\"');
-                continue;
             }
         }
         
@@ -2298,7 +2273,6 @@ public class DBService {
                 con.deleteServiceIdentity(domainName, serviceName);
                 firstEntry = auditLogSeparator(auditDetails, firstEntry);
                 auditDetails.append(" \"delete-service\": \"").append(serviceName).append('\"');
-                continue;
             }
         }
         
@@ -2411,7 +2385,7 @@ public class DBService {
         templateServiceIdentity.setProviderEndpoint(serviceIdentity.getProviderEndpoint());
         
         List<PublicKeyEntry> publicKeyEntries = serviceIdentity.getPublicKeys();
-        List<PublicKeyEntry> newPublicKeyEntries = new ArrayList<PublicKeyEntry>();
+        List<PublicKeyEntry> newPublicKeyEntries = new ArrayList<>();
         if (publicKeyEntries != null && !publicKeyEntries.isEmpty()) {
             for (PublicKeyEntry publicKeyEntry : publicKeyEntries) {
                 PublicKeyEntry newPublicKeyEntry = new PublicKeyEntry();
@@ -2425,13 +2399,13 @@ public class DBService {
         List<String> hosts = serviceIdentity.getHosts();
         
         if (hosts != null) {
-            templateServiceIdentity.setHosts(new ArrayList<String>(hosts));
+            templateServiceIdentity.setHosts(new ArrayList<>(hosts));
         }
         
         return templateServiceIdentity;
     }
     
-    void setupTenantAdminPolicy(ResourceContext ctx, String tenantDomain, String provSvcDomain,
+    void setupTenantAdminPolicy(String tenantDomain, String provSvcDomain,
             String provSvcName, String auditRef, String caller) {
         
         int retryCount = defaultRetryCount;
@@ -2447,10 +2421,8 @@ public class DBService {
                         provSvcName, tenantDomain, null) + ZMSConsts.ADMIN_ROLE_NAME;
 
                 // our tenant admin role/policy name
-                
-                StringBuilder tenancyResourceBuilder = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-                tenancyResourceBuilder.append("tenancy.").append(provSvcDomain).append('.').append(provSvcName);
-                String tenancyResource = tenancyResourceBuilder.toString();
+
+                final String tenancyResource = "tenancy." + provSvcDomain + '.' + provSvcName;
                 
                 String adminName = tenancyResource + ".admin";
                 String tenantAdminRole = ZMSUtils.roleResourceName(tenantDomain, adminName);
@@ -2557,14 +2529,12 @@ public class DBService {
                     }
                     
                     String policyResourceName = ZMSUtils.policyResourceName(provSvcDomain, trustedName);
-                    StringBuilder resourceName = new StringBuilder(256);
-                    resourceName.append(provSvcDomain).append(":service.")
-                        .append(ZMSUtils.getTenantResourceGroupRolePrefix(provSvcName, tenantDomain, resourceGroup))
-                        .append('*');
-                    List<Assertion> assertions = Arrays.asList(
-                        new Assertion().setRole(trustedRole)
-                            .setResource(resourceName.toString())
-                            .setAction(tenantAction));
+                    final String resourceName = provSvcDomain + ":service." +
+                            ZMSUtils.getTenantResourceGroupRolePrefix(provSvcName, tenantDomain, resourceGroup) + '*';
+                    List<Assertion> assertions = Collections.singletonList(
+                            new Assertion().setRole(trustedRole)
+                                    .setResource(resourceName)
+                                    .setAction(tenantAction));
                     
                     Policy policy = new Policy().setName(policyResourceName).setAssertions(assertions);
                     
@@ -2763,10 +2733,8 @@ public class DBService {
         
         String rnamePrefix = ZMSUtils.getProviderResourceGroupRolePrefix(provSvcDomain, provSvcName,
                 resourceGroup);
-        
-        StringBuilder pnamePrefixBuilder = new StringBuilder(256);
-        pnamePrefixBuilder.append("tenancy.").append(rnamePrefix);
-        String pnamePrefix = pnamePrefixBuilder.toString();
+
+        final String pnamePrefix = "tenancy." + rnamePrefix;
         
         int retryCount = defaultRetryCount;
         do {
@@ -2932,11 +2900,8 @@ public class DBService {
         // ensure it is a trust role for the tenant
         
         String trustDom = role.getTrust();
-        if (trustDom != null && trustDom.equals(tenantDomain)) {
-            return true;
-        }
-        
-        return false;
+        return trustDom != null && trustDom.equals(tenantDomain);
+
     }
 
     boolean isTrustRoleForTenant(String provSvcDomain, String roleName, String rolePrefix,
@@ -2998,19 +2963,17 @@ public class DBService {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("isTenantRolePrefixMatch: verifying tenant subdomain: " + subDomain);
             }
-            
-            if (con.getDomain(subDomain) != null) {
-                return false;
-            }
-        } else if (comps.length > 2) {
-            
+
+            return con.getDomain(subDomain) == null;
+
+        } else {
+
             // if we have more than 2 subcomponents then we're
             // definitely not dealing with resource groups
-            
-            return false;
+
+            return comps.length <= 2;
         }
-        
-        return true;
+
     }
     
     AthenzDomain getAthenzDomain(String domainName, boolean masterCopy) {
@@ -3026,12 +2989,10 @@ public class DBService {
             athenzDomain = con.getAthenzDomain(domainName);
             setMembersInDomain(athenzDomain);
         }
-        
-        if (athenzDomain != null) {
-            DataCache dataCache = new DataCache(athenzDomain,
-                    athenzDomain.getDomain().getModified().millis());
-            cacheStore.put(domainName, dataCache);
-        }
+
+        DataCache dataCache = new DataCache(athenzDomain,
+                athenzDomain.getDomain().getModified().millis());
+        cacheStore.put(domainName, dataCache);
         
         return athenzDomain;
     }
@@ -3175,11 +3136,6 @@ public class DBService {
         .append("\", \"org\": \"").append(domain.getOrg())
         .append("\", \"auditEnabled\": \"").append(domain.getAuditEnabled())
         .append("\", \"enabled\": \"").append(domain.getEnabled())
-        .append("\"}");
-    }
-    
-    void auditLogUserMeta(StringBuilder auditDetails, UserMeta meta) {
-        auditDetails.append("{\"enabled\": \"").append(meta.getEnabled())
         .append("\"}");
     }
 

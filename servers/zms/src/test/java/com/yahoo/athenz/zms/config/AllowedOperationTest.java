@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,14 +25,6 @@ import java.util.Map;
 import java.util.HashMap;
 
 public class AllowedOperationTest {
-
-    @BeforeClass(alwaysRun=true)
-    public void setUp() throws Exception {
-    }
-
-    @AfterClass(alwaysRun=true)
-    public void shutdown() {
-    }
 
     @Test
     public void testSetName() {
@@ -74,7 +66,7 @@ public class AllowedOperationTest {
     @Test
     public void testIsOperationAllowedOnItemsIsEmpty() {
         AllowedOperation op = new AllowedOperation();
-        Map<String, Set<String>> items = new HashMap<String, Set<String>>();
+        Map<String, Set<String>> items = new HashMap<>();
         op.setItems(items);
         boolean ret = op.isOperationAllowedOn("opItemType", "opItemValue");
         assertTrue(ret);
@@ -178,24 +170,22 @@ public class AllowedOperationTest {
     @Test
     public void testEqualsSameObject() {
         AllowedOperation op1 = new AllowedOperation();
-        boolean ret = op1.equals(op1);
-        assertTrue(ret);
+        //noinspection SimplifiedTestNGAssertion,EqualsWithItself
+        assertTrue(op1.equals(op1));
     }
 
     @Test
     public void testEqualsObjctIsNull() {
         AllowedOperation op1 = new AllowedOperation();
-        Object obj = null;
-        boolean ret = op1.equals(obj);
-        assertFalse(ret);
+        //noinspection SimplifiedTestNGAssertion,ObjectEqualsNull,ConstantConditions
+        assertFalse(op1.equals(null));
     }
 
     @Test
     public void testEqualsDifferentClass() {
         AllowedOperation op1 = new AllowedOperation();
-        String str = "fuga";
-        boolean ret = op1.equals(str);
-        assertFalse(ret);
+        //noinspection SimplifiedTestNGAssertion,EqualsBetweenInconvertibleTypes
+        assertFalse(op1.equals("fail"));
     }
 
     @Test

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,7 @@
 package com.yahoo.athenz.zms.config;
 
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.assertNull;
 import java.util.HashMap;
 
 import org.mockito.Mockito;
@@ -26,7 +27,8 @@ public class AuthorizedServicesTest {
     @Test
     public void testGetServices() {
         AuthorizedServices authorizedService = new AuthorizedServices();
-        authorizedService.getServices();
+        HashMap<String, AuthorizedService> services = authorizedService.getServices();
+        assertNull(services);
     }
 
     @Test

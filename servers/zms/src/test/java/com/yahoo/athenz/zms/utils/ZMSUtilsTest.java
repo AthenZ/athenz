@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +18,7 @@ package com.yahoo.athenz.zms.utils;
 import static org.testng.Assert.*;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.testng.annotations.DataProvider;
@@ -161,18 +162,18 @@ public class ZMSUtilsTest {
         RoleMember roleMember = new RoleMember().setMemberName(memberName);
         
         Role role2 = new Role();
-        role2.setMembers(Arrays.asList(memberName));
-        role2.setRoleMembers(Arrays.asList(roleMember));
+        role2.setMembers(Collections.singletonList(memberName));
+        role2.setRoleMembers(Collections.singletonList(roleMember));
         
         Role role3 = new Role();
-        role3.setRoleMembers(Arrays.asList(roleMember));
+        role3.setRoleMembers(Collections.singletonList(roleMember));
         
         Role role4 = new Role();
-        role4.setRoleMembers(Arrays.asList(roleMember));
+        role4.setRoleMembers(Collections.singletonList(roleMember));
         role4.setTrust("trust");
         
         Role role5 = new Role();
-        role5.setMembers(Arrays.asList(memberName));
+        role5.setMembers(Collections.singletonList(memberName));
         role5.setTrust("trust");
         
         Role role6 = new Role();
@@ -190,11 +191,9 @@ public class ZMSUtilsTest {
     }
 
     @Test(dataProvider = "roles")
-    public void testValidateRoleMembers(String domainName, Role role, boolean expectedFailure)
-            throws Exception {
-        String caller = null;
+    public void testValidateRoleMembers(String domainName, Role role, boolean expectedFailure) {
         try {
-            ZMSUtils.validateRoleMembers(role, caller, domainName);
+            ZMSUtils.validateRoleMembers(role, null, domainName);
             if (expectedFailure) {
                 fail();
             }
@@ -210,18 +209,18 @@ public class ZMSUtilsTest {
     @DataProvider(name = "members")
     public static Object[][] getMembers() {
         return new Object[][] {
-            {Arrays.asList("member1"), null, 1}, 
-            {Arrays.asList("member1"), Arrays.asList("member1"), 0}, 
-            {Arrays.asList("member1"), Arrays.asList("member2"), 1},
-            {Arrays.asList("member1"), Arrays.asList("member2", "member1"), 0},
+            {Collections.singletonList("member1"), null, 1},
+            {Collections.singletonList("member1"), Collections.singletonList("member1"), 0},
+            {Collections.singletonList("member1"), Collections.singletonList("member2"), 1},
+            {Collections.singletonList("member1"), Arrays.asList("member2", "member1"), 0},
             {Arrays.asList("member1", "member2"), Arrays.asList("member2", "member1"), 0},
-            {Arrays.asList("member1", "member2"), Arrays.asList("member3"), 2}
+            {Arrays.asList("member1", "member2"), Collections.singletonList("member3"), 2}
         };
     }
     
     @Test(dataProvider = "members")
     public void testRemoveMembers(List<String> orginalRoleMembersList,
-            List<String> removeRoleMembersList, int expectedSize) throws Exception {
+            List<String> removeRoleMembersList, int expectedSize) {
         
         List<RoleMember> orginalRoleMembers = ZMSUtils.convertMembersToRoleMembers(orginalRoleMembersList);
         List<RoleMember> removeRoleMembers = ZMSUtils.convertMembersToRoleMembers(removeRoleMembersList);
@@ -242,7 +241,7 @@ public class ZMSUtilsTest {
     
     @Test
     public void testRemoveMembersInvalidInput() {
-        List<RoleMember> list = Arrays.asList(new RoleMember().setMemberName("member1"));
+        List<RoleMember> list = Collections.singletonList(new RoleMember().setMemberName("member1"));
         ZMSUtils.removeMembers(list, null);
         assertEquals(list.size(), 1);
         assertEquals(list.get(0).getMemberName(), "member1");

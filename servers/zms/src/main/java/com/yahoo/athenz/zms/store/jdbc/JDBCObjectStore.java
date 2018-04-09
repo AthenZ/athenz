@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +23,7 @@ import com.yahoo.athenz.zms.utils.ZMSUtils;
 
 public class JDBCObjectStore implements ObjectStore {
 
-    PoolableDataSource rwSrc;
+    final PoolableDataSource rwSrc;
     PoolableDataSource roSrc;
     private int opTimeout = 60; //in seconds
     

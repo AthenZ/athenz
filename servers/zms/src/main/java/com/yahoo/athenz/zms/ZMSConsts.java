@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,7 +50,6 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_FILE_STORE_NAME   = "athenz.zms.file_store_name";
     public static final String ZMS_PROP_FILE_STORE_QUOTA  = "athenz.zms.file_store_quota";
     public static final String ZMS_PROP_FILE_STORE_PATH   = "athenz.zms.file_store_path";
-    public static final String ZMS_PROP_MAX_THREADS       = "athenz.zms.http_max_threads";
     public static final String ZMS_PROP_AUTHORITY_CLASSES = "athenz.zms.authority_classes";
     public static final String ZMS_PROP_STORE_OP_TIMEOUT  = "athenz.zms.store_operation_timeout";
     public static final String ZMS_PROP_NOAUTH_URI_LIST   = "athenz.zms.no_auth_uri_list";
@@ -161,7 +160,6 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_PROVIDER_ENDPOINT = "provider_endpoint";
     public static final String DB_COLUMN_VALUE             = "value";
     public static final String DB_COLUMN_DOMAIN_ID         = "domain_id";
-    public static final String DB_COLUMN_DOMAIN            = "domain";
     public static final String DB_COLUMN_ACCOUNT           = "account";
     public static final String DB_COLUMN_PRODUCT_ID        = "ypm_id";
     public static final String DB_COLUMN_ADMIN             = "admin";
@@ -173,10 +171,7 @@ public final class ZMSConsts {
     
     public static final String ADMIN_POLICY_NAME = "admin";
     public static final String ADMIN_ROLE_NAME   = "admin";
-    
-    public static final String ROLE_PREFIX   = "role.";
-    public static final String POLICY_PREFIX = "policy.";
-    
+
     public static final String ASSERTION_EFFECT_ALLOW = "ALLOW";
     public static final String ACTION_ASSUME_ROLE     = "assume_role";
     public static final String ACTION_ASSUME_AWS_ROLE = "assume_aws_role";

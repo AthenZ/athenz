@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -61,7 +61,7 @@ public class FileConnection implements ObjectStoreConnection {
     private static final String ALL_PRINCIPALS  = "*";
     private static final Logger LOG = LoggerFactory.getLogger(FileConnection.class);
 
-    File rootDir;
+    final File rootDir;
     File quotaDir;
     public FileConnection(File rootDir, File quotaDir) {
         this.rootDir = rootDir;
@@ -157,7 +157,7 @@ public class FileConnection implements ObjectStoreConnection {
 
     void verifyDomainProductIdUniqueness(String name, Integer productId, String caller) {
 
-        if (productId == null || productId.intValue() == 0) {
+        if (productId == null || productId == 0) {
             return;
         }
         String domName = lookupDomainById(null, productId);
@@ -216,10 +216,13 @@ public class FileConnection implements ObjectStoreConnection {
     @Override
     public List<String> listDomains(String prefix, long modifiedSince) {
 
+        List<String> domainList = new ArrayList<>();
         String[] fnames = rootDir.list();
+        if (fnames == null) {
+            return domainList;
+        }
         List<String> slist  = new ArrayList<>(java.util.Arrays.asList(fnames));
         java.util.Collections.sort(slist);
-        List<String> domainList = new ArrayList<>();
         for (String name : slist) {
             if (prefix != null) {
                 if (name.startsWith(prefix)) {
@@ -332,13 +335,13 @@ public class FileConnection implements ObjectStoreConnection {
         AthenzDomain athenzDomain = new AthenzDomain(domainName);
         athenzDomain.setDomain(getDomain(domainStruct));
         if (domainStruct.getRoles() != null) {
-            athenzDomain.setRoles(new ArrayList<Role>(domainStruct.getRoles().values()));
+            athenzDomain.setRoles(new ArrayList<>(domainStruct.getRoles().values()));
         }
         if (domainStruct.getPolicies() != null) {
-            athenzDomain.setPolicies(new ArrayList<Policy>(domainStruct.getPolicies().values()));
+            athenzDomain.setPolicies(new ArrayList<>(domainStruct.getPolicies().values()));
         }
         if (domainStruct.getServices() != null) {
-            athenzDomain.setServices(new ArrayList<ServiceIdentity>(domainStruct.getServices().values()));
+            athenzDomain.setServices(new ArrayList<>(domainStruct.getServices().values()));
         }
 
         return athenzDomain;
@@ -348,7 +351,7 @@ public class FileConnection implements ObjectStoreConnection {
     public DomainModifiedList listModifiedDomains(long modifiedSince) {
 
         DomainModifiedList domainModifiedList = new DomainModifiedList();
-        List<DomainModified> nameMods = new ArrayList<DomainModified>();
+        List<DomainModified> nameMods = new ArrayList<>();
 
         List<String> domainList = listDomains(null, modifiedSince);
 
@@ -383,7 +386,7 @@ public class FileConnection implements ObjectStoreConnection {
         }
 
         if (domainStruct.getTemplates() == null) {
-            domainStruct.setTemplates(new ArrayList<String>());
+            domainStruct.setTemplates(new ArrayList<>());
         }
         ArrayList<String> templates = domainStruct.getTemplates();
         if (!templates.contains(templateName)) {
@@ -423,18 +426,23 @@ public class FileConnection implements ObjectStoreConnection {
 
     @Override
     public List<PrincipalRole> listPrincipalRoles(String principalName) {
-        
+
+        List<PrincipalRole> roles = new ArrayList<>();
+
         // we're going to go through all domains
         
         String[] fnames = rootDir.list();
-        List<PrincipalRole> roles = new ArrayList<>();
+        if (fnames == null) {
+            return roles;
+        }
+
         for (String fname : fnames) {
             File f = new File(rootDir, fname);
             DomainStruct domainStruct = null;
             try {
                 Path path = Paths.get(f.toURI());
                 domainStruct = JSON.fromBytes(Files.readAllBytes(path), DomainStruct.class);
-            } catch (IOException e) {
+            } catch (IOException ignore) {
             }
             if (domainStruct == null) {
                 continue;
@@ -445,8 +453,8 @@ public class FileConnection implements ObjectStoreConnection {
                 if (roleMembers == null) {
                     continue;
                 }
-                for (int idx = 0; idx < roleMembers.size(); idx++) {
-                    final String memberName = roleMembers.get(idx).getMemberName();
+                for (RoleMember roleMember : roleMembers) {
+                    final String memberName = roleMember.getMemberName();
                     if (memberName.equals(principalName)) {
                         PrincipalRole pRole = new PrincipalRole();
                         pRole.setDomainName(fname);
@@ -465,8 +473,13 @@ public class FileConnection implements ObjectStoreConnection {
         // we're going to go through all domains and extract any
         // principal that satisfies our filter domainName
         
-        Set<String> principals = new HashSet<>();
+
         String[] fnames = rootDir.list();
+        if (fnames == null) {
+            return Collections.emptyList();
+        }
+
+        Set<String> principals = new HashSet<>();
         String domainNamePrefix = domainName == null ? null : domainName + ".";
         for (String fname : fnames) {
             File f = new File(rootDir, fname);
@@ -474,7 +487,7 @@ public class FileConnection implements ObjectStoreConnection {
             try {
                 Path path = Paths.get(f.toURI());
                 domainStruct = JSON.fromBytes(Files.readAllBytes(path), DomainStruct.class);
-            } catch (IOException e) {
+            } catch (IOException ignore) {
             }
             if (domainStruct == null) {
                 continue;
@@ -496,7 +509,7 @@ public class FileConnection implements ObjectStoreConnection {
                 }
             }
         }
-        return new ArrayList<String>(principals);
+        return new ArrayList<>(principals);
     }
     
     @Override
@@ -506,6 +519,10 @@ public class FileConnection implements ObjectStoreConnection {
         // principal that satisfies our criteria
         
         String[] fnames = rootDir.list();
+        if (fnames == null) {
+            return false;
+        }
+
         String domainNamePrefix = subDomains ? principalName + "." : null;
         for (String fname : fnames) {
             File f = new File(rootDir, fname);
@@ -513,7 +530,7 @@ public class FileConnection implements ObjectStoreConnection {
             try {
                 Path path = Paths.get(f.toURI());
                 domainStruct = JSON.fromBytes(Files.readAllBytes(path), DomainStruct.class);
-            } catch (IOException e) {
+            } catch (IOException ignore) {
             }
             if (domainStruct == null) {
                 continue;
@@ -595,7 +612,7 @@ public class FileConnection implements ObjectStoreConnection {
             throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "updateRole");
         }
         if (domainStruct.getRoles() == null) {
-            domainStruct.setRoles(new HashMap<String, Role>());
+            domainStruct.setRoles(new HashMap<>());
         }
         HashMap<String, Role> roles = domainStruct.getRoles();
 
@@ -737,7 +754,7 @@ public class FileConnection implements ObjectStoreConnection {
         // make sure our existing role as the member array
         // and if it doesn't exist then create one
         if (role.getRoleMembers() == null) {
-            role.setRoleMembers(new ArrayList<RoleMember>());
+            role.setRoleMembers(new ArrayList<>());
         }
         // need to check if the member already exists
         boolean entryUpdated = false;
@@ -763,10 +780,7 @@ public class FileConnection implements ObjectStoreConnection {
         if (idx == -1 || idx == 0 || idx == principal.length() - 1) {
             return false;
         }
-        if (getDomainStruct(principal.substring(0, idx)) == null) {
-            return false;
-        }
-        return true;
+        return getDomainStruct(principal.substring(0, idx)) != null;
     }
 
     @Override
@@ -817,7 +831,7 @@ public class FileConnection implements ObjectStoreConnection {
         }
 
         if (domainStruct.getPolicies() == null) {
-            domainStruct.setPolicies(new HashMap<String, Policy>());
+            domainStruct.setPolicies(new HashMap<>());
         }
         HashMap<String, Policy> policies = domainStruct.getPolicies();
         
@@ -866,7 +880,7 @@ public class FileConnection implements ObjectStoreConnection {
                 list.addAll(policies.keySet());
             }
         } else {
-            List<Assertion> assertions = null;
+            List<Assertion> assertions;
             HashMap<String, Policy> policies = domainStruct.getPolicies();
             for (Policy policy : policies.values()) {
                 assertions = policy.getAssertions();
@@ -925,10 +939,7 @@ public class FileConnection implements ObjectStoreConnection {
         if (assertion2.getEffect() != null) {
             effect2 = assertion2.getEffect();
         }
-        if (effect1 != effect2) {
-            return false;
-        }
-        return true;
+        return effect1 == effect2;
     }
 
     @Override
@@ -989,7 +1000,7 @@ public class FileConnection implements ObjectStoreConnection {
         }
         
         if (domainStruct.getServices() == null) {
-            domainStruct.setServices(new HashMap<String, ServiceIdentity>());
+            domainStruct.setServices(new HashMap<>());
         }
         HashMap<String, ServiceIdentity> services = domainStruct.getServices();
         
@@ -1115,7 +1126,7 @@ public class FileConnection implements ObjectStoreConnection {
         // later we can add the new key entry object to that list
 
         if (service.getPublicKeys() == null) {
-            service.setPublicKeys(new ArrayList<PublicKeyEntry>());
+            service.setPublicKeys(new ArrayList<>());
         }
         List<PublicKeyEntry> keyList = service.getPublicKeys();
         removePublicKeyEntry(keyList, keyEntry.getId());
@@ -1196,7 +1207,7 @@ public class FileConnection implements ObjectStoreConnection {
             throw ZMSUtils.error(ResourceException.NOT_FOUND, "service not found", "insertServiceHost");
         }
         if (service.getHosts() == null) {
-            service.setHosts(new ArrayList<String>());
+            service.setHosts(new ArrayList<>());
         }
         List<String> hosts = service.getHosts();
         hosts.add(hostName);
@@ -1244,7 +1255,7 @@ public class FileConnection implements ObjectStoreConnection {
             throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "updateEntity");
         }
         if (domainStruct.getEntities() == null) {
-            domainStruct.setEntities(new HashMap<String, Entity>());
+            domainStruct.setEntities(new HashMap<>());
         }
         HashMap<String, Entity> entities = domainStruct.getEntities();
         entities.put(entity.getName(), entity);
@@ -1275,7 +1286,7 @@ public class FileConnection implements ObjectStoreConnection {
         try {
             Path path = Paths.get(f.toURI());
             domainStruct = JSON.fromBytes(Files.readAllBytes(path), DomainStruct.class);
-        } catch (IOException e) {
+        } catch (IOException ignore) {
         }
         return domainStruct;
     }
@@ -1289,7 +1300,7 @@ public class FileConnection implements ObjectStoreConnection {
             fileWriter.write(policydata);
             fileWriter.flush();
             fileWriter.close();
-        } catch (IOException e) {
+        } catch (IOException ignore) {
         }
     }
     
@@ -1325,8 +1336,7 @@ public class FileConnection implements ObjectStoreConnection {
 
         // generate prefix to compare with
 
-        StringBuilder prefixBuffer = new StringBuilder(512).append(domainName).append(objType);
-        String prefix = prefixBuffer.toString();
+        final String prefix = domainName + objType;
         if (!fullName.startsWith(prefix)) {
             return null;
         }
@@ -1347,8 +1357,7 @@ public class FileConnection implements ObjectStoreConnection {
 
     @Override
     public List<RoleAuditLog> listRoleAuditLogs(String domainName, String roleName) {
-        List<RoleAuditLog> list = new ArrayList<>();
-        return list;
+        return new ArrayList<>();
     }
 
     @Override
@@ -1403,7 +1412,7 @@ public class FileConnection implements ObjectStoreConnection {
         try {
             Path path = Paths.get(f.toURI());
             quota = JSON.fromBytes(Files.readAllBytes(path), Quota.class);
-        } catch (IOException e) {
+        } catch (IOException ignored) {
         }
         return quota;
     }

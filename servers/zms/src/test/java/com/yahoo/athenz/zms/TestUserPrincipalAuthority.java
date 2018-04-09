@@ -2,7 +2,7 @@ package com.yahoo.athenz.zms;
 
 import com.yahoo.athenz.auth.impl.PrincipalAuthority;
 
-public class TestUserPrincipalAuthority extends PrincipalAuthority {
+class TestUserPrincipalAuthority extends PrincipalAuthority {
 
     public TestUserPrincipalAuthority() {
     }

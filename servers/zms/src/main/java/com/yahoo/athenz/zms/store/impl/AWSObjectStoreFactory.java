@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017 Yahoo Holdings, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,6 +50,7 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
     
     private static Properties mysqlMasterConnectionProperties = new Properties();
     private static Properties mysqlReplicaConnectionProperties = new Properties();
+    @SuppressWarnings("FieldCanBeLocal")
     private static ScheduledExecutorService scheduledThreadPool;
     private static String rdsUser = null;
     private static String rdsIamRole = null;
