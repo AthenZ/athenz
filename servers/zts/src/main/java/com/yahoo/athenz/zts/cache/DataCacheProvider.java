@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,6 @@ package com.yahoo.athenz.zts.cache;
 
 public interface DataCacheProvider {
 
-    public DataCache getDataCache(String domainName);
+    DataCache getDataCache(String domainName);
     
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +31,7 @@ public class ResultObjectTest {
         try {
             object.done(101);
             fail();
-        } catch (WebApplicationException ex) {
+        } catch (WebApplicationException ignored) {
         }
     }
     

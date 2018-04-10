@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017 Yahoo Holdings, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,7 +48,6 @@ public class AWSCertRecordStoreFactory implements CertRecordStoreFactory {
     static final String ATHENZ_DB_VERIFY_SERVER_CERT = "verifyServerCertificate";
     
     private static Properties mysqlConnectionProperties = new Properties();
-    private static ScheduledExecutorService scheduledThreadPool;
     private static String rdsUser = null;
     private static String rdsIamRole = null;
     private static String rdsMaster = null;
@@ -83,7 +82,7 @@ public class AWSCertRecordStoreFactory implements CertRecordStoreFactory {
         
         long credsRefreshTime = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_AWS_RDS_CREDS_REFRESH_TIME, "300"));
 
-        scheduledThreadPool = Executors.newScheduledThreadPool(1);
+        ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(1);
         scheduledThreadPool.scheduleAtFixedRate(new CredentialsUpdater(), credsRefreshTime,
                 credsRefreshTime, TimeUnit.SECONDS);
         

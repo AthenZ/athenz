@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,9 +26,9 @@ public interface CertRecordStoreConnection extends Closeable {
     
     /**
      * Set the timeout for the certificate record store operation
-     * @param opTimout operation timeout in seconds
+     * @param opTimeout operation timeout in seconds
      */
-    void setOperationTimeout(int opTimout);
+    void setOperationTimeout(int opTimeout);
 
     /**
      * Retrieve the certificate record for the given instance

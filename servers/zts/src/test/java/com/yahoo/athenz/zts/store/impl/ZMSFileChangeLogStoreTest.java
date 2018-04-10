@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +32,6 @@ import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zms.SignedDomain;
 import com.yahoo.athenz.zms.SignedDomains;
 import com.yahoo.athenz.zms.ZMSClient;
-import com.yahoo.athenz.zms.ZMSClientException;
 import com.yahoo.athenz.zts.store.impl.ZMSFileChangeLogStore;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Struct;
@@ -49,6 +48,7 @@ public class ZMSFileChangeLogStoreTest {
            new FileOutputStream(file).close();
         }
 
+        //noinspection ResultOfMethodCallIgnored
         file.setLastModified(System.currentTimeMillis());
     }
     
@@ -74,6 +74,7 @@ public class ZMSFileChangeLogStoreTest {
         
         try {
             File rootDir = new File(FSTORE_PATH);
+            //noinspection ResultOfMethodCallIgnored
             rootDir.mkdirs();
             
             String fpath = FSTORE_PATH + "/zts_file.tmp";

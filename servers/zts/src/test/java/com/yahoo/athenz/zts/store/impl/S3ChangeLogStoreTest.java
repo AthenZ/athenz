@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +15,6 @@
  */
 package com.yahoo.athenz.zts.store.impl;
 
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
 
@@ -29,8 +28,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.http.client.methods.HttpRequestBase;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.amazonaws.AmazonClientException;
@@ -46,14 +43,6 @@ import com.yahoo.athenz.zms.SignedDomain;
 import com.yahoo.athenz.zms.SignedDomains;
 
 public class S3ChangeLogStoreTest {
-
-    @BeforeMethod
-    public void setup() {
-    }
-    
-    @AfterMethod
-    public void shutdown() {
-    }
 
     @Test
     public void testFullRefreshSupport() {
@@ -314,7 +303,7 @@ public class S3ChangeLogStoreTest {
     @Test
     public void testGetSignedDomainNotFound() {
         MockS3ChangeLogStore store = new MockS3ChangeLogStore(null);
-        when(store.awsS3Client.getObject(any(GetObjectRequest.class))).thenReturn((S3Object) null);
+        when(store.awsS3Client.getObject(any(GetObjectRequest.class))).thenReturn(null);
         
         assertNull(store.getSignedDomain(store.awsS3Client, "iaas"));
     }

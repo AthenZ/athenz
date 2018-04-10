@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,32 +32,32 @@ public interface ChangeLogStore {
      * @param domainName the name of the domain
      * @return SignedDomain object of the domain or null if absent
      */
-    public SignedDomain getSignedDomain(String domainName);
+    SignedDomain getSignedDomain(String domainName);
     
     /**
      * Remove the local domain record from the changelog store
      * @param domainName the name of the domain
      */
-    public void removeLocalDomain(String domainName);
+    void removeLocalDomain(String domainName);
     
     /**
      * Save the local domain record from the changelog store
      * @param domainName the name of the domain
      * @param signedDomain the {@code SignedDomain} for the {@code domainName} supplied
      */
-    public void saveLocalDomain(String domainName, SignedDomain signedDomain);
+    void saveLocalDomain(String domainName, SignedDomain signedDomain);
     
     /**
      * Returns the names of all domain stored in local repository
      * @return List of domain names
      */
-    public List<String> getLocalDomainList();
+    List<String> getLocalDomainList();
     
     /**
      * Returns the list of all domains configured on server
      * @return Set of domain names
      */
-    public Set<String> getServerDomainList();
+    Set<String> getServerDomainList();
     
     /**
      * Returns the list of domains modified since the last call
@@ -67,7 +67,7 @@ public interface ChangeLogStore {
      * it will call setLastModificationTimestamp with the same value
      * @return Array of SignedDomain objects
      */
-    public SignedDomains getUpdatedSignedDomains(StringBuilder lastModTimeBuffer);
+    SignedDomains getUpdatedSignedDomains(StringBuilder lastModTimeBuffer);
     
     /**
      * Notifies the store to update its changelog last modification
@@ -76,12 +76,12 @@ public interface ChangeLogStore {
      * to return set of all domains available in ZMS
      * @param lastModTime last modification timestamp
      */
-    public void setLastModificationTimestamp(String lastModTime);
+    void setLastModificationTimestamp(String lastModTime);
     
     /**
      * The change log store supports getting a full refresh from
      * ZMS Server directly
      * @return true if store supports full refresh, false otherwise
      */
-    public boolean supportsFullRefresh();
+    boolean supportsFullRefresh();
 }

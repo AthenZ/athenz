@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2018 Oath Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 package com.yahoo.athenz.zts.cert.impl;
-
-import java.sql.SQLException;
 
 import org.testng.annotations.Test;
 
@@ -38,7 +36,7 @@ public class AWSCertRecordStoreFactoryTest {
     }
     
     @Test
-    public void testCreate() throws SQLException {
+    public void testCreate() {
         
         System.setProperty(ZTSConsts.ZTS_PROP_AWS_RDS_MASTER_INSTANCE, "instance");
         System.setProperty(ZTSConsts.ZTS_PROP_AWS_RDS_USER, "rds-user");
@@ -51,7 +49,7 @@ public class AWSCertRecordStoreFactoryTest {
         // sleep a couple of seconds for the updater to run
         try {
             Thread.sleep(2000);
-        } catch (InterruptedException e) {
+        } catch (InterruptedException ignored) {
         }
         assertNotNull(store);
     }

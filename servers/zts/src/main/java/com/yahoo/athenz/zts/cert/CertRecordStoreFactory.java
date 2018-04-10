@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017 Yahoo Holdings, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,5 +23,5 @@ public interface CertRecordStoreFactory {
      * Create and return a new CertRecordStore instance
      * @return CertRecordStore instance
      */
-    public CertRecordStore create(PrivateKeyStore pkeyStore);
+    CertRecordStore create(PrivateKeyStore pkeyStore);
 }

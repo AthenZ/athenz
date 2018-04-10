@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -58,12 +58,9 @@ public class MemberRole {
             return false;
         }
         if (role == null) {
-            if (other.role != null) {
-                return false;
-            }
-        } else if (!role.equals(other.role)) {
-            return false;
+            return other.role == null;
+        } else {
+            return role.equals(other.role);
         }
-        return true;
     }
 }

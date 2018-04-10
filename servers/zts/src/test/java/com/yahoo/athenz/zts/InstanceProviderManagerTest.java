@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -61,7 +61,7 @@ public class InstanceProviderManagerTest {
     static final String ZTS_PRIVATE_KEY = "src/test/resources/zts_private.pem";
     
     @BeforeClass
-    public void setUpClass() throws Exception {
+    public void setUpClass() {
         System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
         System.setProperty(ZTSConsts.ZTS_PROP_FILE_NAME, "src/test/resources/zts.properties");
     }
@@ -386,7 +386,7 @@ public class InstanceProviderManagerTest {
         try {
             providerManager.getClassProvider("com.yahoo.athenz.zts.ZTSConsts", "provider");
             fail();
-        } catch (Exception ex) {
+        } catch (Exception ignored) {
         }
     }
     

@@ -14,7 +14,7 @@ public class IPBlockTest {
         try {
             new IPBlock("10.1.1.1");
             fail();
-        } catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException ignored) {
         }
         
         try {

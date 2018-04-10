@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -226,11 +226,7 @@ public class DataCache {
     }
     
     String generateServiceKeyName(String service, String keyId) {
-        StringBuilder str = new StringBuilder(256);
-        str.append(service);
-        str.append("_");
-        str.append(keyId);
-        return str.toString();
+        return service + "_" + keyId;
     }
     
     void processServiceIdentityPublicKey(String serviceName, String keyId, String publicKey) {

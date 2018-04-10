@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,17 +47,16 @@ public class HttpCertSigner implements CertSigner {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpCertSigner.class);
     private static final String CONTENT_JSON = "application/json";
 
-    private final PrivateKeyStore privateKeyStore;
-    private HttpClient httpClient = null;
-    String x509CertUri = null;
-    String sshCertUri = null;
+    private HttpClient httpClient;
+    String x509CertUri;
+    String sshCertUri ;
     long requestTimeout;
     int requestRetryCount;
     int maxCertExpiryTimeMins;
 
     public HttpCertSigner() {
 
-        this.privateKeyStore = loadServicePrivateKey();
+        PrivateKeyStore privateKeyStore = loadServicePrivateKey();
 
         // retrieve our default timeout and retry timer
         
@@ -116,7 +115,7 @@ public class HttpCertSigner implements CertSigner {
     private PrivateKeyStore loadServicePrivateKey() {
         String pkeyFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
                 ZTSConsts.ZTS_PKEY_STORE_FACTORY_CLASS);
-        PrivateKeyStoreFactory pkeyFactory = null;
+        PrivateKeyStoreFactory pkeyFactory;
         try {
             pkeyFactory = (PrivateKeyStoreFactory) Class.forName(pkeyFactoryClass).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
@@ -260,7 +259,7 @@ public class HttpCertSigner implements CertSigner {
     @Override
     public String getCACertificate() {
 
-        ContentResponse response = null;
+        ContentResponse response;
         try {
             response = httpClient.GET(x509CertUri);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
@@ -292,7 +291,7 @@ public class HttpCertSigner implements CertSigner {
     @Override
     public String getSSHCertificate(String type) {
 
-        ContentResponse response = null;
+        ContentResponse response;
         try {
             response = httpClient.GET(sshCertUri);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {

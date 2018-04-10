@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,6 +27,6 @@ public interface ChangeLogStoreFactory {
      * @param cloudStore represents an AWS instance
      * @return ChangeLogStore instance
      */
-    public ChangeLogStore create(String ztsHomeDir, PrivateKey privateKey,
-            String privateKeyId, CloudStore cloudStore);
+    ChangeLogStore create(String ztsHomeDir, PrivateKey privateKey,
+                          String privateKeyId, CloudStore cloudStore);
 }

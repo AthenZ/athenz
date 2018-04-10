@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,8 +26,8 @@ import com.yahoo.athenz.zts.ZTSConsts;
 
 public class SelfCertSigner implements CertSigner {
 
-    X509Certificate caCertificate = null;
-    PrivateKey caPrivateKey = null;
+    X509Certificate caCertificate;
+    PrivateKey caPrivateKey;
     int maxCertExpiryTimeMins;
 
     public SelfCertSigner(PrivateKey caPrivateKey, X509Certificate caCertificate) {

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -109,7 +109,7 @@ public class DataStoreTest {
     private static final String ROLE_POSTFIX = ":role.";
 
     @BeforeClass
-    public void setUpClass() throws Exception {
+    public void setUpClass() {
         System.setProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
                 "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory");
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,
@@ -240,7 +240,7 @@ public class DataStoreTest {
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
         ((MockZMSFileChangeLogStore) store.changeLogStore).retrieveLastModificationTime();
-        assertEquals(((MockZMSFileChangeLogStore) store.changeLogStore).lastModTime, null);
+        assertNull(((MockZMSFileChangeLogStore) store.changeLogStore).lastModTime);
     }
     
     @Test
@@ -1251,7 +1251,7 @@ public class DataStoreTest {
         publicKey.setKey(ZTS_Y64_CERT1);
         publicKey.setId("1");
         
-        List<com.yahoo.athenz.zms.PublicKeyEntry> publicKeys = new ArrayList<com.yahoo.athenz.zms.PublicKeyEntry>();
+        List<com.yahoo.athenz.zms.PublicKeyEntry> publicKeys = new ArrayList<>();
         publicKeys.add(publicKey);
         
         service.setPublicKeys(publicKeys);
@@ -1272,7 +1272,7 @@ public class DataStoreTest {
         service = new ServiceIdentity();
         service.setName("coretech.storage");
 
-        publicKeys = new ArrayList<com.yahoo.athenz.zms.PublicKeyEntry>();
+        publicKeys = new ArrayList<>();
         
         publicKey = new com.yahoo.athenz.zms.PublicKeyEntry();
         publicKey.setKey(ZTS_Y64_CERT0);
@@ -1318,7 +1318,7 @@ public class DataStoreTest {
         publicKey.setKey(ZTS_Y64_CERT1);
         publicKey.setId("1");
         
-        List<com.yahoo.athenz.zms.PublicKeyEntry> publicKeys = new ArrayList<com.yahoo.athenz.zms.PublicKeyEntry>();
+        List<com.yahoo.athenz.zms.PublicKeyEntry> publicKeys = new ArrayList<>();
         publicKeys.add(publicKey);
         
         service.setPublicKeys(publicKeys);
@@ -1339,7 +1339,7 @@ public class DataStoreTest {
         service = new ServiceIdentity();
         service.setName("coretech.storage");
 
-        publicKeys = new ArrayList<com.yahoo.athenz.zms.PublicKeyEntry>();
+        publicKeys = new ArrayList<>();
         
         publicKey = new com.yahoo.athenz.zms.PublicKeyEntry();
         publicKey.setKey(ZTS_Y64_CERT2);
@@ -1385,7 +1385,7 @@ public class DataStoreTest {
         publicKey.setKey(ZTS_Y64_CERT1);
         publicKey.setId("1");
         
-        List<com.yahoo.athenz.zms.PublicKeyEntry> publicKeys = new ArrayList<com.yahoo.athenz.zms.PublicKeyEntry>();
+        List<com.yahoo.athenz.zms.PublicKeyEntry> publicKeys = new ArrayList<>();
         publicKeys.add(publicKey);
         
         service.setPublicKeys(publicKeys);
@@ -1406,7 +1406,7 @@ public class DataStoreTest {
         service = new ServiceIdentity();
         service.setName("coretech.storage");
 
-        publicKeys = new ArrayList<com.yahoo.athenz.zms.PublicKeyEntry>();
+        publicKeys = new ArrayList<>();
         
         publicKey = new com.yahoo.athenz.zms.PublicKeyEntry();
         publicKey.setKey(ZTS_Y64_CERT0);
@@ -1458,7 +1458,7 @@ public class DataStoreTest {
         publicKey.setKey(ZTS_Y64_CERT1);
         publicKey.setId("1");
         
-        List<com.yahoo.athenz.zms.PublicKeyEntry> publicKeys = new ArrayList<com.yahoo.athenz.zms.PublicKeyEntry>();
+        List<com.yahoo.athenz.zms.PublicKeyEntry> publicKeys = new ArrayList<>();
         publicKeys.add(publicKey);
         
         service.setPublicKeys(publicKeys);
@@ -1479,7 +1479,7 @@ public class DataStoreTest {
         service = new ServiceIdentity();
         service.setName("coretech.storage");
 
-        publicKeys = new ArrayList<com.yahoo.athenz.zms.PublicKeyEntry>();
+        publicKeys = new ArrayList<>();
         
         publicKey = new com.yahoo.athenz.zms.PublicKeyEntry();
         publicKey.setKey(ZTS_Y64_CERT1);
@@ -1515,7 +1515,7 @@ public class DataStoreTest {
         service.setName("coretech.storage");
         setServicePublicKey(service, "0", ZTS_Y64_CERT0);
         
-        List<com.yahoo.athenz.zms.PublicKeyEntry> publicKeys = new ArrayList<com.yahoo.athenz.zms.PublicKeyEntry>();
+        List<com.yahoo.athenz.zms.PublicKeyEntry> publicKeys = new ArrayList<>();
         
         com.yahoo.athenz.zms.PublicKeyEntry publicKey = new com.yahoo.athenz.zms.PublicKeyEntry();
         publicKey.setKey(ZTS_Y64_CERT1);
@@ -1545,7 +1545,7 @@ public class DataStoreTest {
         service = new ServiceIdentity();
         service.setName("coretech.storage");
         
-        publicKeys = new ArrayList<com.yahoo.athenz.zms.PublicKeyEntry>();
+        publicKeys = new ArrayList<>();
         
         publicKey = new com.yahoo.athenz.zms.PublicKeyEntry();
         publicKey.setKey(ZTS_Y64_CERT0);
@@ -1661,7 +1661,7 @@ public class DataStoreTest {
         publicKey.setKey(ZTS_Y64_CERT1);
         publicKey.setId("1");
         
-        List<com.yahoo.athenz.zms.PublicKeyEntry> publicKeys = new ArrayList<com.yahoo.athenz.zms.PublicKeyEntry>();
+        List<com.yahoo.athenz.zms.PublicKeyEntry> publicKeys = new ArrayList<>();
         publicKeys.add(publicKey);
         
         service.setPublicKeys(publicKeys);
@@ -1727,7 +1727,7 @@ public class DataStoreTest {
         DataStore store = new DataStore(clogStore, null);
         ((MockZMSFileChangeLogStore) store.changeLogStore).setTagHeader(null);
 
-        Map<String, List<String>> responseHeaders = new HashMap<String, List<String>>();
+        Map<String, List<String>> responseHeaders = new HashMap<>();
         assertNull(((MockZMSFileChangeLogStore) store.changeLogStore).retrieveTagHeader(responseHeaders));
     }
     
@@ -1739,7 +1739,7 @@ public class DataStoreTest {
         DataStore store = new DataStore(clogStore, null);
         ((MockZMSFileChangeLogStore) store.changeLogStore).setTagHeader(null);
 
-        Map<String, List<String>> responseHeaders = new HashMap<String, List<String>>();
+        Map<String, List<String>> responseHeaders = new HashMap<>();
         List<String> values = new ArrayList<>();
         values.add("Unit-Test");
         responseHeaders.put("User-Agent", values);
@@ -1754,7 +1754,7 @@ public class DataStoreTest {
         DataStore store = new DataStore(clogStore, null);
         ((MockZMSFileChangeLogStore) store.changeLogStore).setTagHeader(null);
 
-        Map<String, List<String>> responseHeaders = new HashMap<String, List<String>>();
+        Map<String, List<String>> responseHeaders = new HashMap<>();
         List<String> values = new ArrayList<>();
         values.add("Unit-Test");
         responseHeaders.put("tag", values);
@@ -2109,7 +2109,7 @@ public class DataStoreTest {
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
         ((MockZMSFileChangeLogStore) store.changeLogStore).setTagHeader("2014-01-01T12:00:00");
-        ((MockZMSFileChangeLogStore) store.changeLogStore).setLastModificationTimestamp(null);
+        store.changeLogStore.setLastModificationTimestamp(null);
         
         List<SignedDomain> domains = new ArrayList<>();
 
@@ -2236,7 +2236,7 @@ public class DataStoreTest {
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
-        ((MockZMSFileChangeLogStore) store.changeLogStore).setLastModificationTimestamp("2014-01-01T12:00:00");
+        store.changeLogStore.setLastModificationTimestamp("2014-01-01T12:00:00");
         
         SignedDomain signedDomain = createSignedDomain("coretech", "weather");
         signedDomain.setSignature("ABCD"); /* invalid signature which will cause domain to be deleted */

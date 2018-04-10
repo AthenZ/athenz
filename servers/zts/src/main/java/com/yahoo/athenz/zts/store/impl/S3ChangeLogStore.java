@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,9 +43,9 @@ public class S3ChangeLogStore implements ChangeLogStore {
     private static final Logger LOGGER = LoggerFactory.getLogger(S3ChangeLogStore.class);
     private static final String ZTS_BUCKET_DEFAULT = "athenz-domain-sys.auth";
 
-    long lastModTime = 0;
-    CloudStore cloudStore = null;
-    String s3BucketName = null;
+    long lastModTime;
+    CloudStore cloudStore;
+    String s3BucketName;
     AmazonS3 awsS3Client = null;
     
     public S3ChangeLogStore(CloudStore cloudStore) {
@@ -74,7 +74,7 @@ public class S3ChangeLogStore implements ChangeLogStore {
         SignedDomain signedDomain = getSignedDomain(awsS3Client, domainName);
 
         // if we got a failure for any reason, we're going
-        // get a new aws s3 cilent and try again
+        // get a new aws s3 client and try again
         
         if (signedDomain == null) {
             awsS3Client = getS3Client();
@@ -104,23 +104,19 @@ public class S3ChangeLogStore implements ChangeLogStore {
         return signedDomain;
     }
     
+    @SuppressWarnings("EmptyMethod")
     @Override
     public void removeLocalDomain(String domainName) {
-        
         // in AWS our Athenz syncer is responsible for pushing new
         // changes including removing deleted domain to S3 so this
         // api is just a no-op
-        
-        return;
     }
 
+    @SuppressWarnings("EmptyMethod")
     @Override
     public void saveLocalDomain(String domainName, SignedDomain signedDomain) {
-        
         // in AWS our Athenz syncer is responsible for pushing new
         // changes into S3 so this api is just a no-op
-        
-        return;
     }
 
     /**
@@ -141,7 +137,7 @@ public class S3ChangeLogStore implements ChangeLogStore {
         ObjectListing objectListing = s3.listObjects(new ListObjectsRequest()
                 .withBucketName(s3BucketName));
         
-        String objectName = null;
+        String objectName;
         while (objectListing != null) {
             
             // process each entry in our result set and add the domain
@@ -216,7 +212,7 @@ public class S3ChangeLogStore implements ChangeLogStore {
         // for the server domain list operation since it's called
         // periodically by the thread to see if any domains have
         // been deleted, we're going to get a new s3 client
-        // insetad of using our original client
+        // instead of using our original client
         
         HashSet<String> domains = new HashSet<>();
         listObjects(getS3Client(), domains, 0);
@@ -252,7 +248,7 @@ public class S3ChangeLogStore implements ChangeLogStore {
         }
         
         ArrayList<SignedDomain> signedDomainList = new ArrayList<>();
-        SignedDomain signedDomain = null;
+        SignedDomain signedDomain;
         for (String domain : domains) {
             signedDomain = getSignedDomain(s3, domain);
             if (signedDomain != null) {

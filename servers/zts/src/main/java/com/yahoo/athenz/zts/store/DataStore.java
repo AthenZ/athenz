@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -55,19 +55,17 @@ import org.slf4j.LoggerFactory;
 
 public class DataStore implements DataCacheProvider {
 
-    ChangeLogStore changeLogStore = null;
-    private CloudStore cloudStore = null;
+    ChangeLogStore changeLogStore;
+    private CloudStore cloudStore;
     private final Cache<String, DataCache> cacheStore;
     final Cache<String, PublicKey> zmsPublicKeyCache;
     final Map<String, List<String>> hostCache;
     final Map<String, String> publicKeyCache;
     
-    long updDomainRefreshTime = 60;
-    long delDomainRefreshTime = 3600;
-    long lastDeleteRunTime = 0;
+    long updDomainRefreshTime;
+    long delDomainRefreshTime ;
+    long lastDeleteRunTime;
 
-    private static ScheduledExecutorService scheduledThreadPool;
-    
     private static final String ROLE_POSTFIX = ":role.";
     
     private final ReentrantReadWriteLock hostRWLock = new ReentrantReadWriteLock();
@@ -105,7 +103,7 @@ public class DataStore implements DataCacheProvider {
         delDomainRefreshTime = ZTSUtils.retrieveConfigSetting(ZTS_PROP_DOMAIN_DELETE_TIMEOUT, 3600);
         
         /* we will not let our domain delete update time be shorter
-         * than the domain update time so if tha't the case we'll
+         * than the domain update time so if that's the case we'll
          * set both to be the same value */
         
         if (delDomainRefreshTime < updDomainRefreshTime) {
@@ -120,13 +118,7 @@ public class DataStore implements DataCacheProvider {
     }
     
     String generateServiceKeyName(String domain, String service, String keyId) {
-        StringBuilder str = new StringBuilder(256);
-        str.append(domain);
-        str.append(".");
-        str.append(service);
-        str.append("_");
-        str.append(keyId);
-        return str.toString();
+        return domain + "." + service + "_" + keyId;
     }
     
     void loadZMSPublicKeys() {
@@ -135,7 +127,7 @@ public class DataStore implements DataCacheProvider {
         String confFileName = System.getProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF,
                 rootDir + "/conf/athenz/athenz.conf");
         Path path = Paths.get(confFileName);
-        AthenzConfig conf = null;
+        AthenzConfig conf;
         try {
             conf = JSON.fromBytes(Files.readAllBytes(path), AthenzConfig.class);
             ArrayList<com.yahoo.athenz.zms.PublicKeyEntry> publicKeys = conf.getZmsPublicKeys();
@@ -152,7 +144,6 @@ public class DataStore implements DataCacheProvider {
             }
         } catch (IOException e) {
             LOGGER.info("Unable to parse conf file " + confFileName);
-            return;
         }
     }
     
@@ -235,7 +226,7 @@ public class DataStore implements DataCacheProvider {
 
         /* Start our monitoring thread to get changes from ZMS */
 
-        scheduledThreadPool = Executors.newScheduledThreadPool(1);
+        ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(1);
         scheduledThreadPool.scheduleAtFixedRate(new DataUpdater(), updDomainRefreshTime,
                 updDomainRefreshTime, TimeUnit.SECONDS);
 
@@ -401,12 +392,8 @@ public class DataStore implements DataCacheProvider {
         if (zmsDomainList.isEmpty()) {
             return false;
         }
-        
-        if (!zmsDomainList.contains(ZTSConsts.ATHENZ_SYS_DOMAIN)) {
-            return false;
-        }
-        
-        return true;
+
+        return zmsDomainList.contains(ZTSConsts.ATHENZ_SYS_DOMAIN);
     }
     
     // API
@@ -550,7 +537,7 @@ public class DataStore implements DataCacheProvider {
         for (Map.Entry<String, Set<String>> entry : hostMap.entrySet()) {
             List<String> services = hostCache.get(entry.getKey());
             if (services == null) {
-                services = new ArrayList<String>();
+                services = new ArrayList<>();
                 hostCache.put(entry.getKey(), services);
             }
             services.addAll(entry.getValue());
@@ -671,7 +658,7 @@ public class DataStore implements DataCacheProvider {
             return null;
         }
         
-        String roleCheck = null;
+        String roleCheck;
         if (!role.startsWith(prefix)) {
             roleCheck = prefix + role;
         } else {
@@ -818,7 +805,7 @@ public class DataStore implements DataCacheProvider {
     // Internal
     boolean roleMatchInSet(String role, Set<MemberRole> memberRoles) {
 
-        String rolePattern = null;
+        String rolePattern;
         long currentTime = System.currentTimeMillis();
         for (MemberRole memberRole : memberRoles) {
             
@@ -930,7 +917,7 @@ public class DataStore implements DataCacheProvider {
     public String getPublicKey(String domain, String service, String keyId) {
 
         String publicKeyName = generateServiceKeyName(domain, service, keyId);
-        String publicKey = null;
+        String publicKey;
         
         try {
             pkeyRLock.lock();

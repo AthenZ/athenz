@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -158,7 +158,7 @@ public class ZTSUtilsTest {
     public void testGenerateIdentityFailure() throws IOException {
         
         CertSigner certSigner = Mockito.mock(CertSigner.class);
-        Mockito.when(certSigner.generateX509Certificate(Mockito.<String>any(), Mockito.<String>any(),
+        Mockito.when(certSigner.generateX509Certificate(Mockito.any(), Mockito.any(),
                 Mockito.anyInt())).thenReturn(null);
         
         Path path = Paths.get("src/test/resources/valid.csr");

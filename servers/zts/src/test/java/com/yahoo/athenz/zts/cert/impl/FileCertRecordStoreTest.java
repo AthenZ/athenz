@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +40,7 @@ public class FileCertRecordStoreTest {
             FileWriter fileWriter = new FileWriter(file);
             fileWriter.write("test");
             fileWriter.close();
-        } catch (IOException e) {
+        } catch (IOException ignored) {
         }
         
         FileCertRecordStore store = null;

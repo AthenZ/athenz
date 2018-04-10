@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -450,7 +450,7 @@ public class DataCacheTest {
         assertion2.setResource("testDomain.data:*");
         assertion2.setRole("testDomain.role.role1");
         
-        List<Assertion> assertList = new ArrayList<Assertion>();
+        List<Assertion> assertList = new ArrayList<>();
         assertList.add(assertion1);
         assertList.add(assertion2);
         
@@ -507,7 +507,7 @@ public class DataCacheTest {
         assertion1.setResource("testDomain.roleA");
         assertion1.setRole("testDomain.role.role1");
         
-        List<Assertion> assertList = new ArrayList<Assertion>();
+        List<Assertion> assertList = new ArrayList<>();
         assertList.add(assertion1);
         
         policy.setAssertions(assertList);
@@ -622,7 +622,7 @@ public class DataCacheTest {
         assertion.setResource("testDomain.role");
         assertion.setRole("testDomain.role.Invalid");
 
-        List<Assertion> assertList = new ArrayList<Assertion>();
+        List<Assertion> assertList = new ArrayList<>();
         assertList.add(assertion);
         
         policy.setAssertions(assertList);
@@ -670,7 +670,7 @@ public class DataCacheTest {
         assertion.setResource("testDomain.role");
         assertion.setRole("testDomain.role.role1");
 
-        List<Assertion> assertList = new ArrayList<Assertion>();
+        List<Assertion> assertList = new ArrayList<>();
         assertList.add(assertion);
         
         policy.setAssertions(assertList);
@@ -716,7 +716,7 @@ public class DataCacheTest {
         assertion.setResource("testDomain.roleA");
         assertion.setRole("testDomain.role.role1");
 
-        List<Assertion> assertList = new ArrayList<Assertion>();
+        List<Assertion> assertList = new ArrayList<>();
         assertList.add(assertion);
         
         policy.setAssertions(assertList);
