@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,6 +52,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.fail;
 
+@SuppressWarnings("SameParameterValue")
 public class DBServiceTest {
     
     @Mock FileConnection mockFileConn;
@@ -61,15 +62,13 @@ public class DBServiceTest {
     String adminUser        = null;
     String pubKeyK1         = null;
     String pubKeyK2         = null;
-    String privKeyK1        = null; 
-    String privKeyK2        = null; 
-    String auditRef         = "audittest";
+    final String auditRef   = "audittest";
 
     // typically used when creating and deleting domains with all the tests
     //
     @Mock RsrcCtxWrapper mockDomRsrcCtx;
     @Mock com.yahoo.athenz.common.server.rest.ResourceContext mockDomRestRsrcCtx;
-    Principal rsrcPrince    = null; // used with the mockDomRestRsrcCtx
+    Principal rsrcPrince = null; // used with the mockDomRestRsrcCtx
 
     private static final String MOCKCLIENTADDR = "10.11.12.13";
     @Mock HttpServletRequest mockServletRequest;
@@ -80,9 +79,6 @@ public class DBServiceTest {
 
     static final Struct TABLE_PROVIDER_ROLE_ACTIONS = new Struct()
             .with("admin", "*").with("writer", "WRITE").with("reader", "READ");
-
-    static final Struct RESOURCE_PROVIDER_ROLE_ACTIONS = new Struct()
-            .with("writer", "WRITE").with("reader", "READ");
     
     static final int BASE_PRODUCT_ID = 500000000; // these product ids will lie in 500 million range
     static java.util.Random domainProductId = new java.security.SecureRandom();
@@ -117,35 +113,6 @@ public class DBServiceTest {
         Mockito.when(rsrcCtxWrapper.response()).thenReturn(mockServletResponse);
         return rsrcCtxWrapper;
     }
-    
-    ResourceContext createResourceContext(Principal principal, HttpServletRequest request) {
-        if (request == null) {
-            return createResourceContext(principal);
-        }
-
-        com.yahoo.athenz.common.server.rest.ResourceContext rsrcCtx = Mockito.mock(com.yahoo.athenz.common.server.rest.ResourceContext.class);
-        Mockito.when(rsrcCtx.principal()).thenReturn(principal);
-        Mockito.when(rsrcCtx.request()).thenReturn(request);
-        Mockito.when(rsrcCtx.response()).thenReturn(mockServletResponse);
-
-        RsrcCtxWrapper rsrcCtxWrapper = Mockito.mock(RsrcCtxWrapper.class);
-        Mockito.when(rsrcCtxWrapper.context()).thenReturn(rsrcCtx);
-        Mockito.when(rsrcCtxWrapper.request()).thenReturn(request);
-        Mockito.when(rsrcCtxWrapper.principal()).thenReturn(principal);
-        Mockito.when(rsrcCtxWrapper.response()).thenReturn(mockServletResponse);
-        return rsrcCtxWrapper;
-    }
-
-    Object getWebAppExcEntity(javax.ws.rs.WebApplicationException wex) {
-        javax.ws.rs.core.Response resp = wex.getResponse();
-        return resp.getEntity();
-    }
-
-    Object getWebAppExcMapValue(javax.ws.rs.WebApplicationException wex, String header) {
-        javax.ws.rs.core.MultivaluedMap<String, Object> mvmap = wex.getResponse().getMetadata();
-        Object obj = mvmap.getFirst(header);
-        return obj;
-    }
 
     private ZMSImpl zmsInit() {
         
@@ -176,8 +143,7 @@ public class DBServiceTest {
         System.clearProperty(ZMSConsts.ZMS_PROP_JDBC_RW_STORE);
         System.clearProperty(ZMSConsts.ZMS_PROP_JDBC_RO_STORE);
 
-        ZMSImpl zmsObj = new ZMSImpl();
-        return zmsObj;
+        return new ZMSImpl();
     }
     
     private Entity createEntityObject(String entityName) {
@@ -240,7 +206,7 @@ public class DBServiceTest {
             assertion.setRole(roleName);
         }
 
-        List<Assertion> assertList = new ArrayList<Assertion>();
+        List<Assertion> assertList = new ArrayList<>();
         assertList.add(assertion);
 
         policy.setAssertions(assertList);
@@ -255,7 +221,7 @@ public class DBServiceTest {
         service.setExecutable(executable);
         service.setName(ZMSUtils.serviceResourceName(domainName, serviceName));
         
-        List<PublicKeyEntry> publicKeyList = new ArrayList<PublicKeyEntry>();
+        List<PublicKeyEntry> publicKeyList = new ArrayList<>();
         PublicKeyEntry publicKeyEntry1 = new PublicKeyEntry();
         publicKeyEntry1.setKey(pubKeyK1);
         publicKeyEntry1.setId("1");
@@ -273,7 +239,7 @@ public class DBServiceTest {
             service.setProviderEndpoint(endPoint);
         }
         
-        List<String> hosts = new ArrayList<String>();
+        List<String> hosts = new ArrayList<>();
         hosts.add(host);
         service.setHosts(hosts);
         
@@ -287,12 +253,6 @@ public class DBServiceTest {
 
         path = Paths.get("./src/test/resources/zms_public_k2.pem");
         pubKeyK2 = Crypto.ybase64(new String(Files.readAllBytes(path)).getBytes());
-
-        path = Paths.get("./src/test/resources/zms_private_k1.pem");
-        privKeyK1 = Crypto.ybase64(new String(Files.readAllBytes(path)).getBytes());
- 
-        path = Paths.get("./src/test/resources/zms_private_k2.pem");
-        privKeyK2 = Crypto.ybase64(new String(Files.readAllBytes(path)).getBytes());
 
         zms = zmsInit();
         zms.setProviderClientClass(ProviderMockClient.class);
@@ -315,7 +275,7 @@ public class DBServiceTest {
         dom.setEnabled(enabled);
         dom.setYpmId(getRandomProductId());
 
-        List<String> admins = new ArrayList<String>();
+        List<String> admins = new ArrayList<>();
         admins.add(admin);
         dom.setAdminUsers(admins);
 
@@ -360,7 +320,7 @@ public class DBServiceTest {
         dom.setOrg(org);
         dom.setParent(parent);
 
-        List<String> admins = new ArrayList<String>();
+        List<String> admins = new ArrayList<>();
         admins.add(admin);
         dom.setAdminUsers(admins);
 
@@ -374,12 +334,11 @@ public class DBServiceTest {
         Domain domain = new Domain().setAuditEnabled(true).setEnabled(true);
         Mockito.doReturn(domain).when(mockFileConn).getDomain(domainName);
         
-        String auditCheck   = null;
-        String caller     = "testCheckDomainAuditEnabledFlagTrueRefNull";
+        String caller = "testCheckDomainAuditEnabledFlagTrueRefNull";
         try {
-            zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, auditCheck, caller);
+            zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, null, caller);
         } catch (ResourceException ex) {
-            assertTrue(ex.getCode() == 400);
+            assertEquals(400, ex.getCode());
             assertTrue(ex.getMessage().contains("Audit reference required"));
         }
     }
@@ -391,12 +350,12 @@ public class DBServiceTest {
         Domain domain = new Domain().setAuditEnabled(true).setEnabled(true);
         Mockito.doReturn(domain).when(mockFileConn).getDomain(domainName);
         
-        String auditCheck   = "";  // empty string
-        String caller     = "testCheckDomainAuditEnabledFlagTrueRefEmpty";
+        String auditCheck = "";  // empty string
+        String caller = "testCheckDomainAuditEnabledFlagTrueRefEmpty";
         try {
             zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, auditCheck, caller);
         } catch (ResourceException ex) {
-            assertTrue(ex.getCode() == 400);
+            assertEquals(400, ex.getCode());
             assertTrue(ex.getMessage().contains("Audit reference required"));
         }
     }
@@ -408,8 +367,8 @@ public class DBServiceTest {
         Domain domain = new Domain().setAuditEnabled(false).setEnabled(true);
         Mockito.doReturn(domain).when(mockFileConn).getDomain(domainName);
         
-        String auditCheck   = "testaudit";
-        String caller     = "testCheckDomainAuditEnabledFlagFalseRefValid";
+        String auditCheck = "testaudit";
+        String caller = "testCheckDomainAuditEnabledFlagFalseRefValid";
         Domain dom = zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, auditCheck, caller);
         assertNotNull(dom);
     }
@@ -421,9 +380,8 @@ public class DBServiceTest {
         Domain domain = new Domain().setAuditEnabled(false).setEnabled(true);
         Mockito.doReturn(domain).when(mockFileConn).getDomain(domainName);
         
-        String auditCheck   = null;
-        String caller     = "testCheckDomainAuditEnabledFlagFalseRefNull";
-        Domain dom = zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, auditCheck, caller);
+        String caller = "testCheckDomainAuditEnabledFlagFalseRefNull";
+        Domain dom = zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, null, caller);
         assertNotNull(dom);
     }
 
@@ -502,7 +460,7 @@ public class DBServiceTest {
         List<RoleMember> newMembers = newRole.getRoleMembers();
         assertEquals(3, newMembers.size());
         
-        List<String> checkList = new ArrayList<String>();
+        List<String> checkList = new ArrayList<>();
         checkList.add("user.user1");
         checkList.add("user.user2");
         checkList.add("athenz.user3");
@@ -527,7 +485,7 @@ public class DBServiceTest {
         List<RoleMember> newMembers = newRole.getRoleMembers();
         assertEquals(3, newMembers.size());
         
-        List<String> checkList = new ArrayList<String>();
+        List<String> checkList = new ArrayList<>();
         checkList.add("user.user1");
         checkList.add("user.storage");
         checkList.add("athenz.user3");
@@ -780,7 +738,7 @@ public class DBServiceTest {
                     null, "testExecutePutPolicyMissingAuditRef");
             fail("requesterror not thrown by replacePolicy.");
         } catch (ResourceException ex) {
-            assertTrue(ex.getCode() == 400);
+            assertEquals(400, ex.getCode());
             assertTrue(ex.getMessage().contains("Audit reference required"));
         } finally {
             zms.deleteTopLevelDomain(mockDomRsrcCtx, domain, auditRef);
@@ -806,7 +764,7 @@ public class DBServiceTest {
         zms.dbService.executeDeleteEntity(mockDomRsrcCtx, domainName, entityName, auditRef, "deleteEntity");
 
         try {
-            entityRes = zms.getEntity(mockDomRsrcCtx, domainName, entityName);
+            zms.getEntity(mockDomRsrcCtx, domainName, entityName);
             fail();
         } catch (Exception ex) {
             assertTrue(true);
@@ -1050,7 +1008,7 @@ public class DBServiceTest {
         assertEquals(roles.getTenant(), tenantDomain);
         assertEquals(roles.getRoles().size(), 0);
 
-        List<TenantRoleAction> roleActions = new ArrayList<TenantRoleAction>();
+        List<TenantRoleAction> roleActions = new ArrayList<>();
         for (Struct.Field f : TABLE_PROVIDER_ROLE_ACTIONS) {
             roleActions.add(new TenantRoleAction().setRole(f.name()).setAction(
                     (String) f.value()));
@@ -1204,7 +1162,7 @@ public class DBServiceTest {
         // update meta with values for account and product ids
         
         DomainMeta meta = new DomainMeta().setDescription("Test2 Domain").setOrg("NewOrg")
-                .setEnabled(true).setAuditEnabled(false).setAccount("12345").setYpmId(Integer.valueOf(1001));
+                .setEnabled(true).setAuditEnabled(false).setAccount("12345").setYpmId(1001);
         zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, auditRef, "putDomainMeta");
 
         Domain resDom2 = zms.getDomain(mockDomRsrcCtx, "MetaDom1");
@@ -1376,12 +1334,16 @@ public class DBServiceTest {
         boolean foundKey2 = false;
         boolean foundKeyZONE1 = false;
         for (PublicKeyEntry entry : keyList) {
-            if (entry.getId().equals("1")) {
-                foundKey1 = true;
-            } else if (entry.getId().equals("2")) {
-                foundKey2 = true;
-            } else if (entry.getId().equals("zone1")) {
-                foundKeyZONE1 = true;
+            switch (entry.getId()) {
+                case "1":
+                    foundKey1 = true;
+                    break;
+                case "2":
+                    foundKey2 = true;
+                    break;
+                case "zone1":
+                    foundKeyZONE1 = true;
+                    break;
             }
         }
         assertTrue(foundKey1);
@@ -1560,7 +1522,7 @@ public class DBServiceTest {
     }
     
     @Test
-    public void testExecutePutTenantRoles() throws Exception {
+    public void testExecutePutTenantRoles() {
         
         String tenantDomain = "tenantadminpolicy";
         String providerDomain = "coretech";
@@ -1593,7 +1555,7 @@ public class DBServiceTest {
         ProviderMockClient.setReturnTenantRoles(true);
         zms.putTenancy(mockDomRsrcCtx, tenantDomain, "coretech.storage", auditRef, tenant);
         
-        List<TenantRoleAction> roleActions = new ArrayList<TenantRoleAction>();
+        List<TenantRoleAction> roleActions = new ArrayList<>();
         for (Struct.Field f : TABLE_PROVIDER_ROLE_ACTIONS) {
             roleActions.add(new TenantRoleAction().setRole(f.name()).setAction(
                     (String) f.value()));
@@ -1890,7 +1852,7 @@ public class DBServiceTest {
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
         
-        //verfiy that our service collections includes the services defined in the template
+        //verify that our service collections includes the services defined in the template
         
         names = zms.dbService.listServiceIdentities(domainName);
         assertEquals(1, names.size());
@@ -1965,7 +1927,7 @@ public class DBServiceTest {
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
         
-        //verfiy that our service collections includes the services defined in the template
+        //verify that our service collections includes the services defined in the template
         
         names = zms.dbService.listServiceIdentities(domainName);
         assertEquals(2, names.size());
@@ -2042,7 +2004,7 @@ public class DBServiceTest {
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
         
-        //verfiy that our service collections includes the services defined in the template
+        //verify that our service collections includes the services defined in the template
         
         names = zms.dbService.listServiceIdentities(domainName);
         assertEquals(1, names.size());
@@ -2388,7 +2350,7 @@ public class DBServiceTest {
         
         // let's create the tenant admin policy
         
-        zms.dbService.setupTenantAdminPolicy(mockDomRsrcCtx, tenantDomain, providerDomain,
+        zms.dbService.setupTenantAdminPolicy(tenantDomain, providerDomain,
                 providerService, auditRef, caller);
         
         // the admin policy must be called
@@ -2513,7 +2475,7 @@ public class DBServiceTest {
         
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        dom1.setYpmId(Integer.valueOf(101));
+        dom1.setYpmId(101);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
         DomainList list = zms.dbService.lookupDomainByProductId(101);
@@ -2548,7 +2510,7 @@ public class DBServiceTest {
         
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        dom1.setYpmId(Integer.valueOf(199));
+        dom1.setYpmId(199);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
         DomainList list = zms.dbService.lookupDomainByRole(adminUser, "admin");
@@ -3300,7 +3262,7 @@ public class DBServiceTest {
             zms.dbService.executeDeleteQuota(mockDomRsrcCtx, domainName, auditRef,
                     "testExecuteDeleteQuota");
             fail();
-        } catch (ResourceException ex) {
+        } catch (ResourceException ignore) {
         }
     }
     

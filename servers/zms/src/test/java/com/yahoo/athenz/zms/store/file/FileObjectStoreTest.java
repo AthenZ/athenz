@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,7 +38,7 @@ public class FileObjectStoreTest {
         try {
             store = new FileObjectStore(fileDir, quotaDir);
             fail();
-        } catch (Exception ex) {
+        } catch (Exception ignore) {
         }
         assertNull(store);
     }

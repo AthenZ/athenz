@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,15 +24,15 @@ import com.yahoo.athenz.auth.Principal;
 public class ProviderMockClient extends ProviderClient {
     
     private static boolean returnTenantRoles = true;
-    private static List<String> resourceGroups = new ArrayList<>();
+    private static final List<String> resourceGroups = new ArrayList<>();
     public ProviderMockClient(String url, Principal identity) {
         super(url);
     }
     
-    static final List<String> TABLE_PROVIDER_ROLES = Arrays.asList("admin",
+    private static final List<String> TABLE_PROVIDER_ROLES = Arrays.asList("admin",
         "writer", "reader");
     
-    static final List<String> RESOURCE_PROVIDER_ROLES = Arrays.asList("writer", "reader");
+    private static final List<String> RESOURCE_PROVIDER_ROLES = Arrays.asList("writer", "reader");
     
     @Override
     public Tenant getTenant(String providerService, String tenantDomain) {

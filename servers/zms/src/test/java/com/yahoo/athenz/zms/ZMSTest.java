@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017 Yahoo Holdings Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,7 @@ import org.testng.annotations.Test;
 public class ZMSTest {
     
     @Test
-    public void testZMS() throws Exception {
+    public void testZMS() {
         ZMS zms = new ZMS();
         assertNotNull(zms);
     }

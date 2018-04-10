@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,7 @@ import com.yahoo.athenz.zms.store.ObjectStoreConnection;
 
 public class FileObjectStore implements ObjectStore {
 
-    File rootDir;
+    final File rootDir;
     File quotaDir;
     
     public FileObjectStore(File rootDirectory, File quotaDirectory) {

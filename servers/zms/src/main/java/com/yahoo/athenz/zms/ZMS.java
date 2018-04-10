@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,7 @@ package com.yahoo.athenz.zms;
 
 import org.glassfish.jersey.server.ResourceConfig;
 
-public class ZMS extends ResourceConfig {
+class ZMS extends ResourceConfig {
     public ZMS() {
         registerClasses(ZMSResources.class);
         register(new ZMSBinder());

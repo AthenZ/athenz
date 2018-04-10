@@ -6,10 +6,10 @@ import com.yahoo.athenz.zms.store.ObjectStoreConnection;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.Timestamp;
 
-public class QuotaChecker {
+class QuotaChecker {
 
-    Quota defaultQuota;
-    boolean quotaCheckEnabled = true;
+    private final Quota defaultQuota;
+    private boolean quotaCheckEnabled;
     
     public QuotaChecker() {
         

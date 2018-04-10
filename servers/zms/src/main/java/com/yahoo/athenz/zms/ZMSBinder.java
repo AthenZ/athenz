@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,7 @@ package com.yahoo.athenz.zms;
 
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 
-public class ZMSBinder extends AbstractBinder {
+class ZMSBinder extends AbstractBinder {
 
     @Override
     protected void configure() {
