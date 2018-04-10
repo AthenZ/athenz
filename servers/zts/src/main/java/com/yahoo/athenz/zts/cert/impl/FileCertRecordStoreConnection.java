@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -85,6 +85,7 @@ public class FileCertRecordStoreConnection implements CertRecordStoreConnection 
             if (currentTime - f.lastModified() < expiryTimeMins * 60 * 1000) {
                 continue;
             }
+            //noinspection ResultOfMethodCallIgnored
             f.delete();
             count += 1;
         }
@@ -100,7 +101,7 @@ public class FileCertRecordStoreConnection implements CertRecordStoreConnection 
         try {
             Path path = Paths.get(f.toURI());
             record = JSON.fromBytes(Files.readAllBytes(path), X509CertRecord.class);
-        } catch (IOException e) {
+        } catch (IOException ignore) {
         }
         return record;
     }
@@ -114,7 +115,7 @@ public class FileCertRecordStoreConnection implements CertRecordStoreConnection 
             fileWriter.write(data);
             fileWriter.flush();
             fileWriter.close();
-        } catch (IOException e) {
+        } catch (IOException ignored) {
         }
     }
 

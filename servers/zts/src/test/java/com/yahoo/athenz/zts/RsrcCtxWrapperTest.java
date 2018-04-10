@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,7 +45,7 @@ public class RsrcCtxWrapperTest {
         Mockito.when(authMock.getHeader()).thenReturn("testheader");
         Mockito.when(reqMock.getHeader("testheader")).thenReturn("testcred");
         Mockito.when(authMock.getCredSource()).thenReturn(com.yahoo.athenz.auth.Authority.CredSource.HEADER);
-        Mockito.when(authMock.authenticate(Mockito.<String>any(), Mockito.<String>any(), Mockito.<String>any(), Mockito.any()))
+        Mockito.when(authMock.authenticate(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenReturn(prin);
         Mockito.when(reqMock.getRemoteAddr()).thenReturn("1.1.1.1");
         Mockito.when(reqMock.getMethod()).thenReturn("POST");
@@ -56,7 +56,7 @@ public class RsrcCtxWrapperTest {
         assertNotNull(wrapper.context());
 
         // default principal should be null
-        assertEquals(wrapper.principal(), null);
+        assertNull(wrapper.principal());
 
         assertEquals(wrapper.request(), reqMock);
         assertEquals(wrapper.response(), resMock);
@@ -89,14 +89,14 @@ public class RsrcCtxWrapperTest {
         Mockito.when(authMock.getHeader()).thenReturn("testheader");
         Mockito.when(reqMock.getHeader("testheader")).thenReturn("testcred");
         Mockito.when(authMock.getCredSource()).thenReturn(com.yahoo.athenz.auth.Authority.CredSource.HEADER);
-        Mockito.when(authMock.authenticate(Mockito.<String>any(), Mockito.<String>any(), Mockito.<String>any(), Mockito.any()))
+        Mockito.when(authMock.authenticate(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenReturn(prin);
         Mockito.when(reqMock.getRemoteAddr()).thenReturn("1.1.1.1");
         Mockito.when(reqMock.getMethod()).thenReturn("POST");
         authListMock.add(authMock);
 
         // force true access right
-        Mockito.when(authorizerMock.access(Mockito.<String>any(), Mockito.<String>any(), Mockito.any(), Mockito.any()))
+        Mockito.when(authorizerMock.access(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenReturn(true);
 
         RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, false, authorizerMock);
@@ -120,7 +120,7 @@ public class RsrcCtxWrapperTest {
         Mockito.when(reqMock.getMethod()).thenReturn("POST");
 
         // force true access right
-        Mockito.when(authorizerMock.access(Mockito.<String>any(), Mockito.<String>any(), Mockito.any(), Mockito.any()))
+        Mockito.when(authorizerMock.access(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenReturn(true);
 
         RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, false, authorizerMock);

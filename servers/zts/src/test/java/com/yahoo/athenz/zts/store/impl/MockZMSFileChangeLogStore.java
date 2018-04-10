@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,9 +33,9 @@ import com.yahoo.athenz.zts.ZTSConsts;
 
 public class MockZMSFileChangeLogStore extends ZMSFileChangeLogStore {
 
-    ZMSClient zms = null;
+    ZMSClient zms;
     DomainList domList = null;
-    String tagHeader = null;
+    String tagHeader;
     String userDomain;
     
     public MockZMSFileChangeLogStore(String rootDirectory, PrivateKey privateKey, String privateKeyId) {
@@ -82,9 +82,9 @@ public class MockZMSFileChangeLogStore extends ZMSFileChangeLogStore {
     @SuppressWarnings("unchecked")
     public void setSignedDomains(SignedDomains signedDomains) {
         if (signedDomains != null) {
-            when(zms.getSignedDomains(Mockito.<String>any(), Mockito.<String>any(), Mockito.<String>any(), Mockito.<Map>any())).thenReturn(signedDomains);
+            when(zms.getSignedDomains(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.<Map>any())).thenReturn(signedDomains);
         } else {
-            when(zms.getSignedDomains(Mockito.<String>any(), Mockito.<String>any(), Mockito.<String>any(), Mockito.<Map>any())).thenThrow(new ZMSClientException(500, "Invalid request"));
+            when(zms.getSignedDomains(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.<Map>any())).thenThrow(new ZMSClientException(500, "Invalid request"));
         }
     }
     

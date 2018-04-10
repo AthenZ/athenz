@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -97,11 +97,7 @@ public class ZTSAuthorizer implements Authorizer {
         }
         
         AccessStatus accessStatus = evaluateAccess(domain, principal.getFullName(), op, resource, trustDomain);
-        if (accessStatus == AccessStatus.ALLOWED) {
-            return true;
-        }
-
-        return false;
+        return accessStatus == AccessStatus.ALLOWED;
     }
     
     boolean authorityAuthorizationAllowed(Principal principal) {
@@ -123,7 +119,7 @@ public class ZTSAuthorizer implements Authorizer {
         // if one is not specified then we'll fall back to using the domain name
         // from the resource
         
-        String domainName = null;
+        String domainName;
         if (ASSUME_ROLE.equalsIgnoreCase(op) && trustDomain != null) {
             domainName = trustDomain;
         } else {

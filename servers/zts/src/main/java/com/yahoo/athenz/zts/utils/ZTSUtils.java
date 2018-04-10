@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -141,8 +141,8 @@ public class ZTSUtils {
         return privateKeyStore.getApplicationSecret(keyStorePasswordAppName, keyStorePassword);
     }
     
-    public static final boolean emitMonmetricError(int errorCode, String caller,
-            String domainName, Metric metric) {
+    public static boolean emitMonmetricError(int errorCode, String caller,
+                                             String domainName, Metric metric) {
 
         if (errorCode < 1) {
             return false;
@@ -260,7 +260,7 @@ public class ZTSUtils {
             if (dnsName.startsWith(prefix) && dnsName.endsWith(ZTS_CERT_DNS_SUFFIX)) {
                 continue;
             }
-            if (dnsName.indexOf(ZTSConsts.ZTS_CERT_INSTANCE_ID) != -1) {
+            if (dnsName.contains(ZTSConsts.ZTS_CERT_INSTANCE_ID)) {
                 continue;
             }
             LOGGER.error("validateServiceCertReqDNSNames - Invalid dnsName SAN entry: {}", dnsName);

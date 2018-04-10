@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2018 Oath Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,8 +15,6 @@
  */
 package com.yahoo.athenz.zts.cert.impl;
 
-import java.sql.SQLException;
-
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
@@ -29,7 +27,7 @@ import static org.testng.Assert.*;
 public class JDBCCertRecordStoreFactoryTest {
 
     @Test
-    public void testCreate() throws SQLException {
+    public void testCreate() {
         
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_JDBC_STORE, "jdbc:mysql://localhost");
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_JDBC_USER, "user");

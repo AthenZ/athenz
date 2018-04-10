@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,6 +40,7 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpUpgradeHandler;
 import javax.servlet.http.Part;
 
+@SuppressWarnings("RedundantThrows")
 public class MockHttpServletRequest implements HttpServletRequest {
 
     Map<String, String> headers = new HashMap<>();

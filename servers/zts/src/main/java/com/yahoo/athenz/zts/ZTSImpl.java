@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -425,7 +425,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         String clogFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_CHANGE_LOG_STORE_FACTORY_CLASS,
                 ZTSConsts.ZTS_CHANGE_LOG_STORE_FACTORY_CLASS);
-        ChangeLogStoreFactory clogFactory = null;
+        ChangeLogStoreFactory clogFactory;
         try {
             clogFactory = (ChangeLogStoreFactory) Class.forName(clogFactoryClass).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
@@ -443,7 +443,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         String certSignerFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_FACTORY_CLASS,
                 ZTSConsts.ZTS_CERT_SIGNER_FACTORY_CLASS);
-        CertSignerFactory certSignerFactory = null;
+        CertSignerFactory certSignerFactory;
         try {
             certSignerFactory = (CertSignerFactory) Class.forName(certSignerFactoryClass).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
@@ -462,7 +462,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         String metricFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_METRIC_FACTORY_CLASS,
                 ZTSConsts.ZTS_METRIC_FACTORY_CLASS);
 
-        MetricFactory metricFactory = null;
+        MetricFactory metricFactory;
         try {
             metricFactory = (MetricFactory) Class.forName(metricFactoryClass).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
@@ -481,7 +481,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         String pkeyFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
                 ZTSConsts.ZTS_PKEY_STORE_FACTORY_CLASS);
-        PrivateKeyStoreFactory pkeyFactory = null;
+        PrivateKeyStoreFactory pkeyFactory;
         try {
             pkeyFactory = (PrivateKeyStoreFactory) Class.forName(pkeyFactoryClass).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
@@ -507,8 +507,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         authorities = new AuthorityList();
 
         String[] authorityList = authListConfig.split(",");
-        for (int idx = 0; idx < authorityList.length; idx++) {
-            Authority authority = getAuthority(authorityList[idx]);
+        for (String authorityClass : authorityList) {
+            Authority authority = getAuthority(authorityClass);
             if (authority == null) {
                 throw new IllegalArgumentException("Invalid authority");
             }
@@ -521,7 +521,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         String auditFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_AUDIT_LOGGER_FACTORY_CLASS,
                 ZTSConsts.ZTS_AUDIT_LOGGER_FACTORY_CLASS);
-        AuditLoggerFactory auditLogFactory = null;
+        AuditLoggerFactory auditLogFactory;
         
         try {
             auditLogFactory = (AuditLoggerFactory) Class.forName(auditFactoryClass).newInstance();
@@ -615,11 +615,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
     
     String generateServiceIdentityName(String domain, String service) {
-        StringBuilder str = new StringBuilder(256);
-        str.append(domain);
-        str.append(".");
-        str.append(service);
-        return str.toString();
+        return domain + "." + service;
     }
     
     ServiceIdentity lookupServiceIdentity(DomainData domainData, String serviceName) {
@@ -631,8 +627,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         for (com.yahoo.athenz.zms.ServiceIdentity service : services) {
             if (service.getName().equalsIgnoreCase(serviceName)) {
-                ServiceIdentity ztsService = generateZTSServiceIdentity(service);
-                return ztsService;
+                return generateZTSServiceIdentity(service);
             }
         }
         
@@ -765,7 +760,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_REQUEST, domainName);
         metric.increment(caller, domainName);
         
-        List<String> names = new ArrayList<String>();
+        List<String> names = new ArrayList<>();
         String prefix = domainName + ".";
         
         ServiceIdentityList result = new ServiceIdentityList();
@@ -1058,7 +1053,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
         
         TenantDomains tenantDomains = new TenantDomains();
-        tenantDomains.setTenantDomainNames(new ArrayList<String>(domainNames));
+        tenantDomains.setTenantDomainNames(new ArrayList<>(domainNames));
 
         metric.stopTiming(timerMetric);
         return tenantDomains;
@@ -1110,7 +1105,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // to be the resource group
         
         String resourceGroup = comps[comps.length - 2];
-        StringBuffer domainNameBuf = new StringBuffer(512).append(comps[2]);
+        StringBuilder domainNameBuf = new StringBuilder(512).append(comps[2]);
         for (int i = 3; i < comps.length - 2; i++) {
             domainNameBuf.append('.').append(comps[i]);
         }
@@ -1227,12 +1222,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw forbiddenError("getRoleToken: Principal: " + principalName
                     + " not authorized for proxy role token request", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
         }
-        
-        StringBuilder auditLogDetails = new StringBuilder(512);
-        auditLogDetails.append("RoleName=").append(roleName);
+
         AuditLogMsgBuilder msgBldr = getAuditLogMsgBuilder(ctx, domainName, caller, HTTP_GET);
         msgBldr.when(Timestamp.fromCurrentTime().toString()).
-                whatEntity("RoleToken").why("zts-audit");
+                whatEntity("RoleToken").why("zts-audit").
+                whatDetails("RoleName=" + roleName);
 
         // first retrieve our domain data object from the cache
 
@@ -1391,7 +1385,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         dataStore.getAccessibleRoles(data, domainName, principal, null,
                 roles, false);
         
-        RoleAccess roleAccess = new RoleAccess().setRoles(new ArrayList<String>(roles));
+        RoleAccess roleAccess = new RoleAccess().setRoles(new ArrayList<>(roles));
         metric.stopTiming(timerMetric);
         return roleAccess;
     }
@@ -1659,7 +1653,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // check to see if any of the roles give access to the specified resource
         
-        Set<String> awsResourceSet = null;
+        Set<String> awsResourceSet;
         for (String role : roles) {
             awsResourceSet = data.getAWSResourceRoleSet(role);
             if (awsResourceSet != null && awsResourceSet.contains(roleResource)) {
@@ -1727,7 +1721,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // validate request/csr details
         
-        X509CertRequest certReq = null;
+        X509CertRequest certReq;
         try {
             certReq = new X509CertRequest(info.getCsr());
         } catch (CryptoException ex) {
@@ -1848,14 +1842,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         AuditLogMsgBuilder msgBldr = getAuditLogMsgBuilder(ctx, domain, caller, HTTP_POST);
         msgBldr.whatEntity(certReqInstanceId);
-        
-        StringBuilder auditLogDetails = new StringBuilder(512);
-        auditLogDetails.append("Provider: ").append(provider)
-            .append(" Domain: ").append(domain)
-            .append(" Service: ").append(service)
-            .append(" InstanceId: ").append(certReqInstanceId)
-            .append(" Serial: ").append(certSerial);
-        msgBldr.whatDetails(auditLogDetails.toString());
+
+        final String auditLogDetails = "Provider: " + provider +
+                " Domain: " + domain +
+                " Service: " + service +
+                " InstanceId: " + certReqInstanceId +
+                " Serial: " + certSerial;
+        msgBldr.whatDetails(auditLogDetails);
         auditLogger.log(msgBldr);
         
         final String location = "/zts/v1/instance/" + provider + "/" + domain
@@ -1991,7 +1984,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     " cert db: " + x509CertRecord.getService(), caller, domain);
         }
         
-        InstanceIdentity identity = null;
+        InstanceIdentity identity;
         if (x509Csr != null) {
             identity = processProviderX509RefreshRequest(ctx, principal, domain, service, provider,
                     providerService, instanceId, info, x509CertRecord, caller);
@@ -2011,7 +2004,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // parse and validate our CSR
         
-        X509CertRequest certReq = null;
+        X509CertRequest certReq;
         try {
             certReq = new X509CertRequest(info.getCsr());
         } catch (CryptoException ex) {
@@ -2165,15 +2158,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         AuditLogMsgBuilder msgBldr = getAuditLogMsgBuilder(ctx, domain, caller, HTTP_POST);
         msgBldr.whatEntity(instanceId);
-        
-        StringBuilder auditLogDetails = new StringBuilder(512);
-        auditLogDetails.append("Provider: ").append(provider)
-            .append(" Domain: ").append(domain)
-            .append(" Service: ").append(service)
-            .append(" InstanceId: ").append(instanceId)
-            .append(" Serial: ").append(x509CertRecord.getCurrentSerial())
-            .append(" Type: x509");
-        msgBldr.whatDetails(auditLogDetails.toString());
+
+        final String auditLogDetails = "Provider: " + provider +
+                " Domain: " + domain +
+                " Service: " + service +
+                " InstanceId: " + instanceId +
+                " Serial: " + x509CertRecord.getCurrentSerial() +
+                " Type: x509";
+        msgBldr.whatDetails(auditLogDetails);
         auditLogger.log(msgBldr);
         
         return identity;
@@ -2227,15 +2219,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         AuditLogMsgBuilder msgBldr = getAuditLogMsgBuilder(ctx, domain, caller, HTTP_POST);
         msgBldr.whatEntity(instanceId);
-        
-        StringBuilder auditLogDetails = new StringBuilder(512);
-        auditLogDetails.append("Provider: ").append(provider)
-            .append(" Domain: ").append(domain)
-            .append(" Service: ").append(service)
-            .append(" InstanceId: ").append(instanceId)
-            .append(" Serial: ").append(serialNumber)
-            .append(" Type: ssh");
-        msgBldr.whatDetails(auditLogDetails.toString());
+
+        final String auditLogDetails = "Provider: " + provider +
+                " Domain: " + domain +
+                " Service: " + service +
+                " InstanceId: " + instanceId +
+                " Serial: " + serialNumber +
+                " Type: ssh";
+        msgBldr.whatDetails(auditLogDetails);
         auditLogger.log(msgBldr);
         
         return identity;
@@ -2281,13 +2272,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         AuditLogMsgBuilder msgBldr = getAuditLogMsgBuilder(ctx, domain, caller, HTTP_POST);
         msgBldr.whatEntity(instanceId);
-            
-        StringBuilder auditLogDetails = new StringBuilder(512);
-        auditLogDetails.append("Provider: ").append(provider)
-            .append(" Domain: ").append(domain)
-            .append(" Service: ").append(service)
-            .append(" InstanceId: ").append(instanceId);
-        msgBldr.whatDetails(auditLogDetails.toString());
+
+        final String auditLogDetails = "Provider: " + provider +
+                " Domain: " + domain +
+                " Service: " + service +
+                " InstanceId: " + instanceId;
+        msgBldr.whatDetails(auditLogDetails);
         auditLogger.log(msgBldr);
         
         metric.stopTiming(timerMetric);
@@ -2375,7 +2365,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // validate that the cn and public key match to the provided details
         
-        X509CertRequest x509CertReq = null;
+        X509CertRequest x509CertReq;
         try {
             x509CertReq = new X509CertRequest(req.getCsr());
         } catch (CryptoException ex) {
@@ -2429,14 +2419,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         msgBldr.whatEntity(fullServiceName);
         
         X509Certificate newCert = Crypto.loadX509Certificate(identity.getCertificate());
-        StringBuilder auditLogDetails = new StringBuilder(512);
-        auditLogDetails.append("Provider: ").append(ZTSConsts.ZTS_SERVICE)
-            .append(" Domain: ").append(domain)
-            .append(" Service: ").append(service)
-            .append(" Serial: ").append(newCert.getSerialNumber().toString())
-            .append(" Principal: ").append(principalName)
-            .append(" Type: x509");
-        msgBldr.whatDetails(auditLogDetails.toString());
+        final String auditLogDetails = "Provider: " + ZTSConsts.ZTS_SERVICE +
+                " Domain: " + domain +
+                " Service: " + service +
+                " Serial: " + newCert.getSerialNumber().toString() +
+                " Principal: " + principalName +
+                " Type: x509";
+        msgBldr.whatDetails(auditLogDetails);
         auditLogger.log(msgBldr);
         
         metric.stopTiming(timerMetric);
@@ -2731,8 +2720,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     
     Principal createPrincipalForName(String principalName) {
         
-        String domain = null;
-        String name = null;
+        String domain;
+        String name;
         
         // if we have no . in the principal name we're going to default
         // to our configured user domain
@@ -2940,8 +2929,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             }
 
             final String dmt = dmType.toString().toLowerCase();
-            Integer count = dm.getMetricVal();
-            if (count == null || count.intValue() < 0) {
+            int count = dm.getMetricVal();
+            if (count <= 0) {
                 LOGGER.error("postDomainMetrics: ignore metric: {} invalid counter {} received for domain {}",
                         dmt, count,  domainName);
                 continue;
@@ -3090,7 +3079,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         LOGGER.debug("Loading authority {}...", className);
         
-        Authority authority = null;
+        Authority authority;
         try {
             authority = (Authority) Class.forName(className).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {

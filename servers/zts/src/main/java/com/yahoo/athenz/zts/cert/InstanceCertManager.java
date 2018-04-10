@@ -31,13 +31,12 @@ import com.yahoo.rdl.JSON;
 public class InstanceCertManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceCertManager.class);
-    public static final String JDBC = "jdbc";
 
-    private CertSigner certSigner = null;
+    private CertSigner certSigner;
     private CertRecordStore certStore = null;
     private ScheduledExecutorService scheduledExecutor;
-    private List<IPBlock> certRefreshIPBlocks = null;
-    private List<IPBlock> instanceCertIPBlocks = null;
+    private List<IPBlock> certRefreshIPBlocks;
+    private List<IPBlock> instanceCertIPBlocks;
     private static String CA_X509_CERTIFICATE = null;
     private static String SSH_USER_CERTIFICATE = null;
     private static String SSH_HOST_CERTIFICATE = null;
@@ -91,7 +90,7 @@ public class InstanceCertManager {
             return false;
         }
         
-        IPPrefixes prefixes = null;
+        IPPrefixes prefixes;
         try {
             prefixes = JSON.fromBytes(Files.readAllBytes(Paths.get(ipFile.toURI())), IPPrefixes.class);
         } catch (IOException ex) {
@@ -134,7 +133,7 @@ public class InstanceCertManager {
         
         String certRecordStoreFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_CERT_RECORD_STORE_FACTORY_CLASS,
                 ZTSConsts.ZTS_CERT_RECORD_STORE_FACTORY_CLASS);
-        CertRecordStoreFactory certRecordStoreFactory = null;
+        CertRecordStoreFactory certRecordStoreFactory;
         try {
             certRecordStoreFactory = (CertRecordStoreFactory) Class.forName(certRecordStoreFactoryClass).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
@@ -168,7 +167,7 @@ public class InstanceCertManager {
             return null;
         }
         
-        Collection<List<?>> certAttributes = null;
+        Collection<List<?>> certAttributes;
         try {
             certAttributes = cert.getSubjectAlternativeNames();
         } catch (CertificateParsingException ex) {
@@ -201,7 +200,7 @@ public class InstanceCertManager {
             return null;
         }
 
-        X509CertRecord certRecord = null;
+        X509CertRecord certRecord;
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
             certRecord = storeConnection.getX509CertRecord(provider, instanceId);
         }
@@ -215,7 +214,7 @@ public class InstanceCertManager {
             return null;
         }
 
-        X509CertRecord certRecord = null;
+        X509CertRecord certRecord;
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
             certRecord = storeConnection.getX509CertRecord(provider, instanceId);
         }
@@ -229,7 +228,7 @@ public class InstanceCertManager {
             return false;
         }
         
-        boolean result = false;
+        boolean result;
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
             result = storeConnection.updateX509CertRecord(certRecord);
         }
@@ -242,7 +241,7 @@ public class InstanceCertManager {
             return false;
         }
         
-        boolean result = false;
+        boolean result;
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
             result = storeConnection.deleteX509CertRecord(provider, instanceId);
         }
@@ -255,7 +254,7 @@ public class InstanceCertManager {
             return false;
         }
         
-        boolean result = false;
+        boolean result;
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
             result = storeConnection.insertX509CertRecord(certRecord);
         }
@@ -412,7 +411,7 @@ public class InstanceCertManager {
         
         int cleanupExpiredX509CertRecords() {
             
-            int deletedRecords = 0;
+            int deletedRecords;
             try (CertRecordStoreConnection storeConnection = store.getConnection()) {
                 deletedRecords = storeConnection.deleteExpiredX509CertRecords(expiryTimeMins);
             }

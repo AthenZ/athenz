@@ -21,14 +21,14 @@ public class X509CertRequest {
     private static final Logger LOGGER = LoggerFactory.getLogger(DataStore.class);
     private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
 
-    private PKCS10CertificationRequest certReq = null;
+    private PKCS10CertificationRequest certReq;
     private String instanceId = null;
     private String dnsSuffix = null;
     private String normCsrPublicKey = null;
 
     private String cn = null;
-    private List<String> dnsNames = null;
-    private List<String> ipAddresses = null;
+    private List<String> dnsNames;
+    private List<String> ipAddresses;
     
     public X509CertRequest(String csr) throws CryptoException {
         certReq = Crypto.getPKCS10CertRequest(csr);

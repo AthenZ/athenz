@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,9 +15,7 @@
  */
 package com.yahoo.athenz.zts.store;
 
-import java.io.File;
 import java.security.PublicKey;
-import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -56,35 +54,20 @@ public class CloudStore {
     private static final Logger LOGGER = LoggerFactory.getLogger(CloudStore.class);
     
     String awsRole = null;
-    String awsRegion = null;
-    boolean awsEnabled = false;
-    CertSigner certSigner = null;
-    BasicSessionCredentials credentials = null;
-    Map<String, String> cloudAccountCache = null;
+    String awsRegion;
+    boolean awsEnabled;
+    BasicSessionCredentials credentials;
+    Map<String, String> cloudAccountCache;
     int credsUpdateTime = 900;
-    String x509CACertificate = null;  // public key certificate of the certifying authority in PEM format
-    String sshHostCertificate = null; // ssh host certificate signer certificate
-    String sshUserCertificate = null; // ssh user certificate signer certificate
-    PublicKey awsPublicKey = null;    // AWS public key for validating instance documents
-    private HttpClient httpClient = null;
-    protected long bootTimeOffset;
+    private HttpClient httpClient;
 
     private static ScheduledExecutorService scheduledThreadPool;
     
     public CloudStore(CertSigner certSigner) {
         
-        // save our cert signer and generate the PEM output of the certificate
-        
-        this.certSigner = certSigner;
-        if (certSigner != null) {
-            x509CACertificate = certSigner.getCACertificate();
-            sshHostCertificate = certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_HOST);
-            sshUserCertificate = certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_USER);
-        }
-        
         // initialize our account cache
         
-        cloudAccountCache = new HashMap<String, String>();
+        cloudAccountCache = new HashMap<>();
 
         // Instantiate and start our HttpClient
         
@@ -99,26 +82,9 @@ public class CloudStore {
                     "Http client not available");
         }
         
-        // let's retrieve our AWS public certificate which is posted here:
-        // http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-identity-documents.html
-        
-        String awsCertFileName = System.getProperty(ZTSConsts.ZTS_PROP_AWS_PUBLIC_CERT);
-        if (awsCertFileName != null && !awsCertFileName.isEmpty()) {
-            File awsCertFile = new File(awsCertFileName);
-            X509Certificate awsCert = Crypto.loadX509Certificate(awsCertFile);
-            awsPublicKey = awsCert.getPublicKey();
-        }
-        
         // check to see if we are given region name
         
         awsRegion = System.getProperty(ZTSConsts.ZTS_PROP_AWS_REGION_NAME);
-        
-        // how long the instance must be booted in the past before we
-        // stop validating the instance requests
-        
-        long timeout = TimeUnit.SECONDS.convert(5, TimeUnit.MINUTES);
-        bootTimeOffset = 1000 * Long.parseLong(
-                System.getProperty(ZTSConsts.ZTS_PROP_AWS_BOOT_TIME_OFFSET, Long.toString(timeout)));
         
         // initialize aws support
         
@@ -144,7 +110,7 @@ public class CloudStore {
         }
         try {
             httpClient.stop();
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
     }
     
@@ -309,12 +275,8 @@ public class CloudStore {
             LOGGER.error("CloudStore: unable to extract InstanceProfileArn from iam role data: " + iamRole);
             return false;
         }
-        
-        if (!parseInstanceProfileArn(profileArn)) {
-            return false;
-        }
-        
-        return true;
+
+        return parseInstanceProfileArn(profileArn);
     }
     
     boolean parseInstanceProfileArn(String profileArn) {
@@ -402,7 +364,7 @@ public class CloudStore {
     String getMetaData(String path) {
         
         final String baseUri = "http://169.254.169.254/latest";
-        ContentResponse response = null;
+        ContentResponse response;
         try {
             response = httpClient.GET(baseUri + path);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
@@ -453,7 +415,7 @@ public class CloudStore {
 
         AssumeRoleRequest req = getAssumeRoleRequest(account, roleName, principal);
         
-        AWSTemporaryCredentials tempCreds = null;
+        AWSTemporaryCredentials tempCreds;
         try {
             AWSSecurityTokenServiceClient client = getTokenServiceClient();
             AssumeRoleResult res = client.assumeRole(req);
@@ -531,14 +493,7 @@ public class CloudStore {
     
     String getSshKeyReqType(String sshKeyReq) {
         
-        Struct keyReq = null;
-        try {
-            keyReq = JSON.fromString(sshKeyReq, Struct.class);
-        } catch (Exception ex) {
-            LOGGER.error("getSshKeyReqType: Unable to parse json document: " + sshKeyReq);
-            return null;
-        }
-        
+        Struct keyReq = JSON.fromString(sshKeyReq, Struct.class);
         if (keyReq == null) {
             LOGGER.error("getSshKeyReqType: Unable to parse ssh key req: " + sshKeyReq);
             return null;

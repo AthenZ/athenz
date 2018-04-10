@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -109,7 +109,7 @@ public class InstanceProviderManager {
         // it's valid according to configuration settings
         
         InstanceProvider instanceProvider = null;
-        URI uri = null;
+        URI uri;
         try {
             uri = new URI(providerEndpoint);
         } catch (URISyntaxException ex) {
@@ -140,7 +140,7 @@ public class InstanceProviderManager {
         if (provider != null) {
             return provider;
         }
-        Class<?> instanceClass = null;
+        Class<?> instanceClass;
         try {
             instanceClass = Class.forName(className);
         } catch (ClassNotFoundException e) {

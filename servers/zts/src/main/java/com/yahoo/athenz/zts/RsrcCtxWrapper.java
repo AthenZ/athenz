@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,8 +30,8 @@ public class RsrcCtxWrapper implements ResourceContext {
     static final String HEADER_VALUE_NEGOTIATE = "negotiate";
     private static final String ZTS_REQUEST_PRINCIPAL = "com.yahoo.athenz.auth.principal";
 
-    com.yahoo.athenz.common.server.rest.ResourceContext ctx = null;
-    boolean optionalAuth = false;
+    com.yahoo.athenz.common.server.rest.ResourceContext ctx;
+    boolean optionalAuth;
 
     public RsrcCtxWrapper(HttpServletRequest request, HttpServletResponse response,
             Http.AuthorityList authList,  boolean optionalAuth, Authorizer authorizer) {

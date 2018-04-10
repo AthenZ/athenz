@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -58,7 +58,7 @@ public class SelfCertSignerFactory implements CertSignerFactory {
         
         // now generate a CSR for our own CA and self sign it
         
-        String csr = null;
+        String csr;
         try {
             csr = Crypto.generateX509CSR(caPrivateKey, csrDn, null);
         } catch (OperatorCreationException | IOException ex) {

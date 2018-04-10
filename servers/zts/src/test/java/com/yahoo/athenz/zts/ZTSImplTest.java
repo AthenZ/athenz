@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,13 +14,6 @@
  * limitations under the License.
  */
 package com.yahoo.athenz.zts;
-
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
@@ -97,6 +90,8 @@ import com.yahoo.athenz.zts.utils.ZTSUtils;
 import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Timestamp;
 
+import static org.testng.Assert.*;
+
 public class ZTSImplTest {
 
     int roleTokenDefaultTimeout = 2400;
@@ -168,7 +163,7 @@ public class ZTSImplTest {
     @Mock HttpServletResponse mockServletResponse;
     
     @BeforeClass
-    public void setupClass() throws Exception {
+    public void setupClass() {
         MockitoAnnotations.initMocks(this);
         Mockito.when(mockServletRequest.getRemoteAddr()).thenReturn(MOCKCLIENTADDR);
         
@@ -291,8 +286,7 @@ public class ZTSImplTest {
 
     Object getWebAppExcMapValue(javax.ws.rs.WebApplicationException wex, String header) {
         javax.ws.rs.core.MultivaluedMap<String, Object> mvmap = wex.getResponse().getMetadata();
-        Object obj = mvmap.getFirst(header);
-        return obj;
+        return mvmap.getFirst(header);
     }
     
     public static Role createRoleObject(String domainName, String roleName,
@@ -346,7 +340,7 @@ public class ZTSImplTest {
             assertion.setRole(roleName);
         }
 
-        List<Assertion> assertList = new ArrayList<Assertion>();
+        List<Assertion> assertList = new ArrayList<>();
         assertList.add(assertion);
 
         policy.setAssertions(assertList);
@@ -354,8 +348,8 @@ public class ZTSImplTest {
     }
     
     private Metric getMetric(){
-        com.yahoo.athenz.common.metrics.MetricFactory metricFactory = null;
-        com.yahoo.athenz.common.metrics.Metric metric = null;
+        com.yahoo.athenz.common.metrics.MetricFactory metricFactory;
+        com.yahoo.athenz.common.metrics.Metric metric;
         try {
             metricFactory = (com.yahoo.athenz.common.metrics.MetricFactory) 
                 Class.forName(System.getProperty(ZTSConsts.ZTS_PROP_METRIC_FACTORY_CLASS)).newInstance();
@@ -369,27 +363,15 @@ public class ZTSImplTest {
     }
     
     private String generateRoleName(String domain, String role) {
-        StringBuilder str = new StringBuilder(256);
-        str.append(domain);
-        str.append(":role.");
-        str.append(role);
-        return str.toString();
+        return domain + ":role." + role;
     }
 
     private String generatePolicyName(String domain, String policy) {
-        StringBuilder str = new StringBuilder(256);
-        str.append(domain);
-        str.append(":policy.");
-        str.append(policy);
-        return str.toString();
+        return domain + ":policy." + policy;
     }
 
     private String generateServiceIdentityName(String domain, String service) {
-        StringBuilder str = new StringBuilder(256);
-        str.append(domain);
-        str.append(".");
-        str.append(service);
-        return str.toString();
+        return domain + "." + service;
     }
     
     private SignedDomain createSignedDomain(String domainName, String tenantDomain,
@@ -535,7 +517,7 @@ public class ZTSImplTest {
         String memberName = "user_domain.user1";
         Role role = new Role();
         role.setName(generateRoleName(domainName, "admin"));
-        List<RoleMember> members = new ArrayList<RoleMember>();
+        List<RoleMember> members = new ArrayList<>();
         RoleMember roleMember = new RoleMember();
         roleMember.setMemberName("user_domain.adminuser");
         members.add(roleMember);
@@ -544,7 +526,7 @@ public class ZTSImplTest {
         
         role = new Role();
         role.setName(generateRoleName(domainName, "role1"));
-        members = new ArrayList<RoleMember>();
+        members = new ArrayList<>();
         roleMember = new RoleMember();
         roleMember.setMemberName(memberName);
         roleMember.setExpiration(Timestamp.fromMillis(System.currentTimeMillis() - 100));
@@ -554,7 +536,7 @@ public class ZTSImplTest {
         
         role = new Role();
         role.setName(generateRoleName(domainName, "role2"));
-        members = new ArrayList<RoleMember>();
+        members = new ArrayList<>();
         roleMember = new RoleMember();
         roleMember.setMemberName(memberName);
         roleMember.setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(1)));
@@ -1065,13 +1047,13 @@ public class ZTSImplTest {
         DomainData domainData = new DomainData();
         domainData.setName("coretech");
         domain.setDomainData(domainData);
-        domainData.setRoles(new ArrayList<Role>());
+        domainData.setRoles(new ArrayList<>());
         Role role = new Role().setName("coretech:role.role1");
         domainData.getRoles().add(role);
         Policy policy = new Policy().setName("coretech:policy.policy1");
         domainData.setPolicies(new com.yahoo.athenz.zms.SignedPolicies());
         domainData.getPolicies().setContents(new com.yahoo.athenz.zms.DomainPolicies());
-        domainData.getPolicies().getContents().setPolicies(new ArrayList<Policy>());
+        domainData.getPolicies().getContents().setPolicies(new ArrayList<>());
         domainData.getPolicies().getContents().getPolicies().add(policy);
         assertEquals(authorizer.evaluateAccess(domain, null, null, null, null), AccessStatus.DENIED);
     }
@@ -1083,7 +1065,7 @@ public class ZTSImplTest {
         DomainData domainData = new DomainData();
         domainData.setName("coretech");
         domain.setDomainData(domainData);
-        domainData.setRoles(new ArrayList<Role>());
+        domainData.setRoles(new ArrayList<>());
         Role role = createRoleObject("coretech", "role1", null, "user_domain.user1", null);
         domainData.getRoles().add(role);
 
@@ -1093,11 +1075,11 @@ public class ZTSImplTest {
         assertion.setEffect(AssertionEffect.DENY);
         assertion.setResource("coretech:*");
         assertion.setRole("coretech:role.role1");
-        policy.setAssertions(new ArrayList<Assertion>());
+        policy.setAssertions(new ArrayList<>());
         policy.getAssertions().add(assertion);
         domainData.setPolicies(new com.yahoo.athenz.zms.SignedPolicies());
         domainData.getPolicies().setContents(new com.yahoo.athenz.zms.DomainPolicies());
-        domainData.getPolicies().getContents().setPolicies(new ArrayList<Policy>());
+        domainData.getPolicies().getContents().setPolicies(new ArrayList<>());
         domainData.getPolicies().getContents().getPolicies().add(policy);
         
         assertEquals(authorizer.evaluateAccess(domain, "user_domain.user1", "read", "coretech:resource1", null), AccessStatus.DENIED);
@@ -1110,7 +1092,7 @@ public class ZTSImplTest {
         DomainData domainData = new DomainData();
         domainData.setName("coretech");
         domain.setDomainData(domainData);
-        domainData.setRoles(new ArrayList<Role>());
+        domainData.setRoles(new ArrayList<>());
         Role role = createRoleObject("coretech", "role1", null, "user_domain.user1", null);
         domainData.getRoles().add(role);
 
@@ -1125,12 +1107,12 @@ public class ZTSImplTest {
         assertion2.setEffect(AssertionEffect.ALLOW);
         assertion2.setResource("coretech:resource1");
         assertion2.setRole("coretech:role.role1");
-        policy.setAssertions(new ArrayList<Assertion>());
+        policy.setAssertions(new ArrayList<>());
         policy.getAssertions().add(assertion1);
         policy.getAssertions().add(assertion2);
         domainData.setPolicies(new com.yahoo.athenz.zms.SignedPolicies());
         domainData.getPolicies().setContents(new com.yahoo.athenz.zms.DomainPolicies());
-        domainData.getPolicies().getContents().setPolicies(new ArrayList<Policy>());
+        domainData.getPolicies().getContents().setPolicies(new ArrayList<>());
         domainData.getPolicies().getContents().getPolicies().add(policy);
         
         assertEquals(authorizer.evaluateAccess(domain, "user_domain.user1", "read", "coretech:resource1", null), AccessStatus.ALLOWED);
@@ -1147,16 +1129,16 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(principal);
         
         HostServices hosts = zts.getHostServices(context, "host1");
-        assertTrue(hosts.getNames().size() == 1);
+        assertEquals(1, hosts.getNames().size());
         assertTrue(hosts.getNames().contains("coretech.storage"));
         
         hosts = zts.getHostServices(context, "host2");
-        assertTrue(hosts.getNames().size() == 2);
+        assertEquals(2, hosts.getNames().size());
         assertTrue(hosts.getNames().contains("coretech.storage"));
         assertTrue(hosts.getNames().contains("coretech.backup"));
         
         hosts = zts.getHostServices(context, "host3");
-        assertTrue(hosts.getNames().size() == 1);
+        assertEquals(1, hosts.getNames().size());
         assertTrue(hosts.getNames().contains("coretech.backup"));
         }
     
@@ -1271,15 +1253,12 @@ public class ZTSImplTest {
         principal.setApplicationId("coretech.api");
         ResourceContext context = createResourceContext(principal);
         
-        RoleToken roleToken = zts.getRoleToken(context, "coretech", null, Integer.valueOf(600),
-                Integer.valueOf(1200), null);
+        RoleToken roleToken = zts.getRoleToken(context, "coretech", null, 600,
+                1200, null);
         com.yahoo.athenz.auth.token.RoleToken token = new com.yahoo.athenz.auth.token.RoleToken(roleToken.getToken());
         assertEquals(token.getRoles().size(), 1);
         
         //success - no authorized service available
-        principal = (SimplePrincipal) SimplePrincipal.create("user_domain", "user",
-                "v=U1;d=user_domain;n=user;s=signature", 0, null);
-        context = createResourceContext(principal);
         token = new com.yahoo.athenz.auth.token.RoleToken(roleToken.getToken());
         assertEquals(token.getRoles().size(), 1);
         
@@ -1290,8 +1269,8 @@ public class ZTSImplTest {
         context = createResourceContext(principal);
         
         try {
-            zts.getRoleToken(context, "coretech", null, Integer.valueOf(600),
-                    Integer.valueOf(1200), null);
+            zts.getRoleToken(context, "coretech", null, 600,
+                    1200, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
@@ -1307,8 +1286,8 @@ public class ZTSImplTest {
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
         ResourceContext context = createResourceContext(principal);
         
-        RoleToken roleToken = zts.getRoleToken(context, "coretech", null, Integer.valueOf(600),
-                Integer.valueOf(1200), null);
+        RoleToken roleToken = zts.getRoleToken(context, "coretech", null, 600,
+                1200, null);
         com.yahoo.athenz.auth.token.RoleToken token = new com.yahoo.athenz.auth.token.RoleToken(roleToken.getToken());
         assertEquals(token.getRoles().size(), 1);
         assertTrue(token.getRoles().contains("writers"));
@@ -1321,7 +1300,7 @@ public class ZTSImplTest {
                 "v=U1;d=user_domain;n=user1;s=signature", 0, null);
         ResourceContext context1 = createResourceContext(principal1);
         
-        roleToken = zts.getRoleToken(context1, "coretech", null, null, Integer.valueOf(1200), null);
+        roleToken = zts.getRoleToken(context1, "coretech", null, null, 1200, null);
         token = new com.yahoo.athenz.auth.token.RoleToken(roleToken.getToken());
         assertEquals(token.getRoles().size(), 2);
         assertTrue(token.getRoles().contains("readers"));
@@ -1331,7 +1310,7 @@ public class ZTSImplTest {
                 "v=U1;d=user_domain;n=user4;s=signature", 0, null);
         ResourceContext context4 = createResourceContext(principal4);
         
-        roleToken = zts.getRoleToken(context4, "coretech", null, Integer.valueOf(600),
+        roleToken = zts.getRoleToken(context4, "coretech", null, 600,
                 null, null);
         token = new com.yahoo.athenz.auth.token.RoleToken(roleToken.getToken());
         assertEquals(token.getRoles().size(), 1);
@@ -1342,7 +1321,7 @@ public class ZTSImplTest {
         // turn off the include role complete set flag
         
         zts.includeRoleCompleteFlag = false;
-        roleToken = zts.getRoleToken(context4, "coretech", null, Integer.valueOf(600),
+        roleToken = zts.getRoleToken(context4, "coretech", null, 600,
                 null, null);
         token = new com.yahoo.athenz.auth.token.RoleToken(roleToken.getToken());
         assertEquals(token.getRoles().size(), 1);
@@ -1364,8 +1343,8 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(principal);
 
         try {
-            zts.getRoleToken(context, "coretech-disabled", null, Integer.valueOf(600),
-                    Integer.valueOf(1200), null);
+            zts.getRoleToken(context, "coretech-disabled", null, 600,
+                    1200, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
@@ -1383,7 +1362,7 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(principal);
 
         RoleToken roleToken = zts.getRoleToken(context, "coretech-expire",
-                null, Integer.valueOf(600), Integer.valueOf(1200), null);
+                null, 600, 1200, null);
         com.yahoo.athenz.auth.token.RoleToken token =
                 new com.yahoo.athenz.auth.token.RoleToken(roleToken.getToken());
         assertTrue(token.getRoles().contains("role2"));
@@ -1417,8 +1396,8 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(principal);
         
         try {
-            zts.getRoleToken(context, "coretech", null, Integer.valueOf(600),
-                    Integer.valueOf(1200), null);
+            zts.getRoleToken(context, "coretech", null, 600,
+                    1200, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
@@ -1436,8 +1415,8 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(principal);
         
         try {
-            zts.getRoleToken(context, "invalidDomain", null, Integer.valueOf(600),
-                    Integer.valueOf(1200), null);
+            zts.getRoleToken(context, "invalidDomain", null, 600,
+                    1200, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
@@ -1454,8 +1433,8 @@ public class ZTSImplTest {
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
         ResourceContext context = createResourceContext(principal);
         
-        RoleToken roleToken = zts.getRoleToken(context, "coretech", "writers", Integer.valueOf(600),
-                Integer.valueOf(1200), null);
+        RoleToken roleToken = zts.getRoleToken(context, "coretech", "writers", 600,
+                1200, null);
         com.yahoo.athenz.auth.token.RoleToken token = new com.yahoo.athenz.auth.token.RoleToken(roleToken.getToken());
         assertEquals(token.getRoles().size(), 1);
         assertTrue(token.getRoles().contains("writers"));
@@ -1464,7 +1443,7 @@ public class ZTSImplTest {
                 "v=U1;d=user_domain;n=user1;s=signature", 0, null);
         ResourceContext context1 = createResourceContext(principal1);
         
-        roleToken = zts.getRoleToken(context1, "coretech", "writers", null, Integer.valueOf(1200), null);
+        roleToken = zts.getRoleToken(context1, "coretech", "writers", null, 1200, null);
         token = new com.yahoo.athenz.auth.token.RoleToken(roleToken.getToken());
         assertEquals(token.getRoles().size(), 1);
         assertTrue(token.getRoles().contains("writers"));
@@ -1473,7 +1452,7 @@ public class ZTSImplTest {
                 "v=U1;d=user_domain;n=user4;s=signature", 0, null);
         ResourceContext context4 = createResourceContext(principal4);
         
-        roleToken = zts.getRoleToken(context4, "coretech", "readers", Integer.valueOf(600), null, null);
+        roleToken = zts.getRoleToken(context4, "coretech", "readers", 600, null, null);
         token = new com.yahoo.athenz.auth.token.RoleToken(roleToken.getToken());
         assertEquals(token.getRoles().size(), 1);
         assertTrue(token.getRoles().contains("readers"));
@@ -1491,8 +1470,8 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(principal);
         
         try {
-            zts.getRoleToken(context, "coretech", "coretech:role.readers", Integer.valueOf(600),
-                    Integer.valueOf(1200), null);
+            zts.getRoleToken(context, "coretech", "coretech:role.readers", 600,
+                    1200, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -1510,8 +1489,8 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(principal);
         
         try {
-            zts.getRoleToken(context, "coretech", "updaters", Integer.valueOf(600),
-                    Integer.valueOf(1200), null);
+            zts.getRoleToken(context, "coretech", "updaters", 600,
+                    1200, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
@@ -1586,7 +1565,7 @@ public class ZTSImplTest {
         // invalid domain
         
         try {
-            roleAccess = zts.getRoleAccess(context4, "unknowndomain", "user_domain.user4");
+            zts.getRoleAccess(context4, "unknowndomain", "user_domain.user4");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
@@ -1602,8 +1581,8 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(principal);
 
         try {
-            zts.getRoleToken(context, "coretech-proxy1", null, Integer.valueOf(600),
-                Integer.valueOf(1200), "user_domain.unknown-proxy-user");
+            zts.getRoleToken(context, "coretech-proxy1", null, 600,
+                    1200, "user_domain.unknown-proxy-user");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
@@ -1630,8 +1609,8 @@ public class ZTSImplTest {
                 "v=U1;d=user_domain;n=proxy-user1;s=sig", 0, null);
         ResourceContext context = createResourceContext(principal);
 
-        RoleToken roleToken = zts.getRoleToken(context, "coretech-proxy2", null, Integer.valueOf(600),
-                Integer.valueOf(1200), "user_domain.joe");
+        RoleToken roleToken = zts.getRoleToken(context, "coretech-proxy2", null, 600,
+                1200, "user_domain.joe");
         com.yahoo.athenz.auth.token.RoleToken token = new com.yahoo.athenz.auth.token.RoleToken(roleToken.getToken());
         assertEquals(token.getRoles().size(), 1);
         assertTrue(token.getRoles().contains("writers"));
@@ -1645,8 +1624,8 @@ public class ZTSImplTest {
                 "v=U1;d=user_domain;n=proxy-user2;s=sig", 0, null);
         context = createResourceContext(principal);
         
-        roleToken = zts.getRoleToken(context, "coretech-proxy2", null, Integer.valueOf(600),
-                Integer.valueOf(1200), "user_domain.jane");
+        roleToken = zts.getRoleToken(context, "coretech-proxy2", null, 600,
+                1200, "user_domain.jane");
         token = new com.yahoo.athenz.auth.token.RoleToken(roleToken.getToken());
         assertEquals(token.getRoles().size(), 1);
         assertTrue(token.getRoles().contains("readers"));
@@ -1678,7 +1657,7 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(principal);
 
         RoleToken roleToken = zts.getRoleToken(context, "coretech-proxy3", null,
-                Integer.valueOf(600), Integer.valueOf(1200), "user_domain.joe");
+                600, 1200, "user_domain.joe");
         com.yahoo.athenz.auth.token.RoleToken token = new com.yahoo.athenz.auth.token.RoleToken(roleToken.getToken());
 
         assertEquals(token.getRoles().size(), 1);
@@ -1705,8 +1684,8 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(principal);
 
         try {
-            zts.getRoleToken(context, "coretech-proxy4", null, Integer.valueOf(600),
-                    Integer.valueOf(1200), "user_domain.joe");
+            zts.getRoleToken(context, "coretech-proxy4", null, 600,
+                    1200, "user_domain.joe");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
@@ -1733,8 +1712,8 @@ public class ZTSImplTest {
                 "v=U1;d=user_domain;n=proxy-user1;s=sig", 0, null);
         ResourceContext context = createResourceContext(principal);
 
-        RoleToken roleToken = zts.getRoleToken(context, "coretech-proxy4", "writers", Integer.valueOf(600),
-                Integer.valueOf(1200), "user_domain.joe");
+        RoleToken roleToken = zts.getRoleToken(context, "coretech-proxy4", "writers", 600,
+                1200, "user_domain.joe");
         com.yahoo.athenz.auth.token.RoleToken token = new com.yahoo.athenz.auth.token.RoleToken(roleToken.getToken());
         assertEquals(token.getRoles().size(), 1);
         assertTrue(token.getRoles().contains("writers"));
@@ -2049,7 +2028,7 @@ public class ZTSImplTest {
         isEmitMonmetricError = ZTSUtils.emitMonmetricError(errorCode, "", ZTSConsts.ZTS_UNKNOWN_DOMAIN, metric);
         assertFalse(isEmitMonmetricError);
 
-        isEmitMonmetricError = ZTSUtils.emitMonmetricError(errorCode, new String(), null, metric);
+        isEmitMonmetricError = ZTSUtils.emitMonmetricError(errorCode, "", null, metric);
         assertFalse(isEmitMonmetricError);
 
         isEmitMonmetricError = ZTSUtils.emitMonmetricError(0, caller, null, metric);
@@ -2073,42 +2052,42 @@ public class ZTSImplTest {
     
     @Test
     public void testDetermineTokenTimeoutMinNull() {
-        assertEquals(zts.determineTokenTimeout(null, Integer.valueOf(100)), 100);
+        assertEquals(zts.determineTokenTimeout(null, 100), 100);
     }
     
     @Test
     public void testDetermineTokenTimeoutMaxNull() {
-        assertEquals(zts.determineTokenTimeout(Integer.valueOf(100), null), roleTokenDefaultTimeout);
+        assertEquals(zts.determineTokenTimeout(100, null), roleTokenDefaultTimeout);
     }
     
     @Test
     public void testDetermineTokenTimeoutMinInvalid() {
-        assertEquals(zts.determineTokenTimeout(Integer.valueOf(-10), null), roleTokenDefaultTimeout);
+        assertEquals(zts.determineTokenTimeout(-10, null), roleTokenDefaultTimeout);
     }
     
     @Test
     public void testDetermineTokenTimeoutMaxInvalid() {
-        assertEquals(zts.determineTokenTimeout(null, Integer.valueOf(-10)), roleTokenDefaultTimeout);
+        assertEquals(zts.determineTokenTimeout(null, -10), roleTokenDefaultTimeout);
     }
     
     @Test
     public void testDetermineTokenTimeoutDefaultBigger() {
-        assertEquals(zts.determineTokenTimeout(Integer.valueOf(3200), null), 3200);
+        assertEquals(zts.determineTokenTimeout(3200, null), 3200);
     }
     
     @Test
     public void testDetermineTokeTimeoutDefaultSmaller() {
-        assertEquals(zts.determineTokenTimeout(Integer.valueOf(1200), null), roleTokenDefaultTimeout);
+        assertEquals(zts.determineTokenTimeout(1200, null), roleTokenDefaultTimeout);
     }
     
     @Test
     public void testDetermineTokeTimeoutMaxValueMaxExceeded() {
-        assertEquals(zts.determineTokenTimeout(null, Integer.valueOf(120000)), roleTokenMaxTimeout);
+        assertEquals(zts.determineTokenTimeout(null, 120000), roleTokenMaxTimeout);
     }
 
     @Test
     public void testDetermineTokeTimeoutMinValueMaxExceeded() {
-        assertEquals(zts.determineTokenTimeout(Integer.valueOf(120000), null), roleTokenMaxTimeout);
+        assertEquals(zts.determineTokenTimeout(120000, null), roleTokenMaxTimeout);
     }
     
     @Test
@@ -2117,7 +2096,7 @@ public class ZTSImplTest {
         Mockito.when(servletRequest.getRemoteAddr()).thenReturn("10.10.10.11");
         Mockito.when(servletRequest.isSecure()).thenReturn(true);
         
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final java.util.Set<String> aLogMsgs = new java.util.HashSet<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -2148,8 +2127,8 @@ public class ZTSImplTest {
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
         ResourceContext context = createResourceContext(principal, servletRequest);
         
-        RoleToken roleToken = ztsImpl.getRoleToken(context, "coretech", null, Integer.valueOf(600),
-                Integer.valueOf(1200), null);
+        RoleToken roleToken = ztsImpl.getRoleToken(context, "coretech", null, 600,
+                1200, null);
         com.yahoo.athenz.auth.token.RoleToken token = new com.yahoo.athenz.auth.token.RoleToken(roleToken.getToken());
         assertNotNull(token);
         String unsignToken = token.getUnsignedToken();
@@ -2166,7 +2145,7 @@ public class ZTSImplTest {
         Mockito.when(servletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
         Mockito.when(servletRequest.isSecure()).thenReturn(true);
 
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final java.util.Set<String> aLogMsgs = new java.util.HashSet<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -2197,8 +2176,8 @@ public class ZTSImplTest {
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
         ResourceContext context = createResourceContext(principal, servletRequest);
         
-        RoleToken roleToken = ztsImpl.getRoleToken(context, "coretech", null, Integer.valueOf(600),
-                Integer.valueOf(1200), null);
+        RoleToken roleToken = ztsImpl.getRoleToken(context, "coretech", null, 600,
+                1200, null);
         com.yahoo.athenz.auth.token.RoleToken token = new com.yahoo.athenz.auth.token.RoleToken(roleToken.getToken());
         assertNotNull(token);
         String unsignToken = token.getUnsignedToken();
@@ -2217,7 +2196,7 @@ public class ZTSImplTest {
         Mockito.when(servletRequest.getHeader("X-Forwarded-For")).thenReturn("10.10.10.12");
         Mockito.when(servletRequest.isSecure()).thenReturn(true);
 
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final java.util.Set<String> aLogMsgs = new java.util.HashSet<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -2247,8 +2226,8 @@ public class ZTSImplTest {
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
         ResourceContext context = createResourceContext(principal, servletRequest);
         
-        RoleToken roleToken = ztsImpl.getRoleToken(context, "coretech", null, Integer.valueOf(600),
-                Integer.valueOf(1200), null);
+        RoleToken roleToken = ztsImpl.getRoleToken(context, "coretech", null, 600,
+                1200, null);
         com.yahoo.athenz.auth.token.RoleToken token = new com.yahoo.athenz.auth.token.RoleToken(roleToken.getToken());
         assertNotNull(token);
         String unsignToken = token.getUnsignedToken();
@@ -2266,7 +2245,7 @@ public class ZTSImplTest {
         Mockito.when(servletRequest.getHeader("X-Forwarded-For")).thenReturn("10.10.10.11, 10.11.11.11, 10.12.12.12");
         Mockito.when(servletRequest.isSecure()).thenReturn(true);
 
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final java.util.Set<String> aLogMsgs = new java.util.HashSet<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -2297,8 +2276,8 @@ public class ZTSImplTest {
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
         ResourceContext context = createResourceContext(principal, servletRequest);
         
-        RoleToken roleToken = ztsImpl.getRoleToken(context, "coretech", null, Integer.valueOf(600),
-                Integer.valueOf(1200), null);
+        RoleToken roleToken = ztsImpl.getRoleToken(context, "coretech", null, 600,
+                1200, null);
         com.yahoo.athenz.auth.token.RoleToken token = new com.yahoo.athenz.auth.token.RoleToken(roleToken.getToken());
         assertNotNull(token);
         String unsignToken = token.getUnsignedToken();
@@ -2315,7 +2294,7 @@ public class ZTSImplTest {
         Mockito.when(servletRequest.getRemoteAddr()).thenReturn("99.88.77.66");
         Mockito.when(servletRequest.isSecure()).thenReturn(true);
 
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final java.util.Set<String> aLogMsgs = new java.util.HashSet<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -2347,8 +2326,8 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(principal, servletRequest);
         
         try {
-            ztsImpl.getRoleToken(context, "coretech", null, Integer.valueOf(600),
-                    Integer.valueOf(1200), null);
+            ztsImpl.getRoleToken(context, "coretech", null, 600,
+                    1200, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
@@ -2368,7 +2347,7 @@ public class ZTSImplTest {
         Mockito.when(servletRequest.getRemoteAddr()).thenReturn("55.88.77.66");
         Mockito.when(servletRequest.isSecure()).thenReturn(true);
 
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<String>();
+        final java.util.Set<String> aLogMsgs = new java.util.HashSet<>();
         AuditLogger alogger = new AuditLogger() {
             public void log(String logMsg, String msgVersionTag) {
                 aLogMsgs.add(logMsg);
@@ -2400,8 +2379,8 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(principal, servletRequest);
         
         try {
-            ztsImpl.getRoleToken(context, "invalidDomain", null, Integer.valueOf(600),
-                    Integer.valueOf(1200), null);
+            ztsImpl.getRoleToken(context, "invalidDomain", null, 600,
+                    1200, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
@@ -2753,7 +2732,7 @@ public class ZTSImplTest {
     
     @Test
     public void testRetrieveResourceDomainInvalidResource() {
-        assertEquals(null, authorizer.retrieveResourceDomain("domain1", "read", "trustdomain"));
+        assertNull(authorizer.retrieveResourceDomain("domain1", "read", "trustdomain"));
     }
 
 
@@ -2819,7 +2798,7 @@ public class ZTSImplTest {
         assertion.setResource("*:role.Role");
         assertion.setRole("weather:role.*");
         
-        Role role = null;
+        Role role;
         List<Role> roles = new ArrayList<>();
         
         role = createRoleObject("coretech",  "readers", null);
@@ -2843,7 +2822,7 @@ public class ZTSImplTest {
         assertion.setResource("*:role.Role");
         assertion.setRole("weather:role.Role");
         
-        Role role = null;
+        Role role;
         List<Role> roles = new ArrayList<>();
         
         role = createRoleObject("coretech",  "Role1", null);
@@ -2865,7 +2844,7 @@ public class ZTSImplTest {
         assertion.setResource("*:role.Role");
         assertion.setRole("weather:role.Role");
         
-        Role role = null;
+        Role role;
         List<Role> roles = new ArrayList<>();
         
         role = createRoleObject("weather",  "Role1", null, "user_domain.user1", null);
@@ -2886,7 +2865,7 @@ public class ZTSImplTest {
         assertion.setResource("*:role.Role");
         assertion.setRole("weather:role.*");
         
-        Role role = null;
+        Role role;
         List<Role> roles = new ArrayList<>();
         
         role = createRoleObject("weather",  "Role1", null, "user_domain.user1", null);
@@ -2907,7 +2886,7 @@ public class ZTSImplTest {
         assertion.setResource("*:role.Role");
         assertion.setRole("weather:role.Role");
         
-        Role role = null;
+        Role role;
         List<Role> roles = new ArrayList<>();
         
         role = createRoleObject("weather",  "Role1", null, "user_domain.user1", null);
@@ -2959,7 +2938,7 @@ public class ZTSImplTest {
         DomainData domainData = new DomainData();
         domainData.setName("coretechtrust");
         domain.setDomainData(domainData);
-        domainData.setRoles(new ArrayList<Role>());
+        domainData.setRoles(new ArrayList<>());
         Role role1 = createRoleObject("coretechtrust",  "role1", null, "user_domain.user1", null);
         Role role2 = createRoleObject("coretechtrust",  "role2", null, "user_domain.user2", null);
         domainData.getRoles().add(role1);
@@ -2969,7 +2948,7 @@ public class ZTSImplTest {
                 false, "ASSUME_ROLE", "weather:role.role1", AssertionEffect.ALLOW);
         domainData.setPolicies(new com.yahoo.athenz.zms.SignedPolicies());
         domainData.getPolicies().setContents(new com.yahoo.athenz.zms.DomainPolicies());
-        domainData.getPolicies().getContents().setPolicies(new ArrayList<Policy>());
+        domainData.getPolicies().getContents().setPolicies(new ArrayList<>());
         domainData.getPolicies().getContents().getPolicies().add(policy);
         
         store.getCacheStore().put("coretechtrust", domain);
@@ -2987,7 +2966,7 @@ public class ZTSImplTest {
         DomainData domainData = new DomainData();
         domainData.setName("coretechtrust");
         domain.setDomainData(domainData);
-        domainData.setRoles(new ArrayList<Role>());
+        domainData.setRoles(new ArrayList<>());
         Role role1 = createRoleObject("coretechtrust",  "role1", null, "user_domain.user1", null);
         Role role2 = createRoleObject("coretechtrust",  "role2", null, "user_domain.user2", null);
         domainData.getRoles().add(role1);
@@ -2997,7 +2976,7 @@ public class ZTSImplTest {
                 false, "ASSUME_ROLE", "weather:role.role1", AssertionEffect.ALLOW);
         domainData.setPolicies(new com.yahoo.athenz.zms.SignedPolicies());
         domainData.getPolicies().setContents(new com.yahoo.athenz.zms.DomainPolicies());
-        domainData.getPolicies().getContents().setPolicies(new ArrayList<Policy>());
+        domainData.getPolicies().getContents().setPolicies(new ArrayList<>());
         domainData.getPolicies().getContents().getPolicies().add(policy);
         store.getCacheStore().put("coretechtrust", domain);
         
@@ -3005,7 +2984,7 @@ public class ZTSImplTest {
         domainData = new DomainData();
         domainData.setName("weather");
         domain.setDomainData(domainData);
-        domainData.setRoles(new ArrayList<Role>());
+        domainData.setRoles(new ArrayList<>());
         role1 = createRoleObject("weather", "role1", "coretechtrust");
         domainData.getRoles().add(role1);
 
@@ -3013,7 +2992,7 @@ public class ZTSImplTest {
                 false, "update", "weather:table1", AssertionEffect.ALLOW);
         domainData.setPolicies(new com.yahoo.athenz.zms.SignedPolicies());
         domainData.getPolicies().setContents(new com.yahoo.athenz.zms.DomainPolicies());
-        domainData.getPolicies().getContents().setPolicies(new ArrayList<Policy>());
+        domainData.getPolicies().getContents().setPolicies(new ArrayList<>());
         domainData.getPolicies().getContents().getPolicies().add(policy);
         store.getCacheStore().put("weather", domain);
         
@@ -3044,7 +3023,7 @@ public class ZTSImplTest {
         DomainData domainData = new DomainData();
         domainData.setName("coretechtrust");
         domain.setDomainData(domainData);
-        domainData.setRoles(new ArrayList<Role>());
+        domainData.setRoles(new ArrayList<>());
         Role role1 = createRoleObject("coretechtrust",  "role1", null, "user_domain.user1", null);
         Role role2 = createRoleObject("coretechtrust",  "role2", null, "user_domain.user2", null);
         domainData.getRoles().add(role1);
@@ -3054,7 +3033,7 @@ public class ZTSImplTest {
                 false, "update", "coretechtrust:table1", AssertionEffect.ALLOW);
         domainData.setPolicies(new com.yahoo.athenz.zms.SignedPolicies());
         domainData.getPolicies().setContents(new com.yahoo.athenz.zms.DomainPolicies());
-        domainData.getPolicies().getContents().setPolicies(new ArrayList<Policy>());
+        domainData.getPolicies().getContents().setPolicies(new ArrayList<>());
         domainData.getPolicies().getContents().getPolicies().add(policy);
         store.getCacheStore().put("coretechtrust", domain);
         
@@ -3513,7 +3492,7 @@ public class ZTSImplTest {
         DomainData domainData = new DomainData();
         domainData.setName(domainName);
         domain.setDomainData(domainData);
-        domainData.setRoles(new ArrayList<Role>());
+        domainData.setRoles(new ArrayList<>());
         Role role1 = createRoleObject(domainName,  "role1", null, "user.user1", "user.user3");
         Role role2 = createRoleObject(domainName,  "role2", null, "user.user2", null);
         domainData.getRoles().add(role1);
@@ -3523,7 +3502,7 @@ public class ZTSImplTest {
                 false, "update", domainName + ":table1", AssertionEffect.ALLOW);
         domainData.setPolicies(new com.yahoo.athenz.zms.SignedPolicies());
         domainData.getPolicies().setContents(new com.yahoo.athenz.zms.DomainPolicies());
-        domainData.getPolicies().getContents().setPolicies(new ArrayList<Policy>());
+        domainData.getPolicies().getContents().setPolicies(new ArrayList<>());
         domainData.getPolicies().getContents().getPolicies().add(policy);
         store.getCacheStore().put(domainName, domain);
         
@@ -3900,7 +3879,7 @@ public class ZTSImplTest {
         Set<String> set1 = new HashSet<>();
         Set<String> set2 = new HashSet<>();
 
-        // emtpy sets should match
+        // empty sets should match
         
         assertTrue(zts.compareRoleSets(set1, set2));
         
@@ -3980,7 +3959,7 @@ public class ZTSImplTest {
 
         // this csr is for sports:role.readers role
         RoleCertificateRequest req = new RoleCertificateRequest()
-                .setCsr(ROLE_CERT_CORETECH_REQUEST).setExpiryTime(Long.valueOf(3600));
+                .setCsr(ROLE_CERT_CORETECH_REQUEST).setExpiryTime(3600L);
         
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
@@ -4011,7 +3990,7 @@ public class ZTSImplTest {
 
         // this csr is for sports:role.readers role
         RoleCertificateRequest req = new RoleCertificateRequest()
-                .setCsr(ROLE_CERT_CORETECH_REQUEST).setExpiryTime(Long.valueOf(3600));
+                .setCsr(ROLE_CERT_CORETECH_REQUEST).setExpiryTime(3600L);
         
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
@@ -4021,7 +4000,7 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(principal);
 
         // this time we're passing an invalid role name so we should
-        // get no accss - 403
+        // get no access - 403
         
         try {
             zts.postRoleCertificateRequest(context, "coretech", "unknownrole", req);
@@ -4054,7 +4033,7 @@ public class ZTSImplTest {
     public void testGetRoleTokenCertMismatchDomain() throws Exception{
 
         RoleCertificateRequest req = new RoleCertificateRequest()
-                .setCsr(ROLE_CERT_DB_REQUEST).setExpiryTime(Long.valueOf(3600));
+                .setCsr(ROLE_CERT_DB_REQUEST).setExpiryTime(3600L);
         
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
@@ -6177,8 +6156,8 @@ public class ZTSImplTest {
 
     @Test
     public void testNormalizeDomainAliasUser() {
-        
-        assertEquals(zts.normalizeDomainAliasUser(null), null);
+
+        assertNull(zts.normalizeDomainAliasUser(null));
         assertEquals(zts.normalizeDomainAliasUser(""), "");
         
         zts.userDomainAlias = null;
@@ -6243,7 +6222,7 @@ public class ZTSImplTest {
         try {
             ztsImpl.validateRequest(request, "test");
             fail();
-        } catch (ResourceException ex) {
+        } catch (ResourceException ignored) {
         }
         try {
             ztsImpl.validateRequest(request, "test", false);
@@ -6659,8 +6638,8 @@ public class ZTSImplTest {
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz",
                 "syncer", "v=S1,d=athenz;n=syncer;s=sig", 0, new CertificateAuthority());
         principal.setX509Certificate(cert);
-        
-        assertTrue(ztsImpl.validateServiceX509RefreshRequest(principal, certReq, "10.0.0.1") == ServiceX509RefreshRequestStatus.SUCCESS);
+
+        assertSame(ztsImpl.validateServiceX509RefreshRequest(principal, certReq, "10.0.0.1"), ServiceX509RefreshRequestStatus.SUCCESS);
     }
     
     @Test
@@ -6686,8 +6665,8 @@ public class ZTSImplTest {
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz",
                 "syncer", "v=S1,d=athenz;n=syncer;s=sig", 0, new CertificateAuthority());
         principal.setX509Certificate(cert);
-        
-        assertTrue(ztsImpl.validateServiceX509RefreshRequest(principal, certReq, "10.0.0.1") == ServiceX509RefreshRequestStatus.PUBLIC_KEY_MISMATCH);
+
+        assertSame(ztsImpl.validateServiceX509RefreshRequest(principal, certReq, "10.0.0.1"), ServiceX509RefreshRequestStatus.PUBLIC_KEY_MISMATCH);
     }
     
     @Test
@@ -6714,8 +6693,8 @@ public class ZTSImplTest {
         principal.setX509Certificate(cert);
         
         // our ip will not match 10.0.0.1 thus failure
-        
-        assertTrue(ztsImpl.validateServiceX509RefreshRequest(principal, certReq, "10.0.0.2") == ServiceX509RefreshRequestStatus.IP_NOT_ALLOWED);
+
+        assertSame(ztsImpl.validateServiceX509RefreshRequest(principal, certReq, "10.0.0.2"), ServiceX509RefreshRequestStatus.IP_NOT_ALLOWED);
     }
     
     @Test
@@ -6740,8 +6719,8 @@ public class ZTSImplTest {
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz",
                 "syncer", "v=S1,d=athenz;n=syncer;s=sig", 0, new CertificateAuthority());
         principal.setX509Certificate(cert);
-        
-        assertTrue(ztsImpl.validateServiceX509RefreshRequest(principal, certReq, "10.0.0.1") == ServiceX509RefreshRequestStatus.DNS_NAME_MISMATCH);
+
+        assertSame(ztsImpl.validateServiceX509RefreshRequest(principal, certReq, "10.0.0.1"), ServiceX509RefreshRequestStatus.DNS_NAME_MISMATCH);
     }
     
     @Test

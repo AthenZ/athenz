@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -56,7 +56,7 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
     public static final String DB_COLUMN_PREV_TIME      = "prevTime";
     public static final String DB_COLUMN_CLIENT_CERT    = "clientCert";
     
-    Connection con = null;
+    Connection con;
     int queryTimeout = 10;
 
     public JDBCCertRecordStoreConnection(Connection con) throws SQLException {
@@ -135,7 +135,7 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
     @Override
     public boolean updateX509CertRecord(X509CertRecord certRecord) {
         
-        int affectedRows = 0;
+        int affectedRows;
         final String caller = "updateX509CertRecord";
 
         try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_X509_RECORD)) {
@@ -157,8 +157,8 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
     
     @Override
     public boolean insertX509CertRecord(X509CertRecord certRecord) {
-        
-        int affectedRows = 0;
+
+        int affectedRows;
         final String caller = "insertX509CertRecord";
 
         try (PreparedStatement ps = con.prepareStatement(SQL_INSERT_X509_RECORD)) {
@@ -194,8 +194,8 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
     
     @Override
     public boolean deleteX509CertRecord(String provider, String instanceId) {
-        
-        int affectedRows = 0;
+
+        int affectedRows;
         final String caller = "deleteX509CertRecord";
 
         try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_X509_RECORD)) {
@@ -210,8 +210,8 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
     
     @Override
     public int deleteExpiredX509CertRecords(int expiryTimeMins) {
-        
-        int affectedRows = 0;
+
+        int affectedRows;
         final String caller = "deleteExpiredX509CertRecords";
         
         // make sure we have a valid value specified for expiry time
@@ -233,7 +233,7 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
         
         String sqlState = ex.getSQLState();
         int code = ResourceException.INTERNAL_SERVER_ERROR;
-        String msg = null;
+        String msg;
         if (ex instanceof SQLTimeoutException) {
             code = ResourceException.SERVICE_UNAVAILABLE;
             msg = "Statement cancelled due to timeout";

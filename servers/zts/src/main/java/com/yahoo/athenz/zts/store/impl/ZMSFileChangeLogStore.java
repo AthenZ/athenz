@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,13 +54,13 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZMSFileChangeLogStore.class);
 
-    File rootDir = null;
-    public String lastModTime = null;
+    File rootDir;
+    public String lastModTime;
 
-    private PrivateKey privateKey = null;
-    private String privateKeyId = "0";
-    private Authority authority = null;
-    private String zmsUrl = null;
+    private PrivateKey privateKey;
+    private String privateKeyId;
+    private Authority authority;
+    private String zmsUrl;
     
     private static final String ATTR_TAG           = "tag";
     private static final String VALUE_TRUE         = "true";
@@ -146,6 +146,7 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
         
         try {
             new FileOutputStream(file).close();
+            //noinspection ResultOfMethodCallIgnored
             file.setLastModified(System.currentTimeMillis());
             Path path = file.toPath();
             Set<PosixFilePermission> perms = EnumSet.of(PosixFilePermission.OWNER_READ,
@@ -205,8 +206,12 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
     
     List<String> scan() {
         
-        List<String> names = new ArrayList<String>();
-        for (String name : rootDir.list()) {
+        List<String> names = new ArrayList<>();
+        String[] domains = rootDir.list();
+        if (domains == null) {
+            return names;
+        }
+        for (String name : domains) {
             
             // we are going to skip any hidden files
             
@@ -235,9 +240,9 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
     @Override
     public Set<String> getServerDomainList() {
         
-        Set<String> zmsDomainList = null;
+        Set<String> zmsDomainList;
         try (ZMSClient zmsClient = getZMSClient()) {
-            zmsDomainList = new HashSet<String>(zmsClient.getDomainList().getNames());
+            zmsDomainList = new HashSet<>(zmsClient.getDomainList().getNames());
         } catch (ZMSClientException ex) {
             LOGGER.error("Unable to retrieve domain list from ZMS: " + ex.getMessage());
             return null;
@@ -327,7 +332,7 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
             // request all the changes from ZMS. In this call we're asking for
             // meta data only so we'll only get the list of domains
             
-            Map<String, List<String>> responseHeaders = new HashMap<String, List<String>>();
+            Map<String, List<String>> responseHeaders = new HashMap<>();
             SignedDomains domainList = zmsClient.getSignedDomains(null, VALUE_TRUE,
                     lastModTime, responseHeaders);
             
