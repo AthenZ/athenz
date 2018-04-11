@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,9 +32,9 @@ import com.yahoo.athenz.auth.util.Crypto;
 public class CertificateAuthority implements Authority {
 
     private static final Logger LOG = LoggerFactory.getLogger(CertificateAuthority.class);
-    static final String ATHENZ_PROP_EXCLUDED_PRINCIPALS = "athenz.auth.certificate.excluded_principals";
+    private static final String ATHENZ_PROP_EXCLUDED_PRINCIPALS = "athenz.auth.certificate.excluded_principals";
 
-    Set<String> excludedPrincipalSet = null;
+    private Set<String> excludedPrincipalSet = null;
     
     @Override
     public void initialize() {
@@ -69,7 +69,6 @@ public class CertificateAuthority implements Authority {
     public Principal authenticate(X509Certificate[] certs, StringBuilder errMsg) {
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("CertificateAuthority:authenticate: TLS Certificates: " + certs);
             if (certs != null) {
                 for (X509Certificate cert : certs) {
                     LOG.debug("CertificateAuthority:authenticate: TLS Certificate: " + cert);
@@ -123,15 +122,15 @@ public class CertificateAuthority implements Authority {
             
             List<String> emails = Crypto.extractX509CertEmails(x509Cert);
             if (emails.isEmpty()) {
-                errMsg.append("CertificateAuthority:authenticate: Invalid role cert, no email SAN entry"
-                    + principalName);
+                errMsg.append("CertificateAuthority:authenticate: Invalid role cert, no email SAN entry")
+                        .append(principalName);
                 return null;
             }
             String email = emails.get(0);
             idx = email.indexOf('@');
             if (idx == -1) {
-                errMsg.append("CertificateAuthority:authenticate: Invalid role cert, invalid email SAN entry"
-                    + principalName);
+                errMsg.append("CertificateAuthority:authenticate: Invalid role cert, invalid email SAN entry")
+                        .append(principalName);
                 return null;
             }
             principalName = email.substring(0, idx);
@@ -142,8 +141,8 @@ public class CertificateAuthority implements Authority {
 
         idx = principalName.lastIndexOf('.');
         if (idx == -1) {
-            errMsg.append("CertificateAuthority:authenticate: Principal is not a valid service identity: "
-                + principalName);
+            errMsg.append("CertificateAuthority:authenticate: Principal is not a valid service identity: ")
+                    .append(principalName);
             return null;
         }
 

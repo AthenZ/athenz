@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,6 @@ package com.yahoo.athenz.auth.impl;
 import static org.testng.Assert.*;
 
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -27,7 +26,6 @@ import org.testng.annotations.Test;
 
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.Authority.CredSource;
-import com.yahoo.athenz.auth.impl.CertificateAuthority;
 
 public class CertificateAuthorityTest {
 
@@ -61,7 +59,7 @@ public class CertificateAuthorityTest {
     }
     
     @Test
-    public void testAuthenticateCertificate() throws Exception, IOException {
+    public void testAuthenticateCertificate() throws Exception {
         CertificateAuthority authority = new CertificateAuthority();
         authority.initialize();
         
@@ -80,7 +78,7 @@ public class CertificateAuthorityTest {
     }
 
     @Test
-    public void testAuthenticateRoleCertificate() throws Exception, IOException {
+    public void testAuthenticateRoleCertificate() throws Exception {
         CertificateAuthority authority = new CertificateAuthority();
         authority.initialize();
 

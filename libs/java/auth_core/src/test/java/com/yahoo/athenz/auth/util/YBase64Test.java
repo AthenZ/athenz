@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -90,59 +90,59 @@ public class YBase64Test {
         try {
             YBase64.decode(null);
             fail();
-        } catch (NullPointerException ex) {
+        } catch (NullPointerException ignored) {
         }
         
         try {
             YBase64.decode("abcde\0".getBytes());
             fail();
-        } catch (CryptoException ex) {
+        } catch (CryptoException ignored) {
         }
         
         try {
             YBase64.decode("a-aa".getBytes());
             fail();
-        } catch (CryptoException ex) {
+        } catch (CryptoException ignored) {
         }
         
         try {
             byte[] a = new byte[] {(byte)0xff,(byte)0x97,(byte)0x97,(byte)0x97};
             YBase64.decode(a);
             fail();
-        } catch (CryptoException ex) {
+        } catch (CryptoException ignored) {
         }
         
         try {
             byte[] b = new byte[] {(byte)0x97,(byte)0xff,(byte)0x97,(byte)0x97};
             YBase64.decode(b);
             fail();
-        } catch (CryptoException ex) {
+        } catch (CryptoException ignored) {
         }
         
         try {
             byte[] c = new byte[] {(byte)0x97,(byte)0x97,(byte)0xff,(byte)0x97};
             YBase64.decode(c);
             fail();
-        } catch (CryptoException ex) {
+        } catch (CryptoException ignored) {
         }
         
         try {
             byte[] d = new byte[] {(byte)0x97,(byte)0x97,(byte)0x97,(byte)0xff};
             YBase64.decode(d);
             fail();
-        } catch (CryptoException ex) {
+        } catch (CryptoException ignored) {
         }
         
         try {
             YBase64.decode("aaa-".getBytes());
             fail();
-        } catch (CryptoException ex) {
+        } catch (CryptoException ignored) {
         }
         
         try {
             YBase64.decode("aa--".getBytes());
             fail();
-        } catch (CryptoException ex) {
+        } catch (CryptoException ignored) {
         }
     }
     
@@ -151,10 +151,10 @@ public class YBase64Test {
         try {
             YBase64.encode(null);
             fail();
-        } catch (NullPointerException ex) {
+        } catch (NullPointerException ignored) {
         }
         
         byte[] data = new byte[0];
-        assertNotNull(new String(YBase64.encode(data), StandardCharsets.UTF_8));
+        assertNotNull(YBase64.encode(data));
     }
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -76,17 +76,17 @@ public class SimplePrincipalTest {
         assertNotNull(SimplePrincipal.create(null, "jdoe", fakeCreds));
         assertNotNull(SimplePrincipal.create("user", null, fakeCreds));
         
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("role1");
         
         p = SimplePrincipal.create("user", fakeCreds, roles, null);
+        assertNotNull(p);
         assertEquals(p.getFullName(), "user");
         
         p = SimplePrincipal.create("appid", fakeCreds, (Authority) null);
         assertEquals(p.getFullName(), "appid");
         
-        Authority authority = null;
-        assertNull(SimplePrincipal.create(null, null, authority));
+        assertNull(SimplePrincipal.create(null, null, (Authority) null));
     }
     
     @Test
@@ -112,6 +112,7 @@ public class SimplePrincipalTest {
         roles.add("newrole");
         SimplePrincipal p = (SimplePrincipal) SimplePrincipal.create("user", fakeCreds,
                 roles, userAuthority);
+        assertNotNull(p);
 
         assertEquals(p.getRoles().size(), 1);
         assertTrue(p.getRoles().contains("newrole"));
@@ -150,13 +151,15 @@ public class SimplePrincipalTest {
     @Test
     public void testSimplePrincipalToStringZToken() {
         
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("updater");
         
         UserAuthority userAuthority = new UserAuthority();
         userAuthority.initialize();
 
         Principal p = SimplePrincipal.create("user", fakeCreds, roles, userAuthority);
+        assertNotNull(p);
+
         assertEquals(p.toString(), "ZToken_user~updater");
     }
     
@@ -167,6 +170,7 @@ public class SimplePrincipalTest {
         userAuthority.initialize();
 
         Principal p = SimplePrincipal.create("user", "jdoe", fakeCreds, 101, userAuthority);
+        assertNotNull(p);
         assertEquals(p.toString(), "user.jdoe");
     }
     
@@ -177,6 +181,8 @@ public class SimplePrincipalTest {
         userAuthority.initialize();
 
         Principal p = SimplePrincipal.create("user", "jdoe", fakeCreds, 101, userAuthority);
+        assertNotNull(p);
+
         ((SimplePrincipal) p).setOriginalRequestor("athenz.ci");
         ((SimplePrincipal) p).setKeyService("zts");
         ((SimplePrincipal) p).setKeyId("v1");

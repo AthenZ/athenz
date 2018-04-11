@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,7 +39,6 @@ public class PrincipalTokenTest {
     private final String usrName = "john";
     private final String host = "somehost.somecompany.com";
     private final String salt = "saltvalue";
-    private final String testKeyVersionK1 = "1";
 
     private final long expirationTime = 10; // 10 seconds
     
@@ -106,7 +105,8 @@ public class PrincipalTokenTest {
     }
 
     @Test
-    public void testServiceToken() throws InterruptedException, CryptoException {
+    public void testServiceToken() throws CryptoException {
+        String testKeyVersionK1 = "1";
         PrincipalToken serviceTokenToValidate = createServiceToken(testKeyVersionK1);
 
         // Validate all input data
@@ -133,7 +133,7 @@ public class PrincipalTokenTest {
 
     
     @Test
-    public void testUserToken() throws InterruptedException, CryptoException {
+    public void testUserToken() throws CryptoException {
         long issueTime = System.currentTimeMillis() / 1000;
         PrincipalToken userTokenToValidate = createUserToken(issueTime);
 
@@ -396,7 +396,7 @@ public class PrincipalTokenTest {
     }
     
     @Test
-    public void testUserTokenWithSingleAuthorizedService() throws InterruptedException, CryptoException {
+    public void testUserTokenWithSingleAuthorizedService() throws CryptoException {
         long issueTime = System.currentTimeMillis() / 1000;
         // Create and sign token
         List<String> authorizedServices = new ArrayList<>();
@@ -426,14 +426,14 @@ public class PrincipalTokenTest {
         assertEquals(userTokenToValidate.getAuthorizedServiceKeyId(), "1");
         // authorized service name must be null since there is only 1 entry
         // in the authorized services list so there must be a match
-        assertEquals(userTokenToValidate.getAuthorizedServiceName(), null);
+        assertNull(userTokenToValidate.getAuthorizedServiceName());
 
         // Validate the signature and that expiration time had not elapsed
         assertTrue(userTokenToValidate.validateForAuthorizedService(servicePublicKeyStringK1, null));
     }
     
     @Test
-    public void testUserTokenWithMultipleAuthorizedServices() throws InterruptedException, CryptoException {
+    public void testUserTokenWithMultipleAuthorizedServices() throws CryptoException {
         long issueTime = System.currentTimeMillis() / 1000;
         // Create and sign token
         List<String> authorizedServices = new ArrayList<>();
@@ -472,7 +472,7 @@ public class PrincipalTokenTest {
     }
     
     @Test
-    public void testUserTokenWithNullAuthorizedService() throws InterruptedException, CryptoException {
+    public void testUserTokenWithNullAuthorizedService() throws CryptoException {
         long issueTime = System.currentTimeMillis() / 1000;
         
         PrincipalToken userTokenToSign = new PrincipalToken.Builder(usrVersion, usrDomain, usrName)
@@ -493,7 +493,7 @@ public class PrincipalTokenTest {
     }
     
     @Test
-    public void testUserTokenWithInvalidAuthorizedService() throws InterruptedException, CryptoException {
+    public void testUserTokenWithInvalidAuthorizedService() throws CryptoException {
         long issueTime = System.currentTimeMillis() / 1000;
         // Create and sign token
         List<String> authorizedServices = new ArrayList<>();
@@ -534,7 +534,7 @@ public class PrincipalTokenTest {
     }
     
     @Test
-    public void testValidateForAuthorizedServiceInvalidSignature() throws InterruptedException, CryptoException {
+    public void testValidateForAuthorizedServiceInvalidSignature() throws CryptoException {
         long issueTime = System.currentTimeMillis() / 1000;
         // Create and sign token
         List<String> authorizedServices = new ArrayList<>();
@@ -566,7 +566,7 @@ public class PrincipalTokenTest {
     }
     
     @Test
-    public void testValidateForAuthorizedServiceNoSignature() throws InterruptedException, CryptoException {
+    public void testValidateForAuthorizedServiceNoSignature() throws CryptoException {
         long issueTime = System.currentTimeMillis() / 1000;
         // Create and sign token
         List<String> authorizedServices = new ArrayList<>();

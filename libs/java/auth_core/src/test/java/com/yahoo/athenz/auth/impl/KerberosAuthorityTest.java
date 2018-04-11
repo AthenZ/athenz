@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,11 +19,9 @@ import javax.security.auth.login.AppConfigurationEntry;
 import javax.security.auth.kerberos.KerberosPrincipal;
 import javax.security.auth.kerberos.KerberosTicket;
 
-import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.auth.Principal;
-import com.yahoo.athenz.auth.impl.KerberosAuthority;
 import com.yahoo.athenz.auth.token.KerberosToken;
 
 import static org.testng.Assert.*;
@@ -31,20 +29,13 @@ import java.lang.reflect.Field;
 
 public class KerberosAuthorityTest {
     
-    final static String KRB_LOGIN_CB_CLASS = "com.yahoo.athenz.auth.impl.TestLoginCallbackHandler";
-    
-    @BeforeTest
-    private void beforeTest() {
-
-    }
+    private final static String KRB_LOGIN_CB_CLASS = "com.yahoo.athenz.auth.impl.TestLoginCallbackHandler";
     
     @Test(groups="kerberos-tests")
     public void testLoginConfig() {
 
-        String keyTabConfFile   = null;
-        String servicePrincipal = null;
-        KerberosAuthority.LoginConfig loginConfig = new KerberosAuthority.LoginConfig(keyTabConfFile, servicePrincipal);
-        assertEquals(loginConfig.isDebugEnabled(), false);
+        KerberosAuthority.LoginConfig loginConfig = new KerberosAuthority.LoginConfig(null, null);
+        assertFalse(loginConfig.isDebugEnabled());
         AppConfigurationEntry[] conf = loginConfig.getAppConfigurationEntry(null);
         AppConfigurationEntry entry = conf[0];
         java.util.Map<String, ?> options = entry.getOptions();
@@ -60,10 +51,10 @@ public class KerberosAuthorityTest {
         System.setProperty(KerberosAuthority.KRB_PROP_LOGIN_USE_TKT_CACHE, "false");
         System.setProperty(KerberosAuthority.KRB_PROP_LOGIN_TKT_CACHE_NAME, "/tmp/cache");
         System.setProperty(KerberosAuthority.KRB_PROP_DEBUG, "TRUE");
-        keyTabConfFile   = "my.keytab";
-        servicePrincipal = "juke";
+        String keyTabConfFile   = "my.keytab";
+        String servicePrincipal = "juke";
         loginConfig = new KerberosAuthority.LoginConfig(keyTabConfFile, servicePrincipal);
-        assertEquals(loginConfig.isDebugEnabled(), true);
+        assertTrue(loginConfig.isDebugEnabled());
         conf    = loginConfig.getAppConfigurationEntry(null);
         entry   = conf[0];
         options = entry.getOptions();
@@ -90,13 +81,13 @@ public class KerberosAuthorityTest {
         assertNull(authority.getDomain());
         assertEquals(authority.getHeader(), KerberosAuthority.KRB_AUTH_HEADER);
 
-        KerberosToken token = null;
+        KerberosToken token;
         String creds        = "invalid_creds";
         String remoteAddr   = "some.address";
         try {
-            token  = new KerberosToken(creds, remoteAddr);
+            new KerberosToken(creds, remoteAddr);
             fail("new KerberosToken with bad creds");
-        } catch (Exception exc) {
+        } catch (IllegalArgumentException exc) {
             String msg = exc.getMessage();
             assertTrue(msg.contains("creds do not contain required Negotiate component"));
         }
@@ -110,7 +101,7 @@ public class KerberosAuthorityTest {
     }
 
     @Test(groups="kerberos-tests")
-    public void testKerberosAuthorityMockPrivExcAction() throws Exception {
+    public void testKerberosAuthorityMockPrivExcAction() {
 
         System.setProperty(KerberosToken.KRB_PROP_TOKEN_PRIV_ACTION, "com.yahoo.athenz.auth.impl.MockPrivExcAction");
         System.setProperty(KerberosToken.KRB_PROP_TOKEN_PRIV_ACTION + "_TEST_REALM", "USER_REALM");
@@ -126,7 +117,7 @@ public class KerberosAuthorityTest {
         String remoteAddr = "localhost";
         KerberosToken ktoken = new KerberosToken(creds, remoteAddr);
         boolean ret = ktoken.validate(null, null);
-        assertEquals(ret, true);
+        assertTrue(ret);
 
         StringBuilder errMsg = new StringBuilder();
         Principal principal  = authority.authenticate(ktoken.getSignedToken(), null, "GET", errMsg);
@@ -136,7 +127,7 @@ public class KerberosAuthorityTest {
         assertEquals(principal.getDomain(), ktoken.getDomain());
         assertEquals(principal.getDomain(), KerberosToken.USER_DOMAIN);
         assertEquals(principal.getName(), ktoken.getUserName());
-        assertTrue(principal.getName().indexOf('@') == -1);
+        assertEquals(principal.getName().indexOf('@'), -1);
         
         principal = authority.authenticate(ktoken.getSignedToken(), null, "GET", null);
         assertNotNull(principal);
@@ -145,7 +136,7 @@ public class KerberosAuthorityTest {
         System.setProperty(KerberosToken.KRB_PROP_TOKEN_PRIV_ACTION + "_TEST_REALM", KerberosToken.KRB_USER_REALM);
         ktoken = new KerberosToken(creds, remoteAddr);
         ret = ktoken.validate(null, null);
-        assertEquals(ret, true);
+        assertTrue(ret);
 
         errMsg = new StringBuilder();
         principal  = authority.authenticate(ktoken.getSignedToken(), null, "GET", errMsg);
@@ -155,7 +146,7 @@ public class KerberosAuthorityTest {
         assertEquals(principal.getDomain(), ktoken.getDomain());
         assertEquals(principal.getDomain(), KerberosToken.KRB_USER_DOMAIN);
         assertEquals(principal.getName(), ktoken.getUserName());
-        assertTrue(principal.getName().indexOf('@') == -1);
+        assertEquals(principal.getName().indexOf('@'), -1);
         
         principal = authority.authenticate(ktoken.getSignedToken(), null, "GET", null);
         assertNotNull(principal);
@@ -164,7 +155,7 @@ public class KerberosAuthorityTest {
         System.setProperty(KerberosToken.KRB_PROP_TOKEN_PRIV_ACTION + "_TEST_REALM", "REALM.SOMECOMPANY.COM");
         ktoken = new KerberosToken(creds, remoteAddr);
         ret = ktoken.validate(null, null);
-        assertEquals(ret, false);
+        assertFalse(ret);
 
         errMsg = new StringBuilder();
         principal  = authority.authenticate(ktoken.getSignedToken(), null, "GET", errMsg);
@@ -318,7 +309,7 @@ public class KerberosAuthorityTest {
         assertEquals(loginWindow, 1000);
 
         boolean refreshed = kauth.refreshLogin("myserver@EXAMPLE.COM");
-        assertEquals(refreshed, true);
+        assertTrue(refreshed);
         initState = kauth.getInitState();
         assertNull(initState);
 
@@ -329,7 +320,7 @@ public class KerberosAuthorityTest {
         }
 
         refreshed = kauth.refreshLogin("myserver@EXAMPLE.COM");
-        assertEquals(refreshed, true);
+        assertTrue(refreshed);
         initState = kauth.getInitState();
         assertNull(initState);
 
@@ -344,10 +335,8 @@ public class KerberosAuthorityTest {
             IllegalArgumentException, IllegalAccessException {
         Class<KerberosAuthority> c = KerberosAuthority.class;
         KerberosAuthority check  = new KerberosAuthority();
-        
-        Exception e = null;
-        
-        check.setInitState(e);
+
+        check.setInitState(null);
         
         Field f = c.getDeclaredField("initState");
         f.setAccessible(true);

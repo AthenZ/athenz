@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +26,6 @@ public interface ServiceIdentityProvider {
      * @param serviceName the name of the service
      * @return the identity of the service in the form of a Principal.
      */
-    public Principal getIdentity(String domainName, String serviceName);
+    Principal getIdentity(String domainName, String serviceName);
 
 }

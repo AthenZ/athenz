@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,5 +21,5 @@ public interface PrivateKeyStoreFactory {
      * Create and return a new PrivateKeyStore instance
      * @return PrivateKeyStore instance
      */
-    public PrivateKeyStore create();
+    PrivateKeyStore create();
 }

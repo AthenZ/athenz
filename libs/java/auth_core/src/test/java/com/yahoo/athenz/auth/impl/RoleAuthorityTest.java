@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,7 +49,7 @@ public class RoleAuthorityTest {
     private String ztsPrivateKeyStringK1 = null;
     private static final String ZMS_USER_DOMAIN = "athenz.user_domain";
 
-    static String userDomain = System.getProperty(ZMS_USER_DOMAIN, "user");
+    private static String userDomain = System.getProperty(ZMS_USER_DOMAIN, "user");
     
     @BeforeTest
     private void loadKeys() throws IOException {
@@ -88,26 +88,25 @@ public class RoleAuthorityTest {
             }
         }
 
+        assertNotNull(roleNames);
         roleNames.append(",storage.tenant.weather.admin"); // tamper here by adding a role
 
         List<String> roles = Arrays.asList(roleNames.toString().split(","));
 
-        StringBuilder flattenedRoles = new StringBuilder();
+        StringBuilder flattenedRoles = new StringBuilder(256);
 
         int i = 0;
         for (String role : roles) {
             if (++i == roles.size()) {
                 flattenedRoles.append(role);
             } else {
-                flattenedRoles.append(role + ",");
+                flattenedRoles.append(role).append(",");
             }
         }
 
-        String tamperedToken = new String("v=" + version + ";d=" + domain
+        return "v=" + version + ";d=" + domain
                 + ";r=" + flattenedRoles + ";t=" + Long.toString(timestamp)
-                + ";e=" + Long.toString(expiryTime) + ";s=" + signature);
-
-        return tamperedToken;
+                + ";e=" + Long.toString(expiryTime) + ";s=" + signature;
     }
 
     @Test
@@ -120,7 +119,7 @@ public class RoleAuthorityTest {
         assertEquals(rollAuthority.getHeader(), "Athenz-Role-Auth");
 
         // Add some roles
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("storage.tenant.weather.updater");
         roles.add("fantasy.tenant.sports.admin");
         roles.add("fantasy.tenant.sports.reader");
@@ -149,7 +148,7 @@ public class RoleAuthorityTest {
 
         List<String> rolesToValidate = principal.getRoles();
         assertEquals(rolesToValidate.size(), roles.size());
-        assertTrue(rolesToValidate.equals(roles));
+        assertEquals(rolesToValidate, roles);
 
         // Create and sign token with keyVersion = 0
         rollToken = new RoleToken.Builder(rolVersion, svcDomain, roles)
@@ -186,7 +185,7 @@ public class RoleAuthorityTest {
         rollAuthority.setKeyStore(keyStore);
 
         // Add some roles
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("storage.tenant.weather.updater");
         roles.add("fantasy.tenant.sports.admin");
         roles.add("fantasy.tenant.sports.reader");
@@ -222,7 +221,7 @@ public class RoleAuthorityTest {
         rollAuthority.setKeyStore(keyStore);
 
         // Add some roles
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("storage.tenant.weather.updater");
 
         // Create and sign token with keyVersion = 0
@@ -246,7 +245,7 @@ public class RoleAuthorityTest {
         rollAuthority.setKeyStore(keyStore);
 
         // Add some roles
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("storage.tenant.weather.updater");
 
         // Create and sign token with keyVersion = 0
@@ -270,7 +269,7 @@ public class RoleAuthorityTest {
         rollAuthority.setKeyStore(keyStore);
 
         // Add some roles
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("storage.tenant.weather.updater");
 
         // Create and sign token with keyVersion = 0
@@ -332,7 +331,7 @@ public class RoleAuthorityTest {
         roleAuthority.setKeyStore(keyStore);
 
         // Add some roles
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("storage.tenant.weather.updater");
 
         // Create and sign token with keyVersion = 0
@@ -364,7 +363,7 @@ public class RoleAuthorityTest {
         roleAuthority.setKeyStore(keyStore);
         
         // Add some roles
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("storage.tenant.weather.updater");
 
         // Create and sign token with keyVersion = 0

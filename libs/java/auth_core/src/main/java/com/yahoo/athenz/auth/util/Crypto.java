@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -140,7 +140,7 @@ public class Crypto {
     static final SecureRandom RANDOM;
     static {
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
-        SecureRandom r = null;
+        SecureRandom r;
         try {
             r = SecureRandom.getInstance("NativePRNGNonBlocking");
         } catch (NoSuchAlgorithmException nsa) {
@@ -163,14 +163,12 @@ public class Crypto {
     public static String hmac(String message, String sharedSecret) throws CryptoException {
         //this has not been optimized!
         String method = "HmacSHA256";
-        byte [] bsig = null;
+        byte [] bsig;
         try {
-            
             javax.crypto.Mac hmac = javax.crypto.Mac.getInstance(method);
             javax.crypto.spec.SecretKeySpec secretKey = new javax.crypto.spec.SecretKeySpec(utf8Bytes(sharedSecret), method);
             hmac.init(secretKey);
             bsig = hmac.doFinal(message.getBytes());
-            
         } catch (NoSuchAlgorithmException e) {
             LOG.error("hmac: Caught NoSuchAlgorithmException, check to make sure the algorithm is supported by the provider.");
             throw new CryptoException(e);
@@ -228,12 +226,11 @@ public class Crypto {
      */
     public static String sign(String message, PrivateKey key, String digestAlgorithm) throws CryptoException {
         try {
-            byte [] sig = null;
             String signatureAlgorithm = getSignatureAlgorithm(key.getAlgorithm(), digestAlgorithm);
             java.security.Signature signer = java.security.Signature.getInstance(signatureAlgorithm, BC_PROVIDER);
             signer.initSign(key);
             signer.update(utf8Bytes(message));
-            sig = signer.sign();
+            byte[] sig = signer.sign();
             return ybase64(sig);
         } catch (NoSuchProviderException e) {
             LOG.error("sign: Caught NoSuchProviderException, check to make sure the provider is loaded correctly.");
@@ -406,10 +403,8 @@ public class Crypto {
 
     public static PublicKey loadPublicKey(Reader r) throws CryptoException {
         try (org.bouncycastle.openssl.PEMParser pemReader = new org.bouncycastle.openssl.PEMParser(r)) {
-            PublicKey pubKey = null;
             Object pemObj = pemReader.readObject();
             JcaPEMKeyConverter pemConverter = new JcaPEMKeyConverter();
-            SubjectPublicKeyInfo keyInfo = null;
             X9ECParameters ecParam = null;
 
             if (pemObj instanceof ASN1ObjectIdentifier) {
@@ -430,24 +425,23 @@ public class Crypto {
                 ecParam = (X9ECParameters) pemObj;
                 pemObj = pemReader.readObject();
             }
-            
+
+            SubjectPublicKeyInfo keyInfo;
             if (pemObj instanceof org.bouncycastle.cert.X509CertificateHolder) {
                 keyInfo = ((org.bouncycastle.cert.X509CertificateHolder) pemObj).getSubjectPublicKeyInfo();
             } else {
                 keyInfo = (SubjectPublicKeyInfo) pemObj;
             }
-            pubKey = pemConverter.getPublicKey(keyInfo);
+            PublicKey pubKey = pemConverter.getPublicKey(keyInfo);
             
             if (ecParam != null && ECDSA.equals(pubKey.getAlgorithm())) {
                 ECParameterSpec ecSpec = new ECParameterSpec(ecParam.getCurve(), ecParam.getG(),
                         ecParam.getN(), ecParam.getH(), ecParam.getSeed());
                 KeyFactory keyFactory = KeyFactory.getInstance(ECDSA, BC_PROVIDER);
                 ECPublicKeySpec keySpec = new ECPublicKeySpec(((BCECPublicKey) pubKey).getQ(), ecSpec);
-                pubKey = (PublicKey) keyFactory.generatePublic(keySpec);
+                pubKey = keyFactory.generatePublic(keySpec);
             }
             return pubKey;
-        } catch (PEMException e) {
-            throw new CryptoException(e);
         } catch (NoSuchProviderException e) {
             LOG.error("loadPublicKey: Caught NoSuchProviderException, check to make sure the provider is loaded correctly.");
             throw new CryptoException(e);
@@ -457,7 +451,7 @@ public class Crypto {
         } catch (InvalidKeySpecException e) {
             LOG.error("loadPublicKey: Caught InvalidKeySpecException, invalid key spec is being used.");
             throw new CryptoException("InvalidKeySpecException");
-          } catch (IOException e) {
+        } catch (IOException e) {
             throw new CryptoException(e);
         }
     }
@@ -480,7 +474,7 @@ public class Crypto {
         
         // we only support RSA and ECDSA private keys
         
-        PublicKey publicKey = null;
+        PublicKey publicKey;
         switch (privateKey.getAlgorithm()) {
             case RSA:
                 try {
@@ -506,7 +500,7 @@ public class Crypto {
                     KeyFactory kf = KeyFactory.getInstance(ECDSA, BC_PROVIDER);
                     BCECPrivateKey ecPrivKey = (BCECPrivateKey) privateKey;
                     ECMultiplier ecMultiplier = new FixedPointCombMultiplier();
-                    ECParameterSpec ecParamSpec = (ECParameterSpec) ecPrivKey.getParameters();
+                    ECParameterSpec ecParamSpec = ecPrivKey.getParameters();
                     ECPoint ecPointQ = ecMultiplier.multiply(ecParamSpec.getG(), ecPrivKey.getD());
                     ECPublicKeySpec keySpec = new ECPublicKeySpec(ecPointQ, ecParamSpec);
                     publicKey = kf.generatePublic(keySpec);
@@ -615,12 +609,12 @@ public class Crypto {
             // if our private key is EC type and we have parameters specified
             // then we need to set it accordingly
             
-            if (ecParam != null && ECDSA.equals(privKey.getAlgorithm())) {
+            if (ecParam != null && privKey != null && ECDSA.equals(privKey.getAlgorithm())) {
                 ECParameterSpec ecSpec = new ECParameterSpec(ecParam.getCurve(), ecParam.getG(),
                         ecParam.getN(), ecParam.getH(), ecParam.getSeed());
                 KeyFactory keyFactory = KeyFactory.getInstance(ECDSA, BC_PROVIDER);
                 ECPrivateKeySpec keySpec = new ECPrivateKeySpec(((BCECPrivateKey) privKey).getS(), ecSpec);
-                privKey = (PrivateKey) keyFactory.generatePrivate(keySpec);
+                privKey = keyFactory.generatePrivate(keySpec);
             }
             
             return privKey;
@@ -653,7 +647,7 @@ public class Crypto {
      * Generate a RSA private with the given number of bits
      * @param bits numbers of bits
      * @return PrivateKey private key
-     * @throws CryptoException
+     * @throws CryptoException for any failures
      */
     public static PrivateKey generateRSAPrivateKey(int bits) throws CryptoException {
         KeyPairGenerator keyGen;
@@ -674,8 +668,12 @@ public class Crypto {
 
     public static String encodedFile(File f) {
         try (FileInputStream in = new FileInputStream(f)) {
-            byte [] buf = new byte[(int) f.length()];
-            in.read(buf);
+            int fileLength = (int) f.length();
+            byte [] buf = new byte[fileLength];
+            if (in.read(buf) != fileLength) {
+                LOG.error("encodedFile: Unable to read {} bytes from file {}", fileLength, f.getAbsolutePath());
+                throw new IOException("Unable to read file");
+            }
             return ybase64(buf);
         } catch (FileNotFoundException e) {
             LOG.error("encodedFile: Caught FileNotFoundException while attempting to read encoded file: "
@@ -691,7 +689,7 @@ public class Crypto {
     public static String encodedFile(FileInputStream is) {
         try {
             byte [] buf = new byte[4096];
-            int readBytes = 0;
+            int readBytes;
             String contents = null;
             while ((readBytes = is.read(buf)) > 0) {
                 if (contents == null) {
@@ -699,6 +697,9 @@ public class Crypto {
                 } else {
                     contents = contents.concat(new String(buf, 0, readBytes - 1));
                 }
+            }
+            if (contents == null) {
+                throw new IOException("Unable to read any data from file stream");
             }
             return ybase64(utf8Bytes(contents));
         } catch (IOException e) {
@@ -790,7 +791,7 @@ public class Crypto {
                         try {
                             InetAddress addr = InetAddress.getByAddress(((DEROctetString) name.getName()).getOctets());
                             ipAddresses.add(addr.getHostAddress());
-                        } catch (UnknownHostException e) {
+                        } catch (UnknownHostException ignored) {
                         }
                     }
                 }
@@ -802,7 +803,7 @@ public class Crypto {
     public static String extractX509CSRPublicKey(PKCS10CertificationRequest certReq) {
         
         JcaPEMKeyConverter pemConverter = new JcaPEMKeyConverter();
-        PublicKey publicKey = null;
+        PublicKey publicKey;
         try {
             publicKey = pemConverter.getPublicKey(certReq.getSubjectPublicKeyInfo());
         } catch (PEMException ex) {
@@ -1016,7 +1017,7 @@ public class Crypto {
 
         // Generate self-signed certificate
         
-        X509Certificate cert = null;
+        X509Certificate cert;
         try {
             JcaPKCS10CertificationRequest jcaPKCS10CertificationRequest = new JcaPKCS10CertificationRequest(certReq);
             PublicKey publicKey = jcaPKCS10CertificationRequest.getPublicKey();
@@ -1043,19 +1044,19 @@ public class Crypto {
                         continue;
                     }
                     GeneralName[] names = gns.getNames();
-                    for (int i = 0; i < names.length; i++) {
-                        switch (names[i].getTagNo()) {
+                    for (GeneralName name : names) {
+                        switch (name.getTagNo()) {
                             case GeneralName.dNSName:
                             case GeneralName.iPAddress:
                             case GeneralName.rfc822Name:
-                                altNames.add(names[i]);
+                                altNames.add(name);
                                 break;
                         }
                     }
                 }
                 if (!altNames.isEmpty()) {
                     caBuilder.addExtension(Extension.subjectAlternativeName, false,
-                            new GeneralNames(altNames.toArray(new GeneralName[altNames.size()])));
+                            new GeneralNames(altNames.toArray(new GeneralName[0])));
                 }
            }
             
@@ -1093,7 +1094,7 @@ public class Crypto {
     public static boolean validatePKCS7Signature(String data, String signature, PublicKey publicKey) {
         
         try {
-            SignerInformationStore signerStore = null;
+            SignerInformationStore signerStore;
             try (InputStream sigIs = new ByteArrayInputStream(Base64.decode(signature.getBytes(StandardCharsets.UTF_8)))) {
                 CMSProcessable content = new CMSProcessableByteArray(data.getBytes(StandardCharsets.UTF_8));
                 CMSSignedData signedData = new CMSSignedData(content, sigIs);
@@ -1106,7 +1107,7 @@ public class Crypto {
             SignerInformationVerifier infoVerifier = new JcaSimpleSignerInfoVerifierBuilder()
                     .setProvider(BC_PROVIDER).build(publicKey);
             while (it.hasNext()) {
-                SignerInformation signerInfo = (SignerInformation) it.next();
+                SignerInformation signerInfo = it.next();
                 if (signerInfo.verify(infoVerifier)) {
                     return true;
                 }
@@ -1135,7 +1136,6 @@ public class Crypto {
             try (JcaPEMWriter pemWriter = new JcaPEMWriter(writer)) {
                 pemWriter.writeObject(obj);
                 pemWriter.flush();
-                pemWriter.close();
             }
         } catch (IOException ex) {
             LOG.error("convertToPEMFormat: unable to convert object to PEM: " + ex.getMessage());
