@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +25,7 @@ import java.util.Arrays;
 
 public class YBase64 {
 
-    static final byte[] Y64_ARRAY = {
+    private static final byte[] Y64_ARRAY = {
             'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
             'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
             'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3',
@@ -61,7 +61,7 @@ public class YBase64 {
             (byte) 0xee, (byte) 0xee, (byte) 0xee, (byte) 0xee
     };
 
-    private static final byte decodeByte(int index) {
+    private static byte decodeByte(int index) {
         // java has signed bytes, and the good values are up to 122, so any
         // negative indexes are signed byte conversions of >128 and invalid
         if (index < 0 || index >= Y64_DECODE_ARRAY.length) {
@@ -70,7 +70,7 @@ public class YBase64 {
         return Y64_DECODE_ARRAY[index];
     }
 
-    private static final byte encode1(byte ba) {
+    private static byte encode1(byte ba) {
         // enc1: Y64_array[(a >> 2)];
         // have to make value into an int so we can do shifts.
         // but we need to mask off the sign bit.
@@ -82,7 +82,7 @@ public class YBase64 {
         return Y64_ARRAY[i];
     }
 
-    private static final byte encode2(byte ba, byte bb) {
+    private static byte encode2(byte ba, byte bb) {
         // enc2: Y64_array[((a << 4) & 0x30) + (b >> 4)];
         // have to make value into an int so we can do shifts.
         // but we need to mask off the sign bit.
@@ -96,7 +96,7 @@ public class YBase64 {
         return Y64_ARRAY[i];
     }
 
-    private static final byte encode3(byte bb, byte bc) {
+    private static byte encode3(byte bb, byte bc) {
         // enc3: Y64_array[((b << 2) & 0x3C) + (c >> 6)];
         // have to make value into an int so we can do shifts.
         // but we need to mask off the sign bit.
@@ -110,7 +110,7 @@ public class YBase64 {
         return Y64_ARRAY[i];
     }
 
-    private static final byte encode4(byte bc) {
+    private static byte encode4(byte bc) {
         // enc4: Y64_array[c & 0x3F];
         // have to make value into an int so we can do shifts.
         // but we need to mask off the sign bit.
@@ -122,15 +122,15 @@ public class YBase64 {
         return Y64_ARRAY[i];
     }
 
-    private static final byte decode1(byte a, byte b) {
+    private static byte decode1(byte a, byte b) {
         return (byte) ((a << 2) + (b >> 4));
     }
 
-    private static final byte decode2(byte b, byte c) {
+    private static byte decode2(byte b, byte c) {
         return (byte) ((b << 4) + (c >> 2));
     }
 
-    private static final byte decode3(byte c, byte d) {
+    private static byte decode3(byte c, byte d) {
         return (byte) ((c << 6) + d);
     }
 
@@ -157,11 +157,11 @@ public class YBase64 {
                             + " len%4= " + len % 4);
         }
 
-        byte[] out = new byte[(int) y64decodeLen(len)];
+        byte[] out = new byte[y64decodeLen(len)];
 
         int i = 0;
         int j = 0;
-        int tlen = 0;
+        int tlen;
         while (i < len) {
             tlen = (len - i);
             if (tlen > 4) {
@@ -239,7 +239,7 @@ public class YBase64 {
         int encodeLen = y64encodeLen(len);
         byte[] out = new byte[encodeLen];
         int j = 0;
-        int tlen = 0;
+        int tlen;
 
         for (int i = 0; i < len; i += 3) {
 
@@ -255,7 +255,6 @@ public class YBase64 {
             if (tlen == 1) {
                 a = inBytes[i];
                 b = 0;
-                c = 0;
                 // enc1: Y64_array[(a >> 2)];
                 out[j++] = encode1(a);
                 // enc2: Y64_array[((a << 4) & 0x30) + (b >> 4)];

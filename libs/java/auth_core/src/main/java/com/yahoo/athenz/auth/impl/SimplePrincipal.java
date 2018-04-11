@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,15 +28,15 @@ public class SimplePrincipal implements Principal {
 
     private static final Logger LOG = LoggerFactory.getLogger(SimplePrincipal.class);
     
-    String domain = null;
+    String domain;
     String name = null;
     String fullName  = null;
-    String creds = null;
+    String creds;
     String unsignedCreds = null;
     String ip = null;
     long issueTime = 0;
     List<String> roles = null; 
-    Authority authority = null;
+    Authority authority;
     String authorizedService = null;
     String originalRequestor = null;
     String keyService = null;

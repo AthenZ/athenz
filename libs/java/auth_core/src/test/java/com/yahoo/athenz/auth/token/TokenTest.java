@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,7 +37,6 @@ public class TokenTest {
     private final String svcName = "fantasy";
     private final String host = "somehost.somecompany.com";
     private final String salt = "saltstring";
-    private final String testKeyVersionK1 = "1";
 
     private final long expirationTime = 10; // 10 seconds
     
@@ -153,9 +152,10 @@ public class TokenTest {
     }
     
     @Test
-    public void testTokenGetters() throws InterruptedException, CryptoException {
+    public void testTokenGetters() throws CryptoException {
         
         long timestamp = System.currentTimeMillis() / 1000;
+        String testKeyVersionK1 = "1";
         PrincipalToken token = new PrincipalToken.Builder(svcVersion, svcDomain, svcName)
             .host(host).ip("127.0.0.1").salt(salt).issueTime(timestamp)
             .keyId(testKeyVersionK1).expirationWindow(expirationTime).build();
@@ -187,7 +187,7 @@ public class TokenTest {
 
         for (String signedToken: signedTokens) {
             String unsignedToken = Token.getUnsignedToken(signedToken);
-            assertFalse(unsignedToken == signedToken);
+            assertNotEquals(unsignedToken, signedToken);
             assertTrue(unsignedToken.length() < signedToken.length());
             assertTrue(signedToken.startsWith(unsignedToken));
         }
@@ -206,7 +206,7 @@ public class TokenTest {
 
         for (String signedToken: signedTokens) {
             String unsignedToken = Token.getUnsignedToken(signedToken);
-            assertTrue(unsignedToken == signedToken);
+            assertSame(unsignedToken, signedToken);
         }
     }
 

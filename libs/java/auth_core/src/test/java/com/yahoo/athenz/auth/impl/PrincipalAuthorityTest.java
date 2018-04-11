@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,8 +44,6 @@ public class PrincipalAuthorityTest {
     private final String svcName = "fantasy";
     private final String host = "somehost.somecompany.com";
     private final String salt = "saltvalue";
-    private final String testKeyVersionK0 = "0";
-    private final String testKeyVersionK1 = "1";
     private final String usrVersion = "U1";
     private final String usrDomain = "user";
     private final String usrName = "john";
@@ -64,8 +62,8 @@ public class PrincipalAuthorityTest {
         servicePrivateKeyStringK1 = new String(Files.readAllBytes(path));
     }
     
+    @SuppressWarnings("ConstantConditions")
     private String tamperWithServiceToken(String signedToken) {
-        String name = null;
         String version = null;
         String salt = null;
         String domain = null;
@@ -77,9 +75,7 @@ public class PrincipalAuthorityTest {
         for (String item : signedToken.split(";")) {
             String[] kv = item.split("=");
             if (kv.length == 2) {
-                if ("n".equals(kv[0])) {
-                    name = kv[1];
-                } else if ("v".equals(kv[0])) {
+                if ("v".equals(kv[0])) {
                     version = kv[1];
                 } else if ("a".equals(kv[0])) {
                     salt = kv[1];
@@ -97,14 +93,12 @@ public class PrincipalAuthorityTest {
             }
         }
 
-        name = "nfl"; // tamper here by changing the name
+        final String name = "nfl"; // tamper here by changing the name
 
-        String tamperedToken = new String("v=" + version + ";d=" + domain
+        return "v=" + version + ";d=" + domain
                 + ";n=" + name + ";h=" + host + ";a=" + salt + ";t="
                 + Long.toString(timestamp) + ";e=" + Long.toString(expiryTime)
-                + ";s=" + signature);
-
-        return tamperedToken;
+                + ";s=" + signature;
     }
 
     @Test
@@ -137,6 +131,7 @@ public class PrincipalAuthorityTest {
         assertNotNull(principal);
         
         // Create and sign token with key version 0
+        String testKeyVersionK0 = "0";
         serviceToken = new PrincipalToken.Builder(svcVersion, svcDomain, svcName)
                 .host(host).salt(salt).expirationWindow(expirationTime)
                 .keyId(testKeyVersionK0).build();
@@ -148,6 +143,7 @@ public class PrincipalAuthorityTest {
         assertEquals(principal.getCredentials(), serviceToken.getSignedToken());
         
         // Create and sign token with key version 1
+        String testKeyVersionK1 = "1";
         serviceToken = new PrincipalToken.Builder(svcVersion, svcDomain, svcName)
             .host(host).salt(salt).expirationWindow(expirationTime).keyId(testKeyVersionK1).build();
         serviceToken.sign(servicePrivateKeyStringK1);
@@ -323,8 +319,8 @@ public class PrincipalAuthorityTest {
         List<String> authorizedServices = new ArrayList<>();
         authorizedServices.add("coretech.storage");
         authorizedServices.add("media.storage");
-        assertEquals(serviceAuthority.getAuthorizedServiceName(authorizedServices, null), null);
-        assertEquals(serviceAuthority.getAuthorizedServiceName(authorizedServices, "sports.storage"), null);
+        assertNull(serviceAuthority.getAuthorizedServiceName(authorizedServices, null));
+        assertNull(serviceAuthority.getAuthorizedServiceName(authorizedServices, "sports.storage"));
         assertEquals(serviceAuthority.getAuthorizedServiceName(authorizedServices, "coretech.storage"),
                 "coretech.storage");
     }
@@ -335,7 +331,7 @@ public class PrincipalAuthorityTest {
         List<String> authorizedServices = new ArrayList<>();
         authorizedServices.add("coretech.storage");
         assertEquals(serviceAuthority.getAuthorizedServiceName(authorizedServices, null), "coretech.storage");
-        assertEquals(serviceAuthority.getAuthorizedServiceName(authorizedServices, "sports.storage"), null);
+        assertNull(serviceAuthority.getAuthorizedServiceName(authorizedServices, "sports.storage"));
         assertEquals(serviceAuthority.getAuthorizedServiceName(authorizedServices, "coretech.storage"),
                 "coretech.storage");
     }
@@ -508,7 +504,7 @@ public class PrincipalAuthorityTest {
     }
 
     @Test
-    public void testAuthenticateIlligal() throws IOException {
+    public void testAuthenticateIlligal() {
         PrincipalAuthority serviceAuthority = new PrincipalAuthority();
 
         Principal principal = serviceAuthority.authenticate("aaaa", null, "GET", null);
@@ -558,7 +554,7 @@ public class PrincipalAuthorityTest {
     }
 
     @Test
-    public void testValidateAuthorizedIlligalForAuthorizedService() throws IOException {
+    public void testValidateAuthorizedIlligalForAuthorizedService() {
 
         PrincipalAuthority serviceAuthority = new PrincipalAuthority();
         KeyStore keyStore = Mockito.mock(KeyStore.class);
@@ -586,7 +582,7 @@ public class PrincipalAuthorityTest {
     }
 
     @Test
-    public void testPrincipalAuthorityAuthenticateIlligal() throws IOException, CryptoException {
+    public void testPrincipalAuthorityAuthenticateIlligal() throws CryptoException {
         PrincipalAuthority serviceAuthority = new PrincipalAuthority();
         KeyStore keyStore = Mockito.mock(KeyStore.class);
         serviceAuthority.setKeyStore(keyStore);

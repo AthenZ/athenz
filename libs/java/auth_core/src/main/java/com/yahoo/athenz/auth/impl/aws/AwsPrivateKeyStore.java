@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017 Yahoo Holdings Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -127,7 +127,7 @@ public class AwsPrivateKeyStore implements PrivateKeyStore {
         return getDecryptedData(appName, keyName);
     }
     
-    String getDecryptedData(final String bucketName, final String keyName) {
+    private String getDecryptedData(final String bucketName, final String keyName) {
         
         String keyValue = "";
         S3Object s3Object = s3.getObject(bucketName, keyName);
@@ -142,7 +142,7 @@ public class AwsPrivateKeyStore implements PrivateKeyStore {
         }
         
         try (S3ObjectInputStream s3InputStream = s3Object.getObjectContent(); 
-                ByteArrayOutputStream result = new ByteArrayOutputStream();) {
+                ByteArrayOutputStream result = new ByteArrayOutputStream()) {
             
             byte[] buffer = new byte[1024];
             int length;

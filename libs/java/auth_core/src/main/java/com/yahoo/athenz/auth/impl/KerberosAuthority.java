@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,10 +15,7 @@
  */
 package com.yahoo.athenz.auth.impl;
 
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.HashMap;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.security.auth.Subject;
@@ -42,7 +39,7 @@ import com.yahoo.athenz.auth.token.KerberosToken;
  */
 public class KerberosAuthority implements Authority {
 
-    static final Logger LOG = LoggerFactory.getLogger(KerberosAuthority.class);
+    private static final Logger LOG = LoggerFactory.getLogger(KerberosAuthority.class);
 
     static final String KRB_AUTH_HEADER  = "Authorization";
     static final String KRB_PROP_SVCPRPL = "athenz.auth.kerberos.service_principal";
@@ -64,7 +61,7 @@ public class KerberosAuthority implements Authority {
     private String  keyTabConfFile;
     private String  jaasConfigSection;
     private String  loginCallbackHandler;
-    private AtomicReference<Subject> serviceSubject = new AtomicReference<Subject>();
+    private AtomicReference<Subject> serviceSubject = new AtomicReference<>();
     private Exception initState = null;
 
     private long lastLogin   = 0; // last time logged in in millisecs
@@ -131,10 +128,10 @@ public class KerberosAuthority implements Authority {
 
         Subject subject = null;
         if (servicePrincipal != null) {
-            Set<java.security.Principal> principals = new HashSet<java.security.Principal>(1);
+            Set<java.security.Principal> principals = new HashSet<>(1);
             principals.add(new KerberosPrincipal(servicePrincipal));
 
-            subject = new Subject(false, principals, new HashSet<Object>(), new HashSet<Object>());
+            subject = new Subject(false, principals, new HashSet<>(), new HashSet<>());
         }
 
         LoginConfig loginConfig = new LoginConfig(keyTabConfFile, servicePrincipal);
@@ -143,7 +140,7 @@ public class KerberosAuthority implements Authority {
             // NOTE: if no callback handler specified
             // LoginContext uses the auth.login.defaultCallbackHandler security property for the fully 
             // qualified class name of a default handler implementation
-            LoginContext    loginContext = null;
+            LoginContext    loginContext;
             CallbackHandler loginHandler = null;
             if (loginCallbackHandler != null) {
                 Class cbhandlerClass = Class.forName(loginCallbackHandler);
@@ -151,7 +148,7 @@ public class KerberosAuthority implements Authority {
             }
             
             if (subject == null) {
-                loginContext = new LoginContext(jaasConfigSection, loginHandler);
+                loginContext = new LoginContext(jaasConfigSection, Objects.requireNonNull(loginHandler));
             } else {
                 loginContext = new LoginContext(jaasConfigSection, subject, loginHandler, loginConfig);
             }
@@ -182,10 +179,7 @@ public class KerberosAuthority implements Authority {
             LOG.debug("KerberosAuthority:isTargetPrincipal: our princ=" + servicePrincipal + " ticket princ=" + principal.getName());
         }
 
-        if (principal.getName().equals(remoteSvcPrincipal)) {
-            return true;
-        }
-        return false;
+        return principal.getName().equals(remoteSvcPrincipal);
     }
 
     /**
@@ -246,7 +240,7 @@ public class KerberosAuthority implements Authority {
     @Override
     public Principal authenticate(String creds, String remoteAddr, String httpMethod, StringBuilder errMsg) {
 
-        KerberosToken token = null;
+        KerberosToken token;
         try {
             token = new KerberosToken(creds, remoteAddr);
         } catch (IllegalArgumentException ex) {
@@ -261,7 +255,7 @@ public class KerberosAuthority implements Authority {
         }
 
         StringBuilder errDetail = new StringBuilder(512);
-        if (token.validate(serviceSubject.get(), errDetail) == false) {
+        if (!token.validate(serviceSubject.get(), errDetail)) {
             if (errMsg != null) {
                 errMsg.append("KerberosAuthority:authenticate: token validation failure: ");
                 errMsg.append(errDetail);
@@ -283,7 +277,7 @@ public class KerberosAuthority implements Authority {
     static class LoginConfig extends Configuration {
         private String keyTabConfFile;
         private String servicePrincipalName;
-        private boolean debugKrbEnabled = false;
+        private boolean debugKrbEnabled;
 
         public LoginConfig(String keyTabConfFile, String servicePrincipalName) {
             this.keyTabConfFile       = keyTabConfFile;
@@ -297,7 +291,7 @@ public class KerberosAuthority implements Authority {
 
         @Override
         public AppConfigurationEntry[] getAppConfigurationEntry(String name) {
-            Map<String, String> options = new HashMap<String, String>();
+            Map<String, String> options = new HashMap<>();
             if (keyTabConfFile == null || keyTabConfFile.isEmpty()) {
                 options.put("useKeyTab", "false");
                 options.put("tryFirstPass", "true");
@@ -324,7 +318,7 @@ public class KerberosAuthority implements Authority {
             
             // If "ticketCache" is set, "useTicketCache" must also be set to true;
             // Otherwise a configuration error will be returned
-            if (Boolean.parseBoolean(useTktCache) == true) {
+            if (Boolean.parseBoolean(useTktCache)) {
                 String ticketCacheName = System.getenv("KRB5CCNAME");  // this is what hadoop does
                 if (ticketCacheName != null) {
                     options.put("ticketCache", ticketCacheName);

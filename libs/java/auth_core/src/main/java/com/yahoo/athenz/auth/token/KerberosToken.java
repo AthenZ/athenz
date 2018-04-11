@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,16 +34,16 @@ public class KerberosToken extends Token {
 
     public static final String KRB_AUTH_VAL_FLD = "Negotiate";
     public static final String KRB_PROP_TOKEN_PRIV_ACTION = "athenz.auth.kerberos.krb_privileged_action_class";
-    public static final String ATHENZ_PROP_USER_DOMAIN = "athenz.user_domain";
-    public static final String ATHENZ_PROP_USER_REALM = "athenz.auth.kerberos.user_realm";
-    public static final String ATHENZ_PROP_KRB_USER_DOMAIN = "athenz.auth.kerberos.krb_user_domain";
-    public static final String ATHENZ_PROP_KRB_USER_REALM = "athenz.auth.kerberos.krb_user_realm";
+    private static final String ATHENZ_PROP_USER_DOMAIN = "athenz.user_domain";
+    private static final String ATHENZ_PROP_USER_REALM = "athenz.auth.kerberos.user_realm";
+    private static final String ATHENZ_PROP_KRB_USER_DOMAIN = "athenz.auth.kerberos.krb_user_domain";
+    private static final String ATHENZ_PROP_KRB_USER_REALM = "athenz.auth.kerberos.krb_user_realm";
 
-    String krbPrivActionClass = System.getProperty(KRB_PROP_TOKEN_PRIV_ACTION);
-    String userName = null;
+    private String krbPrivActionClass = System.getProperty(KRB_PROP_TOKEN_PRIV_ACTION);
+    private String userName = null;
     
     public static final String USER_DOMAIN = System.getProperty(ATHENZ_PROP_USER_DOMAIN, "user");
-    public static final String USER_REALM = System.getProperty(ATHENZ_PROP_USER_REALM, "USER_REALM");
+    private static final String USER_REALM = System.getProperty(ATHENZ_PROP_USER_REALM, "USER_REALM");
     public static final String KRB_USER_DOMAIN = System.getProperty(ATHENZ_PROP_KRB_USER_DOMAIN, "krb");
     public static final String KRB_USER_REALM = System.getProperty(ATHENZ_PROP_KRB_USER_REALM, "KRB_REALM");
     
@@ -65,14 +65,14 @@ public class KerberosToken extends Token {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public boolean validate(Subject serviceSubject, StringBuilder errMsg) {
     
-        PrivilegedExceptionAction<String> privExcAction = null;
+        PrivilegedExceptionAction<String> privExcAction;
         try {
             byte[] kerberosTicket = Base64.decode(unsignedToken.getBytes(StandardCharsets.UTF_8));
             if (krbPrivActionClass == null) {
                 privExcAction = new KerberosValidateAction(kerberosTicket);
             } else {
                 Class privActionClass = Class.forName(krbPrivActionClass);
-                privExcAction = (PrivilegedExceptionAction<String>) privActionClass.getConstructor(byte[].class).newInstance(kerberosTicket);
+                privExcAction = (PrivilegedExceptionAction<String>) privActionClass.getConstructor(byte[].class).newInstance((Object) kerberosTicket);
             }
             userName = Subject.doAs(serviceSubject, privExcAction);
             int index = userName.indexOf('@');
@@ -111,9 +111,9 @@ public class KerberosToken extends Token {
     }
 
     private static class KerberosValidateAction implements PrivilegedExceptionAction<String> {
-        byte[] kerberosTicket;
+        final byte[] kerberosTicket;
 
-        public KerberosValidateAction(byte[] kerberosTicket) {
+        KerberosValidateAction(byte[] kerberosTicket) {
             this.kerberosTicket = kerberosTicket;
         }
 

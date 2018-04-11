@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +32,7 @@ public class FilePrivateKeyStore implements PrivateKeyStore {
     
     public static final String ATHENZ_PROP_PRIVATE_KEY = "athenz.auth.private_key_store.private_key";
     public static final String ATHENZ_PROP_PRIVATE_KEY_ID = "athenz.auth.private_key_store.private_key_id";
-    public static final String ATHENZ_STR_JAR_RESOURCE = "JAR_RESOURCE:";
+    private static final String ATHENZ_STR_JAR_RESOURCE = "JAR_RESOURCE:";
 
     public FilePrivateKeyStore() {
     }
@@ -54,7 +54,7 @@ public class FilePrivateKeyStore implements PrivateKeyStore {
         // check to see if this is running in dev mode and thus it's
         // a resource in our jar file
         
-        String privKey = null;
+        String privKey;
         if (privKeyName.startsWith(ATHENZ_STR_JAR_RESOURCE)) {
             privKey = retrieveKeyFromResource(privKeyName.substring(ATHENZ_STR_JAR_RESOURCE.length()));
         } else {
@@ -70,7 +70,7 @@ public class FilePrivateKeyStore implements PrivateKeyStore {
         return pkey;
     }
     
-    String retrieveKeyFromResource(String resourceName) {
+    private String retrieveKeyFromResource(String resourceName) {
         
         String key = null;
         try (InputStream is = getClass().getResourceAsStream(resourceName)) {

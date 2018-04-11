@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,29 +44,29 @@ import com.yahoo.athenz.auth.util.CryptoException;
 
 public class CryptoTest {
 
-    final File rsaPrivateKey = new File("./src/test/resources/rsa_private.key");
-    final File rsaPublicKey = new File("./src/test/resources/rsa_public.key");
-    final File rsaPublicX590Cert = new File("./src/test/resources/rsa_public_x509.cert");
-    final File rsaPublicInvalidKey = new File("./src/test/resources/rsa_public_invalid.key");
+    private final File rsaPrivateKey = new File("./src/test/resources/rsa_private.key");
+    private final File rsaPublicKey = new File("./src/test/resources/rsa_public.key");
+    private final File rsaPublicX590Cert = new File("./src/test/resources/rsa_public_x509.cert");
+    private final File rsaPublicInvalidKey = new File("./src/test/resources/rsa_public_invalid.key");
 
-    final File ecPrivateKey = new File("./src/test/resources/ec_private.key");
-    final File ecPublicKey = new File("./src/test/resources/ec_public.key");
-    final File ecPublicX509Cert = new File("./src/test/resources/ec_public_x509.cert");
-    final File ecPublicInvalidKey = new File("./src/test/resources/ec_public_invalid.key");
-    final File ecPrivateParamPrime256v1Key = new File("./src/test/resources/ec_private_param_prime256v1.key");
-    final File ecPublicParamPrime256v1Key = new File("./src/test/resources/ec_public_param_prime256v1.key");
-    final File ecPrivateParamSecp384r1Key = new File("./src/test/resources/ec_private_param_secp384r1.key");
-    final File ecPublicParamSecp384r1Key = new File("./src/test/resources/ec_public_param_secp384r1.key");
-    final File ecPrivateParamsKey = new File("./src/test/resources/ec_private_params.key");
-    final File ecPublicParamsKey = new File("./src/test/resources/ec_public_params.key");
-    final File argFile = new File("./src/test/resources/arg_file");
+    private final File ecPrivateKey = new File("./src/test/resources/ec_private.key");
+    private final File ecPublicKey = new File("./src/test/resources/ec_public.key");
+    private final File ecPublicX509Cert = new File("./src/test/resources/ec_public_x509.cert");
+    private final File ecPublicInvalidKey = new File("./src/test/resources/ec_public_invalid.key");
+    private final File ecPrivateParamPrime256v1Key = new File("./src/test/resources/ec_private_param_prime256v1.key");
+    private final File ecPublicParamPrime256v1Key = new File("./src/test/resources/ec_public_param_prime256v1.key");
+    private final File ecPrivateParamSecp384r1Key = new File("./src/test/resources/ec_private_param_secp384r1.key");
+    private final File ecPublicParamSecp384r1Key = new File("./src/test/resources/ec_public_param_secp384r1.key");
+    private final File ecPrivateParamsKey = new File("./src/test/resources/ec_private_params.key");
+    private final File ecPublicParamsKey = new File("./src/test/resources/ec_public_params.key");
+    private final File argFile = new File("./src/test/resources/arg_file");
     
-    final File privateEncryptedKey = new File("./src/test/resources/private_encrypted.key");
-    final String encryptedKeyPassword = "athenz";
+    private final File privateEncryptedKey = new File("./src/test/resources/private_encrypted.key");
+    private final String encryptedKeyPassword = "athenz";
     
-    final String serviceToken = "v=S1;d=coretech;n=storage;t=1234567000;e=123456800;h=localhost";
-    final String serviceRSASignature = "VsUlcNozK4as1FjPbowEE_DFDD8KWpQzphadfbt_TsMoCTLFpYrMzKTu_nHKemJmEi0bbPwj7hRLrIKEFu2VjQ--";
-    final String serviceECSignature = "MEQCIEBnyNCxp5GSeua3K9OenyetmVs4F68VB.Md1JRaU4OXAiBWAxlJLe74ZV4QDqapsD4FJm.MA3mv0FMcq.LEevJa0g--";
+    private final String serviceToken = "v=S1;d=coretech;n=storage;t=1234567000;e=123456800;h=localhost";
+    private final String serviceRSASignature = "VsUlcNozK4as1FjPbowEE_DFDD8KWpQzphadfbt_TsMoCTLFpYrMzKTu_nHKemJmEi0bbPwj7hRLrIKEFu2VjQ--";
+    private final String serviceECSignature = "MEQCIEBnyNCxp5GSeua3K9OenyetmVs4F68VB.Md1JRaU4OXAiBWAxlJLe74ZV4QDqapsD4FJm.MA3mv0FMcq.LEevJa0g--";
     
     @Test
     public void testSignVerifyRSAKey() {
@@ -453,7 +453,7 @@ public class CryptoTest {
     }
     
     @Test
-    public void testLoadReaderPrivateKey() throws IOException{
+    public void testLoadReaderPrivateKey() {
         try (java.io.FileReader fileReader = new java.io.FileReader(rsaPrivateKey)) {
             PrivateKey privateKey = Crypto.loadPrivateKey(fileReader);
             assertNotNull(privateKey);
@@ -472,7 +472,7 @@ public class CryptoTest {
     }
 
     @Test
-    public void testEncodedFileStream() throws Exception {
+    public void testEncodedFileStream() {
         try (FileInputStream in = new FileInputStream(argFile)) {
             String encoded = Crypto.encodedFile(in);
             assertNotNull(encoded);
@@ -499,7 +499,7 @@ public class CryptoTest {
     }
 
     @Test(dataProvider = "x500Principal")
-    public void testX509CSRrequest(String x500Principal, boolean badRequest) throws Exception{
+    public void testX509CSRrequest(String x500Principal, boolean badRequest) {
         PublicKey publicKey = Crypto.loadPublicKey(rsaPublicKey);
         PrivateKey privateKey = Crypto.loadPrivateKey(rsaPrivateKey);
         String certRequest = null;
@@ -520,7 +520,7 @@ public class CryptoTest {
     }
     
     @Test(dataProvider = "x500Principal")
-    public void testX509CSRrequestWithPrivateKeyOnly(String x500Principal, boolean badRequest) throws Exception {
+    public void testX509CSRrequestWithPrivateKeyOnly(String x500Principal, boolean badRequest) {
         PrivateKey privateKey = Crypto.loadPrivateKey(rsaPrivateKey);
         String certRequest = null;
         GeneralName otherName1 = new GeneralName(GeneralName.otherName, new DERIA5String("role1"));
@@ -540,7 +540,7 @@ public class CryptoTest {
     }
     
     @Test
-    public void testExtractX509CertCommonName() throws Exception, IOException {
+    public void testExtractX509CertCommonName() throws Exception {
         
         try (InputStream inStream = new FileInputStream("src/test/resources/valid_cn_x509.cert")) {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
@@ -552,7 +552,7 @@ public class CryptoTest {
     }
     
     @Test
-    public void testExtractX509CertIpAddressesNull() throws Exception, IOException {
+    public void testExtractX509CertIpAddressesNull() throws Exception {
         
         try (InputStream inStream = new FileInputStream("src/test/resources/valid_cn_x509.cert")) {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
@@ -572,7 +572,7 @@ public class CryptoTest {
     }
     
     @Test
-    public void testExtractX509CertIpAddressesSingle() throws Exception, IOException {
+    public void testExtractX509CertIpAddressesSingle() throws Exception {
         
         try (InputStream inStream = new FileInputStream("src/test/resources/x509_altnames_singleip.cert")) {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
@@ -585,7 +585,7 @@ public class CryptoTest {
     }
     
     @Test
-    public void testExtractX509CertIpAddressesDouble() throws Exception, IOException {
+    public void testExtractX509CertIpAddressesDouble() throws Exception {
         
         try (InputStream inStream = new FileInputStream("src/test/resources/x509_altnames_doubleip.cert")) {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
@@ -604,6 +604,7 @@ public class CryptoTest {
         Path path = Paths.get("src/test/resources/valid.csr");
         String csr = new String(Files.readAllBytes(path));
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
+        assertNotNull(certReq);
 
         assertEquals(Crypto.extractX509CSRCommonName(certReq), "athenz.syncer");
         assertNull(Crypto.extractX509CSREmail(certReq));
@@ -615,6 +616,7 @@ public class CryptoTest {
         Path path = Paths.get("src/test/resources/valid_email.csr");
         String csr = new String(Files.readAllBytes(path));
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
+        assertNotNull(certReq);
 
         assertEquals(Crypto.extractX509CSRCommonName(certReq), "sports:role.readers");
         assertEquals(Crypto.extractX509CSREmail(certReq), "sports.scores@aws.yahoo.cloud");
@@ -626,7 +628,7 @@ public class CryptoTest {
         Path path = Paths.get("src/test/resources/valid.csr");
         String csr = new String(Files.readAllBytes(path));
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
-
+        assertNotNull(certReq);
         List<String> ips = Crypto.extractX509CSRIPAddresses(certReq);
         assertTrue(ips.isEmpty());
     }
@@ -637,7 +639,8 @@ public class CryptoTest {
         Path path = Paths.get("src/test/resources/multiple_ips.csr");
         String csr = new String(Files.readAllBytes(path));
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
-        
+        assertNotNull(certReq);
+
         List<String> ips = Crypto.extractX509CSRIPAddresses(certReq);
         assertEquals(2, ips.size());
         assertEquals(ips.get(0), "10.11.12.13");

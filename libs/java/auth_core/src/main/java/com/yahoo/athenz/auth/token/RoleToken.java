@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +25,7 @@ import com.yahoo.athenz.auth.util.Crypto;
 
 public class RoleToken extends Token {
 
-    protected List<String> roles = null;
+    protected List<String> roles;
     private String principal = null;
     private String proxyUser = null;
     private boolean domainCompleteRoleSet = false;
@@ -35,9 +35,9 @@ public class RoleToken extends Token {
     public static class Builder {
 
         // required attributes
-        private String domain = null;
-        private List<String> roles = null;
-        private String version = null;
+        private String domain;
+        private List<String> roles;
+        private String version;
         private String principal = null;
         private String proxyUser = null;
         private boolean domainCompleteRoleSet = false;
@@ -196,7 +196,7 @@ public class RoleToken extends Token {
             throw new IllegalArgumentException("Input String signedToken must not be empty");
         }
         
-        /**
+        /*
          * first we need to extract data and signature parts
          * the signature is always at the end of the token.
          * The format for the Token is as follows:

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,11 +39,11 @@ public class RoleAuthority implements Authority, AuthorityKeyStore {
     public static final String HTTP_HEADER = "Athenz-Role-Auth";
     public static final String ATHENZ_PROP_ROLE_HEADER = "athenz.auth.role.header";
     
-    private int allowedOffset = 300;
+    private int allowedOffset;
 
-    KeyStore keyStore = null;
-    String userDomain = "user";
-    String headerName = HTTP_HEADER;
+    private KeyStore keyStore = null;
+    String userDomain;
+    String headerName;
     
     public RoleAuthority() {
         allowedOffset = Integer.parseInt(System.getProperty(ATHENZ_PROP_TOKEN_OFFSET, "300"));
@@ -79,7 +79,7 @@ public class RoleAuthority implements Authority, AuthorityKeyStore {
             LOG.debug("Authenticating RoleToken: " + signedToken);
         }
 
-        RoleToken roleToken = null;
+        RoleToken roleToken;
         try {
              roleToken = new RoleToken(signedToken);
         } catch (IllegalArgumentException ex) {
@@ -122,9 +122,9 @@ public class RoleAuthority implements Authority, AuthorityKeyStore {
         
         String publicKey = keyStore.getPublicKey(SYS_AUTH_DOMAIN, ZTS_SERVICE_NAME, roleToken.getKeyId());
 
-        if (roleToken.validate(publicKey, allowedOffset, false) == false) {
-                errMsg.append("RoleAuthority:authenticate failed: validation was not successful: credential=").
-                       append(Token.getUnsignedToken(signedToken));
+        if (!roleToken.validate(publicKey, allowedOffset, false)) {
+            errMsg.append("RoleAuthority:authenticate failed: validation was not successful: credential=").
+                    append(Token.getUnsignedToken(signedToken));
             if (LOG.isWarnEnabled()) {
                 LOG.warn(errMsg.toString());
             }
@@ -136,7 +136,9 @@ public class RoleAuthority implements Authority, AuthorityKeyStore {
         
         SimplePrincipal princ = (SimplePrincipal) SimplePrincipal.create(roleToken.getDomain().toLowerCase(),
                 signedToken, roleToken.getRoles(), this);
-        princ.setUnsignedCreds(roleToken.getUnsignedToken());
+        if (princ != null) {
+            princ.setUnsignedCreds(roleToken.getUnsignedToken());
+        }
         return princ;
     }
 
@@ -144,12 +146,8 @@ public class RoleAuthority implements Authority, AuthorityKeyStore {
         if (httpMethod == null) {
             return false;
         }
-        if (httpMethod.equalsIgnoreCase("PUT") || httpMethod.equalsIgnoreCase("POST")
-                || httpMethod.equalsIgnoreCase("DELETE")) {
-            return true;
-        } else {
-            return false;
-        }
+        return httpMethod.equalsIgnoreCase("PUT") || httpMethod.equalsIgnoreCase("POST")
+                || httpMethod.equalsIgnoreCase("DELETE");
     }
     
     @Override
