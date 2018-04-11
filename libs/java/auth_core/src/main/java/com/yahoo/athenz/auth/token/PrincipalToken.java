@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,9 +41,9 @@ public class PrincipalToken extends Token {
     public static class Builder {
 
         // required attributes
-        private String domain = null;
-        private String name = null;
-        private String version = null;
+        private String domain;
+        private String name;
+        private String version;
         
         // optional attributes with default values
         private String salt = Crypto.randomSalt();
@@ -192,7 +192,7 @@ public class PrincipalToken extends Token {
             throw new IllegalArgumentException("Input String signedToken must not be empty");
         }
         
-        /**
+        /*
          * first we need to extract data and signature parts
          * the signature is always at the end of the token. The principal
          * token can represent 2 types - service or user. The version
@@ -387,12 +387,12 @@ public class PrincipalToken extends Token {
             return false;
         }
         
-        PublicKey pub = null;
+        PublicKey pub;
         boolean verified = false; // fail safe
         try {
             pub = Crypto.loadPublicKey(pubKey);
             verified = Crypto.verify(unsignedAuthorizedServiceToken, pub, authorizedServiceSignature);
-            if (verified == false) {
+            if (!verified) {
                 errMsg.append("PrincipalToken:validateForAuthorizedService: token=").
                        append(unsignedToken).append(" : authentication failed: public key=").
                        append(pubKey);

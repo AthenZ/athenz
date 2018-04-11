@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017 Yahoo Holdings Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,7 @@ import com.amazonaws.services.s3.model.S3ObjectInputStream;
 public class AwsPrivateKeyStoreTest {
 
     @Test
-    public void testAwsPrivateKeyStore() throws Exception {
+    public void testAwsPrivateKeyStore() {
         String bucketName = "my_bucket";
         String keyName = "my_key";
         String expected = "my_value";
@@ -46,8 +46,7 @@ public class AwsPrivateKeyStoreTest {
         S3ObjectInputStream s3ObjectInputStream = new S3ObjectInputStream(is, null);
         Mockito.when(s3Object.getObjectContent()).thenReturn(s3ObjectInputStream);
 
-        String result = expected;
-        ByteBuffer buffer = ByteBuffer.wrap(result.getBytes());
+        ByteBuffer buffer = ByteBuffer.wrap(expected.getBytes());
         DecryptResult decryptResult = Mockito.mock(DecryptResult.class); 
         Mockito.when(kms.decrypt(Mockito.any(DecryptRequest.class))).thenReturn(decryptResult);
         Mockito.when(decryptResult.getPlaintext()).thenReturn(buffer);

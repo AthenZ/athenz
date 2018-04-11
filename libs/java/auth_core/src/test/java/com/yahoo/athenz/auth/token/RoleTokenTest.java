@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,8 +34,6 @@ public class RoleTokenTest {
     private final String rolVersion = "Z1";
     private final String svcDomain = "sports";
     private final String salt = "aAkjbbDMhnLX";
-    private final String testKeyVersionK0 = "0";
-    private final String testKeyVersionK1 = "1";
 
     private final long expirationTime = 10; // 10 seconds
     
@@ -90,9 +88,9 @@ public class RoleTokenTest {
     }
 
     @Test
-    public void testRoleToken() throws InterruptedException, CryptoException {
+    public void testRoleToken() throws CryptoException {
         // Add some roles
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("storage.tenant.weather.updater");
         roles.add("fantasy.tenant.sports.admin");
         roles.add("fantasy.tenant.sports.reader");
@@ -100,6 +98,7 @@ public class RoleTokenTest {
         roles.add("fantasy.tenant.sports.scanner");
 
         // Create a token for validation using the signed data
+        String testKeyVersionK1 = "1";
         RoleToken rollTokenToValidate = createRoleTokenToValidate(roles, testKeyVersionK1);
         assertNotNull(rollTokenToValidate.getSignedToken());
 
@@ -108,7 +107,7 @@ public class RoleTokenTest {
         assertEquals(rollTokenToValidate.getDomain(), svcDomain);
         List<String> rolesToValidate = rollTokenToValidate.getRoles();
         assertEquals(rolesToValidate.size(), roles.size());
-        assertTrue(rolesToValidate.equals(roles));
+        assertEquals(rolesToValidate, roles);
         assertEquals(rollTokenToValidate.getKeyId(), testKeyVersionK1);
 
         // Validate the signature and that expiration time had not elapsed
@@ -126,7 +125,7 @@ public class RoleTokenTest {
     public void testRoleToken_Expired() throws InterruptedException,
             CryptoException {
         // Add some roles
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("storage.tenant.weather.updater");
         roles.add("fantasy.tenant.sports.admin");
         roles.add("fantasy.tenant.sports.reader");
@@ -134,6 +133,7 @@ public class RoleTokenTest {
         roles.add("fantasy.tenant.sports.scanner");
 
         // Create a token for validation using the signed data
+        String testKeyVersionK0 = "0";
         RoleToken rollTokenToValidate = createRoleTokenToValidate(roles, testKeyVersionK0);
 
         // Let expiration time elapse
@@ -145,7 +145,7 @@ public class RoleTokenTest {
     
     @Test
     public void testTokenStringConstructor() {
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("storage.tenant.activator.actionmap.w");
         RoleToken rToken = new RoleToken.Builder(rolVersion, svcDomain, roles)
             .salt(salt).expirationWindow(expirationTime).build();
@@ -259,7 +259,7 @@ public class RoleTokenTest {
     @Test
     public void testBuilderRequiredVersionNull() {
         
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("storage.tenant.weather.updater");
         try {
             @SuppressWarnings("unused")
@@ -273,7 +273,7 @@ public class RoleTokenTest {
     @Test
     public void testBuilderRequiredVersionEmptyString() {
         
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("storage.tenant.weather.updater");
         try {
             @SuppressWarnings("unused")
@@ -287,7 +287,7 @@ public class RoleTokenTest {
     @Test
     public void testBuilderRequiredDomainNull() {
         
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("storage.tenant.weather.updater");
         try {
             @SuppressWarnings("unused")
@@ -301,7 +301,7 @@ public class RoleTokenTest {
     @Test
     public void testBuilderRequiredDomainEmptyString() {
         
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("storage.tenant.weather.updater");
         try {
             @SuppressWarnings("unused")
@@ -327,7 +327,7 @@ public class RoleTokenTest {
     @Test
     public void testBuilderRequiredRoleEmptyString() {
         
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         try {
             @SuppressWarnings("unused")
             RoleToken.Builder builder = new RoleToken.Builder(rolVersion, svcDomain, roles);
@@ -340,7 +340,7 @@ public class RoleTokenTest {
     @Test
     public void testBuilderDefaultOptionalValues() {
         
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("storage.tenant.weather.updater");
         
         RoleToken token = new RoleToken.Builder(rolVersion, svcDomain, roles).build();
@@ -359,7 +359,7 @@ public class RoleTokenTest {
     @Test
     public void testBuilderAllValues() {
         
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("storage.tenant.weather.updater");
         
         RoleToken token = new RoleToken.Builder(rolVersion, svcDomain, roles)
@@ -381,7 +381,7 @@ public class RoleTokenTest {
     @Test
     public void testRoleTokenWithPrincipal() {
         
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("reader");
         
         RoleToken token = new RoleToken.Builder(rolVersion, svcDomain, roles)
@@ -395,7 +395,7 @@ public class RoleTokenTest {
     @Test
     public void testRoleTokenWithNullPrincipal() {
         
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("reader");
         
         RoleToken token = new RoleToken.Builder(rolVersion, svcDomain, roles)
@@ -409,7 +409,7 @@ public class RoleTokenTest {
     @Test
     public void testRoleTokenWithEmptyPrincipal() {
         
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("reader");
         
         RoleToken token = new RoleToken.Builder(rolVersion, svcDomain, roles)
@@ -423,7 +423,7 @@ public class RoleTokenTest {
     @Test
     public void testRoleTokenWithoutPrincipal() {
         
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("reader");
         
         RoleToken token = new RoleToken.Builder(rolVersion, svcDomain, roles)
@@ -437,7 +437,7 @@ public class RoleTokenTest {
     @Test
     public void testRoleTokenWithProxyUser() {
         
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("reader");
         
         RoleToken token = new RoleToken.Builder(rolVersion, svcDomain, roles)

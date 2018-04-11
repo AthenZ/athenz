@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,10 +27,6 @@ import com.yahoo.athenz.auth.Principal;
 import org.mockito.Mockito;
 
 public class UserAuthorityTest {
-    private String testToken = "Basic dGVzdHVzZXI6dGVzdHB3ZA==";
-    private String expectedDomain = "user";
-    private String expectedHeader = "Authorization";
-    private String expectedUserId = "testuser";
 
     @Test
     public void testUserAuthority() throws PAMException {
@@ -39,16 +35,20 @@ public class UserAuthorityTest {
         Mockito.when(pam.authenticate("testuser", "testpwd")).thenReturn(user);
         UserAuthority userAuthority = new UserAuthority();
         userAuthority.setPAM(pam);
+        String expectedDomain = "user";
         assertEquals(userAuthority.getDomain(), expectedDomain);
+        String expectedHeader = "Authorization";
         assertEquals(userAuthority.getHeader(), expectedHeader);
 
         StringBuilder errMsg = new StringBuilder();
+        String testToken = "Basic dGVzdHVzZXI6dGVzdHB3ZA==";
         Principal principal = userAuthority.authenticate(testToken, "10.72.118.45", "GET", errMsg);
 
         assertNotNull(principal);
         assertNotNull(principal.getAuthority());
         assertEquals(principal.getCredentials(), testToken);
         assertEquals(principal.getDomain(), expectedDomain);
+        String expectedUserId = "testuser";
         assertEquals(principal.getName(), expectedUserId);
     }
     
@@ -78,9 +78,9 @@ public class UserAuthorityTest {
         userAuthority.setPAM(pam);
         Mockito.when(pam.authenticate("testuser", "testpwd")).thenReturn(null);
         Principal principal = userAuthority.authenticate("Basic dGVzdHVzZXI6dGVzdHB3ZA==", "10.72.118.45", "GET", null);
-        
-        principal = userAuthority.authenticate("Basic ", "10.72.118.45", "GET", null);
+        assertNull(principal);
 
+        principal = userAuthority.authenticate("Basic ", "10.72.118.45", "GET", null);
         assertNull(principal);
     }
 }
