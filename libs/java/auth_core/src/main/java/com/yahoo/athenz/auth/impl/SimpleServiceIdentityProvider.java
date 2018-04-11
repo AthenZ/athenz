@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -74,7 +74,7 @@ public class SimpleServiceIdentityProvider implements ServiceIdentityProvider {
      * A simple implementation of the ServiceIdentityProvider interface.
      * The caller specifies the domain and service name along with the
      * private key for the given service and the authority to be used
-     * @param authority Authority object for the genereated principal
+     * @param authority Authority object for the generated principal
      * @param domainName Name of the domain
      * @param serviceName Name of the service
      * @param privateKey the private key for the service
@@ -114,13 +114,15 @@ public class SimpleServiceIdentityProvider implements ServiceIdentityProvider {
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create(domainName,
                 serviceName, token.getSignedToken(), System.currentTimeMillis() / 1000,
                 authority);
-        principal.setUnsignedCreds(token.getUnsignedToken());
+        if (principal != null) {
+            principal.setUnsignedCreds(token.getUnsignedToken());
+        }
         return principal;
     }
     
     String getServerHostName() {
         
-        String urlhost = null;
+        String urlhost;
         try {
             InetAddress localhost = java.net.InetAddress.getLocalHost();
             urlhost = localhost.getCanonicalHostName();

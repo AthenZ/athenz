@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,11 +25,11 @@ import com.yahoo.athenz.auth.impl.RoleAuthority;
 
 public class KeyStoreMock implements KeyStore {
 
-    String servicePublicKeyStringK0;
-    String servicePublicKeyStringK1;
-    String ztsPublicKeyStringK0;
-    String ztsPublicKeyStringK1;
-    String hostPublic = null;
+    private String servicePublicKeyStringK0;
+    private String servicePublicKeyStringK1;
+    private String ztsPublicKeyStringK0;
+    private String ztsPublicKeyStringK1;
+    private String hostPublic;
     
     public KeyStoreMock() throws IOException {
         Path path = Paths.get("./src/test/resources/fantasy_public_k0.key");

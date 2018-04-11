@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,8 +15,6 @@
  */
 package com.yahoo.athenz.auth.impl;
 
-import java.io.IOException;
-
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.NameCallback;
@@ -26,7 +24,7 @@ import javax.security.auth.callback.UnsupportedCallbackException;
 /**
  * Password callback handler for resolving password/usernames for a JAAS login.
  */
-public class TestLoginCallbackHandler implements CallbackHandler {
+class TestLoginCallbackHandler implements CallbackHandler {
 
     public TestLoginCallbackHandler() { 
         super();
@@ -51,9 +49,9 @@ public class TestLoginCallbackHandler implements CallbackHandler {
     /**
      * Handles the callbacks, and sets the user/password detail.
      * @param callbacks the callbacks to handle
-     * @throws Exception if an input or output error occurs.
+     * @throws UnsupportedCallbackException if an input or output error occurs.
      */
-    public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
+    public void handle(Callback[] callbacks) throws UnsupportedCallbackException {
 
         for (Callback cback: callbacks) {
             if (cback instanceof NameCallback && username != null) {

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,8 +35,8 @@ public class PrincipalAuthority implements Authority, AuthorityKeyStore {
     private static final String ZTS_SERVICE = "zts";
     
     static final String ATHENZ_PROP_TOKEN_OFFSET = "athenz.auth.principal.token_allowed_offset";
-    static final String ATHENZ_PROP_IP_CHECK_MODE = "athenz.auth.principal.remote_ip_check_mode";
-    static final String ATHENZ_PROP_USER_DOMAIN = "athenz.user_domain";
+    private static final String ATHENZ_PROP_IP_CHECK_MODE = "athenz.auth.principal.remote_ip_check_mode";
+    private static final String ATHENZ_PROP_USER_DOMAIN = "athenz.user_domain";
     
     public static final String HTTP_HEADER = "Athenz-Principal-Auth";
     public static final String ATHENZ_PROP_PRINCIPAL_HEADER = "athenz.auth.principal.header";
@@ -49,11 +49,11 @@ public class PrincipalAuthority implements Authority, AuthorityKeyStore {
         OPS_NONE
     }
     
-    KeyStore keyStore = null;
-    private int allowedOffset = 300;
-    IpCheckMode ipCheckMode = IpCheckMode.OPS_WRITE;
-    String userDomain = USER_DOMAIN;
-    String headerName = HTTP_HEADER;
+    private KeyStore keyStore = null;
+    private int allowedOffset;
+    IpCheckMode ipCheckMode;
+    final String userDomain;
+    private String headerName;
     
     public PrincipalAuthority() {
         allowedOffset = Integer.parseInt(System.getProperty(ATHENZ_PROP_TOKEN_OFFSET, "300"));
@@ -92,7 +92,7 @@ public class PrincipalAuthority implements Authority, AuthorityKeyStore {
             LOG.debug("Authenticating PrincipalToken: " + signedToken);
         }
 
-        PrincipalToken serviceToken = null;
+        PrincipalToken serviceToken;
         try {
             serviceToken = new PrincipalToken(signedToken);
         } catch (IllegalArgumentException ex) {
@@ -129,7 +129,7 @@ public class PrincipalAuthority implements Authority, AuthorityKeyStore {
         /* the validate method logs all error messages */
         
         boolean writeOp = isWriteOperation(httpMethod);
-        if (serviceToken.validate(publicKey, allowedOffset, !writeOp, errDetail) == false) {
+        if (!serviceToken.validate(publicKey, allowedOffset, !writeOp, errDetail)) {
             errMsg.append("PrincipalAuthority:authenticate: service token validation failure: ");
             errMsg.append(errDetail).append(" : credential=").
                    append(Token.getUnsignedToken(signedToken));
@@ -167,6 +167,11 @@ public class PrincipalAuthority implements Authority, AuthorityKeyStore {
         
         SimplePrincipal princ = (SimplePrincipal) SimplePrincipal.create(tokenDomain,
                 tokenName, signedToken, serviceToken.getTimestamp(), this);
+        if (princ == null) {
+            errMsg.append("PrincipalAuthority:authenticate: Unable to create principal");
+            LOG.error(errMsg.toString());
+            return null;
+        }
         princ.setUnsignedCreds(serviceToken.getUnsignedToken());
         princ.setAuthorizedService(authorizedServiceName);
         princ.setOriginalRequestor(serviceToken.getOriginalRequestor());
@@ -241,12 +246,8 @@ public class PrincipalAuthority implements Authority, AuthorityKeyStore {
         if (httpMethod == null) {
             return false;
         }
-        if (httpMethod.equalsIgnoreCase("PUT") || httpMethod.equalsIgnoreCase("POST")
-                || httpMethod.equalsIgnoreCase("DELETE")) {
-            return true;
-        } else {
-            return false;
-        }
+        return httpMethod.equalsIgnoreCase("PUT") || httpMethod.equalsIgnoreCase("POST")
+                || httpMethod.equalsIgnoreCase("DELETE");
     }
 
     String getAuthorizedServiceName(List<String> authorizedServices, String authorizedServiceName) {
@@ -310,7 +311,7 @@ public class PrincipalAuthority implements Authority, AuthorityKeyStore {
         
         /* the token method reports all error messages */
         StringBuilder errDetail = new StringBuilder(512);
-        if (userToken.validateForAuthorizedService(publicKey, errDetail) == false) {
+        if (!userToken.validateForAuthorizedService(publicKey, errDetail)) {
             errMsg.append("PrincipalAuthority:validateAuthorizeService: token validation for authorized service failed: ").
                    append(errDetail);
             return null;

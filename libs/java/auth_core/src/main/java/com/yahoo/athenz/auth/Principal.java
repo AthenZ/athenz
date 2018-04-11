@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,38 +24,38 @@ import java.util.List;
 public interface Principal {
 
     /** @return the domain of the authority over this principal, i.e. "user" */
-    public String getDomain();
+    String getDomain();
 
     /** @return the name of the principal as a string, i.e. "joe" */
-    public String getName();
+    String getName();
 
     /** @return the full name of the principal as a string, i.e. "user.joe" */
-    public String getFullName();
+    String getFullName();
     
     /** @return the credentials token as a string */
-    public String getCredentials();
+    String getCredentials();
     
     /** @return the client certificate that the principal
      * was authenticated with if using the certificate authority */
-    default public X509Certificate getX509Certificate() {
+    default X509Certificate getX509Certificate() {
         return null;
     }
     
     /** @return the credentials token as a string but will not contain a signature */
-    public String getUnsignedCredentials();
+    String getUnsignedCredentials();
 
     /** @return the list of roles this principal is able to assume. This is null 
      * for user/service principals, but valid for a principal based on ZTokens. */
-    public List<String> getRoles();
+    List<String> getRoles();
     
     /** @return the authority over this principal. Can be null, if not authenticated. */
-    public Authority getAuthority();
+    Authority getAuthority();
 
     /** @return the issue time for the credentials */
-    public long getIssueTime();
+    long getIssueTime();
     
     /** @return the service name that was authorized to use the Principal's UserToken */
-    public String getAuthorizedService();
+    String getAuthorizedService();
     
     /** @return the associated IP address provided in the principal token */
     default String getIP() {
@@ -78,7 +78,7 @@ public interface Principal {
     }
     
     /** @return the application ID */
-    default public String getApplicationId() {
+    default String getApplicationId() {
         return null;
     }
 

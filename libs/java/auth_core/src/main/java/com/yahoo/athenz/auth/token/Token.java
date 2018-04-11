@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -83,7 +83,7 @@ public class Token {
             return false;
         }
 
-        PublicKey publicKey = null;
+        PublicKey publicKey;
         try {
             publicKey = Crypto.loadPublicKey(pubKey);
         } catch (Exception e) {
@@ -156,7 +156,7 @@ public class Token {
         boolean verified = false; // fail safe
         try {
             verified = Crypto.verify(unsignedToken, publicKey, signature, digestAlgorithm);
-            if (verified == false) {
+            if (!verified) {
                 errMsg.append("Token:validate: token=").append(unsignedToken).
                        append(" : authentication failed");
                 LOG.error(errMsg.toString());

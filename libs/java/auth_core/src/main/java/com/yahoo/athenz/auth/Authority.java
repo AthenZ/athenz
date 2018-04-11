@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,24 +37,24 @@ public interface Authority {
     /**
      * Initialize the authority
      */
-    public void initialize();
+    void initialize();
 
     /**
      * @return credentials source - headers or certificate with headers being default
      */
-    default public CredSource getCredSource() {
+    default CredSource getCredSource() {
         return CredSource.HEADER;
     }
 
     /**
      * @return the domain of the authority, i.e. "user" or "local", as defined by the authorization system
      */
-    public String getDomain();
+    String getDomain();
 
     /**
      * @return a string describing where to find the credentials in a request, i.e. "X-Auth-Token" or "Cookie.User"
      */
-    public String getHeader();
+    String getHeader();
 
     /**
      * @return a boolean flag indicating whether or not authenticated principals
@@ -62,7 +62,7 @@ public interface Authority {
      * flag is false, then the principal must first get a ZMS UserToken and then
      * use that UserToken for subsequent operations.
      */
-    default public boolean allowAuthorization() {
+    default boolean allowAuthorization() {
         return true;
     }
     
@@ -72,7 +72,7 @@ public interface Authority {
      * @param userName user name
      * @return mapped domain name
      */
-    default public String getUserDomainName(String userName) {
+    default String getUserDomainName(String userName) {
         return userName;
     }
     
@@ -84,7 +84,7 @@ public interface Authority {
      * @param errMsg will contain error message if authenticate fails
      * @return the Principal for the credentials, or null if the credentials are not valid.
      */
-    public Principal authenticate(String creds, String remoteAddr, String httpMethod, StringBuilder errMsg);
+    Principal authenticate(String creds, String remoteAddr, String httpMethod, StringBuilder errMsg);
     
     /**
      * Process the client certificates extracted from the http request object.
@@ -95,7 +95,7 @@ public interface Authority {
      * @param errMsg will contain error message if authenticate fails
      * @return the Principal for the certificate, or null in case of failure.
      */
-    default public Principal authenticate(X509Certificate[] certs, StringBuilder errMsg) {
+    default Principal authenticate(X509Certificate[] certs, StringBuilder errMsg) {
         return null;
     }
     
@@ -105,7 +105,7 @@ public interface Authority {
      * @param errMsg will contain error message if authenticate fails
      * @return the Principal for the certificate, or null in case of failure.
      */
-    default public Principal authenticate(HttpServletRequest request, StringBuilder errMsg) {
+    default Principal authenticate(HttpServletRequest request, StringBuilder errMsg) {
         return null;
     }
 }

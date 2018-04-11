@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +36,7 @@ public class UserAuthority implements Authority {
     private static final Logger LOG = LoggerFactory.getLogger(UserAuthority.class);
     static final String ATHENZ_PROP_PAM_SERVICE_NAME = "athenz.auth.user.pam_service_name";
 
-    String serviceName = "login";
+    String serviceName;
     private PAM pam = null;
     
     public UserAuthority() {
@@ -55,7 +55,7 @@ public class UserAuthority implements Authority {
     @Override
     public String getHeader() {
         return "Authorization";
-    };
+    }
 
     /*
      * we don't want the user to keep specifying their username and
@@ -111,7 +111,7 @@ public class UserAuthority implements Authority {
         // failure to allow other authorities to handle authentication
         // if necessary
         
-        UnixUser user = null;
+        UnixUser user;
         try {
             user = getPAM().authenticate(username, password);
         } catch (Throwable ex) {

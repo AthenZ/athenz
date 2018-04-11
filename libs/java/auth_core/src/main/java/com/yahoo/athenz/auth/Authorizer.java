@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,5 +30,5 @@ public interface Authorizer {
      * @param crossDomain - (DomainName) an alternate domain responsible for the policy involved. This is usually null.
      * @return true if access is granted for the action/resource/principal
      */
-    public boolean access(String action, String resource, Principal principal, String crossDomain);
+    boolean access(String action, String resource, Principal principal, String crossDomain);
 }
