@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,10 +41,7 @@ public class StringUtils {
     }
     
     public static boolean containsMatchCharacter(String name) {
-        if (name.indexOf('*') == -1 && name.indexOf('?') == -1) {
-            return false;
-        }
-        return true;
+        return name.indexOf('*') != -1 || name.indexOf('?') != -1;
     }
     
     public static String patternFromGlob(String glob) {

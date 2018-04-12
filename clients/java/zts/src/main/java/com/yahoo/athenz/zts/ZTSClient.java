@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -864,7 +864,7 @@ public class ZTSClient implements Closeable {
     public RoleToken getRoleToken(String domainName, String roleName, Integer minExpiryTime,
             Integer maxExpiryTime, boolean ignoreCache, String proxyForPrincipal) {
         
-        RoleToken roleToken = null;
+        RoleToken roleToken;
         
         // first lookup in our cache to see if it can be satisfied
         // only if we're not asked to ignore the cache
@@ -999,31 +999,22 @@ public class ZTSClient implements Closeable {
         
         // now let's generate our dsnName and email fields which will based on
         // our principal's details
-        
-        StringBuilder hostBuilder = new StringBuilder(128);
-        hostBuilder.append(service);
-        hostBuilder.append('.');
-        hostBuilder.append(domain.replace('.', '-'));
-        hostBuilder.append('.');
-        hostBuilder.append(csrDomain);
-        String hostName = hostBuilder.toString();
 
-        String email = domain + "." + service + "@" + csrDomain;
+        final String hostName = service + '.' + domain.replace('.', '-') + '.' + csrDomain;
+        final String email = domain + "." + service + "@" + csrDomain;
         
         GeneralName[] sanArray = new GeneralName[2];
         sanArray[0] = new GeneralName(GeneralName.dNSName, new DERIA5String(hostName));
         sanArray[1] = new GeneralName(GeneralName.rfc822Name, new DERIA5String(email));
         
-        String csr = null;
+        String csr;
         try {
             csr = Crypto.generateX509CSR(privateKey, dn, sanArray);
         } catch (OperatorCreationException | IOException ex) {
             throw new ZTSClientException(ZTSClientException.BAD_REQUEST, ex.getMessage());
         }
-        
-        RoleCertificateRequest req = new RoleCertificateRequest().setCsr(csr)
-                .setExpiryTime(Long.valueOf(expiryTime));
-        return req;
+
+        return new RoleCertificateRequest().setCsr(csr).setExpiryTime((long) expiryTime);
     }
     
     /**
@@ -1094,28 +1085,20 @@ public class ZTSClient implements Closeable {
         }
         
         // now let's generate our dsnName field based on our principal's details
-        
-        StringBuilder hostBuilder = new StringBuilder(128);
-        hostBuilder.append(service);
-        hostBuilder.append('.');
-        hostBuilder.append(domain.replace('.', '-'));
-        hostBuilder.append('.');
-        hostBuilder.append(csrDomain);
-        String hostName = hostBuilder.toString();
+
+        final String hostName = service + '.' + domain.replace('.', '-') + '.' + csrDomain;
         
         GeneralName[] sanArray = new GeneralName[1];
         sanArray[0] = new GeneralName(GeneralName.dNSName, new DERIA5String(hostName));
         
-        String csr = null;
+        String csr;
         try {
             csr = Crypto.generateX509CSR(privateKey, dn, sanArray);
         } catch (OperatorCreationException | IOException ex) {
             throw new ZTSClientException(ZTSClientException.BAD_REQUEST, ex.getMessage());
         }
-        
-        InstanceRefreshRequest req = new InstanceRefreshRequest().setCsr(csr)
-                .setExpiryTime(Integer.valueOf(expiryTime));
-        return req;
+
+        return new InstanceRefreshRequest().setCsr(csr).setExpiryTime(expiryTime);
     }
     
     /**
@@ -1150,7 +1133,7 @@ public class ZTSClient implements Closeable {
         
         ZTSClient getZTSClient(PrefetchRoleTokenScheduledItem item) {
             
-            ZTSClient client = null;
+            ZTSClient client;
             if (item.sslContext != null) {
                 client = new ZTSClient(item.providedZTSUrl, item.proxyUrl, item.sslContext);
             } else {
@@ -1216,15 +1199,14 @@ public class ZTSClient implements Closeable {
                 for (PrefetchRoleTokenScheduledItem item : toFetch) {
                 
                     // create ZTS Client for this particular item
-                    
-                    ZTSRDLGeneratedClient savedZtsClient = null;
+
                     try (ZTSClient itemZtsClient = getZTSClient(item)) {
                         
                         // use the zts client if one was given however we need
                         // reset back to the original client so we don't close
                         // our given client
-                        
-                        savedZtsClient = itemZtsClient.ztsClient;
+
+                        ZTSRDLGeneratedClient savedZtsClient = itemZtsClient.ztsClient;
                         if (item.ztsClient != null) {
                             itemZtsClient.ztsClient = item.ztsClient;
                         }
@@ -1518,12 +1500,8 @@ public class ZTSClient implements Closeable {
 
         // if both limits were null then we need to make sure
         // that our token is valid for based on our min configured value
-        
-        if (minExpiryTime == null && maxExpiryTime == null && expiryTime < tokenMinExpiryTime) {
-            return true;
-        }
-        
-        return false;
+
+        return minExpiryTime == null && maxExpiryTime == null && expiryTime < tokenMinExpiryTime;
     }
     
     RoleToken lookupRoleTokenInCache(String cacheKey, Integer minExpiryTime, Integer maxExpiryTime) {
@@ -1752,25 +1730,15 @@ public class ZTSClient implements Closeable {
         }
         
         // now let's generate our dsnName field based on our principal's details
-        
-        StringBuilder hostBuilder = new StringBuilder(128);
-        hostBuilder.append(info.getService());
-        hostBuilder.append('.');
-        hostBuilder.append(info.getDomain().replace('.', '-'));
-        hostBuilder.append('.');
-        hostBuilder.append(x509CsrDomain);
-        
-        StringBuilder instanceHostBuilder = new StringBuilder(128);
-        instanceHostBuilder.append("lambda-");
-        instanceHostBuilder.append(account);
-        instanceHostBuilder.append('-');
-        instanceHostBuilder.append(info.getService());
-        instanceHostBuilder.append(".instanceid.athenz.");
-        instanceHostBuilder.append(x509CsrDomain);
-        
+
         GeneralName[] sanArray = new GeneralName[2];
-        sanArray[0] = new GeneralName(GeneralName.dNSName, new DERIA5String(hostBuilder.toString()));
-        sanArray[1] = new GeneralName(GeneralName.dNSName, new DERIA5String(instanceHostBuilder.toString()));
+        final String hostBuilder = info.getService() + '.' + info.getDomain().replace('.', '-') +
+                '.' + x509CsrDomain;
+        sanArray[0] = new GeneralName(GeneralName.dNSName, new DERIA5String(hostBuilder));
+
+        final String instanceHostBuilder = "lambda-" + account + '-' + info.getService() +
+                ".instanceid.athenz." + x509CsrDomain;
+        sanArray[1] = new GeneralName(GeneralName.dNSName, new DERIA5String(instanceHostBuilder));
         
         // next generate the csr based on our private key and data
         
@@ -1889,7 +1857,7 @@ public class ZTSClient implements Closeable {
         // first lookup in our cache to see if it can be satisfied
         // only if we're not asked to ignore the cache
         
-        AWSTemporaryCredentials awsCred = null;
+        AWSTemporaryCredentials awsCred;
         String cacheKey = getRoleTokenCacheKey(domainName, roleName, null);
         if (cacheKey != null && !ignoreCache) {
             awsCred = lookupAwsCredInCache(cacheKey, null, null);
@@ -1950,8 +1918,7 @@ public class ZTSClient implements Closeable {
     public DomainSignedPolicyData getDomainSignedPolicyData(String domainName, String matchingTag,
             Map<String, List<String>> responseHeaders) {
         try {
-            DomainSignedPolicyData sp = ztsClient.getDomainSignedPolicyData(domainName, matchingTag, responseHeaders);
-            return sp;
+            return ztsClient.getDomainSignedPolicyData(domainName, matchingTag, responseHeaders);
         } catch (ResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
@@ -2264,20 +2231,17 @@ public class ZTSClient implements Closeable {
                 return false;
             }
             if (sslContext == null) {
-                if (other.sslContext != null) {
-                    return false;
-                }
-            } else if (!sslContext.equals(other.sslContext)) {
-                return false;
+                return other.sslContext == null;
+            } else {
+                return sslContext.equals(other.sslContext);
             }
-            return true;
         }
 
     }
     
     public class AWSHostNameVerifier implements HostnameVerifier {
 
-        String dnsHostname = null;
+        String dnsHostname;
         
         public AWSHostNameVerifier(String hostname) {
             dnsHostname = hostname;
@@ -2289,7 +2253,7 @@ public class ZTSClient implements Closeable {
             Certificate[] certs = null;
             try {
                 certs = session.getPeerCertificates();
-            } catch (SSLPeerUnverifiedException e) {
+            } catch (SSLPeerUnverifiedException ignored) {
             }
             if (certs == null) {
                 return false;
@@ -2301,7 +2265,7 @@ public class ZTSClient implements Closeable {
                     if (matchDnsHostname(x509Cert.getSubjectAlternativeNames())) {
                         return true;
                     }
-                } catch (CertificateParsingException e) {
+                } catch (CertificateParsingException ignored) {
                 }
             }
             return false;
@@ -2484,7 +2448,8 @@ public class ZTSClient implements Closeable {
             .identityDomain(domain)
             .identityName(service)
             .tokenMinExpiryTime(ZTSClient.tokenMinExpiryTime);
-        
+
+        //noinspection RedundantCollectionOperation
         if (PREFETCH_SCHEDULED_ITEMS.contains(item)) {
             // contains item based on these 5 fields:
             // domainName identityDomain identityName roleName proxyForProfile isRoleToken

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -199,9 +199,8 @@ public class DataSourceFactory {
         ObjectPool<PoolableConnection> connectionPool =
                 new GenericObjectPool<>(poolableConnectionFactory, config);
         poolableConnectionFactory.setPool(connectionPool);
-        
-        AthenzDataSource dataSource = new AthenzDataSource(connectionPool);
-        return dataSource;
+
+        return new AthenzDataSource(connectionPool);
     }
 }
 

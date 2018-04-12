@@ -1,6 +1,4 @@
-package com.oath.auth;
-
-/**
+/*
  * Copyright 2017 Yahoo Holdings, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,6 +13,7 @@ package com.oath.auth;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.oath.auth;
 
 import com.google.common.io.Resources;
 import org.bouncycastle.asn1.x500.RDN;
@@ -39,7 +38,6 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 import static org.junit.Assert.assertEquals;
@@ -50,7 +48,7 @@ import static org.junit.Assert.assertEquals;
  */
 public class SocketTest {
 
-    private int listenPort = 2000;
+    private final int listenPort = 2000;
     private boolean running = true;
     private KeyRefresher keyRefresher;
 
@@ -109,10 +107,10 @@ public class SocketTest {
     public void test() throws Exception {
 
         TrustManager tm = new X509TrustManager() {
-            public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+            public void checkClientTrusted(X509Certificate[] chain, String authType) {
             }
 
-            public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+            public void checkServerTrusted(X509Certificate[] chain, String authType) {
             }
 
             public X509Certificate[] getAcceptedIssuers() {
@@ -124,7 +122,7 @@ public class SocketTest {
         SSLContext sslContext = Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(),
                 keyRefresher.getTrustManagerProxy());
 
-        SSLSocketFactory factory = (SSLSocketFactory) sslContext.getSocketFactory();
+        SSLSocketFactory factory = sslContext.getSocketFactory();
         SSLSocket s = (SSLSocket) factory.createSocket("localhost", listenPort);
         //send first call
         s.getOutputStream().write("ping\n".getBytes());
@@ -140,7 +138,7 @@ public class SocketTest {
         //setup socket for the second call
         SSLContext sslContext2 = SSLContext.getInstance("TLSv1.2");
         sslContext2.init(null, new TrustManager[] { tm }, null);
-        SSLSocketFactory factory2 = (SSLSocketFactory) sslContext2.getSocketFactory();
+        SSLSocketFactory factory2 = sslContext2.getSocketFactory();
         SSLSocket s2 = (SSLSocket) factory2.createSocket("localhost",listenPort);
         //send second call
         s.getOutputStream().write("ping\n".getBytes());

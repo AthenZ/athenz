@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,9 +29,8 @@ public class ZMSLoadData {
     
     private Principal createPrincipal(String userName) {
         Authority authority = new com.yahoo.athenz.auth.impl.PrincipalAuthority();
-        Principal p = SimplePrincipal.create("user", userName,
+        return SimplePrincipal.create("user", userName,
                 "v=U1;d=user;n=" + userName + ";s=signature", 0, authority);
-        return p;
     }
     
     private ZMSClient getClient(String userName) {
@@ -64,7 +63,7 @@ public class ZMSLoadData {
         dom.setOrg(org);
         dom.setEnabled(true);
 
-        List<String> admins = new ArrayList<String>();
+        List<String> admins = new ArrayList<>();
         admins.add("sys.auth.zts");
         admins.add("sys.auth.zpu");
         admins.add("user.zms_admin");
@@ -112,7 +111,7 @@ public class ZMSLoadData {
             role.setTrust(trust);
         }
         
-        List<String> members = new ArrayList<String>();
+        List<String> members = new ArrayList<>();
         if (memberStart != -1) {
             for (int i = memberStart; i < memberEnd; i++) {
                 members.add("user.user" + i);
@@ -139,7 +138,7 @@ public class ZMSLoadData {
         assertion.setResource(resource);
         assertion.setRole(client.generateRoleName(domainName, roleName));
         
-        List<Assertion> assertList = new ArrayList<Assertion>();
+        List<Assertion> assertList = new ArrayList<>();
         assertList.add(assertion);
         
         policy.setAssertions(assertList);

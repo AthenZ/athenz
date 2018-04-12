@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@ public interface Metric {
      * Increment the counter for the specified metric
      * @param metric Name of the counter
      */
-    public void increment(String metric);
+    void increment(String metric);
     
     /**
      * Increment the counter for the specified metric for the given domainName
@@ -29,7 +29,7 @@ public interface Metric {
      * @param domainName Name of the domain. domainName is optional can be
      * passed as null to indicate that the counter is global and not per-domain
      */
-    public void increment(String metric, String domainName);
+    void increment(String metric, String domainName);
     
     /**
      * Increment the sum by the specified count for the given metric against the domainName
@@ -38,7 +38,7 @@ public interface Metric {
      * passed as null to indicate that the counter is global and not per-domain
      * @param count amount inwhich to increment the metric sum
      */
-    public void increment(String metric, String domainName, int count);
+    void increment(String metric, String domainName, int count);
     
     /**
      * Start the latency timer for the specified metric for the given domainName.
@@ -55,23 +55,23 @@ public interface Metric {
      * the stopTiming method to indicate that the operation has completed
      * and the time must be recorded for the metric.
      */
-    public Object startTiming(String metric, String domainName);
+    Object startTiming(String metric, String domainName);
     
     /**
      * Stop the latency timer for the specified metric.
      * @param timerMetric timer object that was returned by the startTiming
      * method call.
      */
-    public void stopTiming(Object timerMetric);
+    void stopTiming(Object timerMetric);
     
     /**
      * Flush any buffered metrics to destination.
      */
-    public void flush();
+    void flush();
     
     /**
      * Flush buffers and shutdown any tasks.
      */
-    public void quit();
+    void quit();
 }
 

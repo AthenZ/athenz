@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,14 +16,13 @@
 package com.yahoo.athenz.common.server.db;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 
 import org.apache.commons.dbcp2.ConnectionFactory;
 
 public class MockConnectionFactory implements ConnectionFactory {
 
     @Override
-    public Connection createConnection() throws SQLException {
+    public Connection createConnection() {
         return null;
     }
 

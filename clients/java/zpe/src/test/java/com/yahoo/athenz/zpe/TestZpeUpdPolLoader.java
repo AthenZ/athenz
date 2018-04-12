@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +24,7 @@ import com.yahoo.athenz.zpe.match.impl.ZpeMatchEqual;
 import com.yahoo.athenz.zpe.match.impl.ZpeMatchRegex;
 import com.yahoo.athenz.zpe.match.impl.ZpeMatchStartsWith;
 
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 import java.io.File;
@@ -79,7 +80,7 @@ public class TestZpeUpdPolLoader {
         java.nio.file.Path dirPath  = java.nio.file.Paths.get(TEST_POL_DIR);
         try {
             java.nio.file.Files.createDirectory(dirPath);
-        } catch (java.nio.file.FileAlreadyExistsException exc) {
+        } catch (java.nio.file.FileAlreadyExistsException ignored) {
         }
 
         ZpeUpdPolLoader loader = new ZpeUpdPolLoader(TEST_POL_DIR);
@@ -87,6 +88,7 @@ public class TestZpeUpdPolLoader {
         java.nio.file.Path badFile  = java.nio.file.Paths.get(TEST_POL_DIR, TEST_POL_FILE);
         java.nio.file.Files.deleteIfExists(badFile);
         java.io.File polFile = new java.io.File(TEST_POL_DIR, TEST_POL_FILE);
+        //noinspection ResultOfMethodCallIgnored
         polFile.createNewFile();
         java.io.File [] files = { polFile };
         loader.loadDb(files);
@@ -94,7 +96,7 @@ public class TestZpeUpdPolLoader {
         long lastModMilliSeconds = polFile.lastModified();
         java.util.Map<String, ZpeUpdPolLoader.ZpeFileStatus> fsmap = loader.getFileStatusMap();
         ZpeUpdPolLoader.ZpeFileStatus fstat = fsmap.get(polFile.getName());
-        assertTrue(fstat.validPolFile == false);
+        assertTrue(!fstat.validPolFile);
 
         // move good policy file over the bad one
         java.nio.file.Path goodFile = java.nio.file.Paths.get(TEST_POL_GOOD_FILE);
@@ -104,7 +106,7 @@ public class TestZpeUpdPolLoader {
         long lastModMilliSeconds2 = polFile.lastModified();
         fsmap = loader.getFileStatusMap();
         fstat = fsmap.get(polFile.getName());
-        assertTrue(fstat.validPolFile == true);
+        assertTrue(fstat.validPolFile);
         loader.close();
         System.out.println("TestZpeUpdPolLoader: testLoadDb: timestamp1=" + lastModMilliSeconds + " timestamp2=" + lastModMilliSeconds2);
     }
@@ -118,7 +120,7 @@ public class TestZpeUpdPolLoader {
     }
     
     @Test
-    public void testLoadDBNotExist() throws Exception {
+    public void testLoadDBNotExist() {
         ZpeUpdPolLoader loader = new ZpeUpdPolLoader(TEST_POL_DIR);
         File fileMock = Mockito.mock(File.class);
         java.io.File [] files = { fileMock };
@@ -147,7 +149,7 @@ public class TestZpeUpdPolLoader {
         ZpeUpdPolLoader loader = new ZpeUpdPolLoader("./noexist");
         ZpeUpdMonitor monitor = new ZpeUpdMonitor(loader);
         File[] files = monitor.loadFileStatus();
-        assertTrue(files == null);
+        assertNull(files);
         loader.close();
     }
     

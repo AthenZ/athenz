@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,11 +15,7 @@
  */
 package com.yahoo.athenz.zts;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.yahoo.rdl.Timestamp;
 
@@ -41,7 +37,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
 
     Map<String, AWSTemporaryCredentials> credsMap = new HashMap<>();
     
-    private Map<String, Long> lastRoleTokenFetchedTime = new HashMap<String, Long>();
+    private Map<String, Long> lastRoleTokenFetchedTime = new HashMap<>();
     
     static String getKey(String domain, String roleName, String proxyForPrincipal) {
         return domain + "-" + roleName + "-" + proxyForPrincipal;
@@ -65,24 +61,22 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     
     @Override
     public HostServices getHostServices(String hostName) {
-        if (hostName == "not.exist.host") {
+        if (hostName.equals("not.exist.host")) {
             throw new ResourceException(404, "hostname not found");
         }
-        
-        HostServices hostServices = new HostServices().setHost(hostName)
+
+        return new HostServices().setHost(hostName)
                 .setNames(Arrays.asList("service1", "service2"));
-        return hostServices;
     }
 
     @Override
     public PublicKeyEntry getPublicKeyEntry(String domainName, String serviceName,
             String keyId) {
-        if (domainName == "invalid.domain") {
+        if (domainName.equals("invalid.domain")) {
             throw new ResourceException(404, "invalid domain");
         }
-        
-        PublicKeyEntry publicKeyEntry = new PublicKeyEntry().setId(keyId).setKey("test-key");
-        return publicKeyEntry;
+
+        return new PublicKeyEntry().setId(keyId).setKey("test-key");
     }
     
     @Override
@@ -130,24 +124,20 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     
     @Override
     public ServiceIdentity getServiceIdentity(String domainName, String serviceName) {
-        if (domainName == "unknown.domain") {
+        if (domainName.equals("unknown.domain")) {
             throw new ResourceException(404, "Domain not found");
         }
-        
-        ServiceIdentity serviceIdentity = new ServiceIdentity().setName(serviceName);
-        
-        return serviceIdentity;
+
+        return new ServiceIdentity().setName(serviceName);
     }
 
     @Override
     public ServiceIdentityList getServiceIdentityList(String domainName) {
-        if (domainName == "unknown.domain") {
+        if (domainName.equals("unknown.domain")) {
             throw new ResourceException(404, "Domain not found");
         }
-        
-        ServiceIdentityList serviceIdentityList = new ServiceIdentityList().setNames(Arrays.asList("storage"));
-        
-        return serviceIdentityList;
+
+        return new ServiceIdentityList().setNames(Collections.singletonList("storage"));
     }
     
     public void setAwsCreds(Timestamp expiration, String domainName, String roleName) {
@@ -288,10 +278,9 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
         if (!info.getAttestationData().equals("good-instance-document")) {
             throw new ResourceException(400, "Invalid request");
         }
-        InstanceIdentity identity = new InstanceIdentity().setProvider("provider")
+        return new InstanceIdentity().setProvider("provider")
                 .setName(info.getDomain() + "." + info.getService())
                 .setX509Certificate("x509");
-        return identity;
     }
     
     @Override
@@ -301,9 +290,8 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
         if (!info.getCsr().equals("good-x509-csr")) {
             throw new ResourceException(400, "Invalid request");
         }
-        InstanceIdentity identity = new InstanceIdentity().setProvider(provider)
+        return new InstanceIdentity().setProvider(provider)
                 .setName(domain + "." + service).setX509Certificate("x509");
-        return identity;
     }
     
     @Override
@@ -321,9 +309,8 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
         if (domain.equals("exc")) {
             throw new ResourceException(400, "Invalid request");
         }
-        Identity identity = new Identity().setName(domain + "." + service)
+        return new Identity().setName(domain + "." + service)
             .setServiceToken("v=S1;d=" + domain + ";n=" + service + ";k=zts.dev;z=zts;o=athenz.svc;t=1234;e=1235;s=sig");
-        return identity;
     }
 
     @Override

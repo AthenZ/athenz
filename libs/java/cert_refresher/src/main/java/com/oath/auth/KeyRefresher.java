@@ -1,6 +1,4 @@
-package com.oath.auth;
-
-/**
+/*
  * Copyright 2017 Yahoo Holdings, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,6 +13,7 @@ package com.oath.auth;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.oath.auth;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,7 +28,7 @@ import org.slf4j.LoggerFactory;
 
 public class KeyRefresher {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(KeyRefresher.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(KeyRefresher.class);
 
     private Thread scanForFileChangesThread;
     private boolean shutdown = false; //only for testing
@@ -115,10 +114,10 @@ public class KeyRefresher {
                             LOGGER.debug("KeyRefresher detected changes. Reloaded Key managers");
                         }
                     }
-                } catch (Exception ignored) {
+                } catch (Exception ex) {
                     // if we could not reload the SSL context (but we tried) we will
                     // ignore it and hope it works on the next loop
-                    LOGGER.error("Error loading ssl context", ignored);
+                    LOGGER.error("Error loading ssl context", ex);
                 }
                 try {
                     if (LOGGER.isDebugEnabled()) {
@@ -156,12 +155,13 @@ public class KeyRefresher {
     protected boolean haveFilesBeenChanged(final String filePath, byte[] checksum) {
         try (InputStream is = Files.newInputStream(Paths.get(filePath));
              DigestInputStream digestInputStream = new DigestInputStream(is, md)) {
+            //noinspection StatementWithEmptyBody
             while (digestInputStream.read() != -1) {
-                ; // do nothing, just read until the EoF
+                // do nothing, just read until the EoF
             }
-        } catch (IOException ignored) {
+        } catch (IOException ex) {
             //this is best effort, if we couldn't read the file, assume its the same
-            LOGGER.warn("Error reading file " + filePath, ignored);
+            LOGGER.warn("Error reading file " + filePath, ex);
             return false;
         }
         byte[] digest = md.digest();

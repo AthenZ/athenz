@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,6 +44,7 @@ public class ZpeMetric {
     //constructor
     ZpeMetric() {
         File directory = new File(String.valueOf(getFilePath()));
+        //noinspection ResultOfMethodCallIgnored
         directory.mkdir();
         //setting the timer to the interval specified in the system property
         if (statsEnabled) {
@@ -103,10 +104,7 @@ public class ZpeMetric {
             domainMetric.setMetricVal(counter.get(domainName).getAndSet(label.ordinal(), 0));
             metricList.add(domainMetric);
         }
-        DomainMetrics domainMetrics = new DomainMetrics()
-                .setDomainName(domainName)
-                .setMetricList(metricList);
-        return domainMetrics;
+        return new DomainMetrics().setDomainName(domainName).setMetricList(metricList);
     }
 
     //to write the JSON to file

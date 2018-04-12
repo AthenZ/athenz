@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,15 +29,12 @@ public class ZpeUpdMonitor implements Runnable {
 
     private final ZpeUpdPolLoader updLoader;
     private volatile boolean      shutdownThread = false;
-    private String                dirName = null;
+    private String                dirName;
     private boolean               firstRun = true;
     
     private java.io.FilenameFilter polFileNameFilter = new java.io.FilenameFilter() {
         public boolean accept(File dir, String name) {
-            if (name.endsWith(".pol")) {
-                return true;
-            }
-            return false;
+            return name.endsWith(".pol");
         }
     };
 

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017 Yahoo Holdings, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +27,7 @@ public interface InstanceProvider {
      * it needs to retrieve public key for a service to validate
      * attestation data.
      */
-    public void initialize(String provider, String endpoint, KeyStore keyStore);
+    void initialize(String provider, String endpoint, KeyStore keyStore);
     
     /**
      * Contact the Instance provider and confirm that the requested
@@ -38,7 +38,7 @@ public interface InstanceProvider {
      * @return InstanceConfirmation object if the confirmation is successful
      * @throws ResourceException in case of any errors
      */
-    public InstanceConfirmation confirmInstance(InstanceConfirmation confirmation);
+    InstanceConfirmation confirmInstance(InstanceConfirmation confirmation);
     
     /**
      * Contact the Instance provider and confirm that the requested
@@ -49,11 +49,11 @@ public interface InstanceProvider {
      * @return InstanceConfirmation object if the confirmation is successful
      * @throws ResourceException in case of any errors
      */
-    public InstanceConfirmation refreshInstance(InstanceConfirmation confirmation);
+    InstanceConfirmation refreshInstance(InstanceConfirmation confirmation);
     
     /**
      * Close the client and, if necessary, release any allocated resources
      */
-    default public void close() {
+    default void close() {
     }
 }

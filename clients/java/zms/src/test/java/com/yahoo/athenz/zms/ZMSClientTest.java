@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,11 +15,7 @@
  */
 package com.yahoo.athenz.zms;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
@@ -76,9 +72,8 @@ public class ZMSClientTest {
     
     private Principal createPrincipal(String userName) {
         Authority authority = new com.yahoo.athenz.auth.impl.PrincipalAuthority();
-        Principal p = SimplePrincipal.create("user", userName,
+        return SimplePrincipal.create("user", userName,
                 "v=U1;d=user;n=" + userName + ";s=signature", 0, authority);
-        return p;
     }
     
     private DomainMeta createDomainMetaObject(String description, String org, boolean auditEnabled) {
@@ -128,7 +123,7 @@ public class ZMSClientTest {
         dom.setEnabled(true);
         dom.setYpmId(getRandomProductId());
 
-        List<String> admins = new ArrayList<String>();
+        List<String> admins = new ArrayList<>();
         admins.add(admin);
         dom.setAdminUsers(admins);
 
@@ -145,7 +140,7 @@ public class ZMSClientTest {
         dom.setParent(parent);
         dom.setEnabled(true);
 
-        List<String> admins = new ArrayList<String>();
+        List<String> admins = new ArrayList<>();
         admins.add(admin);
         dom.setAdminUsers(admins);
 
@@ -159,7 +154,7 @@ public class ZMSClientTest {
         role.setName(client.generateRoleName(domainName, roleName));
         role.setTrust(trust);
         
-        List<String> members = new ArrayList<String>();
+        List<String> members = new ArrayList<>();
         members.add(member1);
         if (member2 != null) {
             members.add(member2);
@@ -180,7 +175,7 @@ public class ZMSClientTest {
         assertion.setResource(resource);
         assertion.setRole(client.generateRoleName(domainName, roleName));
         
-        List<Assertion> assertList = new ArrayList<Assertion>();
+        List<Assertion> assertList = new ArrayList<>();
         assertList.add(assertion);
         
         policy.setAssertions(assertList);
@@ -214,7 +209,7 @@ public class ZMSClientTest {
 
         service.setProviderEndpoint(endPoint);
         
-        List<String> hosts = new ArrayList<String>();
+        List<String> hosts = new ArrayList<>();
         hosts.add(host);
         service.setHosts(hosts);
         
@@ -247,7 +242,7 @@ public class ZMSClientTest {
         
         service.setProviderEndpoint(endPoint);
         
-        List<String> hosts = new ArrayList<String>();
+        List<String> hosts = new ArrayList<>();
         hosts.add(host);
         service.setHosts(hosts);
         
@@ -629,7 +624,7 @@ public class ZMSClientTest {
         client.deleteEntity("DelEntityDom1", "Entity1", AUDIT_REF);
 
         try {
-            entityRes = client.getEntity("DelEntityDom1", "Entity1");
+            client.getEntity("DelEntityDom1", "Entity1");
             fail();
         } catch (Exception ex) {
             assertTrue(true);
@@ -641,14 +636,14 @@ public class ZMSClientTest {
         client.deleteEntity("DelEntityDom1", "Entity2", AUDIT_REF);
 
         try {
-            entityRes = client.getEntity("DelEntityDom1", "Entity1");
+            client.getEntity("DelEntityDom1", "Entity1");
             fail();
         } catch (Exception ex) {
             assertTrue(true);
         }
 
         try {
-            entityRes = client.getEntity("DelEntityDom1", "Entity2");
+            client.getEntity("DelEntityDom1", "Entity2");
             fail();
         } catch (Exception ex) {
             assertTrue(true);
@@ -1067,7 +1062,7 @@ public class ZMSClientTest {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
-        List<String> tempNames = new ArrayList<String>();
+        List<String> tempNames = new ArrayList<>();
         DomainTemplate domTempl = new DomainTemplate().setTemplateNames(tempNames);
         try {
             Mockito.when(c.putDomainTemplate("name1", AUDIT_REF, domTempl)).thenThrow(new NullPointerException());
@@ -1091,7 +1086,7 @@ public class ZMSClientTest {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
-        List<String> tempNames = new ArrayList<String>();
+        List<String> tempNames = new ArrayList<>();
         DomainTemplate domTempl = new DomainTemplate().setTemplateNames(tempNames);
         try {
             Mockito.when(c.putDomainTemplateExt("name1", "template1", AUDIT_REF, domTempl)).thenThrow(new NullPointerException());
@@ -1267,7 +1262,7 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         UserDomain ud = new UserDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("user.test").setYpmId(10).setName("testuser")
-                .setTemplates(new DomainTemplateList().setTemplateNames(Arrays.asList("template")));
+                .setTemplates(new DomainTemplateList().setTemplateNames(Collections.singletonList("template")));
         try {
             Mockito.when(c.postUserDomain("domain1", AUDIT_REF, ud)).thenThrow(new NullPointerException());
             client.postUserDomain("domain1", AUDIT_REF, ud);
@@ -1299,9 +1294,9 @@ public class ZMSClientTest {
                 "Test Domain1", "testOrg", systemAdminFullUser);
         Domain domainMock = Mockito.mock(Domain.class);
         dom1.setAuditEnabled(true);
-        Mockito.when(c.postTopLevelDomain(Mockito.<String>any(), Mockito.any(TopLevelDomain.class))).thenReturn(domainMock);
+        Mockito.when(c.postTopLevelDomain(Mockito.any(), Mockito.any(TopLevelDomain.class))).thenReturn(domainMock);
         Mockito.when(c.getDomain("AddTopDom1")).thenReturn(domainMock);
-        Mockito.when(c.getDomain("AddTopDom3")).thenThrow(new NullPointerException()).thenThrow(new ResourceException(204));;
+        Mockito.when(c.getDomain("AddTopDom3")).thenThrow(new NullPointerException()).thenThrow(new ResourceException(204));
         testCreateTopLevelDomain(client, systemAdminFullUser);
     }
 
@@ -1314,7 +1309,7 @@ public class ZMSClientTest {
                 "Test Domain1", "testOrg", systemAdminFullUser);
         Domain domainMock = Mockito.mock(Domain.class);
         dom1.setAuditEnabled(true);
-        Mockito.when(c.postTopLevelDomain(Mockito.<String>any(), Mockito.any(TopLevelDomain.class))).thenReturn(domainMock).thenThrow(new ResourceException(204));
+        Mockito.when(c.postTopLevelDomain(Mockito.any(), Mockito.any(TopLevelDomain.class))).thenReturn(domainMock).thenThrow(new ResourceException(204));
         testCreateTopLevelDomainOnceOnly(client, systemAdminFullUser);
     }
 
@@ -1620,7 +1615,7 @@ public class ZMSClientTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         TenantRoles tenantRoleMock = Mockito.mock(TenantRoles.class);
-        List<TenantRoleAction> roleActions = new ArrayList<TenantRoleAction>();
+        List<TenantRoleAction> roleActions = new ArrayList<>();
         for (Struct.Field f : TABLE_PROVIDER_ROLE_ACTIONS) {
             roleActions.add(new TenantRoleAction().setRole(f.name())
                     .setAction((String) f.value()));
@@ -1690,7 +1685,7 @@ public class ZMSClientTest {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
-        Map<String, List<String>> respHdrs = new HashMap<String, List<String>>();
+        Map<String, List<String>> respHdrs = new HashMap<>();
         SignedDomains signedDomain1 = Mockito.mock(SignedDomains.class);
         Mockito.when(c.getSignedDomains("dom1", "meta1", "tag1", respHdrs)).thenReturn(signedDomain1).thenThrow(new ZMSClientException(400,"Audit reference required"));
         client.getSignedDomains("dom1", "meta1", "tag1", respHdrs);
@@ -1906,7 +1901,7 @@ public class ZMSClientTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         Domain domainMock = Mockito.mock(Domain.class);
-        Mockito.when(c.postTopLevelDomain(Mockito.<String>any(), Mockito.any(TopLevelDomain.class))).thenReturn(domainMock);
+        Mockito.when(c.postTopLevelDomain(Mockito.any(), Mockito.any(TopLevelDomain.class))).thenReturn(domainMock);
         ServiceIdentity serviceMock = Mockito.mock(ServiceIdentity.class);
         Mockito.when(c.putServiceIdentity("DelPublicKeyDom1", "Service1", AUDIT_REF, serviceMock)).thenReturn(serviceMock);
         PublicKeyEntry entoryMock = Mockito.mock(PublicKeyEntry.class);
@@ -1970,7 +1965,7 @@ public class ZMSClientTest {
             client.getPrincipal(null);
             fail();
         } catch (ZMSClientException ex) {
-            assertTrue(ex.getCode() == 401);
+            assertEquals(401, ex.getCode());
         }
         client.close();
     }
@@ -1983,21 +1978,21 @@ public class ZMSClientTest {
             client.getPrincipal("abcdefg");
             fail();
         } catch (ZMSClientException ex) {
-            assertTrue(ex.getCode() == 401);
+            assertEquals(401, ex.getCode());
         }
         
         try {
             client.getPrincipal("v=U1;d=coretech;t=12345678;s=signature");
             fail();
         } catch (ZMSClientException ex) {
-            assertTrue(ex.getCode() == 401);
+            assertEquals(401, ex.getCode());
         }
         
         try {
             client.getPrincipal("v=U1;n=storage;t=12345678;s=signature");
             fail();
         } catch (ZMSClientException ex) {
-            assertTrue(ex.getCode() == 401);
+            assertEquals(401, ex.getCode());
         }
         client.close();
     }
@@ -2085,7 +2080,7 @@ public class ZMSClientTest {
         }
         List<String> templNames = domTemplList.getTemplateNames();
         assertNotNull(templNames);
-        assertTrue(templNames.size() == svrTemplNames.size());
+        assertEquals(templNames.size(), svrTemplNames.size());
         // HAVE: domain has all the templates
 
         // domain has multiple templates: deleting 1 at a time
@@ -2096,7 +2091,7 @@ public class ZMSClientTest {
             templNames = domTemplList.getTemplateNames();
             assertNotNull(templNames);
             int templCnt = svrTemplNames.size() - (cnt + 1);
-            assertTrue(templNames.size() == templCnt, "template should be count=" + templCnt);
+            assertEquals(templNames.size(), templCnt, "template should be count=" + templCnt);
             for (int cnt2 = cnt + 1; cnt2 < svrTemplNames.size(); ++cnt2) {
                 assertTrue(templNames.contains(svrTemplNames.get(cnt2)), "should contain=" + svrTemplNames.get(cnt2));
             }

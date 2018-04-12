@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017 Yahoo Holdings, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -92,8 +92,8 @@ public class Utils {
      * trust-store path which has been created already and just needs to be
      * monitored for changes. Using default password of "secret" for both stores.
      * @param trustStorePath path to the trust-store
-     * @param certPath path to the certificate file
-     * @param keyPath path to the private key file
+     * @param athenzPublicCert path to the certificate file
+     * @param athenzPrivateKey path to the private key file
      * @return KeyRefresher object
      */
     public static KeyRefresher generateKeyRefresher(final String trustStorePath,
@@ -111,8 +111,8 @@ public class Utils {
      * monitored for changes.
      * @param trustStorePath path to the trust-store
      * @param trustStorePassword trust store password
-     * @param certPath path to the certificate file
-     * @param keyPath path to the private key file
+     * @param athenzPublicCert path to the certificate file
+     * @param athenzPrivateKey path to the private key file
      * @return KeyRefresher object
      */
     public static KeyRefresher generateKeyRefresher(final String trustStorePath,
@@ -131,8 +131,8 @@ public class Utils {
      * monitored for changes.
      * @param trustStorePath path to the trust-store
      * @param trustStorePassword trust store password
-     * @param certPath path to the certificate file
-     * @param keyPath path to the private key file
+     * @param athenzPublicCert path to the certificate file
+     * @param athenzPrivateKey path to the private key file
      * @return KeyRefresher object
      */
     public static KeyRefresher generateKeyRefresher(final String trustStorePath,
@@ -150,9 +150,9 @@ public class Utils {
      * the paths to the private key and certificate files along with the
      * trust-store path which has been created already and just needs to be
      * monitored for changes. Using default password of "secret" for both stores.
-     * @param trustStorePath path to the trust-store
-     * @param certPath path to the certificate file
-     * @param keyPath path to the private key file
+     * @param caCertPath path to the trust-store
+     * @param athenzPublicCert path to the certificate file
+     * @param athenzPrivateKey path to the private key file
      * @return KeyRefresher object
      */
     public static KeyRefresher generateKeyRefresherFromCaCert(final String caCertPath,
@@ -195,10 +195,10 @@ public class Utils {
     public static KeyStore createKeyStore(final String athenzPublicCert, final String athenzPrivateKey) throws Exception {
 
         X509Certificate certificate;
-        PrivateKey privateKey = null;
-        KeyStore keyStore = null;
-        File certFile = null;
-        File keyFile = null;
+        PrivateKey privateKey;
+        KeyStore keyStore;
+        File certFile;
+        File keyFile;
 
         try {
             if (Paths.get(athenzPublicCert).isAbsolute() && Paths.get(athenzPrivateKey).isAbsolute()) {

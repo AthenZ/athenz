@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,7 @@ public class ETagFilterTest {
 
     ContainerResponseContext getContext(String tag) {
         ContainerResponseContext context = Mockito.mock(ContainerResponseContext.class);
-        MultivaluedMap<String, Object> mvMap = new MultivaluedHashMap<String, Object>();
+        MultivaluedMap<String, Object> mvMap = new MultivaluedHashMap<>();
         mvMap.add(HttpHeaders.ETAG, tag);
         Mockito.when(context.getHeaders()).thenReturn(mvMap);
         return context;

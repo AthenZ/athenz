@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,8 +50,7 @@ public class HealthCheckFilterTest {
     private class HealthcheckFilterChain implements FilterChain {
 
         @Override
-        public void doFilter(ServletRequest arg0, ServletResponse arg1)
-                throws IOException, ServletException {
+        public void doFilter(ServletRequest arg0, ServletResponse arg1) {
         }
     }
     
@@ -81,9 +80,7 @@ public class HealthCheckFilterTest {
         
         try {
             filter.doFilter(request, response, chain);
-        } catch (IOException e) {
-            fail();
-        } catch (ServletException e) {
+        } catch (IOException | ServletException e) {
             fail();
         }
         assertEquals(response.getStatus(), 200);
@@ -118,9 +115,7 @@ public class HealthCheckFilterTest {
         
         try {
             filter.doFilter(request, response, chain);
-        } catch (IOException e) {
-            fail();
-        } catch (ServletException e) {
+        } catch (IOException | ServletException e) {
             fail();
         }
         assertEquals(response.getStatus(), 200);
@@ -155,9 +150,7 @@ public class HealthCheckFilterTest {
         
         try {
             filter.doFilter(request, response, chain);
-        } catch (IOException e) {
-            fail();
-        } catch (ServletException e) {
+        } catch (IOException | ServletException e) {
             fail();
         }
         assertEquals(response.getStatus(), 404);
@@ -170,7 +163,7 @@ public class HealthCheckFilterTest {
             Path pathToFile = Paths.get(filename);
             Files.createDirectories(pathToFile.getParent());
             Files.createFile(pathToFile);
-        } catch (IOException e) {
+        } catch (IOException ignored) {
         }
     }
 
@@ -178,7 +171,7 @@ public class HealthCheckFilterTest {
         try {
             Path pathToFile = Paths.get(filename);
             Files.delete(pathToFile);
-        } catch (IOException e) {
+        } catch (IOException ignored) {
         }
     }
 }

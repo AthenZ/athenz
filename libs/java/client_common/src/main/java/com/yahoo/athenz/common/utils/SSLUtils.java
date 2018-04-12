@@ -26,7 +26,7 @@ public class SSLUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(SSLUtils.class);
 
     public static class ClientSSLContextBuilder {
-        private String sslProtocol = "TLSv1.2";
+        private String sslProtocol;
         private PrivateKeyStore privateKeyStore;
         private char[] keyStorePassword;
         private char[] keyManagerPassword;
@@ -105,11 +105,11 @@ public class SSLUtils {
         }
         
         public SSLContext build() {
-            SSLContext context = null;
-            KeyStore keyStore = null;
-            KeyStore trustStore = null;
-            KeyManagerFactory kmf = null;
-            TrustManagerFactory tmf = null;
+            SSLContext context;
+            KeyStore keyStore;
+            KeyStore trustStore;
+            KeyManagerFactory kmf;
+            TrustManagerFactory tmf;
             KeyManager[] keyManagers = null;
             TrustManager[] trustManagers = null;
             
@@ -146,7 +146,7 @@ public class SSLUtils {
             return context;
         }
         
-        private static final char[] getPassword(char[] password, final PrivateKeyStore privateKeyStore, String appName) {
+        private static char[] getPassword(char[] password, final PrivateKeyStore privateKeyStore, String appName) {
             if (password != null) {
                 if (null != privateKeyStore) {
                     password = privateKeyStore.getApplicationSecret(appName, String.valueOf(password)).toCharArray();
@@ -266,7 +266,7 @@ public class SSLUtils {
     }
     
     public static PrivateKeyStore loadServicePrivateKey(String pkeyFactoryClass) {
-        PrivateKeyStoreFactory pkeyFactory = null;
+        PrivateKeyStoreFactory pkeyFactory;
         try {
             pkeyFactory = (PrivateKeyStoreFactory) Class.forName(pkeyFactoryClass).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {

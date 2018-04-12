@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,9 +36,10 @@ import org.testng.annotations.BeforeMethod;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.testng.annotations.Test;
 
+@SuppressWarnings("RedundantThrows")
 public class ZMSClientMockTest {
 
     @Mock ZMSRDLGeneratedClient mockZMS;
@@ -54,11 +55,11 @@ public class ZMSClientMockTest {
     @BeforeMethod
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        Mockito.doReturn(new DomainList()).when(mockZMS).getDomainList(Matchers.isA(Integer.class),
-                Matchers.isA(String.class), Matchers.isA(String.class), Matchers.isA(Integer.class),
-                Matchers.isA(String.class), Matchers.isA(Integer.class), Matchers.isA(String.class),
-                Matchers.isA(String.class), Matchers.isA(String.class));
-        userList = new ArrayList<String>();
+        Mockito.doReturn(new DomainList()).when(mockZMS).getDomainList(ArgumentMatchers.isA(Integer.class),
+                ArgumentMatchers.isA(String.class), ArgumentMatchers.isA(String.class), ArgumentMatchers.isA(Integer.class),
+                ArgumentMatchers.isA(String.class), ArgumentMatchers.isA(Integer.class), ArgumentMatchers.isA(String.class),
+                ArgumentMatchers.isA(String.class), ArgumentMatchers.isA(String.class));
+        userList = new ArrayList<>();
         userList.add("user.johnny");
         zclt = new ZMSClient(zmsUrl);
         zclt.client = mockZMS;
@@ -81,7 +82,7 @@ public class ZMSClientMockTest {
         try {
             TopLevelDomain tld = new TopLevelDomain().setName(domName).setOrg("testOrg")
                     .setDescription("test domain").setAdminUsers(userList);
-            dom = zclt.postTopLevelDomain(auditRef, tld);
+            zclt.postTopLevelDomain(auditRef, tld);
 
             DomainMeta meta = new DomainMeta();
             zclt.putDomainMeta(domName, auditRef, meta);
@@ -412,7 +413,7 @@ public class ZMSClientMockTest {
         tenantRoles.setTenant(tenantDomain).setDomain(providerDomain).setService(providerService)
             .setResourceGroup(resourceGroup);
         
-        List<TenantRoleAction> roleActions = new ArrayList<TenantRoleAction>();
+        List<TenantRoleAction> roleActions = new ArrayList<>();
         for (Struct.Field f : TABLE_PROVIDER_ROLE_ACTIONS) {
             roleActions.add(new TenantRoleAction().setRole(f.name()).setAction(
                     (String) f.value()));
@@ -464,7 +465,7 @@ public class ZMSClientMockTest {
         tenantRoles.setTenant(tenantDomain).setDomain(providerDomain).setService(providerService)
             .setResourceGroup(resourceGroup);
         
-        List<TenantRoleAction> roleActions = new ArrayList<TenantRoleAction>();
+        List<TenantRoleAction> roleActions = new ArrayList<>();
         for (Struct.Field f : TABLE_PROVIDER_ROLE_ACTIONS) {
             roleActions.add(new TenantRoleAction().setRole(f.name()).setAction(
                     (String) f.value()));
@@ -511,7 +512,7 @@ public class ZMSClientMockTest {
         provRoles.setTenant(tenantDomain).setDomain(providerDomain)
             .setService(providerService).setResourceGroup(resourceGroup);
         
-        List<TenantRoleAction> roleActions = new ArrayList<TenantRoleAction>();
+        List<TenantRoleAction> roleActions = new ArrayList<>();
         for (Struct.Field f : TABLE_PROVIDER_ROLE_ACTIONS) {
             roleActions.add(new TenantRoleAction().setRole(f.name()).setAction(
                     (String) f.value()));
@@ -563,7 +564,7 @@ public class ZMSClientMockTest {
         provRoles.setTenant(tenantDomain).setDomain(providerDomain)
             .setService(providerService).setResourceGroup(resourceGroup);
         
-        List<TenantRoleAction> roleActions = new ArrayList<TenantRoleAction>();
+        List<TenantRoleAction> roleActions = new ArrayList<>();
         for (Struct.Field f : TABLE_PROVIDER_ROLE_ACTIONS) {
             roleActions.add(new TenantRoleAction().setRole(f.name()).setAction(
                     (String) f.value()));
@@ -667,8 +668,8 @@ public class ZMSClientMockTest {
 
         Principal principal = zclt.getPrincipal("v=U1;d=coretech;n=storage;s=signature");
         assertNotNull(principal);
-        assertTrue(principal.getName().equals("storage"));
-        assertTrue(principal.getDomain().equals("coretech"));
+        assertEquals("storage", principal.getName());
+        assertEquals("coretech", principal.getDomain());
     }
     
     @Test
@@ -706,15 +707,15 @@ public class ZMSClientMockTest {
         DomainList domEmptyList = new DomainList();
 
         Mockito.doReturn(domList).when(mockZMS).getDomainList(null, null, null, null, null,
-                Integer.valueOf(101), null, null, null);
+                101, null, null, null);
         Mockito.doReturn(domEmptyList).when(mockZMS).getDomainList(null, null, null, null, null,
-                Integer.valueOf(102), null, null, null);
+                102, null, null, null);
 
-        DomainList domainList = zclt.getDomainList(null, null, null, null, null, Integer.valueOf(101), null);
+        DomainList domainList = zclt.getDomainList(null, null, null, null, null, 101, null);
         assertNotNull(domainList);
         assertTrue(domainList.getNames().contains("dom1"));
         
-        domainList = zclt.getDomainList(null, null, null, null, null, Integer.valueOf(102), null);
+        domainList = zclt.getDomainList(null, null, null, null, null, 102, null);
         assertNotNull(domainList);
         assertNull(domainList.getNames());
     }
@@ -1004,29 +1005,29 @@ public class ZMSClientMockTest {
                 .setResource(domName + ":*")
                 .setRole("admin");
         
-        Mockito.doReturn(assertion).when(mockZMS).getAssertion(domName, "policy1", new Long(101));
-        Mockito.doThrow(new ResourceException(404)).when(mockZMS).getAssertion(domName, "policy1", new Long(202));
+        Mockito.doReturn(assertion).when(mockZMS).getAssertion(domName, "policy1", 101L);
+        Mockito.doThrow(new ResourceException(404)).when(mockZMS).getAssertion(domName, "policy1", 202L);
 
         // first invalid test cases
         
         // unknown policy name
-        Assertion testAssertion = zclt.getAssertion(domName, "policy2", new Long(101));
+        Assertion testAssertion = zclt.getAssertion(domName, "policy2", 101L);
         assertNull(testAssertion);
         
         // unknown domain name
         
-        testAssertion = zclt.getAssertion("unknown", "policy1", new Long(101));
+        testAssertion = zclt.getAssertion("unknown", "policy1", 101L);
         assertNull(testAssertion);
         
         // unknown assertion id
         
-        testAssertion = zclt.getAssertion(domName, "policy1", new Long(102));
+        testAssertion = zclt.getAssertion(domName, "policy1", 102L);
         assertNull(testAssertion);
         
         // exception unit test
         
         try {
-            zclt.getAssertion(domName, "policy1", new Long(202));
+            zclt.getAssertion(domName, "policy1", 202L);
             fail();
         } catch (ZMSClientException ex) {
             assertEquals(ex.getCode(), 404);
@@ -1034,7 +1035,7 @@ public class ZMSClientMockTest {
         
         // now valid case
         
-        testAssertion = zclt.getAssertion(domName, "policy1", new Long(101));
+        testAssertion = zclt.getAssertion(domName, "policy1", 101L);
         assertNotNull(testAssertion);
         assertEquals(assertion.getAction(), "update");
         assertEquals((long) assertion.getId(), (long) 101);
@@ -1045,17 +1046,17 @@ public class ZMSClientMockTest {
         
         final String domName = "delete-assertion";
 
-        Mockito.doReturn(null).when(mockZMS).deleteAssertion(domName, "policy1", new Long(101), auditRef);
-        Mockito.doThrow(new ResourceException(403)).when(mockZMS).deleteAssertion(domName, "policy1", new Long(202), auditRef);
+        Mockito.doReturn(null).when(mockZMS).deleteAssertion(domName, "policy1", 101L, auditRef);
+        Mockito.doThrow(new ResourceException(403)).when(mockZMS).deleteAssertion(domName, "policy1", 202L, auditRef);
         
         // first valid case should complete successfully
         
-        zclt.deleteAssertion(domName, "policy1", new Long(101), auditRef);
+        zclt.deleteAssertion(domName, "policy1", 101L, auditRef);
         
         // now this should throw an exception
         
         try {
-            zclt.deleteAssertion(domName, "policy1", new Long(202), auditRef);
+            zclt.deleteAssertion(domName, "policy1", 202L, auditRef);
             fail();
         } catch (ZMSClientException ex) {
             assertEquals(ex.getCode(), 403);

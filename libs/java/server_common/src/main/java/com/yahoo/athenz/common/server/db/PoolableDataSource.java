@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,5 +22,5 @@ public interface PoolableDataSource extends DataSource {
     /**
      * Clears all idle connections in the pool
      */
-    public void clearPoolConnections();
+    void clearPoolConnections();
 }

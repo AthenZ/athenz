@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 package com.yahoo.athenz.common.server.log.impl;
-
-import java.util.regex.Pattern;
 
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 
@@ -92,20 +90,6 @@ public class DefaultAuditLogMsgBuilder implements AuditLogMsgBuilder {
     static final int    SB_MIN_SIZE_INIT = 128;
     static final int    SB_MED_SIZE_INIT = 512;
     static final int    SB_MAX_SIZE_INIT = 1024;
-    
-    // setup for parsing log messages
-    //
-    static final String  GEN_FLD_PAT = "=\\(([^\\)]+)\\);.*";
-    static final Pattern PAT_VERS = Pattern.compile(".*(" + PARSE_VERS + ")" + GEN_FLD_PAT);
-    static final Pattern PAT_WHEN = Pattern.compile(".*(" + PARSE_WHEN + ")" + GEN_FLD_PAT);
-    static final Pattern PAT_WHO  = Pattern.compile(".*(" + PARSE_WHO + ")" + GEN_FLD_PAT);
-    static final Pattern PAT_WHY  = Pattern.compile(".*(" + PARSE_WHY + ")" + GEN_FLD_PAT);
-    static final Pattern PAT_WHERE = Pattern.compile(".*(" + PARSE_WHERE + ")" + GEN_FLD_PAT);
-    static final Pattern PAT_CLTIP = Pattern.compile(".*(" + PARSE_CLIENT_IP + ")" + GEN_FLD_PAT);
-    static final Pattern PAT_WHAT_METH = Pattern.compile(".*(" + PARSE_WHAT_METH + ")" + GEN_FLD_PAT);
-    static final Pattern PAT_WHAT_API  = Pattern.compile(".*(" + PARSE_WHAT_API + ")" + GEN_FLD_PAT);
-    static final Pattern PAT_WHAT_DOM  = Pattern.compile(".*(" + PARSE_WHAT_DOM + ")" + GEN_FLD_PAT);
-    static final Pattern PAT_WHAT_ENT  = Pattern.compile(".*(" + PARSE_WHAT_ENT + ")" + GEN_FLD_PAT);
 
     public DefaultAuditLogMsgBuilder() {
     }
@@ -115,9 +99,7 @@ public class DefaultAuditLogMsgBuilder implements AuditLogMsgBuilder {
      */
     public String versionTag() {
         if (versionTag == null) {
-            StringBuilder sb = new StringBuilder(SB_MIN_SIZE_INIT);
-            sb.append(PARSE_VERS).append("=(").append(messageVersion).append(");");
-            versionTag = sb.toString();
+            versionTag = PARSE_VERS + "=(" + messageVersion + ");";
         }
         return versionTag;
     }
@@ -328,16 +310,15 @@ public class DefaultAuditLogMsgBuilder implements AuditLogMsgBuilder {
      */
     @Override
     public String build() {
-        StringBuilder sb = new StringBuilder(SB_MAX_SIZE_INIT);
-        sb.append(versionTag()).append(PARSE_WHEN).append("=(").append(when()).
-            append(");"). append(PARSE_WHO).append("=(").append(who()).
-            append(");").append(PARSE_WHY).append("=(").append(why()).
-            append(");").append(PARSE_WHERE).append("=(").append(where()).
-            append(");").append(PARSE_CLIENT_IP).append("=(").append(clientIp());
-        sb.append(");").append(PARSE_WHAT_METH).append("=(").append(whatMethod()).append(");").append(PARSE_WHAT_API).append("=(");
-        sb.append(whatApi()).append(");").append(PARSE_WHAT_DOM).append("=(").append(whatDomain()).append(");").append(PARSE_WHAT_ENT).append("=(");
-        sb.append(whatEntity()).append(");").append(PARSE_WHAT_DETAILS).append("=(").append(whatDetails()).append(");");
-        return sb.toString();
+        String sb = versionTag() + PARSE_WHEN + "=(" + when() +
+                ");" + PARSE_WHO + "=(" + who() +
+                ");" + PARSE_WHY + "=(" + why() +
+                ");" + PARSE_WHERE + "=(" + where() +
+                ");" + PARSE_CLIENT_IP + "=(" + clientIp() +
+                ");" + PARSE_WHAT_METH + "=(" + whatMethod() + ");" + PARSE_WHAT_API + "=(" +
+                whatApi() + ");" + PARSE_WHAT_DOM + "=(" + whatDomain() + ");" + PARSE_WHAT_ENT + "=(" +
+                whatEntity() + ");" + PARSE_WHAT_DETAILS + "=(" + whatDetails() + ");";
+        return sb;
     }
 }
 

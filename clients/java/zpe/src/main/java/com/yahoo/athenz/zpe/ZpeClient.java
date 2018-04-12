@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,25 +25,25 @@ import com.yahoo.rdl.Struct;
 public interface ZpeClient {
     
     // @param domain can be null
-    public void init(String domain);
+    void init(String domain);
 
     // return current cache of role tokens
-    public  Map<String, RoleToken> getRoleTokenCacheMap();
+    Map<String, RoleToken> getRoleTokenCacheMap();
 
     // return the role assertion map for the specified domain with allow effect
     // key is role name, value is List of assertions for that role
-    public Map<String, List<Struct>> getRoleAllowAssertions(String domain);
+    Map<String, List<Struct>> getRoleAllowAssertions(String domain);
 
     // return the wildcard role assertion map for the specified domain with allow effect
     // key is role name, value is List of assertions for that role
-    public Map<String, List<com.yahoo.rdl.Struct>> getWildcardAllowAssertions(String domain);
+    Map<String, List<com.yahoo.rdl.Struct>> getWildcardAllowAssertions(String domain);
 
     // return the role assertion map for the specified domain with deny effect
     // key is role name, value is List of assertions for that role
-    public Map<String, List<com.yahoo.rdl.Struct>> getRoleDenyAssertions(String domain);
+    Map<String, List<com.yahoo.rdl.Struct>> getRoleDenyAssertions(String domain);
 
     // return the wildcard role assertion map for the specified domain with deny effect
     // key is role name, value is List of assertions for that role
-    public Map<String, List<com.yahoo.rdl.Struct>> getWildcardDenyAssertions(String domain);
+    Map<String, List<com.yahoo.rdl.Struct>> getWildcardDenyAssertions(String domain);
 }
 

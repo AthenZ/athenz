@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -63,7 +63,7 @@ public class ZMSAuthorizerTest {
         ZMSRDLGeneratedClient zmsRdlClient = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(zmsRdlClient);
         Domain domainMock = Mockito.mock(Domain.class);
-        Mockito.when(zmsRdlClient.postTopLevelDomain(Mockito.<String>any(), Mockito.any(TopLevelDomain.class)))
+        Mockito.when(zmsRdlClient.postTopLevelDomain(Mockito.any(), Mockito.any(TopLevelDomain.class)))
                 .thenReturn(domainMock);
 
         setupAccess(client, domain);
@@ -156,7 +156,7 @@ public class ZMSAuthorizerTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         Domain domainMock = Mockito.mock(Domain.class);
-        Mockito.when(c.postTopLevelDomain(Mockito.<String>any(), Mockito.any(TopLevelDomain.class)))
+        Mockito.when(c.postTopLevelDomain(Mockito.any(), Mockito.any(TopLevelDomain.class)))
                 .thenReturn(domainMock);
 
         setupAccess(client, domain);
@@ -210,7 +210,7 @@ public class ZMSAuthorizerTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         Domain domainMock = Mockito.mock(Domain.class);
-        Mockito.when(c.postTopLevelDomain(Mockito.<String>any(), Mockito.any(TopLevelDomain.class)))
+        Mockito.when(c.postTopLevelDomain(Mockito.any(), Mockito.any(TopLevelDomain.class)))
                 .thenReturn(domainMock);
 
         setupAccess(client, domain);
@@ -253,7 +253,7 @@ public class ZMSAuthorizerTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         Domain domainMock = Mockito.mock(Domain.class);
-        Mockito.when(c.postTopLevelDomain(Mockito.<String>any(), Mockito.any(TopLevelDomain.class)))
+        Mockito.when(c.postTopLevelDomain(Mockito.any(), Mockito.any(TopLevelDomain.class)))
                 .thenReturn(domainMock);
         setupAccess(client, domain);
 
@@ -299,7 +299,7 @@ public class ZMSAuthorizerTest {
         role.setName(client.generateRoleName(domainName, roleName));
         role.setTrust(trust);
 
-        List<String> members = new ArrayList<String>();
+        List<String> members = new ArrayList<>();
         members.add(member1);
         if (member2 != null) {
             members.add(member2);
@@ -320,7 +320,7 @@ public class ZMSAuthorizerTest {
         assertion.setResource(resource);
         assertion.setRole(client.generateRoleName(domainName, roleName));
 
-        List<Assertion> assertList = new ArrayList<Assertion>();
+        List<Assertion> assertList = new ArrayList<>();
         assertList.add(assertion);
 
         policy.setAssertions(assertList);
@@ -336,7 +336,7 @@ public class ZMSAuthorizerTest {
         dom.setEnabled(true);
         dom.setYpmId(2000);
 
-        List<String> admins = new ArrayList<String>();
+        List<String> admins = new ArrayList<>();
         admins.add(admin);
         dom.setAdminUsers(admins);
         return dom;
@@ -344,9 +344,8 @@ public class ZMSAuthorizerTest {
 
     private Principal createPrincipal(String userName) {
         Authority authority = new com.yahoo.athenz.auth.impl.PrincipalAuthority();
-        Principal p = SimplePrincipal.create("user", userName, "v=U1;d=user;n=" + userName + ";s=signature", 0,
+        return SimplePrincipal.create("user", userName, "v=U1;d=user;n=" + userName + ";s=signature", 0,
                 authority);
-        return p;
     }
 
     private ZMSClient getClient(String userName) {

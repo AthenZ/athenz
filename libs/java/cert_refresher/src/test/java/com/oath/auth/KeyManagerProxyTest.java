@@ -1,6 +1,4 @@
-package com.oath.auth;
-
-/**
+/*
  * Copyright 2017 Yahoo Holdings, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,6 +13,7 @@ package com.oath.auth;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.oath.auth;
 
 import mockit.Deencapsulation;
 import mockit.Expectations;
@@ -27,7 +26,6 @@ import javax.net.ssl.X509ExtendedKeyManager;
 import java.net.Socket;
 import java.security.Principal;
 import java.security.PrivateKey;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 import static org.junit.Assert.*;
@@ -87,7 +85,7 @@ public class KeyManagerProxyTest {
     }
 
     @Test
-    public void testKeyManagerProxyGeClientAliases(@Mocked X509ExtendedKeyManager mockedKeyManager) throws CertificateException {
+    public void testKeyManagerProxyGeClientAliases(@Mocked X509ExtendedKeyManager mockedKeyManager) {
         new Expectations() {{
             mockedKeyManager.getClientAliases("cert", (Principal[]) any); times = 1;
         }};
@@ -97,8 +95,9 @@ public class KeyManagerProxyTest {
         keyManagerProxy.getClientAliases("cert", null);
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Test
-    public void testKeyManagerProxyChooseClientAlias(@Mocked X509ExtendedKeyManager mockedKeyManager) throws CertificateException {
+    public void testKeyManagerProxyChooseClientAlias(@Mocked X509ExtendedKeyManager mockedKeyManager) {
         new Expectations() {{
             mockedKeyManager.chooseClientAlias((String[]) any, (Principal[]) any, (Socket) any); times = 1;
         }};
@@ -109,7 +108,7 @@ public class KeyManagerProxyTest {
     }
 
     @Test
-    public void testKeyManagerProxyGetServerAliases(@Mocked X509ExtendedKeyManager mockedKeyManager) throws CertificateException {
+    public void testKeyManagerProxyGetServerAliases(@Mocked X509ExtendedKeyManager mockedKeyManager) {
         new Expectations() {{
             mockedKeyManager.getServerAliases("cert", (Principal[]) any); times = 1;
         }};
@@ -119,8 +118,9 @@ public class KeyManagerProxyTest {
         keyManagerProxy.getServerAliases("cert", null);
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Test
-    public void testKeyManagerProxyChooseServerAlias(@Mocked X509ExtendedKeyManager mockedKeyManager) throws CertificateException {
+    public void testKeyManagerProxyChooseServerAlias(@Mocked X509ExtendedKeyManager mockedKeyManager) {
         new Expectations() {{
             mockedKeyManager.chooseServerAlias("cert", (Principal[]) any, (Socket) any); times = 1;
         }};
@@ -131,7 +131,7 @@ public class KeyManagerProxyTest {
     }
 
     @Test
-    public void testKeyManagerProxyGetCertificateChain(@Mocked X509ExtendedKeyManager mockedKeyManager) throws CertificateException {
+    public void testKeyManagerProxyGetCertificateChain(@Mocked X509ExtendedKeyManager mockedKeyManager) {
         new Expectations() {{
             mockedKeyManager.getCertificateChain("cert"); times = 1;
         }};
@@ -142,7 +142,7 @@ public class KeyManagerProxyTest {
     }
 
     @Test
-    public void testKeyManagerProxyGetPrivateKey(@Mocked X509ExtendedKeyManager mockedKeyManager) throws CertificateException {
+    public void testKeyManagerProxyGetPrivateKey(@Mocked X509ExtendedKeyManager mockedKeyManager) {
         new Expectations() {{
             mockedKeyManager.getPrivateKey("cert"); times = 1;
         }};

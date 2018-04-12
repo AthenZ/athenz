@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017 Yahoo Holdings Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,10 +23,10 @@ public interface RateLimit {
 
     /**
      * filter based on rate limit
-     * @param servletResponse  ServletRequest
+     * @param servletRequest  ServletRequest
      * @param servletResponse ServletResponse
      * @return boolean too many request
      */
-    public boolean filter(ServletRequest servletRequest, ServletResponse servletResponse);
+    boolean filter(ServletRequest servletRequest, ServletResponse servletResponse);
 
 }

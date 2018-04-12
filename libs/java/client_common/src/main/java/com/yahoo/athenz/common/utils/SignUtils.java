@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -179,9 +179,7 @@ public class SignUtils {
             return;
         }
         Array items = new Array();
-        for (String item : list) {
-            items.add(item);
-        }
+        items.addAll(list);
         appendArray(struct, name, items);
     }
     

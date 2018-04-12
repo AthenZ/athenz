@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,7 +46,7 @@ public class AthenzJettyContainerTest {
     private static final String DEFAULT_INCLUDED_CIPHERS = "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384";
     
     @BeforeClass
-    public void setUp() throws Exception {
+    public void setUp() {
         MockitoAnnotations.initMocks(this);
         System.setProperty(AthenzConsts.ATHENZ_PROP_JETTY_HOME, "conf");
     }

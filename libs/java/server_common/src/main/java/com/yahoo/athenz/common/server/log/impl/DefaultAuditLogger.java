@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,8 +37,8 @@ public class DefaultAuditLogger implements AuditLogger {
     }
 
     /**
-     *  Override the default logger with one named loggerName 
-     * @param loggerName
+     * Override the default logger with one named loggerName
+     * @param loggerName name of the logger
      */
     public DefaultAuditLogger(String loggerName) {
         AUDITLOGGER = LoggerFactory.getLogger(loggerName);

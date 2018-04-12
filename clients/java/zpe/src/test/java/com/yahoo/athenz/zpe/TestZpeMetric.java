@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,18 +23,17 @@ import java.util.List;
 import java.io.File;
 import org.testng.annotations.Test;
 
-import com.yahoo.athenz.zpe.AuthZpeClient;
-import com.yahoo.athenz.zpe.ZpeConsts;
-import com.yahoo.athenz.zpe.ZpeMetric;
 import com.yahoo.athenz.zts.DomainMetric;
 import com.yahoo.athenz.zts.DomainMetrics;
 import com.yahoo.rdl.JSON;
 
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 
 public class TestZpeMetric {
     
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     @Test
     public void testZpeMetric() throws IOException {
 
@@ -53,9 +52,12 @@ public class TestZpeMetric {
         // cleaning the directory
         File dir = new File(test.getFilePath());
         if (dir.exists()) {
-            for (File file: dir.listFiles()) {
-                if (!file.isDirectory()) {
-                    file.delete();
+            File[] files = dir.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (!file.isDirectory()) {
+                        file.delete();
+                    }
                 }
             }
         } else {
@@ -72,7 +74,7 @@ public class TestZpeMetric {
         
         try {
             Thread.sleep(4000);
-        } catch (InterruptedException e) {
+        } catch (InterruptedException ignored) {
         }
 
         test.increment(ZpeConsts.ZPE_METRIC_NAME, TEST_DOMAIN);
@@ -84,14 +86,16 @@ public class TestZpeMetric {
 
         try {
             Thread.sleep(2000);
-        } catch (InterruptedException e) {
+        } catch (InterruptedException ignored) {
         }
 
         // Reading from the json file generated
 
         boolean sysDomainMetricVerified = false;
         boolean testDomainMetricVerified = false;
-        for (File file : dir.listFiles()) {
+        File[] files = dir.listFiles();
+        assertNotNull(files);
+        for (File file : files) {
             String filepath = test.getFilePath() + file.getName();
             Path path = Paths.get(filepath);
             DomainMetrics domainMetrics = JSON.fromBytes(Files.readAllBytes(path), DomainMetrics.class);

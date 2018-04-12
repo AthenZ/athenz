@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,7 @@ public interface ZTSClientService {
     /**
      *  Athenz token client cache entry
      */
-    public static class RoleTokenDescriptor {
+    class RoleTokenDescriptor {
 
         /**
          * Construct the object with any needed params. Note there are no setters.
@@ -51,7 +51,7 @@ public interface ZTSClientService {
      *      the service retrieved role tokens. It can return either an
      *      empty set or null if there are no tokens to pre-load.
      */
-    default public Collection<RoleTokenDescriptor> loadTokens() {
+    default Collection<RoleTokenDescriptor> loadTokens() {
         return null;
     }
 
@@ -74,9 +74,9 @@ public interface ZTSClientService {
      * @param proxyForPrincipal (optional) this request is proxy for this principal
      * @return ZTS generated Role Token. Must return null if not available/found.
      */
-    default public RoleToken fetchToken(String clientDomainName, String clientServiceName,
-            String domainName, String roleName, Integer minExpiryTime, Integer maxExpiryTime,
-            String proxyForPrincipal) {
+    default RoleToken fetchToken(String clientDomainName, String clientServiceName,
+                                 String domainName, String roleName, Integer minExpiryTime, Integer maxExpiryTime,
+                                 String proxyForPrincipal) {
         return null;
     }
 }
