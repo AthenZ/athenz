@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,7 +43,7 @@ public class AuthZpeClient {
     public static final String ZPE_UPDATER_CLASS = "com.yahoo.athenz.zpe.ZpeUpdater";
     public static final String ZPE_PKEY_CLASS = "com.yahoo.athenz.zpe.pkey.file.FilePublicKeyStoreFactory";
 
-    public static final String ZPE_TOKEN_HDR  = System.getProperty(RoleAuthority.ATHENZ_PROP_ROLE_HEADER, RoleAuthority.HTTP_HEADER);;
+    public static final String ZPE_TOKEN_HDR  = System.getProperty(RoleAuthority.ATHENZ_PROP_ROLE_HEADER, RoleAuthority.HTTP_HEADER);
 
     public static final String ZTS_PUBLIC_KEY = "zts_public_key";
     public static final String ZMS_PUBLIC_KEY = "zms_public_key";
@@ -66,7 +66,7 @@ public class AuthZpeClient {
     private static ZpeClient zpeClt = null;
     private static PublicKeyStore publicKeyStore = null;
 
-    private static final Set<String> X509_ISSUERS = new HashSet<String>();
+    private static final Set<String> X509_ISSUERS = new HashSet<>();
     
     private static final String ROLE_SEARCH = ":role.";
     
@@ -119,7 +119,7 @@ public class AuthZpeClient {
         DENY_INVALID_PARAMETERS {
             public String toString() {
                 return "Access denied due to invalid/empty action/resource values";
-            };
+            }
         },
         DENY_CERT_MISMATCH_ISSUER {
             public String toString() {
@@ -214,7 +214,7 @@ public class AuthZpeClient {
      */
     public static void setPublicKeyStoreFactoryClass(final String className) {
         
-        PublicKeyStoreFactory publicKeyStoreFactory = null;
+        PublicKeyStoreFactory publicKeyStoreFactory;
         try {
             publicKeyStoreFactory = (PublicKeyStoreFactory) Class.forName(className).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
@@ -299,20 +299,20 @@ public class AuthZpeClient {
             return AccessCheckStatus.DENY_CERT_MISSING_ROLE_NAME;
         }
         String domainName = subject.substring(0, idx);
-        if (domainName == null || domainName.isEmpty()) {
+        if (domainName.isEmpty()) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("AUTHZPECLT:allowAccess: missing domain");
             }
             return AccessCheckStatus.DENY_CERT_MISSING_DOMAIN;
         }
         String roleName = subject.substring(idx + ROLE_SEARCH.length(), subject.length());
-        if (roleName == null || roleName.isEmpty()) {
+        if (roleName.isEmpty()) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("AUTHZPECLT:allowAccess: missing role name");
             }
             return AccessCheckStatus.DENY_CERT_MISSING_ROLE_NAME;
         }
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add(roleName);
         return allowActionZPE(action, domainName, angResource, roles, matchRoleName);
 
@@ -383,7 +383,7 @@ public class AuthZpeClient {
             rToken = new RoleToken(roleToken);
 
             // validate the token
-            if (rToken.validate(getZtsPublicKey(rToken.getKeyId()), allowedOffset, false, null) == false) {
+            if (!rToken.validate(getZtsPublicKey(rToken.getKeyId()), allowedOffset, false, null)) {
 
                 // check the token expiration
                 long now    = System.currentTimeMillis() / 1000;
@@ -407,9 +407,8 @@ public class AuthZpeClient {
         } else {
             zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_CACHE_SUCCESS, rToken.getDomain());
         }
-        
-        AccessCheckStatus status = allowAccess(rToken, angResource, action, matchRoleName);
-        return status;
+
+        return allowAccess(rToken, angResource, action, matchRoleName);
     }
  
     /**
@@ -445,7 +444,7 @@ public class AuthZpeClient {
             String signedToken = rToken.getSignedToken();
             LOG.error("allowAccess: Authorization denied. Token expired. now=" +
                     now + " expiry=" + expiry + " token=" + signedToken);
-            Map<String, RoleToken> tokenCache = null;
+            Map<String, RoleToken> tokenCache;
             try {
                 ZpeClient zpeclt = getZpeClient();
                 tokenCache = zpeclt.getRoleTokenCacheMap();
@@ -535,7 +534,7 @@ public class AuthZpeClient {
             ZpeClient zpeclt = getZpeClient();
             tokenCache = zpeclt.getRoleTokenCacheMap();
             rToken = tokenCache.get(roleToken);
-        } catch (Exception exc) {
+        } catch (Exception ignored) {
         }
 
         // if the token is not in the cache then we need to
@@ -546,7 +545,7 @@ public class AuthZpeClient {
             
             // validate the token
             
-            if (rToken.validate(getZtsPublicKey(rToken.getKeyId()), allowedOffset, false, null) == false) {
+            if (!rToken.validate(getZtsPublicKey(rToken.getKeyId()), allowedOffset, false, null)) {
                 return null;
             }
 
@@ -578,7 +577,7 @@ public class AuthZpeClient {
             return assertString;
         }
 
-        if (assertString.substring(0, index).equals(domain) == false) {
+        if (!assertString.substring(0, index).equals(domain)) {
             return defaultValue;
         }
 
@@ -628,10 +627,8 @@ public class AuthZpeClient {
     static AccessCheckStatus allowActionZPE(String action, String tokenDomain, String angResource,
             List<String> roles, StringBuilder matchRoleName) {
 
-        StringBuilder sb = new StringBuilder("allowActionZPE: domain(");
-        sb.append(tokenDomain).append(") action(").append(action).
-           append(") resource(").append(angResource).append(")");
-        String msgPrefix = sb.toString();
+        final String msgPrefix = "allowActionZPE: domain(" + tokenDomain + ") action(" + action +
+                ") resource(" + angResource + ")";
 
         if (LOG.isDebugEnabled()) {
             LOG.debug(msgPrefix + " STARTING");
@@ -643,20 +640,20 @@ public class AuthZpeClient {
             return AccessCheckStatus.DENY_ROLETOKEN_INVALID;
         }
 
-        if (tokenDomain == null || tokenDomain.isEmpty() == true) {
+        if (tokenDomain == null || tokenDomain.isEmpty()) {
             LOG.error(msgPrefix + " ERROR: No domain so access denied");
             zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_INVALID_TOKEN, DEFAULT_DOMAIN);
             return AccessCheckStatus.DENY_ROLETOKEN_INVALID;
         }
 
-        if (action == null || action.isEmpty() == true) {
+        if (action == null || action.isEmpty()) {
             LOG.error(msgPrefix + " ERROR: No action so access denied");
             zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_ERROR, tokenDomain);
             return AccessCheckStatus.DENY_INVALID_PARAMETERS;
         }
         action = action.toLowerCase();
 
-        if (angResource == null || angResource.isEmpty() == true) {
+        if (angResource == null || angResource.isEmpty()) {
             LOG.error(msgPrefix + " ERROR: No resource so access denied");
             zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_ERROR, tokenDomain);
             return AccessCheckStatus.DENY_INVALID_PARAMETERS;
@@ -668,10 +665,9 @@ public class AuthZpeClient {
         // will be no match of any resource in the assertions - so deny immediately
 
         if (angResource == null) {
-            StringBuilder sbErr = new StringBuilder(512);
-            sbErr.append(msgPrefix).append(" ERROR: Domain mismatch in token(").
-                append(tokenDomain).append(") and resource so access denied");
-            LOG.error(sbErr.toString());
+            final String sbErr = msgPrefix + " ERROR: Domain mismatch in token(" +
+                    tokenDomain + ") and resource so access denied";
+            LOG.error(sbErr);
             zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_DOMAIN_MISMATCH, tokenDomain);
             return AccessCheckStatus.DENY_DOMAIN_MISMATCH;
         }
@@ -759,10 +755,9 @@ public class AuthZpeClient {
     static boolean matchAssertions(List<Struct> asserts, String role, String action,
             String resource, StringBuilder matchRoleName, String msgPrefix) {
         
-        ZpeMatch matchStruct = null;
+        ZpeMatch matchStruct;
         String passertAction = null;
         String passertResource = null;
-        String passertRole  = null;
         String polName = null;
         
         for (Struct strAssert: asserts) {
@@ -774,9 +769,10 @@ public class AuthZpeClient {
                 
                 passertAction   = strAssert.getString(ZpeConsts.ZPE_FIELD_ACTION);
                 passertResource = strAssert.getString(ZpeConsts.ZPE_FIELD_RESOURCE);
-                passertRole     = strAssert.getString(ZpeConsts.ZPE_FIELD_ROLE);
                 polName         = strAssert.getString(ZpeConsts.ZPE_FIELD_POLICY_NAME);
-                
+
+                final String passertRole = strAssert.getString(ZpeConsts.ZPE_FIELD_ROLE);
+
                 LOG.debug(msgPrefix + ": Process Assertion: policy(" + polName +
                     ") assert-action=" + passertAction +
                     " assert-resource=" + passertResource + " assert-role=" + passertRole);
@@ -822,10 +818,8 @@ public class AuthZpeClient {
         
         String msgPrefix = null;
         if (LOG.isDebugEnabled()) {
-            StringBuilder sb = new StringBuilder("allowActionByRole: domain(");
-            sb.append(domain).append(") action(").append(action).
-                append(") resource(").append(angResource).append(")");
-            msgPrefix = sb.toString();
+            msgPrefix = "allowActionByRole: domain(" + domain + ") action(" + action +
+                    ") resource(" + angResource + ")";
         }
         
         for (String role : roles) {
@@ -861,10 +855,8 @@ public class AuthZpeClient {
 
         String msgPrefix = null;
         if (LOG.isDebugEnabled()) {
-            StringBuilder sb = new StringBuilder("allowActionByWildCardRole: domain(");
-            sb.append(domain).append(") action(").append(action).
-                append(") resource(").append(angResource).append(")");
-            msgPrefix = sb.toString();
+            msgPrefix = "allowActionByWildCardRole: domain(" + domain + ") action(" + action +
+                    ") resource(" + angResource + ")";
         }
 
         // find policy matching resource and action
@@ -923,8 +915,7 @@ public class AuthZpeClient {
     static Map<String, List<Struct>> getWildCardAllowPolicies(String domain) {
         try {
             ZpeClient zpeclt = getZpeClient();
-            Map<String, List<Struct>> roleAsserts = zpeclt.getWildcardAllowAssertions(domain);
-            return roleAsserts;
+            return zpeclt.getWildcardAllowAssertions(domain);
         } catch (Exception exc) {
             LOG.error("getWildCardAllowPolicies: exc: " + exc.getMessage());
         }
@@ -934,8 +925,7 @@ public class AuthZpeClient {
     static Map<String, List<Struct>> getRoleSpecificAllowPolicies(String domain) {
         try {
             ZpeClient zpeclt = getZpeClient();
-            Map<String, List<Struct>> roleAsserts = zpeclt.getRoleAllowAssertions(domain);
-            return roleAsserts;
+            return zpeclt.getRoleAllowAssertions(domain);
         } catch (Exception exc) {
             LOG.error("getRoleSpecificAllowPolicies: exc: " + exc.getMessage());
         }
@@ -945,8 +935,7 @@ public class AuthZpeClient {
     static Map<String, List<Struct>> getWildCardDenyPolicies(String domain) {
         try {
             ZpeClient zpeclt = getZpeClient();
-            Map<String, List<Struct>> roleAsserts = zpeclt.getWildcardDenyAssertions(domain);
-            return roleAsserts;
+            return zpeclt.getWildcardDenyAssertions(domain);
         } catch (Exception exc) {
             LOG.error("getWildCardDenyPolicies: exc: " + exc.getMessage());
         }
@@ -956,8 +945,7 @@ public class AuthZpeClient {
     static Map<String, List<Struct>> getRoleSpecificDenyPolicies(String domain) {
         try {
             ZpeClient zpeclt = getZpeClient();
-            Map<String, List<Struct>> roleAsserts = zpeclt.getRoleDenyAssertions(domain);
-            return roleAsserts;
+            return zpeclt.getRoleDenyAssertions(domain);
         } catch (Exception exc) {
             LOG.error("getRoleSpecificDenyPolicies: exc: " + exc.getMessage());
         }

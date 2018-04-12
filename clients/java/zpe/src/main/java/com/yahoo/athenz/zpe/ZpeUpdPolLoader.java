@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -110,7 +110,7 @@ public class ZpeUpdPolLoader implements Closeable {
     ConcurrentHashMap<String, Map<String, List<Struct>>> domWildcardRoleDenyMap = new ConcurrentHashMap<>();
 
     // cache of active Role Tokens
-    static ConcurrentHashMap<String, RoleToken> roleTokenCacheMap = new ConcurrentHashMap<String, RoleToken>();
+    static ConcurrentHashMap<String, RoleToken> roleTokenCacheMap = new ConcurrentHashMap<>();
     
     // array of file status objects
     static class ZpeFileStatus {
@@ -125,7 +125,7 @@ public class ZpeUpdPolLoader implements Closeable {
             validPolFile     = false;
         }
     }
-    private Map<String, ZpeFileStatus> fileStatusRef = new ConcurrentHashMap<String, ZpeFileStatus>();
+    private Map<String, ZpeFileStatus> fileStatusRef = new ConcurrentHashMap<>();
     
     private String polDirName;
 
@@ -206,7 +206,7 @@ public class ZpeUpdPolLoader implements Closeable {
             return;
         }
 
-        List<String> expired = new ArrayList<String>();
+        List<String> expired = new ArrayList<>();
         long nowSecs         = now / 1000;
         for (java.util.Enumeration<String> keys = roleTokenCacheMap.keys();
              keys.hasMoreElements();) {
@@ -264,22 +264,22 @@ public class ZpeUpdPolLoader implements Closeable {
             ZpeFileStatus fstat = fsmap.get(fileName);
             if (fstat != null) {
                 
-                if (polFile.exists() == false) { // file was deleted
+                if (!polFile.exists()) { // file was deleted
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("loadDb: file(" + fileName + " ) was deleted or doesn't exist");
                     }
                     fsmap.remove(fileName);
                     
-                    if (fstat.validPolFile == false || fstat.domain == null) {
+                    if (!fstat.validPolFile || fstat.domain == null) {
                         continue;
                     }
 
                     // replace domain with empty data
                     //
-                    domStandardRoleAllowMap.put(fstat.domain, new TreeMap<String, List<Struct>>());
-                    domWildcardRoleAllowMap.put(fstat.domain, new TreeMap<String, List<Struct>>());
-                    domStandardRoleDenyMap.put(fstat.domain, new TreeMap<String, List<Struct>>());
-                    domWildcardRoleDenyMap.put(fstat.domain, new TreeMap<String, List<Struct>>());
+                    domStandardRoleAllowMap.put(fstat.domain, new TreeMap<>());
+                    domWildcardRoleAllowMap.put(fstat.domain, new TreeMap<>());
+                    domStandardRoleDenyMap.put(fstat.domain, new TreeMap<>());
+                    domWildcardRoleDenyMap.put(fstat.domain, new TreeMap<>());
                     continue;
                 }
                 
@@ -291,7 +291,7 @@ public class ZpeUpdPolLoader implements Closeable {
                     // file not completely written - and file system timestamp
                     // only accurate up to the second - not millis
                     String timeMsg = " last-file-mod-time=" + lastModMilliSeconds;
-                    if (fstat.validPolFile == true) {
+                    if (fstat.validPolFile) {
                         if (LOG.isDebugEnabled()) {
                             LOG.debug("loadDb: ignore reload file: " + fileName + " since up to date: " + timeMsg);
                         }
@@ -311,7 +311,7 @@ public class ZpeUpdPolLoader implements Closeable {
 
     ZpeMatch getMatchObject(String value) {
         
-        ZpeMatch match = null;
+        ZpeMatch match;
         if ("*".equals(value)) {
             match = new ZpeMatchAll();
         } else {
@@ -382,7 +382,7 @@ public class ZpeUpdPolLoader implements Closeable {
             }
         }
         
-         if (verified == false) {
+         if (!verified || policyData == null) {
              LOG.error("loadFile: policy file=" + polFile.getName() + " is invalid");
              // mark this as an invalid file
              Map<String, ZpeFileStatus> fsmap = getFileStatusMap();
@@ -405,10 +405,10 @@ public class ZpeUpdPolLoader implements Closeable {
         // regexpr and place it into the assertion Struct.
         // This is a performance enhancement for AuthZpeClient when it 
         // performs the authorization checks.
-        Map<String, List<Struct>> roleStandardAllowMap = new TreeMap<String, List<Struct>>();
-        Map<String, List<Struct>> roleWildcardAllowMap = new TreeMap<String, List<Struct>>();
-        Map<String, List<Struct>> roleStandardDenyMap  = new TreeMap<String, List<Struct>>();
-        Map<String, List<Struct>> roleWildcardDenyMap  = new TreeMap<String, List<Struct>>();
+        Map<String, List<Struct>> roleStandardAllowMap = new TreeMap<>();
+        Map<String, List<Struct>> roleWildcardAllowMap = new TreeMap<>();
+        Map<String, List<Struct>> roleStandardDenyMap  = new TreeMap<>();
+        Map<String, List<Struct>> roleWildcardDenyMap  = new TreeMap<>();
         List<Policy> policies = policyData.getPolicies();
         for (Policy policy : policies) {
             String pname = policy.getName();
@@ -442,7 +442,7 @@ public class ZpeUpdPolLoader implements Closeable {
                 // based on the effect and role name determine what
                 // map we're going to use
                 
-                Map<String, List<Struct>> roleMap = null;
+                Map<String, List<Struct>> roleMap;
                 AssertionEffect passertEffect = assertion.getEffect();
                 matchStruct = getMatchObject(pRoleName);
                 strAssert.put(ZpeConsts.ZPE_ROLE_MATCH_STRUCT, matchStruct);
@@ -463,7 +463,7 @@ public class ZpeUpdPolLoader implements Closeable {
 
                 List<Struct> assertList = roleMap.get(pRoleName);
                 if (assertList == null) {
-                    assertList = new ArrayList<Struct>();
+                    assertList = new ArrayList<>();
                     roleMap.put(pRoleName, assertList);
                 }
                 assertList.add(strAssert);

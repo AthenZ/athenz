@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017 Yahoo Holdings Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,5 +22,5 @@ public interface RateLimitFactory {
      * Create and return a new RateLimit instance
      * @return RateLimit instance
      */
-    public RateLimit create();
+    RateLimit create();
 }

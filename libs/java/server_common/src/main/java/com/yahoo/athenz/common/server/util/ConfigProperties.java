@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -77,7 +77,7 @@ public class ConfigProperties {
             return defaultValue;
         }
         
-        int port = defaultValue;
+        int port;
         try {
             
             // first try to convert the string property to integer

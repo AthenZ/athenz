@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,14 +54,14 @@ public class DebugKerberosAuthority implements Authority {
 
     public String getHeader() {
         return KRB_HEADER;
-    };
+    }
 
     public Principal authenticate(String creds, String remoteAddr, String httpMethod, StringBuilder errMsg) {
         String uname = defaultUserName;
         if (creds == null) {
             LOG.debug("DebugKerberosAuthority:authenticate: Missing ticket");
             return null;
-        } else if (creds.startsWith(TOKEN_PREFIX) == false) {
+        } else if (!creds.startsWith(TOKEN_PREFIX)) {
             LOG.debug("DebugKerberosAuthority:authenticate: bad format: Missing prefix=" + TOKEN_PREFIX + " in ticket=" + creds); 
             return null;
         } else {

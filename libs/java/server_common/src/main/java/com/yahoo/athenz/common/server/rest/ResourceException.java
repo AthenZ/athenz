@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -85,7 +85,7 @@ public class ResourceException extends RuntimeException {
         } else {
             try {
                 return Integer.parseInt(sym);
-            } catch (NumberFormatException e) {
+            } catch (NumberFormatException ignored) {
             }
         }
         return 0;

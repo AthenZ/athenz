@@ -1,6 +1,4 @@
-package com.oath.auth;
-
-/**
+/*
  * Copyright 2017 Yahoo Holdings, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,6 +13,7 @@ package com.oath.auth;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.oath.auth;
 
 import mockit.Deencapsulation;
 import mockit.Expectations;
@@ -37,10 +36,10 @@ public class TrustManagerProxyTest {
     public void testTrustManagerProxySetTrustManger() {
         TrustManager[] trustManagers = new TrustManager[] { new X509ExtendedTrustManager() {
             @Override
-            public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {}
+            public void checkClientTrusted(X509Certificate[] x509Certificates, String s) {}
 
             @Override
-            public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {}
+            public void checkServerTrusted(X509Certificate[] x509Certificates, String s) {}
 
             @Override
             public X509Certificate[] getAcceptedIssuers() {
@@ -48,23 +47,19 @@ public class TrustManagerProxyTest {
             }
 
             @Override
-            public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket)
-                    throws CertificateException {
+            public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket) {
             }
 
             @Override
-            public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine engine)
-                    throws CertificateException {
+            public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine engine) {
             }
 
             @Override
-            public void checkServerTrusted(X509Certificate[] chain, String authType, Socket socket)
-                    throws CertificateException {
+            public void checkServerTrusted(X509Certificate[] chain, String authType, Socket socket) {
             }
 
             @Override
-            public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine engine)
-                    throws CertificateException {
+            public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine engine) {
             }
         }};
 
@@ -76,12 +71,12 @@ public class TrustManagerProxyTest {
 
         trustManagerProxy.setTrustManager(new TrustManager[] { new X509ExtendedTrustManager() {
             @Override
-            public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+            public void checkClientTrusted(X509Certificate[] x509Certificates, String s) {
 
             }
 
             @Override
-            public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+            public void checkServerTrusted(X509Certificate[] x509Certificates, String s) {
 
             }
 
@@ -91,23 +86,19 @@ public class TrustManagerProxyTest {
             }
 
             @Override
-            public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket)
-                    throws CertificateException {
+            public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket) {
             }
 
             @Override
-            public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine engine)
-                    throws CertificateException {
+            public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine engine) {
             }
 
             @Override
-            public void checkServerTrusted(X509Certificate[] chain, String authType, Socket socket)
-                    throws CertificateException {
+            public void checkServerTrusted(X509Certificate[] chain, String authType, Socket socket) {
             }
 
             @Override
-            public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine engine)
-                    throws CertificateException {
+            public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine engine) {
             }
         }});
 
@@ -138,7 +129,7 @@ public class TrustManagerProxyTest {
     }
 
     @Test
-    public void testTrustManagerProxyGetAcceptedIssuers(@Mocked X509ExtendedTrustManager mockedTrustManager) throws CertificateException {
+    public void testTrustManagerProxyGetAcceptedIssuers(@Mocked X509ExtendedTrustManager mockedTrustManager) {
         new Expectations() {{
             mockedTrustManager.getAcceptedIssuers(); times = 1; result = null;
         }};

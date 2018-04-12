@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -454,11 +454,7 @@ public class ZMSClient implements Closeable {
      * @return full role name
      */
     public String generateRoleName(String domain, String role) {
-        StringBuilder str = new StringBuilder(256);
-        str.append(domain);
-        str.append(":role.");
-        str.append(role);
-        return str.toString();
+        return domain + ":role." + role;
     }
 
     /**
@@ -469,11 +465,7 @@ public class ZMSClient implements Closeable {
      * @return full policy name
      */
     public String generatePolicyName(String domain, String policy) {
-        StringBuilder str = new StringBuilder(256);
-        str.append(domain);
-        str.append(":policy.");
-        str.append(policy);
-        return str.toString();
+        return domain + ":policy." + policy;
     }
 
     /**
@@ -485,11 +477,7 @@ public class ZMSClient implements Closeable {
      * @return full service identity name
      */
     public String generateServiceIdentityName(String domain, String service) {
-        StringBuilder str = new StringBuilder(256);
-        str.append(domain);
-        str.append(".");
-        str.append(service);
-        return str.toString();
+        return domain + "." + service;
     }
 
     /**
@@ -1681,8 +1669,7 @@ public class ZMSClient implements Closeable {
             Map<String, List<String>> responseHeaders) {
         updatePrincipal();
         try {
-            SignedDomains sd = client.getSignedDomains(domainName, metaOnly, matchingTag, responseHeaders);
-            return sd;
+            return client.getSignedDomains(domainName, metaOnly, matchingTag, responseHeaders);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
@@ -1797,7 +1784,7 @@ public class ZMSClient implements Closeable {
         // verify that service token is valid before sending the data to
         // the ZMS server
         
-        PrincipalToken token = null;
+        PrincipalToken token;
         try {
             token = new PrincipalToken(serviceToken);
         } catch (IllegalArgumentException ex) {
@@ -1814,7 +1801,7 @@ public class ZMSClient implements Closeable {
         client.addCredentials(tokenHeader, serviceToken);
         principalCheckDone = true;
         
-        ServicePrincipal validatedPrincipal = null;
+        ServicePrincipal validatedPrincipal;
         try {
             validatedPrincipal = client.getServicePrincipal();
         } catch (ResourceException ex) {

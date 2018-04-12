@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,7 +42,7 @@ public class Http {
         List<Authority> authorities;
 
         public AuthorityList() {
-            authorities = new ArrayList<Authority>();
+            authorities = new ArrayList<>();
         }
 
         public void add(Authority a) {
@@ -71,9 +71,8 @@ public class Http {
     private static String authenticatingCredentials(HttpServletRequest request,
             Authority authority) {
         String header = authority.getHeader();
-        String creds = header.startsWith("Cookie.") ? getCookieValue(request,
+        return header.startsWith("Cookie.") ? getCookieValue(request,
                 header.substring(7)) : request.getHeader(header);
-        return creds;
     }
     
     public static Principal authenticate(HttpServletRequest request,

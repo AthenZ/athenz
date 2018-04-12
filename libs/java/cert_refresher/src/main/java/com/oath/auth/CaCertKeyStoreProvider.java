@@ -1,6 +1,4 @@
-package com.oath.auth;
-
-/**
+/*
  * Copyright 2017 Yahoo Holdings, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,6 +13,7 @@ package com.oath.auth;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.oath.auth;
 
 import java.io.FileInputStream;
 import java.io.InputStream;

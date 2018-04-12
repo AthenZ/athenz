@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,6 +27,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
 
+@SuppressWarnings("RedundantThrows")
 public class MockHttpServletResponse implements HttpServletResponse {
 
     private int contentLength = 0;

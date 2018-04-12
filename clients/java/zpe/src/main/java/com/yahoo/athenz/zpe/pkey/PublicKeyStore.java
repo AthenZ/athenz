@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,12 +24,12 @@ public interface PublicKeyStore {
      * @param keyId key identifier
      * @return PublicKey
      */
-    public PublicKey getZtsKey(String keyId);
+    PublicKey getZtsKey(String keyId);
 
     /**
      * Returns the ZMS PublicKey object for the given identifier
      * @param keyId key identifier
      * @return PublicKey
      */
-    public PublicKey getZmsKey(String keyId);
+    PublicKey getZmsKey(String keyId);
 }

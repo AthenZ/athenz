@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -75,6 +75,7 @@ public class TestAuthZpe {
     
     private static boolean sleepCompleted = false;
     
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     @BeforeClass
     public void beforeClass() throws IOException {
 
@@ -93,23 +94,23 @@ public class TestAuthZpe {
         path = Paths.get("./src/test/resources/zts_private_k99.pem");
         ztsPrivateKeyK99 = Crypto.loadPrivateKey(new String((Files.readAllBytes(path))));
 
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("public");
         rToken0AnglerPublic = createRoleToken("angler", roles, "0");
         rToken0AnglerExpirePublic = createRoleToken("angler", roles, "0", 3);
         rToken0CoreTechPublic = createRoleToken("coretech", roles, "0");
         rToken0EmptyPublic = createRoleToken("empty", roles, "0");
-        roles = new ArrayList<String>();
+        roles = new ArrayList<>();
         roles.add("admin");
         rToken0AnglerAdmin = createRoleToken("angler", roles, "0");
         rToken0SportsAdmin = createRoleToken("sports", roles, "0");
         rToken1SportsAdmin = createRoleToken("sports", roles, "1");
 
-        roles = new ArrayList<String>();
+        roles = new ArrayList<>();
         roles.add("pachinko");
         rToken0AnglerPachinko = createRoleToken("angler", roles, "0");
         
-        roles = new ArrayList<String>();
+        roles = new ArrayList<>();
         roles.add("full_regex");
         roles.add("matchall");
         roles.add("matchstarts");
@@ -185,7 +186,7 @@ public class TestAuthZpe {
         AuthZpeClient.init();
         try {
             Thread.sleep(5000);
-        } catch (InterruptedException e) {
+        } catch (InterruptedException ignored) {
         }
         
         sleepCompleted = true;
@@ -205,7 +206,7 @@ public class TestAuthZpe {
         } else if ("99".equals(keyId)) {
             key = ztsPrivateKeyK99;
         }
-        
+        assertNotNull(key);
         token.sign(key);
         return token;
     }
@@ -245,7 +246,7 @@ public class TestAuthZpe {
         Assert.assertEquals(roleName.toString(), "admin");
 
         // multi tokens test
-        List<String> tokenList = new ArrayList<String>();
+        List<String> tokenList = new ArrayList<>();
         tokenList.add(rToken0SportsAdmin.getSignedToken());
         tokenList.add(rToken0CoreTechPublic.getSignedToken());
         roleName = new StringBuilder();
@@ -254,7 +255,7 @@ public class TestAuthZpe {
         Assert.assertEquals(roleName.toString(), "admin");
 
         // multi tokens test with duplicate tokens
-        tokenList = new ArrayList<String>();
+        tokenList = new ArrayList<>();
         tokenList.add(rToken0SportsAdmin.getSignedToken());
         tokenList.add(rToken0SportsAdmin.getSignedToken());
         roleName = new StringBuilder();
@@ -307,7 +308,7 @@ public class TestAuthZpe {
         Assert.assertEquals(status, AccessCheckStatus.DENY_DOMAIN_MISMATCH);
 
         // multi tokens test
-        List<String> tokenList = new ArrayList<String>();
+        List<String> tokenList = new ArrayList<>();
         tokenList.add(rToken0AnglerPublic.getSignedToken());
         tokenList.add(rToken0CoreTechPublic.getSignedToken());
         StringBuilder roleName = new StringBuilder();
@@ -325,7 +326,7 @@ public class TestAuthZpe {
         Assert.assertEquals(status, AccessCheckStatus.DENY_DOMAIN_NOT_FOUND);
 
         // multi tokens test
-        List<String> tokenList = new ArrayList<String>();
+        List<String> tokenList = new ArrayList<>();
         tokenList.add(rToken0AnglerPublic.getSignedToken());
         tokenList.add(rToken0CoreTechPublic.getSignedToken());
         StringBuilder roleName = new StringBuilder();
@@ -343,7 +344,7 @@ public class TestAuthZpe {
         Assert.assertEquals(status, AccessCheckStatus.DENY_DOMAIN_EMPTY);
 
         // multi tokens test
-        List<String> tokenList = new ArrayList<String>();
+        List<String> tokenList = new ArrayList<>();
         tokenList.add(rToken0AnglerPublic.getSignedToken());
         tokenList.add(rToken0EmptyPublic.getSignedToken());
         StringBuilder roleName = new StringBuilder();
@@ -364,7 +365,7 @@ public class TestAuthZpe {
         Assert.assertEquals(status, AccessCheckStatus.DENY_ROLETOKEN_INVALID);
 
         // multi tokens test
-        List<String> tokenList = new ArrayList<String>();
+        List<String> tokenList = new ArrayList<>();
         tokenList.add(rToken0AnglerPublic.getSignedToken());
         tokenList.add(roleToken); // add the bad one in
         StringBuilder roleName = new StringBuilder();
@@ -382,7 +383,7 @@ public class TestAuthZpe {
 
         try {
             Thread.sleep(3000);
-        } catch (Exception exc) {
+        } catch (Exception ignored) {
         }
         
         // the roletoken validate return false regardless if the token is 
@@ -397,7 +398,7 @@ public class TestAuthZpe {
         Assert.assertEquals(status, AccessCheckStatus.DENY_ROLETOKEN_EXPIRED);
 
         // multi tokens test
-        List<String> tokenList = new ArrayList<String>();
+        List<String> tokenList = new ArrayList<>();
         tokenList.add(rToken0AnglerPublic.getSignedToken());
         tokenList.add(rToken0AnglerExpirePublic.getSignedToken()); // add the expired one in
         StringBuilder roleName = new StringBuilder();
@@ -526,7 +527,7 @@ public class TestAuthZpe {
         // perform an allowed access check
         String action      = "fish";
         String angResource = "angler:stockedpondBigBassLake";
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("public");
         roles.add("admin");
         RoleToken rtoken = createRoleToken("angler", roles, "0", 1); // 1 sec expiry
@@ -536,7 +537,7 @@ public class TestAuthZpe {
 
         Map<String, RoleToken> roleMap = ZpeUpdPolLoader.getRoleTokenCacheMap();
         RoleToken mapToken = roleMap.get(signedToken);
-        Assert.assertEquals(signedToken.equals(mapToken.getSignedToken()), true);
+        Assert.assertEquals(signedToken, mapToken.getSignedToken());
         // then in a loop, check for existence of the token in the token map
         // increase the timeout to 30 secs. in sd sometimes it takes a while
         // before the entry is expired.
@@ -551,7 +552,7 @@ public class TestAuthZpe {
 
             mapToken = roleMap.get(signedToken);
             if (mapToken != null) {
-                Assert.assertEquals(signedToken.equals(mapToken.getSignedToken()), true);
+                Assert.assertEquals(signedToken, mapToken.getSignedToken());
             }
         }
         // assert token is not in the map outside of the loop
@@ -563,7 +564,7 @@ public class TestAuthZpe {
         // perform an allowed access check
         String action      = "fish";
         String angResource = "angler:stockedpondBigBassLake";
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("public");
         roles.add("admin");
         RoleToken rtoken = createRoleToken("angler", roles, "0", 10); // 10 sec expiry
@@ -573,9 +574,9 @@ public class TestAuthZpe {
 
         Map<String, RoleToken> roleMap = ZpeUpdPolLoader.getRoleTokenCacheMap();
         RoleToken mapToken = roleMap.get(signedToken);
-        Assert.assertEquals(signedToken.equals(mapToken.getSignedToken()), true);
+        Assert.assertEquals(signedToken, mapToken.getSignedToken());
         // then in a loop, check for existence of the token in the token map
-        for (int cnt = 0; mapToken != null && cnt < 5; ++cnt) {
+        for (int cnt = 0; cnt < 5; ++cnt) {
             // -Dyahoo.zpeclient.updater.monitor_timeout_secs=1
             // -Dyahoo.zpeclient.updater.cleanup_tokens_secs=1
             try {
@@ -586,18 +587,18 @@ public class TestAuthZpe {
 
             mapToken = roleMap.get(signedToken);
             Assert.assertNotNull(mapToken);
-            Assert.assertEquals(signedToken.equals(mapToken.getSignedToken()), true);
+            Assert.assertEquals(signedToken, mapToken.getSignedToken());
         }
         // assert token is not in the map outside of the loop
         Assert.assertNotNull(mapToken);
-        Assert.assertEquals(signedToken.equals(mapToken.getSignedToken()), true);
+        Assert.assertEquals(signedToken, mapToken.getSignedToken());
     }
 
     @Test
     public void testWildcardManagePondsKernDenied() {
         String action      = "manage";
         String angResource = "angler:pondsVenturaCounty";
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("managerkernco");
         RoleToken rtoken = createRoleToken("angler", roles, "0", 1000); // 1000 sec expiry
         StringBuilder roleName = new StringBuilder(256);
@@ -611,7 +612,7 @@ public class TestAuthZpe {
     public void testWildcardManagePondsKernAllowed() {
         String action      = "manage";
         String angResource = "angler:pondsKernCounty";
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("managerkernco");
         RoleToken rtoken = createRoleToken("angler", roles, "0", 1000); // 1000 sec expiry
         StringBuilder roleName = new StringBuilder(256);
@@ -626,7 +627,7 @@ public class TestAuthZpe {
     public void testWildcardManageRiversKernAllowed() {
         String action      = "manage";
         String angResource = "angler:RiversKernCounty";
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("managerkernco");
         RoleToken rtoken = createRoleToken("angler", roles, "0", 1000); // 1000 sec expiry
         StringBuilder roleName = new StringBuilder(256);
@@ -641,7 +642,7 @@ public class TestAuthZpe {
     public void testWildcardManagePondsVenturaAllowed() {
         String action      = "manage";
         String angResource = "angler:pondsKernCounty";
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("managerventuraco");
         RoleToken rtoken = createRoleToken("angler", roles, "0", 1000); // 1000 sec expiry
         StringBuilder roleName = new StringBuilder(256);
@@ -656,7 +657,7 @@ public class TestAuthZpe {
     public void testWildcardManageRiversVenturaAllowed() {
         String action      = "manage";
         String angResource = "angler:RiversVenturaCounty";
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("managerventuraco");
         RoleToken rtoken = createRoleToken("angler", roles, "0", 1000); // 1000 sec expiry
         StringBuilder roleName = new StringBuilder(256);
@@ -670,7 +671,7 @@ public class TestAuthZpe {
     public void testWildcardManageRiversVenturaDenied() {
         String action      = "manage";
         String angResource = "angler:RiversKernCounty";
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("managerventuraco");
         RoleToken rtoken = createRoleToken("angler", roles, "0", 1000); // 1000 sec expiry
         StringBuilder roleName = new StringBuilder(256);
@@ -685,7 +686,7 @@ public class TestAuthZpe {
     public void testWildcardManagePondsAllowedTokenString() {
         String action      = "manage";
         String angResource = "angler:pondsKernCounty";
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("managerkernco");
         roles.add("managerventuraco");
         RoleToken rtoken = createRoleToken("angler", roles, "0", 1000); // 1000 sec expiry
@@ -698,7 +699,7 @@ public class TestAuthZpe {
     public void testWildcardManageRiversDeniedTokenString() {
         String action      = "manage";
         String angResource = "angler:riversKernCounty";
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("managerkernco");
         roles.add("managerventuraco");
         RoleToken rtoken = createRoleToken("angler", roles, "0", 1000); // 1000 sec expiry
@@ -707,7 +708,7 @@ public class TestAuthZpe {
         Assert.assertEquals(status, AccessCheckStatus.DENY);
 
         // multi tokens test
-        List<String> tokenList = new ArrayList<String>();
+        List<String> tokenList = new ArrayList<>();
         tokenList.add(rToken0AnglerAdmin.getSignedToken()); // add an ALLOW role
         tokenList.add(rtoken.getSignedToken()); // add the DENY role token in
         StringBuilder roleName = new StringBuilder();
@@ -715,7 +716,7 @@ public class TestAuthZpe {
         Assert.assertEquals(status, AccessCheckStatus.DENY); // DENY over-rides ALLOW
         Assert.assertEquals(roleName.toString(), "managerventura*");
 
-        tokenList = new ArrayList<String>();
+        tokenList = new ArrayList<>();
         tokenList.add(rToken0CoreTechPublic.getSignedToken()); // add a DENY_DOMAIN_MISMATCH
         tokenList.add(rToken0AnglerAdmin.getSignedToken()); // add an ALLOW role
         tokenList.add(rtoken.getSignedToken()); // add the DENY role token in
@@ -725,7 +726,7 @@ public class TestAuthZpe {
         Assert.assertEquals(roleName.toString(), "managerventura*");
 
         // order wont matter
-        tokenList = new ArrayList<String>();
+        tokenList = new ArrayList<>();
         tokenList.add(rtoken.getSignedToken()); // add the DENY role token in
         tokenList.add(rToken0CoreTechPublic.getSignedToken()); // add a DENY_DOMAIN_MISMATCH
         tokenList.add(rToken0AnglerAdmin.getSignedToken()); // add an ALLOW role
@@ -747,7 +748,7 @@ public class TestAuthZpe {
         Assert.assertEquals(roleName.toString(), "matchall");
 
         // multi tokens test
-        List<String> tokenList = new ArrayList<String>();
+        List<String> tokenList = new ArrayList<>();
         tokenList.add(rToken0AnglerPublic.getSignedToken());
         tokenList.add(rToken0AnglerRegex.getSignedToken());
         roleName = new StringBuilder();
@@ -768,7 +769,7 @@ public class TestAuthZpe {
         Assert.assertEquals(roleName.toString(), "matchstarts");
 
         // multi tokens test
-        List<String> tokenList = new ArrayList<String>();
+        List<String> tokenList = new ArrayList<>();
         tokenList.add(rToken0AnglerExpirePublic.getSignedToken());
         tokenList.add(rToken0AnglerRegex.getSignedToken());
         tokenList.add(rToken0AnglerPublic.getSignedToken());
@@ -790,7 +791,7 @@ public class TestAuthZpe {
         Assert.assertEquals(roleName.toString(), "matchcompare");
 
         // multi tokens test
-        List<String> tokenList = new ArrayList<String>();
+        List<String> tokenList = new ArrayList<>();
         tokenList.add(rToken0AnglerExpirePublic.getSignedToken());
         tokenList.add(rToken0AnglerRegex.getSignedToken());
         tokenList.add(rToken0AnglerPublic.getSignedToken());
@@ -813,7 +814,7 @@ public class TestAuthZpe {
         Assert.assertEquals(roleName.toString(), "matchregex");
 
         // multi tokens test
-        List<String> tokenList = new ArrayList<String>();
+        List<String> tokenList = new ArrayList<>();
         tokenList.add(rToken0AnglerExpirePublic.getSignedToken());
         tokenList.add(rToken0AnglerRegex.getSignedToken());
         tokenList.add(rToken0AnglerPublic.getSignedToken());
@@ -836,7 +837,7 @@ public class TestAuthZpe {
         Assert.assertEquals(roleName.toString(), "");
 
         // multi tokens test
-        List<String> tokenList = new ArrayList<String>();
+        List<String> tokenList = new ArrayList<>();
         tokenList.add(rToken0AnglerExpirePublic.getSignedToken());
         tokenList.add(rToken0AnglerRegex.getSignedToken());
         tokenList.add(rToken0AnglerPublic.getSignedToken());
@@ -847,7 +848,7 @@ public class TestAuthZpe {
         Assert.assertEquals(status, AccessCheckStatus.DENY_DOMAIN_MISMATCH);
         Assert.assertEquals(roleName.toString(), "");
 
-        tokenList = new ArrayList<String>();
+        tokenList = new ArrayList<>();
         tokenList.add(rToken0AnglerExpirePublic.getSignedToken());
         tokenList.add(rToken0AnglerPublic.getSignedToken());
         tokenList.add(rToken0CoreTechPublic.getSignedToken());
@@ -954,7 +955,7 @@ public class TestAuthZpe {
     @Test
     public void testValidateRoleToken() {
         
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("public_role");
         RoleToken rToken = createRoleToken("coretech", roles, "0");
         
@@ -976,7 +977,7 @@ public class TestAuthZpe {
     @Test
     public void testValidateRoleTokenInvalidKeyVersion() {
         
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("public_role");
         RoleToken rToken = createRoleToken("coretech", roles, "0");
         
@@ -988,7 +989,7 @@ public class TestAuthZpe {
     @Test
     public void testValidateRoleTokenInvalidSignature() {
         
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         roles.add("public_role");
         RoleToken rToken = createRoleToken("coretech", roles, "0");
         
@@ -1010,7 +1011,7 @@ public class TestAuthZpe {
     }
 
     @Test
-    public void testgetZtsPublicKeyNull() throws Exception {
+    public void testgetZtsPublicKeyNull() {
         PublicKey key = AuthZpeClient.getZtsPublicKey("notexist");
         assertNull(key);
     }
@@ -1029,7 +1030,7 @@ public class TestAuthZpe {
     }
     
     @Test(dataProvider = "x509CertData")
-    public void testX509CertificateReadAllowed(String issuer, String subject, AccessCheckStatus expectedStatus, String angResource) throws Exception{
+    public void testX509CertificateReadAllowed(String issuer, String subject, AccessCheckStatus expectedStatus, String angResource) {
         String action      = "read";
         X509Certificate cert = Mockito.mock(X509Certificate.class);
         X500Principal x500Principal = Mockito.mock(X500Principal.class);

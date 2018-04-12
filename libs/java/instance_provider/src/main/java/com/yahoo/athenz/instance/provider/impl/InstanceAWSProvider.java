@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017 Yahoo Holdings, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -215,12 +215,8 @@ public class InstanceAWSProvider implements InstanceProvider {
         }
         
         // verify that the boot up time for the instance is now
-        
-        if (!validateInstanceBootTime(instanceDocument, errMsg)) {
-            return false;
-        }
-        
-        return true;
+
+        return validateInstanceBootTime(instanceDocument, errMsg);
     }
     
     String getInstanceId(AWSAttestationData info, Struct instanceDocument) {
@@ -290,7 +286,7 @@ public class InstanceAWSProvider implements InstanceProvider {
             
             int idx = host.indexOf(ZTS_CERT_INSTANCE_ID);
             if (idx != -1) {
-                instanceId.append(host.substring(0, idx));
+                instanceId.append(host, 0, idx);
                 if (!dnsSuffix.equals(host.substring(idx + ZTS_CERT_INSTANCE_ID.length()))) {
                     LOGGER.error("Host: {} does not have expected instance id format", host);
                     return false;

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -96,7 +96,7 @@ public class ZMSAuthorizer implements Authorizer, Closeable {
         // first let's find out what type of token we're given
         // either Role Token with version Z1 or principal token
         
-        Principal principal = null;
+        Principal principal;
         if (isRoleToken(token)) {
             RoleToken roleToken = new RoleToken(token);
             principal = SimplePrincipal.create(roleToken.getDomain(),

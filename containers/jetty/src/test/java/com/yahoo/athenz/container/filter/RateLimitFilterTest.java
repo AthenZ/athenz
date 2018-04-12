@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017 Yahoo Holdings Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,6 +31,7 @@ import org.testng.annotations.Test;
 
 public class RateLimitFilterTest {
 
+    @SuppressWarnings("RedundantThrows")
     private class RateLimitFilterChain implements FilterChain {
         @Override
         public void doFilter(ServletRequest request, ServletResponse servletResponse) throws IOException, ServletException {
@@ -53,9 +54,7 @@ public class RateLimitFilterTest {
 
         try {
             filter.doFilter(request, response, chain);
-        } catch (IOException e) {
-            fail();
-        } catch (ServletException e) {
+        } catch (IOException | ServletException e) {
             fail();
         }
         assertEquals(response.getStatus(), 200);

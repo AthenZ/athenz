@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,7 @@ public interface AuditLogMsgBuilder {
      * Ex:  "VERS(athenz-2.1);"
      * @return version tag all ready to set in a log message
      */
-    public String versionTag();
+    String versionTag();
     
     /**
      * who made the authorization change
@@ -30,9 +30,9 @@ public interface AuditLogMsgBuilder {
      *        The calling client/user requesting the change.
      * @return this
      */
-    public AuditLogMsgBuilder who(String whoVal);
+    AuditLogMsgBuilder who(String whoVal);
 
-    public String who();
+    String who();
 
     /**
      * why was this change requested - justification via SOX ticket number
@@ -40,13 +40,13 @@ public interface AuditLogMsgBuilder {
      *        The SOX ticket number.
      * @return this
      */
-    public AuditLogMsgBuilder why(String whyVal);
+    AuditLogMsgBuilder why(String whyVal);
 
-    public String why();
+    String why();
 
-    public AuditLogMsgBuilder when(String whenVal);
+    AuditLogMsgBuilder when(String whenVal);
 
-    public String when();
+    String when();
 
     /**
      * IP address of requesting client
@@ -54,18 +54,18 @@ public interface AuditLogMsgBuilder {
      *        The IP address of the calling client(who).
      * @return this
      */
-    public AuditLogMsgBuilder clientIp(String clientIpAddr);
+    AuditLogMsgBuilder clientIp(String clientIpAddr);
 
-    public String clientIp();
+    String clientIp();
 
     /**
      * This is where the change request was received - server endpoint.
      * @param whereVal is the server hostname where the request was received
      * @return this
      */
-    public AuditLogMsgBuilder where(String whereVal);
+    AuditLogMsgBuilder where(String whereVal);
 
-    public String where();
+    String where();
 
     /**
      * The REST methods required to be reported are PUT, POST, DELETE.
@@ -73,9 +73,9 @@ public interface AuditLogMsgBuilder {
      *        This is the REST method, ie. "PUT" or "POST", etc
      * @return this
      */
-    public AuditLogMsgBuilder whatMethod(String whatMethodVal);
+    AuditLogMsgBuilder whatMethod(String whatMethodVal);
 
-    public String whatMethod();
+    String whatMethod();
 
     /**
      * The publicly exported API receiving the change request.
@@ -83,9 +83,9 @@ public interface AuditLogMsgBuilder {
      *        This is the server public method serving the request, ex: "putRole"
      * @return this
      */
-    public AuditLogMsgBuilder whatApi(String whatApiVal);
+    AuditLogMsgBuilder whatApi(String whatApiVal);
 
-    public String whatApi();
+    String whatApi();
 
     /**
      * Name of the domain that is affected by the change.
@@ -93,9 +93,9 @@ public interface AuditLogMsgBuilder {
      *        This is the Athenz domain being changed, ex: "xobni"
      * @return this
      */
-    public AuditLogMsgBuilder whatDomain(String whatDomainVal);
+    AuditLogMsgBuilder whatDomain(String whatDomainVal);
 
-    public String whatDomain();
+    String whatDomain();
 
     /**
      * Name of the entity being changed. An entity is a policy, role, service, et al.
@@ -104,9 +104,9 @@ public interface AuditLogMsgBuilder {
      *        So for example, if the role called "admin" is changed, then entity is "admin".
      * @return this
      */
-    public AuditLogMsgBuilder whatEntity(String whatEntityVal);
+    AuditLogMsgBuilder whatEntity(String whatEntityVal);
 
-    public String whatEntity();
+    String whatEntity();
 
     /**
      * @param whatDetailsVal specific details of the changes
@@ -121,13 +121,13 @@ public interface AuditLogMsgBuilder {
      *        bldr         = bldr.whatDetails(oldAttrSet, newAttrSet);
      * @return this
      */
-    public AuditLogMsgBuilder whatDetails(String whatDetailsVal);
+    AuditLogMsgBuilder whatDetails(String whatDetailsVal);
 
-    public String whatDetails();
+    String whatDetails();
 
     /**
      * Call this to build the string representation of the data fields set herein.
      * @return String representation of the message to be logged
      */
-    public String build();
+    String build();
 }

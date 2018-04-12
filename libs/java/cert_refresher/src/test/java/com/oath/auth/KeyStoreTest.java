@@ -1,6 +1,4 @@
-package com.oath.auth;
-
-/**
+/*
  * Copyright 2017 Yahoo Holdings, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,6 +13,7 @@ package com.oath.auth;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.oath.auth;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
@@ -33,9 +32,9 @@ public class KeyStoreTest {
         // default password is secret - key exception
         
         try {
-            keyStore = Utils.getKeyStore("truststore.jks");
+            Utils.getKeyStore("truststore.jks");
             fail();
-        } catch (Exception ex) {
+        } catch (Exception ignored) {
         }
     }
     

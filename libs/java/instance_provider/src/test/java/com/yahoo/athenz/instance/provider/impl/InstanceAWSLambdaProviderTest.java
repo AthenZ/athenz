@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2018 Yahoo Holdings, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -170,7 +170,6 @@ public class InstanceAWSLambdaProviderTest {
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", null);
         
         HashMap<String, String> attributes = new HashMap<>();
-        attributes.put("sanDNS", "api.athenz.athenz.cloud");
         attributes.put("sanDNS", "api.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
         StringBuilder id = new StringBuilder(256);
         assertTrue(provider.validateCertRequestHostnames(attributes, "athenz", "api", id));

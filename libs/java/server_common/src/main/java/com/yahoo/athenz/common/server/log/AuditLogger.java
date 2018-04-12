@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,7 @@ package com.yahoo.athenz.common.server.log;
 
 /**
  * Interface to perform audit logging. 
- * See {@link com.yahoo.athenz.common.server.log.AuditLogFactory#getLogger()}
+ * See {@link com.yahoo.athenz.common.server.log.AuditLoggerFactory#create()}
  */
 public interface AuditLogger {
     /**
@@ -27,17 +27,17 @@ public interface AuditLogger {
      *                      If the message must be split into chunks then msgVersionTag
      *                      will be used prefixed to each chunk/partition.
      */
-    public void log(String logMsg, String msgVersionTag);
+    void log(String logMsg, String msgVersionTag);
     
     /**
      * Log the message as built by the provided msgBldr.
      * @param msgBldr constructs message to be logged, contains version tag of the message
      */
-    public void log(AuditLogMsgBuilder msgBldr);
+    void log(AuditLogMsgBuilder msgBldr);
     
     /**
      * Get a log message builder
      * @return default AuditLogMsgBuilder instance
      */
-    public AuditLogMsgBuilder getMsgBuilder();
+    AuditLogMsgBuilder getMsgBuilder();
 }

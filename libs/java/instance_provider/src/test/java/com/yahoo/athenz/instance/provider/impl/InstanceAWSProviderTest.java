@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017 Yahoo Holdings, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -145,7 +145,7 @@ public class InstanceAWSProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ResourceException ignored) {
         }
     }
     
@@ -166,7 +166,7 @@ public class InstanceAWSProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ResourceException ignored) {
         }
     }
     
@@ -184,7 +184,7 @@ public class InstanceAWSProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ResourceException ignored) {
         }
     }
     
@@ -205,7 +205,7 @@ public class InstanceAWSProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ResourceException ignored) {
         }
     }
     
@@ -314,7 +314,7 @@ public class InstanceAWSProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ResourceException ignored) {
         }
     }
     
@@ -737,7 +737,7 @@ public class InstanceAWSProviderTest {
         try {
             provider.refreshInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ResourceException ignored) {
         }
     }
     
@@ -758,7 +758,7 @@ public class InstanceAWSProviderTest {
         try {
             provider.refreshInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ResourceException ignored) {
         }
     }
     
@@ -784,7 +784,7 @@ public class InstanceAWSProviderTest {
         try {
             provider.refreshInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ResourceException ignored) {
         }
     }
 }

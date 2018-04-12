@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -294,7 +294,7 @@ public class AthenzJettyContainer {
     void loadServicePrivateKey() {
         String pkeyFactoryClass = System.getProperty(AthenzConsts.ATHENZ_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
                 AthenzConsts.ATHENZ_PKEY_STORE_FACTORY_CLASS);
-        PrivateKeyStoreFactory pkeyFactory = null;
+        PrivateKeyStoreFactory pkeyFactory;
         try {
             pkeyFactory = (PrivateKeyStoreFactory) Class.forName(pkeyFactoryClass).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
@@ -369,7 +369,7 @@ public class AthenzJettyContainer {
     void addHTTPConnector(HttpConfiguration httpConfig, int httpPort, boolean proxyProtocol,
             String listenHost, int idleTimeout) {
         
-        ServerConnector connector = null;
+        ServerConnector connector;
         if (proxyProtocol) {
             connector = new ServerConnector(server, new ProxyConnectionFactory(),
                     new HttpConnectionFactory(httpConfig));
@@ -400,7 +400,7 @@ public class AthenzJettyContainer {
     
         // SSL Connector
         
-        ServerConnector sslConnector = null;
+        ServerConnector sslConnector;
         if (proxyProtocol) {
             sslConnector = new ServerConnector(server, new ProxyConnectionFactory(),
                     new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
@@ -483,14 +483,12 @@ public class AthenzJettyContainer {
     public void stop() {
         try {
             server.stop();
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
     }
     
     public static AthenzJettyContainer createJettyContainer() {
-        
-        AthenzJettyContainer container = null;
-        
+
         // retrieve our http and https port numbers
         
         int httpPort = ConfigProperties.getPortNumber(AthenzConsts.ATHENZ_PROP_HTTP_PORT,
@@ -505,8 +503,8 @@ public class AthenzJettyContainer {
         int statusPort = ConfigProperties.getPortNumber(AthenzConsts.ATHENZ_PROP_STATUS_PORT, 0);
         
         String serverHostName = getServerHostName();
-        
-        container = new AthenzJettyContainer();
+
+        AthenzJettyContainer container = new AthenzJettyContainer();
         container.setBanner("http://" + serverHostName + " http port: " +
                 httpPort + " https port: " + httpsPort + " status port: " +
                 statusPort);
@@ -523,7 +521,7 @@ public class AthenzJettyContainer {
         return container;
     }
     
-    public static void main(String [] args) throws Exception {
+    public static void main(String [] args) {
 
         System.getProperties().remove("socksProxyHost");
         String propFile = System.getProperty(AthenzConsts.ATHENZ_PROP_FILE_NAME,

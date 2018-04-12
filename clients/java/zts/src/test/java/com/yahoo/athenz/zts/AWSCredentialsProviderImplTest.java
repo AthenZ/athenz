@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2018 Yahoo Holdings, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +31,7 @@ public class AWSCredentialsProviderImplTest {
     }
 
     @Test
-    public void testAWSCredentialsProviderImpl() throws Exception {
+    public void testAWSCredentialsProviderImpl() {
         ZTSClient ztsClient = Mockito.mock(ZTSClient.class);
         AWSTemporaryCredentials awsTemporaryCredentials = new AWSTemporaryCredentials();
         awsTemporaryCredentials.setAccessKeyId("accessKey");
@@ -42,7 +42,7 @@ public class AWSCredentialsProviderImplTest {
 
         //Check that get credentials calls refresh to get credentials from ZTS
 
-        Mockito.when(ztsClient.getAWSTemporaryCredentials(Mockito.<String>any(), Mockito.<String>any())).thenReturn(awsTemporaryCredentials, awsTemporaryCredentialsTwo);
+        Mockito.when(ztsClient.getAWSTemporaryCredentials(Mockito.any(), Mockito.any())).thenReturn(awsTemporaryCredentials, awsTemporaryCredentialsTwo);
         AWSCredentialsProviderImpl original = new AWSCredentialsProviderImpl(ztsClient, null, null);
 
         AWSCredentialsProviderImpl awsCredentialsProviderImpl = Mockito.spy(original);
@@ -54,7 +54,7 @@ public class AWSCredentialsProviderImplTest {
         Mockito.verify(awsCredentialsProviderImpl, Mockito.times(2)).refresh();
 
         //null credentials are returned in case of exception
-        Mockito.when(ztsClient.getAWSTemporaryCredentials(Mockito.<String>any(), Mockito.<String>any())).thenThrow(new ResourceException(400));
+        Mockito.when(ztsClient.getAWSTemporaryCredentials(Mockito.any(), Mockito.any())).thenThrow(new ResourceException(400));
         Assert.assertNull(awsCredentialsProviderImpl.getCredentials());
     }
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017 Yahoo Holdings, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +26,7 @@ import com.yahoo.athenz.auth.util.Crypto;
 
 public class ProviderHostnameVerifier implements HostnameVerifier {
 
-    String serviceName = null;
+    String serviceName;
     
     public ProviderHostnameVerifier(String serviceName) {
         this.serviceName = serviceName;
@@ -38,7 +38,7 @@ public class ProviderHostnameVerifier implements HostnameVerifier {
         Certificate[] certs = null;
         try {
             certs = session.getPeerCertificates();
-        } catch (SSLPeerUnverifiedException e) {
+        } catch (SSLPeerUnverifiedException ignored) {
         }
         if (certs == null) {
             return false;

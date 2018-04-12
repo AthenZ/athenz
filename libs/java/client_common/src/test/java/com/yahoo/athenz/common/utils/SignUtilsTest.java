@@ -32,9 +32,7 @@ public class SignUtilsTest {
     DomainPolicies mockPolicies;
     @Mock
     SignedPolicyData mockSignedPolicy;
-    
-    SignUtils chk_utils = new SignUtils();
-    
+
     @BeforeMethod
     public void setUp(){
         MockitoAnnotations.initMocks(this);
@@ -78,11 +76,11 @@ public class SignUtilsTest {
     
     @Test
     public void testAsStructPolicy() {
-        List<Policy> policies = new ArrayList<Policy>();
+        List<Policy> policies = new ArrayList<>();
         Policy mPolicy = Mockito.mock(Policy.class);
         policies.add(mPolicy);
         
-        List<Assertion> assertions = new ArrayList<Assertion>();
+        List<Assertion> assertions = new ArrayList<>();
         Assertion mAssertion = Mockito.mock(Assertion.class);
         assertions.add(mAssertion);
         
@@ -102,11 +100,11 @@ public class SignUtilsTest {
     
     @Test
     public void testAsStructZTSPolicy() {
-        List<com.yahoo.athenz.zts.Policy> policies = new ArrayList<com.yahoo.athenz.zts.Policy>();
+        List<com.yahoo.athenz.zts.Policy> policies = new ArrayList<>();
         com.yahoo.athenz.zts.Policy mPolicy = Mockito.mock(com.yahoo.athenz.zts.Policy.class);
         policies.add(mPolicy);
         
-        List<com.yahoo.athenz.zts.Assertion> assertions = new ArrayList<com.yahoo.athenz.zts.Assertion>();
+        List<com.yahoo.athenz.zts.Assertion> assertions = new ArrayList<>();
         com.yahoo.athenz.zts.Assertion mAssertion = Mockito.mock(com.yahoo.athenz.zts.Assertion.class);
         assertions.add(mAssertion);
         
@@ -126,19 +124,19 @@ public class SignUtilsTest {
     
     @Test
     public void testAsStructRoleService() {
-        List<Role> roles = new ArrayList<Role>();
+        List<Role> roles = new ArrayList<>();
         Role mRole = Mockito.mock(Role.class);
         roles.add(mRole);
         
-        List<String> items = new ArrayList<String>();
+        List<String> items = new ArrayList<>();
         String item = "check_item";
         items.add(item);
         
-        List<ServiceIdentity> services = new ArrayList<ServiceIdentity >();
+        List<ServiceIdentity> services = new ArrayList<>();
         ServiceIdentity mService = Mockito.mock(ServiceIdentity.class);
         services.add(mService);
         
-        List<PublicKeyEntry> publicKeys = new ArrayList<PublicKeyEntry>();
+        List<PublicKeyEntry> publicKeys = new ArrayList<>();
         PublicKeyEntry mPublicKey = Mockito.mock(PublicKeyEntry.class);
         publicKeys.add(mPublicKey);
         

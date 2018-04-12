@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017 Yahoo Holdings, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -68,7 +68,7 @@ public class ResourceExceptionTest {
     @Test
     public void testGetDataCast() {
         
-        ResourceException exc = new ResourceException(400, new Integer(5000));
+        ResourceException exc = new ResourceException(400, 5000);
         assertEquals(exc.getData(Integer.class), new Integer(5000));
     }
 }

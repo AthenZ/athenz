@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +36,7 @@ public class HttpTest {
     }
 
     @Test
-    public void testAuthenticateInternalServerError() throws Exception {
+    public void testAuthenticateInternalServerError() {
         HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
         try {
             Http.authenticate(httpServletRequest, null);
@@ -46,7 +46,7 @@ public class HttpTest {
     }
 
     @Test
-    public void testAuthenticateCertificate() throws Exception {
+    public void testAuthenticateCertificate() {
         HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
         Http.AuthorityList authorities = new Http.AuthorityList();
         Authority authority = Mockito.mock(Authority.class);
@@ -60,7 +60,7 @@ public class HttpTest {
     }
 
     @Test
-    public void testAuthenticateHeader() throws Exception {
+    public void testAuthenticateHeader() {
         HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
         Http.AuthorityList authorities = new Http.AuthorityList();
         Authority authority = Mockito.mock(Authority.class);
@@ -75,7 +75,7 @@ public class HttpTest {
     }
     
     @Test
-    public void testAuthenticatedUserInvalidCredentials() throws Exception {
+    public void testAuthenticatedUserInvalidCredentials() {
         HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
         Http.AuthorityList authorities = new Http.AuthorityList();
         try {
@@ -86,7 +86,7 @@ public class HttpTest {
     }
 
     @Test
-    public void testAuthorizedUserUserInvalidCredentials() throws Exception {
+    public void testAuthorizedUserUserInvalidCredentials() {
         HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
         Authorizer authorizer = Mockito.mock(Authorizer.class);
         Http.AuthorityList authorities = new Http.AuthorityList();
@@ -98,7 +98,7 @@ public class HttpTest {
     }
 
     @Test
-    public void testAuthorizedBadRequest() throws Exception {
+    public void testAuthorizedBadRequest() {
         Authorizer authorizer = Mockito.mock(Authorizer.class);
         Principal principal = Mockito.mock(Principal.class);
         try {
@@ -109,7 +109,7 @@ public class HttpTest {
     }
 
     @Test
-    public void testAuthorizedInternalServerError() throws Exception {
+    public void testAuthorizedInternalServerError() {
         Principal principal = Mockito.mock(Principal.class);
         try {
             Http.authorize(null, principal, "action", "resource", null);
@@ -119,7 +119,7 @@ public class HttpTest {
     }
 
     @Test
-    public void testAuthorizedForbidden() throws Exception {
+    public void testAuthorizedForbidden() {
         Authorizer authorizer = Mockito.mock(Authorizer.class);
         Principal principal = Mockito.mock(Principal.class);
         try {

@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.URL;
 
@@ -90,7 +89,7 @@ public class SSLUtilsTest {
     private static final String DEFAULT_SERVER_KEY_STORE = "src/test/resources/certs/server/server.pkcs12";
     
     @Test
-    public void testClientSSLContextBuilder() throws Exception {
+    public void testClientSSLContextBuilder() {
         String protocol = DEFAULT_SSL_PROTOCOL;
         SSLContext sslContext = new SSLUtils.ClientSSLContextBuilder(protocol)
                 .keyStorePath(DEFAULT_SERVER_KEY_STORE)
@@ -104,7 +103,7 @@ public class SSLUtilsTest {
     }    
     
     @Test
-    public void testLoadServicePrivateKey() throws Exception {
+    public void testLoadServicePrivateKey() {
         PrivateKeyStore keyStore = SSLUtils.loadServicePrivateKey("com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory");
         Assert.assertNotNull(keyStore);
     }
@@ -149,7 +148,6 @@ public class SSLUtilsTest {
                 Assert.fail("Expected failure");
             }
         } catch (Throwable t) {
-            System.out.println(t);
             Assert.assertTrue(t.getMessage().contains(expectedFailureMessage));
         } finally {
             jettyServer.server.stop();
@@ -185,20 +183,19 @@ public class SSLUtilsTest {
     }
     
     
-    private static JettyServer createHttpsJettyServer(boolean clientAuth) throws MalformedURLException, IOException {
+    private static JettyServer createHttpsJettyServer(boolean clientAuth) throws IOException {
         Server server = new Server();
         HttpConfiguration https_config = new HttpConfiguration();
         https_config.setSecureScheme("https");
-        int port = 0;
+        int port;
         try (ServerSocket socket = new ServerSocket(0)) {
             port = socket.getLocalPort();
         }
         https_config.setSecurePort(port);
         https_config.setOutputBufferSize(32768);
-        
-        String keystorePath = DEFAULT_SERVER_KEY_STORE;
+
         SslContextFactory sslContextFactory = new SslContextFactory();
-        File keystoreFile = new File(keystorePath);
+        File keystoreFile = new File(DEFAULT_SERVER_KEY_STORE);
         if (!keystoreFile.exists()) {
             throw new FileNotFoundException();
         }

@@ -1,12 +1,4 @@
-package com.oath.auth;
-
-import java.net.Socket;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-
-import javax.net.ssl.SSLEngine;
-
-/**
+/*
  * Copyright 2017 Yahoo Holdings, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +13,13 @@ import javax.net.ssl.SSLEngine;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.oath.auth;
+
+import java.net.Socket;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+
+import javax.net.ssl.SSLEngine;
 
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509ExtendedTrustManager;

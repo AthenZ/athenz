@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -61,7 +61,6 @@ public class FilePublicKeyStore implements PublicKeyStore {
         } catch (Exception ex) {
             LOG.error("Unable to extract ZMS Url from {} exc: {}",
                     confFileName, ex.getMessage());
-            return;
         }
     }
     
@@ -77,7 +76,7 @@ public class FilePublicKeyStore implements PublicKeyStore {
             if (key == null || id == null) {
                 continue;
             }
-            PublicKey pubKey = null;
+            PublicKey pubKey;
             try {
                 pubKey = Crypto.loadPublicKey(Crypto.ybase64DecodeString(key));
             } catch (Exception e) {

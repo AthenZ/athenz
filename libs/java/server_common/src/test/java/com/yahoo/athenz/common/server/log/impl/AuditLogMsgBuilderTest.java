@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +32,7 @@ public class AuditLogMsgBuilderTest {
     private static final String ZMS_USER_DOMAIN = "athenz.user_domain";
     private static final String USER_DOMAIN = System.getProperty(ZMS_USER_DOMAIN, "user");
     
-    static String TOKEN_STR = "v=U1;d=" + USER_DOMAIN + ";n=roger;h=somehost.somecompany.com;a=666;t=1492;e=2493;s=signature;";
+    static final String TOKEN_STR = "v=U1;d=" + USER_DOMAIN + ";n=roger;h=somehost.somecompany.com;a=666;t=1492;e=2493;s=signature;";
 
     DefaultAuditLogMsgBuilder starter(final String whatApi) {
         AuditLoggerFactory auditLoggerFactory = new DefaultAuditLoggerFactory();
@@ -47,7 +47,7 @@ public class AuditLogMsgBuilderTest {
         DefaultAuditLogMsgBuilder msgBldr = starter("testWho");
         String dataStr = "me?";
         msgBldr.who(dataStr);
-        Assert.assertTrue(msgBldr.who().equals(dataStr), "who string=" + msgBldr.who());
+        Assert.assertEquals(msgBldr.who(), dataStr, "who string=" + msgBldr.who());
     }
     
     @Test
@@ -55,7 +55,7 @@ public class AuditLogMsgBuilderTest {
         DefaultAuditLogMsgBuilder msgBldr = starter("testWhy");
         String dataStr = "not?";
         msgBldr.why(dataStr);
-        Assert.assertTrue(msgBldr.why().equals(dataStr), "why string=" + msgBldr.why());
+        Assert.assertEquals(msgBldr.why(), dataStr, "why string=" + msgBldr.why());
     }
 
     @Test
@@ -63,7 +63,7 @@ public class AuditLogMsgBuilderTest {
         DefaultAuditLogMsgBuilder msgBldr = starter("testWhenString");
         String dataStr = "now?";
         msgBldr.when(dataStr);
-        Assert.assertTrue(msgBldr.when().equals(dataStr), "when string=" + msgBldr.when());
+        Assert.assertEquals(msgBldr.when(), dataStr, "when string=" + msgBldr.when());
     }
 
     @Test
@@ -71,7 +71,7 @@ public class AuditLogMsgBuilderTest {
         DefaultAuditLogMsgBuilder msgBldr = starter("testClientIp");
         String dataStr = "99.77.22.hup";
         msgBldr.clientIp(dataStr);
-        Assert.assertTrue(msgBldr.clientIp().equals(dataStr), "clientIp string=" + msgBldr.clientIp());
+        Assert.assertEquals(msgBldr.clientIp(), dataStr, "clientIp string=" + msgBldr.clientIp());
     }
 
     @Test
@@ -79,7 +79,7 @@ public class AuditLogMsgBuilderTest {
         DefaultAuditLogMsgBuilder msgBldr = starter("testWhere");
         String dataStr = "host1.athenz.com";
         msgBldr.where(dataStr);
-        Assert.assertTrue(msgBldr.where().equals(dataStr), "where string=" + msgBldr.where());
+        Assert.assertEquals(msgBldr.where(), dataStr, "where string=" + msgBldr.where());
     }
 
     @Test
@@ -87,7 +87,7 @@ public class AuditLogMsgBuilderTest {
         DefaultAuditLogMsgBuilder msgBldr = starter("testWhatMethod");
         String dataStr = "PUT";
         msgBldr.whatMethod(dataStr);
-        Assert.assertTrue(msgBldr.whatMethod().equals(dataStr), "whatMethod string=" + msgBldr.whatMethod());
+        Assert.assertEquals(msgBldr.whatMethod(), dataStr, "whatMethod string=" + msgBldr.whatMethod());
     }
 
     @Test
@@ -95,7 +95,7 @@ public class AuditLogMsgBuilderTest {
         DefaultAuditLogMsgBuilder msgBldr = starter("testWhatApi");
         String dataStr = "putRole";
         msgBldr.whatApi(dataStr);
-        Assert.assertTrue(msgBldr.whatApi().equals(dataStr), "whatApi string=" + msgBldr.whatApi());
+        Assert.assertEquals(msgBldr.whatApi(), dataStr, "whatApi string=" + msgBldr.whatApi());
     }
 
     @Test
@@ -103,7 +103,7 @@ public class AuditLogMsgBuilderTest {
         DefaultAuditLogMsgBuilder msgBldr = starter("testWhatDomain");
         String dataStr = "sys.auth";
         msgBldr.whatDomain(dataStr);
-        Assert.assertTrue(msgBldr.whatDomain().equals(dataStr), "whatDomain string=" + msgBldr.whatDomain());
+        Assert.assertEquals(msgBldr.whatDomain(), dataStr, "whatDomain string=" + msgBldr.whatDomain());
     }
 
     @Test
@@ -111,7 +111,7 @@ public class AuditLogMsgBuilderTest {
         DefaultAuditLogMsgBuilder msgBldr = starter("testWhatEntity");
         String dataStr = "readers";
         msgBldr.whatEntity(dataStr);
-        Assert.assertTrue(msgBldr.whatEntity().equals(dataStr), "whatEntity string=" + msgBldr.whatEntity());
+        Assert.assertEquals(msgBldr.whatEntity(), dataStr, "whatEntity string=" + msgBldr.whatEntity());
     }
     
     /**

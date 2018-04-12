@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017 Yahoo Holdings Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yahoo.athenz.common.filter.RateLimit;
+import com.yahoo.athenz.common.filter.RateLimitFactory;
 import com.yahoo.athenz.container.AthenzConsts;
 
 public class RateLimitFilter implements javax.servlet.Filter {
@@ -59,9 +60,9 @@ public class RateLimitFilter implements javax.servlet.Filter {
     private void registerRateLimitFilter() {
         String ratelimitFactoryClass = System.getProperty(AthenzConsts.ATHENZ_PROP_RATE_LIMIT_FACTORY_CLASS,
                 AthenzConsts.ATHENZ_RATE_LIMIT_FACTORY_CLASS);
-        com.yahoo.athenz.common.filter.RateLimitFactory rateLimitFactory = null;
+        RateLimitFactory rateLimitFactory;
         try {
-            rateLimitFactory = (com.yahoo.athenz.common.filter.RateLimitFactory) Class.forName(ratelimitFactoryClass).newInstance();
+            rateLimitFactory = (RateLimitFactory) Class.forName(ratelimitFactoryClass).newInstance();
             this.rateLimit = rateLimitFactory.create();
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Registered rate limit filter: {}", ratelimitFactoryClass);

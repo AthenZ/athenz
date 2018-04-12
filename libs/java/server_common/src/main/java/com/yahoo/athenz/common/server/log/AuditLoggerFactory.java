@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,5 +21,5 @@ public interface AuditLoggerFactory {
      * Create and return a new AuditLogger instance
      * @return AuditLogger instance
      */
-    public AuditLogger create();
+    AuditLogger create();
 }

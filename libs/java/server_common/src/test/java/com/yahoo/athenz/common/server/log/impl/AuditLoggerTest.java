@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,16 +32,16 @@ public class AuditLoggerTest {
     final static String MSGVERS = "VERS=(test);";
     
     @BeforeClass
-    public static synchronized void setUp() throws Exception {
+    public static synchronized void setUp() {
         auditLogger = new DefaultAuditLogger() {
             @Override
             public void log(String msg, String msgVersion) {
-                Assert.assertTrue(msg != null);
+                Assert.assertNotNull(msg);
             }
 
             @Override
-            public void log(AuditLogMsgBuilder msgBldr) {  
-                Assert.assertTrue(msgBldr.build() != null);
+            public void log(AuditLogMsgBuilder msgBldr) {
+                Assert.assertNotNull(msgBldr.build());
             }
             
         };

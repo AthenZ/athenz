@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,7 @@ public class AthenzDaemon implements Daemon {
 
     private String[] args = null;
 
-    public void init(DaemonContext context) throws Exception {
+    public void init(DaemonContext context) {
         args = context.getArguments();
     }
 
