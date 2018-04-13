@@ -885,14 +885,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         EntityTag eTag = new EntityTag(modified.toString());
         String tag = eTag.toString();
         
-        // Set timestamp for domain rather than youngest policy.
-        // Since a policy could have been deleted, and can only be detected
-        // via the domain modified timestamp.
-        
-        if (matchingTag != null && matchingTag.equals(tag)) {
-            signedPoliciesResult.done(ResourceException.NOT_MODIFIED, matchingTag);
-        }
-        
         // first get our PolicyData object
         
         PolicyData policyData = new PolicyData()
