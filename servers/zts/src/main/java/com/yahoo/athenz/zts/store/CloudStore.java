@@ -29,12 +29,13 @@ import org.eclipse.jetty.client.api.ContentResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.amazonaws.auth.BasicSessionCredentials;
-import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
+import com.amazonaws.auth.BasicSessionCredentials;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
 import com.amazonaws.services.securitytoken.model.Credentials;
@@ -161,12 +162,11 @@ public class CloudStore {
             throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
                     "AWS Role credentials are not available");
         }
-        
-        AmazonS3Client s3 = new AmazonS3Client(credentials);
-        if (awsRegion != null) {
-            s3.setRegion(Region.getRegion(Regions.fromName(awsRegion)));
-        }
-        return s3;
+
+        return AmazonS3ClientBuilder.standard()
+                .withCredentials(new AWSStaticCredentialsProvider(credentials))
+                .withRegion(Regions.fromName(awsRegion))
+                .build();
     }
 
     boolean loadBootMetaData() {
@@ -402,8 +402,12 @@ public class CloudStore {
         return req;
     }
     
-    AWSSecurityTokenServiceClient getTokenServiceClient() {
-        return new AWSSecurityTokenServiceClient(credentials);
+    AWSSecurityTokenService getTokenServiceClient() {
+
+        return AWSSecurityTokenServiceClientBuilder.standard()
+                .withCredentials(new AWSStaticCredentialsProvider(credentials))
+                .withRegion(Regions.fromName(awsRegion))
+                .build();
     }
     
     public AWSTemporaryCredentials assumeAWSRole(String account, String roleName, String principal) {
@@ -417,7 +421,7 @@ public class CloudStore {
         
         AWSTemporaryCredentials tempCreds;
         try {
-            AWSSecurityTokenServiceClient client = getTokenServiceClient();
+            AWSSecurityTokenService client = getTokenServiceClient();
             AssumeRoleResult res = client.assumeRole(req);
         
             Credentials awsCreds = res.getCredentials();

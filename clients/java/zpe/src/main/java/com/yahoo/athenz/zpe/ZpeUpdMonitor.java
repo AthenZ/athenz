@@ -32,11 +32,7 @@ public class ZpeUpdMonitor implements Runnable {
     private String                dirName;
     private boolean               firstRun = true;
     
-    private java.io.FilenameFilter polFileNameFilter = new java.io.FilenameFilter() {
-        public boolean accept(File dir, String name) {
-            return name.endsWith(".pol");
-        }
-    };
+    private java.io.FilenameFilter polFileNameFilter = (dir, name) -> name.endsWith(".pol");
 
     ZpeUpdMonitor(final ZpeUpdPolLoader zpeUpdLoader) {
         updLoader = zpeUpdLoader;

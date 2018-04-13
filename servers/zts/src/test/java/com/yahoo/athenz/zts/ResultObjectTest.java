@@ -42,7 +42,7 @@ public class ResultObjectTest {
         try {
             object.done(101, data, "test");
             fail();
-        } catch (WebApplicationException ex) {
+        } catch (WebApplicationException ignored) {
         }
     }
     
@@ -52,7 +52,7 @@ public class ResultObjectTest {
         try {
             object.done(101, "test");
             fail();
-        } catch (WebApplicationException ex) {
+        } catch (WebApplicationException ignored) {
         }
     }
     
@@ -64,14 +64,14 @@ public class ResultObjectTest {
         try {
             object.done(101);
             fail();
-        } catch (WebApplicationException ex) {
+        } catch (WebApplicationException ignored) {
         }
         
         try {
             InstanceIdentity identity = new InstanceIdentity();
             object.done(101, identity, "/zts/v1/instance/provider/domain/service/instanceid");
             fail();
-        } catch (WebApplicationException ex) {
+        } catch (WebApplicationException ignored) {
         }
     }
     
@@ -82,7 +82,7 @@ public class ResultObjectTest {
         try {
             object.done(101, data, "test");
             fail();
-        } catch (WebApplicationException ex) {
+        } catch (WebApplicationException ignored) {
         }
     }
     
@@ -92,7 +92,7 @@ public class ResultObjectTest {
         try {
             object.done(101, "test");
             fail();
-        } catch (WebApplicationException ex) {
+        } catch (WebApplicationException ignored) {
         }
     }
 }

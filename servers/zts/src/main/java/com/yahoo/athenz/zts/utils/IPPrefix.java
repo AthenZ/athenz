@@ -15,10 +15,10 @@
  */
 package com.yahoo.athenz.zts.utils;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
+@JsonInclude(JsonInclude.Include.ALWAYS)
 public class IPPrefix {
 
     private String ipv4Prefix;

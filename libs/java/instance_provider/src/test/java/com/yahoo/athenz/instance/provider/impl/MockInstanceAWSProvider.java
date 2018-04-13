@@ -15,16 +15,15 @@
  */
 package com.yahoo.athenz.instance.provider.impl;
 
-import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
-import com.yahoo.athenz.instance.provider.impl.AWSAttestationData;
-import com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 
+@SuppressWarnings("unused")
 public class MockInstanceAWSProvider extends InstanceAWSProvider {
 
     boolean signatureResult = true;
     boolean identityResult = true;
     boolean identitySuper = false;
-    AWSSecurityTokenServiceClient stsClient;
+    AWSSecurityTokenService stsClient;
     
     void setSignatureResult(boolean value) {
         signatureResult = value;
@@ -38,7 +37,7 @@ public class MockInstanceAWSProvider extends InstanceAWSProvider {
         identitySuper = value;
     }
     
-    void setStsClient(AWSSecurityTokenServiceClient client) {
+    void setStsClient(AWSSecurityTokenService client) {
         stsClient = client;
     }
     
@@ -53,7 +52,7 @@ public class MockInstanceAWSProvider extends InstanceAWSProvider {
     }
     
     @Override
-    public AWSSecurityTokenServiceClient getInstanceClient(AWSAttestationData info) {
+    public AWSSecurityTokenService getInstanceClient(AWSAttestationData info) {
         return stsClient != null ? stsClient : super.getInstanceClient(info);
     }
 }

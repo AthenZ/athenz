@@ -1739,7 +1739,7 @@ public class DBService {
         AthenzDomain domain = null;
         try {
             domain = getAthenzDomain(trustDomain, false);
-        } catch (ResourceException ignore) {
+        } catch (ResourceException ignored) {
         }
         
         if (domain == null) {

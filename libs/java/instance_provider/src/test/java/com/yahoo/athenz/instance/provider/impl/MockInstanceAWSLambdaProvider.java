@@ -15,14 +15,14 @@
  */
 package com.yahoo.athenz.instance.provider.impl;
 
-import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
-import com.yahoo.athenz.instance.provider.impl.AWSAttestationData;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 
+@SuppressWarnings("unused")
 public class MockInstanceAWSLambdaProvider extends InstanceAWSLambdaProvider {
 
     boolean identityResult = true;
     boolean identitySuper = false;
-    AWSSecurityTokenServiceClient stsClient;
+    AWSSecurityTokenService stsClient;
     
     void setIdentityResult(boolean value) {
         identityResult = value;
@@ -32,7 +32,7 @@ public class MockInstanceAWSLambdaProvider extends InstanceAWSLambdaProvider {
         identitySuper = value;
     }
     
-    void setStsClient(AWSSecurityTokenServiceClient client) {
+    void setStsClient(AWSSecurityTokenService client) {
         stsClient = client;
     }
     
@@ -42,7 +42,7 @@ public class MockInstanceAWSLambdaProvider extends InstanceAWSLambdaProvider {
     }
     
     @Override
-    public AWSSecurityTokenServiceClient getInstanceClient(AWSAttestationData info) {
+    public AWSSecurityTokenService getInstanceClient(AWSAttestationData info) {
         return stsClient != null ? stsClient : super.getInstanceClient(info);
     }
 }

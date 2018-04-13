@@ -461,11 +461,7 @@ public class ZpeUpdPolLoader implements Closeable {
                     }
                 }
 
-                List<Struct> assertList = roleMap.get(pRoleName);
-                if (assertList == null) {
-                    assertList = new ArrayList<>();
-                    roleMap.put(pRoleName, assertList);
-                }
+                List<Struct> assertList = roleMap.computeIfAbsent(pRoleName, k -> new ArrayList<>());
                 assertList.add(strAssert);
             }
         }

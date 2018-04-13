@@ -101,7 +101,7 @@ public class FileCertRecordStoreConnection implements CertRecordStoreConnection 
         try {
             Path path = Paths.get(f.toURI());
             record = JSON.fromBytes(Files.readAllBytes(path), X509CertRecord.class);
-        } catch (IOException ignore) {
+        } catch (IOException ignored) {
         }
         return record;
     }

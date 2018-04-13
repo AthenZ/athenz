@@ -310,7 +310,7 @@ public class DefaultAuditLogMsgBuilder implements AuditLogMsgBuilder {
      */
     @Override
     public String build() {
-        String sb = versionTag() + PARSE_WHEN + "=(" + when() +
+        return versionTag() + PARSE_WHEN + "=(" + when() +
                 ");" + PARSE_WHO + "=(" + who() +
                 ");" + PARSE_WHY + "=(" + why() +
                 ");" + PARSE_WHERE + "=(" + where() +
@@ -318,7 +318,6 @@ public class DefaultAuditLogMsgBuilder implements AuditLogMsgBuilder {
                 ");" + PARSE_WHAT_METH + "=(" + whatMethod() + ");" + PARSE_WHAT_API + "=(" +
                 whatApi() + ");" + PARSE_WHAT_DOM + "=(" + whatDomain() + ");" + PARSE_WHAT_ENT + "=(" +
                 whatEntity() + ");" + PARSE_WHAT_DETAILS + "=(" + whatDetails() + ");";
-        return sb;
     }
 }
 

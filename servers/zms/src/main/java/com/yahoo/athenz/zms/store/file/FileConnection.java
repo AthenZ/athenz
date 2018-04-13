@@ -442,7 +442,7 @@ public class FileConnection implements ObjectStoreConnection {
             try {
                 Path path = Paths.get(f.toURI());
                 domainStruct = JSON.fromBytes(Files.readAllBytes(path), DomainStruct.class);
-            } catch (IOException ignore) {
+            } catch (IOException ignored) {
             }
             if (domainStruct == null) {
                 continue;
@@ -487,7 +487,7 @@ public class FileConnection implements ObjectStoreConnection {
             try {
                 Path path = Paths.get(f.toURI());
                 domainStruct = JSON.fromBytes(Files.readAllBytes(path), DomainStruct.class);
-            } catch (IOException ignore) {
+            } catch (IOException ignored) {
             }
             if (domainStruct == null) {
                 continue;
@@ -530,7 +530,7 @@ public class FileConnection implements ObjectStoreConnection {
             try {
                 Path path = Paths.get(f.toURI());
                 domainStruct = JSON.fromBytes(Files.readAllBytes(path), DomainStruct.class);
-            } catch (IOException ignore) {
+            } catch (IOException ignored) {
             }
             if (domainStruct == null) {
                 continue;
@@ -1286,7 +1286,7 @@ public class FileConnection implements ObjectStoreConnection {
         try {
             Path path = Paths.get(f.toURI());
             domainStruct = JSON.fromBytes(Files.readAllBytes(path), DomainStruct.class);
-        } catch (IOException ignore) {
+        } catch (IOException ignored) {
         }
         return domainStruct;
     }
@@ -1300,7 +1300,7 @@ public class FileConnection implements ObjectStoreConnection {
             fileWriter.write(policydata);
             fileWriter.flush();
             fileWriter.close();
-        } catch (IOException ignore) {
+        } catch (IOException ignored) {
         }
     }
     

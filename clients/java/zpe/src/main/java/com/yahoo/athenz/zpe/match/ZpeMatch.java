@@ -20,5 +20,5 @@ public interface ZpeMatch {
     /*
      * @return boolean value if the given string matches for ZPE check
      */
-    public boolean matches(String value);
+    boolean matches(String value);
 }

@@ -26,7 +26,7 @@ import com.yahoo.athenz.container.AthenzDaemon;
 public class AthenzDaemonTest {
 
     @Test
-    public void testInit() throws Exception {
+    public void testInit() {
         DaemonContext daemoncontext = Mockito.mock(DaemonContext.class);
         AthenzDaemon daemon = new AthenzDaemon();
         daemon.init(daemoncontext);

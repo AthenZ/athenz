@@ -45,12 +45,11 @@ public class HealthCheckFilter implements javax.servlet.Filter {
     
     private boolean statusOkBody = true;
     private int statusBodyLength = STATUS_OK_BODY.length();
-    private String filterPath = null;
     private Map<String, File> uriList = null;
 
     public void init(FilterConfig config) throws ServletException {
-        
-        filterPath = config.getInitParameter(AthenzConsts.ATHENZ_PROP_HEALTH_CHECK_PATH);
+
+        final String filterPath = config.getInitParameter(AthenzConsts.ATHENZ_PROP_HEALTH_CHECK_PATH);
 
         // if the path is not available then health check is not enabled
         

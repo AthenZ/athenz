@@ -95,9 +95,9 @@ public class CloudStoreTest {
         CloudStore store = new CloudStore(null);
         store.credentials = new BasicSessionCredentials("accessKey", "secretKey", "token");
         store.awsEnabled = true;
+        store.awsRegion = "us-west-2";
         assertNotNull(store.getS3Client());
         
-        store.awsRegion = "us-west-2";
         assertNotNull(store.getS3Client());
         store.close();
     }
@@ -107,6 +107,7 @@ public class CloudStoreTest {
         CloudStore store = new CloudStore(null);
         store.credentials = new BasicSessionCredentials("accessKey", "secretKey", "token");
         store.awsEnabled = true;
+        store.awsRegion = "us-west-2";
         assertNotNull(store.getTokenServiceClient());
         store.close();
     }

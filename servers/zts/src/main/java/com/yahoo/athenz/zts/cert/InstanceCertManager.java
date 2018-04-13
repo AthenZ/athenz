@@ -8,7 +8,6 @@ import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -26,6 +25,7 @@ import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.utils.IPBlock;
 import com.yahoo.athenz.zts.utils.IPPrefix;
 import com.yahoo.athenz.zts.utils.IPPrefixes;
+import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.rdl.JSON;
 
 public class InstanceCertManager {
@@ -181,17 +181,12 @@ public class InstanceCertManager {
         }
         
         String instanceId = null;
-        Iterator<List<?>> certAttrs = certAttributes.iterator();
-        while (certAttrs.hasNext()) {
-            List<?> altName = (List<?>) certAttrs.next();
-            Integer nameType = (Integer) altName.get(0);
-            if (nameType == 2) {
-                final String dnsName = (String) altName.get(1);
-                int idx = dnsName.indexOf(ZTSConsts.ZTS_CERT_INSTANCE_ID);
-                if (idx != -1) {
-                    instanceId = dnsName.substring(0, idx);
-                    break;
-                }
+        final List<String> dnsNames = Crypto.extractX509CertDnsNames(cert);
+        for (String dnsName : dnsNames) {
+             int idx = dnsName.indexOf(ZTSConsts.ZTS_CERT_INSTANCE_ID);
+             if (idx != -1) {
+                 instanceId = dnsName.substring(0, idx);
+                 break;
             }
         }
         

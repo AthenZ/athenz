@@ -535,11 +535,7 @@ public class DataStore implements DataCacheProvider {
         }
         
         for (Map.Entry<String, Set<String>> entry : hostMap.entrySet()) {
-            List<String> services = hostCache.get(entry.getKey());
-            if (services == null) {
-                services = new ArrayList<>();
-                hostCache.put(entry.getKey(), services);
-            }
+            List<String> services = hostCache.computeIfAbsent(entry.getKey(), k -> new ArrayList<>());
             services.addAll(entry.getValue());
         }
     }

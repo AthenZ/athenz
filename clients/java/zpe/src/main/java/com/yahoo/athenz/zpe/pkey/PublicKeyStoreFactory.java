@@ -21,5 +21,5 @@ public interface PublicKeyStoreFactory {
      * Create and return a new PublicKeyStore instance
      * @return PublicKeyStore instance
      */
-    public PublicKeyStore create();
+    PublicKeyStore create();
 }
