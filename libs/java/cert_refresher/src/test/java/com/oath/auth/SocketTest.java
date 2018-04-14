@@ -49,7 +49,7 @@ import static org.junit.Assert.assertEquals;
 public class SocketTest {
 
     private final int listenPort = 2000;
-    private boolean running = true;
+    private final boolean running = true;
     private KeyRefresher keyRefresher;
 
     @Before
@@ -74,6 +74,7 @@ public class SocketTest {
         SSLServerSocket sslServerSocket = (SSLServerSocket) sslServerSocketFactory.createServerSocket(port);
 
         new Thread(() -> {
+            //noinspection InfiniteLoopStatement
             while(running) {
                 try {
                     final Socket s = sslServerSocket.accept();
@@ -83,6 +84,7 @@ public class SocketTest {
                             BufferedReader is = new BufferedReader(new InputStreamReader(s.getInputStream()));
                             OutputStream os = s.getOutputStream();
 
+                            //noinspection ConstantConditions,InfiniteLoopStatement
                             while(running) {
                                 String line = is.readLine();
                                 if (line.equals("ping")) {

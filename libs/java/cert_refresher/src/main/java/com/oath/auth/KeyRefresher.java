@@ -18,6 +18,7 @@ package com.oath.auth;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
@@ -35,10 +36,10 @@ public class KeyRefresher {
     //60 seconds * 60 (min in an hour)
     private static final int DEFAULT_RETRY_CHECK_FREQUENCY = 60_000 * 60;
 
-    private final MessageDigest md;
-    private byte[] lastPublicKeyManagerChecksum = new byte[0]; //initialize to empty to avoid NPE
-    private byte[] lastPrivateKeyManagerChecksum = new byte[0]; //initialize to empty to avoid NPE
-    private byte[] lastTrustManagerChecksum = new byte[0]; //initialize to empty to avoid NPW
+    private final MessageDigest md = MessageDigest.getInstance("MD5");
+    private final byte[] lastPublicCertManagerChecksum = new byte[md.getDigestLength()];
+    private final byte[] lastPrivateKeyManagerChecksum = new byte[md.getDigestLength()];
+    private final byte[] lastTrustManagerChecksum = new byte[md.getDigestLength()];
 
     private final String athenzPublicCert;
     private final String athenzPrivateKey;
@@ -77,13 +78,12 @@ public class KeyRefresher {
      */
     public KeyRefresher(final String athenzPublicCert, final String athenzPrivateKey, final TrustStore trustStore,
                         final KeyManagerProxy keyManagerProxy, final TrustManagerProxy trustManagerProxy)
-        throws NoSuchAlgorithmException {
+            throws NoSuchAlgorithmException {
         this.athenzPublicCert = athenzPublicCert;
         this.athenzPrivateKey = athenzPrivateKey;
         this.trustStore = trustStore;
         this.keyManagerProxy = keyManagerProxy;
         this.trustManagerProxy = trustManagerProxy;
-        md = MessageDigest.getInstance("MD5");
     }
 
     public KeyManagerProxy getKeyManagerProxy() {
@@ -107,7 +107,7 @@ public class KeyRefresher {
                     }
                     //we want to check both files (public + private) and update both checksums
                     boolean keyFilesChanged = haveFilesBeenChanged(athenzPrivateKey, lastPrivateKeyManagerChecksum);
-                    keyFilesChanged = haveFilesBeenChanged(athenzPublicCert, lastPublicKeyManagerChecksum) || keyFilesChanged;
+                    keyFilesChanged = haveFilesBeenChanged(athenzPublicCert, lastPublicCertManagerChecksum) || keyFilesChanged;
                     if (keyFilesChanged) {
                         keyManagerProxy.setKeyManager(Utils.getKeyManagers(athenzPublicCert, athenzPrivateKey));
                         if (LOGGER.isDebugEnabled()) {
@@ -134,7 +134,6 @@ public class KeyRefresher {
         LOGGER.info("Started KeyRefresher thread.");
     }
 
-
     public void shutdown() {
         shutdown = true;
     }
@@ -150,10 +149,27 @@ public class KeyRefresher {
     }
 
     /**
-     *  If the checksum for the file has changed, then update the checksum and return true.  else return false
+     * If the checksum for the file has changed, then update the checksum
+     * and return true.  else return false
+     * @param filePath file to check for changes
+     * @param checksum current checksum. will be updated with a new value if the file was changed
+     * @return true if file was changed, false otherwise
      */
     protected boolean haveFilesBeenChanged(final String filePath, byte[] checksum) {
-        try (InputStream is = Files.newInputStream(Paths.get(filePath));
+
+        // if we don't have an absolute path for our file path then it
+        // was retrieved from our resource and as such there is no need
+        // to check to see if it was changed or not.
+
+        final Path path = Paths.get(filePath);
+        if (!path.isAbsolute()) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Relative path: {} specified - ignoring change check", filePath);
+            }
+            return false;
+        }
+
+        try (InputStream is = Files.newInputStream(path);
              DigestInputStream digestInputStream = new DigestInputStream(is, md)) {
             //noinspection StatementWithEmptyBody
             while (digestInputStream.read() != -1) {
@@ -167,7 +183,7 @@ public class KeyRefresher {
         byte[] digest = md.digest();
         if (!Arrays.equals(checksum, digest)) {
             //they aren't the same, overwrite old checksum
-            checksum = digest;
+            System.arraycopy(digest, 0, checksum, 0, digest.length);
             return true;
         }
         return false;

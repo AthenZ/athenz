@@ -22,11 +22,13 @@ import org.junit.Test;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.TrustManager;
-import java.security.MessageDigest;
+import java.security.*;
 
 import static org.junit.Assert.*;
 
 public class KeyRefresherTest {
+
+    private final MessageDigest md = MessageDigest.getInstance("MD5");
 
     @Mocked
     private KeyManagerProxy mockedKeyManagerProxy;
@@ -37,23 +39,54 @@ public class KeyRefresherTest {
     @Mocked
     private TrustStore mockedTrustStore;
 
+    public KeyRefresherTest() throws NoSuchAlgorithmException {
+    }
+
     @Test
     public void haveFilesBeenChangedTestFilesAltered() throws Exception {
         KeyRefresher keyRefresher = new KeyRefresher("", "", mockedTrustStore, mockedKeyManagerProxy, mockedTrustManagerProxy);
-        assertTrue(keyRefresher.haveFilesBeenChanged(Resources.getResource("testFile").getPath(), new byte[0]));
+        assertTrue(keyRefresher.haveFilesBeenChanged(Resources.getResource("testFile").getPath(), new byte[md.getDigestLength()]));
+    }
+
+    @Test
+    public void haveFilesBeenChangedTestFilesMultiple() throws Exception {
+        byte[] checksum = new byte[md.getDigestLength()];
+        KeyRefresher keyRefresher = new KeyRefresher("", "", mockedTrustStore, mockedKeyManagerProxy, mockedTrustManagerProxy);
+        // first call is changed because we don't have checksum
+        assertTrue(keyRefresher.haveFilesBeenChanged(Resources.getResource("testFile").getPath(), checksum));
+        // second call should be no change
+        assertFalse(keyRefresher.haveFilesBeenChanged(Resources.getResource("testFile").getPath(), checksum));
+        // now let's modify our contents of the checksum
+        checksum[0] = 0;
+        checksum[1] = 1;
+        checksum[2] = 2;
+        assertTrue(keyRefresher.haveFilesBeenChanged(Resources.getResource("testFile").getPath(), checksum));
+    }
+
+    @Test
+    public void haveFilesBeenChangedTestFilesMultipleRelativePath() throws Exception {
+        byte[] checksum = new byte[md.getDigestLength()];
+        KeyRefresher keyRefresher = new KeyRefresher("", "", mockedTrustStore, mockedKeyManagerProxy, mockedTrustManagerProxy);
+        // when we pass relative path, it doesn't matter what is in the
+        // checksum as we always return false
+        assertFalse(keyRefresher.haveFilesBeenChanged("testfile", checksum));
+        checksum[0] = 0;
+        checksum[1] = 1;
+        checksum[2] = 2;
+        assertFalse(keyRefresher.haveFilesBeenChanged("testfile", checksum));
     }
 
     @Test
     public void filesBeenChangedTestIOException() throws Exception {
         KeyRefresher keyRefresher = new KeyRefresher("", "", mockedTrustStore, mockedKeyManagerProxy, mockedTrustManagerProxy);
-        assertFalse(keyRefresher.haveFilesBeenChanged(Resources.getResource("").getPath(), new byte[0]));
+        assertFalse(keyRefresher.haveFilesBeenChanged(Resources.getResource("").getPath(), new byte[md.getDigestLength()]));
     }
 
     @Test
     public void haveFilesBeenChangedTestFilesSame(@Mocked MessageDigest mockedMessageDigest) throws Exception {
         KeyRefresher keyRefresher = new KeyRefresher("", "", mockedTrustStore, mockedKeyManagerProxy, mockedTrustManagerProxy);
 
-        byte[] stuff = new byte[0];
+        byte[] stuff = new byte[md.getDigestLength()];
         new Expectations() {{
            mockedMessageDigest.digest(); result = stuff;
         }};
