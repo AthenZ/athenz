@@ -1242,12 +1242,10 @@ public class JDBCConnection implements ObjectStoreConnection {
         return count;
     }
     
-    public static Comparator<RoleMember> RoleMemberComparator = new Comparator<RoleMember>() {
-        public int compare(RoleMember roleMember1, RoleMember roleMember2) {
-            String roleMember1Name = roleMember1.getMemberName().toLowerCase();
-            String roleMember2Name = roleMember2.getMemberName().toLowerCase();
-            return roleMember1Name.compareTo(roleMember2Name);
-        }
+    public static Comparator<RoleMember> RoleMemberComparator = (roleMember1, roleMember2) -> {
+        String roleMember1Name = roleMember1.getMemberName().toLowerCase();
+        String roleMember2Name = roleMember2.getMemberName().toLowerCase();
+        return roleMember1Name.compareTo(roleMember2Name);
     };
 
     @Override
@@ -2784,11 +2782,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     assertion.setId((long) rs.getInt(ZMSConsts.DB_COLUMN_ASSERT_ID));
 
                     String index = roleIndex(rs.getString(ZMSConsts.DB_COLUMN_DOMAIN_ID), roleName);
-                    List<Assertion> assertions = roleAssertions.get(index);
-                    if (assertions == null) {
-                        assertions = new ArrayList<>();
-                        roleAssertions.put(index, assertions);
-                    }
+                    List<Assertion> assertions = roleAssertions.computeIfAbsent(index, k -> new ArrayList<>());
 
                     if (LOG.isDebugEnabled()) {
                         LOG.debug(caller + ": adding assertion " + assertion + " for " + index);
@@ -2832,12 +2826,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                     String roleName = rs.getString(ZMSConsts.DB_COLUMN_ROLE_NAME);
 
                     String index = roleIndex(rs.getString(ZMSConsts.DB_COLUMN_DOMAIN_ID), roleName);
-                    List<String> principals = rolePrincipals.get(index);
-                    if (principals == null) {
-                        principals = new ArrayList<>();
-                        rolePrincipals.put(index, principals);
-                    }
-                    
+                    List<String> principals = rolePrincipals.computeIfAbsent(index, k -> new ArrayList<>());
+
                     if (LOG.isDebugEnabled()) {
                         LOG.debug(caller + ": adding principal " + principalName + " for " + index);
                     }
@@ -2864,12 +2854,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     String assertRoleName = rs.getString(ZMSConsts.DB_COLUMN_ROLE);
 
                     String index = roleIndex(assertDomainId, assertRoleName);
-                    List<String> roles = trustedRoles.get(index);
-                    if (roles == null) {
-                        roles = new ArrayList<>();
-                        trustedRoles.put(index, roles);
-                    }
-                    
+                    List<String> roles = trustedRoles.computeIfAbsent(index, k -> new ArrayList<>());
                     String tRoleName = roleIndex(trustDomainId, trustRoleName);
                     roles.add(tRoleName);
                 }
@@ -3107,13 +3092,9 @@ public class JDBCConnection implements ObjectStoreConnection {
                     }
                     continue;
                 }
-                
-                List<Assertion> assertions = principalAssertions.get(rPrincipal);
-                if (assertions == null) {
-                    assertions = new ArrayList<>();
-                    principalAssertions.put(rPrincipal, assertions);
-                }
-                
+
+                List<Assertion> assertions = principalAssertions.computeIfAbsent(rPrincipal, k -> new ArrayList<>());
+
                 // retrieve the assertions for this role
                 
                 addRoleAssertions(assertions, roleAssertions.get(roleIndex), awsDomains);

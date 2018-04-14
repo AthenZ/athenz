@@ -18,9 +18,8 @@ package com.yahoo.athenz.zts.cert;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
+@JsonInclude(JsonInclude.Include.ALWAYS)
 public class X509CertSignObject {
 
     private String pem;

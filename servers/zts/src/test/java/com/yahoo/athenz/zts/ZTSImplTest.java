@@ -55,9 +55,7 @@ import com.yahoo.athenz.auth.impl.UserAuthority;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.server.cert.CertSigner;
-import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
-import com.yahoo.athenz.common.server.log.impl.DefaultAuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.impl.DefaultAuditLogger;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
@@ -2091,33 +2089,17 @@ public class ZTSImplTest {
     }
     
     @Test
-    public void testRoleTokenAddrNoLoopbackAuditLog() {
+    public void testRoleTokenAddrNoLoopback() {
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
         Mockito.when(servletRequest.getRemoteAddr()).thenReturn("10.10.10.11");
         Mockito.when(servletRequest.isSecure()).thenReturn(true);
         
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<>();
-        AuditLogger alogger = new AuditLogger() {
-            public void log(String logMsg, String msgVersionTag) {
-                aLogMsgs.add(logMsg);
-            }
-            public void log(AuditLogMsgBuilder msgBldr) {
-                String msg = msgBldr.build();
-                aLogMsgs.add(msg);
-            }
-            @Override
-            public AuditLogMsgBuilder getMsgBuilder() {
-                return new DefaultAuditLogMsgBuilder();
-            }
-        };
-        
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
         DataStore store = new DataStore(structStore, null);
         
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
-        ztsImpl.auditLogger = alogger;
         ZTSImpl.serverHostName = "localhost";
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
@@ -2131,34 +2113,13 @@ public class ZTSImplTest {
                 1200, null);
         com.yahoo.athenz.auth.token.RoleToken token = new com.yahoo.athenz.auth.token.RoleToken(roleToken.getToken());
         assertNotNull(token);
-        String unsignToken = token.getUnsignedToken();
-        for (String msg: aLogMsgs) {
-            assertTrue(msg.contains("SUCCESS ROLETOKEN=(" + unsignToken));
-            assertTrue(msg.contains("CLIENT-IP=(10.10.10.11)"));
-            break;
-        }
     }
 
     @Test
-    public void testGetRoleTokenAddrLoopbackNoXFFAuditLog() {
+    public void testGetRoleTokenAddrLoopbackNoXFF() {
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
         Mockito.when(servletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
         Mockito.when(servletRequest.isSecure()).thenReturn(true);
-
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<>();
-        AuditLogger alogger = new AuditLogger() {
-            public void log(String logMsg, String msgVersionTag) {
-                aLogMsgs.add(logMsg);
-            }
-            public void log(AuditLogMsgBuilder msgBldr) {
-                String msg = msgBldr.build();
-                aLogMsgs.add(msg);
-            }
-            @Override
-            public AuditLogMsgBuilder getMsgBuilder() {
-                return new DefaultAuditLogMsgBuilder();
-            }
-        };
         
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -2167,8 +2128,6 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
         ZTSImpl.serverHostName = "localhost";
 
-        ztsImpl.auditLogger = alogger;
-        
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
         
@@ -2181,42 +2140,20 @@ public class ZTSImplTest {
         com.yahoo.athenz.auth.token.RoleToken token = new com.yahoo.athenz.auth.token.RoleToken(roleToken.getToken());
         assertNotNull(token);
         String unsignToken = token.getUnsignedToken();
-        for (String msg: aLogMsgs) {
-            assertTrue(msg.contains("SUCCESS ROLETOKEN=(" + unsignToken));
-            assertTrue(msg.contains("i=127.0.0.1"));
-            assertTrue(msg.contains("CLIENT-IP=(127.0.0.1)"));
-            break;
-        }
     }
  
     @Test
-    public void testGetRoleTokenAddrLoopbackXFFSingeValueAuditLog() {
+    public void testGetRoleTokenAddrLoopbackXFFSingeValue() {
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
         Mockito.when(servletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
         Mockito.when(servletRequest.getHeader("X-Forwarded-For")).thenReturn("10.10.10.12");
         Mockito.when(servletRequest.isSecure()).thenReturn(true);
-
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<>();
-        AuditLogger alogger = new AuditLogger() {
-            public void log(String logMsg, String msgVersionTag) {
-                aLogMsgs.add(logMsg);
-            }
-            public void log(AuditLogMsgBuilder msgBldr) {
-                String msg = msgBldr.build();
-                aLogMsgs.add(msg);
-            }
-            @Override
-            public AuditLogMsgBuilder getMsgBuilder() {
-                return new DefaultAuditLogMsgBuilder();
-            }
-        };
         
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
         
         DataStore store = new DataStore(structStore, null);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
-        ztsImpl.auditLogger = alogger;
         ZTSImpl.serverHostName = "localhost";
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
@@ -2230,35 +2167,14 @@ public class ZTSImplTest {
                 1200, null);
         com.yahoo.athenz.auth.token.RoleToken token = new com.yahoo.athenz.auth.token.RoleToken(roleToken.getToken());
         assertNotNull(token);
-        String unsignToken = token.getUnsignedToken();
-        for (String msg: aLogMsgs) {
-            assertTrue(msg.contains("SUCCESS ROLETOKEN=(" + unsignToken));
-            assertTrue(msg.contains("CLIENT-IP=(10.10.10.12)"));
-            break;
-        }
     }
     
     @Test
-    public void testGetRoleTokenAddrLoopbackXFFMultipleValuesAuditLog() {
+    public void testGetRoleTokenAddrLoopbackXFFMultipleValues() {
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
         Mockito.when(servletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
         Mockito.when(servletRequest.getHeader("X-Forwarded-For")).thenReturn("10.10.10.11, 10.11.11.11, 10.12.12.12");
         Mockito.when(servletRequest.isSecure()).thenReturn(true);
-
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<>();
-        AuditLogger alogger = new AuditLogger() {
-            public void log(String logMsg, String msgVersionTag) {
-                aLogMsgs.add(logMsg);
-            }
-            public void log(AuditLogMsgBuilder msgBldr) {
-                String msg = msgBldr.build();
-                aLogMsgs.add(msg);
-            }
-            @Override
-            public AuditLogMsgBuilder getMsgBuilder() {
-                return new DefaultAuditLogMsgBuilder();
-            }
-        };
         
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -2266,7 +2182,6 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null);
 
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
-        ztsImpl.auditLogger = alogger;
         ZTSImpl.serverHostName = "localhost";
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
@@ -2280,118 +2195,6 @@ public class ZTSImplTest {
                 1200, null);
         com.yahoo.athenz.auth.token.RoleToken token = new com.yahoo.athenz.auth.token.RoleToken(roleToken.getToken());
         assertNotNull(token);
-        String unsignToken = token.getUnsignedToken();
-        for (String msg: aLogMsgs) {
-            assertTrue(msg.contains("SUCCESS ROLETOKEN=(" + unsignToken));
-            assertTrue(msg.contains("CLIENT-IP=(10.12.12.12)"));
-            break;
-        }
-    }
-
-    @Test
-    public void testGetRoleTokenNoRoleMatchAuditLog() {
-        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
-        Mockito.when(servletRequest.getRemoteAddr()).thenReturn("99.88.77.66");
-        Mockito.when(servletRequest.isSecure()).thenReturn(true);
-
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<>();
-        AuditLogger alogger = new AuditLogger() {
-            public void log(String logMsg, String msgVersionTag) {
-                aLogMsgs.add(logMsg);
-            }
-            public void log(AuditLogMsgBuilder msgBldr) {
-                String msg = msgBldr.build();
-                aLogMsgs.add(msg);
-            }
-            @Override
-            public AuditLogMsgBuilder getMsgBuilder() {
-                return new DefaultAuditLogMsgBuilder();
-            }
-        };
-        
-        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
-                privateKey, "0");
-        
-        DataStore store = new DataStore(structStore, null);
-
-        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
-        ztsImpl.auditLogger = alogger;
-        ZTSImpl.serverHostName = "localhost";
-
-        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
-        
-        Principal principal = SimplePrincipal.create("user_domain", "invalidUser",
-                "v=U1;d=user_domain;n=invalidUser;s=signature", 0, null);
-        ResourceContext context = createResourceContext(principal, servletRequest);
-        
-        try {
-            ztsImpl.getRoleToken(context, "coretech", null, 600,
-                    1200, null);
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 403);
-        }
-
-        for (String msg: aLogMsgs) {
-            assertTrue(msg.contains("ERROR=(Principal Has No Access to Domain)"));
-            assertTrue(msg.contains("CLIENT-IP=(99.88.77.66)"));
-            assertTrue(msg.contains("WHO=(who-name=invalidUser,who-domain=user_domain,who-fullname=user_domain.invalidUser)"));
-            break;
-        }
-    }
-
-    @Test
-    public void testGetRoleTokenInvalidDomainAuditLog() {
-        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
-        Mockito.when(servletRequest.getRemoteAddr()).thenReturn("55.88.77.66");
-        Mockito.when(servletRequest.isSecure()).thenReturn(true);
-
-        final java.util.Set<String> aLogMsgs = new java.util.HashSet<>();
-        AuditLogger alogger = new AuditLogger() {
-            public void log(String logMsg, String msgVersionTag) {
-                aLogMsgs.add(logMsg);
-            }
-            public void log(AuditLogMsgBuilder msgBldr) {
-                String msg = msgBldr.build();
-                aLogMsgs.add(msg);
-            }
-            @Override
-            public AuditLogMsgBuilder getMsgBuilder() {
-                return new DefaultAuditLogMsgBuilder();
-            }
-        };
-        
-        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
-                privateKey, "0");
-        
-        DataStore store = new DataStore(structStore, null);
-
-        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
-        ztsImpl.auditLogger = alogger;
-        ZTSImpl.serverHostName = "localhost";
-
-        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
-        
-        Principal principal = SimplePrincipal.create("user_domain", "user",
-                "v=U1;d=user_domain;n=user;s=signature", 0, null);
-        ResourceContext context = createResourceContext(principal, servletRequest);
-        
-        try {
-            ztsImpl.getRoleToken(context, "invalidDomain", null, 600,
-                    1200, null);
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 404);
-        }
-
-        for (String msg: aLogMsgs) {
-            assertTrue(msg.contains("ERROR=(No Such Domain)"));
-            assertTrue(msg.contains("CLIENT-IP=(55.88.77.66)"));
-            assertTrue(msg.contains("WHO=(who-name=user,who-domain=user_domain,who-fullname=user_domain.user)"));
-            break;
-        }
     }
     
     @Test
@@ -6227,12 +6030,12 @@ public class ZTSImplTest {
         try {
             ztsImpl.validateRequest(request, "test", false);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ResourceException ignored) {
         }
         try {
             ztsImpl.validateRequest(request, "test", true);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ResourceException ignored) {
         }
     }
     
@@ -6262,7 +6065,7 @@ public class ZTSImplTest {
         try {
             ztsImpl.validateRequest(request, "test", true);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ResourceException ignored) {
         }
     }
     
@@ -6291,13 +6094,13 @@ public class ZTSImplTest {
         try {
             ztsImpl.validateRequest(request, "test");
             fail();
-        } catch (ResourceException ex) {
+        } catch (ResourceException ignored) {
         }
         
         try {
             ztsImpl.validateRequest(request, "test", false);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ResourceException ignored) {
         }
     }
     
@@ -6355,6 +6158,7 @@ public class ZTSImplTest {
 
         ResourceContext context = createResourceContext(principal, servletRequest);
 
+        //noinspection CatchMayIgnoreException
         try {
             ztsImpl.postInstanceRefreshRequest(context, "athenz", "syncer", req);
             fail();
@@ -6442,7 +6246,8 @@ public class ZTSImplTest {
         Mockito.when(certSigner.generateX509Certificate(Mockito.anyString(), Mockito.anyString(),
                 Mockito.anyInt())).thenReturn(null);
         ztsImpl.certSigner = certSigner;
-        
+
+        //noinspection CatchMayIgnoreException
         try {
             ztsImpl.postInstanceRefreshRequest(context, "athenz", "syncer", req);
             fail();
@@ -6486,6 +6291,7 @@ public class ZTSImplTest {
 
         ResourceContext context = createResourceContext(principal, servletRequest);
 
+        //noinspection CatchMayIgnoreException
         try {
             ztsImpl.postInstanceRefreshRequest(context, "user", "doe", req);
             fail();
@@ -6522,6 +6328,7 @@ public class ZTSImplTest {
 
         ResourceContext context = createResourceContext(principal, servletRequest);
 
+        //noinspection CatchMayIgnoreException
         try {
             ztsImpl.postInstanceRefreshRequest(context, "athenz", "syncer", req);
             fail();
@@ -6565,6 +6372,7 @@ public class ZTSImplTest {
 
         ResourceContext context = createResourceContext(principal, servletRequest);
 
+        //noinspection CatchMayIgnoreException
         try {
             ztsImpl.postInstanceRefreshRequest(context, "athenz", "api", req);
             fail();
@@ -6608,6 +6416,7 @@ public class ZTSImplTest {
 
         ResourceContext context = createResourceContext(principal, servletRequest);
 
+        //noinspection CatchMayIgnoreException
         try {
             ztsImpl.postInstanceRefreshRequest(context, "athenz", "syncer", req);
             fail();
@@ -6847,6 +6656,7 @@ public class ZTSImplTest {
 
         ResourceContext context = createResourceContext(principal, servletRequest);
 
+        //noinspection CatchMayIgnoreException
         try {
             ztsImpl.postInstanceRefreshRequest(context, "athenz", "syncer", req);
             fail();

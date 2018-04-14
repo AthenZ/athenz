@@ -24,8 +24,11 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.amazonaws.regions.Regions;
 import com.amazonaws.auth.BasicSessionCredentials;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
 import com.amazonaws.services.securitytoken.model.GetCallerIdentityRequest;
 import com.amazonaws.services.securitytoken.model.GetCallerIdentityResult;
 import com.yahoo.athenz.auth.KeyStore;
@@ -57,12 +60,14 @@ public class InstanceAWSProvider implements InstanceProvider {
     public static final String AWS_PROP_PUBLIC_CERT      = "athenz.zts.aws_public_cert";
     public static final String AWS_PROP_BOOT_TIME_OFFSET = "athenz.zts.aws_boot_time_offset";
     public static final String AWS_PROP_DNS_SUFFIX       = "athenz.zts.aws_dns_suffix";
-    
+    public static final String AWS_PROP_REGION_NAME      = "athenz.zts.aws_region_name";
+
     PublicKey awsPublicKey = null;      // AWS public key for validating instance documents
     long bootTimeOffset;                // boot time offset in milliseconds
     String dnsSuffix = null;
     boolean supportRefresh = false;
-    
+    String awsRegion;
+
     @Override
     public void initialize(String provider, String providerEndpoint, KeyStore keyStore) {
         
@@ -91,6 +96,8 @@ public class InstanceAWSProvider implements InstanceProvider {
         if (dnsSuffix == null || dnsSuffix.isEmpty()) {
             LOGGER.error("AWS DNS Suffix not specified - no instance requests will be authorized");
         }
+
+        awsRegion = System.getProperty(AWS_PROP_REGION_NAME);
     }
 
     ResourceException error(String message) {
@@ -432,7 +439,7 @@ public class InstanceAWSProvider implements InstanceProvider {
         confirmation.setAttributes(null);
     }
     
-    AWSSecurityTokenServiceClient getInstanceClient(AWSAttestationData info) {
+    AWSSecurityTokenService getInstanceClient(AWSAttestationData info) {
         
         String access = info.getAccess();
         if (access == null || access.isEmpty()) {
@@ -453,7 +460,11 @@ public class InstanceAWSProvider implements InstanceProvider {
         }
         
         BasicSessionCredentials creds = new BasicSessionCredentials(access, secret, token);
-        return new AWSSecurityTokenServiceClient(creds);
+
+        return AWSSecurityTokenServiceClientBuilder.standard()
+                .withCredentials(new AWSStaticCredentialsProvider(creds))
+                .withRegion(Regions.fromName(awsRegion))
+                .build();
     }
     
     public boolean verifyInstanceIdentity(AWSAttestationData info, final String awsAccount) {
@@ -461,7 +472,7 @@ public class InstanceAWSProvider implements InstanceProvider {
         GetCallerIdentityRequest req = new GetCallerIdentityRequest();
         
         try {
-            AWSSecurityTokenServiceClient client = getInstanceClient(info);
+            AWSSecurityTokenService client = getInstanceClient(info);
             if (client == null) {
                 LOGGER.error("verifyInstanceIdentity - unable to get AWS STS client object");
                 return false;

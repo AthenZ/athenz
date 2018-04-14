@@ -17,9 +17,9 @@ package com.yahoo.athenz.zts.utils;
 
 import java.util.List;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
+@JsonInclude(JsonInclude.Include.ALWAYS)
 public class IPPrefixes {
 
     private String createDate;

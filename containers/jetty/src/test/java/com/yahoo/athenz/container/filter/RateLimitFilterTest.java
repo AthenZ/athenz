@@ -41,7 +41,7 @@ public class RateLimitFilterTest {
     }
 
     @Test
-    public void testDefaultRateLimitFilter() throws Exception {
+    public void testDefaultRateLimitFilter() {
         RateLimitFilter filter = new RateLimitFilter();
         assertNotNull(filter);
 

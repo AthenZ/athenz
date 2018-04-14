@@ -16,11 +16,10 @@
 package com.yahoo.athenz.common.config;
 
 import java.util.ArrayList;
-
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.yahoo.athenz.zms.PublicKeyEntry;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
+@JsonInclude(JsonInclude.Include.ALWAYS)
 public class AthenzConfig {
     private String zmsUrl;
     private String ztsUrl;

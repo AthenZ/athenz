@@ -38,7 +38,7 @@ public class FileObjectStoreTest {
         try {
             store = new FileObjectStore(fileDir, quotaDir);
             fail();
-        } catch (Exception ignore) {
+        } catch (Exception ignored) {
         }
         assertNull(store);
     }

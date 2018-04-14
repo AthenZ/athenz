@@ -42,11 +42,13 @@ public class InstanceAWSProviderTest {
     @BeforeMethod
     public void setup() {
         System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "athenz.cloud");
+        System.setProperty(InstanceAWSProvider.AWS_PROP_REGION_NAME, "us-west-2");
     }
     
     @AfterMethod
     public void shutdown() {
         System.clearProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX);
+        System.clearProperty(InstanceAWSProvider.AWS_PROP_REGION_NAME);
     }
     
     @Test
@@ -397,6 +399,7 @@ public class InstanceAWSProviderTest {
     public void testInstanceClient() {
         
         InstanceAWSProvider provider = new InstanceAWSProvider();
+        provider.awsRegion = "us-west-2";
         AWSAttestationData data = new AWSAttestationData();
         
         // first with null and empty access point

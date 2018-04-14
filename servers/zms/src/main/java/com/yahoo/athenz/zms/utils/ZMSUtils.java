@@ -334,7 +334,7 @@ public class ZMSUtils {
     public static void threadSleep(long millis) {
         try {
             Thread.sleep(millis);
-        } catch (InterruptedException ignore) {
+        } catch (InterruptedException ignored) {
         }
     }
 }

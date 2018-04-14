@@ -6082,7 +6082,7 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.listPrincipalRoles("user.joe");
             fail();
-        } catch (Exception ignore) {
+        } catch (Exception ignored) {
         }
         
         // get principal id

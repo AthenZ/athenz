@@ -62,10 +62,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
-import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
 import com.amazonaws.services.securitytoken.model.Credentials;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.auth.Principal;
@@ -1806,9 +1805,7 @@ public class ZTSClient implements Closeable {
         
         try {
             AssumeRoleRequest req = getAssumeRoleRequest(account, roleName);
-            AWSSecurityTokenServiceClient client = new AWSSecurityTokenServiceClient();
-            AssumeRoleResult res = client.assumeRole(req);
-            return res.getCredentials();
+            return AWSSecurityTokenServiceClientBuilder.defaultClient().assumeRole(req).getCredentials();
         } catch (Exception ex) {
             LOG.error("assumeAWSRole - unable to assume role: {}", ex.getMessage());
             return null;

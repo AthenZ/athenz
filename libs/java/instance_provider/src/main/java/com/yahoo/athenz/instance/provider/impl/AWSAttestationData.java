@@ -15,21 +15,21 @@
  */
 package com.yahoo.athenz.instance.provider.impl;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 /**
  * AWSAttestationData - the information a booting
  * EC2 instance must provide to ZTS to authenticate.
  */
-@JsonSerialize(include = JsonSerialize.Inclusion.ALWAYS)
+@JsonInclude(JsonInclude.Include.ALWAYS)
 public class AWSAttestationData {
-    public String document;
-    public String signature;
-    public String role;
-    public String access;
-    public String secret;
-    public String token;
-    public String taskid;
+    private String document;
+    private String signature;
+    private String role;
+    private String access;
+    private String secret;
+    private String token;
+    private String taskid;
 
     public void setDocument(String document) {
         this.document = document;

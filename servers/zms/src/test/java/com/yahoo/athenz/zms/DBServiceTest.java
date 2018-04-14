@@ -3262,7 +3262,7 @@ public class DBServiceTest {
             zms.dbService.executeDeleteQuota(mockDomRsrcCtx, domainName, auditRef,
                     "testExecuteDeleteQuota");
             fail();
-        } catch (ResourceException ignore) {
+        } catch (ResourceException ignored) {
         }
     }
     

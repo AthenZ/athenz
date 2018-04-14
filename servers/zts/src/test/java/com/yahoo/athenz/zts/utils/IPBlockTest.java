@@ -20,43 +20,43 @@ public class IPBlockTest {
         try {
             new IPBlock("10.1.1.1%32");
             fail();
-        } catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException ignored) {
         }
         
         try {
             new IPBlock("10.1.1.1-24");
             fail();
-        } catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException ignored) {
         }
         
         try {
             new IPBlock("10.1.1.256/24");
             fail();
-        } catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException ignored) {
         }
         
         try {
             new IPBlock("10.1.1.0/33");
             fail();
-        } catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException ignored) {
         }
         
         try {
             new IPBlock("10.1.1.0/-1");
             fail();
-        } catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException ignored) {
         }
         
         try {
             new IPBlock("10.1.1.0/0");
             fail();
-        } catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException ignored) {
         }
         
         try {
             new IPBlock("172.300.10.2/32");
             fail();
-        } catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
@@ -102,12 +102,12 @@ public class IPBlockTest {
         try {
             ipBlock.ipCheck(IPBlock.convertIPToLong("10.1987.0.1"));
             fail();
-        } catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException ignored) {
         }
         try {
             ipBlock.ipCheck(IPBlock.convertIPToLong("10.0.0.256"));
             fail();
-        } catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 }

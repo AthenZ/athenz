@@ -5236,11 +5236,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     LOG.debug("trust role for domain: " + trustDomain);
                 }
                 trustRoleSet.add(trustDomain);
-                Set<String> tset = trustRoleMap.get(trustDomain);
-                if (tset == null) {
-                    tset = new HashSet<>();
-                    trustRoleMap.put(trustDomain, tset);
-                }
+                Set<String> tset = trustRoleMap.computeIfAbsent(trustDomain, k -> new HashSet<>());
                 tset.add(roleName);
             }
         }
@@ -5291,11 +5287,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     // ex: testgetdomaindatacheckprovider.sub:role.storage.tenant.testgetdomaindatacheck.reader
                     // ex: testgetdomaindatacheckprovider.sub:role.storage.tenant.testgetdomaindatacheck.res_group.ravers.reader
                     String rsrc = assertion.getResource();
-                    Set<String> rset = svcRoleMap.get(provSvcDomain);
-                    if (rset == null) {
-                        rset = new HashSet<>();
-                        svcRoleMap.put(provSvcDomain, rset);
-                    }
+                    Set<String> rset = svcRoleMap.computeIfAbsent(provSvcDomain, k -> new HashSet<>());
                     rset.add(rsrc);
                 }
 

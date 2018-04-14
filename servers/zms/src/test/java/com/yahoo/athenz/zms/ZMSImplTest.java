@@ -5090,7 +5090,7 @@ public class ZMSImplTest {
                 "Test domain for sports", "testOrg", adminUser);
         try {
             zms.deleteTopLevelDomain(mockDomRsrcCtx, sportsDomain.getName(), auditRef);
-        } catch (ResourceException ignore) {
+        } catch (ResourceException ignored) {
         }
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, sportsDomain);
 
@@ -5180,7 +5180,7 @@ public class ZMSImplTest {
         
         try {
             zms.deleteTopLevelDomain(mockDomRsrcCtx, sportsDomain.getName(), auditRef);
-        } catch (ResourceException ignore) {
+        } catch (ResourceException ignored) {
         }
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, sportsDomain);
 
@@ -5233,7 +5233,7 @@ public class ZMSImplTest {
                 "Test domain for sports", "testOrg", adminUser);
         try {
             zms.deleteTopLevelDomain(mockDomRsrcCtx, sportsDomain.getName(), auditRef);
-        } catch (ResourceException ignore) {
+        } catch (ResourceException ignored) {
         }
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, sportsDomain);
 
@@ -5297,7 +5297,7 @@ public class ZMSImplTest {
                 "Test domain for sports", "testOrg", adminUser);
         try {
             zms.deleteTopLevelDomain(mockDomRsrcCtx, sportsDomain.getName(), auditRef);
-        } catch (ResourceException ignore) {
+        } catch (ResourceException ignored) {
         }
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, sportsDomain);
 
@@ -5363,7 +5363,7 @@ public class ZMSImplTest {
                 "Test domain for sports", "testOrg", adminUser);
         try {
             zms.deleteTopLevelDomain(mockDomRsrcCtx, sportsDomain.getName(), auditRef);
-        } catch (ResourceException ignore) {
+        } catch (ResourceException ignored) {
         }
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, sportsDomain);
 
@@ -6982,7 +6982,7 @@ public class ZMSImplTest {
         try {
             zms.validate(domainTemplate, "DomainTemplate", "testValidateDomainTemplate");
             fail();
-        } catch (ResourceException ignore) {
+        } catch (ResourceException ignored) {
         }
 
         // remove the second element and add another with invalid value
@@ -6992,7 +6992,7 @@ public class ZMSImplTest {
         try {
             zms.validate(domainTemplate, "DomainTemplate", "testValidateDomainTemplate");
             fail();
-        } catch (ResourceException ignore) {
+        } catch (ResourceException ignored) {
         }
     }
     
@@ -7014,7 +7014,7 @@ public class ZMSImplTest {
         try {
             zms.validate(role, "Role", "testValidateRole");
             fail();
-        } catch (ResourceException ignore) {
+        } catch (ResourceException ignored) {
         }
     }
     
@@ -13013,7 +13013,7 @@ public class ZMSImplTest {
         
         try {
             object.done(101);
-        } catch (WebApplicationException ignore) {
+        } catch (WebApplicationException ignored) {
         }
     }
     
@@ -15071,17 +15071,17 @@ public class ZMSImplTest {
         try {
             zmsImpl.validateRequest(request, "test");
             fail();
-        } catch (ResourceException ignore) {
+        } catch (ResourceException ignored) {
         }
         try {
             zmsImpl.validateRequest(request, "test", false);
             fail();
-        } catch (ResourceException ignore) {
+        } catch (ResourceException ignored) {
         }
         try {
             zmsImpl.validateRequest(request, "test", true);
             fail();
-        } catch (ResourceException ignore) {
+        } catch (ResourceException ignored) {
         }
     }
     
@@ -15106,7 +15106,7 @@ public class ZMSImplTest {
         try {
             zmsImpl.validateRequest(request, "test", true);
             fail();
-        } catch (ResourceException ignore) {
+        } catch (ResourceException ignored) {
         }
     }
     
@@ -15130,13 +15130,13 @@ public class ZMSImplTest {
         try {
             zmsImpl.validateRequest(request, "test");
             fail();
-        } catch (ResourceException ignore) {
+        } catch (ResourceException ignored) {
         }
         
         try {
             zmsImpl.validateRequest(request, "test", false);
             fail();
-        } catch (ResourceException ignore) {
+        } catch (ResourceException ignored) {
         }
     }
     
