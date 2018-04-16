@@ -57,6 +57,7 @@ public class HttpTLSClient {
         try {
             KeyRefresher keyRefresher = Utils.generateKeyRefresher(trustStorePath, trustStorePassword,
                     certPath, keyPath);
+            keyRefresher.startup();
             SSLContext sslContext = Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(),
                     keyRefresher.getTrustManagerProxy());
             
