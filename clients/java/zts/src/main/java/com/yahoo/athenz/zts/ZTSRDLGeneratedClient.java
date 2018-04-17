@@ -348,10 +348,16 @@ public class ZTSRDLGeneratedClient {
 
     }
 
-    public AWSTemporaryCredentials getAWSTemporaryCredentials(String domainName, String role) {
+    public AWSTemporaryCredentials getAWSTemporaryCredentials(String domainName, String role, Integer durationSeconds, String externalId) {
         WebTarget target = base.path("/domain/{domainName}/role/{role}/creds")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("role", role);
+        if (durationSeconds != null) {
+            target = target.queryParam("durationSeconds", durationSeconds);
+        }
+        if (externalId != null) {
+            target = target.queryParam("externalId", externalId);
+        }
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
             invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),

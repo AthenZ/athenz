@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,11 +16,9 @@
 
 package com.yahoo.athenz.zts;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
-
 import org.testng.annotations.Test;
+
+import static org.testng.Assert.*;
 
 public class InstanceRefreshInformationTest {
 
@@ -41,12 +39,12 @@ public class InstanceRefreshInformationTest {
         assertEquals(i.getCsr(), "sample_csr");
         assertEquals(i.getSsh(), "ssh");
         assertEquals(i.getToken(), Boolean.FALSE);
-        
-        assertTrue(i.equals(i2));
+
+        assertEquals(i, i2);
         
         i2.setCsr("sample_csr2");
-        assertFalse(i2.equals(i));
+        assertNotEquals(i2, i);
         i2.setCsr(null);
-        assertFalse(i2.equals(i));
+        assertNotEquals(i2, i);
     }
 }

@@ -28,22 +28,15 @@ import com.yahoo.athenz.zts.store.CloudStore;
 
 public class MockCloudStore extends CloudStore {
 
-    String account = null;
-    String roleName = null;
-    String principal = null;
-    boolean skipSigCheck = false;
-    boolean returnNullClient = false;
+    private String account = null;
+    private String roleName = null;
+    private String principal = null;
     boolean returnSuperAWSRole = false;
-    int identityCheck = 0; // 0 call super, 1 - true, -1 false
     private AssumeRoleResult assumeRoleResult = null;
     private GetCallerIdentityResult callerIdentityResult = null;
     
     public MockCloudStore() {
-        super(null);
-    }
-    
-    public MockCloudStore(CertSigner certSigner) {
-        super(certSigner);
+        super();
     }
 
     @Override
@@ -57,15 +50,7 @@ public class MockCloudStore extends CloudStore {
         this.roleName = roleName;
         this.principal = principal;
     }
-    
-    public void skipDocumentSignatureCheck(boolean skipCheck) {
-        skipSigCheck = skipCheck;
-    }
-    
-    public void setIdentityCheckResult(int idCheck) {
-        identityCheck = idCheck;
-    }
-    
+
     void setAssumeRoleResult(AssumeRoleResult assumeRoleResult) {
         this.assumeRoleResult = assumeRoleResult;
     }
@@ -73,11 +58,7 @@ public class MockCloudStore extends CloudStore {
     void setGetCallerIdentityResult(GetCallerIdentityResult callerIdentityResult) {
         this.callerIdentityResult = callerIdentityResult;
     }
-    
-    void setReturnNullClient(boolean returnNullClient) {
-        this.returnNullClient = returnNullClient;
-    }
-    
+
     @Override
     AWSSecurityTokenServiceClient getTokenServiceClient() {
         AWSSecurityTokenServiceClient client = Mockito.mock(AWSSecurityTokenServiceClient.class);
@@ -91,7 +72,8 @@ public class MockCloudStore extends CloudStore {
     }
     
     @Override
-    public AWSTemporaryCredentials assumeAWSRole(String account, String roleName, String principal) {
+    public AWSTemporaryCredentials assumeAWSRole(String account, String roleName, String principal,
+                                                 Integer durationSeconds, String externalId) {
 
         if (!returnSuperAWSRole) {
             AWSTemporaryCredentials tempCreds = null;
@@ -102,7 +84,7 @@ public class MockCloudStore extends CloudStore {
             
             return tempCreds;
         } else {
-            return super.assumeAWSRole(account, roleName, principal);
+            return super.assumeAWSRole(account, roleName, principal, durationSeconds, externalId);
         }
     }
 }

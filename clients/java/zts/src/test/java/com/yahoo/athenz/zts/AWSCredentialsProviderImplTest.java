@@ -39,10 +39,10 @@ public class AWSCredentialsProviderImplTest {
         AWSTemporaryCredentials awsTemporaryCredentialsTwo = new AWSTemporaryCredentials();
         awsTemporaryCredentialsTwo.setAccessKeyId("accessKeyTwo");
 
-
         //Check that get credentials calls refresh to get credentials from ZTS
 
-        Mockito.when(ztsClient.getAWSTemporaryCredentials(Mockito.any(), Mockito.any())).thenReturn(awsTemporaryCredentials, awsTemporaryCredentialsTwo);
+        Mockito.when(ztsClient.getAWSTemporaryCredentials(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(awsTemporaryCredentials, awsTemporaryCredentialsTwo);
         AWSCredentialsProviderImpl original = new AWSCredentialsProviderImpl(ztsClient, null, null);
 
         AWSCredentialsProviderImpl awsCredentialsProviderImpl = Mockito.spy(original);
@@ -54,7 +54,8 @@ public class AWSCredentialsProviderImplTest {
         Mockito.verify(awsCredentialsProviderImpl, Mockito.times(2)).refresh();
 
         //null credentials are returned in case of exception
-        Mockito.when(ztsClient.getAWSTemporaryCredentials(Mockito.any(), Mockito.any())).thenThrow(new ResourceException(400));
+        Mockito.when(ztsClient.getAWSTemporaryCredentials(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(new ResourceException(400));
         Assert.assertNull(awsCredentialsProviderImpl.getCredentials());
     }
 }

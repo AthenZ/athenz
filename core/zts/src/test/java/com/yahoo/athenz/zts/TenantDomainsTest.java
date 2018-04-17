@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,13 +23,14 @@ import java.util.List;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+@SuppressWarnings("EqualsWithItself")
 public class TenantDomainsTest {
 
     @Test
     public void TestsetgetTenantDomainNames() {
         TenantDomains td = new TenantDomains();
 
-        List<String> list = new ArrayList<String>(Arrays.asList("A", "B", "C"));
+        List<String> list = new ArrayList<>(Arrays.asList("A", "B", "C"));
 
         td.setTenantDomainNames(list);
 
@@ -39,6 +40,7 @@ public class TenantDomainsTest {
     @Test
     public void TestEqualsTrue() {
         TenantDomains td = new TenantDomains();
+        //noinspection ResultOfMethodCallIgnored
         td.equals(td);
     }
 
@@ -47,10 +49,11 @@ public class TenantDomainsTest {
         TenantDomains td1 = new TenantDomains();
         TenantDomains td2 = new TenantDomains();
 
-        td1.setTenantDomainNames(new ArrayList<String>(Arrays.asList("A", "B", "C")));
+        td1.setTenantDomainNames(new ArrayList<>(Arrays.asList("A", "B", "C")));
 
-        Assert.assertFalse(td1.equals(td2));
-        Assert.assertFalse(td1.equals(new String()));
+        Assert.assertNotEquals(td1, td2);
+        //noinspection EqualsBetweenInconvertibleTypes
+        Assert.assertNotEquals("", td1);
     }
 
 }

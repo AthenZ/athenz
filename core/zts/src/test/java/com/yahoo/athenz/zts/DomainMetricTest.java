@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,15 +16,14 @@
 
 package com.yahoo.athenz.zts;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import org.testng.annotations.Test;
 
+import static org.testng.Assert.*;
+
+@SuppressWarnings("EqualsBetweenInconvertibleTypes")
 public class DomainMetricTest {
 
     @Test
@@ -40,7 +39,7 @@ public class DomainMetricTest {
     }
 
     @Test(expectedExceptions = { java.lang.IllegalArgumentException.class })
-    public void testMetricTypeException() throws Exception {
+    public void testMetricTypeException() {
         DomainMetricType.fromString("NOT_EXIST");
     }
 
@@ -54,19 +53,20 @@ public class DomainMetricTest {
         dm2.setMetricType(DomainMetricType.ACCESS_ALLOWED);
         dm2.setMetricVal(1);
 
-        assertTrue(dm1.equals(dm2));
+        assertEquals(dm1, dm2);
 
         // change value
         dm2.setMetricVal(0);
-        assertFalse(dm1.equals(dm2));
+        assertNotEquals(dm1, dm2);
 
         // change type
         dm1.setMetricType(DomainMetricType.ACCESS_ALLOWED_DENY);
-        assertFalse(dm1.equals(dm2));
+        assertNotEquals(dm1, dm2);
 
-        assertFalse(dm1.equals(new String()));
+        assertNotEquals("", dm1);
     }
 
+    @SuppressWarnings("EqualsWithItself")
     @Test
     public void testDomainMetrics() {
         DomainMetrics dms1 = new DomainMetrics();
@@ -75,7 +75,7 @@ public class DomainMetricTest {
         DomainMetric dm = new DomainMetric();
 
         // set/get test
-        List<DomainMetric> dmlist = new ArrayList<DomainMetric>();
+        List<DomainMetric> dmlist = new ArrayList<>();
         dmlist.add(dm);
 
         dms1.setDomainName("test.org");
@@ -88,17 +88,17 @@ public class DomainMetricTest {
 
         //// equals
         // true case
-        assertTrue(dms1.equals(dms1));
-        assertTrue(dms1.equals(dms2));
+        assertEquals(dms1, dms1);
+        assertEquals(dms1, dms2);
 
         // false case
-        dms2.setMetricList(new ArrayList<DomainMetric>());
-        assertFalse(dms1.equals(dms2));
+        dms2.setMetricList(new ArrayList<>());
+        assertNotEquals(dms1, dms2);
 
         dms2.setDomainName("test.net");
-        assertFalse(dms1.equals(dms2));
+        assertNotEquals(dms1, dms2);
 
-        assertFalse(dms1.equals(new String()));
+        assertNotEquals("", dms1);
     }
 
 }

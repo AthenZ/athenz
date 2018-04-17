@@ -210,7 +210,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        cloudStore = new CloudStore(null);
+        cloudStore = new CloudStore();
         cloudStore.setHttpClient(null);
         
         System.setProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_FNAME,
@@ -2139,7 +2139,7 @@ public class ZTSImplTest {
                 1200, null);
         com.yahoo.athenz.auth.token.RoleToken token = new com.yahoo.athenz.auth.token.RoleToken(roleToken.getToken());
         assertNotNull(token);
-        String unsignToken = token.getUnsignedToken();
+        assertNotNull(token.getUnsignedToken());
     }
  
     @Test
@@ -2440,7 +2440,7 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(principal);
         
         try {
-            zts.getAWSTemporaryCredentials(context, "athenz.product", "aws_role_name");
+            zts.getAWSTemporaryCredentials(context, "athenz.product", "aws_role_name", null, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -2461,7 +2461,7 @@ public class ZTSImplTest {
         store.processDomain(signedDomain, false);
         
         try {
-            zts.getAWSTemporaryCredentials(createResourceContext(principal), "athenz.product", "aws_role_name");
+            zts.getAWSTemporaryCredentials(createResourceContext(principal), "athenz.product", "aws_role_name", null, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
@@ -2481,7 +2481,7 @@ public class ZTSImplTest {
         store.processDomain(signedDomain, false);
         
         try {
-            zts.getAWSTemporaryCredentials(createResourceContext(principal), "athenz.product", "aws_role_name");
+            zts.getAWSTemporaryCredentials(createResourceContext(principal), "athenz.product", "aws_role_name", null, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -2502,14 +2502,14 @@ public class ZTSImplTest {
         store.processDomain(signedDomain, false);
         
         AWSTemporaryCredentials creds = zts.getAWSTemporaryCredentials(
-                createResourceContext(principal), "athenz.product", "aws_role_name");
+                createResourceContext(principal), "athenz.product", "aws_role_name", null, null);
         assertNotNull(creds);
         
         // now try a failure case
         
         try {
             ((MockCloudStore) cloudStore).setMockFields("1234", "aws_role2_name", "user_domain.user101");
-            zts.getAWSTemporaryCredentials(createResourceContext(principal), "athenz.product", "aws_role_name");
+            zts.getAWSTemporaryCredentials(createResourceContext(principal), "athenz.product", "aws_role_name", null, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -2890,7 +2890,7 @@ public class ZTSImplTest {
     }
     
     @Test
-    public void testPostOSTKInstanceInformationInvalidCsr() throws IOException  {
+    public void testPostOSTKInstanceInformationInvalidCsr() {
         OSTKInstanceInformation info = new OSTKInstanceInformation()
                 .setCsr("invalid-csr")
                 .setDocument("Test Document")
@@ -3458,7 +3458,7 @@ public class ZTSImplTest {
 
         // create zts with a metric we can verify
         
-        CloudStore cloudStore = new CloudStore(null);
+        CloudStore cloudStore = new CloudStore();
         cloudStore.setHttpClient(null);
         ZtsMetricTester metric = new ZtsMetricTester();
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
@@ -3774,7 +3774,7 @@ public class ZTSImplTest {
         PrivateKey caPrivateKey = Crypto.loadPrivateKey(caKey, "athenz");
         CertSigner certSigner = new SelfCertSigner(caPrivateKey, caCertificate);
 
-        CloudStore cloudStore = new MockCloudStore(certSigner);
+        CloudStore cloudStore = new MockCloudStore();
         store.setCloudStore(cloudStore);
         zts.cloudStore = cloudStore;
         
@@ -3792,6 +3792,7 @@ public class ZTSImplTest {
     public void testGetRoleTokenCertInvalidRequests() throws Exception{
 
         // this csr is for sports:role.readers role
+
         RoleCertificateRequest req = new RoleCertificateRequest()
                 .setCsr(ROLE_CERT_CORETECH_REQUEST).setExpiryTime(3600L);
         
@@ -4282,7 +4283,7 @@ public class ZTSImplTest {
     }
     
     @Test
-    public void testPostInstanceRegisterInformationInvalidCSR() throws IOException {
+    public void testPostInstanceRegisterInformationInvalidCSR() {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -4923,7 +4924,7 @@ public class ZTSImplTest {
     }
     
     @Test
-    public void testPostInstanceRefreshInformationInvalidCSR() throws IOException {
+    public void testPostInstanceRefreshInformationInvalidCSR() {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -5536,7 +5537,7 @@ public class ZTSImplTest {
     }
     
     @Test
-    public void testPostInstanceRefreshInformationNullCSRs() throws IOException {
+    public void testPostInstanceRefreshInformationNullCSRs() {
         
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -5833,7 +5834,7 @@ public class ZTSImplTest {
     }
     
     @Test
-    public void testDeleteInstanceIdentity() throws IOException {
+    public void testDeleteInstanceIdentity() {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -6625,7 +6626,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRefreshRequestByUserInvalidCsr() throws IOException {
+    public void testPostInstanceRefreshRequestByUserInvalidCsr() {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");

@@ -352,11 +352,11 @@ public class ZTSResources {
     @GET
     @Path("/domain/{domainName}/role/{role}/creds")
     @Produces(MediaType.APPLICATION_JSON)
-    public AWSTemporaryCredentials getAWSTemporaryCredentials(@PathParam("domainName") String domainName, @PathParam("role") String role) {
+    public AWSTemporaryCredentials getAWSTemporaryCredentials(@PathParam("domainName") String domainName, @PathParam("role") String role, @QueryParam("durationSeconds") Integer durationSeconds, @QueryParam("externalId") String externalId) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            AWSTemporaryCredentials e = this.delegate.getAWSTemporaryCredentials(context, domainName, role);
+            AWSTemporaryCredentials e = this.delegate.getAWSTemporaryCredentials(context, domainName, role, durationSeconds, externalId);
             return e;
         } catch (ResourceException e) {
             int code = e.getCode();

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,7 @@ public class AssertionEffectTest {
     }
 
     @Test(expectedExceptions = { java.lang.IllegalArgumentException.class })
-    public void TestFromStringNG() throws Exception {
+    public void TestFromStringNG() {
         AssertionEffect.fromString("HOGE");
     }
 }

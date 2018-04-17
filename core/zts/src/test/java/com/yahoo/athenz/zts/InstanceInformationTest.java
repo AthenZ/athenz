@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,12 +16,11 @@
 
 package com.yahoo.athenz.zts;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
-
 import org.testng.annotations.Test;
 
+import static org.testng.Assert.*;
+
+@SuppressWarnings("EqualsBetweenInconvertibleTypes")
 public class InstanceInformationTest {
 
     @Test
@@ -48,23 +47,23 @@ public class InstanceInformationTest {
         assertEquals(i.getService(), "sample.service");
         assertEquals(i.getCsr(), "sample_csr");
 
-        assertTrue(i2.equals(i));
+        assertEquals(i2, i);
         
         i2.setService(null);
-        assertFalse(i2.equals(i));
+        assertNotEquals(i2, i);
         i2.setService("sample.service");
 
         i2.setDomain(null);
-        assertFalse(i2.equals(i));
+        assertNotEquals(i2, i);
         i2.setDomain("sample.com");
 
         i2.setSignature(null);
-        assertFalse(i2.equals(i));
+        assertNotEquals(i2, i);
         
         i2.setDocument(null);
-        assertFalse(i2.equals(i));
+        assertNotEquals(i2, i);
 
-        assertFalse(i.equals(new String()));
+        assertNotEquals("", i);
     }
 
 }

@@ -33,11 +33,10 @@ import com.amazonaws.services.securitytoken.model.Credentials;
 import com.yahoo.athenz.zts.AWSTemporaryCredentials;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.store.CloudStore;
 
 public class CloudStoreTest {
 
-    public final static String AWS_INSTANCE_DOCUMENT = "{\n"
+    private final static String AWS_INSTANCE_DOCUMENT = "{\n"
             + "  \"devpayProductCodes\" : null,\n"
             + "  \"availabilityZone\" : \"us-west-2a\",\n"
             + "  \"privateIp\" : \"10.10.10.10\",\n"
@@ -54,7 +53,7 @@ public class CloudStoreTest {
             + "  \"region\" : \"us-west-2\"\n"
             + "}";
     
-    public final static String AWS_IAM_ROLE_INFO = "{\n"
+    private final static String AWS_IAM_ROLE_INFO = "{\n"
             + "\"Code\" : \"Success\",\n"
             + "\"LastUpdated\" : \"2016-04-26T05:37:04Z\",\n"
             + "\"InstanceProfileArn\" : \"arn:aws:iam::111111111111:instance-profile/athenz.zts,athenz\",\n"
@@ -63,7 +62,7 @@ public class CloudStoreTest {
     
     @Test
     public void testGetS3ClientNullCreds() {
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         store.awsEnabled = true;
         store.credentials = null;
         try {
@@ -77,7 +76,7 @@ public class CloudStoreTest {
     
     @Test
     public void testGetS3ClientAWSNotEnabled() {
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         store.credentials = null;
         try {
             store.getS3Client();
@@ -92,7 +91,7 @@ public class CloudStoreTest {
     public void testGetS3Client() {
         
         System.setProperty(ZTSConsts.ZTS_PROP_AWS_PUBLIC_CERT, "src/test/resources/aws_public.crt");
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         store.credentials = new BasicSessionCredentials("accessKey", "secretKey", "token");
         store.awsEnabled = true;
         store.awsRegion = "us-west-2";
@@ -104,7 +103,7 @@ public class CloudStoreTest {
     
     @Test
     public void testGetTokenServiceClient() {
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         store.credentials = new BasicSessionCredentials("accessKey", "secretKey", "token");
         store.awsEnabled = true;
         store.awsRegion = "us-west-2";
@@ -115,7 +114,7 @@ public class CloudStoreTest {
     @Test
     public void testUpdateAccountUpdate() {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         assertNull(store.getCloudAccount("iaas"));
         
         // set the account to 1234
@@ -133,7 +132,7 @@ public class CloudStoreTest {
     @Test
     public void testUpdateAccountDelete() {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         
         // set the account to 1234
         
@@ -160,16 +159,24 @@ public class CloudStoreTest {
     @Test
     public void testGetAssumeRoleRequest() {
         
-        CloudStore store = new CloudStore(null);
-        AssumeRoleRequest req = store.getAssumeRoleRequest("1234", "admin", "sys.auth.zts");
+        CloudStore store = new CloudStore();
+        AssumeRoleRequest req = store.getAssumeRoleRequest("1234", "admin", "sys.auth.zts", null, null);
         assertEquals("arn:aws:iam::1234:role/admin", req.getRoleArn());
         assertEquals("sys.auth.zts", req.getRoleSessionName());
+        assertNull(req.getDurationSeconds());
+        assertNull(req.getExternalId());
+
+        req = store.getAssumeRoleRequest("12345", "adminuser", "athenz.zts", 101, "external");
+        assertEquals("arn:aws:iam::12345:role/adminuser", req.getRoleArn());
+        assertEquals("athenz.zts", req.getRoleSessionName());
+        assertEquals(Integer.valueOf(101), req.getDurationSeconds());
+        assertEquals("external", req.getExternalId());
         store.close();
     }
     
     @Test
     public void testParseInstanceInfo() {
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         assertTrue(store.parseInstanceInfo(AWS_INSTANCE_DOCUMENT));
         assertEquals(store.awsRegion, "us-west-2");
         store.close();
@@ -178,7 +185,7 @@ public class CloudStoreTest {
     @Test
     public void testParseInstanceInfoInvalid() {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         assertFalse(store.parseInstanceInfo("some_invalid_doc"));
         store.close();
     }
@@ -189,7 +196,7 @@ public class CloudStoreTest {
         // first this should fail since we have no region
         // override and the document has no region
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         assertFalse(store.parseInstanceInfo("{\"accountId\":\"012345678901\"}"));
         
         // now we're going to use the same doc with override
@@ -197,7 +204,7 @@ public class CloudStoreTest {
         System.setProperty(ZTSConsts.ZTS_PROP_AWS_REGION_NAME, "us-west-3");
         store.close();
 
-        store = new CloudStore(null);
+        store = new CloudStore();
         assertTrue(store.parseInstanceInfo("{\"accountId\":\"012345678901\"}"));
         assertEquals(store.awsRegion, "us-west-3");
         System.clearProperty(ZTSConsts.ZTS_PROP_AWS_REGION_NAME);
@@ -207,7 +214,7 @@ public class CloudStoreTest {
     @Test
     public void testParseIamRoleInfoInvalid() {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         assertFalse(store.parseIamRoleInfo("some_invalid_doc"));
         store.close();
     }
@@ -215,7 +222,7 @@ public class CloudStoreTest {
     @Test
     public void testParseIamRoleInfoMissingInstanceProfile() {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         assertFalse(store.parseIamRoleInfo("{\"accountId\":\"012345678901\"}"));
         assertFalse(store.parseIamRoleInfo("{\"accountId\":\"012345678901\",\"InstanceProfileArn\":\"\"}"));
         store.close();
@@ -224,7 +231,7 @@ public class CloudStoreTest {
     @Test
     public void testParseIamRoleInfoInvalidInstanceProfile() {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         assertFalse(store.parseIamRoleInfo("{\"accountId\":\"012345678901\"}"));
         assertFalse(store.parseIamRoleInfo("{\"accountId\":\"012345678901\",\"InstanceProfileArn\":\"invalid\"}"));
         store.close();
@@ -232,7 +239,7 @@ public class CloudStoreTest {
     
     @Test
     public void testParseIamRoleInfo() {
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         assertTrue(store.parseIamRoleInfo(AWS_IAM_ROLE_INFO));
         assertEquals(store.awsRole, "athenz.zts");
         store.close();
@@ -241,7 +248,7 @@ public class CloudStoreTest {
     @Test
     public void testParseInstanceProfileArn() {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         assertTrue(store.parseInstanceProfileArn("arn:aws:iam::111111111111:instance-profile/athenz.zts,athenz"));
         assertEquals(store.awsRole, "athenz.zts");
         store.close();
@@ -250,7 +257,7 @@ public class CloudStoreTest {
     @Test
     public void testParseInstanceProfileArnInvalidPrefix() {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         
         // invalid starting prefix
         
@@ -263,7 +270,7 @@ public class CloudStoreTest {
     @Test
     public void testParseInstanceProfileArnInvalidProfile() {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         
         // missing instance-profile part
         
@@ -275,7 +282,7 @@ public class CloudStoreTest {
     @Test
     public void testParseInstanceProfileArnInvalidNoProfile() {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         
         // no profile name
         
@@ -286,7 +293,7 @@ public class CloudStoreTest {
     @Test
     public void testParseInstanceProfileArnCloud() {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         // cloud name is optional for backwards compatibility
         assertTrue(store.parseInstanceProfileArn("arn:aws:iam::111111111111:instance-profile/athenz.zts"));
         assertEquals(store.awsRole, "athenz.zts");
@@ -299,7 +306,7 @@ public class CloudStoreTest {
     @Test
     public void testGetMetaDataExceptions() throws InterruptedException, ExecutionException, TimeoutException {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         HttpClient httpClient = Mockito.mock(HttpClient.class);
         store.setHttpClient(httpClient);
         Mockito.when(httpClient.GET("http://169.254.169.254/latest/exc1")).thenThrow(InterruptedException.class);
@@ -315,7 +322,7 @@ public class CloudStoreTest {
     @Test
     public void testGetMetaDataFailureStatus() throws InterruptedException, ExecutionException, TimeoutException {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         HttpClient httpClient = Mockito.mock(HttpClient.class);
         ContentResponse response = Mockito.mock(ContentResponse.class);
         Mockito.when(response.getStatus()).thenReturn(404);
@@ -329,7 +336,7 @@ public class CloudStoreTest {
     @Test
     public void testGetMetaDataNullResponse() throws InterruptedException, ExecutionException, TimeoutException {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         HttpClient httpClient = Mockito.mock(HttpClient.class);
         ContentResponse response = Mockito.mock(ContentResponse.class);
         Mockito.when(response.getStatus()).thenReturn(200);
@@ -344,7 +351,7 @@ public class CloudStoreTest {
     @Test
     public void testGetMetaDataEmptyResponse() throws InterruptedException, ExecutionException, TimeoutException {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         HttpClient httpClient = Mockito.mock(HttpClient.class);
         ContentResponse response = Mockito.mock(ContentResponse.class);
         Mockito.when(response.getStatus()).thenReturn(200);
@@ -359,7 +366,7 @@ public class CloudStoreTest {
     @Test
     public void testGetMetaDataValidResponse() throws InterruptedException, ExecutionException, TimeoutException {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         HttpClient httpClient = Mockito.mock(HttpClient.class);
         ContentResponse response = Mockito.mock(ContentResponse.class);
         Mockito.when(response.getStatus()).thenReturn(200);
@@ -374,7 +381,7 @@ public class CloudStoreTest {
     @Test
     public void testLoadBootMetaDataInvalidDocumentGet() throws InterruptedException, ExecutionException, TimeoutException {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         HttpClient httpClient = Mockito.mock(HttpClient.class);
         ContentResponse response = Mockito.mock(ContentResponse.class);
         Mockito.when(response.getStatus()).thenReturn(404);
@@ -388,7 +395,7 @@ public class CloudStoreTest {
     @Test
     public void testLoadBootMetaDataInvalidDocumentParse() throws InterruptedException, ExecutionException, TimeoutException {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         HttpClient httpClient = Mockito.mock(HttpClient.class);
         ContentResponse response = Mockito.mock(ContentResponse.class);
         Mockito.when(response.getStatus()).thenReturn(200);
@@ -403,7 +410,7 @@ public class CloudStoreTest {
     @Test
     public void testLoadBootMetaDataInvalidDocumentException() throws InterruptedException, ExecutionException, TimeoutException {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         HttpClient httpClient = Mockito.mock(HttpClient.class);
         ContentResponse response = Mockito.mock(ContentResponse.class);
         Mockito.when(response.getStatus()).thenReturn(200);
@@ -418,7 +425,7 @@ public class CloudStoreTest {
     @Test
     public void testLoadBootMetaDataInvalidSignature() throws InterruptedException, ExecutionException, TimeoutException {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         HttpClient httpClient = Mockito.mock(HttpClient.class);
         ContentResponse responseDoc = Mockito.mock(ContentResponse.class);
         Mockito.when(responseDoc.getStatus()).thenReturn(200);
@@ -438,7 +445,7 @@ public class CloudStoreTest {
     @Test
     public void testLoadBootMetaDataInvalidIamInfoGet() throws InterruptedException, ExecutionException, TimeoutException {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         HttpClient httpClient = Mockito.mock(HttpClient.class);
         
         ContentResponse responseDoc = Mockito.mock(ContentResponse.class);
@@ -464,7 +471,7 @@ public class CloudStoreTest {
     @Test
     public void testLoadBootMetaDataInvalidIamInfoException() throws InterruptedException, ExecutionException, TimeoutException {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         HttpClient httpClient = Mockito.mock(HttpClient.class);
         
         ContentResponse responseDoc = Mockito.mock(ContentResponse.class);
@@ -491,7 +498,7 @@ public class CloudStoreTest {
     @Test
     public void testLoadBootMetaDataInvalidIamInfoParse() throws InterruptedException, ExecutionException, TimeoutException {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         HttpClient httpClient = Mockito.mock(HttpClient.class);
         
         ContentResponse responseDoc = Mockito.mock(ContentResponse.class);
@@ -518,7 +525,7 @@ public class CloudStoreTest {
     @Test
     public void testLoadBootMetaData() throws InterruptedException, ExecutionException, TimeoutException {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         HttpClient httpClient = Mockito.mock(HttpClient.class);
         
         ContentResponse responseDoc = Mockito.mock(ContentResponse.class);
@@ -547,7 +554,7 @@ public class CloudStoreTest {
     @Test
     public void testFetchRoleCredentialsNoRole() {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         
         store.awsRole = null;
         assertFalse(store.fetchRoleCredentials());
@@ -560,7 +567,7 @@ public class CloudStoreTest {
     @Test
     public void testFetchRoleCredentialsNoCreds() throws InterruptedException, ExecutionException, TimeoutException {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         store.awsRole = "athenz.zts";
         
         HttpClient httpClient = Mockito.mock(HttpClient.class);
@@ -576,7 +583,7 @@ public class CloudStoreTest {
     @Test
     public void testFetchRoleCredentialInvalidCreds() throws InterruptedException, ExecutionException, TimeoutException {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         store.awsRole = "athenz.zts";
         
         HttpClient httpClient = Mockito.mock(HttpClient.class);
@@ -594,7 +601,7 @@ public class CloudStoreTest {
     @Test
     public void testInitializeAwsSupportInvalidDocument()  throws InterruptedException, ExecutionException, TimeoutException {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         HttpClient httpClient = Mockito.mock(HttpClient.class);
         
         ContentResponse responseDoc = Mockito.mock(ContentResponse.class);
@@ -617,7 +624,7 @@ public class CloudStoreTest {
     @Test
     public void testInitializeAwsSupportInvalidCreds()  throws InterruptedException, ExecutionException, TimeoutException {
         
-        CloudStore store = new CloudStore(null);
+        CloudStore store = new CloudStore();
         HttpClient httpClient = Mockito.mock(HttpClient.class);
         
         ContentResponse responseDoc = Mockito.mock(ContentResponse.class);
@@ -654,9 +661,9 @@ public class CloudStoreTest {
     
     @Test
     public void testAssumeAWSRoleAWSNotEnabled() {
-        CloudStore cloudStore = new CloudStore(null);
+        CloudStore cloudStore = new CloudStore();
         try {
-            cloudStore.assumeAWSRole("account", "sycner", "athenz.syncer");
+            cloudStore.assumeAWSRole("account", "sycner", "athenz.syncer", null, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 500);
@@ -678,7 +685,7 @@ public class CloudStoreTest {
         cloudStore.setAssumeRoleResult(mockResult);
         cloudStore.setAssumeAWSRole(true);
 
-        AWSTemporaryCredentials awsCreds = cloudStore.assumeAWSRole("account", "syncer", "athenz.syncer");
+        AWSTemporaryCredentials awsCreds = cloudStore.assumeAWSRole("account", "syncer", "athenz.syncer", null, null);
         assertNotNull(awsCreds);
         assertEquals(awsCreds.getAccessKeyId(), "accesskeyid");
         assertEquals(awsCreds.getSessionToken(), "sessiontoken");
@@ -688,7 +695,7 @@ public class CloudStoreTest {
     
     @Test
     public void testGetSshKeyReqType() {
-        CloudStore cloudStore = new CloudStore(null);
+        CloudStore cloudStore = new CloudStore();
         final String req = "{\"principals\":[\"localhost\"],\"pubkey\":\"ssh-rsa AAAs\"" +
                 ",\"reqip\":\"10.10.10.10\",\"requser\":\"user\",\"certtype\":\"host\",\"transid\":\"0\"}";
         assertEquals(cloudStore.getSshKeyReqType(req), "host");
