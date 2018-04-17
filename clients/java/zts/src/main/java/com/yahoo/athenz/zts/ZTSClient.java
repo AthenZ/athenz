@@ -510,7 +510,7 @@ public class ZTSClient implements Closeable {
         ztsClientOverride = true;
     }
     
-    SSLContext createSSLContext() {
+    private SSLContext createSSLContext() {
         
         // to create the SSL context we must have the keystore path
         // specified. If it's not specified, then we are not going
@@ -592,7 +592,7 @@ public class ZTSClient implements Closeable {
         return SSLUtils.loadServicePrivateKey(pkeyFactoryClass);
     }
     
-    void initClient(final String serverUrl, Principal identity,
+    private void initClient(final String serverUrl, Principal identity,
             final String domainName, final String serviceName,
             final ServiceIdentityProvider siaProvider) {
         
@@ -1229,7 +1229,7 @@ public class ZTSClient implements Closeable {
                                 // - if not, mark the item as invalid
                                 
                                 if (!newSvcLoaderCache.contains(key)) {
-                                    item.invalid(true);
+                                    item.isInvalid(true);
                                 }
                             } else {
                                 RoleToken token = itemZtsClient.getRoleToken(item.domainName, item.roleName,
@@ -1241,7 +1241,7 @@ public class ZTSClient implements Closeable {
                             }
                         } else {
                             AWSTemporaryCredentials awsCred = itemZtsClient.getAWSTemporaryCredentials(item.domainName,
-                                    item.roleName, true);
+                                    item.roleName, item.externalId, item.minDuration, item.maxDuration, true);
                             item.expiresAtUTC(awsCred.getExpiration().millis() / 1000);
                         }
                         
@@ -1254,7 +1254,7 @@ public class ZTSClient implements Closeable {
                         
                         // any exception should remove this item from fetch queue
                         
-                        item.invalid(true);
+                        item.isInvalid(true);
                         PREFETCH_SCHEDULED_ITEMS.remove(item);
                         LOG.error("RolePrefetchTask: Error while trying to prefetch token", ex);
                     }
@@ -1262,7 +1262,7 @@ public class ZTSClient implements Closeable {
                 
                 // remove all invalid items.
                
-                toFetch.removeIf(p -> p.invalid);
+                toFetch.removeIf(p -> p.isInvalid);
                 
                 // now, add items back.
                 
@@ -1328,7 +1328,8 @@ public class ZTSClient implements Closeable {
             throw new ZTSClientException(ZTSClientException.BAD_REQUEST, "Domain Name cannot be empty");
         }
         
-        RoleToken token = getRoleToken(domainName, roleName, minExpiryTime, maxExpiryTime, true, proxyForPrincipal);
+        RoleToken token = getRoleToken(domainName, roleName, minExpiryTime, maxExpiryTime,
+                true, proxyForPrincipal);
         if (token == null) {
             LOG.error("PrefetchToken: No token fetchable using domain={}, roleSuffix={}",
                         domainName, roleName);
@@ -1337,17 +1338,18 @@ public class ZTSClient implements Closeable {
         long expiryTimeUTC = token.getExpiryTime();
         
         return prefetchToken(domainName, roleName, minExpiryTime, maxExpiryTime,
-                proxyForPrincipal, expiryTimeUTC, true);
+                proxyForPrincipal, null, expiryTimeUTC, true);
     }
     
-    boolean prefetchAwsCreds(String domainName, String roleName, Integer minExpiryTime,
-            Integer maxExpiryTime) {
+    boolean prefetchAwsCreds(String domainName, String roleName, String externalId,
+            Integer minExpiryTime, Integer maxExpiryTime) {
         
         if (domainName == null || domainName.trim().isEmpty()) {
             throw new ZTSClientException(ZTSClientException.BAD_REQUEST, "Domain Name cannot be empty");
         }
         
-        AWSTemporaryCredentials awsCred = getAWSTemporaryCredentials(domainName, roleName, true);
+        AWSTemporaryCredentials awsCred = getAWSTemporaryCredentials(domainName, roleName,
+                externalId, minExpiryTime, maxExpiryTime, true);
         if (awsCred == null) {
             LOG.error("PrefetchToken: No aws credential fetchable using domain={}, roleName={}",
                         domainName, roleName);
@@ -1356,12 +1358,12 @@ public class ZTSClient implements Closeable {
         long expiryTimeUTC = awsCred.getExpiration().millis() / 1000;
         
         return prefetchToken(domainName, roleName, minExpiryTime, maxExpiryTime, null,
-                expiryTimeUTC, false);
+                externalId, expiryTimeUTC, false);
     }
     
     boolean prefetchToken(String domainName, String roleName, Integer minExpiryTime,
-            Integer maxExpiryTime, String proxyForPrincipal, long expiryTimeUTC,
-            boolean isRoleToken) {
+            Integer maxExpiryTime, String proxyForPrincipal, String externalId,
+            long expiryTimeUTC, boolean isRoleToken) {
         
         // if we're given a ssl context then we don't have domain/service
         // settings configured otherwise those are required
@@ -1381,6 +1383,7 @@ public class ZTSClient implements Closeable {
             .domainName(domainName)
             .roleName(roleName)
             .proxyForPrincipal(proxyForPrincipal)
+            .externalId(externalId)
             .minDuration(minExpiryTime)
             .maxDuration(maxExpiryTime)
             .expiresAtUTC(expiryTimeUTC)
@@ -1829,6 +1832,29 @@ public class ZTSClient implements Closeable {
     }
 
     /**
+     * AWSCredential Provider provides AWS Credentials which the caller can
+     * use to authorize an AWS request. It automatically refreshes the credentials
+     * when the current credentials become invalid.
+     * It uses ZTS client to refresh the AWS Credentials. So the ZTS Client must
+     * not be closed while the credential provider is being used.
+     * The caller should close the client when the provider is no longer required.
+     * For a given domain and role return AWS temporary credential provider
+     * @param domainName name of the domain
+     * @param roleName is the name of the role
+     * @param externalId (optional) external id to satisfy configured assume role condition
+     * @param minExpiryTime (optional) specifies that the returned RoleToken must be
+     *          at least valid (min/lower bound) for specified number of seconds,
+     * @param maxExpiryTime (optional) specifies that the returned RoleToken must be
+     *          at most valid (max/upper bound) for specified number of seconds.
+     * @return AWSCredentialsProvider AWS credential provider
+     */
+    public AWSCredentialsProvider getAWSCredentialProvider(String domainName, String roleName,
+            String externalId, Integer minExpiryTime, Integer maxExpiryTime) {
+        return new AWSCredentialsProviderImpl(this, domainName, roleName, externalId,
+                minExpiryTime, maxExpiryTime);
+    }
+
+    /**
      * For a given domain and role return AWS temporary credentials
      *
      * @param domainName name of the domain
@@ -1836,11 +1862,34 @@ public class ZTSClient implements Closeable {
      * @return AWSTemporaryCredentials AWS credentials
      */
     public AWSTemporaryCredentials getAWSTemporaryCredentials(String domainName, String roleName) {
-        return getAWSTemporaryCredentials(domainName, roleName, false);
+        return getAWSTemporaryCredentials(domainName, roleName, null, null, null, false);
     }
-    
+
     public AWSTemporaryCredentials getAWSTemporaryCredentials(String domainName, String roleName,
             boolean ignoreCache) {
+        return getAWSTemporaryCredentials(domainName, roleName, null, null, null, ignoreCache);
+    }
+
+    /**
+     * For a given domain and role return AWS temporary credentials
+     *
+     * @param domainName name of the domain
+     * @param roleName is the name of the role
+     * @param minExpiryTime (optional) specifies that the returned RoleToken must be
+     *          at least valid (min/lower bound) for specified number of seconds,
+     * @param maxExpiryTime (optional) specifies that the returned RoleToken must be
+     *          at most valid (max/upper bound) for specified number of seconds.
+     * @param externalId (optional) external id to satisfy configured assume role condition
+     * @return AWSTemporaryCredentials AWS credentials
+     */
+    public AWSTemporaryCredentials getAWSTemporaryCredentials(String domainName, String roleName,
+            String externalId, Integer minExpiryTime, Integer maxExpiryTime) {
+        return getAWSTemporaryCredentials(domainName, roleName, externalId,
+                minExpiryTime, maxExpiryTime, false);
+    }
+
+    public AWSTemporaryCredentials getAWSTemporaryCredentials(String domainName, String roleName,
+            String externalId, Integer minExpiryTime, Integer maxExpiryTime, boolean ignoreCache) {
 
         // since our aws role name can contain the path element thus /'s
         // we need to encode the value and use that instead
@@ -1857,7 +1906,7 @@ public class ZTSClient implements Closeable {
         AWSTemporaryCredentials awsCred;
         String cacheKey = getRoleTokenCacheKey(domainName, roleName, null);
         if (cacheKey != null && !ignoreCache) {
-            awsCred = lookupAwsCredInCache(cacheKey, null, null);
+            awsCred = lookupAwsCredInCache(cacheKey, minExpiryTime, maxExpiryTime);
             if (awsCred != null) {
                 return awsCred;
             }
@@ -1865,8 +1914,8 @@ public class ZTSClient implements Closeable {
             // start prefetch for this token if prefetch is enabled
             
             if (enablePrefetch && prefetchAutoEnable) {
-                if (prefetchAwsCreds(domainName, roleName, null, null)) {
-                    awsCred = lookupAwsCredInCache(cacheKey, null, null);
+                if (prefetchAwsCreds(domainName, roleName, externalId, minExpiryTime, maxExpiryTime)) {
+                    awsCred = lookupAwsCredInCache(cacheKey, minExpiryTime, maxExpiryTime);
                 }
                 if (awsCred != null) {
                     return awsCred;
@@ -1880,7 +1929,8 @@ public class ZTSClient implements Closeable {
         updateServicePrincipal();
 
         try {
-            awsCred = ztsClient.getAWSTemporaryCredentials(domainName, roleName);
+            awsCred = ztsClient.getAWSTemporaryCredentials(domainName, roleName,
+                    maxExpiryTime, externalId);
         } catch (ResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
@@ -2092,9 +2142,9 @@ public class ZTSClient implements Closeable {
             return this;
         }
         
-        boolean invalid;
-        PrefetchRoleTokenScheduledItem invalid(boolean i) {
-            invalid = i;
+        boolean isInvalid = false;
+        PrefetchRoleTokenScheduledItem isInvalid(boolean invalid) {
+            isInvalid = invalid;
             return this;
         }
         
@@ -2127,7 +2177,13 @@ public class ZTSClient implements Closeable {
             proxyForPrincipal = u;
             return this;
         }
-        
+
+        String externalId;
+        PrefetchRoleTokenScheduledItem externalId(String id) {
+            externalId = id;
+            return this;
+        }
+
         Integer minDuration;
         PrefetchRoleTokenScheduledItem minDuration(Integer min) {
             minDuration = min;
@@ -2173,9 +2229,11 @@ public class ZTSClient implements Closeable {
             result = prime * result + ((identityName == null) ? 0 : identityName.hashCode());
             result = prime * result + ((roleName == null) ? 0 : roleName.hashCode());
             result = prime * result + ((proxyForPrincipal == null) ? 0 : proxyForPrincipal.hashCode());
+            result = prime * result + ((externalId == null) ? 0 : externalId.hashCode());
             result = prime * result + ((sslContext == null) ? 0 : sslContext.hashCode());
             result = prime * result + ((proxyUrl == null) ? 0 : proxyUrl.hashCode());
             result = prime * result + Boolean.hashCode(isRoleToken);
+            result = prime * result + Boolean.hashCode(isInvalid);
 
             return result;
         }
@@ -2227,13 +2285,25 @@ public class ZTSClient implements Closeable {
             } else if (!proxyForPrincipal.equals(other.proxyForPrincipal)) {
                 return false;
             }
+            if (externalId == null) {
+                if (other.externalId != null) {
+                    return false;
+                }
+            } else if (!externalId.equals(other.externalId)) {
+                return false;
+            }
+            if (isInvalid != other.isInvalid) {
+                return false;
+            }
+            if (isRoleToken != other.isRoleToken) {
+                return false;
+            }
             if (sslContext == null) {
                 return other.sslContext == null;
             } else {
                 return sslContext.equals(other.sslContext);
             }
         }
-
     }
     
     public class AWSHostNameVerifier implements HostnameVerifier {

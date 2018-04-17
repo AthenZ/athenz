@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,10 +16,6 @@
 
 package com.yahoo.athenz.zts;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +23,9 @@ import org.testng.annotations.Test;
 
 import com.yahoo.rdl.Timestamp;
 
+import static org.testng.Assert.*;
+
+@SuppressWarnings({"EqualsWithItself", "EqualsBetweenInconvertibleTypes"})
 public class DomainSignedPolicyDataTest implements Cloneable {
 
     @Test
@@ -60,7 +59,7 @@ public class DomainSignedPolicyDataTest implements Cloneable {
         a2.setAction("read");
         a2.setEffect(AssertionEffect.ALLOW);
 
-        List<Assertion> al = new ArrayList<Assertion>();
+        List<Assertion> al = new ArrayList<>();
         al.add(a);
 
         // set policy
@@ -71,7 +70,7 @@ public class DomainSignedPolicyDataTest implements Cloneable {
         p2.setName("test_policy");
         p2.setModified(Timestamp.fromMillis(1234567890123L));
 
-        List<Policy> pl = new ArrayList<Policy>();
+        List<Policy> pl = new ArrayList<>();
         pl.add(p);
 
         // set policy data
@@ -130,55 +129,55 @@ public class DomainSignedPolicyDataTest implements Cloneable {
         assertEquals(dspd.getSignedPolicyData(), spd);
 
         // equals true
-        assertTrue(a.equals(a));
-        assertTrue(p.equals(p));
-        assertTrue(pd.equals(pd));
-        assertTrue(spd.equals(spd));
-        assertTrue(dspd.equals(dspd));
+        assertEquals(a, a);
+        assertEquals(p, p);
+        assertEquals(pd, pd);
+        assertEquals(spd, spd);
+        assertEquals(dspd, dspd);
 
         // equals false
-        assertFalse(a2.equals(a));
+        assertNotEquals(a2, a);
         a2.setEffect(null);
-        assertFalse(a2.equals(a));
+        assertNotEquals(a2, a);
         a2.setAction(null);
-        assertFalse(a2.equals(a));
+        assertNotEquals(a2, a);
         a2.setResource(null);
-        assertFalse(a2.equals(a));
+        assertNotEquals(a2, a);
         a2.setRole(null);
-        assertFalse(a2.equals(a));
-        
-        
-        assertFalse(p2.equals(p));
+        assertNotEquals(a2, a);
+
+
+        assertNotEquals(p2, p);
         p2.setModified(null);
-        assertFalse(p2.equals(p));
+        assertNotEquals(p2, p);
         p2.setName(null);
-        assertFalse(p2.equals(p));
-        
-        assertFalse(pd2.equals(pd));
+        assertNotEquals(p2, p);
+
+        assertNotEquals(pd2, pd);
         pd2.setDomain(null);
-        assertFalse(pd2.equals(pd));
-        
-        assertFalse(spd2.equals(spd));
+        assertNotEquals(pd2, pd);
+
+        assertNotEquals(spd2, spd);
         spd2.setModified(null);
-        assertFalse(spd2.equals(spd));
+        assertNotEquals(spd2, spd);
         spd2.setZmsKeyId(null);
-        assertFalse(spd2.equals(spd));
+        assertNotEquals(spd2, spd);
         spd2.setZmsSignature(null);
-        assertFalse(spd2.equals(spd));
+        assertNotEquals(spd2, spd);
         spd2.setPolicyData(null);
-        assertFalse(spd2.equals(spd));
-        
-        assertFalse(dspd2.equals(dspd));
+        assertNotEquals(spd2, spd);
+
+        assertNotEquals(dspd2, dspd);
         dspd2.setSignature(null);
-        assertFalse(dspd2.equals(dspd));
+        assertNotEquals(dspd2, dspd);
         dspd2.setSignedPolicyData(null);
-        assertFalse(dspd2.equals(dspd));
-        
-        assertFalse(a.equals(new String()));
-        assertFalse(p.equals(new String()));
-        assertFalse(pd.equals(new String()));
-        assertFalse(spd.equals(new String()));
-        assertFalse(dspd.equals(new String()));
+        assertNotEquals(dspd2, dspd);
+
+        assertNotEquals("", a);
+        assertNotEquals("", p);
+        assertNotEquals("", pd);
+        assertNotEquals("", spd);
+        assertNotEquals("", dspd);
 
     }
 

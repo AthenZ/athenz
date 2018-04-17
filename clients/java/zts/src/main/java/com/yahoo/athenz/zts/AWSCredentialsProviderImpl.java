@@ -31,15 +31,70 @@ public class AWSCredentialsProviderImpl implements AWSCredentialsProvider, Close
     
     private String domainName;
     private String roleName;
+    private String externalId;
+    private Integer minExpiryTime;
+    private Integer maxExpiryTime;
     private ZTSClient ztsClient;
     private volatile AWSCredentials credentials;
     private boolean closeZTSClient;
-    
+
+    /**
+     * Constructs a new AWSCredentialsProvider object with the given zts client object,
+     * Athenz domain name and AWS Role Name to retrieve temporary credentials for.
+     * @param ztsClient ZTS Client object
+     * @param domainName name of the Athenz domain
+     * @param roleName is the name of the IAM role
+     */
     public AWSCredentialsProviderImpl(ZTSClient ztsClient, String domainName, String roleName) {
-        this.ztsClient = ztsClient;
+        this(ztsClient, domainName, roleName, null, null, null);
+    }
+
+    /**
+     * Constructs a new AWSCredentialsProvider object with the given zts client object,
+     * Athenz domain name and AWS Role Name to retrieve temporary credentials for.
+     * @param ztsClient ZTS Client object
+     * @param domainName name of the Athenz domain
+     * @param roleName is the name of the IAM role
+     * @param minExpiryTime (optional) specifies that the returned creds must be
+     *          at least valid (min/lower bound) for specified number of seconds,
+     * @param maxExpiryTime (optional) specifies that the returned creds must be
+     *          at most valid (max/upper bound) for specified number of seconds.
+     * @param externalId (optional) external id to satisfy configured assume role condition
+     */
+    public AWSCredentialsProviderImpl(ZTSClient ztsClient, String domainName, String roleName,
+            String externalId, Integer minExpiryTime, Integer maxExpiryTime) {
         this.domainName = domainName;
         this.roleName = roleName;
+        this.minExpiryTime = minExpiryTime;
+        this.maxExpiryTime = maxExpiryTime;
+        this.externalId = externalId;
+        this.ztsClient = ztsClient;
         this.closeZTSClient = false;
+    }
+
+    /**
+     * Constructs a new AWSCredentialsProvider object with the given SSLContext object,
+     * ZTS Server Url, Athenz domain name and AWS Role Name to retrieve temporary
+     * credentials for. The constructor will automatically create and use the ZTS
+     * client object for retrieving credentials. This object must be closed so
+     * the ZTS client object is closed as well.
+     * @param ztsUrl ZTS Server's URL
+     * @param sslContext SSLContext that includes service's private key and x.509 certificate
+     * for authenticating requests
+     * @param domainName name of the Athenz domain
+     * @param roleName is the name of the IAM role
+     * @param minExpiryTime (optional) specifies that the returned creds must be
+     *          at least valid (min/lower bound) for specified number of seconds,
+     * @param maxExpiryTime (optional) specifies that the returned creds must be
+     *          at most valid (max/upper bound) for specified number of seconds.
+     * @param externalId (optional) external id to satisfy configured assume role condition
+     */
+    public AWSCredentialsProviderImpl(String ztsUrl, SSLContext sslContext,
+            String domainName, String roleName, String externalId,
+            Integer minExpiryTime, Integer maxExpiryTime) {
+        this(null, domainName, roleName, externalId, minExpiryTime, maxExpiryTime);
+        this.ztsClient = new ZTSClient(ztsUrl, sslContext);
+        this.closeZTSClient = true;
     }
 
     /**
@@ -56,10 +111,7 @@ public class AWSCredentialsProviderImpl implements AWSCredentialsProvider, Close
      */
     public AWSCredentialsProviderImpl(String ztsUrl, SSLContext sslContext,
             String domainName, String roleName) {
-        this.domainName = domainName;
-        this.roleName = roleName;
-        this.ztsClient = new ZTSClient(ztsUrl, sslContext);
-        this.closeZTSClient = true;
+        this(ztsUrl, sslContext, domainName, roleName, null, null, null);
     }
 
     @Override
@@ -84,7 +136,8 @@ public class AWSCredentialsProviderImpl implements AWSCredentialsProvider, Close
     @Override
     public void refresh() {
         try {
-            AWSTemporaryCredentials creds = ztsClient.getAWSTemporaryCredentials(domainName, roleName);
+            AWSTemporaryCredentials creds = ztsClient.getAWSTemporaryCredentials(domainName, roleName,
+                    externalId, minExpiryTime, maxExpiryTime);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Refresh: Credentials with id: {} and expiration {} were fetched",
                         creds.getAccessKeyId(), creds.getExpiration());

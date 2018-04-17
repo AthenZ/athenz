@@ -230,13 +230,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         loadCertSigner();
         
        // create our cloud store if configured
-        
-        if (implCloudStore == null) {
-            cloudStore = new CloudStore(certSigner);
-        } else {
-            cloudStore = implCloudStore;
-        }
-        
+
+        cloudStore = (implCloudStore == null) ? new CloudStore() : implCloudStore;
+
         // create our change log store
         
         if (implDataStore == null) {
@@ -1556,7 +1552,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
     
     public AWSTemporaryCredentials getAWSTemporaryCredentials(ResourceContext ctx, String domainName,
-            String roleName) {
+            String roleName, Integer durationSeconds, String externalId) {
 
         final String caller = "getawstemporarycredentials";
         final String callerTiming = "getawstemporarycredentials_timing";
@@ -1587,9 +1583,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         Object timerMetric = metric.startTiming(callerTiming, domainName);
         metric.increment(HTTP_REQUEST, domainName);
         metric.increment(caller, domainName);
-        
+
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("getAWSTemporaryCredentials(domain: " + domainName + ", role: " + roleName + ")");
+            LOGGER.debug("getAWSTemporaryCredentials(domain: {}, role: {}, duration {}",
+                    domainName, roleName, durationSeconds);
         }
         
         if (!cloudStore.isAwsEnabled()) {
@@ -1599,8 +1596,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // get our principal's name
         
-        String principal = ((RsrcCtxWrapper) ctx).principal().getFullName();
-        String roleResource = domainName + ":" + roleName.toLowerCase();
+        final String principal = ((RsrcCtxWrapper) ctx).principal().getFullName();
+        final String roleResource = domainName + ":" + roleName.toLowerCase();
         
         // we need to first verify that our principal is indeed configured
         // with aws assume role assertion for the specified role and domain
@@ -1620,7 +1617,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // obtain the credentials from the cloud store
         
-        AWSTemporaryCredentials creds = cloudStore.assumeAWSRole(account, roleName, principal);
+        AWSTemporaryCredentials creds = cloudStore.assumeAWSRole(account, roleName, principal,
+                durationSeconds, externalId);
         if (creds == null) {
             throw requestError("getAWSTemporaryCredentials: unable to assume role " + roleName
                     + " in domain " + domainName + " for principal " + principal, caller, domainName);

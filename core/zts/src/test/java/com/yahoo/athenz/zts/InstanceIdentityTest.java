@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +22,7 @@ import java.util.HashMap;
 
 import org.testng.annotations.Test;
 
+@SuppressWarnings("EqualsWithItself")
 public class InstanceIdentityTest {
 
     @Test
@@ -60,20 +61,21 @@ public class InstanceIdentityTest {
         assertEquals(i.getServiceToken(), "sample_token");
         assertEquals(i.getAttributes(), attr);
 
-        assertTrue(i.equals(i));
-        
-        assertFalse(i2.equals(i));
+        assertEquals(i, i);
+
+        assertNotEquals(i2, i);
         i2.setServiceToken(null);
-        assertFalse(i2.equals(i));
+        assertNotEquals(i2, i);
         i2.setSshCertificate(null);
-        assertFalse(i2.equals(i));
+        assertNotEquals(i2, i);
         i2.setX509CertificateSigner(null);
-        assertFalse(i2.equals(i));
+        assertNotEquals(i2, i);
         i2.setX509CertificateSigner(null);
-        assertFalse(i2.equals(i));
+        assertNotEquals(i2, i);
         i2.setName(null);
-        assertFalse(i2.equals(i));
-        
-        assertFalse(i.equals(new String()));
+        assertNotEquals(i2, i);
+
+        //noinspection EqualsBetweenInconvertibleTypes
+        assertNotEquals("", i);
     }
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +22,7 @@ import java.util.List;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+@SuppressWarnings("EqualsWithItself")
 public class RoleAccessTest {
 
     @Test
@@ -36,6 +37,7 @@ public class RoleAccessTest {
     @Test
     public void TestEqualsTrue() {
         RoleAccess ra = new RoleAccess();
+        //noinspection ResultOfMethodCallIgnored
         ra.equals(ra);
     }
 
@@ -46,8 +48,9 @@ public class RoleAccessTest {
 
         List<String> roles = Arrays.asList("role1", "role2", "role3");
         ra1.setRoles(roles);
-        Assert.assertFalse(ra1.equals(ra2));
-        Assert.assertFalse(ra1.equals(new String()));
+        Assert.assertNotEquals(ra1, ra2);
+        //noinspection EqualsBetweenInconvertibleTypes
+        Assert.assertNotEquals("", ra1);
     }
 
 }

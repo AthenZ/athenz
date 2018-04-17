@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +25,7 @@ import java.util.List;
 
 import org.testng.annotations.Test;
 
+@SuppressWarnings({"ALL", "EqualsWithItself"})
 public class ServiceIdentityListTest {
 
     @Test
@@ -39,8 +40,8 @@ public class ServiceIdentityListTest {
         assertEquals(sil.getNames(), nl);
 
         assertTrue(sil.equals(sil));
+        //noinspection ObjectEqualsNull,ConstantConditions
         assertFalse(sil.equals(null));
         assertFalse(sil.equals(sil2));
     }
-
 }

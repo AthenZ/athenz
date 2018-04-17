@@ -687,9 +687,9 @@ func (client ZTSClient) PostInstanceRefreshRequest(domain CompoundName, service 
 	}
 }
 
-func (client ZTSClient) GetAWSTemporaryCredentials(domainName DomainName, role AWSArnRoleName) (*AWSTemporaryCredentials, error) {
+func (client ZTSClient) GetAWSTemporaryCredentials(domainName DomainName, role AWSArnRoleName, durationSeconds *int32, externalId string) (*AWSTemporaryCredentials, error) {
 	var data *AWSTemporaryCredentials
-	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/role/" + fmt.Sprint(role) + "/creds"
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/role/" + fmt.Sprint(role) + "/creds" + encodeParams(encodeOptionalInt32Param("durationSeconds", durationSeconds), encodeStringParam("externalId", string(externalId), ""))
 	resp, err := client.httpGet(url, nil)
 	if err != nil {
 		return data, err

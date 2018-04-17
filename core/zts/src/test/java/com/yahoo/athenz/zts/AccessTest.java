@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,11 +16,11 @@
 
 package com.yahoo.athenz.zts;
 
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
-
 import org.testng.annotations.Test;
 
+import static org.testng.Assert.*;
+
+@SuppressWarnings("EqualsWithItself")
 public class AccessTest {
 
     @Test
@@ -40,13 +40,14 @@ public class AccessTest {
     public void testEqualsSameObj() {
         Access a = new Access().setGranted(true);
         Access b = new Access().setGranted(false);
-        assertTrue(a.equals(a));
-        assertFalse(a.equals(b));
+        assertEquals(a, a);
+        assertNotEquals(a, b);
     }
 
+    @SuppressWarnings("EqualsBetweenInconvertibleTypes")
     @Test
     public void testEqualsDifObj() {
         Access a = new Access();
-        assertFalse(a.equals(new String()));
+        assertNotEquals("", a);
     }
 }

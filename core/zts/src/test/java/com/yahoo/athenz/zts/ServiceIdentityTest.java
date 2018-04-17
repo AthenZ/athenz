@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,10 +16,6 @@
 
 package com.yahoo.athenz.zts;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,8 +23,11 @@ import org.testng.annotations.Test;
 
 import com.yahoo.rdl.Timestamp;
 
+import static org.testng.Assert.*;
+
 public class ServiceIdentityTest {
 
+    @SuppressWarnings({"EqualsWithItself", "ConstantConditions"})
     @Test
     public void testsetgetServiceIdentity() {
         ServiceIdentity si = new ServiceIdentity();
@@ -39,10 +38,10 @@ public class ServiceIdentityTest {
         pkey.setId("key01");
         pkey.setKey("pkey==");
 
-        List<PublicKeyEntry> pkeylist = new ArrayList<PublicKeyEntry>();
+        List<PublicKeyEntry> pkeylist = new ArrayList<>();
         pkeylist.add(pkey);
 
-        List<String> hosts = new ArrayList<String>();
+        List<String> hosts = new ArrayList<>();
         hosts.add("example.host");
 
         si.setExecutable("add-domain");
@@ -77,35 +76,38 @@ public class ServiceIdentityTest {
         assertEquals(si.getUser(), "user.test");
 
         // equals true
-        assertTrue(pkey.equals(pkey));
-        assertTrue(si.equals(si));
+        assertEquals(pkey, pkey);
+        assertEquals(si, si);
 
         // equals false
-        assertFalse(pkey.equals(new String()));
-        assertFalse(pkey.equals(new PublicKeyEntry()));
+        //noinspection EqualsBetweenInconvertibleTypes
+        assertNotEquals("", pkey);
+        assertNotEquals(pkey, new PublicKeyEntry());
         PublicKeyEntry pkey2 = new PublicKeyEntry().setKey("pkey==");
-        assertFalse(pkey2.equals(pkey));
+        assertNotEquals(pkey2, pkey);
 
-        assertFalse(si.equals(new String()));
+        //noinspection EqualsBetweenInconvertibleTypes
+        assertNotEquals("", si);
         
         si2.setGroup(null);
-        assertFalse(si2.equals(si));
+        assertNotEquals(si2, si);
         si2.setUser(null);
-        assertFalse(si2.equals(si));
+        assertNotEquals(si2, si);
         si2.setHosts(null);
-        assertFalse(si2.equals(si));
+        assertNotEquals(si2, si);
         si2.setExecutable(null);
-        assertFalse(si2.equals(si));
+        assertNotEquals(si2, si);
         si2.setModified(null);
-        assertFalse(si2.equals(si));
+        assertNotEquals(si2, si);
         si2.setProviderEndpoint(null);
-        assertFalse(si2.equals(si));
+        assertNotEquals(si2, si);
         si2.setPublicKeys(null);
-        assertFalse(si2.equals(si));
+        assertNotEquals(si2, si);
         si2.setName(null);
-        assertFalse(si2.equals(si));
+        assertNotEquals(si2, si);
+        //noinspection ObjectEqualsNull,SimplifiedTestNGAssertion
         assertFalse(si2.equals(null));
-        assertFalse(si.equals(new ServiceIdentity()));
+        assertNotEquals(si, new ServiceIdentity());
 
     }
 

@@ -54,6 +54,9 @@ public class ZTSAWSCredsClient {
         final String ztsUrl = cmd.getOptionValue("ztsurl");
         final String keyPath = cmd.getOptionValue("key");
         final String certPath = cmd.getOptionValue("cert");
+        final String externalId = cmd.getOptionValue("id");
+        final String minTime = cmd.getOptionValue("min");
+        final String maxTime = cmd.getOptionValue("max");
         final String trustStorePath = cmd.getOptionValue("trustStorePath");
         final String trustStorePassword = cmd.getOptionValue("trustStorePassword");
 
@@ -68,9 +71,11 @@ public class ZTSAWSCredsClient {
                     keyRefresher.getTrustManagerProxy());
             
             // obtain temporary credential provider for our domain and role
-            
+
+            Integer minTimeSeconds = (minTime != null) ? Integer.parseInt(minTime) : null;
+            Integer maxTimeSeconds = (maxTime != null) ? Integer.parseInt(maxTime) : null;
             AWSCredentialsProviderImpl awsCredProvider = new AWSCredentialsProviderImpl(ztsUrl,
-                    sslContext, domainName, roleName);
+                    sslContext, domainName, roleName, externalId, minTimeSeconds, maxTimeSeconds);
 
             // retrieve and display aws temporary creds. Typically you just pass
             // the AWSCredentialsProvider object to any AWS api that requires it.
@@ -141,7 +146,7 @@ public class ZTSAWSCredsClient {
         Option cert = new Option("c", "cert", true, "certficate path");
         cert.setRequired(true);
         options.addOption(cert);
-        
+
         Option trustStore = new Option("t", "trustStorePath", true, "CA TrustStore path");
         trustStore.setRequired(true);
         options.addOption(trustStore);
@@ -153,7 +158,19 @@ public class ZTSAWSCredsClient {
         Option ztsUrl = new Option("z", "ztsurl", true, "ZTS Server url");
         ztsUrl.setRequired(true);
         options.addOption(ztsUrl);
-        
+
+        Option externalId = new Option("i", "id", true, "external id");
+        externalId.setRequired(false);
+        options.addOption(externalId);
+
+        Option minTime = new Option("n", "min", true, "min expiry time in seconds");
+        minTime.setRequired(false);
+        options.addOption(minTime);
+
+        Option maxTime = new Option("x", "max", true, "max expiry time in seconds");
+        maxTime.setRequired(false);
+        options.addOption(maxTime);
+
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
         CommandLine cmd = null;

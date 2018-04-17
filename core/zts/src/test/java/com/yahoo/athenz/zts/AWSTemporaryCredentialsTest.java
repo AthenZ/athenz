@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,13 +16,11 @@
 
 package com.yahoo.athenz.zts;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
-
 import org.testng.annotations.Test;
 
 import com.yahoo.rdl.Timestamp;
+
+import static org.testng.Assert.*;
 
 public class AWSTemporaryCredentialsTest {
 
@@ -46,17 +44,19 @@ public class AWSTemporaryCredentialsTest {
         assertEquals(i.getSessionToken(), "test_token");
         assertEquals(i.getExpiration(), Timestamp.fromMillis(123456789123L));
 
-        assertTrue(i.equals(i));
-        
-        assertFalse(i2.equals(i));
+        //noinspection EqualsWithItself
+        assertEquals(i, i);
+
+        assertNotEquals(i2, i);
         i2.setSessionToken(null);
-        assertFalse(i2.equals(i));
+        assertNotEquals(i2, i);
         i2.setSecretAccessKey(null);
-        assertFalse(i2.equals(i));
+        assertNotEquals(i2, i);
         i2.setAccessKeyId(null);
-        assertFalse(i2.equals(i));
-        
-        assertFalse(i.equals(new String()));
+        assertNotEquals(i2, i);
+
+        //noinspection EqualsBetweenInconvertibleTypes
+        assertNotEquals("", i);
 
     }
 

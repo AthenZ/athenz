@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,6 +23,7 @@ import java.util.List;
 
 import org.testng.annotations.Test;
 
+@SuppressWarnings({"EqualsWithItself", "EqualsBetweenInconvertibleTypes"})
 public class HostServicesTest {
 
     @Test
@@ -30,7 +31,7 @@ public class HostServicesTest {
         HostServices hs = new HostServices();
         HostServices hs2 = new HostServices();
 
-        List<String> nl = new ArrayList<String>();
+        List<String> nl = new ArrayList<>();
         nl.add("sample.service1");
 
         // set
@@ -41,13 +42,13 @@ public class HostServicesTest {
         // getter assertion
         assertEquals(hs.getHost(), "sample.com");
         assertEquals(hs.getNames(), nl);
-        assertTrue(hs.equals(hs));
-        
-        assertFalse(hs2.equals(hs));
+        assertEquals(hs, hs);
+
+        assertNotEquals(hs2, hs);
         hs2.setHost(null);
-        assertFalse(hs2.equals(hs));
-        
-        assertFalse(hs.equals(new String()));
+        assertNotEquals(hs2, hs);
+
+        assertNotEquals("", hs);
 
     }
 }

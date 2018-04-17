@@ -157,7 +157,8 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     }
     
     @Override
-    public AWSTemporaryCredentials getAWSTemporaryCredentials(String domainName, String roleName) {
+    public AWSTemporaryCredentials getAWSTemporaryCredentials(String domainName, String roleName,
+            Integer durationSeconds, String externalId) {
         
         if (credsMap.isEmpty()) {
             throw new ZTSClientException(ZTSClientException.NOT_FOUND, "role is not assumed");
@@ -343,7 +344,18 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
         access.setGranted(action.equals("access") && resource.equals("resource"));
         return access;
     }
-    
+
+    @Override
+    public ResourceAccess getResourceAccessExt(String action, String resource,
+                                            String trustDomain, String principal) {
+        if (action.equals("exc")) {
+            throw new ResourceException(400, "Invalid request");
+        }
+        ResourceAccess access = new ResourceAccess();
+        access.setGranted(action.equals("access") && resource.equals("resource") && principal.equals("principal"));
+        return access;
+    }
+
     @Override
     public DomainMetrics postDomainMetrics(String domainName, DomainMetrics req) {
         if (domainName.equals("exc")) {

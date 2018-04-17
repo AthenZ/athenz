@@ -460,6 +460,8 @@ func init() {
 	mGetAWSTemporaryCredentials.Comment("perform an AWS AssumeRole of the target role and return the credentials. ZTS must have been granted the ability to assume the role in IAM, and granted the ability to ASSUME_AWS_ROLE in Athenz for this to succeed.")
 	mGetAWSTemporaryCredentials.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain containing the role, which implies the target account")
 	mGetAWSTemporaryCredentials.Input("role", "AWSArnRoleName", true, "", "", false, nil, "the target AWS role name in the domain account, in Athenz terms, i.e. \"the.role\"")
+	mGetAWSTemporaryCredentials.Input("durationSeconds", "Int32", false, "durationSeconds", "", true, nil, "how long the aws temp creds should be issued for")
+	mGetAWSTemporaryCredentials.Input("externalId", "String", false, "externalId", "", true, nil, "aws assume role external id")
 	mGetAWSTemporaryCredentials.Auth("", "", true, "")
 	mGetAWSTemporaryCredentials.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetAWSTemporaryCredentials.Exception("FORBIDDEN", "ResourceError", "")

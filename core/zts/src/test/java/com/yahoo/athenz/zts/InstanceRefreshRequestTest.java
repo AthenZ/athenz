@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,12 +16,11 @@
 
 package com.yahoo.athenz.zts;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
-
 import org.testng.annotations.Test;
 
+import static org.testng.Assert.*;
+
+@SuppressWarnings("EqualsWithItself")
 public class InstanceRefreshRequestTest {
 
     @Test
@@ -40,10 +39,11 @@ public class InstanceRefreshRequestTest {
         assertEquals(i.getExpiryTime(), (Integer) 123456789);
         assertEquals(i.getKeyId(), "v0");
 
-        assertTrue(i.equals(i));
-        assertFalse(i.equals(i2));
-        assertFalse(i2.equals(i));
-        assertFalse(i.equals(new String()));
+        assertEquals(i, i);
+        assertNotEquals(i, i2);
+        assertNotEquals(i2, i);
+        //noinspection EqualsBetweenInconvertibleTypes
+        assertNotEquals("", i);
     }
 
 }
