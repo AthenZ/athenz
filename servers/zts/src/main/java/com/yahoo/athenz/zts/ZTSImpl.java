@@ -142,6 +142,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private static final String TYPE_AWS_ARN_ROLE_NAME = "AWSArnRoleName";
     
     private static final String ZTS_ROLE_TOKEN_VERSION = "Z1";
+    private static final String ZTS_REQUEST_LOG_SKIP_QUERY = "com.yahoo.athenz.uri.skip_query";
 
     private static final long ZTS_NTOKEN_DEFAULT_EXPIRY = TimeUnit.SECONDS.convert(2, TimeUnit.HOURS);
     private static final long ZTS_NTOKEN_MAX_EXPIRY = TimeUnit.SECONDS.convert(7, TimeUnit.DAYS);
@@ -1559,9 +1560,15 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_GET);
         logPrincipal(ctx);
 
+        // we need to make sure we don't log the external id in
+        // our access log files so we're going to set the attribute
+        // to skip the query parameters
+
+        ctx.request().setAttribute(ZTS_REQUEST_LOG_SKIP_QUERY, Boolean.TRUE);
+
         validateRequest(ctx.request(), caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
-        
+
         // since the role name might contain a path and thus it has
         // been encoded, we're going to decode it first before using it
         
