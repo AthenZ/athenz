@@ -2139,7 +2139,7 @@ public class DBService {
                 Role templateRole = updateTemplateRole(role, domainName, roleName, templateParams);
                 firstEntry = auditLogSeparator(auditDetails, firstEntry);
                 auditDetails.append(" \"add-role\": ");
-                if (!processRole(con, originalRole, domainName, roleName, templateRole,
+                if (!processRole(con, originalRole, domainName, ZMSUtils.removeDomainPrefix(templateRole.getName(), domainName, ROLE_PREFIX), templateRole,
                         admin, auditRef, true, auditDetails)) {
                     return false;
                 }
@@ -2166,7 +2166,7 @@ public class DBService {
                 Policy templatePolicy = updateTemplatePolicy(policy, domainName, policyName, templateParams);
                 firstEntry = auditLogSeparator(auditDetails, firstEntry);
                 auditDetails.append(" \"add-policy\": ");
-                if (!processPolicy(con, originalPolicy, domainName, policyName, templatePolicy,
+                if (!processPolicy(con, originalPolicy, domainName, ZMSUtils.removeDomainPrefix(templatePolicy.getName(), domainName, POLICY_PREFIX), templatePolicy,
                         true, auditDetails)) {
                     return false;
                 }
@@ -2192,7 +2192,7 @@ public class DBService {
                 ServiceIdentity templateServiceIdentity = updateTemplateServiceIdentity(serviceIdentity, domainName, serviceIdentityName, templateParams);
                 firstEntry = auditLogSeparator(auditDetails, firstEntry);
                 auditDetails.append(" \"add-service\": ");
-                if (!processServiceIdentity(con, originalServiceIdentity, domainName, serviceIdentityName,
+                if (!processServiceIdentity(con, originalServiceIdentity, domainName, ZMSUtils.removeDomainPrefixForService(templateServiceIdentity.getName(), domainName),
                     templateServiceIdentity, auditDetails)) {
                     return false;
                 }
