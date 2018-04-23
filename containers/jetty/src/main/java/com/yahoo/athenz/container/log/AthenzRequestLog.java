@@ -29,7 +29,7 @@ public class AthenzRequestLog extends NCSARequestLog {
     private static final String REQUEST_PRINCIPAL      = "com.yahoo.athenz.auth.principal";
     private static final String REQUEST_URI_SKIP_QUERY = "com.yahoo.athenz.uri.skip_query";
 
-    private static ThreadLocal<StringBuilder> tlsBuilder = ThreadLocal.withInitial(() -> new StringBuilder(256));
+    private static final ThreadLocal<StringBuilder> TLS_BUILDER = ThreadLocal.withInitial(() -> new StringBuilder(256));
 
     private final String logDateFormat = "dd/MMM/yyyy:HH:mm:ss Z";
     private final String logTimeZone = "GMT";
@@ -104,7 +104,8 @@ public class AthenzRequestLog extends NCSARequestLog {
                 return;
             }
 
-            StringBuilder buf = tlsBuilder.get();
+            StringBuilder buf = TLS_BUILDER.get();
+            buf.setLength(0);
 
             String addr = request.getHeader(HttpHeader.X_FORWARDED_FOR.toString());
             if (addr == null) {
