@@ -47,8 +47,6 @@ import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.glassfish.hk2.utilities.binding.AbstractBinder;
-import org.glassfish.jersey.server.ResourceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -153,19 +151,6 @@ public class AthenzJettyContainer {
         }
         
         handlers.addHandler(requestLogHandler);
-    }
-
-    public <T> void addContainerRequestFilter(ResourceConfig rconf, final Class<T> targetType) {
-
-        AbstractBinder binder = new AbstractBinder() {
-            Class<T> type = targetType;
-
-            @Override
-            protected void configure() {
-                bind(type).to(javax.ws.rs.container.ContainerRequestFilter.class);
-            }
-        };
-        rconf.register(binder);
     }
     
     public void addServletHandlers(String serverHostName) {
@@ -307,21 +292,23 @@ public class AthenzJettyContainer {
     
     SslContextFactory createSSLContextObject(boolean needClientAuth) {
         
-        String keyStorePath = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH);
-        String keyStorePasswordAppName = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD_APPNAME);
-        String keyStorePassword = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD);
-        String keyStoreType = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_TYPE, "PKCS12");
-        String keyManagerPassword = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYMANAGER_PASSWORD);
-        String keyManagerPasswordAppName = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYMANAGER_PASSWORD_APPNAME);
-        String trustStorePath = System.getProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PATH);
-        String trustStorePassword = System.getProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PASSWORD);
-        String trustStorePasswordAppName = System.getProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PASSWORD_APPNAME);
-        String trustStoreType = System.getProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_TYPE, "PKCS12");
-        String includedCipherSuites = System.getProperty(AthenzConsts.ATHENZ_PROP_INCLUDED_CIPHER_SUITES);
-        String excludedCipherSuites = System.getProperty(AthenzConsts.ATHENZ_PROP_EXCLUDED_CIPHER_SUITES);
-        String excludedProtocols = System.getProperty(AthenzConsts.ATHENZ_PROP_EXCLUDED_PROTOCOLS,
+        final String keyStorePath = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH);
+        final String keyStorePasswordAppName = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD_APPNAME);
+        final String keyStorePassword = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD);
+        final String keyStoreType = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_TYPE, "PKCS12");
+        final String keyManagerPassword = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYMANAGER_PASSWORD);
+        final String keyManagerPasswordAppName = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYMANAGER_PASSWORD_APPNAME);
+        final String trustStorePath = System.getProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PATH);
+        final String trustStorePassword = System.getProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PASSWORD);
+        final String trustStorePasswordAppName = System.getProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PASSWORD_APPNAME);
+        final String trustStoreType = System.getProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_TYPE, "PKCS12");
+        final String includedCipherSuites = System.getProperty(AthenzConsts.ATHENZ_PROP_INCLUDED_CIPHER_SUITES);
+        final String excludedCipherSuites = System.getProperty(AthenzConsts.ATHENZ_PROP_EXCLUDED_CIPHER_SUITES);
+        final String excludedProtocols = System.getProperty(AthenzConsts.ATHENZ_PROP_EXCLUDED_PROTOCOLS,
                 ATHENZ_DEFAULT_EXCLUDED_PROTOCOLS);
-        
+        boolean enableOCSP = Boolean.parseBoolean(System.getProperty(AthenzConsts.ATHENZ_PROP_ENABLE_OCSP, "false"));
+        boolean renegotiationAllowed = Boolean.parseBoolean(System.getProperty(AthenzConsts.ATHENZ_PROP_RENEGOTIATION_ALLOWED, "true"));
+
         SslContextFactory sslContextFactory = new SslContextFactory();
         if (keyStorePath != null) {
             LOG.info("Using SSL KeyStore path: {}", keyStorePath);
@@ -362,7 +349,10 @@ public class AthenzJettyContainer {
         } else {
             sslContextFactory.setWantClientAuth(true);
         }
-        
+
+        sslContextFactory.setEnableOCSP(enableOCSP);
+        sslContextFactory.setRenegotiationAllowed(renegotiationAllowed);
+
         return sslContextFactory;
     }
     
@@ -412,6 +402,9 @@ public class AthenzJettyContainer {
         }
         sslConnector.setPort(httpsPort);
         sslConnector.setIdleTimeout(idleTimeout);
+        if (listenHost != null) {
+            sslConnector.setHost(listenHost);
+        }
         server.addConnector(sslConnector);
     }
     
@@ -435,7 +428,8 @@ public class AthenzJettyContainer {
         if (httpsPort > 0) {
             boolean needClientAuth = Boolean.parseBoolean(
                     System.getProperty(AthenzConsts.ATHENZ_PROP_CLIENT_AUTH, "false"));
-            addHTTPSConnector(httpConfig, httpsPort, proxyProtocol, listenHost, idleTimeout, needClientAuth);
+            addHTTPSConnector(httpConfig, httpsPort, proxyProtocol, listenHost,
+                    idleTimeout, needClientAuth);
         }
         
         // Status Connector - only if it's different from HTTP/HTTPS

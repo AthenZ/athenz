@@ -39,6 +39,8 @@ public final class AthenzConsts {
     public static final String ATHENZ_PROP_INCLUDED_CIPHER_SUITES = "athenz.ssl_included_cipher_suites";
     public static final String ATHENZ_PROP_EXCLUDED_PROTOCOLS     = "athenz.ssl_excluded_protocols";
     public static final String ATHENZ_PROP_CLIENT_AUTH            = "athenz.ssl_need_client_auth";
+    public static final String ATHENZ_PROP_ENABLE_OCSP            = "athenz.ssl_enable_ocsp";
+    public static final String ATHENZ_PROP_RENEGOTIATION_ALLOWED  = "athenz.ssl_renegotiation_allowed";
     public static final String ATHENZ_PROP_IDLE_TIMEOUT           = "athenz.http_idle_timeout";
     public static final String ATHENZ_PROP_PROXY_PROTOCOL         = "athenz.proxy_protocol";
     public static final String ATHENZ_PROP_SEND_SERVER_VERSION    = "athenz.http_send_server_version";
@@ -56,7 +58,7 @@ public final class AthenzConsts {
     public static final String ATHENZ_PROP_DEBUG                  = "athenz.debug";
     public static final String ATHENZ_PROP_HEALTH_CHECK_URI_LIST  = "athenz.health_check_uri_list";
     public static final String ATHENZ_PROP_HEALTH_CHECK_PATH      = "athenz.health_check_path";
-    
+
     public static final String ATHENZ_PROP_RATE_LIMIT_FACTORY_CLASS        = "athenz.ratelimit_factory_class";
     public static final String ATHENZ_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS = "athenz.private_keystore_factory_class";
 

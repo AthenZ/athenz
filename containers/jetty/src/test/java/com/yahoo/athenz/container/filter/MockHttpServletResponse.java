@@ -32,7 +32,7 @@ public class MockHttpServletResponse implements HttpServletResponse {
 
     private int contentLength = 0;
     private int status = 0;
-    private ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
+    private final ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
     private PrintWriter writer = new PrintWriter(byteOutputStream);
     
     public String getWriterData() throws IOException {
