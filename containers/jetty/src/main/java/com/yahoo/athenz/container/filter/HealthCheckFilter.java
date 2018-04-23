@@ -44,7 +44,7 @@ public class HealthCheckFilter implements javax.servlet.Filter {
     private static final String STATUS_OK_BODY = "OK";
     
     private boolean statusOkBody = true;
-    private int statusBodyLength = STATUS_OK_BODY.length();
+    private final int statusBodyLength = STATUS_OK_BODY.length();
     private Map<String, File> uriList = null;
 
     public void init(FilterConfig config) throws ServletException {
