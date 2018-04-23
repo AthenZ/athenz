@@ -16,58 +16,136 @@
 package com.yahoo.athenz.container.log;
 
 import java.io.IOException;
+import java.util.Locale;
 
 import org.eclipse.jetty.server.NCSARequestLog;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.util.DateCache;
+import org.eclipse.jetty.http.HttpHeader;
 
 public class AthenzRequestLog extends NCSARequestLog {
 
-    public static final String REQUEST_PRINCIPAL = "com.yahoo.athenz.auth.principal";
-    
-    public AthenzRequestLog() {
-    }
+    private static final String REQUEST_PRINCIPAL      = "com.yahoo.athenz.auth.principal";
+    private static final String REQUEST_URI_SKIP_QUERY = "com.yahoo.athenz.uri.skip_query";
+
+    private static final ThreadLocal<StringBuilder> TLS_BUILDER = ThreadLocal.withInitial(() -> new StringBuilder(256));
+
+    private final String logDateFormat = "dd/MMM/yyyy:HH:mm:ss Z";
+    private final String logTimeZone = "GMT";
+    private transient DateCache logDateCache = new DateCache(logDateFormat, Locale.getDefault(), logTimeZone);
     
     public AthenzRequestLog(String filename) {
         super(filename);
     }
-    
-    @Override
-    public void logExtended(StringBuilder b, Request request, Response response)
-            throws IOException {
-        
-        super.logExtended(b, request, response);
-        
-        Object principal = request.getAttribute(REQUEST_PRINCIPAL);
-        if (principal == null) {
-            b.append(" \"-\" ");
-        } else {
-            b.append(" \"");
-            b.append(principal.toString());
-            b.append("\" ");
-        }
-        
-        long requestLength = request.getContentLengthLong();
-        if (requestLength >= 0) {
-            if (requestLength > 99999) {
-                b.append(requestLength);
+
+    private void logLength(StringBuilder buf, long length) {
+
+        if (length >= 0L) {
+            if (length > 99999L) {
+                buf.append(length);
             } else {
-                if (requestLength > 9999) {
-                    b.append((char) ('0' + ((requestLength / 10000) % 10)));
+                if (length > 9999L) {
+                    buf.append((char) ((int) (48L + length / 10000L % 10L)));
                 }
-                if (requestLength > 999) {
-                    b.append((char) ('0' + ((requestLength / 1000) % 10)));
+
+                if (length > 999L) {
+                    buf.append((char) ((int) (48L + length / 1000L % 10L)));
                 }
-                if (requestLength > 99) {
-                    b.append((char) ('0' + ((requestLength / 100) % 10)));
+
+                if (length > 99L) {
+                    buf.append((char) ((int) (48L + length / 100L % 10L)));
                 }
-                if (requestLength > 9) {
-                    b.append((char) ('0' + ((requestLength / 10) % 10)));
+
+                if (length > 9L) {
+                    buf.append((char) ((int) (48L + length / 10L % 10L)));
                 }
-                b.append((char) ('0' + (requestLength) % 10));
+
+                buf.append((char) ((int) (48L + length % 10L)));
             }
         } else {
-            b.append('-');
+            buf.append('-');
+        }
+    }
+
+    private void logStatus(StringBuilder buf, int status) {
+
+        if (status >= 0) {
+            buf.append((char) (48 + status / 100 % 10));
+            buf.append((char) (48 + status / 10 % 10));
+            buf.append((char) (48 + status % 10));
+        } else {
+            buf.append(status);
+        }
+    }
+
+    private void logRequestUri(StringBuilder buf, Request request) {
+        final Object skipQuery = request.getAttribute(REQUEST_URI_SKIP_QUERY);
+        append(buf, (skipQuery == Boolean.TRUE) ? request.getOriginalURI() : request.getRequestURI());
+    }
+
+    private void logPrincipal(StringBuilder buf, Request request) {
+        final Object principal = request.getAttribute(REQUEST_PRINCIPAL);
+        append(buf, (principal == null) ? null : principal.toString());
+    }
+
+    private void append(StringBuilder buf, String str) {
+        if (str != null && !str.isEmpty()) {
+            buf.append(str);
+        } else {
+            buf.append('-');
+        }
+    }
+
+    @Override
+    public void log(Request request, Response response) {
+        try {
+            if (!this.isEnabled()) {
+                return;
+            }
+
+            StringBuilder buf = TLS_BUILDER.get();
+            buf.setLength(0);
+
+            String addr = request.getHeader(HttpHeader.X_FORWARDED_FOR.toString());
+            if (addr == null) {
+                addr = request.getRemoteAddr();
+            }
+            buf.append(addr);
+            buf.append(" - ");
+            logPrincipal(buf, request);
+
+            buf.append(" [");
+            buf.append(logDateCache.format(request.getTimeStamp()));
+            buf.append("] \"");
+
+            append(buf, request.getMethod());
+            buf.append(' ');
+
+            logRequestUri(buf, request);
+            buf.append(' ');
+
+            append(buf, request.getProtocol());
+            buf.append("\" ");
+
+            logStatus(buf, response.getCommittedMetaData().getStatus());
+            buf.append(' ');
+
+            logLength(buf, response.getHttpChannel().getBytesWritten());
+            buf.append(' ');
+
+            logExtended(buf, request, response);
+
+            buf.append(' ');
+            logLength(buf, request.getContentLengthLong());
+
+            buf.append(' ');
+            buf.append(System.currentTimeMillis() - request.getTimeStamp());
+
+            write(buf.toString());
+
+        } catch (IOException ex) {
+            LOG.warn(ex);
         }
     }
 }
