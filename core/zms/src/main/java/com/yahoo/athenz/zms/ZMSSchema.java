@@ -1290,7 +1290,7 @@ public class ZMSSchema {
             .pathParam("tenantDomain", "DomainName", "name of the tenant domain")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .input("detail", "TenantRoles", "list of roles to be added/updated for the tenant")
-            .auth("update", "{domain}:tenant.{tenantDomain}")
+            .auth("update", "{domain}:tenant.{service}")
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
 
@@ -1329,7 +1329,7 @@ public class ZMSSchema {
             .pathParam("service", "SimpleName", "name of the provider service")
             .pathParam("tenantDomain", "DomainName", "name of the tenant domain")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
-            .auth("delete", "{domain}:tenant.{tenantDomain}")
+            .auth("delete", "{domain}:tenant.{service}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 
@@ -1352,7 +1352,7 @@ public class ZMSSchema {
             .pathParam("resourceGroup", "EntityName", "tenant resource group")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .input("detail", "TenantResourceGroupRoles", "list of roles to be added/updated for the tenant")
-            .auth("update", "{domain}:tenant.{tenantDomain}")
+            .auth("update", "{domain}:tenant.{service}")
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
 
@@ -1393,7 +1393,7 @@ public class ZMSSchema {
             .pathParam("tenantDomain", "DomainName", "name of the tenant domain")
             .pathParam("resourceGroup", "EntityName", "tenant resource group")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
-            .auth("update", "{domain}:tenant.{tenantDomain}")
+            .auth("update", "{domain}:tenant.{service}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 
