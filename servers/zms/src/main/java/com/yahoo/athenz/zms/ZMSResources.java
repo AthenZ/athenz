@@ -1455,7 +1455,7 @@ public class ZMSResources {
     public TenantRoles putTenantRoles(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("tenantDomain") String tenantDomain, @HeaderParam("Y-Audit-Ref") String auditRef, TenantRoles detail) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
-            context.authorize("update", "" + domain + ":tenant." + tenantDomain + "", null);
+            context.authorize("update", "" + domain + ":tenant." + service + "", null);
             TenantRoles e = this.delegate.putTenantRoles(context, domain, service, tenantDomain, auditRef, detail);
             return e;
         } catch (ResourceException e) {
@@ -1517,7 +1517,7 @@ public class ZMSResources {
     public TenantRoles deleteTenantRoles(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("tenantDomain") String tenantDomain, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
-            context.authorize("delete", "" + domain + ":tenant." + tenantDomain + "", null);
+            context.authorize("delete", "" + domain + ":tenant." + service + "", null);
             TenantRoles e = this.delegate.deleteTenantRoles(context, domain, service, tenantDomain, auditRef);
             return null;
         } catch (ResourceException e) {
@@ -1549,7 +1549,7 @@ public class ZMSResources {
     public TenantResourceGroupRoles putTenantResourceGroupRoles(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("tenantDomain") String tenantDomain, @PathParam("resourceGroup") String resourceGroup, @HeaderParam("Y-Audit-Ref") String auditRef, TenantResourceGroupRoles detail) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
-            context.authorize("update", "" + domain + ":tenant." + tenantDomain + "", null);
+            context.authorize("update", "" + domain + ":tenant." + service + "", null);
             TenantResourceGroupRoles e = this.delegate.putTenantResourceGroupRoles(context, domain, service, tenantDomain, resourceGroup, auditRef, detail);
             return e;
         } catch (ResourceException e) {
@@ -1611,7 +1611,7 @@ public class ZMSResources {
     public TenantResourceGroupRoles deleteTenantResourceGroupRoles(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("tenantDomain") String tenantDomain, @PathParam("resourceGroup") String resourceGroup, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
-            context.authorize("update", "" + domain + ":tenant." + tenantDomain + "", null);
+            context.authorize("update", "" + domain + ":tenant." + service + "", null);
             TenantResourceGroupRoles e = this.delegate.deleteTenantResourceGroupRoles(context, domain, service, tenantDomain, resourceGroup, auditRef);
             return null;
         } catch (ResourceException e) {

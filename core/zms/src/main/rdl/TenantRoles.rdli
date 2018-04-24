@@ -43,7 +43,7 @@ resource TenantRoles PUT "/domain/{domain}/service/{service}/tenant/{tenantDomai
     DomainName tenantDomain; //name of the tenant domain
     String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     TenantRoles detail; //list of roles to be added/updated for the tenant
-    authorize ("update", "{domain}:tenant.{tenantDomain}");
+    authorize ("update", "{domain}:tenant.{service}");
     expected OK, CREATED;
     exceptions {
         ResourceError NOT_FOUND;
@@ -78,7 +78,7 @@ resource TenantRoles DELETE "/domain/{domain}/service/{service}/tenant/{tenantDo
     SimpleName service; //name of the provider service
     DomainName tenantDomain; //name of the tenant domain
     String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
-    authorize ("delete", "{domain}:tenant.{tenantDomain}");
+    authorize ("delete", "{domain}:tenant.{service}");
     expected NO_CONTENT;
     exceptions {
         ResourceError NOT_FOUND;
@@ -98,7 +98,7 @@ resource TenantResourceGroupRoles PUT "/domain/{domain}/service/{service}/tenant
     EntityName resourceGroup; //tenant resource group
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     TenantResourceGroupRoles detail; //list of roles to be added/updated for the tenant
-    authorize ("update", "{domain}:tenant.{tenantDomain}");
+    authorize ("update", "{domain}:tenant.{service}");
     expected OK, CREATED;
     exceptions {
         ResourceError NOT_FOUND;
@@ -133,7 +133,7 @@ resource TenantResourceGroupRoles DELETE "/domain/{domain}/service/{service}/ten
     DomainName tenantDomain; //name of the tenant domain
     EntityName resourceGroup; //tenant resource group
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
-    authorize ("update", "{domain}:tenant.{tenantDomain}");
+    authorize ("update", "{domain}:tenant.{service}");
     expected NO_CONTENT;
     exceptions {
         ResourceError NOT_FOUND;
