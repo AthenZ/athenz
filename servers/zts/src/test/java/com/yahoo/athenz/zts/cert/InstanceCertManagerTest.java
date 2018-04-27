@@ -421,4 +421,22 @@ public class InstanceCertManagerTest {
         System.clearProperty(propName);
         instance.shutdown();
     }
+
+    @Test
+    public void testLoadCAX509CertificateBundle() {
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME);
+        InstanceCertManager instance = new InstanceCertManager(null, null);
+        assertTrue(instance.loadCAX509CertificateBundle());
+
+        System.setProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME, "");
+        assertTrue(instance.loadCAX509CertificateBundle());
+
+        System.setProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME, "non-existent-file");
+        assertFalse(instance.loadCAX509CertificateBundle());
+
+        System.setProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME, "src/test/resources/valid_cn_x509.cert");
+        assertTrue(instance.loadCAX509CertificateBundle());
+        System.clearProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME);
+    }
 }
