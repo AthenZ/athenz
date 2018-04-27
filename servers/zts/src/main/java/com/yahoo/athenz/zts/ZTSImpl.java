@@ -261,7 +261,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // create our instance manager and provider
         
-        instanceCertManager = new InstanceCertManager(privateKeyStore, certSigner);
+        instanceCertManager = new InstanceCertManager(privateKeyStore, certSigner, readOnlyMode);
         instanceProviderManager = new InstanceProviderManager(dataStore, this);
         
         // make sure to set the keystore for any instance that requires it
