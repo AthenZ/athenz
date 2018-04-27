@@ -26,6 +26,7 @@ import com.yahoo.athenz.zts.utils.IPBlock;
 import com.yahoo.athenz.zts.utils.IPPrefix;
 import com.yahoo.athenz.zts.utils.IPPrefixes;
 import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.rdl.JSON;
 
 public class InstanceCertManager {
@@ -50,7 +51,15 @@ public class InstanceCertManager {
         // certificate is not asked to be refreshed by multiple hosts
         
         loadCertificateObjectStore(keyStore);
-        
+
+        // check to see if we have been provided with a x.509 certificate
+        // bundle or we need to fetch one from the cert signed
+
+        if (!loadCAX509CertificateBundle()) {
+            throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
+                    "Unable to load X.509 CA Certificate bundle");
+        }
+
         // load our allowed cert refresh and instance register ip blocks
         
         certRefreshIPBlocks = new ArrayList<>();
@@ -58,7 +67,7 @@ public class InstanceCertManager {
         
         instanceCertIPBlocks = new ArrayList<>();
         loadAllowedIPAddresses(instanceCertIPBlocks, ZTSConsts.ZTS_PROP_INSTANCE_CERT_IP_FNAME);
-        
+
         // start our thread to delete expired cert records once a day
 
         if (certStore != null && certSigner != null) {
@@ -69,12 +78,36 @@ public class InstanceCertManager {
         }
     }
     
-    public void shutdown() {
+    void shutdown() {
         if (scheduledExecutor != null) {
             scheduledExecutor.shutdownNow();
         }
     }
-    
+
+    boolean loadCAX509CertificateBundle() {
+
+        final String caFileName = System.getProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME);
+        if (caFileName == null || caFileName.isEmpty()) {
+            return true;
+        }
+
+        File caFile = new File(caFileName);
+        if (!caFile.exists()) {
+            LOGGER.error("Configured X.509 CA file {} does not exist", caFileName);
+            return false;
+        }
+
+        try {
+            CA_X509_CERTIFICATE = new String(Files.readAllBytes(Paths.get(caFile.toURI())));
+        } catch (IOException ex) {
+            LOGGER.error("Failed to read configured X.509 CA file {}: {}",
+                    caFileName, ex.getMessage());
+            return false;
+        }
+
+        return true;
+    }
+
     boolean loadAllowedIPAddresses(List<IPBlock> ipBlocks, final String propName) {
         
         // get the configured path for the list of ip addresses
@@ -129,7 +162,7 @@ public class InstanceCertManager {
         return true;
     }
     
-    void loadCertificateObjectStore(PrivateKeyStore keyStore) {
+    private void loadCertificateObjectStore(PrivateKeyStore keyStore) {
         
         String certRecordStoreFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_CERT_RECORD_STORE_FACTORY_CLASS,
                 ZTSConsts.ZTS_CERT_RECORD_STORE_FACTORY_CLASS);
@@ -360,7 +393,7 @@ public class InstanceCertManager {
         return verifyIPAddressAccess(ipAddress, instanceCertIPBlocks);
     }
     
-    boolean verifyIPAddressAccess(final String ipAddress, final List<IPBlock> ipBlocks) {
+    private boolean verifyIPAddressAccess(final String ipAddress, final List<IPBlock> ipBlocks) {
         
         // if the list has no IP addresses then we allow all
         

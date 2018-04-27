@@ -83,7 +83,8 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_CERT_FILE_STORE_PATH    = "athenz.zts.cert_file_store_path";
     public static final String ZTS_PROP_CERT_FILE_STORE_NAME    = "athenz.zts.cert_file_store_name";
     public static final String ZTS_PROP_INSTANCE_NTOKEN_TIMEOUT = "athenz.zts.instance_token_timeout";
-    
+    public static final String ZTS_PROP_X509_CA_CERT_FNAME      = "athenz.zts.x509_ca_cert_fname";
+
     public static final String ZTS_PROP_AWS_RDS_USER               = "athenz.zts.aws_rds_user";
     public static final String ZTS_PROP_AWS_RDS_IAM_ROLE           = "athenz.zts.aws_rds_iam_role";
     public static final String ZTS_PROP_AWS_RDS_ENGINE             = "athenz.zts.aws_rds_engine";
