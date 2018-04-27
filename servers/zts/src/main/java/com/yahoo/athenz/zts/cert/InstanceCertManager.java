@@ -42,7 +42,8 @@ public class InstanceCertManager {
     private static String SSH_USER_CERTIFICATE = null;
     private static String SSH_HOST_CERTIFICATE = null;
     
-    public InstanceCertManager(final PrivateKeyStore keyStore, final CertSigner certSigner) {
+    public InstanceCertManager(final PrivateKeyStore keyStore, final CertSigner certSigner,
+                               boolean readOnlyMode) {
         
         this.certSigner = certSigner;
         
@@ -69,8 +70,10 @@ public class InstanceCertManager {
         loadAllowedIPAddresses(instanceCertIPBlocks, ZTSConsts.ZTS_PROP_INSTANCE_CERT_IP_FNAME);
 
         // start our thread to delete expired cert records once a day
+        // unless we're running in read-only mode thus no modifications
+        // to the database
 
-        if (certStore != null && certSigner != null) {
+        if (!readOnlyMode && certStore != null && certSigner != null) {
             scheduledExecutor = Executors.newScheduledThreadPool(1);
             scheduledExecutor.scheduleAtFixedRate(
                     new ExpiredX509CertRecordCleaner(certStore, certSigner.getMaxCertExpiryTimeMins()),
