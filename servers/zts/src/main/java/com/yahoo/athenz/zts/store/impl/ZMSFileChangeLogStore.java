@@ -80,7 +80,7 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
         
         // check to see if we need to override the ZMS url from the config file
         
-        zmsUrl = System.getProperty(ZTSConsts.ZTS_PROP_ZMS_URL_OVERRIDE, System.getenv("ZMS_URL"));
+        zmsUrl = System.getProperty(ZTSConsts.ZTS_PROP_ZMS_URL_OVERRIDE);
         
         // setup our directory for storing domain files
         

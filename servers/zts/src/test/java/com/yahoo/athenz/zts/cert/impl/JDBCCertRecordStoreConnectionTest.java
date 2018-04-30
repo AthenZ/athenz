@@ -45,15 +45,12 @@ import com.yahoo.athenz.zts.cert.X509CertRecord;
 
 public class JDBCCertRecordStoreConnectionTest {
     
-    @Mock PoolableDataSource mockDataSrc;
-    @Mock Statement mockStmt;
-    @Mock PreparedStatement mockPrepStmt;
-    @Mock Connection mockConn;
-    @Mock ResultSet mockResultSet;
-    @Mock JDBCCertRecordStoreConnection mockJDBCConn;
-    
-    JDBCCertRecordStore strStore;
-    
+    @Mock private PoolableDataSource mockDataSrc;
+    @Mock private Statement mockStmt;
+    @Mock private PreparedStatement mockPrepStmt;
+    @Mock private Connection mockConn;
+    @Mock private ResultSet mockResultSet;
+
     @BeforeMethod
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);

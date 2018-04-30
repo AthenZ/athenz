@@ -428,7 +428,6 @@ public class AthenzJettyContainerTest {
     @Test
     public void initContainerValidPorts() {
         
-        System.setProperty(AthenzConsts.ATHENZ_PROP_HOME, "/tmp/ATHENZ_server");
         System.setProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT, "4080");
         System.setProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT, "4443");
 
@@ -448,7 +447,6 @@ public class AthenzJettyContainerTest {
     @Test
     public void initContainerOnlyHTTPSPort() {
         
-        System.setProperty(AthenzConsts.ATHENZ_PROP_HOME, "/tmp/ATHENZ_server");
         System.setProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT, "0");
         System.setProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT, "4443");
         System.setProperty("yahoo.zms.debug.user_authority", "true");
@@ -467,7 +465,6 @@ public class AthenzJettyContainerTest {
     @Test
     public void initContainerOnlyHTTPPort() {
         
-        System.setProperty(AthenzConsts.ATHENZ_PROP_HOME, "/tmp/ATHENZ_server");
         System.setProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT, "4080");
         System.setProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT, "0");
 
@@ -485,7 +482,6 @@ public class AthenzJettyContainerTest {
     @Test
     public void initContainerInvalidHTTPPort() {
         
-        System.setProperty(AthenzConsts.ATHENZ_PROP_HOME, "/tmp/ATHENZ_server");
         System.setProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT, "-10");
         System.setProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT, "4443");
         
@@ -505,7 +501,6 @@ public class AthenzJettyContainerTest {
     @Test
     public void initContainerInvalidHTTPSPort() {
         
-        System.setProperty(AthenzConsts.ATHENZ_PROP_HOME, "/tmp/ATHENZ_server");
         System.setProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT, "4080");
         System.setProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT, "-10");
 

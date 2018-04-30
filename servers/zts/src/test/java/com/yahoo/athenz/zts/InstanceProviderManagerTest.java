@@ -54,11 +54,11 @@ import com.yahoo.rdl.Timestamp;
 
 public class InstanceProviderManagerTest {
 
-    PrivateKey privateKey = null;
-    DataStore store = null;
+    private PrivateKey privateKey = null;
+    private DataStore store = null;
     
-    static final String ZTS_DATA_STORE_PATH = "/tmp/zts_server_unit_tests/zts_root";
-    static final String ZTS_PRIVATE_KEY = "src/test/resources/zts_private.pem";
+    private static final String ZTS_DATA_STORE_PATH = "/tmp/zts_server_unit_tests/zts_root";
+    private static final String ZTS_PRIVATE_KEY = "src/test/resources/zts_private.pem";
     
     @BeforeClass
     public void setUpClass() {

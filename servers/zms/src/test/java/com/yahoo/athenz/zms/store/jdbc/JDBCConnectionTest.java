@@ -36,7 +36,6 @@ import com.yahoo.athenz.zms.RoleMember;
 import com.yahoo.athenz.zms.ServiceIdentity;
 import com.yahoo.athenz.zms.ZMSConsts;
 import com.yahoo.athenz.zms.store.AthenzDomain;
-import com.yahoo.athenz.zms.store.jdbc.JDBCConnection;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
@@ -72,11 +71,11 @@ import static org.testng.Assert.fail;
 
 public class JDBCConnectionTest {
     
-    @Mock PoolableDataSource mockDataSrc;
-    @Mock Statement mockStmt;
-    @Mock PreparedStatement mockPrepStmt;
-    @Mock Connection mockConn;
-    @Mock ResultSet mockResultSet;
+    @Mock private PoolableDataSource mockDataSrc;
+    @Mock private Statement mockStmt;
+    @Mock private PreparedStatement mockPrepStmt;
+    @Mock private Connection mockConn;
+    @Mock private ResultSet mockResultSet;
 
     @BeforeMethod
     public void setUp() throws Exception {

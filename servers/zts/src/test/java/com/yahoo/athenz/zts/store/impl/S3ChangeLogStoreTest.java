@@ -325,7 +325,7 @@ public class S3ChangeLogStoreTest {
     }
     
     private class MockS3ObjectInputStream extends S3ObjectInputStream {
-        public MockS3ObjectInputStream(InputStream in, HttpRequestBase httpRequest) {
+        MockS3ObjectInputStream(InputStream in, HttpRequestBase httpRequest) {
             super(in, httpRequest);
         }
     }

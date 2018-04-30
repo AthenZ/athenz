@@ -22,16 +22,14 @@ import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
 import com.amazonaws.services.securitytoken.model.GetCallerIdentityRequest;
 import com.amazonaws.services.securitytoken.model.GetCallerIdentityResult;
-import com.yahoo.athenz.common.server.cert.CertSigner;
 import com.yahoo.athenz.zts.AWSTemporaryCredentials;
-import com.yahoo.athenz.zts.store.CloudStore;
 
 public class MockCloudStore extends CloudStore {
 
     private String account = null;
     private String roleName = null;
     private String principal = null;
-    boolean returnSuperAWSRole = false;
+    private boolean returnSuperAWSRole = false;
     private AssumeRoleResult assumeRoleResult = null;
     private GetCallerIdentityResult callerIdentityResult = null;
     

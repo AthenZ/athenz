@@ -27,7 +27,8 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_HTTP_PORT         = "athenz.port";
     public static final String ZTS_PROP_HTTPS_PORT        = "athenz.tls_port";
     public static final String ZTS_PROP_STATUS_PORT       = "athenz.status_port";
-    
+
+    public static final String ZTS_PROP_ROOT_DIR    = "athenz.zts.root_dir";
     public static final String ZTS_PROP_HOSTNAME    = "athenz.zts.hostname";
     public static final String ZTS_PROP_FILE_NAME   = "athenz.zts.prop_file";
     
@@ -102,8 +103,7 @@ public final class ZTSConsts {
     public static final String ATHENZ_SYS_DOMAIN     = "sys.auth";
     public static final String ATHENZ_USER_DOMAIN    = "user";
     public static final String ATHENZ_ROOT_DIR       = "/home/athenz";
-    public static final String ATHENZ_ENV_ROOT_DIR   = "ROOT";
-    
+
     public static final String ZTS_SSH_HOST = "host";
     public static final String ZTS_SSH_USER = "user";
     public static final String ZTS_SSH_TYPE = "certtype";

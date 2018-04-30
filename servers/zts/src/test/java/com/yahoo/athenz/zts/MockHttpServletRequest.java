@@ -41,10 +41,10 @@ import javax.servlet.http.HttpUpgradeHandler;
 import javax.servlet.http.Part;
 
 @SuppressWarnings("RedundantThrows")
-public class MockHttpServletRequest implements HttpServletRequest {
+class MockHttpServletRequest implements HttpServletRequest {
 
-    Map<String, String> headers = new HashMap<>();
-    Map<String, Object> attributes = new HashMap<>();
+    private final Map<String, String> headers = new HashMap<>();
+    final Map<String, Object> attributes = new HashMap<>();
     
     public MockHttpServletRequest() {
     }

@@ -74,40 +74,39 @@ public class ZMSImplTest {
 
     public static final String ZMS_PROP_PUBLIC_KEY = "athenz.zms.publickey";
 
-    ZMSImpl zms             = null;
-    String adminUser        = null;
-    String pubKey           = null; // assume default is K0
-    String pubKeyK1         = null;
-    String pubKeyK2         = null;
-    String privKey          = null; // assume default is K0
-    String privKeyK1        = null; 
-    String privKeyK2        = null; 
-    String auditRef         = "audittest";
+    private ZMSImpl zms             = null;
+    private String adminUser        = null;
+    private String pubKey           = null; // assume default is K0
+    private String pubKeyK1         = null;
+    private String pubKeyK2         = null;
+    private String privKey          = null; // assume default is K0
+    private String privKeyK1        = null;
+    private String privKeyK2        = null;
+    private final String auditRef   = "audittest";
 
     // typically used when creating and deleting domains with all the tests
     //
-    @Mock RsrcCtxWrapper mockDomRsrcCtx;
-    @Mock com.yahoo.athenz.common.server.rest.ResourceContext mockDomRestRsrcCtx;
-    Principal rsrcPrince    = null; // used with the mockDomRestRsrcCtx
-    AuditLogger auditLogger = null; // default audit logger
+    @Mock private RsrcCtxWrapper mockDomRsrcCtx;
+    @Mock private com.yahoo.athenz.common.server.rest.ResourceContext mockDomRestRsrcCtx;
+    private AuditLogger auditLogger = null; // default audit logger
 
     private static final String MOCKCLIENTADDR = "10.11.12.13";
     private static final String ZMS_DATA_STORE_FILE = "zms_root";
     
-    @Mock HttpServletRequest mockServletRequest;
-    @Mock HttpServletResponse mockServletResponse;
+    @Mock private HttpServletRequest mockServletRequest;
+    @Mock private HttpServletResponse mockServletResponse;
     
     private static final String ZMS_DATA_STORE_PATH = "/tmp/zms_core_unit_tests/zms_root";
 
-    static final Struct TABLE_PROVIDER_ROLE_ACTIONS = new Struct()
+    private static final Struct TABLE_PROVIDER_ROLE_ACTIONS = new Struct()
             .with("admin", "*").with("writer", "WRITE").with("reader", "READ");
 
-    static final Struct RESOURCE_PROVIDER_ROLE_ACTIONS = new Struct()
+    private static final Struct RESOURCE_PROVIDER_ROLE_ACTIONS = new Struct()
             .with("writer", "WRITE").with("reader", "READ");
 
-    static final int BASE_PRODUCT_ID = 400000000; // these product ids will lie in 400 million range
-    static java.util.Random domainProductId = new java.security.SecureRandom();
-    static synchronized int getRandomProductId() {
+    private static final int BASE_PRODUCT_ID = 400000000; // these product ids will lie in 400 million range
+    private static final java.util.Random domainProductId = new java.security.SecureRandom();
+    private static synchronized int getRandomProductId() {
         return BASE_PRODUCT_ID + domainProductId.nextInt(99999999);
     }
     
@@ -115,7 +114,7 @@ public class ZMSImplTest {
 
         final List<String> logMsgList = new ArrayList<>();
 
-        public List<String> getLogMsgList() {
+        List<String> getLogMsgList() {
             return logMsgList;
         }
 
@@ -157,7 +156,7 @@ public class ZMSImplTest {
         initializeZms();
     }
 
-    com.yahoo.athenz.zms.ResourceContext createResourceContext(Principal prince) {
+    private com.yahoo.athenz.zms.ResourceContext createResourceContext(Principal prince) {
         com.yahoo.athenz.common.server.rest.ResourceContext rsrcCtx =
                 Mockito.mock(com.yahoo.athenz.common.server.rest.ResourceContext.class);
         Mockito.when(rsrcCtx.principal()).thenReturn(prince);
@@ -172,7 +171,7 @@ public class ZMSImplTest {
         return rsrcCtxWrapper;
     }
     
-    ResourceContext createResourceContext(Principal principal, HttpServletRequest request) {
+    private ResourceContext createResourceContext(Principal principal, HttpServletRequest request) {
         if (request == null) {
             return createResourceContext(principal);
         }
@@ -192,14 +191,14 @@ public class ZMSImplTest {
         return rsrcCtxWrapper;
     }
 
-    Object getWebAppExcEntity(javax.ws.rs.WebApplicationException wex) {
+    private Object getWebAppExcEntity(javax.ws.rs.WebApplicationException wex) {
         javax.ws.rs.core.Response resp = wex.getResponse();
         return resp.getEntity();
     }
 
-    Object getWebAppExcMapValue(javax.ws.rs.WebApplicationException wex, String header) {
+    private Object getWebAppExcETagMapValue(javax.ws.rs.WebApplicationException wex) {
         javax.ws.rs.core.MultivaluedMap<String, Object> mvmap = wex.getResponse().getMetadata();
-        return mvmap.getFirst(header);
+        return mvmap.getFirst("ETag");
     }
 
     private ZMSImpl zmsInit() {
@@ -208,7 +207,8 @@ public class ZMSImplTest {
 
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         String unsignedCreds = "v=U1;d=user;n=user1";
-        rsrcPrince = SimplePrincipal.create("user", "user1", unsignedCreds + ";s=signature",
+        // used with the mockDomRestRsrcCtx
+        final Principal rsrcPrince = SimplePrincipal.create("user", "user1", unsignedCreds + ";s=signature",
                 0, principalAuthority);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
         
@@ -240,7 +240,7 @@ public class ZMSImplTest {
         return zmsObj;
     }
     
-    ZMSImpl getZmsImpl(String storeFile, AuditLogger alogger) {
+    private ZMSImpl getZmsImpl(String storeFile, AuditLogger alogger) {
         
         FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
         
@@ -263,7 +263,7 @@ public class ZMSImplTest {
         return zmsObj;
     }
 
-    public void initializeZms() throws IOException {
+    private void initializeZms() throws IOException {
 
         Path path = Paths.get("./src/test/resources/zms_public_k1.pem");
         pubKeyK1 = Crypto.ybase64((new String(Files.readAllBytes(path))).getBytes());
@@ -1134,7 +1134,7 @@ public class ZMSImplTest {
     @Test
     public void testCreateUserDomainMismatch() {
 
-        UserDomain dom1 = createUserDomainObject("hga", "Test Domain1", "testOrg");
+        UserDomain dom1 = createUserDomainObject("hga", "Test Domain Mismatch", "testMismatchOrg");
         try {
             zms.postUserDomain(mockDomRsrcCtx, "hga2", auditRef, dom1);
         } catch (ResourceException ex) {
@@ -1145,7 +1145,7 @@ public class ZMSImplTest {
     @Test
     public void testDeleteUserDomain() {
 
-        UserDomain dom1 = createUserDomainObject("hga", "Test Domain1", "testOrg");
+        UserDomain dom1 = createUserDomainObject("hga", "Test Domain Delete User Domain", "testDeleteOrg");
         zms.postUserDomain(mockDomRsrcCtx, "hga", auditRef, dom1);
 
         zms.deleteUserDomain(mockDomRsrcCtx, "hga", auditRef);
@@ -1760,7 +1760,7 @@ public class ZMSImplTest {
         assertEquals(resDom.getOrg(), "testOrg");
         assertTrue(resDom.getAuditEnabled());
 
-        DomainMeta meta = createDomainMetaObject("Test2 Domain", "NewOrg", true, true, null, 0);
+        DomainMeta meta = createDomainMetaObject("Test2 Domain", "NewOrg", false, true, null, 0);
         try {
             zms.putDomainMeta(mockDomRsrcCtx, domain, null, meta);
             fail();
@@ -5692,7 +5692,7 @@ public class ZMSImplTest {
         } catch (javax.ws.rs.WebApplicationException wexc) {
             Object obj = getWebAppExcEntity(wexc);
             sdoms = (SignedDomains) obj;
-            Object val = getWebAppExcMapValue(wexc, "ETag");
+            Object val = getWebAppExcETagMapValue(wexc);
             eTag2 = val.toString();
         }
 
@@ -5716,7 +5716,7 @@ public class ZMSImplTest {
         } catch (javax.ws.rs.WebApplicationException wexc) {
             Object obj = getWebAppExcEntity(wexc);
             sdoms = (SignedDomains) obj;
-            Object val = getWebAppExcMapValue(wexc, "ETag");
+            Object val = getWebAppExcETagMapValue(wexc);
             eTag = val.toString();
         }
 
@@ -5733,7 +5733,7 @@ public class ZMSImplTest {
             fail("webappexc not thrown by getSignedDomains");
         } catch (javax.ws.rs.WebApplicationException wexc) {
             assertEquals(304, wexc.getResponse().getStatus());
-            Object val = getWebAppExcMapValue(wexc, "ETag");
+            Object val = getWebAppExcETagMapValue(wexc);
             eTag2 = val.toString();
         }
 

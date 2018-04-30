@@ -28,7 +28,7 @@ import com.yahoo.athenz.zts.store.impl.ZMSFileChangeLogStoreFactory;
 
 public class ZMSFileChangeLogStoreFactoryTest {
 
-    static final String ZTS_DATA_STORE_PATH = "/tmp/zts_server_unit_tests/zts_root";
+    private static final String ZTS_DATA_STORE_PATH = "/tmp/zts_server_unit_tests/zts_root";
     
     @Test
     public void testCreateStore() {
