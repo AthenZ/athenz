@@ -20,10 +20,18 @@ import static org.testng.Assert.*;
 import com.yahoo.athenz.common.server.cert.CertSigner;
 import com.yahoo.athenz.zts.ZTSConsts;
 
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 public class SelfCertSignerTest {
-    
+
+    @BeforeClass
+    public void setup() {
+        System.setProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_FNAME,
+                "src/test/resources/private_encrypted.key");
+        System.setProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_PASSWORD, "athenz");
+    }
+
     @Test
     public void testSelfCertSignerFactory() {
         SelfCertSignerFactory certFactory = new SelfCertSignerFactory();

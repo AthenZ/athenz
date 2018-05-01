@@ -26,9 +26,9 @@ import com.yahoo.athenz.zts.ZTSConsts;
 
 public class SelfCertSigner implements CertSigner {
 
-    X509Certificate caCertificate;
-    PrivateKey caPrivateKey;
-    int maxCertExpiryTimeMins;
+    private X509Certificate caCertificate;
+    private PrivateKey caPrivateKey;
+    private int maxCertExpiryTimeMins;
 
     public SelfCertSigner(PrivateKey caPrivateKey, X509Certificate caCertificate) {
         
