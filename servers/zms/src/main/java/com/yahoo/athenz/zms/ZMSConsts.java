@@ -21,14 +21,15 @@ package com.yahoo.athenz.zms;
 public final class ZMSConsts {
 
     // System property names with defaults(where applicable)
-    //
+
     public static final String ZMS_PROP_USER_DOMAIN       = "athenz.user_domain";
     public static final String ZMS_PROP_HOME_DOMAIN       = "athenz.home_domain";
     public static final String ZMS_PROP_USER_DOMAIN_ALIAS = "athenz.user_domain_alias";
     public static final String ZMS_PROP_HTTP_PORT         = "athenz.port";
     public static final String ZMS_PROP_HTTPS_PORT        = "athenz.tls_port";
     public static final String ZMS_PROP_STATUS_PORT       = "athenz.status_port";
-    
+
+    public static final String ZMS_PROP_ROOT_DIR      = "athenz.zms.root_dir";
     public static final String ZMS_PROP_HOSTNAME      = "athenz.zms.hostname";
     public static final String ZMS_PROP_DOMAIN_ADMIN  = "athenz.zms.domain_admin";
     public static final String ZMS_PROP_FILE_NAME     = "athenz.zms.prop_file";
@@ -193,8 +194,7 @@ public final class ZMSConsts {
     public static final String HTTP_REQUEST = "REQUEST";
     
     public static final String STR_DEF_ROOT     = "/home/athenz";
-    public static final String STR_ENV_ROOT     = "ROOT";
-    
+
     public static final int STRING_BLDR_SIZE_DEFAULT = 512;
 }
 

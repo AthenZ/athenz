@@ -52,7 +52,6 @@ public final class AthenzConsts {
     public static final String ATHENZ_PROP_KEEP_ALIVE             = "athenz.keep_alive";
     public static final String ATHENZ_PROP_MAX_THREADS            = "athenz.http_max_threads";
     public static final String ATHENZ_PROP_HOSTNAME               = "athenz.hostname";
-    public static final String ATHENZ_PROP_HOME                   = "athenz.home";
     public static final String ATHENZ_PROP_JETTY_HOME             = "athenz.jetty_home";
     public static final String ATHENZ_PROP_JETTY_TEMP             = "athenz.jetty_temp";
     public static final String ATHENZ_PROP_DEBUG                  = "athenz.debug";
@@ -63,8 +62,7 @@ public final class AthenzConsts {
     public static final String ATHENZ_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS = "athenz.private_keystore_factory_class";
 
     public static final String STR_DEF_ROOT     = "/home/athenz";
-    public static final String STR_ENV_ROOT     = "ROOT";
-    
+
     public static final String ATHENZ_PROP_HTTP_PORT   = "athenz.port";
     public static final String ATHENZ_PROP_HTTPS_PORT  = "athenz.tls_port";
     public static final String ATHENZ_PROP_STATUS_PORT = "athenz.status_port";

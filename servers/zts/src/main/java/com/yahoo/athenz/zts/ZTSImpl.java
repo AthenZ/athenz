@@ -3097,11 +3097,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     public static String getRootDir() {
         
         if (ROOT_DIR == null) {
-            ROOT_DIR = System.getenv(ZTSConsts.ATHENZ_ENV_ROOT_DIR);
-        }
-        
-        if (ROOT_DIR == null) {
-            ROOT_DIR = ZTSConsts.ATHENZ_ROOT_DIR;
+            ROOT_DIR = System.getProperty(ZTSConsts.ZTS_PROP_ROOT_DIR, ZTSConsts.ATHENZ_ROOT_DIR);
         }
 
         return ROOT_DIR;

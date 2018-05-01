@@ -33,10 +33,10 @@ import com.yahoo.athenz.zts.ZTSConsts;
 
 public class MockZMSFileChangeLogStore extends ZMSFileChangeLogStore {
 
-    ZMSClient zms;
-    DomainList domList = null;
-    String tagHeader;
-    String userDomain;
+    private final ZMSClient zms;
+    private DomainList domList = null;
+    private String tagHeader;
+    private final String userDomain;
     
     public MockZMSFileChangeLogStore(String rootDirectory, PrivateKey privateKey, String privateKeyId) {
         

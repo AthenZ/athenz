@@ -44,7 +44,7 @@ import javax.servlet.http.Part;
 class MockHttpServletRequest implements HttpServletRequest {
 
     private final Map<String, String> headers = new HashMap<>();
-    private Map<String, Object> attributes = new HashMap<>();
+    private final Map<String, Object> attributes = new HashMap<>();
     
     public MockHttpServletRequest() {
     }

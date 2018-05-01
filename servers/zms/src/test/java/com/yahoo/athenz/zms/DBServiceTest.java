@@ -43,7 +43,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertFalse;
@@ -55,34 +54,32 @@ import static org.testng.Assert.fail;
 @SuppressWarnings("SameParameterValue")
 public class DBServiceTest {
     
-    @Mock FileConnection mockFileConn;
-    @Mock ObjectStore mockObjStore;
+    @Mock private FileConnection mockFileConn;
+    @Mock private ObjectStore mockObjStore;
     
-    ZMSImpl zms             = null;
-    String adminUser        = null;
-    String pubKeyK1         = null;
-    String pubKeyK2         = null;
-    final String auditRef   = "audittest";
+    private ZMSImpl zms             = null;
+    private String adminUser        = null;
+    private String pubKeyK1         = null;
+    private String pubKeyK2         = null;
+    private final String auditRef   = "audittest";
 
     // typically used when creating and deleting domains with all the tests
     //
-    @Mock RsrcCtxWrapper mockDomRsrcCtx;
-    @Mock com.yahoo.athenz.common.server.rest.ResourceContext mockDomRestRsrcCtx;
-    Principal rsrcPrince = null; // used with the mockDomRestRsrcCtx
+    @Mock private RsrcCtxWrapper mockDomRsrcCtx;
+    @Mock private com.yahoo.athenz.common.server.rest.ResourceContext mockDomRestRsrcCtx;
 
     private static final String MOCKCLIENTADDR = "10.11.12.13";
-    @Mock HttpServletRequest mockServletRequest;
-    @Mock HttpServletResponse mockServletResponse;
-    
+    @Mock private HttpServletRequest mockServletRequest;
+
     private static final String ZMS_DATA_STORE_PATH = "/tmp/zms_core_unit_tests/zms_root";
     private static final String ZMS_DATA_QUOTA_PATH = "/tmp/zms_core_unit_tests/zms_quota";
 
-    static final Struct TABLE_PROVIDER_ROLE_ACTIONS = new Struct()
+    private static final Struct TABLE_PROVIDER_ROLE_ACTIONS = new Struct()
             .with("admin", "*").with("writer", "WRITE").with("reader", "READ");
     
-    static final int BASE_PRODUCT_ID = 500000000; // these product ids will lie in 500 million range
-    static java.util.Random domainProductId = new java.security.SecureRandom();
-    static synchronized int getRandomProductId() {
+    private static final int BASE_PRODUCT_ID = 500000000; // these product ids will lie in 500 million range
+    private static final java.util.Random domainProductId = new java.security.SecureRandom();
+    private static synchronized int getRandomProductId() {
         return BASE_PRODUCT_ID + domainProductId.nextInt(99999999);
     }
 
@@ -100,20 +97,6 @@ public class DBServiceTest {
         initializeZms();
     }
 
-    ResourceContext createResourceContext(Principal prince) {
-        com.yahoo.athenz.common.server.rest.ResourceContext rsrcCtx = Mockito.mock(com.yahoo.athenz.common.server.rest.ResourceContext.class);
-        Mockito.when(rsrcCtx.principal()).thenReturn(prince);
-        Mockito.when(rsrcCtx.request()).thenReturn(mockServletRequest);
-        Mockito.when(rsrcCtx.response()).thenReturn(mockServletResponse);
-
-        RsrcCtxWrapper rsrcCtxWrapper = Mockito.mock(RsrcCtxWrapper.class);
-        Mockito.when(rsrcCtxWrapper.context()).thenReturn(rsrcCtx);
-        Mockito.when(rsrcCtxWrapper.principal()).thenReturn(prince);
-        Mockito.when(rsrcCtxWrapper.request()).thenReturn(mockServletRequest);
-        Mockito.when(rsrcCtxWrapper.response()).thenReturn(mockServletResponse);
-        return rsrcCtxWrapper;
-    }
-
     private ZMSImpl zmsInit() {
         
         // we want to make sure we start we clean dir structure
@@ -123,7 +106,7 @@ public class DBServiceTest {
 
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
 
-        rsrcPrince = SimplePrincipal.create("user", "user1", "v=U1;d=user;n=user1;s=signature",
+        final Principal rsrcPrince = SimplePrincipal.create("user", "user1", "v=U1;d=user;n=user1;s=signature",
                 0, principalAuthority);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds("v=U1;d=user;n=user1");
         
@@ -246,7 +229,7 @@ public class DBServiceTest {
         return service;
     }
     
-    public void initializeZms() throws IOException {
+    private void initializeZms() throws IOException {
 
         Path path = Paths.get("./src/test/resources/zms_public_k1.pem");
         pubKeyK1 = Crypto.ybase64((new String(Files.readAllBytes(path))).getBytes());
@@ -1573,7 +1556,7 @@ public class DBServiceTest {
         zms.deleteTopLevelDomain(mockDomRsrcCtx, providerDomain, auditRef);
     }
     
-    void verifyPolicies(String domainName) {
+    private void verifyPolicies(String domainName) {
         
         List<String> names = zms.dbService.listPolicies(domainName);
         assertEquals(3, names.size());

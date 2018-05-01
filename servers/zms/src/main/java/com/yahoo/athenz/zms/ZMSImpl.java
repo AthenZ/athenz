@@ -6663,11 +6663,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     public static String getRootDir() {
         
         if (ROOT_DIR == null) {
-            ROOT_DIR = System.getenv(ZMSConsts.STR_ENV_ROOT);
-        }
-        
-        if (ROOT_DIR == null) {
-            ROOT_DIR = ZMSConsts.STR_DEF_ROOT;
+            ROOT_DIR = System.getProperty(ZMSConsts.ZMS_PROP_ROOT_DIR, ZMSConsts.STR_DEF_ROOT);
         }
 
         return ROOT_DIR;

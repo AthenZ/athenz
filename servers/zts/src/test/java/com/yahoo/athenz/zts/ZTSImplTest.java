@@ -92,48 +92,31 @@ import static org.testng.Assert.*;
 
 public class ZTSImplTest {
 
-    int roleTokenDefaultTimeout = 2400;
-    int roleTokenMaxTimeout = 96000;
+    private int roleTokenDefaultTimeout = 2400;
+    private int roleTokenMaxTimeout = 96000;
 
-    ZTSImpl zts = null;
-    ZTSAuthorizer authorizer = null;
-    DataStore store = null;
-    PrivateKey privateKey = null;
+    private ZTSImpl zts = null;
+    private ZTSAuthorizer authorizer = null;
+    private DataStore store = null;
+    private PrivateKey privateKey = null;
     PublicKey publicKey = null;
-    AuditLogger auditLogger = null;
-    CloudStore cloudStore = null;
-    @Mock CloudStore mockCloudStore;
+    private AuditLogger auditLogger = null;
+    private CloudStore cloudStore = null;
+    @Mock private CloudStore mockCloudStore;
     
-    static final String ZTS_DATA_STORE_PATH = "/tmp/zts_server_unit_tests/zts_root";
-    static final String ZTS_Y64_CERT0 = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlHZk1BMEdDU3FHU0liM0RR"
+    private static final String ZTS_DATA_STORE_PATH = "/tmp/zts_server_unit_tests/zts_root";
+    private static final String ZTS_Y64_CERT0 = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlHZk1BMEdDU3FHU0liM0RR"
             + "RUJBUVVBQTRHTkFEQ0JpUUtCZ1FDMXRHU1ZDQTh3bDVldzVZNzZXajJySkFVRApZYW5FSmZLbUFseDVjUS84a"
             + "EtFVWZTU2dwWHIzQ3pkaDFhMjZkbGI3bW1LMjlxbVhKWGg2dW1XOUF5ZlRPS1ZvCis2QVNsb1ZVM2F2dnVmbE"
             + "dVT0VnMmpzbWRha1IyNEtjTGpBdTZRclVlNDE3bEczdDhxU1BJR2pTNUMrQ3NKVXcKaDA0aEh4NWYrUEV3eFY"
             + "0cmJRSURBUUFCCi0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQo-";
-    static final String ZTS_PEM_CERT0 = "-----BEGIN PUBLIC KEY-----\n"
+    private static final String ZTS_PEM_CERT0 = "-----BEGIN PUBLIC KEY-----\n"
             + "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC1tGSVCA8wl5ew5Y76Wj2rJAUD\n"
             + "YanEJfKmAlx5cQ/8hKEUfSSgpXr3Czdh1a26dlb7mmK29qmXJXh6umW9AyfTOKVo\n"
             + "+6ASloVU3avvuflGUOEg2jsmdakR24KcLjAu6QrUe417lG3t8qSPIGjS5C+CsJUw\n"
             + "h04hHx5f+PEwxV4rbQIDAQAB\n"
             + "-----END PUBLIC KEY-----\n";
-    final static String AWS_INSTANCE_DOCUMENT_WOUT_TIMESTAMP_BEGIN = "{\n"
-            + "  \"devpayProductCodes\" : null,\n"
-            + "  \"availabilityZone\" : \"us-west-2a\",\n"
-            + "  \"privateIp\" : \"10.10.10.10\",\n"
-            + "  \"version\" : \"2010-08-31\",\n"
-            + "  \"instanceId\" : \"i-056921225f1fbb47a\",\n"
-            + "  \"billingProducts\" : null,\n"
-            + "  \"instanceType\" : \"t2.micro\",\n"
-            + "  \"accountId\" : \"111111111111\",\n"
-            + "  \"pendingTime\" : \"";
-    final static String AWS_INSTANCE_DOCUMENT_WOUT_TIMESTAMP_END = "\",\n"
-            + "  \"imageId\" : \"ami-c229c0a2\",\n"
-            + "  \"architecture\" : \"x86_64\",\n"
-            + "  \"kernelId\" : null,\n"
-            + "  \"ramdiskId\" : null,\n"
-            + "  \"region\" : \"us-west-2\"\n"
-            + "}";
-    final static String ROLE_CERT_DB_REQUEST = "-----BEGIN CERTIFICATE REQUEST-----\n"
+    private final static String ROLE_CERT_DB_REQUEST = "-----BEGIN CERTIFICATE REQUEST-----\n"
             + "MIIBujCCASMCAQAwOzELMAkGA1UEBhMCVVMxDjAMBgNVBAoTBVlhaG9vMRwwGgYD\n"
             + "VQQDExNzcG9ydHM6cm9sZS5yZWFkZXJzMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCB\n"
             + "iQKBgQCu0nOEra8WmmU91u2KrDdcKRDcZn3oSwsZD/55d0bkMwEiMzfQ+xHVRFI1\n"
@@ -144,7 +127,7 @@ public class ZTSImplTest {
             + "MgzgsXRKGxlZFBpHNvT1R/4pkrU2XdpU1sQP8nrs3Xl+jUd70Ke7K1b2qL6D9op8\n"
             + "eE/qKXv+mcEBGlSCaJtK9MBUnOh4TVZ3EePxbc41Ha2/zWn+J3RFBMz9i1Nxy+Nq\n"
             + "s1K+2Aj6SbErxrEunNI=\n-----END CERTIFICATE REQUEST-----\n";
-    final static String ROLE_CERT_CORETECH_REQUEST = "-----BEGIN CERTIFICATE REQUEST-----\n"
+    private final static String ROLE_CERT_CORETECH_REQUEST = "-----BEGIN CERTIFICATE REQUEST-----\n"
             + "MIIBuDCCASECAQAwPTELMAkGA1UEBhMCVVMxDjAMBgNVBAoTBVlhaG9vMR4wHAYD\n"
             + "VQQDExVjb3JldGVjaDpyb2xlLnJlYWRlcnMwgZ8wDQYJKoZIhvcNAQEBBQADgY0A\n"
             + "MIGJAoGBAK7Sc4StrxaaZT3W7YqsN1wpENxmfehLCxkP/nl3RuQzASIzN9D7EdVE\n"
@@ -157,8 +140,8 @@ public class ZTSImplTest {
             + "KxZ+SxVr4KD8nM/v\n-----END CERTIFICATE REQUEST-----\n";
     
     private static final String MOCKCLIENTADDR = "10.11.12.13";
-    @Mock HttpServletRequest  mockServletRequest;
-    @Mock HttpServletResponse mockServletResponse;
+    @Mock private HttpServletRequest  mockServletRequest;
+    @Mock private HttpServletResponse mockServletResponse;
     
     @BeforeClass
     public void setupClass() {
@@ -236,9 +219,9 @@ public class ZTSImplTest {
     }
     
     static class ZtsMetricTester extends com.yahoo.athenz.common.metrics.impl.NoOpMetric {
-        Map<String, Integer> metrixMap = new HashMap<>();
+        final Map<String, Integer> metrixMap = new HashMap<>();
 
-        public Map<String, Integer> getMap() { return metrixMap; }
+        Map<String, Integer> getMap() { return metrixMap; }
 
         public void  increment(String metric, String domainName, int count) {
             String key = metric + domainName;
@@ -246,7 +229,7 @@ public class ZTSImplTest {
         }
     }
     
-    ResourceContext createResourceContext(Principal principal) {
+    private ResourceContext createResourceContext(Principal principal) {
         com.yahoo.athenz.common.server.rest.ResourceContext rsrcCtx = Mockito.mock(com.yahoo.athenz.common.server.rest.ResourceContext.class);
         Mockito.when(rsrcCtx.principal()).thenReturn(principal);
         Mockito.when(rsrcCtx.request()).thenReturn(mockServletRequest);
@@ -260,7 +243,7 @@ public class ZTSImplTest {
         return rsrcCtxWrapper;
     }
     
-    ResourceContext createResourceContext(Principal principal, HttpServletRequest request) {
+    private ResourceContext createResourceContext(Principal principal, HttpServletRequest request) {
         if (request == null) {
             return createResourceContext(principal);
         }
@@ -287,16 +270,16 @@ public class ZTSImplTest {
         return mvmap.getFirst(header);
     }
     
-    public static Role createRoleObject(String domainName, String roleName,
-            String trust) {
+    private static Role createRoleObject(String domainName, String roleName,
+                                         String trust) {
         Role role = new Role();
         role.setName(domainName + ":role." + roleName);
         role.setTrust(trust);
         return role;
     }
     
-    public static Role createRoleObject(String domainName, String roleName,
-            String trust, String member1, String member2) {
+    private static Role createRoleObject(String domainName, String roleName,
+                                         String trust, String member1, String member2) {
 
         List<RoleMember> members = new ArrayList<>();
         if (member1 != null) {
@@ -308,8 +291,8 @@ public class ZTSImplTest {
         return createRoleObject(domainName, roleName, trust, members);
     }
 
-    public static Role createRoleObject(String domainName, String roleName,
-            String trust, List<RoleMember> members) {
+    private static Role createRoleObject(String domainName, String roleName,
+                                         String trust, List<RoleMember> members) {
         
         Role role = new Role();
         role.setName(domainName + ":role." + roleName);
@@ -834,7 +817,7 @@ public class ZTSImplTest {
         return signedDomain;
     }
     
-    private SignedDomain createTenantSignedDomainWildCard(String domainName, String providerDomain) {
+    private SignedDomain createTenantSignedDomainWildCard(String domainName) {
         
         SignedDomain signedDomain = new SignedDomain();
 
@@ -1501,7 +1484,7 @@ public class ZTSImplTest {
         SignedDomain signedDomain = createSignedDomainWildCard("weather", "netops");
         store.processDomain(signedDomain, false);
         
-        signedDomain = createTenantSignedDomainWildCard("netops", "weather");
+        signedDomain = createTenantSignedDomainWildCard("netops");
         store.processDomain(signedDomain, false);
         
         Principal principal = SimplePrincipal.create("user_domain", "siteops_user_1",
@@ -1520,7 +1503,7 @@ public class ZTSImplTest {
         SignedDomain signedDomain = createSignedDomainWildCard("weather", "netops");
         store.processDomain(signedDomain, false);
         
-        signedDomain = createTenantSignedDomainWildCard("netops", "weather");
+        signedDomain = createTenantSignedDomainWildCard("netops");
         store.processDomain(signedDomain, false);
         
         Principal principal = SimplePrincipal.create("user_domain", "siteops_user_1",
@@ -3758,7 +3741,7 @@ public class ZTSImplTest {
     }
     
     @Test
-    public void testGetRoleTokenCert() throws Exception{
+    public void testGetRoleTokenCert() {
 
         // this csr is for sports:role.readers role
         RoleCertificateRequest req = new RoleCertificateRequest()
@@ -3789,7 +3772,7 @@ public class ZTSImplTest {
     }
     
     @Test
-    public void testGetRoleTokenCertInvalidRequests() throws Exception{
+    public void testGetRoleTokenCertInvalidRequests() {
 
         // this csr is for sports:role.readers role
 
@@ -3834,7 +3817,7 @@ public class ZTSImplTest {
     }
     
     @Test
-    public void testGetRoleTokenCertMismatchDomain() throws Exception{
+    public void testGetRoleTokenCertMismatchDomain() {
 
         RoleCertificateRequest req = new RoleCertificateRequest()
                 .setCsr(ROLE_CERT_DB_REQUEST).setExpiryTime(3600L);

@@ -26,8 +26,6 @@ import org.slf4j.LoggerFactory;
 public class ConfigProperties {
  
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigProperties.class);
-    private static final String ROOT_DIR = "${ROOT}";
-    private static final String CURRENT_USER = "${USER}";
     
     public static void loadProperties(String propFile) {
         
@@ -42,26 +40,11 @@ public class ConfigProperties {
             throw new RuntimeException("No data set in " + propFile);
         }
         
-        final String rootDir = System.getenv("ROOT");
-        final String currentUser = System.getenv("USER");
-        
         LOGGER.info("Loading system properties from {}...", propFile);
         Enumeration<?> enumeration = prop.propertyNames();
         while (enumeration.hasMoreElements()) {
             String key = (String) enumeration.nextElement();
             String value = prop.getProperty(key);
-            
-            // we only support 2 system environment variables in our
-            // properties file - ROOT and USER. So whenever we encounter
-            // with one of these values, we'll be replace them with
-            // their corresponding environment values
-            
-            if (rootDir != null) {
-                value = value.replace(ROOT_DIR, rootDir);
-            }
-            if (currentUser != null) {
-                value = value.replace(CURRENT_USER, currentUser);
-            }
             
             if (!value.isEmpty()) {
                 System.setProperty(key, value);
@@ -79,7 +62,6 @@ public class ConfigProperties {
         
         int port;
         try {
-            
             // first try to convert the string property to integer
             
             port = Integer.parseInt(propValue);

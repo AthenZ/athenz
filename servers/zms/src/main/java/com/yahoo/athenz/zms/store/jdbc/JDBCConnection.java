@@ -2518,8 +2518,9 @@ public class JDBCConnection implements ObjectStoreConnection {
         return count;
     }
     
-    void getAthenzDomainRoles(String domainName, int domainId, AthenzDomain athenzDomain, String caller) {
-        
+    void getAthenzDomainRoles(String domainName, int domainId, AthenzDomain athenzDomain) {
+
+        final String caller = "getAthenzDomain";
         Map<String, Role> roleMap = new HashMap<>();
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_ROLES)) {
             ps.setInt(1, domainId);
@@ -2566,8 +2567,9 @@ public class JDBCConnection implements ObjectStoreConnection {
         athenzDomain.getRoles().addAll(roleMap.values());
     }
     
-    void getAthenzDomainPolicies(String domainName, int domainId, AthenzDomain athenzDomain, String caller) {
-        
+    void getAthenzDomainPolicies(String domainName, int domainId, AthenzDomain athenzDomain) {
+
+        final String caller = "getAthenzDomain";
         Map<String, Policy> policyMap = new HashMap<>();
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_POLICIES)) {
             ps.setInt(1, domainId);
@@ -2613,8 +2615,9 @@ public class JDBCConnection implements ObjectStoreConnection {
         athenzDomain.getPolicies().addAll(policyMap.values());
     }
     
-    void getAthenzDomainServices(String domainName, int domainId, AthenzDomain athenzDomain, String caller) {
+    void getAthenzDomainServices(String domainName, int domainId, AthenzDomain athenzDomain) {
 
+        final String caller = "getAthenzDomain";
         Map<String, ServiceIdentity> serviceMap = new HashMap<>();
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_SERVICES)) {
             ps.setInt(1, domainId);
@@ -2705,9 +2708,9 @@ public class JDBCConnection implements ObjectStoreConnection {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
         
-        getAthenzDomainRoles(domainName, domainId, athenzDomain, caller);
-        getAthenzDomainPolicies(domainName, domainId, athenzDomain, caller);
-        getAthenzDomainServices(domainName, domainId, athenzDomain, caller);
+        getAthenzDomainRoles(domainName, domainId, athenzDomain);
+        getAthenzDomainPolicies(domainName, domainId, athenzDomain);
+        getAthenzDomainServices(domainName, domainId, athenzDomain);
         
         return athenzDomain;
     }

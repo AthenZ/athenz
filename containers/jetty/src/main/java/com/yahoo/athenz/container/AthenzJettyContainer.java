@@ -100,11 +100,7 @@ public class AthenzJettyContainer {
     public static String getRootDir() {
         
         if (ROOT_DIR == null) {
-            ROOT_DIR = System.getenv(AthenzConsts.STR_ENV_ROOT);
-        }
-        
-        if (ROOT_DIR == null) {
-            ROOT_DIR = AthenzConsts.STR_DEF_ROOT;
+            ROOT_DIR = System.getProperty(AthenzConsts.ATHENZ_PROP_JETTY_HOME, AthenzConsts.STR_DEF_ROOT);
         }
 
         return ROOT_DIR;
@@ -223,7 +219,7 @@ public class AthenzJettyContainer {
                 "org.eclipse.jetty.server.webapp.ContainerIncludeJarPattern",
                 ".*/servlet-api-[^/]*\\.jar$");
 
-        final String jettyHome = System.getProperty(AthenzConsts.ATHENZ_PROP_JETTY_HOME, getRootDir());
+        final String jettyHome = getRootDir();
         WebAppProvider webappProvider = new WebAppProvider();
         webappProvider.setMonitoredDirName(jettyHome + "/webapps");
         webappProvider.setScanInterval(60);

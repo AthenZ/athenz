@@ -21,7 +21,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.impl.S3ChangeLogStore;
 
-public class MockS3ChangeLogStore extends S3ChangeLogStore {
+class MockS3ChangeLogStore extends S3ChangeLogStore {
     
     public MockS3ChangeLogStore(CloudStore cloudStore) {
         super(cloudStore);
