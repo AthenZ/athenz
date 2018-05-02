@@ -21,7 +21,8 @@ package com.yahoo.athenz.container;
 public final class AthenzConsts {
 
     // System property names with defaults(where applicable)
-    
+
+    public static final String ATHENZ_PROP_ROOT_DIR               = "athenz.root_dir";
     public static final String ATHENZ_PROP_FILE_NAME              = "athenz.prop_file";
     public static final String ATHENZ_PROP_ACCESS_LOG_RETAIN_DAYS = "athenz.access_log_retain_days";
     public static final String ATHENZ_PROP_ACCESS_LOG_NAME        = "athenz.access_log_name";

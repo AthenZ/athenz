@@ -31,6 +31,8 @@ mkdir -p "${ZMS_LOG_DIR}"
 
 # setup our required java attributes for startup
 
+JAVA_OPTS="${JAVA_OPTS} -Dathenz.root_dir=${ROOT}"
+JAVA_OPTS="${JAVA_OPTS} -Dathenz.zms.root_dir=${ROOT}"
 JAVA_OPTS="${JAVA_OPTS} -Dathenz.prop_file=${ROOT}/conf/zms_server/athenz.properties"
 JAVA_OPTS="${JAVA_OPTS} -Dathenz.zms.prop_file=${ROOT}/conf/zms_server/zms.properties"
 JAVA_OPTS="${JAVA_OPTS} -Dlogback.configurationFile=${ROOT}/conf/zms_server/logback.xml"
