@@ -38,9 +38,9 @@ public class InstanceCertManager {
     private ScheduledExecutorService scheduledExecutor;
     private List<IPBlock> certRefreshIPBlocks;
     private List<IPBlock> instanceCertIPBlocks;
-    private static String CA_X509_CERTIFICATE = null;
-    private static String SSH_USER_CERTIFICATE = null;
-    private static String SSH_HOST_CERTIFICATE = null;
+    private String caX509CertificateSigner = null;
+    private String sshUserCertificateSigner = null;
+    private String sshHostCertificateSigner = null;
     
     public InstanceCertManager(final PrivateKeyStore keyStore, final CertSigner certSigner,
                                boolean readOnlyMode) {
@@ -101,7 +101,7 @@ public class InstanceCertManager {
         }
 
         try {
-            CA_X509_CERTIFICATE = new String(Files.readAllBytes(Paths.get(caFile.toURI())));
+            caX509CertificateSigner = new String(Files.readAllBytes(Paths.get(caFile.toURI())));
         } catch (IOException ex) {
             LOGGER.error("Failed to read configured X.509 CA file {}: {}",
                     caFileName, ex.getMessage());
@@ -304,18 +304,21 @@ public class InstanceCertManager {
             return null;
         }
         
-        if (CA_X509_CERTIFICATE == null) {
+        return new InstanceIdentity().setName(cn).setX509Certificate(pemCert)
+                .setX509CertificateSigner(getX509CertificateSigner());
+    }
+
+    public String getX509CertificateSigner() {
+        if (caX509CertificateSigner == null) {
             synchronized (InstanceCertManager.class) {
-                if (CA_X509_CERTIFICATE == null) {
-                    CA_X509_CERTIFICATE = certSigner.getCACertificate();
+                if (caX509CertificateSigner == null) {
+                    caX509CertificateSigner = certSigner.getCACertificate();
                 }
             }
         }
-        
-        return new InstanceIdentity().setName(cn).setX509Certificate(pemCert)
-                .setX509CertificateSigner(CA_X509_CERTIFICATE);
+        return caX509CertificateSigner;
     }
-    
+
     public boolean generateSshIdentity(InstanceIdentity identity, String sshCsr, String sshCertType) {
         
         if (sshCsr == null || sshCsr.isEmpty()) {
@@ -341,23 +344,23 @@ public class InstanceCertManager {
     
     String getSshCertificateSigner(String sshReqType) {
         
-        if (SSH_HOST_CERTIFICATE == null) {
+        if (sshHostCertificateSigner == null) {
             synchronized (InstanceCertManager.class) {
-                if (SSH_HOST_CERTIFICATE == null) {
-                    SSH_HOST_CERTIFICATE = certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_HOST);
+                if (sshHostCertificateSigner == null) {
+                    sshHostCertificateSigner = certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_HOST);
                 }
             }
         }
         
-        if (SSH_USER_CERTIFICATE == null) {
+        if (sshUserCertificateSigner == null) {
             synchronized (InstanceCertManager.class) {
-                if (SSH_USER_CERTIFICATE == null) {
-                    SSH_USER_CERTIFICATE = certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_USER);
+                if (sshUserCertificateSigner == null) {
+                    sshUserCertificateSigner = certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_USER);
                 }
             }
         }
         
-        return sshReqType.equals(ZTSConsts.ZTS_SSH_HOST) ? SSH_HOST_CERTIFICATE : SSH_USER_CERTIFICATE;
+        return sshReqType.equals(ZTSConsts.ZTS_SSH_HOST) ? sshHostCertificateSigner : sshUserCertificateSigner;
     }
     
     public boolean authorizeLaunch(Principal providerService, String domain, String service,

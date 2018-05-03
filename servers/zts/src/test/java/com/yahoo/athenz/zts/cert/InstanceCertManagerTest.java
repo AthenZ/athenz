@@ -32,6 +32,7 @@ public class InstanceCertManagerTest {
     public void setup() {
         ZMSFileChangeLogStore.deleteDirectory(new File("/tmp/zts_server_cert_store"));
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_FILE_STORE_PATH, "/tmp/zts_server_cert_store");
+        System.setProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME, "src/test/resources/valid_cn_x509.cert");
     }
     
     @Test
@@ -49,7 +50,7 @@ public class InstanceCertManagerTest {
         assertNotNull(identity);
         assertEquals(identity.getName(), "cn");
         assertEquals(identity.getX509Certificate(), cert);
-        assertEquals(identity.getX509CertificateSigner(), caCert);
+        assertTrue(identity.getX509CertificateSigner().contains("-----BEGIN CERTIFICATE-----"));
         instanceManager.shutdown();
     }
     
