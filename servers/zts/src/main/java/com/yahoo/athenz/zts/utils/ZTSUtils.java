@@ -34,16 +34,14 @@ public class ZTSUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZTSUtils.class);
 
-    public static final String ZTS_DEFAULT_EXCLUDED_CIPHER_SUITES = "SSL_RSA_WITH_DES_CBC_SHA,"
+    static final String ZTS_DEFAULT_EXCLUDED_CIPHER_SUITES = "SSL_RSA_WITH_DES_CBC_SHA,"
             + "SSL_DHE_RSA_WITH_DES_CBC_SHA,SSL_DHE_DSS_WITH_DES_CBC_SHA,"
             + "SSL_RSA_EXPORT_WITH_RC4_40_MD5,SSL_RSA_EXPORT_WITH_DES40_CBC_SHA,"
             + "SSL_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA,SSL_DHE_DSS_EXPORT_WITH_DES40_CBC_SHA";
-    public static final String ZTS_DEFAULT_EXCLUDED_PROTOCOLS = "SSLv2,SSLv3";
+    static final String ZTS_DEFAULT_EXCLUDED_PROTOCOLS = "SSLv2,SSLv3";
     public static final String ZTS_CERT_DNS_SUFFIX =
             System.getProperty(ZTSConsts.ZTS_PROP_CERT_DNS_SUFFIX, ZTSConsts.ZTS_CERT_DNS_SUFFIX);
-    
-    private static String CA_X509_CERTIFICATE = null;
-    
+
     public static int retrieveConfigSetting(String property, int defaultValue) {
         
         int settingValue;
@@ -132,7 +130,7 @@ public class ZTSUtils {
         return sslContextFactory;
     }
     
-    public static String getApplicationSecret(final PrivateKeyStore privateKeyStore,
+    static String getApplicationSecret(final PrivateKeyStore privateKeyStore,
             final String keyStorePasswordAppName, final String keyStorePassword) {
 
         if (privateKeyStore == null) {
@@ -283,7 +281,7 @@ public class ZTSUtils {
         return reqInstanceId;
     }
     
-    public static boolean validateCertReqInstanceId(PKCS10CertificationRequest certReq, String instanceId) {
+    static boolean validateCertReqInstanceId(PKCS10CertificationRequest certReq, String instanceId) {
         final String reqInstanceId = extractCertReqInstanceId(certReq);
         if (reqInstanceId == null) {
             return false;
@@ -302,14 +300,6 @@ public class ZTSUtils {
             return null;
         }
         
-        if (CA_X509_CERTIFICATE == null) {
-            synchronized (ZTSUtils.class) {
-                if (CA_X509_CERTIFICATE == null) {
-                    CA_X509_CERTIFICATE = certSigner.getCACertificate();
-                }
-            }
-        }
-        
-        return new Identity().setName(cn).setCertificate(pemCert).setCaCertBundle(CA_X509_CERTIFICATE);
+        return new Identity().setName(cn).setCertificate(pemCert);
     }
 }

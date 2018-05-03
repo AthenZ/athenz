@@ -2417,7 +2417,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (identity == null) {
             throw serverError("Unable to generate identity", caller, domain);
         }
-        
+        identity.setCaCertBundle(instanceCertManager.getX509CertificateSigner());
+
         // create our audit log entry
         
         AuditLogMsgBuilder msgBldr = getAuditLogMsgBuilder(ctx, domain, caller, HTTP_POST);
@@ -2551,6 +2552,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw requestError("postOSTKInstanceInformation: unable to generate identity",
                     caller, domain);
         }
+        identity.setCaCertBundle(instanceCertManager.getX509CertificateSigner());
 
         // need to update our cert record with new certificate details
         
@@ -2691,7 +2693,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (identity == null) {
             throw serverError("Unable to generate identity", caller, domain);
         }
-        
+        identity.setCaCertBundle(instanceCertManager.getX509CertificateSigner());
+
         // need to update our cert record with new certificate details
         
         X509Certificate newCert = Crypto.loadX509Certificate(identity.getCertificate());
