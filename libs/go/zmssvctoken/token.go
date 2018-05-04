@@ -174,7 +174,7 @@ func (n *NToken) load(tok string, verifier Verifier) error {
 		case tagSalt, tagSignature:
 			// ignore
 		default:
-			log.Println("Unknown ntoken field: ", v)
+			log.Println("Unknown ntoken field: %s", v)
 		}
 	}
 
