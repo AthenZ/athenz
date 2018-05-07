@@ -25,7 +25,6 @@ import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.FilePrivateKeyStore;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.util.Crypto;
-import com.yahoo.athenz.provider.ProviderMockClient;
 import com.yahoo.athenz.zms.DBService.DataCache;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.athenz.zms.store.ObjectStore;
@@ -238,7 +237,6 @@ public class DBServiceTest {
         pubKeyK2 = Crypto.ybase64(new String(Files.readAllBytes(path)).getBytes());
 
         zms = zmsInit();
-        zms.setProviderClientClass(ProviderMockClient.class);
     }
 
     @AfterClass
@@ -957,124 +955,6 @@ public class DBServiceTest {
     }
     
     @Test
-    public void testExecuteDeleteTenantRoles() {
-
-        String tenantDomain = "deltenantrolesdom1";
-        String providerDomain = "coretech";
-        String providerService = "storage";
-        
-        // create domain for tenant
-        
-        TopLevelDomain dom1 = createTopLevelDomainObject(tenantDomain,
-                "Test Tenant Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
-
-        // create domain for provider
-        
-        TopLevelDomain domProv = createTopLevelDomainObject(providerDomain,
-                "Test Provider Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, domProv);
-
-        // create service identity for providerDomain.providerService
-        
-        ServiceIdentity service = createServiceObject(
-                providerDomain, providerService, "http://localhost:8090/tableprovider",
-                "/usr/bin/java", "root", "users", "localhost");
-
-        zms.putServiceIdentity(mockDomRsrcCtx, providerDomain, providerService, auditRef, service);
-
-        TenantRoles roles = zms.getTenantRoles(mockDomRsrcCtx, providerDomain, providerService,
-                tenantDomain);
-        assertNotNull(roles);
-        assertEquals(roles.getDomain(), providerDomain);
-        assertEquals(roles.getService(), providerService);
-        assertEquals(roles.getTenant(), tenantDomain);
-        assertEquals(roles.getRoles().size(), 0);
-
-        List<TenantRoleAction> roleActions = new ArrayList<>();
-        for (Struct.Field f : TABLE_PROVIDER_ROLE_ACTIONS) {
-            roleActions.add(new TenantRoleAction().setRole(f.name()).setAction(
-                    (String) f.value()));
-        }
-        TenantRoles tenantRoles = new TenantRoles().setDomain(providerDomain)
-                .setService(providerService).setTenant(tenantDomain)
-                .setRoles(roleActions);
-
-        zms.putTenantRoles(mockDomRsrcCtx, providerDomain, providerService, tenantDomain,
-                auditRef, tenantRoles);
-
-        RoleList roleList = zms.getRoleList(mockDomRsrcCtx, providerDomain, null, null);
-        assertNotNull(roleList);
-
-        boolean readerFound = false;
-        boolean writerFound = false;
-        for (String roleName : roleList.getNames()) {
-            if (roleName.contains("reader")) {
-                readerFound = true;
-            } else if (roleName.contains("writer")) {
-                writerFound = true;
-            }
-        }
-
-        assertTrue(readerFound);
-        assertTrue(writerFound);
-
-        PolicyList policyList = zms.getPolicyList(mockDomRsrcCtx, providerDomain, null, null);
-        assertNotNull(policyList);
-
-        readerFound = false;
-        writerFound = false;
-        for (String policy : policyList.getNames()) {
-            if (policy.contains("reader")) {
-                readerFound = true;
-            } else if (policy.contains("writer")) {
-                writerFound = true;
-            }
-        }
-
-        assertTrue(readerFound);
-        assertTrue(writerFound);
-
-        zms.dbService.executeDeleteTenantRoles(mockDomRsrcCtx, providerDomain, providerService, tenantDomain,
-                null, auditRef, "deleteTenantRoles");
-
-        roleList = zms.getRoleList(mockDomRsrcCtx, providerDomain, null, null);
-        assertNotNull(roleList);
-
-        readerFound = false;
-        writerFound = false;
-        for (String roleName : roleList.getNames()) {
-            if (roleName.contains("reader")) {
-                readerFound = true;
-            } else if (roleName.contains("writer")) {
-                writerFound = true;
-            }
-        }
-
-        assertFalse(readerFound);
-        assertFalse(writerFound);
-
-        policyList = zms.getPolicyList(mockDomRsrcCtx, providerDomain, null, null);
-        assertNotNull(policyList);
-
-        readerFound = false;
-        writerFound = false;
-        for (String policy : policyList.getNames()) {
-            if (policy.contains("reader")) {
-                readerFound = true;
-            } else if (policy.contains("writer")) {
-                writerFound = true;
-            }
-        }
-
-        assertFalse(readerFound);
-        assertFalse(writerFound);
-
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, providerDomain, auditRef);
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, tenantDomain, auditRef);
-    }
-    
-    @Test
     public void testExecutePutEntity() {
 
         String domainName = "createentitydom1";
@@ -1535,7 +1415,6 @@ public class DBServiceTest {
         tenant.setDomain(tenantDomain);
         tenant.setService("coretech.storage");
         
-        ProviderMockClient.setReturnTenantRoles(true);
         zms.putTenancy(mockDomRsrcCtx, tenantDomain, "coretech.storage", auditRef, tenant);
         
         List<TenantRoleAction> roleActions = new ArrayList<>();
@@ -1546,9 +1425,6 @@ public class DBServiceTest {
 
         zms.dbService.executePutTenantRoles(mockDomRsrcCtx, providerDomain, providerService,
                 tenantDomain, null, roleActions, auditRef, "putTenantRoles");
-        
-        Tenancy tenant1 = zms.getTenancy(mockDomRsrcCtx, tenantDomain, "coretech.storage");
-        assertNotNull(tenant1);
 
         zms.deleteTenancy(mockDomRsrcCtx, tenantDomain, "coretech.storage", auditRef);
         

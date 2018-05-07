@@ -56,13 +56,7 @@ public interface ZMSHandler {
     public PublicKeyEntry putPublicKeyEntry(ResourceContext context, String domain, String service, String id, String auditRef, PublicKeyEntry publicKeyEntry);
     public PublicKeyEntry deletePublicKeyEntry(ResourceContext context, String domain, String service, String id, String auditRef);
     public Tenancy putTenancy(ResourceContext context, String domain, String service, String auditRef, Tenancy detail);
-    public Tenancy getTenancy(ResourceContext context, String domain, String service);
     public Tenancy deleteTenancy(ResourceContext context, String domain, String service, String auditRef);
-    public TenancyResourceGroup putTenancyResourceGroup(ResourceContext context, String domain, String service, String resourceGroup, String auditRef, TenancyResourceGroup detail);
-    public TenancyResourceGroup deleteTenancyResourceGroup(ResourceContext context, String domain, String service, String resourceGroup, String auditRef);
-    public TenantRoles putTenantRoles(ResourceContext context, String domain, String service, String tenantDomain, String auditRef, TenantRoles detail);
-    public TenantRoles getTenantRoles(ResourceContext context, String domain, String service, String tenantDomain);
-    public TenantRoles deleteTenantRoles(ResourceContext context, String domain, String service, String tenantDomain, String auditRef);
     public TenantResourceGroupRoles putTenantResourceGroupRoles(ResourceContext context, String domain, String service, String tenantDomain, String resourceGroup, String auditRef, TenantResourceGroupRoles detail);
     public TenantResourceGroupRoles getTenantResourceGroupRoles(ResourceContext context, String domain, String service, String tenantDomain, String resourceGroup);
     public TenantResourceGroupRoles deleteTenantResourceGroupRoles(ResourceContext context, String domain, String service, String tenantDomain, String resourceGroup, String auditRef);

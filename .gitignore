@@ -51,6 +51,9 @@ libs/go/zmscli/src/
 libs/go/zmssvctoken/bin/
 libs/go/zmssvctoken/pkg/
 libs/go/zmssvctoken/src/
+libs/go/athenzconf/src/
+libs/go/athenzconf/bin/
+libs/go/athenzconf/pkg/
 libs/java/client_common/bin/
 libs/java/server_common/bin/
 libs/java/auth_core/bin/

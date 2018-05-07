@@ -29,86 +29,8 @@ func (cli Zms) AddTenancy(dn string, provider string) (*string, error) {
 	if err != nil {
 		return nil, err
 	}
-	return cli.ShowTenancy(dn, provider)
-}
-
-func (cli Zms) DeleteTenancyResourceGroup(dn string, provider string, resourceGroup string) (*string, error) {
-	err := cli.Zms.DeleteTenancyResourceGroup(zms.DomainName(dn), zms.ServiceName(provider), zms.EntityName(resourceGroup), cli.AuditRef)
-	if err != nil {
-		return nil, err
-	}
-	s := "[Successfully deleted tenant " + dn + " resource group " + resourceGroup + " from provider " + provider + "]\n"
+	s := "[Successfully added tenant " + dn + " to provider " + provider + "]\n"
 	return &s, nil
-}
-
-func (cli Zms) AddTenancyResourceGroup(dn string, provider string, resourceGroup string) (*string, error) {
-	tenancy := zms.TenancyResourceGroup{
-		Domain:        zms.DomainName(dn),
-		Service:       zms.ServiceName(provider),
-		ResourceGroup: zms.EntityName(resourceGroup),
-	}
-	err := cli.Zms.PutTenancyResourceGroup(zms.DomainName(dn), zms.ServiceName(provider), zms.EntityName(resourceGroup), cli.AuditRef, &tenancy)
-	if err != nil {
-		return nil, err
-	}
-	return cli.ShowTenancy(dn, provider)
-}
-
-func (cli Zms) ShowTenancy(dn string, provider string) (*string, error) {
-	tenancy, err := cli.Zms.GetTenancy(zms.DomainName(dn), zms.ServiceName(provider))
-	if err != nil {
-		return nil, err
-	}
-	var buf bytes.Buffer
-	cli.dumpTenancy(&buf, tenancy, indent_level1)
-	s := buf.String()
-	return &s, nil
-}
-
-func (cli Zms) ShowTenantRoles(provDomain string, provService string, tenantDomain string) (*string, error) {
-	tenantRoles, err := cli.Zms.GetTenantRoles(zms.DomainName(provDomain), zms.SimpleName(provService), zms.DomainName(tenantDomain))
-	if err != nil {
-		return nil, err
-	}
-	var buf bytes.Buffer
-	buf.WriteString("tenant-roles:\n")
-	cli.dumpTenantRoles(&buf, tenantRoles, indent_level1_dash, indent_level1_dash_lvl)
-	s := buf.String()
-	return &s, nil
-}
-
-func (cli Zms) DeleteTenantRoles(provDomain string, provService string, tenantDomain string) (*string, error) {
-	err := cli.Zms.DeleteTenantRoles(zms.DomainName(provDomain), zms.SimpleName(provService), zms.DomainName(tenantDomain), cli.AuditRef)
-	if err != nil {
-		return nil, err
-	}
-	s := "[Successfully deleted roles for tenant: " + tenantDomain + "]\n"
-	return &s, nil
-}
-
-func (cli Zms) AddTenantRoles(provDomain string, provService string, tenantDomain string, roleActions []string) (*string, error) {
-	tenantRoleActions := make([]*zms.TenantRoleAction, 0)
-	for _, item := range roleActions {
-		tokens := strings.Split(item, "=")
-		if len(tokens) == 2 {
-			roleToken := zms.TenantRoleAction{
-				Role:   zms.SimpleName(tokens[0]),
-				Action: tokens[1],
-			}
-			tenantRoleActions = append(tenantRoleActions, &roleToken)
-		}
-	}
-	tenantRoles := zms.TenantRoles{
-		Domain:  zms.DomainName(provDomain),
-		Service: zms.SimpleName(provService),
-		Tenant:  zms.DomainName(tenantDomain),
-		Roles:   tenantRoleActions,
-	}
-	_, err := cli.Zms.PutTenantRoles(zms.DomainName(provDomain), zms.SimpleName(provService), zms.DomainName(tenantDomain), cli.AuditRef, &tenantRoles)
-	if err != nil {
-		return nil, err
-	}
-	return cli.ShowTenantRoles(provDomain, provService, tenantDomain)
 }
 
 func (cli Zms) ShowTenantResourceGroupRoles(provDomain string, provService string, tenantDomain string, resourceGroup string) (*string, error) {

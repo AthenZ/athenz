@@ -11,10 +11,28 @@ type Tenancy Struct {
     Array<EntityName> resourceGroups (optional); //registered resource groups for this tenant
 }
 
-type TenancyResourceGroup Struct {
-    DomainName domain; //the domain that is to get a tenancy
-    ServiceName service; //the provider service on which the tenancy is to reside
-    EntityName resourceGroup; //registered resource group for this tenant
+//A representation of tenant role action.
+type TenantRoleAction Struct {
+    SimpleName role; //name of the role
+    String action; //action value for the generated policy assertion
+}
+
+//A representation of tenant roles for resource groups to be provisioned.
+type TenantResourceGroupRoles Struct {
+    DomainName domain; //name of the provider domain
+    SimpleName service; //name of the provider service
+    DomainName tenant; //name of the tenant domain
+    Array<TenantRoleAction> roles; //the role/action pairs to provision
+    EntityName resourceGroup; //tenant resource group
+}
+
+//A representation of provider roles to be provisioned.
+type ProviderResourceGroupRoles Struct {
+    DomainName domain; //name of the provider domain
+    SimpleName service; //name of the provider service
+    DomainName tenant; //name of the tenant domain
+    Array<TenantRoleAction> roles; //the role/action pairs to provision
+    EntityName resourceGroup; //tenant resource group
 }
 
 //Add a tenant for the specified service.
@@ -31,20 +49,6 @@ resource Tenancy PUT "/domain/{domain}/tenancy/{service}" {
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError CONFLICT;
-        ResourceError TOO_MANY_REQUESTS;
-    }
-}
-
-//Retrieve the specified tenant.
-resource Tenancy GET "/domain/{domain}/tenancy/{service}" {
-    DomainName domain; //name of the tenant domain
-    ServiceName service; //name of the provider service
-    authenticate;
-    exceptions {
-        ResourceError NOT_FOUND;
-        ResourceError BAD_REQUEST;
-        ResourceError FORBIDDEN;
-        ResourceError UNAUTHORIZED;
         ResourceError TOO_MANY_REQUESTS;
     }
 }
@@ -68,14 +72,50 @@ resource Tenancy DELETE "/domain/{domain}/tenancy/{service}" {
     }
 }
 
-//Add a new resource group for the tenant for the specified service.
-resource TenancyResourceGroup PUT "/domain/{domain}/tenancy/{service}/resourceGroup/{resourceGroup}" {
-    DomainName domain; //name of the tenant domain
-    ServiceName service; //name of the provider service
+//Create/update set of roles for a given tenant and resource group
+resource TenantResourceGroupRoles PUT "/domain/{domain}/service/{service}/tenant/{tenantDomain}/resourceGroup/{resourceGroup}" {
+    DomainName domain; //name of the provider domain
+    SimpleName service; //name of the provider service
+    DomainName tenantDomain; //name of the tenant domain
     EntityName resourceGroup; //tenant resource group
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
-    TenancyResourceGroup detail; //tenancy resource group object
-    authorize ("update", "{domain}:tenancy.{service}");
+    TenantResourceGroupRoles detail; //list of roles to be added/updated for the tenant
+    authorize ("update", "{domain}:tenant.{service}");
+    expected OK, CREATED;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+//Retrieve the configured set of roles for the tenant and resource group
+resource TenantResourceGroupRoles GET "/domain/{domain}/service/{service}/tenant/{tenantDomain}/resourceGroup/{resourceGroup}" {
+    DomainName domain; //name of the provider domain
+    SimpleName service; //name of the provider service
+    DomainName tenantDomain; //name of the tenant domain
+    EntityName resourceGroup; //tenant resource group
+    authenticate;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+//Delete the configured set of roles for the tenant and resource group
+resource TenantResourceGroupRoles DELETE "/domain/{domain}/service/{service}/tenant/{tenantDomain}/resourceGroup/{resourceGroup}" {
+    DomainName domain; //name of the provider domain
+    SimpleName service; //name of the provider service
+    DomainName tenantDomain; //name of the tenant domain
+    EntityName resourceGroup; //tenant resource group
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    authorize ("update", "{domain}:tenant.{service}");
     expected NO_CONTENT;
     exceptions {
         ResourceError NOT_FOUND;
@@ -87,13 +127,50 @@ resource TenancyResourceGroup PUT "/domain/{domain}/tenancy/{service}/resourceGr
     }
 }
 
-//Delete the specified resource group for tenant from the specified service.
-resource TenancyResourceGroup DELETE "/domain/{domain}/tenancy/{service}/resourceGroup/{resourceGroup}" {
-    DomainName domain; //name of the tenant domain
-    ServiceName service; //name of the provider service
+//Create/update set of roles for a given provider and resource group
+resource ProviderResourceGroupRoles PUT "/domain/{tenantDomain}/provDomain/{provDomain}/provService/{provService}/resourceGroup/{resourceGroup}" {
+    DomainName tenantDomain; //name of the tenant domain
+    DomainName provDomain; //name of the provider domain
+    SimpleName provService; //name of the provider service
     EntityName resourceGroup; //tenant resource group
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
-    authorize ("update", "{domain}:tenancy.{service}");
+    ProviderResourceGroupRoles detail; //list of roles to be added/updated for the provider
+    authorize ("update", "{tenantDomain}:tenancy.{provDomain}.{provService}");
+    expected OK, CREATED;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+//Retrieve the configured set of roles for the provider and resource group
+resource ProviderResourceGroupRoles GET "/domain/{tenantDomain}/provDomain/{provDomain}/provService/{provService}/resourceGroup/{resourceGroup}" {
+    DomainName tenantDomain; //name of the tenant domain
+    DomainName provDomain; //name of the provider domain
+    SimpleName provService; //name of the provider service
+    EntityName resourceGroup; //tenant resource group
+    authenticate;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+//Delete the configured set of roles for the provider and resource group
+resource ProviderResourceGroupRoles DELETE "/domain/{tenantDomain}/provDomain/{provDomain}/provService/{provService}/resourceGroup/{resourceGroup}" {
+    DomainName tenantDomain; //name of the tenant domain
+    DomainName provDomain; //name of the provider domain
+    SimpleName provService; //name of the provider service
+    EntityName resourceGroup; //tenant resource group
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    authorize ("update", "{tenantDomain}:tenancy.{provDomain}.{provService}");
     expected NO_CONTENT;
     exceptions {
         ResourceError NOT_FOUND;

@@ -16,7 +16,6 @@ include "Role.rdli";
 include "Policy.rdli";
 include "ServiceIdentity.rdli";
 include "Tenancy.rdli";
-include "TenantRoles.rdli";
 include "Access.rdli";
 include "SignedDomains.rdli";
 include "Token.rdli";

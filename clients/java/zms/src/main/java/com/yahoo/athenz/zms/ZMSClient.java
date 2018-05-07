@@ -1380,25 +1380,6 @@ public class ZMSClient implements Closeable {
     }
 
     /**
-     * Retrieve the specified tenant from a domain
-     * @param tenantDomain name of the tenant domain
-     * @param providerService name of the provider service,
-     *        format: provider-domain-name.provider-service-name, ex: "sports.storage"
-     * @return Tenancy object
-     * @throws ZMSClientException in case of failure
-     */
-    public Tenancy getTenancy(String tenantDomain, String providerService) {
-        updatePrincipal();
-        try {
-            return client.getTenancy(tenantDomain, providerService);
-        } catch (ResourceException ex) {
-            throw new ZMSClientException(ex.getCode(), ex.getData());
-        } catch (Exception ex) {
-            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
-        }
-    }
-
-    /**
      * Delete the specified tenant from a domain
      * @param tenantDomain name of the tenant domain
      * @param providerService name of the provider service,
@@ -1410,71 +1391,6 @@ public class ZMSClient implements Closeable {
         updatePrincipal();
         try {
             client.deleteTenancy(tenantDomain, providerService, auditRef);
-        } catch (ResourceException ex) {
-            throw new ZMSClientException(ex.getCode(), ex.getData());
-        } catch (Exception ex) {
-            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
-        }
-    }
-
-    /**
-     * Create a new resource group for the specified tenant. The service specifies the
-     * provider. The tenant must have on-boarded already using the putTenancy call.
-     * @param tenantDomain name of the tenant domain
-     * @param providerService name of the provider service,
-     *        format: provider-domain-name.provider-service-name, ex: "sports.storage"
-     * @param resourceGroup name of the resource group
-     * @param auditRef string containing audit specification or ticket number
-     * @param resourceGroupData TenancyResourceGroup object with tenant's resource group details
-     * @throws ZMSClientException in case of failure
-     */
-    public void putTenancyResourceGroup(String tenantDomain, String providerService,
-            String resourceGroup, String auditRef, TenancyResourceGroup resourceGroupData) {
-        updatePrincipal();
-        try {
-            client.putTenancyResourceGroup(tenantDomain, providerService, resourceGroup, auditRef, resourceGroupData);
-        } catch (ResourceException ex) {
-            throw new ZMSClientException(ex.getCode(), ex.getData());
-        } catch (Exception ex) {
-            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
-        }
-    }
-
-    /**
-     * Delete the specified resource group for the tenant.
-     * @param tenantDomain name of the tenant domain
-     * @param providerService name of the provider service, format:
-     *        provider-domain-name.provider-service-name, ex: "sports.storage"
-     * @param resourceGroup name of the resource group
-     * @param auditRef string containing audit specification or ticket number
-     * @throws ZMSClientException in case of failure
-     */
-    public void deleteTenancyResourceGroup(String tenantDomain, String providerService,
-            String resourceGroup, String auditRef) {
-        updatePrincipal();
-        try {
-            client.deleteTenancyResourceGroup(tenantDomain, providerService, resourceGroup, auditRef);
-        } catch (ResourceException ex) {
-            throw new ZMSClientException(ex.getCode(), ex.getData());
-        } catch (Exception ex) {
-            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
-        }
-    }
-
-    /**
-     * Create tenant roles for the specified tenant
-     * @param providerDomain name of the provider domain
-     * @param providerServiceName name of the provider service
-     * @param tenantDomain name of the tenant's domain
-     * @param auditRef string containing audit specification or ticket number
-     * @param tenantRoles Tenant roles
-     * @throws ZMSClientException in case of failure
-     */
-    public void putTenantRoles(String providerDomain, String providerServiceName,
-            String tenantDomain, String auditRef, TenantRoles tenantRoles) {
-        updatePrincipal();
-        try {
-            client.putTenantRoles(providerDomain, providerServiceName, tenantDomain, auditRef, tenantRoles);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
@@ -1506,25 +1422,6 @@ public class ZMSClient implements Closeable {
     }
 
     /**
-     * Retrieve the list of tenant roles defined for a tenant in a domain
-     * @param providerDomain name of the provider domain
-     * @param providerServiceName name of the provider service
-     * @param tenantDomain name of the tenant's domain
-     * @return list of tenant roles
-     * @throws ZMSClientException in case of failure
-     */
-    public TenantRoles getTenantRoles(String providerDomain, String providerServiceName, String tenantDomain) {
-        updatePrincipal();
-        try {
-            return client.getTenantRoles(providerDomain, providerServiceName, tenantDomain);
-        } catch (ResourceException ex) {
-            throw new ZMSClientException(ex.getCode(), ex.getData());
-        } catch (Exception ex) {
-            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
-        }
-    }
-
-    /**
      * Retrieve the list of tenant roles defined for a tenant resource group in a domain
      * @param providerDomain name of the provider domain
      * @param providerServiceName name of the provider service
@@ -1539,26 +1436,6 @@ public class ZMSClient implements Closeable {
         try {
             return client.getTenantResourceGroupRoles(providerDomain, providerServiceName,
                     tenantDomain, resourceGroup);
-        } catch (ResourceException ex) {
-            throw new ZMSClientException(ex.getCode(), ex.getData());
-        } catch (Exception ex) {
-            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
-        }
-    }
-
-    /**
-     * Delete tenant roles for the specified tenant in a domain
-     * @param providerDomain name of the provider domain
-     * @param providerServiceName name of the provider service
-     * @param tenantDomain name of tenant's domain
-     * @param auditRef string containing audit specification or ticket number
-     * @throws ZMSClientException in case of failure
-     */
-    public void deleteTenantRoles(String providerDomain, String providerServiceName, String tenantDomain,
-            String auditRef) {
-        updatePrincipal();
-        try {
-            client.deleteTenantRoles(providerDomain, providerServiceName, tenantDomain, auditRef);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {

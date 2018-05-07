@@ -353,13 +353,6 @@ func (cli Zms) dumpTenancy(buf *bytes.Buffer, tenancy *zms.Tenancy, indent strin
 	}
 }
 
-func (cli Zms) dumpTenantRoles(buf *bytes.Buffer, tenantRoles *zms.TenantRoles, indent1 string, indent2 string) {
-	for _, roleAction := range tenantRoles.Roles {
-		buf.WriteString(indent1 + "role: " + string(roleAction.Role) + "\n")
-		buf.WriteString(indent2 + "action: " + roleAction.Action + "\n")
-	}
-}
-
 func (cli Zms) dumpTenantResourceGroupRoles(buf *bytes.Buffer, tenantRoles *zms.TenantResourceGroupRoles, indent1 string, indent2 string) {
 	buf.WriteString(indent1 + "name: " + string(tenantRoles.ResourceGroup) + "\n")
 	buf.WriteString(indent2 + "tenant-roles:\n")

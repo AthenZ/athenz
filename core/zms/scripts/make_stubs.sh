@@ -31,11 +31,9 @@ command -v rdl >/dev/null 2>&1 || {
 }
 
 RDL_ZMS_FILE=src/main/rdl/ZMS.rdl
-RDL_PROVIDER_FILE=src/main/rdl/Provider.rdl
 
 echo "Generating model classes..."
 rdl -s generate -x getsetters=true -o src/main/java java-model $RDL_ZMS_FILE
-rdl -s generate -x getsetters=true -o src/main/java java-model $RDL_PROVIDER_FILE
 
 # Copyright 2016 Yahoo Inc.
 # Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
