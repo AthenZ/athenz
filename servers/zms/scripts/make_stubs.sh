@@ -30,13 +30,9 @@ command -v rdl >/dev/null 2>&1 || {
 }
 
 RDL_ZMS_FILE=src/main/rdl/ZMS.rdl
-RDL_PROVIDER_FILE=../../core/zms/src/main/rdl/Provider.rdl
 
 echo "Generate the server stubs"
 rdl -s generate -b="/v1" -o="src/main/java" java-server $RDL_ZMS_FILE
-
-echo "Generate the provider client library"
-rdl -s generate -o="src/main/java" java-client $RDL_PROVIDER_FILE
 
 echo "Removing not needed ZMS Server file..."
 rm src/main/java/com/yahoo/athenz/zms/ZMSServer.java

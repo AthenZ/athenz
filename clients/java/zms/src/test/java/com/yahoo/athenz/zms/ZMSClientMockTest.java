@@ -364,43 +364,6 @@ public class ZMSClientMockTest {
         assertTrue(groupRoleCheck);
         assertTrue(trustRoleCheck);
     }
-    
-    @Test
-    public void testPutTenancyResourceGroup() throws Exception {
-
-        String tenantDomain  = "tenant";
-        String providerService = "coretech.storage";
-        String resourceGroup = "hockey";
-        TenancyResourceGroup tenantResourceGroup = new TenancyResourceGroup();
-        tenantResourceGroup.setDomain(tenantDomain).setService(providerService).setResourceGroup(resourceGroup);
-        Mockito.doReturn(null)
-            .when(mockZMS).putTenancyResourceGroup(tenantDomain, providerService, resourceGroup,
-                    auditRef, tenantResourceGroup);
-
-        try {
-            zclt.putTenancyResourceGroup(tenantDomain, providerService,
-                    resourceGroup, auditRef, tenantResourceGroup);
-        } catch (Exception exc) {
-            fail();
-        }
-    }
-
-    @Test
-    public void testDeleteTenancyResourceGroup() throws Exception {
-
-        String tenantDomain  = "tenant";
-        String providerService = "coretech.storage";
-        String resourceGroup = "hockey";
-        Mockito.doReturn(null)
-            .when(mockZMS).deleteTenancyResourceGroup(tenantDomain, providerService, resourceGroup, auditRef);
-
-        try {
-            zclt.deleteTenancyResourceGroup(tenantDomain, providerService,
-                    resourceGroup, auditRef);
-        } catch (Exception exc) {
-            fail();
-        }
-    }
 
     @Test
     public void testPutTenantResourceGroupRoles() throws Exception {

@@ -1156,9 +1156,6 @@ public class ZMSCoreTest {
         TenantRoles tr = new TenantRoles().setDomain("test.provider.domain").setService("testservice")
                 .setTenant("test.tenant").setRoles(tral);
 
-        result = validator.validate(tr, "TenantRoles");
-        assertTrue(result.valid);
-
         assertEquals(tr.getDomain(), "test.provider.domain");
         assertEquals(tr.getService(), "testservice");
         assertEquals(tr.getTenant(), "test.tenant");
@@ -1254,34 +1251,6 @@ public class ZMSCoreTest {
         assertFalse(t2.equals(null));
         assertFalse(t.equals(new String()));
 
-    }
-
-    @Test
-    public void testTenancyResourceGroupMethod() {
-        Schema schema = ZMSSchema.instance();
-        Validator validator = new Validator(schema);
-
-        TenancyResourceGroup trg = new TenancyResourceGroup().setDomain("test.domain").setService("test-service")
-                .setResourceGroup("test.group");
-
-        Result result = validator.validate(trg, "TenancyResourceGroup");
-        assertTrue(result.valid);
-
-        assertEquals(trg.getDomain(), "test.domain");
-        assertEquals(trg.getService(), "test-service");
-        assertEquals(trg.getResourceGroup(), "test.group");
-
-        TenancyResourceGroup trg2 = new TenancyResourceGroup().setDomain("test.domain").setService("test-service");
-        assertTrue(trg.equals(trg));
-        
-        trg2.setResourceGroup(null);
-        assertFalse(trg2.equals(trg));
-        trg2.setService(null);
-        assertFalse(trg2.equals(trg));
-        trg2.setDomain(null);
-        assertFalse(trg2.equals(trg));
-        assertFalse(trg2.equals(null));
-        assertFalse(trg2.equals(new String()));
     }
 
     @Test

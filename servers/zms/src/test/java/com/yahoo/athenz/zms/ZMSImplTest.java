@@ -60,7 +60,6 @@ import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.impl.DefaultAuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.impl.DefaultAuditLogger;
 import com.yahoo.athenz.common.utils.SignUtils;
-import com.yahoo.athenz.provider.ProviderMockClient;
 import com.yahoo.athenz.zms.ZMSImpl.AccessStatus;
 import com.yahoo.athenz.zms.ZMSImpl.AthenzObject;
 import com.yahoo.athenz.zms.store.AthenzDomain;
@@ -259,7 +258,6 @@ public class ZMSImplTest {
                 "http://localhost", "/usr/bin/java", "root", "users", "host1");
         
         zmsObj.putServiceIdentity(mockDomRsrcCtx, "sys.auth", "zms", auditRef, service);
-        zmsObj.setProviderClientClass(ProviderMockClient.class);
         return zmsObj;
     }
 
@@ -278,7 +276,6 @@ public class ZMSImplTest {
         privKeyK2 = Crypto.ybase64(new String(Files.readAllBytes(path)).getBytes());
 
         zms = zmsInit();
-        zms.setProviderClientClass(ProviderMockClient.class);
     }
 
     @AfterClass(alwaysRun=true)
@@ -4885,102 +4882,6 @@ public class ZMSImplTest {
             assertEquals(ex.getCode(), code);
         }
     }
-    
-    @Test
-    public void testDeleteTenantRoles() {
-
-        setupTenantDomainProviderService("DelTenantRolesDom1", "coretech", "storage",
-                "http://localhost:8090/tableprovider");
-
-        TenantRoles roles = zms.getTenantRoles(mockDomRsrcCtx, "coretech", "storage",
-                "DelTenantRolesDom1");
-        assertNotNull(roles);
-        assertEquals(roles.getDomain(), "coretech");
-        assertEquals(roles.getService(), "storage");
-        assertEquals(roles.getTenant(), "DelTenantRolesDom1".toLowerCase());
-        assertEquals(roles.getRoles().size(), 0);
-
-        List<TenantRoleAction> roleActions = new ArrayList<>();
-        for (Struct.Field f : TABLE_PROVIDER_ROLE_ACTIONS) {
-            roleActions.add(new TenantRoleAction().setRole(f.name()).setAction(
-                    (String) f.value()));
-        }
-        TenantRoles tenantRoles = new TenantRoles().setDomain("coretech")
-                .setService("storage").setTenant("DelTenantRolesDom1")
-                .setRoles(roleActions);
-
-        zms.putTenantRoles(mockDomRsrcCtx, "coretech", "storage", "DelTenantRolesDom1",
-                auditRef, tenantRoles);
-
-        RoleList roleList = zms.getRoleList(mockDomRsrcCtx, "coretech", null, null);
-        assertNotNull(roleList);
-
-        boolean readerFound = false;
-        boolean writerFound = false;
-        for (String roleName : roleList.getNames()) {
-            if (roleName.contains("reader")) {
-                readerFound = true;
-            } else if (roleName.contains("writer")) {
-                writerFound = true;
-            }
-        }
-
-        assertTrue(readerFound);
-        assertTrue(writerFound);
-
-        PolicyList policyList = zms.getPolicyList(mockDomRsrcCtx, "coretech", null, null);
-        assertNotNull(policyList);
-
-        readerFound = false;
-        writerFound = false;
-        for (String policy : policyList.getNames()) {
-            if (policy.contains("reader")) {
-                readerFound = true;
-            } else if (policy.contains("writer")) {
-                writerFound = true;
-            }
-        }
-
-        assertTrue(readerFound);
-        assertTrue(writerFound);
-
-        zms.deleteTenantRoles(mockDomRsrcCtx, "coretech", "storage", "DelTenantRolesDom1", auditRef);
-
-        roleList = zms.getRoleList(mockDomRsrcCtx, "coretech", null, null);
-        assertNotNull(roleList);
-
-        readerFound = false;
-        writerFound = false;
-        for (String roleName : roleList.getNames()) {
-            if (roleName.contains("reader")) {
-                readerFound = true;
-            } else if (roleName.contains("writer")) {
-                writerFound = true;
-            }
-        }
-
-        assertFalse(readerFound);
-        assertFalse(writerFound);
-
-        policyList = zms.getPolicyList(mockDomRsrcCtx, "coretech", null, null);
-        assertNotNull(policyList);
-
-        readerFound = false;
-        writerFound = false;
-        for (String policy : policyList.getNames()) {
-            if (policy.contains("reader")) {
-                readerFound = true;
-            } else if (policy.contains("writer")) {
-                writerFound = true;
-            }
-        }
-
-        assertFalse(readerFound);
-        assertFalse(writerFound);
-
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "DelTenantRolesDom1", auditRef);
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "coretech", auditRef);
-    }
  
     @Test
     public void testDeleteTenantRolesWithResourceGroup() {
@@ -5026,51 +4927,6 @@ public class ZMSImplTest {
         assertEquals(0, tRoles.getRoles().size());
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "testDeleteTenantRoles", auditRef);
-    }
-    
-    @Test
-    public void testDeleteTenantRolesMissingAuditRef() {
-
-        TestAuditLogger alogger = new TestAuditLogger();
-        String storeFile = ZMS_DATA_STORE_FILE + "_deltenantrolesmissauditref";
-        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
-
-        String domain = "testDeleteTenantRolesMissingAuditRef";
-        TopLevelDomain dom = createTopLevelDomainObject(
-                domain, "Test Domain1", "testOrg", adminUser);
-        dom.setAuditEnabled(true);
-        zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom);
-
-        List<TenantRoleAction> roleActions = new ArrayList<>();
-        for (Struct.Field f : TABLE_PROVIDER_ROLE_ACTIONS) {
-            roleActions.add(new TenantRoleAction().setRole(f.name()).setAction(
-                    (String) f.value()));
-        }
-        String serviceName  = "storage";
-        String tenantDomain = "tenantTestDeleteTenantRolesMissingAuditRef";
-        TenantRoles tenantRoles = new TenantRoles().setDomain(domain)
-                .setService(serviceName).setTenant(tenantDomain)
-                .setRoles(roleActions);
-        zmsImpl.putTenantRoles(mockDomRsrcCtx, domain, serviceName, tenantDomain, auditRef, tenantRoles);
-
-        TenantRoles tRoles = zmsImpl.getTenantRoles(mockDomRsrcCtx, domain, serviceName, tenantDomain);
-        assertNotNull(tRoles);
-        assertEquals(tRoles.getDomain(), domain.toLowerCase());
-        assertEquals(tRoles.getService(), serviceName.toLowerCase());
-        assertEquals(tRoles.getTenant(), tenantDomain.toLowerCase());
-        assertEquals(tRoles.getRoles().size(), TABLE_PROVIDER_ROLE_ACTIONS.size());
-
-        try {
-            zmsImpl.deleteTenantRoles(mockDomRsrcCtx, domain, serviceName, tenantDomain, null);
-            fail("requesterror not thrown by deleteTenantRoles.");
-        } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
-            assertTrue(ex.getMessage().contains("Audit reference required"));
-
-        } finally {
-            zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domain, auditRef);
-            FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
-        }
     }
  
     @Test
@@ -5439,43 +5295,6 @@ public class ZMSImplTest {
         }
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, sportsDomain.getName(), auditRef);
-    }
-
-    @Test
-    public void testManageTenantRoles() {
-
-        setupTenantDomainProviderService("AddTenantRolesDom1", "coretech", "storage",
-                "http://localhost:8090/tableprovider");
-
-        TenantRoles roles = zms.getTenantRoles(mockDomRsrcCtx, "coretech", "storage",
-                "AddTenantRolesDom1");
-        assertNotNull(roles);
-        assertEquals(roles.getDomain(), "coretech");
-        assertEquals(roles.getService(), "storage");
-        assertEquals(roles.getTenant(), "AddTenantRolesDom1".toLowerCase());
-        assertEquals(roles.getRoles().size(), 0);
-
-        List<TenantRoleAction> roleActions = new ArrayList<>();
-        for (Struct.Field f : TABLE_PROVIDER_ROLE_ACTIONS) {
-            roleActions.add(new TenantRoleAction().setRole(f.name()).setAction(
-                    (String) f.value()));
-        }
-        TenantRoles tenantRoles = new TenantRoles().setDomain("coretech")
-                .setService("storage").setTenant("AddTenantRolesDom1")
-                .setRoles(roleActions);
-
-        zms.putTenantRoles(mockDomRsrcCtx, "coretech", "storage", "AddTenantRolesDom1",
-                auditRef, tenantRoles);
-
-        roles = zms.getTenantRoles(mockDomRsrcCtx, "coretech", "storage", "AddTenantRolesDom1");
-        assertNotNull(roles);
-        assertEquals(roles.getDomain(), "coretech");
-        assertEquals(roles.getService(), "storage");
-        assertEquals(roles.getTenant(), "AddTenantRolesDom1".toLowerCase());
-        assertEquals(roles.getRoles().size(), 3);
-
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "AddTenantRolesDom1", auditRef);
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "coretech", auditRef);
     }
 
     @Test
@@ -6520,22 +6339,18 @@ public class ZMSImplTest {
                 "http://localhost:8090/provider");
 
         Tenancy tenant = createTenantObject("CrossDomainAccessDom1", "coretech.storage");
-        ProviderMockClient.setReturnTenantRoles(true);
         zms.putTenancy(mockDomRsrcCtx, "CrossDomainAccessDom1", "coretech.storage", auditRef, tenant);
 
         List<TenantRoleAction> roleActions = new ArrayList<>();
         for (Struct.Field f : TABLE_PROVIDER_ROLE_ACTIONS) {
             roleActions.add(new TenantRoleAction().setRole(f.name()).setAction((String) f.value()));
         }
-        TenantRoles tenantRoles = new TenantRoles().setDomain("coretech")
+        TenantResourceGroupRoles tenantRoles = new TenantResourceGroupRoles().setDomain("coretech")
                 .setService("storage").setTenant("CrossDomainAccessDom1")
-                .setRoles(roleActions);
+                .setRoles(roleActions).setResourceGroup("group1");
 
-        zms.putTenantRoles(mockDomRsrcCtx, "coretech", "storage", "CrossDomainAccessDom1",
-                auditRef, tenantRoles);
-
-        Tenancy tenant1 = zms.getTenancy(mockDomRsrcCtx, "CrossDomainAccessDom1", "coretech.storage");
-        assertNotNull(tenant1);
+        zms.putTenantResourceGroupRoles(mockDomRsrcCtx, "coretech", "storage", "CrossDomainAccessDom1",
+                "group1", auditRef, tenantRoles);
 
         // reset roles in the CrossDomainAccessDom1 domain with unique values
 
@@ -6548,13 +6363,15 @@ public class ZMSImplTest {
         zms.putRole(mockDomRsrcCtx, "CrossDomainAccessDom1", "writer", auditRef, role);
 
         Policy policy = createPolicyObject("CrossDomainAccessDom1", "tenancy.coretech.storage.writer",
-                "writer", "ASSUME_ROLE", "coretech:role.storage.tenant.CrossDomainAccessDom1.writer",
+                "writer", "ASSUME_ROLE",
+                "coretech:role.storage.tenant.CrossDomainAccessDom1.res_group.group1.writer",
                 AssertionEffect.ALLOW);
         zms.putPolicy(mockDomRsrcCtx, "CrossDomainAccessDom1", "tenancy.coretech.storage.writer",
                 auditRef, policy);
 
         policy = createPolicyObject("CrossDomainAccessDom1", "tenancy.coretech.storage.reader",
-                "reader", "ASSUME_ROLE", "coretech:role.storage.tenant.CrossDomainAccessDom1.reader",
+                "reader", "ASSUME_ROLE",
+                "coretech:role.storage.tenant.CrossDomainAccessDom1.res_group.group1.reader",
                 AssertionEffect.ALLOW);
         zms.putPolicy(mockDomRsrcCtx, "CrossDomainAccessDom1", "tenancy.coretech.storage.reader",
                 auditRef, policy);
@@ -6563,11 +6380,13 @@ public class ZMSImplTest {
         // without trust domain it will not work since the resource is pointing to the
         // provider's domain and not to the tenant's domain
         
-        Access access = zms.getAccess(mockDomRsrcCtx, "ASSUME_ROLE", "coretech:role.storage.tenant.CrossDomainAccessDom1.reader",
+        Access access = zms.getAccess(mockDomRsrcCtx, "ASSUME_ROLE",
+                "coretech:role.storage.tenant.CrossDomainAccessDom1.res_group.group1.reader",
                 null, "user.jane");
         assertFalse(access.getGranted());
         
-        access = zms.getAccess(mockDomRsrcCtx, "ASSUME_ROLE", "coretech:role.storage.tenant.CrossDomainAccessDom1.reader",
+        access = zms.getAccess(mockDomRsrcCtx, "ASSUME_ROLE",
+                "coretech:role.storage.tenant.CrossDomainAccessDom1.res_group.group1.reader",
                 "CrossDomainAccessDom1", "user.jane");
         assertTrue(access.getGranted());
         
@@ -6584,98 +6403,98 @@ public class ZMSImplTest {
         ResourceContext rsrcCtxJoe = createResourceContext(pJoe);
 
         access = zms.getAccess(rsrcCtxJoe, "READ",
-                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.res_group.group1.resource1",
                 "CrossDomainAccessDom1", null);
         assertTrue(access.getGranted());
 
         access = zms.getAccess(rsrcCtxJane, "READ",
-                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.res_group.group1.resource1",
                 "CrossDomainAccessDom1", null);
         assertTrue(access.getGranted());
 
         access = zms.getAccess(rsrcCtxJohn, "READ",
-                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.res_group.group1.resource1",
                 "CrossDomainAccessDom1", null);
         assertFalse(access.getGranted());
 
         access = zms.getAccess(rsrcCtxJoe, "WRITE",
-                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.res_group.group1.resource1",
                 "CrossDomainAccessDom1", null);
         assertFalse(access.getGranted());
 
         access = zms.getAccess(rsrcCtxJane, "WRITE",
-                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.res_group.group1.resource1",
                 "CrossDomainAccessDom1", null);
         assertTrue(access.getGranted());
 
         access = zms.getAccess(rsrcCtxJohn, "WRITE",
-                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.res_group.group1.resource1",
                 "CrossDomainAccessDom1", null);
         assertTrue(access.getGranted());
 
         // unknown action should always fail
 
         access = zms.getAccess(rsrcCtxJoe, "UPDATE",
-                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.res_group.group1.resource1",
                 "CrossDomainAccessDom1", null);
         assertFalse(access.getGranted());
 
         access = zms.getAccess(rsrcCtxJane, "UPDATE",
-                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.res_group.group1.resource1",
                 "CrossDomainAccessDom1", null);
         assertFalse(access.getGranted());
 
         access = zms.getAccess(rsrcCtxJohn, "UPDATE",
-                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.res_group.group1.resource1",
                 "CrossDomainAccessDom1", null);
         assertFalse(access.getGranted());
 
         // same set as above without trust domain field
 
         access = zms.getAccess(rsrcCtxJoe, "READ",
-                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.res_group.group1.resource1",
                 null, null);
         assertTrue(access.getGranted());
 
         access = zms.getAccess(rsrcCtxJane, "READ",
-                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.res_group.group1.resource1",
                 null, null);
         assertTrue(access.getGranted());
 
         access = zms.getAccess(rsrcCtxJohn, "READ",
-                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.res_group.group1.resource1",
                 null, null);
         assertFalse(access.getGranted());
 
         access = zms.getAccess(rsrcCtxJoe, "WRITE",
-                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.res_group.group1.resource1",
                 null, null);
         assertFalse(access.getGranted());
 
         access = zms.getAccess(rsrcCtxJane, "WRITE",
-                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.res_group.group1.resource1",
                 null, null);
         assertTrue(access.getGranted());
 
         access = zms.getAccess(rsrcCtxJohn, "WRITE",
-                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.res_group.group1.resource1",
                 null, null);
         assertTrue(access.getGranted());
 
         // failure with different domain name
 
         access = zms.getAccess(rsrcCtxJoe, "READ",
-                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.res_group.group1.resource1",
                 "CrossDomainAccessDom2", null);
         assertFalse(access.getGranted());
 
         access = zms.getAccess(rsrcCtxJane, "READ",
-                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.res_group.group1.resource1",
                 "CrossDomainAccessDom2", null);
         assertFalse(access.getGranted());
 
         access = zms.getAccess(rsrcCtxJohn, "READ",
-                "coretech:service.storage.tenant.CrossDomainAccessDom1.resource1",
+                "coretech:service.storage.tenant.CrossDomainAccessDom1.res_group.group1.resource1",
                 "CrossDomainAccessDom2", null);
         assertFalse(access.getGranted());
 
@@ -7116,35 +6935,47 @@ public class ZMSImplTest {
                 "http://localhost:8090/provider");
 
         Tenancy tenant = createTenantObject("AddTenancyDom1", "coretech.storage");
-        ProviderMockClient.setReturnTenantRoles(true);
         zms.putTenancy(mockDomRsrcCtx, "AddTenancyDom1", "coretech.storage", auditRef, tenant);
-        
+
+        // now set up the tenant for the sub domain provider
+
+        List<TenantRoleAction> roleActions = new ArrayList<>();
+        for (Struct.Field f : TABLE_PROVIDER_ROLE_ACTIONS) {
+            roleActions.add(new TenantRoleAction().setRole(f.name()).setAction(
+                    (String) f.value()));
+        }
+
+        ProviderResourceGroupRoles providerRoles = new ProviderResourceGroupRoles()
+                .setDomain("coretech").setService("storage")
+                .setTenant("AddTenancyDom1").setRoles(roleActions)
+                .setResourceGroup("set1");
+        zms.putProviderResourceGroupRoles(mockDomRsrcCtx, "AddTenancyDom1", "coretech",
+                "storage", "set1", auditRef, providerRoles);
+
         // make sure our roles have been created
         
-        Role role = zms.getRole(mockDomRsrcCtx, "AddTenancyDom1", "coretech.storage.admin", false, false);
+        Role role = zms.getRole(mockDomRsrcCtx, "AddTenancyDom1", "tenancy.coretech.storage.admin", false, false);
+        assertNotNull(role);
+
+        role = zms.getRole(mockDomRsrcCtx, "AddTenancyDom1", "coretech.storage.res_group.set1.admin", false, false);
+        assertNotNull(role);
+
+        role = zms.getRole(mockDomRsrcCtx, "AddTenancyDom1", "coretech.storage.res_group.set1.reader", false, false);
         assertNotNull(role);
         
-        role = zms.getRole(mockDomRsrcCtx, "AddTenancyDom1", "coretech.storage.reader", false, false);
-        assertNotNull(role);
-        
-        role = zms.getRole(mockDomRsrcCtx, "AddTenancyDom1", "coretech.storage.writer", false, false);
+        role = zms.getRole(mockDomRsrcCtx, "AddTenancyDom1", "coretech.storage.res_group.set1.writer", false, false);
         assertNotNull(role);
         
         // verify the policies have the correct roles
         
         Policy policy = zms.getPolicy(mockDomRsrcCtx, "AddTenancyDom1", "tenancy.coretech.storage.admin");
         assertNotNull(policy);
-
-        // the admin is a special case where we are going to create the policy
-        // before we call the provider's tenant controller service so we'll
-        // end up with 4 assertions
         
         List<Assertion> assertList = policy.getAssertions();
-        assertEquals(4, assertList.size());
+        assertEquals(3, assertList.size());
         
         boolean domainAdminRoleCheck = false;
         boolean tenantAdminRoleCheck = false;
-        boolean resourceAdminRoleCheck = false;
         boolean tenantUpdateCheck = false;
         for (Assertion obj : assertList) {
             assertEquals(AssertionEffect.ALLOW, obj.getEffect());
@@ -7160,48 +6991,25 @@ public class ZMSImplTest {
                         tenantUpdateCheck = true;
                     }
                     break;
-                case "addtenancydom1:role.coretech.storage.admin":
-                    assertEquals(obj.getAction(), "assume_role");
-                    resourceAdminRoleCheck = true;
-                    break;
             }
         }
         assertTrue(domainAdminRoleCheck);
         assertTrue(tenantAdminRoleCheck);
-        assertTrue(resourceAdminRoleCheck);
         assertTrue(tenantUpdateCheck);
 
-        policy = zms.getPolicy(mockDomRsrcCtx, "AddTenancyDom1", "tenancy.coretech.storage.reader");
+        policy = zms.getPolicy(mockDomRsrcCtx, "AddTenancyDom1", "tenancy.coretech.storage.res_group.set1.reader");
         assertNotNull(policy);
 
         assertList = policy.getAssertions();
         assertEquals(assertList.size(), 1);
-        assertEquals(assertList.get(0).getRole(), "addtenancydom1:role.coretech.storage.reader");
+        assertEquals(assertList.get(0).getRole(), "addtenancydom1:role.coretech.storage.res_group.set1.reader");
         
-        policy = zms.getPolicy(mockDomRsrcCtx, "AddTenancyDom1", "tenancy.coretech.storage.writer");
+        policy = zms.getPolicy(mockDomRsrcCtx, "AddTenancyDom1", "tenancy.coretech.storage.res_group.set1.writer");
         assertNotNull(policy);
 
         assertList = policy.getAssertions();
         assertEquals(assertList.size(), 1);
-        assertEquals(assertList.get(0).getRole(), "addtenancydom1:role.coretech.storage.writer");
-        
-        // now add the tenant roles for our domain since our mock provider client
-        // cannot connect to our zms instance
-        
-        List<TenantRoleAction> roleActions = new ArrayList<>();
-        for (Struct.Field f : TABLE_PROVIDER_ROLE_ACTIONS) {
-            roleActions.add(new TenantRoleAction().setRole(f.name()).setAction(
-                    (String) f.value()));
-        }
-        TenantRoles tenantRoles = new TenantRoles().setDomain("coretech")
-                .setService("storage").setTenant("AddTenancyDom1")
-                .setRoles(roleActions);
-
-        zms.putTenantRoles(mockDomRsrcCtx, "coretech", "storage", "AddTenancyDom1",
-                auditRef, tenantRoles);
-        
-        Tenancy tenant1 = zms.getTenancy(mockDomRsrcCtx, "AddTenancyDom1", "coretech.storage");
-        assertNotNull(tenant1);
+        assertEquals(assertList.get(0).getRole(), "addtenancydom1:role.coretech.storage.res_group.set1.writer");
 
         zms.deleteTenancy(mockDomRsrcCtx, "AddTenancyDom1", "coretech.storage", auditRef);
         
@@ -7278,18 +7086,6 @@ public class ZMSImplTest {
         assertTrue(domainAdminRoleCheck);
         assertTrue(tenantAdminRoleCheck);
         assertTrue(tenantUpdateCheck);
-        
-        // now let's verify the provider side by using the get tenant roles call
-        
-        TenantRoles tRoles = zms.getTenantRoles(mockDomRsrcCtx, providerDomain, providerService, tenantDomain);
-        assertNotNull(tRoles);
-        assertEquals(1, tRoles.getRoles().size());
-        TenantRoleAction roleAction = tRoles.getRoles().get(0);
-        assertEquals("*", roleAction.getAction());
-        assertEquals("admin", roleAction.getRole());
-        
-        role = zms.getRole(mockDomRsrcCtx, providerDomain, tenantRoleInProviderDomain, false, false);
-        assertNotNull(role);
             
         // now let's call delete tenancy support with the same authorized service token
         
@@ -7309,12 +7105,6 @@ public class ZMSImplTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
         }
-        
-        // get tenant roles now returns an empty set
-        
-        tRoles = zms.getTenantRoles(mockDomRsrcCtx, providerDomain, providerService, tenantDomain);
-        assertNotNull(tRoles);
-        assertEquals(0, tRoles.getRoles().size());
         
         // clean up our domains
         
@@ -7360,7 +7150,7 @@ public class ZMSImplTest {
         ResourceContext ctx = createResourceContext(principal);
         
         // this should fail since the authorized service name does not
-        // match to the provider and there is no endpoint specified for the provider
+        // match to the provider
         
         Tenancy tenant = createTenantObject(tenantDomain, provider);
         try {
@@ -7384,7 +7174,6 @@ public class ZMSImplTest {
                 "http://localhost:8090/provider");
 
         Tenancy tenant = createTenantObject("AddTenancyDom1", "coretech.storage");
-        ProviderMockClient.setReturnTenantRoles(false);
         zms.putTenancy(mockDomRsrcCtx, "AddTenancyDom1", "coretech.storage", auditRef, tenant);
         
         // make sure our roles have not been created
@@ -7433,184 +7222,6 @@ public class ZMSImplTest {
     }
     
     @Test
-    public void testPutTenancyResourceGroup() {
-
-        String domain = "addtenancyresourcegroupdom1";
-        
-        setupTenantDomainProviderService(domain, "coretech", "storage",
-                "http://localhost:8090/provider");
-
-        Tenancy tenant = createTenantObject(domain, "coretech.storage");
-        ProviderMockClient.setReturnTenantRoles(false);
-        zms.putTenancy(mockDomRsrcCtx, domain, "coretech.storage", auditRef, tenant);
-        
-        // make sure our roles have not been created
-        
-        try {
-            zms.getRole(mockDomRsrcCtx, domain, "coretech.storage.admin", false, false);
-        } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
-        }
-        
-        try {
-            zms.getRole(mockDomRsrcCtx, domain, "coretech.storage.reader", false, false);
-        } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
-        }
-        
-        try {
-            zms.getRole(mockDomRsrcCtx, domain, "coretech.storage.writer", false, false);
-        } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
-        }
-        
-        // verify the admin policy has been successfully created
-        
-        Policy policy = zms.getPolicy(mockDomRsrcCtx, domain, "tenancy.coretech.storage.admin");
-        assertNotNull(policy);
-
-        // we should not have other policies for actions
-        
-        try {
-            zms.getPolicy(mockDomRsrcCtx, domain, "tenancy.coretech.storage.reader");
-        } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
-        }
-        
-        try {
-            zms.getPolicy(mockDomRsrcCtx, domain, "tenancy.coretech.storage.writer");
-        } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
-        }
-        
-        // now let's put a resource group
-        
-        TenancyResourceGroup detail = new TenancyResourceGroup();
-        detail.setDomain(domain).setService("coretech.storage").setResourceGroup("hockey");
-        zms.putTenancyResourceGroup(mockDomRsrcCtx, domain, "coretech.storage", "hockey", auditRef, detail);
-        
-        // now verify that roles were created successfully
-        
-        Role role = zms.getRole(mockDomRsrcCtx, domain, "coretech.storage.res_group.hockey.reader", false, false);
-        assertNotNull(role);
-        
-        role = zms.getRole(mockDomRsrcCtx, domain, "coretech.storage.res_group.hockey.writer", false, false);
-        assertNotNull(role);
-        
-        // verify the policies were created successfully
-        
-        policy = zms.getPolicy(mockDomRsrcCtx, domain, "tenancy.coretech.storage.res_group.hockey.reader");
-        assertNotNull(policy);
-
-        List<Assertion> assertList = policy.getAssertions();
-        assertEquals(assertList.size(), 1);
-        assertEquals(assertList.get(0).getRole(), domain + ":role.coretech.storage.res_group.hockey.reader");
-        
-        policy = zms.getPolicy(mockDomRsrcCtx, domain, "tenancy.coretech.storage.res_group.hockey.writer");
-        assertNotNull(policy);
-
-        assertList = policy.getAssertions();
-        assertEquals(assertList.size(), 1);
-        assertEquals(assertList.get(0).getRole(), domain + ":role.coretech.storage.res_group.hockey.writer");
-        
-        // now add the tenant roles for our domain since our mock provider client
-        // cannot connect to our zms instance
-        
-        List<TenantRoleAction> roleActions = new ArrayList<>();
-        for (Struct.Field f : RESOURCE_PROVIDER_ROLE_ACTIONS) {
-            roleActions.add(new TenantRoleAction().setRole(f.name()).setAction(
-                    (String) f.value()));
-        }
-        TenantResourceGroupRoles tenantRoles = new TenantResourceGroupRoles().setDomain("coretech")
-                .setService("storage").setTenant(domain)
-                .setRoles(roleActions).setResourceGroup("hockey");
-
-        zms.putTenantResourceGroupRoles(mockDomRsrcCtx, "coretech", "storage", domain, "hockey",
-                auditRef, tenantRoles);
-        
-        List<String> tenantResourceGroups = new ArrayList<>();
-        tenantResourceGroups.add("hockey");
-        ProviderMockClient.setResourceGroups(tenantResourceGroups);
-        
-        // let's verify that our get Tenancy returns the resource group
-        
-        Tenancy tenancy = zms.getTenancy(mockDomRsrcCtx, domain, "coretech.storage");
-        assertNotNull(tenancy);
-        assertEquals(1, tenancy.getResourceGroups().size());
-        assertTrue(tenancy.getResourceGroups().contains("hockey"));
-        ProviderMockClient.setResourceGroups(null);
-        
-        // now let's add another resource group
-        
-        detail = new TenancyResourceGroup();
-        detail.setDomain(domain).setService("coretech.storage").setResourceGroup("baseball");
-        zms.putTenancyResourceGroup(mockDomRsrcCtx, domain, "coretech.storage", "baseball", auditRef, detail);
-        
-        // now verify that roles were created successfully
-        
-        role = zms.getRole(mockDomRsrcCtx, domain, "coretech.storage.res_group.baseball.reader", false, false);
-        assertNotNull(role);
-        
-        role = zms.getRole(mockDomRsrcCtx, domain, "coretech.storage.res_group.baseball.writer", false, false);
-        assertNotNull(role);
-        
-        // verify the policies were created successfully
-        
-        policy = zms.getPolicy(mockDomRsrcCtx, domain, "tenancy.coretech.storage.res_group.baseball.reader");
-        assertNotNull(policy);
-
-        assertList = policy.getAssertions();
-        assertEquals(assertList.size(), 1);
-        assertEquals(assertList.get(0).getRole(), domain + ":role.coretech.storage.res_group.baseball.reader");
-        
-        policy = zms.getPolicy(mockDomRsrcCtx, domain, "tenancy.coretech.storage.res_group.baseball.writer");
-        assertNotNull(policy);
-
-        assertList = policy.getAssertions();
-        assertEquals(assertList.size(), 1);
-        assertEquals(assertList.get(0).getRole(), domain + ":role.coretech.storage.res_group.baseball.writer");
-        
-        // now add the tenant roles for our domain since our mock provider client
-        // cannot connect to our zms instance
-        
-        tenantRoles = new TenantResourceGroupRoles().setDomain("coretech")
-                .setService("storage").setTenant(domain)
-                .setRoles(roleActions).setResourceGroup("baseball");
-
-        zms.putTenantResourceGroupRoles(mockDomRsrcCtx, "coretech", "storage", domain, "baseball",
-                auditRef, tenantRoles);
-        
-        tenantResourceGroups.add("baseball");
-        ProviderMockClient.setResourceGroups(tenantResourceGroups);
-        
-        tenancy = zms.getTenancy(mockDomRsrcCtx, domain, "coretech.storage");
-        assertNotNull(tenancy);
-        assertEquals(2, tenancy.getResourceGroups().size());
-        assertTrue(tenancy.getResourceGroups().contains("hockey"));
-        assertTrue(tenancy.getResourceGroups().contains("baseball"));
-        ProviderMockClient.setResourceGroups(null);
-        
-        // now we're going to let the provider an extra resource
-        // that must be removed by zms since there are no policies
-        // defined for that resource group
-        
-        tenantResourceGroups.add("basketball");
-        ProviderMockClient.setResourceGroups(tenantResourceGroups);
-        
-        tenancy = zms.getTenancy(mockDomRsrcCtx, domain, "coretech.storage");
-        assertNotNull(tenancy);
-        assertEquals(2, tenancy.getResourceGroups().size());
-        assertTrue(tenancy.getResourceGroups().contains("hockey"));
-        assertTrue(tenancy.getResourceGroups().contains("baseball"));
-        ProviderMockClient.setResourceGroups(null);
-        
-        zms.deleteTenancy(mockDomRsrcCtx, domain, "coretech.storage", auditRef);
-        
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domain, auditRef);
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "coretech", auditRef);
-    }
-    
-    @Test
     public void testPutTenancyMissingAuditRef() {
         String tenantDomain    = "testPutTenancyMissingAuditRef";
         String providerDomain  = "providerTestPutTenancyMissingAuditRef";
@@ -7628,7 +7239,6 @@ public class ZMSImplTest {
 
         Tenancy tenant = createTenantObject(tenantDomain, providerDomain + "." + providerService);
         try {
-            ProviderMockClient.setReturnTenantRoles(true);
             zms.putTenancy(mockDomRsrcCtx, tenantDomain, providerDomain + "." + providerService, null, tenant);
             fail("requesterror not thrown by putTenancy.");
         } catch (ResourceException ex) {
@@ -7638,31 +7248,6 @@ public class ZMSImplTest {
             zms.deleteTopLevelDomain(mockDomRsrcCtx, tenantDomain, auditRef);
             zms.deleteTopLevelDomain(mockDomRsrcCtx, providerDomain, auditRef);
         }
-    }
-
-    @Test
-    public void testPutTenancyThrowException() {
-        String domainName = "AddTenancyDom2";
-        String tenantDomain = "coretech2";
-        String tenantService = "storage";
-        String service = tenantDomain + "." + tenantService;
-        
-        try {
-            // use invalid provider-endpoint.
-            setupTenantDomainProviderService(domainName, tenantDomain, tenantService, "");
-
-            Tenancy tenant = createTenantObject(domainName, service);
-
-            // should fail because do not have a valid provider-endpoint.
-            ProviderMockClient.setReturnTenantRoles(true);
-            zms.putTenancy(mockDomRsrcCtx, domainName, service, auditRef, tenant);
-            fail("requesterror not thrown");
-        } catch (ResourceException e) {
-            assertEquals(e.getCode(), 400);
-        }
-        
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, tenantDomain, auditRef);
     }
 
     @Test
@@ -7690,7 +7275,6 @@ public class ZMSImplTest {
         // setup tenancy
         //
         Tenancy tenant = createTenantObject(tenantDomain, provService);
-        ProviderMockClient.setReturnTenantRoles(true);
         zms.putTenancy(mockDomRsrcCtx, tenantDomain, provService, auditRef, tenant);
 
         try {
@@ -7750,149 +7334,6 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testDeleteTenancyResourceGroup() {
-
-        String domain = "deletetenancyresourcegroupdom1";
-        
-        setupTenantDomainProviderService(domain, "coretech", "storage",
-                "http://localhost:8090/provider");
-
-        Tenancy tenant = createTenantObject(domain, "coretech.storage");
-        ProviderMockClient.setReturnTenantRoles(false);
-        zms.putTenancy(mockDomRsrcCtx, domain, "coretech.storage", auditRef, tenant);
-        
-        // verify the admin policy has been successfully created
-        
-        Policy policy = zms.getPolicy(mockDomRsrcCtx, domain, "tenancy.coretech.storage.admin");
-        assertNotNull(policy);
-        
-        // now let's put a resource group
-        
-        TenancyResourceGroup detail = new TenancyResourceGroup();
-        detail.setDomain(domain).setService("coretech.storage").setResourceGroup("hockey");
-        zms.putTenancyResourceGroup(mockDomRsrcCtx, domain, "coretech.storage", "hockey", auditRef, detail);
-        
-        // now let's add another resource group
-        
-        detail = new TenancyResourceGroup();
-        detail.setDomain(domain).setService("coretech.storage").setResourceGroup("baseball");
-        zms.putTenancyResourceGroup(mockDomRsrcCtx, domain, "coretech.storage", "baseball", auditRef, detail);
-        
-        // now let's delete our initial hockey resource group
-        
-        zms.deleteTenancyResourceGroup(mockDomRsrcCtx, domain, "coretech.storage", "hockey", auditRef);
-        
-        // verify the admin policy is still present
-        
-        policy = zms.getPolicy(mockDomRsrcCtx, domain, "tenancy.coretech.storage.admin");
-        assertNotNull(policy);
-        
-        // now verify that baseball roles are still around
-        
-        Role role = zms.getRole(mockDomRsrcCtx, domain, "coretech.storage.res_group.baseball.reader", false, false);
-        assertNotNull(role);
-        
-        role = zms.getRole(mockDomRsrcCtx, domain, "coretech.storage.res_group.baseball.writer", false, false);
-        assertNotNull(role);
-        
-        // verify the policies also exist for baseball group
-        
-        policy = zms.getPolicy(mockDomRsrcCtx, domain, "tenancy.coretech.storage.res_group.baseball.reader");
-        assertNotNull(policy);
-
-        List<Assertion> assertList = policy.getAssertions();
-        assertEquals(assertList.size(), 1);
-        assertEquals(assertList.get(0).getRole(), domain + ":role.coretech.storage.res_group.baseball.reader");
-        
-        policy = zms.getPolicy(mockDomRsrcCtx, domain, "tenancy.coretech.storage.res_group.baseball.writer");
-        assertNotNull(policy);
-
-        assertList = policy.getAssertions();
-        assertEquals(assertList.size(), 1);
-        assertEquals(assertList.get(0).getRole(), domain + ":role.coretech.storage.res_group.baseball.writer");
-        
-        // now verify that the hockey roles and policies were indeed removed
-        
-        try {
-            zms.getRole(mockDomRsrcCtx, domain, "coretech.storage.res_group.hockey.reader", false, false);
-        } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
-        }
-        
-        try {
-            zms.getRole(mockDomRsrcCtx, domain, "coretech.storage.res_group.hockey.writer", false, false);
-        } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
-        }
-        
-        // we should not have other policies for actions
-        
-        try {
-            zms.getPolicy(mockDomRsrcCtx, domain, "tenancy.coretech.storage.res_group.hockey.reader");
-        } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
-        }
-        
-        try {
-            zms.getPolicy(mockDomRsrcCtx, domain, "tenancy.coretech.storage.res_group.hockey.writer");
-        } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
-        }
-        
-        // now let's delete the baseball resource group as well
-        
-        zms.deleteTenancyResourceGroup(mockDomRsrcCtx, domain, "coretech.storage", "baseball", auditRef);
-
-        // now verify that the admin policy is still around
-        
-        policy = zms.getPolicy(mockDomRsrcCtx, domain, "tenancy.coretech.storage.admin");
-        assertNotNull(policy);
-        
-       // now verify that the baseball roles and policies were indeed removed
-        
-        try {
-            zms.getRole(mockDomRsrcCtx, domain, "coretech.storage.res_group.baseball.reader", false, false);
-        } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
-        }
-        
-        try {
-            zms.getRole(mockDomRsrcCtx, domain, "coretech.storage.res_group.baseball.writer", false, false);
-        } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
-        }
-        
-        // we should not have other policies for actions
-        
-        try {
-            zms.getPolicy(mockDomRsrcCtx, domain, "tenancy.coretech.storage.res_group.baseball.reader");
-        } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
-        }
-        
-        try {
-            zms.getPolicy(mockDomRsrcCtx, domain, "tenancy.coretech.storage.res_group.baseball.writer");
-        } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
-        }
-        
-        // now let's just delete some invalid resource group which should not
-        // affect anything since we have no roles/policies to delete
-        
-        zms.deleteTenancyResourceGroup(mockDomRsrcCtx, domain, "coretech.storage", "basketball", auditRef);
-
-        // now verify that the admin policy is still around
-        
-        policy = zms.getPolicy(mockDomRsrcCtx, domain, "tenancy.coretech.storage.admin");
-        assertNotNull(policy);
-        
-        zms.deleteTenancy(mockDomRsrcCtx, domain, "coretech.storage", auditRef);
-        
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domain, auditRef);
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "coretech", auditRef);
-    }
-    
-    @Test
     public void testDeleteTenancyMissingService() {
         String tenantDomain    = "testDeleteTenancy";
         String providerDomain  = "providerTestDeleteTenancy";
@@ -7913,7 +7354,6 @@ public class ZMSImplTest {
         // setup tenancy
         //
         Tenancy tenant = createTenantObject(tenantDomain, provService);
-        ProviderMockClient.setReturnTenantRoles(true);
         zms.putTenancy(mockDomRsrcCtx, tenantDomain, provService, auditRef, tenant);
 
         // delete the provider service
@@ -7925,60 +7365,10 @@ public class ZMSImplTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
-            assertTrue(ex.getMessage().contains("service does not exist"));
+            assertTrue(ex.getMessage().contains("Unable to retrieve service"));
         } finally {
             zms.deleteTopLevelDomain(mockDomRsrcCtx, tenantDomain, auditRef);
             zms.deleteTopLevelDomain(mockDomRsrcCtx, providerDomain, auditRef);
-        }
-    }
-    
-    @Test
-    public void testDeleteTenancyMissingEndpoint() {
-
-        TestAuditLogger alogger = new TestAuditLogger();
-        String storeFile = ZMS_DATA_STORE_FILE + "_deltenancymissendpoint";
-        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
-
-        String tenantDomain    = "testDeleteTenancyMissEnd";
-        String providerDomain  = "providerTestDeleteTenancyMissEnd";
-        String providerService = "storage";
-        String provService = providerDomain + "." + providerService;
-
-        // create tenant and provider domains
-        //
-        setupTenantDomainProviderService(zmsImpl, tenantDomain, providerDomain, providerService,
-                "http://localhost:8090/provider");
-
-        // modify the tenant domain to require auditing
-        //
-        DomainMeta meta =
-            createDomainMetaObject("Tenant Domain", null, true, true, null, 0);
-        zmsImpl.putDomainMeta(mockDomRsrcCtx, tenantDomain, auditRef, meta);
-
-        // setup tenancy
-        //
-        Tenancy tenant = createTenantObject(tenantDomain, provService);
-        ProviderMockClient.setReturnTenantRoles(true);
-        zmsImpl.putTenancy(mockDomRsrcCtx, tenantDomain, provService, auditRef, tenant);
-
-        // delete the provider service endpoint
-        
-        ServiceIdentity service = createServiceObject(
-                providerDomain, providerService, null,
-                "/usr/bin/java", "root", "users", "localhost");
-
-        zmsImpl.putServiceIdentity(mockDomRsrcCtx, providerDomain, providerService, auditRef, service);
-        
-        try {
-            zmsImpl.deleteTenancy(mockDomRsrcCtx, tenantDomain, provService, auditRef);
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
-            assertTrue(ex.getMessage().contains("service does not have endpoint configured"));
-        } finally {
-            zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, tenantDomain, auditRef);
-            zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, providerDomain, auditRef);
-            FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
         }
     }
     
@@ -8002,7 +7392,6 @@ public class ZMSImplTest {
         // setup tenancy
         //
         Tenancy tenant = createTenantObject(tenantDomain, providerDomain + "." + providerService);
-        ProviderMockClient.setReturnTenantRoles(true);
         zms.putTenancy(mockDomRsrcCtx, tenantDomain, providerDomain + "." + providerService, auditRef, tenant);
 
         try {
@@ -8014,144 +7403,6 @@ public class ZMSImplTest {
         } finally {
             zms.deleteTopLevelDomain(mockDomRsrcCtx, tenantDomain, auditRef);
             zms.deleteTopLevelDomain(mockDomRsrcCtx, providerDomain, auditRef);
-        }
-    }
-
-    @Test
-    public void testPutTenantRoles() {
-
-        String domain = "testPutTenantRoles";
-        TopLevelDomain dom = createTopLevelDomainObject(
-                domain, "Test Domain1", "testOrg", adminUser);
-        dom.setAuditEnabled(true);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom);
-
-        List<TenantRoleAction> roleActions = new ArrayList<>();
-        for (Struct.Field f : TABLE_PROVIDER_ROLE_ACTIONS) {
-            roleActions.add(new TenantRoleAction().setRole(f.name()).setAction(
-                    (String) f.value()));
-        }
-        String serviceName  = "storage";
-        String tenantDomain = "tenantTestPutTenantRoles";
-        TenantRoles tenantRoles = new TenantRoles().setDomain(domain)
-                .setService(serviceName).setTenant(tenantDomain)
-                .setRoles(roleActions);
-        zms.putTenantRoles(mockDomRsrcCtx, domain, serviceName, tenantDomain, auditRef, tenantRoles);
-
-        TenantRoles tRoles = zms.getTenantRoles(mockDomRsrcCtx, domain, serviceName, tenantDomain);
-        assertNotNull(tRoles);
-        assertEquals(tRoles.getDomain(), domain.toLowerCase());
-        assertEquals(tRoles.getService(), serviceName.toLowerCase());
-        assertEquals(tRoles.getTenant(), tenantDomain.toLowerCase());
-        assertEquals(tRoles.getRoles().size(), TABLE_PROVIDER_ROLE_ACTIONS.size());
-
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domain, auditRef);
-    }
-
-    @Test
-    public void testPutTenantRolesMissingAuditRef() {
-
-        TestAuditLogger alogger = new TestAuditLogger();
-        String storeFile = ZMS_DATA_STORE_FILE + "_puttenantrolesmissauditref";
-        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
-
-        String domain = "testPutTenantRoles";
-        TopLevelDomain dom = createTopLevelDomainObject(
-                domain, "Test Domain1", "testOrg", adminUser);
-        dom.setAuditEnabled(true);
-        zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom);
-
-        List<TenantRoleAction> roleActions = new ArrayList<>();
-        for (Struct.Field f : TABLE_PROVIDER_ROLE_ACTIONS) {
-            roleActions.add(new TenantRoleAction().setRole(f.name()).setAction(
-                    (String) f.value()));
-        }
-        String serviceName  = "storage";
-        String tenantDomain = "tenantTestPutTenantRoles";
-        TenantRoles tenantRoles = new TenantRoles().setDomain(domain)
-                .setService(serviceName).setTenant(tenantDomain)
-                .setRoles(roleActions);
-        try {
-            zmsImpl.putTenantRoles(mockDomRsrcCtx, domain, serviceName, tenantDomain, null, tenantRoles);
-            fail("requesterror not thrown by putTenantRoles.");
-        } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
-            assertTrue(ex.getMessage().contains("Audit reference required"));
-        } finally {
-            zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domain, auditRef);
-            FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
-        }
-    }
-
-    @Test
-    public void testPutTenantRolesThrowException() {
-        String domainName = "AddTenancyDom3";
-        String tenantDomain = "coretech3";
-        String tenantService = "storage";
-        String providerEndpoint = "http://localhost:8090/provider";
-        String service = tenantDomain + "." + tenantService;
-        
-        // Should FAIL validate() as we are passing null for the tenant role action list.
-        try {
-            setupTenantDomainProviderService(domainName, tenantDomain, tenantService, providerEndpoint);
-
-            Tenancy tenant = createTenantObject(domainName, service);
-            ProviderMockClient.setReturnTenantRoles(true);
-            zms.putTenancy(mockDomRsrcCtx, domainName, service, auditRef, tenant);
-            
-            zms.putTenantRoles(mockDomRsrcCtx, tenantDomain, tenantService, domainName, auditRef, null);
-            fail("requesterror not thrown.");
-        } catch (ResourceException e) {
-            assertEquals(e.getCode(), 400);
-        } finally {
-            zms.deleteTenancy(mockDomRsrcCtx, domainName, service, auditRef);
-            
-            zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
-            zms.deleteTopLevelDomain(mockDomRsrcCtx, tenantDomain, auditRef);
-        }
-        
-        // Should FAIL validate() as we are passing an empty tenantroles.
-        try {
-            setupTenantDomainProviderService(domainName, tenantDomain, tenantService, providerEndpoint);
-
-            Tenancy tenant = createTenantObject(domainName, service);
-            ProviderMockClient.setReturnTenantRoles(true);
-            zms.putTenancy(mockDomRsrcCtx, domainName, service, auditRef, tenant);
-            
-            TenantRoles tenantRoles = new TenantRoles();
-            
-            zms.putTenantRoles(mockDomRsrcCtx, tenantDomain, tenantService, domainName, auditRef, tenantRoles);
-            fail("requesterror not thrown.");
-        } catch (ResourceException e) {
-            assertEquals(e.getCode(), 400);
-        } finally {
-            zms.deleteTenancy(mockDomRsrcCtx, domainName, service, auditRef);
-            
-            zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
-            zms.deleteTopLevelDomain(mockDomRsrcCtx, tenantDomain, auditRef);
-        }
-        
-        // Should FAIL as we are passing a tenantrole with empty actions list.
-        try {
-            setupTenantDomainProviderService(domainName, tenantDomain, tenantService, providerEndpoint);
-
-            Tenancy tenant = createTenantObject(domainName, service);
-            ProviderMockClient.setReturnTenantRoles(true);
-            zms.putTenancy(mockDomRsrcCtx, domainName, service, auditRef, tenant);
-            
-            List<TenantRoleAction> roleActions = new ArrayList<>();
-            TenantRoles tenantRoles = new TenantRoles().setDomain(tenantDomain)
-                    .setService(tenantService).setTenant(domainName).setRoles(roleActions);
-            
-            zms.putTenantRoles(mockDomRsrcCtx, tenantDomain, tenantService, domainName, auditRef, tenantRoles);
-            fail("requesterror not thrown.");
-        } catch (ResourceException e) {
-            assertEquals(e.getCode(), 400);
-        } finally {
-            zms.deleteTenancy(mockDomRsrcCtx, domainName, service, auditRef);
-            
-            zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
-            zms.deleteTopLevelDomain(mockDomRsrcCtx, tenantDomain, auditRef);
         }
     }
     
@@ -8191,7 +7442,7 @@ public class ZMSImplTest {
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domain, auditRef);
     }
 
-     @Test
+    @Test
     public void testGetDomainDataCheck() {
 
         String tenantDomainName = "testGetDomainDataCheck";
@@ -8329,14 +7580,13 @@ public class ZMSImplTest {
 
         zms.putServiceIdentity(mockDomRsrcCtx, provDomainSub, provSvc, auditRef, service);
 
-        ProviderMockClient.setReturnTenantRoles(true);
         Tenancy tenant = createTenantObject(tenantDomainName, provDomainSub + "." + provSvc);
         zms.putTenancy(mockDomRsrcCtx, tenantDomainName, provDomainSub + "." + provSvc, auditRef, tenant);
 
         ddc = zms.getDomainDataCheck(mockDomRsrcCtx, tenantDomainName);
         assertNotNull(ddc);
-        assertEquals(6, ddc.getPolicyCount());
-        assertEquals(12, ddc.getAssertionCount());
+        assertEquals(4, ddc.getPolicyCount());
+        assertEquals(9, ddc.getAssertionCount());
         assertEquals(2, ddc.getRoleWildCardCount());
         assertEquals(1, ddc.getDanglingRoles().size());
         assertEquals(2, ddc.getDanglingPolicies().size());
@@ -8362,21 +7612,21 @@ public class ZMSImplTest {
             roleActions.add(new TenantRoleAction().setRole(f.name()).setAction((String) f.value()));
         }
 
-        TenantRoles tenantRoles = new TenantRoles().setDomain(provDomainSub)
+        TenantResourceGroupRoles tenantRoles = new TenantResourceGroupRoles().setDomain(provDomainSub)
                 .setService(provSvc).setTenant(tenantDomainName)
-                .setRoles(roleActions);
+                .setRoles(roleActions).setResourceGroup("set1");
 
-        zms.putTenantRoles(mockDomRsrcCtx, provDomainSub, provSvc, tenantDomainName,
-                auditRef, tenantRoles);
+        zms.putTenantResourceGroupRoles(mockDomRsrcCtx, provDomainSub, provSvc, tenantDomainName,
+                "set1", auditRef, tenantRoles);
 
         ddc = zms.getDomainDataCheck(mockDomRsrcCtx, tenantDomainName);
         assertNotNull(ddc);
-        assertEquals(6, ddc.getPolicyCount());
-        assertEquals(12, ddc.getAssertionCount());
+        assertEquals(4, ddc.getPolicyCount());
+        assertEquals(9, ddc.getAssertionCount());
         assertEquals(2, ddc.getRoleWildCardCount());
         assertEquals(1, ddc.getDanglingRoles().size());
         assertEquals(2, ddc.getDanglingPolicies().size());
-        assertNull(ddc.getProvidersWithoutTrust());
+        assertNotNull(ddc.getProvidersWithoutTrust());
         assertNull(ddc.getTenantsWithoutAssumeRole());
 
         ddc = zms.getDomainDataCheck(mockDomRsrcCtx, provDomainSub);
@@ -8387,7 +7637,7 @@ public class ZMSImplTest {
         assertNull(ddc.getDanglingRoles());
         assertNull(ddc.getDanglingPolicies());
         assertNull(ddc.getProvidersWithoutTrust());
-        assertNull(ddc.getTenantsWithoutAssumeRole());
+        assertNotNull(ddc.getTenantsWithoutAssumeRole());
 
         // test provider should report tenant is missing
         // remove the assume_role policies from the tenant
@@ -8460,7 +7710,7 @@ public class ZMSImplTest {
         assertEquals(2, ddc.getRoleWildCardCount());
         assertEquals(1, ddc.getDanglingRoles().size());
         assertEquals(2, ddc.getDanglingPolicies().size());
-        assertEquals(1, ddc.getProvidersWithoutTrust().size());
+        assertEquals(2, ddc.getProvidersWithoutTrust().size());
         assertNull(ddc.getTenantsWithoutAssumeRole());
 
         // setup tenancy in the tenant domain for the provider subdomain
@@ -8475,17 +7725,17 @@ public class ZMSImplTest {
         assertNull(ddc.getDanglingRoles());
         assertNull(ddc.getDanglingPolicies());
         assertNull(ddc.getProvidersWithoutTrust());
-        assertNull(ddc.getTenantsWithoutAssumeRole());
+        assertNotNull(ddc.getTenantsWithoutAssumeRole());
 
         // but the tenant sees the sub provider is not setup 
         ddc = zms.getDomainDataCheck(mockDomRsrcCtx, tenantDomainName);
         assertNotNull(ddc);
-        assertEquals(9, ddc.getPolicyCount());
-        assertEquals(15, ddc.getAssertionCount());
+        assertEquals(7, ddc.getPolicyCount());
+        assertEquals(12, ddc.getAssertionCount());
         assertEquals(2, ddc.getRoleWildCardCount());
         assertEquals(1, ddc.getDanglingRoles().size());
         assertEquals(2, ddc.getDanglingPolicies().size());
-        assertEquals(1, ddc.getProvidersWithoutTrust().size());
+        assertEquals(2, ddc.getProvidersWithoutTrust().size());
         assertNull(ddc.getTenantsWithoutAssumeRole());
 
         // now set up the sub domain provider for the tenant with resource groups
@@ -8502,12 +7752,12 @@ public class ZMSImplTest {
         // now tenant sees the sub domain has provisioned it
         ddc = zms.getDomainDataCheck(mockDomRsrcCtx, tenantDomainName);
         assertNotNull(ddc);
-        assertEquals(9, ddc.getPolicyCount());
-        assertEquals(15, ddc.getAssertionCount());
+        assertEquals(7, ddc.getPolicyCount());
+        assertEquals(12, ddc.getAssertionCount());
         assertEquals(2, ddc.getRoleWildCardCount());
         assertEquals(1, ddc.getDanglingRoles().size());
         assertEquals(2, ddc.getDanglingPolicies().size());
-        assertNull(ddc.getProvidersWithoutTrust());
+        assertNotNull(ddc.getProvidersWithoutTrust());
         assertNull(ddc.getTenantsWithoutAssumeRole());
 
         // now set up the tenant for the top level domain provider
@@ -8522,12 +7772,12 @@ public class ZMSImplTest {
 
         ddc = zms.getDomainDataCheck(mockDomRsrcCtx, tenantDomainName);
         assertNotNull(ddc);
-        assertEquals(13, ddc.getPolicyCount());
-        assertEquals(21, ddc.getAssertionCount());
+        assertEquals(11, ddc.getPolicyCount());
+        assertEquals(18, ddc.getAssertionCount());
         assertEquals(2, ddc.getRoleWildCardCount());
         assertEquals(1, ddc.getDanglingRoles().size());
         assertEquals(2, ddc.getDanglingPolicies().size());
-        assertEquals(1, ddc.getProvidersWithoutTrust().size());
+        assertEquals(2, ddc.getProvidersWithoutTrust().size());
         assertNull(ddc.getTenantsWithoutAssumeRole());
 
         // delete the resource group tenancy support from sub domain
@@ -8538,12 +7788,12 @@ public class ZMSImplTest {
 
         ddc = zms.getDomainDataCheck(mockDomRsrcCtx, tenantDomainName);
         assertNotNull(ddc);
-        assertEquals(13, ddc.getPolicyCount());
-        assertEquals(21, ddc.getAssertionCount());
+        assertEquals(11, ddc.getPolicyCount());
+        assertEquals(18, ddc.getAssertionCount());
         assertEquals(2, ddc.getRoleWildCardCount());
         assertEquals(1, ddc.getDanglingRoles().size());
         assertEquals(2, ddc.getDanglingPolicies().size());
-        assertEquals(2, ddc.getProvidersWithoutTrust().size());
+        assertEquals(3, ddc.getProvidersWithoutTrust().size());
         assertNull(ddc.getTenantsWithoutAssumeRole());
 
         // delete the dangling policies and dangling role
@@ -8553,31 +7803,31 @@ public class ZMSImplTest {
 
         ddc = zms.getDomainDataCheck(mockDomRsrcCtx, tenantDomainName);
         assertNotNull(ddc);
-        assertEquals(12, ddc.getPolicyCount());
-        assertEquals(17, ddc.getAssertionCount());
+        assertEquals(10, ddc.getPolicyCount());
+        assertEquals(14, ddc.getAssertionCount());
         assertEquals(0, ddc.getRoleWildCardCount());
         assertNull(ddc.getDanglingRoles());
         assertNull(ddc.getDanglingPolicies());
-        assertEquals(2, ddc.getProvidersWithoutTrust().size());
+        assertEquals(3, ddc.getProvidersWithoutTrust().size());
         assertNull(ddc.getTenantsWithoutAssumeRole());
 
         // add the tenancy support for top domain
         // - now tenant will see that it is all setup
-        tenantRoles = new TenantRoles().setDomain(provDomainTop)
+        tenantRoles = new TenantResourceGroupRoles().setDomain(provDomainTop)
                 .setService(provSvcTop).setTenant(tenantDomainName)
-                .setRoles(roleActions);
+                .setRoles(roleActions).setResourceGroup("set1");
 
-        zms.putTenantRoles(mockDomRsrcCtx, provDomainTop, provSvcTop, tenantDomainName,
-                auditRef, tenantRoles);
+        zms.putTenantResourceGroupRoles(mockDomRsrcCtx, provDomainTop, provSvcTop,
+                tenantDomainName, "set1", auditRef, tenantRoles);
 
         ddc = zms.getDomainDataCheck(mockDomRsrcCtx, tenantDomainName);
         assertNotNull(ddc);
-        assertEquals(12, ddc.getPolicyCount());
-        assertEquals(17, ddc.getAssertionCount());
+        assertEquals(10, ddc.getPolicyCount());
+        assertEquals(14, ddc.getAssertionCount());
         assertEquals(0, ddc.getRoleWildCardCount());
         assertNull(ddc.getDanglingRoles());
         assertNull(ddc.getDanglingPolicies());
-        assertEquals(1, ddc.getProvidersWithoutTrust().size());
+        assertEquals(3, ddc.getProvidersWithoutTrust().size());
         assertNull(ddc.getTenantsWithoutAssumeRole());
 
         // delete the provider resource group roles for the sub domain provider
@@ -8587,12 +7837,12 @@ public class ZMSImplTest {
 
         ddc = zms.getDomainDataCheck(mockDomRsrcCtx, tenantDomainName);
         assertNotNull(ddc);
-        assertEquals(9, ddc.getPolicyCount());
-        assertEquals(14, ddc.getAssertionCount());
+        assertEquals(7, ddc.getPolicyCount());
+        assertEquals(11, ddc.getAssertionCount());
         assertEquals(0, ddc.getRoleWildCardCount());
         assertNull(ddc.getDanglingRoles());
         assertNull(ddc.getDanglingPolicies());
-        assertNull(ddc.getProvidersWithoutTrust());
+        assertNotNull(ddc.getProvidersWithoutTrust());
         assertNull(ddc.getTenantsWithoutAssumeRole());
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, tenantDomainName, auditRef);
@@ -11130,17 +10380,17 @@ public class ZMSImplTest {
         
         // null authorized service argument
         
-        assertFalse(zms.isAuthorizedProviderService(null, "coretech", "storage", "sports"));
+        assertFalse(zms.isAuthorizedProviderService(null, "coretech", "storage"));
         
         // service does not match provider details
         
-        assertFalse(zms.isAuthorizedProviderService("coretech.storage", "coretech", "storage2", "sports"));
-        assertFalse(zms.isAuthorizedProviderService("coretech.storage", "coretech2", "storage", "sports"));
+        assertFalse(zms.isAuthorizedProviderService("coretech.storage", "coretech", "storage2"));
+        assertFalse(zms.isAuthorizedProviderService("coretech.storage", "coretech2", "storage"));
         
         // domain does not exist in zms
         
         assertFalse(zms.isAuthorizedProviderService("not_present_domain.storage", "not_present_domain",
-                "storage", "sports"));
+                "storage"));
     }
     
     @Test
@@ -11161,7 +10411,7 @@ public class ZMSImplTest {
         zms.putPolicy(mockDomRsrcCtx, providerDomain, "self_serve", auditRef, policy);
         
         assertTrue(zms.isAuthorizedProviderService(providerDomain + ".storage", providerDomain,
-                "storage", tenantDomain));
+                "storage"));
         
         zms.deleteTopLevelDomain(mockDomRsrcCtx, tenantDomain, auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, providerDomain, auditRef);
@@ -11178,7 +10428,7 @@ public class ZMSImplTest {
         // tenant is setup but no policy to authorize access to tenants
         
         assertFalse(zms.isAuthorizedProviderService(providerDomain + ".storage", providerDomain,
-                "storage", tenantDomain));
+                "storage"));
         
         zms.deleteTopLevelDomain(mockDomRsrcCtx, tenantDomain, auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, providerDomain, auditRef);
@@ -14447,34 +13697,7 @@ public class ZMSImplTest {
             assertTrue(true);
         }
     }
-    
-    @Test
-    public void testPutTenancyResourceGroupNull() {
-        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
-        Principal principal1 = principalAuthority.authenticate("v=U1;d=user;n=user1;s=signature",
-                "10.11.12.13", "GET", null);
-        ResourceContext rsrcCtx1 = createResourceContext(principal1);
-        TenancyResourceGroup tenantResource = new TenancyResourceGroup();
-        try{
-            zms.putTenancyResourceGroup(rsrcCtx1, null, null, null, null, tenantResource);
-        } catch(Exception ex) {
-            assertTrue(true);
-        }
-    }
-    
-    @Test
-    public void testDeleteTenancyResourceGroupNull() {
-        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
-        Principal principal1 = principalAuthority.authenticate("v=U1;d=user;n=user1;s=signature",
-                "10.11.12.13", "GET", null);
-        ResourceContext rsrcCtx1 = createResourceContext(principal1);
-        try{
-            zms.deleteTenancyResourceGroup(rsrcCtx1, null, null, null, null);
-        } catch(Exception ex) {
-            assertTrue(true);
-        }
-    }
-    
+
     @Test
     public void testPutTenantResourceGroupRolesNull() {
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
@@ -14527,20 +13750,7 @@ public class ZMSImplTest {
             assertTrue(true);
         }
     }
-    
-    @Test
-    public void testGetProviderClient() {
-        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
-        Principal principal1 = principalAuthority.authenticate("v=U1;d=user;n=user1;s=signature",
-                "10.11.12.13", "GET", null);
-        try{
-            zms.setProviderClientClass(null);
-            zms.getProviderClient("localhost/zms", principal1);
-        } catch(Exception ex) {
-            assertTrue(true);
-        }
-    }
-    
+
     @DataProvider(name = "roles")
     public static Object[][] getRoles() {
         final String memberName="member1";

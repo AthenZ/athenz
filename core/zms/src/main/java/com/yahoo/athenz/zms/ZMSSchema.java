@@ -262,22 +262,10 @@ public class ZMSSchema {
             .field("service", "ServiceName", false, "the provider service on which the tenancy is to reside")
             .arrayField("resourceGroups", "EntityName", true, "registered resource groups for this tenant");
 
-        sb.structType("TenancyResourceGroup")
-            .field("domain", "DomainName", false, "the domain that is to get a tenancy")
-            .field("service", "ServiceName", false, "the provider service on which the tenancy is to reside")
-            .field("resourceGroup", "EntityName", false, "registered resource group for this tenant");
-
         sb.structType("TenantRoleAction")
             .comment("A representation of tenant role action.")
             .field("role", "SimpleName", false, "name of the role")
             .field("action", "String", false, "action value for the generated policy assertion");
-
-        sb.structType("TenantRoles")
-            .comment("A representation of tenant roles to be provisioned.")
-            .field("domain", "DomainName", false, "name of the provider domain")
-            .field("service", "SimpleName", false, "name of the provider service")
-            .field("tenant", "DomainName", false, "name of the tenant domain")
-            .arrayField("roles", "TenantRoleAction", false, "the role/action pairs to provision");
 
         sb.structType("TenantResourceGroupRoles")
             .comment("A representation of tenant roles for resource groups to be provisioned.")
@@ -1203,133 +1191,12 @@ public class ZMSSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
-        sb.resource("Tenancy", "GET", "/domain/{domain}/tenancy/{service}")
-            .comment("Retrieve the specified tenant.")
-            .pathParam("domain", "DomainName", "name of the tenant domain")
-            .pathParam("service", "ServiceName", "name of the provider service")
-            .auth("", "", true)
-            .expected("OK")
-            .exception("BAD_REQUEST", "ResourceError", "")
-
-            .exception("FORBIDDEN", "ResourceError", "")
-
-            .exception("NOT_FOUND", "ResourceError", "")
-
-            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
-
-            .exception("UNAUTHORIZED", "ResourceError", "")
-;
-
         sb.resource("Tenancy", "DELETE", "/domain/{domain}/tenancy/{service}")
             .comment("Delete the tenant from the specified service. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
             .pathParam("domain", "DomainName", "name of the tenant domain")
             .pathParam("service", "ServiceName", "name of the provider service")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .auth("delete", "{domain}:tenancy")
-            .expected("NO_CONTENT")
-            .exception("BAD_REQUEST", "ResourceError", "")
-
-            .exception("CONFLICT", "ResourceError", "")
-
-            .exception("FORBIDDEN", "ResourceError", "")
-
-            .exception("NOT_FOUND", "ResourceError", "")
-
-            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
-
-            .exception("UNAUTHORIZED", "ResourceError", "")
-;
-
-        sb.resource("TenancyResourceGroup", "PUT", "/domain/{domain}/tenancy/{service}/resourceGroup/{resourceGroup}")
-            .comment("Add a new resource group for the tenant for the specified service.")
-            .pathParam("domain", "DomainName", "name of the tenant domain")
-            .pathParam("service", "ServiceName", "name of the provider service")
-            .pathParam("resourceGroup", "EntityName", "tenant resource group")
-            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
-            .input("detail", "TenancyResourceGroup", "tenancy resource group object")
-            .auth("update", "{domain}:tenancy.{service}")
-            .expected("NO_CONTENT")
-            .exception("BAD_REQUEST", "ResourceError", "")
-
-            .exception("CONFLICT", "ResourceError", "")
-
-            .exception("FORBIDDEN", "ResourceError", "")
-
-            .exception("NOT_FOUND", "ResourceError", "")
-
-            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
-
-            .exception("UNAUTHORIZED", "ResourceError", "")
-;
-
-        sb.resource("TenancyResourceGroup", "DELETE", "/domain/{domain}/tenancy/{service}/resourceGroup/{resourceGroup}")
-            .comment("Delete the specified resource group for tenant from the specified service.")
-            .pathParam("domain", "DomainName", "name of the tenant domain")
-            .pathParam("service", "ServiceName", "name of the provider service")
-            .pathParam("resourceGroup", "EntityName", "tenant resource group")
-            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
-            .auth("update", "{domain}:tenancy.{service}")
-            .expected("NO_CONTENT")
-            .exception("BAD_REQUEST", "ResourceError", "")
-
-            .exception("CONFLICT", "ResourceError", "")
-
-            .exception("FORBIDDEN", "ResourceError", "")
-
-            .exception("NOT_FOUND", "ResourceError", "")
-
-            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
-
-            .exception("UNAUTHORIZED", "ResourceError", "")
-;
-
-        sb.resource("TenantRoles", "PUT", "/domain/{domain}/service/{service}/tenant/{tenantDomain}")
-            .comment("Create/update set of roles for a given tenant.")
-            .pathParam("domain", "DomainName", "name of the provider domain")
-            .pathParam("service", "SimpleName", "name of the provider service")
-            .pathParam("tenantDomain", "DomainName", "name of the tenant domain")
-            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
-            .input("detail", "TenantRoles", "list of roles to be added/updated for the tenant")
-            .auth("update", "{domain}:tenant.{service}")
-            .expected("OK")
-            .exception("BAD_REQUEST", "ResourceError", "")
-
-            .exception("CONFLICT", "ResourceError", "")
-
-            .exception("FORBIDDEN", "ResourceError", "")
-
-            .exception("NOT_FOUND", "ResourceError", "")
-
-            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
-
-            .exception("UNAUTHORIZED", "ResourceError", "")
-;
-
-        sb.resource("TenantRoles", "GET", "/domain/{domain}/service/{service}/tenant/{tenantDomain}")
-            .comment("Retrieve the configured set of roles for the tenant.")
-            .pathParam("domain", "DomainName", "name of the provider domain")
-            .pathParam("service", "SimpleName", "name of the provider service")
-            .pathParam("tenantDomain", "DomainName", "name of the tenant domain")
-            .auth("", "", true)
-            .expected("OK")
-            .exception("BAD_REQUEST", "ResourceError", "")
-
-            .exception("FORBIDDEN", "ResourceError", "")
-
-            .exception("NOT_FOUND", "ResourceError", "")
-
-            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
-
-            .exception("UNAUTHORIZED", "ResourceError", "")
-;
-
-        sb.resource("TenantRoles", "DELETE", "/domain/{domain}/service/{service}/tenant/{tenantDomain}")
-            .comment("Delete the configured set of roles for the tenant. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
-            .pathParam("domain", "DomainName", "name of the provider domain")
-            .pathParam("service", "SimpleName", "name of the provider service")
-            .pathParam("tenantDomain", "DomainName", "name of the tenant domain")
-            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
-            .auth("delete", "{domain}:tenant.{service}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 

@@ -433,10 +433,6 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 1 {
 				return cli.ShowEntity(dn, args[0])
 			}
-		case "show-tenancy":
-			if argc == 1 {
-				return cli.ShowTenancy(dn, args[0])
-			}
 		case "add-tenancy":
 			if argc == 1 {
 				return cli.AddTenancy(dn, args[0])
@@ -444,26 +440,6 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 		case "delete-tenancy":
 			if argc == 1 {
 				return cli.DeleteTenancy(dn, args[0])
-			}
-		case "add-tenancy-resource-group":
-			if argc == 2 {
-				return cli.AddTenancyResourceGroup(dn, args[0], args[1])
-			}
-		case "delete-tenancy-resource-group":
-			if argc == 2 {
-				return cli.DeleteTenancyResourceGroup(dn, args[0], args[1])
-			}
-		case "show-tenant-roles":
-			if argc == 2 {
-				return cli.ShowTenantRoles(dn, args[0], args[1])
-			}
-		case "add-tenant-roles":
-			if argc > 2 {
-				return cli.AddTenantRoles(dn, args[0], args[1], args[2:])
-			}
-		case "delete-tenant-roles":
-			if argc == 2 {
-				return cli.DeleteTenantRoles(dn, args[0], args[1])
 			}
 		case "show-tenant-resource-group-roles":
 			if argc == 3 {

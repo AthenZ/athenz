@@ -40,9 +40,6 @@ import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
 import com.yahoo.athenz.common.server.util.StringUtils;
 import com.yahoo.athenz.common.utils.SignUtils;
-import com.yahoo.athenz.provider.ProviderClient;
-import com.yahoo.athenz.provider.Tenant;
-import com.yahoo.athenz.provider.TenantResourceGroup;
 import com.yahoo.athenz.zms.config.AllowedOperation;
 import com.yahoo.athenz.zms.config.AuthorizedService;
 import com.yahoo.athenz.zms.config.AuthorizedServices;
@@ -122,7 +119,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private static final String TYPE_USER_DOMAIN = "UserDomain";
     private static final String TYPE_DOMAIN_META = "DomainMeta";
     private static final String TYPE_DOMAIN_TEMPLATE = "DomainTemplate";
-    private static final String TYPE_TENANT_ROLES = "TenantRoles";
     private static final String TYPE_TENANT_RESOURCE_GROUP_ROLES = "TenantResourceGroupRoles";
     private static final String TYPE_PROVIDER_RESOURCE_GROUP_ROLES = "ProviderResourceGroupRoles";
     private static final String TYPE_PUBLIC_KEY_ENTRY = "PublicKeyEntry";
@@ -133,7 +129,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     public static String serverHostName  = null;
 
     protected DBService dbService = null;
-    protected Class<? extends ProviderClient> providerClass = null;
     protected Schema schema = null;
     protected PrivateKey privateKey = null;
     protected String privateKeyId = "0";
@@ -174,7 +169,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     enum AccessStatus {
         ALLOWED,
         DENIED,
-        DENIED_DOMAIN_NOT_FOUND,
         DENIED_INVALID_ROLE_TOKEN
     }
     
@@ -712,10 +706,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             final String publicKey = Crypto.convertToPEMFormat(Crypto.extractPublicKey(privateKey));
             serverPublicKeyMap.put(privateKeyId, Crypto.ybase64EncodeString(publicKey));
         }
-    }
-    
-    public void setProviderClientClass(Class<? extends ProviderClient> providerClass) {
-        this.providerClass = providerClass;
     }
     
     void loadSolutionTemplates() {
@@ -4451,26 +4441,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         return provider.substring(n + 1);
     }
-
-    ProviderClient getProviderClient(String url, Principal tenantAdmin) {
-        
-        final String caller = "getproviderclient";
-        
-        ProviderClient prov;
-        if (providerClass == null) {
-            prov = new ProviderClient(url);
-            prov.addCredentials(tenantAdmin.getAuthority().getHeader(), tenantAdmin.getCredentials());
-        } else {
-            try {
-                prov = providerClass.getConstructor(new Class[] { String.class, Principal.class })
-                        .newInstance(url, tenantAdmin);
-            } catch (Exception e) {
-                throw ZMSUtils.requestError("getProviderClient: Provider Class does not have the appropriate constructor", caller);
-            }
-        }
-        
-        return prov;
-    }
     
     public Tenancy putTenancy(ResourceContext ctx, String tenantDomain, String provider,
             String auditRef, Tenancy detail) {
@@ -4505,47 +4475,25 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         String authorizedService = ((RsrcCtxWrapper) ctx).principal().getAuthorizedService();
         verifyAuthorizedServiceOperation(authorizedService, caller);
 
-        final String logPrefix = "putTenancy: tenant domain(" + tenantDomain + "): ";
-        
-        if (LOG.isInfoEnabled()) {
-            LOG.info("---- BEGIN put Tenant on provider(" + provider + ", ...)");
-        }
-        
         String provSvcDomain = providerServiceDomain(provider); // provider service domain
         String provSvcName = providerServiceName(provider); // provider service name
 
         ServiceIdentity ent = dbService.getServiceIdentity(provSvcDomain, provSvcName);
         if (ent == null) {
-            throw ZMSUtils.requestError(logPrefix + "Unable to retrieve service=" + provider, caller);
-        }
-        
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("serviceIdentity: provider=" + ent);
-        }
-        
-        // we are going to allow the authorize service token owner to call
-        // put tenancy on its own service without configuring a controller
-        // end point
-        
-        boolean authzServiceTokenOperation = isAuthorizedProviderService(authorizedService,
-            provSvcDomain, provSvcName, tenantDomain);
-        
-        String url = ent.getProviderEndpoint();
-        if ((url == null || url.isEmpty()) && !authzServiceTokenOperation) {
-            throw ZMSUtils.requestError(logPrefix + "Cannot put tenancy on provider service=" +
-                provider + " -- not a provider service", caller);
-        }
-        
-        if (LOG.isInfoEnabled()) {
-            LOG.info("let's talk to the provider on this endpoint: " + url);
+            throw ZMSUtils.requestError("Unable to retrieve service=" + provider, caller);
         }
 
-        //ok, set up the policy for trust so the provider can check it
-        
-        if (LOG.isInfoEnabled()) {
-            LOG.info("---- set up the ASSUME_ROLE for admin, so provider can check I'm an admin");
+        // we are going to allow the authorize service token owner to call
+        // put tenancy on its own service
+
+        boolean authzServiceTokenOperation = isAuthorizedProviderService(authorizedService,
+                provSvcDomain, provSvcName);
+
+        if (authorizedService != null && !authzServiceTokenOperation) {
+            throw ZMSUtils.requestError("Authorized service provider mismatch: "
+                    + provider + "/" + authorizedService, caller);
         }
-        
+
         // set up our tenant admin policy so provider can check admin's access
         
         dbService.setupTenantAdminPolicy(tenantDomain, provSvcDomain,
@@ -4553,9 +4501,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         // if this is an authorized service token request then we're going to create
         // the corresponding admin role in the provider domain since that's been
-        // authenticated already. otherwise, we're going to continue and process
-        // a standard provider controller based implementation when we contact the
-        // controller to complete the tenancy request
+        // authenticated already
         
         if (authzServiceTokenOperation) {
             
@@ -4564,307 +4510,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             roles.add(roleAction);
             dbService.executePutTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain, null,
                 roles, auditRef, caller);
-            
-        } else {
-            
-            Principal tenantAdmin = ((RsrcCtxWrapper) ctx).principal();
-            if (LOG.isInfoEnabled()) {
-                LOG.info("---- now tell the provider to setTenant, as " + tenantAdmin.getFullName()
-                    + ", creds = " + tenantAdmin.getCredentials());
-            }
-            
-            Tenant tenant = new Tenant().setService(provSvcName).setName(tenantDomain);
-            Tenant tenantWithRoles;
-            try {
-                ProviderClient prov = getProviderClient(url, tenantAdmin);
-                tenantWithRoles = prov.putTenant(provSvcName, tenantDomain, auditRef, tenant);
-            } catch (com.yahoo.athenz.provider.ResourceException ex) {
-                throw ZMSUtils.error(ex.getCode(), ex.getMessage(), caller);
-            }
-            
-            if (LOG.isInfoEnabled()) {
-                LOG.info("---- result of provider.putTenant: " + tenantWithRoles);
-            }
-            
-            // now set up the roles and policies for all the provider roles returned
-            // if the provider supports resource groups, during the putTenant call
-            // we're just setting up tenancy and as such we won't get back any roles
-            
-            List<String> providerRoles = tenantWithRoles.getRoles();
-            if (providerRoles != null && !providerRoles.isEmpty()) {
-                
-                // we're going to create a separate role for each one of tenant roles returned
-                // based on its action and set the caller as a member in each role
-                
-                dbService.executePutProviderRoles(ctx, tenantDomain, provSvcDomain, provSvcName, null,
-                    providerRoles, auditRef, caller);
-            }
-        }
-        
-        if (LOG.isInfoEnabled()) {
-            LOG.info("---- END put Tenant -> " + detail);
         }
 
         metric.stopTiming(timerMetric);
         return null;
-    }
-    
-    public TenancyResourceGroup putTenancyResourceGroup(ResourceContext ctx, String tenantDomain, String provider,
-            String resourceGroup, String auditRef, TenancyResourceGroup detail) {
-
-        final String caller = "puttenancyresourcegroup";
-        metric.increment(ZMSConsts.HTTP_PUT);
-        logPrincipal(ctx);
-
-        if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
-        }
-
-        validateRequest(ctx.request(), caller);
-
-        validate(tenantDomain, TYPE_DOMAIN_NAME, caller);
-        validate(provider, TYPE_SERVICE_NAME, caller); //the fully qualified service name to provision on
-        validate(resourceGroup, TYPE_COMPOUND_NAME, caller);
-        
-        // for consistent handling of all requests, we're going to convert
-        // all incoming object values into lower case (e.g. domain, role,
-        // policy, service, etc name)
-        
-        tenantDomain = tenantDomain.toLowerCase();
-        provider = provider.toLowerCase();
-        resourceGroup = resourceGroup.toLowerCase();
-        AthenzObject.TENANCY_RESOURCE_GROUP.convertToLowerCase(detail);
-
-        metric.increment(ZMSConsts.HTTP_REQUEST, tenantDomain);
-        metric.increment(caller, tenantDomain);
-        Object timerMetric = metric.startTiming("puttenancyresourcegroup_timing", tenantDomain);
-        
-        // verify that request is properly authenticated for this request
-        
-        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
-        
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("putTenancyResourceGroup: tenant domain(" + tenantDomain
-                    + ") resourceGroup(" + resourceGroup + ")");
-        }
-        
-        String provSvcDomain = providerServiceDomain(provider); // provider service domain
-        String provSvcName = providerServiceName(provider); // provider service name
-
-        ServiceIdentity ent = dbService.getServiceIdentity(provSvcDomain, provSvcName);
-        if (ent == null) {
-            throw ZMSUtils.requestError("Unable to retrieve service=" + provider, caller);
-        }
-        
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("serviceIdentity: provider=" + ent);
-        }
-        String url = ent.getProviderEndpoint();
-        if (url == null || url.isEmpty()) {
-            throw ZMSUtils.requestError("Cannot put tenancy resource group on provider service="
-                + provider + " -- not a provider service", caller);
-        }
-        
-        Principal tenantAdmin = ((RsrcCtxWrapper) ctx).principal();
-        
-        TenantResourceGroup tenantResourceGroup = new TenantResourceGroup();
-        tenantResourceGroup.setService(provSvcName).setName(tenantDomain).setResourceGroup(resourceGroup);
-        
-        TenantResourceGroup tenantWithRoles;
-        try {
-            ProviderClient prov = getProviderClient(url, tenantAdmin);
-            tenantWithRoles = prov.putTenantResourceGroup(provSvcName, tenantDomain, resourceGroup,
-                auditRef, tenantResourceGroup);
-        } catch (com.yahoo.athenz.provider.ResourceException ex) {
-            throw ZMSUtils.error(ex.getCode(), ex.getMessage(), caller);
-        }
-        
-        if (LOG.isInfoEnabled()) {
-            LOG.info("---- result of provider.putTenantResourceGroup: " + tenantWithRoles);
-        }
-
-        List<String> providerRoles = tenantWithRoles.getRoles();
-        if (providerRoles == null || providerRoles.isEmpty()) {
-            throw ZMSUtils.requestError("Provider Controller did not return any roles to provision", caller);
-        }
-        
-        // we're going to create a separate role for each one of tenant roles returned
-        // based on its action and set the caller as a member in each role
-        
-        dbService.executePutProviderRoles(ctx, tenantDomain, provSvcDomain, provSvcName, resourceGroup,
-            providerRoles, auditRef, caller);
-        
-        if (LOG.isInfoEnabled()) {
-            LOG.info("---- END put Tenant Resource Group -> " + detail);
-        }
-        
-        metric.stopTiming(timerMetric);
-        return null;
-    }
-    
-    boolean verifyTenancyPolicies(String tenantDomain, List<String> tenantPolicies, Set<String> providerPolicies,
-            String provSvcDomain, String provSvcName, String resourceGroup) {
-        
-        // generate the tenant policy name
-
-        final String pnamePrefix = "tenancy." +
-                ZMSUtils.getProviderResourceGroupRolePrefix(provSvcDomain, provSvcName, resourceGroup);
-        final String rsrcMatchStr = ":role.";
-        int rsrcMatchStrLen = rsrcMatchStr.length();
-
-        String provPolName = null;
-        for (String pname : tenantPolicies) {
-            if (pname.startsWith(pnamePrefix)) {
-                Policy pol = dbService.getPolicy(tenantDomain,  pname);
-                if (pol == null) {
-                    break;
-                }
-                List<Assertion> assertions = pol.getAssertions();
-                if (assertions != null) {
-                    for (Assertion assertion : assertions) {
-                        if (ZMSConsts.ACTION_ASSUME_ROLE.equalsIgnoreCase(assertion.getAction())) {
-                            String rsrc = assertion.getResource();
-                            // parse rsrc, ex: "weather:role.storage.tenant.sports.deleter"
-                            int index = rsrc.indexOf(rsrcMatchStr);
-                            if (index > -1) {
-                                rsrc = rsrc.substring(index + rsrcMatchStrLen);
-                            }
-                            provPolName = rsrc;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        if (provPolName == null) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("verifyTenancyPolicies: No ASSUME_ROLE with policy prefix: " + pnamePrefix);
-            }
-            return false;
-        }
-        
-        // verify the tenant is in the provider too
-        // look for the policy in the provider
-        
-        if (!providerPolicies.contains(provPolName)) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("verifyTenancyPolicies: No tenant policy in provider: " + provPolName);
-            }
-            return false;
-        }
-        
-        return true;
-    }
-    
-    public Tenancy getTenancy(ResourceContext ctx, String tenantDomain, String providerService) {
-        
-        final String caller = "gettenancy";
-        metric.increment(ZMSConsts.HTTP_GET);
-        logPrincipal(ctx);
-
-        validateRequest(ctx.request(), caller);
-        validate(tenantDomain, TYPE_DOMAIN_NAME, caller);
-        validate(providerService, TYPE_SERVICE_NAME, caller); // fully qualified provider's service name
-
-        // for consistent handling of all requests, we're going to convert
-        // all incoming object values into lower case (e.g. domain, role,
-        // policy, service, etc name)
-        
-        tenantDomain = tenantDomain.toLowerCase();
-        providerService = providerService.toLowerCase();
-
-        metric.increment(ZMSConsts.HTTP_REQUEST, tenantDomain);
-        metric.increment(caller, tenantDomain);
-        Object timerMetric = metric.startTiming("gettenancy_timing", tenantDomain);
-        
-        // first verify that we have a valid tenant domain with policies
-        
-        Domain domain = dbService.getDomain(tenantDomain, false);
-        if (domain == null) {
-            throw ZMSUtils.notFoundError("getTenancy: No such tenant domain: " + tenantDomain, caller);
-        }
-
-        // we need to contact the provider to retrieve tenancy details
-        // since we don't know if the provider supports resource groups
-        // and as such the policies we have are for tenant's subdomains
-        // or for tenant's domain with resource groups.
-        
-        String provSvcDomain = providerServiceDomain(providerService);
-        String provSvcName = providerServiceName(providerService);
-        
-        Domain providerDomain = dbService.getDomain(provSvcDomain, false);
-        if (providerDomain == null) {
-            throw ZMSUtils.requestError("getTenancy: No such provider domain: " + provSvcDomain, caller);
-        }
-        
-        // now retrieve our provider service object
-
-        ServiceIdentity service = dbService.getServiceIdentity(provSvcDomain, provSvcName);
-        if (service == null) {
-            throw ZMSUtils.requestError("getTenancy: unable to retrieve service=" + providerService, caller);
-        }
-        
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("getTenancy: serviceIdentity: provider=" + service);
-        }
-        
-        // contact the provider and get the tenant object
-        
-        String url = service.getProviderEndpoint();
-        if (url == null || url.isEmpty()) {
-            throw ZMSUtils.requestError("getTenancy: cannot get tenancy on provider service="
-                    + providerService + " -- not a provider service", caller);
-        }
-        
-        Principal tenantAdmin = ((RsrcCtxWrapper) ctx).principal();
-        Tenant tenant;
-        try {
-            ProviderClient prov = getProviderClient(url, tenantAdmin);
-            tenant = prov.getTenant(provSvcName, tenantDomain);
-        } catch (com.yahoo.athenz.provider.ResourceException ex) {
-            LOG.error("getTenancy: ProviderClient exception code: {} message: {}",
-                    ex.getCode(), ex.getMessage());
-            throw ZMSUtils.error(ex.getCode(), ex.getMessage(), caller);
-        }
-        
-        if (tenant == null) {
-            throw ZMSUtils.notFoundError("getTenancy: Provider reports no such tenant: " + tenantDomain, caller);
-        }
-        
-        if (LOG.isInfoEnabled()) {
-            LOG.info("getTenancy: ---- result of provider.getTenant: " + tenant);
-        }
-        
-        // now we are going to verify to make sure that both tenant
-        // and provider domains have the appropriate policies. however we
-        // are not going to reject any requests because of missing policies
-        // and instead for resource group support we'll just not report
-        // the resource group as a valid provisioned one.
-        
-        Tenancy tenancy = new Tenancy();
-        tenancy.setDomain(tenantDomain).setService(providerService);
-        List<String> resourceGroups = tenant.getResourceGroups();
-        if (resourceGroups != null) {
-            List<String> tenantPolicies = dbService.listPolicies(tenantDomain);
-            Set<String> providerPolicies = new HashSet<>(dbService.listPolicies(provSvcDomain));
-            List<String> tenancyResouceGroups = new ArrayList<>();
-            for (String resourceGroup : resourceGroups) {
-                if (!verifyTenancyPolicies(tenantDomain, tenantPolicies, providerPolicies,
-                        provSvcDomain, provSvcName, resourceGroup)) {
-                    if (LOG.isInfoEnabled()) {
-                        LOG.info("getTenancy: Invalid Resource Group: " + resourceGroup
-                                + " for tenant: " + tenantDomain);
-                    }
-                } else {
-                    tenancyResouceGroups.add(resourceGroup);
-                }
-            }
-            tenancy.setResourceGroups(tenancyResouceGroups);
-        }
-
-        metric.stopTiming(timerMetric);
-        return tenancy;
     }
     
     public Tenancy deleteTenancy(ResourceContext ctx, String tenantDomain, String provider, String auditRef) {
@@ -4897,70 +4546,27 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         String authorizedService = ((RsrcCtxWrapper) ctx).principal().getAuthorizedService();
         verifyAuthorizedServiceOperation(authorizedService, caller);
-        
-        // for delete tenant operation we're going to go through the steps of
-        // lookup up provider's service object and make sure it has an endpoint
-        // configured and we can talk to it and request the tenant to be deleted
-        // if any of these operations fail, we're not going to reject the request
-        // but rather continue on and do the local cleanup. However, at the end
-        // we're going to return an exception with an error message stating exactly
-        // what failed so the administrator can go ahead and contact the provider
-        // manually, if necessary, to complete the delete tenancy process
 
-        String errorMessage = null;
-
-        // before local clean-up, we're going to contact the provider at their
-        // configured endpoint and request the tenant to be deleted. We need
-        // to do this before the local cleanup in ZMS because provider rdl
-        // has an authorize statement to validate that the specified domain
-        // is a valid tenant for the given provider.
+        // make sure we have a valid provider service
         
         String provSvcDomain = providerServiceDomain(provider);
         String provSvcName   = providerServiceName(provider);
+
+        ServiceIdentity ent = dbService.getServiceIdentity(provSvcDomain, provSvcName);
+        if (ent == null) {
+            throw ZMSUtils.requestError("Unable to retrieve service: " + provider, caller);
+        }
 
         // we are going to allow the authorize service token owner to call
         // delete tenancy on its own service without configuring a controller
         // end point
         
         boolean authzServiceTokenOperation = isAuthorizedProviderService(authorizedService,
-            provSvcDomain, provSvcName, tenantDomain);
-        
-        // if this is an authorized service token operation there is no
-        // need to go through the provider check since the provider
-        // already handled that part
+            provSvcDomain, provSvcName);
         
         if (authzServiceTokenOperation) {
-
             dbService.executeDeleteTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain, null,
                 auditRef, caller);
-            
-        } else {
-            
-            ServiceIdentity provSvcId = dbService.getServiceIdentity(provSvcDomain, provSvcName);
-            if (provSvcId == null) {
-                errorMessage = "service does not exist";
-            } else {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("provider serviceIdentity(" + provSvcId + ")");
-                }
-                
-                String url = provSvcId.getProviderEndpoint();
-                if (url == null || url.isEmpty()) {
-                    errorMessage = "service does not have endpoint configured";
-                } else {
-                    if (LOG.isInfoEnabled()) {
-                    LOG.info("Tenant will contact provider at endpoint: " + url);
-                    }
-                    
-                    try {
-                        Principal tenantAdmin = ((RsrcCtxWrapper) ctx).principal();
-                        ProviderClient prov = getProviderClient(url, tenantAdmin);
-                        prov.deleteTenant(provSvcName, tenantDomain, auditRef);
-                    } catch (Exception exc) {
-                        errorMessage = "failed to delete tenant. Error: " + exc.getMessage();
-                    }
-                }
-            }
         }
 
         // now clean-up local domain roles and policies for this tenant
@@ -4969,168 +4575,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 null, auditRef, caller);
 
         metric.stopTiming(timerMetric);
-        
-        // so if we have an error message then we're going to throw an exception
-        // otherwise the operation was completed successfully
-        
-        if (errorMessage != null) {
-            final String tenantCleanupMsg = "deleteTenancy: Tenant cleanup in(" + tenantDomain + "): ";
-            throw ZMSUtils.requestError(tenantCleanupMsg + "completed successfully. However, there "
-                + "was an error when contacting the Provider Service: " + provider + ":"
-                + errorMessage + ". Please contact the Provider administrator directly "
-                + "to complete this delete tenancy request", caller);
-        }
-        
         return null;
-    }
-    
-    public TenancyResourceGroup deleteTenancyResourceGroup(ResourceContext ctx, String tenantDomain,
-            String provider, String resourceGroup, String auditRef) {
-        
-        final String caller = "deletetenancyresourcegroup";
-        metric.increment(ZMSConsts.HTTP_DELETE);
-        logPrincipal(ctx);
-
-        if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
-        }
-
-        validateRequest(ctx.request(), caller);
-
-        validate(tenantDomain, TYPE_DOMAIN_NAME, caller);
-        validate(provider, TYPE_SERVICE_NAME, caller); // fully qualified provider's service name
-        validate(resourceGroup, TYPE_COMPOUND_NAME, caller);
-        
-        // for consistent handling of all requests, we're going to convert
-        // all incoming object values into lower case (e.g. domain, role,
-        // policy, service, etc name)
-        
-        tenantDomain = tenantDomain.toLowerCase();
-        provider = provider.toLowerCase();
-        resourceGroup = resourceGroup.toLowerCase();
-
-        metric.increment(ZMSConsts.HTTP_REQUEST, tenantDomain);
-        metric.increment(caller, tenantDomain);
-        Object timerMetric = metric.startTiming("deletetenancyresourcegroup_timing", tenantDomain);
-
-        // verify that request is properly authenticated for this request
-        
-        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
-        
-        // for delete tenant resource group operation we're going to go through
-        // the steps of lookup up provider's service object and make sure it has
-        // an endpoint configured and we can talk to it and request the tenant
-        // resource group to be deleted. if any of these operations fail, we're not
-        // going to reject the request but rather continue on and do the local cleanup.
-        // However, at the end we're going to return an exception with an error message
-        // stating exactly what failed so the administrator can go ahead and contact
-        // the provider manually, if necessary, to complete the delete tenancy
-        // resource group process
-
-        String errorMessage = null;
-        
-        // before local clean-up, we're going to contact the provider at their
-        // configured endpoint and request the tenant resource group to be deleted.
-        
-        String provSvcDomain = providerServiceDomain(provider);
-        String provSvcName   = providerServiceName(provider);
-
-        ServiceIdentity provSvcId = dbService.getServiceIdentity(provSvcDomain, provSvcName);
-        if (provSvcId == null) {
-            errorMessage = "service does not exist";
-        } else {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("provider serviceIdentity(" + provSvcId + ")");
-            }
-
-            String url = provSvcId.getProviderEndpoint();
-            if (url == null) {
-                errorMessage = "service does not have endpoint configured";
-            } else {
-                if (LOG.isInfoEnabled()) {
-                    LOG.info("Tenant will contact provider at endpoint: " + url);
-                }
-
-                try {
-                    Principal tenantAdmin = ((RsrcCtxWrapper) ctx).principal();
-                    ProviderClient prov = getProviderClient(url, tenantAdmin);
-                    prov.deleteTenantResourceGroup(provSvcName, tenantDomain, resourceGroup, auditRef);
-                } catch (Exception exc) {
-                    errorMessage = "failed to delete tenant resource group. Error: " + exc.getMessage();
-                }
-            }
-        }
-
-        // now clean-up local domain roles and policies for this tenant
-        
-        dbService.executeDeleteTenancy(ctx, tenantDomain, provSvcDomain, provSvcName,
-                resourceGroup, auditRef, caller);
-
-        metric.stopTiming(timerMetric);
-        
-        // so if we have an error message then we're going to throw an exception
-        // otherwise the operation was completed successfully
-        
-        if (errorMessage != null) {
-            final String tenantCleanupMsg = "Tenant cleanup in(" + tenantDomain + "): ";
-            throw ZMSUtils.requestError(tenantCleanupMsg + "completed successfully. However, there "
-                + "was an error when contacting the Provider Service: " + provider + ":"
-                + errorMessage + ". Please contact the Provider administrator directly "
-                + "to complete this delete tenancy resource group request", caller);
-        }
-
-        return null;
-    }
-
-    public TenantRoles putTenantRoles(ResourceContext ctx, String provSvcDomain, String provSvcName,
-            String tenantDomain, String auditRef, TenantRoles detail) {
-             
-        final String caller = "puttenantroles";
-        metric.increment(ZMSConsts.HTTP_PUT);
-        logPrincipal(ctx);
-
-        if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
-        }
-        
-        validateRequest(ctx.request(), caller);
-
-        validate(provSvcDomain, TYPE_DOMAIN_NAME, caller);
-        validate(provSvcName, TYPE_SIMPLE_NAME, caller); //not including the domain, this is the domain's service
-        validate(tenantDomain, TYPE_DOMAIN_NAME, caller);
-        validate(detail, TYPE_TENANT_ROLES, caller);
-
-        // for consistent handling of all requests, we're going to convert
-        // all incoming object values into lower case (e.g. domain, role,
-        // policy, service, etc name)
-        
-        provSvcDomain = provSvcDomain.toLowerCase();
-        provSvcName = provSvcName.toLowerCase();
-        tenantDomain = tenantDomain.toLowerCase();
-        AthenzObject.TENANT_ROLES.convertToLowerCase(detail);
-
-        metric.increment(ZMSConsts.HTTP_REQUEST, provSvcDomain);
-        metric.increment(caller, provSvcDomain);
-        Object timerMetric = metric.startTiming("puttenantroles_timing", provSvcDomain);
-
-        // verify that request is properly authenticated for this request
-        
-        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
-        
-        if (LOG.isInfoEnabled()) {
-            LOG.info("putTenantRoles: ==== putTenantRoles(domain=" + provSvcDomain + ", service=" +
-            provSvcName + ", tenant-domain=" + tenantDomain + ", detail=" + detail + ")");
-        }
-        
-        List<TenantRoleAction> roles = detail.getRoles();
-        if (roles == null || roles.size() == 0) {
-            throw ZMSUtils.requestError("putTenantRoles: must include at least one role", caller);
-        }
-        
-        dbService.executePutTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain, null,
-            roles, auditRef, caller);
-        metric.stopTiming(timerMetric);
-        return detail;
     }
      
     // put the trust roles into provider domain
@@ -5519,8 +4964,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // provider side as well thus complete the tenancy delete process
         
         String authorizedService = ((RsrcCtxWrapper) ctx).principal().getAuthorizedService();
-        if (isAuthorizedProviderService(authorizedService, provSvcDomain, provSvcName,
-            tenantDomain)) {
+        if (isAuthorizedProviderService(authorizedService, provSvcDomain, provSvcName)) {
          
             dbService.executeDeleteTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain,
                 resourceGroup, auditRef, caller);
@@ -5595,7 +5039,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
      
     boolean isAuthorizedProviderService(String authorizedService, String provSvcDomain,
-             String provSvcName, String tenantDomain) {
+             String provSvcName) {
         
          // make sure we have a service provided and it matches to our provider
          
@@ -5610,7 +5054,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
          // verify that provider service does indeed have access to provision
          // its own tenants. the authorize statement for the putTenantRole
          // command is defined in the RDL as:
-         // authorize ("UPDATE", "{domain}:tenant.{tenantDomain}");
+         // authorize ("UPDATE", "{domain}:tenant.{service}");
 
          AthenzDomain domain = getAthenzDomain(provSvcDomain, true);
          if (domain == null) {
@@ -5620,7 +5064,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
          // evaluate our domain's roles and policies to see if access
          // is allowed or not for the given operation and resource
          
-         String resource = provSvcDomain + ":tenant." + tenantDomain;
+         String resource = provSvcDomain + ":tenant." + provSvcName;
          AccessStatus accessStatus = evaluateAccess(domain, authorizedService, "update",
                  resource, null, null);
 
@@ -5703,8 +5147,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // provider side as well thus complete the tenancy on-boarding process
         
         String authorizedService = ((RsrcCtxWrapper) ctx).principal().getAuthorizedService();
-        if (isAuthorizedProviderService(authorizedService, provSvcDomain, provSvcName,
-            tenantDomain)) {
+        if (isAuthorizedProviderService(authorizedService, provSvcDomain, provSvcName)) {
             
             dbService.executePutTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain,
                     resourceGroup, roleActions, auditRef, caller);
@@ -5737,66 +5180,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         
         return "";
-    }
-
-    public TenantRoles getTenantRoles(ResourceContext ctx, String provSvcDomain, String provSvcName,
-            String tenantDomain) {
-        
-        final String caller = "gettenantroles";
-        metric.increment(ZMSConsts.HTTP_GET);
-        logPrincipal(ctx);
-
-        validateRequest(ctx.request(), caller);
-        validate(provSvcDomain, TYPE_DOMAIN_NAME, caller);
-        validate(provSvcName, TYPE_SIMPLE_NAME, caller); // not including the domain, this is the domain's service type
-        validate(tenantDomain, TYPE_DOMAIN_NAME, caller);
-        
-        // for consistent handling of all requests, we're going to convert
-        // all incoming object values into lower case (e.g. domain, role,
-        // policy, service, etc name)
-        
-        provSvcDomain = provSvcDomain.toLowerCase();
-        provSvcName = provSvcName.toLowerCase();
-        tenantDomain = tenantDomain.toLowerCase();
-
-        metric.increment(ZMSConsts.HTTP_REQUEST, provSvcDomain);
-        metric.increment(caller, provSvcDomain);
-        Object timerMetric = metric.startTiming("gettenantroles_timing", provSvcDomain);
-        
-        // look for this tenants roles, ex: storage.tenant.sports.reader
-        String rolePrefix = ZMSUtils.getTenantResourceGroupRolePrefix(provSvcName, tenantDomain, null);
-        TenantRoles troles = new TenantRoles().setDomain(provSvcDomain).setService(provSvcName)
-                .setTenant(tenantDomain);
-
-        Domain domain = dbService.getDomain(provSvcDomain, false);
-        if (domain == null) {
-            throw ZMSUtils.notFoundError("getTenantRoles: No such domain: " + provSvcDomain, caller);
-        }
-
-        List<TenantRoleAction> tralist = new ArrayList<>();
-        
-        // find roles matching the prefix
-        List<String> rcollection = dbService.listRoles(provSvcDomain);
-        for (String rname: rcollection) {
-            if (dbService.isTrustRoleForTenant(provSvcDomain, rname, rolePrefix, null, tenantDomain)) {
-                // good, its exactly what we are looking for, but
-                // now we want the ACTION that was set in the provider
-                
-                String action = getProviderRoleAction(provSvcDomain, rname);
-                
-                // for the role name we must return the SimpleName
-                // part only so we'll remove the prefix section
-                
-                TenantRoleAction tra = new TenantRoleAction()
-                        .setRole(rname.substring(rolePrefix.length()))
-                        .setAction(action);
-                tralist.add(tra);
-            }
-        }
-        troles.setRoles(tralist);
-
-        metric.stopTiming(timerMetric);
-        return troles;
     }
     
     public TenantResourceGroupRoles getTenantResourceGroupRoles(ResourceContext ctx, String provSvcDomain,
@@ -5862,45 +5245,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         metric.stopTiming(timerMetric);
         return troles;
-    }
-    
-    public TenantRoles deleteTenantRoles(ResourceContext ctx, String provSvcDomain, String provSvcName,
-            String tenantDomain, String auditRef) {
-        
-        final String caller = "deletetenantroles";
-        metric.increment(ZMSConsts.HTTP_DELETE);
-        logPrincipal(ctx);
-
-        if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
-        }
-
-        validateRequest(ctx.request(), caller);
-
-        validate(provSvcDomain, TYPE_DOMAIN_NAME, caller);
-        validate(provSvcName, TYPE_SIMPLE_NAME, caller); // not including the domain, this is the domain's service type
-        validate(tenantDomain, TYPE_DOMAIN_NAME, caller);
-        
-        // for consistent handling of all requests, we're going to convert
-        // all incoming object values into lower case (e.g. domain, role,
-        // policy, service, etc name)
-        
-        provSvcDomain = provSvcDomain.toLowerCase();
-        provSvcName = provSvcName.toLowerCase();
-        tenantDomain = tenantDomain.toLowerCase();
-
-        metric.increment(ZMSConsts.HTTP_REQUEST, provSvcDomain);
-        metric.increment(caller, provSvcDomain);
-        Object timerMetric = metric.startTiming("deletetenantroles_timing", provSvcDomain);
-
-        // verify that request is properly authenticated for this request
-        
-        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
-        
-        dbService.executeDeleteTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain,
-                null, auditRef, caller);
-        metric.stopTiming(timerMetric);
-        return null;
     }
 
     public TenantResourceGroupRoles deleteTenantResourceGroupRoles(ResourceContext ctx, String provSvcDomain,

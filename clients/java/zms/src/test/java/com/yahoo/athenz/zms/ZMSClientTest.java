@@ -874,33 +874,6 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testPutTenancyResourceGroup() {
-        ZMSClient client = createClient(systemAdminUser);
-        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
-        client.setZMSRDLGeneratedClient(c);
-        TenancyResourceGroup trg = new TenancyResourceGroup().setDomain("test.domain").setService("test-service")
-                .setResourceGroup("test.group");
-        try {
-            Mockito.when(
-                    c.putTenancyResourceGroup("TenantDom1", "DelTenantRolesDom1", "ResourceGroup1", AUDIT_REF, trg))
-                    .thenThrow(new NullPointerException());
-            client.putTenancyResourceGroup("TenantDom1", "DelTenantRolesDom1", "ResourceGroup1", AUDIT_REF, trg);
-            fail();
-        } catch (ResourceException ex) {
-            assertTrue(true);
-        }
-        try {
-            Mockito.when(
-                    c.putTenancyResourceGroup("TenantDom2", "DelTenantRolesDom1", "ResourceGroup1", AUDIT_REF, trg))
-                    .thenThrow(new ResourceException(400));
-            client.putTenancyResourceGroup("TenantDom2", "DelTenantRolesDom1", "ResourceGroup1", AUDIT_REF, trg);
-            fail();
-        } catch (ResourceException ex) {
-            assertTrue(true);
-        }
-    }
-
-    @Test
     public void testPutTenantResourceGroupRoles() {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
@@ -943,29 +916,6 @@ public class ZMSClientTest {
             Mockito.when(c.getTenantResourceGroupRoles("ProvidorDomain2", "ProvidorService1", "TenantDom1",
                     "ResourceGroup1")).thenThrow(new ResourceException(400));
             client.getTenantResourceGroupRoles("ProvidorDomain2", "ProvidorService1", "TenantDom1", "ResourceGroup1");
-            fail();
-        } catch (ResourceException ex) {
-            assertTrue(true);
-        }
-    }
-
-    @Test
-    public void testDeleteTenancyResourceGroup() {
-        ZMSClient client = createClient(systemAdminUser);
-        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
-        client.setZMSRDLGeneratedClient(c);
-        try {
-            Mockito.when(c.deleteTenancyResourceGroup("TenantDom1", "DelTenantRolesDom1", "ResourceGroup1", AUDIT_REF))
-                    .thenThrow(new NullPointerException());
-            client.deleteTenancyResourceGroup("TenantDom1", "DelTenantRolesDom1", "ResourceGroup1", AUDIT_REF);
-            fail();
-        } catch (ResourceException ex) {
-            assertTrue(true);
-        }
-        try {
-            Mockito.when(c.deleteTenancyResourceGroup("TenantDom2", "DelTenantRolesDom1", "ResourceGroup1", AUDIT_REF))
-                    .thenThrow(new ResourceException(400));
-            client.deleteTenancyResourceGroup("TenantDom2", "DelTenantRolesDom1", "ResourceGroup1", AUDIT_REF);
             fail();
         } catch (ResourceException ex) {
             assertTrue(true);
@@ -1561,29 +1511,6 @@ public class ZMSClientTest {
             assertTrue(true);
         }
     }
-    
-    @Test
-    public void testGetTenancy() {
-        ZMSClient client = createClient(systemAdminUser);
-        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
-        client.setZMSRDLGeneratedClient(c);
-        Tenancy tenancyMock = Mockito.mock(Tenancy.class);
-        Mockito.when(c.getTenancy("tenantDom1", "providerService1")).thenReturn(tenancyMock).thenThrow(new ZMSClientException(400,"Audit reference required"));
-        client.getTenancy("tenantDom1", "providerService1");
-        try {
-            client.getTenancy("tenantDom1", "providerService1");
-            fail();
-        } catch (ZMSClientException ex) {
-            assertTrue(true);
-        }
-        try {
-            Mockito.when(c.getTenancy("tenantDom2", "providerService1")).thenThrow(new NullPointerException());
-            client.getTenancy("tenantDom2", "providerService1");
-            fail();
-        } catch (ResourceException ex) {
-            assertTrue(true);
-        }
-    }
 
     @Test
     public void testDeleteTenancy() {
@@ -1605,77 +1532,6 @@ public class ZMSClientTest {
             client.deleteTenancy("tenantDom2", "providerService1", AUDIT_REF);
             fail();
         } catch (ResourceException ex) {
-            assertTrue(true);
-        }
-    }
-
-    @Test
-    public void testPutTenantRoles() {
-        ZMSClient client = createClient(systemAdminUser);
-        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
-        client.setZMSRDLGeneratedClient(c);
-        TenantRoles tenantRoleMock = Mockito.mock(TenantRoles.class);
-        List<TenantRoleAction> roleActions = new ArrayList<>();
-        for (Struct.Field f : TABLE_PROVIDER_ROLE_ACTIONS) {
-            roleActions.add(new TenantRoleAction().setRole(f.name())
-                    .setAction((String) f.value()));
-        }
-        TenantRoles tenantRoles = new TenantRoles().setDomain("ProviderDomain1").setService("storage").setTenant("TenantDomain1").setRoles(roleActions);
-        Mockito.when(c.putTenantRoles("ProviderDomain1", "ProviderService1", "TenantDomain1", AUDIT_REF, tenantRoles)).thenReturn(tenantRoleMock).thenThrow(new ZMSClientException(400,"Audit reference required"));
-        client.putTenantRoles("ProviderDomain1", "ProviderService1", "TenantDomain1", AUDIT_REF, tenantRoles);
-        try {
-            client.putTenantRoles("ProviderDomain1", "ProviderService1", "TenantDomain1", AUDIT_REF, tenantRoles);
-            fail();
-        } catch (ZMSClientException ex) {
-            assertTrue(true);
-        }
-        try {
-            Mockito.when(
-                    c.putTenantRoles("ProviderDomain2", "ProviderService1", "TenantDomain1", AUDIT_REF, tenantRoles))
-                    .thenThrow(new NullPointerException());
-            client.putTenantRoles("ProviderDomain2", "ProviderService1", "TenantDomain1", AUDIT_REF, tenantRoles);
-            fail();
-        } catch (ResourceException ex) {
-            assertTrue(true);
-        }
-    }
-
-    @Test
-    public void testGetTenantRoles() {
-        ZMSClient client = createClient(systemAdminUser);
-        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
-        client.setZMSRDLGeneratedClient(c);
-        TenantRoles tenantRoleMock = Mockito.mock(TenantRoles.class);
-        Mockito.when(c.getTenantRoles("ProviderDomain1", "ProviderService1", "TenantDomain1")).thenReturn(tenantRoleMock).thenThrow(new ZMSClientException(400,"Audit reference required"));
-        client.getTenantRoles("ProviderDomain1", "ProviderService1", "TenantDomain1");
-        try {
-            client.getTenantRoles("ProviderDomain1", "ProviderService1", "TenantDomain1");
-            fail();
-        } catch (ZMSClientException ex) {
-            assertTrue(true);
-        }
-        try {
-            Mockito.when(c.getTenantRoles("ProviderDomain2", "ProviderService1", "TenantDomain1"))
-                    .thenThrow(new NullPointerException());
-            client.getTenantRoles("ProviderDomain2", "ProviderService1", "TenantDomain1");
-            fail();
-        } catch (ResourceException ex) {
-            assertTrue(true);
-        }
-    }
-
-    @Test
-    public void testDeleteTenantRoles() {
-        ZMSClient client = createClient(systemAdminUser);
-        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
-        client.setZMSRDLGeneratedClient(c);
-        TenantRoles tenantRoleMock = Mockito.mock(TenantRoles.class);
-        Mockito.when(c.deleteTenantRoles("ProviderDomain1", "ProviderService1", "TenantDomain1", AUDIT_REF)).thenReturn(tenantRoleMock).thenThrow(new ZMSClientException(400,"Audit reference required"));
-        client.deleteTenantRoles("ProviderDomain1", "ProviderService1", "TenantDomain1", AUDIT_REF);
-        try {
-            client.deleteTenantRoles("ProviderDomain1", "ProviderService1", "TenantDomain1", AUDIT_REF);
-            fail();
-        } catch (ZMSClientException ex) {
             assertTrue(true);
         }
     }
