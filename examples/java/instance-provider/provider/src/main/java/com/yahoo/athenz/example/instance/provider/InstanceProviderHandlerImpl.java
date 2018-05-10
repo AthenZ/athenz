@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.instance.provider;
+package com.yahoo.athenz.example.instance.provider;
 
 import java.io.File;
 import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.rdl.JSON;
 
@@ -36,7 +38,8 @@ public class InstanceProviderHandlerImpl implements InstanceProviderHandler {
     private final String PROP_PROVIDER_NAME = "instance.provider_name";
     private final String PROP_PROVIDER_KEY_PATH = "instance.provider_key_path";
     private final String INSTANCE_ID = "instance-id";
-    
+    private final String JAVAX_CERT_ATTR = "javax.servlet.request.X509Certificate";
+
     private String instanceProvider;
     private PrivateKey providerKey;
     
@@ -58,6 +61,21 @@ public class InstanceProviderHandlerImpl implements InstanceProviderHandler {
         
         System.out.println("Processing postInstanceConfirmation...");
         System.out.println(JSON.string(confirmation));
+        
+        // first checkout if we have established mutual tls
+        // with the zts server and output the common name
+        // of the certificate received
+        
+        HttpServletRequest servletRequest = context.request();
+        X509Certificate[] certs = (X509Certificate[]) servletRequest.getAttribute(JAVAX_CERT_ATTR);
+        X509Certificate x509cert = null;
+        if (null != certs && certs.length != 0) {
+            for (X509Certificate cert: certs) {
+                System.out.println("Certificate CN: " + Crypto.extractX509CertCommonName(cert));
+            }
+        } else {
+            System.out.println("No certificates were presented by ZTS Server");
+        }
         
         // our attestation data is jws so we're going to validate
         // the signature first to make sure that it was signed by us
