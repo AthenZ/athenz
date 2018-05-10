@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.instance.provider;
+package com.yahoo.athenz.example.instance.provider;
 
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.server.HttpConfiguration;
@@ -71,7 +71,7 @@ public class InstanceProviderContainer {
         }
         sslContextFactory.setTrustStoreType(trustStoreType);
 
-        sslContextFactory.setWantClientAuth(true);
+        sslContextFactory.setNeedClientAuth(true);
         return sslContextFactory;
     }
     
