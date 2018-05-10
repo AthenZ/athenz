@@ -20,13 +20,13 @@ import java.util.Map;
 import com.yahoo.rdl.*;
 
 public class InstanceConfirmation {
-    public String provider;
-    public String domain;
-    public String service;
-    public String attestationData;
+    private String provider;
+    private String domain;
+    private String service;
+    private String attestationData;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    public Map<String, String> attributes;
+    private Map<String, String> attributes;
 
     public InstanceConfirmation setProvider(String provider) {
         this.provider = provider;

@@ -21,18 +21,22 @@ import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.instance.provider.InstanceProviderClient;
 import com.yahoo.athenz.instance.provider.ProviderHostnameVerifier;
 
+import javax.net.ssl.SSLContext;
+
 public class InstanceHttpProvider implements InstanceProvider {
 
     InstanceProviderClient client;
-    public static final String PROP_READ_TIMEOUT     = "athenz.instance.provider.client.read_timeout";
-    public static final String PROP_CONNECT_TIMEOUT  = "athenz.instance.provider.client.connect_timeout";
+    private static final String PROP_READ_TIMEOUT     = "athenz.instance.provider.client.read_timeout";
+    private static final String PROP_CONNECT_TIMEOUT  = "athenz.instance.provider.client.connect_timeout";
 
     @Override
-    public void initialize(String provider, String providerEndpoint, KeyStore keyStore) {
+    public void initialize(String provider, String providerEndpoint, SSLContext sslContext,
+            KeyStore keyStore) {
+
         ProviderHostnameVerifier hostnameVerifier = new ProviderHostnameVerifier(provider);
         int readTimeout = Integer.parseInt(System.getProperty(PROP_READ_TIMEOUT, "30000"));
         int connectTimeout = Integer.parseInt(System.getProperty(PROP_CONNECT_TIMEOUT, "30000"));
-        client = new InstanceProviderClient(providerEndpoint, hostnameVerifier,
+        client = new InstanceProviderClient(providerEndpoint, sslContext, hostnameVerifier,
                 connectTimeout, readTimeout);
     }
 

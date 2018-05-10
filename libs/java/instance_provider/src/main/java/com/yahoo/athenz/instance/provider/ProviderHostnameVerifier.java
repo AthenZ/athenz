@@ -26,7 +26,7 @@ import com.yahoo.athenz.auth.util.Crypto;
 
 public class ProviderHostnameVerifier implements HostnameVerifier {
 
-    final String serviceName;
+    final private String serviceName;
     
     public ProviderHostnameVerifier(String serviceName) {
         this.serviceName = serviceName;

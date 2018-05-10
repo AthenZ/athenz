@@ -15,28 +15,39 @@
  */
 package com.yahoo.athenz.instance.provider;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.HostnameVerifier;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
-
-import javax.net.ssl.HostnameVerifier;
+import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 
 public class InstanceProviderClient {
-    Client client;
-    WebTarget base;
+    private final Client client;
+    private WebTarget base;
 
-    public InstanceProviderClient(String url, HostnameVerifier hostnameVerifier,
-            int connectTimeout, int readTimeout) {
+    public InstanceProviderClient(String url, SSLContext sslContext,
+            HostnameVerifier hostnameVerifier, int connectTimeout, int readTimeout) {
 
-        client = ClientBuilder.newBuilder()
-            .hostnameVerifier(hostnameVerifier)
-            .property(ClientProperties.CONNECT_TIMEOUT, connectTimeout)
-            .property(ClientProperties.READ_TIMEOUT, readTimeout)
-            .build();
+        final ClientConfig config = new ClientConfig()
+                .property(ClientProperties.CONNECT_TIMEOUT, connectTimeout)
+                .property(ClientProperties.READ_TIMEOUT, readTimeout)
+                .connectorProvider(new ApacheConnectorProvider());
+
+        ClientBuilder builder = ClientBuilder.newBuilder();
+        if (sslContext != null) {
+            builder = builder.sslContext(sslContext);
+        }
+
+        client = builder.hostnameVerifier(hostnameVerifier)
+                .withConfig(config)
+                .build();
         base = client.target(url);
     }
 
@@ -44,31 +55,35 @@ public class InstanceProviderClient {
         client.close();
     }
 
+    void setBase(WebTarget base) {
+        this.base = base;
+    }
+
     public InstanceConfirmation postInstanceConfirmation(InstanceConfirmation confirmation) {
         WebTarget target = base.path("/instance");
-        Invocation.Builder invocationBuilder = target.request("application/json");
+        Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
         Response response = invocationBuilder.post(
-                javax.ws.rs.client.Entity.entity(confirmation, "application/json"));
+                javax.ws.rs.client.Entity.entity(confirmation, MediaType.APPLICATION_JSON));
         int code = response.getStatus();
         switch (code) {
-        case 200:
-            return response.readEntity(InstanceConfirmation.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+            case 200:
+                return response.readEntity(InstanceConfirmation.class);
+            default:
+                throw new ResourceException(code, response.readEntity(ResourceError.class));
         }
     }
 
     public InstanceConfirmation postRefreshConfirmation(InstanceConfirmation confirmation) {
         WebTarget target = base.path("/refresh");
-        Invocation.Builder invocationBuilder = target.request("application/json");
+        Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
         Response response = invocationBuilder.post(
-                javax.ws.rs.client.Entity.entity(confirmation, "application/json"));
+                javax.ws.rs.client.Entity.entity(confirmation, MediaType.APPLICATION_JSON));
         int code = response.getStatus();
         switch (code) {
-        case 200:
-            return response.readEntity(InstanceConfirmation.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+            case 200:
+                return response.readEntity(InstanceConfirmation.class);
+            default:
+                throw new ResourceException(code, response.readEntity(ResourceError.class));
         }
     }
 }

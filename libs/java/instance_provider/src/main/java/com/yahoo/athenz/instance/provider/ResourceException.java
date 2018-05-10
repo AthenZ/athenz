@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.instance.provider;
 
+@SuppressWarnings("WeakerAccess")
 public class ResourceException extends RuntimeException {
     public final static int OK = 200;
     public final static int CREATED = 201;
@@ -71,8 +72,8 @@ public class ResourceException extends RuntimeException {
         }
     }
 
-    int code;
-    Object data;
+    final int code;
+    final Object data;
 
     public ResourceException(int code) {
         this(code, new ResourceError().code(code).message(codeToString(code)));

@@ -41,35 +41,39 @@ import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
 
+import javax.net.ssl.*;
+
 public class InstanceAWSProvider implements InstanceProvider {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceAWSProvider.class);
-    
-    public static final String ATTR_ACCOUNT_ID   = "accountId";
-    public static final String ATTR_REGION       = "region";
-    public static final String ATTR_PENDING_TIME = "pendingTime";
-    public static final String ATTR_INSTANCE_ID  = "instanceId";
-    
-    public static final String ZTS_CERT_USAGE            = "certUsage";
-    public static final String ZTS_CERT_USAGE_CLIENT     = "client";
-    public static final String ZTS_CERT_INSTANCE_ID      = ".instanceid.athenz.";
 
-    public static final String ZTS_INSTANCE_SAN_DNS      = "sanDNS";
-    public static final String ZTS_INSTANCE_AWS_ACCOUNT  = "cloudAccount";
-    
-    public static final String AWS_PROP_PUBLIC_CERT      = "athenz.zts.aws_public_cert";
-    public static final String AWS_PROP_BOOT_TIME_OFFSET = "athenz.zts.aws_boot_time_offset";
-    public static final String AWS_PROP_DNS_SUFFIX       = "athenz.zts.aws_dns_suffix";
-    public static final String AWS_PROP_REGION_NAME      = "athenz.zts.aws_region_name";
+    private static final String ATTR_ACCOUNT_ID   = "accountId";
+    private static final String ATTR_REGION       = "region";
+    private static final String ATTR_PENDING_TIME = "pendingTime";
+
+    static final String ATTR_INSTANCE_ID  = "instanceId";
+
+    static final String ZTS_CERT_USAGE            = "certUsage";
+    static final String ZTS_CERT_USAGE_CLIENT     = "client";
+
+    private static final String ZTS_CERT_INSTANCE_ID      = ".instanceid.athenz.";
+    private static final String ZTS_INSTANCE_SAN_DNS      = "sanDNS";
+    private static final String ZTS_INSTANCE_AWS_ACCOUNT  = "cloudAccount";
+
+    static final String AWS_PROP_PUBLIC_CERT      = "athenz.zts.aws_public_cert";
+    static final String AWS_PROP_BOOT_TIME_OFFSET = "athenz.zts.aws_boot_time_offset";
+    static final String AWS_PROP_DNS_SUFFIX       = "athenz.zts.aws_dns_suffix";
+    static final String AWS_PROP_REGION_NAME      = "athenz.zts.aws_region_name";
 
     PublicKey awsPublicKey = null;      // AWS public key for validating instance documents
     long bootTimeOffset;                // boot time offset in milliseconds
-    String dnsSuffix = null;
     boolean supportRefresh = false;
     String awsRegion;
+    private String dnsSuffix = null;
 
     @Override
-    public void initialize(String provider, String providerEndpoint, KeyStore keyStore) {
+    public void initialize(String provider, String providerEndpoint, SSLContext sslContext,
+            KeyStore keyStore) {
         
         String awsCertFileName = System.getProperty(AWS_PROP_PUBLIC_CERT);
         if (awsCertFileName != null && !awsCertFileName.isEmpty()) {
@@ -104,7 +108,7 @@ public class InstanceAWSProvider implements InstanceProvider {
         return error(ResourceException.FORBIDDEN, message);
     }
     
-    ResourceException error(int errorCode, String message) {
+    private ResourceException error(int errorCode, String message) {
         LOGGER.error(message);
         return new ResourceException(errorCode, message);
     }
@@ -230,7 +234,7 @@ public class InstanceAWSProvider implements InstanceProvider {
         return instanceDocument.getString(ATTR_INSTANCE_ID);
     }
     
-    boolean validateInstanceBootTime(Struct instanceDocument, StringBuilder errMsg) {
+    private boolean validateInstanceBootTime(Struct instanceDocument, StringBuilder errMsg) {
         
         // first check to see if the boot time enforcement is enabled
         
@@ -467,7 +471,7 @@ public class InstanceAWSProvider implements InstanceProvider {
                 .build();
     }
     
-    public boolean verifyInstanceIdentity(AWSAttestationData info, final String awsAccount) {
+    boolean verifyInstanceIdentity(AWSAttestationData info, final String awsAccount) {
         
         GetCallerIdentityRequest req = new GetCallerIdentityRequest();
         
