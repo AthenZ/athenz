@@ -27,9 +27,9 @@ import org.testng.annotations.BeforeClass;
 
 public class AuditLoggerTest {
     
-    protected static AuditLogger auditLogger;
+    private static AuditLogger auditLogger;
     
-    final static String MSGVERS = "VERS=(test);";
+    private final static String MSGVERS = "VERS=(test);";
     
     @BeforeClass
     public static synchronized void setUp() {

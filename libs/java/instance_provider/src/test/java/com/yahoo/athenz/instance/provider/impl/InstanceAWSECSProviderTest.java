@@ -44,7 +44,7 @@ public class InstanceAWSECSProviderTest {
     @Test
     public void testInitializeDefaults() {
         InstanceAWSECSProvider provider = new InstanceAWSECSProvider();
-        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSECSProvider", null);
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSECSProvider", null, null);
         assertNull(provider.awsPublicKey);
         assertEquals(provider.bootTimeOffset, 0);
         provider.close();
@@ -57,7 +57,7 @@ public class InstanceAWSECSProviderTest {
 
         MockInstanceAWSECSProvider provider = new MockInstanceAWSECSProvider();
         System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
-        provider.initialize("athenz.aws-ecs.us-west-2", "com.yahoo.athenz.instance.provider.impl.InstanceAWSECSProvider", null);
+        provider.initialize("athenz.aws-ecs.us-west-2", "com.yahoo.athenz.instance.provider.impl.InstanceAWSECSProvider", null, null);
         
         String bootTime = Timestamp.fromMillis(System.currentTimeMillis() - 1000000).toString();
         AWSAttestationData data = new AWSAttestationData();
@@ -71,7 +71,7 @@ public class InstanceAWSECSProviderTest {
     @Test
     public void testEmptyRefreshAttestationData() {
         InstanceAWSECSProvider provider = new InstanceAWSECSProvider();
-        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSECSProvider", null);
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSECSProvider", null, null);
 
         InstanceConfirmation confirmation = new InstanceConfirmation();
         try {
@@ -93,7 +93,7 @@ public class InstanceAWSECSProviderTest {
     @Test
     public void testGetInstanceId() {
         InstanceAWSECSProvider provider = new InstanceAWSECSProvider();
-        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSECSProvider", null);
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSECSProvider", null, null);
 
         AWSAttestationData data = new AWSAttestationData();
         data.setTaskid("task1234");

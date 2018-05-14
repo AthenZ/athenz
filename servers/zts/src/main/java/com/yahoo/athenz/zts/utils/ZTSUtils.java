@@ -30,6 +30,18 @@ import com.yahoo.athenz.zts.Identity;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.cert.X509CertRecord;
 
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+
+import java.security.KeyStore;
+import java.security.SecureRandom;
+
+import java.io.File;
+import java.io.FileInputStream;
+
 public class ZTSUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZTSUtils.class);
@@ -41,6 +53,18 @@ public class ZTSUtils {
     static final String ZTS_DEFAULT_EXCLUDED_PROTOCOLS = "SSLv2,SSLv3";
     public static final String ZTS_CERT_DNS_SUFFIX =
             System.getProperty(ZTSConsts.ZTS_PROP_CERT_DNS_SUFFIX, ZTSConsts.ZTS_CERT_DNS_SUFFIX);
+
+    private static final String ATHENZ_PROP_KEYSTORE_PASSWORD      = "athenz.ssl_key_store_password";
+    private static final String ATHENZ_PROP_TRUSTSTORE_PASSWORD    = "athenz.ssl_trust_store_password";
+    private static final String ATHENZ_PROP_KEYSTORE_PATH          = "athenz.ssl_key_store";
+    private static final String ATHENZ_PROP_KEYSTORE_TYPE          = "athenz.ssl_key_store_type";
+    private static final String ATHENZ_PROP_TRUSTSTORE_PATH        = "athenz.ssl_trust_store";
+    private static final String ATHENZ_PROP_TRUSTSTORE_TYPE        = "athenz.ssl_trust_store_type";
+
+    private static final String ATHENZ_PROP_KEYSTORE_PASSWORD_APPNAME   = "athenz.ssl_key_store_password_appname";
+    private static final String ATHENZ_PROP_TRUSTSTORE_PASSWORD_APPNAME = "athenz.ssl_trust_store_password_appname";
+
+    private final static char[] EMPTY_PASSWORD = "".toCharArray();
 
     public static int retrieveConfigSetting(String property, int defaultValue) {
         
@@ -301,5 +325,46 @@ public class ZTSUtils {
         }
         
         return new Identity().setName(cn).setCertificate(pemCert);
+    }
+
+    public static SSLContext createServerClientSSLContext(PrivateKeyStore privateKeyStore) {
+
+        final String keyStorePath = System.getProperty(ATHENZ_PROP_KEYSTORE_PATH);
+        final String keyStorePasswordAppName = System.getProperty(ATHENZ_PROP_KEYSTORE_PASSWORD_APPNAME);
+        final String keyStorePassword = System.getProperty(ATHENZ_PROP_KEYSTORE_PASSWORD);
+        final String keyStoreType = System.getProperty(ATHENZ_PROP_KEYSTORE_TYPE, "PKCS12");
+        final String trustStorePath = System.getProperty(ATHENZ_PROP_TRUSTSTORE_PATH);
+        final String trustStorePassword = System.getProperty(ATHENZ_PROP_TRUSTSTORE_PASSWORD);
+        final String trustStorePasswordAppName = System.getProperty(ATHENZ_PROP_TRUSTSTORE_PASSWORD_APPNAME);
+        final String trustStoreType = System.getProperty(ATHENZ_PROP_TRUSTSTORE_TYPE, "PKCS12");
+
+        SSLContext sslcontext = null;
+        try {
+            TrustManagerFactory tmfactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            try (FileInputStream instream = new FileInputStream(new File(trustStorePath))) {
+                KeyStore trustStore = KeyStore.getInstance(trustStoreType);
+                final String password = getApplicationSecret(privateKeyStore, trustStorePasswordAppName, trustStorePassword);
+                trustStore.load(instream, password != null ? password.toCharArray() : EMPTY_PASSWORD);
+                tmfactory.init(trustStore);
+            }
+
+            KeyManagerFactory kmfactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+            try (FileInputStream instream = new FileInputStream(new File(keyStorePath))) {
+                KeyStore keyStore = KeyStore.getInstance(keyStoreType);
+                final String password = getApplicationSecret(privateKeyStore, keyStorePasswordAppName, keyStorePassword);
+                keyStore.load(instream, password != null ? password.toCharArray() : EMPTY_PASSWORD);
+                kmfactory.init(keyStore, password != null ? password.toCharArray() : EMPTY_PASSWORD);
+            }
+
+            KeyManager[] keymanagers = kmfactory.getKeyManagers();
+            TrustManager[] trustmanagers = tmfactory.getTrustManagers();
+
+            sslcontext = SSLContext.getInstance("TLSv1.2");
+            sslcontext.init(keymanagers, trustmanagers, new SecureRandom());
+        } catch (Exception ex) {
+            LOGGER.error("Unable to create server client ssl context", ex);
+        }
+
+        return sslcontext;
     }
 }

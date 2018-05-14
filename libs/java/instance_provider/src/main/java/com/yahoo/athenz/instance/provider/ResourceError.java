@@ -17,8 +17,8 @@ package com.yahoo.athenz.instance.provider;
 
 public class ResourceError {
 
-    public int code;
-    public String message;
+    private int code;
+    private String message;
 
     public ResourceError code(int code) {
         this.code = code;

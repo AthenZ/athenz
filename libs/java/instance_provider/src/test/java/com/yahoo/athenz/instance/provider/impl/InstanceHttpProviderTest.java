@@ -23,13 +23,16 @@ import org.testng.annotations.Test;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProviderClient;
 
+import javax.net.ssl.*;
+import java.security.*;
+
 public class InstanceHttpProviderTest {
 
     @Test
-    public void testInstanceHttpProviderConfirmInstance() {
+    public void testInstanceHttpProviderConfirmInstance() throws NoSuchAlgorithmException {
         
         InstanceHttpProvider provider = new InstanceHttpProvider();
-        provider.initialize("provider", "https://localhost:4443/instance", null);
+        provider.initialize("provider", "https://localhost:4443/instance", SSLContext.getDefault(), null);
         
         InstanceProviderClient client = Mockito.mock(InstanceProviderClient.class);
         provider.client = client;
@@ -49,10 +52,10 @@ public class InstanceHttpProviderTest {
     }
     
     @Test
-    public void testInstanceHttpProviderRefreshInstance() {
+    public void testInstanceHttpProviderRefreshInstance() throws NoSuchAlgorithmException {
         
         InstanceHttpProvider provider = new InstanceHttpProvider();
-        provider.initialize("provider", "https://localhost:4443/instance", null);
+        provider.initialize("provider", "https://localhost:4443/instance", SSLContext.getDefault(), null);
         
         InstanceProviderClient client = Mockito.mock(InstanceProviderClient.class);
         provider.client = client;

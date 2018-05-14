@@ -32,9 +32,9 @@ public class AuditLogMsgBuilderTest {
     private static final String ZMS_USER_DOMAIN = "athenz.user_domain";
     private static final String USER_DOMAIN = System.getProperty(ZMS_USER_DOMAIN, "user");
     
-    static final String TOKEN_STR = "v=U1;d=" + USER_DOMAIN + ";n=roger;h=somehost.somecompany.com;a=666;t=1492;e=2493;s=signature;";
+    private static final String TOKEN_STR = "v=U1;d=" + USER_DOMAIN + ";n=roger;h=somehost.somecompany.com;a=666;t=1492;e=2493;s=signature;";
 
-    DefaultAuditLogMsgBuilder starter(final String whatApi) {
+    private DefaultAuditLogMsgBuilder starter(final String whatApi) {
         AuditLoggerFactory auditLoggerFactory = new DefaultAuditLoggerFactory();
         AuditLogger logger = auditLoggerFactory.create();
         AuditLogMsgBuilder msgBldr = logger.getMsgBuilder();

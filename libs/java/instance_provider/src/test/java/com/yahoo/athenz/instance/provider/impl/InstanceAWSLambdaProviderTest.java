@@ -44,7 +44,7 @@ public class InstanceAWSLambdaProviderTest {
     @Test
     public void testInitializeDefaults() {
         InstanceAWSLambdaProvider provider = new InstanceAWSLambdaProvider();
-        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", null);
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", null, null);
         assertNull(provider.awsPublicKey);
         assertEquals(provider.bootTimeOffset, 300000);
         provider.close();
@@ -56,7 +56,7 @@ public class InstanceAWSLambdaProviderTest {
         InstanceAWSLambdaProvider provider = new InstanceAWSLambdaProvider();
         System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         System.setProperty(InstanceAWSProvider.AWS_PROP_BOOT_TIME_OFFSET, "60");
-        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", null);
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", null, null);
         assertNotNull(provider.awsPublicKey);
         assertEquals(provider.bootTimeOffset, 60000);
         provider.close();
@@ -70,7 +70,7 @@ public class InstanceAWSLambdaProviderTest {
         System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "athenz.cloud");
         MockInstanceAWSLambdaProvider provider = new MockInstanceAWSLambdaProvider();
         System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
-        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", null);
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", null, null);
         
         InstanceConfirmation confirmation = new InstanceConfirmation()
                 .setAttestationData("{\"document\": \"\",\"signature\": \"signature\",\"role\": \"athenz.service\"}")
@@ -92,7 +92,7 @@ public class InstanceAWSLambdaProviderTest {
         System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "athenz.cloud");
         MockInstanceAWSLambdaProvider provider = new MockInstanceAWSLambdaProvider();
         System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
-        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", null);
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", null, null);
         
         InstanceConfirmation confirmation = new InstanceConfirmation()
                 .setAttestationData("{\"signature\": \"signature\",\"role\": \"athenz.service\"}")
@@ -112,7 +112,7 @@ public class InstanceAWSLambdaProviderTest {
     public void testValidateCertRequestHostnamesNullSuffix() {
         System.clearProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX);
         InstanceAWSLambdaProvider provider = new InstanceAWSLambdaProvider();
-        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", null);
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", null, null);
 
         assertFalse(provider.validateCertRequestHostnames(null,  null,  null,  null));
         provider.close();
@@ -122,7 +122,7 @@ public class InstanceAWSLambdaProviderTest {
     public void testValidateCertRequestHostnamesEmptySuffix() {
         System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "");
         InstanceAWSLambdaProvider provider = new InstanceAWSLambdaProvider();
-        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", null);
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", null, null);
 
         assertFalse(provider.validateCertRequestHostnames(null,  null,  null,  null));
         provider.close();
@@ -131,7 +131,7 @@ public class InstanceAWSLambdaProviderTest {
     @Test
     public void testValidateCertRequestHostnamesNullHostnames() {
         InstanceAWSLambdaProvider provider = new InstanceAWSLambdaProvider();
-        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", null);
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", null, null);
         
         HashMap<String, String> attributes = new HashMap<>();
         StringBuilder id = new StringBuilder(256);
@@ -142,7 +142,7 @@ public class InstanceAWSLambdaProviderTest {
     @Test
     public void testValidateCertRequestHostnamesEmptyHostnames() {
         InstanceAWSLambdaProvider provider = new InstanceAWSLambdaProvider();
-        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", null);
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", null, null);
         
         HashMap<String, String> attributes = new HashMap<>();
         attributes.put("sanDNS", "");
@@ -154,7 +154,7 @@ public class InstanceAWSLambdaProviderTest {
     @Test
     public void testValidateCertRequestHostnamesInvalidHost() {
         InstanceAWSLambdaProvider provider = new InstanceAWSLambdaProvider();
-        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", null);
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", null, null);
         
         HashMap<String, String> attributes = new HashMap<>();
         attributes.put("sanDNS", "storage.athenz.athenz.cloud");
@@ -167,7 +167,7 @@ public class InstanceAWSLambdaProviderTest {
     @Test
     public void testValidateCertRequestHostnames() {
         InstanceAWSLambdaProvider provider = new InstanceAWSLambdaProvider();
-        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", null);
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", null, null);
         
         HashMap<String, String> attributes = new HashMap<>();
         attributes.put("sanDNS", "api.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
@@ -179,7 +179,7 @@ public class InstanceAWSLambdaProviderTest {
     @Test
     public void testValidateCertRequestHostnamesSubdomain() {
         InstanceAWSLambdaProvider provider = new InstanceAWSLambdaProvider();
-        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", null);
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", null, null);
         
         HashMap<String, String> attributes = new HashMap<>();
         attributes.put("sanDNS", "api.athenz-platforms.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");

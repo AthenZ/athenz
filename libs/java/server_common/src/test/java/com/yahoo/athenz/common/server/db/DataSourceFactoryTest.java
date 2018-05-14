@@ -28,7 +28,7 @@ import com.yahoo.athenz.common.server.db.PoolableDataSource;
 
 public class DataSourceFactoryTest {
 
-    static final String ATHENZ_DBPOOL_PROP1 = "athenz.zms.db_pool_test_prop";
+    private static final String ATHENZ_DBPOOL_PROP1 = "athenz.zms.db_pool_test_prop";
     
     @Test
     public void testCrateDataSourceWithMysqlUrl() {

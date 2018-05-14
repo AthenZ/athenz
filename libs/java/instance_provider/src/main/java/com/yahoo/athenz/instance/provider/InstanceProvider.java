@@ -16,6 +16,7 @@
 package com.yahoo.athenz.instance.provider;
 
 import com.yahoo.athenz.auth.KeyStore;
+import javax.net.ssl.SSLContext;
 
 public interface InstanceProvider {
 
@@ -23,11 +24,12 @@ public interface InstanceProvider {
      * Set provider details and initialize the provider object
      * @param provider name of the provider (service identity name)
      * @param endpoint endpoint for the provider
+     * @param sslContext SSL Context for TLS communication
      * @param keyStore Athenz Keystore provider in case
      * it needs to retrieve public key for a service to validate
      * attestation data.
      */
-    void initialize(String provider, String endpoint, KeyStore keyStore);
+    void initialize(String provider, String endpoint, SSLContext sslContext, KeyStore keyStore);
     
     /**
      * Contact the Instance provider and confirm that the requested

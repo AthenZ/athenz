@@ -31,6 +31,8 @@ import com.yahoo.athenz.instance.provider.impl.InstanceHttpProvider;
 import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.store.DataStore;
 
+import javax.net.ssl.SSLContext;
+
 public class InstanceProviderManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceProviderManager.class);
@@ -40,6 +42,7 @@ public class InstanceProviderManager {
     private ConcurrentHashMap<String, InstanceProvider> providerMap;
     private DataStore dataStore;
     private KeyStore keyStore;
+    private SSLContext sslContext;
     List<String> providerEndpoints = Collections.emptyList();
 
     enum ProviderScheme {
@@ -48,10 +51,11 @@ public class InstanceProviderManager {
         CLASS
     }
     
-    public InstanceProviderManager(DataStore dataStore, KeyStore keyStore) {
+    public InstanceProviderManager(DataStore dataStore, SSLContext sslContext, KeyStore keyStore) {
         
         this.dataStore = dataStore;
         this.keyStore = keyStore;
+        this.sslContext = sslContext;
         providerMap = new ConcurrentHashMap<>();
         
         // get the list of valid provider endpoints
@@ -62,7 +66,7 @@ public class InstanceProviderManager {
         }
     }
     
-    public InstanceProvider getProvider(String provider) {
+    InstanceProvider getProvider(String provider) {
         int idx = provider.lastIndexOf('.');
         if (idx == -1) {
             LOGGER.error("getProviderClient: Invalid provider service name: {}", provider);
@@ -122,7 +126,7 @@ public class InstanceProviderManager {
         switch (schemeType) {
         case HTTPS:
             instanceProvider = new InstanceHttpProvider();
-            instanceProvider.initialize(provider, providerEndpoint, keyStore);
+            instanceProvider.initialize(provider, providerEndpoint, sslContext, keyStore);
             break;
         case CLASS:
             instanceProvider = getClassProvider(uri.getHost(), provider);
@@ -154,7 +158,7 @@ public class InstanceProviderManager {
                     className, ex.getMessage());
             return null;
         }
-        provider.initialize(providerName, className, keyStore);
+        provider.initialize(providerName, className, sslContext, keyStore);
         providerMap.put(classKey, provider);
         return provider;
     }

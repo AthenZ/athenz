@@ -18,12 +18,15 @@ package com.yahoo.athenz.instance.provider.impl;
 import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.rdl.Struct;
 
+import javax.net.ssl.*;
+
 public class InstanceAWSECSProvider extends InstanceAWSProvider {
 
     @Override
-    public void initialize(String provider, String providerEndpoint, KeyStore keyStore) {
+    public void initialize(String provider, String providerEndpoint, SSLContext sslcontext,
+            KeyStore keyStore) {
         
-        super.initialize(provider, providerEndpoint, keyStore);
+        super.initialize(provider, providerEndpoint, sslcontext, keyStore);
         
         // for ECS support, we're not going to enforce the
         // boot time since we don't know when the container

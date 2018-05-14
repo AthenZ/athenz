@@ -31,11 +31,11 @@ public class InstanceProviderClientTest {
     public void testInstanceProviderClientInstanceConfirmation() {
         String url = "http://localhost:10099/instance";
         ProviderHostnameVerifier hostnameVerifier = new ProviderHostnameVerifier("athenz.provider");
-        InstanceProviderClient provClient = new InstanceProviderClient(url, hostnameVerifier, 10000, 10000);
+        InstanceProviderClient provClient = new InstanceProviderClient(url, null, hostnameVerifier, 10000, 10000);
 
         WebTarget base = Mockito.mock(WebTarget.class);
-        provClient.base = base;
-        
+        provClient.setBase(base);
+
         WebTarget target = Mockito.mock(WebTarget.class);
         Mockito.when(base.path("/instance")).thenReturn(target);
 
@@ -65,10 +65,10 @@ public class InstanceProviderClientTest {
     public void testInstanceProviderClientInstanceConfirmationCookieHeader() {
         String url = "http://localhost:10099/instance";
         ProviderHostnameVerifier hostnameVerifier = new ProviderHostnameVerifier("athenz.provider");
-        InstanceProviderClient provClient = new InstanceProviderClient(url, hostnameVerifier, 10000, 10000);
+        InstanceProviderClient provClient = new InstanceProviderClient(url, null, hostnameVerifier, 10000, 10000);
 
         WebTarget base = Mockito.mock(WebTarget.class);
-        provClient.base = base;
+        provClient.setBase(base);
         
         WebTarget target = Mockito.mock(WebTarget.class);
         Mockito.when(base.path("/instance")).thenReturn(target);
@@ -99,10 +99,10 @@ public class InstanceProviderClientTest {
     public void testInstanceProviderClientRefreshConfirmation() {
         String url = "http://localhost:10099/instance";
         ProviderHostnameVerifier hostnameVerifier = new ProviderHostnameVerifier("athenz.provider");
-        InstanceProviderClient provClient = new InstanceProviderClient(url, hostnameVerifier, 10000, 10000);
+        InstanceProviderClient provClient = new InstanceProviderClient(url, null, hostnameVerifier, 10000, 10000);
 
         WebTarget base = Mockito.mock(WebTarget.class);
-        provClient.base = base;
+        provClient.setBase(base);
         
         WebTarget target = Mockito.mock(WebTarget.class);
         Mockito.when(base.path("/refresh")).thenReturn(target);
@@ -133,10 +133,10 @@ public class InstanceProviderClientTest {
     public void testInstanceProviderClientRefreshConfirmationCookieHeader() {
         String url = "http://localhost:10099/instance";
         ProviderHostnameVerifier hostnameVerifier = new ProviderHostnameVerifier("athenz.provider");
-        InstanceProviderClient provClient = new InstanceProviderClient(url, hostnameVerifier, 10000, 10000);
+        InstanceProviderClient provClient = new InstanceProviderClient(url, null, hostnameVerifier, 10000, 10000);
         
         WebTarget base = Mockito.mock(WebTarget.class);
-        provClient.base = base;
+        provClient.setBase(base);
         
         WebTarget target = Mockito.mock(WebTarget.class);
         Mockito.when(base.path("/refresh")).thenReturn(target);
@@ -166,11 +166,11 @@ public class InstanceProviderClientTest {
     @Test
     public void testInstanceProviderClientHostnameVerifier() {
         String url = "http://localhost:10099/instance";
-        ProviderHostnameVerifier verifier = new ProviderHostnameVerifier("athenz.production");
-        InstanceProviderClient provClient = new InstanceProviderClient(url, verifier, 10000, 10000);
+        ProviderHostnameVerifier hostnameVerifier = new ProviderHostnameVerifier("athenz.production");
+        InstanceProviderClient provClient = new InstanceProviderClient(url, null, hostnameVerifier, 10000, 10000);
         
         WebTarget base = Mockito.mock(WebTarget.class);
-        provClient.base = base;
+        provClient.setBase(base);
         
         WebTarget target = Mockito.mock(WebTarget.class);
         Mockito.when(base.path("/instance")).thenReturn(target);
@@ -201,10 +201,10 @@ public class InstanceProviderClientTest {
     public void testInstanceProviderClientFailure() {
         String url = "http://localhost:10099/instance";
         ProviderHostnameVerifier hostnameVerifier = new ProviderHostnameVerifier("athenz.provider");
-        InstanceProviderClient provClient = new InstanceProviderClient(url, hostnameVerifier, 10000, 10000);
+        InstanceProviderClient provClient = new InstanceProviderClient(url, null, hostnameVerifier, 10000, 10000);
         
         WebTarget base = Mockito.mock(WebTarget.class);
-        provClient.base = base;
+        provClient.setBase(base);
         
         WebTarget target = Mockito.mock(WebTarget.class);
         Mockito.when(base.path("/instance")).thenReturn(target);

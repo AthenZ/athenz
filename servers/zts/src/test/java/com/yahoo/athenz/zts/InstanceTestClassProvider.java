@@ -18,6 +18,7 @@ package com.yahoo.athenz.zts;
 import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
+import javax.net.ssl.SSLContext;
 
 public class InstanceTestClassProvider implements InstanceProvider {
 
@@ -25,7 +26,7 @@ public class InstanceTestClassProvider implements InstanceProvider {
     }
 
     @Override
-    public void initialize(String provider, String endpoint, KeyStore keyStore) {
+    public void initialize(String provider, String endpoint, SSLContext sslContext, KeyStore keyStore) {
     }
 
     @Override
