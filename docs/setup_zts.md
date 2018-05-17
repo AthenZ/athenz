@@ -64,6 +64,18 @@ Running this setup script completes the following tasks:
 * Registers the zts service in Athenz sys.auth domain
 * Generates an Athenz configuration file
 
+### Athenz CA X.509 Certificate Issuing
+---------------------------------------
+
+For authenticating services using X509 certificates, ZTS Servers expect 
+the configured cert signer factory class names in its `athenz.zts.cert_signer_factory_class` system property.
+Self Cert Signer [com.yahoo.athenz.zts.cert.impl.SelfCertSignerFactory](https://github.com/yahoo/athenz/blob/master/servers/zts/src/main/java/com/yahoo/athenz/zts/cert/impl/SelfCertSigner.java)
+is a sample implementation of cert Signer we have for development environment.
+
+You can use SelfCertSigner or have your implementation of Cert Signer.
+ 
+Refer [cert signer](cert_signer_store.md) for full details how to implement your cert signer.
+
 ## Start/Stop ZTS Server
 ------------------------
 
