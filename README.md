@@ -60,6 +60,7 @@ and often rely on network ACLs and manual updating.
 * Customizing Athenz
     * [Principal Authentication](docs/principal_authentication.md)
     * [Private Key Store](docs/private_key_store.md)
+    * [Certificate Signer](docs/cert_signer.md)
 * User Guide
     * [ZMS Client Utility](docs/zms_client.md)
     * [ZPU Utility](docs/setup_zpu.md)

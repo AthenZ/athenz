@@ -57,11 +57,11 @@ $ mysql -u root < zms_server.sql
 Follow MySQL documentation to create a user and grant this user full
 privileges over the zms_server database created. For example, let's assume
 our ZMS Server will be running on zms1.athenz.com host and we want to
-create a user called zms_admin with password "Athenz":
+create a user called zms_admin with password "rdvXC7wgvm3g":
 
 ```
 $ mysql -u root
-mysql> CREATE USER 'zms_admin'@'zms1.athenz.com' IDENTIFIED BY 'Athenz';
+mysql> CREATE USER 'zms_admin'@'zms1.athenz.com' IDENTIFIED BY 'rdvXC7wgvm3g';
 mysql> GRANT ALL PRIVILEGES ON zms_server.* TO 'zms_admin'@'zms1.athenz.com';
 mysql> FLUSH PRIVILEGES;
 ```
@@ -117,23 +117,30 @@ Make the following changes:
 3. Uncomment the `#athenz.zms.jdbc_password=` line and set it to the
    configured password the for the jdbc user with full access:
    
-   athenz.zms.jdbc_password=Athenz
-   
-Storing the password in property file is not secure. The more robust approach 
-is to use Key Management Store like HashiCorp Vault to store your passwords.
-ZMS Servers expect the private key store factory class name in its
-`athenz.zms.private_key_store_factory_class` system property and uses that 
-PrivateKeyStoreFactory to get access to its secrets. 
+   athenz.zms.jdbc_password=rdvXC7wgvm3g
 
-Refer [private key store](private_key_store) for 
+Storing the password in property file is not secure. The more robust approach
+is to use a Key Management Store like HashiCorp Vault to store your passwords.
+Athenz provides a PrivateKeyStoreFactory interface for accessing secrets from
+your key management store. The recommended approach would to write your own
+implementation of this interface and configure ZMS server to use that factory
+to fetch the password for your database access. ZMS Server expect the private
+key store factory implementation class name in its
+`athenz.zms.private_key_store_factory_class` system property.
+
+Refer to [Private Key Store](private_key_store.md) section for
 full details how to implement your private key store.
 
-Store the jdbc password in your key management store with Keyname 
-like `athenz.zms.jdbc_password` and set its value to the configured
-password for the jdbc user with full access in your key management store. 
-The password is retrieved using the `getApplicationSecret()` of your private 
-key store class that takes keyName (`athenz.zms.jdbc_password` in this case) 
-as input and returns key value that is your configured password .
+When storing the jdbc user password for your database access in your key management
+store with a given keyname like `athenz.admin_db_password` and using your own
+implementation of the PrivateKeyStoreFactory, then the value of the
+`athenz.zms.jdbc_password` property would be the key name. For example:
+
+    athenz.zms.jdbc_password=athenz.admin_db_password
+
+The password is retrieved using the `getApplicationSecret()` of your private
+key store class that takes keyName (`athenz.admin_db_password` in this case)
+as input and returns key value that is your configured password.
 
 ### Private Key
 ---------------
@@ -147,6 +154,11 @@ $ cd var/zms_server/keys
 $ openssl genrsa -out zms_private.pem 2048
 ```
 
+If you have multiple ZMS servers in your environment, your private key
+must be stored in your key management store and securely installed
+on all hosts where ZMS servers will be running in the specified
+directory.
+
 ### Server X509 Certificate
 ---------------------------
 
@@ -154,10 +166,11 @@ While it is still possible to generate and use a self-signed X509
 certificate for ZMS Servers, it is recommended to purchase one for
 your production server from a well known certificate authority.
 Having such a certificate installed on your ZMS Servers will no
-longer require to distribute the server's public certificate to
+longer require to distribute the server's CA certificate to
 other hosts (e.g. ZTS Servers, Hosts running ZPU).
 
-Follow the instructions provided by the Certificate Authority to
+Follow the instructions provided by the Certificate Authority that
+you're going to purchase your certificate from to
 generate your private key and then the Certificate Request (CSR).
 Once you have received your X509 certificate, we just need to add
 that certificate along with its private key to a keystore for Jetty 
@@ -221,7 +234,8 @@ $ cd athenz-zms-X.Y
 $ bin/zms start
 ```
 
-Make sure the user that the ZMS Server process is running as has read
+If using the Unix Authority to authenticate users against their unix password,
+make sure the user that the ZMS Server process is running as has read
 access to the /etc/shadow file. For full details, please check out
 the `User Authentication` section above.
 
