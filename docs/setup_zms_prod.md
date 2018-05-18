@@ -66,6 +66,8 @@ mysql> GRANT ALL PRIVILEGES ON zms_server.* TO 'zms_admin'@'zms1.athenz.com';
 mysql> FLUSH PRIVILEGES;
 ```
 
+We recommend to have a strong admin password for better security.
+
 ## Getting Software
 -------------------
 
@@ -116,6 +118,22 @@ Make the following changes:
    configured password the for the jdbc user with full access:
    
    athenz.zms.jdbc_password=Athenz
+   
+Storing the password in property file is not secure. The more robust approach 
+is to use Key Management Store like HashiCorp Vault to store your passwords.
+ZMS Servers expect the private key store factory class name in its
+`athenz.zms.private_key_store_factory_class` system property and uses that 
+PrivateKeyStoreFactory to get access to its secrets. 
+
+Refer [private key store](private_key_store) for 
+full details how to implement your private key store.
+
+Store the jdbc password in your key management store with Keyname 
+like `athenz.zms.jdbc_password` and set its value to the configured
+password for the jdbc user with full access in your key management store. 
+The password is retrieved using the `getApplicationSecret()` of your private 
+key store class that takes keyName (`athenz.zms.jdbc_password` in this case) 
+as input and returns key value that is your configured password .
 
 ### Private Key
 ---------------
@@ -171,6 +189,9 @@ to the /etc/shadow file. There are two options available:
   group.
 * Run the process as root using sudo. This is not recommended for a
   production installation.
+  
+To add your own authentication authority modify the `athenz.zms.authority_classes=com.yahoo.athenz.auth.impl.PrincipalAuthority,com.yahoo.athenz.auth.impl.UserAuthority` line and include comma
+separated list of authority implementation classes to support.
 
 ### System Administrators
 -------------------------

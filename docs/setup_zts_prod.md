@@ -96,6 +96,24 @@ $ cd athenz-zts-X.Y
 $ bin/<platform>/zms-cli -z https://<zms-server>:4443/zms/v1 -d sys.auth add-service zts 0 var/zts_server/keys zts_public.pem
 ```
 
+### Athenz CA X.509 Certificate Issuing
+---------------------------------------
+
+For authenticating services using X509 certificates, ZTS Servers expect 
+the configured cert signer factory class names in its `athenz.zts.cert_signer_factory_class` system property.
+We already have below implementation of cert Signer:
+ 
+* Self Cert Signer [com.yahoo.athenz.zts.cert.impl.SelfCertSignerFactory](https://github.com/yahoo/athenz/blob/master/servers/zts/src/main/java/com/yahoo/athenz/zts/cert/impl/SelfCertSigner.java) 
+  for the dev environment.
+* Http Cert Signer [com.yahoo.athenz.zts.cert.impl.HttpCertSignerFactory](https://github.com/yahoo/athenz/blob/master/servers/zts/src/main/java/com/yahoo/athenz/zts/cert/impl/HttpCertSigner.java) 
+  for the production environment.
+  
+You can use HttpCert Signer or have your implementation of Cert Signer.
+
+Refer [cert signer](cert_signer_store.md) for 
+full details how to implement your cert signer.
+     
+
 ### Generate Athenz Configuration File
 --------------------------------------
 
