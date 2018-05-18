@@ -49,6 +49,8 @@ and often rely on network ACLs and manual updating.
     * [Data Model](docs/data_model.md)
     * [System View](docs/system_view.md)
     * [Authorization Flow](docs/auth_flow.md)
+* Features
+    * [Service Identity X.509 Certificates - Copper Argos](docs/copper_argos.md)
 * Developer Guide
     * [Centralized Access Control](docs/dev_centralized_access.md)
         * [Java Client/Servlet Example](docs/example_java_centralized_access.md)
@@ -58,6 +60,7 @@ and often rely on network ACLs and manual updating.
 * Customizing Athenz
     * [Principal Authentication](docs/principal_authentication.md)
     * [Private Key Store](docs/private_key_store.md)
+    * [Certificate Signer](docs/cert_signer.md)
 * User Guide
     * [ZMS Client Utility](docs/zms_client.md)
     * [ZPU Utility](docs/setup_zpu.md)
