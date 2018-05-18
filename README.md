@@ -49,6 +49,8 @@ and often rely on network ACLs and manual updating.
     * [Data Model](docs/data_model.md)
     * [System View](docs/system_view.md)
     * [Authorization Flow](docs/auth_flow.md)
+* Features
+    * [Service Identity X.509 Certificates - Copper Argos](docs/copper_argos.md)
 * Developer Guide
     * [Centralized Access Control](docs/dev_centralized_access.md)
         * [Java Client/Servlet Example](docs/example_java_centralized_access.md)
