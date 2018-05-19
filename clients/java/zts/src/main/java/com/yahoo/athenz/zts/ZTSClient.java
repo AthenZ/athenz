@@ -629,13 +629,13 @@ public class ZTSClient implements Closeable {
         final ClientConfig config = new ClientConfig();
         config.property(ClientProperties.CONNECT_TIMEOUT, reqConnectTimeout);
         config.property(ClientProperties.READ_TIMEOUT, reqReadTimeout);
-        
+        config.connectorProvider(new ApacheConnectorProvider());
+
         // if we're asked to use a proxy for our request
         // we're going to set the property that is supported
         // by the apache connector and use that
         
         if (proxyUrl != null) {
-            config.connectorProvider(new ApacheConnectorProvider());
             config.property(ClientProperties.PROXY_URI, proxyUrl);
         }
         
