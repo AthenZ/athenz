@@ -5,6 +5,7 @@
     * [JDK 8](#jdk-8)
 * [Getting Software](#getting-software)
 * [Configuration](#configuration)
+* [Athenz CA X.509 Certificate Issuing](#athenz-ca-x509-certificate-issuing)
 * [Start/Stop ZTS Server](#startstop-zts-server)
 
 ## Requirements
