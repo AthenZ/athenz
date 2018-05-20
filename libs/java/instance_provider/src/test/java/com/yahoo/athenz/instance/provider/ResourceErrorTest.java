@@ -23,7 +23,9 @@ public class ResourceErrorTest {
 
     @Test
     public void testResourceError() {
-        ResourceError error = new ResourceError().code(401).message("unauthorized");
+        ResourceError error = new ResourceError();
+        error.setCode(401);
+        error.setMessage("unauthorized");
         assertEquals(error.toString(), "{code: 401, message: \"unauthorized\"}");
     }
 

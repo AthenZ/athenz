@@ -22,39 +22,12 @@ import org.testng.annotations.Test;
 public class ResourceExceptionTest {
 
     @Test
-    public void testCodeToString() {
-        
-        assertEquals("OK", ResourceException.codeToString(200));
-        assertEquals("Created", ResourceException.codeToString(201));
-        assertEquals("Accepted", ResourceException.codeToString(202));
-        assertEquals("No Content", ResourceException.codeToString(204));
-        assertEquals("Moved Permanently", ResourceException.codeToString(301));
-        assertEquals("Found", ResourceException.codeToString(302));
-        assertEquals("See Other", ResourceException.codeToString(303));
-        assertEquals("Not Modified", ResourceException.codeToString(304));
-        assertEquals("Temporary Redirect", ResourceException.codeToString(307));
-        assertEquals("Bad Request", ResourceException.codeToString(400));
-        assertEquals("Unauthorized", ResourceException.codeToString(401));
-        assertEquals("Forbidden", ResourceException.codeToString(403));
-        assertEquals("Not Found", ResourceException.codeToString(404));
-        assertEquals("Conflict", ResourceException.codeToString(409));
-        assertEquals("Gone", ResourceException.codeToString(410));
-        assertEquals("Precondition Failed", ResourceException.codeToString(412));
-        assertEquals("Unsupported Media Type", ResourceException.codeToString(415));
-        assertEquals("Precondition Required", ResourceException.codeToString(428));
-        assertEquals("Too Many Requests", ResourceException.codeToString(429));
-        assertEquals("Request Header Fields Too Large", ResourceException.codeToString(431));
-        assertEquals("Internal Server Error", ResourceException.codeToString(500));
-        assertEquals("Not Implemented", ResourceException.codeToString(501));
-        assertEquals("Service Unavailable", ResourceException.codeToString(503));
-        assertEquals("Network Authentication Required", ResourceException.codeToString(511));
-        assertEquals("1001", ResourceException.codeToString(1001));
-    }
-
-    @Test
     public void testCodeOnly() {
-        
-        ResourceException exc = new ResourceException(400);
+
+        ResourceError resError = new ResourceError();
+        resError.setCode(400);
+        resError.setMessage("Bad Request");
+        ResourceException exc = new ResourceException(400, resError);
         assertEquals(exc.getData().toString(), "{code: 400, message: \"Bad Request\"}");
     }
     

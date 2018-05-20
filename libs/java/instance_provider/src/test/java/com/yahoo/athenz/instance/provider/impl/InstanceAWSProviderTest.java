@@ -509,7 +509,8 @@ public class InstanceAWSProviderTest {
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
         provider.setIdentitySuper(true);
         AWSSecurityTokenServiceClient mockClient = Mockito.mock(AWSSecurityTokenServiceClient.class);
-        Mockito.when(mockClient.getCallerIdentity(ArgumentMatchers.any())).thenThrow(new ResourceException(101));
+        Mockito.when(mockClient.getCallerIdentity(ArgumentMatchers.any()))
+                .thenThrow(new ResourceException(101, "invaliderror"));
         provider.setStsClient(mockClient);
         
         AWSAttestationData info = new AWSAttestationData();
