@@ -7,7 +7,6 @@
 * [Authorization Flow](#authorization-flow)
     * [Centralized Access Control (Control-Plane)](#centralized-access-control-control-plane)
         * [Principals](#principals)
-            * [Unix-Authenticated User](#unix-authenticated-user)
             * [Authenticated Service](#authenticated-service)
     * [Decentralized Access Control (Data-Plane)](#decentralized-access-control-data-plane)
         * [Policy Engine](#policy-engine)
@@ -63,11 +62,12 @@ defined by the domain administrator.
 A traditional centralized mechanism works as expected for services that
 are not dealing with the decentralized authorization: the server with
 resources can simply ask the ZMS directly about access, passing the
-NToken and resource/action information to get a simple boolean answer.
+service identity and resource/action information to get a simple boolean answer.
 This does not scale well enough for data-plane access, since a central
 service must be consulted, but requires no local installation of the ZPE
-and related storage and synchronization logic, so it is suitable for
-human interaction and control-plane provisioning uses.
+and related storage and synchronization logic. It is suitable for provisioning
+and configuration use cases where the number of requests processed by the server
+are small and the latency for authorization checks is not important.
 
 #### Principals
 ---------------
@@ -75,53 +75,29 @@ human interaction and control-plane provisioning uses.
 In Athenz, actors that can assume a role are called principals.
 Principals can be users or services, and users can be those looking for
 resources from a service or use the ZMS management console. In the
-following sections, we'll look at centralized authorization for the
-principals we just discussed.
-
-##### Unix-Authenticated User
------------------------------
-
-In the simplest case, we have no service management at all. When a user,
-authenticated with his/her unix credentials, is to be authorized to access
-a resource in a service, the user's NToken is passed straight to the target
-service. That service must then make a call to ZMS to perform the check,
-passing this identity on to ZMS.
-
-The figure below shows how the user's tool fetches the user's token from
-ZMS and then uses it to access a resource.
-
-![Centralized Authorization for Users](images/centralized_authz_for_users.png)
-
-When implementing such solution, one must consider all security implications
-of sending a user's NToken to another service. Athenz system already provides
-some protection from user NToken reuse:
-* To request RoleTokens for a given User NToken, the IP address of the
-   incoming connection must match to the IP address that's in the NToken.
-* To make modifications to a domain (e.g. the user is a domain admin)
-   the IP address of the incoming connection must match to the IP address
-   that's in the NToken.
-
-However, if there are multiple services that are supporting centralized
-authorization for user, then each one must make sure that the NToken
-identifying the user is coming from the same IP address that is registered
-in the NToken. Otherwise, if the service1 is compromised, then the user's
-NToken can be used to access the resources authorized to that user from
-service2 without user's knowledge.
+following sections, we'll look at centralized authorization for the service
+principal we just discussed.
 
 ##### Authenticated Service
 ---------------------------
 
-Similarly, another service could be the principal (instead of a user or
-domain manager), in which case it would present its NToken to the target
-service, which would perform an identical check with ZMS to confirm
-access.
+To contact Athenz Services (ZMS/ZTS) or other Athenz Enabled services,
+the client service must first obtain an Athenz CA issued X.509 certificate. The services
+establish standard mutual TLS communication with other Athenz Enabled Services. 
+Once the mutual TLS authentication is established, the provider service contacts Athenz Management
+Service directly to determine if a specific authenticated service
+has been authorized to carry out the given action on the requested resource. 
+The application receives a simple boolean answer whether or not the request
+should be processed or rejected. 
 
-![Authenticated Service as Principal](images/centralized_authz_for_services.png)
+![Authenticated Service as Principal](images/centralized_authz_service.png)
 
-This model is more desirable that the Authenticated User model since
-the domain administrator can create a separate service that only has
+The domain administrator can create a separate service that only has
 access for the given provider, thus provider having access to the
 service's identity will not have access to any other resource.
+
+Refer [Service Authentication](service_authentication.md) for
+full details on X.509 certificate based authentication.
 
 ### Decentralized Access Control (Data-Plane)
 ---------------------------------------------
@@ -134,11 +110,11 @@ This mechanism allows a service to make a completely local access check
 against ZPE, given a ZToken and locally cached policies.
 
 Specifically, as shown in the diagram below, the client service/user
-presents an authentication token (NToken) from SIA Provider to get an
+presents an X.509 certificate from SIA Provider to get an
 authorization token (ZToken) from ZTS, and then presents the ZToken
 to a target service to access its resources.
 
-![Decentralized Authorization for Services](images/decentralized_authz_for_services.png)
+![Decentralized Authorization for Services](images/decentralized_authz_service.png)
 
 That service can make use of a local ZPE to validate the role assertions
 in the ZToken, and then correlate them to the asynchronously updated
@@ -231,18 +207,9 @@ Setting up a tenant in a provider requires the concepts of a cross-domain
 ### Service Authentication
 --------------------------
 
-Authenticating a service involves first registering the service with some
-evidence that allow verification of a signed NToken originating from the
-service.
+Refer [Service Authentication](service_authentication.md) for
+full details on X.509 cerificate based authentication.
 
-A simple scenario involves a service that is externally managed. Such a service
-must arrange on its own to generate a keypair, and securely provide the private
-key to the service. In such a case, the external management system must register
-the service with its public key in the service management system. The result of
-this will be a signing certificate. At that point, we have a public key to verify
-the signature on any NTokens coming from the service.
 
-The NToken expires periodically, so the external service must repeatedly refresh it.
-This requires careful handling and rotation of the keypairs, and while simple in
-concept, every service would need to implement such a system.
 
+ 
