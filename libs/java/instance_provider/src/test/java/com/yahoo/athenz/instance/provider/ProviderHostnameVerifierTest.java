@@ -30,7 +30,6 @@ import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.auth.util.Crypto;
-import com.yahoo.athenz.instance.provider.ProviderHostnameVerifier;
 
 public class ProviderHostnameVerifierTest {
 

@@ -4670,7 +4670,7 @@ public class ZTSImplTest {
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
         
         Mockito.when(instanceProviderManager.getProvider("athenz.provider")).thenReturn(providerClient);
-        Mockito.when(providerClient.refreshInstance(Mockito.any())).thenThrow(new com.yahoo.athenz.instance.provider.ResourceException(403));
+        Mockito.when(providerClient.refreshInstance(Mockito.any())).thenThrow(new com.yahoo.athenz.instance.provider.ResourceException(403, "Forbidden"));
         
         X509CertRecord certRecord = new X509CertRecord();
         certRecord.setInstanceId("1001");
@@ -4737,7 +4737,7 @@ public class ZTSImplTest {
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
         
         Mockito.when(instanceProviderManager.getProvider("athenz.provider")).thenReturn(providerClient);
-        Mockito.when(providerClient.refreshInstance(Mockito.any())).thenThrow(new com.yahoo.athenz.instance.provider.ResourceException(404));
+        Mockito.when(providerClient.refreshInstance(Mockito.any())).thenThrow(new com.yahoo.athenz.instance.provider.ResourceException(404, "Not Found"));
         
         X509CertRecord certRecord = new X509CertRecord();
         certRecord.setInstanceId("1001");

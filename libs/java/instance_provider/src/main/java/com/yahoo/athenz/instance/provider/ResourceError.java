@@ -20,17 +20,23 @@ public class ResourceError {
     private int code;
     private String message;
 
-    public ResourceError code(int code) {
+    public void setCode(int code) {
         this.code = code;
-        return this;
     }
-    public ResourceError message(String message) {
+
+    public void setMessage(String message) {
         this.message = message;
-        return this;
+    }
+
+    public int getCode() {
+        return code;
+    }
+
+    public String getMessage() {
+        return message;
     }
 
     public String toString() {
         return "{code: " + code + ", message: \"" + message + "\"}";
     }
-
 }
