@@ -14373,5 +14373,13 @@ public class ZMSImplTest {
             assertEquals(ex.getCode(), 400);
         }
     }
+
+    @Test
+    public void testgetModTimestampEmtpy() {
+        ZMSImpl zmsImpl = zmsInit();
+        assertEquals(zmsImpl.getModTimestamp(null), 0);
+        assertEquals(zmsImpl.getModTimestamp("\"\""), 0);
+        assertEquals(zmsImpl.getModTimestamp(""), 0);
+    }
 }
 
