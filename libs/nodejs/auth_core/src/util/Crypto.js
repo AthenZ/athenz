@@ -16,8 +16,7 @@
 var crypto = require('crypto');
 var ybase64 = require('./YBase64');
 
-var SALT_LENGTH = 8;
-var SALT_CHARS = '0123456789abcdef';
+var SALT_BYTES = 4;
 
 class Crypto {
   static hmac(message, sharedSecret) {
@@ -52,12 +51,8 @@ class Crypto {
   }
 
   static randomSalt() {
-    var c, i, salt = '';
-    for (c = 0; c < SALT_LENGTH; c++) {
-      i = Math.floor(Math.random() * SALT_CHARS.length);
-      salt += SALT_CHARS.charAt(i);
-    }
-    return salt;
+    var salt = crypto.randomBytes(SALT_BYTES);
+    return salt.toString('hex');
   }
 }
 
