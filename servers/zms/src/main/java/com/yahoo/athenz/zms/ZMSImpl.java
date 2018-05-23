@@ -3998,9 +3998,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         matchingTag = removeQuotes(matchingTag);
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("getModTimestamp: matching tag (" + matchingTag + ")");
+            LOG.debug("getModTimestamp: matching tag ({})", matchingTag);
         }
-        
+
+        if (matchingTag.isEmpty()) {
+            return timestamp;
+        }
+
         try {
             Timestamp tagStamp = Timestamp.fromString(matchingTag);
             if (tagStamp == null) {
@@ -4009,7 +4013,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             timestamp = tagStamp.millis();
         } catch (IllegalArgumentException exc) {
             if (LOG.isWarnEnabled()) {
-                LOG.warn("getModTimestamp: matching tag(" + matchingTag + ") has bad format. Return -1L by default.");
+                LOG.warn("getModTimestamp: matching tag({}) has bad format. Return 0 by default.",
+                        matchingTag);
             }
         }
         
