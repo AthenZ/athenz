@@ -69,7 +69,7 @@ public class InstanceAWSProvider implements InstanceProvider {
     long bootTimeOffset;                // boot time offset in milliseconds
     boolean supportRefresh = false;
     String awsRegion;
-    private String dnsSuffix = null;
+    String dnsSuffix = null;
 
     @Override
     public void initialize(String provider, String providerEndpoint, SSLContext sslContext,
