@@ -47,18 +47,18 @@ public class InstanceAWSProvider implements InstanceProvider {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceAWSProvider.class);
 
-    private static final String ATTR_ACCOUNT_ID   = "accountId";
-    private static final String ATTR_REGION       = "region";
-    private static final String ATTR_PENDING_TIME = "pendingTime";
+    static final String ATTR_ACCOUNT_ID   = "accountId";
+    static final String ATTR_REGION       = "region";
+    static final String ATTR_PENDING_TIME = "pendingTime";
 
     static final String ATTR_INSTANCE_ID  = "instanceId";
 
     static final String ZTS_CERT_USAGE            = "certUsage";
     static final String ZTS_CERT_USAGE_CLIENT     = "client";
 
-    private static final String ZTS_CERT_INSTANCE_ID      = ".instanceid.athenz.";
-    private static final String ZTS_INSTANCE_SAN_DNS      = "sanDNS";
-    private static final String ZTS_INSTANCE_AWS_ACCOUNT  = "cloudAccount";
+    static final String ZTS_CERT_INSTANCE_ID      = ".instanceid.athenz.";
+    static final String ZTS_INSTANCE_SAN_DNS      = "sanDNS";
+    static final String ZTS_INSTANCE_AWS_ACCOUNT  = "cloudAccount";
 
     static final String AWS_PROP_PUBLIC_CERT      = "athenz.zts.aws_public_cert";
     static final String AWS_PROP_BOOT_TIME_OFFSET = "athenz.zts.aws_boot_time_offset";
@@ -104,11 +104,11 @@ public class InstanceAWSProvider implements InstanceProvider {
         awsRegion = System.getProperty(AWS_PROP_REGION_NAME);
     }
 
-    ResourceException error(String message) {
+    public ResourceException error(String message) {
         return error(ResourceException.FORBIDDEN, message);
     }
     
-    private ResourceException error(int errorCode, String message) {
+    public ResourceException error(int errorCode, String message) {
         LOGGER.error(message);
         return new ResourceException(errorCode, message);
     }
