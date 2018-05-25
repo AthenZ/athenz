@@ -20,7 +20,7 @@ import java.util.Map;
 
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 
-class InstanceAWSLambdaProvider extends InstanceAWSProvider {
+public class InstanceAWSLambdaProvider extends InstanceAWSProvider {
 
     @Override
     boolean validateAWSDocument(final String provider, AWSAttestationData info,

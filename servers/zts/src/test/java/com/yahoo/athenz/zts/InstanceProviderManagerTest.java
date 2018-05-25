@@ -197,7 +197,6 @@ public class InstanceProviderManagerTest {
     @Test
     public void testGetHttpsProviderUnknownProvider() throws NoSuchAlgorithmException {
 
-        
         SignedDomain signedDomain = createSignedDomainHttpsEndpoint("coretech", "weather", true, true);
         store.processDomain(signedDomain, false);
         
@@ -372,6 +371,12 @@ public class InstanceProviderManagerTest {
         assertNull(provider);
         
         provider = providerManager.getClassProvider("com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", "provider");
+        assertNotNull(provider);
+
+        provider = providerManager.getClassProvider("com.yahoo.athenz.instance.provider.impl.InstanceAWSECSProvider", "provider");
+        assertNotNull(provider);
+
+        provider = providerManager.getClassProvider("com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", "provider");
         assertNotNull(provider);
 
         // we should get this from the cache now
