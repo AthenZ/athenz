@@ -81,7 +81,7 @@ public class AthenzRequestLog extends NCSARequestLog {
 
     private void logRequestUri(StringBuilder buf, Request request) {
         final Object skipQuery = request.getAttribute(REQUEST_URI_SKIP_QUERY);
-        append(buf, (skipQuery == Boolean.TRUE) ? request.getOriginalURI() : request.getRequestURI());
+        append(buf, (skipQuery == Boolean.TRUE) ? request.getRequestURI() : request.getOriginalURI());
     }
 
     private void logPrincipal(StringBuilder buf, Request request) {
