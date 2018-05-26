@@ -177,6 +177,8 @@
                   <include>javax.inject</include>
                   <include>jersey.repackaged.com.google.common</include>
                   <include>org.aopalliance</include>
+                  <include>commons-codec</include>
+                  <include>commons-logging</include>
                 </includes>
               </artifactSet>
               <relocations>
@@ -211,6 +213,14 @@
                 <relocation>
                   <pattern>org.apache.http</pattern>
                   <shadedPattern>athenz.shade.zts.org.apache.http</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>commons-codec</pattern>
+                  <shadedPattern>athenz.shade.zts.commons-codec</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>commons-logging</pattern>
+                  <shadedPattern>athenz.shade.zts.commons-logging</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.glassfish.hk2</pattern>
