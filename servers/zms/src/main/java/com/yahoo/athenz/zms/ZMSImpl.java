@@ -158,6 +158,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected Authority principalAuthority = null;
     protected Set<String> authFreeUriSet = null;
     protected List<Pattern> authFreeUriList = null;
+    protected Set<String> corsOriginList = null;
     protected int httpPort;
     protected int httpsPort;
     protected int statusPort;
@@ -569,6 +570,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     authFreeUriSet.add(uri);
                 }
             }
+        }
+
+        // get the list of white listed origin values for cors requests
+
+        final String originList = System.getProperty(ZMSConsts.ZMS_PROP_CORS_ORIGIN_LIST);
+        if (originList != null) {
+            corsOriginList = new HashSet<>(Arrays.asList(originList.split(",")));
         }
     }
     
@@ -4408,13 +4416,30 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return null;
     }
 
+    boolean isValidCORSOrigin(final String origin) {
+
+        // first check for non-empty origin value
+
+        if (origin == null || origin.isEmpty()) {
+            return false;
+        }
+
+        // check if we have whitelist configured
+
+        if (corsOriginList == null || corsOriginList.isEmpty()) {
+            return true;
+        }
+
+        return corsOriginList.contains(origin);
+    }
+
     void setStandardCORSHeaders(ResourceContext ctx) {
 
         // if we get an Origin header in our request then we're going to return
         // the same value in the Allow-Origin header
         
         String origin = ctx.request().getHeader(ZMSConsts.HTTP_ORIGIN);
-        if (origin != null && !origin.isEmpty()) {
+        if (isValidCORSOrigin(origin)) {
             ctx.response().addHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_ORIGIN, origin);
         }
         
