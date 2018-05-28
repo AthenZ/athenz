@@ -20,9 +20,8 @@ import javax.servlet.http.HttpServletRequest;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
-import com.yahoo.athenz.common.server.util.ServletRequestUtil;
-
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 
 public class ServletRequestUtilTest {
 
@@ -61,5 +60,29 @@ public class ServletRequestUtilTest {
         Mockito.when(httpServletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
         Mockito.when(httpServletRequest.getHeader("X-Forwarded-For")).thenReturn("1.2.3.4, 1.3.4.5, 1.4.5.6");
         assertEquals(ServletRequestUtil.getRemoteAddress(httpServletRequest), "1.4.5.6");
+    }
+
+    @Test
+    public void testGetRemoteAddressLoopBackSingleXFFInvalidIP() {
+        HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(httpServletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
+        Mockito.when(httpServletRequest.getHeader("X-Forwarded-For")).thenReturn("1.2.300.4")
+                .thenReturn("testip").thenReturn(";s=signature");
+        assertEquals(ServletRequestUtil.getRemoteAddress(httpServletRequest), "127.0.0.1");
+        assertEquals(ServletRequestUtil.getRemoteAddress(httpServletRequest), "127.0.0.1");
+        assertEquals(ServletRequestUtil.getRemoteAddress(httpServletRequest), "127.0.0.1");
+    }
+
+    @Test
+    public void testGetRemoteAddressLoopBackMultipleXFFInvalidIP() {
+        HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(httpServletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
+        Mockito.when(httpServletRequest.getHeader("X-Forwarded-For"))
+                .thenReturn("1.2.3.4, 1.3.4.5, 1.4.5.600")
+                .thenReturn("1.2.3.4, testSTring")
+                .thenReturn("1.2.3.4, ;s=signature");
+        assertEquals(ServletRequestUtil.getRemoteAddress(httpServletRequest), "127.0.0.1");
+        assertEquals(ServletRequestUtil.getRemoteAddress(httpServletRequest), "127.0.0.1");
+        assertEquals(ServletRequestUtil.getRemoteAddress(httpServletRequest), "127.0.0.1");
     }
 }

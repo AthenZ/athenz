@@ -16,6 +16,7 @@
 package com.yahoo.athenz.common.server.util;
 
 import javax.servlet.http.HttpServletRequest;
+import com.google.common.net.InetAddresses;
 
 public class ServletRequestUtil {
 
@@ -24,8 +25,11 @@ public class ServletRequestUtil {
 
     /**
       * Return the remote client IP address.
-      * Detect if connection is from ATS by looking at XFF header.
-      * If XFF header, return the last address therein since it was added by ATS.
+      * Detect if connection is from local proxy server by looking at XFF header.
+      * If XFF header, return the last address therein since it was added by
+      * the proxy server.
+      * @param request http servlet request
+      * @return client remote address string
      **/
     public static String getRemoteAddress(final HttpServletRequest request) {
         String addr = request.getRemoteAddr();
@@ -33,7 +37,10 @@ public class ServletRequestUtil {
             String xff = request.getHeader(XFF_HEADER);
             if (xff != null) {
                 String[] addrs = xff.split(",");
-                addr = addrs[addrs.length - 1].trim();
+                final String xffAddr = addrs[addrs.length - 1].trim();
+                if (InetAddresses.isInetAddress(xffAddr)) {
+                    addr = xffAddr;
+                }
             }
         }
         return addr;
