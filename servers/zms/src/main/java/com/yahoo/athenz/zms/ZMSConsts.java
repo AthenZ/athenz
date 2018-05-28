@@ -54,7 +54,8 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_AUTHORITY_CLASSES = "athenz.zms.authority_classes";
     public static final String ZMS_PROP_STORE_OP_TIMEOUT  = "athenz.zms.store_operation_timeout";
     public static final String ZMS_PROP_NOAUTH_URI_LIST   = "athenz.zms.no_auth_uri_list";
-    
+    public static final String ZMS_PROP_CORS_ORIGIN_LIST  = "athenz.zms.cors_origin_list";
+
     public static final String ZMS_PROP_AWS_RDS_USER               = "athenz.zms.aws_rds_user";
     public static final String ZMS_PROP_AWS_RDS_IAM_ROLE           = "athenz.zms.aws_rds_iam_role";
     public static final String ZMS_PROP_AWS_RDS_ENGINE             = "athenz.zms.aws_rds_engine";
@@ -74,7 +75,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_PROVIDER_ENDPOINTS      = "athenz.zms.provider_endpoints";
     public static final String ZMS_PROP_PRODUCT_ID_SUPPORT      = "athenz.zms.product_id_support";
     public static final String ZMS_PROP_SECURE_REQUESTS_ONLY    = "athenz.zms.secure_requests_only";
-    
+
     // properties used to over-ride default Audit logger
  
     public static final String ZMS_PROP_METRIC_FACTORY_CLASS            = "athenz.zms.metric_factory_class";

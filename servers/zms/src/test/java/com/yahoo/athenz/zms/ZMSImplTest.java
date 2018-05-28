@@ -27,6 +27,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Strings;
@@ -14380,6 +14381,33 @@ public class ZMSImplTest {
         assertEquals(zmsImpl.getModTimestamp(null), 0);
         assertEquals(zmsImpl.getModTimestamp("\"\""), 0);
         assertEquals(zmsImpl.getModTimestamp(""), 0);
+    }
+
+    @Test
+    public void testValidCORSOrigin() {
+
+        ZMSImpl zmsImpl = zmsInit();
+
+        // invalid origin values tests
+
+        assertFalse(zmsImpl.isValidCORSOrigin(null));
+        assertFalse(zmsImpl.isValidCORSOrigin(""));
+
+        // origin white list not configured tests
+
+        zmsImpl.corsOriginList = null;
+        assertTrue(zmsImpl.isValidCORSOrigin("http://cors.origin1"));
+        assertTrue(zmsImpl.isValidCORSOrigin("http://cors.origin2"));
+
+        zmsImpl.corsOriginList = new HashSet<>();
+        assertTrue(zmsImpl.isValidCORSOrigin("http://cors.origin1"));
+        assertTrue(zmsImpl.isValidCORSOrigin("http://cors.origin2"));
+
+        // origin white list configured tests
+
+        zmsImpl.corsOriginList.add("http://cors.origin1");
+        assertTrue(zmsImpl.isValidCORSOrigin("http://cors.origin1"));
+        assertFalse(zmsImpl.isValidCORSOrigin("http://cors.origin2"));
     }
 }
 
