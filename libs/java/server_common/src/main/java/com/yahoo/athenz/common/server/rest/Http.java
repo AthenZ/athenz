@@ -34,8 +34,6 @@ public class Http {
     private static final Logger LOG = LoggerFactory.getLogger(Http.class);
 
     public static final String INVALID_CRED_ATTR = "com.yahoo.athenz.auth.credential.error";
-    public static final String LOOPBACK_ADDRESS  = "127.0.0.1";
-    public static final String XFF_HEADER        = "X-Forwarded-For";
     public static final String JAVAX_CERT_ATTR   = "javax.servlet.request.X509Certificate";
     
     public static class AuthorityList {
@@ -78,8 +76,8 @@ public class Http {
     public static Principal authenticate(HttpServletRequest request,
             AuthorityList authorities) {
         if (authorities == null) {
-            LOG.error("authenticate: No authorites configured");
-            throw new ResourceException (ResourceException.INTERNAL_SERVER_ERROR,
+            LOG.error("authenticate: No authorities configured");
+            throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
                     "No authorities configured");
         }
 
@@ -133,7 +131,7 @@ public class Http {
             LOG.error("authenticate: No credentials provided");
         }
 
-        throw new ResourceException (ResourceException.UNAUTHORIZED, "Invalid credentials");
+        throw new ResourceException(ResourceException.UNAUTHORIZED, "Invalid credentials");
     }
 
     public static String authenticatedUser(HttpServletRequest request,
@@ -158,7 +156,7 @@ public class Http {
         
         if (action == null || resource == null) {
             throw new ResourceException(ResourceException.BAD_REQUEST,
-                    "Missing 'action' and/or 'resource' pararameters");
+                    "Missing 'action' and/or 'resource' parameters");
         }
         if (authorizer != null) {
             if (!authorizer.access(action, resource, principal, otherDomain)) {
