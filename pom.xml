@@ -84,6 +84,7 @@
   </properties>
 
   <modules>
+    <module>rdl/rdl-gen-athenz-server</module>
     <module>core/zms</module>
     <module>core/zts</module>
     <module>libs/java/auth_core</module>

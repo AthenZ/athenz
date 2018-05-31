@@ -3,8 +3,6 @@
 //
 package com.yahoo.athenz.zms;
 
-import com.yahoo.rdl.*;
-import java.util.*;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.WebApplicationException;
 
@@ -15,10 +13,6 @@ public final class GetSignedDomainsResult {
     GetSignedDomainsResult(ResourceContext context) {
         this.context = context;
         this.code = 0;
-    }
-
-    public boolean isAsync() {
-        return false;
     }
 
     public void done(int code, SignedDomains signedDomains, String tag) {
@@ -38,11 +32,8 @@ public final class GetSignedDomainsResult {
 
     public void done(int code, Object entity, String tag) {
         this.code = code;
-        //to do: check if the exception is declared, and that the entity is of the declared type
-        WebApplicationException err = new WebApplicationException(Response.status(code).entity(entity)
-            .header("ETag", tag)
-          .build());
-        throw err; //not optimal
+        throw new WebApplicationException(Response.status(code).entity(entity)
+            .header("ETag", tag).build());
     }
 
 }

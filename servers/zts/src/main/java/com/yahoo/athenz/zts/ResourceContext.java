@@ -10,8 +10,8 @@ import javax.servlet.http.HttpServletResponse;
 // ResourceContext
 //
 public interface ResourceContext {
-    public HttpServletRequest request();
-    public HttpServletResponse response();
-    public void authenticate();
-    public void authorize(String action, String resource, String trustedDomain);
+    HttpServletRequest request();
+    HttpServletResponse response();
+    void authenticate();
+    void authorize(String action, String resource, String trustedDomain);
 }

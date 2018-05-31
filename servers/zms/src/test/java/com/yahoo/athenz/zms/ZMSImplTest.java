@@ -12260,8 +12260,6 @@ public class ZMSImplTest {
     @Test
     public void testGetSignedDomainsResult() {
         GetSignedDomainsResult object = new GetSignedDomainsResult(null);
-        assertFalse(object.isAsync());
-        
         try {
             object.done(101);
         } catch (WebApplicationException ignored) {
