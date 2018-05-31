@@ -26,7 +26,6 @@ public class ResultObjectTest {
     @Test
     public void testDomainSignedPolicyDataResult() {
         GetDomainSignedPolicyDataResult object = new GetDomainSignedPolicyDataResult(null);
-        assertFalse(object.isAsync());
 
         try {
             object.done(101);
@@ -59,7 +58,6 @@ public class ResultObjectTest {
     @Test
     public void testPostInstanceeRegisterInformationResult() {
         PostInstanceRegisterInformationResult object = new PostInstanceRegisterInformationResult(null);
-        assertFalse(object.isAsync());
 
         try {
             object.done(101);

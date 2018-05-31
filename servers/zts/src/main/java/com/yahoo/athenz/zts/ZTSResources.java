@@ -4,7 +4,6 @@
 package com.yahoo.athenz.zts;
 
 import com.yahoo.rdl.*;
-import java.util.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import javax.servlet.http.HttpServletRequest;
@@ -21,8 +20,7 @@ public class ZTSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            ResourceAccess e = this.delegate.getResourceAccess(context, action, resource, domain, checkPrincipal);
-            return e;
+            return this.delegate.getResourceAccess(context, action, resource, domain, checkPrincipal);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -48,8 +46,7 @@ public class ZTSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            ResourceAccess e = this.delegate.getResourceAccessExt(context, action, resource, domain, checkPrincipal);
-            return e;
+            return this.delegate.getResourceAccessExt(context, action, resource, domain, checkPrincipal);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -75,8 +72,7 @@ public class ZTSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            ServiceIdentity e = this.delegate.getServiceIdentity(context, domainName, serviceName);
-            return e;
+            return this.delegate.getServiceIdentity(context, domainName, serviceName);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -100,8 +96,7 @@ public class ZTSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            ServiceIdentityList e = this.delegate.getServiceIdentityList(context, domainName);
-            return e;
+            return this.delegate.getServiceIdentityList(context, domainName);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -125,8 +120,7 @@ public class ZTSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            PublicKeyEntry e = this.delegate.getPublicKeyEntry(context, domainName, serviceName, keyId);
-            return e;
+            return this.delegate.getPublicKeyEntry(context, domainName, serviceName, keyId);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -148,8 +142,7 @@ public class ZTSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            HostServices e = this.delegate.getHostServices(context, host);
-            return e;
+            return this.delegate.getHostServices(context, host);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -194,8 +187,7 @@ public class ZTSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            RoleToken e = this.delegate.getRoleToken(context, domainName, role, minExpiryTime, maxExpiryTime, proxyForPrincipal);
-            return e;
+            return this.delegate.getRoleToken(context, domainName, role, minExpiryTime, maxExpiryTime, proxyForPrincipal);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -222,8 +214,7 @@ public class ZTSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            RoleToken e = this.delegate.postRoleCertificateRequest(context, domainName, roleName, req);
-            return e;
+            return this.delegate.postRoleCertificateRequest(context, domainName, roleName, req);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -249,8 +240,7 @@ public class ZTSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            Access e = this.delegate.getAccess(context, domainName, roleName, principal);
-            return e;
+            return this.delegate.getAccess(context, domainName, roleName, principal);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -276,8 +266,7 @@ public class ZTSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            RoleAccess e = this.delegate.getRoleAccess(context, domainName, principal);
-            return e;
+            return this.delegate.getRoleAccess(context, domainName, principal);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -301,8 +290,7 @@ public class ZTSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            TenantDomains e = this.delegate.getTenantDomains(context, providerDomainName, userName, roleName, serviceName);
-            return e;
+            return this.delegate.getTenantDomains(context, providerDomainName, userName, roleName, serviceName);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -327,8 +315,7 @@ public class ZTSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            Identity e = this.delegate.postInstanceRefreshRequest(context, domain, service, req);
-            return e;
+            return this.delegate.postInstanceRefreshRequest(context, domain, service, req);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -356,8 +343,7 @@ public class ZTSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            AWSTemporaryCredentials e = this.delegate.getAWSTemporaryCredentials(context, domainName, role, durationSeconds, externalId);
-            return e;
+            return this.delegate.getAWSTemporaryCredentials(context, domainName, role, durationSeconds, externalId);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -383,8 +369,7 @@ public class ZTSResources {
     public Identity postOSTKInstanceInformation(OSTKInstanceInformation info) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
-            Identity e = this.delegate.postOSTKInstanceInformation(context, info);
-            return e;
+            return this.delegate.postOSTKInstanceInformation(context, info);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -411,8 +396,7 @@ public class ZTSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            Identity e = this.delegate.postOSTKInstanceRefreshRequest(context, domain, service, req);
-            return e;
+            return this.delegate.postOSTKInstanceRefreshRequest(context, domain, service, req);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -470,8 +454,7 @@ public class ZTSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            InstanceIdentity e = this.delegate.postInstanceRefreshInformation(context, provider, domain, service, instanceId, info);
-            return e;
+            return this.delegate.postInstanceRefreshInformation(context, provider, domain, service, instanceId, info);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -494,13 +477,11 @@ public class ZTSResources {
 
     @DELETE
     @Path("/instance/{provider}/{domain}/{service}/{instanceId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public InstanceIdentity deleteInstanceIdentity(@PathParam("provider") String provider, @PathParam("domain") String domain, @PathParam("service") String service, @PathParam("instanceId") String instanceId) {
+    public void deleteInstanceIdentity(@PathParam("provider") String provider, @PathParam("domain") String domain, @PathParam("service") String service, @PathParam("instanceId") String instanceId) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("delete", "" + domain + ":instance." + instanceId + "", null);
-            InstanceIdentity e = this.delegate.deleteInstanceIdentity(context, provider, domain, service, instanceId);
-            return null;
+            this.delegate.deleteInstanceIdentity(context, provider, domain, service, instanceId);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -529,8 +510,7 @@ public class ZTSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            DomainMetrics e = this.delegate.postDomainMetrics(context, domainName, req);
-            return e;
+            return this.delegate.postDomainMetrics(context, domainName, req);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -556,8 +536,7 @@ public class ZTSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            Status e = this.delegate.getStatus(context);
-            return e;
+            return this.delegate.getStatus(context);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -581,8 +560,7 @@ public class ZTSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            Schema e = this.delegate.getRdlSchema(context);
-            return e;
+            return this.delegate.getRdlSchema(context);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {

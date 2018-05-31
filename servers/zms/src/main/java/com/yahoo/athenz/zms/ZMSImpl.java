@@ -1001,7 +1001,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return domain;
     }
     
-    public TopLevelDomain deleteTopLevelDomain(ResourceContext ctx, String domainName, String auditRef) {
+    public void deleteTopLevelDomain(ResourceContext ctx, String domainName, String auditRef) {
         
         final String caller = "deletetopleveldomain";
         metric.increment(ZMSConsts.HTTP_DELETE);
@@ -1030,7 +1030,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         deleteDomain(ctx, auditRef, domainName, caller);
         metric.stopTiming(timerMetric);
-        return null;
     }
 
     Domain deleteDomain(ResourceContext ctx, String auditRef, String domainName, String caller) {
@@ -1266,7 +1265,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return accessStatus == AccessStatus.ALLOWED;
     }
     
-    public SubDomain deleteSubDomain(ResourceContext ctx, String parent, String name, String auditRef) {
+    public void deleteSubDomain(ResourceContext ctx, String parent, String name, String auditRef) {
 
         final String caller = "deletesubdomain";
         metric.increment(ZMSConsts.HTTP_DELETE);
@@ -1299,10 +1298,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         deleteDomain(ctx, auditRef, domainName, caller);
         metric.stopTiming(timerMetric);
-        return null;
     }
 
-    public UserDomain deleteUserDomain(ResourceContext ctx, String name, String auditRef) {
+    public void deleteUserDomain(ResourceContext ctx, String name, String auditRef) {
 
         final String caller = "deleteuserdomain";
         metric.increment(ZMSConsts.HTTP_DELETE);
@@ -1332,7 +1330,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         String domainName = homeDomainPrefix + name;
         deleteDomain(ctx, auditRef, domainName, caller);
         metric.stopTiming(timerMetric);
-        return null;
     }
     
     public UserList getUserList(ResourceContext ctx) {
@@ -1354,7 +1351,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return result;
     }
     
-    public User deleteUser(ResourceContext ctx, String name, String auditRef) {
+    public void deleteUser(ResourceContext ctx, String name, String auditRef) {
         
         final String caller = "deleteuser";
         metric.increment(ZMSConsts.HTTP_DELETE);
@@ -1385,7 +1382,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         String domainName = homeDomainPrefix + getUserDomainName(name);
         dbService.executeDeleteUser(ctx, userName, domainName, auditRef, caller);
         metric.stopTiming(timerMetric);
-        return null;
     }
     
     String getUserDomainName(String userName) {
@@ -1398,7 +1394,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
     
-    public Domain putDomainMeta(ResourceContext ctx, String domainName, String auditRef,
+    public void putDomainMeta(ResourceContext ctx, String domainName, String auditRef,
             DomainMeta meta) {
 
         final String caller = "putdomainmeta";
@@ -1450,8 +1446,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         dbService.executePutDomainMeta(ctx, domainName, meta, auditRef, caller);
         metric.stopTiming(timerMetric);
-
-        return null;
     }
     
     void validateSolutionTemplates(List<String> templateNames, String caller) {
@@ -1490,7 +1484,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return domainTemplateList;
     }
     
-    public DomainTemplate putDomainTemplate(ResourceContext ctx, String domainName, String auditRef,
+    public void putDomainTemplate(ResourceContext ctx, String domainName, String auditRef,
             DomainTemplate domainTemplate) {
 
         final String caller = "putdomaintemplate";
@@ -1535,10 +1529,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         dbService.executePutDomainTemplate(ctx, domainName, domainTemplate, auditRef, caller);
         metric.stopTiming(timerMetric);
-        return null;
     }
 
-    public DomainTemplate putDomainTemplateExt(ResourceContext ctx, String domainName,
+    public void putDomainTemplateExt(ResourceContext ctx, String domainName,
             String templateName, String auditRef, DomainTemplate domainTemplate) {
 
         final String caller = "putdomaintemplateext";
@@ -1589,10 +1582,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         dbService.executePutDomainTemplate(ctx, domainName, domainTemplate, auditRef, caller);
         metric.stopTiming(timerMetric);
-        return null;
     }
     
-    public DomainTemplate deleteDomainTemplate(ResourceContext ctx, String domainName, String templateName, String auditRef) {
+    public void deleteDomainTemplate(ResourceContext ctx, String domainName, String templateName, String auditRef) {
 
         final String caller = "deletedomaintemplate";
         metric.increment(ZMSConsts.HTTP_DELETE);
@@ -1633,7 +1625,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         dbService.executeDeleteDomainTemplate(ctx, domainName, templateName, auditRef, caller);
         metric.stopTiming(timerMetric);
-        return null;
     }
     
     Principal createPrincipalForName(String principalName) {
@@ -2097,7 +2088,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
     
-    public Entity putEntity(ResourceContext ctx, String domainName, String entityName, String auditRef, Entity resource) {
+    public void putEntity(ResourceContext ctx, String domainName, String entityName, String auditRef, Entity resource) {
         
         final String caller = "putentity";
         metric.increment(ZMSConsts.HTTP_PUT);
@@ -2132,7 +2123,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         dbService.executePutEntity(ctx, domainName, entityName, resource, auditRef, caller);
         metric.stopTiming(timerMetric);
-        return null;
     }
 
     @Override
@@ -2194,7 +2184,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return entity;
     }
     
-    public Entity deleteEntity(ResourceContext ctx, String domainName, String entityName, String auditRef) {
+    public void deleteEntity(ResourceContext ctx, String domainName, String entityName, String auditRef) {
         
         final String caller = "deleteentity";
         metric.increment(ZMSConsts.HTTP_DELETE);
@@ -2227,8 +2217,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         dbService.executeDeleteEntity(ctx, domainName, entityName, auditRef, caller);
         metric.stopTiming(timerMetric);
-
-        return null;
     }
 
     public ServerTemplateList getServerTemplateList(ResourceContext ctx) {
@@ -2498,7 +2486,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return false;
     }
     
-    public Role putRole(ResourceContext ctx, String domainName, String roleName, String auditRef, Role role) {
+    public void putRole(ResourceContext ctx, String domainName, String roleName, String auditRef, Role role) {
         
         final String caller = "putrole";
         metric.increment(ZMSConsts.HTTP_PUT);
@@ -2550,10 +2538,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         dbService.executePutRole(ctx, domainName, roleName, role, auditRef, caller);
         metric.stopTiming(timerMetric);
-        return null;
     }
     
-    public Role deleteRole(ResourceContext ctx, String domainName, String roleName, String auditRef) {
+    public void deleteRole(ResourceContext ctx, String domainName, String roleName, String auditRef) {
         
         final String caller = "deleterole";
         metric.increment(ZMSConsts.HTTP_DELETE);
@@ -2593,7 +2580,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         dbService.executeDeleteRole(ctx, domainName, roleName, auditRef, caller);
         metric.stopTiming(timerMetric);
-        return null;
     }
 
     boolean memberNameMatch(String memberName, String matchName) {
@@ -2665,7 +2651,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return result;
     }
     
-    public Membership putMembership(ResourceContext ctx, String domainName, String roleName,
+    public void putMembership(ResourceContext ctx, String domainName, String roleName,
             String memberName, String auditRef, Membership membership) {
         
         final String caller = "putmembership";
@@ -2722,10 +2708,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         dbService.executePutMembership(ctx, domainName, roleName,
                 getNormalizedMember(roleMember), auditRef, caller);
         metric.stopTiming(timerMetric);
-        return null;
     }
 
-    public Membership deleteMembership(ResourceContext ctx, String domainName, String roleName,
+    public void deleteMembership(ResourceContext ctx, String domainName, String roleName,
             String memberName, String auditRef) {
         
         final String caller = "deletemembership";
@@ -2763,7 +2748,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         String normalizedMember = getNormalizedMember(roleMember).getMemberName();
         dbService.executeDeleteMembership(ctx, domainName, roleName, normalizedMember, auditRef, caller);
         metric.stopTiming(timerMetric);
-        return null;
     }
 
     public Quota getQuota(ResourceContext ctx, String domainName) {
@@ -2791,7 +2775,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return result;
     }
     
-    public Quota putQuota(ResourceContext ctx, String domainName, String auditRef, Quota quota) {
+    public void putQuota(ResourceContext ctx, String domainName, String auditRef, Quota quota) {
         
         final String caller = "putQuota";
         metric.increment(ZMSConsts.HTTP_PUT);
@@ -2830,10 +2814,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         dbService.executePutQuota(ctx, domainName, quota, auditRef, caller);
         metric.stopTiming(timerMetric);
-        return null;
     }
 
-    public Quota deleteQuota(ResourceContext ctx, String domainName, String auditRef) {
+    public void deleteQuota(ResourceContext ctx, String domainName, String auditRef) {
         
         final String caller = "deleteQuota";
         metric.increment(ZMSConsts.HTTP_DELETE);
@@ -2863,7 +2846,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         dbService.executeDeleteQuota(ctx, domainName, auditRef, caller);
         metric.stopTiming(timerMetric);
-        return null;
     }
     
     boolean hasExceededListLimit(Integer limit, int count) {
@@ -3118,7 +3100,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return assertion;
     }
     
-    public Assertion deleteAssertion(ResourceContext ctx, String domainName, String policyName,
+    public void deleteAssertion(ResourceContext ctx, String domainName, String policyName,
             Long assertionId, String auditRef) {
         
         final String caller = "deleteassertion";
@@ -3159,7 +3141,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         dbService.executeDeleteAssertion(ctx, domainName, policyName, assertionId, auditRef, caller);
         metric.stopTiming(timerMetric);
-        return null;
     }
     
     void validatePolicyAssertions(List<Assertion> assertions, String caller) {
@@ -3238,7 +3219,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return false;
     }
     
-    public Policy putPolicy(ResourceContext ctx, String domainName, String policyName, String auditRef, Policy policy) {
+    public void putPolicy(ResourceContext ctx, String domainName, String policyName, String auditRef, Policy policy) {
         
         final String caller = "putpolicy";
         metric.increment(ZMSConsts.HTTP_PUT);
@@ -3292,10 +3273,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         dbService.executePutPolicy(ctx, domainName, policyName, policy, auditRef, caller);
         metric.stopTiming(timerMetric);
-        return null;
     }
     
-    public Policy deletePolicy(ResourceContext ctx, String domainName, String policyName, String auditRef) {
+    public void deletePolicy(ResourceContext ctx, String domainName, String policyName, String auditRef) {
         
         final String caller = "deletepolicy";
         metric.increment(ZMSConsts.HTTP_DELETE);
@@ -3335,7 +3315,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         dbService.executeDeletePolicy(ctx, domainName, policyName, auditRef, caller);
         metric.stopTiming(timerMetric);
-        return null;
     }
 
     boolean matchDelegatedTrustAssertion(Assertion assertion, String roleName, 
@@ -3651,7 +3630,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return true;
     }
     
-    public ServiceIdentity putServiceIdentity(ResourceContext ctx, String domainName, String serviceName,
+    public void putServiceIdentity(ResourceContext ctx, String domainName, String serviceName,
             String auditRef, ServiceIdentity service) {
         
         final String caller = "putserviceidentity";
@@ -3699,7 +3678,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         dbService.executePutServiceIdentity(ctx, domainName, serviceName, service, auditRef, caller);
         metric.stopTiming(timerMetric);
-        return null;
     }
     
     public ServiceIdentity getServiceIdentity(ResourceContext ctx, String domainName, String serviceName) {
@@ -3733,7 +3711,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return service;
     }
     
-    public ServiceIdentity deleteServiceIdentity(ResourceContext ctx, String domainName,
+    public void deleteServiceIdentity(ResourceContext ctx, String domainName,
             String serviceName, String auditRef) {
         
         final String caller = "deleteserviceidentity";
@@ -3766,7 +3744,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         dbService.executeDeleteServiceIdentity(ctx, domainName, serviceName, auditRef, caller);
         metric.stopTiming(timerMetric);
-        return null;
     }
 
     List<ServiceIdentity> setupServiceIdentityList(AthenzDomain domain, Boolean publicKeys, Boolean hosts) {
@@ -3898,7 +3875,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return entry;
     }
 
-    public PublicKeyEntry deletePublicKeyEntry(ResourceContext ctx, String domainName, String serviceName,
+    public void deletePublicKeyEntry(ResourceContext ctx, String domainName, String serviceName,
             String keyId, String auditRef) {
         
         final String caller = "deletepublickeyentry";
@@ -3932,10 +3909,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         dbService.executeDeletePublicKeyEntry(ctx, domainName, serviceName, keyId, auditRef, caller);
         metric.stopTiming(timerMetric);
-        return null;
     }
     
-    public PublicKeyEntry putPublicKeyEntry(ResourceContext ctx, String domainName, String serviceName, 
+    public void putPublicKeyEntry(ResourceContext ctx, String domainName, String serviceName,
             String keyId, String auditRef, PublicKeyEntry keyEntry) {
         
         final String caller = "putpublickeyentry";
@@ -3983,7 +3959,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         dbService.executePutPublicKeyEntry(ctx, domainName, serviceName, keyEntry, auditRef, caller);
         metric.stopTiming(timerMetric);
-        return null;
     }
 
     String removeQuotes(String value) {
@@ -4472,7 +4447,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return provider.substring(n + 1);
     }
     
-    public Tenancy putTenancy(ResourceContext ctx, String tenantDomain, String provider,
+    public void putTenancy(ResourceContext ctx, String tenantDomain, String provider,
             String auditRef, Tenancy detail) {
 
         final String caller = "puttenancy";
@@ -4543,10 +4518,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         metric.stopTiming(timerMetric);
-        return null;
     }
     
-    public Tenancy deleteTenancy(ResourceContext ctx, String tenantDomain, String provider, String auditRef) {
+    public void deleteTenancy(ResourceContext ctx, String tenantDomain, String provider, String auditRef) {
         
         final String caller = "deletetenancy";
         metric.increment(ZMSConsts.HTTP_DELETE);
@@ -4605,7 +4579,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 null, auditRef, caller);
 
         metric.stopTiming(timerMetric);
-        return null;
     }
      
     // put the trust roles into provider domain
@@ -4949,7 +4922,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return ddc;
     }
      
-    public ProviderResourceGroupRoles deleteProviderResourceGroupRoles(ResourceContext ctx, String tenantDomain,
+    public void deleteProviderResourceGroupRoles(ResourceContext ctx, String tenantDomain,
              String provSvcDomain, String provSvcName, String resourceGroup, String auditRef) {
          
         final String caller = "deleteproviderresourcegrouproles";
@@ -5001,7 +4974,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         metric.stopTiming(timerMetric);
-        return null;
     }
 
     public ProviderResourceGroupRoles getProviderResourceGroupRoles(ResourceContext ctx, String tenantDomain,
@@ -5277,7 +5249,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return troles;
     }
 
-    public TenantResourceGroupRoles deleteTenantResourceGroupRoles(ResourceContext ctx, String provSvcDomain,
+    public void deleteTenantResourceGroupRoles(ResourceContext ctx, String provSvcDomain,
             String provSvcName, String tenantDomain, String resourceGroup, String auditRef) {
         
         final String caller = "deletetenantresourcegrouproles";
@@ -5315,7 +5287,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         dbService.executeDeleteTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain,
                 resourceGroup, auditRef, caller);
         metric.stopTiming(timerMetric);
-        return null;
     }
     
     String extractDomainName(String resource) {
@@ -5540,7 +5511,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
     
     @Override
-    public DefaultAdmins putDefaultAdmins(ResourceContext ctx, String domainName, String auditRef,
+    public void putDefaultAdmins(ResourceContext ctx, String domainName, String auditRef,
             DefaultAdmins defaultAdmins) {
         
         final String caller = "putdefaultadmins";
@@ -5627,7 +5598,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         addDefaultAdminMembers(ctx, domainName, adminRole, defaultAdmins, auditRef, caller);
         metric.stopTiming(timerMetric);
-        return null;
     }
 
     void addDefaultAdminAssertion(ResourceContext ctx, String domainName, Policy adminPolicy,

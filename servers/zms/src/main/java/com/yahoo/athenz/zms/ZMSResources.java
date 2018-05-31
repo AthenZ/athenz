@@ -4,7 +4,6 @@
 package com.yahoo.athenz.zms;
 
 import com.yahoo.rdl.*;
-import java.util.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import javax.servlet.http.HttpServletRequest;
@@ -21,8 +20,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            Domain e = this.delegate.getDomain(context, domain);
-            return e;
+            return this.delegate.getDomain(context, domain);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -50,8 +48,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            DomainList e = this.delegate.getDomainList(context, limit, skip, prefix, depth, account, productId, roleMember, roleName, modifiedSince);
-            return e;
+            return this.delegate.getDomainList(context, limit, skip, prefix, depth, account, productId, roleMember, roleName, modifiedSince);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -74,8 +71,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("create", "sys.auth:domain", null);
-            Domain e = this.delegate.postTopLevelDomain(context, auditRef, detail);
-            return e;
+            return this.delegate.postTopLevelDomain(context, auditRef, detail);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -102,8 +98,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("create", "" + parent + ":domain", null);
-            Domain e = this.delegate.postSubDomain(context, parent, auditRef, detail);
-            return e;
+            return this.delegate.postSubDomain(context, parent, auditRef, detail);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -132,8 +127,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("create", "user." + name + ":domain", null);
-            Domain e = this.delegate.postUserDomain(context, name, auditRef, detail);
-            return e;
+            return this.delegate.postUserDomain(context, name, auditRef, detail);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -156,13 +150,11 @@ public class ZMSResources {
 
     @DELETE
     @Path("/domain/{name}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public TopLevelDomain deleteTopLevelDomain(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    public void deleteTopLevelDomain(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("delete", "sys.auth:domain", null);
-            TopLevelDomain e = this.delegate.deleteTopLevelDomain(context, name, auditRef);
-            return null;
+            this.delegate.deleteTopLevelDomain(context, name, auditRef);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -185,13 +177,11 @@ public class ZMSResources {
 
     @DELETE
     @Path("/subdomain/{parent}/{name}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public SubDomain deleteSubDomain(@PathParam("parent") String parent, @PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    public void deleteSubDomain(@PathParam("parent") String parent, @PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("delete", "" + parent + ":domain", null);
-            SubDomain e = this.delegate.deleteSubDomain(context, parent, name, auditRef);
-            return null;
+            this.delegate.deleteSubDomain(context, parent, name, auditRef);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -214,13 +204,11 @@ public class ZMSResources {
 
     @DELETE
     @Path("/userdomain/{name}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public UserDomain deleteUserDomain(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    public void deleteUserDomain(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("delete", "user." + name + ":domain", null);
-            UserDomain e = this.delegate.deleteUserDomain(context, name, auditRef);
-            return null;
+            this.delegate.deleteUserDomain(context, name, auditRef);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -244,13 +232,11 @@ public class ZMSResources {
     @PUT
     @Path("/domain/{name}/meta")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Domain putDomainMeta(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef, DomainMeta detail) {
+    public void putDomainMeta(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef, DomainMeta detail) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + name + ":", null);
-            Domain e = this.delegate.putDomainMeta(context, name, auditRef, detail);
-            return null;
+            this.delegate.putDomainMeta(context, name, auditRef, detail);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -276,13 +262,11 @@ public class ZMSResources {
     @PUT
     @Path("/domain/{name}/template")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public DomainTemplate putDomainTemplate(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef, DomainTemplate domainTemplate) {
+    public void putDomainTemplate(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef, DomainTemplate domainTemplate) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + name + ":template", null);
-            DomainTemplate e = this.delegate.putDomainTemplate(context, name, auditRef, domainTemplate);
-            return null;
+            this.delegate.putDomainTemplate(context, name, auditRef, domainTemplate);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -308,13 +292,11 @@ public class ZMSResources {
     @PUT
     @Path("/domain/{name}/template/{template}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public DomainTemplate putDomainTemplateExt(@PathParam("name") String name, @PathParam("template") String template, @HeaderParam("Y-Audit-Ref") String auditRef, DomainTemplate domainTemplate) {
+    public void putDomainTemplateExt(@PathParam("name") String name, @PathParam("template") String template, @HeaderParam("Y-Audit-Ref") String auditRef, DomainTemplate domainTemplate) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + name + ":template." + template + "", null);
-            DomainTemplate e = this.delegate.putDomainTemplateExt(context, name, template, auditRef, domainTemplate);
-            return null;
+            this.delegate.putDomainTemplateExt(context, name, template, auditRef, domainTemplate);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -344,8 +326,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            DomainTemplateList e = this.delegate.getDomainTemplateList(context, name);
-            return e;
+            return this.delegate.getDomainTemplateList(context, name);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -366,13 +347,11 @@ public class ZMSResources {
 
     @DELETE
     @Path("/domain/{name}/template/{template}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public DomainTemplate deleteDomainTemplate(@PathParam("name") String name, @PathParam("template") String template, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    public void deleteDomainTemplate(@PathParam("name") String name, @PathParam("template") String template, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("delete", "" + name + ":template." + template + "", null);
-            DomainTemplate e = this.delegate.deleteDomainTemplate(context, name, template, auditRef);
-            return null;
+            this.delegate.deleteDomainTemplate(context, name, template, auditRef);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -402,8 +381,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            DomainDataCheck e = this.delegate.getDomainDataCheck(context, domainName);
-            return e;
+            return this.delegate.getDomainDataCheck(context, domainName);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -425,13 +403,11 @@ public class ZMSResources {
     @PUT
     @Path("/domain/{domainName}/entity/{entityName}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Entity putEntity(@PathParam("domainName") String domainName, @PathParam("entityName") String entityName, @HeaderParam("Y-Audit-Ref") String auditRef, Entity entity) {
+    public void putEntity(@PathParam("domainName") String domainName, @PathParam("entityName") String entityName, @HeaderParam("Y-Audit-Ref") String auditRef, Entity entity) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + domainName + ":" + entityName + "", null);
-            Entity e = this.delegate.putEntity(context, domainName, entityName, auditRef, entity);
-            return null;
+            this.delegate.putEntity(context, domainName, entityName, auditRef, entity);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -461,8 +437,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            Entity e = this.delegate.getEntity(context, domainName, entityName);
-            return e;
+            return this.delegate.getEntity(context, domainName, entityName);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -485,13 +460,11 @@ public class ZMSResources {
 
     @DELETE
     @Path("/domain/{domainName}/entity/{entityName}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Entity deleteEntity(@PathParam("domainName") String domainName, @PathParam("entityName") String entityName, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    public void deleteEntity(@PathParam("domainName") String domainName, @PathParam("entityName") String entityName, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("delete", "" + domainName + ":" + entityName + "", null);
-            Entity e = this.delegate.deleteEntity(context, domainName, entityName, auditRef);
-            return null;
+            this.delegate.deleteEntity(context, domainName, entityName, auditRef);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -521,8 +494,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            EntityList e = this.delegate.getEntityList(context, domainName);
-            return e;
+            return this.delegate.getEntityList(context, domainName);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -548,8 +520,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            RoleList e = this.delegate.getRoleList(context, domainName, limit, skip);
-            return e;
+            return this.delegate.getRoleList(context, domainName, limit, skip);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -577,8 +548,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            Roles e = this.delegate.getRoles(context, domainName, members);
-            return e;
+            return this.delegate.getRoles(context, domainName, members);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -604,8 +574,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            Role e = this.delegate.getRole(context, domainName, roleName, auditLog, expand);
-            return e;
+            return this.delegate.getRole(context, domainName, roleName, auditLog, expand);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -629,13 +598,11 @@ public class ZMSResources {
     @PUT
     @Path("/domain/{domainName}/role/{roleName}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Role putRole(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @HeaderParam("Y-Audit-Ref") String auditRef, Role role) {
+    public void putRole(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @HeaderParam("Y-Audit-Ref") String auditRef, Role role) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + domainName + ":role." + roleName + "", null);
-            Role e = this.delegate.putRole(context, domainName, roleName, auditRef, role);
-            return null;
+            this.delegate.putRole(context, domainName, roleName, auditRef, role);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -660,13 +627,11 @@ public class ZMSResources {
 
     @DELETE
     @Path("/domain/{domainName}/role/{roleName}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Role deleteRole(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    public void deleteRole(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("delete", "" + domainName + ":role." + roleName + "", null);
-            Role e = this.delegate.deleteRole(context, domainName, roleName, auditRef);
-            return null;
+            this.delegate.deleteRole(context, domainName, roleName, auditRef);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -696,8 +661,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            Membership e = this.delegate.getMembership(context, domainName, roleName, memberName);
-            return e;
+            return this.delegate.getMembership(context, domainName, roleName, memberName);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -721,13 +685,11 @@ public class ZMSResources {
     @PUT
     @Path("/domain/{domainName}/role/{roleName}/member/{memberName}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Membership putMembership(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @PathParam("memberName") String memberName, @HeaderParam("Y-Audit-Ref") String auditRef, Membership membership) {
+    public void putMembership(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @PathParam("memberName") String memberName, @HeaderParam("Y-Audit-Ref") String auditRef, Membership membership) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + domainName + ":role." + roleName + "", null);
-            Membership e = this.delegate.putMembership(context, domainName, roleName, memberName, auditRef, membership);
-            return null;
+            this.delegate.putMembership(context, domainName, roleName, memberName, auditRef, membership);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -752,13 +714,11 @@ public class ZMSResources {
 
     @DELETE
     @Path("/domain/{domainName}/role/{roleName}/member/{memberName}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Membership deleteMembership(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @PathParam("memberName") String memberName, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    public void deleteMembership(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @PathParam("memberName") String memberName, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + domainName + ":role." + roleName + "", null);
-            Membership e = this.delegate.deleteMembership(context, domainName, roleName, memberName, auditRef);
-            return null;
+            this.delegate.deleteMembership(context, domainName, roleName, memberName, auditRef);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -784,13 +744,11 @@ public class ZMSResources {
     @PUT
     @Path("/domain/{domainName}/admins")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public DefaultAdmins putDefaultAdmins(@PathParam("domainName") String domainName, @HeaderParam("Y-Audit-Ref") String auditRef, DefaultAdmins defaultAdmins) {
+    public void putDefaultAdmins(@PathParam("domainName") String domainName, @HeaderParam("Y-Audit-Ref") String auditRef, DefaultAdmins defaultAdmins) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "sys.auth:domain", null);
-            DefaultAdmins e = this.delegate.putDefaultAdmins(context, domainName, auditRef, defaultAdmins);
-            return null;
+            this.delegate.putDefaultAdmins(context, domainName, auditRef, defaultAdmins);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -818,8 +776,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            PolicyList e = this.delegate.getPolicyList(context, domainName, limit, skip);
-            return e;
+            return this.delegate.getPolicyList(context, domainName, limit, skip);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -847,8 +804,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            Policies e = this.delegate.getPolicies(context, domainName, assertions);
-            return e;
+            return this.delegate.getPolicies(context, domainName, assertions);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -874,8 +830,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            Policy e = this.delegate.getPolicy(context, domainName, policyName);
-            return e;
+            return this.delegate.getPolicy(context, domainName, policyName);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -899,13 +854,11 @@ public class ZMSResources {
     @PUT
     @Path("/domain/{domainName}/policy/{policyName}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Policy putPolicy(@PathParam("domainName") String domainName, @PathParam("policyName") String policyName, @HeaderParam("Y-Audit-Ref") String auditRef, Policy policy) {
+    public void putPolicy(@PathParam("domainName") String domainName, @PathParam("policyName") String policyName, @HeaderParam("Y-Audit-Ref") String auditRef, Policy policy) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
-            Policy e = this.delegate.putPolicy(context, domainName, policyName, auditRef, policy);
-            return null;
+            this.delegate.putPolicy(context, domainName, policyName, auditRef, policy);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -930,13 +883,11 @@ public class ZMSResources {
 
     @DELETE
     @Path("/domain/{domainName}/policy/{policyName}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Policy deletePolicy(@PathParam("domainName") String domainName, @PathParam("policyName") String policyName, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    public void deletePolicy(@PathParam("domainName") String domainName, @PathParam("policyName") String policyName, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("delete", "" + domainName + ":policy." + policyName + "", null);
-            Policy e = this.delegate.deletePolicy(context, domainName, policyName, auditRef);
-            return null;
+            this.delegate.deletePolicy(context, domainName, policyName, auditRef);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -966,8 +917,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            Assertion e = this.delegate.getAssertion(context, domainName, policyName, assertionId);
-            return e;
+            return this.delegate.getAssertion(context, domainName, policyName, assertionId);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -996,8 +946,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
-            Assertion e = this.delegate.putAssertion(context, domainName, policyName, auditRef, assertion);
-            return e;
+            return this.delegate.putAssertion(context, domainName, policyName, auditRef, assertion);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -1024,13 +973,11 @@ public class ZMSResources {
 
     @DELETE
     @Path("/domain/{domainName}/policy/{policyName}/assertion/{assertionId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Assertion deleteAssertion(@PathParam("domainName") String domainName, @PathParam("policyName") String policyName, @PathParam("assertionId") Long assertionId, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    public void deleteAssertion(@PathParam("domainName") String domainName, @PathParam("policyName") String policyName, @PathParam("assertionId") Long assertionId, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
-            Assertion e = this.delegate.deleteAssertion(context, domainName, policyName, assertionId, auditRef);
-            return null;
+            this.delegate.deleteAssertion(context, domainName, policyName, assertionId, auditRef);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -1056,13 +1003,11 @@ public class ZMSResources {
     @PUT
     @Path("/domain/{domain}/service/{service}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public ServiceIdentity putServiceIdentity(@PathParam("domain") String domain, @PathParam("service") String service, @HeaderParam("Y-Audit-Ref") String auditRef, ServiceIdentity detail) {
+    public void putServiceIdentity(@PathParam("domain") String domain, @PathParam("service") String service, @HeaderParam("Y-Audit-Ref") String auditRef, ServiceIdentity detail) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + domain + ":service." + service + "", null);
-            ServiceIdentity e = this.delegate.putServiceIdentity(context, domain, service, auditRef, detail);
-            return null;
+            this.delegate.putServiceIdentity(context, domain, service, auditRef, detail);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -1092,8 +1037,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            ServiceIdentity e = this.delegate.getServiceIdentity(context, domain, service);
-            return e;
+            return this.delegate.getServiceIdentity(context, domain, service);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -1116,13 +1060,11 @@ public class ZMSResources {
 
     @DELETE
     @Path("/domain/{domain}/service/{service}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public ServiceIdentity deleteServiceIdentity(@PathParam("domain") String domain, @PathParam("service") String service, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    public void deleteServiceIdentity(@PathParam("domain") String domain, @PathParam("service") String service, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("delete", "" + domain + ":service." + service + "", null);
-            ServiceIdentity e = this.delegate.deleteServiceIdentity(context, domain, service, auditRef);
-            return null;
+            this.delegate.deleteServiceIdentity(context, domain, service, auditRef);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -1152,8 +1094,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            ServiceIdentities e = this.delegate.getServiceIdentities(context, domainName, publickeys, hosts);
-            return e;
+            return this.delegate.getServiceIdentities(context, domainName, publickeys, hosts);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -1179,8 +1120,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            ServiceIdentityList e = this.delegate.getServiceIdentityList(context, domainName, limit, skip);
-            return e;
+            return this.delegate.getServiceIdentityList(context, domainName, limit, skip);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -1208,8 +1148,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            PublicKeyEntry e = this.delegate.getPublicKeyEntry(context, domain, service, id);
-            return e;
+            return this.delegate.getPublicKeyEntry(context, domain, service, id);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -1233,13 +1172,11 @@ public class ZMSResources {
     @PUT
     @Path("/domain/{domain}/service/{service}/publickey/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public PublicKeyEntry putPublicKeyEntry(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("id") String id, @HeaderParam("Y-Audit-Ref") String auditRef, PublicKeyEntry publicKeyEntry) {
+    public void putPublicKeyEntry(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("id") String id, @HeaderParam("Y-Audit-Ref") String auditRef, PublicKeyEntry publicKeyEntry) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + domain + ":service." + service + "", null);
-            PublicKeyEntry e = this.delegate.putPublicKeyEntry(context, domain, service, id, auditRef, publicKeyEntry);
-            return null;
+            this.delegate.putPublicKeyEntry(context, domain, service, id, auditRef, publicKeyEntry);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -1264,13 +1201,11 @@ public class ZMSResources {
 
     @DELETE
     @Path("/domain/{domain}/service/{service}/publickey/{id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public PublicKeyEntry deletePublicKeyEntry(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("id") String id, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    public void deletePublicKeyEntry(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("id") String id, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + domain + ":service." + service + "", null);
-            PublicKeyEntry e = this.delegate.deletePublicKeyEntry(context, domain, service, id, auditRef);
-            return null;
+            this.delegate.deletePublicKeyEntry(context, domain, service, id, auditRef);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -1296,13 +1231,11 @@ public class ZMSResources {
     @PUT
     @Path("/domain/{domain}/tenancy/{service}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Tenancy putTenancy(@PathParam("domain") String domain, @PathParam("service") String service, @HeaderParam("Y-Audit-Ref") String auditRef, Tenancy detail) {
+    public void putTenancy(@PathParam("domain") String domain, @PathParam("service") String service, @HeaderParam("Y-Audit-Ref") String auditRef, Tenancy detail) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + domain + ":tenancy", null);
-            Tenancy e = this.delegate.putTenancy(context, domain, service, auditRef, detail);
-            return null;
+            this.delegate.putTenancy(context, domain, service, auditRef, detail);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -1327,13 +1260,11 @@ public class ZMSResources {
 
     @DELETE
     @Path("/domain/{domain}/tenancy/{service}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Tenancy deleteTenancy(@PathParam("domain") String domain, @PathParam("service") String service, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    public void deleteTenancy(@PathParam("domain") String domain, @PathParam("service") String service, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("delete", "" + domain + ":tenancy", null);
-            Tenancy e = this.delegate.deleteTenancy(context, domain, service, auditRef);
-            return null;
+            this.delegate.deleteTenancy(context, domain, service, auditRef);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -1364,8 +1295,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + domain + ":tenant." + service + "", null);
-            TenantResourceGroupRoles e = this.delegate.putTenantResourceGroupRoles(context, domain, service, tenantDomain, resourceGroup, auditRef, detail);
-            return e;
+            return this.delegate.putTenantResourceGroupRoles(context, domain, service, tenantDomain, resourceGroup, auditRef, detail);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -1397,8 +1327,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            TenantResourceGroupRoles e = this.delegate.getTenantResourceGroupRoles(context, domain, service, tenantDomain, resourceGroup);
-            return e;
+            return this.delegate.getTenantResourceGroupRoles(context, domain, service, tenantDomain, resourceGroup);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -1421,13 +1350,11 @@ public class ZMSResources {
 
     @DELETE
     @Path("/domain/{domain}/service/{service}/tenant/{tenantDomain}/resourceGroup/{resourceGroup}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public TenantResourceGroupRoles deleteTenantResourceGroupRoles(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("tenantDomain") String tenantDomain, @PathParam("resourceGroup") String resourceGroup, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    public void deleteTenantResourceGroupRoles(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("tenantDomain") String tenantDomain, @PathParam("resourceGroup") String resourceGroup, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + domain + ":tenant." + service + "", null);
-            TenantResourceGroupRoles e = this.delegate.deleteTenantResourceGroupRoles(context, domain, service, tenantDomain, resourceGroup, auditRef);
-            return null;
+            this.delegate.deleteTenantResourceGroupRoles(context, domain, service, tenantDomain, resourceGroup, auditRef);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -1458,8 +1385,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + tenantDomain + ":tenancy." + provDomain + "." + provService + "", null);
-            ProviderResourceGroupRoles e = this.delegate.putProviderResourceGroupRoles(context, tenantDomain, provDomain, provService, resourceGroup, auditRef, detail);
-            return e;
+            return this.delegate.putProviderResourceGroupRoles(context, tenantDomain, provDomain, provService, resourceGroup, auditRef, detail);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -1491,8 +1417,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            ProviderResourceGroupRoles e = this.delegate.getProviderResourceGroupRoles(context, tenantDomain, provDomain, provService, resourceGroup);
-            return e;
+            return this.delegate.getProviderResourceGroupRoles(context, tenantDomain, provDomain, provService, resourceGroup);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -1515,13 +1440,11 @@ public class ZMSResources {
 
     @DELETE
     @Path("/domain/{tenantDomain}/provDomain/{provDomain}/provService/{provService}/resourceGroup/{resourceGroup}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public ProviderResourceGroupRoles deleteProviderResourceGroupRoles(@PathParam("tenantDomain") String tenantDomain, @PathParam("provDomain") String provDomain, @PathParam("provService") String provService, @PathParam("resourceGroup") String resourceGroup, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    public void deleteProviderResourceGroupRoles(@PathParam("tenantDomain") String tenantDomain, @PathParam("provDomain") String provDomain, @PathParam("provService") String provService, @PathParam("resourceGroup") String resourceGroup, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "" + tenantDomain + ":tenancy." + provDomain + "." + provService + "", null);
-            ProviderResourceGroupRoles e = this.delegate.deleteProviderResourceGroupRoles(context, tenantDomain, provDomain, provService, resourceGroup, auditRef);
-            return null;
+            this.delegate.deleteProviderResourceGroupRoles(context, tenantDomain, provDomain, provService, resourceGroup, auditRef);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -1551,8 +1474,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            Access e = this.delegate.getAccess(context, action, resource, domain, checkPrincipal);
-            return e;
+            return this.delegate.getAccess(context, action, resource, domain, checkPrincipal);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -1580,8 +1502,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            Access e = this.delegate.getAccessExt(context, action, resource, domain, checkPrincipal);
-            return e;
+            return this.delegate.getAccessExt(context, action, resource, domain, checkPrincipal);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -1609,8 +1530,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            ResourceAccessList e = this.delegate.getResourceAccessList(context, principal, action);
-            return e;
+            return this.delegate.getResourceAccessList(context, principal, action);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -1667,8 +1587,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            UserToken e = this.delegate.getUserToken(context, userName, serviceNames, header);
-            return e;
+            return this.delegate.getUserToken(context, userName, serviceNames, header);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -1690,8 +1609,7 @@ public class ZMSResources {
     public UserToken optionsUserToken(@PathParam("userName") String userName, @QueryParam("services") String serviceNames) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
-            UserToken e = this.delegate.optionsUserToken(context, userName, serviceNames);
-            return e;
+            return this.delegate.optionsUserToken(context, userName, serviceNames);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -1713,8 +1631,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            ServicePrincipal e = this.delegate.getServicePrincipal(context);
-            return e;
+            return this.delegate.getServicePrincipal(context);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -1740,8 +1657,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            ServerTemplateList e = this.delegate.getServerTemplateList(context);
-            return e;
+            return this.delegate.getServerTemplateList(context);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -1763,8 +1679,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            Template e = this.delegate.getTemplate(context, template);
-            return e;
+            return this.delegate.getTemplate(context, template);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -1790,8 +1705,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            UserList e = this.delegate.getUserList(context);
-            return e;
+            return this.delegate.getUserList(context);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -1808,13 +1722,11 @@ public class ZMSResources {
 
     @DELETE
     @Path("/user/{name}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public User deleteUser(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    public void deleteUser(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("delete", "sys.auth:user", null);
-            User e = this.delegate.deleteUser(context, name, auditRef);
-            return null;
+            this.delegate.deleteUser(context, name, auditRef);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -1844,8 +1756,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            Quota e = this.delegate.getQuota(context, name);
-            return e;
+            return this.delegate.getQuota(context, name);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -1863,13 +1774,11 @@ public class ZMSResources {
     @PUT
     @Path("/domain/{name}/quota")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Quota putQuota(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef, Quota quota) {
+    public void putQuota(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef, Quota quota) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "sys.auth:quota", null);
-            Quota e = this.delegate.putQuota(context, name, auditRef, quota);
-            return null;
+            this.delegate.putQuota(context, name, auditRef, quota);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -1892,13 +1801,11 @@ public class ZMSResources {
 
     @DELETE
     @Path("/domain/{name}/quota")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Quota deleteQuota(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef) {
+    public void deleteQuota(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authorize("update", "sys.auth:quota", null);
-            Quota e = this.delegate.deleteQuota(context, name, auditRef);
-            return null;
+            this.delegate.deleteQuota(context, name, auditRef);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -1926,8 +1833,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            Status e = this.delegate.getStatus(context);
-            return e;
+            return this.delegate.getStatus(context);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -1951,8 +1857,7 @@ public class ZMSResources {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            Schema e = this.delegate.getRdlSchema(context);
-            return e;
+            return this.delegate.getRdlSchema(context);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {

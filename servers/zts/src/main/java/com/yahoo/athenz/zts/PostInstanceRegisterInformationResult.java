@@ -3,8 +3,6 @@
 //
 package com.yahoo.athenz.zts;
 
-import com.yahoo.rdl.*;
-import java.util.*;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.WebApplicationException;
 
@@ -15,10 +13,6 @@ public final class PostInstanceRegisterInformationResult {
     PostInstanceRegisterInformationResult(ResourceContext context) {
         this.context = context;
         this.code = 0;
-    }
-
-    public boolean isAsync() {
-        return false;
     }
 
     public void done(int code, InstanceIdentity instanceIdentity, String location) {
@@ -38,11 +32,8 @@ public final class PostInstanceRegisterInformationResult {
 
     public void done(int code, Object entity, String location) {
         this.code = code;
-        //to do: check if the exception is declared, and that the entity is of the declared type
-        WebApplicationException err = new WebApplicationException(Response.status(code).entity(entity)
-            .header("Location", location)
-          .build());
-        throw err; //not optimal
+        throw new WebApplicationException(Response.status(code).entity(entity)
+            .header("Location", location).build());
     }
 
 }

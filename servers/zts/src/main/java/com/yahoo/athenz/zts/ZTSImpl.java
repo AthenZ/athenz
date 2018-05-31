@@ -2240,7 +2240,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
     
     @Override
-    public InstanceIdentity deleteInstanceIdentity(ResourceContext ctx, String provider,
+    public void deleteInstanceIdentity(ResourceContext ctx, String provider,
             String domain, String service, String instanceId) {
         
         final String caller = "deleteinstanceidentity";
@@ -2288,7 +2288,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         auditLogger.log(msgBldr);
         
         metric.stopTiming(timerMetric);
-        return null;
     }
      
     @Override

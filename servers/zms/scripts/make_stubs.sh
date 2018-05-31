@@ -32,10 +32,7 @@ command -v rdl >/dev/null 2>&1 || {
 RDL_ZMS_FILE=src/main/rdl/ZMS.rdl
 
 echo "Generate the server stubs"
-rdl -s generate -b="/v1" -o="src/main/java" java-server $RDL_ZMS_FILE
-
-echo "Removing not needed ZMS Server file..."
-rm src/main/java/com/yahoo/athenz/zms/ZMSServer.java
+rdl -s generate -b="/v1" -o="src/main/java" athenz-server $RDL_ZMS_FILE
 
 # Copyright 2016 Yahoo Inc.
 # Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
