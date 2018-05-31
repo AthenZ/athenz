@@ -31,6 +31,7 @@ endif
 
 all:
 	@echo "Building client..."
+	go get -u github.com/ardielle/ardielle-go/...
 	go build
 	cp rdl-gen-athenz-server $(GOPATH)/bin/rdl-gen-athenz-server
 
