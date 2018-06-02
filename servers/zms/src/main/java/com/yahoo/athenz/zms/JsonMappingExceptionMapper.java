@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Yahoo Inc.
+ * Copyright 2018 Oath Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,19 @@
  */
 package com.yahoo.athenz.zms;
 
-import org.glassfish.jersey.server.ResourceConfig;
+import com.fasterxml.jackson.databind.*;
 
-class ZMS extends ResourceConfig {
-    public ZMS() {
-        register(JsonGeneralExceptionMapper.class, 1);
-        register(JsonMappingExceptionMapper.class, 1);
-        register(JsonParseExceptionMapper.class, 1);
-        register(JsonProcessingExceptionMapper.class, 1);
-        registerClasses(ZMSResources.class);
-        register(new ZMSBinder());
-    }
+import javax.annotation.*;
+import javax.ws.rs.core.*;
+import javax.ws.rs.ext.*;
+
+@Provider
+@Priority(1)
+public class JsonMappingExceptionMapper implements ExceptionMapper<JsonMappingException> {
+
+    @Override
+    public Response toResponse(JsonMappingException ex) {
+        return Response.status(Response.Status.BAD_REQUEST)
+                .entity(ZMSConsts.ZMS_JSON_PARSER_ERROR_RESPONSE)
+                .build();    }
 }

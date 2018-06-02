@@ -95,3 +95,4 @@ utils/zpe_policy_updater/src/test/resources/sys.auth.new.pol
 libs/go/ztsclientutil/bin/
 libs/go/ztsclientutil/pkg/
 libs/go/ztsclientutil/src/
+rdl/rdl-gen-athenz-server/rdl-gen-athenz-server

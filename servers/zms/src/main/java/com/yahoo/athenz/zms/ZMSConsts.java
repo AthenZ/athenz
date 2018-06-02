@@ -197,5 +197,7 @@ public final class ZMSConsts {
     public static final String STR_DEF_ROOT     = "/home/athenz";
 
     public static final int STRING_BLDR_SIZE_DEFAULT = 512;
+
+    public static final String ZMS_JSON_PARSER_ERROR_RESPONSE = "{\"code\":400,\"message\":\"Invalid Object: checkout https://github.com/yahoo/athenz/core/zms for object defintions\"}";
 }
 
