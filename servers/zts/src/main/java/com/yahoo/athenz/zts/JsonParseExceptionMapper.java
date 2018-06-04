@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Yahoo Inc.
+ * Copyright 2018 Oath Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,21 @@
  */
 package com.yahoo.athenz.zts;
 
-import org.glassfish.jersey.server.ResourceConfig;
+import com.fasterxml.jackson.core.JsonParseException;
 
-public class ZTS extends ResourceConfig {
-    public ZTS() {
-        register(JsonGeneralExceptionMapper.class, 1);
-        register(JsonMappingExceptionMapper.class, 1);
-        register(JsonParseExceptionMapper.class, 1);
-        register(JsonProcessingExceptionMapper.class, 1);
-        registerClasses(ZTSResources.class);
-        register(new ZTSBinder());
+import javax.annotation.Priority;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.ext.ExceptionMapper;
+import javax.ws.rs.ext.Provider;
+
+@Provider
+@Priority(1)
+public class JsonParseExceptionMapper implements ExceptionMapper<JsonParseException> {
+
+    @Override
+    public Response toResponse(JsonParseException ex) {
+        return Response.status(Response.Status.BAD_REQUEST)
+                .entity(ZTSConsts.ZTS_JSON_PARSER_ERROR_RESPONSE)
+                .build();
     }
 }
