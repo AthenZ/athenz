@@ -41,9 +41,11 @@ public class DataSourceFactory {
     static final String ATHENZ_PROP_DBPOOL_EVICT_IDLE_TIMEOUT  = "athenz.db.pool_evict_idle_timeout";
     static final String ATHENZ_PROP_DBPOOL_EVICT_IDLE_INTERVAL = "athenz.db.pool_evict_idle_interval";
     static final String ATHENZ_PROP_DBPOOL_MAX_TTL             = "athenz.db.pool_max_ttl";
+    static final String ATHENZ_PROP_DBPOOL_VALIDATION_QUERY    = "athenz.db.pool_validation_query";
 
     static final long MAX_TTL_CONN_MS = TimeUnit.MILLISECONDS.convert(10L, TimeUnit.MINUTES);
-    
+    static final String MYSQL_VALIDATION_QUERY = "/* ping */ SELECT 1";
+
     public static PoolableDataSource create(String url, Properties mysqlConnectionProperties) {
         
         String driver = null;
@@ -170,9 +172,11 @@ public class DataSourceFactory {
         // from the pool.
         config.setTestWhileIdle(true);
         
-        // Validate object before borrowing from pool. If invalid, gets dropped
-        // from the pool and an attempt to borrow another one will occur.
+        // Validate object before borrowing from pool and returning to the pool.
+        // If invalid, gets dropped from the pool and an attempt to borrow
+        // another one will occur.
         config.setTestOnBorrow(true);
+        config.setTestOnReturn(true);
         return config;
     }
     
@@ -192,10 +196,13 @@ public class DataSourceFactory {
         long connTtlMillis = retrieveConfigSetting(ATHENZ_PROP_DBPOOL_MAX_TTL, MAX_TTL_CONN_MS);
         poolableConnectionFactory.setMaxConnLifetimeMillis(connTtlMillis);
         if (LOG.isInfoEnabled()) {
-            LOG.info("Setting Time-To-Live interval for live connections (" +
-                    connTtlMillis + ") milli-secs");
+            LOG.info("Setting Time-To-Live interval for live connections ({}) msecs", connTtlMillis);
         }
-        
+
+        // set the validation query for our jdbc connector
+        final String validationQuery = System.getProperty(ATHENZ_PROP_DBPOOL_VALIDATION_QUERY, MYSQL_VALIDATION_QUERY);
+        poolableConnectionFactory.setValidationQuery(validationQuery);
+
         ObjectPool<PoolableConnection> connectionPool =
                 new GenericObjectPool<>(poolableConnectionFactory, config);
         poolableConnectionFactory.setPool(connectionPool);
