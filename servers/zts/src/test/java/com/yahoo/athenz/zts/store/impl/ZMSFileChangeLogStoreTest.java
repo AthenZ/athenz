@@ -32,7 +32,8 @@ import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zms.SignedDomain;
 import com.yahoo.athenz.zms.SignedDomains;
 import com.yahoo.athenz.zms.ZMSClient;
-import com.yahoo.athenz.zts.store.impl.ZMSFileChangeLogStore;
+import com.yahoo.athenz.zms.ZMSClientException;
+
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Struct;
 
@@ -242,7 +243,45 @@ public class ZMSFileChangeLogStoreTest {
         assertEquals(returnList.size(), 1);
         assertEquals(returnList.get(0).getDomain().getName(), "athenz");
     }
-    
+
+    @Test
+    public void getSignedDomainListNonRateFailure() {
+        ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
+        ZMSClient zmsClient = Mockito.mock(ZMSClient.class);
+
+        List<SignedDomain> domains = new ArrayList<>();
+        DomainData domData = new DomainData().setName("athenz");
+        SignedDomain domain = new SignedDomain().setDomain(domData);
+        domains.add(domain);
+        SignedDomains domainList = new SignedDomains().setDomains(domains);
+
+        Mockito.when(zmsClient.getSignedDomains("athenz", null, null, null))
+                .thenThrow(new ZMSClientException(401, "invalid credentials"));
+
+        List<SignedDomain> returnList = fstore.getSignedDomainList(zmsClient, domainList);
+        assertEquals(returnList.size(), 0);
+    }
+
+    @Test
+    public void getSignedDomainListRateFailure() {
+        ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
+        ZMSClient zmsClient = Mockito.mock(ZMSClient.class);
+
+        List<SignedDomain> domains = new ArrayList<>();
+        DomainData domData = new DomainData().setName("athenz");
+        SignedDomain domain = new SignedDomain().setDomain(domData);
+        domains.add(domain);
+        SignedDomains domainList = new SignedDomains().setDomains(domains);
+
+        Mockito.when(zmsClient.getSignedDomains("athenz", null, null, null))
+                .thenThrow(new ZMSClientException(429, "too many requests"))
+                .thenReturn(domainList);
+
+        List<SignedDomain> returnList = fstore.getSignedDomainList(zmsClient, domainList);
+        assertEquals(returnList.size(), 1);
+        assertEquals(returnList.get(0).getDomain().getName(), "athenz");
+    }
+
     @Test
     public void getSignedDomainListOneBadDomain() {
         ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
