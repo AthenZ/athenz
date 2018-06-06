@@ -302,23 +302,35 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("getSignedDomainList: fetching domain {}", domainName);
             }
-            
-            try {
-                SignedDomains singleDomain = zmsClient.getSignedDomains(domainName,
-                        null, null, null);
-                
-                if (singleDomain == null || singleDomain.getDomains().isEmpty()) {
-                    if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug("getSignedDomainList: unable to fetch domain {}",
-                                domainName);
+
+            while (true) {
+                try {
+                    SignedDomains singleDomain = zmsClient.getSignedDomains(domainName,
+                            null, null, null);
+
+                    if (singleDomain != null && !singleDomain.getDomains().isEmpty()) {
+                        domains.addAll(singleDomain.getDomains());
                     }
-                    continue;
+
+                    break;
+
+                } catch (ZMSClientException ex) {
+
+                    LOGGER.error("Error fetching domain {} from ZMS: {}", domainName,
+                            ex.getMessage());
+
+                    // if we get a rate limiting failure, we're going to sleep
+                    // for a second and retry our operation again
+
+                    if (ex.getCode() != ZMSClientException.TOO_MANY_REQUESTS) {
+                        break;
+                    }
+
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ignored) {
+                    }
                 }
-                domains.addAll(singleDomain.getDomains());
-                
-            } catch (ZMSClientException ex) {
-                LOGGER.error("Error fetching domain {} from ZMS: {}", domainName,
-                        ex.getMessage());
             }
         }
         return domains;
