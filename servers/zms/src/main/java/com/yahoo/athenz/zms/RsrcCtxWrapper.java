@@ -58,15 +58,8 @@ public class RsrcCtxWrapper implements ResourceContext {
     @Override
     public void authenticate() {
         try {
-            ctx.authenticate();
+            ctx.authenticate(optionalAuth);
         } catch (com.yahoo.athenz.common.server.rest.ResourceException restExc) {
-            
-            // if this was an optional authentication request
-            // then we'll skip the exception
-            
-            if (optionalAuth) {
-                return;
-            }
             throwZmsException(restExc);
         }
     }
