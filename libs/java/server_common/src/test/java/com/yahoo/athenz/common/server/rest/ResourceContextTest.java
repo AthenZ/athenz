@@ -49,7 +49,28 @@ public class ResourceContextTest {
         context.checked = true;
         assertNull(context.authenticate());
     }
-    
+
+    @Test
+    public void testAuthenticateOptionalAuth() {
+        HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
+        HttpServletResponse httpServletResponse = Mockito.mock(HttpServletResponse.class);
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        Http.AuthorityList authorities = new Http.AuthorityList();
+        ResourceContext context = new ResourceContext(httpServletRequest, httpServletResponse, authorities, authorizer);
+
+        // with optional auth we should get null response
+        assertNull(context.authenticate(true));
+
+        // without optional auth we should get back an exception
+        context.checked = false;
+        try {
+            context.authenticate(false);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.UNAUTHORIZED);
+        }
+    }
+
     @Test
     public void testAuthorize() {
         HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
