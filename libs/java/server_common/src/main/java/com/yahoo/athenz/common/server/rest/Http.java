@@ -72,9 +72,15 @@ public class Http {
         return header.startsWith("Cookie.") ? getCookieValue(request,
                 header.substring(7)) : request.getHeader(header);
     }
-    
+
     public static Principal authenticate(HttpServletRequest request,
             AuthorityList authorities) {
+        return authenticate(request, authorities, false);
+    }
+
+    public static Principal authenticate(HttpServletRequest request,
+            AuthorityList authorities, boolean optionalAuth) {
+
         if (authorities == null) {
             LOG.error("authenticate: No authorities configured");
             throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
@@ -95,7 +101,7 @@ public class Http {
                 break;
             case CERTIFICATE:
                 X509Certificate[] certs = (X509Certificate[]) request.getAttribute(JAVAX_CERT_ATTR);
-                if (certs != null) {
+                if (certs != null && certs[0] != null) {
                     principal = authority.authenticate(certs, errMsg);
                 }
                 break;
@@ -119,7 +125,18 @@ public class Http {
                 authErrMsg.append(":error: ").append(errMsg);
             }
         }
-        
+
+        // if we were not given any credentials - i.e. our authErrMsg is
+        // empty and the optional auth flag is true then we'll just return
+        // a null principal instead of any exceptions
+
+        if (authErrMsg.length() == 0 && optionalAuth) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("authenticate: No credentials provided for optional auth request");
+            }
+            return null;
+        }
+
         // set the error message as a request attribute - if our error string
         // is empty then we had no credentials provided
         

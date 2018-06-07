@@ -52,16 +52,42 @@ public class ResourceContext  {
         return principal;
     }
 
-    //throws an exception if it cannot authenticate
+    /**
+     * Authenticates the request based on configured set of
+     * authorities. It throws an exception if it cannot
+     * authenticate
+     * @return Principal object
+     */
     public Principal authenticate() {
+        return authenticate(false);
+    }
+
+    /**
+     * Authenticates the request based on configured set of
+     * authorities. It throws an exception if it cannot
+     * authenticate unless there are no credentials provided
+     * and optionalAuth flag is set
+     * @param optionalAuth authentication is optional
+     * @return Principal object, could be null
+     */
+    public Principal authenticate(boolean optionalAuth) {
         if (!checked) {
             checked = true;
-            principal = Http.authenticate(request, authorities);
+            principal = Http.authenticate(request, authorities, optionalAuth);
         }
         return principal;
     }
 
-    //throws an exception if it cannot authorize
+    /**
+     * It authenticates and then authorizes the request for
+     * a given action, resource and trust domain.
+     * It throws an authorized exception if it cannot
+     * authenticate and a forbidden exception if it cannot
+     * authorize
+     * @param action for the authorization check
+     * @param resource for the authorization check
+     * @param trustedDomain for the authorization check
+     */
     public void authorize(String action, String resource, String trustedDomain) {
         principal = authenticate();
         Http.authorize(authorizer, principal, action, resource, trustedDomain);
