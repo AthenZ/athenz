@@ -49,11 +49,13 @@ type DomainData Struct {
     String applicationId (optional); // associated application id
 }
 
-//A domain object signed with server's private key 
+//A domain object signed with server's private key. The signature
+//and keyid are optional if the metaonly flag is set to true in the
+//getSignedDomains api call
 type SignedDomain Struct {
     DomainData domain; //domain object with its roles, policies and services
-    String signature; //signature generated based on the domain object
-    String keyId; //the identifier of the key used to generate the signature
+    String signature (optional); //signature generated based on the domain object
+    String keyId (optional); //the identifier of the key used to generate the signature
 }
 
 //A list of signed domain objects
