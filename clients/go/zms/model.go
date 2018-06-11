@@ -3557,7 +3557,9 @@ func (self *DomainData) Validate() error {
 }
 
 //
-// SignedDomain - A domain object signed with server's private key
+// SignedDomain - A domain object signed with server's private key. The
+// signature and keyid are optional if the metaonly flag is set to true in the
+// getSignedDomains api call
 //
 type SignedDomain struct {
 
@@ -3569,12 +3571,12 @@ type SignedDomain struct {
 	//
 	// signature generated based on the domain object
 	//
-	Signature string `json:"signature"`
+	Signature string `json:"signature,omitempty" rdl:"optional"`
 
 	//
 	// the identifier of the key used to generate the signature
 	//
-	KeyId string `json:"keyId"`
+	KeyId string `json:"keyId,omitempty" rdl:"optional"`
 }
 
 //
@@ -3622,22 +3624,6 @@ func (self *SignedDomain) UnmarshalJSON(b []byte) error {
 func (self *SignedDomain) Validate() error {
 	if self.Domain == nil {
 		return fmt.Errorf("SignedDomain: Missing required field: domain")
-	}
-	if self.Signature == "" {
-		return fmt.Errorf("SignedDomain.signature is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZMSSchema(), "String", self.Signature)
-		if !val.Valid {
-			return fmt.Errorf("SignedDomain.signature does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.KeyId == "" {
-		return fmt.Errorf("SignedDomain.keyId is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZMSSchema(), "String", self.KeyId)
-		if !val.Valid {
-			return fmt.Errorf("SignedDomain.keyId does not contain a valid String (%v)", val.Error)
-		}
 	}
 	return nil
 }

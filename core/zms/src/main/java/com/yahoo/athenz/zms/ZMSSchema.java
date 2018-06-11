@@ -328,10 +328,10 @@ public class ZMSSchema {
             .field("applicationId", "String", true, "associated application id");
 
         sb.structType("SignedDomain")
-            .comment("A domain object signed with server's private key")
+            .comment("A domain object signed with server's private key. The signature and keyid are optional if the metaonly flag is set to true in the getSignedDomains api call")
             .field("domain", "DomainData", false, "domain object with its roles, policies and services")
-            .field("signature", "String", false, "signature generated based on the domain object")
-            .field("keyId", "String", false, "the identifier of the key used to generate the signature");
+            .field("signature", "String", true, "signature generated based on the domain object")
+            .field("keyId", "String", true, "the identifier of the key used to generate the signature");
 
         sb.structType("SignedDomains")
             .comment("A list of signed domain objects")

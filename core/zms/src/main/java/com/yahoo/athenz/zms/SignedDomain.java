@@ -3,14 +3,21 @@
 //
 
 package com.yahoo.athenz.zms;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
 
 //
-// SignedDomain - A domain object signed with server's private key
+// SignedDomain - A domain object signed with server's private key. The
+// signature and keyid are optional if the metaonly flag is set to true in the
+// getSignedDomains api call
 //
 public class SignedDomain {
     public DomainData domain;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String signature;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String keyId;
 
     public SignedDomain setDomain(DomainData domain) {

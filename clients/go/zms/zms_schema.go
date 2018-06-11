@@ -385,10 +385,10 @@ func init() {
 	sb.AddType(tDomainData.Build())
 
 	tSignedDomain := rdl.NewStructTypeBuilder("Struct", "SignedDomain")
-	tSignedDomain.Comment("A domain object signed with server's private key")
+	tSignedDomain.Comment("A domain object signed with server's private key. The signature and keyid are optional if the metaonly flag is set to true in the getSignedDomains api call")
 	tSignedDomain.Field("domain", "DomainData", false, nil, "domain object with its roles, policies and services")
-	tSignedDomain.Field("signature", "String", false, nil, "signature generated based on the domain object")
-	tSignedDomain.Field("keyId", "String", false, nil, "the identifier of the key used to generate the signature")
+	tSignedDomain.Field("signature", "String", true, nil, "signature generated based on the domain object")
+	tSignedDomain.Field("keyId", "String", true, nil, "the identifier of the key used to generate the signature")
 	sb.AddType(tSignedDomain.Build())
 
 	tSignedDomains := rdl.NewStructTypeBuilder("Struct", "SignedDomains")
