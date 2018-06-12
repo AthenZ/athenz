@@ -55,62 +55,45 @@ public class AwsPrivateKeyStore implements PrivateKeyStore {
     private static final Logger LOG = LoggerFactory.getLogger(AwsPrivateKeyStore.class);
     
     private static final String ATHENZ_PROP_AWS_S3_REGION   = "athenz.aws.s3.region";
-    private static final String ATHENZ_PROP_AWS_KMS_DECRYPT = "athenz.aws.store_kms_decrypt";
-    private static final String ATHENZ_PROP_ZMS_BUCKET_NAME = "athenz.aws.zms.bucket_name";
-    private static final String ATHENZ_PROP_ZMS_KEY_NAME    = "athenz.aws.zms.key_name";
-    private static final String ATHENZ_PROP_ZMS_KEY_ID_NAME = "athenz.aws.zms.key_id_name";
-    private static final String ATHENZ_PROP_ZTS_BUCKET_NAME = "athenz.aws.zts.bucket_name";
-    private static final String ATHENZ_PROP_ZTS_KEY_NAME    = "athenz.aws.zts.key_name";
-    private static final String ATHENZ_PROP_ZTS_KEY_ID_NAME = "athenz.aws.zts.key_id_name";
+    private static final String ATHENZ_PROP_AWS_KMS_DECRYPT = "athenz.aws.keystore_kms_decrypt";
+    private static final String ATHENZ_PROP_BUCKET_NAME     = "athenz.aws.keystore_bucket_name";
+    private static final String ATHENZ_PROP_KEY_NAME        = "athenz.aws.keystore_key_name";
+    private static final String ATHENZ_PROP_KEY_ID_NAME     = "athenz.aws.keystore_key_id_name";
 
     private static final String ATHENZ_DEFAULT_KEY_NAME     = "service_private_key";
     private static final String ATHENZ_DEFAULT_KEY_ID_NAME  = "service_private_key_id";
-     
-    private static final String ZMS_SERVICE = "zms";
-    private static final String ZTS_SERVICE = "zts";
     
     private final AmazonS3 s3;
     private final AWSKMS kms;
     private boolean kmsDecrypt;
-    
+    private String bucketName;
+    private String keyName;
+    private String keyIdName;
+
     public AwsPrivateKeyStore() {
-       this(initAmazonS3(), AWSKMSClientBuilder.defaultClient());
-       kmsDecrypt = Boolean.parseBoolean(System.getProperty(ATHENZ_PROP_AWS_KMS_DECRYPT, "false"));
-    }
-    
-    private static AmazonS3 initAmazonS3() {
-        String s3Region = System.getProperty(ATHENZ_PROP_AWS_S3_REGION);
-        if (null != s3Region && !s3Region.isEmpty()) {
-            return AmazonS3ClientBuilder.standard().withRegion(s3Region).build();
-       }
-        return AmazonS3ClientBuilder.defaultClient();
+        this(initAmazonS3(), AWSKMSClientBuilder.defaultClient());
     }
     
     public AwsPrivateKeyStore(final AmazonS3 s3, final AWSKMS kms) {
         this.s3 = s3;
         this.kms = kms;
+        kmsDecrypt = Boolean.parseBoolean(System.getProperty(ATHENZ_PROP_AWS_KMS_DECRYPT, "false"));
+        bucketName = System.getProperty(ATHENZ_PROP_BUCKET_NAME);
+        keyName = System.getProperty(ATHENZ_PROP_KEY_NAME, ATHENZ_DEFAULT_KEY_NAME);
+        keyIdName = System.getProperty(ATHENZ_PROP_KEY_ID_NAME, ATHENZ_DEFAULT_KEY_ID_NAME);
     }
-    
+
+    private static AmazonS3 initAmazonS3() {
+        String s3Region = System.getProperty(ATHENZ_PROP_AWS_S3_REGION);
+        if (null != s3Region && !s3Region.isEmpty()) {
+            return AmazonS3ClientBuilder.standard().withRegion(s3Region).build();
+        }
+        return AmazonS3ClientBuilder.defaultClient();
+    }
+
     @Override
     public PrivateKey getPrivateKey(String service, String serverHostName,
             StringBuilder privateKeyId) {
-        
-        String bucketName;
-        String keyName;
-        String keyIdName;
-        
-        if (ZMS_SERVICE.equals(service)) {
-            bucketName = System.getProperty(ATHENZ_PROP_ZMS_BUCKET_NAME);
-            keyName = System.getProperty(ATHENZ_PROP_ZMS_KEY_NAME, ATHENZ_DEFAULT_KEY_NAME);
-            keyIdName = System.getProperty(ATHENZ_PROP_ZMS_KEY_ID_NAME, ATHENZ_DEFAULT_KEY_ID_NAME);
-        } else if (ZTS_SERVICE.equals(service)) {
-            bucketName = System.getProperty(ATHENZ_PROP_ZTS_BUCKET_NAME);
-            keyName = System.getProperty(ATHENZ_PROP_ZTS_KEY_NAME, ATHENZ_DEFAULT_KEY_NAME);
-            keyIdName = System.getProperty(ATHENZ_PROP_ZTS_KEY_ID_NAME, ATHENZ_DEFAULT_KEY_ID_NAME);
-        } else {
-            LOG.error("Unknown service specified: {}", service);
-            return null;
-        }
         
         if (bucketName == null) {
             LOG.error("No bucket name specified with system property");
@@ -124,7 +107,13 @@ public class AwsPrivateKeyStore implements PrivateKeyStore {
     
     @Override
     public String getApplicationSecret(final String appName, final String keyName) {
-        return getDecryptedData(appName, keyName);
+
+        if (bucketName == null) {
+            LOG.error("No bucket name specified with system property");
+            return null;
+        }
+
+        return getDecryptedData(bucketName, keyName);
     }
     
     private String getDecryptedData(final String bucketName, final String keyName) {
