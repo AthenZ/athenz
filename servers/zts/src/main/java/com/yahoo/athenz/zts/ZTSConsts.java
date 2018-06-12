@@ -78,6 +78,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_CERT_JDBC_STORE         = "athenz.zts.cert_jdbc_store";
     public static final String ZTS_PROP_CERT_JDBC_USER          = "athenz.zts.cert_jdbc_user";
     public static final String ZTS_PROP_CERT_JDBC_PASSWORD      = "athenz.zts.cert_jdbc_password";
+    public static final String ZTS_PROP_CERT_JDBC_APP_NAME      = "athenz.zts.cert_jdbc_app_name";
     public static final String ZTS_PROP_CERT_OP_TIMEOUT         = "athenz.zts.cert_op_timeout";
     public static final String ZTS_PROP_CERT_DNS_SUFFIX         = "athenz.zts.cert_dns_suffix";
     public static final String ZTS_PROP_PROVIDER_ENDPOINTS      = "athenz.zts.provider_endpoints";

@@ -33,10 +33,11 @@ public class JDBCObjectStoreFactory implements ObjectStoreFactory {
     
     @Override
     public ObjectStore create(PrivateKeyStore keyStore) {
-        String jdbcStore = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RW_STORE);
-        String jdbcUser = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RW_USER);
-        String password = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RW_PASSWORD, "");
-        String jdbcPassword = keyStore.getApplicationSecret(JDBC, password);
+        final String jdbcStore = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RW_STORE);
+        final String jdbcUser = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RW_USER);
+        final String password = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RW_PASSWORD, "");
+        final String jdbcAppName = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_APP_NAME, JDBC);
+        String jdbcPassword = keyStore.getApplicationSecret(jdbcAppName, password);
         
         Properties readWriteProperties = new Properties();
         readWriteProperties.setProperty(ATHENZ_DB_USER, jdbcUser);
@@ -51,9 +52,9 @@ public class JDBCObjectStoreFactory implements ObjectStoreFactory {
         PoolableDataSource readOnlySrc = null;
         String jdbcReadOnlyStore = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RO_STORE);
         if (jdbcReadOnlyStore != null && jdbcReadOnlyStore.startsWith("jdbc:")) {
-            String jdbcReadOnlyUser = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RO_USER, jdbcUser);
-            String readOnlyPassword = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RO_PASSWORD, password);
-            String jdbcReadOnlyPassword = keyStore.getApplicationSecret(JDBC, readOnlyPassword);
+            final String jdbcReadOnlyUser = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RO_USER, jdbcUser);
+            final String readOnlyPassword = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RO_PASSWORD, password);
+            final String jdbcReadOnlyPassword = keyStore.getApplicationSecret(jdbcAppName, readOnlyPassword);
             
             Properties readOnlyProperties = new Properties();
             readOnlyProperties.setProperty(ATHENZ_DB_USER, jdbcReadOnlyUser);
