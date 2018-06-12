@@ -42,7 +42,7 @@ public class AwsPrivateKeyStoreTest {
         AWSKMS kms = Mockito.mock(AWSKMS.class);
         S3Object s3Object = Mockito.mock(S3Object.class);
         Mockito.when(s3.getObject(bucketName, keyName)).thenReturn(s3Object);
-        InputStream is = new ByteArrayInputStream( expected.getBytes() );
+        InputStream is = new ByteArrayInputStream(expected.getBytes());
         S3ObjectInputStream s3ObjectInputStream = new S3ObjectInputStream(is, null);
         Mockito.when(s3Object.getObjectContent()).thenReturn(s3ObjectInputStream);
 
@@ -51,9 +51,12 @@ public class AwsPrivateKeyStoreTest {
         Mockito.when(kms.decrypt(Mockito.any(DecryptRequest.class))).thenReturn(decryptResult);
         Mockito.when(decryptResult.getPlaintext()).thenReturn(buffer);
 
+        System.setProperty("athenz.aws.keystore_bucket_name", "my_bucket");
+
         AwsPrivateKeyStore awsPrivateKeyStore = new AwsPrivateKeyStore(s3, kms);
         String actual = awsPrivateKeyStore.getApplicationSecret(bucketName, keyName);
         Assert.assertEquals(actual, expected);
-        
+
+        System.clearProperty("athenz.aws.keystore_bucket_name");
     }
 }
