@@ -33,10 +33,12 @@ public class JDBCCertRecordStoreFactory implements CertRecordStoreFactory {
     @Override
     public CertRecordStore create(PrivateKeyStore keyStore) {
         
-        String jdbcStore = System.getProperty(ZTSConsts.ZTS_PROP_CERT_JDBC_STORE);
-        String jdbcUser = System.getProperty(ZTSConsts.ZTS_PROP_CERT_JDBC_USER);
-        String password = System.getProperty(ZTSConsts.ZTS_PROP_CERT_JDBC_PASSWORD, "");
-        String jdbcPassword = keyStore.getApplicationSecret(JDBC, password);
+        final String jdbcStore = System.getProperty(ZTSConsts.ZTS_PROP_CERT_JDBC_STORE);
+        final String jdbcUser = System.getProperty(ZTSConsts.ZTS_PROP_CERT_JDBC_USER);
+        final String password = System.getProperty(ZTSConsts.ZTS_PROP_CERT_JDBC_PASSWORD, "");
+        final String jdbcAppName = System.getProperty(ZTSConsts.ZTS_PROP_CERT_JDBC_APP_NAME, JDBC);
+
+        String jdbcPassword = keyStore.getApplicationSecret(jdbcAppName, password);
             
         Properties props = new Properties();
         props.setProperty(ATHENZ_DB_USER, jdbcUser);
