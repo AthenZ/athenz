@@ -75,17 +75,25 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_SELF_SIGNER_CERT_DN              = "athenz.zts.self_signer_cert_dn";
     public static final String ZTS_PROP_OSTK_HOST_SIGNER_SERVICE         = "athenz.zts.ostk_host_signer_service";
     
-    public static final String ZTS_PROP_CERT_JDBC_STORE         = "athenz.zts.cert_jdbc_store";
-    public static final String ZTS_PROP_CERT_JDBC_USER          = "athenz.zts.cert_jdbc_user";
-    public static final String ZTS_PROP_CERT_JDBC_PASSWORD      = "athenz.zts.cert_jdbc_password";
-    public static final String ZTS_PROP_CERT_JDBC_APP_NAME      = "athenz.zts.cert_jdbc_app_name";
-    public static final String ZTS_PROP_CERT_OP_TIMEOUT         = "athenz.zts.cert_op_timeout";
-    public static final String ZTS_PROP_CERT_DNS_SUFFIX         = "athenz.zts.cert_dns_suffix";
+    public static final String ZTS_PROP_CERT_JDBC_STORE              = "athenz.zts.cert_jdbc_store";
+    public static final String ZTS_PROP_CERT_JDBC_USER               = "athenz.zts.cert_jdbc_user";
+    public static final String ZTS_PROP_CERT_JDBC_PASSWORD           = "athenz.zts.cert_jdbc_password";
+    public static final String ZTS_PROP_CERT_JDBC_APP_NAME           = "athenz.zts.cert_jdbc_app_name";
+    public static final String ZTS_PROP_CERT_JDBC_VERIFY_SERVER_CERT = "athenz.zts.cert_jdbc_verify_server_certificate";
+    public static final String ZTS_PROP_CERT_JDBC_USE_SSL            = "athenz.zts.cert_jdbc_use_ssl";
+    public static final String ZTS_PROP_CERT_OP_TIMEOUT              = "athenz.zts.cert_op_timeout";
+    public static final String ZTS_PROP_CERT_DNS_SUFFIX              = "athenz.zts.cert_dns_suffix";
+    public static final String ZTS_PROP_CERT_FILE_STORE_PATH         = "athenz.zts.cert_file_store_path";
+    public static final String ZTS_PROP_CERT_FILE_STORE_NAME         = "athenz.zts.cert_file_store_name";
+
     public static final String ZTS_PROP_PROVIDER_ENDPOINTS      = "athenz.zts.provider_endpoints";
-    public static final String ZTS_PROP_CERT_FILE_STORE_PATH    = "athenz.zts.cert_file_store_path";
-    public static final String ZTS_PROP_CERT_FILE_STORE_NAME    = "athenz.zts.cert_file_store_name";
     public static final String ZTS_PROP_INSTANCE_NTOKEN_TIMEOUT = "athenz.zts.instance_token_timeout";
     public static final String ZTS_PROP_X509_CA_CERT_FNAME      = "athenz.zts.x509_ca_cert_fname";
+
+    public static final String DB_PROP_USER               = "user";
+    public static final String DB_PROP_PASSWORD           = "password";
+    public static final String DB_PROP_USE_SSL            = "useSSL";
+    public static final String DB_PROP_VERIFY_SERVER_CERT = "verifyServerCertificate";
 
     public static final String ZTS_PROP_AWS_RDS_USER               = "athenz.zts.aws_rds_user";
     public static final String ZTS_PROP_AWS_RDS_IAM_ROLE           = "athenz.zts.aws_rds_iam_role";

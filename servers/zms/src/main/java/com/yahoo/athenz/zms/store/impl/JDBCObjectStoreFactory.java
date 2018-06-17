@@ -28,8 +28,6 @@ import com.yahoo.athenz.zms.store.jdbc.JDBCObjectStore;
 public class JDBCObjectStoreFactory implements ObjectStoreFactory {
 
     private static final String JDBC               = "jdbc";
-    private static final String ATHENZ_DB_USER     = "user";
-    private static final String ATHENZ_DB_PASSWORD = "password";
     
     @Override
     public ObjectStore create(PrivateKeyStore keyStore) {
@@ -40,9 +38,13 @@ public class JDBCObjectStoreFactory implements ObjectStoreFactory {
         String jdbcPassword = keyStore.getApplicationSecret(jdbcAppName, password);
         
         Properties readWriteProperties = new Properties();
-        readWriteProperties.setProperty(ATHENZ_DB_USER, jdbcUser);
-        readWriteProperties.setProperty(ATHENZ_DB_PASSWORD, jdbcPassword);
-        
+        readWriteProperties.setProperty(ZMSConsts.DB_PROP_USER, jdbcUser);
+        readWriteProperties.setProperty(ZMSConsts.DB_PROP_PASSWORD, jdbcPassword);
+        readWriteProperties.setProperty(ZMSConsts.DB_PROP_VERIFY_SERVER_CERT,
+                System.getProperty(ZMSConsts.ZMS_PROP_JDBC_VERIFY_SERVER_CERT, "false"));
+        readWriteProperties.setProperty(ZMSConsts.DB_PROP_USE_SSL,
+                System.getProperty(ZMSConsts.ZMS_PROP_JDBC_USE_SSL, "false"));
+
         PoolableDataSource readWriteSrc = DataSourceFactory.create(jdbcStore, readWriteProperties);
         
         // now check to see if we also have a read-only jdbc store configured
@@ -57,9 +59,12 @@ public class JDBCObjectStoreFactory implements ObjectStoreFactory {
             final String jdbcReadOnlyPassword = keyStore.getApplicationSecret(jdbcAppName, readOnlyPassword);
             
             Properties readOnlyProperties = new Properties();
-            readOnlyProperties.setProperty(ATHENZ_DB_USER, jdbcReadOnlyUser);
-            readOnlyProperties.setProperty(ATHENZ_DB_PASSWORD, jdbcReadOnlyPassword);
-            
+            readOnlyProperties.setProperty(ZMSConsts.DB_PROP_USER, jdbcReadOnlyUser);
+            readOnlyProperties.setProperty(ZMSConsts.DB_PROP_PASSWORD, jdbcReadOnlyPassword);
+            readOnlyProperties.setProperty(ZMSConsts.DB_PROP_VERIFY_SERVER_CERT,
+                    System.getProperty(ZMSConsts.ZMS_PROP_JDBC_VERIFY_SERVER_CERT, "false"));
+            readOnlyProperties.setProperty(ZMSConsts.DB_PROP_USE_SSL,
+                    System.getProperty(ZMSConsts.ZMS_PROP_JDBC_USE_SSL, "false"));
             readOnlySrc = DataSourceFactory.create(jdbcReadOnlyStore, readOnlyProperties);
         }
         

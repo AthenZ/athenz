@@ -40,14 +40,6 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
 
     private static final Logger LOG = LoggerFactory.getLogger(AWSObjectStoreFactory.class);
     
-    static final String ATHENZ_PROP_DB_VERIFY_SERVER_CERT = "athenz.db.verify_server_certificate";
-    static final String ATHENZ_PROP_DB_USE_SSL            = "athenz.db.use_ssl";
-    
-    static final String ATHENZ_DB_USER               = "user";
-    static final String ATHENZ_DB_PASSWORD           = "password";
-    static final String ATHENZ_DB_USE_SSL            = "useSSL";
-    static final String ATHENZ_DB_VERIFY_SERVER_CERT = "verifyServerCertificate";
-    
     private static Properties mysqlMasterConnectionProperties = new Properties();
     private static Properties mysqlReplicaConnectionProperties = new Properties();
     @SuppressWarnings("FieldCanBeLocal")
@@ -77,12 +69,12 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
             LOG.debug("Connecting to master {} with auth token {}", jdbcMasterStore, rdsMasterToken);
         }
         
-        mysqlMasterConnectionProperties.setProperty(ATHENZ_DB_VERIFY_SERVER_CERT,
-                System.getProperty(ATHENZ_PROP_DB_VERIFY_SERVER_CERT, "true"));
-        mysqlMasterConnectionProperties.setProperty(ATHENZ_DB_USE_SSL,
-                System.getProperty(ATHENZ_PROP_DB_USE_SSL, "true"));
-        mysqlMasterConnectionProperties.setProperty(ATHENZ_DB_USER, rdsUser);
-        mysqlMasterConnectionProperties.setProperty(ATHENZ_DB_PASSWORD, rdsMasterToken);
+        mysqlMasterConnectionProperties.setProperty(ZMSConsts.DB_PROP_VERIFY_SERVER_CERT,
+                System.getProperty(ZMSConsts.ZMS_PROP_JDBC_VERIFY_SERVER_CERT, "true"));
+        mysqlMasterConnectionProperties.setProperty(ZMSConsts.DB_PROP_USE_SSL,
+                System.getProperty(ZMSConsts.ZMS_PROP_JDBC_USE_SSL, "true"));
+        mysqlMasterConnectionProperties.setProperty(ZMSConsts.DB_PROP_USER, rdsUser);
+        mysqlMasterConnectionProperties.setProperty(ZMSConsts.DB_PROP_PASSWORD, rdsMasterToken);
         
         PoolableDataSource dataMasterSource = DataSourceFactory.create(jdbcMasterStore, mysqlMasterConnectionProperties);
         
@@ -99,12 +91,12 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
                 LOG.debug("Connecting to replica {} with auth token {}", jdbcReplicaStore, rdsReplicaToken);
             }
             
-            mysqlReplicaConnectionProperties.setProperty(ATHENZ_DB_VERIFY_SERVER_CERT,
-                    System.getProperty(ATHENZ_PROP_DB_VERIFY_SERVER_CERT, "true"));
-            mysqlReplicaConnectionProperties.setProperty(ATHENZ_DB_USE_SSL,
-                    System.getProperty(ATHENZ_PROP_DB_USE_SSL, "true"));
-            mysqlReplicaConnectionProperties.setProperty(ATHENZ_DB_USER, rdsUser);
-            mysqlReplicaConnectionProperties.setProperty(ATHENZ_DB_PASSWORD, rdsReplicaToken);
+            mysqlReplicaConnectionProperties.setProperty(ZMSConsts.DB_PROP_VERIFY_SERVER_CERT,
+                    System.getProperty(ZMSConsts.ZMS_PROP_JDBC_VERIFY_SERVER_CERT, "true"));
+            mysqlReplicaConnectionProperties.setProperty(ZMSConsts.DB_PROP_USE_SSL,
+                    System.getProperty(ZMSConsts.ZMS_PROP_JDBC_USE_SSL, "true"));
+            mysqlReplicaConnectionProperties.setProperty(ZMSConsts.DB_PROP_USER, rdsUser);
+            mysqlReplicaConnectionProperties.setProperty(ZMSConsts.DB_PROP_PASSWORD, rdsReplicaToken);
             
             dataReplicaSource = DataSourceFactory.create(jdbcReplicaStore, mysqlReplicaConnectionProperties);
         }
@@ -155,7 +147,7 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
         
         try {
             final String rdsToken = getAuthToken(hostname, rdsPort, rdsUser, rdsIamRole);
-            mysqlProperties.setProperty(ATHENZ_DB_PASSWORD, rdsToken);
+            mysqlProperties.setProperty(ZMSConsts.DB_PROP_PASSWORD, rdsToken);
         } catch (Throwable t) {
             LOG.error("CredentialsUpdater: unable to update auth token: " + t.getMessage());
         }
