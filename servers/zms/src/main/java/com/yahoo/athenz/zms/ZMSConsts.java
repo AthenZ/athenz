@@ -42,13 +42,16 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_CONFLICT_RETRY_COUNT      = "athenz.zms.request_conflict_retry_count";
     public static final String ZMS_PROP_CONFLICT_RETRY_SLEEP_TIME = "athenz.zms.request_conflict_retry_sleep_time";
 
-    public static final String ZMS_PROP_JDBC_RW_STORE     = "athenz.zms.jdbc_store";
-    public static final String ZMS_PROP_JDBC_RW_USER      = "athenz.zms.jdbc_user";
-    public static final String ZMS_PROP_JDBC_RW_PASSWORD  = "athenz.zms.jdbc_password";
-    public static final String ZMS_PROP_JDBC_RO_STORE     = "athenz.zms.jdbc_ro_store";
-    public static final String ZMS_PROP_JDBC_RO_USER      = "athenz.zms.jdbc_ro_user";
-    public static final String ZMS_PROP_JDBC_RO_PASSWORD  = "athenz.zms.jdbc_ro_password";
-    public static final String ZMS_PROP_JDBC_APP_NAME     = "athenz.zms.jdbc_app_name";
+    public static final String ZMS_PROP_JDBC_RW_STORE           = "athenz.zms.jdbc_store";
+    public static final String ZMS_PROP_JDBC_RW_USER            = "athenz.zms.jdbc_user";
+    public static final String ZMS_PROP_JDBC_RW_PASSWORD        = "athenz.zms.jdbc_password";
+    public static final String ZMS_PROP_JDBC_RO_STORE           = "athenz.zms.jdbc_ro_store";
+    public static final String ZMS_PROP_JDBC_RO_USER            = "athenz.zms.jdbc_ro_user";
+    public static final String ZMS_PROP_JDBC_RO_PASSWORD        = "athenz.zms.jdbc_ro_password";
+    public static final String ZMS_PROP_JDBC_APP_NAME           = "athenz.zms.jdbc_app_name";
+    public static final String ZMS_PROP_JDBC_VERIFY_SERVER_CERT = "athenz.zms.jdbc_verify_server_certificate";
+    public static final String ZMS_PROP_JDBC_USE_SSL            = "athenz.zms.jdbc_use_ssl";
+
     public static final String ZMS_PROP_FILE_STORE_NAME   = "athenz.zms.file_store_name";
     public static final String ZMS_PROP_FILE_STORE_QUOTA  = "athenz.zms.file_store_quota";
     public static final String ZMS_PROP_FILE_STORE_PATH   = "athenz.zms.file_store_path";
@@ -65,6 +68,11 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_AWS_RDS_MASTER_PORT        = "athenz.zms.aws_rds_master_port";
     public static final String ZMS_PROP_AWS_RDS_REPLICA_INSTANCE   = "athenz.zms.aws_rds_replica_instance";
     public static final String ZMS_PROP_AWS_RDS_CREDS_REFRESH_TIME = "athenz.zms.aws_rds_creds_refresh_time";
+
+    public static final String DB_PROP_USER               = "user";
+    public static final String DB_PROP_PASSWORD           = "password";
+    public static final String DB_PROP_USE_SSL            = "useSSL";
+    public static final String DB_PROP_VERIFY_SERVER_CERT = "verifyServerCertificate";
 
     public static final String ZMS_PROP_USER_AUTHORITY_CLASS      = "athenz.zms.user_authority_class";
     public static final String ZMS_PROP_PRINCIPAL_AUTHORITY_CLASS = "athenz.zms.principal_authority_class";

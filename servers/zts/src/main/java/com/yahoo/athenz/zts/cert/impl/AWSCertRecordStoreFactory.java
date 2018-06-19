@@ -39,14 +39,6 @@ public class AWSCertRecordStoreFactory implements CertRecordStoreFactory {
 
     private static final Logger LOG = LoggerFactory.getLogger(AWSCertRecordStoreFactory.class);
     
-    static final String ATHENZ_PROP_DB_VERIFY_SERVER_CERT = "athenz.db.verify_server_certificate";
-    static final String ATHENZ_PROP_DB_USE_SSL            = "athenz.db.use_ssl";
-    
-    static final String ATHENZ_DB_USER               = "user";
-    static final String ATHENZ_DB_PASSWORD           = "password";
-    static final String ATHENZ_DB_USE_SSL            = "useSSL";
-    static final String ATHENZ_DB_VERIFY_SERVER_CERT = "verifyServerCertificate";
-    
     private static Properties mysqlConnectionProperties = new Properties();
     private static String rdsUser = null;
     private static String rdsIamRole = null;
@@ -70,13 +62,13 @@ public class AWSCertRecordStoreFactory implements CertRecordStoreFactory {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Connecting to {} with auth token {}", jdbcStore, rdsToken);
         }
-        
-        mysqlConnectionProperties.setProperty(ATHENZ_DB_VERIFY_SERVER_CERT,
-                System.getProperty(ATHENZ_PROP_DB_VERIFY_SERVER_CERT, "true"));
-        mysqlConnectionProperties.setProperty(ATHENZ_DB_USE_SSL,
-                System.getProperty(ATHENZ_PROP_DB_USE_SSL, "true"));
-        mysqlConnectionProperties.setProperty(ATHENZ_DB_USER, rdsUser);
-        mysqlConnectionProperties.setProperty(ATHENZ_DB_PASSWORD, rdsToken);
+
+        mysqlConnectionProperties.setProperty(ZTSConsts.DB_PROP_VERIFY_SERVER_CERT,
+                System.getProperty(ZTSConsts.ZTS_PROP_CERT_JDBC_VERIFY_SERVER_CERT, "true"));
+        mysqlConnectionProperties.setProperty(ZTSConsts.DB_PROP_USE_SSL,
+                System.getProperty(ZTSConsts.ZTS_PROP_CERT_JDBC_USE_SSL, "true"));
+        mysqlConnectionProperties.setProperty(ZTSConsts.DB_PROP_USER, rdsUser);
+        mysqlConnectionProperties.setProperty(ZTSConsts.DB_PROP_PASSWORD, rdsToken);
         
         PoolableDataSource dataSource = DataSourceFactory.create(jdbcStore, mysqlConnectionProperties);
         
@@ -123,7 +115,7 @@ public class AWSCertRecordStoreFactory implements CertRecordStoreFactory {
             
             try {
                 final String rdsToken = getAuthToken(rdsMaster, rdsPort, rdsUser, rdsIamRole);
-                mysqlConnectionProperties.setProperty(ATHENZ_DB_PASSWORD, rdsToken);
+                mysqlConnectionProperties.setProperty(ZTSConsts.DB_PROP_PASSWORD, rdsToken);
                 
             } catch (Throwable t) {
                 LOG.error("CredentialsUpdater: unable to update auth token: {}", t.getMessage());

@@ -27,8 +27,6 @@ import com.yahoo.athenz.zts.cert.CertRecordStoreFactory;
 public class JDBCCertRecordStoreFactory implements CertRecordStoreFactory {
 
     private static final String JDBC               = "jdbc";
-    private static final String ATHENZ_DB_USER     = "user";
-    private static final String ATHENZ_DB_PASSWORD = "password";
     
     @Override
     public CertRecordStore create(PrivateKeyStore keyStore) {
@@ -41,9 +39,13 @@ public class JDBCCertRecordStoreFactory implements CertRecordStoreFactory {
         String jdbcPassword = keyStore.getApplicationSecret(jdbcAppName, password);
             
         Properties props = new Properties();
-        props.setProperty(ATHENZ_DB_USER, jdbcUser);
-        props.setProperty(ATHENZ_DB_PASSWORD, jdbcPassword);
-        
+        props.setProperty(ZTSConsts.DB_PROP_USER, jdbcUser);
+        props.setProperty(ZTSConsts.DB_PROP_PASSWORD, jdbcPassword);
+        props.setProperty(ZTSConsts.DB_PROP_VERIFY_SERVER_CERT,
+                System.getProperty(ZTSConsts.ZTS_PROP_CERT_JDBC_VERIFY_SERVER_CERT, "false"));
+        props.setProperty(ZTSConsts.DB_PROP_USE_SSL,
+                System.getProperty(ZTSConsts.ZTS_PROP_CERT_JDBC_USE_SSL, "false"));
+
         PoolableDataSource src = DataSourceFactory.create(jdbcStore, props);
         return new JDBCCertRecordStore(src);
     }
