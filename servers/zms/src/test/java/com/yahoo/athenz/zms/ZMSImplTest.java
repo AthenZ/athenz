@@ -5326,10 +5326,14 @@ public class ZMSImplTest {
         zms.privateKeyId = "0";
         zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
 
-        GetSignedDomainsResult result = new GetSignedDomainsResult(mockDomRsrcCtx);
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        Principal sysPrincipal = principalAuthority.authenticate("v=U1;d=sys;n=zts;s=signature",
+                "10.11.12.13", "GET", null);
+        ResourceContext rsrcCtx = createResourceContext(sysPrincipal);
+        GetSignedDomainsResult result = new GetSignedDomainsResult(rsrcCtx);
         SignedDomains sdoms = null;
         try {
-            zms.getSignedDomains(mockDomRsrcCtx, null, null, null, result);
+            zms.getSignedDomains(rsrcCtx, null, null, null, result);
             fail("webappexc not thrown by getSignedDomains");
         } catch (javax.ws.rs.WebApplicationException wexc) {
             Object obj = getWebAppExcEntity(wexc);
@@ -5362,10 +5366,10 @@ public class ZMSImplTest {
         zms.privateKeyId = "1";
         zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKeyK1));
 
-        result = new GetSignedDomainsResult(mockDomRsrcCtx);
+        result = new GetSignedDomainsResult(rsrcCtx);
         sdoms = null;
         try {
-            zms.getSignedDomains(mockDomRsrcCtx, null, null, null, result);
+            zms.getSignedDomains(rsrcCtx, null, null, null, result);
             fail("webappexc not thrown by getSignedDomains");
         } catch (javax.ws.rs.WebApplicationException wexc) {
             Object obj = getWebAppExcEntity(wexc);
@@ -5392,10 +5396,10 @@ public class ZMSImplTest {
         zms.privateKeyId = "2";
         zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKeyK2));
 
-        result = new GetSignedDomainsResult(mockDomRsrcCtx);
+        result = new GetSignedDomainsResult(rsrcCtx);
         sdoms = null;
         try {
-            zms.getSignedDomains(mockDomRsrcCtx, null, null, null, result);
+            zms.getSignedDomains(rsrcCtx, null, null, null, result);
             fail("webappexc not thrown by getSignedDomains");
         } catch (javax.ws.rs.WebApplicationException wexc) {
             Object obj = getWebAppExcEntity(wexc);
@@ -5416,10 +5420,10 @@ public class ZMSImplTest {
 
         // test metaonly=true
         //
-        result = new GetSignedDomainsResult(mockDomRsrcCtx);
+        result = new GetSignedDomainsResult(rsrcCtx);
         sdoms = null;
         try {
-            zms.getSignedDomains(mockDomRsrcCtx, null, "tRuE", null, result);
+            zms.getSignedDomains(rsrcCtx, null, "tRuE", null, result);
             fail("webappexc not thrown by getSignedDomains");
         } catch (javax.ws.rs.WebApplicationException wexc) {
             Object obj = getWebAppExcEntity(wexc);
@@ -5447,10 +5451,10 @@ public class ZMSImplTest {
 
         // test metaonly=garbage
         //
-        result = new GetSignedDomainsResult(mockDomRsrcCtx);
+        result = new GetSignedDomainsResult(rsrcCtx);
         sdoms = null;
         try {
-            zms.getSignedDomains(mockDomRsrcCtx, null, "garbage", null, result);
+            zms.getSignedDomains(rsrcCtx, null, "garbage", null, result);
             fail("webappexc not thrown by getSignedDomains");
         } catch (javax.ws.rs.WebApplicationException wexc) {
             Object obj = getWebAppExcEntity(wexc);
@@ -5475,10 +5479,10 @@ public class ZMSImplTest {
 
         // test metaonly=false
         //
-        result = new GetSignedDomainsResult(mockDomRsrcCtx);
+        result = new GetSignedDomainsResult(rsrcCtx);
         sdoms = null;
         try {
-            zms.getSignedDomains(mockDomRsrcCtx, null, "fAlSe", null, result);
+            zms.getSignedDomains(rsrcCtx, null, "fAlSe", null, result);
             fail("webappexc not thrown by getSignedDomains");
         } catch (javax.ws.rs.WebApplicationException wexc) {
             Object obj = getWebAppExcEntity(wexc);
@@ -5505,9 +5509,9 @@ public class ZMSImplTest {
         //
         String eTag  = "I am not good";
         String eTag2 = null;
-        result = new GetSignedDomainsResult(mockDomRsrcCtx);
+        result = new GetSignedDomainsResult(rsrcCtx);
         try {
-            zms.getSignedDomains(mockDomRsrcCtx, null, null, eTag, result);
+            zms.getSignedDomains(rsrcCtx, null, null, eTag, result);
             fail("webappexc not thrown by getSignedDomains");
         } catch (javax.ws.rs.WebApplicationException wexc) {
             Object obj = getWebAppExcEntity(wexc);
@@ -5527,11 +5531,11 @@ public class ZMSImplTest {
         Policy policy1 = createPolicyObject("SignedDom1", "Policy1");
         zms.putPolicy(mockDomRsrcCtx, "SignedDom1", "Policy1", auditRef, policy1);
 
-        result = new GetSignedDomainsResult(mockDomRsrcCtx);
+        result = new GetSignedDomainsResult(rsrcCtx);
         sdoms  = null;
         eTag   = null;
         try {
-            zms.getSignedDomains(mockDomRsrcCtx, null, null, eTag2, result);
+            zms.getSignedDomains(rsrcCtx, null, null, eTag2, result);
             fail("webappexc not thrown by getSignedDomains");
         } catch (javax.ws.rs.WebApplicationException wexc) {
             Object obj = getWebAppExcEntity(wexc);
@@ -5546,10 +5550,10 @@ public class ZMSImplTest {
         assertNotNull(list);
         assertEquals(1, list.size());
 
-        result = new GetSignedDomainsResult(mockDomRsrcCtx);
+        result = new GetSignedDomainsResult(rsrcCtx);
         eTag2  = null;
         try {
-            zms.getSignedDomains(mockDomRsrcCtx, null, null, eTag, result);
+            zms.getSignedDomains(rsrcCtx, null, null, eTag, result);
             fail("webappexc not thrown by getSignedDomains");
         } catch (javax.ws.rs.WebApplicationException wexc) {
             assertEquals(304, wexc.getResponse().getStatus());
@@ -5656,7 +5660,30 @@ public class ZMSImplTest {
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "signeddom1filtered", auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "signeddom2filtered", auditRef);
     }
-    
+
+    @Test
+    public void testGetSignedDomainsNotSystemPrincipal() {
+
+        // create multiple top level domains
+        TopLevelDomain dom1 = createTopLevelDomainObject("SignedDom1",
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        GetSignedDomainsResult result = new GetSignedDomainsResult(mockDomRsrcCtx);
+        ResourceError error = null;
+        try {
+            zms.getSignedDomains(mockDomRsrcCtx, null, null, null, result);
+            fail("webappexc not thrown by getSignedDomains");
+        } catch (javax.ws.rs.WebApplicationException wexc) {
+            Object obj = getWebAppExcEntity(wexc);
+            error = (ResourceError) obj;
+        }
+        assertNotNull(error);
+        assertEquals(error.code, ResourceException.BAD_REQUEST);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "SignedDom1", auditRef);
+    }
+
     @Test
     public void testGetAccess() {
 

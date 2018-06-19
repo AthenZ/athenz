@@ -4097,7 +4097,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (metaOnly != null) {
 
             if (LOG.isDebugEnabled()) {
-                LOG.debug("getSignedDomains: metaonly: " + metaOnly, caller);
+                LOG.debug("getSignedDomains: metaonly: {}", metaOnly);
             }
             
             setMetaDataOnly = Boolean.parseBoolean(metaOnly.trim());
@@ -4109,7 +4109,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // to use the master copy instead of read-only slaves
         
         Principal principal = ((RsrcCtxWrapper) ctx).principal();
-        boolean masterCopy = principal.getFullName().startsWith("sys.");
+        boolean systemPrincipal = principal.getFullName().startsWith("sys.");
         
         // if we're given a specific domain then we don't need to
         // retrieve the list of modified domains
@@ -4121,7 +4121,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
             Domain domain = null;
             try {
-                domain = dbService.getDomain(domainName, masterCopy);
+                domain = dbService.getDomain(domainName, systemPrincipal);
             } catch (ResourceException ex) {
                 
                 // in case the domain does not exist we're just
@@ -4137,7 +4137,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 
                 if (timestamp != 0 && youngestDomMod <= timestamp) {
                     EntityTag eTag = new EntityTag(domain.getModified().toString());
-                    result.done(304, eTag.toString());
+                    result.done(ResourceException.NOT_MODIFIED, eTag.toString());
                 }
                 
                 // generate our signed domain object
@@ -4153,7 +4153,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
             
         } else {
-            
+
+            // if we don't have a domain name then the meta flag must
+            // be set to true otherwise it's expensive to fetch all
+            // domains and sign all domains into a single response
+            // unless the request is from a system service
+
+            if (!setMetaDataOnly && !systemPrincipal)  {
+                result.done(ResourceException.BAD_REQUEST);
+            }
+
             // we should get our matching tag before calling get modified list
             // in case we get a domain added/updated right after an empty domain list
             // was returned and before the matchingTag was set to a value
@@ -4166,7 +4175,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             DomainModifiedList dmlist = dbService.listModifiedDomains(timestamp);
             List<DomainModified> modlist = dmlist.getNameModList();
             if (modlist == null || modlist.size() == 0) {
-                result.done(304, matchingTag);
+                result.done(ResourceException.NOT_MODIFIED, matchingTag);
             }
             
             // now we can iterate through our list and retrieve each domain
@@ -4206,7 +4215,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         EntityTag eTag = new EntityTag(youngest.toString());
 
         metric.stopTiming(timerMetric);
-        result.done(200, sdoms, eTag.toString());
+        result.done(ResourceException.OK, sdoms, eTag.toString());
     }
     
     List<Policy> getPolicyListWithoutAssertionId(List<Policy> policies) {
