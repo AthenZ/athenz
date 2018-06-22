@@ -123,6 +123,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected Status successServerStatus = null;
     protected boolean includeRoleCompleteFlag = true;
     protected boolean readOnlyMode = false;
+    protected boolean verifyCertRefreshHostnames = true;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -300,7 +301,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         statusCertSigner = Boolean.parseBoolean(
                 System.getProperty(ZTSConsts.ZTS_PROP_STATUS_CERT_SIGNER, "false"));
-        
+
         // check to see if we want to disable allowing clients to ask for role
         // tokens without role name thus violating the least privilege principle
         
@@ -389,6 +390,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         readOnlyMode = Boolean.parseBoolean(
                 System.getProperty(ZTSConsts.ZTS_PROP_READ_ONLY_MODE, "false"));
+
+        // configure if during certificate refresh we should validate that
+        // the csr and cert contain the exact same set
+
+        verifyCertRefreshHostnames = Boolean.parseBoolean(
+                System.getProperty(ZTSConsts.ZTS_PROP_CERT_REFRESH_VERIFY_HOSTNAMES, "true"));
     }
     
     static String getServerHostName() {
@@ -2025,10 +2032,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // retrieve the certificate that was used for authentication
         // and verify that the dns names in the certificate match to
-        // the values specified in the CSR
-        
+        // the values specified in the CSR. Since the provider is
+        // responsible for validating the SAN DNS entries, this is
+        // configured as an optional check and can be skipped.
+
         X509Certificate cert = principal.getX509Certificate();
-        if (!certReq.compareDnsNames(cert)) {
+        if (verifyCertRefreshHostnames && !certReq.compareDnsNames(cert)) {
             throw requestError("dnsName attribute mismatch in CSR", caller, domain);
         }
         
