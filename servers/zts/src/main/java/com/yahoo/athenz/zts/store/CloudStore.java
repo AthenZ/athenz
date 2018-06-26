@@ -401,6 +401,13 @@ public class CloudStore {
     String getCacheKey(final String account, final String roleName, final String principal,
             Integer durationSeconds, final String externalId) {
 
+        // if our cache is disabled there is no need to generate
+        // a cache key since all other operations are no-ops
+
+        if (cacheTimeout == 0) {
+            return "";
+        }
+
         StringBuilder cacheKey = new StringBuilder(256);
         cacheKey.append(account).append(':').append(roleName).append(':').append(principal);
         cacheKey.append(':');
@@ -429,6 +436,12 @@ public class CloudStore {
 
     AWSTemporaryCredentials getCachedCreds(final String cacheKey, Integer durationSeconds) {
 
+        // if our cache is disabled there is no need for a lookup
+
+        if (cacheTimeout == 0) {
+            return null;
+        }
+
         AWSTemporaryCredentials tempCreds = awsCredsCache.get(cacheKey);
         if (tempCreds == null) {
             return null;
@@ -448,6 +461,13 @@ public class CloudStore {
     }
 
     void putCacheCreds(final String key, AWSTemporaryCredentials tempCreds) {
+
+        // if our cache is disabled we do nothing
+
+        if (cacheTimeout == 0) {
+            return;
+        }
+
         awsCredsCache.put(key, tempCreds);
     }
 

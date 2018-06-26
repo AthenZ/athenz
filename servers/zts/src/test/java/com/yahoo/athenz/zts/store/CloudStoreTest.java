@@ -757,6 +757,29 @@ public class CloudStoreTest {
     }
 
     @Test
+    public void testGetCachedCredsDisabled() {
+        System.setProperty(ZTSConsts.ZTS_PROP_AWS_CREDS_CACHE_TIMEOUT, "0");
+        CloudStore cloudStore = new CloudStore();
+
+        assertEquals(cloudStore.getCacheKey("account", "role", "user", null, null), "");
+        assertEquals(cloudStore.getCacheKey("account", "role", "user", 100, null), "");
+        assertEquals(cloudStore.getCacheKey("account", "role", "user", 100, "ext"), "");
+
+        AWSTemporaryCredentials creds = new AWSTemporaryCredentials();
+        creds.setAccessKeyId("keyid");
+        creds.setSecretAccessKey("accesskey");
+        creds.setSessionToken("token");
+        // set the expiration for 1 hour from now
+        creds.setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + 3600*1000));
+        cloudStore.putCacheCreds("account:role:user::", creds);
+
+        // with disabled cache there is nothing to match
+        assertNull(cloudStore.getCachedCreds("account:role:user::", null));
+        cloudStore.close();
+        System.clearProperty(ZTSConsts.ZTS_PROP_AWS_CREDS_CACHE_TIMEOUT);
+    }
+
+    @Test
     public void testRemoveExpiredCredentials() {
         CloudStore cloudStore = new CloudStore();
 
