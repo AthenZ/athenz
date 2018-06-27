@@ -142,6 +142,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_AWS_REGION_NAME          = "athenz.zts.aws_region_name";
     public static final String ZTS_PROP_AWS_PUBLIC_CERT          = "athenz.zts.aws_public_cert";
     public static final String ZTS_PROP_AWS_BOOT_TIME_OFFSET     = "athenz.zts.aws_boot_time_offset";
+    public static final String ZTS_PROP_AWS_CREDS_CACHE_TIMEOUT  = "athenz.zts.aws_creds_cache_timeout";
 
     public static final String ZTS_PROP_METRIC_FACTORY_CLASS             = "athenz.zts.metric_factory_class";
     public static final String ZTS_PROP_CERT_SIGNER_FACTORY_CLASS        = "athenz.zts.cert_signer_factory_class";

@@ -21,6 +21,7 @@ import java.util.Date;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
+import com.yahoo.rdl.Timestamp;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.mockito.Mockito;
@@ -706,6 +707,124 @@ public class CloudStoreTest {
         
         final String req3 = "{invalid-json";
         assertNull(cloudStore.getSshKeyReqType(req3));
+        cloudStore.close();
+    }
+
+    @Test
+    public void testGetCacheKey() {
+        CloudStore cloudStore = new CloudStore();
+        assertEquals(cloudStore.getCacheKey("account", "role", "user", null, null), "account:role:user::");
+        assertEquals(cloudStore.getCacheKey("account", "role", "user", 100, null), "account:role:user:100:");
+        assertEquals(cloudStore.getCacheKey("account", "role", "user", null, "ext"), "account:role:user::ext");
+        assertEquals(cloudStore.getCacheKey("account", "role", "user", null, "100"), "account:role:user::100");
+        assertEquals(cloudStore.getCacheKey("account", "role", "user", 100, "ext"), "account:role:user:100:ext");
+        cloudStore.close();
+    }
+
+    @Test
+    public void testGetCachedCreds() {
+        CloudStore cloudStore = new CloudStore();
+        AWSTemporaryCredentials creds = new AWSTemporaryCredentials();
+        creds.setAccessKeyId("keyid");
+        creds.setSecretAccessKey("accesskey");
+        creds.setSessionToken("token");
+        // set the expiration for 1 hour from now
+        creds.setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + 3600*1000));
+        cloudStore.putCacheCreds("account:role:user::", creds);
+
+        // fetching with a different cache key should not match anything
+        assertNull(cloudStore.getCachedCreds("account:role:user:100:", null));
+        assertNull(cloudStore.getCachedCreds("account:role:user::ext", null));
+
+        // fetching with null duration should match and return our object
+        assertNotNull(cloudStore.getCachedCreds("account:role:user::", null));
+
+        // fetching with 1 hour duration should match and return our object
+        assertNotNull(cloudStore.getCachedCreds("account:role:user::", 3600));
+
+        // fetching with 45 min duration should match duration
+        assertNotNull(cloudStore.getCachedCreds("account:role:user::", 2700));
+
+        // fetching with 1 hour and 5 min duration should match and return our object
+        assertNotNull(cloudStore.getCachedCreds("account:role:user::", 3900));
+
+        // fetching with 1 hour and 11 min duration should not match
+        assertNull(cloudStore.getCachedCreds("account:role:user::", 4260));
+
+        // fetching with 2 hour duration should not match
+        assertNull(cloudStore.getCachedCreds("account:role:user::", 7200));
+        cloudStore.close();
+    }
+
+    @Test
+    public void testGetCachedCredsDisabled() {
+        System.setProperty(ZTSConsts.ZTS_PROP_AWS_CREDS_CACHE_TIMEOUT, "0");
+        CloudStore cloudStore = new CloudStore();
+
+        assertNull(cloudStore.getCacheKey("account", "role", "user", null, null));
+        assertNull(cloudStore.getCacheKey("account", "role", "user", 100, null));
+        assertNull(cloudStore.getCacheKey("account", "role", "user", 100, "ext"));
+
+        AWSTemporaryCredentials creds = new AWSTemporaryCredentials();
+        creds.setAccessKeyId("keyid");
+        creds.setSecretAccessKey("accesskey");
+        creds.setSessionToken("token");
+        // set the expiration for 1 hour from now
+        creds.setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + 3600*1000));
+        cloudStore.putCacheCreds("account:role:user::", creds);
+
+        // with disabled cache there is nothing to match
+        assertNull(cloudStore.getCachedCreds("account:role:user::", null));
+        cloudStore.close();
+        System.clearProperty(ZTSConsts.ZTS_PROP_AWS_CREDS_CACHE_TIMEOUT);
+    }
+
+    @Test
+    public void testRemoveExpiredCredentials() {
+        CloudStore cloudStore = new CloudStore();
+
+        AWSTemporaryCredentials creds = new AWSTemporaryCredentials();
+        creds.setAccessKeyId("keyid");
+        creds.setSecretAccessKey("accesskey");
+        creds.setSessionToken("token");
+        // set the expiration for 1 hour from now
+        creds.setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + 3600*1000));
+        cloudStore.putCacheCreds("account:role:user::", creds);
+
+        assertFalse(cloudStore.removeExpiredCredentials());
+
+        // now let's add an expired entry
+        AWSTemporaryCredentials creds2 = new AWSTemporaryCredentials();
+        creds2.setAccessKeyId("keyid");
+        creds2.setSecretAccessKey("accesskey");
+        creds2.setSessionToken("token");
+        // expired credential
+        creds2.setExpiration(Timestamp.fromMillis(System.currentTimeMillis() - 1000));
+        cloudStore.putCacheCreds("account:role:user2::", creds2);
+
+        assertTrue(cloudStore.removeExpiredCredentials());
+        cloudStore.close();
+    }
+
+    @Test
+    public void testGetCachedAWSCredentials() {
+        CloudStore cloudStore = new CloudStore();
+        cloudStore.awsEnabled = true;
+
+        AWSTemporaryCredentials creds = new AWSTemporaryCredentials();
+        creds.setAccessKeyId("keyid");
+        creds.setSecretAccessKey("accesskey");
+        creds.setSessionToken("token");
+        // set the expiration for 1 hour from now
+        creds.setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + 3600 * 1000));
+        cloudStore.putCacheCreds("account:role:user::ext", creds);
+
+        AWSTemporaryCredentials testCreds = cloudStore.assumeAWSRole("account", "role", "user",
+                null, "ext");
+        assertNotNull(testCreds);
+        assertEquals(testCreds.getAccessKeyId(), "keyid");
+        assertEquals(testCreds.getSecretAccessKey(), "accesskey");
+        assertEquals(testCreds.getSessionToken(), "token");
         cloudStore.close();
     }
 }

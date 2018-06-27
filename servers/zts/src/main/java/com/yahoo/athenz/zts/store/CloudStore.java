@@ -18,11 +18,13 @@ package com.yahoo.athenz.zts.store;
 import java.security.PublicKey;
 import java.util.HashMap;
 import java.util.Map;
+
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
@@ -56,17 +58,20 @@ public class CloudStore {
     String awsRole = null;
     String awsRegion;
     boolean awsEnabled;
+    private int cacheTimeout;
     BasicSessionCredentials credentials;
     private Map<String, String> cloudAccountCache;
+    private ConcurrentHashMap<String, AWSTemporaryCredentials> awsCredsCache;
     private HttpClient httpClient;
 
     private ScheduledExecutorService scheduledThreadPool = null;
 
     public CloudStore() {
 
-        // initialize our account cache
+        // initialize our account and cred cache
 
         cloudAccountCache = new HashMap<>();
+        awsCredsCache = new ConcurrentHashMap<>();
 
         // Instantiate and start our HttpClient
 
@@ -85,9 +90,15 @@ public class CloudStore {
 
         awsRegion = System.getProperty(ZTSConsts.ZTS_PROP_AWS_REGION_NAME);
 
+        // get the default cache timeout
+
+        cacheTimeout = Integer.parseInt(
+                System.getProperty(ZTSConsts.ZTS_PROP_AWS_CREDS_CACHE_TIMEOUT, "600"));
+
         // initialize aws support
 
-        awsEnabled = Boolean.parseBoolean(System.getProperty(ZTSConsts.ZTS_PROP_AWS_ENABLED, "false"));
+        awsEnabled = Boolean.parseBoolean(
+                System.getProperty(ZTSConsts.ZTS_PROP_AWS_ENABLED, "false"));
         initializeAwsSupport();
     }
 
@@ -140,12 +151,13 @@ public class CloudStore {
                     "Unable to fetch aws role credentials");
         }
 
-        // Start our thread to get aws temporary credentials
+        // Start our thread to get/update aws temporary credentials
 
-        int credsUpdateTime = ZTSUtils.retrieveConfigSetting(ZTSConsts.ZTS_PROP_AWS_CREDS_UPDATE_TIMEOUT, 900);
+        int credsUpdateTime = ZTSUtils.retrieveConfigSetting(
+                ZTSConsts.ZTS_PROP_AWS_CREDS_UPDATE_TIMEOUT, 900);
 
         scheduledThreadPool = Executors.newScheduledThreadPool(1);
-        scheduledThreadPool.scheduleAtFixedRate(new RoleCredentialsFetcher(), credsUpdateTime,
+        scheduledThreadPool.scheduleAtFixedRate(new AWSCredentialsUpdater(), credsUpdateTime,
                 credsUpdateTime, TimeUnit.SECONDS);
     }
 
@@ -386,18 +398,97 @@ public class CloudStore {
                 .build();
     }
 
+    String getCacheKey(final String account, final String roleName, final String principal,
+            Integer durationSeconds, final String externalId) {
+
+        // if our cache is disabled there is no need to generate
+        // a cache key since all other operations are no-ops
+
+        if (cacheTimeout == 0) {
+            return null;
+        }
+
+        StringBuilder cacheKey = new StringBuilder(256);
+        cacheKey.append(account).append(':').append(roleName).append(':').append(principal);
+        cacheKey.append(':');
+        if (durationSeconds != null) {
+            cacheKey.append(durationSeconds.intValue());
+        }
+        cacheKey.append(':');
+        if (externalId != null) {
+            cacheKey.append(externalId);
+        }
+        return cacheKey.toString();
+    }
+
+    boolean removeExpiredCredentials() {
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Checking for expired cached credentials in {} entries", awsCredsCache.size());
+        }
+
+        // iterate through all entries in the map and remove any
+        // entries that have been expired already
+
+        long now = System.currentTimeMillis();
+        return awsCredsCache.entrySet().removeIf(entry -> entry.getValue().getExpiration().millis() < now);
+    }
+
+    AWSTemporaryCredentials getCachedCreds(final String cacheKey, Integer durationSeconds) {
+
+        // if our cache is disabled there is no need for a lookup
+
+        if (cacheTimeout == 0) {
+            return null;
+        }
+
+        AWSTemporaryCredentials tempCreds = awsCredsCache.get(cacheKey);
+        if (tempCreds == null) {
+            return null;
+        }
+
+        // we're going to cache any creds for 10 mins only
+
+        long diffSeconds = (tempCreds.getExpiration().millis() - System.currentTimeMillis()) / 1000;
+        if (durationSeconds == null) {
+            durationSeconds = 3600; // default 1 hour
+        }
+        if (durationSeconds - diffSeconds > cacheTimeout) {
+            return null;
+        }
+
+        return tempCreds;
+    }
+
+    void putCacheCreds(final String key, AWSTemporaryCredentials tempCreds) {
+
+        // if our cache is disabled we do nothing
+
+        if (cacheTimeout == 0) {
+            return;
+        }
+
+        awsCredsCache.put(key, tempCreds);
+    }
+
     public AWSTemporaryCredentials assumeAWSRole(String account, String roleName, String principal,
-                                                 Integer durationSeconds, String externalId) {
+            Integer durationSeconds, String externalId) {
 
         if (!awsEnabled) {
             throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
                     "AWS Support not enabled");
         }
 
+        final String cacheKey = getCacheKey(account, roleName, principal,
+                durationSeconds, externalId);
+        AWSTemporaryCredentials tempCreds = getCachedCreds(cacheKey, durationSeconds);
+        if (tempCreds != null) {
+            return tempCreds;
+        }
+
         AssumeRoleRequest req = getAssumeRoleRequest(account, roleName, principal,
                 durationSeconds, externalId);
 
-        AWSTemporaryCredentials tempCreds;
         try {
             AWSSecurityTokenService client = getTokenServiceClient();
             AssumeRoleResult res = client.assumeRole(req);
@@ -415,6 +506,7 @@ public class CloudStore {
             return null;
         }
 
+        putCacheCreds(cacheKey, tempCreds);
         return tempCreds;
     }
 
@@ -454,19 +546,26 @@ public class CloudStore {
         return verified;
     }
 
-    class RoleCredentialsFetcher implements Runnable {
+    class AWSCredentialsUpdater implements Runnable {
 
         @Override
         public void run() {
 
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("RoleCredentialsFetcher: Starting aws role credentials fetcher task...");
+                LOGGER.debug("AWSCredentialsUpdater: Starting aws credentials updater task...");
             }
 
             try {
                 fetchRoleCredentials();
             } catch (Exception ex) {
-                LOGGER.error("RoleCredentialsFetcher: unable to fetch aws role credentials: {}",
+                LOGGER.error("AWSCredentialsUpdater: unable to fetch aws role credentials: {}",
+                        ex.getMessage());
+            }
+
+            try {
+                removeExpiredCredentials();
+            } catch (Exception ex) {
+                LOGGER.error("AWSCredentialsUpdater: unable to remove expired aws credentials: {}",
                         ex.getMessage());
             }
         }
