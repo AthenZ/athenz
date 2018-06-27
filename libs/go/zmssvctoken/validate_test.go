@@ -15,8 +15,8 @@ import (
 	"github.com/ardielle/ardielle-go/rdl"
 )
 
-func makeTokenWithKey(t *testing.T, src keySource, k []byte) string {
-	tb, err := NewTokenBuilder(src.domain, src.name, k, src.keyVersion)
+func makeTokenWithKey(t *testing.T, src keySource, k []byte, keyService string) string {
+	tb, err := NewTokenBuilder(src.domain, src.name, k, src.keyVersion, keyService)
 	require.Nil(t, err)
 	tok, err := tb.Token().Value()
 	require.Nil(t, err)
@@ -24,7 +24,11 @@ func makeTokenWithKey(t *testing.T, src keySource, k []byte) string {
 }
 
 func makeToken(t *testing.T, src keySource) string {
-	return makeTokenWithKey(t, src, rsaPrivateKeyPEM)
+	return makeTokenWithKey(t, src, rsaPrivateKeyPEM, "")
+}
+
+func makeTokenWithKeyService(t *testing.T, src keySource, keyService string) string {
+	return makeTokenWithKey(t, src, rsaPrivateKeyPEM, keyService)
 }
 
 func stdKey(src keySource) (pubKey []byte, rawResponse string, err error) {
@@ -56,18 +60,20 @@ func badJSON(src keySource) (pubKey []byte, rawResponse string, err error) {
 	return nil, `{ "key": `, nil
 }
 
-func source(d string) keySource {
-	return keySource{domain: d, name: "name", keyVersion: "v1"}
+func source(d, n, keyV string) keySource {
+	return keySource{domain: d, name: n, keyVersion: keyV}
 }
 
 var (
-	simpleSource    = source("std")
-	dsaSource       = source("dsa-key")
-	hangSource      = source("d500")
-	noKeySource     = source("nks")
-	badEncSource    = source("bes")
-	badJSONSource   = source("bjs")
-	keyRotateSource = source("rotate")
+	simpleSource    = source("std", "name", "v1")
+	dsaSource       = source("dsa-key", "name", "v1")
+	hangSource      = source("d500", "name", "v1")
+	noKeySource     = source("nks", "name", "v1")
+	badEncSource    = source("bes", "name", "v1")
+	badJSONSource   = source("bjs", "name", "v1")
+	keyRotateSource = source("rotate", "name", "v1")
+	zmsSource       = source("sys.auth", "zms", "aws.prod.us-west-2.0")
+	ztsSource       = source("sys.auth", "zts", "aws.prod.us-west-2.0")
 )
 
 type chandler struct {
@@ -100,6 +106,8 @@ var handlerMap = map[keySource]handler{
 	badEncSource:    badBase64,
 	badJSONSource:   badJSON,
 	keyRotateSource: ch.getKey,
+	zmsSource:       stdKey,
+	ztsSource:       stdKey,
 }
 
 func TestCachedValidate(t *testing.T) {
@@ -134,6 +142,20 @@ func TestCachedValidate(t *testing.T) {
 	a.Equal(simpleSource.domain, tok.Domain)
 	a.Equal(simpleSource.name, tok.Name)
 	a.Equal(simpleSource.keyVersion, tok.KeyVersion)
+
+	// successful validation with zms service key
+	tok, err = validator.Validate(makeTokenWithKeyService(t, zmsSource, "zms"))
+	require.Nil(t, err)
+	a.Equal(zmsSource.domain, tok.Domain)
+	a.Equal(zmsSource.name, tok.Name)
+	a.Equal(zmsSource.keyVersion, tok.KeyVersion)
+
+	// successful validation with zts service key
+	tok, err = validator.Validate(makeTokenWithKeyService(t, ztsSource, "zts"))
+	require.Nil(t, err)
+	a.Equal(ztsSource.domain, tok.Domain)
+	a.Equal(ztsSource.name, tok.Name)
+	a.Equal(ztsSource.keyVersion, tok.KeyVersion)
 
 	// incomplete token
 	tokstr := makeToken(t, simpleSource)
@@ -188,7 +210,7 @@ func TestCachedValidate(t *testing.T) {
 	a.Equal("Invalid token signature", err.Error())
 
 	// new key should work after cache invalidation
-	tok, err = validator.Validate(makeTokenWithKey(t, keyRotateSource, ecdsaPrivateKeyPEM))
+	tok, err = validator.Validate(makeTokenWithKey(t, keyRotateSource, ecdsaPrivateKeyPEM, ""))
 	require.Nil(t, err)
 
 }

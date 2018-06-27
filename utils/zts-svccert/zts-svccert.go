@@ -185,7 +185,7 @@ func generateCSR(keySigner *signer, commonName, host string) (string, error) {
 
 func ntokenClient(ztsURL, domain, service, keyID, caCertFile, hdr string, keyBytes []byte) (*zts.ZTSClient, error) {
 	// get token builder instance
-	builder, err := zmssvctoken.NewTokenBuilder(domain, service, keyBytes, keyID)
+	builder, err := zmssvctoken.NewTokenBuilder(domain, service, keyBytes, keyID, "")
 	if err != nil {
 		return nil, err
 	}
