@@ -645,6 +645,8 @@ func (gen *javaServerGenerator) handlerSignature(r *rdl.Resource) string {
 		params = append(params, pdecl+ptype+" "+javaName(k))
 	}
 	// include @Produces json annotation for all methods except OPTIONS
+	// even if we have no content we need to have the produce annotation
+	// because our errors are coming back as json objects
 	var spec string
 	switch r.Method {
 	case "OPTIONS":
@@ -652,9 +654,7 @@ func (gen *javaServerGenerator) handlerSignature(r *rdl.Resource) string {
 		spec += "@Consumes(MediaType.APPLICATION_JSON)\n    "
 		fallthrough
 	default:
-		if !noContent {
-			spec += "@Produces(MediaType.APPLICATION_JSON)\n    "
-		}
+		spec += "@Produces(MediaType.APPLICATION_JSON)\n    "
 	}
 
 	methName, _ := javaMethodName(reg, r)

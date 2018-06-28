@@ -150,6 +150,7 @@ public class ZMSResources {
 
     @DELETE
     @Path("/domain/{name}")
+    @Produces(MediaType.APPLICATION_JSON)
     public void deleteTopLevelDomain(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -177,6 +178,7 @@ public class ZMSResources {
 
     @DELETE
     @Path("/subdomain/{parent}/{name}")
+    @Produces(MediaType.APPLICATION_JSON)
     public void deleteSubDomain(@PathParam("parent") String parent, @PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -204,6 +206,7 @@ public class ZMSResources {
 
     @DELETE
     @Path("/userdomain/{name}")
+    @Produces(MediaType.APPLICATION_JSON)
     public void deleteUserDomain(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -232,6 +235,7 @@ public class ZMSResources {
     @PUT
     @Path("/domain/{name}/meta")
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public void putDomainMeta(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef, DomainMeta detail) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -262,6 +266,7 @@ public class ZMSResources {
     @PUT
     @Path("/domain/{name}/template")
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public void putDomainTemplate(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef, DomainTemplate domainTemplate) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -292,6 +297,7 @@ public class ZMSResources {
     @PUT
     @Path("/domain/{name}/template/{template}")
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public void putDomainTemplateExt(@PathParam("name") String name, @PathParam("template") String template, @HeaderParam("Y-Audit-Ref") String auditRef, DomainTemplate domainTemplate) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -347,6 +353,7 @@ public class ZMSResources {
 
     @DELETE
     @Path("/domain/{name}/template/{template}")
+    @Produces(MediaType.APPLICATION_JSON)
     public void deleteDomainTemplate(@PathParam("name") String name, @PathParam("template") String template, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -403,6 +410,7 @@ public class ZMSResources {
     @PUT
     @Path("/domain/{domainName}/entity/{entityName}")
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public void putEntity(@PathParam("domainName") String domainName, @PathParam("entityName") String entityName, @HeaderParam("Y-Audit-Ref") String auditRef, Entity entity) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -460,6 +468,7 @@ public class ZMSResources {
 
     @DELETE
     @Path("/domain/{domainName}/entity/{entityName}")
+    @Produces(MediaType.APPLICATION_JSON)
     public void deleteEntity(@PathParam("domainName") String domainName, @PathParam("entityName") String entityName, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -598,6 +607,7 @@ public class ZMSResources {
     @PUT
     @Path("/domain/{domainName}/role/{roleName}")
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public void putRole(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @HeaderParam("Y-Audit-Ref") String auditRef, Role role) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -627,6 +637,7 @@ public class ZMSResources {
 
     @DELETE
     @Path("/domain/{domainName}/role/{roleName}")
+    @Produces(MediaType.APPLICATION_JSON)
     public void deleteRole(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -685,6 +696,7 @@ public class ZMSResources {
     @PUT
     @Path("/domain/{domainName}/role/{roleName}/member/{memberName}")
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public void putMembership(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @PathParam("memberName") String memberName, @HeaderParam("Y-Audit-Ref") String auditRef, Membership membership) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -714,6 +726,7 @@ public class ZMSResources {
 
     @DELETE
     @Path("/domain/{domainName}/role/{roleName}/member/{memberName}")
+    @Produces(MediaType.APPLICATION_JSON)
     public void deleteMembership(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @PathParam("memberName") String memberName, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -744,6 +757,7 @@ public class ZMSResources {
     @PUT
     @Path("/domain/{domainName}/admins")
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public void putDefaultAdmins(@PathParam("domainName") String domainName, @HeaderParam("Y-Audit-Ref") String auditRef, DefaultAdmins defaultAdmins) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -854,6 +868,7 @@ public class ZMSResources {
     @PUT
     @Path("/domain/{domainName}/policy/{policyName}")
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public void putPolicy(@PathParam("domainName") String domainName, @PathParam("policyName") String policyName, @HeaderParam("Y-Audit-Ref") String auditRef, Policy policy) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -883,6 +898,7 @@ public class ZMSResources {
 
     @DELETE
     @Path("/domain/{domainName}/policy/{policyName}")
+    @Produces(MediaType.APPLICATION_JSON)
     public void deletePolicy(@PathParam("domainName") String domainName, @PathParam("policyName") String policyName, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -973,6 +989,7 @@ public class ZMSResources {
 
     @DELETE
     @Path("/domain/{domainName}/policy/{policyName}/assertion/{assertionId}")
+    @Produces(MediaType.APPLICATION_JSON)
     public void deleteAssertion(@PathParam("domainName") String domainName, @PathParam("policyName") String policyName, @PathParam("assertionId") Long assertionId, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -1003,6 +1020,7 @@ public class ZMSResources {
     @PUT
     @Path("/domain/{domain}/service/{service}")
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public void putServiceIdentity(@PathParam("domain") String domain, @PathParam("service") String service, @HeaderParam("Y-Audit-Ref") String auditRef, ServiceIdentity detail) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -1060,6 +1078,7 @@ public class ZMSResources {
 
     @DELETE
     @Path("/domain/{domain}/service/{service}")
+    @Produces(MediaType.APPLICATION_JSON)
     public void deleteServiceIdentity(@PathParam("domain") String domain, @PathParam("service") String service, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -1172,6 +1191,7 @@ public class ZMSResources {
     @PUT
     @Path("/domain/{domain}/service/{service}/publickey/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public void putPublicKeyEntry(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("id") String id, @HeaderParam("Y-Audit-Ref") String auditRef, PublicKeyEntry publicKeyEntry) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -1201,6 +1221,7 @@ public class ZMSResources {
 
     @DELETE
     @Path("/domain/{domain}/service/{service}/publickey/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
     public void deletePublicKeyEntry(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("id") String id, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -1231,6 +1252,7 @@ public class ZMSResources {
     @PUT
     @Path("/domain/{domain}/tenancy/{service}")
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public void putTenancy(@PathParam("domain") String domain, @PathParam("service") String service, @HeaderParam("Y-Audit-Ref") String auditRef, Tenancy detail) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -1260,6 +1282,7 @@ public class ZMSResources {
 
     @DELETE
     @Path("/domain/{domain}/tenancy/{service}")
+    @Produces(MediaType.APPLICATION_JSON)
     public void deleteTenancy(@PathParam("domain") String domain, @PathParam("service") String service, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -1350,6 +1373,7 @@ public class ZMSResources {
 
     @DELETE
     @Path("/domain/{domain}/service/{service}/tenant/{tenantDomain}/resourceGroup/{resourceGroup}")
+    @Produces(MediaType.APPLICATION_JSON)
     public void deleteTenantResourceGroupRoles(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("tenantDomain") String tenantDomain, @PathParam("resourceGroup") String resourceGroup, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -1440,6 +1464,7 @@ public class ZMSResources {
 
     @DELETE
     @Path("/domain/{tenantDomain}/provDomain/{provDomain}/provService/{provService}/resourceGroup/{resourceGroup}")
+    @Produces(MediaType.APPLICATION_JSON)
     public void deleteProviderResourceGroupRoles(@PathParam("tenantDomain") String tenantDomain, @PathParam("provDomain") String provDomain, @PathParam("provService") String provService, @PathParam("resourceGroup") String resourceGroup, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -1722,6 +1747,7 @@ public class ZMSResources {
 
     @DELETE
     @Path("/user/{name}")
+    @Produces(MediaType.APPLICATION_JSON)
     public void deleteUser(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -1774,6 +1800,7 @@ public class ZMSResources {
     @PUT
     @Path("/domain/{name}/quota")
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public void putQuota(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef, Quota quota) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
@@ -1801,6 +1828,7 @@ public class ZMSResources {
 
     @DELETE
     @Path("/domain/{name}/quota")
+    @Produces(MediaType.APPLICATION_JSON)
     public void deleteQuota(@PathParam("name") String name, @HeaderParam("Y-Audit-Ref") String auditRef) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
