@@ -736,8 +736,14 @@ public class CloudStoreTest {
         assertNull(cloudStore.getCachedCreds("account:role:user:100:", null));
         assertNull(cloudStore.getCachedCreds("account:role:user::ext", null));
 
-        // fetching with null duration should match and return our object
+        // fetching with null duration should match (default to 3600) and return our object
         assertNotNull(cloudStore.getCachedCreds("account:role:user::", null));
+
+        // fetching with 0 duration should match (default to 3600) and return our object
+        assertNotNull(cloudStore.getCachedCreds("account:role:user::", 0));
+
+        // fetching with negative duration should match (default to 3600) and return our object
+        assertNotNull(cloudStore.getCachedCreds("account:role:user::", -1));
 
         // fetching with 1 hour duration should match and return our object
         assertNotNull(cloudStore.getCachedCreds("account:role:user::", 3600));

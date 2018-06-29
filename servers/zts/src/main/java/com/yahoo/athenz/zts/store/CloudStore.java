@@ -450,7 +450,7 @@ public class CloudStore {
         // we're going to cache any creds for 10 mins only
 
         long diffSeconds = (tempCreds.getExpiration().millis() - System.currentTimeMillis()) / 1000;
-        if (durationSeconds == null) {
+        if (durationSeconds == null || durationSeconds <= 0) {
             durationSeconds = 3600; // default 1 hour
         }
         if (durationSeconds - diffSeconds > cacheTimeout) {
