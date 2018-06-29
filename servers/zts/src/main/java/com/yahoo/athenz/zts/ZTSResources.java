@@ -477,6 +477,7 @@ public class ZTSResources {
 
     @DELETE
     @Path("/instance/{provider}/{domain}/{service}/{instanceId}")
+    @Produces(MediaType.APPLICATION_JSON)
     public void deleteInstanceIdentity(@PathParam("provider") String provider, @PathParam("domain") String domain, @PathParam("service") String service, @PathParam("instanceId") String instanceId) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
