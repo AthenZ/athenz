@@ -33,7 +33,7 @@ func main() {
 	}
 
 	// get token builder instance
-	builder, err := zmssvctoken.NewTokenBuilder(domain, service, bytes, keyVersion, "")
+	builder, err := zmssvctoken.NewTokenBuilder(domain, service, bytes, keyVersion)
 	if err != nil {
 		log.Fatalln(err)
 	}

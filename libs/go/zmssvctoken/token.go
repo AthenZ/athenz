@@ -220,6 +220,8 @@ type TokenBuilder interface {
 	SetHostname(h string)
 	// SetIPAddress sets the IP address for the token (default=host IP address).
 	SetIPAddress(ip string)
+	// SetKeyService sets the key service for the token
+	SetKeyService(keyService string)
 	// Token returns a Token instance with the fields correctly set for
 	// the current token. Multiple calls to Token will return the same implementation.
 	// If you change optional attributes between calls to Token, these will have no effect.
@@ -237,9 +239,8 @@ type tokenBuilder struct {
 
 // NewTokenBuilder returns a TokenBuilder implementation for the specified
 // domain/name, with a private key (PEM format) and its key-version. The key-version
-// should be the same string that was used to register the key with Athenz. The key-service
-// (optional) should be the service name where the public key is stored.
-func NewTokenBuilder(domain, name string, privateKeyPEM []byte, keyVersion, keyService string) (TokenBuilder, error) {
+// should be the same string that was used to register the key with Athenz.
+func NewTokenBuilder(domain, name string, privateKeyPEM []byte, keyVersion string) (TokenBuilder, error) {
 	s, err := NewSigner(privateKeyPEM)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to create signer: %v", err)
@@ -250,7 +251,6 @@ func NewTokenBuilder(domain, name string, privateKeyPEM []byte, keyVersion, keyS
 		Domain:         domain,
 		Name:           name,
 		KeyVersion:     keyVersion,
-		KeyService:     keyService,
 		Version:        defaultTokenVersion,
 		Hostname:       defaultHostname(),
 		IPAddress:      defaultIP(),
@@ -280,6 +280,10 @@ func (t *tokenBuilder) SetHostname(h string) {
 
 func (t *tokenBuilder) SetIPAddress(v string) {
 	t.ntok.IPAddress = v
+}
+
+func (t *tokenBuilder) SetKeyService(keyService string) {
+	t.ntok.KeyService = keyService
 }
 
 func (t *tokenBuilder) Token() Token {

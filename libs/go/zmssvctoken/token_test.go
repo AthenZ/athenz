@@ -15,7 +15,7 @@ import (
 
 func TestTokenBuild(t *testing.T) {
 	a := assert.New(t)
-	tb, err := NewTokenBuilder("domain", "service", ecdsaPrivateKeyPEM, "v1", "")
+	tb, err := NewTokenBuilder("domain", "service", ecdsaPrivateKeyPEM, "v1")
 	require.Nil(t, err)
 	tok := tb.Token()
 	s1, err := tok.Value()
@@ -28,7 +28,7 @@ func TestTokenBuild(t *testing.T) {
 
 func TestTokenBuildExpiry(t *testing.T) {
 	a := assert.New(t)
-	tb, err := NewTokenBuilder("domain", "service", rsaPrivateKeyPEM, "v1", "")
+	tb, err := NewTokenBuilder("domain", "service", rsaPrivateKeyPEM, "v1")
 	require.Nil(t, err)
 	tb.SetExpiration(9 * time.Minute)
 	tok := tb.Token()
@@ -42,22 +42,22 @@ func TestTokenBuildExpiry(t *testing.T) {
 
 func TestTokenBuildNegative(t *testing.T) {
 	a := assert.New(t)
-	_, err := NewTokenBuilder("", "service", rsaPrivateKeyPEM, "v1", "")
+	_, err := NewTokenBuilder("", "service", rsaPrivateKeyPEM, "v1")
 	require.NotNil(t, err)
 	a.Equal("Invalid token: missing domain", err.Error())
 
-	_, err = NewTokenBuilder("domain", "", rsaPrivateKeyPEM, "v1", "")
+	_, err = NewTokenBuilder("domain", "", rsaPrivateKeyPEM, "v1")
 	require.NotNil(t, err)
 	a.Equal("Invalid token: missing name", err.Error())
 
-	_, err = NewTokenBuilder("domain", "service", rsaPrivateKeyPEM, "", "")
+	_, err = NewTokenBuilder("domain", "service", rsaPrivateKeyPEM, "")
 	require.NotNil(t, err)
 	a.Equal("Invalid token: missing key version", err.Error())
 }
 
 func TestTokenPubValidate(t *testing.T) {
 	a := assert.New(t)
-	tb, err := NewTokenBuilder("domain", "service", ecdsaPrivateKeyPEM, "v1", "")
+	tb, err := NewTokenBuilder("domain", "service", ecdsaPrivateKeyPEM, "v1")
 	tb.SetHostname("host1")
 	tb.SetIPAddress("127.0.0.1")
 	tb.SetExpiration(2 * time.Second)
@@ -199,7 +199,7 @@ func TestTokenPubValidateNegative(t *testing.T) {
 }
 
 func TestBadSigner(t *testing.T) {
-	_, err := NewTokenBuilder("domain", "service", []byte{1, 2, 3, 4}, "v1", "")
+	_, err := NewTokenBuilder("domain", "service", []byte{1, 2, 3, 4}, "v1")
 	require.NotNil(t, err)
 	require.Equal(t, "Unable to create signer: Unable to load private key", err.Error())
 }
@@ -212,7 +212,7 @@ func TestBadVerifier(t *testing.T) {
 
 func TestMultipleTokenCallsOnBuilder(t *testing.T) {
 	a := assert.New(t)
-	tb, err := NewTokenBuilder("domain", "service", rsaPrivateKeyPEM, "v1", "")
+	tb, err := NewTokenBuilder("domain", "service", rsaPrivateKeyPEM, "v1")
 	require.Nil(t, err)
 	tok1 := tb.Token()
 	tok2 := tb.Token()

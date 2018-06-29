@@ -15,8 +15,8 @@ import (
 	"github.com/ardielle/ardielle-go/rdl"
 )
 
-func makeTokenWithKey(t *testing.T, src keySource, k []byte, keyService string) string {
-	tb, err := NewTokenBuilder(src.domain, src.name, k, src.keyVersion, keyService)
+func makeTokenWithKey(t *testing.T, src keySource, k []byte) string {
+	tb, err := NewTokenBuilder(src.domain, src.name, k, src.keyVersion)
 	require.Nil(t, err)
 	tok, err := tb.Token().Value()
 	require.Nil(t, err)
@@ -24,11 +24,13 @@ func makeTokenWithKey(t *testing.T, src keySource, k []byte, keyService string) 
 }
 
 func makeToken(t *testing.T, src keySource) string {
-	return makeTokenWithKey(t, src, rsaPrivateKeyPEM, "")
+	return makeTokenWithKey(t, src, rsaPrivateKeyPEM)
 }
 
-func makeTokenWithKeyService(t *testing.T, src keySource, keyService string) string {
-	return makeTokenWithKey(t, src, rsaPrivateKeyPEM, keyService)
+func makeTokenBuilder(t *testing.T, src keySource) TokenBuilder {
+	tb, err := NewTokenBuilder(src.domain, src.name, rsaPrivateKeyPEM, src.keyVersion)
+	require.Nil(t, err)
+	return tb
 }
 
 func stdKey(src keySource) (pubKey []byte, rawResponse string, err error) {
@@ -144,14 +146,22 @@ func TestCachedValidate(t *testing.T) {
 	a.Equal(simpleSource.keyVersion, tok.KeyVersion)
 
 	// successful validation with zms service key
-	tok, err = validator.Validate(makeTokenWithKeyService(t, zmsSource, "zms"))
+	tokenBuilder := makeTokenBuilder(t, zmsSource)
+	tokenBuilder.SetKeyService("zms")
+	tokStr, err := tokenBuilder.Token().Value()
+	require.Nil(t, err)
+	tok, err = validator.Validate(tokStr)
 	require.Nil(t, err)
 	a.Equal(zmsSource.domain, tok.Domain)
 	a.Equal(zmsSource.name, tok.Name)
 	a.Equal(zmsSource.keyVersion, tok.KeyVersion)
 
 	// successful validation with zts service key
-	tok, err = validator.Validate(makeTokenWithKeyService(t, ztsSource, "zts"))
+	tokenBuilder = makeTokenBuilder(t, ztsSource)
+	tokenBuilder.SetKeyService("zts")
+	tokStr, err = tokenBuilder.Token().Value()
+	require.Nil(t, err)
+	tok, err = validator.Validate(tokStr)
 	require.Nil(t, err)
 	a.Equal(ztsSource.domain, tok.Domain)
 	a.Equal(ztsSource.name, tok.Name)
@@ -210,7 +220,7 @@ func TestCachedValidate(t *testing.T) {
 	a.Equal("Invalid token signature", err.Error())
 
 	// new key should work after cache invalidation
-	tok, err = validator.Validate(makeTokenWithKey(t, keyRotateSource, ecdsaPrivateKeyPEM, ""))
+	tok, err = validator.Validate(makeTokenWithKey(t, keyRotateSource, ecdsaPrivateKeyPEM))
 	require.Nil(t, err)
 
 }
