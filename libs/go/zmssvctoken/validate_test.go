@@ -27,6 +27,12 @@ func makeToken(t *testing.T, src keySource) string {
 	return makeTokenWithKey(t, src, rsaPrivateKeyPEM)
 }
 
+func makeTokenBuilder(t *testing.T, src keySource) TokenBuilder {
+	tb, err := NewTokenBuilder(src.domain, src.name, rsaPrivateKeyPEM, src.keyVersion)
+	require.Nil(t, err)
+	return tb
+}
+
 func stdKey(src keySource) (pubKey []byte, rawResponse string, err error) {
 	return rsaPublicKeyPEM, "", nil
 }
@@ -56,18 +62,20 @@ func badJSON(src keySource) (pubKey []byte, rawResponse string, err error) {
 	return nil, `{ "key": `, nil
 }
 
-func source(d string) keySource {
-	return keySource{domain: d, name: "name", keyVersion: "v1"}
+func source(d, n, keyV string) keySource {
+	return keySource{domain: d, name: n, keyVersion: keyV}
 }
 
 var (
-	simpleSource    = source("std")
-	dsaSource       = source("dsa-key")
-	hangSource      = source("d500")
-	noKeySource     = source("nks")
-	badEncSource    = source("bes")
-	badJSONSource   = source("bjs")
-	keyRotateSource = source("rotate")
+	simpleSource    = source("std", "name", "v1")
+	dsaSource       = source("dsa-key", "name", "v1")
+	hangSource      = source("d500", "name", "v1")
+	noKeySource     = source("nks", "name", "v1")
+	badEncSource    = source("bes", "name", "v1")
+	badJSONSource   = source("bjs", "name", "v1")
+	keyRotateSource = source("rotate", "name", "v1")
+	zmsSource       = source("sys.auth", "zms", "aws.prod.us-west-2.0")
+	ztsSource       = source("sys.auth", "zts", "aws.prod.us-west-2.0")
 )
 
 type chandler struct {
@@ -100,6 +108,8 @@ var handlerMap = map[keySource]handler{
 	badEncSource:    badBase64,
 	badJSONSource:   badJSON,
 	keyRotateSource: ch.getKey,
+	zmsSource:       stdKey,
+	ztsSource:       stdKey,
 }
 
 func TestCachedValidate(t *testing.T) {
@@ -134,6 +144,28 @@ func TestCachedValidate(t *testing.T) {
 	a.Equal(simpleSource.domain, tok.Domain)
 	a.Equal(simpleSource.name, tok.Name)
 	a.Equal(simpleSource.keyVersion, tok.KeyVersion)
+
+	// successful validation with zms service key
+	tokenBuilder := makeTokenBuilder(t, zmsSource)
+	tokenBuilder.SetKeyService("zms")
+	tokStr, err := tokenBuilder.Token().Value()
+	require.Nil(t, err)
+	tok, err = validator.Validate(tokStr)
+	require.Nil(t, err)
+	a.Equal(zmsSource.domain, tok.Domain)
+	a.Equal(zmsSource.name, tok.Name)
+	a.Equal(zmsSource.keyVersion, tok.KeyVersion)
+
+	// successful validation with zts service key
+	tokenBuilder = makeTokenBuilder(t, ztsSource)
+	tokenBuilder.SetKeyService("zts")
+	tokStr, err = tokenBuilder.Token().Value()
+	require.Nil(t, err)
+	tok, err = validator.Validate(tokStr)
+	require.Nil(t, err)
+	a.Equal(ztsSource.domain, tok.Domain)
+	a.Equal(ztsSource.name, tok.Name)
+	a.Equal(ztsSource.keyVersion, tok.KeyVersion)
 
 	// incomplete token
 	tokstr := makeToken(t, simpleSource)

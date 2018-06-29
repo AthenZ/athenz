@@ -31,6 +31,7 @@ const (
 	tagExpireTime     = "e"
 	tagSalt           = "a"
 	tagSignature      = "s"
+	tagKeyService     = "z"
 )
 
 // NToken provides access to useful fields in an ntoken.
@@ -39,6 +40,7 @@ type NToken struct {
 	Domain         string    // domain for which token is valid
 	Name           string    // local principal name
 	KeyVersion     string    // key version as registered in Athenz
+	KeyService     string    // optional key service
 	Hostname       string    // optional hostname
 	IPAddress      string    // optional IP address
 	GenerationTime time.Time // time token was generated
@@ -72,6 +74,9 @@ func (n *NToken) toSignedToken(s Signer, expiration time.Duration) (string, erro
 	add(tagDomain, n.Domain)
 	add(tagName, n.Name)
 	add(tagKeyVersion, n.KeyVersion)
+	if n.KeyService != "" {
+		add(tagKeyService, n.KeyService)
+	}
 	if n.Hostname != "" {
 		add(tagHostname, n.Hostname)
 	}
@@ -163,6 +168,8 @@ func (n *NToken) load(tok string, verifier Verifier) error {
 			n.Hostname = v
 		case tagIP:
 			n.IPAddress = v
+		case tagKeyService:
+			n.KeyService = v
 		case tagGenerationTime:
 			if n.GenerationTime, err = asTime(v, tagGenerationTime); err != nil {
 				return err
@@ -187,6 +194,7 @@ func (n *NToken) String() string {
 		fmt.Sprintf("Domain: %v", n.Domain),
 		fmt.Sprintf("Name: %v", n.Name),
 		fmt.Sprintf("Key version: %v", n.KeyVersion),
+		fmt.Sprintf("Key service: %v", n.KeyService),
 		fmt.Sprintf("Hostname: %v", n.Hostname),
 		fmt.Sprintf("I/P: %v", n.IPAddress),
 		fmt.Sprintf("Created on: %v", n.GenerationTime),
@@ -212,6 +220,8 @@ type TokenBuilder interface {
 	SetHostname(h string)
 	// SetIPAddress sets the IP address for the token (default=host IP address).
 	SetIPAddress(ip string)
+	// SetKeyService sets the key service for the token
+	SetKeyService(keyService string)
 	// Token returns a Token instance with the fields correctly set for
 	// the current token. Multiple calls to Token will return the same implementation.
 	// If you change optional attributes between calls to Token, these will have no effect.
@@ -270,6 +280,10 @@ func (t *tokenBuilder) SetHostname(h string) {
 
 func (t *tokenBuilder) SetIPAddress(v string) {
 	t.ntok.IPAddress = v
+}
+
+func (t *tokenBuilder) SetKeyService(keyService string) {
+	t.ntok.KeyService = keyService
 }
 
 func (t *tokenBuilder) Token() Token {
@@ -348,8 +362,9 @@ type ValidationConfig struct {
 	ZTSBaseUrl            string        // the ZTS base url including the /zts/v1 version path, default
 	PublicKeyFetchTimeout time.Duration // timeout for fetching the public key from ZTS, default: 5s
 	CacheTTL              time.Duration // TTL for cached public keys, default: 10 minutes
-	zmsDomain             string        // domain for the ZMS service itself
+	sysAuthDomain         string        // domain for the ZMS / ZTS service itself
 	zmsService            string        // service name for the ZMS service
+	ztsService            string        // service name for the ZTS service
 }
 
 // NewTokenValidator returns NToken objects from signed token strings.
@@ -361,8 +376,9 @@ func NewTokenValidator(config ...ValidationConfig) TokenValidator {
 		ZTSBaseUrl:            "https://localhost:4443/zts/v1",
 		PublicKeyFetchTimeout: 5 * time.Second,
 		CacheTTL:              10 * time.Minute,
-		zmsDomain:             "sys.auth",
+		sysAuthDomain:         "sys.auth",
 		zmsService:            "zms",
+		ztsService:            "zts",
 	}
 	for _, c := range config {
 		if c.ZTSBaseUrl != "" {
@@ -408,8 +424,14 @@ func (a *autoTokenValidator) Validate(token string) (*NToken, error) {
 	}
 
 	src := keySource{keyVersion: t.KeyVersion}
-	if len(t.Version) > 0 && t.Version[0] == 'U' { // user principal, use ZMS's public key
-		src.domain = a.config.zmsDomain
+	if t.KeyService != "" && t.KeyService == a.config.zmsService {
+		src.domain = a.config.sysAuthDomain
+		src.name = a.config.zmsService
+	} else if t.KeyService != "" && t.KeyService == a.config.ztsService {
+		src.domain = a.config.sysAuthDomain
+		src.name = a.config.ztsService
+	} else if len(t.Version) > 0 && t.Version[0] == 'U' { // user principal, use ZMS's public key
+		src.domain = a.config.sysAuthDomain
 		src.name = a.config.zmsService
 	} else {
 		src.domain = t.Domain
