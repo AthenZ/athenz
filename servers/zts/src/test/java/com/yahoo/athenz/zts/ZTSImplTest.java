@@ -6690,4 +6690,17 @@ public class ZTSImplTest {
             assertEquals(ex.getCode(), 403);
         }
     }
+
+    @Test
+    public void testIsAuthorizedServicePrincipal() {
+        Principal principal = Mockito.mock(Principal.class);
+        Mockito.when(principal.getAuthorizedService())
+                .thenReturn(null)
+                .thenReturn("")
+                .thenReturn("service");
+
+        assertFalse(zts.isAuthorizedServicePrincipal(principal));
+        assertFalse(zts.isAuthorizedServicePrincipal(principal));
+        assertTrue(zts.isAuthorizedServicePrincipal(principal));
+    }
 }
