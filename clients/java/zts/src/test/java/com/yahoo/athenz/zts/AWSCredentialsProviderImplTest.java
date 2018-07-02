@@ -15,10 +15,12 @@
  */
 package com.yahoo.athenz.zts;
 
+import com.yahoo.rdl.Timestamp;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import javax.net.ssl.SSLContext;
 
 public class AWSCredentialsProviderImplTest {
 
@@ -31,8 +33,9 @@ public class AWSCredentialsProviderImplTest {
     }
 
     @Test
-    public void testAWSCredentialsProviderImpl() {
+    public void testAWSCredentialsProviderImplRefreshDisabled() {
         ZTSClient ztsClient = Mockito.mock(ZTSClient.class);
+        AWSCredentialsProviderImpl.setAwsAutoRefreshEnable(false);
         AWSTemporaryCredentials awsTemporaryCredentials = new AWSTemporaryCredentials();
         awsTemporaryCredentials.setAccessKeyId("accessKey");
 
@@ -57,5 +60,68 @@ public class AWSCredentialsProviderImplTest {
         Mockito.when(ztsClient.getAWSTemporaryCredentials(Mockito.any(), Mockito.any(),
                 Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(new ResourceException(400));
         Assert.assertNull(awsCredentialsProviderImpl.getCredentials());
+    }
+
+    @Test
+    public void testAWSCredentialsProviderImplRefreshEnabled() {
+
+        ZTSClient.setPrefetchAutoEnable(true);
+        ZTSClient.AWS_CREDS_CACHE.clear();
+
+        SSLContext sslContext = Mockito.mock(SSLContext.class);
+        ZTSClient ztsClient = new ZTSClientMock("https://zts.athenz", sslContext);
+        ztsClient.setEnablePrefetch(true);
+
+        AWSCredentialsProviderImpl.setAwsAutoRefreshEnable(true);
+
+        AWSTemporaryCredentials awsTemporaryCredentials = new AWSTemporaryCredentials();
+        awsTemporaryCredentials.setAccessKeyId("accessKey");
+        awsTemporaryCredentials.setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + 3600 * 1000));
+
+        AWSTemporaryCredentials awsTemporaryCredentialsTwo = new AWSTemporaryCredentials();
+        awsTemporaryCredentialsTwo.setAccessKeyId("accessKeyTwo");
+        awsTemporaryCredentialsTwo.setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + 3600 * 1000));
+
+        // we're going to return two different creds from consecutive calls
+        // however, our test is that because we add the entry to the cache
+        // the second call should not take place unless the token is
+        // considered expired
+
+        ZTSRDLGeneratedClientMock rdlClient = Mockito.mock(ZTSRDLGeneratedClientMock.class);
+        Mockito.when(rdlClient.getAWSTemporaryCredentials(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any()))
+                .thenReturn(awsTemporaryCredentials, awsTemporaryCredentialsTwo);
+
+        ztsClient.setZTSRDLGeneratedClient(rdlClient);
+
+        AWSCredentialsProviderImpl firstImpl = new AWSCredentialsProviderImpl(ztsClient,
+                "athenz.aws", "s3role");
+
+        // because we're going to cache the result
+
+        Assert.assertEquals(awsTemporaryCredentials.getAccessKeyId(),
+                firstImpl.getCredentials().getAWSAccessKeyId());
+
+        Assert.assertEquals(awsTemporaryCredentials.getAccessKeyId(),
+                firstImpl.getCredentials().getAWSAccessKeyId());
+
+        // we're going to create another impl object which will call
+        // the second refresh operation
+
+        AWSCredentialsProviderImpl secondImpl = new AWSCredentialsProviderImpl(ztsClient,
+                "athenz.aws", "s3role2");
+
+        Assert.assertEquals(awsTemporaryCredentialsTwo.getAccessKeyId(),
+                secondImpl.getCredentials().getAWSAccessKeyId());
+
+        // null credentials are returned in case of exception
+
+        Mockito.when(rdlClient.getAWSTemporaryCredentials(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any())).thenThrow(new ResourceException(400));
+
+        AWSCredentialsProviderImpl thirdImpl = new AWSCredentialsProviderImpl(ztsClient,
+                "athenz.aws", "s3role3");
+
+        Assert.assertNull(thirdImpl.getCredentials());
     }
 }

@@ -28,7 +28,11 @@ import com.amazonaws.auth.BasicSessionCredentials;
 public class AWSCredentialsProviderImpl implements AWSCredentialsProvider, Closeable {
     
     private static final Logger LOG = LoggerFactory.getLogger(AWSCredentialsProviderImpl.class);
-    
+
+    private static final String ZTS_CLIENT_PROP_AWS_AUTO_REFRESH_ENABLE = "athenz.zts.client.aws_auto_refresh_enable";
+    private static boolean awsAutoRefreshEnable = Boolean.parseBoolean(
+            System.getProperty(ZTS_CLIENT_PROP_AWS_AUTO_REFRESH_ENABLE, "true"));
+
     private String domainName;
     private String roleName;
     private String externalId;
@@ -46,7 +50,9 @@ public class AWSCredentialsProviderImpl implements AWSCredentialsProvider, Close
      * @param roleName is the name of the IAM role
      */
     public AWSCredentialsProviderImpl(ZTSClient ztsClient, String domainName, String roleName) {
-        this(ztsClient, domainName, roleName, null, null, null);
+
+        initCredProvider(ztsClient, false, domainName, roleName, null,
+                null, null);
     }
 
     /**
@@ -63,13 +69,9 @@ public class AWSCredentialsProviderImpl implements AWSCredentialsProvider, Close
      */
     public AWSCredentialsProviderImpl(ZTSClient ztsClient, String domainName, String roleName,
             String externalId, Integer minExpiryTime, Integer maxExpiryTime) {
-        this.domainName = domainName;
-        this.roleName = roleName;
-        this.minExpiryTime = minExpiryTime;
-        this.maxExpiryTime = maxExpiryTime;
-        this.externalId = externalId;
-        this.ztsClient = ztsClient;
-        this.closeZTSClient = false;
+
+        initCredProvider(ztsClient, false, domainName, roleName, externalId,
+                minExpiryTime, maxExpiryTime);
     }
 
     /**
@@ -92,9 +94,9 @@ public class AWSCredentialsProviderImpl implements AWSCredentialsProvider, Close
     public AWSCredentialsProviderImpl(String ztsUrl, SSLContext sslContext,
             String domainName, String roleName, String externalId,
             Integer minExpiryTime, Integer maxExpiryTime) {
-        this(null, domainName, roleName, externalId, minExpiryTime, maxExpiryTime);
-        this.ztsClient = new ZTSClient(ztsUrl, sslContext);
-        this.closeZTSClient = true;
+
+        initCredProvider(new ZTSClient(ztsUrl, sslContext), true, domainName, roleName,
+                externalId, minExpiryTime, maxExpiryTime);
     }
 
     /**
@@ -111,7 +113,39 @@ public class AWSCredentialsProviderImpl implements AWSCredentialsProvider, Close
      */
     public AWSCredentialsProviderImpl(String ztsUrl, SSLContext sslContext,
             String domainName, String roleName) {
-        this(ztsUrl, sslContext, domainName, roleName, null, null, null);
+
+        initCredProvider(new ZTSClient(ztsUrl, sslContext), true, domainName, roleName,
+                null, null, null);
+    }
+
+    private void initCredProvider(ZTSClient ztsClient, boolean closeZTSClient,
+        String domainName, String roleName, String externalId,
+        Integer minExpiryTime, Integer maxExpiryTime) {
+
+        this.domainName = domainName;
+        this.roleName = roleName;
+        this.minExpiryTime = minExpiryTime;
+        this.maxExpiryTime = maxExpiryTime;
+        this.externalId = externalId;
+        this.ztsClient = ztsClient;
+        this.closeZTSClient = closeZTSClient;
+
+        // unless the caller has disabled the refresh functionality
+        // we're going to fetch the credentials so we have them in
+        // the cache when the first request comes in
+
+        if (awsAutoRefreshEnable) {
+            refresh();
+        }
+    }
+
+    /**
+     * Configure whether or not to auto refresh the credentials when
+     * the credentials provider object is created
+     * @param state boolean state to enable call to refresh credentials
+     */
+    public static void setAwsAutoRefreshEnable(boolean state) {
+        awsAutoRefreshEnable = state;
     }
 
     @Override
@@ -138,6 +172,7 @@ public class AWSCredentialsProviderImpl implements AWSCredentialsProvider, Close
         try {
             AWSTemporaryCredentials creds = ztsClient.getAWSTemporaryCredentials(domainName, roleName,
                     externalId, minExpiryTime, maxExpiryTime);
+
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Refresh: Credentials with id: {} and expiration {} were fetched",
                         creds.getAccessKeyId(), creds.getExpiration());
