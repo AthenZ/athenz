@@ -97,7 +97,7 @@ public class ZTSClient implements Closeable {
     static private boolean cacheDisabled = false;
     static private int tokenMinExpiryTime = 900;
     static private long prefetchInterval = 60; // seconds
-    static private boolean prefetchAutoEnable = false;
+    static private boolean prefetchAutoEnable = true;
     static private String x509CsrDn = null;
     static private String x509CsrDomain = null;
     static private int reqReadTimeout = 30000;
@@ -114,7 +114,7 @@ public class ZTSClient implements Closeable {
     // system properties
 
     public static final String ZTS_CLIENT_PROP_ATHENZ_CONF               = "athenz.athenz_conf";
-    
+
     public static final String ZTS_CLIENT_PROP_TOKEN_MIN_EXPIRY_TIME     = "athenz.zts.client.token_min_expiry_time";
     public static final String ZTS_CLIENT_PROP_READ_TIMEOUT              = "athenz.zts.client.read_timeout";
     public static final String ZTS_CLIENT_PROP_CONNECT_TIMEOUT           = "athenz.zts.client.connect_timeout";
@@ -170,7 +170,7 @@ public class ZTSClient implements Closeable {
         loadSvcProviderTokens();
         
         // set the token min expiry time
-        
+
         setTokenMinExpiryTime(Integer.parseInt(System.getProperty(ZTS_CLIENT_PROP_TOKEN_MIN_EXPIRY_TIME, "900")));
 
         // set the prefetch interval
@@ -179,7 +179,7 @@ public class ZTSClient implements Closeable {
 
         // set the prefetch support
         
-        setPrefetchAutoEnable(Boolean.parseBoolean(System.getProperty(ZTS_CLIENT_PROP_PREFETCH_AUTO_ENABLE, "false")));
+        setPrefetchAutoEnable(Boolean.parseBoolean(System.getProperty(ZTS_CLIENT_PROP_PREFETCH_AUTO_ENABLE, "true")));
         
         // disable the cache if configured
         
@@ -279,7 +279,7 @@ public class ZTSClient implements Closeable {
             tokenMinExpiryTime = 900;
         }
     }
-    
+
     public static void lookupZTSUrl() {
         
         String rootDir = System.getenv("ROOT");
@@ -472,7 +472,11 @@ public class ZTSClient implements Closeable {
     public void close() {
         ztsClient.close();
     }
-    
+
+    void setEnablePrefetch(boolean state) {
+        enablePrefetch = state;
+    }
+
     /**
      * Set new ZTS Client configuration property. This method calls
      * internal javax.ws.rs.client.Client client's property method.
@@ -1488,7 +1492,7 @@ public class ZTSClient implements Closeable {
     
     static boolean isExpiredToken(long expiryTime, Integer minExpiryTime, Integer maxExpiryTime,
             int tokenMinExpiryTime) {
-        
+
         // we'll first make sure if we're given both min and max expiry
         // times then both conditions are satisfied
         
@@ -1910,7 +1914,7 @@ public class ZTSClient implements Closeable {
             if (awsCred != null) {
                 return awsCred;
             }
-            
+
             // start prefetch for this token if prefetch is enabled
             
             if (enablePrefetch && prefetchAutoEnable) {
