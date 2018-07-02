@@ -1424,13 +1424,21 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         Object timerMetric = metric.startTiming(callerTiming, domainName);
 
+        // verify that this is not an authorized service principal
+        // which is only supported for get role token operations
+
+        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        if (isAuthorizedServicePrincipal(principal)) {
+            throw forbiddenError("Authorized Service Principals not allowed", caller, domainName);
+        }
+
         // get our principal's name
         
-        String principal = ((RsrcCtxWrapper) ctx).principal().getFullName();
+        final String principalName = principal.getFullName();
         
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("postRoleCertificateRequest(domain: " + domainName + ", principal: "
-                    + principal + ", role: " + roleName + ")");
+            LOGGER.debug("postRoleCertificateRequest(domain: {}, principal: {}, role: {})",
+                    domainName, principalName, roleName);
         }
         
         // first retrieve our domain data object from the cache
@@ -1459,7 +1467,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         String[] requestedRoleList = { roleName };
         Set<String> roles = new HashSet<>();
-        dataStore.getAccessibleRoles(data, domainName, principal, requestedRoleList,
+        dataStore.getAccessibleRoles(data, domainName, principalName, requestedRoleList,
                 roles, false);
         
         if (roles.isEmpty()) {
@@ -1473,7 +1481,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domainName);
         }
 
-        if (!validateRoleCertificateRequest(certReq, domainName, roles, principal)) {
+        if (!validateRoleCertificateRequest(certReq, domainName, roles, principalName)) {
             throw requestError("postRoleCertificateRequest: Unable to validate cert request",
                     caller, domainName);
         }
@@ -1560,14 +1568,18 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         return true;
     }
-    
+
+    boolean isAuthorizedServicePrincipal(final Principal principal) {
+        final String authorizedService = principal.getAuthorizedService();
+        return (authorizedService != null && !authorizedService.isEmpty());
+    }
+
     public AWSTemporaryCredentials getAWSTemporaryCredentials(ResourceContext ctx, String domainName,
             String roleName, Integer durationSeconds, String externalId) {
 
         final String caller = "getawstemporarycredentials";
         final String callerTiming = "getawstemporarycredentials_timing";
         metric.increment(HTTP_GET);
-        logPrincipal(ctx);
 
         // we need to make sure we don't log the external id in
         // our access log files so we're going to set the attribute
@@ -1575,8 +1587,17 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         ctx.request().setAttribute(ZTS_REQUEST_LOG_SKIP_QUERY, Boolean.TRUE);
 
+        logPrincipal(ctx);
         validateRequest(ctx.request(), caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
+
+        // verify that this is not an authorized service principal
+        // which is only supported for get role token operations
+
+        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        if (isAuthorizedServicePrincipal(principal)) {
+            throw forbiddenError("Authorized Service Principals not allowed", caller, domainName);
+        }
 
         // since the role name might contain a path and thus it has
         // been encoded, we're going to decode it first before using it
@@ -1612,15 +1633,15 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // get our principal's name
         
-        final String principal = ((RsrcCtxWrapper) ctx).principal().getFullName();
+        final String principalName = ((RsrcCtxWrapper) ctx).principal().getFullName();
         final String roleResource = domainName + ":" + roleName.toLowerCase();
         
         // we need to first verify that our principal is indeed configured
         // with aws assume role assertion for the specified role and domain
         
-        if (!verifyAWSAssumeRole(domainName, roleResource, principal)) {
+        if (!verifyAWSAssumeRole(domainName, roleResource, principalName)) {
             throw forbiddenError("getAWSTemporaryCredentials: Forbidden (ASSUME_AWS_ROLE on "
-                    + roleResource + " for " + principal + ")", caller, domainName);
+                    + roleResource + " for " + principalName + ")", caller, domainName);
         }
         
         // now need to get the associated cloud account for the domain name
@@ -1633,11 +1654,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // obtain the credentials from the cloud store
         
-        AWSTemporaryCredentials creds = cloudStore.assumeAWSRole(account, roleName, principal,
+        AWSTemporaryCredentials creds = cloudStore.assumeAWSRole(account, roleName, principalName,
                 durationSeconds, externalId);
         if (creds == null) {
             throw requestError("getAWSTemporaryCredentials: unable to assume role " + roleName
-                    + " in domain " + domainName + " for principal " + principal, caller, domainName);
+                    + " in domain " + domainName + " for principal " + principalName,
+                    caller, domainName);
         }
         
         metric.stopTiming(timerMetric);
@@ -2332,6 +2354,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // make sure the credentials match to whatever the request is
 
         Principal principal = ((RsrcCtxWrapper) ctx).principal();
+
+        // verify that this is not an authorized service principal
+        // which is only supported for get role token operations
+
+        if (isAuthorizedServicePrincipal(principal)) {
+            throw forbiddenError("Authorized Service Principals not allowed", caller, domain);
+        }
+
         String fullServiceName = domain + "." + service;
         final String principalName = principal.getFullName();
         boolean userRequest = false;
