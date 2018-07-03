@@ -526,8 +526,9 @@ public class DBService {
         return true;
     }
     
-    boolean processServiceIdentity(ObjectStoreConnection con, ServiceIdentity originalService, String domainName,
-            String serviceName, ServiceIdentity service, StringBuilder auditDetails) {
+    boolean processServiceIdentity(ObjectStoreConnection con, ServiceIdentity originalService,
+            String domainName, String serviceName, ServiceIdentity service,
+            boolean ignoreDeletes, StringBuilder auditDetails) {
         
         boolean requestSuccess;
         if (originalService == null) {
@@ -591,13 +592,15 @@ public class DBService {
             Set<String> newPublicKeysSet = new HashSet<>(publicKeysMap.keySet());
             newPublicKeysSet.removeAll(curPublicKeysSet);
             delPublicKeysSet.removeAll(new HashSet<>(publicKeysMap.keySet()));
-            
-            for (String publicKey : delPublicKeysSet) {
-                if (!con.deletePublicKeyEntry(domainName, serviceName, publicKey)) {
-                    return false;
+
+            if (!ignoreDeletes) {
+                for (String publicKey : delPublicKeysSet) {
+                    if (!con.deletePublicKeyEntry(domainName, serviceName, publicKey)) {
+                        return false;
+                    }
                 }
+                auditLogPublicKeyEntries(auditDetails, "deleted-publickeys", delPublicKeysSet);
             }
-            auditLogPublicKeyEntries(auditDetails, "deleted-publickeys", delPublicKeysSet);
             
             for (String publicKey : newPublicKeysSet) {
                 if (!con.insertPublicKeyEntry(domainName, serviceName, publicKeysMap.get(publicKey))) {
@@ -814,7 +817,8 @@ public class DBService {
                 // now process the request
                 
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-                if (!processServiceIdentity(con, originalService, domainName, serviceName, service, auditDetails)) {
+                if (!processServiceIdentity(con, originalService, domainName, serviceName,
+                        service, false, auditDetails)) {
                     con.rollbackChanges();
                     throw ZMSUtils.internalServerError("unable to put service: " + service.getName(), caller);
                 }
@@ -2122,13 +2126,15 @@ public class DBService {
         // iterate through roles in the list.
         // When adding a template, if the role does not exist in our domain
         // then insert it otherwise only apply the changes to the member list.
-        // otherwise for delete request, we just the delete role
-        
+
         List<Role> templateRoles = template.getRoles();
         if (templateRoles != null) {
             for (Role role : templateRoles) {
-                String roleName = ZMSUtils.removeDomainPrefix(role.getName(),
-                    TEMPLATE_DOMAIN_NAME, ROLE_PREFIX);
+
+                Role templateRole = updateTemplateRole(role, domainName, templateParams);
+
+                String roleName = ZMSUtils.removeDomainPrefix(templateRole.getName(),
+                    domainName, ROLE_PREFIX);
 
                 // retrieve our original role
                 
@@ -2136,7 +2142,6 @@ public class DBService {
 
                 // now process the request
                 
-                Role templateRole = updateTemplateRole(role, domainName, roleName, templateParams);
                 firstEntry = auditLogSeparator(auditDetails, firstEntry);
                 auditDetails.append(" \"add-role\": ");
                 if (!processRole(con, originalRole, domainName, roleName, templateRole,
@@ -2149,13 +2154,15 @@ public class DBService {
         // iterate through policies in the list.
         // When adding a template, if the policy does not exist in our domain
         // then insert it otherwise only apply the changes to the assertions
-        // otherwise for delete requests, we just delete the policy
 
         List<Policy> templatePolicies = template.getPolicies();
         if (templatePolicies != null) {
             for (Policy policy : templatePolicies) {
-                String policyName = ZMSUtils.removeDomainPrefix(policy.getName(),
-                    TEMPLATE_DOMAIN_NAME, POLICY_PREFIX);
+
+                Policy templatePolicy = updateTemplatePolicy(policy, domainName, templateParams);
+
+                String policyName = ZMSUtils.removeDomainPrefix(templatePolicy.getName(),
+                    domainName, POLICY_PREFIX);
                 
                 // retrieve our original policy
                 
@@ -2163,7 +2170,6 @@ public class DBService {
                 
                 // now process the request
                 
-                Policy templatePolicy = updateTemplatePolicy(policy, domainName, policyName, templateParams);
                 firstEntry = auditLogSeparator(auditDetails, firstEntry);
                 auditDetails.append(" \"add-policy\": ");
                 if (!processPolicy(con, originalPolicy, domainName, policyName, templatePolicy,
@@ -2176,24 +2182,28 @@ public class DBService {
         // iterate through service identities in the list.
         // When adding a template, if the service identity does not exist in our domain
         // then insert it otherwise only apply the changes
-        // otherwise for delete requests, we just delete the service identity
-        
+
         List<ServiceIdentity> templateServiceIdentities = template.getServices();
         if (templateServiceIdentities != null) {
             for (ServiceIdentity serviceIdentity : templateServiceIdentities) {
-                String serviceIdentityName = ZMSUtils.removeDomainPrefixForService(serviceIdentity.getName(), TEMPLATE_DOMAIN_NAME);
+
+                ServiceIdentity templateServiceIdentity = updateTemplateServiceIdentity(
+                        serviceIdentity, domainName, templateParams);
+
+                String serviceIdentityName = ZMSUtils.removeDomainPrefixForService(
+                        templateServiceIdentity.getName(), domainName);
                 
                 // retrieve our original service
                 
-                ServiceIdentity originalServiceIdentity = getServiceIdentity(con, domainName, serviceIdentityName);
+                ServiceIdentity originalServiceIdentity = getServiceIdentity(con, domainName,
+                        serviceIdentityName);
                 
                 // now process the request
                 
-                ServiceIdentity templateServiceIdentity = updateTemplateServiceIdentity(serviceIdentity, domainName, serviceIdentityName, templateParams);
                 firstEntry = auditLogSeparator(auditDetails, firstEntry);
                 auditDetails.append(" \"add-service\": ");
-                if (!processServiceIdentity(con, originalServiceIdentity, domainName, serviceIdentityName,
-                    templateServiceIdentity, auditDetails)) {
+                if (!processServiceIdentity(con, originalServiceIdentity, domainName,
+                        serviceIdentityName, templateServiceIdentity, true, auditDetails)) {
                     return false;
                 }
             }
@@ -2213,7 +2223,10 @@ public class DBService {
     
     boolean deleteSolutionTemplate(ObjectStoreConnection con, String domainName, String templateName,
             Template template, StringBuilder auditDetails) {
-        
+
+        // currently there is no support for dynamic templates since the
+        // DELETE request has no payload and we can't pass our parameters
+
         auditDetails.append("{\"name\": \"").append(templateName).append('\"');
         
         // we have already verified that our template is valid but
@@ -2226,10 +2239,7 @@ public class DBService {
         
         boolean firstEntry = true;
         
-        // iterate through roles in the list.
-        // When adding a template, if the role does not exist in our domain
-        // then insert it otherwise only apply the changes to the member list.
-        // otherwise for delete request, we just the delete role
+        // iterate through roles in the list and delete the role
         
         List<Role> templateRoles = template.getRoles();
         if (templateRoles != null) {
@@ -2243,10 +2253,7 @@ public class DBService {
             }
         }
         
-        // iterate through policies in the list.
-        // When adding a template, if the policy does not exist in our domain
-        // then insert it otherwise only apply the changes to the assertions
-        // otherwise for delete requests, we just delete the policy
+        // iterate through policies in the list and delete the policy
 
         List<Policy> templatePolicies = template.getPolicies();
         if (templatePolicies != null) {
@@ -2260,10 +2267,7 @@ public class DBService {
             }
         }
         
-        // iterate through services in the list.
-        // When adding a template, if the service does not exist in our domain
-        // then insert it otherwise only apply the changes
-        // otherwise for delete requests, we just delete the service
+        // iterate through services in the list and delete the service
 
         List<ServiceIdentity> templateServices = template.getServices();
         if (templateServices != null) {
@@ -2276,7 +2280,7 @@ public class DBService {
             }
         }
         
-        // if deleting a template, delete it from the current list
+        // delete the template from the current list
         
         con.deleteDomainTemplate(domainName, templateName, null);
         
@@ -2284,12 +2288,12 @@ public class DBService {
         return true;
     }
     
-    Role updateTemplateRole(Role role, String domainName, String roleName, List<TemplateParam> params) {
+    Role updateTemplateRole(Role role, String domainName, List<TemplateParam> params) {
         
         // first process our given role name and carry out any
         // requested substitutions
         
-        String templateRoleName = roleName;
+        String templateRoleName = role.getName().replace(TEMPLATE_DOMAIN_NAME, domainName);
         if (params != null) {
             for (TemplateParam param : params) {
                 final String paramKey = "_" + param.getName() + "_";
@@ -2297,7 +2301,7 @@ public class DBService {
             }
         }
         Role templateRole = new Role()
-                .setName(ZMSUtils.roleResourceName(domainName, templateRoleName))
+                .setName(templateRoleName)
                 .setTrust(role.getTrust());
         
         List<RoleMember> roleMembers = role.getRoleMembers();
@@ -2324,12 +2328,12 @@ public class DBService {
         return templateRole;
     }
     
-    Policy updateTemplatePolicy(Policy policy, String domainName, String policyName, List<TemplateParam> params) {
+    Policy updateTemplatePolicy(Policy policy, String domainName, List<TemplateParam> params) {
         
         // first process our given role name and carry out any
         // requested substitutions
         
-        String templatePolicyName = policyName;
+        String templatePolicyName = policy.getName().replace(TEMPLATE_DOMAIN_NAME, domainName);
         if (params != null) {
             for (TemplateParam param : params) {
                 final String paramKey = "_" + param.getName() + "_";
@@ -2337,7 +2341,7 @@ public class DBService {
             }
         }
         
-        Policy templatePolicy = new Policy().setName(ZMSUtils.policyResourceName(domainName, templatePolicyName));
+        Policy templatePolicy = new Policy().setName(templatePolicyName);
         List<Assertion> assertions = policy.getAssertions();
         List<Assertion> newAssertions = new ArrayList<>();
         if (assertions != null && !assertions.isEmpty()) {
@@ -2366,9 +2370,10 @@ public class DBService {
         return templatePolicy;
     }
     
-    ServiceIdentity updateTemplateServiceIdentity(ServiceIdentity serviceIdentity, String domainName, String serviceIdentityName, List<TemplateParam> params) {
+    ServiceIdentity updateTemplateServiceIdentity(ServiceIdentity serviceIdentity,
+            String domainName, List<TemplateParam> params) {
         
-        String templateServiceName = serviceIdentityName;
+        String templateServiceName = serviceIdentity.getName().replace(TEMPLATE_DOMAIN_NAME, domainName);;
         if (params != null) {
             for (TemplateParam param : params) {
                 final String paramKey = "_" + param.getName() + "_";
@@ -2376,7 +2381,7 @@ public class DBService {
             }
         }
         
-        ServiceIdentity templateServiceIdentity = new ServiceIdentity().setName(ZMSUtils.serviceResourceName(domainName, templateServiceName));
+        ServiceIdentity templateServiceIdentity = new ServiceIdentity().setName(templateServiceName);
         
         templateServiceIdentity.setDescription(serviceIdentity.getDescription());
         templateServiceIdentity.setExecutable(serviceIdentity.getExecutable());
