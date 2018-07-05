@@ -413,7 +413,7 @@ public class DBServiceTest {
     @Test
     public void testUpdateTemplateRoleNoMembers() {
         Role role = new Role().setName("_domain_:role.readers");
-        Role newRole = zms.dbService.updateTemplateRole(role, "athenz", "readers", null);
+        Role newRole = zms.dbService.updateTemplateRole(role, "athenz", null);
         assertEquals("athenz:role.readers", newRole.getName());
         assertEquals(0, newRole.getRoleMembers().size());
     }
@@ -421,7 +421,7 @@ public class DBServiceTest {
     @Test
     public void testUpdateTemplateRoleWithTrust() {
         Role role = new Role().setName("_domain_:role.readers").setTrust("trustdomain");
-        Role newRole = zms.dbService.updateTemplateRole(role, "athenz", "readers", null);
+        Role newRole = zms.dbService.updateTemplateRole(role, "athenz", null);
         assertEquals("athenz:role.readers", newRole.getName());
         assertEquals("trustdomain", newRole.getTrust());
         assertEquals(0, newRole.getRoleMembers().size());
@@ -436,7 +436,7 @@ public class DBServiceTest {
         members.add(new RoleMember().setMemberName("_domain_.user3"));
         role.setRoleMembers(members);
         
-        Role newRole = zms.dbService.updateTemplateRole(role, "athenz", "readers", null);
+        Role newRole = zms.dbService.updateTemplateRole(role, "athenz", null);
         assertEquals("athenz:role.readers", newRole.getName());
         List<RoleMember> newMembers = newRole.getRoleMembers();
         assertEquals(3, newMembers.size());
@@ -461,7 +461,7 @@ public class DBServiceTest {
         params.add(new TemplateParam().setName("service").setValue("storage"));
         params.add(new TemplateParam().setName("api").setValue("java"));
         params.add(new TemplateParam().setName("name").setValue("notfound"));
-        Role newRole = zms.dbService.updateTemplateRole(role, "athenz", "_service___api_readers", params);
+        Role newRole = zms.dbService.updateTemplateRole(role, "athenz", params);
         assertEquals("athenz:role.storage_javareaders", newRole.getName());
         List<RoleMember> newMembers = newRole.getRoleMembers();
         assertEquals(3, newMembers.size());
@@ -478,7 +478,7 @@ public class DBServiceTest {
         Policy policy = createPolicyObject("_domain_", "policy1",
                 "role1", true, "read", "_domain_:*", AssertionEffect.ALLOW);
         
-        Policy newPolicy = zms.dbService.updateTemplatePolicy(policy, "athenz", "policy1", null);
+        Policy newPolicy = zms.dbService.updateTemplatePolicy(policy, "athenz", null);
         
         assertEquals("athenz:policy.policy1", newPolicy.getName());
 
@@ -493,15 +493,14 @@ public class DBServiceTest {
     
     @Test
     public void testUpdateTemplatePolicyWithParams() {
-        Policy policy = createPolicyObject("_domain_", "policy1",
+        Policy policy = createPolicyObject("_domain_", "_service___api_policy1",
                 "_api_-role1", true, "read", "_domain_:_api___service__*", AssertionEffect.ALLOW);
         
         List<TemplateParam> params = new ArrayList<>();
         params.add(new TemplateParam().setName("service").setValue("storage"));
         params.add(new TemplateParam().setName("api").setValue("java"));
         params.add(new TemplateParam().setName("name").setValue("notfound"));
-        Policy newPolicy = zms.dbService.updateTemplatePolicy(policy, "athenz",
-                "_service___api_policy1", params);
+        Policy newPolicy = zms.dbService.updateTemplatePolicy(policy, "athenz", params);
         
         assertEquals("athenz:policy.storage_javapolicy1", newPolicy.getName());
 
@@ -517,7 +516,7 @@ public class DBServiceTest {
     @Test
     public void testUpdateTemplatePolicyNoAssertions() {
         Policy policy = new Policy().setName("_domain_:policy.policy1");
-        Policy newPolicy = zms.dbService.updateTemplatePolicy(policy, "athenz", "policy1", null);
+        Policy newPolicy = zms.dbService.updateTemplatePolicy(policy, "athenz", null);
         
         assertEquals("athenz:policy.policy1", newPolicy.getName());
         List<Assertion> assertions = newPolicy.getAssertions();
@@ -529,7 +528,7 @@ public class DBServiceTest {
         Policy policy = createPolicyObject("_domain_", "policy1",
                 "coretech:role.role1", false, "read", "coretech:*", AssertionEffect.ALLOW);
         
-        Policy newPolicy = zms.dbService.updateTemplatePolicy(policy, "athenz", "policy1", null);
+        Policy newPolicy = zms.dbService.updateTemplatePolicy(policy, "athenz", null);
         
         assertEquals("athenz:policy.policy1", newPolicy.getName());
 
@@ -541,7 +540,25 @@ public class DBServiceTest {
         assertEquals("read", assertion.getAction());
         assertEquals(AssertionEffect.ALLOW, assertion.getEffect());
     }
-    
+
+    @Test
+    public void testUpdateTemplateServiceIdentity() {
+
+        ServiceIdentity service = createServiceObject("_domain_",
+                "_service___api_-backend", "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+
+        List<TemplateParam> params = new ArrayList<>();
+        params.add(new TemplateParam().setName("service").setValue("storage"));
+        params.add(new TemplateParam().setName("api").setValue("java"));
+        params.add(new TemplateParam().setName("name").setValue("notfound"));
+
+        ServiceIdentity newService = zms.dbService.updateTemplateServiceIdentity(service,
+                "athenz", params);
+
+        assertEquals("athenz.storage_java-backend", newService.getName());
+    }
+
     @Test
     public void testIsTenantRolePrefixMatchNoPrefixMatch() {
         assertFalse(zms.dbService.isTenantRolePrefixMatch(mockFileConn, "coretech.storage.role1",
