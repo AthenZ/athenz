@@ -2355,13 +2355,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         Principal principal = ((RsrcCtxWrapper) ctx).principal();
 
-        // verify that this is not an authorized service principal
-        // which is only supported for get role token operations
-
-        if (isAuthorizedServicePrincipal(principal)) {
-            throw forbiddenError("Authorized Service Principals not allowed", caller, domain);
-        }
-
         String fullServiceName = domain + "." + service;
         final String principalName = principal.getFullName();
         boolean userRequest = false;
