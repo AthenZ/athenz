@@ -5505,7 +5505,7 @@ public class ZTSImplTest {
         
         PrincipalAuthority authority = new PrincipalAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
-                "v=S1;d=athenzn=production;s=signature", 0, authority);
+                "v=S1;d=athenz;n=production;s=signature", 0, authority);
         
         ResourceContext context = createResourceContext(principal);
         
@@ -6702,5 +6702,87 @@ public class ZTSImplTest {
         assertFalse(zts.isAuthorizedServicePrincipal(principal));
         assertFalse(zts.isAuthorizedServicePrincipal(principal));
         assertTrue(zts.isAuthorizedServicePrincipal(principal));
+    }
+
+    @Test
+    public void testReadOnlyMode() {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null);
+
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        ztsImpl.readOnlyMode = true;
+
+        PrincipalAuthority authority = new PrincipalAuthority();
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "readonly",
+                "v=S1;d=athenz;n=readonly;s=signature", 0, authority);
+
+        ResourceContext ctx = createResourceContext(principal);
+
+        try {
+            ztsImpl.postRoleCertificateRequest(ctx, null, null, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only mode"));
+        }
+
+        try {
+            ztsImpl.postInstanceRegisterInformation(ctx, null, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only mode"));
+        }
+
+        try {
+            ztsImpl.postInstanceRefreshInformation(ctx, null, null, null, null, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only mode"));
+        }
+
+        try {
+            ztsImpl.deleteInstanceIdentity(ctx, null, null, null, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only mode"));
+        }
+
+        try {
+            ztsImpl.postInstanceRefreshRequest(ctx, null, null, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only mode"));
+        }
+
+        try {
+            ztsImpl.postOSTKInstanceInformation(ctx, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only mode"));
+        }
+
+        try {
+            ztsImpl.postOSTKInstanceRefreshRequest(ctx, null, null, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only mode"));
+        }
+
+        try {
+            ztsImpl.postDomainMetrics(ctx, null, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only mode"));
+        }
     }
 }
