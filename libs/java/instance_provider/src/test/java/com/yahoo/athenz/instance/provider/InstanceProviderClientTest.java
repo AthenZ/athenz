@@ -220,12 +220,17 @@ public class InstanceProviderClientTest {
         Response response = Mockito.mock(Response.class);
         Mockito.when(builder.post(entity)).thenReturn(response);
         Mockito.when(response.getStatus()).thenReturn(401);
+        Mockito.when(response.readEntity(String.class))
+                .thenReturn(null)
+                .thenReturn("Bad request" + '\n' + "Bad data")
+                .thenThrow(new RuntimeException("Bad request"));
 
         try {
             provClient.postInstanceConfirmation(confirmation);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 401);
+            assertEquals(ex.getMessage(), "ResourceException (401): N/A");
         }
         
         try {
@@ -233,8 +238,17 @@ public class InstanceProviderClientTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 401);
+            assertEquals(ex.getMessage(), "ResourceException (401): Bad request Bad data");
         }
-        
+
+        try {
+            provClient.postInstanceConfirmation(confirmation);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 401);
+            assertEquals(ex.getMessage(), "ResourceException (401): N/A");
+        }
+
         provClient.close();
     }
 }

@@ -59,6 +59,28 @@ public class InstanceProviderClient {
         this.base = base;
     }
 
+    /**
+     * If we're given any response in our rejected provider
+     * confirmation or refresh request, we're going to include
+     * that as part of the resource exception text so it can
+     * be logged. If there is no response or any exception
+     * while trying to read the response, we'll just return
+     * N/A as the response text.
+     * @param response client response object
+     * @return response text normalized.
+     */
+    private String responseText(final Response response) {
+        String data = null;
+        try {
+            data = response.readEntity(String.class);
+        } catch (Exception ignored) {
+        }
+        if (data == null) {
+            return "N/A";
+        }
+        return data.replace('\n', ' ');
+    }
+
     public InstanceConfirmation postInstanceConfirmation(InstanceConfirmation confirmation) {
         WebTarget target = base.path("/instance");
         Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
@@ -69,7 +91,7 @@ public class InstanceProviderClient {
             case 200:
                 return response.readEntity(InstanceConfirmation.class);
             default:
-                throw new ResourceException(code, response.readEntity(ResourceError.class));
+                throw new ResourceException(code, responseText(response));
         }
     }
 
@@ -83,7 +105,7 @@ public class InstanceProviderClient {
             case 200:
                 return response.readEntity(InstanceConfirmation.class);
             default:
-                throw new ResourceException(code, response.readEntity(ResourceError.class));
+                throw new ResourceException(code, responseText(response));
         }
     }
 }

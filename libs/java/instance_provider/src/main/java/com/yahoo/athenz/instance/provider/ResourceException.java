@@ -21,23 +21,13 @@ public class ResourceException extends RuntimeException {
     public final static int NOT_FOUND = 404;
 
     final private int code;
-    final private Object data;
 
-    public ResourceException(int code, Object data) {
-        super("ResourceException (" + code + "): " + data);
+    public ResourceException(int code, String message) {
+        super("ResourceException (" + code + "): " + message);
         this.code = code;
-        this.data = data;
     }
 
     public int getCode() {
         return code;
-    }
-
-    public Object getData() {
-        return data;
-    }
-
-    public <T> T getData(Class<T> cl) {
-        return cl.cast(data);
     }
 }
