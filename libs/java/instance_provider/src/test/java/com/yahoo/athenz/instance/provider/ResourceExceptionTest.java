@@ -22,26 +22,10 @@ import org.testng.annotations.Test;
 public class ResourceExceptionTest {
 
     @Test
-    public void testCodeOnly() {
+    public void testResourceException() {
 
-        ResourceError resError = new ResourceError();
-        resError.setCode(400);
-        resError.setMessage("Bad Request");
-        ResourceException exc = new ResourceException(400, resError);
-        assertEquals(exc.getData().toString(), "{code: 400, message: \"Bad Request\"}");
-    }
-    
-    @Test
-    public void testGetData() {
-        
-        ResourceException exc = new ResourceException(400, "Invalid domain name");
-        assertEquals(exc.getData(), "Invalid domain name");
-    }
-    
-    @Test
-    public void testGetDataCast() {
-        
-        ResourceException exc = new ResourceException(400, 5000);
-        assertEquals(exc.getData(Integer.class), new Integer(5000));
+        ResourceException exc = new ResourceException(400, "Bad Request");
+        assertEquals(exc.getMessage(), "ResourceException (400): Bad Request");
+        assertEquals(exc.getCode(), 400);
     }
 }
