@@ -22,6 +22,10 @@ public class ResourceException extends RuntimeException {
 
     final private int code;
 
+    public ResourceException(int code, Object data) {
+        this(code, data.toString());
+    }
+
     public ResourceException(int code, String message) {
         super("ResourceException (" + code + "): " + message);
         this.code = code;
