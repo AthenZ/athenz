@@ -27,5 +27,9 @@ public class ResourceExceptionTest {
         ResourceException exc = new ResourceException(400, "Bad Request");
         assertEquals(exc.getMessage(), "ResourceException (400): Bad Request");
         assertEquals(exc.getCode(), 400);
+
+        ResourceException excObj = new ResourceException(403, (Object) "Object String");
+        assertEquals(excObj.getMessage(), "ResourceException (403): Object String");
+        assertEquals(excObj.getCode(), 403);
     }
 }
