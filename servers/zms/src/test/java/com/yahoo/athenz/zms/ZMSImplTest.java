@@ -14434,5 +14434,64 @@ public class ZMSImplTest {
         assertTrue(zmsImpl.isValidCORSOrigin("http://cors.origin1"));
         assertFalse(zmsImpl.isValidCORSOrigin("http://cors.origin2"));
     }
+
+    @Test
+    public void testValidateServiceName() {
+
+        ZMSImpl zmsImpl = zmsInit();
+
+        // reserved names
+        assertFalse(zmsImpl.isValidServiceName("com"));
+        assertFalse(zmsImpl.isValidServiceName("gov"));
+        assertFalse(zmsImpl.isValidServiceName("info"));
+        assertFalse(zmsImpl.isValidServiceName("org"));
+
+        assertTrue(zmsImpl.isValidServiceName("svc"));
+        assertTrue(zmsImpl.isValidServiceName("acom"));
+        assertTrue(zmsImpl.isValidServiceName("coms"));
+        assertTrue(zmsImpl.isValidServiceName("borg"));
+
+        // service names with 1 or 2 chars
+
+        assertFalse(zmsImpl.isValidServiceName("u"));
+        assertFalse(zmsImpl.isValidServiceName("k"));
+        assertFalse(zmsImpl.isValidServiceName("r"));
+
+        assertFalse(zmsImpl.isValidServiceName("us"));
+        assertFalse(zmsImpl.isValidServiceName("uk"));
+        assertFalse(zmsImpl.isValidServiceName("fr"));
+
+        // set the min length to 0 and verify all pass
+
+        zmsImpl.serviceNameMinLength = 0;
+        assertTrue(zmsImpl.isValidServiceName("r"));
+        assertTrue(zmsImpl.isValidServiceName("us"));
+        assertTrue(zmsImpl.isValidServiceName("svc"));
+
+        // set map to null and verify all pass
+
+        zmsImpl.reservedServiceNames = null;
+        assertTrue(zmsImpl.isValidServiceName("com"));
+        assertTrue(zmsImpl.isValidServiceName("gov"));
+
+        // create new impl objects with new settings
+
+        System.setProperty(ZMSConsts.ZMS_PROP_RESERVED_SERVICE_NAMES, "one,two");
+        System.setProperty(ZMSConsts.ZMS_PROP_SERVICE_NAME_MIN_LENGTH, "0");
+        ZMSImpl zmsImpl2 = zmsInit();
+
+        assertTrue(zmsImpl2.isValidServiceName("com"));
+        assertTrue(zmsImpl2.isValidServiceName("gov"));
+        assertTrue(zmsImpl2.isValidServiceName("info"));
+
+        assertFalse(zmsImpl2.isValidServiceName("one"));
+        assertFalse(zmsImpl2.isValidServiceName("two"));
+
+        assertTrue(zmsImpl2.isValidServiceName("u"));
+        assertTrue(zmsImpl2.isValidServiceName("k"));
+        assertTrue(zmsImpl2.isValidServiceName("r"));
+        System.clearProperty(ZMSConsts.ZMS_PROP_RESERVED_SERVICE_NAMES);
+        System.clearProperty(ZMSConsts.ZMS_PROP_SERVICE_NAME_MIN_LENGTH);
+    }
 }
 

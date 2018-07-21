@@ -151,6 +151,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected String userDomainAliasPrefix;
     protected Http.AuthorityList authorities = null;
     protected List<String> providerEndpoints = null;
+    protected Set<String> reservedServiceNames = null;
     protected PrivateKeyStore keyStore = null;
     protected boolean secureRequestsOnly = true;
     protected AuditLogger auditLogger = null;
@@ -162,6 +163,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected int httpPort;
     protected int httpsPort;
     protected int statusPort;
+    protected int serviceNameMinLength;
     protected Status successServerStatus = null;
     
     // enum to represent our access response since in some cases we want to
@@ -519,7 +521,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         // get the list of valid provider endpoints
         
-        String endPoints = System.getProperty(ZMSConsts.ZMS_PROP_PROVIDER_ENDPOINTS);
+        final String endPoints = System.getProperty(ZMSConsts.ZMS_PROP_PROVIDER_ENDPOINTS);
         if (endPoints != null) {
             providerEndpoints = Arrays.asList(endPoints.split(","));
         }
@@ -578,6 +580,17 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (originList != null) {
             corsOriginList = new HashSet<>(Arrays.asList(originList.split(",")));
         }
+
+        // get the list of valid provider endpoints
+
+        final String serviceNames = System.getProperty(ZMSConsts.ZMS_PROP_RESERVED_SERVICE_NAMES,
+                ZMSConsts.ZMS_RESERVED_SERVICE_NAMES_DEFAULT);
+        reservedServiceNames = new HashSet<>(Arrays.asList(serviceNames.split(",")));
+
+        // min length for service names
+
+        serviceNameMinLength = Integer.parseInt(
+                System.getProperty(ZMSConsts.ZMS_PROP_SERVICE_NAME_MIN_LENGTH, "3"));
     }
     
     void loadObjectStore() {
@@ -3629,9 +3642,22 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         return true;
     }
-    
+
+    public boolean isValidServiceName(final String serviceName) {
+
+        if (reservedServiceNames != null && reservedServiceNames.contains(serviceName)) {
+            return false;
+        }
+
+        if (serviceNameMinLength > 0 && serviceNameMinLength > serviceName.length()) {
+            return false;
+        }
+
+        return true;
+    }
+
     public void putServiceIdentity(ResourceContext ctx, String domainName, String serviceName,
-            String auditRef, ServiceIdentity service) {
+                                   String auditRef, ServiceIdentity service) {
         
         final String caller = "putserviceidentity";
         metric.increment(ZMSConsts.HTTP_PUT);
@@ -3658,7 +3684,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
         metric.increment(caller, domainName);
         Object timerMetric = metric.startTiming("putserviceidentity_timing", domainName);
-        
+
+        // validate that the service name is valid
+
+        if (!isValidServiceName(serviceName)) {
+            throw ZMSUtils.requestError("putServiceIdentity: Invalid/Reserved service name", caller);
+        }
+
         // verify that request is properly authenticated for this request
         
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);

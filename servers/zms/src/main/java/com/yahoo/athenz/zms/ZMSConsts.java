@@ -84,6 +84,8 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_PROVIDER_ENDPOINTS      = "athenz.zms.provider_endpoints";
     public static final String ZMS_PROP_PRODUCT_ID_SUPPORT      = "athenz.zms.product_id_support";
     public static final String ZMS_PROP_SECURE_REQUESTS_ONLY    = "athenz.zms.secure_requests_only";
+    public static final String ZMS_PROP_RESERVED_SERVICE_NAMES  = "athenz.zms.reserved_service_names";
+    public static final String ZMS_PROP_SERVICE_NAME_MIN_LENGTH = "athenz.zms.service_name_min_length";
 
     // properties used to over-ride default Audit logger
  
@@ -133,7 +135,9 @@ public final class ZMSConsts {
     public static final String HTTP_ACCESS_CONTROL_ALLOW_CREDENTIALS = "Access-Control-Allow-Credentials";
     public static final String HTTP_ACCESS_CONTROL_MAX_AGE           = "Access-Control-Max-Age";
     public static final String HTTP_ACCESS_CONTROL_REQUEST_HEADERS   = "Access-Control-Request-Headers";
-    
+
+    public static final String ZMS_RESERVED_SERVICE_NAMES_DEFAULT = "com,net,org,edu,biz,gov,mil,info,name,mobi,cloud";
+
     public static final String LOCALHOST    = "localhost";
     public static final String SCHEME_HTTP  = "http";
     public static final String SCHEME_HTTPS = "https";
