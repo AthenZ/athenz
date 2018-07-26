@@ -73,7 +73,22 @@ public class HttpTest {
             assertEquals(expected.getCode(), 401);
         }
     }
-    
+
+    @Test
+    public void testAuthenticateHeaderNull() {
+        HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
+        Http.AuthorityList authorities = new Http.AuthorityList();
+        Authority authority = Mockito.mock(Authority.class);
+        Mockito.when(authority.getCredSource()).thenReturn(CredSource.HEADER);
+        Mockito.when(authority.getHeader()).thenReturn(null);
+        // we should not get npe - instead standard 401
+        try {
+            Http.authenticate(httpServletRequest, authorities);
+        } catch (ResourceException expected) {
+            assertEquals(expected.getCode(), 401);
+        }
+    }
+
     @Test
     public void testAuthenticatedUserInvalidCredentials() {
         HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
