@@ -486,7 +486,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // create our metric and increment our startup count
         
         metric = metricFactory.create();
-        metric.increment("zms_sa_startup");
+        metric.increment("zts_startup");
     }
     
     void loadServicePrivateKey() {
@@ -1815,11 +1815,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // make sure to close our provider when its no longer needed
 
+        Object timerProviderMetric = metric.startTiming("providerregister_timing", provider);
         try {
             instance = instanceProvider.confirmInstance(instance);
         } catch (Exception ex) {
             throw forbiddenError("unable to verify attestation data: " + ex.getMessage(), caller, domain);
         } finally {
+            metric.stopTiming(timerProviderMetric);
             instanceProvider.close();
         }
         
@@ -1849,16 +1851,21 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // generate certificate for the instance
 
+        Object timerX509CertMetric = metric.startTiming("certsignx509_timing", null);
         InstanceIdentity identity = instanceCertManager.generateIdentity(info.getCsr(), cn,
                 certUsage, certExpiryTime);
+        metric.stopTiming(timerX509CertMetric);
+
         if (identity == null) {
             throw serverError("unable to generate identity", caller, domain);
         }
-        
+
         // if we're asked then we should also generate a ssh
         // certificate for the instance as well
-        
+
+        Object timerSSHCertMetric = metric.startTiming("certsignssh_timing", null);
         instanceCertManager.generateSshIdentity(identity, info.getSsh(), ZTSConsts.ZTS_SSH_HOST);
+        metric.stopTiming(timerSSHCertMetric);
 
         // set the other required attributes in the identity object
 
@@ -1951,6 +1958,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         final String caller = "postinstancerefreshinformation";
         final String callerTiming = "postinstancerefreshinformation_timing";
+
         metric.increment(HTTP_POST);
         logPrincipal(ctx);
 
@@ -2076,7 +2084,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             final Principal providerService, final String instanceId,
             InstanceRefreshInformation info, X509CertRecord x509CertRecord,
             X509Certificate cert, final String caller) {
-        
+
         // parse and validate our CSR
         
         X509CertRequest certReq;
@@ -2112,6 +2120,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // make sure to close our provider when its no longer needed
 
+        Object timerProviderMetric = metric.startTiming("providerrefresh_timing", provider);
         try {
             instance = instanceProvider.refreshInstance(instance);
         } catch (com.yahoo.athenz.instance.provider.ResourceException ex) {
@@ -2125,6 +2134,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 throw forbiddenError("unable to verify attestation data: " + ex.getMessage(), caller, domain);
             }
         } finally {
+            metric.stopTiming(timerProviderMetric);
             instanceProvider.close();
         }
         
@@ -2185,19 +2195,24 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
         
         // generate identity with the certificate
-        
+
+        Object timerX509CertMetric = metric.startTiming("certsignx509_timing", null);
         InstanceIdentity identity = instanceCertManager.generateIdentity(info.getCsr(), principalName,
                 x509CertRecord.getClientCert() ? ZTSConsts.ZTS_CERT_USAGE_CLIENT : certUsage,
                 certExpiryTime);
+        metric.stopTiming(timerX509CertMetric);
+
         if (identity == null) {
             throw serverError("unable to generate identity", caller, domain);
         }
-        
+
         // if we're asked then we should also generate a ssh
         // certificate for the instance as well
-        
+
+        Object timerSSHCertMetric = metric.startTiming("certsignssh_timing", null);
         instanceCertManager.generateSshIdentity(identity, info.getSsh(), null);
-        
+        metric.stopTiming(timerSSHCertMetric);
+
         // set the other required attributes in the identity object
 
         identity.setProvider(provider);
@@ -2280,10 +2295,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // generate identity with the ssh certificate
         
         InstanceIdentity identity = new InstanceIdentity().setName(principalName);
+        Object timerSSHCertMetric = metric.startTiming("certsignssh_timing", null);
         if (!instanceCertManager.generateSshIdentity(identity, sshCsr, null)) {
             throw serverError("unable to generate ssh identity", caller, domain);
         }
-        
+        metric.stopTiming(timerSSHCertMetric);
+
         // set the other required attributes in the identity object
 
         identity.setProvider(provider);
@@ -3149,7 +3166,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         boolean optionalAuth = StringUtils.requestUriMatch(request.getRequestURI(),
                 authFreeUriSet, authFreeUriList);
-        return new RsrcCtxWrapper(request, response, authorities, optionalAuth, authorizer);
+        return new RsrcCtxWrapper(request, response, authorities, optionalAuth, authorizer, metric);
     }
     
     Authority getAuthority(String className) {

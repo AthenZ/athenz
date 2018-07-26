@@ -19,6 +19,7 @@ import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.KerberosAuthority;
 import com.yahoo.athenz.common.server.rest.Http;
+import com.yahoo.athenz.common.metrics.Metric;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -32,10 +33,13 @@ public class RsrcCtxWrapper implements ResourceContext {
 
     com.yahoo.athenz.common.server.rest.ResourceContext ctx;
     boolean optionalAuth;
+    Metric metric;
 
     public RsrcCtxWrapper(HttpServletRequest request, HttpServletResponse response,
-            Http.AuthorityList authList,  boolean optionalAuth, Authorizer authorizer) {
+            Http.AuthorityList authList,  boolean optionalAuth, Authorizer authorizer,
+            Metric metric) {
         this.optionalAuth = optionalAuth;
+        this.metric = metric;
         ctx = new com.yahoo.athenz.common.server.rest.ResourceContext(request, response,
                 authList, authorizer);
     }
@@ -116,6 +120,9 @@ public class RsrcCtxWrapper implements ResourceContext {
     }
     
     public void throwZtsException(com.yahoo.athenz.common.server.rest.ResourceException restExc) {
+
+        metric.increment("authfailure");
+
         String msg = null;
         Object data = restExc.getData();
         if (data instanceof String) {
