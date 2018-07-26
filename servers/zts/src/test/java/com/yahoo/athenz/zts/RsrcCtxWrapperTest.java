@@ -26,6 +26,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
+import com.yahoo.athenz.common.metrics.Metric;
 
 import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
 
@@ -39,7 +40,7 @@ public class RsrcCtxWrapperTest {
         AuthorityList authListMock = new AuthorityList();
         Authorizer authorizerMock = Mockito.mock(Authorizer.class);
         Authority authMock = Mockito.mock(Authority.class);
-
+        Metric metricMock = Mockito.mock(Metric.class);
         Principal prin = Mockito.mock(Principal.class);
 
         Mockito.when(authMock.getHeader()).thenReturn("testheader");
@@ -51,7 +52,7 @@ public class RsrcCtxWrapperTest {
         Mockito.when(reqMock.getMethod()).thenReturn("POST");
         authListMock.add(authMock);
 
-        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, false, authorizerMock);
+        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, false, authorizerMock, metricMock);
 
         assertNotNull(wrapper.context());
 
@@ -83,7 +84,7 @@ public class RsrcCtxWrapperTest {
         AuthorityList authListMock = new AuthorityList();
         Authorizer authorizerMock = Mockito.mock(Authorizer.class);
         Authority authMock = Mockito.mock(Authority.class);
-
+        Metric metricMock = Mockito.mock(Metric.class);
         Principal prin = Mockito.mock(Principal.class);
 
         Mockito.when(authMock.getHeader()).thenReturn("testheader");
@@ -99,7 +100,7 @@ public class RsrcCtxWrapperTest {
         Mockito.when(authorizerMock.access(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenReturn(true);
 
-        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, false, authorizerMock);
+        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, false, authorizerMock, metricMock);
 
         wrapper.authorize("add-domain", "test", "test");
 
@@ -114,6 +115,7 @@ public class RsrcCtxWrapperTest {
 
         AuthorityList authListMock = new AuthorityList();
         Authorizer authorizerMock = Mockito.mock(Authorizer.class);
+        Metric metricMock = Mockito.mock(Metric.class);
 
         Mockito.when(reqMock.getHeader("testheader")).thenReturn("testcred");
         Mockito.when(reqMock.getRemoteAddr()).thenReturn("1.1.1.1");
@@ -123,7 +125,7 @@ public class RsrcCtxWrapperTest {
         Mockito.when(authorizerMock.access(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenReturn(true);
 
-        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, false, authorizerMock);
+        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, false, authorizerMock, metricMock);
 
         // when not set authority
         wrapper.authorize("add-domain", "test", "test");
