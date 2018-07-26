@@ -68,7 +68,10 @@ public class Http {
 
     private static String authenticatingCredentials(HttpServletRequest request,
             Authority authority) {
-        String header = authority.getHeader();
+        final String header = authority.getHeader();
+        if (header == null) {
+            return null;
+        }
         return header.startsWith("Cookie.") ? getCookieValue(request,
                 header.substring(7)) : request.getHeader(header);
     }
