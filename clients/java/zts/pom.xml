@@ -183,6 +183,10 @@
               </artifactSet>
               <relocations>
                 <relocation>
+                  <pattern>org.apache.commons</pattern>
+                  <shadedPattern>athenz.shade.zts.org.apache.commons</shadedPattern>
+                </relocation>
+                <relocation>
                   <pattern>javax.inject</pattern>
                   <shadedPattern>athenz.shade.zts.javax.inject</shadedPattern>
                 </relocation>
