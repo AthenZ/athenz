@@ -14,6 +14,20 @@ RDL_LIB=github.com/ardielle/ardielle-go/rdl
 GO := $(shell command -v go 2> /dev/null)
 export GOPATH=$(PWD)
 
+# we're not going to generate our code during our automated builds since
+# builds must be done based on files already checked-in into git
+
+CICD := $(or ${TRAVIS_PULL_REQUEST},${TRAVIS_TAG})
+
+ifdef CICD
+
+all:
+	@echo "ci/cd pipeline - code generation skipped"
+
+clean:
+
+else
+
 ifdef GO
 
 all: build model.go client.go
@@ -27,6 +41,8 @@ all:
 	@echo "go is not available please install golang"
 
 clean:
+
+endif
 
 endif
 
