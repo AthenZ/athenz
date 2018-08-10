@@ -86,7 +86,18 @@ public class DynamoDBCertRecordStoreConnectionTest {
     }
 
     @Test
-    public void testGetX509CertRecordNotFound() {
+    public void testGetX509CertRecordNotFoundNull() {
+
+        Mockito.doReturn(null).when(table).getItem("instanceId", "1234", "provider", "athenz.provider");
+
+        DynamoDBCertRecordStoreConnection dbConn = new DynamoDBCertRecordStoreConnection(dynamoDB, tableName);
+        X509CertRecord certRecord = dbConn.getX509CertRecord("athenz.provider", "1234");
+        assertNull(certRecord);
+        dbConn.close();
+    }
+
+    @Test
+    public void testGetX509CertRecordNotFoundException() {
 
         Mockito.doThrow(new AmazonDynamoDBException("item not found"))
                 .when(table).getItem("instanceId", "1234", "provider", "athenz.provider");

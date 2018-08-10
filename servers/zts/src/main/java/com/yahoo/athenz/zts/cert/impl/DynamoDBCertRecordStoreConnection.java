@@ -72,6 +72,10 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
         
         try {
             Item item = table.getItem(KEY_INSTANCE_ID, instanceId, KEY_PROVIDER, provider);
+            if (item == null) {
+                LOG.error("DynamoDB Get Error for {}/{}: item not found", provider, instanceId);
+                return null;
+            }
             X509CertRecord certRecord = new X509CertRecord();
             certRecord.setProvider(provider);
             certRecord.setInstanceId(instanceId);
