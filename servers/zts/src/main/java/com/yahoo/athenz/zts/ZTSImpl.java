@@ -2215,6 +2215,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // set the other required attributes in the identity object
 
+        identity.setAttributes(instanceAttrs);
         identity.setProvider(provider);
         identity.setInstanceId(instanceId);
         
