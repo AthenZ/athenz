@@ -58,7 +58,7 @@ func TestWritePolicies(t *testing.T) {
 	policyJSON, err := json.Marshal(policyData)
 	a.Nil(err)
 
-	err = WritePolicies(testConfig, policyData, DOMAIN, POLICIES_DIR)
+	err = WritePolicies(testConfig, policyJSON, DOMAIN, POLICIES_DIR)
 	a.Nil(err)
 	policyFile := fmt.Sprintf("%s/%s.pol", POLICIES_DIR, DOMAIN)
 	tempPolicyFile := fmt.Sprintf("%s/%s.tmp", TEMP_POLICIES_DIR, DOMAIN)
@@ -75,7 +75,9 @@ func TestWritePoliciesEmptyPolicyDir(t *testing.T) {
 	a := assert.New(t)
 	policyData, _, err := ztsClient.GetDomainSignedPolicyData(zts.DomainName(DOMAIN), "")
 	a.Nil(err)
-	err = WritePolicies(testConfig, policyData, DOMAIN, "/random")
+	policyJSON, err := json.Marshal(policyData)
+	a.Nil(err)
+	err = WritePolicies(testConfig, policyJSON, DOMAIN, "/random")
 	fmt.Print(err)
 	a.NotNil(err)
 }
@@ -96,7 +98,7 @@ func TestGetEtagForExistingPolicy(t *testing.T) {
 	err = ioutil.WriteFile(POLICIES_DIR+"/test.pol", policyJSON, 0755)
 	a.Nil(err)
 	etag = GetEtagForExistingPolicy(testConfig, ztsClient, "test", POLICIES_DIR)
-	errv := ValidateSignedPolicies(testConfig, ztsClient, policyData)
+	_, errv := ValidateSignedPolicies(testConfig, ztsClient, policyData)
 	if errv != nil {
 		a.Empty(etag)
 	} else {

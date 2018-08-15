@@ -16,6 +16,7 @@ evaluate access requests.
     * [ZPE Policy Directory](#zpe-policy-directory)
 * [Run ZPU Utility](#run-zpu-utility)
     * [Periodic Update](#periodic-update)
+* [Policy File Details](#policy-file-details)
 
 ## Requirements
 ---------------
@@ -131,6 +132,15 @@ $ bin/zpu_run.sh
 
 The ZPU utility needs to run periodically so it can automatically
 download any modified policy files for the configured list of
-domains. The system aministrator should setup this utility to be
+domains. The system administrator should setup this utility to be
 automatically executed by cron utility at least once every couple
 of hours.
+
+## Policy File Details
+------------------------
+
+Checkout the [ZPU Policy File](zpu_policy_file.md) for details
+how to manually validate the signatures in the policy file. This
+would be necessary if you'll be writing your own authorization
+policy engine library instead of using the Athenz provided one.
+

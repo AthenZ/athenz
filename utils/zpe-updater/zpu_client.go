@@ -95,11 +95,11 @@ func GetPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, policyFileDi
 		return fmt.Errorf("Empty policies data returned for domain: %v", domain)
 	}
 	// validate data using zts public key and signature
-	err = ValidateSignedPolicies(config, ztsClient, data)
+	bytes, err := ValidateSignedPolicies(config, ztsClient, data)
 	if err != nil {
 		return fmt.Errorf("Failed to validate policy data for domain: %v, Error: %v", domain, err)
 	}
-	err = WritePolicies(config, data, domain, policyFileDir)
+	err = WritePolicies(config, bytes, domain, policyFileDir)
 	if err != nil {
 		return fmt.Errorf("Unable to write Policies for domain:\"%v\" to file, Error:%v", domain, err)
 	}
@@ -130,7 +130,7 @@ func GetEtagForExistingPolicy(config *ZpuConfiguration, ztsClient zts.ZTSClient,
 	if err != nil {
 		return ""
 	}
-	err = ValidateSignedPolicies(config, ztsClient, domainSignedPolicyData)
+	_, err = ValidateSignedPolicies(config, ztsClient, domainSignedPolicyData)
 	if err != nil {
 		return ""
 	}
@@ -150,10 +150,10 @@ func GetEtagForExistingPolicy(config *ZpuConfiguration, ztsClient zts.ZTSClient,
 	return etag
 }
 
-func ValidateSignedPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, data *zts.DomainSignedPolicyData) error {
+func ValidateSignedPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, data *zts.DomainSignedPolicyData) ([]byte, error) {
 	expires := data.SignedPolicyData.Expires
 	if expired(expires, 0) {
-		return fmt.Errorf("The policy data is expired on %v", expires)
+		return nil, fmt.Errorf("The policy data is expired on %v", expires)
 	}
 	signedPolicyData := data.SignedPolicyData
 	ztsSignature := data.Signature
@@ -163,46 +163,50 @@ func ValidateSignedPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, d
 	if ztsPublicKey == "" {
 		key, err := ztsClient.GetPublicKeyEntry("sys.auth", "zts", ztsKeyID)
 		if err != nil {
-			return fmt.Errorf("Unable to get the Zts public key with id:\"%v\" to verify data", ztsKeyID)
+			return nil, fmt.Errorf("Unable to get the Zts public key with id:\"%v\" to verify data", ztsKeyID)
 		}
 		decodedKey, err := new(zmssvctoken.YBase64).DecodeString(key.Key)
 		if err != nil {
-			return fmt.Errorf("Unable to decode the Zts public key with id:\"%v\" to verify data", ztsKeyID)
+			return nil, fmt.Errorf("Unable to decode the Zts public key with id:\"%v\" to verify data", ztsKeyID)
 		}
 		ztsPublicKey = string(decodedKey)
 	}
 	input, err := util.ToCanonicalString(signedPolicyData)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	err = verify(input, ztsSignature, ztsPublicKey)
 	if err != nil {
-		return fmt.Errorf("Verification of data with zts key having id:\"%v\" failed, Error :%v", ztsKeyID, err)
+		return nil, fmt.Errorf("Verification of data with zts key having id:\"%v\" failed, Error :%v", ztsKeyID, err)
 	}
+	//generate canonical json output so that properties
+	//can validate the signatures if not using athenz
+	//provided libraries for authorization
+	bytes := []byte("{\"signedPolicyData\":" + input + ",\"keyId\":\"" + ztsKeyID + "\",\"signature\":\"" + ztsSignature + "\"}")
 	zmsSignature := data.SignedPolicyData.ZmsSignature
 	zmsKeyID := data.SignedPolicyData.ZmsKeyId
 	zmsPublicKey := config.GetZmsPublicKey(zmsKeyID)
 	if zmsPublicKey == "" {
 		key, err := ztsClient.GetPublicKeyEntry("sys.auth", "zms", zmsKeyID)
 		if err != nil {
-			return fmt.Errorf("Unable to get the Zms public key with id:\"%v\" to verify data", zmsKeyID)
+			return nil, fmt.Errorf("Unable to get the Zms public key with id:\"%v\" to verify data", zmsKeyID)
 		}
 		decodedKey, err := new(zmssvctoken.YBase64).DecodeString(key.Key)
 		if err != nil {
-			return fmt.Errorf("Unable to decode the Zms public key with id:\"%v\" to verify data", zmsKeyID)
+			return nil, fmt.Errorf("Unable to decode the Zms public key with id:\"%v\" to verify data", zmsKeyID)
 		}
 		zmsPublicKey = string(decodedKey)
 	}
 	policyData := data.SignedPolicyData.PolicyData
 	input, err = util.ToCanonicalString(policyData)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	err = verify(input, zmsSignature, zmsPublicKey)
 	if err != nil {
-		return fmt.Errorf("Verification of data with zms key with id:\"%v\" failed, Error :%v", zmsKeyID, err)
+		return nil, fmt.Errorf("Verification of data with zms key with id:\"%v\" failed, Error :%v", zmsKeyID, err)
 	}
-	return nil
+	return bytes, nil
 }
 
 func verify(input, signature, publicKey string) error {
@@ -221,9 +225,9 @@ func expired(expires rdl.Timestamp, offset int) bool {
 
 // If domain policy file is not found, create the policy file and write policies in it.
 // Else delete the existing file and write the modified policies to new file.
-func WritePolicies(config *ZpuConfiguration, data *zts.DomainSignedPolicyData, domain, policyFileDir string) error {
+func WritePolicies(config *ZpuConfiguration, bytes []byte, domain, policyFileDir string) error {
 	tempPolicyFileDir := config.TempPolicyFileDir
-	if tempPolicyFileDir == "" || data == nil {
+	if tempPolicyFileDir == "" || bytes == nil {
 		return errors.New("Empty parameters are not valid arguments")
 	}
 	policyFile := fmt.Sprintf("%s/%s.pol", policyFileDir, domain)
@@ -234,12 +238,7 @@ func WritePolicies(config *ZpuConfiguration, data *zts.DomainSignedPolicyData, d
 			return err
 		}
 	}
-
-	bytes, err := json.Marshal(&data)
-	if err != nil {
-		return err
-	}
-	err = verifyTmpDirSetup(tempPolicyFileDir)
+	err := verifyTmpDirSetup(tempPolicyFileDir)
 	if err != nil {
 		return err
 	}
