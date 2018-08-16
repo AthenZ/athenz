@@ -15,12 +15,11 @@
  */
 package com.yahoo.athenz.container.filter;
 
-import static org.testng.Assert.*;
-
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-
-import com.yahoo.athenz.container.AthenzConsts;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.fail;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -33,7 +32,10 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
-import static org.mockito.Mockito.*;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
+
+import com.yahoo.athenz.container.AthenzConsts;
 
 public class HealthCheckFilterTest {
 
