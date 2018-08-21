@@ -23,12 +23,19 @@ import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.client.Entity;
 
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class InstanceProviderClient {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(InstanceProviderClient.class);
+
     private final Client client;
     private WebTarget base;
 
@@ -84,11 +91,17 @@ public class InstanceProviderClient {
     public InstanceConfirmation postInstanceConfirmation(InstanceConfirmation confirmation) {
         WebTarget target = base.path("/instance");
         Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
-        Response response = invocationBuilder.post(
-                javax.ws.rs.client.Entity.entity(confirmation, MediaType.APPLICATION_JSON));
+        Response response = null;
+        try {
+            response = invocationBuilder.post(Entity.entity(confirmation, MediaType.APPLICATION_JSON));
+        } catch (Exception ex) {
+            LOGGER.error("Unable to confirm register object for {}/{}.{}: {}", confirmation.getProvider(),
+                    confirmation.getDomain(), confirmation.getService(), ex.getMessage());
+            throw new ResourceException(ResourceException.FORBIDDEN, "Register Confirmation Exception");
+        }
         int code = response.getStatus();
         switch (code) {
-            case 200:
+            case ResourceException.OK:
                 return response.readEntity(InstanceConfirmation.class);
             default:
                 throw new ResourceException(code, responseText(response));
@@ -98,11 +111,17 @@ public class InstanceProviderClient {
     public InstanceConfirmation postRefreshConfirmation(InstanceConfirmation confirmation) {
         WebTarget target = base.path("/refresh");
         Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
-        Response response = invocationBuilder.post(
-                javax.ws.rs.client.Entity.entity(confirmation, MediaType.APPLICATION_JSON));
+        Response response = null;
+        try {
+            response = invocationBuilder.post(Entity.entity(confirmation, MediaType.APPLICATION_JSON));
+        } catch (Exception ex) {
+            LOGGER.error("Unable to confirm refresh object for {}/{}.{}: {}", confirmation.getProvider(),
+                    confirmation.getDomain(), confirmation.getService(), ex.getMessage());
+            throw new ResourceException(ResourceException.FORBIDDEN, "Refresh Confirmation Exception");
+        }
         int code = response.getStatus();
         switch (code) {
-            case 200:
+            case ResourceException.OK:
                 return response.readEntity(InstanceConfirmation.class);
             default:
                 throw new ResourceException(code, responseText(response));
