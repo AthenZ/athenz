@@ -17,6 +17,7 @@ package com.yahoo.athenz.instance.provider;
 
 import static org.testng.Assert.*;
 
+import javax.ws.rs.*;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
@@ -247,6 +248,46 @@ public class InstanceProviderClientTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 401);
             assertEquals(ex.getMessage(), "ResourceException (401): N/A");
+        }
+
+        provClient.close();
+    }
+
+    @Test
+    public void testInstanceProviderClientException() {
+
+        String url = "http://localhost:10099/instance";
+        ProviderHostnameVerifier hostnameVerifier = new ProviderHostnameVerifier("athenz.provider");
+        InstanceProviderClient provClient = new InstanceProviderClient(url, null, hostnameVerifier, 10000, 10000);
+
+        WebTarget base = Mockito.mock(WebTarget.class);
+        provClient.setBase(base);
+
+        WebTarget target = Mockito.mock(WebTarget.class);
+        Mockito.when(base.path("/instance")).thenReturn(target);
+        Mockito.when(base.path("/refresh")).thenReturn(target);
+
+        Invocation.Builder builder = Mockito.mock(Invocation.Builder.class);
+        Mockito.when(target.request("application/json")).thenReturn(builder);
+
+        InstanceConfirmation confirmation = new InstanceConfirmation()
+                .setAttestationData("data").setDomain("athenz")
+                .setProvider("provider").setService("service");
+        Entity<?> entity = Entity.entity(confirmation, "application/json");
+        Mockito.when(builder.post(entity)).thenThrow(new ProcessingException("Timeout"));
+
+        try {
+            provClient.postInstanceConfirmation(confirmation);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+
+        try {
+            provClient.postRefreshConfirmation(confirmation);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
         }
 
         provClient.close();
