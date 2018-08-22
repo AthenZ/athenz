@@ -3141,6 +3141,10 @@ public class DBService {
         .append("\", \"org\": \"").append(domain.getOrg())
         .append("\", \"auditEnabled\": \"").append(domain.getAuditEnabled())
         .append("\", \"enabled\": \"").append(domain.getEnabled())
+        .append("\", \"account\": \"").append(domain.getAccount())
+        .append("\", \"acctId\": \"").append(domain.getApplicationId())
+        .append("\", \"ypmid\": \"").append(domain.getYpmId())
+        .append("\", \"id\": \"").append(domain.getId())
         .append("\"}");
     }
 
