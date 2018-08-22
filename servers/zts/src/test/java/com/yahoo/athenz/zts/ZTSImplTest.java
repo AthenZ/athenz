@@ -6226,10 +6226,10 @@ public class ZTSImplTest {
 
         ResourceContext context = createResourceContext(principal, servletRequest);
 
-        CertSigner certSigner = Mockito.mock(CertSigner.class);
-        Mockito.when(certSigner.generateX509Certificate(Mockito.anyString(), Mockito.anyString(),
+        InstanceCertManager certManager = Mockito.mock(InstanceCertManager.class);
+        Mockito.when(certManager.generateX509Certificate(Mockito.anyString(), Mockito.anyString(),
                 Mockito.anyInt())).thenReturn(null);
-        ztsImpl.certSigner = certSigner;
+        ztsImpl.instanceCertManager = certManager;
 
         //noinspection CatchMayIgnoreException
         try {

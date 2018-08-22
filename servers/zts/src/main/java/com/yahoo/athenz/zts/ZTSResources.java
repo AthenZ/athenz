@@ -554,6 +554,33 @@ public class ZTSResources {
         }
     }
 
+    @POST
+    @Path("/sshcert")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SSHCertificates postSSHCertRequest(SSHCertRequest certRequest) {
+        try {
+            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context.authenticate();
+            return this.delegate.postSSHCertRequest(context, certRequest);
+        } catch (ResourceException e) {
+            int code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.INTERNAL_SERVER_ERROR:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource postSSHCertRequest");
+                throw typedException(code, e, ResourceError.class);
+            }
+        }
+    }
+
     @GET
     @Path("/schema")
     @Produces(MediaType.APPLICATION_JSON)

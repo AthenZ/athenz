@@ -41,7 +41,5 @@ public class RoleTokenTest {
         assertNotEquals(rt2, rt);
         //noinspection EqualsBetweenInconvertibleTypes
         assertNotEquals("", rt);
-
     }
-
 }

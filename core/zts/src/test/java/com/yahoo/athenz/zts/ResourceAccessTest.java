@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Yahoo Inc.
+ * Copyright 2018 Oath, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,30 +16,30 @@
 
 package com.yahoo.athenz.zts;
 
-import org.testng.annotations.Test;
+import org.testng.annotations.*;
 
 import static org.testng.Assert.*;
 
 @SuppressWarnings("EqualsWithItself")
-public class AccessTest {
+public class ResourceAccessTest {
 
     @Test
     public void testSetGranted() {
-        Access a = new Access();
+        ResourceAccess a = new ResourceAccess();
         assertTrue(a.setGranted(true).granted);
     }
 
     @Test
     public void testGetGranted() {
-        Access a = new Access();
+        ResourceAccess a = new ResourceAccess();
         a.setGranted(true);
         assertTrue(a.getGranted());
     }
 
     @Test
     public void testEqualsSameObj() {
-        Access a = new Access().setGranted(true);
-        Access b = new Access().setGranted(false);
+        ResourceAccess a = new ResourceAccess().setGranted(true);
+        ResourceAccess b = new ResourceAccess().setGranted(false);
         assertEquals(a, a);
         assertNotEquals(a, b);
         b.setGranted(true);
@@ -49,7 +49,7 @@ public class AccessTest {
     @SuppressWarnings("EqualsBetweenInconvertibleTypes")
     @Test
     public void testEqualsDifObj() {
-        Access a = new Access();
+        ResourceAccess a = new ResourceAccess();
         assertNotEquals("", a);
     }
 }
