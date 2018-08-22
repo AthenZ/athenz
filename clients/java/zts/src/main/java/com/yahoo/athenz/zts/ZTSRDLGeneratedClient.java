@@ -506,4 +506,22 @@ public class ZTSRDLGeneratedClient {
 
     }
 
+    public SSHCertificates postSSHCertRequest(SSHCertRequest certRequest) {
+        WebTarget target = base.path("/sshcert");
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(certRequest, "application/json"));
+        int code = response.getStatus();
+        switch (code) {
+        case 201:
+            return response.readEntity(SSHCertificates.class);
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
 }

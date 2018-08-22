@@ -19,3 +19,4 @@ include "OSTKAuth.rdli";
 include "Instance.rdli";
 include "DomainMetrics.rdli";
 include "Status.rdli";
+include "SSHCert.rdli";

@@ -26,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import com.yahoo.athenz.zts.cert.InstanceCertManager;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.mockito.Mockito;
@@ -157,14 +158,14 @@ public class ZTSUtilsTest {
     @Test
     public void testGenerateIdentityFailure() throws IOException {
         
-        CertSigner certSigner = Mockito.mock(CertSigner.class);
-        Mockito.when(certSigner.generateX509Certificate(Mockito.any(), Mockito.any(),
+        InstanceCertManager certManager = Mockito.mock(InstanceCertManager.class);
+        Mockito.when(certManager.generateX509Certificate(Mockito.any(), Mockito.any(),
                 Mockito.anyInt())).thenReturn(null);
         
         Path path = Paths.get("src/test/resources/valid.csr");
         String csr = new String(Files.readAllBytes(path));
         
-        Identity identity = ZTSUtils.generateIdentity(certSigner, csr, "unknown.syncer", null, 0);
+        Identity identity = ZTSUtils.generateIdentity(certManager, csr, "unknown.syncer", null, 0);
         assertNull(identity);
     }
     

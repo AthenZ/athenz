@@ -16,24 +16,32 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.yahoo.athenz.zts.SSHCertificates;
+import com.yahoo.athenz.zts.SSHCertRequest;
+import com.yahoo.athenz.zts.ZTSConsts;
+import com.yahoo.athenz.zts.InstanceIdentity;
+import com.yahoo.athenz.zts.ResourceException;
+
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.cert.CertSigner;
-import com.yahoo.athenz.zts.InstanceIdentity;
-import com.yahoo.athenz.zts.ZTSConsts;
+import com.yahoo.athenz.common.server.cert.CertSignerFactory;
+import com.yahoo.athenz.common.server.ssh.SSHSigner;
+import com.yahoo.athenz.common.server.ssh.SSHSignerFactory;
 import com.yahoo.athenz.zts.utils.IPBlock;
 import com.yahoo.athenz.zts.utils.IPPrefix;
 import com.yahoo.athenz.zts.utils.IPPrefixes;
 import com.yahoo.athenz.auth.util.Crypto;
-import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.rdl.JSON;
 
 public class InstanceCertManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceCertManager.class);
 
+    private Authorizer authorizer;
     private CertSigner certSigner;
+    private SSHSigner sshSigner;
     private CertRecordStore certStore = null;
     private ScheduledExecutorService scheduledExecutor;
     private List<IPBlock> certRefreshIPBlocks;
@@ -42,11 +50,21 @@ public class InstanceCertManager {
     private String sshUserCertificateSigner = null;
     private String sshHostCertificateSigner = null;
     
-    public InstanceCertManager(final PrivateKeyStore keyStore, final CertSigner certSigner,
-                               boolean readOnlyMode) {
-        
-        this.certSigner = certSigner;
-        
+    public InstanceCertManager(final PrivateKeyStore keyStore, Authorizer authorizer,
+            boolean readOnlyMode) {
+
+        // set our authorizer object
+
+        this.authorizer = authorizer;
+
+        // create our x509 certsigner object
+
+        loadCertSigner();
+
+        // create our ssh signer object
+
+        loadSSHSigner(authorizer);
+
         // if ZTS configured to issue certificate for services, it can
         // track of serial and instance values to make sure the same
         // certificate is not asked to be refreshed by multiple hosts
@@ -85,6 +103,55 @@ public class InstanceCertManager {
         if (scheduledExecutor != null) {
             scheduledExecutor.shutdownNow();
         }
+    }
+
+    void loadCertSigner() {
+
+        String certSignerFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_FACTORY_CLASS,
+                ZTSConsts.ZTS_CERT_SIGNER_FACTORY_CLASS);
+        CertSignerFactory certSignerFactory;
+        try {
+            certSignerFactory = (CertSignerFactory) Class.forName(certSignerFactoryClass).newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            LOGGER.error("Invalid CertSignerFactory class: " + certSignerFactoryClass
+                    + " error: " + e.getMessage());
+            throw new IllegalArgumentException("Invalid certsigner class");
+        }
+
+        // create our cert signer instance
+
+        certSigner = certSignerFactory.create();
+    }
+
+    void loadSSHSigner(Authorizer authorizer) {
+
+        String sshSignerFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_SSH_SIGNER_FACTORY_CLASS);
+        if (sshSignerFactoryClass == null || sshSignerFactoryClass.isEmpty()) {
+            LOGGER.error("No SSHSignerFactory class configured");
+            sshSigner = null;
+            return;
+        }
+        SSHSignerFactory sshSignerFactory;
+        try {
+            sshSignerFactory = (SSHSignerFactory) Class.forName(sshSignerFactoryClass).newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            LOGGER.error("Invalid SSHSignerFactory class: " + sshSignerFactoryClass
+                    + " error: " + e.getMessage());
+            throw new IllegalArgumentException("Invalid sshsigner class");
+        }
+
+        // create our cert signer instance
+
+        sshSigner = sshSignerFactory.create();
+        sshSigner.setAuthorizer(authorizer);
+    }
+
+    void setSSHSigner(SSHSigner sshSigner) {
+        this.sshSigner = sshSigner;
+    }
+
+    void setCertSigner(CertSigner certSigner) {
+        this.certSigner = certSigner;
     }
 
     boolean loadCAX509CertificateBundle() {
@@ -292,15 +359,27 @@ public class InstanceCertManager {
         
         return result;
     }
-    
+
+    public String generateX509Certificate(final String csr, final String keyUsage, int expiryTime) {
+
+        String pemCert = certSigner.generateX509Certificate(csr, keyUsage, expiryTime);
+        if (pemCert == null || pemCert.isEmpty()) {
+            LOGGER.error("generateX509Certificate: CertSigner was unable to generate X509 certificate");
+        }
+        return pemCert;
+    }
+
+    public String getCACertificate() {
+        return certSigner.getCACertificate();
+    }
+
     public InstanceIdentity generateIdentity(String csr, String cn, String keyUsage,
             int expiryTime) {
         
         // generate a certificate for this certificate request
 
-        String pemCert = certSigner.generateX509Certificate(csr, keyUsage, expiryTime);
+        final String pemCert = generateX509Certificate(csr, keyUsage, expiryTime);
         if (pemCert == null || pemCert.isEmpty()) {
-            LOGGER.error("generateIdentity: CertSigner was unable to generate X509 certificate");
             return null;
         }
         
@@ -312,11 +391,25 @@ public class InstanceCertManager {
         if (caX509CertificateSigner == null) {
             synchronized (InstanceCertManager.class) {
                 if (caX509CertificateSigner == null) {
-                    caX509CertificateSigner = certSigner.getCACertificate();
+                    caX509CertificateSigner = getCACertificate();
                 }
             }
         }
         return caX509CertificateSigner;
+    }
+
+    public SSHCertificates getSSHCertificates(Principal principal, SSHCertRequest certRequest) {
+
+        if (sshSigner == null) {
+            LOGGER.error("getSSHCertificates: SSHSigner not available");
+            return null;
+        }
+
+        // ssh signer is responsible for all authorization checks and processing
+        // of this request. the signer already was given the authorizer object
+        // that it can use for those checks.
+
+        return sshSigner.generateCertificate(principal, certRequest);
     }
 
     public boolean generateSshIdentity(InstanceIdentity identity, String sshCsr, String sshCertType) {
@@ -364,7 +457,7 @@ public class InstanceCertManager {
     }
     
     public boolean authorizeLaunch(Principal providerService, String domain, String service,
-            Authorizer authorizer, StringBuilder errorMsg) {
+            StringBuilder errorMsg) {
         
         // first we need to make sure that the provider has been
         // authorized in Athenz to bootstrap/launch instances

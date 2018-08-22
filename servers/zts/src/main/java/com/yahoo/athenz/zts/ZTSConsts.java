@@ -149,6 +149,7 @@ public final class ZTSConsts {
 
     public static final String ZTS_PROP_METRIC_FACTORY_CLASS             = "athenz.zts.metric_factory_class";
     public static final String ZTS_PROP_CERT_SIGNER_FACTORY_CLASS        = "athenz.zts.cert_signer_factory_class";
+    public static final String ZTS_PROP_SSH_SIGNER_FACTORY_CLASS         = "athenz.zts.ssh_signer_factory_class";
     public static final String ZTS_PROP_AUDIT_LOGGER_FACTORY_CLASS       = "athenz.zts.audit_logger_factory_class";
     public static final String ZTS_PROP_CHANGE_LOG_STORE_FACTORY_CLASS   = "athenz.zts.change_log_store_factory_class";
     public static final String ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS  = "athenz.zts.private_key_store_factory_class";

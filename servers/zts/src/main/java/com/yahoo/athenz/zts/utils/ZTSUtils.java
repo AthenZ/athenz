@@ -25,10 +25,10 @@ import org.slf4j.LoggerFactory;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.metrics.Metric;
-import com.yahoo.athenz.common.server.cert.CertSigner;
 import com.yahoo.athenz.zts.Identity;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.cert.X509CertRecord;
+import com.yahoo.athenz.zts.cert.InstanceCertManager;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
@@ -313,14 +313,13 @@ public class ZTSUtils {
         return reqInstanceId.equals(instanceId);
     }
     
-    public static Identity generateIdentity(CertSigner certSigner, String csr, String cn,
-            String certUsage, int expiryTime) {
+    public static Identity generateIdentity(InstanceCertManager certManager, final String csr,
+            final String cn, final String certUsage, int expiryTime) {
         
         // generate a certificate for this certificate request
 
-        String pemCert = certSigner.generateX509Certificate(csr, certUsage, expiryTime);
+        String pemCert = certManager.generateX509Certificate(csr, certUsage, expiryTime);
         if (pemCert == null || pemCert.isEmpty()) {
-            LOGGER.error("generateIdentity: CertSigner was unable to generate X509 certificate");
             return null;
         }
         

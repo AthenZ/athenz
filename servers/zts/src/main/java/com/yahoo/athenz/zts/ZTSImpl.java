@@ -21,14 +21,7 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
@@ -53,8 +46,6 @@ import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.metrics.MetricFactory;
-import com.yahoo.athenz.common.server.cert.CertSigner;
-import com.yahoo.athenz.common.server.cert.CertSignerFactory;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
@@ -96,7 +87,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected Schema schema = null;
     protected PrivateKey privateKey = null;
     protected PrivateKeyStore privateKeyStore = null;
-    protected CertSigner certSigner = null;
     protected String privateKeyId = "0";
     protected int roleTokenDefaultTimeout;
     protected int roleTokenMaxTimeout;
@@ -138,6 +128,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private static final String TYPE_OSTK_INSTANCE_REFRESH_REQUEST = "OSTKInstanceRefreshRequest";
     private static final String TYPE_DOMAIN_METRICS = "DomainMetrics";
     private static final String TYPE_ROLE_CERTIFICATE_REQUEST = "RoleCertificateRequest";
+    private static final String TYPE_SSH_CERT_REQUEST = "SSHCertRequest";
     private static final String TYPE_COMPOUND_NAME = "CompoundName";
     private static final String TYPE_RESOURCE_NAME = "ResourceName";
     private static final String TYPE_PATH_ELEMENT = "PathElement";
@@ -177,6 +168,25 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 info.setDomain(info.getDomain().toLowerCase());
                 info.setService(info.getService().toLowerCase());
                 info.setProvider(info.getProvider().toLowerCase());
+            }
+        },
+        LIST {
+            void convertToLowerCase(Object obj) {
+                @SuppressWarnings("unchecked")
+                List<String> list = (List<String>) obj;
+                if (list != null) {
+                    ListIterator<String> iter = list.listIterator();
+                    while (iter.hasNext()) {
+                        iter.set(iter.next().toLowerCase());
+                    }
+                }
+            }
+        },
+        SSH_CERT_REQUEST {
+            void convertToLowerCase(Object obj) {
+                SSHCertRequest req = (SSHCertRequest) obj;
+                LIST.convertToLowerCase(req.getCertRequestData().getPrincipals());
+                req.getCertRequestMeta().setRequestor(req.getCertRequestMeta().getRequestor().toLowerCase());
             }
         };
 
@@ -228,10 +238,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         loadMetricObject();
         
-        // create our certsigner object
-        
-        loadCertSigner();
-        
        // create our cloud store if configured
 
         cloudStore = (implCloudStore == null) ? new CloudStore() : implCloudStore;
@@ -260,10 +266,15 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         } else {
             dataStore = implDataStore;
         }
-        
+
+        // set our authorizer
+
+        authorizer = new ZTSAuthorizer(dataStore);
+
         // create our instance manager and provider
         
-        instanceCertManager = new InstanceCertManager(privateKeyStore, certSigner, readOnlyMode);
+        instanceCertManager = new InstanceCertManager(privateKeyStore, authorizer,
+                readOnlyMode);
 
         instanceProviderManager = new InstanceProviderManager(dataStore,
                 ZTSUtils.createServerClientSSLContext(privateKeyStore), this);
@@ -271,10 +282,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // make sure to set the keystore for any instance that requires it
         
         setAuthorityKeyStore();
-        
-        // set our authorizer
-        
-        authorizer = new ZTSAuthorizer(dataStore);
     }
     
     void loadSystemProperties() {
@@ -449,24 +456,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // create our struct store
         
         return clogFactory.create(homeDir, privateKey, privateKeyId, cloudStore);
-    }
-    
-    void loadCertSigner() {
-        
-        String certSignerFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_FACTORY_CLASS,
-                ZTSConsts.ZTS_CERT_SIGNER_FACTORY_CLASS);
-        CertSignerFactory certSignerFactory;
-        try {
-            certSignerFactory = (CertSignerFactory) Class.forName(certSignerFactoryClass).newInstance();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOGGER.error("Invalid CertSignerFactory class: " + certSignerFactoryClass
-                    + " error: " + e.getMessage());
-            throw new IllegalArgumentException("Invalid certsigner class");
-        }
-
-        // create our cert signer instance
-        
-        certSigner = certSignerFactory.create();
     }
     
     void loadMetricObject() {
@@ -1492,7 +1481,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domainName);
         }
         
-        String x509Cert = certSigner.generateX509Certificate(req.getCsr(),
+        final String x509Cert = instanceCertManager.generateX509Certificate(req.getCsr(),
                 ZTSConsts.ZTS_CERT_USAGE_CLIENT, (int) req.getExpiryTime());
         if (null == x509Cert || x509Cert.isEmpty()) {
             throw serverError("postRoleCertificateRequest: Unable to create certificate from the cert signer",
@@ -1783,8 +1772,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         Principal providerService = createPrincipalForName(provider);
         StringBuilder errorMsg = new StringBuilder(256);
 
-        if (!instanceCertManager.authorizeLaunch(providerService, domain, service,
-                authorizer, errorMsg)) {
+        if (!instanceCertManager.authorizeLaunch(providerService, domain, service, errorMsg)) {
             throw forbiddenError(errorMsg.toString(), caller, domain);
         }
 
@@ -2031,8 +2019,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         Principal providerService = createPrincipalForName(provider);
         StringBuilder errorMsg = new StringBuilder(256);
 
-        if (!instanceCertManager.authorizeLaunch(providerService, domain, service,
-                authorizer, errorMsg)) {
+        if (!instanceCertManager.authorizeLaunch(providerService, domain, service, errorMsg)) {
             throw forbiddenError(errorMsg.toString(), caller, domain);
         }
 
@@ -2499,7 +2486,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // generate identity with the certificate
         
         int expiryTime = req.getExpiryTime() != null ? req.getExpiryTime() : 0;
-        Identity identity = ZTSUtils.generateIdentity(certSigner, req.getCsr(),
+        Identity identity = ZTSUtils.generateIdentity(instanceCertManager, req.getCsr(),
                 fullServiceName, null, expiryTime);
         if (identity == null) {
             throw serverError("Unable to generate identity", caller, domain);
@@ -2552,7 +2539,42 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         return ServiceX509RefreshRequestStatus.SUCCESS;
     }
-    
+
+    @Override
+    public SSHCertificates postSSHCertRequest(ResourceContext ctx, SSHCertRequest certRequest) {
+
+        final String caller = "postsshcertrequest";
+        final String callerTiming = "postsshcertrequest_timing";
+        metric.increment(HTTP_POST);
+
+        if (readOnlyMode) {
+            throw requestError("Server in Maintenance Read-Only mode. Please try your request later",
+                    caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+        }
+
+        validateRequest(ctx.request(), caller);
+        validate(certRequest, TYPE_SSH_CERT_REQUEST, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        AthenzObject.SSH_CERT_REQUEST.convertToLowerCase(certRequest);
+        logPrincipal(ctx);
+
+        Object timerMetric = metric.startTiming(callerTiming, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+        metric.increment(HTTP_REQUEST);
+        metric.increment(caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+
+        // generate our ssh certificate
+
+        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        SSHCertificates certs = instanceCertManager.getSSHCertificates(principal, certRequest);
+
+        metric.stopTiming(timerMetric);
+        return certs;
+    }
+
     // this method will be removed and replaced with call to postInstanceRegisterInformation
     @Override
     public Identity postOSTKInstanceInformation(ResourceContext ctx, OSTKInstanceInformation info) {
@@ -2634,7 +2656,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // generate certificate for the instance
 
-        Identity identity = ZTSUtils.generateIdentity(certSigner, info.getCsr(), cn, null, 0);
+        Identity identity = ZTSUtils.generateIdentity(instanceCertManager, info.getCsr(), cn, null, 0);
         if (identity == null) {
             throw requestError("postOSTKInstanceInformation: unable to generate identity",
                     caller, domain);
@@ -2776,7 +2798,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // generate identity with the certificate
         
-        Identity identity = ZTSUtils.generateIdentity(certSigner, req.getCsr(), principalName, null, 0);
+        Identity identity = ZTSUtils.generateIdentity(instanceCertManager, req.getCsr(),
+                principalName, null, 0);
         if (identity == null) {
             throw serverError("Unable to generate identity", caller, domain);
         }
@@ -3060,7 +3083,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // in case of failure we're going to return not found
 
         if (statusCertSigner) {
-            if (certSigner.getCACertificate() == null) {
+            if (instanceCertManager.getCACertificate() == null) {
                 throw notFoundError("Unable to communicate with cert signer", caller,
                         ZTSConsts.ZTS_UNKNOWN_DOMAIN);
             }

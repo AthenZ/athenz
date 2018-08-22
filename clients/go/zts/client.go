@@ -1021,3 +1021,42 @@ func (client ZTSClient) GetStatus() (*Status, error) {
 		return data, errobj
 	}
 }
+
+func (client ZTSClient) PostSSHCertRequest(certRequest *SSHCertRequest) (*SSHCertificates, error) {
+	var data *SSHCertificates
+	url := client.URL + "/sshcert"
+	contentBytes, err := json.Marshal(certRequest)
+	if err != nil {
+		return data, err
+	}
+	resp, err := client.httpPost(url, nil, contentBytes)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 201:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		err = json.Unmarshal(contentBytes, &errobj)
+		if err != nil {
+			return data, err
+		}
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}

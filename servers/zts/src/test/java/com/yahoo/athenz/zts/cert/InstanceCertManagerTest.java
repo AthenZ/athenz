@@ -9,6 +9,8 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.yahoo.athenz.common.server.ssh.SSHSigner;
+import com.yahoo.athenz.zts.SSHCertRequest;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
@@ -18,6 +20,7 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.fail;
 
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.server.cert.CertSigner;
@@ -25,6 +28,7 @@ import com.yahoo.athenz.zts.InstanceIdentity;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.store.impl.ZMSFileChangeLogStore;
 import com.yahoo.athenz.zts.utils.IPBlock;
+import com.yahoo.athenz.auth.Principal;
 
 public class InstanceCertManagerTest {
 
@@ -44,7 +48,8 @@ public class InstanceCertManagerTest {
         Mockito.when(certSigner.generateX509Certificate(Mockito.any(), Mockito.any(), Mockito.anyInt())).thenReturn(cert);
         Mockito.when(certSigner.getCACertificate()).thenReturn(caCert);
         
-        InstanceCertManager instanceManager = new InstanceCertManager(null, certSigner, false);
+        InstanceCertManager instanceManager = new InstanceCertManager(null, null, false);
+        instanceManager.setCertSigner(certSigner);
         InstanceIdentity identity = instanceManager.generateIdentity("csr", "cn", null, 0);
         
         assertNotNull(identity);
@@ -60,7 +65,8 @@ public class InstanceCertManagerTest {
         CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class);
         Mockito.when(certSigner.generateX509Certificate(Mockito.any(), Mockito.any(), Mockito.anyInt())).thenReturn(null);
 
-        InstanceCertManager instanceManager = new InstanceCertManager(null, certSigner, false);
+        InstanceCertManager instanceManager = new InstanceCertManager(null, null, false);
+        instanceManager.setCertSigner(certSigner);
         InstanceIdentity identity = instanceManager.generateIdentity("csr", "cn", null, 0);
         assertNull(identity);
         instanceManager.shutdown();
@@ -72,7 +78,8 @@ public class InstanceCertManagerTest {
         CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class);
         Mockito.when(certSigner.generateX509Certificate(Mockito.any(), Mockito.any(), Mockito.anyInt())).thenReturn("");
 
-        InstanceCertManager instanceManager = new InstanceCertManager(null, certSigner, false);
+        InstanceCertManager instanceManager = new InstanceCertManager(null, null, false);
+        instanceManager.setCertSigner(certSigner);
         InstanceIdentity identity = instanceManager.generateIdentity("csr", "cn", null, 0);
         assertNull(identity);
         instanceManager.shutdown();
@@ -81,8 +88,9 @@ public class InstanceCertManagerTest {
     @Test
     public void testGetX509CertRecordWithCertificate() throws IOException {
         
-        InstanceCertManager instance = new InstanceCertManager(null, null, true);
-        
+        InstanceCertManager instanceManager = new InstanceCertManager(null, null, true);
+        instanceManager.setCertSigner(null);
+
         Path path = Paths.get("src/test/resources/athenz.instanceid.pem");
         String pem = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(pem);
@@ -93,18 +101,19 @@ public class InstanceCertManagerTest {
         
         X509CertRecord x509CertRecord = new X509CertRecord();
         Mockito.when(certConnection.getX509CertRecord("ostk", "1001")).thenReturn(x509CertRecord);
-        instance.setCertStore(certStore);
+        instanceManager.setCertStore(certStore);
         
-        X509CertRecord certRecord = instance.getX509CertRecord("ostk", cert);
+        X509CertRecord certRecord = instanceManager.getX509CertRecord("ostk", cert);
         assertNotNull(certRecord);
-        instance.shutdown();
+        instanceManager.shutdown();
     }
     
     @Test
     public void testGetX509CertRecordWithInstanceId() {
         
         InstanceCertManager instance = new InstanceCertManager(null, null, false);
-        
+        instance.setCertSigner(null);
+
         CertRecordStore certStore = Mockito.mock(CertRecordStore.class);
         CertRecordStoreConnection certConnection = Mockito.mock(CertRecordStoreConnection.class);
         Mockito.when(certStore.getConnection()).thenReturn(certConnection);
@@ -121,6 +130,8 @@ public class InstanceCertManagerTest {
     @Test
     public void testGetX509CertRecordNoCertStore() {
         InstanceCertManager instance = new InstanceCertManager(null, null, false);
+        instance.setCertSigner(null);
+
         instance.setCertStore(null);
         X509CertRecord certRecord = instance.getX509CertRecord("ostk", (X509Certificate) null);
         assertNull(certRecord);
@@ -131,6 +142,7 @@ public class InstanceCertManagerTest {
     public void testGetX509CertRecordNoInstanceId() throws IOException {
         
         InstanceCertManager instance = new InstanceCertManager(null, null, true);
+        instance.setCertSigner(null);
 
         Path path = Paths.get("src/test/resources/valid_cn_x509.cert");
         String pem = new String(Files.readAllBytes(path));
@@ -152,6 +164,7 @@ public class InstanceCertManagerTest {
     @Test
     public void testUpdateX509CertRecord() {
         InstanceCertManager instance = new InstanceCertManager(null, null, true);
+        instance.setCertSigner(null);
 
         CertRecordStore certStore = Mockito.mock(CertRecordStore.class);
         CertRecordStoreConnection certConnection = Mockito.mock(CertRecordStoreConnection.class);
@@ -169,6 +182,8 @@ public class InstanceCertManagerTest {
     @Test
     public void testUpdateX509CertRecordNoCertStore() {
         InstanceCertManager instance = new InstanceCertManager(null, null, true);
+        instance.setCertSigner(null);
+
         instance.setCertStore(null);
         X509CertRecord x509CertRecord = new X509CertRecord();
         boolean result = instance.updateX509CertRecord(x509CertRecord);
@@ -179,6 +194,7 @@ public class InstanceCertManagerTest {
     @Test
     public void testInsertX509CertRecord() {
         InstanceCertManager instance = new InstanceCertManager(null, null, true);
+        instance.setCertSigner(null);
 
         CertRecordStore certStore = Mockito.mock(CertRecordStore.class);
         CertRecordStoreConnection certConnection = Mockito.mock(CertRecordStoreConnection.class);
@@ -196,6 +212,8 @@ public class InstanceCertManagerTest {
     @Test
     public void testInsertX509CertRecordNoCertStore() {
         InstanceCertManager instance = new InstanceCertManager(null, null, true);
+        instance.setCertSigner(null);
+
         instance.setCertStore(null);
         X509CertRecord x509CertRecord = new X509CertRecord();
         boolean result = instance.insertX509CertRecord(x509CertRecord);
@@ -206,6 +224,7 @@ public class InstanceCertManagerTest {
     @Test
     public void testDeleteX509CertRecord() {
         InstanceCertManager instance = new InstanceCertManager(null, null, true);
+        instance.setCertSigner(null);
 
         CertRecordStore certStore = Mockito.mock(CertRecordStore.class);
         CertRecordStoreConnection certConnection = Mockito.mock(CertRecordStoreConnection.class);
@@ -222,6 +241,8 @@ public class InstanceCertManagerTest {
     @Test
     public void testDeleteX509CertRecordNoCertStore() {
         InstanceCertManager instance = new InstanceCertManager(null, null, true);
+        instance.setCertSigner(null);
+
         instance.setCertStore(null);
         boolean result = instance.deleteX509CertRecord("provider", "instance");
         assertFalse(result);
@@ -234,7 +255,9 @@ public class InstanceCertManagerTest {
         Mockito.when(certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_HOST)).thenReturn("ssh-host");
         Mockito.when(certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_USER)).thenReturn("ssh-user");
 
-        InstanceCertManager instanceManager = new InstanceCertManager(null, certSigner, true);
+        InstanceCertManager instanceManager = new InstanceCertManager(null, null, true);
+        instanceManager.setCertSigner(certSigner);
+
         assertEquals(instanceManager.getSshCertificateSigner("host"), "ssh-host");
         assertEquals(instanceManager.getSshCertificateSigner("user"), "ssh-user");
         
@@ -251,6 +274,7 @@ public class InstanceCertManagerTest {
     public void testGenerateSshIdentityNoSsh() {
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.service");
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, true);
+        instanceManager.setCertSigner(null);
 
         boolean result = instanceManager.generateSshIdentity(identity, null, null);
         assertTrue(result);
@@ -266,6 +290,7 @@ public class InstanceCertManagerTest {
     public void testGenerateSshIdentityInvalidSsh() {
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.service");
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, true);
+        instanceManager.setCertSigner(null);
 
         boolean result = instanceManager.generateSshIdentity(identity, "{\"csr\":\"csr\"}", null);
         assertFalse(result);
@@ -279,8 +304,9 @@ public class InstanceCertManagerTest {
         Mockito.when(certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_HOST)).thenReturn("ssh-host");
         Mockito.when(certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_USER)).thenReturn("ssh-user");
         
-        InstanceCertManager instanceManager = new InstanceCertManager(null, certSigner, true);
-        
+        InstanceCertManager instanceManager = new InstanceCertManager(null, null, true);
+        instanceManager.setCertSigner(certSigner);
+
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.service");
         boolean result = instanceManager.generateSshIdentity(identity, sshCsr, "host");
         assertFalse(result);
@@ -295,8 +321,9 @@ public class InstanceCertManagerTest {
         Mockito.when(certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_HOST)).thenReturn("ssh-host");
         Mockito.when(certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_USER)).thenReturn("ssh-user");
         
-        InstanceCertManager instanceManager = new InstanceCertManager(null, certSigner, true);
-        
+        InstanceCertManager instanceManager = new InstanceCertManager(null, null, true);
+        instanceManager.setCertSigner(certSigner);
+
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.service");
         boolean result = instanceManager.generateSshIdentity(identity, sshCsr, "host");
         assertFalse(result);
@@ -311,8 +338,9 @@ public class InstanceCertManagerTest {
         Mockito.when(certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_HOST)).thenReturn("ssh-host");
         Mockito.when(certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_USER)).thenReturn("ssh-user");
         
-        InstanceCertManager instanceManager = new InstanceCertManager(null, certSigner, true);
-        
+        InstanceCertManager instanceManager = new InstanceCertManager(null, null, true);
+        instanceManager.setCertSigner(certSigner);
+
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.service");
         boolean result = instanceManager.generateSshIdentity(identity, sshCsr, "host");
         assertTrue(result);
@@ -328,7 +356,8 @@ public class InstanceCertManagerTest {
         System.clearProperty(ZTSConsts.ZTS_PROP_INSTANCE_CERT_IP_FNAME);
         
         InstanceCertManager instance = new InstanceCertManager(null, null, true);
-        
+        instance.setCertSigner(null);
+
         // empty list matches everything
         
         assertTrue(instance.verifyInstanceCertIPAddress("11.1.3.25"));
@@ -356,7 +385,8 @@ public class InstanceCertManagerTest {
                 "src/test/resources/instance_cert_ipblocks.txt");
         
         InstanceCertManager instance = new InstanceCertManager(null, null, true);
-        
+        instance.setCertSigner(null);
+
         // refresh cert
         
         // subnet/netmask: 10.1.0.0/255.255.248.0
@@ -399,7 +429,8 @@ public class InstanceCertManagerTest {
 
         System.clearProperty(propName);
         InstanceCertManager instance = new InstanceCertManager(null, null, true);
-        
+        instance.setCertSigner(null);
+
         // not set property returns true
         
         assertTrue(instance.loadAllowedIPAddresses(ipBlocks, propName));
@@ -428,6 +459,8 @@ public class InstanceCertManagerTest {
 
         System.clearProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME);
         InstanceCertManager instance = new InstanceCertManager(null, null, true);
+        instance.setCertSigner(null);
+
         assertTrue(instance.loadCAX509CertificateBundle());
 
         System.setProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME, "");
@@ -439,5 +472,63 @@ public class InstanceCertManagerTest {
         System.setProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME, "src/test/resources/valid_cn_x509.cert");
         assertTrue(instance.loadCAX509CertificateBundle());
         System.clearProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME);
+    }
+
+    @Test
+    public void testGetSSHCertificates() {
+
+        InstanceCertManager instanceCertManager = new InstanceCertManager(null, null, true);
+        instanceCertManager.setSSHSigner(null);
+
+        assertNull(instanceCertManager.getSSHCertificates(null, null));
+
+        SSHSigner signer = Mockito.mock(SSHSigner.class);
+
+        Principal principal = Mockito.mock(Principal.class);
+        SSHCertRequest certRequest = new SSHCertRequest();
+        com.yahoo.athenz.zts.SSHCertificates certs = new com.yahoo.athenz.zts.SSHCertificates();
+        Mockito.when(signer.generateCertificate(principal, certRequest)).thenReturn(certs);
+        instanceCertManager.setSSHSigner(signer);
+
+        assertEquals(certs, instanceCertManager.getSSHCertificates(principal, certRequest));
+    }
+
+    @Test
+    public void testInvalidCertSignerClass() {
+
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_FACTORY_CLASS, "invalid");
+        try {
+            InstanceCertManager instanceCertManager = new InstanceCertManager(null, null, true);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Invalid certsigner class"));
+        }
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_FACTORY_CLASS);
+    }
+
+    @Test
+    public void testInvalidSSHSignerClass() {
+
+        System.setProperty(ZTSConsts.ZTS_PROP_SSH_SIGNER_FACTORY_CLASS, "invalid");
+        try {
+            InstanceCertManager instanceCertManager = new InstanceCertManager(null, null, true);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Invalid sshsigner class"));
+        }
+        System.clearProperty(ZTSConsts.ZTS_PROP_SSH_SIGNER_FACTORY_CLASS);
+    }
+
+    @Test
+    public void testInvalidCertRecordStoreClass() {
+
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_RECORD_STORE_FACTORY_CLASS, "invalid");
+        try {
+            InstanceCertManager instanceCertManager = new InstanceCertManager(null, null, true);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Invalid cert record store factory class"));
+        }
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_RECORD_STORE_FACTORY_CLASS);
     }
 }
