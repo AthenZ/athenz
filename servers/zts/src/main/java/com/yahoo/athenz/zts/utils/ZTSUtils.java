@@ -329,10 +329,20 @@ public class ZTSUtils {
     public static SSLContext createServerClientSSLContext(PrivateKeyStore privateKeyStore) {
 
         final String keyStorePath = System.getProperty(ATHENZ_PROP_KEYSTORE_PATH);
+        if (keyStorePath == null) {
+            LOGGER.error("Unable to create client ssl context: no keystore path specified");
+            return null;
+        }
         final String keyStorePasswordAppName = System.getProperty(ATHENZ_PROP_KEYSTORE_PASSWORD_APPNAME);
         final String keyStorePassword = System.getProperty(ATHENZ_PROP_KEYSTORE_PASSWORD);
         final String keyStoreType = System.getProperty(ATHENZ_PROP_KEYSTORE_TYPE, "PKCS12");
+
         final String trustStorePath = System.getProperty(ATHENZ_PROP_TRUSTSTORE_PATH);
+        if (trustStorePath == null) {
+            LOGGER.error("Unable to create client ssl context: no truststore path specified");
+            return null;
+        }
+
         final String trustStorePassword = System.getProperty(ATHENZ_PROP_TRUSTSTORE_PASSWORD);
         final String trustStorePasswordAppName = System.getProperty(ATHENZ_PROP_TRUSTSTORE_PASSWORD_APPNAME);
         final String trustStoreType = System.getProperty(ATHENZ_PROP_TRUSTSTORE_TYPE, "PKCS12");
