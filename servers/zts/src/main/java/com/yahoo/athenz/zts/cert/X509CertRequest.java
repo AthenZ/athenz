@@ -47,11 +47,11 @@ public class X509CertRequest {
     public void setCertReq(PKCS10CertificationRequest certReq) {
         this.certReq = certReq;
     }
-    
+
     public boolean parseCertRequest(StringBuilder errorMsg) {
         
         // first we need to determine our instance id and dns suffix
-        
+
         for (String dnsName : dnsNames) {
             int idx = dnsName.indexOf(ZTSConsts.ZTS_CERT_INSTANCE_ID);
             if (instanceId == null && idx != -1) {

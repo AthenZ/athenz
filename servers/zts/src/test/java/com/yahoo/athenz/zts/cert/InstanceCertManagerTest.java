@@ -481,17 +481,17 @@ public class InstanceCertManagerTest {
         InstanceCertManager instanceCertManager = new InstanceCertManager(null, null, true);
         instanceCertManager.setSSHSigner(null);
 
-        assertNull(instanceCertManager.getSSHCertificates(null, null));
+        assertNull(instanceCertManager.getSSHCertificates(null, null, "id"));
 
         SSHSigner signer = Mockito.mock(SSHSigner.class);
 
         Principal principal = Mockito.mock(Principal.class);
         SSHCertRequest certRequest = new SSHCertRequest();
         com.yahoo.athenz.zts.SSHCertificates certs = new com.yahoo.athenz.zts.SSHCertificates();
-        Mockito.when(signer.generateCertificate(principal, certRequest)).thenReturn(certs);
+        Mockito.when(signer.generateCertificate(principal, certRequest, "id")).thenReturn(certs);
         instanceCertManager.setSSHSigner(signer);
 
-        assertEquals(certs, instanceCertManager.getSSHCertificates(principal, certRequest));
+        assertEquals(certs, instanceCertManager.getSSHCertificates(principal, certRequest, "id"));
     }
 
     @Test

@@ -105,7 +105,7 @@ public class InstanceCertManager {
         }
     }
 
-    void loadCertSigner() {
+    private void loadCertSigner() {
 
         String certSignerFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_FACTORY_CLASS,
                 ZTSConsts.ZTS_CERT_SIGNER_FACTORY_CLASS);
@@ -123,7 +123,7 @@ public class InstanceCertManager {
         certSigner = certSignerFactory.create();
     }
 
-    void loadSSHSigner(Authorizer authorizer) {
+    private void loadSSHSigner(Authorizer authorizer) {
 
         String sshSignerFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_SSH_SIGNER_FACTORY_CLASS);
         if (sshSignerFactoryClass == null || sshSignerFactoryClass.isEmpty()) {
@@ -398,7 +398,8 @@ public class InstanceCertManager {
         return caX509CertificateSigner;
     }
 
-    public SSHCertificates getSSHCertificates(Principal principal, SSHCertRequest certRequest) {
+    public SSHCertificates getSSHCertificates(Principal principal, SSHCertRequest certRequest,
+            final String instanceId) {
 
         if (sshSigner == null) {
             LOGGER.error("getSSHCertificates: SSHSigner not available");
@@ -409,7 +410,7 @@ public class InstanceCertManager {
         // of this request. the signer already was given the authorizer object
         // that it can use for those checks.
 
-        return sshSigner.generateCertificate(principal, certRequest);
+        return sshSigner.generateCertificate(principal, certRequest, instanceId);
     }
 
     public boolean generateSshIdentity(InstanceIdentity identity, String sshCsr, String sshCertType) {

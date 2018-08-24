@@ -62,6 +62,7 @@ import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.cert.InstanceCertManager;
 import com.yahoo.athenz.zts.cert.X509CertRecord;
 import com.yahoo.athenz.zts.cert.X509CertRequest;
+import com.yahoo.athenz.zts.cert.impl.X509CertUtils;
 import com.yahoo.athenz.zts.store.ChangeLogStore;
 import com.yahoo.athenz.zts.store.ChangeLogStoreFactory;
 import com.yahoo.athenz.zts.store.CloudStore;
@@ -2569,7 +2570,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // generate our ssh certificate
 
         final Principal principal = ((RsrcCtxWrapper) ctx).principal();
-        SSHCertificates certs = instanceCertManager.getSSHCertificates(principal, certRequest);
+
+        // if we have a certificate then we'll try to extract
+        // the instance id for our request
+
+        final String instanceId = X509CertUtils.extractRequestInstanceId(principal.getX509Certificate());
+        SSHCertificates certs = instanceCertManager.getSSHCertificates(principal,
+                certRequest, instanceId);
 
         metric.stopTiming(timerMetric);
         return certs;
