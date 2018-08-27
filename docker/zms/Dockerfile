@@ -8,16 +8,7 @@ COPY --from=rdl /usr/bin/rdl-gen-athenz-server /usr/bin/rdl-gen-athenz-server
 WORKDIR /athenz/zms
 COPY . .
 
-RUN mvn install -pl core/zms -Dmaven.test.skip=true
-RUN mvn install -pl core/zts -Dmaven.test.skip=true
-RUN mvn install -pl libs/java/auth_core -Dmaven.test.skip=true
-RUN mvn install -pl libs/java/client_common -Dmaven.test.skip=true
-RUN mvn install -pl libs/java/server_common -Dmaven.test.skip=true
-RUN mvn install -pl libs/java/instance_provider -Dmaven.test.skip=true
-RUN mvn install -pl servers/zms -Dmaven.test.skip=true
-RUN mvn install -pl containers/jetty -Dmaven.test.skip=true
-
-RUN mvn install -pl assembly/zms -Dmaven.test.skip=true
+RUN mvn install -pl core/zms -pl core/zts -pl libs/java/auth_core -pl libs/java/client_common -pl libs/java/server_common -pl libs/java/instance_provider -pl servers/zms -pl containers/jetty -pl assembly/zms -Dmaven.test.skip=true
 
 RUN mkdir -p /tmp/zms \
     && tar xvzf ./assembly/zms/target/athenz-zms*-bin.tar.gz -C /tmp/zms \
