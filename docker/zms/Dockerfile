@@ -2,10 +2,11 @@ FROM rdl-athenz-server AS rdl
 
 FROM athenz-builder AS builder
 
-COPY . .
-
 COPY --from=rdl /usr/bin/rdl /usr/bin/rdl
 COPY --from=rdl /usr/bin/rdl-gen-athenz-server /usr/bin/rdl-gen-athenz-server
+
+WORKDIR /athenz/zms
+COPY . .
 
 RUN mvn install -pl core/zms -Dmaven.test.skip=true
 RUN mvn install -pl core/zts -Dmaven.test.skip=true
@@ -18,7 +19,7 @@ RUN mvn install -pl containers/jetty -Dmaven.test.skip=true
 
 RUN mvn install -pl assembly/zms -Dmaven.test.skip=true
 
-RUN mkdir -p /tmp/zms 
+RUN mkdir -p /tmp/zms \
     && tar xvzf ./assembly/zms/target/athenz-zms*-bin.tar.gz -C /tmp/zms \
     && mkdir -p /opt/athenz/zms \
     && mv /tmp/zms/etc /opt/athenz/zms/etc \
@@ -33,5 +34,5 @@ WORKDIR /opt/athenz/zms
 COPY --from=builder /opt/athenz/zms/* .
 
 ENTRYPOINT ["java"]
-CMD ["-classpath", "lib/jars/*", "-Dathenz.prop_file=conf/zms_server/athenz.properties", "-Dathenz.zms.prop_file=conf/zms_server/zms.properties", "-Dlogback.configurationFile=conf/zms_server/logback.xml" "com.yahoo.athenz.container.AthenzJettyContainer"]
+CMD ["-classpath", "lib/jars/*", "-Dathenz.prop_file=conf/zms_server/athenz.properties", "-Dathenz.zms.prop_file=conf/zms_server/zms.properties", "-Dlogback.configurationFile=conf/zms_server/logback.xml", "com.yahoo.athenz.container.AthenzJettyContainer"]
 
