@@ -2,7 +2,7 @@ FROM rdl-athenz-server AS rdl
 
 FROM openjdk:8-jdk-alpine
 
-RUN apk add --no-cache curl tar bash procps
+RUN apk add --no-cache curl tar bash procps tree
 
 ARG MAVEN_VERSION=3.5.4
 ARG USER_HOME_DIR="/root"
@@ -25,7 +25,7 @@ COPY --from=rdl /usr/bin/rdl-gen-athenz-server /usr/bin/rdl-gen-athenz-server
 WORKDIR /athenz/zms
 COPY . .
 
-RUN mvn install -pl core/zms -pl core/zts -pl libs/java/auth_core -pl libs/java/client_common -pl libs/java/server_common -pl libs/java/instance_provider -pl libs/java/cert_refresher -pl clients/java/zms -pl servers/zms -pl servers/zts -pl containers/jetty -pl assembly/zms -Dmaven.test.skip=true
+RUN mvn install -pl core/zms -pl core/zts -pl libs/java/auth_core -pl libs/java/client_common -pl libs/java/server_common -pl libs/java/instance_provider -pl libs/java/cert_refresher -pl clients/java/zms -pl servers/zms -pl servers/zts -pl containers/jetty -pl assembly/zms -pl assembly/zts -Dmaven.test.skip=true
 
 RUN mkdir -p /tmp/zms \
     && tar xvzf ./assembly/zms/target/athenz-zms*-bin.tar.gz -C /tmp/zms \
@@ -47,4 +47,6 @@ RUN mkdir -p /tmp/zts \
     && mv /tmp/zts/lib /opt/athenz/zts/lib \
     && mv /tmp/zts/webapps /opt/athenz/zts/webapps
 
+WORKDIR /opt/athenz
 
+RUN tree -L 5
