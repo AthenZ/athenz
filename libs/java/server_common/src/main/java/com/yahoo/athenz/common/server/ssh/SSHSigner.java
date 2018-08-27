@@ -27,9 +27,11 @@ public interface SSHSigner {
      * for a given principal
      * @param principal Principal requesting the ssh certificates
      * @param certRequest SSH Certificate Request
+     * @param instanceId Instance ID of the origin host
      * @return SSH Certificates
      */
-    default SSHCertificates generateCertificate(Principal principal, SSHCertRequest certRequest) {
+    default SSHCertificates generateCertificate(Principal principal, SSHCertRequest certRequest,
+            final String instanceId) {
         return null;
     }
 
