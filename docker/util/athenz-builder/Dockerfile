@@ -1,3 +1,5 @@
+FROM rdl-athenz-server AS rdl
+
 FROM openjdk:8-jdk-alpine
 
 RUN apk add --no-cache curl tar bash procps
@@ -16,5 +18,33 @@ RUN mkdir -p /usr/share/maven /usr/share/maven/ref \
 
 ENV MAVEN_HOME /usr/share/maven
 ENV MAVEN_CONFIG "$USER_HOME_DIR/.m2"
+
+COPY --from=rdl /usr/bin/rdl /usr/bin/rdl
+COPY --from=rdl /usr/bin/rdl-gen-athenz-server /usr/bin/rdl-gen-athenz-server
+
+WORKDIR /athenz/zms
+COPY . .
+
+RUN mvn install -pl core/zms -pl core/zts -pl libs/java/auth_core -pl libs/java/client_common -pl libs/java/server_common -pl libs/java/instance_provider -pl libs/java/cert_refresher -pl clients/java/zms -pl servers/zms -pl servers/zts -pl containers/jetty -pl assembly/zms -Dmaven.test.skip=true
+
+RUN mkdir -p /tmp/zms \
+    && tar xvzf ./assembly/zms/target/athenz-zms*-bin.tar.gz -C /tmp/zms \
+    && mv /tmp/zms/athenz-zms-*-SNAPSHOT/* /tmp/zms/ \
+    && rm -rf /tmp/zms/athenz-zms-*-SNAPSHOT \
+    && mkdir -p /opt/athenz/zms \
+    && mv /tmp/zms/etc /opt/athenz/zms/etc \
+    && mv /tmp/zms/conf /opt/athenz/zms/conf \
+    && mv /tmp/zms/lib /opt/athenz/zms/lib \
+    && mv /tmp/zms/webapps /opt/athenz/zms/webapps
+
+RUN mkdir -p /tmp/zts \
+    && tar xvzf ./assembly/zts/target/athenz-zts*-bin.tar.gz -C /tmp/zts \
+    && mv /tmp/zts/athenz-zts-*-SNAPSHOT/* /tmp/zts/ \
+    && rm -rf /tmp/zts/athenz-zts-*-SNAPSHOT \
+    && mkdir -p /opt/athenz/zts \
+    && mv /tmp/zts/etc /opt/athenz/zts/etc \
+    && mv /tmp/zts/conf /opt/athenz/zts/conf \
+    && mv /tmp/zts/lib /opt/athenz/zts/lib \
+    && mv /tmp/zts/webapps /opt/athenz/zts/webapps
 
 
