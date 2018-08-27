@@ -12,6 +12,8 @@ RUN mvn install -pl core/zms -pl core/zts -pl libs/java/auth_core -pl libs/java/
 
 RUN mkdir -p /tmp/zms \
     && tar xvzf ./assembly/zms/target/athenz-zms*-bin.tar.gz -C /tmp/zms \
+    && mv /tmp/zms/athenz-zms-*-SNAPSHOT/* /tmp/zms/ \
+    && rm -rf /tmp/zms/athenz-zms-*-SNAPSHOT
     && mkdir -p /opt/athenz/zms \
     && mv /tmp/zms/etc /opt/athenz/zms/etc \
     && mv /tmp/zms/conf /opt/athenz/zms/conf \
