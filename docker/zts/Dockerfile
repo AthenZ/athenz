@@ -18,7 +18,7 @@ RUN mkdir -p /tmp/zts \
     && mv /tmp/zts/etc /opt/athenz/zts/etc \
     && mv /tmp/zts/conf /opt/athenz/zts/conf \
     && mv /tmp/zts/lib /opt/athenz/zts/lib \
-    && mv /tmp/zts/webapp /opt/athenz/zts/webapp
+    && mv /tmp/zts/webapps /opt/athenz/zts/webapps
 
 FROM openjdk:8-jre-alpine AS runner
 
