@@ -1,7 +1,6 @@
 FROM node:10.9-alpine AS builder
-LABEL maintainer "kpango <i.can.feel.gravity@gmail.com>"
 
-RUN set -eux && apk update && apk add --no-cache --update ca-certificates libstdc++ libgcc tini make
+RUN set -eux && apk update && apk add --no-cache --update ca-certificates libstdc++ libgcc tini make git
 
 WORKDIR /tmp/work
 
