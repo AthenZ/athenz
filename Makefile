@@ -3,7 +3,7 @@ build-docker:
 	docker build -t athenz-builder -f docker/util/athenz-builder/Dockerfile .
 	docker build -t athenz-zms -f docker/zms/Dockerfile .
 	docker build -t athenz-zts -f docker/zts/Dockerfile .
-	#docker build -t athenz-ui -f docker/ui/Dockerfile .
+	docker build -t athenz-ui -f docker/ui/Dockerfile ui
 
 run-docker:
 	docker run -d -h localhost -p 4443:4443 -v `pwd`/docker/zms/conf:/opt/athenz/zms/conf/zms_server -v `pwd`/docker/zms/var:/opt/athenz/zms/var -v `pwd`:/opt/athenz/zms/logs/zms_server --name athenz-zms athenz-zms
