@@ -32,6 +32,7 @@
   <filter>
     <filter-name>RateLimitFilter</filter-name>
     <filter-class>com.yahoo.athenz.container.filter.RateLimitFilter</filter-class>
+    <async-supported>true</async-supported>
   </filter>
   <filter-mapping>
     <filter-name>RateLimitFilter</filter-name>
