@@ -2563,20 +2563,30 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         AthenzObject.SSH_CERT_REQUEST.convertToLowerCase(certRequest);
         logPrincipal(ctx);
 
-        Object timerMetric = metric.startTiming(callerTiming, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
-        metric.increment(HTTP_REQUEST);
-        metric.increment(caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
-
-        // generate our ssh certificate
+        // get our principal and domain values
 
         final Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        final String domainName = principal.getDomain();
+
+        Object timerMetric = metric.startTiming(callerTiming, domainName);
+        metric.increment(HTTP_REQUEST);
+        metric.increment(caller, domainName);
 
         // if we have a certificate then we'll try to extract
         // the instance id for our request
 
         final String instanceId = X509CertUtils.extractRequestInstanceId(principal.getX509Certificate());
-        SSHCertificates certs = instanceCertManager.getSSHCertificates(principal,
-                certRequest, instanceId);
+
+        // generate our certificate. the ssh signer interface throws
+        // rest ResourceExceptions so we'll catch and log those
+
+        SSHCertificates certs = null;
+        try {
+            certs = instanceCertManager.getSSHCertificates(principal,
+                    certRequest, instanceId);
+        } catch (com.yahoo.athenz.common.server.rest.ResourceException ex) {
+            throw error(ex.getCode(), ex.getMessage(), caller, domainName);
+        }
 
         metric.stopTiming(timerMetric);
         return certs;
