@@ -1,0 +1,65 @@
+{
+    "templates" : {
+        "user_provisioning": {
+            "roles": [
+                {
+                    "name": "_domain_:role.user",
+                    "modified": "1970-01-01T00:00:00.000Z"
+                },
+                {
+                    "name": "_domain_:role.superuser",
+                    "modified": "1970-01-01T00:00:00.000Z"
+                },
+                {
+                    "name": "_domain_:role.builders",
+                    "roleMembers": [
+                        {
+                            "memberName": "sys.builder"
+                        }
+                    ],
+                    "modified": "1970-01-01T00:00:00.000Z"
+                }
+            ],
+            "policies": [
+                {
+                    "name": "_domain_:policy.user",
+                    "modified": "1970-01-01T00:00:00.000Z",
+                    "assertions": [
+                        {
+                            "resource": "_domain_:node.*",
+                            "role": "_domain_:role.user",
+                            "action": "node_user"
+                        }
+                    ]
+                },
+                {
+                    "name": "_domain_:policy.superuser",
+                    "modified": "1970-01-01T00:00:00.000Z",
+                    "assertions": [
+                        {
+                            "resource": "_domain_:node.*",
+                            "role": "_domain_:role.superuser",
+                            "action": "node_sudo"
+                        }
+                    ]
+                },
+                {
+                    "name": "_domain_:policy.builders",
+                    "modified": "1970-01-01T00:00:00.000Z",
+                    "assertions": [
+                        {
+                            "resource": "_domain_:build",
+                            "role": "_domain_:role.builders",
+                            "action": "read"
+                        },
+                        {
+                            "resource": "_domain_:build",
+                            "role": "_domain_:role.builders",
+                            "action": "delete"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
