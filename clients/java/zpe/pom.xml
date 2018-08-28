@@ -80,6 +80,7 @@
         <version>2.3</version>
         <executions>
           <execution>
+            <id>shade-jar</id>
             <phase>package</phase>
             <goals>
               <goal>shade</goal>
@@ -191,6 +192,29 @@
                     </filter>
                   </filters>
                 </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>no-shade</id>
+      <activation>
+        <property>
+          <name>no-shade</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-shade-plugin</artifactId>
+            <version>2.3</version>
+            <executions>
+              <execution>
+                <id>shade-jar</id>
+                <phase>none</phase>
               </execution>
             </executions>
           </plugin>
