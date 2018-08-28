@@ -18,7 +18,7 @@ RUN rm -rf scripts \
     && rm -rf eslint.json \
     && rm -rf pom.xml \
     && rm -rf rdl-api.md \
-    && rm -rf README.md \
+    && rm -rf README.md
 
 EXPOSE 9443
 
