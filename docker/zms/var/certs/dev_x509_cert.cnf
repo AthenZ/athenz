@@ -1,0 +1,21 @@
+[req]
+default_bits = 1024
+prompt = no
+default_md = sha256
+distinguished_name = dn
+x509_extensions = v3_req
+
+[ dn ]
+C = US
+ST = CA
+O = Athenz
+OU = Testing Domain
+CN = MBP13JAQ-A050.local
+
+[ v3_req ]
+keyUsage = digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = MBP13JAQ-A050.local
