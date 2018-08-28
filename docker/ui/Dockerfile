@@ -21,9 +21,9 @@ RUN rm -rf scripts \
 
 FROM node:10.9-alpine
 
-WORKDIR /root
+WORKDIR /opt/athenz/ui
 
-COPY --from=builder /tmp/work /root
+COPY --from=builder /tmp/work /opt/athenz/ui
 
 EXPOSE 9443
 
