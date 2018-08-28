@@ -10,8 +10,6 @@ RUN make
 
 RUN rm -rf scripts \
     && rm -rf test \
-    && rm -rf package.json \
-    && rm -rf package-lock.json \
     && rm -rf Gruntfile.js \
     && rm -rf Makefile \
     && rm -rf eslint.json \
