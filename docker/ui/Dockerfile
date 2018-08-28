@@ -1,7 +1,7 @@
 FROM node:10.9-alpine AS builder
 LABEL maintainer "kpango <i.can.feel.gravity@gmail.com>"
 
-RUN set -eux && apk update && apk add --no-cache --update ca-certificates libstdc++ libgcc tini
+RUN set -eux && apk update && apk add --no-cache --update ca-certificates libstdc++ libgcc tini make
 
 WORKDIR /tmp/work
 
@@ -19,6 +19,12 @@ RUN rm -rf scripts \
     && rm -rf pom.xml \
     && rm -rf rdl-api.md \
     && rm -rf README.md
+
+FROM node:10.9-alpine
+
+WORKDIR /root
+
+COPY --from=builder /tmp/work /root
 
 EXPOSE 9443
 
