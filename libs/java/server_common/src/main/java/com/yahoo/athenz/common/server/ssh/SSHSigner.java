@@ -28,7 +28,8 @@ public interface SSHSigner {
      * @param principal Principal requesting the ssh certificates
      * @param certRequest SSH Certificate Request
      * @param instanceId Instance ID of the origin host
-     * @return SSH Certificates
+     * @return SSH Certificates. Any error conditions are handled
+     * by throwing com.yahoo.athenz.common.rest.ResourceExceptions
      */
     default SSHCertificates generateCertificate(Principal principal, SSHCertRequest certRequest,
             final String instanceId) {
@@ -38,7 +39,8 @@ public interface SSHSigner {
     /**
      * Retrieve the SSH Signer certificate for the given type
      * @param type signer type: user or host
-     * @return SSH Signer Certificate
+     * @return SSH Signer Certificate. Any error conditions are handled
+     * by throwing com.yahoo.athenz.common.rest.ResourceExceptions
      */
     default String getSignerCertificate(String type) {
         return null;
