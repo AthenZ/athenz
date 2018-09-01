@@ -38,9 +38,9 @@ func (cli Zms) dumpDomain(buf *bytes.Buffer, domain *zms.Domain) {
 	}
 	if domain.Account != "" {
 		buf.WriteString(indent_level1)
-		buf.WriteString("aws_account: ")
+		buf.WriteString("aws_account: '")
 		buf.WriteString(domain.Account)
-		buf.WriteString("\n")
+		buf.WriteString("'\n")
 	}
 	productID := int(*domain.YpmId)
 	if productID != 0 {
