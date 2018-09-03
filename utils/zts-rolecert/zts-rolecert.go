@@ -108,33 +108,28 @@ func generateCSR(keySigner *signer, roleDomain, roleName, host, rfc822 string) (
 	return buf.String(), nil
 }
 
-func getRoleCertificate(client *zts.ZTSClient, keySigner *signer, host, rfc822, roleDomain, roleName, roleCertFile string) bool {
+func getRoleCertificate(client *zts.ZTSClient, keySigner *signer, host, rfc822, roleDomain, roleName, roleCertFile string) {
 
 	var roleRequest = new(zts.RoleCertificateRequest)
 	csr, err := generateCSR(keySigner, roleDomain, roleName, host, rfc822)
 	if err != nil {
-		log.Printf("Unable to generate CSR for %s, err: %v\n", roleName, err)
-		return false
+		log.Fatalf("Unable to generate CSR for %s, err: %v\n", roleName, err)
 	}
 
 	roleRequest.Csr = csr
 	roleToken, err := client.PostRoleCertificateRequest(zts.DomainName(roleDomain), zts.EntityName(roleName), roleRequest)
 	if err != nil {
-		log.Printf("PostRoleCertificateRequest failed for %s, err: %v\n", roleName, err)
-		return false
+		log.Fatalf("PostRoleCertificateRequest failed for %s, err: %v\n", roleName, err)
 	}
 
 	if roleCertFile != "" {
 		err = ioutil.WriteFile(roleCertFile, []byte(roleToken.Token), 0444)
 		if err != nil {
-			log.Printf("Unable to save role token certificate in %s, err: %v\n", roleCertFile, err)
-			return false
+			log.Fatalf("Unable to save role token certificate in %s, err: %v\n", roleCertFile, err)
 		}
 	} else {
 		fmt.Println(roleToken.Token)
 	}
-
-	return true
 }
 
 func ztsClient(ztsURL, ztsHostName, keyFile, certFile, caFile string) (*zts.ZTSClient, error) {
