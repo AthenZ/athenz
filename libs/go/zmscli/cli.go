@@ -674,14 +674,6 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   admin     : additional list of administrators to be added to the domain\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   import-domain coretech coretech.yaml " + cli.UserDomain + ".john\n")
-	case "update-domain":
-		buf.WriteString(" syntax:\n")
-		buf.WriteString("   update-domain domain [file.yaml] - no file means stdin\n")
-		buf.WriteString(" parameters:\n")
-		buf.WriteString("   domain    : name of the domain being updated\n")
-		buf.WriteString("   file.yaml : file that contains domain contents in yaml format\n")
-		buf.WriteString(" examples:\n")
-		buf.WriteString("   update-domain coretech coretech.yaml\n")
 	case "export-domain":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   export-domain domain [file.yaml] - no file means stdout\n")
@@ -1443,7 +1435,6 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-application-id application-id\n")
 	buf.WriteString("   import-domain domain [file.yaml [admin ...]] - no file means stdin\n")
 	buf.WriteString("   export-domain domain [file.yaml] - no file means stdout\n")
-	buf.WriteString("   update-domain domain [file.yaml] - no file means stdin\n")
 	buf.WriteString("   delete-domain domain\n")
 	buf.WriteString("   get-signed-domains [matching_tag]\n")
 	buf.WriteString("   use-domain [domain]\n")
