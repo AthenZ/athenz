@@ -4550,12 +4550,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // authenticated already
         
         if (authzServiceTokenOperation) {
-            
-            List<TenantRoleAction> roles = new ArrayList<>();
-            TenantRoleAction roleAction = new TenantRoleAction().setAction("*").setRole(ADMIN_ROLE_NAME);
-            roles.add(roleAction);
-            dbService.executePutTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain, null,
-                roles, auditRef, caller);
+            setupTenantAdminPolicyInProvider(ctx, provSvcDomain, provSvcName, tenantDomain,
+                    auditRef, caller);
         }
 
         metric.stopTiming(timerMetric);
@@ -5191,7 +5187,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         String authorizedService = ((RsrcCtxWrapper) ctx).principal().getAuthorizedService();
         if (isAuthorizedProviderService(authorizedService, provSvcDomain, provSvcName)) {
-            
+
+            // first we need to setup the admin roles in case this
+            // happens to be the first resource group
+
+            setupTenantAdminPolicyInProvider(ctx, provSvcDomain, provSvcName, tenantDomain,
+                    auditRef, caller);
+
+            // now onboard the requested resource group
+
             dbService.executePutTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain,
                     resourceGroup, roleActions, auditRef, caller);
         }
@@ -5199,7 +5203,18 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.stopTiming(timerMetric);
         return detail;
     }
-     
+
+    void setupTenantAdminPolicyInProvider(ResourceContext ctx, final String provSvcDomain,
+            final String provSvcName, final String tenantDomain, final String auditRef,
+            final String caller) {
+
+        List<TenantRoleAction> roles = new ArrayList<>();
+        TenantRoleAction roleAction = new TenantRoleAction().setAction("*").setRole(ADMIN_ROLE_NAME);
+        roles.add(roleAction);
+        dbService.executePutTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain, null,
+                roles, auditRef, caller);
+    }
+
     String getProviderRoleAction(String provSvcDomain, String roleName) {
         
         // if no match then we're going to default action of empty string
