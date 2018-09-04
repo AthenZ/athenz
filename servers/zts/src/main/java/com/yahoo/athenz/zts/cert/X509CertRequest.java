@@ -2,6 +2,7 @@ package com.yahoo.athenz.zts.cert;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -14,11 +15,10 @@ import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.store.DataStore;
 
 public class X509CertRequest {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DataStore.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(X509CertRequest.class);
     private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
 
     private PKCS10CertificationRequest certReq;
@@ -130,7 +130,8 @@ public class X509CertRequest {
     }
     
     public boolean validate(Principal providerService, String domain, String service,
-            String reqInstanceId, Authorizer authorizer, StringBuilder errorMsg) {
+            String reqInstanceId, Set<String> validSubjectOValues, Authorizer authorizer,
+            StringBuilder errorMsg) {
         
         // parse the cert request (csr) to extract the DNS entries
         // along with IP addresses. Validate that all hostnames
@@ -169,7 +170,14 @@ public class X509CertRequest {
                 return false;
             }
         }
-        
+
+        // finally validate the O field in the certificate if necessary
+
+        if (!validateSubjectOField(validSubjectOValues)) {
+            errorMsg.append("Unable to validate Subject O Field");
+            return false;
+        }
+
         return true;
     }
     
@@ -267,6 +275,28 @@ public class X509CertRequest {
 
     public String getDnsSuffix() {
         return dnsSuffix;
+    }
+
+    public boolean validateSubjectOField(Set<String> validValues) {
+
+        if (validValues == null || validValues.isEmpty()) {
+            return true;
+        }
+
+        try {
+            final String value = Crypto.extractX509CSRSubjectOField(certReq);
+            if (value == null) {
+                return true;
+            }
+            boolean res = validValues.contains(value);
+            if (!res) {
+                LOGGER.error("Failed to validate Subject O Field {}", value);
+            }
+            return res;
+        } catch (CryptoException ex) {
+            LOGGER.error("Unable to extract Subject O Field: {}", ex.getMessage());
+            return false;
+        }
     }
     
     public List<String> getDnsNames() {

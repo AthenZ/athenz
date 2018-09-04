@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.cert.X509Certificate;
 import java.util.List;
+import java.util.HashSet;
 
 import static org.testng.Assert.*;
 
@@ -285,7 +286,7 @@ public class X509CertRequestTest {
         assertNotNull(certReq);
         
         StringBuilder errorMsg = new StringBuilder(256);
-        assertFalse(certReq.validate(null, "sys", "production", null, null, errorMsg));
+        assertFalse(certReq.validate(null, "sys", "production", null, null, null, errorMsg));
     }
     
     @Test
@@ -298,7 +299,7 @@ public class X509CertRequestTest {
         assertNotNull(certReq);
         
         StringBuilder errorMsg = new StringBuilder(256);
-        assertFalse(certReq.validate(null, "athenz", "production", null, null, errorMsg));
+        assertFalse(certReq.validate(null, "athenz", "production", null, null, null, errorMsg));
     }
     
     @Test
@@ -311,7 +312,7 @@ public class X509CertRequestTest {
         assertNotNull(certReq);
         
         StringBuilder errorMsg = new StringBuilder(256);
-        assertFalse(certReq.validate(null, "athenz", "production", "1002", null, errorMsg));
+        assertFalse(certReq.validate(null, "athenz", "production", "1002", null, null, errorMsg));
     }
     
     @Test
@@ -324,7 +325,7 @@ public class X509CertRequestTest {
         assertNotNull(certReq);
         
         StringBuilder errorMsg = new StringBuilder(256);
-        assertFalse(certReq.validate(null, "athenz", "production", "1001", null, errorMsg));
+        assertFalse(certReq.validate(null, "athenz", "production", "1001", null, null, errorMsg));
         assertTrue(errorMsg.toString().contains("Unable to validate CSR common name"));
     }
     
@@ -338,7 +339,7 @@ public class X509CertRequestTest {
         assertNotNull(certReq);
         
         StringBuilder errorMsg = new StringBuilder(256);
-        assertFalse(certReq.validate(null, "athenz", "production", "1001", null, errorMsg));
+        assertFalse(certReq.validate(null, "athenz", "production", "1001", null, null, errorMsg));
         assertTrue(errorMsg.toString().contains("does not end with expected suffix"));
     }
     
@@ -357,10 +358,35 @@ public class X509CertRequestTest {
             .thenReturn(false);
         
         StringBuilder errorMsg = new StringBuilder(256);
-        assertFalse(certReq.validate(provider, "athenz", "production", "1001", authorizer, errorMsg));
+        assertFalse(certReq.validate(provider, "athenz", "production", "1001", null, authorizer, errorMsg));
         assertTrue(errorMsg.toString().contains("not authorized to handle"));
     }
-    
+
+    @Test
+    public void testValidateOFieldCheck() throws IOException {
+
+        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertNotNull(certReq);
+
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        Principal provider = Mockito.mock(Principal.class);
+        Mockito.when(authorizer.access("launch", "sys.auth:dns.ostk.athenz.cloud", provider, null))
+                .thenReturn(true);
+
+        StringBuilder errorMsg = new StringBuilder(256);
+        HashSet<String> validOrgs = new HashSet<>();
+        validOrgs.add("Unknown");
+
+        assertFalse(certReq.validate(provider, "athenz", "production", "1001", validOrgs, authorizer, errorMsg));
+        assertTrue(errorMsg.toString().contains("Unable to validate Subject O Field"));
+
+        validOrgs.add("Athenz");
+        assertTrue(certReq.validate(provider, "athenz", "production", "1001", validOrgs, authorizer, errorMsg));
+    }
+
     @Test
     public void testValidate() throws IOException {
         
@@ -376,8 +402,11 @@ public class X509CertRequestTest {
             .thenReturn(true);
         
         StringBuilder errorMsg = new StringBuilder(256);
-        assertTrue(certReq.validate(provider, "athenz", "production", "1001", authorizer, errorMsg));
-        assertTrue(certReq.validate(provider, "athenz", "production", "1001", null, errorMsg));
+        assertTrue(certReq.validate(provider, "athenz", "production", "1001", null, authorizer, errorMsg));
+
+        HashSet<String> validOrgs = new HashSet<>();
+        validOrgs.add("Athenz");
+        assertTrue(certReq.validate(provider, "athenz", "production", "1001", validOrgs, null, errorMsg));
     }
     
     @Test

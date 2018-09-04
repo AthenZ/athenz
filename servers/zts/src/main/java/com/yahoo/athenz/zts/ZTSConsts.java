@@ -54,6 +54,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_READ_ONLY_MODE         = "athenz.zts.read_only_mode";
 
     public static final String ZTS_PROP_CERT_REFRESH_IP_FNAME  = "athenz.zts.cert_refresh_ip_fname";
+    public static final String ZTS_PROP_CERT_ALLOWED_O_VALUES  = "athenz.zts.cert_allowed_o_values";
     public static final String ZTS_PROP_INSTANCE_CERT_IP_FNAME = "athenz.zts.instance_cert_ip_fname";
 
     public static final String ZTS_PROP_CERTSIGN_BASE_URI        = "athenz.zts.certsign_base_uri";

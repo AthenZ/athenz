@@ -730,17 +730,54 @@ public class Crypto {
         return null;
     }
     
-    public static String extractX509CSRCommonName(PKCS10CertificationRequest certReq) {
+    public static String extractX509CSRSubjectField(PKCS10CertificationRequest certReq, ASN1ObjectIdentifier id) {
         
-        String cn = null;
         X500Name x500name = certReq.getSubject();
-        RDN cnRdn = x500name.getRDNs(BCStyle.CN)[0];
-        if (cnRdn != null) {
-            cn = IETFUtils.valueToString(cnRdn.getFirst().getValue());
+        if (x500name == null) {
+            return null;
         }
-        return cn;
+        RDN[] rdns = x500name.getRDNs(id);
+
+        // we're only supporting a single field in Athenz certificates so
+        // any other multiple value will be considered invalid
+
+        if (rdns == null || rdns.length == 0) {
+            return null;
+        }
+
+        if (rdns.length != 1) {
+            throw new CryptoException("CSR Subject contains multiple values for the same field.");
+        }
+
+        return IETFUtils.valueToString(rdns[0].getFirst().getValue());
     }
-    
+
+    public static String extractX509CSRCommonName(PKCS10CertificationRequest certReq) {
+        // in case there are multiple CNs, we're only looking at the first one
+        // in Athenz we should never have multiple CNs so we're going to reject
+        // any csr that has multiple values
+
+        return extractX509CSRSubjectField(certReq, BCStyle.CN);
+    }
+
+    public static String extractX509CSRSubjectOField(PKCS10CertificationRequest certReq) {
+
+        // in case there are multiple Os, we're only looking at the first one
+        // in Athenz we should never have multiple Os so we're going to reject
+        // any csr that has multiple values
+
+        return extractX509CSRSubjectField(certReq, BCStyle.O);
+    }
+
+    public static String extractX509CSRSubjectOUField(PKCS10CertificationRequest certReq) {
+
+        // in case there are multiple OUs, we're only looking at the first one
+        // in Athenz we should never have multiple OUs so we're going to reject
+        // any certificate that has multiple values
+
+        return extractX509CSRSubjectField(certReq, BCStyle.OU);
+    }
+
     public static String extractX509CSREmail(PKCS10CertificationRequest certReq) {
         
         String rfc822 = null;
@@ -860,21 +897,55 @@ public class Crypto {
         }
         return strWriter.toString();
     }
-    
+
+    public static String extractX509CertSubjectField(X509Certificate x509Cert, ASN1ObjectIdentifier id) {
+
+        String principalName = x509Cert.getSubjectX500Principal().getName();
+        if (principalName == null || principalName.isEmpty()) {
+            return null;
+        }
+        X500Name x500name = new X500Name(principalName);
+        RDN[] rdns = x500name.getRDNs(id);
+
+        // we're only supporting a single field in Athenz certificates so
+        // any other multiple value will be considered invalid
+
+        if (rdns == null || rdns.length == 0) {
+            return null;
+        }
+
+        if (rdns.length != 1) {
+            throw new CryptoException("CSR Subject contains multiple values for the same field.");
+        }
+
+        return IETFUtils.valueToString(rdns[0].getFirst().getValue());
+    }
+
     public static String extractX509CertCommonName(X509Certificate x509Cert) {
         
         // in case there are multiple CNs, we're only looking at the first one
+        // in Athenz we should never have multiple CNs so we're going to reject
+        // any certificate that has multiple values
 
-        String cn = null;
-        String principalName = x509Cert.getSubjectX500Principal().getName();
-        if (principalName != null && !principalName.isEmpty()) {
-            X500Name x500name = new X500Name(principalName);
-            RDN cnRdn = x500name.getRDNs(BCStyle.CN)[0];
-            if (cnRdn != null) {
-                cn = IETFUtils.valueToString(cnRdn.getFirst().getValue());
-            }
-        }
-        return cn;
+        return extractX509CertSubjectField(x509Cert, BCStyle.CN);
+    }
+
+    public static String extractX509CertSubjectOUField(X509Certificate x509Cert) {
+
+        // in case there are multiple OUs, we're only looking at the first one
+        // in Athenz we should never have multiple OUs so we're going to reject
+        // any certificate that has multiple values
+
+        return extractX509CertSubjectField(x509Cert, BCStyle.OU);
+    }
+
+    public static String extractX509CertSubjectOField(X509Certificate x509Cert) {
+
+        // in case there are multiple Os, we're only looking at the first one
+        // in Athenz we should never have multiple Os so we're going to reject
+        // any certificate that has multiple values
+
+        return extractX509CertSubjectField(x509Cert, BCStyle.O);
     }
 
     public static List<String> extractX509CertDnsNames(X509Certificate x509Cert) {
