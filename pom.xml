@@ -69,16 +69,17 @@
   </ciManagement>
 
   <properties>
-    <jetty.version>9.4.11.v20180605</jetty.version>
+    <jetty.version>9.4.12.v20180830</jetty.version>
     <jersey.version>2.25.1</jersey.version>
     <jackson.version>2.9.6</jackson.version>
     <maven-surefire-plugin.version>2.22.0</maven-surefire-plugin.version>
     <rdl.version>1.4.14</rdl.version>
-    <bouncycastle.version>1.59</bouncycastle.version>
-    <aws.version>1.11.357</aws.version>
-    <guava.version>25.1-jre</guava.version>
+    <bouncycastle.version>1.60</bouncycastle.version>
+    <aws.version>1.11.401</aws.version>
+    <guava.version>26.0-jre</guava.version>
     <logback.version>1.2.3</logback.version>
     <javax.version>3.1.0</javax.version>
+    <mockito.version>2.21.0</mockito.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
@@ -215,7 +216,7 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>2.19.0</version>
+      <version>${mockito.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

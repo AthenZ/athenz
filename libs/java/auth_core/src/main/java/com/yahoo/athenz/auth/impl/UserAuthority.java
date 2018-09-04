@@ -91,12 +91,19 @@ public class UserAuthority implements Authority {
             LOG.error(errMsg.toString());
             return null;
         }
-        
+
+        final String encodedPassword = creds.substring(6);
+        if (encodedPassword.isEmpty()) {
+            errMsg.append("UserAuthority:authenticate: no credentials after 'Basic '");
+            LOG.error(errMsg.toString());
+            return null;
+        }
+
         // decode - need to skip the first 6 bytes for 'Basic '
         
         String decoded;
         try {
-            decoded = new String(Base64.decode(creds.substring(6).getBytes(StandardCharsets.UTF_8)));
+            decoded = new String(Base64.decode(encodedPassword.getBytes(StandardCharsets.UTF_8)));
         } catch (Exception e) {
             errMsg.append("UserAuthority:authenticate: factory exc=").append(e.getMessage());
             LOG.error(errMsg.toString());
