@@ -1165,17 +1165,6 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   entity : name of the entity to be deleted\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domain_example + " delete-entity profile\n")
-	case "show-tenancy":
-		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domain_param + " show-tenancy provider\n")
-		buf.WriteString(" parameters:\n")
-		if !interactive {
-			buf.WriteString("   domain   : name of the tenant's domain\n")
-		}
-		buf.WriteString("   provider : provider's service name to verify if the domain is a tenant\n")
-		buf.WriteString("            : the provider's name must be service common name in <domain>.<service> format\n")
-		buf.WriteString(" examples:\n")
-		buf.WriteString("   " + domain_example + " show-tenancy weather.storage\n")
 	case "add-tenancy":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domain_param + " add-tenancy provider\n")
@@ -1199,75 +1188,6 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("            : the provider's name must be service common name in <domain>.<service> format\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domain_example + " delete-tenancy weather.storage\n")
-	case "add-tenancy-resource-group":
-		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domain_param + " add-tenancy-resource-group provider resource_group\n")
-		buf.WriteString(" parameters:\n")
-		if !interactive {
-			buf.WriteString("   domain         : name of the tenant's domain\n")
-		}
-		buf.WriteString("   provider       : provider's service name to auto-provision tenancy for the domain\n")
-		buf.WriteString("                  : the provider's name must be service common name in <domain>.<service> format\n")
-		buf.WriteString("                  : the provider must support auto-provisioning and have configured endpoint in the service\n")
-		buf.WriteString("   resource_group : name of the tenant's resource group\n")
-		buf.WriteString(" examples:\n")
-		buf.WriteString("   " + domain_example + " add-tenancy-resource-group weather.storage dev_group\n")
-	case "delete-tenancy-resource-group":
-		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domain_param + " delete-tenancy-resource-group provider resource_group\n")
-		buf.WriteString(" parameters:\n")
-		if !interactive {
-			buf.WriteString("   domain         : name of the tenant's domain\n")
-		}
-		buf.WriteString("   provider       : provider's service name to remove the tenant from\n")
-		buf.WriteString("                  : the provider's name must be service common name in <domain>.<service> format\n")
-		buf.WriteString("   resource_group : name of the tenant's resource group\n")
-		buf.WriteString(" examples:\n")
-		buf.WriteString("   " + domain_example + " delete-tenancy-resource-group weather.storage dev_group\n")
-	case "show-tenant-roles":
-		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domain_param + " show-tenant-roles service tenant_domain\n")
-		buf.WriteString(" parameters:\n")
-		if !interactive {
-			buf.WriteString("   domain        : provider's domain name\n")
-		}
-		buf.WriteString("   service       : provider's service name\n")
-		buf.WriteString("   tenant_domain : name of the tenant's domain to list roles for\n")
-		buf.WriteString(" examples:\n")
-		buf.WriteString("   tenant domain: coretech\n")
-		buf.WriteString("   provider domain: sports\n")
-		buf.WriteString("   provider service: hosted\n")
-		buf.WriteString("   " + tenant_example + " show-tenant-roles hosted coretech\n")
-	case "add-tenant-roles":
-		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domain_param + " add-tenant-roles service tenant_domain role=action [role=action ...]\n")
-		buf.WriteString(" parameters:\n")
-		if !interactive {
-			buf.WriteString("   domain        : provider's domain name\n")
-		}
-		buf.WriteString("   service       : provider's service name\n")
-		buf.WriteString("   tenant_domain : name of the tenant's domain to add roles for\n")
-		buf.WriteString("   role          : name of the role to be added\n")
-		buf.WriteString("   action        : the action value for the role\n")
-		buf.WriteString(" examples:\n")
-		buf.WriteString("   tenant domain: coretech\n")
-		buf.WriteString("   provider domain: sports\n")
-		buf.WriteString("   provider service: hosted\n")
-		buf.WriteString("   " + tenant_example + " add-tenant-roles hosted coretech readers=read writers=modify\n")
-	case "delete-tenant-roles":
-		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domain_param + " delete-tenant-roles service tenant_domain\n")
-		buf.WriteString(" parameters:\n")
-		if !interactive {
-			buf.WriteString("   domain        : provider's domain name\n")
-		}
-		buf.WriteString("   service       : provider's service name\n")
-		buf.WriteString("   tenant_domain : name of the tenant's domain to remove all previously setup tenancy roles\n")
-		buf.WriteString(" examples:\n")
-		buf.WriteString("   tenant domain: coretech\n")
-		buf.WriteString("   provider domain: sports\n")
-		buf.WriteString("   provider service: hosted\n")
-		buf.WriteString("   " + tenant_example + " delete-tenant-roles hosted coretech\n")
 	case "show-tenant-resource-group-roles":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domain_param + " show-tenant-resource-group-roles service tenant_domain resource_group\n")
@@ -1579,14 +1499,8 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   delete-entity entity\n")
 	buf.WriteString("\n")
 	buf.WriteString(" Tenancy commands:\n")
-	buf.WriteString("   show-tenancy provider\n")
 	buf.WriteString("   add-tenancy provider\n")
 	buf.WriteString("   delete-tenancy provider\n")
-	buf.WriteString("   add-tenancy-resource-group provider resource_group\n")
-	buf.WriteString("   delete-tenancy-resource-group provider resource-group\n")
-	buf.WriteString("   show-tenant-roles service tenant_domain\n")
-	buf.WriteString("   add-tenant-roles service tenant_domain role=action [role=action ...]\n")
-	buf.WriteString("   delete-tenant-roles service tenant_domain\n")
 	buf.WriteString("   show-tenant-resource-group-roles service tenant_domain resource_group\n")
 	buf.WriteString("   add-tenant-resource-group-roles service tenant_domain resource_group role=action [role=action ...]\n")
 	buf.WriteString("   delete-tenant-resource-group-roles service tenant_domain resource_group\n")
