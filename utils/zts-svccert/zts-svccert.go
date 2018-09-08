@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"strings"
 	"time"
@@ -27,7 +28,7 @@ type signer struct {
 
 func main() {
 	var ztsURL, serviceKey, serviceCert, domain, service, keyID string
-	var caCertFile, certFile, signerCertFile, dnsDomain, hdr string
+	var caCertFile, certFile, signerCertFile, dnsDomain, hdr, ip string
 	var csr bool
 	var expiryTime int
 	flag.BoolVar(&csr, "csr", false, "request csr only")
@@ -43,6 +44,7 @@ func main() {
 	flag.StringVar(&ztsURL, "zts", "", "url of the ZTS Service")
 	flag.StringVar(&dnsDomain, "dns-domain", "", "dns domain suffix to be included in the csr")
 	flag.StringVar(&hdr, "hdr", "Athenz-Principal-Auth", "Header name")
+	flag.StringVar(&ip, "ip", "", "IP address")
 	flag.Parse()
 
 	if serviceKey == "" || domain == "" || service == "" ||
@@ -67,7 +69,7 @@ func main() {
 	hyphenDomain := strings.Replace(domain, ".", "-", -1)
 	host := fmt.Sprintf("%s.%s.%s", service, hyphenDomain, dnsDomain)
 	commonName := fmt.Sprintf("%s.%s", domain, service)
-	csrData, err := generateCSR(pkSigner, commonName, host)
+	csrData, err := generateCSR(pkSigner, commonName, host, ip)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -151,7 +153,7 @@ func newSigner(privateKeyPEM []byte) (*signer, error) {
 	}
 }
 
-func generateCSR(keySigner *signer, commonName, host string) (string, error) {
+func generateCSR(keySigner *signer, commonName, host string, ip string) (string, error) {
 	// note: RFC 6125 states that if the SAN (Subject Alternative Name) exists,
 	// it is used, not the CA. So, we will always put the Athenz name in the CN
 	// (it is *not* a DNS domain name), and put the host name into the SAN.
@@ -166,6 +168,9 @@ func generateCSR(keySigner *signer, commonName, host string) (string, error) {
 	}
 	if host != "" {
 		template.DNSNames = []string{host}
+	}
+	if ip != "" {
+		template.IPAddresses = []net.IP{net.ParseIP(ip)}
 	}
 	csr, err := x509.CreateCertificateRequest(rand.Reader, &template, keySigner.key)
 	if err != nil {
@@ -204,7 +209,7 @@ func ntokenClient(ztsURL, domain, service, keyID, caCertFile, hdr string, keyByt
 	}
 
 	transport := &http.Transport{
-		Proxy: http.ProxyFromEnvironment,
+		Proxy:                 http.ProxyFromEnvironment,
 		ResponseHeaderTimeout: 30 * time.Second,
 	}
 	if caCertFile != "" {
