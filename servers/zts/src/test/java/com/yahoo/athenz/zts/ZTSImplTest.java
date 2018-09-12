@@ -161,6 +161,8 @@ public class ZTSImplTest {
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_REFRESH_IP_FNAME,
                 "src/test/resources/cert_refresh_ipblocks.txt");
         System.setProperty(ZTSConsts.ZTS_PROP_OSTK_HOST_SIGNER_SERVICE, "sys.auth.hostsignd");
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_ALLOWED_O_VALUES, "Athenz, Inc.|My Test Company|Athenz|Yahoo");
+
         auditLogger = new DefaultAuditLogger();
     }
     
@@ -3701,7 +3703,7 @@ public class ZTSImplTest {
         
         Set<String> roles = new HashSet<>();
         roles.add("writer");
-        assertFalse(zts.validateRoleCertificateRequest(certReq, "sports", roles, "sports.scores"));
+        assertFalse(zts.validateRoleCertificateRequest(certReq, "sports", roles, "sports.scores", null));
     }
     
     @Test
@@ -3713,7 +3715,7 @@ public class ZTSImplTest {
         
         Set<String> roles = new HashSet<>();
         roles.add("readers");
-        assertFalse(zts.validateRoleCertificateRequest(certReq, "sports", roles, "sports.standings"));
+        assertFalse(zts.validateRoleCertificateRequest(certReq, "sports", roles, "sports.standings", null));
     }
     
     @Test
@@ -3725,9 +3727,24 @@ public class ZTSImplTest {
         
         Set<String> roles = new HashSet<>();
         roles.add("readers");
-        assertTrue(zts.validateRoleCertificateRequest(certReq, "sports", roles, "no-email"));
+        assertTrue(zts.validateRoleCertificateRequest(certReq, "sports", roles, "no-email", null));
     }
-    
+
+    @Test
+    public void testValidateRoleCertificateRequestInvalidOField() throws IOException {
+
+        Path path = Paths.get("src/test/resources/valid_email.csr");
+        String csr = new String(Files.readAllBytes(path));
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
+
+        Set<String> roles = new HashSet<>();
+        roles.add("readers");
+
+        Set<String> validOValues = new HashSet<>();
+        validOValues.add("InvalidCompany");
+        assertFalse(zts.validateRoleCertificateRequest(certReq, "sports", roles, "sports.scores", validOValues));
+    }
+
     @Test
     public void testValidateRoleCertificateRequest() throws IOException {
         
@@ -3737,7 +3754,11 @@ public class ZTSImplTest {
         
         Set<String> roles = new HashSet<>();
         roles.add("readers");
-        assertTrue(zts.validateRoleCertificateRequest(certReq, "sports", roles, "sports.scores"));
+        assertTrue(zts.validateRoleCertificateRequest(certReq, "sports", roles, "sports.scores", null));
+
+        Set<String> validOValues = new HashSet<>();
+        validOValues.add("Athenz");
+        assertTrue(zts.validateRoleCertificateRequest(certReq, "sports", roles, "sports.scores", validOValues));
     }
     
     @Test

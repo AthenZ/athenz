@@ -550,7 +550,39 @@ public class CryptoTest {
             assertEquals("athenz.syncer", cn);
         }
     }
-    
+
+    @Test
+    public void testExtractX509CertOField() throws Exception {
+
+        try (InputStream inStream = new FileInputStream("src/test/resources/valid_cn_x509.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+
+            String o = Crypto.extractX509CertSubjectOField(cert);
+            assertEquals("My Test Company", o);
+        }
+    }
+
+    @Test
+    public void testExtractX509CertOUField() throws Exception {
+
+        try (InputStream inStream = new FileInputStream("src/test/resources/valid_cn_x509.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+
+            String ou = Crypto.extractX509CertSubjectOUField(cert);
+            assertNull(ou);
+        }
+
+        try (InputStream inStream = new FileInputStream("src/test/resources/valid_email_x509.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+
+            String ou = Crypto.extractX509CertSubjectOUField(cert);
+            assertEquals("Testing Domain", ou);
+        }
+    }
+
     @Test
     public void testExtractX509CertIpAddressesNull() throws Exception {
         
@@ -599,7 +631,7 @@ public class CryptoTest {
     }
     
     @Test
-    public void testExtractCsrFieldsNoRfc822() throws IOException {
+    public void testExtractX509CSRFields() throws IOException {
         
         Path path = Paths.get("src/test/resources/valid.csr");
         String csr = new String(Files.readAllBytes(path));
@@ -607,11 +639,13 @@ public class CryptoTest {
         assertNotNull(certReq);
 
         assertEquals(Crypto.extractX509CSRCommonName(certReq), "athenz.syncer");
+        assertEquals(Crypto.extractX509CSRSubjectOField(certReq), "My Test Company");
+        assertNull(Crypto.extractX509CSRSubjectOUField(certReq));
         assertNull(Crypto.extractX509CSREmail(certReq));
     }
-    
+
     @Test
-    public void testExtractCsrFieldsWithRfc822() throws IOException {
+    public void testExtractX509CSRFieldsWithRfc822() throws IOException {
         
         Path path = Paths.get("src/test/resources/valid_email.csr");
         String csr = new String(Files.readAllBytes(path));
@@ -621,7 +655,18 @@ public class CryptoTest {
         assertEquals(Crypto.extractX509CSRCommonName(certReq), "sports:role.readers");
         assertEquals(Crypto.extractX509CSREmail(certReq), "sports.scores@aws.yahoo.cloud");
     }
-    
+
+    @Test
+    public void testExtractX509CSRFieldsWithOU() throws IOException {
+
+        Path path = Paths.get("src/test/resources/multiple_ips.csr");
+        String csr = new String(Files.readAllBytes(path));
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
+        assertNotNull(certReq);
+
+        assertEquals(Crypto.extractX509CSRSubjectOUField(certReq), "Testing Domain");
+    }
+
     @Test
     public void testExtractX509IPAddressesNoAddresses() throws IOException {
         

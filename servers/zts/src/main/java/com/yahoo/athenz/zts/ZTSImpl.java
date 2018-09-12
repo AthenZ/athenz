@@ -104,6 +104,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected String userDomainAliasPrefix;
     protected boolean leastPrivilegePrincipal = false;
     protected Set<String> authorizedProxyUsers = null;
+    protected Set<String> validCertSubjectOrgValues = null;
     protected boolean secureRequestsOnly = true;
     protected int svcTokenTimeout = 86400;
     protected Set<String> authFreeUriSet = null;
@@ -348,7 +349,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // retrieve the list of our authorized proxy users
         
-        String authorizedProxyUserList = System.getProperty(ZTSConsts.ZTS_PROP_AUTHORIZED_PROXY_USERS);
+        final String authorizedProxyUserList = System.getProperty(ZTSConsts.ZTS_PROP_AUTHORIZED_PROXY_USERS);
         if (authorizedProxyUserList != null) {
             authorizedProxyUsers = new HashSet<>(Arrays.asList(authorizedProxyUserList.split(",")));
         }
@@ -363,7 +364,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // retrieve our temporary ostk host signer domain/service name
         
-        String hostSignerService = System.getProperty(ZTSConsts.ZTS_PROP_OSTK_HOST_SIGNER_SERVICE);
+        final String hostSignerService = System.getProperty(ZTSConsts.ZTS_PROP_OSTK_HOST_SIGNER_SERVICE);
         if (hostSignerService != null) {
             int idx = hostSignerService.lastIndexOf('.');
             if (idx == -1) {
@@ -410,6 +411,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         x509CertRefreshResetTime = Long.parseLong(
                 System.getProperty(ZTSConsts.ZTS_PROP_CERT_REFRESH_RESET_TIME, "0"));
+
+        // list of valid O values for any certificate request
+
+        final String validCertSubjectOrgValueList = System.getProperty(ZTSConsts.ZTS_PROP_CERT_ALLOWED_O_VALUES);
+        if (validCertSubjectOrgValueList != null) {
+            validCertSubjectOrgValues = new HashSet<>(Arrays.asList(validCertSubjectOrgValueList.split("\\|")));
+        }
     }
     
     static String getServerHostName() {
@@ -1477,7 +1485,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domainName);
         }
 
-        if (!validateRoleCertificateRequest(certReq, domainName, roles, principalName)) {
+        if (!validateRoleCertificateRequest(certReq, domainName, roles, principalName,
+                validCertSubjectOrgValues)) {
             throw requestError("postRoleCertificateRequest: Unable to validate cert request",
                     caller, domainName);
         }
@@ -1495,7 +1504,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     boolean validateRoleCertificateRequest(PKCS10CertificationRequest certReq,
-            String domainName, Set<String> roles, String principal) {
+            String domainName, Set<String> roles, String principal,
+            Set<String> validCertSubjectOrgValues) {
         
         String cnCertReq = null;
         try {
@@ -1561,7 +1571,27 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 return false;
             }
         }
-        
+
+        // validate the o field value is specified
+
+        if (validCertSubjectOrgValues != null && !validCertSubjectOrgValues.isEmpty()) {
+            try {
+                final String value = Crypto.extractX509CSRSubjectOField(certReq);
+                if (value == null) {
+                    return true;
+                }
+                boolean res = validCertSubjectOrgValues.contains(value);
+                if (!res) {
+                    LOGGER.error("validateRoleCertificateRequest: Failed to validate Subject O Field: {}", value);
+                }
+                return res;
+            } catch (CryptoException ex) {
+                LOGGER.error("validateRoleCertificateRequest: Unable to extract Subject O Field: {}",
+                        ex.getMessage());
+                return false;
+            }
+        }
+
         return true;
     }
 
@@ -1786,10 +1816,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw requestError("unable to parse PKCS10 CSR: " + ex.getMessage(), caller, domain);
         }
         
-        if (!certReq.validate(providerService, domain, service, null, authorizer, errorMsg)) {
+        if (!certReq.validate(providerService, domain, service, null, validCertSubjectOrgValues,
+                authorizer, errorMsg)) {
             throw requestError("CSR validation failed - " + errorMsg.toString(), caller, domain);
         }
-        
+
         final String certReqInstanceId = certReq.getInstanceId();
 
         // validate attestation data is included in the request
@@ -2083,7 +2114,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
         
         StringBuilder errorMsg = new StringBuilder(256);
-        if (!certReq.validate(providerService, domain, service, instanceId, authorizer, errorMsg)) {
+        if (!certReq.validate(providerService, domain, service, instanceId, validCertSubjectOrgValues,
+                authorizer, errorMsg)) {
             throw requestError("CSR validation failed - " + errorMsg.toString(), caller, domain);
         }
         
@@ -2457,7 +2489,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (!ZTSUtils.verifyCertificateRequest(certReq, domain, service, null)) {
             throw requestError("Invalid CSR - data mismatch", caller, domain);
         }
-        
+
+        // validate that the csr contains a valid subject O field
+
+        if (!x509CertReq.validateSubjectOField(validCertSubjectOrgValues)) {
+            throw requestError("Invalid CSR - invalid Subject O field", caller, domain);
+        }
+
         // verify that the public key in the csr matches to the service
         // public key registered in Athenz
         
