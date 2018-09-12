@@ -324,7 +324,7 @@ func init() {
 	tSSHCertRequestMeta.Field("requestor", "String", false, nil, "requesting user")
 	tSSHCertRequestMeta.Field("origin", "String", false, nil, "origin FQDN or ip")
 	tSSHCertRequestMeta.Field("clientInfo", "String", true, nil, "client info")
-	tSSHCertRequestMeta.Field("sshClientVersion", "String", false, nil, "ssh client version")
+	tSSHCertRequestMeta.Field("sshClientVersion", "String", true, nil, "ssh client version")
 	tSSHCertRequestMeta.Field("certType", "String", false, nil, "cert type - user or host")
 	sb.AddType(tSSHCertRequestMeta.Build())
 

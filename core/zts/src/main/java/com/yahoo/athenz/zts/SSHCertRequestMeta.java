@@ -15,6 +15,8 @@ public class SSHCertRequestMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String clientInfo;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String sshClientVersion;
     public String certType;
 

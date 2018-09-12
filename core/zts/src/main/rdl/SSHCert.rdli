@@ -15,7 +15,7 @@ type SSHCertRequestMeta Struct {
     String requestor; //requesting user
     String origin; //origin FQDN or ip
     String clientInfo (optional); //client info
-    String sshClientVersion; //ssh client version
+    String sshClientVersion (optional); //ssh client version
     String certType; //cert type - user or host
 }
 
