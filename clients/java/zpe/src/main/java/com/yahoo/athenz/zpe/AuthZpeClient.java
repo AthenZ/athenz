@@ -951,4 +951,20 @@ public class AuthZpeClient {
         }
         return null;
     }
+
+    public static void main(String [] args) {
+
+        if (args.length != 3) {
+            System.out.println("usage: AuthZpeClient <role-token> <action> <resource>");
+            System.exit(1);
+        }
+
+        final String roleToken = args[0];
+        final String action = args[1];
+        final String resource = args[2];
+
+        AuthZpeClient.init();
+        System.out.println("Authorization Response: "
+                + AuthZpeClient.allowAccess(roleToken, action, resource).toString());
+    }
 }
