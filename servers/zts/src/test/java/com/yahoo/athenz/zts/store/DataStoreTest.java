@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -254,7 +255,7 @@ public class DataStoreTest {
         String data = null;
         File f = new File("/tmp/zts_server_unit_tests/zts_root/.lastModTime");
         try {
-            data = new String(Files.readAllBytes(f.toPath()), "UTF-8");
+            data = new String(Files.readAllBytes(f.toPath()), StandardCharsets.UTF_8);
         } catch (IOException e) {
             fail();
         }
@@ -888,19 +889,6 @@ public class DataStoreTest {
         store.addRoleToList("sports:role.admin", "coretech:role.", null, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
     }
-
-    @Test
-    public void testAddRoleToListNullSuffix() {
-        
-        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
-                pkey, "0");
-        DataStore store = new DataStore(clogStore, null);
-        
-        Set<String> accessibleRoles = new HashSet<>();
-        store.addRoleToList("coretech:role.admin", "coretech:role.", null, accessibleRoles, false);
-        assertEquals(accessibleRoles.size(), 1);
-        assertTrue(accessibleRoles.contains("admin"));
-    }
     
     @Test
     public void testAddRoleToList() {
@@ -1300,73 +1288,6 @@ public class DataStoreTest {
         assertEquals(store.getPublicKey("coretech", "storage", "1"), ZTS_PEM_CERT1);
         assertNull(store.getPublicKey("coretech", "storage", "2"));
     }
-    
-    @Test
-    public void testAddDomainToCacheUpdatedPublicKeysV0() {
-        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
-                pkey, "0");
-        DataStore store = new DataStore(clogStore, null);
-
-        DataCache dataCache = new DataCache();
-        
-        ServiceIdentity service = new ServiceIdentity();
-        service.setName("coretech.storage");
-        
-        setServicePublicKey(service, "0", ZTS_Y64_CERT0);
-        
-        com.yahoo.athenz.zms.PublicKeyEntry publicKey = new com.yahoo.athenz.zms.PublicKeyEntry();
-        publicKey.setKey(ZTS_Y64_CERT1);
-        publicKey.setId("1");
-        
-        List<com.yahoo.athenz.zms.PublicKeyEntry> publicKeys = new ArrayList<>();
-        publicKeys.add(publicKey);
-        
-        service.setPublicKeys(publicKeys);
-
-        List<ServiceIdentity> services = new ArrayList<>();
-        services.add(service);
-        dataCache.processServiceIdentity(service);
-        
-        DomainData domainData = new DomainData();
-        domainData.setServices(services);
-        dataCache.setDomainData(domainData);
-        
-        store.addDomainToCache("coretech", dataCache);
-        
-        /* update V0 public key */
-        
-        dataCache = new DataCache();
-        service = new ServiceIdentity();
-        service.setName("coretech.storage");
-
-        publicKeys = new ArrayList<>();
-        
-        publicKey = new com.yahoo.athenz.zms.PublicKeyEntry();
-        publicKey.setKey(ZTS_Y64_CERT2);
-        publicKey.setId("0");
-        publicKeys.add(publicKey);
-        
-        publicKey = new com.yahoo.athenz.zms.PublicKeyEntry();
-        publicKey.setKey(ZTS_Y64_CERT1);
-        publicKey.setId("1");
-        publicKeys.add(publicKey);
-        
-        service.setPublicKeys(publicKeys);
-
-        services = new ArrayList<>();
-        services.add(service);
-        dataCache.processServiceIdentity(service);
-        
-        domainData = new DomainData();
-        domainData.setServices(services);
-        dataCache.setDomainData(domainData);
-        
-        store.addDomainToCache("coretech", dataCache);
-        
-        assertEquals(store.getPublicKey("coretech", "storage", "0"), ZTS_PEM_CERT2);
-        assertEquals(store.getPublicKey("coretech", "storage", "1"), ZTS_PEM_CERT1);
-        assertNull(store.getPublicKey("coretech", "storage", "2"));
-    }
 
     @Test
     public void testAddDomainToCacheUpdatedPublicKeysVersions() {
@@ -1681,44 +1602,7 @@ public class DataStoreTest {
         assertNull(store.getPublicKey("coretech", "storage", "1"));
         assertNull(store.getPublicKey("coretech", "storage", "2"));
     }
-    
-    @Test
-    public void testDeleteDomainFromCacheServices() {
-        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
-                pkey, "0");
-        DataStore store = new DataStore(clogStore, null);
 
-        SignedDomain signedDomain = new SignedDomain();
-        
-        List<Role> roles = new ArrayList<>();
-        Role role = new Role();
-        role.setName("coretech:role.admin");
-        List<RoleMember> members = new ArrayList<>();
-        members.add(new RoleMember().setMemberName("user_domain.user"));
-        role.setRoleMembers(members);
-        
-        DomainData domainData = new DomainData();
-        domainData.setName("coretech");
-        domainData.setRoles(roles);
-        
-        signedDomain.setDomain(domainData);
-        signedDomain.setKeyId("0");
-        ((MockZMSFileChangeLogStore) store.changeLogStore).put("coretech", JSON.bytes(signedDomain));
-        
-        DataCache dataCache = new DataCache();
-        dataCache.setDomainData(domainData);
-        
-        store.addDomainToCache("coretech", dataCache);
-
-        store.deleteDomainFromCache("coretech");
-        store.changeLogStore.removeLocalDomain("coretech");
-        
-        assertNull(store.getCacheStore().getIfPresent("coretech"));
-        
-        File file = new File("/tmp/zts_server_unit_tests/zts_root/coretech");
-        assertFalse(file.exists());
-    }
-    
     @Test
     public void testRetrieveTagHeadersEmptyList() {
         

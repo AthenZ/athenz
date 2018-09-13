@@ -2478,8 +2478,8 @@ public class ZTSImplTest {
         
         Principal principal = SimplePrincipal.create("user_domain", "user101",
                 "v=U1;d=user_domain;n=user101;s=signature", 0, null);
-        CloudStore cloudStore = new MockCloudStore();
-        ((MockCloudStore) cloudStore).setMockFields("1234", "aws_role_name", "user_domain.user101");
+        MockCloudStore cloudStore = new MockCloudStore();
+        cloudStore.setMockFields("1234", "aws_role_name", "user_domain.user101");
         store.setCloudStore(cloudStore);
         zts.cloudStore = cloudStore;
         
@@ -2493,7 +2493,7 @@ public class ZTSImplTest {
         // now try a failure case
         
         try {
-            ((MockCloudStore) cloudStore).setMockFields("1234", "aws_role2_name", "user_domain.user101");
+            cloudStore.setMockFields("1234", "aws_role2_name", "user_domain.user101");
             zts.getAWSTemporaryCredentials(createResourceContext(principal), "athenz.product", "aws_role_name", null, null);
             fail();
         } catch (ResourceException ex) {

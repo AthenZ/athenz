@@ -35,8 +35,8 @@ public class SimpleServiceIdentityProvider implements ServiceIdentityProvider {
 
     private String domain;
     private String service;
-    private PrivateKey key = null;
-    private long tokenTimeout = 3600;
+    private PrivateKey key;
+    private long tokenTimeout;
     private String keyId;
     private String host = null;
     private Authority authority;

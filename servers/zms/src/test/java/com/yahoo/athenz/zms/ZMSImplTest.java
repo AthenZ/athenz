@@ -18,6 +18,7 @@ package com.yahoo.athenz.zms;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -6896,27 +6897,16 @@ public class ZMSImplTest {
         
         String publicKey = zms.getPublicKey("sys.auth", "zms", "0");
         assertNotNull(publicKey);
-        try {
-            assertEquals(pubKey, Crypto.ybase64(publicKey.getBytes("UTF-8")));
-        } catch (UnsupportedEncodingException e) {
-            fail();
-        }
+        assertEquals(pubKey, Crypto.ybase64(publicKey.getBytes(StandardCharsets.UTF_8)));
+
         
         publicKey = zms.getPublicKey("sys.auth", "zms", "1");
         assertNotNull(publicKey);
-        try {
-            assertEquals(pubKeyK1, Crypto.ybase64(publicKey.getBytes("UTF-8")));
-        } catch (UnsupportedEncodingException e) {
-            fail();
-        }
-        
+        assertEquals(pubKeyK1, Crypto.ybase64(publicKey.getBytes(StandardCharsets.UTF_8)));
+
         publicKey = zms.getPublicKey("sys.auth", "zms", "2");
         assertNotNull(publicKey);
-        try {
-            assertEquals(pubKeyK2, Crypto.ybase64(publicKey.getBytes("UTF-8")));
-        } catch (UnsupportedEncodingException e) {
-            fail();
-        }
+        assertEquals(pubKeyK2, Crypto.ybase64(publicKey.getBytes(StandardCharsets.UTF_8)));
     }
     
     @Test

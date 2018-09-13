@@ -80,10 +80,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
     private static String ROOT_DIR;
 
-    protected DataStore dataStore = null;
-    protected CloudStore cloudStore = null;
-    protected InstanceCertManager instanceCertManager = null;
-    protected InstanceProviderManager instanceProviderManager = null;
+    protected DataStore dataStore;
+    protected CloudStore cloudStore;
+    protected InstanceCertManager instanceCertManager;
+    protected InstanceProviderManager instanceProviderManager;
     protected Metric metric = null;
     protected Schema schema = null;
     protected PrivateKey privateKey = null;
@@ -92,7 +92,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected int roleTokenDefaultTimeout;
     protected int roleTokenMaxTimeout;
     protected long x509CertRefreshResetTime;
-    protected boolean traceAccess = true;
     protected long signedPolicyTimeout;
     protected static String serverHostName = null;
     protected String ostkHostSignerDomain = null;
@@ -1754,7 +1753,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
 
         return x509CertRecord;
-    };
+    }
 
     @Override
     public void postInstanceRegisterInformation(ResourceContext ctx, InstanceRegisterInformation info,
@@ -2198,19 +2197,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             x509CertRecord.setPrevSerial(x509CertRecord.getCurrentSerial());
 
         } else if (!x509CertRecord.getPrevSerial().equals(serialNumber)) {
-            
-            // we have a mismatch for both current and previous serial
-            // numbers so we're going to revoke it
-            
-            LOGGER.error("Revoking certificate refresh for cn: {} instance id: {}," +
-                    " current serial: {}, previous serial: {}, cert serial: {}",
-                    principalName, x509CertRecord.getInstanceId(), x509CertRecord.getCurrentSerial(),
-                    x509CertRecord.getPrevSerial(), serialNumber);
-            
-            x509CertRecord.setPrevSerial("-1");
-            x509CertRecord.setCurrentSerial("-1");
-            
-            instanceCertManager.updateX509CertRecord(x509CertRecord);
+
+            revokeCertificateRefresh(principalName, serialNumber, x509CertRecord);
             throw forbiddenError("Certificate revoked", caller, domain);
         }
         
@@ -2297,19 +2285,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         String serialNumber = cert.getSerialNumber().toString();
         if (!x509CertRecord.getCurrentSerial().equals(serialNumber) &&
                 !x509CertRecord.getPrevSerial().equals(serialNumber)) {
-            
-            // we have a mismatch for both current and previous serial
-            // numbers so we're going to revoke it
-            
-            LOGGER.error("Revoking certificate refresh for cn: {} instance id: {}," +
-                    " current serial: {}, previous serial: {}, cert serial: {}",
-                    principalName, x509CertRecord.getInstanceId(), x509CertRecord.getCurrentSerial(),
-                    x509CertRecord.getPrevSerial(), serialNumber);
-            
-            x509CertRecord.setPrevSerial("-1");
-            x509CertRecord.setCurrentSerial("-1");
-            
-            instanceCertManager.updateX509CertRecord(x509CertRecord);
+
+            revokeCertificateRefresh(principalName, serialNumber, x509CertRecord);
             throw forbiddenError("Certificate revoked", caller, domain);
         }
         
@@ -2343,7 +2320,23 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         return identity;
     }
-    
+
+    void revokeCertificateRefresh(final String principalName, final String serialNumber,
+            X509CertRecord x509CertRecord) {
+
+        // we have a mismatch for both current and previous serial
+        // numbers so we're going to revoke it
+
+        LOGGER.error("Revoking certificate refresh for cn: {} instance id: {}, current serial: {}, previous serial: {}, cert serial: {}",
+                principalName, x509CertRecord.getInstanceId(), x509CertRecord.getCurrentSerial(),
+                x509CertRecord.getPrevSerial(), serialNumber);
+
+        x509CertRecord.setPrevSerial("-1");
+        x509CertRecord.setCurrentSerial("-1");
+
+        instanceCertManager.updateX509CertRecord(x509CertRecord);
+    }
+
     @Override
     public void deleteInstanceIdentity(ResourceContext ctx, String provider,
             String domain, String service, String instanceId) {
@@ -2618,7 +2611,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // generate our certificate. the ssh signer interface throws
         // rest ResourceExceptions so we'll catch and log those
 
-        SSHCertificates certs = null;
+        SSHCertificates certs;
         try {
             certs = instanceCertManager.getSSHCertificates(principal,
                     certRequest, instanceId);

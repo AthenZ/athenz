@@ -201,9 +201,8 @@ public class InstanceProviderManagerTest {
         store.processDomain(signedDomain, false);
         
         InstanceProviderManager provider = new InstanceProviderManager(store, SSLContext.getDefault(), null);
-        InstanceProvider client = provider.getProvider("coretech.weather");
-        assertNotNull(client);
-        client.close();
+        InstanceProvider client = provider.getProvider("coretech.weather2");
+        assertNull(client);
     }
     
     @Test

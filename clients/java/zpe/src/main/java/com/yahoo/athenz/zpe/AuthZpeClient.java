@@ -305,7 +305,7 @@ public class AuthZpeClient {
             }
             return AccessCheckStatus.DENY_CERT_MISSING_DOMAIN;
         }
-        String roleName = subject.substring(idx + ROLE_SEARCH.length(), subject.length());
+        String roleName = subject.substring(idx + ROLE_SEARCH.length());
         if (roleName.isEmpty()) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("AUTHZPECLT:allowAccess: missing role name");
