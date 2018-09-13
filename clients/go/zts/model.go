@@ -2324,7 +2324,7 @@ type SSHCertRequestMeta struct {
 	//
 	// ssh client version
 	//
-	SshClientVersion string `json:"sshClientVersion"`
+	SshClientVersion string `json:"sshClientVersion,omitempty" rdl:"optional"`
 
 	//
 	// cert type - user or host
@@ -2379,14 +2379,6 @@ func (self *SSHCertRequestMeta) Validate() error {
 		val := rdl.Validate(ZTSSchema(), "String", self.Origin)
 		if !val.Valid {
 			return fmt.Errorf("SSHCertRequestMeta.origin does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.SshClientVersion == "" {
-		return fmt.Errorf("SSHCertRequestMeta.sshClientVersion is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZTSSchema(), "String", self.SshClientVersion)
-		if !val.Valid {
-			return fmt.Errorf("SSHCertRequestMeta.sshClientVersion does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.CertType == "" {
