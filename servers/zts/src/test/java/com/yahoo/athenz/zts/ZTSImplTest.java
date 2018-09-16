@@ -23,12 +23,7 @@ import java.nio.file.Paths;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.HttpServletRequest;
@@ -4464,7 +4459,7 @@ public class ZTSImplTest {
                 .setDomain("athenz").setService("production")
                 .setProvider("athenz.provider").setToken(false);
         
-        Mockito.doReturn(false).when(instanceManager).generateSshIdentity(Mockito.any(),
+        Mockito.doReturn(false).when(instanceManager).generateSSHIdentity(Mockito.any(), Mockito.any(),
                 Mockito.any(), Mockito.any());
         
         ResourceContext context = createResourceContext(null);
@@ -4833,7 +4828,7 @@ public class ZTSImplTest {
         certRecord.setPrevSerial("16503746516960996918");
         Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001")).thenReturn(certRecord);
         Mockito.when(instanceManager.updateX509CertRecord(Mockito.any())).thenReturn(true);
-        Mockito.when(instanceManager.generateSshIdentity(Mockito.any(), Mockito.eq("ssh-csr"),
+        Mockito.when(instanceManager.generateSSHIdentity(Mockito.any(), Mockito.any(), Mockito.eq("ssh-csr"),
                 Mockito.eq("user"))).thenReturn(false);
 
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
@@ -5661,17 +5656,17 @@ public class ZTSImplTest {
         certRecord.setPrevSerial("16503746516960996918");
         Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001")).thenReturn(certRecord);
         Mockito.when(instanceManager.updateX509CertRecord(Mockito.any())).thenReturn(true);
-        
+
+        CertificateAuthority certAuthority = new CertificateAuthority();
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
+                "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production");
-        Mockito.when(instanceManager.generateSshIdentity(identity, "ssh-csr", null)).thenReturn(true);
+        Mockito.when(instanceManager.generateSSHIdentity(principal, identity, "ssh-csr", "user")).thenReturn(true);
         
         ztsImpl.instanceCertManager = instanceManager;
         
         InstanceRefreshInformation info = new InstanceRefreshInformation().setSsh("ssh-csr");
-        
-        CertificateAuthority certAuthority = new CertificateAuthority();
-        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
-                "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
         
         Path path = Paths.get("src/test/resources/athenz.instanceid.pem");
         String pem = new String(Files.readAllBytes(path));
@@ -5710,17 +5705,17 @@ public class ZTSImplTest {
         certRecord.setPrevSerial("16503746516960996918");
         Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001")).thenReturn(certRecord);
         Mockito.when(instanceManager.updateX509CertRecord(Mockito.any())).thenReturn(true);
-        
+
+        CertificateAuthority certAuthority = new CertificateAuthority();
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
+                "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production");
-        Mockito.when(instanceManager.generateSshIdentity(identity, "ssh-csr", null)).thenReturn(true);
+        Mockito.when(instanceManager.generateSSHIdentity(principal, identity, "ssh-csr", "user")).thenReturn(true);
         
         ztsImpl.instanceCertManager = instanceManager;
         
         InstanceRefreshInformation info = new InstanceRefreshInformation().setSsh("ssh-csr");
-        
-        CertificateAuthority certAuthority = new CertificateAuthority();
-        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
-                "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
         
         Path path = Paths.get("src/test/resources/athenz.instanceid.pem");
         String pem = new String(Files.readAllBytes(path));
@@ -5809,17 +5804,17 @@ public class ZTSImplTest {
         certRecord.setPrevSerial("16503746516960996918");
         Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001")).thenReturn(certRecord);
         Mockito.when(instanceManager.updateX509CertRecord(Mockito.any())).thenReturn(true);
-        
+
+        CertificateAuthority certAuthority = new CertificateAuthority();
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
+                "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production");
-        Mockito.when(instanceManager.generateSshIdentity(identity, "ssh-csr", "user")).thenReturn(false);
+        Mockito.when(instanceManager.generateSSHIdentity(principal, identity, "ssh-csr", "user")).thenReturn(false);
         
         ztsImpl.instanceCertManager = instanceManager;
         
         InstanceRefreshInformation info = new InstanceRefreshInformation().setSsh("ssh-csr");
-        
-        CertificateAuthority certAuthority = new CertificateAuthority();
-        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
-                "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
         
         Path path = Paths.get("src/test/resources/athenz.instanceid.pem");
         String pem = new String(Files.readAllBytes(path));
@@ -6804,6 +6799,130 @@ public class ZTSImplTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Read-Only mode"));
+        }
+
+        try {
+            ztsImpl.postSSHCertRequest(ctx, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only mode"));
+        }
+    }
+
+    @Test
+    public void testPostSSHRequest() throws IOException {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        store.processDomain(providerDomain, false);
+
+        SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
+        store.processDomain(tenantDomain, false);
+
+        SSHCertificates certs = new SSHCertificates();
+
+        SSHCertRequestData data = new SSHCertRequestData();
+        data.setDestinations(Arrays.asList("dest1", "dest2"));
+        data.setPrincipals(Arrays.asList("user1", "user2"));
+        data.setSources(Collections.singletonList("src"));
+        data.setTouchPublicKey("publickey");
+
+        SSHCertRequestMeta meta = new SSHCertRequestMeta();
+        meta.setRequestor("req");
+        meta.setOrigin("origin");
+        meta.setClientInfo("info");
+        meta.setSshClientVersion("1.2");
+        meta.setCertType("user");
+
+        SSHCertRequest certRequest = new SSHCertRequest();
+        certRequest.setCertRequestData(data);
+        certRequest.setCertRequestMeta(meta);
+
+        InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
+        Mockito.when(instanceManager.generateSSHCertificates(Mockito.any(), Mockito.eq(certRequest)))
+                .thenReturn(certs);
+
+        ztsImpl.instanceCertManager = instanceManager;
+
+        Path path = Paths.get("src/test/resources/athenz.instanceid.pem");
+        String pem = new String(Files.readAllBytes(path));
+
+        CertificateAuthority certAuthority = new CertificateAuthority();
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
+                "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+
+        X509Certificate cert = Crypto.loadX509Certificate(pem);
+        principal.setX509Certificate(cert);
+
+        ResourceContext context = createResourceContext(principal);
+        SSHCertificates resCerts = ztsImpl.postSSHCertRequest(context, certRequest);
+        assertNotNull(resCerts);
+    }
+
+    @Test
+    public void testPostSSHRequestException() throws IOException {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        store.processDomain(providerDomain, false);
+
+        SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
+        store.processDomain(tenantDomain, false);
+
+        SSHCertificates certs = new SSHCertificates();
+
+        SSHCertRequestData data = new SSHCertRequestData();
+        data.setDestinations(Arrays.asList("dest1", "dest2"));
+        data.setPrincipals(Arrays.asList("user1", "user2"));
+        data.setSources(Collections.singletonList("src"));
+        data.setTouchPublicKey("publickey");
+
+        SSHCertRequestMeta meta = new SSHCertRequestMeta();
+        meta.setRequestor("req");
+        meta.setOrigin("origin");
+        meta.setClientInfo("info");
+        meta.setSshClientVersion("1.2");
+        meta.setCertType("user");
+
+        SSHCertRequest certRequest = new SSHCertRequest();
+        certRequest.setCertRequestData(data);
+        certRequest.setCertRequestMeta(meta);
+
+        InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
+        Mockito.when(instanceManager.generateSSHCertificates(Mockito.any(), Mockito.eq(certRequest)))
+                .thenThrow(new com.yahoo.athenz.common.server.rest.ResourceException(400, "Failed to get ssh certs"));
+
+        ztsImpl.instanceCertManager = instanceManager;
+
+        Path path = Paths.get("src/test/resources/athenz.instanceid.pem");
+        String pem = new String(Files.readAllBytes(path));
+
+        CertificateAuthority certAuthority = new CertificateAuthority();
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
+                "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+
+        X509Certificate cert = Crypto.loadX509Certificate(pem);
+        principal.setX509Certificate(cert);
+
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            ztsImpl.postSSHCertRequest(context, certRequest);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(400, ex.getCode());
+            assertTrue(ex.getMessage().contains("Failed to get ssh certs"));
         }
     }
 }

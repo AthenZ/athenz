@@ -41,24 +41,6 @@ public interface CertSigner {
         return null;
     }
 
-    /**
-     * Generate an SSH Certificate based on the given request
-     * @param csr SSH Certificate Request
-     * @return SSH Certificate
-     */
-    default String generateSSHCertificate(String csr) {
-        return null;
-    }
-
-    /**
-     * Retrieve the SSH Signer certificate for the given type
-     * @param type signer type user or host
-     * @return SSH Signer Certificate
-     */
-    default String getSSHCertificate(String type) {
-        return null;
-    }
-
     /** Retrieve the certificate max expiry time supported
      * by the given signer
      * @return expiry time in minutes

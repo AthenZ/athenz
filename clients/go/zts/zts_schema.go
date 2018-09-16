@@ -331,6 +331,7 @@ func init() {
 	tSSHCertRequest := rdl.NewStructTypeBuilder("Struct", "SSHCertRequest")
 	tSSHCertRequest.Field("certRequestData", "SSHCertRequestData", false, nil, "ssh certificate request data")
 	tSSHCertRequest.Field("certRequestMeta", "SSHCertRequestMeta", false, nil, "ssh certificate request meta")
+	tSSHCertRequest.Field("csr", "String", true, nil, "free-form csr if not using data/meta fields.")
 	sb.AddType(tSSHCertRequest.Build())
 
 	tSSHCertificate := rdl.NewStructTypeBuilder("Struct", "SSHCertificate")

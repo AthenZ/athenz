@@ -4,15 +4,14 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import com.yahoo.athenz.zts.cert.impl.X509CertUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +31,6 @@ import com.yahoo.athenz.common.server.ssh.SSHSignerFactory;
 import com.yahoo.athenz.zts.utils.IPBlock;
 import com.yahoo.athenz.zts.utils.IPPrefix;
 import com.yahoo.athenz.zts.utils.IPPrefixes;
-import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.rdl.JSON;
 
 public class InstanceCertManager {
@@ -269,30 +267,8 @@ public class InstanceCertManager {
         if (certStore == null) {
             return null;
         }
-        
-        Collection<List<?>> certAttributes;
-        try {
-            certAttributes = cert.getSubjectAlternativeNames();
-        } catch (CertificateParsingException ex) {
-            LOGGER.error("getX509CertRecord: Unable to get cert SANS: {}", ex.getMessage());
-            return null;
-        }
-        
-        if (certAttributes == null) {
-            LOGGER.error("getX509CertRecord: Certificate does not have SANs");
-            return null;
-        }
-        
-        String instanceId = null;
-        final List<String> dnsNames = Crypto.extractX509CertDnsNames(cert);
-        for (String dnsName : dnsNames) {
-             int idx = dnsName.indexOf(ZTSConsts.ZTS_CERT_INSTANCE_ID);
-             if (idx != -1) {
-                 instanceId = dnsName.substring(0, idx);
-                 break;
-            }
-        }
-        
+
+        String instanceId = X509CertUtils.extractRequestInstanceId(cert);
         if (instanceId == null) {
             LOGGER.error("getX509CertRecord: Certificate does not have instance id");
             return null;
@@ -398,11 +374,10 @@ public class InstanceCertManager {
         return caX509CertificateSigner;
     }
 
-    public SSHCertificates getSSHCertificates(Principal principal, SSHCertRequest certRequest,
-            final String instanceId) {
+    public SSHCertificates generateSSHCertificates(Principal principal, SSHCertRequest certRequest) {
 
         if (sshSigner == null) {
-            LOGGER.error("getSSHCertificates: SSHSigner not available");
+            LOGGER.error("SSH Signer is not available");
             return null;
         }
 
@@ -410,38 +385,53 @@ public class InstanceCertManager {
         // of this request. the signer already was given the authorizer object
         // that it can use for those checks.
 
-        return sshSigner.generateCertificate(principal, certRequest, instanceId);
+        return sshSigner.generateCertificate(principal, certRequest, null);
     }
 
-    public boolean generateSshIdentity(InstanceIdentity identity, String sshCsr, String sshCertType) {
-        
-        if (sshCsr == null || sshCsr.isEmpty()) {
+    public boolean generateSSHIdentity(Principal principal, InstanceIdentity identity,
+            String sshCsr, String certType) {
+
+        if (sshSigner == null || sshCsr == null || sshCsr.isEmpty()) {
             return true;
         }
-        
-        SSHRequest sshReq = new SSHRequest(sshCsr, sshCertType);
-        if (!sshReq.validateType()) {
+
+        SSHCertRequest certRequest = new SSHCertRequest();
+        certRequest.setCsr(sshCsr);
+
+        SSHCertificates sshCerts;
+        try {
+            sshCerts = sshSigner.generateCertificate(principal, certRequest, certType);
+        } catch (com.yahoo.athenz.common.server.rest.ResourceException ex) {
+            LOGGER.error("SSHSigner was unable to generate SSH certificate for {}/{} - error {}/{}",
+                    identity.getInstanceId(), identity.getName(), ex.getCode(), ex.getMessage());
+            return false;
+        } catch (Exception ex) {
+            LOGGER.error("SSHSigner was unable to generate SSH certificate for {}/{} - error {}",
+                    identity.getInstanceId(), identity.getName(), ex.getMessage());
             return false;
         }
-        
-        final String sshCert = certSigner.generateSSHCertificate(sshCsr);
-        if (sshCert == null || sshCert.isEmpty()) {
-            LOGGER.error("CertSigner was unable to generate SSH certificate for {}/{}",
+
+        if (sshCerts == null || sshCerts.getCertificates().isEmpty()) {
+            LOGGER.error("SSHSigner returned an empty certificate set for {}/{}",
                     identity.getInstanceId(), identity.getName());
             return false;
         }
 
-        identity.setSshCertificate(sshCert);
-        identity.setSshCertificateSigner(getSshCertificateSigner(sshReq.getSshReqType()));
+        identity.setSshCertificate(sshCerts.getCertificates().get(0).getCertificate());
+        identity.setSshCertificateSigner(getSSHCertificateSigner(certType));
         return true;
     }
     
-    String getSshCertificateSigner(String sshReqType) {
-        
+    String getSSHCertificateSigner(String sshReqType) {
+
+        if (sshSigner == null) {
+            return null;
+        }
+
         if (sshHostCertificateSigner == null) {
             synchronized (InstanceCertManager.class) {
                 if (sshHostCertificateSigner == null) {
-                    sshHostCertificateSigner = certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_HOST);
+                    sshHostCertificateSigner = sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_HOST);
                 }
             }
         }
@@ -449,7 +439,7 @@ public class InstanceCertManager {
         if (sshUserCertificateSigner == null) {
             synchronized (InstanceCertManager.class) {
                 if (sshUserCertificateSigner == null) {
-                    sshUserCertificateSigner = certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_USER);
+                    sshUserCertificateSigner = sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_USER);
                 }
             }
         }

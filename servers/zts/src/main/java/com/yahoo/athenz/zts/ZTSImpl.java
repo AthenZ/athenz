@@ -62,7 +62,6 @@ import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.cert.InstanceCertManager;
 import com.yahoo.athenz.zts.cert.X509CertRecord;
 import com.yahoo.athenz.zts.cert.X509CertRequest;
-import com.yahoo.athenz.zts.cert.impl.X509CertUtils;
 import com.yahoo.athenz.zts.store.ChangeLogStore;
 import com.yahoo.athenz.zts.store.ChangeLogStoreFactory;
 import com.yahoo.athenz.zts.store.CloudStore;
@@ -1232,11 +1231,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     + " not authorized for proxy role token request", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
         }
 
-        AuditLogMsgBuilder msgBldr = getAuditLogMsgBuilder(ctx, domainName, caller, HTTP_GET);
-        msgBldr.when(Timestamp.fromCurrentTime().toString()).
-                whatEntity("RoleToken").why("zts-audit").
-                whatDetails("RoleName=" + roleName);
-
         // first retrieve our domain data object from the cache
 
         DataCache data = dataStore.getDataCache(domainName);
@@ -1776,7 +1770,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // policy, service, etc name)
         
         AthenzObject.INSTANCE_REGISTER_INFO.convertToLowerCase(info);
-        
+
+        Principal principal = ((RsrcCtxWrapper) ctx).principal();
         final String domain = info.getDomain();
         final String service = info.getService();
         final String cn = domain + "." + service;
@@ -1883,7 +1878,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // certificate for the instance as well
 
         Object timerSSHCertMetric = metric.startTiming("certsignssh_timing", null);
-        instanceCertManager.generateSshIdentity(identity, info.getSsh(), ZTSConsts.ZTS_SSH_HOST);
+        instanceCertManager.generateSSHIdentity(principal, identity, info.getSsh(), ZTSConsts.ZTS_SSH_HOST);
         metric.stopTiming(timerSSHCertMetric);
 
         // set the other required attributes in the identity object
@@ -2218,7 +2213,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // certificate for the instance as well
 
         Object timerSSHCertMetric = metric.startTiming("certsignssh_timing", null);
-        instanceCertManager.generateSshIdentity(identity, info.getSsh(), null);
+        instanceCertManager.generateSSHIdentity(principal, identity, info.getSsh(), ZTSConsts.ZTS_SSH_HOST);
         metric.stopTiming(timerSSHCertMetric);
 
         // set the other required attributes in the identity object
@@ -2294,7 +2289,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         InstanceIdentity identity = new InstanceIdentity().setName(principalName);
         Object timerSSHCertMetric = metric.startTiming("certsignssh_timing", null);
-        if (!instanceCertManager.generateSshIdentity(identity, sshCsr, null)) {
+        if (!instanceCertManager.generateSSHIdentity(principal, identity, sshCsr, ZTSConsts.ZTS_SSH_USER)) {
             throw serverError("unable to generate ssh identity", caller, domain);
         }
         metric.stopTiming(timerSSHCertMetric);
@@ -2603,18 +2598,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_REQUEST);
         metric.increment(caller, domainName);
 
-        // if we have a certificate then we'll try to extract
-        // the instance id for our request
-
-        final String instanceId = X509CertUtils.extractRequestInstanceId(principal.getX509Certificate());
-
         // generate our certificate. the ssh signer interface throws
         // rest ResourceExceptions so we'll catch and log those
 
         SSHCertificates certs;
         try {
-            certs = instanceCertManager.getSSHCertificates(principal,
-                    certRequest, instanceId);
+            certs = instanceCertManager.generateSSHCertificates(principal, certRequest);
         } catch (com.yahoo.athenz.common.server.rest.ResourceException ex) {
             throw error(ex.getCode(), ex.getMessage(), caller, domainName);
         }
