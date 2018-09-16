@@ -36,8 +36,7 @@ public class MockZMSFileChangeLogStore extends ZMSFileChangeLogStore {
     private final ZMSClient zms;
     private DomainList domList = null;
     private String tagHeader;
-    private final String userDomain;
-    
+
     public MockZMSFileChangeLogStore(String rootDirectory, PrivateKey privateKey, String privateKeyId) {
         
         super(rootDirectory, privateKey, privateKeyId);
@@ -47,7 +46,7 @@ public class MockZMSFileChangeLogStore extends ZMSFileChangeLogStore {
         // we're going to return on domain for local list and then another
         // for server list - thus ending up with initialized store with no domains
         
-        userDomain = System.getProperty(ZTSConsts.ZTS_PROP_USER_DOMAIN, "user");
+        final String userDomain = System.getProperty(ZTSConsts.ZTS_PROP_USER_DOMAIN, "user");
 
         DomainList localDomainList = new DomainList();
         List<String> localDomains = new ArrayList<>();

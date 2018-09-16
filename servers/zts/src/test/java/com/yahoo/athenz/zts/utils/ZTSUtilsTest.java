@@ -36,11 +36,9 @@ import org.testng.annotations.Test;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
-import com.yahoo.athenz.common.server.cert.CertSigner;
 import com.yahoo.athenz.zts.Identity;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.cert.X509CertRecord;
-import com.yahoo.athenz.zts.utils.ZTSUtils;
 
 public class ZTSUtilsTest {
     

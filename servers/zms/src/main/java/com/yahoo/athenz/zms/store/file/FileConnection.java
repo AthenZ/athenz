@@ -512,6 +512,7 @@ public class FileConnection implements ObjectStoreConnection {
         return new ArrayList<>(principals);
     }
     
+    @SuppressWarnings("SuspiciousListRemoveInLoop")
     @Override
     public boolean deletePrincipal(String principalName, boolean subDomains) {
         

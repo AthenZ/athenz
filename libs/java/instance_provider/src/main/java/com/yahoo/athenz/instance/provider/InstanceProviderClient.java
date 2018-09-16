@@ -91,7 +91,7 @@ public class InstanceProviderClient {
     public InstanceConfirmation postInstanceConfirmation(InstanceConfirmation confirmation) {
         WebTarget target = base.path("/instance");
         Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
-        Response response = null;
+        Response response;
         try {
             response = invocationBuilder.post(Entity.entity(confirmation, MediaType.APPLICATION_JSON));
         } catch (Exception ex) {
@@ -111,7 +111,7 @@ public class InstanceProviderClient {
     public InstanceConfirmation postRefreshConfirmation(InstanceConfirmation confirmation) {
         WebTarget target = base.path("/refresh");
         Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
-        Response response = null;
+        Response response;
         try {
             response = invocationBuilder.post(Entity.entity(confirmation, MediaType.APPLICATION_JSON));
         } catch (Exception ex) {

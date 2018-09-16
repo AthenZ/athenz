@@ -114,7 +114,7 @@ public class ZTSUtils {
                 ZTS_DEFAULT_EXCLUDED_CIPHER_SUITES);
         String excludedProtocols = System.getProperty(ZTSConsts.ZTS_PROP_EXCLUDED_PROTOCOLS,
                 ZTS_DEFAULT_EXCLUDED_PROTOCOLS);
-        Boolean wantClientAuth = Boolean.parseBoolean(System.getProperty(ZTSConsts.ZTS_PROP_WANT_CLIENT_CERT, "false"));
+        boolean wantClientAuth = Boolean.parseBoolean(System.getProperty(ZTSConsts.ZTS_PROP_WANT_CLIENT_CERT, "false"));
         
         SslContextFactory sslContextFactory = new SslContextFactory();
         if (keyStorePath != null) {

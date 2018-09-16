@@ -2373,7 +2373,7 @@ public class DBService {
     ServiceIdentity updateTemplateServiceIdentity(ServiceIdentity serviceIdentity,
             String domainName, List<TemplateParam> params) {
         
-        String templateServiceName = serviceIdentity.getName().replace(TEMPLATE_DOMAIN_NAME, domainName);;
+        String templateServiceName = serviceIdentity.getName().replace(TEMPLATE_DOMAIN_NAME, domainName);
         if (params != null) {
             for (TemplateParam param : params) {
                 final String paramKey = "_" + param.getName() + "_";

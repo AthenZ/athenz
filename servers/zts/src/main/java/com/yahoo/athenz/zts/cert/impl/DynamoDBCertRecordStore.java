@@ -38,8 +38,7 @@ public class DynamoDBCertRecordStore implements CertRecordStore {
     @Override
     public CertRecordStoreConnection getConnection() {
         try {
-            DynamoDBCertRecordStoreConnection dynamoConn = new DynamoDBCertRecordStoreConnection(dynamoDB, tableName);
-            return dynamoConn;
+            return new DynamoDBCertRecordStoreConnection(dynamoDB, tableName);
         } catch (Exception ex) {
             LOG.error("getConnection: {}", ex.getMessage());
             throw new ResourceException(ResourceException.SERVICE_UNAVAILABLE, ex.getMessage());
