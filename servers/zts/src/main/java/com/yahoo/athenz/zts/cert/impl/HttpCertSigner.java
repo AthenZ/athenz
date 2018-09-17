@@ -26,8 +26,6 @@ import com.yahoo.athenz.auth.PrivateKeyStoreFactory;
 import com.yahoo.athenz.common.server.cert.CertSigner;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.cert.SSHCertificate;
-import com.yahoo.athenz.zts.cert.SSHCertificates;
 import com.yahoo.athenz.zts.cert.X509CertSignObject;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
 
@@ -49,7 +47,6 @@ public class HttpCertSigner implements CertSigner {
 
     private HttpClient httpClient;
     String x509CertUri;
-    String sshCertUri ;
     long requestTimeout;
     int requestRetryCount;
     int maxCertExpiryTimeMins;
@@ -93,7 +90,6 @@ public class HttpCertSigner implements CertSigner {
                     "No CertSigner base uri specified: " + ZTSConsts.ZTS_PROP_CERTSIGN_BASE_URI);
         }
         x509CertUri = serverBaseUri + "/x509";
-        sshCertUri = serverBaseUri + "/ssh";
     }
     
     @Override
@@ -198,63 +194,6 @@ public class HttpCertSigner implements CertSigner {
         X509CertSignObject pemCert = JSON.fromString(data, X509CertSignObject.class);
         return (pemCert != null) ? pemCert.getPem() : null;
     }
-
-    ContentResponse processSSHKeyRequest(String sshKeyReq, int retryCount) {
-        
-        ContentResponse response = null;
-        try {
-            Request request = httpClient.POST(sshCertUri);
-            request.header(HttpHeader.ACCEPT, CONTENT_JSON);
-            request.header(HttpHeader.CONTENT_TYPE, CONTENT_JSON);
-
-            request.content(new StringContentProvider(sshKeyReq), CONTENT_JSON);
-            
-            // our max timeout is going to be 30 seconds. By default
-            // we're picking a small value to quickly recognize when
-            // our idle connections are disconnected by signer but
-            // we won't allow any connections taking longer than 30 secs
-            
-            long timeout = retryCount * requestTimeout;
-            if (timeout > 30) {
-                timeout = 30;
-            }
-            request.timeout(timeout, TimeUnit.SECONDS);
-            response = request.send();
-        } catch (Exception ex) {
-            LOGGER.error("Unable to process ssh certificate request", ex);
-        }
-        return response;
-    }
-    
-    @Override
-    public String generateSSHCertificate(String sshKeyReq) {
-
-        ContentResponse response = null;
-        for (int i = 0; i < requestRetryCount; i++) {
-            if ((response = processSSHKeyRequest(sshKeyReq, i + 1)) != null) {
-                break;
-            }
-        }
-        if (response == null) {
-            return null;
-        }
-
-        if (response.getStatus() != HttpStatus.CREATED_201) {
-            LOGGER.error("generateSSHCertificate: unable to fetch requested uri '" + sshCertUri +
-                    "' status: " + response.getStatus());
-            return null;
-        }
-
-        String data = response.getContentAsString();
-        if (data == null || data.isEmpty()) {
-            LOGGER.error("generateSSHCertificate: received empty response from uri '" + sshCertUri +
-                    "' status: " + response.getStatus());
-            return null;
-        }
-
-        SSHCertificate cert = JSON.fromString(data, SSHCertificate.class);
-        return (cert != null) ? cert.getOpensshkey() : null;
-    }
     
     @Override
     public String getCACertificate() {
@@ -286,46 +225,6 @@ public class HttpCertSigner implements CertSigner {
 
         X509CertSignObject pemCert = JSON.fromString(data, X509CertSignObject.class);
         return (pemCert != null) ? pemCert.getPem() : null;
-    }
-    
-    @Override
-    public String getSSHCertificate(String type) {
-
-        ContentResponse response;
-        try {
-            response = httpClient.GET(sshCertUri);
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            LOGGER.error("getSSHCertificate: unable to fetch requested uri '" + sshCertUri + "': "
-                    + e.getMessage());
-            return null;
-        }
-        if (response.getStatus() != HttpStatus.OK_200) {
-            LOGGER.error("getSSHCertificate: unable to fetch requested uri '" + sshCertUri +
-                    "' status: " + response.getStatus());
-            return null;
-        }
-
-        String data = response.getContentAsString();
-        if (data == null || data.isEmpty()) {
-            LOGGER.error("getSSHCertificate: received empty response from uri '" + sshCertUri +
-                    "' status: " + response.getStatus());
-            return null;
-        }
-
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("getSSHCertificate: SSH Certificate" + data);
-        }
-
-        SSHCertificates sshCerts = JSON.fromString(data, SSHCertificates.class);
-        if (sshCerts != null && sshCerts.getCerts() != null) {
-            for (SSHCertificate sshCert : sshCerts.getCerts()) {
-                if (sshCert.getType().equals(type)) {
-                    return sshCert.getOpensshkey();
-                }
-            }
-        }
-        
-        return null;
     }
     
     void setHttpClient(HttpClient client) {

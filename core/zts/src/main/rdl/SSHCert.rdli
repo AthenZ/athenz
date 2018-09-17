@@ -22,6 +22,7 @@ type SSHCertRequestMeta Struct {
 type SSHCertRequest Struct {
     SSHCertRequestData certRequestData; //ssh certificate request data
     SSHCertRequestMeta certRequestMeta; //ssh certificate request meta
+    String csr (optional); //free-form csr if not using data/meta fields.
 }
 
 type SSHCertificate Struct {

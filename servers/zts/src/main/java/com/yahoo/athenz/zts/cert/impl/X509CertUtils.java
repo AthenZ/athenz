@@ -29,7 +29,7 @@ public class X509CertUtils {
             return null;
         }
 
-        List<String> dnsNames = Crypto.extractX509CertDnsNames(cert);
+        final List<String> dnsNames = Crypto.extractX509CertDnsNames(cert);
         for (String dnsName : dnsNames) {
             int idx = dnsName.indexOf(ZTSConsts.ZTS_CERT_INSTANCE_ID);
             if (idx != -1) {

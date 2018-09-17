@@ -3,6 +3,7 @@
 //
 
 package com.yahoo.athenz.zts;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
 
 //
@@ -11,6 +12,9 @@ import com.yahoo.rdl.*;
 public class SSHCertRequest {
     public SSHCertRequestData certRequestData;
     public SSHCertRequestMeta certRequestMeta;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String csr;
 
     public SSHCertRequest setCertRequestData(SSHCertRequestData certRequestData) {
         this.certRequestData = certRequestData;
@@ -26,6 +30,13 @@ public class SSHCertRequest {
     public SSHCertRequestMeta getCertRequestMeta() {
         return certRequestMeta;
     }
+    public SSHCertRequest setCsr(String csr) {
+        this.csr = csr;
+        return this;
+    }
+    public String getCsr() {
+        return csr;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -38,6 +49,9 @@ public class SSHCertRequest {
                 return false;
             }
             if (certRequestMeta == null ? a.certRequestMeta != null : !certRequestMeta.equals(a.certRequestMeta)) {
+                return false;
+            }
+            if (csr == null ? a.csr != null : !csr.equals(a.csr)) {
                 return false;
             }
         }

@@ -2406,6 +2406,11 @@ type SSHCertRequest struct {
 	// ssh certificate request meta
 	//
 	CertRequestMeta *SSHCertRequestMeta `json:"certRequestMeta"`
+
+	//
+	// free-form csr if not using data/meta fields.
+	//
+	Csr string `json:"csr,omitempty" rdl:"optional"`
 }
 
 //

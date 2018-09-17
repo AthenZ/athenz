@@ -7,10 +7,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import com.yahoo.athenz.common.server.ssh.SSHSigner;
 import com.yahoo.athenz.zts.SSHCertRequest;
+import com.yahoo.athenz.zts.SSHCertificate;
+import com.yahoo.athenz.zts.SSHCertificates;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
@@ -252,22 +256,22 @@ public class InstanceCertManagerTest {
     @Test
     public void testGetSshCertificateSigner() {
         
-        CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class);
-        Mockito.when(certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_HOST)).thenReturn("ssh-host");
-        Mockito.when(certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_USER)).thenReturn("ssh-user");
+        SSHSigner sshSigner = Mockito.mock(com.yahoo.athenz.common.server.ssh.SSHSigner.class);
+        Mockito.when(sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_HOST)).thenReturn("ssh-host");
+        Mockito.when(sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_USER)).thenReturn("ssh-user");
 
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, true);
-        instanceManager.setCertSigner(certSigner);
+        instanceManager.setSSHSigner(sshSigner);
 
-        assertEquals(instanceManager.getSshCertificateSigner("host"), "ssh-host");
-        assertEquals(instanceManager.getSshCertificateSigner("user"), "ssh-user");
+        assertEquals(instanceManager.getSSHCertificateSigner("host"), "ssh-host");
+        assertEquals(instanceManager.getSSHCertificateSigner("user"), "ssh-user");
         
         // second time we should not fetch from certsigner and use fetched copies
         
-        Mockito.when(certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_HOST)).thenReturn(null);
-        Mockito.when(certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_USER)).thenReturn(null);
-        assertEquals(instanceManager.getSshCertificateSigner("host"), "ssh-host");
-        assertEquals(instanceManager.getSshCertificateSigner("user"), "ssh-user");
+        Mockito.when(sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_HOST)).thenReturn(null);
+        Mockito.when(sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_USER)).thenReturn(null);
+        assertEquals(instanceManager.getSSHCertificateSigner("host"), "ssh-host");
+        assertEquals(instanceManager.getSSHCertificateSigner("user"), "ssh-user");
         instanceManager.shutdown();
     }
     
@@ -275,13 +279,13 @@ public class InstanceCertManagerTest {
     public void testGenerateSshIdentityNoSsh() {
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.service");
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, true);
-        instanceManager.setCertSigner(null);
+        instanceManager.setSSHSigner(null);
 
-        boolean result = instanceManager.generateSshIdentity(identity, null, null);
+        boolean result = instanceManager.generateSSHIdentity(null, identity, null, null);
         assertTrue(result);
         assertNull(identity.getSshCertificate());
         
-        result = instanceManager.generateSshIdentity(identity, "", null);
+        result = instanceManager.generateSSHIdentity(null, identity, "", null);
         assertTrue(result);
         assertNull(identity.getSshCertificate());
         instanceManager.shutdown();
@@ -290,26 +294,29 @@ public class InstanceCertManagerTest {
     @Test
     public void testGenerateSshIdentityInvalidSsh() {
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.service");
+        SSHSigner sshSigner = Mockito.mock(com.yahoo.athenz.common.server.ssh.SSHSigner.class);
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, true);
-        instanceManager.setCertSigner(null);
+        instanceManager.setSSHSigner(sshSigner);
 
-        boolean result = instanceManager.generateSshIdentity(identity, "{\"csr\":\"csr\"}", null);
+        boolean result = instanceManager.generateSSHIdentity(null, identity, "{\"csr\":\"csr\"}", null);
         assertFalse(result);
     }
     
     @Test
     public void testGenerateSshIdentityNullCertError() {
         String sshCsr = "{\"csr\":\"csr\",\"certtype\":\"host\"}";
-        CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class);
-        Mockito.when(certSigner.generateSSHCertificate(sshCsr)).thenReturn(null);
-        Mockito.when(certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_HOST)).thenReturn("ssh-host");
-        Mockito.when(certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_USER)).thenReturn("ssh-user");
+        SSHSigner sshSigner = Mockito.mock(com.yahoo.athenz.common.server.ssh.SSHSigner.class);
+        SSHCertRequest sshRequest = new SSHCertRequest();
+        sshRequest.setCsr(sshCsr);
+        Mockito.when(sshSigner.generateCertificate(null, sshRequest, "host")).thenReturn(null);
+        Mockito.when(sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_HOST)).thenReturn("ssh-host");
+        Mockito.when(sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_USER)).thenReturn("ssh-user");
         
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, true);
-        instanceManager.setCertSigner(certSigner);
+        instanceManager.setSSHSigner(sshSigner);
 
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.service");
-        boolean result = instanceManager.generateSshIdentity(identity, sshCsr, "host");
+        boolean result = instanceManager.generateSSHIdentity(null, identity, sshCsr, "host");
         assertFalse(result);
         instanceManager.shutdown();
     }
@@ -317,16 +324,20 @@ public class InstanceCertManagerTest {
     @Test
     public void testGenerateSshIdentityEmptyCertError() {
         String sshCsr = "{\"csr\":\"csr\",\"certtype\":\"host\"}";
-        CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class);
-        Mockito.when(certSigner.generateSSHCertificate(sshCsr)).thenReturn("");
-        Mockito.when(certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_HOST)).thenReturn("ssh-host");
-        Mockito.when(certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_USER)).thenReturn("ssh-user");
+        SSHSigner sshSigner = Mockito.mock(com.yahoo.athenz.common.server.ssh.SSHSigner.class);
+        SSHCertRequest sshRequest = new SSHCertRequest();
+        sshRequest.setCsr(sshCsr);
+        SSHCertificates certs = new SSHCertificates();
+        certs.setCertificates(Collections.emptyList());
+        Mockito.when(sshSigner.generateCertificate(null, sshRequest, "host")).thenReturn(certs);
+        Mockito.when(sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_HOST)).thenReturn("ssh-host");
+        Mockito.when(sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_USER)).thenReturn("ssh-user");
         
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, true);
-        instanceManager.setCertSigner(certSigner);
+        instanceManager.setSSHSigner(sshSigner);
 
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.service");
-        boolean result = instanceManager.generateSshIdentity(identity, sshCsr, "host");
+        boolean result = instanceManager.generateSSHIdentity(null, identity, sshCsr, "host");
         assertFalse(result);
         instanceManager.shutdown();
     }
@@ -334,16 +345,22 @@ public class InstanceCertManagerTest {
     @Test
     public void testGenerateSshIdentity() {
         String sshCsr = "{\"csr\":\"csr\",\"certtype\":\"host\"}";
-        CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class);
-        Mockito.when(certSigner.generateSSHCertificate(sshCsr)).thenReturn("ssh-cert");
-        Mockito.when(certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_HOST)).thenReturn("ssh-host");
-        Mockito.when(certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_USER)).thenReturn("ssh-user");
+        SSHSigner sshSigner = Mockito.mock(com.yahoo.athenz.common.server.ssh.SSHSigner.class);
+        SSHCertRequest sshRequest = new SSHCertRequest();
+        sshRequest.setCsr(sshCsr);
+        SSHCertificates certs = new SSHCertificates();
+        SSHCertificate cert = new SSHCertificate();
+        cert.setCertificate("ssh-cert");
+        InstanceIdentity identity = new InstanceIdentity().setName("athenz.service");
+        final SSHCertificates sshCertificates = certs.setCertificates(Collections.singletonList(cert));
+        Mockito.when(sshSigner.generateCertificate(null, sshRequest, "host")).thenReturn(sshCertificates);
+        Mockito.when(sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_HOST)).thenReturn("ssh-host");
+        Mockito.when(sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_USER)).thenReturn("ssh-user");
         
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, true);
-        instanceManager.setCertSigner(certSigner);
+        instanceManager.setSSHSigner(sshSigner);
 
-        InstanceIdentity identity = new InstanceIdentity().setName("athenz.service");
-        boolean result = instanceManager.generateSshIdentity(identity, sshCsr, "host");
+        boolean result = instanceManager.generateSSHIdentity(null, identity, sshCsr, "host");
         assertTrue(result);
         assertEquals(identity.getSshCertificate(), "ssh-cert");
         assertEquals(identity.getSshCertificateSigner(), "ssh-host");
@@ -481,17 +498,17 @@ public class InstanceCertManagerTest {
         InstanceCertManager instanceCertManager = new InstanceCertManager(null, null, true);
         instanceCertManager.setSSHSigner(null);
 
-        assertNull(instanceCertManager.getSSHCertificates(null, null, "id"));
+        assertNull(instanceCertManager.generateSSHCertificates(null, null));
 
         SSHSigner signer = Mockito.mock(SSHSigner.class);
 
         Principal principal = Mockito.mock(Principal.class);
         SSHCertRequest certRequest = new SSHCertRequest();
-        com.yahoo.athenz.zts.SSHCertificates certs = new com.yahoo.athenz.zts.SSHCertificates();
-        Mockito.when(signer.generateCertificate(principal, certRequest, "id")).thenReturn(certs);
+        SSHCertificates certs = new SSHCertificates();
+        Mockito.when(signer.generateCertificate(principal, certRequest, null)).thenReturn(certs);
         instanceCertManager.setSSHSigner(signer);
 
-        assertEquals(certs, instanceCertManager.getSSHCertificates(principal, certRequest, "id"));
+        assertEquals(certs, instanceCertManager.generateSSHCertificates(principal, certRequest));
     }
 
     @Test
