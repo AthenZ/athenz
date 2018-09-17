@@ -34,7 +34,7 @@ it should run successfully with OpenJDK 8 as well.
 Download latest ZTS binary release from
 
 ```
-https://github.com/yahoo/athenz/releases/latest
+https://bintray.com/yahoo/maven/athenz-zts/_latestVersion#files
 ```
 
 ```shell

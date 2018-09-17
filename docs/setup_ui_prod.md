@@ -40,7 +40,7 @@ $ nodemon --version
 Download latest Athenz UI release from
 
 ```
-https://github.com/yahoo/athenz/releases/latest
+https://bintray.com/yahoo/maven/athenz-ui/_latestVersion#files
 ```
 
 ```shell
