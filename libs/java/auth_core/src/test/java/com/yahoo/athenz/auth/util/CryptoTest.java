@@ -629,7 +629,54 @@ public class CryptoTest {
             assertEquals(ips.get(1), "10.11.12.14");
         }
     }
-    
+
+    @Test
+    public void testExtractX509CertURIsNull() throws Exception {
+
+        try (InputStream inStream = new FileInputStream("src/test/resources/valid_cn_x509.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+
+            List<String> uris = Crypto.extractX509CertURIs(cert);
+            assertTrue(uris.isEmpty());
+        }
+
+        try (InputStream inStream = new FileInputStream("src/test/resources/x509_altnames_noip.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+
+            List<String> uris = Crypto.extractX509CertURIs(cert);
+            assertTrue(uris.isEmpty());
+        }
+    }
+
+    @Test
+    public void testExtractX509CertURIsNullSingle() throws Exception {
+
+        try (InputStream inStream = new FileInputStream("src/test/resources/x509_altnames_singleuri.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+
+            List<String> uris = Crypto.extractX509CertURIs(cert);
+            assertEquals(1, uris.size());
+            assertEquals(uris.get(0), "spiffe://athenz/domain1/service1");
+        }
+    }
+
+    @Test
+    public void testExtractX509CertURIsNullDouble() throws Exception {
+
+        try (InputStream inStream = new FileInputStream("src/test/resources/x509_altnames_doubleuri.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+
+            List<String> uris = Crypto.extractX509CertURIs(cert);
+            assertEquals(2, uris.size());
+            assertEquals(uris.get(0), "spiffe://athenz/domain1/service1");
+            assertEquals(uris.get(1), "spiffe://athenz/domain1/service2");
+        }
+    }
+
     @Test
     public void testExtractX509CSRFields() throws IOException {
         
@@ -654,6 +701,60 @@ public class CryptoTest {
 
         assertEquals(Crypto.extractX509CSRCommonName(certReq), "sports:role.readers");
         assertEquals(Crypto.extractX509CSREmail(certReq), "sports.scores@aws.yahoo.cloud");
+    }
+
+    @Test
+    public void testExtractX509CSRFieldsWithRfc822s() throws IOException {
+
+        Path path = Paths.get("src/test/resources/valid_emails.csr");
+        String csr = new String(Files.readAllBytes(path));
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
+        assertNotNull(certReq);
+
+        assertEquals(Crypto.extractX509CSRCommonName(certReq), "athenz.production");
+        List<String> emails = Crypto.extractX509CSREmails(certReq);
+        assertEquals(2, emails.size());
+        assertEquals(emails.get(0), "sports.scores@aws.yahoo.cloud");
+        assertEquals(emails.get(1), "nhl.scores@aws.yahoo.cloud");
+    }
+
+    @Test
+    public void testExtractX509CSRFieldsURINull() throws IOException {
+
+        Path path = Paths.get("src/test/resources/valid_email.csr");
+        String csr = new String(Files.readAllBytes(path));
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
+        assertNotNull(certReq);
+
+        List<String> uris = Crypto.extractX509CSRURIs(certReq);
+        assertEquals(0, uris.size());
+    }
+
+    @Test
+    public void testExtractX509CSRFieldsURISingle() throws IOException {
+
+        Path path = Paths.get("src/test/resources/valid_single_uri.csr");
+        String csr = new String(Files.readAllBytes(path));
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
+        assertNotNull(certReq);
+
+        List<String> uris = Crypto.extractX509CSRURIs(certReq);
+        assertEquals(1, uris.size());
+        assertEquals(uris.get(0), "spiffe://athenz/domain1/service1");
+    }
+
+    @Test
+    public void testExtractX509CSRFieldsURIDouble() throws IOException {
+
+        Path path = Paths.get("src/test/resources/valid_multiple_uri.csr");
+        String csr = new String(Files.readAllBytes(path));
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
+        assertNotNull(certReq);
+
+        List<String> uris = Crypto.extractX509CSRURIs(certReq);
+        assertEquals(2, uris.size());
+        assertEquals(uris.get(0), "spiffe://athenz/domain1/service1");
+        assertEquals(uris.get(1), "spiffe://athenz/domain1/service2");
     }
 
     @Test
