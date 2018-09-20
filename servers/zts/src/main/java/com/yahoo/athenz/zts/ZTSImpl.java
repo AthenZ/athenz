@@ -28,6 +28,7 @@ import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.EntityTag;
+import javax.ws.rs.core.Response;
 
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.slf4j.Logger;
@@ -856,8 +857,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return ztsPolicies;
     }
     
-    public void getDomainSignedPolicyData(ResourceContext ctx, String domainName,
-            String matchingTag, GetDomainSignedPolicyDataResult signedPoliciesResult) {
+    public Response getDomainSignedPolicyData(ResourceContext ctx, String domainName, String matchingTag) {
         
         final String caller = "getdomainsignedpolicydata";
         final String callerTiming = "getdomainsignedpolicydata_timing";
@@ -898,7 +898,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // via the domain modified timestamp.
         
         if (matchingTag != null && matchingTag.equals(tag)) {
-            signedPoliciesResult.done(ResourceException.NOT_MODIFIED, matchingTag);
+            return Response.status(ResourceException.NOT_MODIFIED).header("ETag", tag).build();
         }
         
         // first get our PolicyData object
@@ -925,7 +925,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             .setKeyId(privateKeyId);
         
         metric.stopTiming(timerMetric);
-        signedPoliciesResult.done(ResourceException.OK, result, tag);
+        return Response.status(ResourceException.OK).entity(result).header("ETag", tag).build();
     }
 
     String convertEmptyStringToNull(String value) {
@@ -1750,8 +1750,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     @Override
-    public void postInstanceRegisterInformation(ResourceContext ctx, InstanceRegisterInformation info,
-            PostInstanceRegisterInformationResult instanceResult) {
+    public Response postInstanceRegisterInformation(ResourceContext ctx, InstanceRegisterInformation info) {
         
         final String caller = "postinstanceregisterinformation";
         final String callerTiming = "postinstanceregisterinformation_timing";
@@ -1932,7 +1931,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String location = "/zts/v1/instance/" + provider + "/" + domain
                 + "/" + service + "/" + certReqInstanceId;
         metric.stopTiming(timerMetric);
-        instanceResult.done(ResourceException.CREATED, identity, location);
+        return Response.status(ResourceException.CREATED).entity(identity)
+                .header("Location", location).build();
     }
 
     InstanceConfirmation generateInstanceConfirmObject(ResourceContext ctx, final String provider,
@@ -2568,7 +2568,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     @Override
-    public SSHCertificates postSSHCertRequest(ResourceContext ctx, SSHCertRequest certRequest) {
+    public Response postSSHCertRequest(ResourceContext ctx, SSHCertRequest certRequest) {
 
         final String caller = "postsshcertrequest";
         final String callerTiming = "postsshcertrequest_timing";
@@ -2609,7 +2609,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
 
         metric.stopTiming(timerMetric);
-        return certs;
+        return Response.status(ResourceException.CREATED).entity(certs).build();
     }
 
     // this method will be removed and replaced with call to postInstanceRegisterInformation

@@ -48,6 +48,7 @@ import static org.testng.Assert.fail;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
 
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
@@ -5331,15 +5332,11 @@ public class ZMSImplTest {
         Principal sysPrincipal = principalAuthority.authenticate("v=U1;d=sys;n=zts;s=signature",
                 "10.11.12.13", "GET", null);
         ResourceContext rsrcCtx = createResourceContext(sysPrincipal);
-        GetSignedDomainsResult result = new GetSignedDomainsResult(rsrcCtx);
-        SignedDomains sdoms = null;
-        try {
-            zms.getSignedDomains(rsrcCtx, null, null, null, result);
-            fail("webappexc not thrown by getSignedDomains");
-        } catch (javax.ws.rs.WebApplicationException wexc) {
-            Object obj = getWebAppExcEntity(wexc);
-            sdoms = (SignedDomains) obj;
-        }
+
+        Response response = zms.getSignedDomains(rsrcCtx, null, null, null);
+        Object obj = response.getEntity();
+        SignedDomains sdoms = (SignedDomains) obj;
+
         assertNotNull(sdoms);
         List<SignedDomain> list = sdoms.getDomains();
         assertNotNull(list);
@@ -5367,15 +5364,10 @@ public class ZMSImplTest {
         zms.privateKeyId = "1";
         zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKeyK1));
 
-        result = new GetSignedDomainsResult(rsrcCtx);
-        sdoms = null;
-        try {
-            zms.getSignedDomains(rsrcCtx, null, null, null, result);
-            fail("webappexc not thrown by getSignedDomains");
-        } catch (javax.ws.rs.WebApplicationException wexc) {
-            Object obj = getWebAppExcEntity(wexc);
-            sdoms = (SignedDomains) obj;
-        }
+        response = zms.getSignedDomains(rsrcCtx, null, null, null);
+        obj = response.getEntity();
+        sdoms = (SignedDomains) obj;
+
         assertNotNull(sdoms);
         list = sdoms.getDomains();
         assertNotNull(list);
@@ -5397,15 +5389,9 @@ public class ZMSImplTest {
         zms.privateKeyId = "2";
         zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKeyK2));
 
-        result = new GetSignedDomainsResult(rsrcCtx);
-        sdoms = null;
-        try {
-            zms.getSignedDomains(rsrcCtx, null, null, null, result);
-            fail("webappexc not thrown by getSignedDomains");
-        } catch (javax.ws.rs.WebApplicationException wexc) {
-            Object obj = getWebAppExcEntity(wexc);
-            sdoms = (SignedDomains) obj;
-        }
+        response = zms.getSignedDomains(rsrcCtx, null, null, null);
+        obj = response.getEntity();
+        sdoms = (SignedDomains) obj;
         assertNotNull(sdoms);
 
         list = sdoms.getDomains();
@@ -5421,15 +5407,9 @@ public class ZMSImplTest {
 
         // test metaonly=true
         //
-        result = new GetSignedDomainsResult(rsrcCtx);
-        sdoms = null;
-        try {
-            zms.getSignedDomains(rsrcCtx, null, "tRuE", null, result);
-            fail("webappexc not thrown by getSignedDomains");
-        } catch (javax.ws.rs.WebApplicationException wexc) {
-            Object obj = getWebAppExcEntity(wexc);
-            sdoms = (SignedDomains) obj;
-        }
+        response = zms.getSignedDomains(rsrcCtx, null, "tRuE", null);
+        obj = response.getEntity();
+        sdoms = (SignedDomains) obj;
         assertNotNull(sdoms);
 
         list = sdoms.getDomains();
@@ -5452,15 +5432,9 @@ public class ZMSImplTest {
 
         // test metaonly=garbage
         //
-        result = new GetSignedDomainsResult(rsrcCtx);
-        sdoms = null;
-        try {
-            zms.getSignedDomains(rsrcCtx, null, "garbage", null, result);
-            fail("webappexc not thrown by getSignedDomains");
-        } catch (javax.ws.rs.WebApplicationException wexc) {
-            Object obj = getWebAppExcEntity(wexc);
-            sdoms = (SignedDomains) obj;
-        }
+        response = zms.getSignedDomains(rsrcCtx, null, "garbage", null);
+        obj = response.getEntity();
+        sdoms = (SignedDomains) obj;
         assertNotNull(sdoms);
 
         list = sdoms.getDomains();
@@ -5480,15 +5454,9 @@ public class ZMSImplTest {
 
         // test metaonly=false
         //
-        result = new GetSignedDomainsResult(rsrcCtx);
-        sdoms = null;
-        try {
-            zms.getSignedDomains(rsrcCtx, null, "fAlSe", null, result);
-            fail("webappexc not thrown by getSignedDomains");
-        } catch (javax.ws.rs.WebApplicationException wexc) {
-            Object obj = getWebAppExcEntity(wexc);
-            sdoms = (SignedDomains) obj;
-        }
+        response = zms.getSignedDomains(rsrcCtx, null, "fAlSe", null);
+        obj = response.getEntity();
+        sdoms = (SignedDomains) obj;
         assertNotNull(sdoms);
 
         list = sdoms.getDomains();
@@ -5509,18 +5477,10 @@ public class ZMSImplTest {
         // test bad tag format
         //
         String eTag  = "I am not good";
-        String eTag2 = null;
-        result = new GetSignedDomainsResult(rsrcCtx);
-        try {
-            zms.getSignedDomains(rsrcCtx, null, null, eTag, result);
-            fail("webappexc not thrown by getSignedDomains");
-        } catch (javax.ws.rs.WebApplicationException wexc) {
-            Object obj = getWebAppExcEntity(wexc);
-            sdoms = (SignedDomains) obj;
-            Object val = getWebAppExcETagMapValue(wexc);
-            eTag2 = val.toString();
-        }
-
+        response = zms.getSignedDomains(rsrcCtx, null, null, eTag);
+        obj = response.getEntity();
+        sdoms = (SignedDomains) obj;
+        String eTag2 = response.getHeaderString("ETag");
         assertNotNull(eTag2);
         assertNotEquals(eTag, eTag2);
         list = sdoms.getDomains();
@@ -5532,35 +5492,19 @@ public class ZMSImplTest {
         Policy policy1 = createPolicyObject("SignedDom1", "Policy1");
         zms.putPolicy(mockDomRsrcCtx, "SignedDom1", "Policy1", auditRef, policy1);
 
-        result = new GetSignedDomainsResult(rsrcCtx);
-        sdoms  = null;
-        eTag   = null;
-        try {
-            zms.getSignedDomains(rsrcCtx, null, null, eTag2, result);
-            fail("webappexc not thrown by getSignedDomains");
-        } catch (javax.ws.rs.WebApplicationException wexc) {
-            Object obj = getWebAppExcEntity(wexc);
-            sdoms = (SignedDomains) obj;
-            Object val = getWebAppExcETagMapValue(wexc);
-            eTag = val.toString();
-        }
-
+        response = zms.getSignedDomains(rsrcCtx, null, null, eTag2);
+        obj = response.getEntity();
+        sdoms = (SignedDomains) obj;
+        eTag = response.getHeaderString("ETag");
         assertNotNull(eTag);
         assertNotEquals(eTag, eTag2);
         list = sdoms.getDomains();
         assertNotNull(list);
         assertEquals(1, list.size());
 
-        result = new GetSignedDomainsResult(rsrcCtx);
-        eTag2  = null;
-        try {
-            zms.getSignedDomains(rsrcCtx, null, null, eTag, result);
-            fail("webappexc not thrown by getSignedDomains");
-        } catch (javax.ws.rs.WebApplicationException wexc) {
-            assertEquals(304, wexc.getResponse().getStatus());
-            Object val = getWebAppExcETagMapValue(wexc);
-            eTag2 = val.toString();
-        }
+        response = zms.getSignedDomains(rsrcCtx, null, null, eTag);
+        assertEquals(304, response.getStatus());
+        eTag2 = response.getHeaderString("ETag");
 
         assertNotNull(eTag2);
         assertEquals(eTag, eTag2);
@@ -5584,15 +5528,10 @@ public class ZMSImplTest {
         zms.privateKeyId = "0";
         zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
 
-        GetSignedDomainsResult result = new GetSignedDomainsResult(mockDomRsrcCtx);
-        SignedDomains sdoms = null;
-        try {
-            zms.getSignedDomains(mockDomRsrcCtx, "signeddom1filtered", null, null, result);
-            fail("webappexc not thrown by getSignedDomains");
-        } catch (javax.ws.rs.WebApplicationException wexc) {
-            Object obj = getWebAppExcEntity(wexc);
-            sdoms = (SignedDomains) obj;
-        }
+        Response response = zms.getSignedDomains(mockDomRsrcCtx, "signeddom1filtered", null, null);
+        Object obj = response.getEntity();
+        SignedDomains sdoms = (SignedDomains) obj;
+
         assertNotNull(sdoms);
         List<SignedDomain> list = sdoms.getDomains();
         assertNotNull(list);
@@ -5607,15 +5546,11 @@ public class ZMSImplTest {
 
         // use domain=signeddom1filtered and metaonly=true
         //
-        result = new GetSignedDomainsResult(mockDomRsrcCtx);
-        sdoms = null;
-        try {
-            zms.getSignedDomains(mockDomRsrcCtx, "signeddom1filtered", "true", null, result);
-            fail("webappexc not thrown by getSignedDomains");
-        } catch (javax.ws.rs.WebApplicationException wexc) {
-            Object obj = getWebAppExcEntity(wexc);
-            sdoms = (SignedDomains) obj;
-        }
+
+        response = zms.getSignedDomains(mockDomRsrcCtx, "signeddom1filtered", "true", null);
+        obj = response.getEntity();
+        sdoms = (SignedDomains) obj;
+
         assertNotNull(sdoms);
         list = sdoms.getDomains();
         assertNotNull(list);
@@ -5637,15 +5572,10 @@ public class ZMSImplTest {
         // we're going to pass the domain name with caps and
         // make sure we still get back our domain
 
-        result = new GetSignedDomainsResult(mockDomRsrcCtx);
-        sdoms = null;
-        try {
-            zms.getSignedDomains(mockDomRsrcCtx, "SignedDom1Filtered", null, null, result);
-            fail("webappexc not thrown by getSignedDomains");
-        } catch (javax.ws.rs.WebApplicationException wexc) {
-            Object obj = getWebAppExcEntity(wexc);
-            sdoms = (SignedDomains) obj;
-        }
+        response = zms.getSignedDomains(mockDomRsrcCtx, "SignedDom1Filtered", null, null);
+        obj = response.getEntity();
+        sdoms = (SignedDomains) obj;
+
         assertNotNull(sdoms);
         list = sdoms.getDomains();
         assertNotNull(list);
@@ -5670,17 +5600,8 @@ public class ZMSImplTest {
                 "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        GetSignedDomainsResult result = new GetSignedDomainsResult(mockDomRsrcCtx);
-        ResourceError error = null;
-        try {
-            zms.getSignedDomains(mockDomRsrcCtx, null, null, null, result);
-            fail("webappexc not thrown by getSignedDomains");
-        } catch (javax.ws.rs.WebApplicationException wexc) {
-            Object obj = getWebAppExcEntity(wexc);
-            error = (ResourceError) obj;
-        }
-        assertNotNull(error);
-        assertEquals(error.code, ResourceException.BAD_REQUEST);
+        Response response = zms.getSignedDomains(mockDomRsrcCtx, null, null, null);
+        assertEquals(response.getStatus(), ResourceException.BAD_REQUEST);
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "SignedDom1", auditRef);
     }
@@ -12272,15 +12193,6 @@ public class ZMSImplTest {
         assertEquals(serviceRes.getName(), "sys.auth.zms");
         
         System.clearProperty(ZMSConsts.ZMS_PROP_READ_ONLY_MODE);
-    }
-    
-    @Test
-    public void testGetSignedDomainsResult() {
-        GetSignedDomainsResult object = new GetSignedDomainsResult(null);
-        try {
-            object.done(101);
-        } catch (WebApplicationException ignored) {
-        }
     }
     
     @Test

@@ -158,17 +158,14 @@ public class ZTSResources {
     @GET
     @Path("/domain/{domainName}/signed_policy_data")
     @Produces(MediaType.APPLICATION_JSON)
-    public void getDomainSignedPolicyData(@PathParam("domainName") String domainName, @HeaderParam("If-None-Match") String matchingTag) {
+    public Response getDomainSignedPolicyData(@PathParam("domainName") String domainName, @HeaderParam("If-None-Match") String matchingTag) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            GetDomainSignedPolicyDataResult result = new GetDomainSignedPolicyDataResult(context);
-            this.delegate.getDomainSignedPolicyData(context, domainName, matchingTag, result);
+            return this.delegate.getDomainSignedPolicyData(context, domainName, matchingTag);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
-            case ResourceException.NOT_MODIFIED:
-                throw typedException(code, e, void.class);
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
@@ -421,11 +418,10 @@ public class ZTSResources {
     @Path("/instance")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public void postInstanceRegisterInformation(InstanceRegisterInformation info) {
+    public Response postInstanceRegisterInformation(InstanceRegisterInformation info) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
-            PostInstanceRegisterInformationResult result = new PostInstanceRegisterInformationResult(context);
-            this.delegate.postInstanceRegisterInformation(context, info, result);
+            return this.delegate.postInstanceRegisterInformation(context, info);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
@@ -558,7 +554,7 @@ public class ZTSResources {
     @Path("/sshcert")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public SSHCertificates postSSHCertRequest(SSHCertRequest certRequest) {
+    public Response postSSHCertRequest(SSHCertRequest certRequest) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();

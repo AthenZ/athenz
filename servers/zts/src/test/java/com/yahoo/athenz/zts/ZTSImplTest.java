@@ -29,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
 
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.mockito.ArgumentMatchers;
@@ -4053,15 +4054,9 @@ public class ZTSImplTest {
                 .setProvider("athenz.provider").setToken(true);
         
         ResourceContext context = createResourceContext(null);
-        PostInstanceRegisterInformationResult result = new PostInstanceRegisterInformationResult(context);
-        
-        int code = 0;
-        try {
-            ztsImpl.postInstanceRegisterInformation(context, info, result);
-        } catch (WebApplicationException ex) {
-            code = ex.getResponse().getStatus();
-        }
-        assertEquals(code, 201);
+
+        Response response = ztsImpl.postInstanceRegisterInformation(context, info);
+        assertEquals(response.getStatus(), 201);
         assertNotNull(info.getToken());
     }
     
@@ -4115,15 +4110,9 @@ public class ZTSImplTest {
                 .setProvider("athenz.provider").setToken(false);
         
         ResourceContext context = createResourceContext(null);
-        PostInstanceRegisterInformationResult result = new PostInstanceRegisterInformationResult(context);
-        
-        int code = 0;
-        try {
-            ztsImpl.postInstanceRegisterInformation(context, info, result);
-        } catch (WebApplicationException ex) {
-            code = ex.getResponse().getStatus();
-        }
-        assertEquals(code, 201);
+
+        Response response = ztsImpl.postInstanceRegisterInformation(context, info);
+        assertEquals(response.getStatus(), 201);
         assertNotNull(info.getToken());
     }
     
@@ -4157,10 +4146,9 @@ public class ZTSImplTest {
                 .setProvider("athenz.provider");
         
         ResourceContext context = createResourceContext(null);
-        PostInstanceRegisterInformationResult result = new PostInstanceRegisterInformationResult(context);
-        
+
         try {
-            ztsImpl.postInstanceRegisterInformation(context, info, result);
+            ztsImpl.postInstanceRegisterInformation(context, info);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -4200,10 +4188,9 @@ public class ZTSImplTest {
                 .setProvider("athenz.provider");
         
         ResourceContext context = createResourceContext(null);
-        PostInstanceRegisterInformationResult result = new PostInstanceRegisterInformationResult(context);
-        
+
         try {
-            ztsImpl.postInstanceRegisterInformation(context, info, result);
+            ztsImpl.postInstanceRegisterInformation(context, info);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
@@ -4235,10 +4222,9 @@ public class ZTSImplTest {
                 .setProvider("athenz.nonprovider");
         
         ResourceContext context = createResourceContext(null);
-        PostInstanceRegisterInformationResult result = new PostInstanceRegisterInformationResult(context);
-        
+
         try {
-            ztsImpl.postInstanceRegisterInformation(context, info, result);
+            ztsImpl.postInstanceRegisterInformation(context, info);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
@@ -4270,10 +4256,9 @@ public class ZTSImplTest {
                 .setProvider("athenz.provider");
         
         ResourceContext context = createResourceContext(null);
-        PostInstanceRegisterInformationResult result = new PostInstanceRegisterInformationResult(context);
-        
+
         try {
-            ztsImpl.postInstanceRegisterInformation(context, info, result);
+            ztsImpl.postInstanceRegisterInformation(context, info);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
@@ -4302,10 +4287,9 @@ public class ZTSImplTest {
                 .setProvider("athenz.provider");
         
         ResourceContext context = createResourceContext(null);
-        PostInstanceRegisterInformationResult result = new PostInstanceRegisterInformationResult(context);
-        
+
         try {
-            ztsImpl.postInstanceRegisterInformation(context, info, result);
+            ztsImpl.postInstanceRegisterInformation(context, info);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -4351,10 +4335,9 @@ public class ZTSImplTest {
                 .setProvider("athenz.provider");
         
         ResourceContext context = createResourceContext(null);
-        PostInstanceRegisterInformationResult result = new PostInstanceRegisterInformationResult(context);
-        
+
         try {
-            ztsImpl.postInstanceRegisterInformation(context, info, result);
+            ztsImpl.postInstanceRegisterInformation(context, info);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -4404,10 +4387,9 @@ public class ZTSImplTest {
                 .setProvider("athenz.provider");
         
         ResourceContext context = createResourceContext(null);
-        PostInstanceRegisterInformationResult result = new PostInstanceRegisterInformationResult(context);
-        
+
         try {
-            ztsImpl.postInstanceRegisterInformation(context, info, result);
+            ztsImpl.postInstanceRegisterInformation(context, info);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 500);
@@ -4463,15 +4445,9 @@ public class ZTSImplTest {
                 Mockito.any(), Mockito.any());
         
         ResourceContext context = createResourceContext(null);
-        PostInstanceRegisterInformationResult result = new PostInstanceRegisterInformationResult(context);
-        
-        int code = 0;
-        try {
-            ztsImpl.postInstanceRegisterInformation(context, info, result);
-        } catch (WebApplicationException ex) {
-            code = ex.getResponse().getStatus();
-        }
-        assertEquals(code, 201);
+
+        Response response = ztsImpl.postInstanceRegisterInformation(context, info);
+        assertEquals(response.getStatus(), 201);
         assertNull(info.getSsh());
     }
     
@@ -4520,10 +4496,9 @@ public class ZTSImplTest {
                 .setProvider("athenz.provider");
         
         ResourceContext context = createResourceContext(null);
-        PostInstanceRegisterInformationResult result = new PostInstanceRegisterInformationResult(context);
-        
+
         try {
-            ztsImpl.postInstanceRegisterInformation(context, info, result);
+            ztsImpl.postInstanceRegisterInformation(context, info);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 500);
@@ -5874,21 +5849,14 @@ public class ZTSImplTest {
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
         ResourceContext context = createResourceContext(principal);
-        
-        GetDomainSignedPolicyDataResult result = new GetDomainSignedPolicyDataResult(context);
 
-        int code = 0;
-        try {
-            ztsImpl.getDomainSignedPolicyData(context, "coretech", null, result);
-        } catch (WebApplicationException ex) {
-            code = ex.getResponse().getStatus();
-        }
-        assertEquals(code, 200);
+        Response response = ztsImpl.getDomainSignedPolicyData(context, "coretech", null);
+        assertEquals(response.getStatus(), 200);
         
         // invalid domain
         
         try {
-            ztsImpl.getDomainSignedPolicyData(context, "unknowndomain", null, result);
+            ztsImpl.getDomainSignedPolicyData(context, "unknowndomain", null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
@@ -6746,7 +6714,7 @@ public class ZTSImplTest {
         }
 
         try {
-            ztsImpl.postInstanceRegisterInformation(ctx, null, null);
+            ztsImpl.postInstanceRegisterInformation(ctx, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -6861,8 +6829,8 @@ public class ZTSImplTest {
         principal.setX509Certificate(cert);
 
         ResourceContext context = createResourceContext(principal);
-        SSHCertificates resCerts = ztsImpl.postSSHCertRequest(context, certRequest);
-        assertNotNull(resCerts);
+        Response response = ztsImpl.postSSHCertRequest(context, certRequest);
+        assertEquals(response.getStatus(), 201);
     }
 
     @Test

@@ -966,8 +966,6 @@ public class ZMSResources {
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
-            case ResourceException.CREATED:
-                throw typedException(code, e, Assertion.class);
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.CONFLICT:
@@ -1322,8 +1320,6 @@ public class ZMSResources {
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
-            case ResourceException.CREATED:
-                throw typedException(code, e, TenantResourceGroupRoles.class);
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.CONFLICT:
@@ -1413,8 +1409,6 @@ public class ZMSResources {
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
-            case ResourceException.CREATED:
-                throw typedException(code, e, ProviderResourceGroupRoles.class);
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.CONFLICT:
@@ -1579,17 +1573,14 @@ public class ZMSResources {
     @GET
     @Path("/sys/modified_domains")
     @Produces(MediaType.APPLICATION_JSON)
-    public void getSignedDomains(@QueryParam("domain") String domain, @QueryParam("metaonly") String metaOnly, @HeaderParam("If-None-Match") String matchingTag) {
+    public Response getSignedDomains(@QueryParam("domain") String domain, @QueryParam("metaonly") String metaOnly, @HeaderParam("If-None-Match") String matchingTag) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            GetSignedDomainsResult result = new GetSignedDomainsResult(context);
-            this.delegate.getSignedDomains(context, domain, metaOnly, matchingTag, result);
+            return this.delegate.getSignedDomains(context, domain, metaOnly, matchingTag);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
-            case ResourceException.NOT_MODIFIED:
-                throw typedException(code, e, void.class);
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
