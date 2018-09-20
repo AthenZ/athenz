@@ -112,7 +112,7 @@ resource Assertion PUT "/domain/{domainName}/policy/{policyName}/assertion" {
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     Assertion assertion; //Assertion object to be added to the given policy
     authorize ("update", "{domainName}:policy.{policyName}");
-    expected OK, CREATED;
+    expected OK;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;

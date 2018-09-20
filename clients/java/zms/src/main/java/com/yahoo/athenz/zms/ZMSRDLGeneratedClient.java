@@ -817,7 +817,6 @@ public class ZMSRDLGeneratedClient {
         int code = response.getStatus();
         switch (code) {
         case 200:
-        case 201:
             return response.readEntity(Assertion.class);
         default:
             throw new ResourceException(code, response.readEntity(ResourceError.class));
@@ -1098,7 +1097,6 @@ public class ZMSRDLGeneratedClient {
         int code = response.getStatus();
         switch (code) {
         case 200:
-        case 201:
             return response.readEntity(TenantResourceGroupRoles.class);
         default:
             throw new ResourceException(code, response.readEntity(ResourceError.class));
@@ -1171,7 +1169,6 @@ public class ZMSRDLGeneratedClient {
         int code = response.getStatus();
         switch (code) {
         case 200:
-        case 201:
             return response.readEntity(ProviderResourceGroupRoles.class);
         default:
             throw new ResourceException(code, response.readEntity(ResourceError.class));

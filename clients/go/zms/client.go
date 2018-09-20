@@ -1452,7 +1452,7 @@ func (client ZMSClient) PutAssertion(domainName DomainName, policyName EntityNam
 	}
 	defer resp.Body.Close()
 	switch resp.StatusCode {
-	case 200, 201:
+	case 200:
 		err = json.NewDecoder(resp.Body).Decode(&data)
 		if err != nil {
 			return data, err
@@ -1877,7 +1877,7 @@ func (client ZMSClient) PutTenantResourceGroupRoles(domain DomainName, service S
 	}
 	defer resp.Body.Close()
 	switch resp.StatusCode {
-	case 200, 201:
+	case 200:
 		err = json.NewDecoder(resp.Body).Decode(&data)
 		if err != nil {
 			return data, err
@@ -1987,7 +1987,7 @@ func (client ZMSClient) PutProviderResourceGroupRoles(tenantDomain DomainName, p
 	}
 	defer resp.Body.Close()
 	switch resp.StatusCode {
-	case 200, 201:
+	case 200:
 		err = json.NewDecoder(resp.Body).Decode(&data)
 		if err != nil {
 			return data, err

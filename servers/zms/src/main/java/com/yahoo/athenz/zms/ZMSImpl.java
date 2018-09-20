@@ -76,6 +76,7 @@ import java.nio.file.Paths;
 import javax.ws.rs.core.EntityTag;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.Response;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -4105,8 +4106,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return signedDomain;
     }
     
-    public void getSignedDomains(ResourceContext ctx, String domainName, String metaOnly,
-            String matchingTag, GetSignedDomainsResult result) {
+    public Response getSignedDomains(ResourceContext ctx, String domainName, String metaOnly,
+            String matchingTag) {
 
         final String caller = "getsigneddomains";
         metric.increment(ZMSConsts.HTTP_GET);
@@ -4169,7 +4170,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 
                 if (timestamp != 0 && youngestDomMod <= timestamp) {
                     EntityTag eTag = new EntityTag(domain.getModified().toString());
-                    result.done(ResourceException.NOT_MODIFIED, eTag.toString());
+                    return Response.status(ResourceException.NOT_MODIFIED)
+                            .header("ETag", eTag.toString()).build();
                 }
                 
                 // generate our signed domain object
@@ -4192,7 +4194,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             // unless the request is from a system service
 
             if (!setMetaDataOnly && !systemPrincipal)  {
-                result.done(ResourceException.BAD_REQUEST);
+                return Response.status(ResourceException.BAD_REQUEST).build();
             }
 
             // we should get our matching tag before calling get modified list
@@ -4207,7 +4209,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             DomainModifiedList dmlist = dbService.listModifiedDomains(timestamp);
             List<DomainModified> modlist = dmlist.getNameModList();
             if (modlist == null || modlist.size() == 0) {
-                result.done(ResourceException.NOT_MODIFIED, matchingTag);
+                return Response.status(ResourceException.NOT_MODIFIED)
+                        .header("ETag", matchingTag).build();
             }
             
             // now we can iterate through our list and retrieve each domain
@@ -4247,7 +4250,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         EntityTag eTag = new EntityTag(youngest.toString());
 
         metric.stopTiming(timerMetric);
-        result.done(ResourceException.OK, sdoms, eTag.toString());
+        return Response.status(ResourceException.OK).entity(sdoms)
+                .header("ETag", eTag.toString()).build();
     }
     
     List<Policy> getPolicyListWithoutAssertionId(List<Policy> policies) {

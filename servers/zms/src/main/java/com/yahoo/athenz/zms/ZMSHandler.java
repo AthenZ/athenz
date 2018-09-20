@@ -4,6 +4,7 @@
 package com.yahoo.athenz.zms;
 
 import com.yahoo.rdl.*;
+import javax.ws.rs.core.Response;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -65,7 +66,7 @@ public interface ZMSHandler {
     Access getAccess(ResourceContext context, String action, String resource, String domain, String checkPrincipal);
     Access getAccessExt(ResourceContext context, String action, String resource, String domain, String checkPrincipal);
     ResourceAccessList getResourceAccessList(ResourceContext context, String principal, String action);
-    void getSignedDomains(ResourceContext context, String domain, String metaOnly, String matchingTag, GetSignedDomainsResult result);
+    Response getSignedDomains(ResourceContext context, String domain, String metaOnly, String matchingTag);
     UserToken getUserToken(ResourceContext context, String userName, String serviceNames, Boolean header);
     UserToken optionsUserToken(ResourceContext context, String userName, String serviceNames);
     ServicePrincipal getServicePrincipal(ResourceContext context);
