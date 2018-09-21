@@ -778,41 +778,54 @@ public class Crypto {
         return extractX509CSRSubjectField(certReq, BCStyle.OU);
     }
 
-    public static String extractX509CSREmail(PKCS10CertificationRequest certReq) {
-        
-        String rfc822 = null;
+    private static List<String> extractX509CSRSANField(PKCS10CertificationRequest certReq, int tagNo) {
+
+        List<String> values = new ArrayList<>();
         Attribute[] attributes = certReq.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);
         for (Attribute attribute : attributes) {
             for (ASN1Encodable value : attribute.getAttributeValues()) {
                 Extensions extensions = Extensions.getInstance(value);
                 GeneralNames gns = GeneralNames.fromExtensions(extensions, Extension.subjectAlternativeName);
                 for (GeneralName name : gns.getNames()) {
-                    if (name.getTagNo() == GeneralName.rfc822Name) {
-                        rfc822 = (((DERIA5String) name.getName()).getString());
-                        break;
+
+                    // GeneralName ::= CHOICE {
+                    //     otherName                       [0]     OtherName,
+                    //     rfc822Name                      [1]     IA5String,
+                    //     dNSName                         [2]     IA5String,
+                    //     x400Address                     [3]     ORAddress,
+                    //     directoryName                   [4]     Name,
+                    //     ediPartyName                    [5]     EDIPartyName,
+                    //     uniformResourceIdentifier       [6]     IA5String,
+                    //     iPAddress                       [7]     OCTET STRING,
+                    //     registeredID                    [8]     OBJECT IDENTIFIER}
+
+                    if (name.getTagNo() == tagNo) {
+                        values.add(((DERIA5String) name.getName()).getString());
                     }
                 }
             }
         }
-        return rfc822;
+        return values;
+    }
+
+    public static String extractX509CSREmail(PKCS10CertificationRequest certReq) {
+        List<String> emails = extractX509CSRSANField(certReq, GeneralName.rfc822Name);
+        if (emails.size() == 0) {
+            return null;
+        }
+        return emails.get(0);
+    }
+
+    public static List<String> extractX509CSREmails(PKCS10CertificationRequest certReq) {
+        return extractX509CSRSANField(certReq, GeneralName.rfc822Name);
     }
 
     public static List<String> extractX509CSRDnsNames(PKCS10CertificationRequest certReq) {
-        
-        List<String> dnsNames = new ArrayList<>();
-        Attribute[] attributes = certReq.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);
-        for (Attribute attribute : attributes) {
-            for (ASN1Encodable value : attribute.getAttributeValues()) {
-                Extensions extensions = Extensions.getInstance(value);
-                GeneralNames gns = GeneralNames.fromExtensions(extensions, Extension.subjectAlternativeName);
-                for (GeneralName name : gns.getNames()) {
-                    if (name.getTagNo() == GeneralName.dNSName) {
-                        dnsNames.add(((DERIA5String) name.getName()).getString());
-                    }
-                }
-            }
-        }
-        return dnsNames;
+        return extractX509CSRSANField(certReq, GeneralName.dNSName);
+    }
+
+    public static List<String> extractX509CSRURIs(PKCS10CertificationRequest certReq) {
+        return extractX509CSRSANField(certReq, GeneralName.uniformResourceIdentifier);
     }
 
     public static List<String> extractX509CSRIPAddresses(PKCS10CertificationRequest certReq) {
@@ -948,78 +961,7 @@ public class Crypto {
         return extractX509CertSubjectField(x509Cert, BCStyle.O);
     }
 
-    public static List<String> extractX509CertDnsNames(X509Certificate x509Cert) {
-        Collection<List<?>> altNames = null;
-        try {
-            altNames = x509Cert.getSubjectAlternativeNames();
-        } catch (CertificateParsingException ex) {
-            LOG.error("extractX509IPAddresses: Caught CertificateParsingException when parsing certificate: "
-                + ex.getMessage());
-        }
-
-        if (altNames == null) {
-            return Collections.emptyList();
-        }
-
-        List<String> dnsNames = new ArrayList<>();
-        for (@SuppressWarnings("rawtypes") List item : altNames) {
-            Integer type = (Integer) item.get(0);
-
-            // GeneralName ::= CHOICE {
-            //     otherName                       [0]     OtherName,
-            //     rfc822Name                      [1]     IA5String,
-            //     dNSName                         [2]     IA5String,
-            //     x400Address                     [3]     ORAddress,
-            //     directoryName                   [4]     Name,
-            //     ediPartyName                    [5]     EDIPartyName,
-            //     uniformResourceIdentifier       [6]     IA5String,
-            //     iPAddress                       [7]     OCTET STRING,
-            //     registeredID                    [8]     OBJECT IDENTIFIER}
-
-            if (type == GeneralName.dNSName) {
-                dnsNames.add((String) item.get(1));
-            }
-        }
-        return dnsNames;
-    }
-
-    public static List<String> extractX509CertEmails(X509Certificate x509Cert) {
-        Collection<List<?>> altNames = null;
-        try {
-            altNames = x509Cert.getSubjectAlternativeNames();
-        } catch (CertificateParsingException ex) {
-            LOG.error("extractX509IPAddresses: Caught CertificateParsingException when parsing certificate: "
-                + ex.getMessage());
-        }
-
-        if (altNames == null) {
-            return Collections.emptyList();
-        }
-
-        List<String> emails = new ArrayList<>();
-        for (@SuppressWarnings("rawtypes") List item : altNames) {
-            Integer type = (Integer) item.get(0);
-
-            // GeneralName ::= CHOICE {
-            //     otherName                       [0]     OtherName,
-            //     rfc822Name                      [1]     IA5String,
-            //     dNSName                         [2]     IA5String,
-            //     x400Address                     [3]     ORAddress,
-            //     directoryName                   [4]     Name,
-            //     ediPartyName                    [5]     EDIPartyName,
-            //     uniformResourceIdentifier       [6]     IA5String,
-            //     iPAddress                       [7]     OCTET STRING,
-            //     registeredID                    [8]     OBJECT IDENTIFIER}
-
-            if (type == GeneralName.rfc822Name) {
-                emails.add((String) item.get(1));
-            }
-        }
-        return emails;
-    }
-    
-    public static List<String> extractX509CertIPAddresses(X509Certificate x509Cert) {
-        
+    private static List<String> extractX509CertSANField(X509Certificate x509Cert, int tagNo) {
         Collection<List<?>> altNames = null;
         try {
             altNames = x509Cert.getSubjectAlternativeNames();
@@ -1027,15 +969,15 @@ public class Crypto {
             LOG.error("extractX509IPAddresses: Caught CertificateParsingException when parsing certificate: "
                     + ex.getMessage());
         }
-        
+
         if (altNames == null) {
             return Collections.emptyList();
         }
-        
-        List<String> ipAddresses = new ArrayList<>();
+
+        List<String> values = new ArrayList<>();
         for (@SuppressWarnings("rawtypes") List item : altNames) {
             Integer type = (Integer) item.get(0);
-            
+
             // GeneralName ::= CHOICE {
             //     otherName                       [0]     OtherName,
             //     rfc822Name                      [1]     IA5String,
@@ -1046,14 +988,30 @@ public class Crypto {
             //     uniformResourceIdentifier       [6]     IA5String,
             //     iPAddress                       [7]     OCTET STRING,
             //     registeredID                    [8]     OBJECT IDENTIFIER}
-            
-            if (type == GeneralName.iPAddress) {
-                ipAddresses.add((String) item.get(1));
+
+            if (type == tagNo) {
+                values.add((String) item.get(1));
             }
         }
-        return ipAddresses;
+        return values;
+    }
+
+    public static List<String> extractX509CertDnsNames(X509Certificate x509Cert) {
+        return extractX509CertSANField(x509Cert, GeneralName.dNSName);
+    }
+
+    public static List<String> extractX509CertEmails(X509Certificate x509Cert) {
+        return extractX509CertSANField(x509Cert, GeneralName.rfc822Name);
     }
     
+    public static List<String> extractX509CertIPAddresses(X509Certificate x509Cert) {
+        return extractX509CertSANField(x509Cert, GeneralName.iPAddress);
+    }
+
+    public static List<String> extractX509CertURIs(X509Certificate x509Cert) {
+        return extractX509CertSANField(x509Cert, GeneralName.uniformResourceIdentifier);
+    }
+
     public static String extractX509CertPublicKey(X509Certificate x509Cert) {
         
         PublicKey publicKey = x509Cert.getPublicKey();
