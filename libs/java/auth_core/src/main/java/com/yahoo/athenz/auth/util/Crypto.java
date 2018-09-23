@@ -786,6 +786,9 @@ public class Crypto {
             for (ASN1Encodable value : attribute.getAttributeValues()) {
                 Extensions extensions = Extensions.getInstance(value);
                 GeneralNames gns = GeneralNames.fromExtensions(extensions, Extension.subjectAlternativeName);
+                if (gns == null) {
+                    continue;
+                }
                 for (GeneralName name : gns.getNames()) {
 
                     // GeneralName ::= CHOICE {
@@ -836,6 +839,9 @@ public class Crypto {
             for (ASN1Encodable value : attribute.getAttributeValues()) {
                 Extensions extensions = Extensions.getInstance(value);
                 GeneralNames gns = GeneralNames.fromExtensions(extensions, Extension.subjectAlternativeName);
+                if (gns == null) {
+                    continue;
+                }
                 for (GeneralName name : gns.getNames()) {
                     if (name.getTagNo() == GeneralName.iPAddress) {
                         try {
