@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 
 public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnection {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DynamoDBCertRecordStoreConnection.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDBCertRecordStoreConnection.class);
 
     private static final String KEY_PROVIDER = "provider";
     private static final String KEY_INSTANCE_ID = "instanceId";
@@ -73,7 +73,7 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
         try {
             Item item = table.getItem(KEY_INSTANCE_ID, instanceId, KEY_PROVIDER, provider);
             if (item == null) {
-                LOG.error("DynamoDB Get Error for {}/{}: item not found", provider, instanceId);
+                LOGGER.error("DynamoDB Get Error for {}/{}: item not found", provider, instanceId);
                 return null;
             }
             X509CertRecord certRecord = new X509CertRecord();
@@ -89,7 +89,7 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
             certRecord.setClientCert(item.getBoolean(KEY_CLIENT_CERT));
             return certRecord;
         } catch (Exception ex) {
-            LOG.error("DynamoDB Get Error for {}/{}: {}/{}", provider, instanceId,
+            LOGGER.error("DynamoDB Get Error for {}/{}: {}/{}", provider, instanceId,
                     ex.getClass(), ex.getMessage());
             return null;
         }
@@ -115,7 +115,7 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
             table.updateItem(updateItemSpec);
             return true;
         } catch (Exception ex) {
-            LOG.error("DynamoDB Update Error for {}/{}: {}/{}", certRecord.getProvider(),
+            LOGGER.error("DynamoDB Update Error for {}/{}: {}/{}", certRecord.getProvider(),
                     certRecord.getInstanceId(), ex.getClass(), ex.getMessage());
             return false;
         }
@@ -139,7 +139,7 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
             table.putItem(item);
             return true;
         } catch (Exception ex) {
-            LOG.error("DynamoDB Insert Error for {}/{}: {}/{}", certRecord.getProvider(),
+            LOGGER.error("DynamoDB Insert Error for {}/{}: {}/{}", certRecord.getProvider(),
                     certRecord.getInstanceId(), ex.getClass(), ex.getMessage());
             return false;
         }
@@ -154,7 +154,7 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
             table.deleteItem(deleteItemSpec);
             return true;
         } catch (Exception ex) {
-            LOG.error("DynamoDB Delete Error for {}/{}: {}/{}", provider, instanceId,
+            LOGGER.error("DynamoDB Delete Error for {}/{}: {}/{}", provider, instanceId,
                     ex.getClass(), ex.getMessage());
             return false;
         }

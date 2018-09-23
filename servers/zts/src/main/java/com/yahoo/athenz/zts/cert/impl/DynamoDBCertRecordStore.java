@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 
 public class DynamoDBCertRecordStore implements CertRecordStore {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DynamoDBCertRecordStore.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDBCertRecordStore.class);
 
     private DynamoDB dynamoDB;
     private String tableName;
@@ -40,7 +40,7 @@ public class DynamoDBCertRecordStore implements CertRecordStore {
         try {
             return new DynamoDBCertRecordStoreConnection(dynamoDB, tableName);
         } catch (Exception ex) {
-            LOG.error("getConnection: {}", ex.getMessage());
+            LOGGER.error("getConnection: {}", ex.getMessage());
             throw new ResourceException(ResourceException.SERVICE_UNAVAILABLE, ex.getMessage());
         }
     }

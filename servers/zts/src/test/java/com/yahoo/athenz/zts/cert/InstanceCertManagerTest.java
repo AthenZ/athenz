@@ -12,9 +12,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.yahoo.athenz.common.server.ssh.SSHSigner;
-import com.yahoo.athenz.zts.SSHCertRequest;
-import com.yahoo.athenz.zts.SSHCertificate;
-import com.yahoo.athenz.zts.SSHCertificates;
+import com.yahoo.athenz.zts.*;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
@@ -28,8 +26,6 @@ import static org.testng.Assert.fail;
 
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.server.cert.CertSigner;
-import com.yahoo.athenz.zts.InstanceIdentity;
-import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.store.impl.ZMSFileChangeLogStore;
 import com.yahoo.athenz.zts.utils.IPBlock;
 import com.yahoo.athenz.auth.Principal;
@@ -63,7 +59,29 @@ public class InstanceCertManagerTest {
         assertTrue(identity.getX509CertificateSigner().contains("-----BEGIN CERTIFICATE-----"));
         instanceManager.shutdown();
     }
-    
+
+    @Test
+    public void testUpdateX509CertificateSigner() {
+
+        final String caCert = "caCert";
+        System.clearProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME);
+        CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class);
+        Mockito.when(certSigner.getCACertificate()).thenReturn(caCert);
+
+        InstanceCertManager instanceManager = new InstanceCertManager(null, null, false);
+        instanceManager.setCertSigner(certSigner);
+
+        // first time our signer was null and we should get back the cert
+        instanceManager.updateX509CertificateSigner();
+        assertEquals("caCert", instanceManager.getX509CertificateSigner());
+
+        // second time it should be a no-op
+        instanceManager.updateX509CertificateSigner();
+        assertEquals("caCert", instanceManager.getX509CertificateSigner());
+
+        instanceManager.shutdown();
+    }
+
     @Test
     public void testGenerateIdentityNullCert() {
         
@@ -140,6 +158,10 @@ public class InstanceCertManagerTest {
         instance.setCertStore(null);
         X509CertRecord certRecord = instance.getX509CertRecord("ostk", (X509Certificate) null);
         assertNull(certRecord);
+
+        certRecord = instance.getX509CertRecord("ostk", "instance-id");
+        assertNull(certRecord);
+
         instance.shutdown();
     }
     
@@ -254,7 +276,7 @@ public class InstanceCertManagerTest {
     }
     
     @Test
-    public void testGetSshCertificateSigner() {
+    public void testGetSSHCertificateSigner() {
         
         SSHSigner sshSigner = Mockito.mock(com.yahoo.athenz.common.server.ssh.SSHSigner.class);
         Mockito.when(sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_HOST)).thenReturn("ssh-host");
@@ -320,7 +342,33 @@ public class InstanceCertManagerTest {
         assertFalse(result);
         instanceManager.shutdown();
     }
-    
+
+    @Test
+    public void testGenerateSshIdentityExceptions() {
+        String sshCsr = "{\"csr\":\"csr\",\"certtype\":\"host\"}";
+        SSHSigner sshSigner = Mockito.mock(com.yahoo.athenz.common.server.ssh.SSHSigner.class);
+        SSHCertRequest sshRequest = new SSHCertRequest();
+        sshRequest.setCsr(sshCsr);
+        Mockito.when(sshSigner.generateCertificate(null, sshRequest, "host"))
+                .thenThrow(new com.yahoo.athenz.common.server.rest.ResourceException(403, "Forbidden"))
+                .thenThrow(new RuntimeException("IO error"));
+
+        InstanceCertManager instanceManager = new InstanceCertManager(null, null, true);
+        instanceManager.setSSHSigner(sshSigner);
+
+        InstanceIdentity identity = new InstanceIdentity().setName("athenz.service");
+
+        // first we should get the resource exception
+        boolean result = instanceManager.generateSSHIdentity(null, identity, sshCsr, "host");
+        assertFalse(result);
+
+        // next we should get the io exception
+        result = instanceManager.generateSSHIdentity(null, identity, sshCsr, "host");
+        assertFalse(result);
+
+        instanceManager.shutdown();
+    }
+
     @Test
     public void testGenerateSshIdentityEmptyCertError() {
         String sshCsr = "{\"csr\":\"csr\",\"certtype\":\"host\"}";
@@ -490,6 +538,7 @@ public class InstanceCertManagerTest {
         System.setProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME, "src/test/resources/valid_cn_x509.cert");
         assertTrue(instance.loadCAX509CertificateBundle());
         System.clearProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME);
+        instance.shutdown();
     }
 
     @Test
@@ -509,6 +558,7 @@ public class InstanceCertManagerTest {
         instanceCertManager.setSSHSigner(signer);
 
         assertEquals(certs, instanceCertManager.generateSSHCertificates(principal, certRequest));
+        instanceCertManager.shutdown();
     }
 
     @Test
@@ -548,5 +598,75 @@ public class InstanceCertManagerTest {
             assertTrue(ex.getMessage().contains("Invalid cert record store factory class"));
         }
         System.clearProperty(ZTSConsts.ZTS_PROP_CERT_RECORD_STORE_FACTORY_CLASS);
+    }
+
+    @Test
+    public void testInitWithIncorrectCABundle() {
+
+        System.setProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME, "invalid-file");
+        try {
+            InstanceCertManager instanceCertManager = new InstanceCertManager(null, null, false);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(500, ex.getCode());
+            assertTrue(ex.getMessage().contains("Unable to load X.509 CA Certificate bundle"));
+        }
+        System.clearProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME);
+    }
+
+    @Test
+    public void testInitWithMockSSHSigner() {
+
+        System.setProperty(ZTSConsts.ZTS_PROP_SSH_SIGNER_FACTORY_CLASS, "com.yahoo.athenz.zts.cert.impl.MockSSHSignerFactory");
+        InstanceCertManager instanceCertManager = new InstanceCertManager(null, null, true);
+        assertNotNull(instanceCertManager);
+        instanceCertManager.shutdown();
+        System.clearProperty(ZTSConsts.ZTS_PROP_SSH_SIGNER_FACTORY_CLASS);
+    }
+
+    @Test
+    public void testGetSSHCertificateSignerNoStore() {
+        InstanceCertManager instance = new InstanceCertManager(null, null, false);
+        instance.setCertSigner(null);
+
+        assertNull(instance.getSSHCertificateSigner("host"));
+        instance.shutdown();
+    }
+
+    @Test
+    public void testGetSSHCertificateSignerMockStore() {
+        System.setProperty(ZTSConsts.ZTS_PROP_SSH_SIGNER_FACTORY_CLASS, "com.yahoo.athenz.zts.cert.impl.MockSSHSignerFactory");
+        InstanceCertManager instance = new InstanceCertManager(null, null, false);
+
+        assertNull(instance.getSSHCertificateSigner("host"));
+        assertNull(instance.getSSHCertificateSigner("user"));
+        instance.shutdown();
+        System.clearProperty(ZTSConsts.ZTS_PROP_SSH_SIGNER_FACTORY_CLASS);
+    }
+
+    @Test
+    public void testUpdateSSHCertificateSigner() {
+
+        SSHSigner sshSigner = Mockito.mock(com.yahoo.athenz.common.server.ssh.SSHSigner.class);
+        Mockito.when(sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_HOST)).thenReturn("ssh-host");
+        Mockito.when(sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_USER)).thenReturn("ssh-user");
+
+        InstanceCertManager instanceManager = new InstanceCertManager(null, null, true);
+        instanceManager.setSSHSigner(sshSigner);
+
+        // first time we have nulls so we should get valid data
+
+        instanceManager.updateSSHHostCertificateSigner();
+        instanceManager.updateSSHUserCertificateSigner();
+
+        // second time we should have no-ops
+
+        instanceManager.updateSSHHostCertificateSigner();
+        instanceManager.updateSSHUserCertificateSigner();
+
+        assertEquals(instanceManager.getSSHCertificateSigner("host"), "ssh-host");
+        assertEquals(instanceManager.getSSHCertificateSigner("user"), "ssh-user");
+
+        instanceManager.shutdown();
     }
 }

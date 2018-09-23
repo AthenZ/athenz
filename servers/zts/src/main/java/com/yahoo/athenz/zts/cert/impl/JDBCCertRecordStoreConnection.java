@@ -31,7 +31,7 @@ import com.yahoo.athenz.zts.cert.X509CertRecord;
 
 public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection {
 
-    private static final Logger LOG = LoggerFactory.getLogger(JDBCCertRecordStoreConnection.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JDBCCertRecordStoreConnection.class);
 
     private static final int MYSQL_ER_OPTION_DUPLICATE_ENTRY = 1062;
 
@@ -80,22 +80,22 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
             con.close();
             con = null;
         } catch (SQLException ex) {
-            LOG.error("Failed to close connection: state - {}, code - {}, message - {}",
+            LOGGER.error("Failed to close connection: state - {}, code - {}, message - {}",
                     ex.getSQLState(), ex.getErrorCode(), ex.getMessage());
         }
     }
     
     int executeUpdate(PreparedStatement ps, String caller) throws SQLException {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("{}: {}", caller, ps.toString());
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("{}: {}", caller, ps.toString());
         }
         ps.setQueryTimeout(queryTimeout);
         return ps.executeUpdate();
     }
 
     ResultSet executeQuery(PreparedStatement ps, String caller) throws SQLException {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("{}: {}", caller, ps.toString());
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("{}: {}", caller, ps.toString());
         }
         ps.setQueryTimeout(queryTimeout);
         return ps.executeQuery();
@@ -180,8 +180,8 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
             // the state and convert this into an update operation
             
             if (ex.getErrorCode() == MYSQL_ER_OPTION_DUPLICATE_ENTRY) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("{}: Resetting state for instance {} - {}",
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("{}: Resetting state for instance {} - {}",
                             caller, certRecord.getProvider(), certRecord.getInstanceId());
                 }
                 return updateX509CertRecord(certRecord);
@@ -240,7 +240,7 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
         } else {
             msg = ex.getMessage() + ", state: " + sqlState + ", code: " + ex.getErrorCode();
         }
-        LOG.error("SQLError: {}", msg);
+        LOGGER.error("SQLError: {}", msg);
         return new ResourceException(code, msg);
     }
 }
