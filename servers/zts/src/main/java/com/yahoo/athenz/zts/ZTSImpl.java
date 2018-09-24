@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.Response;
 
+import com.yahoo.athenz.zts.cert.*;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,9 +61,6 @@ import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zts.cache.DataCache;
-import com.yahoo.athenz.zts.cert.InstanceCertManager;
-import com.yahoo.athenz.zts.cert.X509CertRecord;
-import com.yahoo.athenz.zts.cert.X509CertRequest;
 import com.yahoo.athenz.zts.store.ChangeLogStore;
 import com.yahoo.athenz.zts.store.ChangeLogStoreFactory;
 import com.yahoo.athenz.zts.store.CloudStore;
@@ -1471,14 +1469,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw forbiddenError("postRoleCertificateRequest: No access to any roles in domain: "
                     + domainName, caller, domainName);
         }
-        
-        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(req.getCsr());
-        if (certReq == null) {
-            throw requestError("postRoleCertificateRequest: Unable to parse cert request",
-                    caller, domainName);
-        }
 
-        if (!validateRoleCertificateRequest(certReq, domainName, roles, principalName,
+        // validate request/csr details
+
+        if (!validateRoleCertificateRequest(req.getCsr(), domainName, roles, principalName,
                 validCertSubjectOrgValues)) {
             throw requestError("postRoleCertificateRequest: Unable to validate cert request",
                     caller, domainName);
@@ -1496,96 +1490,18 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return roleToken;
     }
 
-    boolean validateRoleCertificateRequest(PKCS10CertificationRequest certReq,
-            String domainName, Set<String> roles, String principal,
-            Set<String> validCertSubjectOrgValues) {
-        
-        String cnCertReq = null;
+    boolean validateRoleCertificateRequest(final String csr, final String domainName,
+            Set<String> roles, final String principal, Set<String> validOrgValues) {
+
+        X509RoleCertRequest certReq;
         try {
-            cnCertReq = Crypto.extractX509CSRCommonName(certReq);
-        } catch (Exception ex) {
-            
-            // we want to catch all the exceptions here as we want to
-            // handle all the errors and not let container to return
-            // standard server error
-            
-            LOGGER.error("validateRoleCertificateRequest: unable to extract csr cn: "
-                    + ex.getMessage());
-        }
-        
-        if (cnCertReq == null) {
+            certReq = new X509RoleCertRequest(csr);
+        } catch (CryptoException ex) {
+            LOGGER.error("unable to parse PKCS10 CSR: " + ex.getMessage());
             return false;
         }
-        
-        // we must have only a single value in our list since we specified
-        // what role we're looking for but we'll iterate through the list
-        // anyway
-        
-        boolean roleNameValidated = false;
-        for (String role : roles) {
-            final String roleName = domainName + ":role." + role;
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("validateRoleCertificateRequest: validating role {} against {}",
-                        roleName, cnCertReq);
-            }
-            if (cnCertReq.equals(roleName)) {
-                roleNameValidated = true;
-                break;
-            }
-        }
-        
-        if (!roleNameValidated) {
-            LOGGER.error("validateRoleCertificateRequest: unable to validate role name");
-            return false;
-        }
-        
-        // now let's check if we have an rfc822 field specified in the
-        // request. if we have, then it must be of the following format:
-        // principal@[cloud].yahoo.cloud
-        
-        String email = null;
-        try {
-            email = Crypto.extractX509CSREmail(certReq);
-        } catch (Exception ex) {
-            
-            // we want to catch all the exceptions here as we want to
-            // handle all the errors and not let container to return
-            // standard server error
-            
-            LOGGER.error("validateRoleCertificateRequest: unable to extract csr email: "
-                    + ex.getMessage());
-        }
-        
-        if (email != null) {
-            String emailPrefix = principal + "@";
-            if (!email.startsWith(emailPrefix) || !email.endsWith(ZTSUtils.ZTS_CERT_DNS_SUFFIX)) {
-                LOGGER.error("validateRoleCertificateRequest: unable to validate email to be <principal>@*{}",
-                        ZTSUtils.ZTS_CERT_DNS_SUFFIX);
-                return false;
-            }
-        }
 
-        // validate the o field value is specified
-
-        if (validCertSubjectOrgValues != null && !validCertSubjectOrgValues.isEmpty()) {
-            try {
-                final String value = Crypto.extractX509CSRSubjectOField(certReq);
-                if (value == null) {
-                    return true;
-                }
-                boolean res = validCertSubjectOrgValues.contains(value);
-                if (!res) {
-                    LOGGER.error("validateRoleCertificateRequest: Failed to validate Subject O Field: {}", value);
-                }
-                return res;
-            } catch (CryptoException ex) {
-                LOGGER.error("validateRoleCertificateRequest: Unable to extract Subject O Field: {}",
-                        ex.getMessage());
-                return false;
-            }
-        }
-
-        return true;
+        return certReq.validate(roles, domainName, principal, validOrgValues);
     }
 
     boolean isAuthorizedServicePrincipal(final Principal principal) {
@@ -1802,15 +1718,15 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // validate request/csr details
         
-        X509CertRequest certReq;
+        X509ServiceCertRequest certReq;
         try {
-            certReq = new X509CertRequest(info.getCsr());
+            certReq = new X509ServiceCertRequest(info.getCsr());
         } catch (CryptoException ex) {
             throw requestError("unable to parse PKCS10 CSR: " + ex.getMessage(), caller, domain);
         }
         
-        if (!certReq.validate(providerService, domain, service, null, validCertSubjectOrgValues,
-                authorizer, errorMsg)) {
+        if (!certReq.validate(providerService, domain, service, null,
+                validCertSubjectOrgValues, authorizer, errorMsg)) {
             throw requestError("CSR validation failed - " + errorMsg.toString(), caller, domain);
         }
 
@@ -2100,16 +2016,16 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // parse and validate our CSR
         
-        X509CertRequest certReq;
+        X509ServiceCertRequest certReq;
         try {
-            certReq = new X509CertRequest(info.getCsr());
+            certReq = new X509ServiceCertRequest(info.getCsr());
         } catch (CryptoException ex) {
             throw requestError("unable to parse PKCS10 CSR", caller, domain);
         }
         
         StringBuilder errorMsg = new StringBuilder(256);
-        if (!certReq.validate(providerService, domain, service, instanceId, validCertSubjectOrgValues,
-                authorizer, errorMsg)) {
+        if (!certReq.validate(providerService, domain, service, instanceId,
+                validCertSubjectOrgValues, authorizer, errorMsg)) {
             throw requestError("CSR validation failed - " + errorMsg.toString(), caller, domain);
         }
         
@@ -2118,7 +2034,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // responsible for validating the SAN DNS entries, this is
         // configured as an optional check and can be skipped.
 
-        if (verifyCertRefreshHostnames && !certReq.compareDnsNames(cert)) {
+        if (verifyCertRefreshHostnames && !certReq.validateDnsNames(cert)) {
             throw requestError("dnsName attribute mismatch in CSR", caller, domain);
         }
         
@@ -2487,7 +2403,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // verify that the public key in the csr matches to the service
         // public key registered in Athenz
         
-        if (!x509CertReq.comparePublicKeys(publicKey)) {
+        if (!x509CertReq.validatePublicKeys(publicKey)) {
             throw requestError("Invalid CSR - public key mismatch", caller, domain);
         }
         
@@ -2547,14 +2463,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // the values specified in the CSR
         
         X509Certificate cert = principal.getX509Certificate();
-        if (!certReq.compareDnsNames(cert)) {
+        if (!certReq.validateDnsNames(cert)) {
             return ServiceX509RefreshRequestStatus.DNS_NAME_MISMATCH;
         }
         
         // validate that the certificate and csr both are based
         // on the same public key
         
-        if (!certReq.comparePublicKeys(cert)) {
+        if (!certReq.validatePublicKeys(cert)) {
             return ServiceX509RefreshRequestStatus.PUBLIC_KEY_MISMATCH;
         }
         

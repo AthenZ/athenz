@@ -27,7 +27,7 @@ import com.yahoo.athenz.zts.cert.CertRecordStoreConnection;
 
 public class JDBCCertRecordStore implements CertRecordStore {
 
-    private static final Logger LOG = LoggerFactory.getLogger(JDBCCertRecordStore.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JDBCCertRecordStore.class);
 
     PoolableDataSource src;
     private int opTimeout = 10; //in seconds
@@ -43,7 +43,7 @@ public class JDBCCertRecordStore implements CertRecordStore {
             jdbcConn.setOperationTimeout(opTimeout);
             return jdbcConn;
         } catch (SQLException ex) {
-            LOG.error("getConnection: {}", ex.getMessage());
+            LOGGER.error("getConnection: {}", ex.getMessage());
             throw new ResourceException(ResourceException.SERVICE_UNAVAILABLE, ex.getMessage());
         }
     }

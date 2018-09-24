@@ -112,7 +112,8 @@ public class ZTSImplTest {
             + "+6ASloVU3avvuflGUOEg2jsmdakR24KcLjAu6QrUe417lG3t8qSPIGjS5C+CsJUw\n"
             + "h04hHx5f+PEwxV4rbQIDAQAB\n"
             + "-----END PUBLIC KEY-----\n";
-    private final static String ROLE_CERT_DB_REQUEST = "-----BEGIN CERTIFICATE REQUEST-----\n"
+    private final static String ROLE_CERT_DB_REQUEST =
+            "-----BEGIN CERTIFICATE REQUEST-----\n"
             + "MIIBujCCASMCAQAwOzELMAkGA1UEBhMCVVMxDjAMBgNVBAoTBVlhaG9vMRwwGgYD\n"
             + "VQQDExNzcG9ydHM6cm9sZS5yZWFkZXJzMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCB\n"
             + "iQKBgQCu0nOEra8WmmU91u2KrDdcKRDcZn3oSwsZD/55d0bkMwEiMzfQ+xHVRFI1\n"
@@ -122,18 +123,19 @@ public class ZTSImplTest {
             + "eWFob28uY2xvdWQwDQYJKoZIhvcNAQELBQADgYEAQSEWI7eRM5Xv0oENQ+zzdoQI\n"
             + "MgzgsXRKGxlZFBpHNvT1R/4pkrU2XdpU1sQP8nrs3Xl+jUd70Ke7K1b2qL6D9op8\n"
             + "eE/qKXv+mcEBGlSCaJtK9MBUnOh4TVZ3EePxbc41Ha2/zWn+J3RFBMz9i1Nxy+Nq\n"
-            + "s1K+2Aj6SbErxrEunNI=\n-----END CERTIFICATE REQUEST-----\n";
-    private final static String ROLE_CERT_CORETECH_REQUEST = "-----BEGIN CERTIFICATE REQUEST-----\n"
-            + "MIIBuDCCASECAQAwPTELMAkGA1UEBhMCVVMxDjAMBgNVBAoTBVlhaG9vMR4wHAYD\n"
-            + "VQQDExVjb3JldGVjaDpyb2xlLnJlYWRlcnMwgZ8wDQYJKoZIhvcNAQEBBQADgY0A\n"
-            + "MIGJAoGBAK7Sc4StrxaaZT3W7YqsN1wpENxmfehLCxkP/nl3RuQzASIzN9D7EdVE\n"
-            + "UjU88aOEbXruhGFNEoTdre5qQwaYwMzlZZwMtsuj48dkapTKEmu+rkEXhVatRalj\n"
-            + "6umlqSUFNQ9jRqyaU5tWkUFWi6ORLLEwheY6L2or874GzQEjiOjpAgMBAAGgOzA5\n"
-            + "BgkqhkiG9w0BCQ4xLDAqMCgGA1UdEQQhMB+CHWFwaS55YnktdXNlcjEuYXdzLnlh\n"
-            + "aG9vLmNsb3VkMA0GCSqGSIb3DQEBCwUAA4GBAKvuws3Ls+kCvRbriP3Abb2ApTuK\n"
-            + "747eax54gzyhGYdVqOKcGATy9S3RoEQaLeB1wMp+aHRHdcZXlEiNIqqzKWTIlr6l\n"
-            + "NUAnfloQjAe8SN4EaZUaUVep76zhpkoXAytfxM/rKWUFzPKPIZ0tv7p1rJsj5USc\n"
-            + "KxZ+SxVr4KD8nM/v\n-----END CERTIFICATE REQUEST-----\n";
+            + "s1K+2Aj6SbErxrEunNI=\n"
+            + "-----END CERTIFICATE REQUEST-----\n";
+    private final static String ROLE_CERT_CORETECH_REQUEST =
+            "-----BEGIN CERTIFICATE REQUEST-----\n"
+            + "MIIBXzCCAQkCAQAwZDELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAkNBMQ8wDQYDVQQK\n"
+            + "EwZBdGhlbnoxFzAVBgNVBAsTDlRlc3RpbmcgRG9tYWluMR4wHAYDVQQDExVjb3Jl\n"
+            + "dGVjaDpyb2xlLnJlYWRlcnMwXDANBgkqhkiG9w0BAQEFAANLADBIAkEAn70OSBIw\n"
+            + "2Pqht+LT8fa+eqxpAv/T7jVPFmy61dHa+o7e1aLl0m19lJIQu/15YfUo8+XY83fT\n"
+            + "QOVHACUQa82PvwIDAQABoEAwPgYJKoZIhvcNAQkOMTEwLzAtBgNVHREEJjAkgSJ1\n"
+            + "c2VyX2RvbWFpbi51c2VyMUB6dHMuYXRoZW56LmNsb3VkMA0GCSqGSIb3DQEBCwUA\n"
+            + "A0EAfxmNOBAUUBjtmfH4ytJ1FrL8cuADVeQnJb7pX4ZJyNjFbdRwklmRMQgtY7As\n"
+            + "zs7g629IN4L2xC1zopG4NcNEdw=="
+            + "\n-----END CERTIFICATE REQUEST-----\n";
     
     private static final String MOCKCLIENTADDR = "10.11.12.13";
     @Mock private HttpServletRequest  mockServletRequest;
@@ -2253,26 +2255,6 @@ public class ZTSImplTest {
     }
     
     @Test
-    public void testGetTenantDomainsSingleDomainWithUserDomain() {
-
-        SignedDomain signedDomain = createSignedDomain("athenz.product", "weather.frontpage", "storage", true);
-        store.processDomain(signedDomain, false);
-        
-        signedDomain = createTenantSignedDomain("weather.frontpage", "athenz.product", "storage");
-        store.processDomain(signedDomain, false);
-        
-        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
-                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
-        ResourceContext context = createResourceContext(principal);
-        
-        TenantDomains tenantDomains = zts.getTenantDomains(context, "athenz.product",
-                "user_domain.user100", null, null);
-        assertNotNull(tenantDomains);
-        assertEquals(tenantDomains.getTenantDomainNames().size(), 1);
-        assertEquals(tenantDomains.getTenantDomainNames().get(0), "weather.frontpage");
-    }
-    
-    @Test
     public void testGetTenantDomainsSingleDomain() {
 
         SignedDomain signedDomain = createSignedDomain("athenz.product", "weather.frontpage", "storage", true);
@@ -3695,11 +3677,10 @@ public class ZTSImplTest {
         
         Path path = Paths.get("src/test/resources/valid_email.csr");
         String csr = new String(Files.readAllBytes(path));
-        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
-        
+
         Set<String> roles = new HashSet<>();
         roles.add("writer");
-        assertFalse(zts.validateRoleCertificateRequest(certReq, "sports", roles, "sports.scores", null));
+        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores", null));
     }
     
     @Test
@@ -3707,11 +3688,10 @@ public class ZTSImplTest {
         
         Path path = Paths.get("src/test/resources/valid_email.csr");
         String csr = new String(Files.readAllBytes(path));
-        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
-        
+
         Set<String> roles = new HashSet<>();
         roles.add("readers");
-        assertFalse(zts.validateRoleCertificateRequest(certReq, "sports", roles, "sports.standings", null));
+        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.standings", null));
     }
     
     @Test
@@ -3719,11 +3699,10 @@ public class ZTSImplTest {
         
         Path path = Paths.get("src/test/resources/valid_noemail.csr");
         String csr = new String(Files.readAllBytes(path));
-        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
-        
+
         Set<String> roles = new HashSet<>();
         roles.add("readers");
-        assertTrue(zts.validateRoleCertificateRequest(certReq, "sports", roles, "no-email", null));
+        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "no-email", null));
     }
 
     @Test
@@ -3731,14 +3710,13 @@ public class ZTSImplTest {
 
         Path path = Paths.get("src/test/resources/valid_email.csr");
         String csr = new String(Files.readAllBytes(path));
-        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
 
         Set<String> roles = new HashSet<>();
         roles.add("readers");
 
         Set<String> validOValues = new HashSet<>();
         validOValues.add("InvalidCompany");
-        assertFalse(zts.validateRoleCertificateRequest(certReq, "sports", roles, "sports.scores", validOValues));
+        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores", validOValues));
     }
 
     @Test
@@ -3746,15 +3724,14 @@ public class ZTSImplTest {
         
         Path path = Paths.get("src/test/resources/valid_email.csr");
         String csr = new String(Files.readAllBytes(path));
-        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
-        
+
         Set<String> roles = new HashSet<>();
         roles.add("readers");
-        assertTrue(zts.validateRoleCertificateRequest(certReq, "sports", roles, "sports.scores", null));
+        assertTrue(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores", null));
 
         Set<String> validOValues = new HashSet<>();
         validOValues.add("Athenz");
-        assertTrue(zts.validateRoleCertificateRequest(certReq, "sports", roles, "sports.scores", validOValues));
+        assertTrue(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores", validOValues));
     }
     
     @Test
@@ -3766,13 +3743,6 @@ public class ZTSImplTest {
         
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
-
-        File caCert = new File("src/test/resources/valid_cn_x509.cert");
-        X509Certificate caCertificate = Crypto.loadX509Certificate(caCert);
-        
-        File caKey = new File("src/test/resources/private_encrypted.key");
-        PrivateKey caPrivateKey = Crypto.loadPrivateKey(caKey, "athenz");
-        CertSigner certSigner = new SelfCertSigner(caPrivateKey, caCertificate);
 
         CloudStore cloudStore = new MockCloudStore();
         store.setCloudStore(cloudStore);
@@ -6847,8 +6817,6 @@ public class ZTSImplTest {
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
         store.processDomain(tenantDomain, false);
-
-        SSHCertificates certs = new SSHCertificates();
 
         SSHCertRequestData data = new SSHCertRequestData();
         data.setDestinations(Arrays.asList("dest1", "dest2"));

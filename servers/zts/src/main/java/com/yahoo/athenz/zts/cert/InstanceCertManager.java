@@ -152,6 +152,24 @@ public class InstanceCertManager {
         this.certSigner = certSigner;
     }
 
+    private byte[] readFileContents(final String filename) {
+
+        File caFile = new File(filename);
+        if (!caFile.exists()) {
+            LOGGER.error("Configured file {} does not exist", filename);
+            return null;
+        }
+
+        byte[] data = null;
+        try {
+            data = Files.readAllBytes(Paths.get(caFile.toURI()));
+        } catch (IOException ex) {
+            LOGGER.error("Unable to read {}: {}", filename, ex.getMessage());
+        }
+
+        return data;
+    }
+
     boolean loadCAX509CertificateBundle() {
 
         final String caFileName = System.getProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME);
@@ -159,20 +177,12 @@ public class InstanceCertManager {
             return true;
         }
 
-        File caFile = new File(caFileName);
-        if (!caFile.exists()) {
-            LOGGER.error("Configured X.509 CA file {} does not exist", caFileName);
+        byte[] data = readFileContents(caFileName);
+        if (data == null) {
             return false;
         }
 
-        try {
-            caX509CertificateSigner = new String(Files.readAllBytes(Paths.get(caFile.toURI())));
-        } catch (IOException ex) {
-            LOGGER.error("Failed to read configured X.509 CA file {}: {}",
-                    caFileName, ex.getMessage());
-            return false;
-        }
-
+        caX509CertificateSigner = new String(data);
         return true;
     }
 
@@ -184,21 +194,13 @@ public class InstanceCertManager {
         if (ipAddresses == null) {
             return true;
         }
-        
-        File ipFile = new File(ipAddresses);
-        if (!ipFile.exists()) {
-            LOGGER.error("Configured allowed IP file {} does not exist", ipAddresses);
+
+        byte[] data = readFileContents(ipAddresses);
+        if (data == null) {
             return false;
         }
         
-        IPPrefixes prefixes;
-        try {
-            prefixes = JSON.fromBytes(Files.readAllBytes(Paths.get(ipFile.toURI())), IPPrefixes.class);
-        } catch (IOException ex) {
-            LOGGER.error("Unable to parse IP file: {}", ipAddresses, ex);
-            return false;
-        }
-        
+        IPPrefixes prefixes = JSON.fromBytes(data, IPPrefixes.class);
         if (prefixes == null) {
             LOGGER.error("Unable to parse IP file: {}", ipAddresses);
             return false;
@@ -246,16 +248,6 @@ public class InstanceCertManager {
         // create our cert record store instance
         
         certStore = certRecordStoreFactory.create(keyStore);
-        
-        // default timeout in seconds for certificate store commands
-        
-        if (certStore != null) {
-            int opTimeout = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_CERT_OP_TIMEOUT, "10"));
-            if (opTimeout < 0) {
-                opTimeout = 10;
-            }
-            certStore.setOperationTimeout(opTimeout);
-        }
     }
     
     public void setCertStore(CertRecordStore certStore) {
@@ -363,12 +355,16 @@ public class InstanceCertManager {
                 .setX509CertificateSigner(getX509CertificateSigner());
     }
 
+    void updateX509CertificateSigner() {
+        if (caX509CertificateSigner == null) {
+            caX509CertificateSigner = getCACertificate();
+        }
+    }
+
     public String getX509CertificateSigner() {
         if (caX509CertificateSigner == null) {
             synchronized (InstanceCertManager.class) {
-                if (caX509CertificateSigner == null) {
-                    caX509CertificateSigner = getCACertificate();
-                }
+                updateX509CertificateSigner();
             }
         }
         return caX509CertificateSigner;
@@ -421,7 +417,19 @@ public class InstanceCertManager {
         identity.setSshCertificateSigner(getSSHCertificateSigner(certType));
         return true;
     }
-    
+
+    void updateSSHHostCertificateSigner() {
+        if (sshHostCertificateSigner == null) {
+            sshHostCertificateSigner = sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_HOST);
+        }
+    }
+
+    void updateSSHUserCertificateSigner() {
+        if (sshUserCertificateSigner == null) {
+            sshUserCertificateSigner = sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_USER);
+        }
+    }
+
     String getSSHCertificateSigner(String sshReqType) {
 
         if (sshSigner == null) {
@@ -430,17 +438,13 @@ public class InstanceCertManager {
 
         if (sshHostCertificateSigner == null) {
             synchronized (InstanceCertManager.class) {
-                if (sshHostCertificateSigner == null) {
-                    sshHostCertificateSigner = sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_HOST);
-                }
+                updateSSHHostCertificateSigner();
             }
         }
         
         if (sshUserCertificateSigner == null) {
             synchronized (InstanceCertManager.class) {
-                if (sshUserCertificateSigner == null) {
-                    sshUserCertificateSigner = sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_USER);
-                }
+                updateSSHUserCertificateSigner();
             }
         }
         

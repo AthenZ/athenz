@@ -1,3 +1,18 @@
+/*
+ * Copyright 2017 Yahoo Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.yahoo.athenz.zts.cert;
 
 import java.security.cert.X509Certificate;
@@ -10,8 +25,6 @@ import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.yahoo.athenz.auth.Authorizer;
-import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.zts.ZTSConsts;
@@ -21,14 +34,14 @@ public class X509CertRequest {
     private static final Logger LOGGER = LoggerFactory.getLogger(X509CertRequest.class);
     private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
 
-    private PKCS10CertificationRequest certReq;
-    private String instanceId = null;
-    private String dnsSuffix = null;
-    private String normCsrPublicKey = null;
+    protected PKCS10CertificationRequest certReq;
+    protected String instanceId = null;
+    protected String dnsSuffix = null;
+    protected String normCsrPublicKey = null;
 
-    private String cn = null;
-    private List<String> dnsNames;
-    private List<String> ipAddresses;
+    protected String cn = null;
+    protected List<String> dnsNames;
+    protected List<String> ipAddresses;
     
     public X509CertRequest(String csr) throws CryptoException {
         certReq = Crypto.getPKCS10CertRequest(csr);
@@ -48,7 +61,7 @@ public class X509CertRequest {
         this.certReq = certReq;
     }
 
-    public boolean parseCertRequest(StringBuilder errorMsg) {
+    boolean parseCertRequest(StringBuilder errorMsg) {
         
         // first we need to determine our instance id and dns suffix
 
@@ -88,7 +101,7 @@ public class X509CertRequest {
      * @param cert X509 Certificate to compare against
      * @return true if both CSR and X509 Cert contain identical dns names
      */
-    public boolean compareDnsNames(X509Certificate cert) {
+    public boolean validateDnsNames(X509Certificate cert) {
 
         List<String> certDnsNames = Crypto.extractX509CertDnsNames(cert);
         if (certDnsNames.size() != dnsNames.size()) {
@@ -106,18 +119,25 @@ public class X509CertRequest {
         
         return true;
     }
-    
-    public boolean compareCommonName(String reqCommonName) {
-        
+
+    boolean extractCommonName() {
         try {
             cn = Crypto.extractX509CSRCommonName(certReq);
         } catch (Exception ex) {
-            
+
             // we want to catch all the exceptions here as we want to
             // handle all the errors and not let container to return
             // standard server error
-            
+
             LOGGER.error("compareCommonName: unable to extract csr cn: {}", ex.getMessage());
+            return false;
+        }
+        return true;
+    }
+
+    public boolean validateCommonName(String reqCommonName) {
+        
+        if (!extractCommonName()) {
             return false;
         }
         
@@ -128,57 +148,27 @@ public class X509CertRequest {
 
         return true;
     }
-    
-    public boolean validate(Principal providerService, String domain, String service,
-            String reqInstanceId, Set<String> validSubjectOValues, Authorizer authorizer,
-            StringBuilder errorMsg) {
-        
-        // parse the cert request (csr) to extract the DNS entries
-        // along with IP addresses. Validate that all hostnames
-        // include the same dns suffix and the instance id required
-        // hostname is specified
-        
-        if (!parseCertRequest(errorMsg)) {
-            return false;
+
+    public boolean validateSubjectOField(Set<String> validValues) {
+
+        if (validValues == null || validValues.isEmpty()) {
+            return true;
         }
-        
-        // if specified, we must make sure it matches to the given value
-        
-        if (reqInstanceId != null && !instanceId.equals(reqInstanceId)) {
-            errorMsg.append("Instance id mismatch - URI: ").append(reqInstanceId)
-                .append(" CSR: ").append(instanceId);
-            return false;
-        }
-        
-        // validate the common name in CSR and make sure it
-        // matches to the values specified in the info object
-        
-        final String infoCommonName = domain + "." + service;
-        if (!compareCommonName(infoCommonName)) {
-            errorMsg.append("Unable to validate CSR common name");
-            return false;
-        }
-        
-        // validate that the dnsSuffix used in the dnsName attribute has
-        // been authorized to be used by the given provider
-        
-        if (dnsSuffix != null && authorizer != null) {
-            final String dnsResource = ZTSConsts.ZTS_RESOURCE_DNS + dnsSuffix;
-            if (!authorizer.access(ZTSConsts.ZTS_ACTION_LAUNCH, dnsResource, providerService, null)) {
-                errorMsg.append("Provider '").append(providerService.getFullName())
-                    .append("' not authorized to handle ").append(dnsSuffix).append(" dns entries");
-                return false;
+
+        try {
+            final String value = Crypto.extractX509CSRSubjectOField(certReq);
+            if (value == null) {
+                return true;
             }
-        }
-
-        // finally validate the O field in the certificate if necessary
-
-        if (!validateSubjectOField(validSubjectOValues)) {
-            errorMsg.append("Unable to validate Subject O Field");
+            boolean res = validValues.contains(value);
+            if (!res) {
+                LOGGER.error("Failed to validate Subject O Field {}", value);
+            }
+            return res;
+        } catch (CryptoException ex) {
+            LOGGER.error("Unable to extract Subject O Field: {}", ex.getMessage());
             return false;
         }
-
-        return true;
     }
     
     boolean extractCsrPublicKey() {
@@ -206,7 +196,7 @@ public class X509CertRequest {
         return true;
     }
     
-    public boolean comparePublicKeys(String publicKey) {
+    public boolean validatePublicKeys(String publicKey) {
 
         if (publicKey == null) {
             LOGGER.error("comparePublicKeys: No public key provided for validation");
@@ -233,7 +223,7 @@ public class X509CertRequest {
         return true;
     }
     
-    public boolean comparePublicKeys(X509Certificate cert) {
+    public boolean validatePublicKeys(X509Certificate cert) {
         
         // we are going to remove all whitespace, new lines
         // in order to compare the pem encoded keys
@@ -275,28 +265,6 @@ public class X509CertRequest {
 
     public String getDnsSuffix() {
         return dnsSuffix;
-    }
-
-    public boolean validateSubjectOField(Set<String> validValues) {
-
-        if (validValues == null || validValues.isEmpty()) {
-            return true;
-        }
-
-        try {
-            final String value = Crypto.extractX509CSRSubjectOField(certReq);
-            if (value == null) {
-                return true;
-            }
-            boolean res = validValues.contains(value);
-            if (!res) {
-                LOGGER.error("Failed to validate Subject O Field {}", value);
-            }
-            return res;
-        } catch (CryptoException ex) {
-            LOGGER.error("Unable to extract Subject O Field: {}", ex.getMessage());
-            return false;
-        }
     }
     
     public List<String> getDnsNames() {

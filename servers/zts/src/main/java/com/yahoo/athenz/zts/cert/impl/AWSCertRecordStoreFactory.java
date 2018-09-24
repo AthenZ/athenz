@@ -37,7 +37,7 @@ import com.yahoo.athenz.zts.cert.CertRecordStoreFactory;
 
 public class AWSCertRecordStoreFactory implements CertRecordStoreFactory {
 
-    private static final Logger LOG = LoggerFactory.getLogger(AWSCertRecordStoreFactory.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AWSCertRecordStoreFactory.class);
     
     private static Properties mysqlConnectionProperties = new Properties();
     private static String rdsUser = null;
@@ -59,8 +59,8 @@ public class AWSCertRecordStoreFactory implements CertRecordStoreFactory {
         final String jdbcStore = String.format("jdbc:%s://%s:%d/%s", rdsEngine, rdsMaster, rdsPort, rdsDatabase);
         String rdsToken = getAuthToken(rdsMaster, rdsPort, rdsUser, rdsIamRole);
         
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Connecting to {} with auth token {}", jdbcStore, rdsToken);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Connecting to {} with auth token {}", jdbcStore, rdsToken);
         }
 
         mysqlConnectionProperties.setProperty(ZTSConsts.DB_PROP_VERIFY_SERVER_CERT,
@@ -85,8 +85,8 @@ public class AWSCertRecordStoreFactory implements CertRecordStoreFactory {
         
         InstanceProfileCredentialsProvider awsCredProvider = new InstanceProfileCredentialsProvider(true);
         
-          if (LOG.isDebugEnabled()) {
-              LOG.debug("getAuthToken: Access key id: {}", awsCredProvider.getCredentials().getAWSAccessKeyId());
+          if (LOGGER.isDebugEnabled()) {
+              LOGGER.debug("getAuthToken: Access key id: {}", awsCredProvider.getCredentials().getAWSAccessKeyId());
           }
           
           RdsIamAuthTokenGenerator generator = RdsIamAuthTokenGenerator.builder()
@@ -94,8 +94,8 @@ public class AWSCertRecordStoreFactory implements CertRecordStoreFactory {
                 .region(EC2MetadataUtils.getEC2InstanceRegion())
                 .build();
         
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Instance {} Port {} User {} Region: {} Role: {}", hostname, port, rdsUser,
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Instance {} Port {} User {} Region: {} Role: {}", hostname, port, rdsUser,
                     EC2MetadataUtils.getEC2InstanceRegion(), rdsIamRole);
         }
         
@@ -109,8 +109,8 @@ public class AWSCertRecordStoreFactory implements CertRecordStoreFactory {
         @Override
         public void run() {
 
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("CredentialsUpdater: Starting credential updater thread...");
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("CredentialsUpdater: Starting credential updater thread...");
             }
             
             try {
@@ -118,7 +118,7 @@ public class AWSCertRecordStoreFactory implements CertRecordStoreFactory {
                 mysqlConnectionProperties.setProperty(ZTSConsts.DB_PROP_PASSWORD, rdsToken);
                 
             } catch (Throwable t) {
-                LOG.error("CredentialsUpdater: unable to update auth token: {}", t.getMessage());
+                LOGGER.error("CredentialsUpdater: unable to update auth token: {}", t.getMessage());
             }
         }
     }

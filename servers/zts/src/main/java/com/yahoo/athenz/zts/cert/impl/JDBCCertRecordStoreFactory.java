@@ -26,7 +26,7 @@ import com.yahoo.athenz.zts.cert.CertRecordStoreFactory;
 
 public class JDBCCertRecordStoreFactory implements CertRecordStoreFactory {
 
-    private static final String JDBC               = "jdbc";
+    private static final String JDBC = "jdbc";
     
     @Override
     public CertRecordStore create(PrivateKeyStore keyStore) {
@@ -47,6 +47,13 @@ public class JDBCCertRecordStoreFactory implements CertRecordStoreFactory {
                 System.getProperty(ZTSConsts.ZTS_PROP_CERT_JDBC_USE_SSL, "false"));
 
         PoolableDataSource src = DataSourceFactory.create(jdbcStore, props);
-        return new JDBCCertRecordStore(src);
+
+        // set default timeout for our connections
+
+        JDBCCertRecordStore certStore = new JDBCCertRecordStore(src);
+        int opTimeout = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_CERT_OP_TIMEOUT, "10"));
+        certStore.setOperationTimeout(opTimeout);
+
+        return certStore;
     }
 }

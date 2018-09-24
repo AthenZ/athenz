@@ -22,7 +22,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.security.PrivateKey;
 
+import com.yahoo.athenz.auth.util.Crypto;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -309,5 +311,16 @@ public class ZMSFileChangeLogStoreTest {
         List<SignedDomain> returnList = fstore.getSignedDomainList(zmsClient, domainList);
         assertEquals(returnList.size(), 1);
         assertEquals(returnList.get(0).getDomain().getName(), "athenz");
+    }
+
+    @Test
+    public void getZMSClient() {
+
+        File privKeyFile = new File("src/test/resources/zts_private.pem");
+        final String privKey = Crypto.encodedFile(privKeyFile);
+        PrivateKey privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
+        ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, privateKey, "0");
+        ZMSClient zmsClient = fstore.getZMSClient();
+        assertNotNull(zmsClient);
     }
 }
