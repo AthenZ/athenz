@@ -7,7 +7,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -668,5 +667,34 @@ public class InstanceCertManagerTest {
         assertEquals(instanceManager.getSSHCertificateSigner("user"), "ssh-user");
 
         instanceManager.shutdown();
+    }
+
+    @Test
+    public void testExpiredX509CertRecordCleaner() {
+
+        CertRecordStore store = Mockito.mock(CertRecordStore.class);
+        Mockito.when(store.getConnection()).thenThrow(new RuntimeException("invalid connection"));
+
+        InstanceCertManager instanceManager = new InstanceCertManager(null, null, true);
+
+        InstanceCertManager.ExpiredX509CertRecordCleaner cleaner =
+                instanceManager.new ExpiredX509CertRecordCleaner(store, 100);
+
+        // make sure no exceptions are thrown
+
+        cleaner.run();
+    }
+
+    @Test
+    public void testReadFileContentsException() {
+
+        InstanceCertManager instance = new InstanceCertManager(null, null, true);
+        File file = new File("src/test/resources/athenz.conf");
+
+        InstanceCertManager instanceManager = Mockito.spy(instance);
+        Mockito.when(instanceManager.getFilePath(file))
+                .thenThrow(new RuntimeException("invalid file"));
+
+        assertNull(instanceManager.readFileContents("src/test/resources/athenz.conf"));
     }
 }

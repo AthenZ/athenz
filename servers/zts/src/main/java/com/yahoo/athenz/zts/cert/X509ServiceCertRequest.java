@@ -70,10 +70,17 @@ public class X509ServiceCertRequest extends X509CertRequest {
             }
         }
 
-        // finally validate the O field in the certificate if necessary
+        // validate the O field in the certificate if necessary
 
         if (!validateSubjectOField(validSubjectOValues)) {
             errorMsg.append("Unable to validate Subject O Field");
+            return false;
+        }
+
+        // validate spiffe uri if one is provided
+
+        if (!validateSpiffeURI(domain, "service", service)) {
+            errorMsg.append("Unable to validate Service SPIFFE URI");
             return false;
         }
 

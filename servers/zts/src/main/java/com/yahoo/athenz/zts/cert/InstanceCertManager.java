@@ -1,8 +1,8 @@
 package com.yahoo.athenz.zts.cert;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -152,7 +152,11 @@ public class InstanceCertManager {
         this.certSigner = certSigner;
     }
 
-    private byte[] readFileContents(final String filename) {
+    Path getFilePath(File file) {
+        return Paths.get(file.toURI());
+    }
+
+    byte[] readFileContents(final String filename) {
 
         File caFile = new File(filename);
         if (!caFile.exists()) {
@@ -162,8 +166,8 @@ public class InstanceCertManager {
 
         byte[] data = null;
         try {
-            data = Files.readAllBytes(Paths.get(caFile.toURI()));
-        } catch (IOException ex) {
+            data = Files.readAllBytes(getFilePath(caFile));
+        } catch (Exception ex) {
             LOGGER.error("Unable to read {}: {}", filename, ex.getMessage());
         }
 

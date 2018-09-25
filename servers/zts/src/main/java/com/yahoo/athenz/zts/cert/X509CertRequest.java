@@ -250,7 +250,30 @@ public class X509CertRequest {
         
         return true;
     }
-    
+
+    boolean validateSpiffeURI(final String domain, final String name, final String value) {
+
+        // first extract the URI list from the request
+
+        List<String> uriList = Crypto.extractX509CSRURIs(certReq);
+        if (uriList == null || uriList.isEmpty()) {
+            return true;
+        }
+
+        // we must only have a single spiffe uri in the list
+
+        if (uriList.size() != 1) {
+            LOGGER.error("validateSPIFFEURI: invalid number {} of values in uri list",
+                    uriList.size());
+            return false;
+        }
+
+        // generate our spiffe value according to our data
+
+        final String uri = "spiffe://" + domain + "/" + name + "/" + value;
+        return uriList.get(0).equalsIgnoreCase(uri);
+    }
+
     public void setNormCsrPublicKey(String normCsrPublicKey) {
         this.normCsrPublicKey = normCsrPublicKey;
     }

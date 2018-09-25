@@ -5,8 +5,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.HashSet;
+import java.util.Set;
 
 import static org.testng.Assert.*;
 
@@ -532,4 +534,94 @@ public class X509CertRequestTest {
         assertFalse(certReq.validateCommonName(null));
     }
 
+    @Test
+    public void testValidateSpiffeURINoValues() throws IOException {
+
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertTrue(certReq.validateSpiffeURI("domain", "service", "api"));
+    }
+
+    @Test
+    public void testValidateSpiffeURIMultipleValues() throws IOException {
+
+        Path path = Paths.get("src/test/resources/multiple_uri.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertFalse(certReq.validateSpiffeURI("domain", "service", "api"));
+    }
+
+    @Test
+    public void testValidateSpiffeURI() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_role.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertTrue(certReq.validateSpiffeURI("coretech", "role", "api"));
+        assertFalse(certReq.validateSpiffeURI("coretech", "role", "backend"));
+        assertFalse(certReq.validateSpiffeURI("coretech", "service", "api"));
+    }
+
+    @Test
+    public void testValidateSpiffeRoleCert() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_role.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+
+        Set<String> roles = new HashSet<>();
+        roles.add("api");
+
+        Set<String> orgValues = new HashSet<>();
+        orgValues.add("Athenz");
+
+        assertTrue(certReq.validate(roles, "coretech", "sports.api", orgValues));
+    }
+
+    @Test
+    public void testValidateSpiffeServiceCertValid() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_service.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr);
+        assertNotNull(certReq);
+
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        Principal provider = Mockito.mock(Principal.class);
+        Mockito.when(authorizer.access("launch", "sys.auth:dns.ostk.athenz.cloud", provider, null))
+                .thenReturn(true);
+
+        StringBuilder errorMsg = new StringBuilder(256);
+        HashSet<String> validOrgs = new HashSet<>();
+        validOrgs.add("Athenz");
+        assertTrue(certReq.validate(provider, "athenz", "production",
+                "1001", validOrgs, null, errorMsg));
+    }
+
+    @Test
+    public void testValidateSpiffeServiceCertMismatch() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_service_mismatch.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr);
+        assertNotNull(certReq);
+
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        Principal provider = Mockito.mock(Principal.class);
+        Mockito.when(authorizer.access("launch", "sys.auth:dns.ostk.athenz.cloud", provider, null))
+                .thenReturn(true);
+
+        StringBuilder errorMsg = new StringBuilder(256);
+        HashSet<String> validOrgs = new HashSet<>();
+        validOrgs.add("Athenz");
+        assertFalse(certReq.validate(provider, "athenz", "production",
+                "1001", validOrgs, null, errorMsg));
+    }
 }

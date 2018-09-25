@@ -32,13 +32,12 @@ public class X509RoleCertRequest extends X509CertRequest {
         super(csr);
     }
 
-    boolean validateCommonName(Set<String> roles, final String domainName) {
+    String validateAndExtractRoleName(Set<String> roles, final String domainName) {
 
         // we must have only a single value in our list since we specified
         // what role we're looking for but we'll iterate through the list
         // anyway
 
-        boolean roleNameValidated = false;
         for (String role : roles) {
             final String roleName = domainName + ":role." + role;
             if (LOGGER.isDebugEnabled()) {
@@ -46,11 +45,10 @@ public class X509RoleCertRequest extends X509CertRequest {
                         roleName, cn);
             }
             if (cn.equals(roleName)) {
-                roleNameValidated = true;
-                break;
+                return role;
             }
         }
-        return roleNameValidated;
+        return null;
     }
 
     boolean validateEmail(final String principal) {
@@ -87,7 +85,8 @@ public class X509RoleCertRequest extends X509CertRequest {
         // validate that the common name matches to the role name
         // that is being returned in the response
 
-        if (!validateCommonName(roles, domainName)) {
+        final String roleName = validateAndExtractRoleName(roles, domainName);
+        if (roleName == null) {
             LOGGER.error("validateRoleCertificateRequest: unable to validate role name");
             return false;
         }
@@ -98,8 +97,14 @@ public class X509RoleCertRequest extends X509CertRequest {
             return false;
         }
 
-        // finally validate the o field value is specified
+        // validate the o field value is specified
 
-        return validateSubjectOField(validCertSubjectOrgValues);
+        if (!validateSubjectOField(validCertSubjectOrgValues)) {
+            return false;
+        }
+
+        // validate spiffe uri if one is provided
+
+        return validateSpiffeURI(domainName, "role", roleName);
     }
 }
