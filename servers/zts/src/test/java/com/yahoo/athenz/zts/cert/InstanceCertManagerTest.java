@@ -15,6 +15,7 @@ import com.yahoo.athenz.common.server.ssh.SSHSigner;
 import com.yahoo.athenz.zts.*;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
+import org.mockito.internal.matchers.Any;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import static org.testng.Assert.assertEquals;
@@ -668,5 +669,34 @@ public class InstanceCertManagerTest {
         assertEquals(instanceManager.getSSHCertificateSigner("user"), "ssh-user");
 
         instanceManager.shutdown();
+    }
+
+    @Test
+    public void testExpiredX509CertRecordCleaner() {
+
+        CertRecordStore store = Mockito.mock(CertRecordStore.class);
+        Mockito.when(store.getConnection()).thenThrow(new RuntimeException("invalid connection"));
+
+        InstanceCertManager instanceManager = new InstanceCertManager(null, null, true);
+
+        InstanceCertManager.ExpiredX509CertRecordCleaner cleaner =
+                instanceManager.new ExpiredX509CertRecordCleaner(store, 100);
+
+        // make sure no exceptions are thrown
+
+        cleaner.run();
+    }
+
+    @Test
+    public void testReadFileContentsException() {
+
+        InstanceCertManager instance = new InstanceCertManager(null, null, true);
+        File file = new File("src/test/resources/athenz.conf");
+
+        InstanceCertManager instanceManager = Mockito.spy(instance);
+        Mockito.when(instanceManager.getFilePath(file))
+                .thenThrow(new RuntimeException("invalid file"));
+
+        assertNull(instanceManager.readFileContents("src/test/resources/athenz.conf"));
     }
 }
