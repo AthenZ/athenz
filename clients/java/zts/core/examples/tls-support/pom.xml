@@ -27,15 +27,10 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <athenz.version>1.7.46</athenz.version>
+    <athenz.version>1.8.1</athenz.version>
   </properties>
 
   <dependencies>
-    <dependency>
-      <groupId>com.yahoo.athenz</groupId>
-      <artifactId>athenz-auth-core</artifactId>
-      <version>${athenz.version}</version>
-    </dependency>
     <dependency>
       <groupId>com.yahoo.athenz</groupId>
       <artifactId>athenz-zts-java-client</artifactId>

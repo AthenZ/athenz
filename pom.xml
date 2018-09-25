@@ -94,7 +94,8 @@
     <module>libs/java/instance_provider</module>
     <module>libs/java/cert_refresher</module>
     <module>clients/java/zms</module>
-    <module>clients/java/zts</module>
+    <module>clients/java/zts/core</module>
+    <module>clients/java/zts/shade</module>
     <module>clients/java/zpe</module>
     <module>servers/zms</module>
     <module>servers/zts</module>
