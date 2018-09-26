@@ -1,0 +1,12 @@
+[Unit]
+Description=Athenz ZMS Service
+Wants=network-online.target ntpd.service
+After=network-online.target
+
+[Service]
+ExecStart=/opt/zms/bin/zms.sh
+Restart=on-failure
+RestartSec=20
+
+[Install]
+WantedBy=multi-user.target

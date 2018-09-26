@@ -1,0 +1,106 @@
+{
+  "variables": {
+    "subnet_id":"subnet-xxxxxxxxx",
+    "vpc_id": "vpc-xxxxxxxxxxxxxx",
+    "aws_region": "{{env `AWS_REGION`}}",
+    "aws_ami_name": "zts-aws-cd-image",
+    "aws_access_key": "{{env `AWS_ACCESS_KEY_ID`}}",
+    "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}",
+    "aws_session_token": "{{env `AWS_SESSION_TOKEN`}}",
+    "ssh_keypair_name":"keypair-name",
+    "ssh_private_key_file":"path to ssh key file",
+    "source_ami": "ami-02c71d7a"
+  },
+  "builders": [
+    {
+      "access_key": "{{user `aws_access_key`}}",
+      "secret_key": "{{user `aws_secret_key`}}",
+      "token": "{{user `aws_session_token`}}",
+      "name": "amazon-ebs",
+      "ssh_username": "centos",
+      "ssh_keypair_name":"{{user `ssh_keypair_name`}}",
+      "ssh_private_key_file":"{{user `ssh_private_key_file`}}",
+      "type": "amazon-ebs",
+      "region": "{{user `aws_region`}}",
+      "source_ami": "{{user `source_ami`}}",
+      "ami_block_device_mappings": [
+        {
+          "device_name": "/dev/sda1",
+          "volume_type": "gp2",
+          "volume_size": 50,
+          "encrypted": true,
+          "delete_on_termination": true
+        }
+      ],
+      "encrypt_boot": true,
+      "instance_type": "t2.micro",
+      "ami_name": "{{user `aws_ami_name`}}",
+      "ami_description": "ZMS Image for cloud formation",
+      "associate_public_ip_address": "true",
+      "subnet_id": "{{ user `subnet_id` }}",
+      "vpc_id": "{{ user `vpc_id` }}"
+    }],
+
+  "provisioners": [
+    {
+      "type": "shell",
+      "execute_command": "echo {{user `ssh_username`}} | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+      "inline": [
+        "mkdir -p /opt",
+        "chmod a+w /opt"
+      ]
+    },
+    {
+      "type": "shell",
+      "execute_command": "echo {{user `ssh_username`}} | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+      "inline": [
+        "mkdir -p /opt/zts/tars",
+        "mkdir -p /opt/zts/jars",
+        "mkdir -p /opt/zts/logs",
+        "mkdir -p /opt/zts/domains",
+        "mkdir -p /opt/zts/webapps",
+        "mkdir -p /opt/zts/etc",
+        "mkdir -p /opt/zts/bin",
+        "mkdir -p /opt/zts/temp",
+        "mkdir -p /opt/zts/service",
+        "mkdir -p /opt/zts/conf",
+        "mkdir /var/log/zts_server",
+        "chmod 777 /opt/zts -R"
+      ]
+    },
+    {
+      "type": "file",
+      "source": "build/bin/",
+      "destination": "/opt/zts/bin/"
+    },
+    {
+      "type": "file",
+      "source": "build/conf/",
+      "destination": "/opt/zts/conf/"
+    },
+    {
+      "type": "file",
+      "source": "build/service/",
+      "destination": "/opt/zts/service"
+    },
+    {
+      "type": "file",
+      "source": "tars/",
+      "destination": "/opt/zts/tars/"
+    },
+    {
+      "type": "shell",
+      "execute_command": "echo {{user `ssh_username`}} | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+      "inline": [
+        "ls -ltr /opt/"
+      ]
+    },
+    {
+      "type": "shell",
+      "scripts": [
+        "packer/scripts/setup.sh"
+      ],
+      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
+    }
+  ]
+}

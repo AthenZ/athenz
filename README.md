@@ -45,6 +45,11 @@ and often rely on network ACLs and manual updating.
         * [ZMS Server](docs/setup_zms_prod.md)
         * [ZTS Server](docs/setup_zts_prod.md)
         * [UI Server](docs/setup_ui_prod.md)
+* AWS Setup
+        * [Introduction](docs/aws_athenz_setup.md)
+        * [ZMS Server](docs/aws_zms_setup.md)
+        * [ZTS Server](docs/aws_zts_setup.md)
+        * [UI Server](docs/aws_ui_setup.md)
 * Architecture
     * [Data Model](docs/data_model.md)
     * [System View](docs/system_view.md)

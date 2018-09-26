@@ -30,7 +30,7 @@ const config = {
     },
     userLink: function (user) {
       const domain = process.env.UI_SERVER || 'localhost';
-      return 'https://' + domain + ':9443/athenz/domain/create/userdomain';
+      return 'https://' + domain + ':443/athenz/domain/create/userdomain';
     },
     headerLinks: [
       {title: 'Website', url: 'http://www.athenz.io', target: '_blank'},
@@ -65,7 +65,7 @@ const config = {
     },
     userLink: function (user) {
       const domain = process.env.UI_SERVER || 'localhost';
-      return 'https://' + domain + ':9443/athenz/domain/create/userdomain';
+      return 'https://' + domain + ':443/athenz/domain/create/userdomain';
     },
     headerLinks: [
       {title: 'Website', url: 'http://www.athenz.io', target: '_blank'},

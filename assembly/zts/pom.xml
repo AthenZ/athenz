@@ -72,6 +72,21 @@
               </descriptors>
             </configuration>
           </execution>
+          <execution>
+            <id>package-zts-assembly-aws</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <tarLongFileMode>posix</tarLongFileMode>
+              <outputDirectory>../../../athenz/aws-setup/zts-setup/tars/</outputDirectory>
+              <finalName>athenz-zts</finalName>
+              <descriptors>
+                <descriptor>zts.xml</descriptor>
+              </descriptors>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
     </plugins>
