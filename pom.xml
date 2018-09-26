@@ -261,7 +261,7 @@
               </methodContexts>
               <statementContexts>
                 <log>System.out.println\(.*\);</log>
-                <iflog>^if \(LOGGER.is.*Enabled\(\)\).*</iflog>
+                <iflog>^if \(LOG.*.is.*Enabled\(\)\).*</iflog>
               </statementContexts>
             </configuration>
           </plugin>

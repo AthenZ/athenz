@@ -132,12 +132,11 @@
       <build>
         <plugins>
           <plugin>
-            <groupId>com.atlassian.maven.plugins</groupId>
-            <artifactId>maven-clover2-plugin</artifactId>
-            <version>4.0.4</version>
+            <groupId>org.openclover</groupId>
+            <artifactId>clover-maven-plugin</artifactId>
+            <version>4.3.1</version>
             <configuration>
               <jdk>1.8</jdk>
-              <licenseLocation>${HOME}/license/clover.license</licenseLocation>
               <!-- exclude auto-generated RDL client code -->
               <excludes>
                 <exclude>**/ZMSRDLGeneratedClient.java</exclude>

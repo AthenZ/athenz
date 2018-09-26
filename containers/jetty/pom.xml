@@ -179,30 +179,6 @@
       </plugin>
     </plugins>
   </build>
-  
-  <profiles>
-    <profile>
-      <id>coverage</id>
-      <activation>
-        <property>
-          <name>coverage</name>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>com.atlassian.maven.plugins</groupId>
-            <artifactId>maven-clover2-plugin</artifactId>
-            <version>4.0.4</version>
-            <configuration>
-              <jdk>1.8</jdk>
-              <licenseLocation>${HOME}/license/clover.license</licenseLocation>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
 
   <distributionManagement>
     <repository>
