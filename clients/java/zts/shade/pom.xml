@@ -60,6 +60,22 @@
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.glassfish.jersey.inject</groupId>
+      <artifactId>jersey-hk2</artifactId>
+      <version>${jersey.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>javax.inject</groupId>
+          <artifactId>javax.inject</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.core</groupId>
+      <artifactId>jersey-common</artifactId>
+      <version>${jersey.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.glassfish.jersey.media</groupId>
       <artifactId>jersey-media-json-jackson</artifactId>
       <version>${jersey.version}</version>
@@ -144,6 +160,8 @@
                   <include>org.glassfish.jersey.ext</include>
                   <include>org.glassfish.jersey.core</include>
                   <include>org.glassfish.jersey.media</include>
+                  <include>org.glassfish.jersey.internal</include>
+                  <include>org.glassfish.jersey.inject</include>
                   <include>org.glassfish.jersey.bundles.repackaged</include>
                   <include>com.fasterxml.jackson.core</include>
                   <include>com.fasterxml.jackson.jaxrs</include>
