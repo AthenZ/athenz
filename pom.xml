@@ -126,7 +126,7 @@
   </modules>
 
   <build>
-   <pluginManagement>
+    <pluginManagement>
       <plugins>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -185,7 +185,7 @@
         <version>3.0.1</version>
         <executions>
           <execution>
-            <id>jar-no-fork</id>
+            <id>attach-sources</id>
             <phase>prepare-package</phase>
             <goals>
               <goal>jar-no-fork</goal>
