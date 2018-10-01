@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.zts.store.impl;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
@@ -25,14 +27,11 @@ import com.yahoo.athenz.zms.ZMSClient;
 import com.yahoo.athenz.zms.ZMSClientException;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.store.ChangeLogStore;
-import com.yahoo.rdl.*;
+import com.yahoo.athenz.zts.utils.FilesHelper;
+import com.yahoo.rdl.Struct;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
 import java.security.PrivateKey;
 import java.util.EnumSet;
@@ -55,13 +54,16 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
     private static final Logger LOGGER = LoggerFactory.getLogger(ZMSFileChangeLogStore.class);
 
     File rootDir;
+    ObjectMapper jsonMapper;
+    FilesHelper filesHelper;
+
     public String lastModTime;
 
     private PrivateKey privateKey;
     private String privateKeyId;
     private Authority authority;
     private String zmsUrl;
-    
+
     private static final String ATTR_TAG           = "tag";
     private static final String VALUE_TRUE         = "true";
     private static final String LAST_MOD_FNAME     = ".lastModTime";
@@ -81,11 +83,20 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
         // check to see if we need to override the ZMS url from the config file
         
         zmsUrl = System.getProperty(ZTSConsts.ZTS_PROP_ZMS_URL_OVERRIDE);
-        
+
+        // create our file helper object
+
+        filesHelper = new FilesHelper();
+
+        // initialize our jackson object mapper
+
+        jsonMapper = new ObjectMapper();
+        jsonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
         // setup our directory for storing domain files
         
         rootDir = new File(rootDirectory);
-        
+
         if (!rootDir.exists()) {
             if (!rootDir.mkdirs()) {
                 error("cannot create specified root: " + rootDirectory);
@@ -97,15 +108,10 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
         }
         
         // make sure only the user has access
-        
-        Path rootPath = rootDir.toPath();
+
         Set<PosixFilePermission> perms = EnumSet.of(PosixFilePermission.OWNER_READ,
                 PosixFilePermission.OWNER_WRITE, PosixFilePermission.OWNER_EXECUTE);
-        try {
-            Files.setPosixFilePermissions(rootPath, perms);
-        } catch (IOException e) {
-            error("unable to set directory owner permissions: " + e.getMessage());
-        }
+        setupFilePermissions(rootDir, perms);
         
         // retrieve our last modification timestamp
         
@@ -139,19 +145,24 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
     
     @Override
     public void saveLocalDomain(String domainName, SignedDomain signedDomain) {
-        put(domainName, JSON.bytes(signedDomain));
+        put(domainName, jsonValueAsBytes(signedDomain, SignedDomain.class));
     }
-    
-    void setupDomainFile(File file) {
-        
+
+    void setupFilePermissions(File file, Set<PosixFilePermission> perms) {
         try {
-            new FileOutputStream(file).close();
-            //noinspection ResultOfMethodCallIgnored
-            file.setLastModified(System.currentTimeMillis());
-            Path path = file.toPath();
+            filesHelper.setPosixFilePermissions(file, perms);
+        } catch (IOException ex) {
+            error("unable to setup file with permissions: " + ex.getMessage());
+        }
+    }
+
+    void setupDomainFile(File file) {
+
+        try {
+            filesHelper.createEmptyFile(file);
             Set<PosixFilePermission> perms = EnumSet.of(PosixFilePermission.OWNER_READ,
                     PosixFilePermission.OWNER_WRITE);
-            Files.setPosixFilePermissions(path, perms);
+            setupFilePermissions(file, perms);
         } catch (IOException ex) {
             error("unable to setup domain file with permissions: " + ex.getMessage());
         }
@@ -163,11 +174,12 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
         if (!file.exists()) {
             return null;
         }
-        Path path = Paths.get(file.toURI());
+
         try {
-            return JSON.fromBytes(Files.readAllBytes(path), classType);
-        } catch (IOException ex) {
-            LOGGER.error("Unable to retrieve file: {} error: {}", file.getPath(), ex.getMessage());
+            return jsonMapper.readValue(file, classType);
+        } catch (Exception ex) {
+            LOGGER.error("Unable to retrieve file: {} error: {}",
+                    file.getAbsolutePath(), ex.getMessage());
         }
         return null;
     }
@@ -178,9 +190,9 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
         if (!file.exists()) {
             setupDomainFile(file);
         }
-        Path path = Paths.get(file.toURI());
+
         try {
-            Files.write(path, data);
+            filesHelper.write(file, data);
         } catch (IOException ex) {
             error("unable to save file: " + file.getPath() + " error: " + ex.getMessage());
         }
@@ -193,7 +205,7 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
         }
         
         try {
-            Files.delete(file.toPath());
+            filesHelper.delete(file);
         } catch (Exception exc) {
             error("Cannot delete file or directory: " + name + " : exc: " + exc);
         }
@@ -201,11 +213,7 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
 
     @Override
     public List<String> getLocalDomainList() {
-        return scan();
-    }
-    
-    List<String> scan() {
-        
+
         List<String> names = new ArrayList<>();
         String[] domains = rootDir.list();
         if (domains == null) {
@@ -275,10 +283,19 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
             
             Struct lastModStruct = new Struct();
             lastModStruct.put(ATTR_LAST_MOD_TIME, lastModTime);
-            put(LAST_MOD_FNAME, JSON.bytes(lastModStruct));
+            put(LAST_MOD_FNAME, jsonValueAsBytes(lastModStruct, Struct.class));
         }
     }
-    
+
+    byte[] jsonValueAsBytes(Object obj, Class<?> cls) {
+        try {
+            return jsonMapper.writerWithView(cls).writeValueAsBytes(obj);
+        } catch (Exception ex) {
+            LOGGER.error("Unable to serialize json object: {}", ex.getMessage());
+            return null;
+        }
+    }
+
     String retrieveTagHeader(Map<String, List<String>> responseHeaders) {
         
         // our tag value is going to be returned from the server in the
@@ -377,25 +394,6 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
         } catch (ZMSClientException ex) {
             LOGGER.error("Error when refreshing data from ZMS: {}", ex.getMessage());
             return null;
-        }
-    }
-    
-    public static void deleteDirectory(File file) {
-        if (!file.exists()) {
-            return;
-        }
-        
-        if (file.isDirectory()) {
-            
-            File[] fileList = file.listFiles();
-            if (fileList != null) {
-                for (File ff : fileList) {
-                    deleteDirectory(ff);
-                }
-            }
-        }
-        if (!file.delete()) {
-            error("Cannot delete file: " + file);
         }
     }
     
