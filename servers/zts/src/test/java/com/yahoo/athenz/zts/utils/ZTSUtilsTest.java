@@ -461,4 +461,14 @@ public class ZTSUtilsTest {
         SSLContext sslContext = ZTSUtils.createServerClientSSLContext(null);
         assertNull(sslContext);
     }
+
+    @Test
+    public void testGetPasswordChars() {
+        char [] emptyValue = new char[0];
+        char [] passValue = {'p', 'a', 's', 's'};
+
+        assertEquals(emptyValue, ZTSUtils.getPasswordChars(null));
+        assertEquals(emptyValue, ZTSUtils.getPasswordChars(""));
+        assertEquals(passValue, ZTSUtils.getPasswordChars("pass"));
+    }
 }

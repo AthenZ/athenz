@@ -353,7 +353,7 @@ public class ZTSUtils {
             try (FileInputStream instream = new FileInputStream(new File(trustStorePath))) {
                 KeyStore trustStore = KeyStore.getInstance(trustStoreType);
                 final String password = getApplicationSecret(privateKeyStore, trustStorePasswordAppName, trustStorePassword);
-                trustStore.load(instream, password != null ? password.toCharArray() : EMPTY_PASSWORD);
+                trustStore.load(instream, getPasswordChars(password));
                 tmfactory.init(trustStore);
             }
 
@@ -361,8 +361,8 @@ public class ZTSUtils {
             try (FileInputStream instream = new FileInputStream(new File(keyStorePath))) {
                 KeyStore keyStore = KeyStore.getInstance(keyStoreType);
                 final String password = getApplicationSecret(privateKeyStore, keyStorePasswordAppName, keyStorePassword);
-                keyStore.load(instream, password != null ? password.toCharArray() : EMPTY_PASSWORD);
-                kmfactory.init(keyStore, password != null ? password.toCharArray() : EMPTY_PASSWORD);
+                keyStore.load(instream, getPasswordChars(password));
+                kmfactory.init(keyStore, getPasswordChars(password));
             }
 
             KeyManager[] keymanagers = kmfactory.getKeyManagers();
@@ -375,5 +375,9 @@ public class ZTSUtils {
         }
 
         return sslcontext;
+    }
+
+    static char[] getPasswordChars(final String password) {
+        return password != null ? password.toCharArray() : EMPTY_PASSWORD;
     }
 }

@@ -3,6 +3,7 @@ package com.yahoo.athenz.zts.cert.impl;
 import java.io.File;
 import java.util.Date;
 
+import com.yahoo.athenz.zts.ZTSTestUtils;
 import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
@@ -15,8 +16,8 @@ public class FileCertRecordStoreConnectionTest {
     public void testX509CertOperations() {
         
         // make sure the directory does not exist
-        
-        ZMSFileChangeLogStore.deleteDirectory(new File("/tmp/zts-cert-tests"));
+
+        ZTSTestUtils.deleteDirectory(new File("/tmp/zts-cert-tests"));
 
         FileCertRecordStore store = new FileCertRecordStore(new File("/tmp/zts-cert-tests"));
         FileCertRecordStoreConnection con = (FileCertRecordStoreConnection) store.getConnection();
@@ -95,8 +96,8 @@ public class FileCertRecordStoreConnectionTest {
     public void testX509CertOperationsNullValues() {
         
         // make sure the directory does not exist
-        
-        ZMSFileChangeLogStore.deleteDirectory(new File("/tmp/zts-cert-tests"));
+
+        ZTSTestUtils.deleteDirectory(new File("/tmp/zts-cert-tests"));
 
         FileCertRecordStore store = new FileCertRecordStore(new File("/tmp/zts-cert-tests"));
         FileCertRecordStoreConnection con = (FileCertRecordStoreConnection) store.getConnection();
@@ -116,8 +117,8 @@ public class FileCertRecordStoreConnectionTest {
     public void testdeleteExpiredX509CertRecords() throws Exception {
         
         // make sure the directory does not exist
-        
-        ZMSFileChangeLogStore.deleteDirectory(new File("/tmp/zts-cert-tests"));
+
+        ZTSTestUtils.deleteDirectory(new File("/tmp/zts-cert-tests"));
 
         FileCertRecordStore store = new FileCertRecordStore(new File("/tmp/zts-cert-tests"));
         FileCertRecordStoreConnection con = (FileCertRecordStoreConnection) store.getConnection();

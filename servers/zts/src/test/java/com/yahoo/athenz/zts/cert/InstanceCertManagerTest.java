@@ -33,7 +33,7 @@ public class InstanceCertManagerTest {
 
     @BeforeMethod
     public void setup() {
-        ZMSFileChangeLogStore.deleteDirectory(new File("/tmp/zts_server_cert_store"));
+        ZTSTestUtils.deleteDirectory(new File("/tmp/zts_server_cert_store"));
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_FILE_STORE_PATH, "/tmp/zts_server_cert_store");
         System.setProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME, "src/test/resources/valid_cn_x509.cert");
         System.setProperty(ZTSConsts.ZTS_PROP_CERTSIGN_BASE_URI, "https://localhost:443/certsign/v2");
