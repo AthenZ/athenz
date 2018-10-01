@@ -169,7 +169,7 @@ public class ZTSImplTest {
 
         // we want to make sure we start we clean dir structure
 
-        ZMSFileChangeLogStore.deleteDirectory(new File(ZTS_DATA_STORE_PATH));
+        ZTSTestUtils.deleteDirectory(new File(ZTS_DATA_STORE_PATH));
         
         String privKeyName = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
         File privKeyFile = new File(privKeyName);
@@ -200,7 +200,7 @@ public class ZTSImplTest {
                 "src/test/resources/private_encrypted.key");
         System.setProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_PASSWORD, "athenz");
         
-        ZMSFileChangeLogStore.deleteDirectory(new File("/tmp/zts_server_cert_store"));
+        ZTSTestUtils.deleteDirectory(new File("/tmp/zts_server_cert_store"));
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_FILE_STORE_PATH, "/tmp/zts_server_cert_store");
         
         store = new DataStore(structStore, cloudStore);
@@ -213,7 +213,7 @@ public class ZTSImplTest {
     @AfterMethod
     public void shutdown() {
         cloudStore.close();
-        ZMSFileChangeLogStore.deleteDirectory(new File(ZTS_DATA_STORE_PATH));
+        ZTSTestUtils.deleteDirectory(new File(ZTS_DATA_STORE_PATH));
         System.clearProperty(ZTSConsts.ZTS_PROP_ROLE_TOKEN_MAX_TIMEOUT);
         System.clearProperty(ZTSConsts.ZTS_PROP_ROLE_TOKEN_DEFAULT_TIMEOUT);
     }

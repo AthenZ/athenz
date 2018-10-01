@@ -21,6 +21,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,13 +32,11 @@ import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
-import com.google.common.io.ByteStreams;
 import com.yahoo.athenz.zms.SignedDomain;
 import com.yahoo.athenz.zms.SignedDomains;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.store.ChangeLogStore;
 import com.yahoo.athenz.zts.store.CloudStore;
-import com.yahoo.rdl.JSON;
 
 public class S3ChangeLogStore implements ChangeLogStore {
 
@@ -44,10 +44,12 @@ public class S3ChangeLogStore implements ChangeLogStore {
     private static final String ZTS_BUCKET_DEFAULT = "athenz-domain-sys.auth";
 
     long lastModTime;
-    CloudStore cloudStore;
-    String s3BucketName;
     AmazonS3 awsS3Client = null;
-    
+
+    private String s3BucketName;
+    private CloudStore cloudStore;
+    private ObjectMapper jsonMapper;
+
     public S3ChangeLogStore(CloudStore cloudStore) {
         this.cloudStore = cloudStore;
         s3BucketName = System.getProperty(ZTSConsts.ZTS_PROP_AWS_BUCKET_NAME, ZTS_BUCKET_DEFAULT);
@@ -55,6 +57,11 @@ public class S3ChangeLogStore implements ChangeLogStore {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("AWSS3ChangeLog: S3 Bucket name: " + s3BucketName);
         }
+
+        // initialize our jackson object mapper
+
+        jsonMapper = new ObjectMapper();
+        jsonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
     @Override
@@ -94,8 +101,7 @@ public class S3ChangeLogStore implements ChangeLogStore {
         try {
             S3Object object = s3.getObject(s3BucketName, domainName);
             try (S3ObjectInputStream s3is = object.getObjectContent()) {
-                byte[] data = ByteStreams.toByteArray(s3is);
-                signedDomain = JSON.fromBytes(data, SignedDomain.class);
+                signedDomain = jsonMapper.readValue(s3is, SignedDomain.class);
             }
         } catch (Exception ex) {
             LOGGER.error("AWSS3ChangeLog: getSignedDomain - unable to get domain {} error: {}",

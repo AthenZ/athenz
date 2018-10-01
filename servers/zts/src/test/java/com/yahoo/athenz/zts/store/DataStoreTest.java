@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.yahoo.athenz.zts.ZTSTestUtils;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -123,7 +124,7 @@ public class DataStoreTest {
 
         // we want to make sure we start we clean dir structure
 
-        ZMSFileChangeLogStore.deleteDirectory(new File(ZTS_DATA_STORE_PATH));
+        ZTSTestUtils.deleteDirectory(new File(ZTS_DATA_STORE_PATH));
         
         String privKeyName = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
         File privKeyFile = new File(privKeyName);
@@ -136,7 +137,7 @@ public class DataStoreTest {
     
     @AfterMethod
     public void cleanup() {
-        ZMSFileChangeLogStore.deleteDirectory(new File(ZTS_DATA_STORE_PATH));
+        ZTSTestUtils.deleteDirectory(new File(ZTS_DATA_STORE_PATH));
     }
     
     private void setServicePublicKey(ServiceIdentity service, String id, String key) {
@@ -3333,7 +3334,7 @@ public class DataStoreTest {
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
         ((MockZMSFileChangeLogStore) store.changeLogStore).lastModTime = "2014-01-01T12:00:00";
-        ((MockZMSFileChangeLogStore) store.changeLogStore).setSignedDomains(null);
+        ((MockZMSFileChangeLogStore) store.changeLogStore).setSignedDomainsExc();
         
         boolean result = store.processDomainUpdates();
         assertFalse(result);
