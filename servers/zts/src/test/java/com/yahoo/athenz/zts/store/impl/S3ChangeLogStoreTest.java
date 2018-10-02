@@ -27,7 +27,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import com.amazonaws.services.s3.AmazonS3;
+import com.yahoo.athenz.zts.store.CloudStore;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
 import com.amazonaws.AmazonClientException;
@@ -82,7 +85,10 @@ public class S3ChangeLogStoreTest {
         objectSummary = new S3ObjectSummary();
         objectSummary.setKey("iaas.athenz");
         objectList.add(objectSummary);
-        
+        objectSummary = new S3ObjectSummary();
+        objectSummary.setKey(".date");
+        objectList.add(objectSummary);
+
         ObjectListing objectListing = mock(ObjectListing.class);
         when(objectListing.getObjectSummaries()).thenReturn(objectList);
         when(objectListing.isTruncated()).thenReturn(false);
@@ -175,7 +181,49 @@ public class S3ChangeLogStoreTest {
         assertTrue(domains.contains("platforms"));
         assertTrue(domains.contains("platforms.mh2"));
     }
-    
+
+    @Test
+    public void testListObjectsAllObjectsErrorCondition() {
+
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore(null);
+
+        ArrayList<S3ObjectSummary> objectList1 = new ArrayList<>();
+        S3ObjectSummary objectSummary = new S3ObjectSummary();
+        objectSummary.setKey("iaas");
+        objectList1.add(objectSummary);
+        objectSummary = new S3ObjectSummary();
+        objectSummary.setKey("iaas.athenz");
+        objectList1.add(objectSummary);
+
+        ArrayList<S3ObjectSummary> objectList2 = new ArrayList<>();
+        objectSummary = new S3ObjectSummary();
+        objectSummary.setKey("cd");
+        objectList2.add(objectSummary);
+        objectSummary = new S3ObjectSummary();
+        objectSummary.setKey("cd.docker");
+        objectList2.add(objectSummary);
+
+        ObjectListing objectListing = mock(ObjectListing.class);
+        when(objectListing.getObjectSummaries())
+                .thenReturn(objectList1)
+                .thenReturn(objectList2);
+        when(objectListing.isTruncated())
+                .thenReturn(true);
+        when(store.awsS3Client.listObjects(any(ListObjectsRequest.class))).thenReturn(objectListing);
+        when(store.awsS3Client.listNextBatchOfObjects(any(ObjectListing.class)))
+                .thenReturn(objectListing)
+                .thenReturn(null);
+
+        ArrayList<String> domains = new ArrayList<>();
+        store.listObjects(store.awsS3Client, domains, 0);
+
+        assertEquals(domains.size(), 4);
+        assertTrue(domains.contains("iaas"));
+        assertTrue(domains.contains("iaas.athenz"));
+        assertTrue(domains.contains("cd"));
+        assertTrue(domains.contains("cd.docker"));
+    }
+
     @Test
     public void testListObjectsAllObjectsMultiplePagesModTime() {
         
@@ -264,6 +312,14 @@ public class S3ChangeLogStoreTest {
         // also verify that last mod time is updated
         
         assertTrue(store.lastModTime > 0);
+
+        // get the list again
+
+        domains = store.getLocalDomainList();
+
+        assertEquals(domains.size(), 2);
+        assertTrue(domains.contains("iaas"));
+        assertTrue(domains.contains("iaas.athenz"));
     }
     
     @Test
@@ -354,20 +410,36 @@ public class S3ChangeLogStoreTest {
     public void testGetSignedDomain() throws IOException {
         MockS3ChangeLogStore store = new MockS3ChangeLogStore(null);
 
-        InputStream is = new FileInputStream("src/test/resources/iaas.json");
-        MockS3ObjectInputStream s3Is = new MockS3ObjectInputStream(is, null);
-        
+        InputStream is1 = new FileInputStream("src/test/resources/iaas.json");
+        MockS3ObjectInputStream s3Is1 = new MockS3ObjectInputStream(is1, null);
+
+        InputStream is2 = new FileInputStream("src/test/resources/iaas.json");
+        MockS3ObjectInputStream s3Is2 = new MockS3ObjectInputStream(is2, null);
+
         S3Object object = mock(S3Object.class);
-        when(object.getObjectContent()).thenReturn(s3Is);
+        when(object.getObjectContent()).thenReturn(s3Is1).thenReturn(s3Is2);
+
+        // first we'll return null from our s3 client
+
+        store.resetAWSS3Client();
+        SignedDomain signedDomain = store.getSignedDomain("iaas");
+        assertNull(signedDomain);
+
+        // next setup our mock aws return object
 
         when(store.awsS3Client.getObject("athenz-domain-sys.auth", "iaas")).thenReturn(object);
-        
-        SignedDomain signedDomain = store.getSignedDomain("iaas");
+        signedDomain = store.getSignedDomain("iaas");
         assertNotNull(signedDomain);
+
         DomainData domainData = signedDomain.getDomain();
         assertNotNull(domainData);
         assertEquals(domainData.getName(), "iaas");
-        is.close();
+
+        signedDomain = store.getSignedDomain("iaas");
+        assertNotNull(signedDomain);
+
+        is1.close();
+        is2.close();
     }
     
     @Test
@@ -382,7 +454,8 @@ public class S3ChangeLogStoreTest {
 
         // first call we return null, second call we return success
         
-        when(store.awsS3Client.getObject("athenz-domain-sys.auth", "iaas")).thenThrow(new AmazonServiceException("test")).thenReturn(object);
+        when(store.awsS3Client.getObject("athenz-domain-sys.auth", "iaas"))
+                .thenThrow(new AmazonServiceException("test")).thenReturn(object);
         
         SignedDomain signedDomain = store.getSignedDomain("iaas");
         assertNotNull(signedDomain);
@@ -435,7 +508,14 @@ public class S3ChangeLogStoreTest {
         objectSummary.setKey("iaas.athenz");
         objectSummary.setLastModified(new Date(200));
         objectList.add(objectSummary);
-        
+
+        // we'll also include an invalid domain that should be skipped
+
+        objectSummary = new S3ObjectSummary();
+        objectSummary.setKey("unknown");
+        objectSummary.setLastModified(new Date(200));
+        objectList.add(objectSummary);
+
         ObjectListing objectListing = mock(ObjectListing.class);
         when(objectListing.getObjectSummaries()).thenReturn(objectList);
         when(objectListing.isTruncated()).thenReturn(false);
@@ -464,5 +544,16 @@ public class S3ChangeLogStoreTest {
         assertNotNull(domainData);
         assertEquals(domainData.getName(), "iaas");
     }
-    
+
+    @Test
+    public void testGetS3Client() {
+
+        CloudStore cloudStore = Mockito.mock(CloudStore.class);
+        AmazonS3 s3 = Mockito.mock(AmazonS3.class);
+
+        Mockito.when(cloudStore.getS3Client()).thenReturn(s3);
+        S3ChangeLogStore store = new S3ChangeLogStore(cloudStore);
+        AmazonS3 s3Client = store.getS3Client();
+        assertNotNull(s3Client);
+    }
 }

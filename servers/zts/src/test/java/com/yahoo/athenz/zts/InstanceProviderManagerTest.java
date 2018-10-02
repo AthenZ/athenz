@@ -74,7 +74,7 @@ public class InstanceProviderManagerTest {
 
         // we want to make sure we start we clean dir structure
 
-        ZMSFileChangeLogStore.deleteDirectory(new File(ZTS_DATA_STORE_PATH));
+        ZTSTestUtils.deleteDirectory(new File(ZTS_DATA_STORE_PATH));
 
         File privKeyFile = new File(ZTS_PRIVATE_KEY);
         String privKey = Crypto.encodedFile(privKeyFile);
@@ -91,7 +91,7 @@ public class InstanceProviderManagerTest {
 
     @AfterMethod
     public void shutdown() {
-        ZMSFileChangeLogStore.deleteDirectory(new File(ZTS_DATA_STORE_PATH));
+        ZTSTestUtils.deleteDirectory(new File(ZTS_DATA_STORE_PATH));
         System.clearProperty(ZTSConsts.ZTS_PROP_PROVIDER_ENDPOINTS);
     }
     
