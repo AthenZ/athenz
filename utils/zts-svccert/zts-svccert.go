@@ -12,7 +12,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -27,28 +29,33 @@ type signer struct {
 
 func main() {
 	var ztsURL, serviceKey, serviceCert, domain, service, keyID string
-	var caCertFile, certFile, signerCertFile, dnsDomain, hdr string
-	var csr bool
+	var caCertFile, certFile, signerCertFile, dnsDomain, hdr, ip string
+	var subjC, subjO, subjOU, uri string
+	var csr, spiffe bool
 	var expiryTime int
 	flag.BoolVar(&csr, "csr", false, "request csr only")
+	flag.BoolVar(&spiffe, "spiffe", false, "include spiffe uri in csr")
 	flag.IntVar(&expiryTime, "expiry-time", 0, "expiry time in minutes")
 	flag.StringVar(&certFile, "cert-file", "", "output certificate file")
 	flag.StringVar(&signerCertFile, "signer-cert-file", "", "output signer certificate file")
 	flag.StringVar(&caCertFile, "cacert", "", "CA certificate file")
-	flag.StringVar(&serviceKey, "private-key", "", "private key file")
+	flag.StringVar(&serviceKey, "private-key", "", "private key file (required)")
 	flag.StringVar(&serviceCert, "service-cert", "", "service certificate file")
-	flag.StringVar(&domain, "domain", "", "domain of service")
-	flag.StringVar(&service, "service", "", "name of service")
-	flag.StringVar(&keyID, "key-version", "", "key version")
+	flag.StringVar(&domain, "domain", "", "domain of service (required)")
+	flag.StringVar(&service, "service", "", "name of service (required)")
+	flag.StringVar(&keyID, "key-version", "", "key version (required)")
 	flag.StringVar(&ztsURL, "zts", "", "url of the ZTS Service")
-	flag.StringVar(&dnsDomain, "dns-domain", "", "dns domain suffix to be included in the csr")
+	flag.StringVar(&dnsDomain, "dns-domain", "", "dns domain suffix to be included in the csr (required)")
 	flag.StringVar(&hdr, "hdr", "Athenz-Principal-Auth", "Header name")
+	flag.StringVar(&subjC, "subj-c", "US", "Subject C/Country field")
+	flag.StringVar(&subjO, "subj-o", "Oath Inc.", "Subject O/Organization field")
+	flag.StringVar(&subjOU, "subj-ou", "Athenz", "Subject OU/OrganizationalUnit field")
+	flag.StringVar(&ip, "ip", "", "IP address")
 	flag.Parse()
 
 	if serviceKey == "" || domain == "" || service == "" ||
 		keyID == "" || dnsDomain == "" {
-		fmt.Println("Error: missing required attributes")
-		usage()
+		log.Fatalln("Error: missing required attributes. Run with -help for command line arguments")
 	}
 
 	// load private key
@@ -64,10 +71,25 @@ func main() {
 	}
 
 	// generate a csr for this service
+	// note: RFC 6125 states that if the SAN (Subject Alternative Name) exists,
+	// it is used, not the CA. So, we will always put the Athenz name in the CN
+	// (it is *not* a DNS domain name), and put the host name into the SAN.
+
 	hyphenDomain := strings.Replace(domain, ".", "-", -1)
 	host := fmt.Sprintf("%s.%s.%s", service, hyphenDomain, dnsDomain)
 	commonName := fmt.Sprintf("%s.%s", domain, service)
-	csrData, err := generateCSR(pkSigner, commonName, host)
+	if spiffe {
+		uri = fmt.Sprintf("spiffe://%s/service/%s", domain, service)
+	}
+
+	subj := pkix.Name{
+		CommonName:         commonName,
+		OrganizationalUnit: []string{subjOU},
+		Organization:       []string{subjO},
+		Country:            []string{subjC},
+	}
+
+	csrData, err := generateCSR(pkSigner, subj, host, ip, uri)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -81,8 +103,7 @@ func main() {
 
 	// for all other operations we need to have ZTS Server url
 	if ztsURL == "" {
-		fmt.Println("Error: missing ZTS Server url")
-		usage()
+		fmt.Println("Error: missing ZTS Server url. Run with -help for command line arguments")
 	}
 
 	// if we're given a certficate then we'll use that otherwise
@@ -123,10 +144,6 @@ func main() {
 	}
 }
 
-func usage() {
-	log.Fatalln("usage: zts-svccert [-csr] -domain <domain> -service <service> -private-key <key-file> -key-version <version> -zts <zts-server-url> -dns-domain <dns-domain> [-cert-file <output-cert-file>] [-signer-cert-file <output-signer-file>] [-cacert <ca-certificate-file>] [-hdr <auth-header-name>]")
-}
-
 func newSigner(privateKeyPEM []byte) (*signer, error) {
 	block, _ := pem.Decode(privateKeyPEM)
 	if block == nil {
@@ -151,14 +168,7 @@ func newSigner(privateKeyPEM []byte) (*signer, error) {
 	}
 }
 
-func generateCSR(keySigner *signer, commonName, host string) (string, error) {
-	// note: RFC 6125 states that if the SAN (Subject Alternative Name) exists,
-	// it is used, not the CA. So, we will always put the Athenz name in the CN
-	// (it is *not* a DNS domain name), and put the host name into the SAN.
-	subj := pkix.Name{CommonName: commonName}
-	subj.OrganizationalUnit = []string{"Athenz"}
-	subj.Country = []string{"US"}
-	subj.Organization = []string{"Oath Inc."}
+func generateCSR(keySigner *signer, subj pkix.Name, host, ip, uri string) (string, error) {
 
 	template := x509.CertificateRequest{
 		Subject:            subj,
@@ -166,6 +176,15 @@ func generateCSR(keySigner *signer, commonName, host string) (string, error) {
 	}
 	if host != "" {
 		template.DNSNames = []string{host}
+	}
+	if ip != "" {
+		template.IPAddresses = []net.IP{net.ParseIP(ip)}
+	}
+	if uri != "" {
+		uriptr, err := url.Parse(uri)
+		if err == nil {
+			template.URIs = []*url.URL{uriptr}
+		}
 	}
 	csr, err := x509.CreateCertificateRequest(rand.Reader, &template, keySigner.key)
 	if err != nil {
