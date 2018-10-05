@@ -251,6 +251,28 @@ public class X509CertRequest {
         return true;
     }
 
+    public boolean validateIPAddress(final String ip) {
+
+        // if we have no IP addresses in the request, then we're good
+
+        if (ipAddresses.isEmpty()) {
+            return true;
+        }
+
+        // if we have more than 1 IP address in the request then
+        // we're going to reject it as we can't validate if those
+        // multiple addresses are from the same host. In this
+        // scenario a provider model must be used which supports
+        // multiple IPs in a request
+
+        if (ipAddresses.size() != 1) {
+            LOGGER.error("Cert request contains multiple IP: {} addresses", ipAddresses.size());
+            return false;
+        }
+
+        return ipAddresses.get(0).equals(ip);
+    }
+
     boolean validateSpiffeURI(final String domain, final String name, final String value) {
 
         // first extract the URI list from the request

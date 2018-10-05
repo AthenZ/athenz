@@ -2406,14 +2406,21 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (!x509CertReq.validatePublicKeys(publicKey)) {
             throw requestError("Invalid CSR - public key mismatch", caller, domain);
         }
-        
+
+        // verify the IP address in the request matches where the connection
+        // is coming from
+
+        final String ipAddress = ServletRequestUtil.getRemoteAddress(ctx.request());
+        if (!x509CertReq.validateIPAddress(ipAddress)) {
+            throw requestError("Invalid CSR - IP address mismatch", caller, domain);
+        }
+
         // if this is not a user request and the principal authority is the
         // certificate authority then we're refreshing our certificate as
         // opposed to requesting a new one for the service so we're going
         // to do further validation based on the certificate we authenticated
         
         if (refreshOperation) {
-            final String ipAddress = ServletRequestUtil.getRemoteAddress(ctx.request());
             ServiceX509RefreshRequestStatus status =  validateServiceX509RefreshRequest(principal,
                     x509CertReq, ipAddress);
             if (status == ServiceX509RefreshRequestStatus.IP_NOT_ALLOWED) {

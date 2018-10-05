@@ -624,4 +624,52 @@ public class X509CertRequestTest {
         assertFalse(certReq.validate(provider, "athenz", "production",
                 "1001", validOrgs, null, errorMsg));
     }
+
+    @Test
+    public void testValidateIPAddressMultipleIPs() throws IOException {
+
+        Path path = Paths.get("src/test/resources/multiple_ips.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr);
+        assertNotNull(certReq);
+
+        assertFalse(certReq.validateIPAddress("10.11.12.14"));
+    }
+
+    @Test
+    public void testValidateIPAddressNoIPs() throws IOException {
+
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr);
+        assertNotNull(certReq);
+
+        assertTrue(certReq.validateIPAddress("10.11.12.14"));
+    }
+
+    @Test
+    public void testValidateIPAddressMismatchIPs() throws IOException {
+
+        Path path = Paths.get("src/test/resources/athenz.single_ip.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr);
+        assertNotNull(certReq);
+
+        assertFalse(certReq.validateIPAddress("10.11.12.14"));
+    }
+
+    @Test
+    public void testValidateIPAddress() throws IOException {
+
+        Path path = Paths.get("src/test/resources/athenz.single_ip.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr);
+        assertNotNull(certReq);
+
+        assertTrue(certReq.validateIPAddress("10.11.12.13"));
+    }
 }
