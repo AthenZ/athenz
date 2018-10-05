@@ -21,6 +21,7 @@ import com.yahoo.athenz.zts.utils.ZTSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Set;
 
@@ -106,5 +107,32 @@ public class X509RoleCertRequest extends X509CertRequest {
         // validate spiffe uri if one is provided
 
         return validateSpiffeURI(domainName, "role", roleName);
+    }
+
+    public boolean validateIPAddress(X509Certificate cert, final String ip) {
+
+        // if we have no IP addresses in the request, then we're good
+
+        if (ipAddresses.isEmpty()) {
+            return true;
+        }
+
+        // if we have a certificate then we need to make sure
+        // that all the ip addresses in the request match
+        // the ip addresses in the certificate
+
+        if (cert != null) {
+
+            List<String> certIPs = Crypto.extractX509CertIPAddresses(cert);
+
+            // if the certificate has no ip then we'll do
+            // validation based on the connection ip
+
+            if (!certIPs.isEmpty()) {
+                return certIPs.containsAll(ipAddresses);
+            }
+        }
+
+        return validateIPAddress(ip);
     }
 }

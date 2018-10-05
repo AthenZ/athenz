@@ -558,12 +558,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         Principal princ = ((RsrcCtxWrapper) ctx).principal();
         if (princ != null) {
-            String unsignedCreds = princ.getUnsignedCredentials();
-            if (unsignedCreds == null) {
-                msgBldr.who(princ.getFullName());
-            } else {
-                msgBldr.who(unsignedCreds);
-            }
+            final String unsignedCreds = princ.getUnsignedCredentials();
+            msgBldr.who(unsignedCreds == null ? princ.getFullName() : unsignedCreds);
         }
 
         // get the client IP
@@ -1392,8 +1388,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
     
     @Override
-    public RoleToken postRoleCertificateRequest(ResourceContext ctx, String domainName, String roleName,
-            RoleCertificateRequest req) {
+    public RoleToken postRoleCertificateRequest(ResourceContext ctx, String domainName,
+            String roleName, RoleCertificateRequest req) {
         
         final String caller = "postrolecertificaterequest";
         final String callerTiming = "postrolecertificaterequest_timing";
@@ -1472,8 +1468,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // validate request/csr details
 
+        X509Certificate cert = principal.getX509Certificate();
+        final String ipAddress = ServletRequestUtil.getRemoteAddress(ctx.request());
+
         if (!validateRoleCertificateRequest(req.getCsr(), domainName, roles, principalName,
-                validCertSubjectOrgValues)) {
+                cert, ipAddress, validCertSubjectOrgValues)) {
             throw requestError("postRoleCertificateRequest: Unable to validate cert request",
                     caller, domainName);
         }
@@ -1491,7 +1490,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     boolean validateRoleCertificateRequest(final String csr, final String domainName,
-            Set<String> roles, final String principal, Set<String> validOrgValues) {
+            Set<String> roles, final String principal, X509Certificate cert,
+            final String ip, Set<String> validOrgValues) {
 
         X509RoleCertRequest certReq;
         try {
@@ -1501,7 +1501,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             return false;
         }
 
-        return certReq.validate(roles, domainName, principal, validOrgValues);
+        if (!certReq.validate(roles, domainName, principal, validOrgValues)) {
+            return false;
+        }
+
+        // validate the ip address if any provided
+
+        return certReq.validateIPAddress(cert, ip);
     }
 
     boolean isAuthorizedServicePrincipal(final Principal principal) {
@@ -2406,14 +2412,21 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (!x509CertReq.validatePublicKeys(publicKey)) {
             throw requestError("Invalid CSR - public key mismatch", caller, domain);
         }
-        
+
+        // verify the IP address in the request matches where the connection
+        // is coming from
+
+        final String ipAddress = ServletRequestUtil.getRemoteAddress(ctx.request());
+        if (!x509CertReq.validateIPAddress(ipAddress)) {
+            throw requestError("Invalid CSR - IP address mismatch", caller, domain);
+        }
+
         // if this is not a user request and the principal authority is the
         // certificate authority then we're refreshing our certificate as
         // opposed to requesting a new one for the service so we're going
         // to do further validation based on the certificate we authenticated
         
         if (refreshOperation) {
-            final String ipAddress = ServletRequestUtil.getRemoteAddress(ctx.request());
             ServiceX509RefreshRequestStatus status =  validateServiceX509RefreshRequest(principal,
                     x509CertReq, ipAddress);
             if (status == ServiceX509RefreshRequestStatus.IP_NOT_ALLOWED) {

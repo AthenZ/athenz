@@ -17,6 +17,8 @@ package com.yahoo.athenz.zts;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -28,10 +30,9 @@ import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
-import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -50,7 +51,6 @@ import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.impl.UserAuthority;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.metrics.Metric;
-import com.yahoo.athenz.common.server.cert.CertSigner;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.impl.DefaultAuditLogger;
 import com.yahoo.athenz.common.utils.SignUtils;
@@ -73,7 +73,6 @@ import com.yahoo.athenz.zts.cert.CertRecordStoreConnection;
 import com.yahoo.athenz.zts.cert.InstanceCertManager;
 import com.yahoo.athenz.zts.cert.X509CertRecord;
 import com.yahoo.athenz.zts.cert.X509CertRequest;
-import com.yahoo.athenz.zts.cert.impl.SelfCertSigner;
 import com.yahoo.athenz.zts.store.ChangeLogStore;
 import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.DataStore;
@@ -2273,7 +2272,27 @@ public class ZTSImplTest {
         assertEquals(tenantDomains.getTenantDomainNames().size(), 1);
         assertEquals(tenantDomains.getTenantDomainNames().get(0), "weather.frontpage");
     }
-    
+
+    @Test
+    public void testGetTenantDomainsSingleDomainRoleSvcName() {
+
+        SignedDomain signedDomain = createSignedDomain("athenz.product", "weather.frontpage", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        signedDomain = createTenantSignedDomain("weather.frontpage", "athenz.product", "storage");
+        store.processDomain(signedDomain, false);
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+
+        TenantDomains tenantDomains = zts.getTenantDomains(context, "athenz.product",
+                "user_domain.user100", "storage.tenant.weather.frontpage.admin", "storage");
+        assertNotNull(tenantDomains);
+        assertEquals(tenantDomains.getTenantDomainNames().size(), 1);
+        assertEquals(tenantDomains.getTenantDomainNames().get(0), "weather.frontpage");
+    }
+
     @Test
     public void testGetTenantDomainsMultipleDomains() {
 
@@ -2291,7 +2310,8 @@ public class ZTSImplTest {
                 "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
         ResourceContext context = createResourceContext(principal);
         
-        TenantDomains tenantDomains = zts.getTenantDomains(context, "athenz.multiple", "user_domain.user100", null, null);
+        TenantDomains tenantDomains = zts.getTenantDomains(context, "athenz.multiple",
+                "user_domain.user100", null, null);
         assertNotNull(tenantDomains);
         assertEquals(tenantDomains.getTenantDomainNames().size(), 2);
         assertTrue(tenantDomains.getTenantDomainNames().contains("hockey.kings"));
@@ -2872,7 +2892,199 @@ public class ZTSImplTest {
             assertEquals(ex.getCode(), 400);
         }
     }
-    
+
+    @Test
+    public void testPostOSTKInstanceInformation() throws IOException {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataCache dataCacheSys = new DataCache();
+
+        DataStore store = Mockito.mock(DataStore.class);
+        Mockito.when(store.getDataCache("sys.auth")).thenReturn(dataCacheSys);
+        Mockito.when(store.getPublicKey("sys.auth", "hostsignd", "0")).thenReturn("key");
+
+        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
+        String certCsr = new String(Files.readAllBytes(path));
+        OSTKInstanceInformation info = new OSTKInstanceInformation()
+                .setCsr(certCsr)
+                .setDocument("Test Document")
+                .setSignature("Test Signature")
+                .setKeyId("0")
+                .setDomain("athenz")
+                .setService("production");
+
+        Mockito.when(mockCloudStore.verifyInstanceDocument(info, "key")).thenReturn(true);
+
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+
+        ResourceContext context = createResourceContext(null, servletRequest);
+
+        Identity identity = ztsImpl.postOSTKInstanceInformation(context, info);
+        assertNotNull(identity);
+    }
+
+    @Test
+    public void testPostOSTKInstanceInformationInvalidConfig() throws IOException {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataCache dataCacheSys = new DataCache();
+
+        DataStore store = Mockito.mock(DataStore.class);
+        Mockito.when(store.getDataCache("sys.auth")).thenReturn(dataCacheSys);
+        Mockito.when(store.getPublicKey("sys.auth", "hostsignd", "0")).thenReturn("key");
+
+        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
+        String certCsr = new String(Files.readAllBytes(path));
+        OSTKInstanceInformation info = new OSTKInstanceInformation()
+                .setCsr(certCsr)
+                .setDocument("Test Document")
+                .setSignature("Test Signature")
+                .setKeyId("0")
+                .setDomain("athenz")
+                .setService("production");
+
+        Mockito.when(mockCloudStore.verifyInstanceDocument(info, "key")).thenReturn(true);
+
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        ztsImpl.ostkHostSignerDomain = null;
+
+        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+
+        ResourceContext context = createResourceContext(null, servletRequest);
+
+        try {
+            ztsImpl.postOSTKInstanceInformation(context, info);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 500);
+        }
+    }
+
+    @Test
+    public void testPostOSTKInstanceInformationVerifyFailed() throws IOException {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataCache dataCacheSys = new DataCache();
+
+        DataStore store = Mockito.mock(DataStore.class);
+        Mockito.when(store.getDataCache("sys.auth")).thenReturn(dataCacheSys);
+        Mockito.when(store.getPublicKey("sys.auth", "hostsignd", "0")).thenReturn("key");
+
+        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
+        String certCsr = new String(Files.readAllBytes(path));
+        OSTKInstanceInformation info = new OSTKInstanceInformation()
+                .setCsr(certCsr)
+                .setDocument("Test Document")
+                .setSignature("Test Signature")
+                .setKeyId("0")
+                .setDomain("athenz")
+                .setService("production");
+
+        Mockito.when(mockCloudStore.verifyInstanceDocument(info, "key")).thenReturn(false);
+
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+
+        ResourceContext context = createResourceContext(null, servletRequest);
+
+        try {
+            ztsImpl.postOSTKInstanceInformation(context, info);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+    }
+
+    @Test
+    public void testPostOSTKInstanceInformationInvalidDomain() throws IOException {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataCache dataCacheSys = new DataCache();
+
+        DataStore store = Mockito.mock(DataStore.class);
+        Mockito.when(store.getDataCache("sys.auth")).thenReturn(null);
+        Mockito.when(store.getPublicKey("sys.auth", "hostsignd", "0")).thenReturn("key");
+
+        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
+        String certCsr = new String(Files.readAllBytes(path));
+        OSTKInstanceInformation info = new OSTKInstanceInformation()
+                .setCsr(certCsr)
+                .setDocument("Test Document")
+                .setSignature("Test Signature")
+                .setKeyId("0")
+                .setDomain("athenz")
+                .setService("production");
+
+        Mockito.when(mockCloudStore.verifyInstanceDocument(info, "key")).thenReturn(true);
+
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+
+        ResourceContext context = createResourceContext(null, servletRequest);
+
+        try {
+            ztsImpl.postOSTKInstanceInformation(context, info);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+    }
+
+    @Test
+    public void testPostOSTKInstanceInformationInvalidKey() throws IOException {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataCache dataCacheSys = new DataCache();
+
+        DataStore store = Mockito.mock(DataStore.class);
+        Mockito.when(store.getDataCache("sys.auth")).thenReturn(dataCacheSys);
+        Mockito.when(store.getPublicKey("sys.auth", "hostsignd", "0")).thenReturn(null);
+
+        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
+        String certCsr = new String(Files.readAllBytes(path));
+        OSTKInstanceInformation info = new OSTKInstanceInformation()
+                .setCsr(certCsr)
+                .setDocument("Test Document")
+                .setSignature("Test Signature")
+                .setKeyId("0")
+                .setDomain("athenz")
+                .setService("production");
+
+        Mockito.when(mockCloudStore.verifyInstanceDocument(info, "key")).thenReturn(true);
+
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+
+        ResourceContext context = createResourceContext(null, servletRequest);
+
+        try {
+            ztsImpl.postOSTKInstanceInformation(context, info);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+    }
+
     @Test
     public void testPostOSTKInstanceRefreshRequest() throws IOException {
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
@@ -3202,8 +3414,86 @@ public class ZTSImplTest {
 
         X509Certificate cert = Crypto.loadX509Certificate(identity.getCertificate());
         assertNotNull(cert);
+
+        // request same identity with expiry time
+
+        req.setExpiryTime(1000);
+        identity = zts.postInstanceRefreshRequest(context, "athenz", "syncer", req);
+        assertNotNull(identity);
     }
-    
+
+    @Test
+    public void testPostInstanceRefreshRequestSubjOMismatch() throws IOException {
+
+        Set<String> origOrgValues = zts.validCertSubjectOrgValues;
+        Set<String> newOrgValues = new HashSet<>();
+        newOrgValues.add("Mismatch Org");
+        zts.validCertSubjectOrgValues = newOrgValues;
+
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String certCsr = new String(Files.readAllBytes(path));
+
+        InstanceRefreshRequest req = new InstanceRefreshRequest().setCsr(certCsr);
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz",
+                "syncer", "v=S1,d=athenz;n=syncer;s=sig", 0, new PrincipalAuthority());
+        principal.setKeyId("0");
+        String publicKeyName = "athenz.syncer_0";
+        final String ztsPublicKey = "-----BEGIN PUBLIC KEY-----\n"
+                + "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAKrvfvBgXWqWAorw5hYJu3dpOJe0gp3n\n"
+                + "TgiiPGT7+jzm6BRcssOBTPFIMkePT2a8Tq+FYSmFnHfbQjwmYw2uMK8CAwEAAQ==\n"
+                + "-----END PUBLIC KEY-----";
+        zts.dataStore.getPublicKeyCache().put(publicKeyName, ztsPublicKey);
+
+        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+
+        ResourceContext context = createResourceContext(principal, servletRequest);
+
+        try {
+            zts.postInstanceRefreshRequest(context, "athenz", "syncer", req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        // reset our original org values
+
+        zts.validCertSubjectOrgValues = origOrgValues;
+    }
+
+    @Test
+    public void testPostInstanceRefreshRequestMismatchIP() throws IOException {
+
+        Path path = Paths.get("src/test/resources/athenz.single_ip.csr");
+        String certCsr = new String(Files.readAllBytes(path));
+
+        InstanceRefreshRequest req = new InstanceRefreshRequest().setCsr(certCsr);
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz",
+                "production", "v=S1,d=athenz;n=production;s=sig", 0, new PrincipalAuthority());
+        principal.setKeyId("0");
+        String publicKeyName = "athenz.production_0";
+        final String ztsPublicKey = "-----BEGIN PUBLIC KEY-----\n"
+                + "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAMCfPNQO/3+rIwR4B1Ulr4w/CZR2i3LY\n"
+                + "XH/dNcm+DCxpmEUtMVsnbYAJm2uVUVKk0UX1mxu5L8pDepBY+X1LEHsCAwEAAQ==\n"
+                + "-----END PUBLIC KEY-----";
+        zts.dataStore.getPublicKeyCache().put(publicKeyName, ztsPublicKey);
+
+        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+        Mockito.when(servletRequest.getRemoteAddr()).thenReturn("10.0.0.1");
+
+        ResourceContext context = createResourceContext(principal, servletRequest);
+
+        try {
+            zts.postInstanceRefreshRequest(context, "athenz", "production", req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+    }
+
     @Test
     public void testPostInstanceRefreshRequestHcaCNMismatch() throws IOException {
         Path path = Paths.get("src/test/resources/valid.csr");
@@ -3225,7 +3515,6 @@ public class ZTSImplTest {
             assertEquals(ex.getCode(), 400);
         }
     }
-
 
     @Test
     public void testPostInstanceRefreshRequestHcaPrincipalMismatch() throws IOException {
@@ -3680,7 +3969,7 @@ public class ZTSImplTest {
 
         Set<String> roles = new HashSet<>();
         roles.add("writer");
-        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores", null));
+        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores", null, "10.0.0.1", null));
     }
     
     @Test
@@ -3691,7 +3980,7 @@ public class ZTSImplTest {
 
         Set<String> roles = new HashSet<>();
         roles.add("readers");
-        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.standings", null));
+        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.standings", null, "10.0.0.1", null));
     }
     
     @Test
@@ -3702,7 +3991,7 @@ public class ZTSImplTest {
 
         Set<String> roles = new HashSet<>();
         roles.add("readers");
-        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "no-email", null));
+        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "no-email", null, "10.0.0.1", null));
     }
 
     @Test
@@ -3716,7 +4005,7 @@ public class ZTSImplTest {
 
         Set<String> validOValues = new HashSet<>();
         validOValues.add("InvalidCompany");
-        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores", validOValues));
+        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores", null, "10.0.0.1", validOValues));
     }
 
     @Test
@@ -3727,15 +4016,15 @@ public class ZTSImplTest {
 
         Set<String> roles = new HashSet<>();
         roles.add("readers");
-        assertTrue(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores", null));
+        assertTrue(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores", null, "10.0.0.1", null));
 
         Set<String> validOValues = new HashSet<>();
         validOValues.add("Athenz");
-        assertTrue(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores", validOValues));
+        assertTrue(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores", null, "10.0.0.1", validOValues));
     }
     
     @Test
-    public void testGetRoleTokenCert() {
+    public void testPostRoleCertificateRequest() {
 
         // this csr is for sports:role.readers role
         RoleCertificateRequest req = new RoleCertificateRequest()
@@ -3757,9 +4046,41 @@ public class ZTSImplTest {
         assertNotNull(roleToken);
         assertEquals(roleToken.getExpiryTime(), TimeUnit.SECONDS.convert(30, TimeUnit.DAYS));
     }
-    
+
     @Test
-    public void testGetRoleTokenCertInvalidRequests() {
+    public void testPostRoleCertificateRequestNullCertReturn() {
+
+        // this csr is for sports:role.readers role
+        RoleCertificateRequest req = new RoleCertificateRequest()
+                .setCsr(ROLE_CERT_CORETECH_REQUEST).setExpiryTime(3600L);
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        CloudStore cloudStore = new MockCloudStore();
+        store.setCloudStore(cloudStore);
+        zts.cloudStore = cloudStore;
+
+        Principal principal = SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        InstanceCertManager certManager = Mockito.mock(InstanceCertManager.class);
+        Mockito.when(certManager.generateIdentity(ROLE_CERT_CORETECH_REQUEST, "coretech.weathers",
+                "client", 3600)).thenReturn(null);
+        zts.instanceCertManager = certManager;
+
+        try {
+            zts.postRoleCertificateRequest(context, "coretech", "readers", req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 500);
+            assertTrue(ex.getMessage().contains("Unable to create certificate from the cert signer"));
+        }
+    }
+
+    @Test
+    public void testPostRoleCertificateRequestInvalidRequests() {
 
         // this csr is for sports:role.readers role
 
@@ -3804,7 +4125,7 @@ public class ZTSImplTest {
     }
     
     @Test
-    public void testGetRoleTokenCertMismatchDomain() {
+    public void testPostRoleCertificateRequestMismatchDomain() {
 
         RoleCertificateRequest req = new RoleCertificateRequest()
                 .setCsr(ROLE_CERT_DB_REQUEST).setExpiryTime(3600L);
@@ -3825,7 +4146,32 @@ public class ZTSImplTest {
             assertEquals(ex.getCode(), 400);
         }
     }
-    
+
+    @Test
+    public void testPostRoleCertificateRequestAuthorizedPrincipal() {
+
+        RoleCertificateRequest req = new RoleCertificateRequest()
+                .setCsr(ROLE_CERT_DB_REQUEST).setExpiryTime(3600L);
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        principal.setAuthorizedService("athenz.api");
+        ResourceContext context = createResourceContext(principal);
+
+        // this time we're passing an invalid role name
+
+        try {
+            zts.postRoleCertificateRequest(context, "coretech", "readers", req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+            assertTrue(ex.getMessage().contains("Authorized Service Principals not allowed"));
+        }
+    }
+
     @Test
     public void testLogPrincipalEmpty() {
         MockHttpServletRequest request = new MockHttpServletRequest();
@@ -3853,7 +4199,7 @@ public class ZTSImplTest {
     }
     
     @Test
-    public void testConverToLowerCaseInstanceRegisterInformation() {
+    public void testConverToLowerCase() {
         
         InstanceRegisterInformation info = new InstanceRegisterInformation()
                 .setDomain("Domain").setService("Service").setProvider("Provider.Service");
@@ -3862,6 +4208,17 @@ public class ZTSImplTest {
         assertEquals(info.getService(), "service");
         assertEquals(info.getDomain(), "domain");
         assertEquals(info.getProvider(), "provider.service");
+
+        List<String> list = new ArrayList<>();
+        list.add("Domain");
+        list.add("service");
+
+        AthenzObject.LIST.convertToLowerCase(list);
+        assertEquals("domain", list.get(0));
+        assertEquals("service", list.get(1));
+
+        // should not cause any exceptions
+        AthenzObject.LIST.convertToLowerCase(null);
     }
     
     private SignedDomain signedAuthorizedProviderDomain() {
@@ -6563,6 +6920,58 @@ public class ZTSImplTest {
     }
 
     @Test
+    public void testPostInstanceRefreshRequestByServiceCertValidateIPFail() throws IOException {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
+        String certCsr = new String(Files.readAllBytes(path));
+
+        InstanceRefreshRequest req = new InstanceRefreshRequest().setCsr(certCsr)
+                .setKeyId("v0");
+
+        path = Paths.get("src/test/resources/valid_provider_refresh.pem");
+        String pem = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(pem);
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz",
+                "syncer", "v=S1,d=athenz;n=syncer;s=sig", 0, new CertificateAuthority());
+        principal.setX509Certificate(cert);
+
+        String publicKeyName = "athenz.syncer_v0";
+        final String ztsPublicKey = "-----BEGIN PUBLIC KEY-----\n"
+                + "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAMp9ZHVDK2s/FyinpKpD7lSsU+d6TSRE\n"
+                + "NVo6sdLrEpOaCJETsh+0Qc0knhALxBD1+B9gS5F2rAFgtug0R6savvMCAwEAAQ==\n"
+                + "-----END PUBLIC KEY-----";
+        ztsImpl.dataStore.getPublicKeyCache().put(publicKeyName, ztsPublicKey);
+
+        ZTSAuthorizer authorizer = Mockito.mock(ZTSAuthorizer.class);
+        Mockito.when(authorizer.access("update", "athenz:service", principal, null)).thenReturn(true);
+        ztsImpl.authorizer = authorizer;
+
+        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+        Mockito.when(servletRequest.getRemoteAddr()).thenReturn("10.0.0.1");
+
+        InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
+        Mockito.when(instanceManager.verifyCertRefreshIPAddress("10.0.0.1")).thenReturn(false);
+        ztsImpl.instanceCertManager = instanceManager;
+
+        ResourceContext context = createResourceContext(principal, servletRequest);
+
+        try {
+            ztsImpl.postInstanceRefreshRequest(context, "athenz", "syncer", req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(403, ex.getCode());
+        }
+    }
+
+    @Test
     public void testPostInstanceRefreshRequestByUserInvalidCsr() {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
@@ -6860,5 +7269,110 @@ public class ZTSImplTest {
             assertEquals(400, ex.getCode());
             assertTrue(ex.getMessage().contains("Failed to get ssh certs"));
         }
+    }
+
+    @Test
+    public void testGetServerHostname() throws UnknownHostException {
+
+        InetAddress localhost = java.net.InetAddress.getLocalHost();
+        final String serverHostName = localhost.getCanonicalHostName();
+
+        assertEquals(serverHostName, ZTSImpl.getServerHostName());
+
+        System.setProperty(ZTSConsts.ZTS_PROP_HOSTNAME, "server1.athenz");
+        assertEquals("server1.athenz", ZTSImpl.getServerHostName());
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_HOSTNAME);
+    }
+
+    @Test
+    public void testLoadInvalidClasses() {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        System.setProperty(ZTSConsts.ZTS_PROP_CHANGE_LOG_STORE_FACTORY_CLASS, "invalid.class");
+        assertNull(ztsImpl.getChangeLogStore("/tmp/zts_server_unit_tests/zts_root"));
+        System.clearProperty(ZTSConsts.ZTS_PROP_CHANGE_LOG_STORE_FACTORY_CLASS);
+
+        System.setProperty(ZTSConsts.ZTS_PROP_METRIC_FACTORY_CLASS, "invalid.class");
+        try {
+            ztsImpl.loadMetricObject();
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Invalid metric class"));
+        }
+        System.clearProperty(ZTSConsts.ZTS_PROP_METRIC_FACTORY_CLASS);
+
+        System.setProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS, "invalid.class");
+        try {
+            ztsImpl.loadServicePrivateKey();
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Invalid private key store"));
+        }
+        System.clearProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS);
+
+        System.setProperty(ZTSConsts.ZTS_PROP_AUDIT_LOGGER_FACTORY_CLASS, "invalid.class");
+        try {
+            ztsImpl.loadAuditLogger();
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Invalid audit logger class"));
+        }
+        System.clearProperty(ZTSConsts.ZTS_PROP_AUDIT_LOGGER_FACTORY_CLASS);
+
+        assertNull(ztsImpl.getAuthority("invalid.class"));
+
+        System.setProperty(ZTSConsts.ZTS_PROP_AUTHORITY_CLASSES, "invalid.class");
+        try {
+            ztsImpl.loadAuthorities();
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Invalid authority"));
+        }
+        System.clearProperty(ZTSConsts.ZTS_PROP_AUTHORITY_CLASSES);
+    }
+
+    @Test
+    public void testValidateRoleCertificateRequestInvalidCSR() {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        assertFalse((ztsImpl.validateRoleCertificateRequest("invalid-csr", null,
+                null, null, null, "10.0.0.1", null)));
+    }
+
+    @Test
+    public void testGetAuditLogMsgBuilderUnsignedCreds() {
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
+                "v=S1;d=athenz;n=production;s=signature", 0, null);
+        principal.setUnsignedCreds("unsigned-creds");
+
+        ResourceContext context = createResourceContext(principal);
+
+        AuditLogMsgBuilder msgBuilder = zts.getAuditLogMsgBuilder(context, "athenz", "test", "test");
+        assertEquals(msgBuilder.who(), "unsigned-creds");
+    }
+
+    @Test
+    public void testGetAuditLogMsgBuilderPrincipalName() {
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
+                "v=S1;d=athenz;n=production;s=signature", 0, null);
+        principal.setUnsignedCreds(null);
+
+        ResourceContext context = createResourceContext(principal);
+
+        AuditLogMsgBuilder msgBuilder = zts.getAuditLogMsgBuilder(context, "athenz", "test", "test");
+        assertEquals(msgBuilder.who(), "athenz.production");
     }
 }
