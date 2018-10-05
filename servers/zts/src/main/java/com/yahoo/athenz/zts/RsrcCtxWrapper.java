@@ -17,7 +17,6 @@ package com.yahoo.athenz.zts;
 
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
-import com.yahoo.athenz.auth.impl.KerberosAuthority;
 import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.athenz.common.metrics.Metric;
 
