@@ -32,6 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
 
+import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -2271,7 +2272,27 @@ public class ZTSImplTest {
         assertEquals(tenantDomains.getTenantDomainNames().size(), 1);
         assertEquals(tenantDomains.getTenantDomainNames().get(0), "weather.frontpage");
     }
-    
+
+    @Test
+    public void testGetTenantDomainsSingleDomainRoleSvcName() {
+
+        SignedDomain signedDomain = createSignedDomain("athenz.product", "weather.frontpage", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        signedDomain = createTenantSignedDomain("weather.frontpage", "athenz.product", "storage");
+        store.processDomain(signedDomain, false);
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+
+        TenantDomains tenantDomains = zts.getTenantDomains(context, "athenz.product",
+                "user_domain.user100", "storage.tenant.weather.frontpage.admin", "storage");
+        assertNotNull(tenantDomains);
+        assertEquals(tenantDomains.getTenantDomainNames().size(), 1);
+        assertEquals(tenantDomains.getTenantDomainNames().get(0), "weather.frontpage");
+    }
+
     @Test
     public void testGetTenantDomainsMultipleDomains() {
 
@@ -2289,7 +2310,8 @@ public class ZTSImplTest {
                 "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
         ResourceContext context = createResourceContext(principal);
         
-        TenantDomains tenantDomains = zts.getTenantDomains(context, "athenz.multiple", "user_domain.user100", null, null);
+        TenantDomains tenantDomains = zts.getTenantDomains(context, "athenz.multiple",
+                "user_domain.user100", null, null);
         assertNotNull(tenantDomains);
         assertEquals(tenantDomains.getTenantDomainNames().size(), 2);
         assertTrue(tenantDomains.getTenantDomainNames().contains("hockey.kings"));
@@ -3947,7 +3969,7 @@ public class ZTSImplTest {
 
         Set<String> roles = new HashSet<>();
         roles.add("writer");
-        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores", null));
+        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores", null, "10.0.0.1", null));
     }
     
     @Test
@@ -3958,7 +3980,7 @@ public class ZTSImplTest {
 
         Set<String> roles = new HashSet<>();
         roles.add("readers");
-        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.standings", null));
+        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.standings", null, "10.0.0.1", null));
     }
     
     @Test
@@ -3969,7 +3991,7 @@ public class ZTSImplTest {
 
         Set<String> roles = new HashSet<>();
         roles.add("readers");
-        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "no-email", null));
+        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "no-email", null, "10.0.0.1", null));
     }
 
     @Test
@@ -3983,7 +4005,7 @@ public class ZTSImplTest {
 
         Set<String> validOValues = new HashSet<>();
         validOValues.add("InvalidCompany");
-        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores", validOValues));
+        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores", null, "10.0.0.1", validOValues));
     }
 
     @Test
@@ -3994,15 +4016,15 @@ public class ZTSImplTest {
 
         Set<String> roles = new HashSet<>();
         roles.add("readers");
-        assertTrue(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores", null));
+        assertTrue(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores", null, "10.0.0.1", null));
 
         Set<String> validOValues = new HashSet<>();
         validOValues.add("Athenz");
-        assertTrue(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores", validOValues));
+        assertTrue(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores", null, "10.0.0.1", validOValues));
     }
     
     @Test
-    public void testGetRoleTokenCert() {
+    public void testPostRoleCertificateRequest() {
 
         // this csr is for sports:role.readers role
         RoleCertificateRequest req = new RoleCertificateRequest()
@@ -4024,9 +4046,41 @@ public class ZTSImplTest {
         assertNotNull(roleToken);
         assertEquals(roleToken.getExpiryTime(), TimeUnit.SECONDS.convert(30, TimeUnit.DAYS));
     }
-    
+
     @Test
-    public void testGetRoleTokenCertInvalidRequests() {
+    public void testPostRoleCertificateRequestNullCertReturn() {
+
+        // this csr is for sports:role.readers role
+        RoleCertificateRequest req = new RoleCertificateRequest()
+                .setCsr(ROLE_CERT_CORETECH_REQUEST).setExpiryTime(3600L);
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        CloudStore cloudStore = new MockCloudStore();
+        store.setCloudStore(cloudStore);
+        zts.cloudStore = cloudStore;
+
+        Principal principal = SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        InstanceCertManager certManager = Mockito.mock(InstanceCertManager.class);
+        Mockito.when(certManager.generateIdentity(ROLE_CERT_CORETECH_REQUEST, "coretech.weathers",
+                "client", 3600)).thenReturn(null);
+        zts.instanceCertManager = certManager;
+
+        try {
+            zts.postRoleCertificateRequest(context, "coretech", "readers", req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 500);
+            assertTrue(ex.getMessage().contains("Unable to create certificate from the cert signer"));
+        }
+    }
+
+    @Test
+    public void testPostRoleCertificateRequestInvalidRequests() {
 
         // this csr is for sports:role.readers role
 
@@ -4071,7 +4125,7 @@ public class ZTSImplTest {
     }
     
     @Test
-    public void testGetRoleTokenCertMismatchDomain() {
+    public void testPostRoleCertificateRequestMismatchDomain() {
 
         RoleCertificateRequest req = new RoleCertificateRequest()
                 .setCsr(ROLE_CERT_DB_REQUEST).setExpiryTime(3600L);
@@ -4092,7 +4146,32 @@ public class ZTSImplTest {
             assertEquals(ex.getCode(), 400);
         }
     }
-    
+
+    @Test
+    public void testPostRoleCertificateRequestAuthorizedPrincipal() {
+
+        RoleCertificateRequest req = new RoleCertificateRequest()
+                .setCsr(ROLE_CERT_DB_REQUEST).setExpiryTime(3600L);
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        principal.setAuthorizedService("athenz.api");
+        ResourceContext context = createResourceContext(principal);
+
+        // this time we're passing an invalid role name
+
+        try {
+            zts.postRoleCertificateRequest(context, "coretech", "readers", req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+            assertTrue(ex.getMessage().contains("Authorized Service Principals not allowed"));
+        }
+    }
+
     @Test
     public void testLogPrincipalEmpty() {
         MockHttpServletRequest request = new MockHttpServletRequest();
@@ -7267,6 +7346,33 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        assertFalse((ztsImpl.validateRoleCertificateRequest("invalid-csr", null, null, null, null)));
+        assertFalse((ztsImpl.validateRoleCertificateRequest("invalid-csr", null,
+                null, null, null, "10.0.0.1", null)));
+    }
+
+    @Test
+    public void testGetAuditLogMsgBuilderUnsignedCreds() {
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
+                "v=S1;d=athenz;n=production;s=signature", 0, null);
+        principal.setUnsignedCreds("unsigned-creds");
+
+        ResourceContext context = createResourceContext(principal);
+
+        AuditLogMsgBuilder msgBuilder = zts.getAuditLogMsgBuilder(context, "athenz", "test", "test");
+        assertEquals(msgBuilder.who(), "unsigned-creds");
+    }
+
+    @Test
+    public void testGetAuditLogMsgBuilderPrincipalName() {
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
+                "v=S1;d=athenz;n=production;s=signature", 0, null);
+        principal.setUnsignedCreds(null);
+
+        ResourceContext context = createResourceContext(principal);
+
+        AuditLogMsgBuilder msgBuilder = zts.getAuditLogMsgBuilder(context, "athenz", "test", "test");
+        assertEquals(msgBuilder.who(), "athenz.production");
     }
 }
