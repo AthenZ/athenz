@@ -69,14 +69,6 @@ public class RsrcCtxWrapperTest {
 
         // after authenticate, principal should be set
         assertEquals(wrapper.principal(), prin);
-
-        // invalid kerberos request
-        try {
-            wrapper.authenticateKerberos();
-            fail();
-        } catch (ResourceException ex) {
-            assertNotNull(ex);
-        }
     }
 
     @Test

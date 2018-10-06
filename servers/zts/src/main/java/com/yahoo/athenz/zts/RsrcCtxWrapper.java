@@ -17,7 +17,6 @@ package com.yahoo.athenz.zts;
 
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
-import com.yahoo.athenz.auth.impl.KerberosAuthority;
 import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.athenz.common.metrics.Metric;
 
@@ -25,10 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 public class RsrcCtxWrapper implements ResourceContext {
-    
-    static final String HEADER_NAME_KRB_AUTH = "Authorization";
-    static final String HEADER_NAME_WWW_AUTHENTICATE = "WWW-Authenticate";
-    static final String HEADER_VALUE_NEGOTIATE = "negotiate";
+
     private static final String ZTS_REQUEST_PRINCIPAL = "com.yahoo.athenz.auth.principal";
 
     com.yahoo.athenz.common.server.rest.ResourceContext ctx;
@@ -67,30 +63,6 @@ public class RsrcCtxWrapper implements ResourceContext {
         try {
             ctx.authenticate(optionalAuth);
         } catch (com.yahoo.athenz.common.server.rest.ResourceException restExc) {
-            throwZtsException(restExc);
-        }
-    }
-
-    public void authenticateKerberos() {
-        try {
-            ctx.authenticate();
-            
-            // we must verify that the authority is the kerberos
-            // authority responsible for authentication
-
-            if (!(ctx.principal().getAuthority() instanceof KerberosAuthority)) {
-                throw new com.yahoo.athenz.common.server.rest.ResourceException(com.yahoo.athenz.common.server.rest.ResourceException.UNAUTHORIZED);
-            }
-            
-        } catch (com.yahoo.athenz.common.server.rest.ResourceException restExc) {
-            
-            // if the request does not contain kerberos authorization header,
-            // we're going to add the expected header to the response
-            
-            if (ctx.request().getHeader(HEADER_NAME_KRB_AUTH) == null) {
-                ctx.response().addHeader(HEADER_NAME_WWW_AUTHENTICATE, HEADER_VALUE_NEGOTIATE);
-            }
-            
             throwZtsException(restExc);
         }
     }
