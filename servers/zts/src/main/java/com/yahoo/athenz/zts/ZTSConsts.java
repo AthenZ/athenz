@@ -77,6 +77,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_OSTK_HOST_SIGNER_SERVICE         = "athenz.zts.ostk_host_signer_service";
     public static final String ZTS_PROP_CERT_REFRESH_VERIFY_HOSTNAMES    = "athenz.zts.cert_refresh_verify_hostnames";
     public static final String ZTS_PROP_CERT_REFRESH_RESET_TIME          = "athenz.zts.cert_refresh_reset_time";
+    public static final String ZTS_PROP_CERT_REQUEST_VERIFY_IP           = "athenz.zts.cert_request_verify_ip";
 
     public static final String ZTS_PROP_CERT_JDBC_STORE              = "athenz.zts.cert_jdbc_store";
     public static final String ZTS_PROP_CERT_JDBC_USER               = "athenz.zts.cert_jdbc_user";
