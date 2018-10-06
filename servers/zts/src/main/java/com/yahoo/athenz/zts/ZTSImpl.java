@@ -114,6 +114,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected boolean includeRoleCompleteFlag = true;
     protected boolean readOnlyMode = false;
     protected boolean verifyCertRefreshHostnames = true;
+    protected boolean verifyCertRequestIP = false;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -403,6 +404,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         verifyCertRefreshHostnames = Boolean.parseBoolean(
                 System.getProperty(ZTSConsts.ZTS_PROP_CERT_REFRESH_VERIFY_HOSTNAMES, "true"));
+
+        // configure if we should verify the IP address that's included
+        // in the certificate request
+
+        verifyCertRequestIP = Boolean.parseBoolean(
+                System.getProperty(ZTSConsts.ZTS_PROP_CERT_REQUEST_VERIFY_IP, "false"));
 
         // x509 certificate issue reset time if configured
 
@@ -1507,7 +1514,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // validate the ip address if any provided
 
-        return certReq.validateIPAddress(cert, ip);
+        return verifyCertRequestIP ? certReq.validateIPAddress(cert, ip) : true;
     }
 
     boolean isAuthorizedServicePrincipal(final Principal principal) {
@@ -2417,7 +2424,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // is coming from
 
         final String ipAddress = ServletRequestUtil.getRemoteAddress(ctx.request());
-        if (!x509CertReq.validateIPAddress(ipAddress)) {
+        if (verifyCertRequestIP && !x509CertReq.validateIPAddress(ipAddress)) {
             throw requestError("Invalid CSR - IP address mismatch", caller, domain);
         }
 

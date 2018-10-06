@@ -201,7 +201,11 @@ public class ZTSImplTest {
         
         ZTSTestUtils.deleteDirectory(new File("/tmp/zts_server_cert_store"));
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_FILE_STORE_PATH, "/tmp/zts_server_cert_store");
-        
+
+        // enable ip validation for cert requests
+
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_REQUEST_VERIFY_IP, "true");
+
         store = new DataStore(structStore, cloudStore);
         zts = new ZTSImpl(cloudStore, store);
         ZTSImpl.serverHostName = "localhost";
@@ -3495,6 +3499,39 @@ public class ZTSImplTest {
     }
 
     @Test
+    public void testPostInstanceRefreshRequestMismatchIPVerifyDisabled() throws IOException {
+
+        Path path = Paths.get("src/test/resources/athenz.single_ip.csr");
+        String certCsr = new String(Files.readAllBytes(path));
+
+        InstanceRefreshRequest req = new InstanceRefreshRequest().setCsr(certCsr);
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz",
+                "production", "v=S1,d=athenz;n=production;s=sig", 0, new PrincipalAuthority());
+        principal.setKeyId("0");
+        String publicKeyName = "athenz.production_0";
+        final String ztsPublicKey = "-----BEGIN PUBLIC KEY-----\n"
+                + "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAMCfPNQO/3+rIwR4B1Ulr4w/CZR2i3LY\n"
+                + "XH/dNcm+DCxpmEUtMVsnbYAJm2uVUVKk0UX1mxu5L8pDepBY+X1LEHsCAwEAAQ==\n"
+                + "-----END PUBLIC KEY-----";
+        zts.dataStore.getPublicKeyCache().put(publicKeyName, ztsPublicKey);
+
+        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+        Mockito.when(servletRequest.getRemoteAddr()).thenReturn("10.0.0.1");
+
+        ResourceContext context = createResourceContext(principal, servletRequest);
+        zts.verifyCertRequestIP = false;
+
+        Identity identity = zts.postInstanceRefreshRequest(context, "athenz", "production", req);
+        assertNotNull(identity);
+
+        // enable verify flag again
+
+        zts.verifyCertRequestIP = true;
+    }
+
+    @Test
     public void testPostInstanceRefreshRequestHcaCNMismatch() throws IOException {
         Path path = Paths.get("src/test/resources/valid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -3969,7 +4006,8 @@ public class ZTSImplTest {
 
         Set<String> roles = new HashSet<>();
         roles.add("writer");
-        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores", null, "10.0.0.1", null));
+        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores",
+                null, "10.0.0.1", null));
     }
     
     @Test
@@ -3980,7 +4018,8 @@ public class ZTSImplTest {
 
         Set<String> roles = new HashSet<>();
         roles.add("readers");
-        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.standings", null, "10.0.0.1", null));
+        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.standings",
+                null, "10.0.0.1", null));
     }
     
     @Test
@@ -3991,7 +4030,8 @@ public class ZTSImplTest {
 
         Set<String> roles = new HashSet<>();
         roles.add("readers");
-        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "no-email", null, "10.0.0.1", null));
+        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "no-email", null,
+                "10.0.0.1", null));
     }
 
     @Test
@@ -4005,7 +4045,8 @@ public class ZTSImplTest {
 
         Set<String> validOValues = new HashSet<>();
         validOValues.add("InvalidCompany");
-        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores", null, "10.0.0.1", validOValues));
+        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores",
+                null, "10.0.0.1", validOValues));
     }
 
     @Test
@@ -4016,13 +4057,41 @@ public class ZTSImplTest {
 
         Set<String> roles = new HashSet<>();
         roles.add("readers");
-        assertTrue(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores", null, "10.0.0.1", null));
+        assertTrue(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores",
+                null, "10.0.0.1", null));
 
         Set<String> validOValues = new HashSet<>();
         validOValues.add("Athenz");
-        assertTrue(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores", null, "10.0.0.1", validOValues));
+        assertTrue(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores", null,
+                "10.0.0.1", validOValues));
     }
-    
+
+    @Test
+    public void testValidateRoleCertificateRequestMismatchIP() throws IOException {
+
+        Path path = Paths.get("src/test/resources/role_single_ip.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        Set<String> roles = new HashSet<>();
+        roles.add("writers");
+
+        // disable IP validation and we should get success
+
+        zts.verifyCertRequestIP = false;
+        assertTrue(zts.validateRoleCertificateRequest(csr, "athenz", roles, "athenz.production",
+                null, "10.11.12.13", null));
+        assertTrue(zts.validateRoleCertificateRequest(csr, "athenz", roles, "athenz.production",
+                null, "10.11.12.14", null));
+
+        // enable validation and the mismatch one should fail
+
+        zts.verifyCertRequestIP = true;
+        assertTrue(zts.validateRoleCertificateRequest(csr, "athenz", roles, "athenz.production",
+                null, "10.11.12.13", null));
+        assertFalse(zts.validateRoleCertificateRequest(csr, "athenz", roles, "athenz.production",
+                null, "10.11.12.14", null));
+    }
+
     @Test
     public void testPostRoleCertificateRequest() {
 
