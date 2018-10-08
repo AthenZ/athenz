@@ -216,7 +216,20 @@ public class InstanceProviderManagerTest {
         assertNotNull(client);
         client.close();
     }
-    
+
+    @Test
+    public void testGetClassProviderException() {
+
+        SignedDomain signedDomain = createSignedDomainClassEndpoint("coretech", "weather", true, true);
+        store.processDomain(signedDomain, false);
+
+        System.setProperty("athenz.instance.test.class.exception", "true");
+        InstanceProviderManager provider = new InstanceProviderManager(store, null, null);
+        InstanceProvider client = provider.getProvider("coretech.weather");
+        assertNull(client);
+        System.clearProperty("athenz.instance.test.class.exception");
+    }
+
     @Test
     public void testGetProviderClientInvalidDomain() {
 
