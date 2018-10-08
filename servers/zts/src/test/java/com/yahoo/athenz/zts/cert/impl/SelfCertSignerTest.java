@@ -61,4 +61,26 @@ public class SelfCertSignerTest {
 
         System.clearProperty(ZTSConsts.ZTS_PROP_CERTSIGN_MAX_EXPIRY_TIME);
     }
+
+    @Test
+    public void testSelfCertSignerFactoryInvalidKey() {
+        System.clearProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_FNAME);
+        SelfCertSignerFactory certFactory = new SelfCertSignerFactory();
+        assertNotNull(certFactory);
+
+        CertSigner certSigner = certFactory.create();
+        assertNull(certSigner);
+    }
+
+    @Test
+    public void testSelfCertSignerFactoryInvalidDN() {
+
+        System.setProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_CERT_DN, "invalid-dn");
+        SelfCertSignerFactory certFactory = new SelfCertSignerFactory();
+        assertNotNull(certFactory);
+
+        CertSigner certSigner = certFactory.create();
+        assertNull(certSigner);
+        System.clearProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_CERT_DN);
+    }
 }
