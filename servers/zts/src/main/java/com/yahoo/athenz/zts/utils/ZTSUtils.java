@@ -380,4 +380,16 @@ public class ZTSUtils {
     static char[] getPasswordChars(final String password) {
         return password != null ? password.toCharArray() : EMPTY_PASSWORD;
     }
+
+    public static int parseInt(final String value) {
+        int intVal = 0;
+        if (value != null && !value.isEmpty()) {
+            try {
+                intVal = Integer.parseInt(value);
+            } catch (NumberFormatException ex) {
+                LOGGER.error("Invalid integer: {}", value);
+            }
+        }
+        return intVal;
+    }
 }

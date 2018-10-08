@@ -29,9 +29,20 @@ public class FileCertRecordStoreTest {
     public void testGetConnection() {
         FileCertRecordStore store = new FileCertRecordStore(new File("/tmp"));
         assertNotNull(store.getConnection());
+        store.setOperationTimeout(100);
         store.clearConnections();
     }
-    
+
+    @Test
+    public void testFileCertRecordStoreInvalidDirecory() {
+        try {
+            new FileCertRecordStore(new File("/usr/root"));
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("cannot create specified root"));
+        }
+    }
+
     @Test
     public void testGetStoreException() {
         

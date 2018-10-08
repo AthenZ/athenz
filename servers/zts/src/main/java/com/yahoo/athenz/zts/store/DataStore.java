@@ -17,6 +17,7 @@ package com.yahoo.athenz.zts.store;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.rdl.*;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.config.AthenzConfig;
@@ -194,7 +195,7 @@ public class DataStore implements DataCacheProvider {
         return true;
     }
     
-    public boolean init() {
+    public void init() {
         
         /* now let's retrieve the list of locally saved domains */
 
@@ -221,7 +222,8 @@ public class DataStore implements DataCacheProvider {
          * modification time */
 
         if (!processDomainUpdates()) {
-            return false;
+            throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
+                    "Unable to initialize storage subsystem");
         }
 
         /* Start our monitoring thread to get changes from ZMS */
@@ -229,8 +231,6 @@ public class DataStore implements DataCacheProvider {
         ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(1);
         scheduledThreadPool.scheduleAtFixedRate(new DataUpdater(), updDomainRefreshTime,
                 updDomainRefreshTime, TimeUnit.SECONDS);
-
-        return true;
     }
 
     boolean processLocalDomain(String domainName) {

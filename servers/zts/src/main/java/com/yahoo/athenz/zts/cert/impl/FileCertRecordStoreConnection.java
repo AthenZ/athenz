@@ -24,13 +24,17 @@ import java.nio.file.Paths;
 
 import com.yahoo.athenz.zts.cert.CertRecordStoreConnection;
 import com.yahoo.athenz.zts.cert.X509CertRecord;
+import com.yahoo.athenz.zts.utils.FilesHelper;
 import com.yahoo.rdl.JSON;
 
 public class FileCertRecordStoreConnection implements CertRecordStoreConnection {
     
     File rootDir;
+    FilesHelper filesHelper;
+
     public FileCertRecordStoreConnection(File rootDir) {
         this.rootDir = rootDir;
+        this.filesHelper = new FilesHelper();
     }
 
     @Override
@@ -120,11 +124,10 @@ public class FileCertRecordStoreConnection implements CertRecordStoreConnection 
     }
 
     private synchronized void deleteCertRecord(String provider, String instanceId) {
-        File f = new File(rootDir, provider + "-" + instanceId);
-        if (f.exists()) {
-            if (!f.delete()) {
-                throw new RuntimeException("Cannot delete file: " + f);
-            }
+        File file = new File(rootDir, provider + "-" + instanceId);
+        try {
+            filesHelper.delete(file);
+        } catch (IOException ignored) {
         }
     }
 }
