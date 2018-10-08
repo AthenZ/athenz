@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSTestUtils;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -2012,10 +2013,8 @@ public class DataStoreTest {
         signedDomains.setDomains(domains);
         
         ((MockZMSFileChangeLogStore) store.changeLogStore).setSignedDomains(signedDomains);
-        
-        boolean result = store.init();
-        assertTrue(result);
-        
+        store.init();
+
         Set<String> accessibleRoles = new HashSet<>();
         DataCache data = store.getDataCache("coretech");
         store.getAccessibleRoles(data, "coretech", "user_domain.user", null, accessibleRoles, false);
@@ -2043,7 +2042,12 @@ public class DataStoreTest {
         
         /* our mock is going to throw an exception for domain list so failure */
         
-        assertFalse(store.init());
+        try {
+            store.init();
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(500, ex.getCode());
+        }
     }
     
     @Test
@@ -2093,10 +2097,8 @@ public class DataStoreTest {
         domainNames.add("coretech");
         domainNames.add("sports");
         ((MockZMSFileChangeLogStore) store.changeLogStore).setDomainList(domainNames);
-        
-        boolean result = store.init();
-        assertTrue(result);
-        
+        store.init();
+
         Set<String> accessibleRoles = new HashSet<>();
         DataCache data = store.getDataCache("coretech");
         store.getAccessibleRoles(data, "coretech", "user_domain.user1", null, accessibleRoles, false);
@@ -2147,10 +2149,8 @@ public class DataStoreTest {
         signedDomains.setDomains(domains);
         
         ((MockZMSFileChangeLogStore) store.changeLogStore).setSignedDomains(signedDomains);
-        
-        boolean result = store.init();
-        assertTrue(result);
-        
+        store.init();
+
         Set<String> accessibleRoles = new HashSet<>();
         DataCache data = store.getDataCache("coretech");
         store.getAccessibleRoles(data, "coretech", "user_domain.user", null, accessibleRoles, false);

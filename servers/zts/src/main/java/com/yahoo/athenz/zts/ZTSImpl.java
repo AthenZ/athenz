@@ -258,10 +258,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             // memory and if necessary retrieve the data from ZMS. It will also
             // create the thread to monitor for changes from ZMS
             
-            if (!dataStore.init()) {
-                metric.increment("zts_startup_fail_sum");
-                throw new ResourceException(500, "Unable to initialize storage subsystem");
-            }
+            dataStore.init();
             
         } else {
             dataStore = implDataStore;
@@ -1782,9 +1779,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (instanceAttrs != null) {
             certUsage = instanceAttrs.remove(ZTSConsts.ZTS_CERT_USAGE);
             final String expiryTime = instanceAttrs.remove(ZTSConsts.ZTS_CERT_EXPIRY_TIME);
-            if (expiryTime != null && !expiryTime.isEmpty()) {
-                certExpiryTime = Integer.parseInt(expiryTime);
-            }
+            certExpiryTime = ZTSUtils.parseInt(expiryTime);
             final String certRefreshState = instanceAttrs.remove(ZTSConsts.ZTS_CERT_REFRESH);
             if (certRefreshState != null && !certRefreshState.isEmpty()) {
                 certRefreshAllowed = Boolean.parseBoolean(certRefreshState);
@@ -2094,9 +2089,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (instanceAttrs != null) {
             certUsage = instanceAttrs.remove(ZTSConsts.ZTS_CERT_USAGE);
             final String expiryTime = instanceAttrs.remove(ZTSConsts.ZTS_CERT_EXPIRY_TIME);
-            if (expiryTime != null && !expiryTime.isEmpty()) {
-                certExpiryTime = Integer.parseInt(expiryTime);
-            }
+            certExpiryTime = ZTSUtils.parseInt(expiryTime);
         }
         
         // validate that the tenant domain/service matches to the values

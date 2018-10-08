@@ -471,4 +471,12 @@ public class ZTSUtilsTest {
         assertEquals(emptyValue, ZTSUtils.getPasswordChars(""));
         assertEquals(passValue, ZTSUtils.getPasswordChars("pass"));
     }
+
+    @Test
+    public void testParseInt() {
+        assertEquals(0, ZTSUtils.parseInt(null));
+        assertEquals(0, ZTSUtils.parseInt(""));
+        assertEquals(100, ZTSUtils.parseInt("100"));
+        assertEquals(0, ZTSUtils.parseInt("abc"));
+    }
 }
