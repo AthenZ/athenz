@@ -101,7 +101,22 @@ public class JDBCCertRecordStoreConnectionTest {
         assertNull(certRecord);
         jdbcConn.close();
     }
-    
+
+    @Test
+    public void testGetX509CertRecordException() throws Exception {
+
+        Mockito.when(mockResultSet.next()).thenThrow(new SQLException("test", "state", 500));
+
+        JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn);
+        try {
+            jdbcConn.getX509CertRecord("ostk", "exception");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 500);
+        }
+        jdbcConn.close();
+    }
+
     @Test
     public void testInsertX509Record() throws Exception {
         
@@ -185,7 +200,38 @@ public class JDBCCertRecordStoreConnectionTest {
         
         jdbcConn.close();
     }
-    
+
+    @Test
+    public void testInsertX509RecordException() throws Exception {
+
+        JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn);
+
+        X509CertRecord certRecord = new X509CertRecord();
+        Date now = new Date();
+
+        certRecord.setService("cn");
+        certRecord.setProvider("ostk");
+        certRecord.setInstanceId("instance-id");
+        certRecord.setCurrentIP("current-ip");
+        certRecord.setCurrentSerial("current-serial");
+        certRecord.setCurrentTime(now);
+        certRecord.setPrevIP("prev-ip");
+        certRecord.setPrevSerial("prev-serial");
+        certRecord.setPrevTime(now);
+
+        Mockito.doThrow(new SQLException("error", "state", 503))
+                .when(mockPrepStmt).executeUpdate();
+
+        try {
+            jdbcConn.insertX509CertRecord(certRecord);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 500);
+        }
+
+        jdbcConn.close();
+    }
+
     @Test
     public void testUpdateX509Record() throws Exception {
         
@@ -220,7 +266,38 @@ public class JDBCCertRecordStoreConnectionTest {
 
         jdbcConn.close();
     }
-    
+
+    @Test
+    public void testUpdateX509RecordException() throws Exception {
+
+        JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn);
+
+        X509CertRecord certRecord = new X509CertRecord();
+        Date now = new Date();
+
+        certRecord.setService("cn");
+        certRecord.setProvider("ostk");
+        certRecord.setInstanceId("instance-id");
+        certRecord.setCurrentIP("current-ip");
+        certRecord.setCurrentSerial("current-serial");
+        certRecord.setCurrentTime(now);
+        certRecord.setPrevIP("prev-ip");
+        certRecord.setPrevSerial("prev-serial");
+        certRecord.setPrevTime(now);
+
+        Mockito.doThrow(new SQLException("error", "state", 503))
+                .when(mockPrepStmt).executeUpdate();
+
+        try {
+            jdbcConn.updateX509CertRecord(certRecord);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 500);
+        }
+
+        jdbcConn.close();
+    }
+
     @Test
     public void testDeleteX509Record() throws Exception {
         
@@ -234,7 +311,22 @@ public class JDBCCertRecordStoreConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "instance-id");
         jdbcConn.close();
     }
-    
+
+    @Test
+    public void testDeleteX509RecordException() throws Exception {
+
+        JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn);
+
+        Mockito.doThrow(new SQLException("error", "state", 503)).when(mockPrepStmt).executeUpdate();
+        try {
+            jdbcConn.deleteX509CertRecord("ostk", "instance-id");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 500);
+        }
+        jdbcConn.close();
+    }
+
     @Test
     public void testSqlError() throws SQLException {
         
@@ -261,7 +353,14 @@ public class JDBCCertRecordStoreConnectionTest {
         jdbcConn.con = null;
         jdbcConn.close();
     }
-    
+
+    @Test
+    public void testConnectionCloseException() throws SQLException {
+        Mockito.doThrow(new SQLException()).when(mockConn).close();
+        JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn);
+        jdbcConn.close();
+    }
+
     @Test
     public void testdeleteExpiredX509CertRecords() throws Exception {
         

@@ -389,8 +389,8 @@ public class ZTSAuthorizer implements Authorizer {
     }
     
     String extractDomainName(String resource) {
-        int idx;
-        if ((idx = resource.indexOf(':')) == -1) {
+        int idx = resource.indexOf(':');
+        if (idx == -1) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("extractDomainName: missing domain name: " + resource);
             }
