@@ -72,6 +72,36 @@ public class RsrcCtxWrapperTest {
     }
 
     @Test
+    public void testAuthenticateException() {
+        HttpServletRequest reqMock = Mockito.mock(HttpServletRequest.class);
+        HttpServletResponse resMock = Mockito.mock(HttpServletResponse.class);
+
+        AuthorityList authListMock = new AuthorityList();
+        Authorizer authorizerMock = Mockito.mock(Authorizer.class);
+        Authority authMock = Mockito.mock(Authority.class);
+        Metric metricMock = Mockito.mock(Metric.class);
+        Principal prin = Mockito.mock(Principal.class);
+
+        Mockito.when(authMock.getHeader()).thenReturn("testheader");
+        Mockito.when(reqMock.getHeader("testheader")).thenReturn("testcred");
+        Mockito.when(authMock.getCredSource()).thenReturn(com.yahoo.athenz.auth.Authority.CredSource.HEADER);
+        Mockito.when(authMock.authenticate(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenThrow(new com.yahoo.athenz.common.server.rest.ResourceException(403));
+        Mockito.when(reqMock.getRemoteAddr()).thenReturn("1.1.1.1");
+        Mockito.when(reqMock.getMethod()).thenReturn("POST");
+        authListMock.add(authMock);
+
+        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, false,
+                authorizerMock, metricMock);
+
+        try {
+            wrapper.authenticate();
+        } catch (ResourceException ex) {
+            assertEquals(403, ex.getCode());
+        }
+    }
+
+    @Test
     public void testAuthorize() {
         HttpServletRequest reqMock = Mockito.mock(HttpServletRequest.class);
         HttpServletResponse resMock = Mockito.mock(HttpServletResponse.class);
