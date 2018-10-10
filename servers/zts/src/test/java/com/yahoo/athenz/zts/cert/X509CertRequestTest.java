@@ -746,4 +746,75 @@ public class X509CertRequestTest {
         assertFalse(certReq.validateIPAddress(cert1, "10.11.12.13"));
         assertTrue(certReq.validateIPAddress(cert2, "10.11.12.13"));
     }
+
+    @Test
+    public void testValidateOUFieldCheck() throws IOException {
+
+        // the ou is "Testing Domain"
+
+        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertNotNull(certReq);
+
+        HashSet<String> validOrgUnits = new HashSet<>();
+
+        assertFalse(certReq.validateSubjectOUField(null, null, null));
+        assertFalse(certReq.validateSubjectOUField("Testing Domains", null, null));
+        assertFalse(certReq.validateSubjectOUField(null, "Testing Domains", null));
+        assertFalse(certReq.validateSubjectOUField("Bad1", "Bad2", null));
+        assertFalse(certReq.validateSubjectOUField(null, null, validOrgUnits));
+        assertFalse(certReq.validateSubjectOUField("Testing Domains", "None Test", validOrgUnits));
+
+        // add invalid entry into set
+        validOrgUnits.add("Testing Domains");
+        assertFalse(certReq.validateSubjectOUField("Testing Domains", "None Test", validOrgUnits));
+
+        assertTrue(certReq.validateSubjectOUField("Testing Domain", null, null));
+        assertTrue(certReq.validateSubjectOUField("Testing Domain", "Bad2", validOrgUnits));
+
+        assertTrue(certReq.validateSubjectOUField(null, "Testing Domain", null));
+        assertTrue(certReq.validateSubjectOUField("Bad1", "Testing Domain", validOrgUnits));
+
+        // add valid entry inti set
+        validOrgUnits.add("Testing Domain");
+        assertTrue(certReq.validateSubjectOUField(null, null, validOrgUnits));
+        assertTrue(certReq.validateSubjectOUField("Bad1", "Bad2", validOrgUnits));
+    }
+
+    @Test
+    public void testValidateOUFieldCheckMissingOU() throws IOException {
+
+        // no ou field available
+        Path path = Paths.get("src/test/resources/athenz.single_ip.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertNotNull(certReq);
+
+        HashSet<String> validOrgUnits = new HashSet<>();
+        validOrgUnits.add("Athenz");
+
+        assertTrue(certReq.validateSubjectOUField(null, null, null));
+        assertTrue(certReq.validateSubjectOUField("Testing Domains", null, null));
+        assertTrue(certReq.validateSubjectOUField(null, "Testing Domains", null));
+        assertTrue(certReq.validateSubjectOUField("Bad1", "Bad2", null));
+        assertTrue(certReq.validateSubjectOUField(null, null, validOrgUnits));
+        assertTrue(certReq.validateSubjectOUField("Testing Domains", "None Test", validOrgUnits));
+    }
+
+    @Test
+    public void testValidateOUFieldCheckInvalidOU() throws IOException {
+
+        // multiple ou field: Athenz and Yahoo which we don't support
+        Path path = Paths.get("src/test/resources/athenz.multiple_ou.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertNotNull(certReq);
+
+        assertFalse(certReq.validateSubjectOUField("Athenz", null, null));
+        assertFalse(certReq.validateSubjectOUField("Yahoo", null, null));
+    }
 }

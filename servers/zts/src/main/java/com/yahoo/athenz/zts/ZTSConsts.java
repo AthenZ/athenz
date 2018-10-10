@@ -55,6 +55,7 @@ public final class ZTSConsts {
 
     public static final String ZTS_PROP_CERT_REFRESH_IP_FNAME  = "athenz.zts.cert_refresh_ip_fname";
     public static final String ZTS_PROP_CERT_ALLOWED_O_VALUES  = "athenz.zts.cert_allowed_o_values";
+    public static final String ZTS_PROP_CERT_ALLOWED_OU_VALUES = "athenz.zts.cert_allowed_ou_values";
     public static final String ZTS_PROP_INSTANCE_CERT_IP_FNAME = "athenz.zts.instance_cert_ip_fname";
 
     public static final String ZTS_PROP_CERTSIGN_BASE_URI        = "athenz.zts.certsign_base_uri";
@@ -78,6 +79,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_CERT_REFRESH_VERIFY_HOSTNAMES    = "athenz.zts.cert_refresh_verify_hostnames";
     public static final String ZTS_PROP_CERT_REFRESH_RESET_TIME          = "athenz.zts.cert_refresh_reset_time";
     public static final String ZTS_PROP_CERT_REQUEST_VERIFY_IP           = "athenz.zts.cert_request_verify_ip";
+    public static final String ZTS_PROP_CERT_REQUEST_VERIFY_SUBJECT_OU   = "athenz.zts.cert_request_verify_subject_ou";
 
     public static final String ZTS_PROP_CERT_JDBC_STORE              = "athenz.zts.cert_jdbc_store";
     public static final String ZTS_PROP_CERT_JDBC_USER               = "athenz.zts.cert_jdbc_user";
@@ -126,7 +128,8 @@ public final class ZTSConsts {
     public static final String ZTS_CERT_USAGE        = "certUsage";
     public static final String ZTS_CERT_EXPIRY_TIME  = "certExpiryTime";
     public static final String ZTS_CERT_REFRESH      = "certRefresh";
-    
+    public static final String ZTS_CERT_SUBJECT_OU   = "certSubjectOU";
+
     public static final String ZTS_CERT_USAGE_CLIENT = "client";
     public static final String ZTS_CERT_USAGE_SERVER = "server";
     

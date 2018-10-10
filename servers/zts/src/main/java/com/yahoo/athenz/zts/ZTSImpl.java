@@ -102,6 +102,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected boolean leastPrivilegePrincipal = false;
     protected Set<String> authorizedProxyUsers = null;
     protected Set<String> validCertSubjectOrgValues = null;
+    protected Set<String> validCertSubjectOrgUnitValues = null;
     protected boolean secureRequestsOnly = true;
     protected int svcTokenTimeout = 86400;
     protected Set<String> authFreeUriSet = null;
@@ -115,6 +116,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected boolean readOnlyMode = false;
     protected boolean verifyCertRefreshHostnames = true;
     protected boolean verifyCertRequestIP = false;
+    protected boolean verifyCertSubjectOU = false;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -408,16 +410,27 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         verifyCertRequestIP = Boolean.parseBoolean(
                 System.getProperty(ZTSConsts.ZTS_PROP_CERT_REQUEST_VERIFY_IP, "false"));
 
+        // configure if we should validate subject ou fields to match
+        // provider names
+
+        verifyCertSubjectOU = Boolean.parseBoolean(
+                System.getProperty(ZTSConsts.ZTS_PROP_CERT_REQUEST_VERIFY_SUBJECT_OU, "false"));
+
         // x509 certificate issue reset time if configured
 
         x509CertRefreshResetTime = Long.parseLong(
                 System.getProperty(ZTSConsts.ZTS_PROP_CERT_REFRESH_RESET_TIME, "0"));
 
-        // list of valid O values for any certificate request
+        // list of valid O and OU values for any certificate request
 
         final String validCertSubjectOrgValueList = System.getProperty(ZTSConsts.ZTS_PROP_CERT_ALLOWED_O_VALUES);
         if (validCertSubjectOrgValueList != null) {
             validCertSubjectOrgValues = new HashSet<>(Arrays.asList(validCertSubjectOrgValueList.split("\\|")));
+        }
+
+        final String validCertSubjectOrgUnitValueList = System.getProperty(ZTSConsts.ZTS_PROP_CERT_ALLOWED_OU_VALUES);
+        if (validCertSubjectOrgUnitValueList != null) {
+            validCertSubjectOrgUnitValues = new HashSet<>(Arrays.asList(validCertSubjectOrgUnitValueList.split("\\|")));
         }
     }
     
@@ -1476,7 +1489,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String ipAddress = ServletRequestUtil.getRemoteAddress(ctx.request());
 
         if (!validateRoleCertificateRequest(req.getCsr(), domainName, roles, principalName,
-                cert, ipAddress, validCertSubjectOrgValues)) {
+                cert, ipAddress)) {
             throw requestError("postRoleCertificateRequest: Unable to validate cert request",
                     caller, domainName);
         }
@@ -1495,7 +1508,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
     boolean validateRoleCertificateRequest(final String csr, final String domainName,
             Set<String> roles, final String principal, X509Certificate cert,
-            final String ip, Set<String> validOrgValues) {
+            final String ip) {
 
         X509RoleCertRequest certReq;
         try {
@@ -1505,7 +1518,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             return false;
         }
 
-        if (!certReq.validate(roles, domainName, principal, validOrgValues)) {
+        if (!certReq.validate(roles, domainName, principal, validCertSubjectOrgValues)) {
+            return false;
+        }
+
+        // validate the CSR subject ou field
+
+        if (verifyCertSubjectOU && !certReq.validateSubjectOUField(null, null,
+                validCertSubjectOrgUnitValues)) {
             return false;
         }
 
@@ -1772,6 +1792,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // request and override it with its own value.
         
         String certUsage = null;
+        String certSubjectOU = null;
         int certExpiryTime = 0;
         boolean certRefreshAllowed = true;
         
@@ -1784,8 +1805,17 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             if (certRefreshState != null && !certRefreshState.isEmpty()) {
                 certRefreshAllowed = Boolean.parseBoolean(certRefreshState);
             }
+            certSubjectOU = instanceAttrs.remove(ZTSConsts.ZTS_CERT_SUBJECT_OU);
         }
-        
+
+        // validate the CSR subject ou field. We're doing this check here
+        // because the provider can tell us what the ou field should be
+
+        if (verifyCertSubjectOU && !certReq.validateSubjectOUField(provider, certSubjectOU,
+                validCertSubjectOrgUnitValues)) {
+            throw requestError("CSR Subject OrgUnit validation failed", caller, domain);
+        }
+
         // generate certificate for the instance
 
         Object timerX509CertMetric = metric.startTiming("certsignx509_timing", null);
@@ -2084,14 +2114,24 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // request and override it with its own value.
         
         String certUsage = null;
+        String certSubjectOU = null;
         int certExpiryTime = 0;
         Map<String, String> instanceAttrs = instance.getAttributes();
         if (instanceAttrs != null) {
             certUsage = instanceAttrs.remove(ZTSConsts.ZTS_CERT_USAGE);
             final String expiryTime = instanceAttrs.remove(ZTSConsts.ZTS_CERT_EXPIRY_TIME);
             certExpiryTime = ZTSUtils.parseInt(expiryTime);
+            certSubjectOU = instanceAttrs.remove(ZTSConsts.ZTS_CERT_SUBJECT_OU);
         }
-        
+
+        // validate the CSR subject ou field. We're doing this check here
+        // because the provider can tell us what the ou field should be
+
+        if (verifyCertSubjectOU && !certReq.validateSubjectOUField(provider, certSubjectOU,
+                validCertSubjectOrgUnitValues)) {
+            throw requestError("CSR Subject OrgUnit validation failed", caller, domain);
+        }
+
         // validate that the tenant domain/service matches to the values
         // in the cert record when it was initially issued
         
@@ -2404,6 +2444,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         if (!x509CertReq.validateSubjectOField(validCertSubjectOrgValues)) {
             throw requestError("Invalid CSR - invalid Subject O field", caller, domain);
+        }
+
+        // validate the CSR subject ou field
+
+        if (verifyCertSubjectOU && !x509CertReq.validateSubjectOUField(null, null,
+                validCertSubjectOrgUnitValues)) {
+            throw requestError("Invalid CSR - invalid Subject OU field", caller, domain);
         }
 
         // verify that the public key in the csr matches to the service
