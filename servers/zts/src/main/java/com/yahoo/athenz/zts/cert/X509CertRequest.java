@@ -170,7 +170,36 @@ public class X509CertRequest {
             return false;
         }
     }
-    
+
+    public boolean validateSubjectOUField(final String provider, final String certSubjectOU,
+            Set<String> validValues) {
+
+        try {
+            final String value = Crypto.extractX509CSRSubjectOUField(certReq);
+            if (value == null) {
+                return true;
+            }
+            // we have three values that we want to possible match against
+            // a) provider callback specified value
+            // b) provider name
+            // c) configured set of valid ou names
+
+            if (value.equalsIgnoreCase(certSubjectOU)) {
+                return true;
+            } else if (value.equalsIgnoreCase(provider)) {
+                return true;
+            } else if (validValues != null && !validValues.isEmpty() && validValues.contains(value)) {
+                return true;
+            } else {
+                LOGGER.error("Failed to validate Subject OU Field {}", value);
+            }
+            return false;
+        } catch (CryptoException ex) {
+            LOGGER.error("Unable to extract Subject OU Field: {}", ex.getMessage());
+            return false;
+        }
+    }
+
     boolean extractCsrPublicKey() {
         
         // if we have already extracted our public key
