@@ -28,6 +28,11 @@
 
   <dependencies>
     <dependency>
+      <groupId>com.fasterxml.uuid</groupId>
+      <artifactId>java-uuid-generator</artifactId>
+      <version>3.1.5</version>
+    </dependency>  
+    <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>athenz-auth-core</artifactId>
       <version>${project.parent.version}</version>

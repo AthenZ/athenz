@@ -120,8 +120,8 @@ public class AuditLogMsgBuilderTest {
     @Test
     public void testBuild() {
         AuditLogMsgBuilder msgBldr = starter("testBuild");
-        
         String msg = msgBldr.build();
         Assert.assertTrue(msg.contains("WHAT-api=(testBuild)"), "Test string=" + msg);
+        Assert.assertTrue(msg.contains("UUID="), "Test string=" + msg);
     }
 }
