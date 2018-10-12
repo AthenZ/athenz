@@ -1522,9 +1522,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             return false;
         }
 
+        // the role certificate can use the value from the service
+        // certificate so let's fetch that information
+
+        final String certOU = cert != null ? Crypto.extractX509CertSubjectOUField(cert) : null;
+
         // validate the CSR subject ou field
 
-        if (verifyCertSubjectOU && !certReq.validateSubjectOUField(null, null,
+        if (verifyCertSubjectOU && !certReq.validateSubjectOUField(null, certOU,
                 validCertSubjectOrgUnitValues)) {
             return false;
         }

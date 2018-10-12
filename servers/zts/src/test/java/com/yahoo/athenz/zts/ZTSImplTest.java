@@ -4165,6 +4165,36 @@ public class ZTSImplTest {
     }
 
     @Test
+    public void testValidateRoleCertificateRequestOUWithCert() throws IOException {
+
+        Path path = Paths.get("src/test/resources/valid_email.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        path = Paths.get("src/test/resources/valid_provider_refresh.pem");
+        String pem = new String(Files.readAllBytes(path));
+        X509Certificate validCert = Crypto.loadX509Certificate(pem);
+
+        path = Paths.get("src/test/resources/svc_single_ip.pem");
+        pem = new String(Files.readAllBytes(path));
+        X509Certificate invalidCert = Crypto.loadX509Certificate(pem);
+
+        Set<String> roles = new HashSet<>();
+        roles.add("readers");
+        zts.validCertSubjectOrgValues = null;
+
+        Set<String> ouValues = new HashSet<>();
+        ouValues.add("Athenz");
+        zts.validCertSubjectOrgUnitValues = ouValues;
+        zts.verifyCertSubjectOU = true;
+
+        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores",
+                invalidCert, "10.0.0.1"));
+
+        assertTrue(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores",
+                validCert, "10.0.0.1"));
+    }
+
+    @Test
     public void testValidateRoleCertificateRequestMismatchIP() throws IOException {
 
         Path path = Paths.get("src/test/resources/role_single_ip.csr");
