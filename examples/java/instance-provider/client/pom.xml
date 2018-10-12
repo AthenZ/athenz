@@ -27,8 +27,8 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <athenz.version>1.7.46</athenz.version>
-    <jackson.version>2.9.5</jackson.version>
+    <athenz.version>1.8.3</athenz.version>
+    <jackson.version>2.9.7</jackson.version>
   </properties>
 
   <dependencies>
@@ -94,7 +94,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>2.3</version>
+        <version>3.2.0</version>
         <executions>
           <execution>
             <phase>package</phase>
