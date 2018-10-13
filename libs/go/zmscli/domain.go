@@ -15,7 +15,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// DeleteDomain dletes the given ZMS domain.
+// DeleteDomain deletes the given ZMS domain.
 func (cli Zms) DeleteDomain(dn string) (*string, error) {
 	_, err := cli.Zms.GetDomain(zms.DomainName(dn))
 	if err == nil {

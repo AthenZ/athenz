@@ -14,10 +14,9 @@ import (
 	"strconv"
 	"strings"
 
-	"golang.org/x/net/proxy"
-
 	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/yahoo/athenz/clients/go/zms"
+	"golang.org/x/net/proxy"
 )
 
 type Zms struct {

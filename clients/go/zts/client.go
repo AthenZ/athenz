@@ -213,18 +213,6 @@ func encodeInt64Param(name string, i int64, def int64) string {
 	}
 	return "&" + name + "=" + strconv.FormatInt(i, 10)
 }
-func encodeTimestampParam(name string, i rdl.Timestamp, def rdl.Timestamp) string {
-	if i == def {
-		return ""
-	}
-	return "&" + name + "=" + url.QueryEscape(i.String())
-}
-func encodeUUIDParam(name string, i rdl.UUID, def rdl.UUID) string {
-	if i.Equal(def) {
-		return ""
-	}
-	return "&" + name + "=" + i.String()
-}
 func encodeFloat32Param(name string, i float32, def float32) string {
 	if i == def {
 		return ""
@@ -260,18 +248,6 @@ func encodeOptionalInt64Param(name string, i *int64) string {
 		return ""
 	}
 	return "&" + name + "=" + strconv.Itoa(int(*i))
-}
-func encodeOptionalTimestampParam(name string, i *rdl.Timestamp) string {
-	if i == nil {
-		return ""
-	}
-	return "&" + name + "=" + url.QueryEscape(i.String())
-}
-func encodeOptionalUUIDParam(name string, i *rdl.UUID) string {
-	if i == nil {
-		return ""
-	}
-	return "&" + name + "=" + i.String()
 }
 func encodeParams(objs ...string) string {
 	s := strings.Join(objs, "")
