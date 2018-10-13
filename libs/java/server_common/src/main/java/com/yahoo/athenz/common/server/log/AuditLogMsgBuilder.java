@@ -18,6 +18,14 @@ package com.yahoo.athenz.common.server.log;
 public interface AuditLogMsgBuilder {
 
     /**
+     * A unique identifier
+     * @return this
+     */
+    AuditLogMsgBuilder uuId(String UUID);
+    
+    String uuId();
+
+    /**
      * Return a tag with the version of the msg builder used to build the message.
      * Ex:  "VERS(athenz-2.1);"
      * @return version tag all ready to set in a log message
