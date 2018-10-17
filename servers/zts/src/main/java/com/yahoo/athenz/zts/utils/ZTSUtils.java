@@ -381,8 +381,8 @@ public class ZTSUtils {
         return password != null ? password.toCharArray() : EMPTY_PASSWORD;
     }
 
-    public static int parseInt(final String value) {
-        int intVal = 0;
+    public static int parseInt(final String value, int defaultValue) {
+        int intVal = defaultValue;
         if (value != null && !value.isEmpty()) {
             try {
                 intVal = Integer.parseInt(value);
@@ -391,5 +391,13 @@ public class ZTSUtils {
             }
         }
         return intVal;
+    }
+
+    public static boolean parseBoolean(final String value, boolean defaultValue) {
+        boolean boolVal = defaultValue;
+        if (value != null && !value.isEmpty()) {
+            boolVal = Boolean.parseBoolean(value);
+        }
+        return boolVal;
     }
 }

@@ -474,9 +474,20 @@ public class ZTSUtilsTest {
 
     @Test
     public void testParseInt() {
-        assertEquals(0, ZTSUtils.parseInt(null));
-        assertEquals(0, ZTSUtils.parseInt(""));
-        assertEquals(100, ZTSUtils.parseInt("100"));
-        assertEquals(0, ZTSUtils.parseInt("abc"));
+        assertEquals(0, ZTSUtils.parseInt(null, 0));
+        assertEquals(-1, ZTSUtils.parseInt("", -1));
+        assertEquals(100, ZTSUtils.parseInt("100", 1));
+        assertEquals(0, ZTSUtils.parseInt("abc", 0));
+    }
+
+    @Test
+    public void testParseBoolean() {
+        assertEquals(true, ZTSUtils.parseBoolean(null, true));
+        assertEquals(false, ZTSUtils.parseBoolean(null, false));
+        assertEquals(true, ZTSUtils.parseBoolean("", true));
+        assertEquals(false, ZTSUtils.parseBoolean("", false));
+        assertEquals(true, ZTSUtils.parseBoolean("true", false));
+        assertEquals(false, ZTSUtils.parseBoolean("false", true));
+        assertEquals(false, ZTSUtils.parseBoolean("unknown", false));
     }
 }
