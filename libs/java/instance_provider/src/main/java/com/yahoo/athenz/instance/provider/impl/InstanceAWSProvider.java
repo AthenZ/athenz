@@ -18,6 +18,7 @@ package com.yahoo.athenz.instance.provider.impl;
 import java.io.File;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -54,11 +55,13 @@ public class InstanceAWSProvider implements InstanceProvider {
     static final String ATTR_INSTANCE_ID  = "instanceId";
 
     static final String ZTS_CERT_USAGE            = "certUsage";
+    static final String ZTS_CERT_SSH              = "certSSH";
     static final String ZTS_CERT_USAGE_CLIENT     = "client";
 
     static final String ZTS_CERT_INSTANCE_ID      = ".instanceid.athenz.";
     static final String ZTS_INSTANCE_SAN_DNS      = "sanDNS";
     static final String ZTS_INSTANCE_AWS_ACCOUNT  = "cloudAccount";
+    static final String ZTS_INSTANCE_ID           = "instanceId";
 
     static final String AWS_PROP_PUBLIC_CERT      = "athenz.zts.aws_public_cert";
     static final String AWS_PROP_BOOT_TIME_OFFSET = "athenz.zts.aws_boot_time_offset";
@@ -192,7 +195,8 @@ public class InstanceAWSProvider implements InstanceProvider {
     }
     
     boolean validateAWSDocument(final String provider, AWSAttestationData info,
-            final String awsAccount, final String instanceId, StringBuilder errMsg) {
+            final String awsAccount, final String instanceId, boolean checkTime,
+            StringBuilder errMsg) {
         
         final String document = info.getDocument();
         if (!validateAWSSignature(document, info.getSignature(), errMsg)) {
@@ -227,7 +231,7 @@ public class InstanceAWSProvider implements InstanceProvider {
         
         // verify that the boot up time for the instance is now
 
-        return validateInstanceBootTime(instanceDocument, errMsg);
+        return checkTime ? validateInstanceBootTime(instanceDocument, errMsg) : true;
     }
     
     String getInstanceId(AWSAttestationData info, Struct instanceDocument) {
@@ -362,18 +366,24 @@ public class InstanceAWSProvider implements InstanceProvider {
             throw error("Unable to validate certificate request hostnames");
         }
         
-        // validate our document against given signature
-        
-        StringBuilder errMsg = new StringBuilder(256);
-        if (!validateAWSDocument(confirmation.getProvider(), info,
-                awsAccount, instanceId.toString(), errMsg)) {
-            LOGGER.error("validateAWSDocument: {}", errMsg.toString());
-            throw error("Unable to validate AWS document: " + errMsg.toString());
+        // validate our document against given signature if one is provided
+        // if there is no instance document then we're going to ask ZTS not
+        // to issue SSH host certificates
+
+        boolean sshCert = false;
+        if (info.getDocument() != null) {
+            StringBuilder errMsg = new StringBuilder(256);
+            if (!validateAWSDocument(confirmation.getProvider(), info,
+                    awsAccount, instanceId.toString(), true, errMsg)) {
+                LOGGER.error("validateAWSDocument: {}", errMsg.toString());
+                throw error("Unable to validate AWS document: " + errMsg.toString());
+            }
+            sshCert = true;
         }
             
-        // set the attributes received from the server
+        // set the attributes to be returned to the ZTS server
 
-        setConfirmationAttributes(confirmation);
+        setConfirmationAttributes(confirmation, sshCert);
 
         // verify that the temporary credentials specified in the request
         // can be used to assume the given role thus verifying the
@@ -412,7 +422,14 @@ public class InstanceAWSProvider implements InstanceProvider {
         if (awsAccount == null) {
             throw error("Unable to extract AWS Account id");
         }
-        
+
+        // extract the instance id as well
+
+        final String instanceId = getInstanceProperty(instanceAttributes, ZTS_INSTANCE_ID);
+        if (instanceId == null) {
+            throw error("Unable to extract Instance Id");
+        }
+
         // validate that the domain/service given in the confirmation
         // request match the attestation data
         
@@ -420,10 +437,25 @@ public class InstanceAWSProvider implements InstanceProvider {
         if (!serviceName.equals(info.getRole())) {
             throw error("Service name mismatch: " + info.getRole() + " vs. " + serviceName);
         }
-        
-        // reset the attributes received from the server
 
-        confirmation.setAttributes(null);
+        // validate our document against given signature if one is provided
+        // if there is no instance document then we're going to ask ZTS not
+        // to issue SSH host certificates
+
+        boolean sshCert = false;
+        if (info.getDocument() != null) {
+            StringBuilder errMsg = new StringBuilder(256);
+            if (!validateAWSDocument(confirmation.getProvider(), info,
+                    awsAccount, instanceId, false, errMsg)) {
+                LOGGER.error("validateAWSDocument: {}", errMsg.toString());
+                throw error("Unable to validate AWS document: " + errMsg.toString());
+            }
+            sshCert = true;
+        }
+
+        // set the attributes to be returned to the ZTS server
+
+        setConfirmationAttributes(confirmation, sshCert);
         
         // verify that the temporary credentials specified in the request
         // can be used to assume the given role thus verifying the
@@ -436,11 +468,11 @@ public class InstanceAWSProvider implements InstanceProvider {
         return confirmation;
     }
     
-    void setConfirmationAttributes(InstanceConfirmation confirmation) {
-        
-        // reset the attributes received from the server
+    void setConfirmationAttributes(InstanceConfirmation confirmation, boolean sshCert) {
 
-        confirmation.setAttributes(null);
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(ZTS_CERT_SSH, Boolean.toString(sshCert));
+        confirmation.setAttributes(attributes);
     }
     
     AWSSecurityTokenService getInstanceClient(AWSAttestationData info) {

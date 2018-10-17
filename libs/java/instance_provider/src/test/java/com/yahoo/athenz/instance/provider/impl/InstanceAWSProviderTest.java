@@ -23,6 +23,7 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
@@ -126,7 +127,7 @@ public class InstanceAWSProviderTest {
         AWSAttestationData data = new AWSAttestationData();
         data.setDocument("document");
         data.setSignature(null);
-        assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2", data, "1234", "i-1234", errMsg));
+        assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2", data, "1234", "i-1234", true, errMsg));
     }
     
     @Test
@@ -223,7 +224,8 @@ public class InstanceAWSProviderTest {
         AWSAttestationData data = new AWSAttestationData();
         data.setDocument("{\"accountId\": \"1234\"}");
         data.setSignature("signature");
-        assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2", data, "1235", "i-1234", errMsg));
+        assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2",
+                data, "1235", "i-1234", true, errMsg));
     }
     
     @Test
@@ -239,7 +241,7 @@ public class InstanceAWSProviderTest {
         data.setDocument("{\"accountId\": \"1234\",\"region\": \"us-west-2\"}");
         data.setSignature("signature");
         assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2",
-                data, "1235", "i-1234", errMsg));
+                data, "1235", "i-1234", true, errMsg));
     }
     
     @Test
@@ -255,7 +257,7 @@ public class InstanceAWSProviderTest {
         data.setDocument("{\"accountId\": \"1234\",\"region\": \"us-west-2\",\"instanceId\": \"i-234\"}");
         data.setSignature("signature");
         assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2",
-                data, "1234", "i-1234", errMsg));
+                data, "1234", "i-1234", true, errMsg));
     }
     
     @Test
@@ -273,7 +275,7 @@ public class InstanceAWSProviderTest {
                 + bootTime + "\",\"region\": \"us-west-2\",\"instanceId\": \"i-1234\"}");
         data.setSignature("signature");
         assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2", data,
-                "1234", "i-1234", errMsg));
+                "1234", "i-1234", true, errMsg));
     }
     
     @Test
@@ -291,7 +293,7 @@ public class InstanceAWSProviderTest {
                 + bootTime + "\",\"region\":\"us-west-2\",\"instanceId\": \"i-1234\"}");
         data.setSignature("signature");
         assertTrue(provider.validateAWSDocument("athenz.aws.us-west-2", data,
-                "1234", "i-1234", errMsg));
+                "1234", "i-1234", true, errMsg));
     }
     
     @Test
@@ -342,6 +344,9 @@ public class InstanceAWSProviderTest {
         
         InstanceConfirmation result = provider.confirmInstance(confirmation);
         assertEquals(result.getDomain(), "athenz");
+        Map<String, String> attrs = result.getAttributes();
+        assertNotNull(attrs);
+        assertEquals(attrs.get("certSSH"), "true");
         System.clearProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX);
     }
     
@@ -386,12 +391,10 @@ public class InstanceAWSProviderTest {
         attributes.put("sanDNS", "service.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
         confirmation.setAttributes(attributes);
         
-        try {
-            provider.confirmInstance(confirmation);
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 403);
-        }
+        InstanceConfirmation result = provider.confirmInstance(confirmation);
+        Map<String, String> attrs = result.getAttributes();
+        assertNotNull(attrs);
+        assertEquals(attrs.get("certSSH"), "false");
         System.clearProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX);
     }
     
@@ -463,14 +466,14 @@ public class InstanceAWSProviderTest {
         data.setDocument("document");
         data.setSignature(null);
         assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2", data,
-                "cloudAccount", "instanceId", errMsg));
+                "cloudAccount", "instanceId", true, errMsg));
         
         // unable to parse
         
         data.setDocument("document");
         data.setSignature("signature");
         assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2", data,
-                "cloudAccount", "instanceId", errMsg));
+                "cloudAccount", "instanceId", true, errMsg));
     }
     
     @Test
@@ -720,13 +723,70 @@ public class InstanceAWSProviderTest {
         HashMap<String, String> attributes = new HashMap<>();
         attributes.put("cloudAccount", "1234");
         attributes.put("sanDNS", "service.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
+        attributes.put("instanceId", "i-1234");
         confirmation.setAttributes(attributes);
         
         InstanceConfirmation result = provider.refreshInstance(confirmation);
         assertEquals(result.getDomain(), "athenz");
         System.clearProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX);
     }
-    
+
+    @Test
+    public void testRefreshInstanceInvalidSignature() {
+
+        System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "athenz.cloud");
+        MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
+        System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        provider.setSignatureResult(false);
+
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
+
+        String bootTime = Timestamp.fromMillis(System.currentTimeMillis() - 100).toString();
+        InstanceConfirmation confirmation = new InstanceConfirmation()
+                .setAttestationData("{\"document\": \"{\\\"accountId\\\": \\\"1234\\\",\\\"pendingTime\\\": \\\""
+                        + bootTime + "\\\",\\\"region\\\": \\\"us-west-2\\\",\\\"instanceId\\\": \\\"i-1234\\\"}\","
+                        + "\"signature\": \"signature\",\"role\": \"athenz.service\"}")
+                .setDomain("athenz").setProvider("athenz.aws.us-west-2").setService("service");
+        HashMap<String, String> attributes = new HashMap<>();
+        attributes.put("cloudAccount", "1234");
+        attributes.put("sanDNS", "service.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
+        attributes.put("instanceId", "i-1234");
+        confirmation.setAttributes(attributes);
+
+        try {
+            provider.refreshInstance(confirmation);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+        System.clearProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX);
+    }
+
+    @Test
+    public void testRefreshInstanceNoDocument() {
+
+        System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "athenz.cloud");
+        MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
+        System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        provider.setSignatureResult(false);
+
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
+
+        String bootTime = Timestamp.fromMillis(System.currentTimeMillis() - 100).toString();
+        InstanceConfirmation confirmation = new InstanceConfirmation()
+                .setAttestationData("{\"role\": \"athenz.service\"}")
+                .setDomain("athenz").setProvider("athenz.aws.us-west-2").setService("service");
+        HashMap<String, String> attributes = new HashMap<>();
+        attributes.put("cloudAccount", "1234");
+        attributes.put("sanDNS", "service.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
+        attributes.put("instanceId", "i-1234");
+        confirmation.setAttributes(attributes);
+
+        InstanceConfirmation result = provider.refreshInstance(confirmation);
+        assertEquals(result.getDomain(), "athenz");
+        System.clearProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX);
+    }
+
     @Test
     public void testRefreshInstanceNoAccountId() {
         
@@ -741,7 +801,8 @@ public class InstanceAWSProviderTest {
         try {
             provider.refreshInstance(confirmation);
             fail();
-        } catch (ResourceException ignored) {
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
         }
     }
     
@@ -757,15 +818,43 @@ public class InstanceAWSProviderTest {
                 .setDomain("athenz").setProvider("provider").setService("service");
         HashMap<String, String> attributes = new HashMap<>();
         attributes.put("cloudAccount", "1234");
+        attributes.put("instanceId", "i-1234");
         confirmation.setAttributes(attributes);
         
         try {
             provider.refreshInstance(confirmation);
             fail();
-        } catch (ResourceException ignored) {
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
         }
     }
-    
+
+    @Test
+    public void testRefreshInstanceMissingInstanceId() {
+
+        MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
+        System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
+
+        String bootTime = Timestamp.fromMillis(System.currentTimeMillis() - 100).toString();
+        InstanceConfirmation confirmation = new InstanceConfirmation()
+                .setAttestationData("{\"document\": \"{\\\"accountId\\\": \\\"1234\\\",\\\"pendingTime\\\": \\\""
+                        + bootTime + "\\\",\\\"region\\\": \\\"us-west-2\\\",\\\"instanceId\\\": \\\"i-1234\\\"}\","
+                        + "\"signature\": \"signature\",\"role\": \"athenz.service\"}")
+                .setDomain("athenz").setProvider("athenz.aws.us-west-2").setService("service");
+        HashMap<String, String> attributes = new HashMap<>();
+        attributes.put("cloudAccount", "1234");
+        attributes.put("sanDNS", "service.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
+        confirmation.setAttributes(attributes);
+
+        try {
+            provider.refreshInstance(confirmation);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+    }
+
     @Test
     public void testRefreshInstanceInvalidVerifyIdentity() {
         
@@ -782,13 +871,15 @@ public class InstanceAWSProviderTest {
                 .setDomain("athenz").setProvider("athenz.aws.us-west-2").setService("service");
         HashMap<String, String> attributes = new HashMap<>();
         attributes.put("cloudAccount", "1234");
+        attributes.put("instanceId", "i-1234");
         attributes.put("sanDNS", "service.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
         confirmation.setAttributes(attributes);
         
         try {
             provider.refreshInstance(confirmation);
             fail();
-        } catch (ResourceException ignored) {
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
         }
     }
 }

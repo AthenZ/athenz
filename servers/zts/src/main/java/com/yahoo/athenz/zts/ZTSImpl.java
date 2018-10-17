@@ -1775,7 +1775,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
         
         InstanceConfirmation instance = generateInstanceConfirmObject(ctx, provider,
-                domain, service, info.getAttestationData(), certReq);
+                domain, service, info.getAttestationData(), certReqInstanceId, certReq);
 
         // make sure to close our provider when its no longer needed
 
@@ -1794,23 +1794,23 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // null (indicating both client and server). Additionally, we're
         // going to see if the provider wants to impose an expiry time
         // though the certificate signer might decide to ignore that
-        // request and override it with its own value.
+        // request and override it with its own value. Other optional
+        // attributes we get back from the provider include whether or
+        // not the certs can be refreshed or ssh certs can be requested
         
         String certUsage = null;
         String certSubjectOU = null;
         int certExpiryTime = 0;
-        boolean certRefreshAllowed = true;
+        boolean certRefresh = true;
+        boolean sshCertAllowed = false;
         
         Map<String, String> instanceAttrs = instance.getAttributes();
         if (instanceAttrs != null) {
             certUsage = instanceAttrs.remove(ZTSConsts.ZTS_CERT_USAGE);
-            final String expiryTime = instanceAttrs.remove(ZTSConsts.ZTS_CERT_EXPIRY_TIME);
-            certExpiryTime = ZTSUtils.parseInt(expiryTime);
-            final String certRefreshState = instanceAttrs.remove(ZTSConsts.ZTS_CERT_REFRESH);
-            if (certRefreshState != null && !certRefreshState.isEmpty()) {
-                certRefreshAllowed = Boolean.parseBoolean(certRefreshState);
-            }
             certSubjectOU = instanceAttrs.remove(ZTSConsts.ZTS_CERT_SUBJECT_OU);
+            certExpiryTime = ZTSUtils.parseInt(instanceAttrs.remove(ZTSConsts.ZTS_CERT_EXPIRY_TIME), 0);
+            certRefresh = ZTSUtils.parseBoolean(instanceAttrs.remove(ZTSConsts.ZTS_CERT_REFRESH), true);
+            sshCertAllowed = ZTSUtils.parseBoolean(instanceAttrs.remove(ZTSConsts.ZTS_CERT_SSH), false);
         }
 
         // validate the CSR subject ou field. We're doing this check here
@@ -1835,9 +1835,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // if we're asked then we should also generate a ssh
         // certificate for the instance as well
 
-        Object timerSSHCertMetric = metric.startTiming("certsignssh_timing", null);
-        instanceCertManager.generateSSHIdentity(principal, identity, info.getSsh(), ZTSConsts.ZTS_SSH_HOST);
-        metric.stopTiming(timerSSHCertMetric);
+        if (sshCertAllowed) {
+            Object timerSSHCertMetric = metric.startTiming("certsignssh_timing", null);
+            instanceCertManager.generateSSHIdentity(principal, identity, info.getSsh(), ZTSConsts.ZTS_SSH_HOST);
+            metric.stopTiming(timerSSHCertMetric);
+        }
 
         // set the other required attributes in the identity object
 
@@ -1850,8 +1852,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // need to update our cert record with new certificate details
         // unless we're told by the provider that refresh is not allowed
+        // thus no need to register the instance details
         
-        if (certRefreshAllowed) {
+        if (certRefresh) {
 
             // we must be able to update our database otherwise we will not be
             // able to validate the certificate during refresh operations
@@ -1896,7 +1899,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
     InstanceConfirmation generateInstanceConfirmObject(ResourceContext ctx, final String provider,
             final String domain, final String service, final String attestationData,
-            X509CertRequest certReq) {
+            final String instanceId, X509CertRequest certReq) {
         
         InstanceConfirmation instance = new InstanceConfirmation()
                 .setAttestationData(attestationData)
@@ -1906,8 +1909,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // from the CSR for provider validation
         
         Map<String, String> attributes = new HashMap<>();
+        attributes.put(ZTSConsts.ZTS_INSTANCE_ID, instanceId);
         attributes.put(ZTSConsts.ZTS_INSTANCE_SAN_DNS, String.join(",", certReq.getDnsNames()));
-        
         attributes.put(ZTSConsts.ZTS_INSTANCE_CLIENT_IP, ServletRequestUtil.getRemoteAddress(ctx.request()));
         final List<String> certReqIps = certReq.getIpAddresses();
         if (certReqIps != null && !certReqIps.isEmpty()) {
@@ -2011,40 +2014,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // retrieve the certificate that was used for authentication
 
         X509Certificate cert = principal.getX509Certificate();
-
-        // extract our instance certificate record to make sure it
-        // hasn't been revoked already
-        
-        X509CertRecord x509CertRecord = instanceCertManager.getX509CertRecord(provider, instanceId);
-        if (x509CertRecord == null) {
-
-            // if the record is not present check to see if we're in recovery
-            // mode where if the certificate was issued before the configured
-            // time we're going to assume it is valid and we'll just create
-            // an object based on the configured details
-
-            if (cert.getNotBefore().getTime() < x509CertRefreshResetTime) {
-                x509CertRecord = insertX509CertRecord(ctx, principalName, provider, instanceId,
-                        cert.getSerialNumber().toString(), false);
-            }
-
-            if (x509CertRecord == null) {
-                throw forbiddenError("Unable to find certificate record", caller, domain);
-            }
-        }
-        
-        if (!principalName.equals(x509CertRecord.getService())) {
-            throw requestError("service name mismatch - csr: " + principalName +
-                    " cert db: " + x509CertRecord.getService(), caller, domain);
-        }
         
         InstanceIdentity identity;
         if (x509Csr != null) {
             identity = processProviderX509RefreshRequest(ctx, principal, domain, service, provider,
-                    providerService, instanceId, info, x509CertRecord, cert, caller);
+                    providerService, instanceId, info, cert, caller);
         } else {
             identity = processProviderSSHRefreshRequest(ctx, principal, domain, service, provider,
-                    instanceId, sshCsr, x509CertRecord, cert, caller);
+                    instanceId, sshCsr, caller);
         }
         
         metric.stopTiming(timerMetric);
@@ -2054,8 +2031,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     InstanceIdentity processProviderX509RefreshRequest(ResourceContext ctx, final Principal principal,
             final String domain, final String service, final String provider,
             final Principal providerService, final String instanceId,
-            InstanceRefreshInformation info, X509CertRecord x509CertRecord,
-            X509Certificate cert, final String caller) {
+            InstanceRefreshInformation info, X509Certificate cert, final String caller) {
 
         // parse and validate our CSR
         
@@ -2089,7 +2065,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
         
         InstanceConfirmation instance = generateInstanceConfirmObject(ctx, provider,
-                domain, service, info.getAttestationData(), certReq);
+                domain, service, info.getAttestationData(), instanceId, certReq);
         
         // make sure to close our provider when its no longer needed
 
@@ -2101,7 +2077,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             // for backward compatibility initially we'll only look for
             // specifically 403 response and treat responses like 404
             // as success. Later, we'll change the behavior to only
-            // accept 200 as the excepted response
+            // accept 200 as the expected response
             
             if (ex.getCode() == com.yahoo.athenz.instance.provider.ResourceException.FORBIDDEN) {
                 throw forbiddenError("unable to verify attestation data: " + ex.getMessage(), caller, domain);
@@ -2116,17 +2092,23 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // null (indicating both client and server). Additionally, we're
         // going to see if the provider wants to impose an expiry time
         // though the certificate signer might decide to ignore that
-        // request and override it with its own value.
+        // request and override it with its own value. Other optional
+        // attributes we get back from the provider include whether or
+        // not the certs can be refreshed or ssh certs can be requested
         
         String certUsage = null;
         String certSubjectOU = null;
         int certExpiryTime = 0;
+        boolean sshCertAllowed = false;
+        boolean certRefreshCheck = true;
+
         Map<String, String> instanceAttrs = instance.getAttributes();
         if (instanceAttrs != null) {
             certUsage = instanceAttrs.remove(ZTSConsts.ZTS_CERT_USAGE);
-            final String expiryTime = instanceAttrs.remove(ZTSConsts.ZTS_CERT_EXPIRY_TIME);
-            certExpiryTime = ZTSUtils.parseInt(expiryTime);
+            certExpiryTime = ZTSUtils.parseInt(instanceAttrs.remove(ZTSConsts.ZTS_CERT_EXPIRY_TIME), 0);
+            certRefreshCheck = ZTSUtils.parseBoolean(instanceAttrs.remove(ZTSConsts.ZTS_CERT_REFRESH), true);
             certSubjectOU = instanceAttrs.remove(ZTSConsts.ZTS_CERT_SUBJECT_OU);
+            sshCertAllowed = ZTSUtils.parseBoolean(instanceAttrs.remove(ZTSConsts.ZTS_CERT_SSH), false);
         }
 
         // validate the CSR subject ou field. We're doing this check here
@@ -2139,37 +2121,28 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // validate that the tenant domain/service matches to the values
         // in the cert record when it was initially issued
-        
+
         final String principalName = principal.getFullName();
-        
-        // now we need to make sure the serial number for the certificate
-        // matches to what we had issued previously. If we have a mismatch
-        // then we're going to revoke this instance as it has been possibly
-        // compromised
-        
-        String serialNumber = cert.getSerialNumber().toString();
-        if (x509CertRecord.getCurrentSerial().equals(serialNumber)) {
-            
-            // update the record to mark current as previous
-            // and we'll update the current set with our existing
-            // details
-            
-            x509CertRecord.setPrevIP(x509CertRecord.getCurrentIP());
-            x509CertRecord.setPrevTime(x509CertRecord.getCurrentTime());
-            x509CertRecord.setPrevSerial(x509CertRecord.getCurrentSerial());
 
-        } else if (!x509CertRecord.getPrevSerial().equals(serialNumber)) {
+        // if the provider allows the certs to be refreshed then we need
+        // to extract our instance certificate record to make sure it
+        // hasn't been revoked already
 
-            revokeCertificateRefresh(principalName, serialNumber, x509CertRecord);
-            throw forbiddenError("Certificate revoked", caller, domain);
+        X509CertRecord x509CertRecord = null;
+        if (certRefreshCheck) {
+            x509CertRecord = getValidatedX509CertRecord(ctx, provider, instanceId,
+                principalName, cert, caller, domain);
         }
-        
+
+        if (x509CertRecord != null && x509CertRecord.getClientCert()) {
+            certUsage = ZTSConsts.ZTS_CERT_USAGE_CLIENT;
+        }
+
         // generate identity with the certificate
 
         Object timerX509CertMetric = metric.startTiming("certsignx509_timing", null);
         InstanceIdentity identity = instanceCertManager.generateIdentity(info.getCsr(), principalName,
-                x509CertRecord.getClientCert() ? ZTSConsts.ZTS_CERT_USAGE_CLIENT : certUsage,
-                certExpiryTime);
+                certUsage, certExpiryTime);
         metric.stopTiming(timerX509CertMetric);
 
         if (identity == null) {
@@ -2179,9 +2152,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // if we're asked then we should also generate a ssh
         // certificate for the instance as well
 
-        Object timerSSHCertMetric = metric.startTiming("certsignssh_timing", null);
-        instanceCertManager.generateSSHIdentity(principal, identity, info.getSsh(), ZTSConsts.ZTS_SSH_HOST);
-        metric.stopTiming(timerSSHCertMetric);
+        if (sshCertAllowed) {
+            Object timerSSHCertMetric = metric.startTiming("certsignssh_timing", null);
+            instanceCertManager.generateSSHIdentity(principal, identity, info.getSsh(), ZTSConsts.ZTS_SSH_HOST);
+            metric.stopTiming(timerSSHCertMetric);
+        }
 
         // set the other required attributes in the identity object
 
@@ -2192,15 +2167,19 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // need to update our cert record with new certificate details
         
         X509Certificate newCert = Crypto.loadX509Certificate(identity.getX509Certificate());
-        x509CertRecord.setCurrentSerial(newCert.getSerialNumber().toString());
-        x509CertRecord.setCurrentIP(ServletRequestUtil.getRemoteAddress(ctx.request()));
-        x509CertRecord.setCurrentTime(new Date());
-        
-        // we must be able to update our record db otherwise we will
-        // not be able to validate the refresh request next time
-        
-        if (!instanceCertManager.updateX509CertRecord(x509CertRecord)) {
-            throw serverError("unable to update cert db", caller, domain);
+        final String certSerialNumber = newCert.getSerialNumber().toString();
+
+        if (x509CertRecord != null) {
+            x509CertRecord.setCurrentSerial(certSerialNumber);
+            x509CertRecord.setCurrentIP(ServletRequestUtil.getRemoteAddress(ctx.request()));
+            x509CertRecord.setCurrentTime(new Date());
+
+            // we must be able to update our record db otherwise we will
+            // not be able to validate the refresh request next time
+
+            if (!instanceCertManager.updateX509CertRecord(x509CertRecord)) {
+                throw serverError("unable to update cert db", caller, domain);
+            }
         }
         
         // if we're asked to return an NToken in addition to ZTS Certificate
@@ -2224,7 +2203,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 " Domain: " + domain +
                 " Service: " + service +
                 " InstanceId: " + instanceId +
-                " Serial: " + x509CertRecord.getCurrentSerial() +
+                " Serial: " + certSerialNumber +
                 " Type: x509";
         msgBldr.whatDetails(auditLogDetails);
         auditLogger.log(msgBldr);
@@ -2234,23 +2213,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
     InstanceIdentity processProviderSSHRefreshRequest(ResourceContext ctx, final Principal principal,
             final String domain, final String service, final String provider,
-            final String instanceId, final String sshCsr, X509CertRecord x509CertRecord,
-            X509Certificate cert, final String caller) {
+            final String instanceId, final String sshCsr, final String caller) {
         
         final String principalName = principal.getFullName();
-        
-        // now we need to make sure the serial number for the certificate
-        // matches to what we had issued previously. If we have a mismatch
-        // then we're going to revoke this instance as it has been possibly
-        // compromised
-        
-        String serialNumber = cert.getSerialNumber().toString();
-        if (!x509CertRecord.getCurrentSerial().equals(serialNumber) &&
-                !x509CertRecord.getPrevSerial().equals(serialNumber)) {
-
-            revokeCertificateRefresh(principalName, serialNumber, x509CertRecord);
-            throw forbiddenError("Certificate revoked", caller, domain);
-        }
         
         // generate identity with the ssh certificate
         
@@ -2275,12 +2240,66 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 " Domain: " + domain +
                 " Service: " + service +
                 " InstanceId: " + instanceId +
-                " Serial: " + serialNumber +
                 " Type: ssh";
         msgBldr.whatDetails(auditLogDetails);
         auditLogger.log(msgBldr);
         
         return identity;
+    }
+
+    X509CertRecord getValidatedX509CertRecord(ResourceContext ctx, final String provider,
+            final String instanceId, final String principalName, X509Certificate cert,
+            final String caller, final String domain) {
+
+        // extract our instance certificate record to make sure it
+        // hasn't been revoked already
+
+        X509CertRecord x509CertRecord = instanceCertManager.getX509CertRecord(provider, instanceId);
+        if (x509CertRecord == null) {
+
+            // if the record is not present check to see if we're in recovery
+            // mode where if the certificate was issued before the configured
+            // time we're going to assume it is valid and we'll just create
+            // an object based on the configured details
+
+            if (cert.getNotBefore().getTime() < x509CertRefreshResetTime) {
+                x509CertRecord = insertX509CertRecord(ctx, principalName, provider, instanceId,
+                        cert.getSerialNumber().toString(), false);
+            }
+
+            if (x509CertRecord == null) {
+                throw forbiddenError("Unable to find certificate record", caller, domain);
+            }
+        }
+
+        if (!principalName.equals(x509CertRecord.getService())) {
+            throw requestError("service name mismatch - csr: " + principalName +
+                    " cert db: " + x509CertRecord.getService(), caller, domain);
+        }
+
+        // now we need to make sure the serial number for the certificate
+        // matches to what we had issued previously. If we have a mismatch
+        // then we're going to revoke this instance as it has been possibly
+        // compromised
+
+        String serialNumber = cert.getSerialNumber().toString();
+        if (x509CertRecord.getCurrentSerial().equals(serialNumber)) {
+
+            // update the record to mark current as previous
+            // and we'll update the current set with our existing
+            // details
+
+            x509CertRecord.setPrevIP(x509CertRecord.getCurrentIP());
+            x509CertRecord.setPrevTime(x509CertRecord.getCurrentTime());
+            x509CertRecord.setPrevSerial(x509CertRecord.getCurrentSerial());
+
+        } else if (!x509CertRecord.getPrevSerial().equals(serialNumber)) {
+
+            revokeCertificateRefresh(principalName, serialNumber, x509CertRecord);
+            throw forbiddenError("Certificate revoked", caller, domain);
+        }
+
+        return x509CertRecord;
     }
 
     void revokeCertificateRefresh(final String principalName, final String serialNumber,
