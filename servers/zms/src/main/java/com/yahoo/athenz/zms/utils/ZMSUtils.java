@@ -251,12 +251,13 @@ public class ZMSUtils {
         if (ctx != null) {
             Principal princ = ((RsrcCtxWrapper) ctx).principal();
             if (princ != null) {
+                String fullName = princ.getFullName();
                 String unsignedCreds = princ.getUnsignedCredentials();
                 if (unsignedCreds == null) {
                     StringBuilder sb = new StringBuilder();
                     sb.append("who-name=").append(princ.getName());
                     sb.append(",who-domain=").append(princ.getDomain());
-                    sb.append(",who-fullname=").append(princ.getFullName());
+                    sb.append(",who-fullname=").append(fullName);
                     List<String> roles = princ.getRoles();
                     if (roles != null && roles.size() > 0) {
                         sb.append(",who-roles=").append(roles.toString());
@@ -264,6 +265,7 @@ public class ZMSUtils {
                     unsignedCreds = sb.toString();
                 }
                 msgBldr.who(unsignedCreds);
+                msgBldr.whoFullName(fullName);
             }
 
             // get the client IP

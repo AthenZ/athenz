@@ -47,6 +47,7 @@ public class DefaultAuditLogMsgBuilder implements AuditLogMsgBuilder {
     public static final String PARSE_WHAT_API  = "WHAT-api";
     public static final String PARSE_WHAT_DOM  = "WHAT-domain";
     public static final String PARSE_WHAT_ENT  = "WHAT-entity";
+    public static final String PARSE_WHO_FULL_NAME  = "WHO-fullname";
 
     // This key will contain a Struct value
     public static final String PARSE_WHAT_DETAILS = "WHAT-details";
@@ -84,6 +85,7 @@ public class DefaultAuditLogMsgBuilder implements AuditLogMsgBuilder {
     protected String whatDomain  = null; // This is the Athenz domain being changed, ex: "xobni"
     protected String whatEntity  = null; // This is the entity in the Athenz domain being changed.
     protected String whatDetails = null; // This will contain specifics of the entity(whatEntity) that was changed.
+    protected String whoFullName = null; // Full name of the calling client/user requesting the change. Ex: "roger"
 
     // Version of the log message produced. In case newer versions of the message creation
     // are implemented later.
@@ -319,14 +321,18 @@ public class DefaultAuditLogMsgBuilder implements AuditLogMsgBuilder {
     public String build() {
         return versionTag() 
                 + PARSE_UUID + "=(" + uuId() + ");" 
-                + PARSE_WHEN + "=(" + when() + ");" 
-                + PARSE_WHO + "=(" + who() + ");" 
-                + PARSE_WHY + "=(" + why() +
-                ");" + PARSE_WHERE + "=(" + where() +
-                ");" + PARSE_CLIENT_IP + "=(" + clientIp() +
-                ");" + PARSE_WHAT_METH + "=(" + whatMethod() + ");" + PARSE_WHAT_API + "=(" +
-                whatApi() + ");" + PARSE_WHAT_DOM + "=(" + whatDomain() + ");" + PARSE_WHAT_ENT + "=(" +
-                whatEntity() + ");" + PARSE_WHAT_DETAILS + "=(" + whatDetails() + ");";
+                + PARSE_WHEN + "=(" + when() + ");"
+                + PARSE_WHO + "=(" + who() + ");"
+                + PARSE_WHY + "=(" + why() + ");"
+                + PARSE_WHERE + "=(" + where() + ");"
+                + PARSE_CLIENT_IP + "=(" + clientIp() + ");"
+                + PARSE_WHAT_METH + "=(" + whatMethod() + ");"
+                + PARSE_WHAT_API + "=(" + whatApi() + ");"
+                + PARSE_WHAT_DOM + "=(" + whatDomain() + ");"
+                + PARSE_WHAT_ENT + "=(" + whatEntity() + ");"
+                + PARSE_WHAT_DETAILS + "=(" + whatDetails() + ");"
+                + PARSE_WHO_FULL_NAME + "=(" + whoFullName() + ");"
+                ;
     }
 
     @Override
@@ -341,6 +347,20 @@ public class DefaultAuditLogMsgBuilder implements AuditLogMsgBuilder {
             return UUIDV1.generate().toString();
         }
         return this.uuid;
+    }
+
+    @Override
+    public AuditLogMsgBuilder whoFullName(String whoVal) {
+        this.whoFullName = whoVal;
+        return this;
+    }
+
+    @Override
+    public String whoFullName() {
+        if (this.whoFullName == null) {
+            return NULL_STR;
+        }
+        return this.whoFullName;
     }
 
 }
