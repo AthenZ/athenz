@@ -33,6 +33,15 @@ public interface AuditLogMsgBuilder {
     String versionTag();
     
     /**
+     * Full name of who made the authorization change
+     * @param whoVal should be just the full name of the Principal
+     * @return this
+     */
+    AuditLogMsgBuilder whoFullName(String whoVal);
+
+    String whoFullName();
+    
+    /**
      * who made the authorization change
      * @param whoVal typically contains a token (user, role)
      *        The calling client/user requesting the change.

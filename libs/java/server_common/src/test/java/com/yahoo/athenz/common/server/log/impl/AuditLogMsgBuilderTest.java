@@ -123,5 +123,6 @@ public class AuditLogMsgBuilderTest {
         String msg = msgBldr.build();
         Assert.assertTrue(msg.contains("WHAT-api=(testBuild)"), "Test string=" + msg);
         Assert.assertTrue(msg.contains("UUID="), "Test string=" + msg);
+        Assert.assertTrue(msg.contains("WHO-fullname=(null)"), "Test string=" + msg);
     }
 }
