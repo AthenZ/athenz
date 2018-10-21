@@ -350,6 +350,8 @@ func init() {
 	tDomainModified.Comment("Tuple of domain-name and modification time-stamps. This object is returned when the caller has requested list of domains modified since a specific timestamp.")
 	tDomainModified.Field("name", "DomainName", false, nil, "name of the domain")
 	tDomainModified.Field("modified", "Int64", false, nil, "last modified timestamp of the domain")
+	tDomainModified.Field("account", "String", true, nil, "associated cloud (i.e. aws) account id")
+	tDomainModified.Field("ypmId", "Int32", true, nil, "associated product id")
 	sb.AddType(tDomainModified.Build())
 
 	tDomainModifiedList := rdl.NewStructTypeBuilder("Struct", "DomainModifiedList")
@@ -1204,6 +1206,7 @@ func init() {
 	mGetSignedDomains.Comment("Retrieve the list of modified domains since the specified timestamp. The server will return the list of all modified domains and the latest modification timestamp as the value of the ETag header. The client will need to use this value during its next call to request the changes since the previous request. When metaonly set to true, dont add roles, policies or services, dont sign")
 	mGetSignedDomains.Input("domain", "DomainName", false, "domain", "", true, nil, "filter the domain list only to the specified name")
 	mGetSignedDomains.Input("metaOnly", "String", false, "metaonly", "", true, nil, "valid values are \"true\" or \"false\"")
+	mGetSignedDomains.Input("metaAttr", "SimpleName", false, "metaattr", "", true, nil, "domain meta attribute to filter/return, valid values \"account\", \"ypmId\", or \"all\"")
 	mGetSignedDomains.Input("matchingTag", "String", false, "", "If-None-Match", false, nil, "Retrieved from the previous request, this timestamp specifies to the server to return any domains modified since this time")
 	mGetSignedDomains.Output("tag", "String", "ETag", false, "The current latest modification timestamp is returned in this header")
 	mGetSignedDomains.Auth("", "", true, "")

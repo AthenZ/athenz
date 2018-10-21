@@ -340,4 +340,12 @@ public class ZMSUtils {
         } catch (InterruptedException ignored) {
         }
     }
+
+    public static boolean parseBoolean(final String value, boolean defaultValue) {
+        boolean boolVal = defaultValue;
+        if (value != null && !value.isEmpty()) {
+            boolVal = Boolean.parseBoolean(value.trim());
+        }
+        return boolVal;
+    }
 }

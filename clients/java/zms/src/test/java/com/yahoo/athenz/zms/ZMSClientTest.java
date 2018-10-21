@@ -1543,7 +1543,7 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         Map<String, List<String>> respHdrs = new HashMap<>();
         SignedDomains signedDomain1 = Mockito.mock(SignedDomains.class);
-        Mockito.when(c.getSignedDomains("dom1", "meta1", "tag1", respHdrs)).thenReturn(signedDomain1).thenThrow(new ZMSClientException(400,"Audit reference required"));
+        Mockito.when(c.getSignedDomains("dom1", "meta1", null, "tag1", respHdrs)).thenReturn(signedDomain1).thenThrow(new ZMSClientException(400,"Audit reference required"));
         client.getSignedDomains("dom1", "meta1", "tag1", respHdrs);
         try {
             client.getSignedDomains("dom1", "meta1", "tag1", respHdrs);

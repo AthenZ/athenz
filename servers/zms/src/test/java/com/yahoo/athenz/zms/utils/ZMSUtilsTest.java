@@ -250,4 +250,15 @@ public class ZMSUtilsTest {
         assertEquals(list.size(), 1);
         assertEquals(list.get(0).getMemberName(), "member1");
     }
+
+    @Test
+    public void testParseBoolean() {
+        assertEquals(true, ZMSUtils.parseBoolean(null, true));
+        assertEquals(false, ZMSUtils.parseBoolean(null, false));
+        assertEquals(true, ZMSUtils.parseBoolean("", true));
+        assertEquals(false, ZMSUtils.parseBoolean("", false));
+        assertEquals(true, ZMSUtils.parseBoolean("true", false));
+        assertEquals(false, ZMSUtils.parseBoolean("false", true));
+        assertEquals(false, ZMSUtils.parseBoolean("unknown", false));
+    }
 }
