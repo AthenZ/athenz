@@ -48,6 +48,7 @@ import static org.testng.Assert.fail;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.Response;
 
 import com.yahoo.athenz.auth.Authority;
@@ -5317,7 +5318,7 @@ public class ZMSImplTest {
                 "Test Domain2", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
 
-        meta = createDomainMetaObject("Tenant Domain2", null, true, false, "12346", 0);
+        meta = createDomainMetaObject("Tenant Domain2", null, false, false, "12346", null);
         zms.putDomainMeta(mockDomRsrcCtx, "signeddom2", auditRef, meta);
         
         DomainList domList = zms.getDomainList(mockDomRsrcCtx, null, null, null, null,
@@ -5333,9 +5334,8 @@ public class ZMSImplTest {
                 "10.11.12.13", "GET", null);
         ResourceContext rsrcCtx = createResourceContext(sysPrincipal);
 
-        Response response = zms.getSignedDomains(rsrcCtx, null, null, null);
-        Object obj = response.getEntity();
-        SignedDomains sdoms = (SignedDomains) obj;
+        Response response = zms.getSignedDomains(rsrcCtx, null, null, null, null);
+        SignedDomains sdoms = (SignedDomains) response.getEntity();
 
         assertNotNull(sdoms);
         List<SignedDomain> list = sdoms.getDomains();
@@ -5360,13 +5360,12 @@ public class ZMSImplTest {
         }
         assertTrue(dom1Found);
         assertTrue(dom2Found);
-        
+
         zms.privateKeyId = "1";
         zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKeyK1));
 
-        response = zms.getSignedDomains(rsrcCtx, null, null, null);
-        obj = response.getEntity();
-        sdoms = (SignedDomains) obj;
+        response = zms.getSignedDomains(rsrcCtx, null, null, "all", null);
+        sdoms = (SignedDomains) response.getEntity();
 
         assertNotNull(sdoms);
         list = sdoms.getDomains();
@@ -5389,9 +5388,8 @@ public class ZMSImplTest {
         zms.privateKeyId = "2";
         zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKeyK2));
 
-        response = zms.getSignedDomains(rsrcCtx, null, null, null);
-        obj = response.getEntity();
-        sdoms = (SignedDomains) obj;
+        response = zms.getSignedDomains(rsrcCtx, null, null, null, null);
+        sdoms = (SignedDomains) response.getEntity();
         assertNotNull(sdoms);
 
         list = sdoms.getDomains();
@@ -5407,9 +5405,8 @@ public class ZMSImplTest {
 
         // test metaonly=true
         //
-        response = zms.getSignedDomains(rsrcCtx, null, "tRuE", null);
-        obj = response.getEntity();
-        sdoms = (SignedDomains) obj;
+        response = zms.getSignedDomains(rsrcCtx, null, "tRuE", null, null);
+        sdoms = (SignedDomains) response.getEntity();
         assertNotNull(sdoms);
 
         list = sdoms.getDomains();
@@ -5432,9 +5429,8 @@ public class ZMSImplTest {
 
         // test metaonly=garbage
         //
-        response = zms.getSignedDomains(rsrcCtx, null, "garbage", null);
-        obj = response.getEntity();
-        sdoms = (SignedDomains) obj;
+        response = zms.getSignedDomains(rsrcCtx, null, "garbage", null, null);
+        sdoms = (SignedDomains) response.getEntity();
         assertNotNull(sdoms);
 
         list = sdoms.getDomains();
@@ -5454,9 +5450,8 @@ public class ZMSImplTest {
 
         // test metaonly=false
         //
-        response = zms.getSignedDomains(rsrcCtx, null, "fAlSe", null);
-        obj = response.getEntity();
-        sdoms = (SignedDomains) obj;
+        response = zms.getSignedDomains(rsrcCtx, null, "fAlSe", null, null);
+        sdoms = (SignedDomains) response.getEntity();
         assertNotNull(sdoms);
 
         list = sdoms.getDomains();
@@ -5477,9 +5472,8 @@ public class ZMSImplTest {
         // test bad tag format
         //
         String eTag  = "I am not good";
-        response = zms.getSignedDomains(rsrcCtx, null, null, eTag);
-        obj = response.getEntity();
-        sdoms = (SignedDomains) obj;
+        response = zms.getSignedDomains(rsrcCtx, null, null, null, eTag);
+        sdoms = (SignedDomains) response.getEntity();
         String eTag2 = response.getHeaderString("ETag");
         assertNotNull(eTag2);
         assertNotEquals(eTag, eTag2);
@@ -5492,9 +5486,8 @@ public class ZMSImplTest {
         Policy policy1 = createPolicyObject("SignedDom1", "Policy1");
         zms.putPolicy(mockDomRsrcCtx, "SignedDom1", "Policy1", auditRef, policy1);
 
-        response = zms.getSignedDomains(rsrcCtx, null, null, eTag2);
-        obj = response.getEntity();
-        sdoms = (SignedDomains) obj;
+        response = zms.getSignedDomains(rsrcCtx, null, null, null, eTag2);
+        sdoms = (SignedDomains) response.getEntity();
         eTag = response.getHeaderString("ETag");
         assertNotNull(eTag);
         assertNotEquals(eTag, eTag2);
@@ -5502,7 +5495,7 @@ public class ZMSImplTest {
         assertNotNull(list);
         assertEquals(1, list.size());
 
-        response = zms.getSignedDomains(rsrcCtx, null, null, eTag);
+        response = zms.getSignedDomains(rsrcCtx, null, null, null, eTag);
         assertEquals(304, response.getStatus());
         eTag2 = response.getHeaderString("ETag");
 
@@ -5528,9 +5521,8 @@ public class ZMSImplTest {
         zms.privateKeyId = "0";
         zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
 
-        Response response = zms.getSignedDomains(mockDomRsrcCtx, "signeddom1filtered", null, null);
-        Object obj = response.getEntity();
-        SignedDomains sdoms = (SignedDomains) obj;
+        Response response = zms.getSignedDomains(mockDomRsrcCtx, "signeddom1filtered", null, null, null);
+        SignedDomains sdoms = (SignedDomains) response.getEntity();
 
         assertNotNull(sdoms);
         List<SignedDomain> list = sdoms.getDomains();
@@ -5547,9 +5539,8 @@ public class ZMSImplTest {
         // use domain=signeddom1filtered and metaonly=true
         //
 
-        response = zms.getSignedDomains(mockDomRsrcCtx, "signeddom1filtered", "true", null);
-        obj = response.getEntity();
-        sdoms = (SignedDomains) obj;
+        response = zms.getSignedDomains(mockDomRsrcCtx, "signeddom1filtered", "true", null, null);
+        sdoms = (SignedDomains) response.getEntity();
 
         assertNotNull(sdoms);
         list = sdoms.getDomains();
@@ -5572,9 +5563,8 @@ public class ZMSImplTest {
         // we're going to pass the domain name with caps and
         // make sure we still get back our domain
 
-        response = zms.getSignedDomains(mockDomRsrcCtx, "SignedDom1Filtered", null, null);
-        obj = response.getEntity();
-        sdoms = (SignedDomains) obj;
+        response = zms.getSignedDomains(mockDomRsrcCtx, "SignedDom1Filtered", null, null, null);
+        sdoms = (SignedDomains) response.getEntity();
 
         assertNotNull(sdoms);
         list = sdoms.getDomains();
@@ -5600,7 +5590,7 @@ public class ZMSImplTest {
                 "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        Response response = zms.getSignedDomains(mockDomRsrcCtx, null, null, null);
+        Response response = zms.getSignedDomains(mockDomRsrcCtx, null, null, null, null);
         assertEquals(response.getStatus(), ResourceException.BAD_REQUEST);
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "SignedDom1", auditRef);
@@ -14394,6 +14384,236 @@ public class ZMSImplTest {
         assertTrue(zmsImpl2.isValidServiceName("r"));
         System.clearProperty(ZMSConsts.ZMS_PROP_RESERVED_SERVICE_NAMES);
         System.clearProperty(ZMSConsts.ZMS_PROP_SERVICE_NAME_MIN_LENGTH);
+    }
+
+    @Test
+    public void testRetrieveSignedDomainMeta() {
+
+        ZMSImpl zmsImpl = zmsInit();
+        SignedDomain domain = zmsImpl.retrieveSignedDomainMeta("dom1", 1001, "1234", 123, null);
+        assertNull(domain.getDomain().getAccount());
+        assertNull(domain.getDomain().getYpmId());
+
+        domain = zmsImpl.retrieveSignedDomainMeta("dom1", 1001, "1234", 123, "unknown");
+        assertNull(domain.getDomain().getAccount());
+        assertNull(domain.getDomain().getYpmId());
+
+        domain = zmsImpl.retrieveSignedDomainMeta("dom1", 1001, "1234", 123, "account");
+        assertEquals(domain.getDomain().getAccount(), "1234");
+        assertNull(domain.getDomain().getYpmId());
+
+        domain = zmsImpl.retrieveSignedDomainMeta("dom1", 1001, "1234", 123, "ypmid");
+        assertNull(domain.getDomain().getAccount());
+        assertEquals(domain.getDomain().getYpmId().intValue(), 123);
+
+        domain = zmsImpl.retrieveSignedDomainMeta("dom1", 1001, "1234", 123, "all");
+        assertEquals(domain.getDomain().getAccount(), "1234");
+        assertEquals(domain.getDomain().getYpmId().intValue(), 123);
+
+        domain = zmsImpl.retrieveSignedDomainMeta("dom1", 1001, null, 123, "account");
+        assertNull(domain);
+
+        domain = zmsImpl.retrieveSignedDomainMeta("dom1", 1001, "1234", null, "ypmid");
+        assertNull(domain);
+    }
+
+    @Test
+    public void testRetrieveSignedDomainDataNotFound() {
+
+        ZMSImpl zmsImpl = zmsInit();
+        SignedDomain domain = zmsImpl.retrieveSignedDomainData("unknown", 1234);
+        assertNull(domain);
+
+        // now signed domains with unknown domain name
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        Principal sysPrincipal = principalAuthority.authenticate("v=U1;d=sys;n=zts;s=signature",
+                "10.11.12.13", "GET", null);
+        ResourceContext rsrcCtx = createResourceContext(sysPrincipal);
+
+        Response response = zms.getSignedDomains(rsrcCtx, "unknown", null, null, null);
+        SignedDomains sdoms = (SignedDomains) response.getEntity();
+
+        assertNotNull(sdoms);
+        List<SignedDomain> list = sdoms.getDomains();
+        assertEquals(0, list.size());
+    }
+
+    @Test
+    public void testGetSignedDomainsWithMetaAttrs() {
+
+        // create multiple top level domains
+        TopLevelDomain dom1 = createTopLevelDomainObject("SignedDom1",
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        // set the meta attributes for domain
+
+        DomainMeta meta = createDomainMetaObject("Tenant Domain1", null, true, false, "12345", 0);
+        zms.putDomainMeta(mockDomRsrcCtx, "signeddom1", auditRef, meta);
+
+        TopLevelDomain dom2 = createTopLevelDomainObject("SignedDom2",
+                "Test Domain2", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
+
+        meta = createDomainMetaObject("Tenant Domain2", null, true, false, "12346", null);
+        zms.putDomainMeta(mockDomRsrcCtx, "signeddom2", auditRef, meta);
+
+        DomainList domList = zms.getDomainList(mockDomRsrcCtx, null, null, null, null,
+                null, null, null, null, null);
+        List<String> domNames = domList.getNames();
+        int numDoms = domNames.size();
+
+        zms.privateKeyId = "0";
+        zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        Principal sysPrincipal = principalAuthority.authenticate("v=U1;d=sys;n=zts;s=signature",
+                "10.11.12.13", "GET", null);
+        ResourceContext rsrcCtx = createResourceContext(sysPrincipal);
+
+        // we're going to ask for entries with ypm id so we'll only
+        // get one of the domains back - dom1 but not dom2
+
+        Response response = zms.getSignedDomains(rsrcCtx, null, "true", "ypmid", null);
+        SignedDomains sdoms = (SignedDomains) response.getEntity();
+        assertNotNull(sdoms);
+        List<SignedDomain> list = sdoms.getDomains();
+        assertNotNull(list);
+
+        boolean dom1Found = false;
+        boolean dom2Found = false;
+        for (SignedDomain sDomain : list) {
+            DomainData domainData = sDomain.getDomain();
+            if (domainData.getName().equals("signeddom1")) {
+                dom1Found = true;
+            } else if (domainData.getName().equals("signeddom2")) {
+                dom2Found = true;
+            }
+        }
+        assertTrue(dom1Found);
+        assertFalse(dom2Found);
+
+        // now asking for specific domains with ypm id
+        // first signeddom1 with should return
+
+        response = zms.getSignedDomains(rsrcCtx, "signeddom1", "true", "ypmid", null);
+        sdoms = (SignedDomains) response.getEntity();
+
+        assertNotNull(sdoms);
+        list = sdoms.getDomains();
+        assertNotNull(list);
+        assertEquals(list.size(), 1);
+
+        DomainData domainData = list.get(0).getDomain();
+        assertEquals(domainData.getName(), "signeddom1");
+
+        // then signeddom2 with should not return
+
+        response = zms.getSignedDomains(rsrcCtx, "signeddom2", "true", "ypmid", null);
+        sdoms = (SignedDomains) response.getEntity();
+
+        assertNotNull(sdoms);
+        list = sdoms.getDomains();
+        assertNotNull(list);
+        assertEquals(list.size(), 0);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "SignedDom1", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "SignedDom2", auditRef);
+    }
+
+    @Test
+    public void testGetSignedDomainsNotModified() {
+
+        TopLevelDomain dom1 = createTopLevelDomainObject("SignedDom1",
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        // set the meta attributes for domain
+
+        DomainMeta meta = createDomainMetaObject("Tenant Domain1", null, true, false, "12345", 0);
+        zms.putDomainMeta(mockDomRsrcCtx, "signeddom1", auditRef, meta);
+
+        zms.privateKeyId = "0";
+        zms.privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        Principal sysPrincipal = principalAuthority.authenticate("v=U1;d=sys;n=zts;s=signature",
+                "10.11.12.13", "GET", null);
+        ResourceContext rsrcCtx = createResourceContext(sysPrincipal);
+
+        EntityTag eTag = new EntityTag(Timestamp.fromCurrentTime().toString());
+        Response response = zms.getSignedDomains(rsrcCtx, "signeddom1", null, null, eTag.toString());
+        assertEquals(response.getStatus(), 304);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "SignedDom1", auditRef);
+    }
+
+    @Test
+    public void testGetSignedDomainsException503() {
+
+        ZMSImpl zmsImpl = zmsInit();
+
+        DBService dbService = Mockito.mock(DBService.class);
+        Mockito.when(dbService.getDomain("signeddom1", true)).thenThrow(new ResourceException(503));
+        zmsImpl.dbService = dbService;
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        Principal sysPrincipal = principalAuthority.authenticate("v=U1;d=sys;n=zts;s=signature",
+                "10.11.12.13", "GET", null);
+        ResourceContext rsrcCtx = createResourceContext(sysPrincipal);
+
+        try {
+            zmsImpl.getSignedDomains(rsrcCtx, "signeddom1", null, null, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 503);
+        }
+    }
+
+    @Test
+    public void testGetSignedDomainsException404() {
+
+        ZMSImpl zmsImpl = zmsInit();
+
+        DBService dbService = Mockito.mock(DBService.class);
+        Mockito.when(dbService.getDomain("signeddom1", true)).thenThrow(new ResourceException(404));
+        zmsImpl.dbService = dbService;
+
+        // now signed domains with unknown domain name
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        Principal sysPrincipal = principalAuthority.authenticate("v=U1;d=sys;n=zts;s=signature",
+                "10.11.12.13", "GET", null);
+        ResourceContext rsrcCtx = createResourceContext(sysPrincipal);
+
+        Response response = zmsImpl.getSignedDomains(rsrcCtx, "signeddom1", null, null, null);
+        SignedDomains sdoms = (SignedDomains) response.getEntity();
+
+        assertNotNull(sdoms);
+        List<SignedDomain> list = sdoms.getDomains();
+        assertEquals(0, list.size());
+    }
+
+    @Test
+    public void testReceiveSignedDomainDataDisabled() {
+
+        // create multiple top level domains
+        TopLevelDomain dom1 = createTopLevelDomainObject("SignedDom1Disabled",
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        // load the domain into cache and set the enabled to false
+
+        zms.getAthenzDomain("signeddom1disabled", true);
+        zms.dbService.getAthenzDomainFromCache("signeddom1disabled", false).getDomain().setEnabled(false);
+
+        // get the domain which would return from cache
+
+        SignedDomain signedDomain = zms.retrieveSignedDomainData("signeddom1disabled", 0);
+        assertFalse(signedDomain.getDomain().getEnabled());
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "signeddom1disabled", auditRef);
     }
 }
 

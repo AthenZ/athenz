@@ -3153,6 +3153,16 @@ type DomainModified struct {
 	// last modified timestamp of the domain
 	//
 	Modified int64 `json:"modified"`
+
+	//
+	// associated cloud (i.e. aws) account id
+	//
+	Account string `json:"account,omitempty" rdl:"optional"`
+
+	//
+	// associated product id
+	//
+	YpmId *int32 `json:"ypmId,omitempty" rdl:"optional"`
 }
 
 //

@@ -4676,6 +4676,10 @@ public class JDBCConnectionTest {
             .thenReturn(true).thenReturn(true).thenReturn(false);
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_NAME))
             .thenReturn("domain1").thenReturn("domain2").thenReturn("domain3"); // 3 domains
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ACCOUNT))
+                .thenReturn("acct1").thenReturn("acct2").thenReturn("acct3"); // 3 domains
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_PRODUCT_ID))
+                .thenReturn("1234").thenReturn("1235").thenReturn("1236"); // 3 domains
         Mockito.doReturn(new java.sql.Timestamp(1454358916)).when(mockResultSet).getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED);
 
         DomainModifiedList list = jdbcConn.listModifiedDomains(1454358900);

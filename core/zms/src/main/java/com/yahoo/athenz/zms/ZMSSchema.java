@@ -297,7 +297,9 @@ public class ZMSSchema {
         sb.structType("DomainModified")
             .comment("Tuple of domain-name and modification time-stamps. This object is returned when the caller has requested list of domains modified since a specific timestamp.")
             .field("name", "DomainName", false, "name of the domain")
-            .field("modified", "Int64", false, "last modified timestamp of the domain");
+            .field("modified", "Int64", false, "last modified timestamp of the domain")
+            .field("account", "String", true, "associated cloud (i.e. aws) account id")
+            .field("ypmId", "Int32", true, "associated product id");
 
         sb.structType("DomainModifiedList")
             .comment("A list of {domain, modified-timestamp} tuples.")
@@ -1399,6 +1401,7 @@ public class ZMSSchema {
             .comment("Retrieve the list of modified domains since the specified timestamp. The server will return the list of all modified domains and the latest modification timestamp as the value of the ETag header. The client will need to use this value during its next call to request the changes since the previous request. When metaonly set to true, dont add roles, policies or services, dont sign")
             .queryParam("domain", "domain", "DomainName", null, "filter the domain list only to the specified name")
             .queryParam("metaonly", "metaOnly", "String", null, "valid values are \"true\" or \"false\"")
+            .queryParam("metaattr", "metaAttr", "SimpleName", null, "domain meta attribute to filter/return, valid values \"account\", \"ypmId\", or \"all\"")
             .headerParam("If-None-Match", "matchingTag", "String", null, "Retrieved from the previous request, this timestamp specifies to the server to return any domains modified since this time")
             .output("ETag", "tag", "String", "The current latest modification timestamp is returned in this header")
             .auth("", "", true)

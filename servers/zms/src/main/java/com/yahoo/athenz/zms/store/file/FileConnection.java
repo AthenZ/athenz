@@ -357,20 +357,19 @@ public class FileConnection implements ObjectStoreConnection {
 
         // Now set the dest for the returned domain names
 
-        String dirName = rootDir.getAbsolutePath() + File.separator;
         for (String dname : domainList) {
-            long ts = 0;
-            try {
-                File dfile = new File(dirName + dname);
-                ts = dfile.lastModified();
-                if (ts <= modifiedSince) {
-                    continue;
-                }
-            } catch (Exception exc) {
-                LOG.error("FileStructStore: FAILED to get timestamp for file "
-                        + dname + ", error: " + exc.getMessage());
+            DomainStruct domainStruct = getDomainStruct(dname);
+            if (domainStruct == null) {
+                return null;
             }
-            DomainModified dm = new DomainModified().setName(dname).setModified(ts);
+            long ts = domainStruct.getModified().millis();
+            if (ts <= modifiedSince) {
+                continue;
+            }
+            DomainModified dm = new DomainModified().setName(dname)
+                    .setModified(ts)
+                    .setYpmId(domainStruct.getMeta().getYpmId())
+                    .setAccount(domainStruct.getMeta().getAccount());
             nameMods.add(dm);
         }
 

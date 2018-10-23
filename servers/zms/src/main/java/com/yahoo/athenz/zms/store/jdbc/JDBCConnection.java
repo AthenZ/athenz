@@ -81,9 +81,9 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_UPDATE_DOMAIN_MOD_TIMESTAMP = "UPDATE domain "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE name=?;";
     private static final String SQL_GET_DOMAIN_MOD_TIMESTAMP = "SELECT modified FROM domain WHERE name=?;";
-    private static final String SQL_LIST_DOMAIN = "SELECT name, modified FROM domain;";
+    private static final String SQL_LIST_DOMAIN = "SELECT name, modified, account, ypm_id FROM domain;";
     private static final String SQL_LIST_DOMAIN_PREFIX = "SELECT name, modified FROM domain WHERE name>=? AND name<?;";
-    private static final String SQL_LIST_DOMAIN_MODIFIED = "SELECT name, modified FROM domain WHERE modified>?;";
+    private static final String SQL_LIST_DOMAIN_MODIFIED = "SELECT name, modified, account, ypm_id FROM domain WHERE modified>?;";
     private static final String SQL_LIST_DOMAIN_PREFIX_MODIFIED = "SELECT name, modified FROM domain "
             + "WHERE name>=? AND name<? AND modified>?;";
     private static final String SQL_LIST_DOMAIN_ROLE_NAME_MEMBER = "SELECT domain.name FROM domain "
@@ -2728,7 +2728,9 @@ public class JDBCConnection implements ObjectStoreConnection {
                 while (rs.next()) {
                     DomainModified dm = new DomainModified()
                             .setName(rs.getString(ZMSConsts.DB_COLUMN_NAME))
-                            .setModified(rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime());
+                            .setModified(rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime())
+                            .setAccount(saveValue(rs.getString(ZMSConsts.DB_COLUMN_ACCOUNT)))
+                            .setYpmId(rs.getInt(ZMSConsts.DB_COLUMN_PRODUCT_ID));
                     nameMods.add(dm);
                 }
             }

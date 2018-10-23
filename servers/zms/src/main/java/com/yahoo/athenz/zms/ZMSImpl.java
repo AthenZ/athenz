@@ -99,7 +99,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private static final String TEMPLATE_FIELD = "template";
     private static final String META_FIELD = "meta";
     private static final String DOMAIN_FIELD = "domain";
-    
+
+    private static final String META_ATTR_ACCOUNT = "account";
+    private static final String META_ATTR_YPM_ID = "ypmid";
+    private static final String META_ATTR_ALL = "all";
+
     private static final String SYS_AUTH = "sys.auth";
     private static final String USER_TOKEN_DEFAULT_NAME = "_self_";
     
@@ -4036,26 +4040,83 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         return timestamp;
     }
-    
-    SignedDomain retrieveSignedDomain(String domainName, long modifiedTime,
-            Boolean setMetaDataOnly) {
-        
-        // generate our signed domain object
-        
+
+    SignedDomain createSignedDomain(String domainName, long modifiedTime) {
         SignedDomain signedDomain = new SignedDomain();
         DomainData domainData = new DomainData().setName(domainName);
         signedDomain.setDomain(domainData);
         domainData.setModified(Timestamp.fromMillis(modifiedTime));
-        
+        return signedDomain;
+    }
+
+    SignedDomain retrieveSignedDomainMeta(final String domainName, long modifiedTime,
+         final String account, Integer ypmId, final String metaAttr) {
+
+        SignedDomain signedDomain = createSignedDomain(domainName, modifiedTime);
+        if (metaAttr != null) {
+            switch (metaAttr) {
+                case META_ATTR_ACCOUNT:
+                    if (account == null) {
+                        return null;
+                    }
+                    signedDomain.getDomain().setAccount(account);
+                    break;
+                case META_ATTR_YPM_ID:
+                    if (ypmId == null) {
+                        return null;
+                    }
+                    signedDomain.getDomain().setYpmId(ypmId);
+                    break;
+                case META_ATTR_ALL:
+                    signedDomain.getDomain().setAccount(account);
+                    signedDomain.getDomain().setYpmId(ypmId);
+                    break;
+            }
+        }
+        return signedDomain;
+    }
+
+    SignedDomain retrieveSignedDomain(Domain domain, final String metaAttr, boolean setMetaDataOnly) {
+
         // check if we're asked to only return the meta data which
         // we already have - name and last modified time, so we can
         // add the domain to our return list and continue with the
         // next domain
-        
+
+        SignedDomain signedDomain;
         if (setMetaDataOnly) {
-            return signedDomain;
+            signedDomain = retrieveSignedDomainMeta(domain.getName(), domain.getModified().millis(),
+                    domain.getAccount(), domain.getYpmId(), metaAttr);
+        } else {
+            signedDomain = retrieveSignedDomainData(domain.getName(), domain.getModified().millis());
         }
-        
+        return signedDomain;
+    }
+
+    SignedDomain retrieveSignedDomain(DomainModified domainModified, final String metaAttr,
+            boolean setMetaDataOnly) {
+
+        // check if we're asked to only return the meta data which
+        // we already have - name and last modified time, so we can
+        // add the domain to our return list and continue with the
+        // next domain
+
+        SignedDomain signedDomain;
+        if (setMetaDataOnly) {
+            signedDomain = retrieveSignedDomainMeta(domainModified.getName(), domainModified.getModified(),
+                    domainModified.getAccount(), domainModified.getYpmId(), metaAttr);
+        } else {
+            signedDomain = retrieveSignedDomainData(domainModified.getName(), domainModified.getModified());
+        }
+        return signedDomain;
+    }
+
+    SignedDomain retrieveSignedDomainData(final String domainName, long modifiedTime) {
+
+        // generate our signed domain object
+
+        SignedDomain signedDomain = createSignedDomain(domainName, modifiedTime);
+
         // get the policies, roles, and service identities to create the
         // DomainData
 
@@ -4075,9 +4136,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // set domain attributes - for enabled flag only set it
         // if it set to false
-        
-        if (athenzDomain.getDomain().getEnabled() == Boolean.FALSE) {
-            domainData.setEnabled(athenzDomain.getDomain().getEnabled());
+
+        DomainData domainData = signedDomain.getDomain();
+
+        Boolean enabled = athenzDomain.getDomain().getEnabled();
+        if (enabled == Boolean.FALSE) {
+            domainData.setEnabled(enabled);
         }
         domainData.setAccount(athenzDomain.getDomain().getAccount());
         domainData.setYpmId(athenzDomain.getDomain().getYpmId());
@@ -4096,18 +4160,18 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainData.setPolicies(signedPolicies);
 
         String signature = Crypto.sign(
-                SignUtils.asCanonicalString(signedDomain.getDomain().getPolicies().getContents()), privateKey);
-        signedDomain.getDomain().getPolicies().setSignature(signature).setKeyId(privateKeyId);
+                SignUtils.asCanonicalString(signedPolicies.getContents()), privateKey);
+        signedPolicies.setSignature(signature).setKeyId(privateKeyId);
 
         // then sign the data and set the data and signature in a SignedDomain
         
-        signature = Crypto.sign(SignUtils.asCanonicalString(signedDomain.getDomain()), privateKey);
+        signature = Crypto.sign(SignUtils.asCanonicalString(domainData), privateKey);
         signedDomain.setSignature(signature).setKeyId(privateKeyId);
         return signedDomain;
     }
     
     public Response getSignedDomains(ResourceContext ctx, String domainName, String metaOnly,
-            String matchingTag) {
+            String metaAttr, String matchingTag) {
 
         final String caller = "getsigneddomains";
         metric.increment(ZMSConsts.HTTP_GET);
@@ -4124,18 +4188,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         if (domainName != null) {
             domainName = domainName.toLowerCase();
+            validate(domainName, TYPE_DOMAIN_NAME, caller);
+        }
+        if (metaAttr != null) {
+            metaAttr = metaAttr.toLowerCase();
+            validate(metaAttr, TYPE_SIMPLE_NAME, caller);
         }
         
-        boolean setMetaDataOnly = false;
-        if (metaOnly != null) {
-
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("getSignedDomains: metaonly: {}", metaOnly);
-            }
-            
-            setMetaDataOnly = Boolean.parseBoolean(metaOnly.trim());
-        }
-        
+        boolean setMetaDataOnly = ZMSUtils.parseBoolean(metaOnly, false);
         long timestamp = getModTimestamp(matchingTag);
         
         // if this is one of our system principals then we're going to
@@ -4164,10 +4224,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     throw ex;
                 }
             }
-            
+
             if (domain != null) {
                 youngestDomMod = domain.getModified().millis();
-                
+
                 if (timestamp != 0 && youngestDomMod <= timestamp) {
                     EntityTag eTag = new EntityTag(domain.getModified().toString());
                     return Response.status(ResourceException.NOT_MODIFIED)
@@ -4176,8 +4236,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 
                 // generate our signed domain object
                 
-                SignedDomain signedDomain = retrieveSignedDomain(domainName, youngestDomMod,
-                        setMetaDataOnly);
+                SignedDomain signedDomain = retrieveSignedDomain(domain, metaAttr, setMetaDataOnly);
                 
                 if (signedDomain != null) {
                     sdList.add(signedDomain);
@@ -4225,8 +4284,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 
                 // generate our signed domain object
                 
-                SignedDomain signedDomain = retrieveSignedDomain(dmod.getName(), dmod.getModified(),
-                        setMetaDataOnly);
+                SignedDomain signedDomain = retrieveSignedDomain(dmod, metaAttr, setMetaDataOnly);
                 
                 // it's possible that our domain was deleted by another
                 // thread while we were processing this request so

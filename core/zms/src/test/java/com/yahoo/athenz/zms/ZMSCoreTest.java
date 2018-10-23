@@ -889,26 +889,179 @@ public class ZMSCoreTest {
     }
 
     @Test
+    public void testRoleMember() {
+
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+
+        RoleMember rm = new RoleMember().setMemberName("user.test1").setExpiration(Timestamp.fromMillis(123456789123L));
+        assertTrue(rm.equals(rm));
+
+        Result result = validator.validate(rm, "RoleMember");
+        assertTrue(result.valid);
+
+        assertEquals(rm.getMemberName(), "user.test1");
+        assertEquals(rm.getExpiration().millis(), 123456789123L);
+
+        RoleMember rm2 = new RoleMember().setMemberName("user.test2");
+        assertFalse(rm2.equals(rm));
+
+        rm2.setMemberName("user.test1");
+        assertFalse(rm2.equals(rm));
+
+        rm2.setExpiration(Timestamp.fromMillis(123456789124L));
+        assertFalse(rm2.equals(rm));
+        rm2.setExpiration(Timestamp.fromMillis(123456789123L));
+        assertTrue(rm2.equals(rm));
+
+        assertFalse(rm2.equals(null));
+    }
+
+    @Test
+    public void testStatus() {
+
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+
+        Status st = new Status().setCode(101).setMessage("ok");
+        assertTrue(st.equals(st));
+
+        Result result = validator.validate(st, "Status");
+        assertTrue(result.valid);
+
+        assertEquals(st.getCode(), 101);
+        assertEquals(st.getMessage(), "ok");
+
+        Status st2 = new Status().setCode(1020);
+        assertFalse(st2.equals(st));
+
+        st2.setCode(101);
+        assertFalse(st2.equals(st));
+
+        st2.setMessage("failed");
+        assertFalse(st2.equals(st));
+        st2.setMessage("ok");
+        assertTrue(st2.equals(st));
+
+        assertFalse(st2.equals(null));
+    }
+
+    @Test
+    public void testTemplateParam() {
+
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+
+        TemplateParam tp = new TemplateParam().setName("name").setValue("service");
+        assertTrue(tp.equals(tp));
+
+        Result result = validator.validate(tp, "TemplateParam");
+        assertTrue(result.valid);
+
+        assertEquals(tp.getName(), "name");
+        assertEquals(tp.getValue(), "service");
+
+        TemplateParam tp2 = new TemplateParam().setName("name2");
+        assertFalse(tp2.equals(tp));
+
+        tp2.setName("name");
+        assertFalse(tp2.equals(tp));
+
+        tp2.setValue("value2");
+        assertFalse(tp2.equals(tp));
+        tp2.setValue("service");
+        assertTrue(tp2.equals(tp));
+
+        assertFalse(tp2.equals(null));
+    }
+
+    @Test
+    public void testTenancyResourceGroup() {
+
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+
+        TenancyResourceGroup tp = new TenancyResourceGroup().setDomain("dom1")
+                .setResourceGroup("rg1").setService("svc1");
+        assertTrue(tp.equals(tp));
+
+        assertEquals(tp.getDomain(), "dom1");
+        assertEquals(tp.getResourceGroup(), "rg1");
+        assertEquals(tp.getService(), "svc1");
+
+        TenancyResourceGroup tp2 = new TenancyResourceGroup().setDomain("dom2");
+        assertFalse(tp2.equals(tp));
+
+        tp2.setDomain("dom1");
+        assertFalse(tp2.equals(tp));
+
+        tp2.setService("svc2");
+        assertFalse(tp2.equals(tp));
+        tp2.setService("svc1");
+        assertFalse(tp2.equals(tp));
+
+        tp2.setResourceGroup("rg2");
+        assertFalse(tp2.equals(tp));
+        tp2.setResourceGroup("rg1");
+        assertTrue((tp2.equals(tp)));
+
+        assertFalse(tp2.equals(null));
+    }
+
+    @Test
+    public void testUserMeta() {
+
+        UserMeta um = new UserMeta().setEnabled(false);
+        assertTrue(um.equals(um));
+
+        assertEquals(um.getEnabled(), Boolean.FALSE);
+
+        UserMeta um2 = new UserMeta().init();
+        assertFalse(um2.equals(um));
+
+        um2.setEnabled(false);
+        assertEquals(um2, um);
+        assertFalse(um2.equals(null));
+    }
+
+    @Test
     public void testDomainModifiedListMethod() {
         Schema schema = ZMSSchema.instance();
         Validator validator = new Validator(schema);
 
         // DomainModified test
-        DomainModified dm = new DomainModified().setName("test.domain").setModified(123456789123L);
+        DomainModified dm = new DomainModified().setName("test.domain")
+                .setModified(123456789123L)
+                .setAccount("1234")
+                .setYpmId(1001);
+        assertTrue(dm.equals(dm));
 
         Result result = validator.validate(dm, "DomainModified");
         assertTrue(result.valid);
 
         assertEquals(dm.getName(), "test.domain");
         assertEquals(dm.getModified(), 123456789123L);
+        assertEquals(dm.getAccount(), "1234");
+        assertEquals(dm.getYpmId().intValue(), 1001);
 
         DomainModified dm2 = new DomainModified().setName("test.domain");
-        assertTrue(dm.equals(dm));
-        
+        assertFalse(dm2.equals(dm));
+
         dm2.setModified(123456789124L);
         assertFalse(dm2.equals(dm));
-        dm2.setName(null);
+        dm2.setModified(123456789123L);
         assertFalse(dm2.equals(dm));
+
+        dm2.setAccount("1235");
+        assertFalse(dm2.equals(dm));
+        dm2.setAccount("1234");
+        assertFalse(dm2.equals(dm));
+
+        dm2.setYpmId(1002);
+        assertFalse(dm2.equals(dm));
+        dm2.setYpmId(1001);
+        assertTrue(dm2.equals(dm));
+
         assertFalse(dm2.equals(null));
 
         // DomainModifiedList test
