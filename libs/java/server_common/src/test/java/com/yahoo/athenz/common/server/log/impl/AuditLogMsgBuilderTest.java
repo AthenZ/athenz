@@ -15,13 +15,14 @@
  */
 package com.yahoo.athenz.common.server.log.impl;
 
+import java.time.Instant;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
-import com.yahoo.athenz.common.server.log.impl.DefaultAuditLogMsgBuilder;
 
 /**
  * Test all API of AuditLogMsgBuilder.
@@ -38,7 +39,8 @@ public class AuditLogMsgBuilderTest {
         AuditLoggerFactory auditLoggerFactory = new DefaultAuditLoggerFactory();
         AuditLogger logger = auditLoggerFactory.create();
         AuditLogMsgBuilder msgBldr = logger.getMsgBuilder();
-        msgBldr.who(TOKEN_STR).when("now-timestamp").clientIp("12.12.12.12").whatApi(whatApi);
+        String dataStr = Instant.now().toString();
+        msgBldr.who(TOKEN_STR).when(dataStr).clientIp("12.12.12.12").whatApi(whatApi);
         return (DefaultAuditLogMsgBuilder)msgBldr;
     }
     
@@ -61,7 +63,7 @@ public class AuditLogMsgBuilderTest {
     @Test
     public void testWhenString() {
         DefaultAuditLogMsgBuilder msgBldr = starter("testWhenString");
-        String dataStr = "now?";
+        String dataStr = Instant.now().toString();
         msgBldr.when(dataStr);
         Assert.assertEquals(msgBldr.when(), dataStr, "when string=" + msgBldr.when());
     }
@@ -114,6 +116,18 @@ public class AuditLogMsgBuilderTest {
         Assert.assertEquals(msgBldr.whatEntity(), dataStr, "whatEntity string=" + msgBldr.whatEntity());
     }
     
+    @Test
+    public void testWhenEpoch() {
+        DefaultAuditLogMsgBuilder msgBldr = starter("testWhenString");
+        String dataStr = Instant.now().toString();
+        msgBldr.when(dataStr);
+        Instant instant = Instant.ofEpochMilli(Long.parseLong(msgBldr.whenEpoch()));
+        String expected = msgBldr.when();
+        String actual = instant.toString();
+        Assert.assertEquals(msgBldr.when(), dataStr, "when string=" + msgBldr.when());
+        Assert.assertEquals(actual, expected, "when string=" + msgBldr.when());
+    }
+    
     /**
      * Test method for {@link com.yahoo.athenz.common.server.log.impl.DefaultAuditLogMsgBuilder#build()}.
      */
@@ -124,5 +138,6 @@ public class AuditLogMsgBuilderTest {
         Assert.assertTrue(msg.contains("WHAT-api=(testBuild)"), "Test string=" + msg);
         Assert.assertTrue(msg.contains("UUID="), "Test string=" + msg);
         Assert.assertTrue(msg.contains("WHO-fullname=(null)"), "Test string=" + msg);
+        Assert.assertTrue(msg.contains("WHEN-epoch="), "Test string=" + msg);
     }
 }

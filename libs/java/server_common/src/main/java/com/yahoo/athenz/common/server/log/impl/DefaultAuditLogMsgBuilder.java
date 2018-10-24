@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.common.server.log.impl;
 
+import java.time.Instant;
+
 import com.fasterxml.uuid.EthernetAddress;
 import com.fasterxml.uuid.Generators;
 import com.fasterxml.uuid.impl.TimeBasedGenerator;
@@ -39,6 +41,7 @@ public class DefaultAuditLogMsgBuilder implements AuditLogMsgBuilder {
     public static final String PARSE_UUID = "UUID";
     public static final String PARSE_VERS = "VERS";
     public static final String PARSE_WHEN = "WHEN";
+    public static final String PARSE_WHEN_EPOCH = "WHEN-epoch";
     public static final String PARSE_WHO  = "WHO";
     public static final String PARSE_WHY  = "WHY";
     public static final String PARSE_WHERE = "WHERE";
@@ -79,6 +82,7 @@ public class DefaultAuditLogMsgBuilder implements AuditLogMsgBuilder {
     protected String why = null;         // The audit reference or SOX ticket number.
     protected String clientIp = null;    // The IP address of the calling client(who).
     protected String when     = null;    // date-time in UTC
+    protected String whenEpoch     = null;    // date-time epoch timestamp for types that do not support datetime
     protected String where    = null;    // The server hostname that received the requests
     protected String whatMethod  = null; // This is the REST method, ie. "PUT" or "POST", etc
     protected String whatApi     = null; // This is the server public method serving the request, ex: "putRole"
@@ -332,7 +336,16 @@ public class DefaultAuditLogMsgBuilder implements AuditLogMsgBuilder {
                 + PARSE_WHAT_ENT + "=(" + whatEntity() + ");"
                 + PARSE_WHAT_DETAILS + "=(" + whatDetails() + ");"
                 + PARSE_WHO_FULL_NAME + "=(" + whoFullName() + ");"
+                + PARSE_WHEN_EPOCH + "=(" + whenEpoch() + ");"
                 ;
+    }
+
+    public String whenEpoch() {
+        if (when == null) {
+            return NULL_STR;
+        }
+        //Example: 2018-10-23T19:15:28.395Z
+        return String.valueOf(Instant.parse(when).toEpochMilli());
     }
 
     @Override
