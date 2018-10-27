@@ -30,7 +30,7 @@ type signer struct {
 
 func main() {
 
-	var ztsURL, svcKeyFile, svcCertFile, domain, service string
+	var ztsURL, svcKeyFile, svcCertFile, dom, svc string
 	var caCertFile, roleCertFile, roleDomain, roleName, dnsDomain string
 	var subjC, subjO, subjOU, ip, uri string
 	var spiffe bool
@@ -39,8 +39,8 @@ func main() {
 	flag.StringVar(&caCertFile, "cacert", "", "CA certificate file")
 	flag.StringVar(&svcKeyFile, "svc-key-file", "", "service identity private key file (required)")
 	flag.StringVar(&svcCertFile, "svc-cert-file", "", "service identity certificate file (required)")
-	flag.StringVar(&domain, "domain", "", "domain of service (required)")
-	flag.StringVar(&service, "service", "", "name of service (required)")
+	flag.StringVar(&dom, "domain", "", "domain of service")
+	flag.StringVar(&svc, "service", "", "name of service")
 	flag.StringVar(&ztsURL, "zts", "", "url of the ZTS Service (required)")
 	flag.StringVar(&roleDomain, "role-domain", "", "requested role domain name (required)")
 	flag.StringVar(&roleName, "role-name", "", "requested role name in the role-domain (required)")
@@ -52,11 +52,17 @@ func main() {
 	flag.BoolVar(&spiffe, "spiffe", false, "include spiffe uri in csr")
 	flag.Parse()
 
-	if svcKeyFile == "" || svcCertFile == "" || domain == "" || service == "" ||
-		ztsURL == "" || dnsDomain == "" || roleDomain == "" || roleName == "" {
+	if svcKeyFile == "" || svcCertFile == "" || roleDomain == "" || roleName == "" ||
+		ztsURL == "" || dnsDomain == "" {
 		log.Fatalln("Error: missing required attributes. Run with -help for command line arguments")
 	}
 
+	// let's extract our domain/service values from our certificate
+
+	domain, service, err := extractServiceDetailsFromCert(svcCertFile)
+	if err != nil {
+		log.Fatalf("Unable to extract service details from certificate: %v\n", err)
+	}
 	hyphenDomain := strings.Replace(domain, ".", "-", -1)
 	host := fmt.Sprintf("%s.%s.%s", service, hyphenDomain, dnsDomain)
 	rfc822 := fmt.Sprintf("%s.%s@%s", domain, service, dnsDomain)
@@ -99,6 +105,21 @@ func main() {
 	}
 
 	getRoleCertificate(client, csr, roleDomain, roleName, roleCertFile)
+}
+
+func extractServiceDetailsFromCert(certFile string) (string, string, error) {
+	data, err := ioutil.ReadFile(certFile)
+	if err != nil {
+		return "", "", err
+	}
+	block, _ := pem.Decode(data)
+	cert, err := x509.ParseCertificate(block.Bytes)
+	cn := cert.Subject.CommonName
+	idx := strings.LastIndex(cn, ".")
+	if idx < 0 {
+		return "", "", fmt.Errorf("cannot determine domain/service from certificate: %s", cn)
+	}
+	return cn[:idx], cn[idx+1:], nil
 }
 
 func generateCSR(keySigner *signer, subj pkix.Name, host, rfc822, ip, uri string) (string, error) {
