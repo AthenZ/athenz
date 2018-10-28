@@ -7,7 +7,7 @@ role from ZTS Server. Once ZTS validates the service identity certificate,
 it will issue a new 30-day X509 Certificate for the role.
 
 ```shell
-$ zts-rolecert -domain <domain> -service <service> -svc-key-file <key-file> -svc-cert-file <cert-file> -zts <zts-server-url> -role-domain <domain> -role-name <name> -dns-domain <dns-domain> [-role-cert-file <output-cert-file>]
+$ zts-rolecert -svc-key-file <key-file> -svc-cert-file <cert-file> -zts <zts-server-url> -role-domain <domain> -role-name <name> -dns-domain <dns-domain> [-role-cert-file <output-cert-file>]
 ```
 
 ## License
