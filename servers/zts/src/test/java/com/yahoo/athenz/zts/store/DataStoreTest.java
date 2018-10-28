@@ -34,8 +34,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSTestUtils;
+import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -44,19 +46,12 @@ import org.testng.annotations.Test;
 import com.yahoo.athenz.auth.impl.FilePrivateKeyStore;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.utils.SignUtils;
-import com.yahoo.athenz.zms.DomainData;
-import com.yahoo.athenz.zms.Role;
-import com.yahoo.athenz.zms.RoleMember;
-import com.yahoo.athenz.zms.ServiceIdentity;
-import com.yahoo.athenz.zms.SignedDomain;
-import com.yahoo.athenz.zms.SignedDomains;
 import com.yahoo.athenz.zts.HostServices;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.cache.MemberRole;
 import com.yahoo.athenz.zts.store.DataStore.DataUpdater;
 import com.yahoo.athenz.zts.store.impl.MockZMSFileChangeLogStore;
-import com.yahoo.athenz.zts.store.impl.ZMSFileChangeLogStore;
 import com.yahoo.rdl.JSON;
 
 public class DataStoreTest {
@@ -157,8 +152,41 @@ public class DataStoreTest {
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
         assertNotNull(store);
+        assertEquals(store.delDomainRefreshTime, 3600);
+        assertEquals(store.updDomainRefreshTime, 60);
+
+        System.setProperty("athenz.zts.zms_domain_update_timeout", "60");
+        System.setProperty("athenz.zts.zms_domain_delete_timeout", "50");
+        store = new DataStore(clogStore, null);
+        assertNotNull(store);
+        assertEquals(store.delDomainRefreshTime, 60);
+        assertEquals(store.updDomainRefreshTime, 60);
     }
-    
+
+    @Test
+    public void testLoadZMSPublicKeysInvalidKeys() {
+
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+
+        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz_no_zms_publickeys.conf");
+        DataStore store = new DataStore(clogStore, null);
+        assertNotNull(store);
+        assertEquals(store.zmsPublicKeyCache.size(), 0);
+
+        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz_zms_invalid_publickeys.conf");
+        store = new DataStore(clogStore, null);
+        assertNotNull(store);
+        assertEquals(store.zmsPublicKeyCache.size(), 0);
+
+        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz_invalid.conf");
+        store = new DataStore(clogStore, null);
+        assertNotNull(store);
+        assertEquals(store.zmsPublicKeyCache.size(), 0);
+
+        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
+    }
+
     @Test
     public void testGetDomainListFromZMS() {
         
@@ -1657,6 +1685,11 @@ public class DataStoreTest {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather");
         assertTrue(store.validateSignedDomain(signedDomain));
+
+        // using default 0 value
+
+        signedDomain.setKeyId(null);
+        assertTrue(store.validateSignedDomain(signedDomain));
     }
     
     @Test
@@ -2297,6 +2330,16 @@ public class DataStoreTest {
         DataCache dataCache = new DataCache();
         dataCache.setDomainData(domainData);
         
+        store.processDomainPolicies(domainData, dataCache);
+        assertEquals(dataCache.getMemberCount(), 0);
+
+        SignedPolicies signedPolicies = new SignedPolicies();
+        domainData.setPolicies(signedPolicies);
+        store.processDomainPolicies(domainData, dataCache);
+        assertEquals(dataCache.getMemberCount(), 0);
+
+        DomainPolicies domainPolicies = new DomainPolicies();
+        signedPolicies.setContents(domainPolicies);
         store.processDomainPolicies(domainData, dataCache);
         assertEquals(dataCache.getMemberCount(), 0);
     }
@@ -3506,7 +3549,17 @@ public class DataStoreTest {
         assertTrue(accessibleRoles.contains("admin"));
         assertTrue(accessibleRoles.contains("writers"));
     }
-    
+
+    @Test
+    public void testDataUpdaterException() {
+
+        DataStore store = Mockito.mock(DataStore.class);
+        Mockito.when(store.processDomainUpdates()).thenThrow(new ResourceException(401, "exc"));
+
+        DataUpdater updater = store.new DataUpdater();
+        updater.run();
+    }
+
     @Test
     public void testRoleCheckValueRoleNull() {
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",

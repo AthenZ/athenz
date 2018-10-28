@@ -38,6 +38,8 @@ public class ZTSTest {
                 "com.yahoo.athenz.zts.store.impl.MockZMSFileChangeLogStoreFactory");
         System.setProperty(ZTSConsts.ZTS_PROP_CERTSIGN_BASE_URI, "https://localhost:443/certsign/v2");
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_FILE_STORE_PATH, "/tmp/zts_server_cert_store");
+        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
+        System.setProperty(ZTSConsts.ZTS_PROP_FILE_NAME, "src/test/resources/zts.properties");
 
         ZTSBinder binder = new ZTSBinder();
         binder.configure();

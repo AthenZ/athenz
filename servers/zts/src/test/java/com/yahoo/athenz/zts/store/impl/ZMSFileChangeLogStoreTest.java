@@ -32,6 +32,7 @@ import java.util.Set;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.ZTSTestUtils;
 import com.yahoo.athenz.zts.utils.FilesHelper;
 import org.mockito.Mockito;
@@ -67,6 +68,8 @@ public class ZMSFileChangeLogStoreTest {
     @BeforeMethod
     public void setup() {
         ZTSTestUtils.deleteDirectory(new File(FSTORE_PATH));
+        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
+        System.setProperty(ZTSConsts.ZTS_PROP_FILE_NAME, "src/test/resources/zts.properties");
     }
     
     @AfterMethod
