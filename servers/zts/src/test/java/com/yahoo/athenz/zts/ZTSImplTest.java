@@ -8071,6 +8071,22 @@ public class ZTSImplTest {
     }
 
     @Test
+    public void testGetAuditLogMsgBuilderBuild() {
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
+                "v=S1;d=athenz;n=production;s=signature", 0, null);
+        principal.setUnsignedCreds(null);
+
+        ResourceContext context = createResourceContext(principal);
+
+        AuditLogMsgBuilder msgBuilder = zts.getAuditLogMsgBuilder(context, "athenz", "test", "test");
+        String auditLog = msgBuilder.build();
+        assertEquals(msgBuilder.whoFullName(), "athenz.production");
+        assertTrue(auditLog.contains("UUID="), "Test string=" + auditLog);
+        assertTrue(auditLog.contains("WHEN-epoch="), "Test string=" + auditLog);
+    }
+
+    @Test
     public void testConfigurationSettings() {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",

@@ -575,8 +575,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         Principal princ = ((RsrcCtxWrapper) ctx).principal();
         if (princ != null) {
+            String fullName = princ.getFullName();
             final String unsignedCreds = princ.getUnsignedCredentials();
-            msgBldr.who(unsignedCreds == null ? princ.getFullName() : unsignedCreds);
+            msgBldr.who(unsignedCreds == null ? fullName : unsignedCreds);
+            msgBldr.whoFullName(fullName);
         }
 
         // get the client IP
