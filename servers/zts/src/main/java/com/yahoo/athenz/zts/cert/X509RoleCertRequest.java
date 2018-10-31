@@ -106,7 +106,7 @@ public class X509RoleCertRequest extends X509CertRequest {
 
         // validate spiffe uri if one is provided
 
-        return validateSpiffeURI(domainName, "role", roleName);
+        return validateSpiffeURI(domainName, "ra", roleName);
     }
 
     public boolean validateIPAddress(X509Certificate cert, final String ip) {

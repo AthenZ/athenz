@@ -575,7 +575,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         Principal princ = ((RsrcCtxWrapper) ctx).principal();
         if (princ != null) {
-            String fullName = princ.getFullName();
+            final String fullName = princ.getFullName();
             final String unsignedCreds = princ.getUnsignedCredentials();
             msgBldr.who(unsignedCreds == null ? fullName : unsignedCreds);
             msgBldr.whoFullName(fullName);
@@ -1917,6 +1917,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final List<String> certReqIps = certReq.getIpAddresses();
         if (certReqIps != null && !certReqIps.isEmpty()) {
             attributes.put(ZTSConsts.ZTS_INSTANCE_SAN_IP, String.join(",", certReqIps));
+        }
+
+        // we have verified that we already have a single spiffe uri if present
+
+        final List<String> certUris = certReq.getUris();
+        if (certUris != null && !certUris.isEmpty()) {
+            attributes.put(ZTSConsts.ZTS_INSTANCE_SAN_URI, certUris.get(0));
         }
         
         // if we have a cloud account setup for this domain, we're going

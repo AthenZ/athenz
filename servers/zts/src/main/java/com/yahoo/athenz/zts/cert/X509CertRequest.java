@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.zts.cert;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Set;
@@ -42,6 +44,7 @@ public class X509CertRequest {
     protected String cn = null;
     protected List<String> dnsNames;
     protected List<String> ipAddresses;
+    protected List<String> uris;
     
     public X509CertRequest(String csr) throws CryptoException {
         certReq = Crypto.getPKCS10CertRequest(csr);
@@ -51,6 +54,7 @@ public class X509CertRequest {
         
         dnsNames = Crypto.extractX509CSRDnsNames(certReq);
         ipAddresses = Crypto.extractX509CSRIPAddresses(certReq);
+        uris = Crypto.extractX509CSRURIs(certReq);
     }
     
     public PKCS10CertificationRequest getCertReq() {
@@ -304,25 +308,54 @@ public class X509CertRequest {
 
     boolean validateSpiffeURI(final String domain, final String name, final String value) {
 
+        // the expected default format is
+        // spiffe://<provider-cluster>/ns/<athenz-domain>/sa/<athenz-service>
+        // spiffe://<provider-cluster>/ns/<athenz-domain>/ra/<athenz-role>
+        // so we'll be validating that our request has:
+        // spiffe://<provider-cluster>/ns/<domain>/<name>/<value>
+
         // first extract the URI list from the request
 
-        List<String> uriList = Crypto.extractX509CSRURIs(certReq);
-        if (uriList == null || uriList.isEmpty()) {
+        if (uris == null || uris.isEmpty()) {
             return true;
         }
 
         // we must only have a single spiffe uri in the list
 
-        if (uriList.size() != 1) {
-            LOGGER.error("validateSPIFFEURI: invalid number {} of values in uri list",
-                    uriList.size());
+        if (uris.size() != 1) {
+            LOGGER.error("validateSpiffeURI: invalid number {} of values in uri list",
+                    uris.size());
             return false;
         }
 
-        // generate our spiffe value according to our data
+        final String spiffeUri = uris.get(0);
+        URI uri;
+        try {
+            uri = new URI(spiffeUri);
+        } catch (URISyntaxException ex) {
+            LOGGER.error("validateSpiffeURI: Unable to parse {}: {}", spiffeUri, ex.getMessage());
+            return false;
+        }
 
-        final String uri = "spiffe://" + domain + "/" + name + "/" + value;
-        return uriList.get(0).equalsIgnoreCase(uri);
+        if (uri.getScheme() == null || uri.getPath() == null) {
+            LOGGER.error("validateSpiffeURI: invalid uri {}", spiffeUri);
+            return false;
+        }
+
+        if (!uri.getScheme().equalsIgnoreCase("spiffe")) {
+            LOGGER.error("validateSpiffeURI: invalid uri scheme: {} in {}",
+                    uri.getScheme(), spiffeUri);
+            return false;
+        }
+
+        final String path = "/ns/" + domain + "/" + name + "/" + value;
+        if (!uri.getPath().equalsIgnoreCase(path)) {
+            LOGGER.error("validateSpiffeURI: invalid uri path: {} vs {}",
+                    path, uri.getPath());
+            return false;
+        }
+
+        return true;
     }
 
     public void setNormCsrPublicKey(String normCsrPublicKey) {
@@ -344,7 +377,11 @@ public class X509CertRequest {
     public List<String> getDnsNames() {
         return dnsNames;
     }
-    
+
+    public List<String> getUris() {
+        return uris;
+    }
+
     public List<String> getIpAddresses() {
         return ipAddresses;
     }

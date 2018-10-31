@@ -142,6 +142,7 @@ public final class ZTSConsts {
     
     public static final String ZTS_INSTANCE_SAN_DNS       = "sanDNS";
     public static final String ZTS_INSTANCE_SAN_IP        = "sanIP";
+    public static final String ZTS_INSTANCE_SAN_URI       = "sanURI";
     public static final String ZTS_INSTANCE_CLIENT_IP     = "clientIP";
     public static final String ZTS_INSTANCE_CLOUD_ACCOUNT = "cloudAccount";
     public static final String ZTS_INSTANCE_ID            = "instanceId";
