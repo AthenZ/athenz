@@ -541,7 +541,7 @@ public class X509CertRequestTest {
         String csr = new String(Files.readAllBytes(path));
 
         X509CertRequest certReq = new X509CertRequest(csr);
-        assertTrue(certReq.validateSpiffeURI("domain", "service", "api"));
+        assertTrue(certReq.validateSpiffeURI("domain", "sa", "api"));
     }
 
     @Test
@@ -551,7 +551,7 @@ public class X509CertRequestTest {
         String csr = new String(Files.readAllBytes(path));
 
         X509CertRequest certReq = new X509CertRequest(csr);
-        assertFalse(certReq.validateSpiffeURI("domain", "service", "api"));
+        assertFalse(certReq.validateSpiffeURI("domain", "sa", "api"));
     }
 
     @Test
@@ -561,9 +561,9 @@ public class X509CertRequestTest {
         String csr = new String(Files.readAllBytes(path));
 
         X509CertRequest certReq = new X509CertRequest(csr);
-        assertTrue(certReq.validateSpiffeURI("coretech", "role", "api"));
-        assertFalse(certReq.validateSpiffeURI("coretech", "role", "backend"));
-        assertFalse(certReq.validateSpiffeURI("coretech", "service", "api"));
+        assertTrue(certReq.validateSpiffeURI("coretech", "ra", "api"));
+        assertFalse(certReq.validateSpiffeURI("coretech", "ra", "backend"));
+        assertFalse(certReq.validateSpiffeURI("coretech", "sa", "api"));
     }
 
     @Test
@@ -608,6 +608,69 @@ public class X509CertRequestTest {
     public void testValidateSpiffeServiceCertMismatch() throws IOException {
 
         Path path = Paths.get("src/test/resources/spiffe_service_mismatch.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr);
+        assertNotNull(certReq);
+
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        Principal provider = Mockito.mock(Principal.class);
+        Mockito.when(authorizer.access("launch", "sys.auth:dns.ostk.athenz.cloud", provider, null))
+                .thenReturn(true);
+
+        StringBuilder errorMsg = new StringBuilder(256);
+        HashSet<String> validOrgs = new HashSet<>();
+        validOrgs.add("Athenz");
+        assertFalse(certReq.validate(provider, "athenz", "production",
+                "1001", validOrgs, null, errorMsg));
+    }
+
+    @Test
+    public void testValidateSpiffeInvalidScheme() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_invalid_scheme.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr);
+        assertNotNull(certReq);
+
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        Principal provider = Mockito.mock(Principal.class);
+        Mockito.when(authorizer.access("launch", "sys.auth:dns.ostk.athenz.cloud", provider, null))
+                .thenReturn(true);
+
+        StringBuilder errorMsg = new StringBuilder(256);
+        HashSet<String> validOrgs = new HashSet<>();
+        validOrgs.add("Athenz");
+        assertFalse(certReq.validate(provider, "athenz", "production",
+                "1001", validOrgs, null, errorMsg));
+    }
+
+    @Test
+    public void testValidateSpiffeMissingScheme() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_invalid_uri.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr);
+        assertNotNull(certReq);
+
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        Principal provider = Mockito.mock(Principal.class);
+        Mockito.when(authorizer.access("launch", "sys.auth:dns.ostk.athenz.cloud", provider, null))
+                .thenReturn(true);
+
+        StringBuilder errorMsg = new StringBuilder(256);
+        HashSet<String> validOrgs = new HashSet<>();
+        validOrgs.add("Athenz");
+        assertFalse(certReq.validate(provider, "athenz", "production",
+                "1001", validOrgs, null, errorMsg));
+    }
+
+    @Test
+    public void testValidateSpiffeInvalidURIException() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_invalid_exc.csr");
         String csr = new String(Files.readAllBytes(path));
 
         X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr);

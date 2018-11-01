@@ -79,7 +79,7 @@ public class X509ServiceCertRequest extends X509CertRequest {
 
         // validate spiffe uri if one is provided
 
-        if (!validateSpiffeURI(domain, "service", service)) {
+        if (!validateSpiffeURI(domain, "sa", service)) {
             errorMsg.append("Unable to validate Service SPIFFE URI");
             return false;
         }
