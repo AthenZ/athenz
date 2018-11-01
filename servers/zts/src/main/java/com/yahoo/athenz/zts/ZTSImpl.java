@@ -1879,19 +1879,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             identity.setServiceToken(svcToken.getSignedToken());
         }
         
-        // create our audit log entry
-        
-        AuditLogMsgBuilder msgBldr = getAuditLogMsgBuilder(ctx, domain, caller, HTTP_POST);
-        msgBldr.whatEntity(certReqInstanceId);
-
-        final String auditLogDetails = "Provider: " + provider +
-                " Domain: " + domain +
-                " Service: " + service +
-                " InstanceId: " + certReqInstanceId +
-                " Serial: " + certSerial;
-        msgBldr.whatDetails(auditLogDetails);
-        auditLogger.log(msgBldr);
-        
         final String location = "/zts/v1/instance/" + provider + "/" + domain
                 + "/" + service + "/" + certReqInstanceId;
         metric.stopTiming(timerMetric);
@@ -2203,20 +2190,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             identity.setServiceToken(svcToken.getSignedToken());
         }
         
-        // create our audit log entry
-        
-        AuditLogMsgBuilder msgBldr = getAuditLogMsgBuilder(ctx, domain, caller, HTTP_POST);
-        msgBldr.whatEntity(instanceId);
-
-        final String auditLogDetails = "Provider: " + provider +
-                " Domain: " + domain +
-                " Service: " + service +
-                " InstanceId: " + instanceId +
-                " Serial: " + certSerialNumber +
-                " Type: x509";
-        msgBldr.whatDetails(auditLogDetails);
-        auditLogger.log(msgBldr);
-        
         return identity;
     }
 
@@ -2239,20 +2212,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         identity.setProvider(provider);
         identity.setInstanceId(instanceId);
-        
-        // create our audit log entry
-        
-        AuditLogMsgBuilder msgBldr = getAuditLogMsgBuilder(ctx, domain, caller, HTTP_POST);
-        msgBldr.whatEntity(instanceId);
 
-        final String auditLogDetails = "Provider: " + provider +
-                " Domain: " + domain +
-                " Service: " + service +
-                " InstanceId: " + instanceId +
-                " Type: ssh";
-        msgBldr.whatDetails(auditLogDetails);
-        auditLogger.log(msgBldr);
-        
         return identity;
     }
 
@@ -2353,8 +2313,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         provider = provider.toLowerCase();
         domain = domain.toLowerCase();
-        service = service.toLowerCase();
-        
+
         Object timerMetric = metric.startTiming(callerTiming, domain);
         metric.increment(HTTP_REQUEST, domain);
         metric.increment(caller, domain);
@@ -2362,19 +2321,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // remove the cert record for this instance
 
         instanceCertManager.deleteX509CertRecord(provider, instanceId);
-        
-        // create our audit log entry
-        
-        AuditLogMsgBuilder msgBldr = getAuditLogMsgBuilder(ctx, domain, caller, HTTP_POST);
-        msgBldr.whatEntity(instanceId);
-
-        final String auditLogDetails = "Provider: " + provider +
-                " Domain: " + domain +
-                " Service: " + service +
-                " InstanceId: " + instanceId;
-        msgBldr.whatDetails(auditLogDetails);
-        auditLogger.log(msgBldr);
-        
         metric.stopTiming(timerMetric);
     }
      
@@ -2528,21 +2474,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw serverError("Unable to generate identity", caller, domain);
         }
         identity.setCaCertBundle(instanceCertManager.getX509CertificateSigner());
-
-        // create our audit log entry
-        
-        AuditLogMsgBuilder msgBldr = getAuditLogMsgBuilder(ctx, domain, caller, HTTP_POST);
-        msgBldr.whatEntity(fullServiceName);
-        
-        X509Certificate newCert = Crypto.loadX509Certificate(identity.getCertificate());
-        final String auditLogDetails = "Provider: " + ZTSConsts.ZTS_SERVICE +
-                " Domain: " + domain +
-                " Service: " + service +
-                " Serial: " + newCert.getSerialNumber().toString() +
-                " Principal: " + principalName +
-                " Type: x509";
-        msgBldr.whatDetails(auditLogDetails);
-        auditLogger.log(msgBldr);
         
         metric.stopTiming(timerMetric);
         return identity;
