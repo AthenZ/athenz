@@ -39,6 +39,7 @@ public class PrincipalAuthority implements Authority, AuthorityKeyStore {
     private static final String ATHENZ_PROP_USER_DOMAIN = "athenz.user_domain";
     
     public static final String HTTP_HEADER = "Athenz-Principal-Auth";
+    public static final String ATHENZ_AUTH_CHALLENGE = "AthenzPrincipalToken realm=\"athenz\"";
     public static final String ATHENZ_PROP_PRINCIPAL_HEADER = "athenz.auth.principal.header";
     
     private static final Logger LOG = LoggerFactory.getLogger(PrincipalAuthority.class);
@@ -81,6 +82,11 @@ public class PrincipalAuthority implements Authority, AuthorityKeyStore {
     @Override
     public String getHeader() {
         return headerName;
+    }
+
+    @Override
+    public String getAuthenticateChallenge() {
+        return ATHENZ_AUTH_CHALLENGE;
     }
 
     @Override
@@ -167,11 +173,6 @@ public class PrincipalAuthority implements Authority, AuthorityKeyStore {
         
         SimplePrincipal princ = (SimplePrincipal) SimplePrincipal.create(tokenDomain,
                 tokenName, signedToken, serviceToken.getTimestamp(), this);
-        if (princ == null) {
-            errMsg.append("PrincipalAuthority:authenticate: Unable to create principal");
-            LOG.error(errMsg.toString());
-            return null;
-        }
         princ.setUnsignedCreds(serviceToken.getUnsignedToken());
         princ.setAuthorizedService(authorizedServiceName);
         princ.setOriginalRequestor(serviceToken.getOriginalRequestor());

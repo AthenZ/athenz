@@ -110,4 +110,10 @@ public class CertificateAuthorityTest {
         principal = authority.authenticate(certs, errMsg);
         assertNull(principal);
     }
+
+    @Test
+    public void testGetAuthenticateChallenge() {
+        CertificateAuthority authority = new CertificateAuthority();
+        assertEquals(authority.getAuthenticateChallenge(), "AthenzX509Certificate realm=\"athenz\"");
+    }
 }

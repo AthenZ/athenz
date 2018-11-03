@@ -25,7 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 
 public class RsrcCtxWrapper implements ResourceContext {
 
-    private static final String ZTS_REQUEST_PRINCIPAL = "com.yahoo.athenz.auth.principal";
+    private static final String ZTS_REQUEST_PRINCIPAL   = "com.yahoo.athenz.auth.principal";
 
     com.yahoo.athenz.common.server.rest.ResourceContext ctx;
     boolean optionalAuth;
@@ -95,6 +95,13 @@ public class RsrcCtxWrapper implements ResourceContext {
 
         metric.increment("authfailure");
 
+        // first check to see if this is an auth failure and if
+        // that's the case include the WWW-Authenticate challenge
+
+       ctx.sendAuthenticateChallenges(restExc);
+
+        // now throw a ZTS exception based on the rest exception
+
         String msg = null;
         Object data = restExc.getData();
         if (data instanceof String) {
@@ -106,5 +113,4 @@ public class RsrcCtxWrapper implements ResourceContext {
         throw new com.yahoo.athenz.zts.ResourceException(restExc.getCode(),
                 new ResourceError().code(restExc.getCode()).message(msg));
     }
-    
 }

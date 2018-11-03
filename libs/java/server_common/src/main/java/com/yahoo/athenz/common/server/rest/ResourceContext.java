@@ -22,6 +22,7 @@ import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
 
 public class ResourceContext  {
+
     private final HttpServletRequest request;
     private final HttpServletResponse response;
     private final Http.AuthorityList authorities;
@@ -91,5 +92,29 @@ public class ResourceContext  {
     public void authorize(String action, String resource, String trustedDomain) {
         principal = authenticate();
         Http.authorize(authorizer, principal, action, resource, trustedDomain);
+    }
+
+
+    /**
+     * If requested include the WWW-Authenticate challenge response
+     * header for this request. This is only done if the exception
+     * was thrown for invalid credentials.
+     * @param exc ResourceException that was thrown when calling authenticate
+     */
+    public void sendAuthenticateChallenges(ResourceException exc) {
+
+        // first check to see if this is an auth failure and if
+        // that's the case include the WWW-Authenticate challenge
+
+        if (exc.getCode() != ResourceException.UNAUTHORIZED) {
+            return;
+        }
+
+        Object authChallenges = request.getAttribute(Http.AUTH_CHALLENGES);
+        if (authChallenges == null) {
+            return;
+        }
+
+        response.addHeader(Http.WWW_AUTHENTICATE, authChallenges.toString());
     }
 }

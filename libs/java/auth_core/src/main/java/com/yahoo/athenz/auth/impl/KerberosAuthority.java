@@ -41,10 +41,11 @@ public class KerberosAuthority implements Authority {
 
     private static final Logger LOG = LoggerFactory.getLogger(KerberosAuthority.class);
 
-    static final String KRB_AUTH_HEADER  = "Authorization";
-    static final String KRB_PROP_SVCPRPL = "athenz.auth.kerberos.service_principal";
-    static final String KRB_PROP_KEYTAB  = "athenz.auth.kerberos.keytab_location";
-    static final String KRB_PROP_DEBUG   = "athenz.auth.kerberos.debug";
+    static final String KRB_AUTH_HEADER    = "Authorization";
+    static final String KRB_AUTH_CHALLENGE = "Negotiate";
+    static final String KRB_PROP_SVCPRPL   = "athenz.auth.kerberos.service_principal";
+    static final String KRB_PROP_KEYTAB    = "athenz.auth.kerberos.keytab_location";
+    static final String KRB_PROP_DEBUG     = "athenz.auth.kerberos.debug";
     
     // This is used if there is a jaas.conf. The jaas.conf path is specified by the system property 
     // java.security.auth.login.config
@@ -227,6 +228,11 @@ public class KerberosAuthority implements Authority {
     @Override
     public String getHeader() {
         return KRB_AUTH_HEADER;
+    }
+
+    @Override
+     public String getAuthenticateChallenge() {
+        return KRB_AUTH_CHALLENGE;
     }
 
     /**

@@ -57,6 +57,15 @@ public interface Authority {
     String getHeader();
 
     /**
+     * @return the string to be returned as the value for WWW-Authenticate header:
+     *        WWW-Authenticate  = "WWW-Authenticate" ":" 1#challenge
+     * in case all authorities fail to authenticate a request.
+     */
+    default String getAuthenticateChallenge() {
+        return null;
+    }
+
+    /**
      * @return a boolean flag indicating whether or not authenticated principals
      * by this authority are allowed to be "authorized" to make changes. If this
      * flag is false, then the principal must first get a ZMS UserToken and then
