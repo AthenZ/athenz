@@ -123,7 +123,9 @@ public class KeyRefresher {
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug("KeyRefresher sleeping for {} ms", retryFrequency);
                     }
-                    Thread.sleep(retryFrequency);
+                    if (!shutdown) {
+                        Thread.sleep(retryFrequency);
+                    }
                 } catch (InterruptedException ignored) {
                 }
             }
