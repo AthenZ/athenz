@@ -136,6 +136,9 @@ public class KeyRefresher {
 
     public void shutdown() {
         shutdown = true;
+        if (scanForFileChangesThread != null) {
+            scanForFileChangesThread.interrupt();
+        }
     }
 
     public void startup() {

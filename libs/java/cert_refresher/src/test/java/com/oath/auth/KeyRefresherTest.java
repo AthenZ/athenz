@@ -154,6 +154,9 @@ public class KeyRefresherTest {
         
         keyRefresher = Utils.generateKeyRefresherFromCaCert("ca.cert.pem", "gdpr.aws.core.cert.pem",
                 "gdpr.aws.core.key.pem");
+        keyRefresher.startup();
+        Thread.sleep(500);
         assertNotNull(keyRefresher);
+        keyRefresher.shutdown();
     }
 }

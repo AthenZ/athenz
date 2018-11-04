@@ -36,10 +36,12 @@ public class TrustManagerProxyTest {
     public void testTrustManagerProxySetTrustManger() {
         TrustManager[] trustManagers = new TrustManager[] { new X509ExtendedTrustManager() {
             @Override
-            public void checkClientTrusted(X509Certificate[] x509Certificates, String s) {}
+            public void checkClientTrusted(X509Certificate[] x509Certificates, String s) {
+            }
 
             @Override
-            public void checkServerTrusted(X509Certificate[] x509Certificates, String s) {}
+            public void checkServerTrusted(X509Certificate[] x509Certificates, String s) {
+            }
 
             @Override
             public X509Certificate[] getAcceptedIssuers() {
@@ -68,16 +70,13 @@ public class TrustManagerProxyTest {
 
         assertNotNull(trustManagerFirst);
 
-
         trustManagerProxy.setTrustManager(new TrustManager[] { new X509ExtendedTrustManager() {
             @Override
             public void checkClientTrusted(X509Certificate[] x509Certificates, String s) {
-
             }
 
             @Override
             public void checkServerTrusted(X509Certificate[] x509Certificates, String s) {
-
             }
 
             @Override

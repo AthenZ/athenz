@@ -491,8 +491,13 @@ public class ZTSClient implements Closeable {
             ztsClient.setProperty(name, value);
         }
     }
-    
-    void removePrefetcher() {
+
+    /**
+     * Cancel the Prefetch Timer. This removes all the prefetch
+     * items from the list, purges and cancels the fetch timer.
+     * This should be called before application shutdown.
+     */
+    public static void cancelPrefetch() {
         PREFETCH_SCHEDULED_ITEMS.clear();
         if (FETCH_TIMER != null) {
             FETCH_TIMER.purge();
@@ -1419,16 +1424,7 @@ public class ZTSClient implements Closeable {
             PREFETCH_SCHEDULED_ITEMS.add(item);
         }
 
-        if (FETCH_TIMER == null) {
-            synchronized (TIMER_LOCK) {
-                if (FETCH_TIMER == null) {
-                    FETCH_TIMER = new Timer();
-                    // check the fetch items every prefetchInterval seconds.
-                    FETCH_TIMER.schedule(new RolePrefetchTask(), 0, prefetchInterval * 1000);
-                }
-            }
-        }
-
+        startPrefetch();
         return true;
     }
     
@@ -1770,6 +1766,7 @@ public class ZTSClient implements Closeable {
             throw new ZTSClientException(ZTSClientException.BAD_REQUEST, ex.getMessage());
         }
 
+        lambdaIdentity.setCaCertificates(identity.getX509CertificateSigner());
         return lambdaIdentity;
     }
     
@@ -2531,14 +2528,20 @@ public class ZTSClient implements Closeable {
             PREFETCH_SCHEDULED_ITEMS.remove(item);
         }
         PREFETCH_SCHEDULED_ITEMS.add(item);
+        startPrefetch();
+    }
 
-        if (FETCH_TIMER == null) {
-            synchronized (TIMER_LOCK) {
-                if (FETCH_TIMER == null) {
-                    FETCH_TIMER = new Timer();
-                    // check the fetch items every prefetchInterval seconds.
-                    FETCH_TIMER.schedule(new RolePrefetchTask(), 0, prefetchInterval * 1000);
-                }
+    static void startPrefetch() {
+
+        if (FETCH_TIMER != null) {
+            return;
+        }
+
+        synchronized (TIMER_LOCK) {
+            if (FETCH_TIMER == null) {
+                FETCH_TIMER = new Timer();
+                // check the fetch items every prefetchInterval seconds.
+                FETCH_TIMER.schedule(new RolePrefetchTask(), 0, prefetchInterval * 1000);
             }
         }
     }

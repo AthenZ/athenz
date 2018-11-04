@@ -21,8 +21,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Paths;
+import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.PrivateKey;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.concurrent.TimeUnit;
@@ -248,6 +250,27 @@ public class Utils {
             throw new IllegalArgumentException(e);
         }
         
+        return keyStore;
+    }
+
+    /**
+     * Generate JKS X.509 Truststore based on given input stream.
+     * It is expected that the input stream is a list of x.509
+     * certificates.
+     * @param inputStream input stream for the x.509 certificates.
+     *                    caller responsible for closing the stream
+     * @return KeyStore including all x.509 certificates
+     * @throws IOException, GeneralSecurityException
+     */
+    public static KeyStore generateTrustStore(InputStream inputStream)
+            throws IOException, GeneralSecurityException {
+        CertificateFactory factory = CertificateFactory.getInstance("X.509");
+        KeyStore keyStore = KeyStore.getInstance("JKS");
+        keyStore.load(null);
+        for (Certificate certificate : factory.generateCertificates(inputStream)) {
+            String alias = ((X509Certificate) certificate).getSubjectX500Principal().getName();
+            keyStore.setCertificateEntry(alias, certificate);
+        }
         return keyStore;
     }
 }
