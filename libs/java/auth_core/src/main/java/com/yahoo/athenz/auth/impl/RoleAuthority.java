@@ -37,6 +37,7 @@ public class RoleAuthority implements Authority, AuthorityKeyStore {
     static final String ATHENZ_PROP_USER_DOMAIN = "athenz.user_domain";
     
     public static final String HTTP_HEADER = "Athenz-Role-Auth";
+    public static final String ATHENZ_AUTH_CHALLENGE = "AthenzRoleToken realm=\"athenz\"";
     public static final String ATHENZ_PROP_ROLE_HEADER = "athenz.auth.role.header";
     
     private int allowedOffset;
@@ -69,6 +70,11 @@ public class RoleAuthority implements Authority, AuthorityKeyStore {
     @Override
     public String getHeader() {
         return headerName;
+    }
+
+    @Override
+    public String getAuthenticateChallenge() {
+        return ATHENZ_AUTH_CHALLENGE;
     }
 
     @Override
@@ -133,12 +139,11 @@ public class RoleAuthority implements Authority, AuthorityKeyStore {
 
         // all the role members in Athenz are normalized to lower case so we need to make
         // sure our principal's name and domain are created with lower case as well
+        // we have verified that our token already includes valid roles
         
         SimplePrincipal princ = (SimplePrincipal) SimplePrincipal.create(roleToken.getDomain().toLowerCase(),
                 signedToken, roleToken.getRoles(), this);
-        if (princ != null) {
-            princ.setUnsignedCreds(roleToken.getUnsignedToken());
-        }
+        princ.setUnsignedCreds(roleToken.getUnsignedToken());
         return princ;
     }
 

@@ -83,4 +83,10 @@ public class UserAuthorityTest {
         principal = userAuthority.authenticate("Basic ", "10.72.118.45", "GET", null);
         assertNull(principal);
     }
+
+    @Test
+    public void testGetAuthenticateChallenge() {
+        UserAuthority userAuthority = new UserAuthority();
+        assertEquals(userAuthority.getAuthenticateChallenge(), "Basic realm=\"athenz\"");
+    }
 }

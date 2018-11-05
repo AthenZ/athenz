@@ -35,6 +35,7 @@ public class UserAuthority implements Authority {
 
     private static final Logger LOG = LoggerFactory.getLogger(UserAuthority.class);
     static final String ATHENZ_PROP_PAM_SERVICE_NAME = "athenz.auth.user.pam_service_name";
+    public static final String ATHENZ_AUTH_CHALLENGE = "Basic realm=\"athenz\"";
 
     String serviceName;
     private PAM pam = null;
@@ -55,6 +56,11 @@ public class UserAuthority implements Authority {
     @Override
     public String getHeader() {
         return "Authorization";
+    }
+
+    @Override
+    public String getAuthenticateChallenge() {
+        return ATHENZ_AUTH_CHALLENGE;
     }
 
     /*

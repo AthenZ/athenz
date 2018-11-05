@@ -114,9 +114,7 @@ public class SimpleServiceIdentityProvider implements ServiceIdentityProvider {
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create(domainName,
                 serviceName, token.getSignedToken(), System.currentTimeMillis() / 1000,
                 authority);
-        if (principal != null) {
-            principal.setUnsignedCreds(token.getUnsignedToken());
-        }
+        principal.setUnsignedCreds(token.getUnsignedToken());
         return principal;
     }
     

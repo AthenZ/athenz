@@ -17,8 +17,11 @@ package com.yahoo.athenz.common.server.rest;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.yahoo.athenz.auth.impl.PrincipalAuthority;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
+import static org.mockito.Mockito.times;
 import static org.testng.Assert.*;
 import org.testng.annotations.Test;
 
@@ -26,6 +29,8 @@ import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.Authority.CredSource;
+
+import java.security.cert.X509Certificate;
 
 public class HttpTest {
 
@@ -46,7 +51,7 @@ public class HttpTest {
     }
 
     @Test
-    public void testAuthenticateCertificate() {
+    public void testAuthenticateCertificateFailure() {
         HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
         Http.AuthorityList authorities = new Http.AuthorityList();
         Authority authority = Mockito.mock(Authority.class);
@@ -60,18 +65,90 @@ public class HttpTest {
     }
 
     @Test
-    public void testAuthenticateHeader() {
+    public void testAuthenticateCertificate() {
+        HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
+        Http.AuthorityList authorities = new Http.AuthorityList();
+        Authority authority = Mockito.mock(Authority.class);
+        Mockito.when(authority.getCredSource()).thenReturn(CredSource.CERTIFICATE);
+        X509Certificate[] certs = new X509Certificate[1];
+        certs[0] = Mockito.mock(X509Certificate.class);
+        Mockito.when(httpServletRequest.getAttribute(Http.JAVAX_CERT_ATTR)).thenReturn(certs);
+        Principal principal = Mockito.mock(Principal.class);
+        Mockito.when(authority.authenticate(ArgumentMatchers.any(X509Certificate[].class),
+                ArgumentMatchers.any())).thenReturn(principal);
+        authorities.add(authority);
+        assertNotNull(Http.authenticate(httpServletRequest, authorities));
+    }
+
+    @Test
+    public void testAuthenticateRequest() {
+        HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
+        Http.AuthorityList authorities = new Http.AuthorityList();
+        Authority authority = Mockito.mock(Authority.class);
+        Mockito.when(authority.getCredSource()).thenReturn(CredSource.REQUEST);
+        Principal principal = Mockito.mock(Principal.class);
+        Mockito.when(authority.authenticate(ArgumentMatchers.any(HttpServletRequest.class),
+                ArgumentMatchers.any())).thenReturn(principal);
+        authorities.add(authority);
+        assertNotNull(Http.authenticate(httpServletRequest, authorities));
+    }
+
+    @Test
+    public void testAuthenticateHeaderFailure() {
         HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
         Http.AuthorityList authorities = new Http.AuthorityList();
         Authority authority = Mockito.mock(Authority.class);
         Mockito.when(authority.getCredSource()).thenReturn(CredSource.HEADER);
         Mockito.when(authority.getHeader()).thenReturn("Cookie.hogehoge");
+        Mockito.when(authority.getAuthenticateChallenge()).thenReturn("Basic realm=\"athenz\"");
         authorities.add(authority);
         try {
             Http.authenticate(httpServletRequest, authorities);
         } catch (ResourceException expected) {
             assertEquals(expected.getCode(), 401);
         }
+        Mockito.verify(httpServletRequest, times(1))
+                .setAttribute("com.yahoo.athenz.auth.credential.challenges", "Basic realm=\"athenz\"");
+    }
+
+    @Test
+    public void testAuthenticateHeaderErrorMessage() {
+        HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(httpServletRequest.getHeader("Athenz-Principal-Auth")).thenReturn("Creds");
+        Http.AuthorityList authorities = new Http.AuthorityList();
+        PrincipalAuthority authority1 = new PrincipalAuthority();
+        authorities.add(authority1);
+        PrincipalAuthority authority2 = new PrincipalAuthority();
+        authorities.add(authority2);
+        try {
+            Http.authenticate(httpServletRequest, authorities);
+        } catch (ResourceException expected) {
+            assertEquals(expected.getCode(), 401);
+        }
+        Mockito.verify(httpServletRequest, times(2))
+                .setAttribute(ArgumentMatchers.anyString(), ArgumentMatchers.anyString());
+    }
+
+    @Test
+    public void testAuthenticateHeaderFailureMultipleAuth() {
+        HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
+        Http.AuthorityList authorities = new Http.AuthorityList();
+        Authority authority1 = Mockito.mock(Authority.class);
+        Mockito.when(authority1.getCredSource()).thenReturn(CredSource.HEADER);
+        Mockito.when(authority1.getHeader()).thenReturn("Cookie.hogehoge");
+        Mockito.when(authority1.getAuthenticateChallenge()).thenReturn("Basic realm=\"athenz\"");
+        authorities.add(authority1);
+        Authority authority2 = Mockito.mock(Authority.class);
+        Mockito.when(authority2.getCredSource()).thenReturn(CredSource.REQUEST);
+        Mockito.when(authority2.getAuthenticateChallenge()).thenReturn("AthenzRequest realm=\"athenz\"");
+        authorities.add(authority2);
+        try {
+            Http.authenticate(httpServletRequest, authorities);
+        } catch (ResourceException expected) {
+            assertEquals(expected.getCode(), 401);
+        }
+        Mockito.verify(httpServletRequest, times(1))
+                .setAttribute("com.yahoo.athenz.auth.credential.challenges", "Basic realm=\"athenz\", AthenzRequest realm=\"athenz\"");
     }
 
     @Test
@@ -101,6 +178,23 @@ public class HttpTest {
     }
 
     @Test
+    public void testAuthenticatedUser() {
+        HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
+        Principal principal = Mockito.mock(Principal.class);
+        Mockito.when(principal.getFullName()).thenReturn("athenz.api");
+        Authority authority = Mockito.mock(Authority.class);
+        Mockito.when(authority.getCredSource()).thenReturn(Authority.CredSource.HEADER);
+        Mockito.when(authority.getHeader()).thenReturn("Athenz-Principal-Auth");
+        Mockito.when(httpServletRequest.getHeader("Athenz-Principal-Auth")).thenReturn("Creds");
+        Mockito.when(authority.authenticate(ArgumentMatchers.any(), ArgumentMatchers.any(),
+                ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(principal);
+        Http.AuthorityList authorities = new Http.AuthorityList();
+        authorities.add(authority);
+
+        assertEquals(Http.authenticatedUser(httpServletRequest, authorities), "athenz.api");
+    }
+
+    @Test
     public void testAuthorizedUserUserInvalidCredentials() {
         HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
         Authorizer authorizer = Mockito.mock(Authorizer.class);
@@ -110,6 +204,26 @@ public class HttpTest {
         } catch (ResourceException expected) {
             assertEquals(expected.getCode(), 401);
         }
+    }
+
+    @Test
+    public void testAuthorizedUser() {
+        HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
+        Principal principal = Mockito.mock(Principal.class);
+        Mockito.when(principal.getFullName()).thenReturn("athenz.api");
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        Mockito.when(authorizer.access(ArgumentMatchers.any(), ArgumentMatchers.any(),
+                ArgumentMatchers.any(Principal.class), ArgumentMatchers.any())).thenReturn(true);
+        Authority authority = Mockito.mock(Authority.class);
+        Mockito.when(authority.getCredSource()).thenReturn(Authority.CredSource.HEADER);
+        Mockito.when(authority.getHeader()).thenReturn("Athenz-Principal-Auth");
+        Mockito.when(httpServletRequest.getHeader("Athenz-Principal-Auth")).thenReturn("Creds");
+        Mockito.when(authority.authenticate(ArgumentMatchers.any(), ArgumentMatchers.any(),
+                ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(principal);
+        Http.AuthorityList authorities = new Http.AuthorityList();
+        authorities.add(authority);
+
+        assertEquals("athenz.api", Http.authorizedUser(httpServletRequest, authorities, authorizer, "action", "resource", null));
     }
 
     @Test
@@ -142,5 +256,31 @@ public class HttpTest {
         } catch (ResourceException expected) {
             assertEquals(expected.getCode(), 403);
         }
+    }
+
+    @Test
+    public void testGetCookieValue() {
+
+        HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(httpServletRequest.getCookies()).thenReturn(null);
+
+        assertNull(Http.getCookieValue(httpServletRequest, "cookie1"));
+        assertNull(Http.getCookieValue(httpServletRequest, "cookie2"));
+
+        javax.servlet.http.Cookie[] cookies = new javax.servlet.http.Cookie[2];
+        cookies[0] = new javax.servlet.http.Cookie("cookie1", "value1");
+        cookies[1] = new javax.servlet.http.Cookie("cookie2", "value2");
+
+        Mockito.when(httpServletRequest.getCookies()).thenReturn(cookies);
+        assertEquals(Http.getCookieValue(httpServletRequest, "cookie1"), "value1");
+        assertEquals(Http.getCookieValue(httpServletRequest, "cookie2"), "value2");
+        assertNull(Http.getCookieValue(httpServletRequest, "cookie3"));
+    }
+
+    @Test
+    public void testAuthenticatingCredentialsHeaderNull() {
+        Authority authority = Mockito.mock(Authority.class);
+        Mockito.when(authority.getHeader()).thenReturn(null);
+        assertNull(Http.authenticatingCredentials(null, authority));
     }
 }

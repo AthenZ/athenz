@@ -366,4 +366,10 @@ public class KerberosAuthorityTest {
 
         assertFalse(check.isTargetPrincipal(null,null));
     }
+
+    @Test
+    public void testGetAuthenticateChallenge() {
+        KerberosAuthority krbAuthority  = new KerberosAuthority();
+        assertEquals(krbAuthority.getAuthenticateChallenge(), "Negotiate");
+    }
 }

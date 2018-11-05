@@ -393,4 +393,10 @@ public class RoleAuthorityTest {
         assertEquals(m,300);
         assertEquals(roleAuthority.userDomain,"user");
     }
+
+    @Test
+    public void testGetAuthenticateChallenge() {
+        RoleAuthority roleAuthority = new RoleAuthority();
+        assertEquals(roleAuthority.getAuthenticateChallenge(), "AthenzRoleToken realm=\"athenz\"");
+    }
 }

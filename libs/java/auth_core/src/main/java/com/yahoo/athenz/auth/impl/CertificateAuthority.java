@@ -32,8 +32,9 @@ import com.yahoo.athenz.auth.util.Crypto;
 public class CertificateAuthority implements Authority {
 
     private static final Logger LOG = LoggerFactory.getLogger(CertificateAuthority.class);
-    private static final String ATHENZ_PROP_EXCLUDED_PRINCIPALS = "athenz.auth.certificate.excluded_principals";
 
+    private static final String ATHENZ_PROP_EXCLUDED_PRINCIPALS = "athenz.auth.certificate.excluded_principals";
+    private static final String ATHENZ_AUTH_CHALLENGE = "AthenzX509Certificate realm=\"athenz\"";
     private Set<String> excludedPrincipalSet = null;
     
     @Override
@@ -53,6 +54,11 @@ public class CertificateAuthority implements Authority {
     @Override
     public String getHeader() {
         return null;
+    }
+
+    @Override
+    public String getAuthenticateChallenge() {
+        return ATHENZ_AUTH_CHALLENGE;
     }
 
     @Override
