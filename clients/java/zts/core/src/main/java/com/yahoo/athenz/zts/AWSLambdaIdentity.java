@@ -22,20 +22,53 @@ public class AWSLambdaIdentity {
 
     private PrivateKey privateKey;
     private X509Certificate x509Certificate;
+    private String caCertificates;
 
+    /**
+     * Get the private key for the lambda service identity
+     * @return privateKey
+     */
     public PrivateKey getPrivateKey() {
         return privateKey;
     }
 
+    /**
+     * Set the private key for the labmda service identity
+     * @param privateKey
+     */
     public void setPrivateKey(PrivateKey privateKey) {
         this.privateKey = privateKey;
     }
 
+    /**
+     * Get the x.509 certificate for the lambda service identity
+     * @return x509Certificate
+     */
     public X509Certificate getX509Certificate() {
         return x509Certificate;
     }
 
+    /**
+     * Set the x.509 certificate for the lambda service idenitty
+     * @param x509Certificate
+     */
     public void setX509Certificate(X509Certificate x509Certificate) {
         this.x509Certificate = x509Certificate;
+    }
+
+    /**
+     * Get the Athenz CA certificates in pem format
+     * @return certificates in pem format
+     */
+    public String getCACertificates() {
+        return caCertificates;
+    }
+
+    /**
+     * Set the Athenz CA certificates in pem format
+     * @param caCertificates
+     */
+    public void setCaCertificates(String caCertificates) {
+        this.caCertificates = caCertificates;
     }
 }

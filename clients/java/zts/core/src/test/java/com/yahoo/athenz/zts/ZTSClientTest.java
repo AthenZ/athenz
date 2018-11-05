@@ -33,6 +33,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -905,7 +906,7 @@ public class ZTSClientTest {
         assertNotEquals(lastTimerTriggered1, lastTimerTriggered2);
         assertTrue(lastTimerTriggered2 > lastTimerTriggered1);
         
-        client.removePrefetcher();
+        ZTSClient.cancelPrefetch();
         client.close();
     }
 
@@ -1016,8 +1017,8 @@ public class ZTSClientTest {
         assertTrue(lastTimerTriggered2 > 0);
         assertNotEquals(lastTimerTriggered1, lastTimerTriggered2);
         assertTrue(lastTimerTriggered2 > lastTimerTriggered1);
-        
-        client.removePrefetcher();
+
+        ZTSClient.cancelPrefetch();
         client.close();
     }
     
@@ -1140,8 +1141,8 @@ public class ZTSClientTest {
         AWSTemporaryCredentials awsCred5 = client.getAWSTemporaryCredentials(domain2, "role1");
         assertNotNull(awsCred5);
         assertNotEquals(awsCred4.getAccessKeyId(), awsCred5.getAccessKeyId());
-        
-        client.removePrefetcher();
+
+        ZTSClient.cancelPrefetch();
         client.close();
     }
     
@@ -1283,8 +1284,8 @@ public class ZTSClientTest {
         assertTrue(lastTimerTriggered2 > 0);
         assertNotEquals(lastTimerTriggered1, lastTimerTriggered2);
         assertTrue(lastTimerTriggered2 > lastTimerTriggered1);
-        
-        client.removePrefetcher();
+
+        ZTSClient.cancelPrefetch();
         client.close();
     }
 
@@ -1307,7 +1308,7 @@ public class ZTSClientTest {
         
         ZTSClient client = new ZTSClient("http://localhost:4080/", "user_domain",
                 "user", siaProvider);
-        client.removePrefetcher();
+        ZTSClient.cancelPrefetch();
         client.setZTSRDLGeneratedClient(ztsClientMock);
         
         String domain1 = "coretech";
@@ -1377,8 +1378,8 @@ public class ZTSClientTest {
         assertTrue(lastTimerTriggered2 > 0);
         assertNotEquals(lastTimerTriggered1, lastTimerTriggered2);
         assertTrue(lastTimerTriggered2 > lastTimerTriggered1);
-        
-        client.removePrefetcher();
+
+        ZTSClient.cancelPrefetch();
         client.close();
     }
     
@@ -1401,7 +1402,7 @@ public class ZTSClientTest {
         
         ZTSClient client = new ZTSClient("http://localhost:4080/", "user_domain",
                 "user", siaProvider);
-        client.removePrefetcher();
+        ZTSClient.cancelPrefetch();
         client.setZTSRDLGeneratedClient(ztsClientMock);
         
         String domain1 = "coretech";
@@ -1488,8 +1489,8 @@ public class ZTSClientTest {
         AWSTemporaryCredentials awsCred5 = client.getAWSTemporaryCredentials(domain1, "role1");
         assertNotNull(awsCred5);
         assertNotEquals(awsCred4.getAccessKeyId(), awsCred5.getAccessKeyId());
-        
-        client.removePrefetcher();
+
+        ZTSClient.cancelPrefetch();
         client.close();
     }
     
@@ -1512,7 +1513,7 @@ public class ZTSClientTest {
         
         ZTSClient client = new ZTSClient("http://localhost:4080/", "user_domain",
                 "user", siaProvider);
-        client.removePrefetcher();
+        ZTSClient.cancelPrefetch();
         client.setZTSRDLGeneratedClient(ztsClientMock);
         
         String domain1 = "coretech";
@@ -1619,8 +1620,8 @@ public class ZTSClientTest {
         assertTrue(lastTimerTriggered2 > 0);
         assertNotEquals(lastTimerTriggered1, lastTimerTriggered2);
         assertTrue(lastTimerTriggered2 > lastTimerTriggered1);
-        
-        client.removePrefetcher();
+
+        ZTSClient.cancelPrefetch();
         client.close();
     }
     
@@ -1632,7 +1633,7 @@ public class ZTSClientTest {
 
         ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
-        client.removePrefetcher();
+        ZTSClient.cancelPrefetch();
         client.setZTSRDLGeneratedClient(ztsClientMock);
         
         HostServices hostServices = client.getHostServices("host.exist");
@@ -1658,7 +1659,7 @@ public class ZTSClientTest {
 
         ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
-        client.removePrefetcher();
+        ZTSClient.cancelPrefetch();
         client.setZTSRDLGeneratedClient(ztsClientMock);
         
         PublicKeyEntry publicKeyEntry = client.getPublicKeyEntry("coretech", "storage", "key1");
@@ -1683,7 +1684,7 @@ public class ZTSClientTest {
 
         ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
-        client.removePrefetcher();
+        ZTSClient.cancelPrefetch();
         client.setZTSRDLGeneratedClient(ztsClientMock);
         
         ServiceIdentity serviceIdentity = client.getServiceIdentity("coretech", "storage");
@@ -1707,7 +1708,7 @@ public class ZTSClientTest {
 
         ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
-        client.removePrefetcher();
+        ZTSClient.cancelPrefetch();
         client.setZTSRDLGeneratedClient(ztsClientMock);
         
         ServiceIdentityList serviceIdentityList = client.getServiceIdentityList("coretech");
@@ -1732,7 +1733,7 @@ public class ZTSClientTest {
         ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         ztsClientMock.setRoleName("role1");
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
-        client.removePrefetcher();
+        ZTSClient.cancelPrefetch();
         client.setZTSRDLGeneratedClient(ztsClientMock);
 
         RoleToken roleToken = client.getRoleToken("coretech", "role1");
@@ -1761,7 +1762,7 @@ public class ZTSClientTest {
         ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         ztsClientMock.setRoleName("role1");
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
-        client.removePrefetcher();
+        ZTSClient.cancelPrefetch();
         client.setZTSRDLGeneratedClient(ztsClientMock);
 
         try {
@@ -1795,7 +1796,7 @@ public class ZTSClientTest {
         ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         ztsClientMock.setRoleName("role1");
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
-        client.removePrefetcher();
+        ZTSClient.cancelPrefetch();
         client.setZTSRDLGeneratedClient(ztsClientMock);
 
         RoleToken roleToken = client.getRoleToken("coretech");
@@ -2383,7 +2384,7 @@ public class ZTSClientTest {
         client.setZTSRDLGeneratedClient(ztsClientMock);
         ZTSClient.AWSHostNameVerifier hostnameVerifier = client.new AWSHostNameVerifier("host1");
                 
-        InputStream is = new ByteArrayInputStream(test_cert.getBytes("utf-8"));
+        InputStream is = new ByteArrayInputStream(test_cert.getBytes(StandardCharsets.UTF_8));
         
         CertificateFactory cf = CertificateFactory.getInstance("X.509");
         java.security.cert.Certificate cert = cf.generateCertificate(is);
