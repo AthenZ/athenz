@@ -309,10 +309,12 @@ public class X509CertRequest {
     boolean validateSpiffeURI(final String domain, final String name, final String value) {
 
         // the expected default format is
-        // spiffe://<provider-cluster>/ns/<athenz-domain>/sa/<athenz-service>
-        // spiffe://<provider-cluster>/ns/<athenz-domain>/ra/<athenz-role>
+        // spiffe://[<provider-cluster>/ns/]<athenz-domain>/sa/<athenz-service>
+        // spiffe://[<provider-cluster>/ns/]<athenz-domain>/ra/<athenz-role>
+        //
         // so we'll be validating that our request has:
-        // spiffe://<provider-cluster>/ns/<domain>/<name>/<value>
+        // spiffe://<provider-cluster>/ns/<domain>/<name>/<value> or
+        // spiffe://<domain>/<name>/<value> or
 
         // first extract the URI list from the request
 
@@ -337,25 +339,37 @@ public class X509CertRequest {
             return false;
         }
 
-        if (uri.getScheme() == null || uri.getPath() == null) {
+        final String uriScheme = uri.getScheme();
+        final String uriPath = uri.getPath();
+        final String uriHost = uri.getHost();
+
+        if (uriScheme == null || uriPath == null || uriHost == null) {
             LOGGER.error("validateSpiffeURI: invalid uri {}", spiffeUri);
             return false;
         }
 
-        if (!uri.getScheme().equalsIgnoreCase("spiffe")) {
-            LOGGER.error("validateSpiffeURI: invalid uri scheme: {} in {}",
-                    uri.getScheme(), spiffeUri);
+        if (!uriScheme.equalsIgnoreCase("spiffe")) {
+            LOGGER.error("validateSpiffeURI: invalid uri scheme: {}", spiffeUri);
             return false;
         }
 
-        final String path = "/ns/" + domain + "/" + name + "/" + value;
-        if (!uri.getPath().equalsIgnoreCase(path)) {
-            LOGGER.error("validateSpiffeURI: invalid uri path: {} vs {}",
-                    path, uri.getPath());
-            return false;
+        // let's check to see if our path starts with our
+        // namespace ns field and thus which format we're using
+
+        boolean uriVerified = false;
+        if (uriPath.startsWith("/ns/")) {
+            final String path = "/ns/" + domain + "/" + name + "/" + value;
+            uriVerified = uriPath.equalsIgnoreCase(path);
+        } else {
+            final String path = "/" + name + "/" + value;
+            uriVerified = uriHost.equalsIgnoreCase(domain) && uriPath.equalsIgnoreCase(path);
         }
 
-        return true;
+        if (!uriVerified) {
+            LOGGER.error("validateSpiffeURI: invalid uri path/host: {}", spiffeUri);
+        }
+
+        return uriVerified;
     }
 
     public void setNormCsrPublicKey(String normCsrPublicKey) {

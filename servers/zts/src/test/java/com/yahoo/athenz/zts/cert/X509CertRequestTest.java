@@ -626,6 +626,69 @@ public class X509CertRequestTest {
     }
 
     @Test
+    public void testValidateSpiffeServiceCertShortValid() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_short_service.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr);
+        assertNotNull(certReq);
+
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        Principal provider = Mockito.mock(Principal.class);
+        Mockito.when(authorizer.access("launch", "sys.auth:dns.ostk.athenz.cloud", provider, null))
+                .thenReturn(true);
+
+        StringBuilder errorMsg = new StringBuilder(256);
+        HashSet<String> validOrgs = new HashSet<>();
+        validOrgs.add("Athenz");
+        assertTrue(certReq.validate(provider, "athenz", "production",
+                "1001", validOrgs, null, errorMsg));
+    }
+
+    @Test
+    public void testValidateSpiffeServiceCertShortMismatchDomain() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_service_short_mismatch_domain.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr);
+        assertNotNull(certReq);
+
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        Principal provider = Mockito.mock(Principal.class);
+        Mockito.when(authorizer.access("launch", "sys.auth:dns.ostk.athenz.cloud", provider, null))
+                .thenReturn(true);
+
+        StringBuilder errorMsg = new StringBuilder(256);
+        HashSet<String> validOrgs = new HashSet<>();
+        validOrgs.add("Athenz");
+        assertFalse(certReq.validate(provider, "athenz", "production",
+                "1001", validOrgs, null, errorMsg));
+    }
+
+    @Test
+    public void testValidateSpiffeServiceCertShortMismatchService() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_service_short_mismatch_service.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr);
+        assertNotNull(certReq);
+
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        Principal provider = Mockito.mock(Principal.class);
+        Mockito.when(authorizer.access("launch", "sys.auth:dns.ostk.athenz.cloud", provider, null))
+                .thenReturn(true);
+
+        StringBuilder errorMsg = new StringBuilder(256);
+        HashSet<String> validOrgs = new HashSet<>();
+        validOrgs.add("Athenz");
+        assertFalse(certReq.validate(provider, "athenz", "production",
+                "1001", validOrgs, null, errorMsg));
+    }
+
+    @Test
     public void testValidateSpiffeInvalidScheme() throws IOException {
 
         Path path = Paths.get("src/test/resources/spiffe_invalid_scheme.csr");
