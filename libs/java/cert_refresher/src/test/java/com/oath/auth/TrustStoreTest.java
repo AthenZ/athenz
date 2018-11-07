@@ -18,7 +18,6 @@ package com.oath.auth;
 import static org.junit.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
-import com.google.common.io.Resources;
 import java.security.cert.X509Certificate;
 import java.util.HashSet;
 import java.util.Set;
@@ -28,10 +27,12 @@ import org.junit.Test;
 
 public class TrustStoreTest {
 
+    private ClassLoader classLoader = this.getClass().getClassLoader();
+
     @Test
     public void builtFromJKSFile() throws Exception {
 
-        String filePath = Resources.getResource("truststore.jks").getFile();
+        String filePath = classLoader.getResource("truststore.jks").getFile();
 
         JavaKeyStoreProvider provider = new JavaKeyStoreProvider(filePath, "123456".toCharArray());
         TrustStore trustStore = new TrustStore(filePath, provider);
@@ -50,7 +51,7 @@ public class TrustStoreTest {
     @Test
     public void builtFromCaCert() throws Exception {
 
-        String filePath = Resources.getResource("ca.cert.pem").getFile();
+        String filePath = classLoader.getResource("ca.cert.pem").getFile();
 
         CaCertKeyStoreProvider provider = new CaCertKeyStoreProvider(filePath);
         TrustStore trustStore = new TrustStore(filePath, provider);
@@ -69,7 +70,7 @@ public class TrustStoreTest {
     @Test
     public void builtFromMultipleCaCert() throws Exception {
 
-        String filePath = Resources.getResource("ca.certs.pem").getFile();
+        String filePath = classLoader.getResource("ca.certs.pem").getFile();
 
         CaCertKeyStoreProvider provider = new CaCertKeyStoreProvider(filePath);
         TrustStore trustStore = new TrustStore(filePath, provider);
