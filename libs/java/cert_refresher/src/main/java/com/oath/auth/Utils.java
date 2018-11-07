@@ -41,8 +41,6 @@ import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.io.Resources;
-
 public class Utils {
 
     private static final Logger LOG = LoggerFactory.getLogger(Utils.class);
@@ -73,7 +71,7 @@ public class Utils {
         }
         ///CLOVER:ON
 
-        try (InputStream jksFileInputStream = Resources.getResource(jksFilePath).openStream()) {
+        try (InputStream jksFileInputStream = Utils.class.getClassLoader().getResourceAsStream(jksFilePath)) {
             keyStore.load(jksFileInputStream, password);
             return keyStore;
         }
@@ -216,8 +214,8 @@ public class Utils {
                     Thread.sleep(1000);
                 }
             } else {
-                certFile = new File(Resources.getResource(athenzPublicCert).getFile());
-                keyFile = new File(Resources.getResource(athenzPrivateKey).getFile());
+                certFile = new File(Utils.class.getClassLoader().getResource(athenzPublicCert).getFile());
+                keyFile = new File(Utils.class.getClassLoader().getResource(athenzPrivateKey).getFile());
             }
         } catch (Throwable t) {
             throw new IllegalArgumentException(t);
