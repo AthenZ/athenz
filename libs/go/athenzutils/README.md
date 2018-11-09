@@ -1,4 +1,4 @@
-ztsclientutil
+athenzutils
 ===========
 
 Go library to return zts client given private key and certificate.

@@ -6,7 +6,7 @@
 # Licensed under the Apache License, Version 2.0 - http://www.apache.org/licenses/LICENSE-2.0
 #
 
-GOPKGNAME = github.com/yahoo/athenz/libs/go/ztsclientutil
+GOPKGNAME = github.com/yahoo/athenz/libs/go/athenzutils
 
 # check to see if go utility is installed
 GO := $(shell command -v go 2> /dev/null)
@@ -43,7 +43,7 @@ fmt:
 	gofmt -l .
 
 build:
-	@echo "Building ztsclientutil library..."
+	@echo "Building athenzutils library..."
 	go install -v $(GOPKGNAME)
 
 test:

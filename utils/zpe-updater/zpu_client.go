@@ -17,8 +17,8 @@ import (
 
 	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/yahoo/athenz/clients/go/zts"
+	"github.com/yahoo/athenz/libs/go/athenzutils"
 	"github.com/yahoo/athenz/libs/go/zmssvctoken"
-	"github.com/yahoo/athenz/libs/go/ztsclientutil"
 	"github.com/yahoo/athenz/utils/zpe-updater/util"
 )
 
@@ -38,7 +38,7 @@ func PolicyUpdater(config *ZpuConfiguration) error {
 	ztsURL := formatURL(config.Zts, "zts/v1")
 	var ztsClient zts.ZTSClient
 	if config.PrivateKeyFile != "" && config.CertFile != "" {
-		ztsCli, err := ztsclientutil.ZtsClient(ztsURL, config.PrivateKeyFile, config.CertFile, config.CaCertFile, config.Proxy)
+		ztsCli, err := athenzutils.ZtsClient(ztsURL, config.PrivateKeyFile, config.CertFile, config.CaCertFile, config.Proxy)
 		if err != nil {
 			return fmt.Errorf("Failed to create Zts Client, Error:%v", err)
 		}

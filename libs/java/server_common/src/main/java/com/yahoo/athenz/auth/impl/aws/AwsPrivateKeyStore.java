@@ -16,14 +16,6 @@
 
 package com.yahoo.athenz.auth.impl.aws;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.security.PrivateKey;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.amazonaws.services.kms.AWSKMS;
 import com.amazonaws.services.kms.AWSKMSClientBuilder;
 import com.amazonaws.services.kms.model.DecryptRequest;
@@ -33,6 +25,13 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.auth.util.Crypto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.security.PrivateKey;
 
 /**
  * Downloads encrypted secrets from private S3 bucket and returns decrypted data
