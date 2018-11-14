@@ -163,13 +163,13 @@ public class CloudStoreTest {
         CloudStore store = new CloudStore();
         AssumeRoleRequest req = store.getAssumeRoleRequest("1234", "admin", "sys.auth.zts", null, null);
         assertEquals("arn:aws:iam::1234:role/admin", req.getRoleArn());
-        assertEquals("sys.auth.zts", req.getRoleSessionName());
+        assertEquals("athenz-zts-service", req.getRoleSessionName());
         assertNull(req.getDurationSeconds());
         assertNull(req.getExternalId());
 
         req = store.getAssumeRoleRequest("12345", "adminuser", "athenz.zts", 101, "external");
         assertEquals("arn:aws:iam::12345:role/adminuser", req.getRoleArn());
-        assertEquals("athenz.zts", req.getRoleSessionName());
+        assertEquals("athenz-zts-service", req.getRoleSessionName());
         assertEquals(Integer.valueOf(101), req.getDurationSeconds());
         assertEquals("external", req.getExternalId());
         store.close();
