@@ -54,6 +54,7 @@ import com.yahoo.rdl.Timestamp;
 public class CloudStore {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CloudStore.class);
+    private static final String AWS_ROLE_SESSION_NAME = "athenz-zts-service";
 
     String awsRole = null;
     String awsRegion;
@@ -371,7 +372,7 @@ public class CloudStore {
     }
 
     AssumeRoleRequest getAssumeRoleRequest(String account, String roleName, String principal,
-                                           Integer durationSeconds, String externalId) {
+            Integer durationSeconds, String externalId) {
 
         // assume the target role to get the credentials for the client
         // aws format is arn:aws:iam::<account-id>:role/<role-name>
@@ -380,7 +381,11 @@ public class CloudStore {
 
         AssumeRoleRequest req = new AssumeRoleRequest();
         req.setRoleArn(arn);
-        req.setRoleSessionName(principal);
+
+        // for role session name AWS has a limit on length: 64
+        // so we need to make sure our session is shorter than that
+
+        req.setRoleSessionName(AWS_ROLE_SESSION_NAME);
         if (durationSeconds != null && durationSeconds > 0) {
             req.setDurationSeconds(durationSeconds);
         }
