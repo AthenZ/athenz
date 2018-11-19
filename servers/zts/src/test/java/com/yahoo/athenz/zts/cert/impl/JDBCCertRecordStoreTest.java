@@ -15,9 +15,16 @@
  */
 package com.yahoo.athenz.zts.cert.impl;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.security.cert.X509Certificate;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.impl.SimplePrincipal;
+import com.yahoo.athenz.auth.util.Crypto;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
@@ -48,5 +55,27 @@ public class JDBCCertRecordStoreTest {
         } catch (RuntimeException ex) {
             assertTrue(true);
         }
+    }
+
+    @Test
+    public void testLog() {
+
+        PoolableDataSource mockDataSrc = Mockito.mock(PoolableDataSource.class);
+        JDBCCertRecordStore store = new JDBCCertRecordStore(mockDataSrc);
+
+        File file = new File("src/test/resources/cert_log.pem");
+        String pem = null;
+        try {
+            pem = new String(Files.readAllBytes(file.toPath()));
+        } catch (IOException ex) {
+            fail();
+        }
+        X509Certificate cert = Crypto.loadX509Certificate(pem);
+
+        Principal principal = SimplePrincipal.create("user", "joe", "creds");
+
+        // make sure no exceptions are thrown when processing log request
+
+        store.log(principal, "10.11.12.13", "athens.provider", "1234", cert);
     }
 }

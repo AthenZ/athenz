@@ -16,11 +16,19 @@
 package com.yahoo.athenz.zts.cert.impl;
 
 import java.io.File;
+import java.security.cert.X509Certificate;
 
+import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.zts.cert.CertRecordStore;
 import com.yahoo.athenz.zts.cert.CertRecordStoreConnection;
+import com.yahoo.athenz.zts.cert.X509CertUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FileCertRecordStore implements CertRecordStore {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(JDBCCertRecordStore.class);
+    private static final Logger CERTLOGGER = LoggerFactory.getLogger("X509CertLogger");
 
     File rootDir;
     
@@ -52,5 +60,11 @@ public class FileCertRecordStore implements CertRecordStore {
 
     static void error(String msg) {
         throw new RuntimeException("FileObjectStore: " + msg);
+    }
+
+    @Override
+    public void log(final Principal principal, final String ip, final String provider,
+                    final String instanceId, final X509Certificate x509Cert) {
+        X509CertUtils.logCert(CERTLOGGER, principal, ip, provider, instanceId, x509Cert);
     }
 }

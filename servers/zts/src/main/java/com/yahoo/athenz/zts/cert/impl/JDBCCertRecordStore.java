@@ -15,8 +15,11 @@
  */
 package com.yahoo.athenz.zts.cert.impl;
 
+import java.security.cert.X509Certificate;
 import java.sql.SQLException;
 
+import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.zts.cert.X509CertUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,9 +28,11 @@ import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.cert.CertRecordStore;
 import com.yahoo.athenz.zts.cert.CertRecordStoreConnection;
 
+
 public class JDBCCertRecordStore implements CertRecordStore {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JDBCCertRecordStore.class);
+    private static final Logger CERTLOGGER = LoggerFactory.getLogger("X509CertLogger");
 
     PoolableDataSource src;
     private int opTimeout = 10; //in seconds
@@ -56,5 +61,11 @@ public class JDBCCertRecordStore implements CertRecordStore {
     @Override
     public void clearConnections() {
         src.clearPoolConnections();
+    }
+
+    @Override
+    public void log(final Principal principal, final String ip, final String provider,
+                    final String instanceId, final X509Certificate x509Cert) {
+        X509CertUtils.logCert(CERTLOGGER, principal, ip, provider, instanceId, x509Cert);
     }
 }

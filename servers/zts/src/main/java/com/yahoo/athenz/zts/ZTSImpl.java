@@ -1503,7 +1503,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domainName);
         }
         RoleToken roleToken = new RoleToken().setToken(x509Cert).setExpiryTime(ZTS_ROLE_CERT_EXPIRY);
-        
+
+        // log our certificate
+
+        instanceCertManager.log(principal, ipAddress, ZTSConsts.ZTS_SERVICE,
+                null, Crypto.loadX509Certificate(x509Cert));
+
         metric.stopTiming(timerMetric);
         return roleToken;
     }
@@ -1723,7 +1728,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         AthenzObject.INSTANCE_REGISTER_INFO.convertToLowerCase(info);
 
-        Principal principal = ((RsrcCtxWrapper) ctx).principal();
         final String domain = info.getDomain();
         final String service = info.getService();
         final String cn = domain + "." + service;
@@ -1839,7 +1843,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         if (sshCertAllowed) {
             Object timerSSHCertMetric = metric.startTiming("certsignssh_timing", null);
-            instanceCertManager.generateSSHIdentity(principal, identity, info.getSsh(), ZTSConsts.ZTS_SSH_HOST);
+            instanceCertManager.generateSSHIdentity(null, identity, info.getSsh(), ZTSConsts.ZTS_SSH_HOST);
             metric.stopTiming(timerSSHCertMetric);
         }
 
@@ -1873,12 +1877,15 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (info.getToken() == Boolean.TRUE) {
             PrincipalToken svcToken = new PrincipalToken.Builder("S1", domain, service)
                 .expirationWindow(svcTokenTimeout).keyId(privateKeyId).host(serverHostName)
-                .ip(ServletRequestUtil.getRemoteAddress(ctx.request()))
-                .keyService(ZTSConsts.ZTS_SERVICE).build();
+                .ip(ipAddress).keyService(ZTSConsts.ZTS_SERVICE).build();
             svcToken.sign(privateKey);
             identity.setServiceToken(svcToken.getSignedToken());
         }
-        
+
+        // log our certificate
+
+        instanceCertManager.log(null, ipAddress, provider, certReqInstanceId, newCert);
+
         final String location = "/zts/v1/instance/" + provider + "/" + domain
                 + "/" + service + "/" + certReqInstanceId;
         metric.stopTiming(timerMetric);
@@ -2164,10 +2171,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         X509Certificate newCert = Crypto.loadX509Certificate(identity.getX509Certificate());
         final String certSerialNumber = newCert.getSerialNumber().toString();
+        final String reqIp = ServletRequestUtil.getRemoteAddress(ctx.request());
 
         if (x509CertRecord != null) {
             x509CertRecord.setCurrentSerial(certSerialNumber);
-            x509CertRecord.setCurrentIP(ServletRequestUtil.getRemoteAddress(ctx.request()));
+            x509CertRecord.setCurrentIP(reqIp);
             x509CertRecord.setCurrentTime(new Date());
 
             // we must be able to update our record db otherwise we will
@@ -2177,7 +2185,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 throw serverError("unable to update cert db", caller, domain);
             }
         }
-        
+
+        // log our certificate
+
+        instanceCertManager.log(principal, reqIp, provider, instanceId, newCert);
+
         // if we're asked to return an NToken in addition to ZTS Certificate
         // then we'll generate one and include in the identity object
         
@@ -2474,7 +2486,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw serverError("Unable to generate identity", caller, domain);
         }
         identity.setCaCertBundle(instanceCertManager.getX509CertificateSigner());
-        
+
+        // log our certificate
+
+        instanceCertManager.log(principal, ipAddress, ZTSConsts.ZTS_SERVICE,
+                ZTSUtils.extractCertReqInstanceId(certReq),
+                Crypto.loadX509Certificate(identity.getCertificate()));
+
         metric.stopTiming(timerMetric);
         return identity;
     }
@@ -2584,7 +2602,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         domain = domain.toLowerCase();
         service = service.toLowerCase();
         final String cn = domain + "." + service;
-        
+        final String ipAddress = ServletRequestUtil.getRemoteAddress(ctx.request());
+
         if (ostkHostSignerDomain == null) {
             throw serverError("postOSTKInstanceInformation: Host Signer not configured",
                     caller, domain);
@@ -2649,7 +2668,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         X509Certificate newCert = Crypto.loadX509Certificate(identity.getCertificate());
         x509CertRecord.setCurrentSerial(newCert.getSerialNumber().toString());
-        x509CertRecord.setCurrentIP(ServletRequestUtil.getRemoteAddress(ctx.request()));
+        x509CertRecord.setCurrentIP(ipAddress);
         x509CertRecord.setCurrentTime(new Date());
 
         x509CertRecord.setPrevSerial(x509CertRecord.getCurrentSerial());
@@ -2663,7 +2682,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw serverError("postOSTKInstanceInformation: unable to update cert db",
                     caller, domain);
         }
-        
+
+        // log our certificate
+
+        instanceCertManager.log(null, ipAddress, "ostk", instanceId, newCert);
+
         metric.stopTiming(timerMetric);
         return identity;
     }
@@ -2783,10 +2806,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         identity.setCaCertBundle(instanceCertManager.getX509CertificateSigner());
 
         // need to update our cert record with new certificate details
-        
+
+        final String ipAddress = ServletRequestUtil.getRemoteAddress(ctx.request());
+
         X509Certificate newCert = Crypto.loadX509Certificate(identity.getCertificate());
         x509CertRecord.setCurrentSerial(newCert.getSerialNumber().toString());
-        x509CertRecord.setCurrentIP(ServletRequestUtil.getRemoteAddress(ctx.request()));
+        x509CertRecord.setCurrentIP(ipAddress);
         x509CertRecord.setCurrentTime(new Date());
         
         // we must be able to update our record db otherwise we will
@@ -2796,7 +2821,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw serverError("postOSTKInstanceRefreshRequest: unable to update cert db",
                     caller, domain);
         }
-        
+
+        // log our certificate
+
+        instanceCertManager.log(principal, ipAddress, "ostk", x509CertRecord.getInstanceId(), newCert);
+
         metric.stopTiming(timerMetric);
         return identity;
     }
