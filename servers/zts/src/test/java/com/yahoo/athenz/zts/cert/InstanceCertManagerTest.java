@@ -697,4 +697,15 @@ public class InstanceCertManagerTest {
 
         assertNull(instanceManager.readFileContents("src/test/resources/athenz.conf"));
     }
+
+    @Test
+    public void testLogNoCertStore() {
+        InstanceCertManager instance = new InstanceCertManager(null, null, true);
+        instance.setCertStore(null);
+
+        // passing all null which should typically return a NPE
+        // however, with null cert store, we should never call log
+        instance.log(null, null, null, null, null);
+        instance.shutdown();
+    }
 }

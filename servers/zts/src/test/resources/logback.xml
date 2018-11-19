@@ -44,9 +44,30 @@
     </encoder>
   </appender>
 
+  <!-- Logger used exclusively for certificate logging -->
+  <appender name="X509CERT" class="ch.qos.logback.core.rolling.RollingFileAppender">
+
+    <file>${LOG_DIR}/x509cert.log</file>
+    <append>true</append>
+
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>${LOG_DIR}/x509cert.%d{yyyy-MM-dd}.log</fileNamePattern>
+      <maxHistory>7</maxHistory>
+      <cleanHistoryOnStart>true</cleanHistoryOnStart>
+    </rollingPolicy>
+
+    <encoder>
+      <pattern>%date{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX", UTC} %msg%n</pattern>
+    </encoder>
+  </appender>
+
   <logger name="org.eclipse" level="INFO"/>
   <logger name="AuditSoxLogger" level="INFO" additivity="false" >
     <appender-ref ref="AUDIT" />
+  </logger>
+
+  <logger name="X509CertLogger" level="INFO" additivity="false" >
+    <appender-ref ref="X509CERT" />
   </logger>
 
   <root>

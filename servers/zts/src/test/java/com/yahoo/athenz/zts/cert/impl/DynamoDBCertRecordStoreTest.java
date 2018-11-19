@@ -17,11 +17,19 @@ package com.yahoo.athenz.zts.cert.impl;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 
+import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.impl.SimplePrincipal;
+import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.zts.cert.CertRecordStoreConnection;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.security.cert.X509Certificate;
 
 import static org.testng.Assert.*;
 
@@ -58,5 +66,26 @@ public class DynamoDBCertRecordStoreTest {
             fail();
         } catch (Exception ignored) {
         }
+    }
+
+    @Test
+    public void testLog() {
+
+        DynamoDBCertRecordStore store = new DynamoDBCertRecordStore(dbClient, "Athenz-ZTS-Table");
+
+        File file = new File("src/test/resources/cert_log.pem");
+        String pem = null;
+        try {
+            pem = new String(Files.readAllBytes(file.toPath()));
+        } catch (IOException ex) {
+            fail();
+        }
+        X509Certificate cert = Crypto.loadX509Certificate(pem);
+
+        Principal principal = SimplePrincipal.create("user", "joe", "creds");
+
+        // make sure no exceptions are thrown when processing log request
+
+        store.log(principal, "10.11.12.13", "athens.provider", "1234", cert);
     }
 }

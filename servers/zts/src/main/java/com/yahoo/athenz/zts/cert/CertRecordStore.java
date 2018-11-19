@@ -15,6 +15,10 @@
  */
 package com.yahoo.athenz.zts.cert;
 
+import com.yahoo.athenz.auth.Principal;
+
+import java.security.cert.X509Certificate;
+
 public interface CertRecordStore {
 
     /**
@@ -34,4 +38,20 @@ public interface CertRecordStore {
      * Clear all connections to the cert record store
      */
     void clearConnections();
+
+    /**
+     * Log the certificate details. This method will be
+     * called for all certificates issued by ZTS Server
+     * regardless or not it is checked against cert
+     * record details.
+     * @param principal Principal who requested the certificate
+     *     for initial register requests this will be null
+     * @param ip IP address of the request
+     * @param provider service responsible for attestation of csr
+     * @param instanceId instance id if the certificate request
+     *     is for a service as opposed to a role
+     * @param x509Cert issued certificate
+     */
+    void log(final Principal principal, final String ip, final String provider,
+             final String instanceId, final X509Certificate x509Cert);
 }

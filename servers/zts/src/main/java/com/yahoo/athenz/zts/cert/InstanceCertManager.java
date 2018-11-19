@@ -11,7 +11,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import com.yahoo.athenz.zts.cert.impl.X509CertUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -507,7 +506,25 @@ public class InstanceCertManager {
         }
         return false;
     }
-    
+
+    public void log(final Principal principal, final String ip, final String provider,
+                    final String instanceId, final X509Certificate x509Cert) {
+
+        if (certStore == null) {
+            return;
+        }
+
+        // catch and ignore all exceptions. logging is not significant
+        // to return failure if we have received a valid certificate
+        // from our certificate signer. The certstore implementation
+        // must log any failures.
+
+        try {
+            certStore.log(principal, ip, provider, instanceId, x509Cert);
+        } catch (Exception ignored) {
+        }
+    }
+
     class ExpiredX509CertRecordCleaner implements Runnable {
         
         private CertRecordStore store;
