@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.zms;
 
+import com.yahoo.athenz.zms.store.ObjectStoreConnection;
 import org.mockito.Mockito;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -3015,7 +3016,225 @@ public class DBServiceTest {
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "deleteusersports", auditRef);
     }
-    
+
+    @Test
+    public void testExecuteDeleteDomainRoleMember() {
+
+        String domainName = "deletedomainrolemember1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Role role1 = createRoleObject(domainName, "role1", null,
+                "user.jack", "user.janie");
+        zms.putRole(mockDomRsrcCtx, domainName, "role1", auditRef, role1);
+
+        Role role2 = createRoleObject(domainName, "role2", null,
+                "user.janie", "user.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, "role2", auditRef, role2);
+
+        Role role3 = createRoleObject(domainName, "role3", null,
+                "user.jack", "user.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, "role3", auditRef, role3);
+
+        Role role4 = createRoleObject(domainName, "role4", null,
+                "user.jack", null);
+        zms.putRole(mockDomRsrcCtx, domainName, "role4", auditRef, role4);
+
+        Role role5 = createRoleObject(domainName, "role5", null,
+                "user.jack-service", "user.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, "role5", auditRef, role5);
+
+        DomainRoleMembers domainRoleMembers = zms.getDomainRoleMembers(mockDomRsrcCtx, domainName);
+        assertEquals(domainName, domainRoleMembers.getDomainName());
+
+        List<DomainRoleMember> members = domainRoleMembers.getMembers();
+        assertNotNull(members);
+        assertEquals(5, members.size());
+        ZMSTestUtils.verifyDomainRoleMember(members, "user.jack", "role1", "role3", "role4");
+        ZMSTestUtils.verifyDomainRoleMember(members, "user.janie", "role1", "role2");
+        ZMSTestUtils.verifyDomainRoleMember(members, "user.jane", "role2", "role3", "role5");
+        ZMSTestUtils.verifyDomainRoleMember(members, "user.jack-service", "role5");
+        ZMSTestUtils.verifyDomainRoleMember(members, adminUser, "admin");
+
+        // this should be no-op with unknown user
+
+        zms.dbService.executeDeleteDomainRoleMember(mockDomRsrcCtx, domainName, "user.unknown", auditRef,
+                "testExecuteDeleteDomainRoleMember");
+
+        domainRoleMembers = zms.getDomainRoleMembers(mockDomRsrcCtx, domainName);
+        members = domainRoleMembers.getMembers();
+        assertNotNull(members);
+        assertEquals(5, members.size());
+        ZMSTestUtils.verifyDomainRoleMember(members, "user.jack", "role1", "role3", "role4");
+        ZMSTestUtils.verifyDomainRoleMember(members, "user.janie", "role1", "role2");
+        ZMSTestUtils.verifyDomainRoleMember(members, "user.jane", "role2", "role3", "role5");
+        ZMSTestUtils.verifyDomainRoleMember(members, "user.jack-service", "role5");
+        ZMSTestUtils.verifyDomainRoleMember(members, adminUser, "admin");
+
+        // now remove a known user
+
+        zms.dbService.executeDeleteDomainRoleMember(mockDomRsrcCtx, domainName, "user.jack", auditRef,
+                "testExecuteDeleteDomainRoleMember");
+
+        domainRoleMembers = zms.getDomainRoleMembers(mockDomRsrcCtx, domainName);
+        assertEquals(domainName, domainRoleMembers.getDomainName());
+
+        members = domainRoleMembers.getMembers();
+        assertNotNull(members);
+        assertEquals(4, members.size());
+        ZMSTestUtils.verifyDomainRoleMember(members, "user.janie", "role1", "role2");
+        ZMSTestUtils.verifyDomainRoleMember(members, "user.jane", "role2", "role3", "role5");
+        ZMSTestUtils.verifyDomainRoleMember(members, "user.jack-service", "role5");
+        ZMSTestUtils.verifyDomainRoleMember(members, adminUser, "admin");
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testExecuteDeleteDomainRoleMemberRetryException() {
+
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockFileConn);
+        Mockito.when(mockFileConn.listPrincipalRoles("dom1", "user.joe"))
+                .thenThrow(new ResourceException(410));
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        int saveRetryCount = zms.dbService.defaultRetryCount;
+        zms.dbService.defaultRetryCount = 3;
+
+        try {
+            zms.dbService.executeDeleteDomainRoleMember(mockDomRsrcCtx, "dom1", "user.joe", adminUser, "unittest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(410, ex.getCode());
+        }
+
+        zms.dbService.defaultRetryCount = saveRetryCount;
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testRemovePrincipalFromDomainRolesExceptions() {
+
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(conn.listPrincipalRoles("dom1", "user.joe"))
+                .thenThrow(new ResourceException(404))
+                .thenThrow(new ResourceException(501));
+
+        // handle exceptions accordingly
+
+        try {
+            zms.dbService.removePrincipalFromDomainRoles(conn, "dom1", "user.joe", adminUser, "unittest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(404, ex.getCode());
+        }
+
+        try {
+            zms.dbService.removePrincipalFromDomainRoles(conn, "dom1", "user.joe", adminUser, "unittest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(501, ex.getCode());
+        }
+    }
+
+    @Test
+    public void testRemovePrincipalFromDomainRolesDeleteUserException() {
+
+        List<PrincipalRole> roles = new ArrayList<>();
+        PrincipalRole role1 = new PrincipalRole();
+        role1.setDomainName("dom1");
+        role1.setRoleName("role1");
+        roles.add(role1);
+        PrincipalRole role2 = new PrincipalRole();
+        role2.setDomainName("dom1");
+        role2.setRoleName("role2");
+        roles.add(role2);
+
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(conn.listPrincipalRoles("dom1", "user.joe")).thenReturn(roles);
+        Mockito.when(conn.deleteRoleMember("dom1", "role1", "user.joe", adminUser, "unittest"))
+                .thenReturn(true);
+        Mockito.when(conn.deleteRoleMember("dom1", "role2", "user.joe", adminUser, "unittest"))
+                .thenThrow(new ResourceException(501));
+
+        // we should handle the exception without any errors
+
+        zms.dbService.removePrincipalFromDomainRoles(conn, "dom1", "user.joe", adminUser, "unittest");
+    }
+
+    @Test
+    public void testRemovePrincipalFromAllRolesExceptions() {
+
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(conn.listPrincipalRoles(null, "user.joe"))
+                .thenThrow(new ResourceException(404))
+                .thenThrow(new ResourceException(501));
+
+        // no exception if store returns 404
+
+        zms.dbService.removePrincipalFromAllRoles(conn, "user.joe", adminUser, "unittest");
+
+        // with next we should throw the exception so we should catch it
+
+        try {
+            zms.dbService.removePrincipalFromAllRoles(conn, "user.joe", adminUser, "unittest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(501, ex.getCode());
+        }
+    }
+
+    @Test
+    public void testExecuteDeleteUserRetryException() {
+
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockFileConn);
+        Mockito.when(mockFileConn.listDomains("home.joe.", 0))
+                .thenThrow(new ResourceException(409));
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        int saveRetryCount = zms.dbService.defaultRetryCount;
+        zms.dbService.defaultRetryCount = 3;
+
+        try {
+            zms.dbService.executeDeleteUser(mockDomRsrcCtx, "joe", "home.joe", adminUser, "unittest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(409, ex.getCode());
+        }
+
+        zms.dbService.defaultRetryCount = saveRetryCount;
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testRemovePrincipalFromAllRolesDeleteUserException() {
+
+        List<PrincipalRole> roles = new ArrayList<>();
+        PrincipalRole role1 = new PrincipalRole();
+        role1.setDomainName("dom1");
+        role1.setRoleName("role1");
+        roles.add(role1);
+        PrincipalRole role2 = new PrincipalRole();
+        role2.setDomainName("dom1");
+        role2.setRoleName("role2");
+        roles.add(role2);
+
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(conn.listPrincipalRoles(null, "user.joe")).thenReturn(roles);
+        Mockito.when(conn.deleteRoleMember("dom1", "role1", "user.joe", adminUser, "unittest"))
+                .thenReturn(true);
+        Mockito.when(conn.deleteRoleMember("dom1", "role2", "user.joe", adminUser, "unittest"))
+                .thenThrow(new ResourceException(501));
+
+        // we should handle the exception without any errors
+
+        zms.dbService.removePrincipalFromAllRoles(conn, "user.joe", adminUser, "unittest");
+    }
+
     @Test
     public void testExecutePutQuotaInsert() {
 

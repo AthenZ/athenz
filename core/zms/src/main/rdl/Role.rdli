@@ -53,7 +53,7 @@ resource Role GET "/domain/{domainName}/role/{roleName}?auditLog={auditLog}&expa
 resource Role PUT "/domain/{domainName}/role/{roleName}" {
     DomainName domainName; //name of the domain
     EntityName roleName; //name of the role to be added/updated
-    String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     Role role; //Role object to be added/updated in the domain
     authorize ("update", "{domainName}:role.{roleName}");
     expected NO_CONTENT;
@@ -73,7 +73,7 @@ resource Role PUT "/domain/{domainName}/role/{roleName}" {
 resource Role DELETE "/domain/{domainName}/role/{roleName}" {
     DomainName domainName; //name of the domain
     EntityName roleName; //name of the role to be deleted
-    String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     authorize ("delete", "{domainName}:role.{roleName}");
     expected NO_CONTENT;
     exceptions {
@@ -101,12 +101,25 @@ resource Membership GET "/domain/{domainName}/role/{roleName}/member/{memberName
     }
 }
 
+//Get list of principals defined in roles in the given domain
+resource DomainRoleMembers GET "/domain/{domainName}/member" {
+    DomainName domainName; //name of the domain
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
 //Add the specified user to the role's member list.
 resource Membership PUT "/domain/{domainName}/role/{roleName}/member/{memberName}" {
     DomainName domainName; //name of the domain
     EntityName roleName; //name of the role
     MemberName memberName; //name of the user to be added as a member
-    String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     Membership membership; //Membership object (must contain role/member names as specified in the URI)
     authorize ("update", "{domainName}:role.{roleName}");
     expected NO_CONTENT;
@@ -127,7 +140,7 @@ resource Membership DELETE "/domain/{domainName}/role/{roleName}/member/{memberN
     DomainName domainName; //name of the domain
     EntityName roleName; //name of the role
     MemberName memberName; //name of the user to be removed as a member
-    String       auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     authorize ("update", "{domainName}:role.{roleName}");
     expected NO_CONTENT;
     exceptions {
@@ -146,7 +159,7 @@ resource Membership DELETE "/domain/{domainName}/role/{roleName}/member/{memberN
 //administrators incorrectly have blocked their own access to their domains.
 resource DefaultAdmins PUT "/domain/{domainName}/admins" {
     DomainName domainName; //name of the domain
-    String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     DefaultAdmins defaultAdmins; //list of domain administrators
     authorize ("update", "sys.auth:domain");
     expected NO_CONTENT;

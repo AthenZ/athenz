@@ -693,6 +693,34 @@ public class ZMSResources {
         }
     }
 
+    @GET
+    @Path("/domain/{domainName}/member")
+    @Produces(MediaType.APPLICATION_JSON)
+    public DomainRoleMembers getDomainRoleMembers(@PathParam("domainName") String domainName) {
+        try {
+            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context.authenticate();
+            return this.delegate.getDomainRoleMembers(context, domainName);
+        } catch (ResourceException e) {
+            int code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getDomainRoleMembers");
+                throw typedException(code, e, ResourceError.class);
+            }
+        }
+    }
+
     @PUT
     @Path("/domain/{domainName}/role/{roleName}/member/{memberName}")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -1761,6 +1789,36 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             default:
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteUser");
+                throw typedException(code, e, ResourceError.class);
+            }
+        }
+    }
+
+    @DELETE
+    @Path("/domain/{domainName}/member/{memberName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public void deleteDomainRoleMember(@PathParam("domainName") String domainName, @PathParam("memberName") String memberName, @HeaderParam("Y-Audit-Ref") String auditRef) {
+        try {
+            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context.authorize("update", "" + domainName + ":", null);
+            this.delegate.deleteDomainRoleMember(context, domainName, memberName, auditRef);
+        } catch (ResourceException e) {
+            int code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteDomainRoleMember");
                 throw typedException(code, e, ResourceError.class);
             }
         }

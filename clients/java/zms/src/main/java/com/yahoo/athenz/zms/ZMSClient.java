@@ -2007,4 +2007,40 @@ public class ZMSClient implements Closeable {
             throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
         }
     }
+
+    /**
+     * Delete the specified user from all roles in the given domain
+     * @param domainName name of the domain
+     * @param memberName name of the member to be removed from all roles
+     * @param auditRef string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
+     */
+    public void deleteDomainRoleMember(String domainName, String memberName, String auditRef) {
+        updatePrincipal();
+        try {
+            client.deleteDomainRoleMember(domainName, memberName, auditRef);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Retrieve the list of all members provisioned for a domain
+     * in regular roles
+     * @param domainName name of the domain
+     * @return DomainRoleMembers object that includes the list of members with their roles
+     * @throws ZMSClientException in case of failure
+     */
+    public DomainRoleMembers getDomainRoleMembers(String domainName) {
+        updatePrincipal();
+        try {
+            return client.getDomainRoleMembers(domainName);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
 }

@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.zms;
 
+import java.io.IOException;
 import java.util.*;
 
 import com.yahoo.athenz.auth.Authority;
@@ -2040,13 +2041,27 @@ public class ZMSClientTest {
         Quota quota = new Quota().setName("athenz").setAssertion(10).setEntity(11)
                 .setPolicy(12).setPublicKey(13).setRole(14).setRoleMember(15)
                 .setService(16).setServiceHost(17).setSubdomain(18);
-        Mockito.when(c.putQuota("athenz", AUDIT_REF, quota)).thenReturn(null).thenThrow(new ZMSClientException(400, "fail"));
-        
+        Mockito.when(c.putQuota("athenz", AUDIT_REF, quota))
+                .thenReturn(null)
+                .thenThrow(new ZMSClientException(401, "fail"))
+                .thenThrow(new IllegalArgumentException("other-error"));
+
+
         // first time it completes successfully
         
         client.putQuota("athenz", AUDIT_REF, quota);
 
         // second time it fails
+
+        try {
+            client.putQuota("athenz", AUDIT_REF, quota);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(401, ex.getCode());
+        }
+
+        // last time with std exception
+
         try {
             client.putQuota("athenz", AUDIT_REF, quota);
             fail();
@@ -2060,15 +2075,110 @@ public class ZMSClientTest {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
-        Mockito.when(c.deleteQuota("athenz", AUDIT_REF)).thenReturn(null).thenThrow(new ZMSClientException(400, "fail"));
-        
+        Mockito.when(c.deleteQuota("athenz", AUDIT_REF)).thenReturn(null)
+                .thenThrow(new ZMSClientException(401, "fail"))
+                .thenThrow(new IllegalArgumentException("other-error"));
+
         // first time it completes successfully
         
         client.deleteQuota("athenz", AUDIT_REF);
 
         // second time it fails
+
         try {
             client.deleteQuota("athenz", AUDIT_REF);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(401, ex.getCode());
+        }
+
+        // finally std exception
+
+        try {
+            client.deleteQuota("athenz", AUDIT_REF);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(400, ex.getCode());
+        }
+    }
+
+    @Test
+    public void testDeleteDomainRoleMember() {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        Mockito.when(c.deleteDomainRoleMember("athenz", "athenz.api", AUDIT_REF))
+                .thenReturn(null)
+                .thenThrow(new ZMSClientException(401, "fail"))
+                .thenThrow(new IllegalArgumentException("other-error"));
+
+        // first time it completes successfully
+
+        client.deleteDomainRoleMember("athenz", "athenz.api", AUDIT_REF);
+
+        // second time it fails with zms client exception
+
+        try {
+            client.deleteDomainRoleMember("athenz", "athenz.api", AUDIT_REF);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(401, ex.getCode());
+        }
+
+        // last time with std exception - resulting in 400
+
+        try {
+            client.deleteDomainRoleMember("athenz", "athenz.api", AUDIT_REF);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(400, ex.getCode());
+        }
+    }
+
+    @Test
+    public void testGetDomainRoleMembers() {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+
+        MemberRole memberRole = new MemberRole();
+        memberRole.setRoleName("readers");
+
+        List<MemberRole> memberRoles = new ArrayList<>();
+        memberRoles.add(memberRole);
+
+        DomainRoleMember member = new DomainRoleMember();
+        member.setMemberName("athenz.api");
+        member.setMemberRoles(memberRoles);
+
+        List<DomainRoleMember> members = new ArrayList<>();
+        members.add(member);
+
+        DomainRoleMembers domainRoleMembers = new DomainRoleMembers();
+        domainRoleMembers.setMembers(members);
+
+        Mockito.when(c.getDomainRoleMembers("athenz"))
+                .thenReturn(domainRoleMembers)
+                .thenThrow(new ZMSClientException(401, "fail"))
+                .thenThrow(new IllegalArgumentException("other-error"));
+
+        DomainRoleMembers retMembers = client.getDomainRoleMembers("athenz");
+        assertNotNull(retMembers);
+        assertEquals(retMembers.getMembers().get(0).getMemberName(), "athenz.api");
+
+        // second time it fails with zms client exception
+
+        try {
+            client.getDomainRoleMembers("athenz");
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(401, ex.getCode());
+        }
+
+        // last time with std exception - resulting in 400
+
+        try {
+            client.getDomainRoleMembers("athenz");
             fail();
         } catch (ZMSClientException ex) {
             assertEquals(400, ex.getCode());

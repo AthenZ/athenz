@@ -23,15 +23,38 @@ import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertNotNull;
 
-public class JDBCCertRecordStoreFactoryTest {
+public class JDBCObjectStoreFactoryTest {
 
     @Test
-    public void testCreate() {
+    public void testCreateWriteOnly() {
         
         System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_STORE, "jdbc:mysql://localhost");
         System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_USER, "user");
         System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_PASSWORD, "password");
-        
+
+        System.clearProperty(ZMSConsts.ZMS_PROP_JDBC_RO_STORE);
+        System.clearProperty(ZMSConsts.ZMS_PROP_JDBC_RO_USER);
+        System.clearProperty(ZMSConsts.ZMS_PROP_JDBC_RO_PASSWORD);
+
+        PrivateKeyStore keyStore = Mockito.mock(PrivateKeyStore.class);
+        Mockito.doReturn("password").when(keyStore).getApplicationSecret("jdbc", "password");
+
+        JDBCObjectStoreFactory factory = new JDBCObjectStoreFactory();
+        ObjectStore store = factory.create(keyStore);
+        assertNotNull(store);
+    }
+
+    @Test
+    public void testCreateReadWrite() {
+
+        System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_STORE, "jdbc:mysql://localhost");
+        System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_USER, "user");
+        System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_PASSWORD, "password");
+
+        System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RO_STORE, "jdbc:mysql://localhost");
+        System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RO_USER, "user");
+        System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RO_PASSWORD, "password");
+
         PrivateKeyStore keyStore = Mockito.mock(PrivateKeyStore.class);
         Mockito.doReturn("password").when(keyStore).getApplicationSecret("jdbc", "password");
 

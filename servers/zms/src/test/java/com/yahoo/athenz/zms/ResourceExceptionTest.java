@@ -44,8 +44,13 @@ public class ResourceExceptionTest {
         assertEquals("Gone", ResourceException.codeToString(410));
         assertEquals("Precondition Failed", ResourceException.codeToString(412));
         assertEquals("Unsupported Media Type", ResourceException.codeToString(415));
+        assertEquals("Precondition Required", ResourceException.codeToString(428));
+        assertEquals("Too Many Requests", ResourceException.codeToString(429));
+        assertEquals("Request Header Fields Too Large", ResourceException.codeToString(431));
         assertEquals("Internal Server Error", ResourceException.codeToString(500));
         assertEquals("Not Implemented", ResourceException.codeToString(501));
+        assertEquals("Service Unavailable", ResourceException.codeToString(503));
+        assertEquals("Network Authentication Required", ResourceException.codeToString(511));
         assertEquals("1001", ResourceException.codeToString(1001));
     }
 

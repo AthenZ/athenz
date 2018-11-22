@@ -19,26 +19,6 @@ import static org.testng.Assert.*;
 import org.testng.annotations.Test;
 
 public class ResourceExceptionTest {
-    public final static int OK = 200;
-    public final static int CREATED = 201;
-    public final static int ACCEPTED = 202;
-    public final static int NO_CONTENT = 204;
-    public final static int MOVED_PERMANENTLY = 301;
-    public final static int FOUND = 302;
-    public final static int SEE_OTHER = 303;
-    public final static int NOT_MODIFIED = 304;
-    public final static int TEMPORARY_REDIRECT = 307;
-    public final static int BAD_REQUEST = 400;
-    public final static int UNAUTHORIZED = 401;
-    public final static int FORBIDDEN = 403;
-    public final static int NOT_FOUND = 404;
-    public final static int CONFLICT = 409;
-    public final static int GONE = 410;
-    public final static int PRECONDITION_FAILED = 412;
-    public final static int UNSUPPORTED_MEDIA_TYPE = 415;
-    public final static int INTERNAL_SERVER_ERROR = 500;
-    public final static int NOT_IMPLEMENTED = 501;
-    public final static int SERVICE_UNAVAILABLE = 503;
 
     @Test
     public void testCodeToString() {
@@ -60,8 +40,13 @@ public class ResourceExceptionTest {
         assertEquals("Gone", ResourceException.codeToString(410));
         assertEquals("Precondition Failed", ResourceException.codeToString(412));
         assertEquals("Unsupported Media Type", ResourceException.codeToString(415));
+        assertEquals("Precondition Required", ResourceException.codeToString(428));
+        assertEquals("Too Many Requests", ResourceException.codeToString(429));
+        assertEquals("Request Header Fields Too Large", ResourceException.codeToString(431));
         assertEquals("Internal Server Error", ResourceException.codeToString(500));
         assertEquals("Not Implemented", ResourceException.codeToString(501));
+        assertEquals("Service Unavailable", ResourceException.codeToString(503));
+        assertEquals("Network Authentication Required", ResourceException.codeToString(511));
         assertEquals("1001", ResourceException.codeToString(1001));
     }
 

@@ -354,6 +354,14 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 1 {
 				return cli.DeleteRole(dn, args[0])
 			}
+		case "delete-domain-role-member":
+			if argc == 1 {
+				return cli.DeleteDomainRoleMember(dn, args[0])
+			}
+		case "list-domain-role-members":
+			if argc == 0 {
+				return cli.ListDomainRoleMembers(dn)
+			}
 		case "list-service", "list-services":
 			if argc == 0 {
 				return cli.ListServices(dn)
@@ -955,6 +963,25 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   user_or_service   : users or services to be removed as members\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domain_example + " delete-provider-role-member storage.db stats_db access media.sports.storage\n")
+	case "list-domain-role-members":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domain_param + " list-domain-role-members\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain            : name of the domain\n")
+		}
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domain_example + " list-domain-role-members\n")
+	case "delete-domain-role-member":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domain_param + " delete-domain-role-member member\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain            : name of the domain\n")
+		}
+		buf.WriteString("   member            : name of the member to be removed from all roles in the domain\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domain_example + " delete-domain-role-member media.sports.storage\n")
 	case "delete-role":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domain_param + " delete-role role\n")
@@ -1464,7 +1491,9 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   delete-member group_role user_or_service [user_or_service ...]\n")
 	buf.WriteString("   add-provider-role-member provider_service resource_group provider_role user_or_service [user_or_service ...]\n")
 	buf.WriteString("   show-provider-role-member provider_service resource_group provider_role\n")
+	buf.WriteString("   list-domain-role-members")
 	buf.WriteString("   delete-provider-role-member provider_service resource_group provider_role user_or_service [user_or_service ...]\n")
+	buf.WriteString("   delete-domain-role-member member")
 	buf.WriteString("   delete-role role\n")
 	buf.WriteString("\n")
 	buf.WriteString(" Service commands:\n")

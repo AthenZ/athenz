@@ -56,7 +56,11 @@ class QuotaChecker {
         Quota quota = con.getQuota(domainName);
         return (quota == null) ? defaultQuota : quota;
     }
-    
+
+    void setQuotaCheckEnabled(boolean quotaCheckEnabled) {
+        this.quotaCheckEnabled = quotaCheckEnabled;
+    }
+
     int getListSize(List<?> list) {
         return (list == null) ? 0 : list.size();
     }

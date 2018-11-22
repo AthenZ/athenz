@@ -109,6 +109,11 @@ public class QuotaCheckerTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.TOO_MANY_REQUESTS);
         }
+
+        // with quota check disabled - no exceptions
+
+        quotaCheck.setQuotaCheckEnabled(false);
+        quotaCheck.checkSubdomainQuota(con, "athenz.quota", "caller");
     }
     
     @Test
@@ -161,6 +166,11 @@ public class QuotaCheckerTest {
             assertEquals(ex.getCode(), ResourceException.TOO_MANY_REQUESTS);
             assertTrue(ex.getMessage().contains("role member quota exceeded"));
         }
+
+        // with quota check disabled - no exceptions
+
+        quotaCheck.setQuotaCheckEnabled(false);
+        quotaCheck.checkRoleQuota(con, "athenz", role, "caller");
     }
     
     @Test
@@ -184,6 +194,11 @@ public class QuotaCheckerTest {
             assertEquals(ex.getCode(), ResourceException.TOO_MANY_REQUESTS);
             assertTrue(ex.getMessage().contains("role quota exceeded"));
         }
+
+        // with quota check disabled - no exceptions
+
+        quotaCheck.setQuotaCheckEnabled(false);
+        quotaCheck.checkRoleQuota(con, "athenz", role, "caller");
     }
     
     @Test
@@ -214,10 +229,15 @@ public class QuotaCheckerTest {
         try {
             quotaCheck.checkRoleMembershipQuota(con, "athenz", "readers", "caller");
             fail();
-       } catch (ResourceException ex) {
+        } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.TOO_MANY_REQUESTS);
             assertTrue(ex.getMessage().contains("role member quota exceeded"));
         }
+
+        // with quota check disabled - no exceptions
+
+        quotaCheck.setQuotaCheckEnabled(false);
+        quotaCheck.checkRoleMembershipQuota(con, "athenz", "readers", "caller");
     }
 
     @Test
@@ -270,10 +290,15 @@ public class QuotaCheckerTest {
         try {
             quotaCheck.checkPolicyQuota(con, "athenz", policy, "caller");
             fail();
-       } catch (ResourceException ex) {
+        } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.TOO_MANY_REQUESTS);
             assertTrue(ex.getMessage().contains("policy assertion quota exceeded"));
         }
+
+        // with quota check disabled - no exceptions
+
+        quotaCheck.setQuotaCheckEnabled(false);
+        quotaCheck.checkPolicyQuota(con, "athenz", policy, "caller");
     }
     
     @Test
@@ -296,10 +321,15 @@ public class QuotaCheckerTest {
         try {
             quotaCheck.checkPolicyQuota(con, "athenz", policy, "caller");
             fail();
-       } catch (ResourceException ex) {
+        } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.TOO_MANY_REQUESTS);
             assertTrue(ex.getMessage().contains("policy quota exceeded"));
         }
+
+        // with quota check disabled - no exceptions
+
+        quotaCheck.setQuotaCheckEnabled(false);
+        quotaCheck.checkPolicyQuota(con, "athenz", policy, "caller");
     }
     
     @Test
@@ -330,10 +360,15 @@ public class QuotaCheckerTest {
         try {
             quotaCheck.checkPolicyAssertionQuota(con, "athenz", "readers", "caller");
             fail();
-       } catch (ResourceException ex) {
+        } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.TOO_MANY_REQUESTS);
             assertTrue(ex.getMessage().contains("policy assertion quota exceeded"));
         }
+
+        // with quota check disabled - no exceptions
+
+        quotaCheck.setQuotaCheckEnabled(false);
+        quotaCheck.checkPolicyAssertionQuota(con, "athenz", "readers", "caller");
     }
 
     @Test
@@ -394,10 +429,15 @@ public class QuotaCheckerTest {
         try {
             quotaCheck.checkServiceIdentityQuota(con, "athenz", service, "caller");
             fail();
-       } catch (ResourceException ex) {
+        } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.TOO_MANY_REQUESTS);
             assertTrue(ex.getMessage().contains("service quota exceeded"));
         }
+
+        // with quota check disabled - no exceptions
+
+        quotaCheck.setQuotaCheckEnabled(false);
+        quotaCheck.checkServiceIdentityQuota(con, "athenz", service, "caller");
     }
     
     @Test
@@ -427,10 +467,15 @@ public class QuotaCheckerTest {
         try {
             quotaCheck.checkServiceIdentityQuota(con, "athenz", service, "caller");
             fail();
-     } catch (ResourceException ex) {
+        } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.TOO_MANY_REQUESTS);
             assertTrue(ex.getMessage().contains("service host quota exceeded"));
         }
+
+        // with quota check disabled - no exceptions
+
+        quotaCheck.setQuotaCheckEnabled(false);
+        quotaCheck.checkServiceIdentityQuota(con, "athenz", service, "caller");
     }
     
     @Test
@@ -464,6 +509,11 @@ public class QuotaCheckerTest {
             assertEquals(ex.getCode(), ResourceException.TOO_MANY_REQUESTS);
             assertTrue(ex.getMessage().contains("service public key quota exceeded"));
         }
+
+        // with quota check disabled - no exceptions
+
+        quotaCheck.setQuotaCheckEnabled(false);
+        quotaCheck.checkServiceIdentityQuota(con, "athenz", service, "caller");
     }
 
     @Test
@@ -498,6 +548,11 @@ public class QuotaCheckerTest {
             assertEquals(ex.getCode(), ResourceException.TOO_MANY_REQUESTS);
             assertTrue(ex.getMessage().contains("service public key quota exceeded"));
         }
+
+        // with quota check disabled - no exceptions
+
+        quotaCheck.setQuotaCheckEnabled(false);
+        quotaCheck.checkServiceIdentityPublicKeyQuota(con, "athenz", "storage", "caller");
     }
 
     @Test
@@ -544,5 +599,10 @@ public class QuotaCheckerTest {
             assertEquals(ex.getCode(), ResourceException.TOO_MANY_REQUESTS);
             assertTrue(ex.getMessage().contains("entity quota exceeded"));
         }
+
+        // with quota check disabled - no exceptions
+
+        quotaCheck.setQuotaCheckEnabled(false);
+        quotaCheck.checkEntityQuota(con, "athenz", entity, "caller");
     }
 }

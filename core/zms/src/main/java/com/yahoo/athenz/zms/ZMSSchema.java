@@ -124,6 +124,18 @@ public class ZMSSchema {
             .comment("The list of domain administrators.")
             .arrayField("admins", "ResourceName", false, "list of domain administrators");
 
+        sb.structType("MemberRole")
+            .field("roleName", "ResourceName", false, "name of the role")
+            .field("expiration", "Timestamp", true, "the expiration timestamp");
+
+        sb.structType("DomainRoleMember")
+            .field("memberName", "MemberName", false, "name of the member")
+            .arrayField("memberRoles", "MemberRole", false, "roles for this member");
+
+        sb.structType("DomainRoleMembers")
+            .field("domainName", "DomainName", false, "name of the domain")
+            .arrayField("members", "DomainRoleMember", false, "role members");
+
         sb.enumType("AssertionEffect")
             .comment("Every assertion can have the effect of ALLOW or DENY.")
             .element("ALLOW")
@@ -794,6 +806,22 @@ public class ZMSSchema {
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("roleName", "EntityName", "name of the role")
             .pathParam("memberName", "MemberName", "user name to be checked for membership")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("DomainRoleMembers", "GET", "/domain/{domainName}/member")
+            .comment("Get list of principals defined in roles in the given domain")
+            .pathParam("domainName", "DomainName", "name of the domain")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
@@ -1485,10 +1513,30 @@ public class ZMSSchema {
 ;
 
         sb.resource("User", "DELETE", "/user/{name}")
-            .comment("Delete the specified user. This command will delete the user.<name> domain and all of its sub-domains (if they exist) and remove the user.<name> from all the roles in the system that it's member of. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+            .comment("Delete the specified user. This command will delete the home.<name> domain and all of its sub-domains (if they exist) and remove the user.<name> from all the roles in the system that it's member of. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
             .pathParam("name", "SimpleName", "name of the user")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit reference")
             .auth("delete", "sys.auth:user")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("DomainRoleMember", "DELETE", "/domain/{domainName}/member/{memberName}")
+            .comment("Delete the specified role member from the given domain. This command will remove the member from all the roles in the domain that it's member of. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("memberName", "MemberName", "name of the role member/principal")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit reference")
+            .auth("update", "{domainName}:")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 

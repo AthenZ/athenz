@@ -17,7 +17,6 @@ package com.yahoo.athenz.zms;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -47,7 +46,6 @@ import static org.testng.Assert.fail;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.Response;
 
@@ -9977,7 +9975,7 @@ public class ZMSImplTest {
         params.add(new TemplateParam().setName("Name1").setValue("value1"));
         params.add(new TemplateParam().setName("name2").setValue("Value2"));
         template.setParams(params);
-        
+
         AthenzObject.DOMAIN_TEMPLATE.convertToLowerCase(template);
         assertEquals(template.getTemplateNames().size(), 3);
         assertTrue(template.getTemplateNames().contains("burbank"));
@@ -9997,6 +9995,10 @@ public class ZMSImplTest {
         }
         assertTrue(param1Check);
         assertTrue(param2Check);
+
+        // passing null should be no-op
+
+        AthenzObject.DOMAIN_TEMPLATE.convertToLowerCase(null);
     }
     
     @Test
@@ -12143,6 +12145,7 @@ public class ZMSImplTest {
                 "Test Domain1", "testOrg", adminUser);
         try {
             zmsTest.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+            fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Read-Only"));
@@ -12151,6 +12154,7 @@ public class ZMSImplTest {
         Policy policy1 = createPolicyObject("ReadOnlyDom1", "Policy1");
         try {
             zmsTest.putPolicy(mockDomRsrcCtx, "ReadOnlyDom1", "Policy1", auditRef, policy1);
+            fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Read-Only"));
@@ -12160,6 +12164,7 @@ public class ZMSImplTest {
                 "user.joe", "user.jane");
         try {
             zmsTest.putRole(mockDomRsrcCtx, "ReadOnlyDom1", "Role1", auditRef, role1);
+            fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Read-Only"));
@@ -12171,11 +12176,36 @@ public class ZMSImplTest {
 
         try {
             zmsTest.putServiceIdentity(mockDomRsrcCtx, "ReadOnlyDom1", "Service1", auditRef, service1);
+            fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Read-Only"));
         }
-        
+
+        try {
+            zmsTest.deleteDomainRoleMember(mockDomRsrcCtx, "dom1", "user1", auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
+            zmsTest.deleteUser(mockDomRsrcCtx, "user1", auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
+            zmsTest.putDomainMeta(mockDomRsrcCtx, "dom1", auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
         // now make sure we can read our sys.auth zms service
         
         ServiceIdentity serviceRes = zmsTest.getServiceIdentity(mockDomRsrcCtx, "sys.auth", "zms");
@@ -13856,7 +13886,101 @@ public class ZMSImplTest {
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "deleteusersports", auditRef);
     }
-    
+
+    @Test
+    public void testGetDomainRoleMembersInvalidDomain() {
+
+        try {
+            zms.getDomainRoleMembers(mockDomRsrcCtx, "invalid-domain");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(404, ex.getCode());
+        }
+    }
+
+    @Test
+    public void testDeleteDomainRoleMemberInvalidDomain() {
+
+        try {
+            zms.deleteDomainRoleMember(mockDomRsrcCtx, "invalid-domain", "user.joe", auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(404, ex.getCode());
+        }
+    }
+
+    @Test
+    public void testDeleteDomainRoleMember() {
+
+        String domainName = "deletedomainrolemember2";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Role role1 = createRoleObject(domainName, "role1", null,
+                "user.jack", "user.janie");
+        zms.putRole(mockDomRsrcCtx, domainName, "role1", auditRef, role1);
+
+        Role role2 = createRoleObject(domainName, "role2", null,
+                "user.janie", "user.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, "role2", auditRef, role2);
+
+        Role role3 = createRoleObject(domainName, "role3", null,
+                "user.jack", "user.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, "role3", auditRef, role3);
+
+        Role role4 = createRoleObject(domainName, "role4", null,
+                "user.jack", null);
+        zms.putRole(mockDomRsrcCtx, domainName, "role4", auditRef, role4);
+
+        Role role5 = createRoleObject(domainName, "role5", null,
+                "user.jack-service", "user.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, "role5", auditRef, role5);
+
+        DomainRoleMembers domainRoleMembers = zms.getDomainRoleMembers(mockDomRsrcCtx, domainName);
+        assertEquals(domainName, domainRoleMembers.getDomainName());
+
+        List<DomainRoleMember> members = domainRoleMembers.getMembers();
+        assertNotNull(members);
+        assertEquals(5, members.size());
+        ZMSTestUtils.verifyDomainRoleMember(members, "user.jack", "role1", "role3", "role4");
+        ZMSTestUtils.verifyDomainRoleMember(members, "user.janie", "role1", "role2");
+        ZMSTestUtils.verifyDomainRoleMember(members, "user.jane", "role2", "role3", "role5");
+        ZMSTestUtils.verifyDomainRoleMember(members, "user.jack-service", "role5");
+        ZMSTestUtils.verifyDomainRoleMember(members, adminUser, "admin");
+
+        // this should be no-op with unknown user
+
+        zms.deleteDomainRoleMember(mockDomRsrcCtx, domainName, "user.unknown", auditRef);
+
+        members = domainRoleMembers.getMembers();
+        assertNotNull(members);
+        assertEquals(5, members.size());
+        ZMSTestUtils.verifyDomainRoleMember(members, "user.jack", "role1", "role3", "role4");
+        ZMSTestUtils.verifyDomainRoleMember(members, "user.janie", "role1", "role2");
+        ZMSTestUtils.verifyDomainRoleMember(members, "user.jane", "role2", "role3", "role5");
+        ZMSTestUtils.verifyDomainRoleMember(members, "user.jack-service", "role5");
+        ZMSTestUtils.verifyDomainRoleMember(members, adminUser, "admin");
+
+        // now remove a known user
+
+        zms.deleteDomainRoleMember(mockDomRsrcCtx, domainName, "user.jack", auditRef);
+
+        domainRoleMembers = zms.getDomainRoleMembers(mockDomRsrcCtx, domainName);
+        assertEquals(domainName, domainRoleMembers.getDomainName());
+
+        members = domainRoleMembers.getMembers();
+        assertNotNull(members);
+        assertEquals(4, members.size());
+        ZMSTestUtils.verifyDomainRoleMember(members, "user.janie", "role1", "role2");
+        ZMSTestUtils.verifyDomainRoleMember(members, "user.jane", "role2", "role3", "role5");
+        ZMSTestUtils.verifyDomainRoleMember(members, "user.jack-service", "role5");
+        ZMSTestUtils.verifyDomainRoleMember(members, adminUser, "admin");
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
     @Test
     public void testPutQuota() {
 

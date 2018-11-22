@@ -597,6 +597,25 @@ public class ZMSRDLGeneratedClient {
 
     }
 
+    public DomainRoleMembers getDomainRoleMembers(String domainName) {
+        WebTarget target = base.path("/domain/{domainName}/member")
+            .resolveTemplate("domainName", domainName);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        Response response = invocationBuilder.get();
+        int code = response.getStatus();
+        switch (code) {
+        case 200:
+            return response.readEntity(DomainRoleMembers.class);
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
     public Membership putMembership(String domainName, String roleName, String memberName, String auditRef, Membership membership) {
         WebTarget target = base.path("/domain/{domainName}/role/{roleName}/member/{memberName}")
             .resolveTemplate("domainName", domainName)
@@ -1457,6 +1476,29 @@ public class ZMSRDLGeneratedClient {
     public User deleteUser(String name, String auditRef) {
         WebTarget target = base.path("/user/{name}")
             .resolveTemplate("name", name);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
+        }
+        Response response = invocationBuilder.delete();
+        int code = response.getStatus();
+        switch (code) {
+        case 204:
+            return null;
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
+    public DomainRoleMember deleteDomainRoleMember(String domainName, String memberName, String auditRef) {
+        WebTarget target = base.path("/domain/{domainName}/member/{memberName}")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("memberName", memberName);
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
             invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),

@@ -36,6 +36,7 @@ public interface ZMSHandler {
     void putRole(ResourceContext context, String domainName, String roleName, String auditRef, Role role);
     void deleteRole(ResourceContext context, String domainName, String roleName, String auditRef);
     Membership getMembership(ResourceContext context, String domainName, String roleName, String memberName);
+    DomainRoleMembers getDomainRoleMembers(ResourceContext context, String domainName);
     void putMembership(ResourceContext context, String domainName, String roleName, String memberName, String auditRef, Membership membership);
     void deleteMembership(ResourceContext context, String domainName, String roleName, String memberName, String auditRef);
     void putDefaultAdmins(ResourceContext context, String domainName, String auditRef, DefaultAdmins defaultAdmins);
@@ -74,6 +75,7 @@ public interface ZMSHandler {
     Template getTemplate(ResourceContext context, String template);
     UserList getUserList(ResourceContext context);
     void deleteUser(ResourceContext context, String name, String auditRef);
+    void deleteDomainRoleMember(ResourceContext context, String domainName, String memberName, String auditRef);
     Quota getQuota(ResourceContext context, String name);
     void putQuota(ResourceContext context, String name, String auditRef, Quota quota);
     void deleteQuota(ResourceContext context, String name, String auditRef);

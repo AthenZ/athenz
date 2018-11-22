@@ -720,6 +720,212 @@ func (self *DefaultAdmins) Validate() error {
 }
 
 //
+// MemberRole -
+//
+type MemberRole struct {
+
+	//
+	// name of the role
+	//
+	RoleName ResourceName `json:"roleName"`
+
+	//
+	// the expiration timestamp
+	//
+	Expiration *rdl.Timestamp `json:"expiration,omitempty" rdl:"optional"`
+}
+
+//
+// NewMemberRole - creates an initialized MemberRole instance, returns a pointer to it
+//
+func NewMemberRole(init ...*MemberRole) *MemberRole {
+	var o *MemberRole
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(MemberRole)
+	}
+	return o
+}
+
+type rawMemberRole MemberRole
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a MemberRole
+//
+func (self *MemberRole) UnmarshalJSON(b []byte) error {
+	var m rawMemberRole
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := MemberRole(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *MemberRole) Validate() error {
+	if self.RoleName == "" {
+		return fmt.Errorf("MemberRole.roleName is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "ResourceName", self.RoleName)
+		if !val.Valid {
+			return fmt.Errorf("MemberRole.roleName does not contain a valid ResourceName (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
+// DomainRoleMember -
+//
+type DomainRoleMember struct {
+
+	//
+	// name of the member
+	//
+	MemberName MemberName `json:"memberName"`
+
+	//
+	// roles for this member
+	//
+	MemberRoles []*MemberRole `json:"memberRoles"`
+}
+
+//
+// NewDomainRoleMember - creates an initialized DomainRoleMember instance, returns a pointer to it
+//
+func NewDomainRoleMember(init ...*DomainRoleMember) *DomainRoleMember {
+	var o *DomainRoleMember
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(DomainRoleMember)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *DomainRoleMember) Init() *DomainRoleMember {
+	if self.MemberRoles == nil {
+		self.MemberRoles = make([]*MemberRole, 0)
+	}
+	return self
+}
+
+type rawDomainRoleMember DomainRoleMember
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a DomainRoleMember
+//
+func (self *DomainRoleMember) UnmarshalJSON(b []byte) error {
+	var m rawDomainRoleMember
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := DomainRoleMember(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *DomainRoleMember) Validate() error {
+	if self.MemberName == "" {
+		return fmt.Errorf("DomainRoleMember.memberName is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "MemberName", self.MemberName)
+		if !val.Valid {
+			return fmt.Errorf("DomainRoleMember.memberName does not contain a valid MemberName (%v)", val.Error)
+		}
+	}
+	if self.MemberRoles == nil {
+		return fmt.Errorf("DomainRoleMember: Missing required field: memberRoles")
+	}
+	return nil
+}
+
+//
+// DomainRoleMembers -
+//
+type DomainRoleMembers struct {
+
+	//
+	// name of the domain
+	//
+	DomainName DomainName `json:"domainName"`
+
+	//
+	// role members
+	//
+	Members []*DomainRoleMember `json:"members"`
+}
+
+//
+// NewDomainRoleMembers - creates an initialized DomainRoleMembers instance, returns a pointer to it
+//
+func NewDomainRoleMembers(init ...*DomainRoleMembers) *DomainRoleMembers {
+	var o *DomainRoleMembers
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(DomainRoleMembers)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *DomainRoleMembers) Init() *DomainRoleMembers {
+	if self.Members == nil {
+		self.Members = make([]*DomainRoleMember, 0)
+	}
+	return self
+}
+
+type rawDomainRoleMembers DomainRoleMembers
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a DomainRoleMembers
+//
+func (self *DomainRoleMembers) UnmarshalJSON(b []byte) error {
+	var m rawDomainRoleMembers
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := DomainRoleMembers(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *DomainRoleMembers) Validate() error {
+	if self.DomainName == "" {
+		return fmt.Errorf("DomainRoleMembers.domainName is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "DomainName", self.DomainName)
+		if !val.Valid {
+			return fmt.Errorf("DomainRoleMembers.domainName does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	if self.Members == nil {
+		return fmt.Errorf("DomainRoleMembers: Missing required field: members")
+	}
+	return nil
+}
+
+//
 // AssertionEffect - Every assertion can have the effect of ALLOW or DENY.
 //
 type AssertionEffect int

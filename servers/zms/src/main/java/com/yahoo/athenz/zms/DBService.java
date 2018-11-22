@@ -1392,7 +1392,53 @@ public class DBService {
             return users;
         }
     }
-    
+
+    void removePrincipalFromDomainRoles(ObjectStoreConnection con, String domainName, String principalName,
+            String adminUser, String auditRef) {
+
+        // extract all the roles that this principal is member of
+        // we have to this here so that there are records of
+        // entries in the role member audit logs and the domain
+        // entries are properly invalidated
+
+        List<PrincipalRole> roles = con.listPrincipalRoles(domainName, principalName);
+
+        // we want to check if we had any roles otherwise
+        // we don't want to update the domain mod timestamp
+
+        if (roles.isEmpty()) {
+            return;
+        }
+
+        for (PrincipalRole role : roles) {
+
+            final String roleName = role.getRoleName();
+
+            // process our delete role member operation
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("removePrincipalFromDomainRoles: removing member {} from {}:role.{}",
+                        principalName, domainName, roleName);
+            }
+
+            // we are going to ignore all errors here rather than
+            // rejecting the full operation
+
+            try {
+                con.deleteRoleMember(domainName, roleName, principalName, adminUser, auditRef);
+            } catch (ResourceException ex) {
+                LOG.error("removePrincipalFromDomainRoles: unable to remove {} from {}:role.{} - error {}",
+                        principalName, domainName, roleName, ex.getMessage());
+            }
+
+            // update our role and domain time-stamps, and invalidate local cache entry
+
+            con.updateRoleModTimestamp(domainName, roleName);
+        }
+
+        con.updateDomainModTimestamp(domainName);
+    }
+
     void removePrincipalFromAllRoles(ObjectStoreConnection con, String principalName,
             String adminUser, String auditRef) {
         
@@ -1403,7 +1449,7 @@ public class DBService {
         
         List<PrincipalRole> roles;
         try {
-            roles = con.listPrincipalRoles(principalName);
+            roles = con.listPrincipalRoles(null, principalName);
         } catch (ResourceException ex) {
             
             // if there is no such principal then we have nothing to do
@@ -1414,7 +1460,7 @@ public class DBService {
                 throw ex;
             }
         }
-        
+
         for (PrincipalRole role : roles) {
             
             final String domainName = role.getDomainName();
@@ -1466,8 +1512,38 @@ public class DBService {
             cacheStore.invalidate(subDomain);
         }
     }
-    
-    void executeDeleteUser(ResourceContext ctx, String userName, String domainName, String auditRef, String caller) {
+
+    void executeDeleteDomainRoleMember(ResourceContext ctx, String domainName,
+             String memberName, String auditRef, String caller) {
+
+        int retryCount = defaultRetryCount;
+        do {
+            try (ObjectStoreConnection con = store.getConnection(true, true)) {
+
+                // remove this user from all roles manually so that we
+                // can have an audit log record for each role
+
+                removePrincipalFromDomainRoles(con, domainName, memberName,
+                        getPrincipalName(ctx), auditRef);
+
+                // audit log the request
+
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
+                        memberName, null);
+
+                return;
+
+            } catch (ResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
+            }
+            retryCount -= 1;
+        } while (retryCount > 0);
+    }
+
+    void executeDeleteUser(ResourceContext ctx, String userName, String domainName,
+             String auditRef, String caller) {
         
         int retryCount = defaultRetryCount;
         do {
@@ -1685,7 +1761,13 @@ public class DBService {
             return membership;
         }
     }
-    
+
+    DomainRoleMembers listDomainRoleMembers(String domainName) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            return con.listDomainRoleMembers(domainName);
+        }
+    }
+
     Role getRole(String domainName, String roleName, Boolean auditLog, Boolean expand) {
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
