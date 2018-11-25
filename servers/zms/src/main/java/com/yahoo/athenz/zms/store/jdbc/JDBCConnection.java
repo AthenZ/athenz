@@ -31,28 +31,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
+import com.yahoo.athenz.zms.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.yahoo.athenz.zms.Assertion;
-import com.yahoo.athenz.zms.AssertionEffect;
-import com.yahoo.athenz.zms.Domain;
-import com.yahoo.athenz.zms.DomainModified;
-import com.yahoo.athenz.zms.DomainModifiedList;
-import com.yahoo.athenz.zms.Entity;
-import com.yahoo.athenz.zms.Membership;
-import com.yahoo.athenz.zms.Policy;
-import com.yahoo.athenz.zms.PrincipalRole;
-import com.yahoo.athenz.zms.PublicKeyEntry;
-import com.yahoo.athenz.zms.Quota;
-import com.yahoo.athenz.zms.ResourceAccess;
-import com.yahoo.athenz.zms.ResourceAccessList;
-import com.yahoo.athenz.zms.ResourceException;
-import com.yahoo.athenz.zms.Role;
-import com.yahoo.athenz.zms.RoleAuditLog;
-import com.yahoo.athenz.zms.RoleMember;
-import com.yahoo.athenz.zms.ServiceIdentity;
-import com.yahoo.athenz.zms.ZMSConsts;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
@@ -244,6 +226,10 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN role ON role_member.role_id=role.role_id "
             + "JOIN domain ON domain.domain_id=role.domain_id "
             + "WHERE role_member.principal_id=?;";
+    private static final String SQL_LIST_PRINCIPAL_DOMAIN_ROLES = "SELECT role.name AS role_name FROM role_member "
+            + "JOIN role ON role_member.role_id=role.role_id "
+            + "JOIN domain ON domain.domain_id=role.domain_id "
+            + "WHERE role_member.principal_id=? AND domain.domain_id=?;";
     private static final String SQL_GET_QUOTA = "SELECT * FROM quota WHERE domain_id=?;";
     private static final String SQL_INSERT_QUOTA = "INSERT INTO quota (domain_id, role, role_member, "
             + "policy, assertion, service, service_host, public_key, entity, subdomain) "
@@ -252,7 +238,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "policy=?, assertion=?, service=?, service_host=?, public_key=?, entity=?, "
             + "subdomain=? WHERE domain_id=?;";
     private static final String SQL_DELETE_QUOTA = "DELETE FROM quota WHERE domain_id=?;";
-    
+
     private static final String CACHE_DOMAIN    = "d:";
     private static final String CACHE_ROLE      = "r:";
     private static final String CACHE_POLICY    = "p:";
@@ -1310,9 +1296,17 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
     
     @Override
-    public List<PrincipalRole> listPrincipalRoles(String principalName) {
+    public List<PrincipalRole> listPrincipalRoles(String domainName, String principalName) {
         
         final String caller = "listPrincipalRoles";
+        if (domainName == null) {
+            return listPrincipalRolesForAllDomains(principalName, caller);
+        } else {
+            return listPrincipalRolesForOneDomain(domainName, principalName, caller);
+        }
+    }
+
+    List<PrincipalRole> listPrincipalRolesForAllDomains(String principalName, String caller) {
 
         int principalId = getPrincipalId(principalName);
         if (principalId == 0) {
@@ -1334,7 +1328,34 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
         return roles;
     }
-    
+
+    List<PrincipalRole> listPrincipalRolesForOneDomain(String domainName, String principalName, String caller) {
+
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int principalId = getPrincipalId(principalName);
+        if (principalId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_PRINCIPAL, principalName);
+        }
+        List<PrincipalRole> roles = new ArrayList<>();
+        try (PreparedStatement ps = con.prepareStatement(SQL_LIST_PRINCIPAL_DOMAIN_ROLES)) {
+            ps.setInt(1, principalId);
+            ps.setInt(2, domainId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    PrincipalRole role = new PrincipalRole();
+                    role.setRoleName(rs.getString(ZMSConsts.DB_COLUMN_ROLE_NAME));
+                    roles.add(role);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return roles;
+    }
+
     @Override
     public List<RoleAuditLog> listRoleAuditLogs(String domainName, String roleName) {
         
@@ -3248,7 +3269,57 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
         return (affectedRows > 0);
     }
-    
+
+    @Override
+    public DomainRoleMembers listDomainRoleMembers(String domainName) {
+
+        final String caller = "listDomainRoleMembers";
+
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        DomainRoleMembers domainRoleMembers = new DomainRoleMembers();
+        domainRoleMembers.setDomainName(domainName);
+
+        Map<String, DomainRoleMember> memberMap = new HashMap<>();
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_ROLE_MEMBERS)) {
+            ps.setInt(1, domainId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    final String roleName = rs.getString(1);
+                    final String memberName = rs.getString(2);
+                    java.sql.Timestamp expiration = rs.getTimestamp(3);
+
+                    DomainRoleMember domainRoleMember = memberMap.get(memberName);
+                    if (domainRoleMember == null) {
+                        domainRoleMember = new DomainRoleMember();
+                        domainRoleMember.setMemberName(memberName);
+                        memberMap.put(memberName, domainRoleMember);
+                    }
+                    List<MemberRole> memberRoles = domainRoleMember.getMemberRoles();
+                    if (memberRoles == null) {
+                        memberRoles = new ArrayList<>();
+                        domainRoleMember.setMemberRoles(memberRoles);
+                    }
+                    MemberRole memberRole = new MemberRole();
+                    memberRole.setRoleName(roleName);
+                    if (expiration != null) {
+                        memberRole.setExpiration(Timestamp.fromMillis(expiration.getTime()));
+                    }
+                    memberRoles.add(memberRole);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+
+        if (!memberMap.isEmpty()) {
+            domainRoleMembers.setMembers(new ArrayList<>(memberMap.values()));
+        }
+        return domainRoleMembers;
+    }
+
     RuntimeException notFoundError(String caller, String objectType, String objectName) {
         rollbackChanges();
         String message = "unknown " + objectType + " - " + objectName;

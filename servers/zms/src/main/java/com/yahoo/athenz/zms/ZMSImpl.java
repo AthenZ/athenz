@@ -1368,7 +1368,42 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.stopTiming(timerMetric);
         return result;
     }
-    
+
+    @Override
+    public void deleteDomainRoleMember(ResourceContext ctx, String domainName, String memberName, String auditRef) {
+
+        final String caller = "deletedomainrolemember";
+        metric.increment(ZMSConsts.HTTP_DELETE);
+        logPrincipal(ctx);
+
+        if (readOnlyMode) {
+            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+        }
+
+        validateRequest(ctx.request(), caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(memberName, TYPE_MEMBER_NAME, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+        memberName = memberName.toLowerCase();
+
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
+        metric.increment(caller, domainName);
+        Object timerMetric = metric.startTiming("deletedomainrolemember_timing", domainName);
+
+        // verify that request is properly authenticated for this request
+
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+
+        dbService.executeDeleteDomainRoleMember(ctx, domainName, memberName, auditRef, caller);
+        metric.stopTiming(timerMetric);
+    }
+
+    @Override
     public void deleteUser(ResourceContext ctx, String name, String auditRef) {
         
         final String caller = "deleteuser";
@@ -2378,7 +2413,32 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.stopTiming(timerMetric);
         return result;
     }
-    
+
+    @Override
+    public DomainRoleMembers getDomainRoleMembers(ResourceContext ctx, String domainName) {
+
+        final String caller = "getdomainrolemembers";
+        metric.increment(ZMSConsts.HTTP_GET);
+        logPrincipal(ctx);
+
+        validateRequest(ctx.request(), caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
+        metric.increment(caller, domainName);
+        Object timerMetric = metric.startTiming("getdomainrolemembers_timing", domainName);
+
+        DomainRoleMembers roleMembers = dbService.listDomainRoleMembers(domainName);
+        metric.stopTiming(timerMetric);
+        return roleMembers;
+    }
+
     @Override
     public Role getRole(ResourceContext ctx, String domainName, String roleName,
             Boolean auditLog, Boolean expand) {

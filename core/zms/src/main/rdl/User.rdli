@@ -23,7 +23,7 @@ resource UserList GET "/user" {
     }
 }
 
-//Delete the specified user. This command will delete the user.<name>
+//Delete the specified user. This command will delete the home.<name>
 //domain and all of its sub-domains (if they exist) and remove the
 //user.<name> from all the roles in the system that it's member of.
 //Upon successful completion of this delete request, the server will
@@ -32,6 +32,26 @@ resource User DELETE "/user/{name}" {
     SimpleName name; //name of the user
     String auditRef (header="Y-Audit-Ref"); //Audit reference
     authorize ("delete", "sys.auth:user");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+//Delete the specified role member from the given domain. This command will
+//remove the member from all the roles in the domain that it's member of.
+//Upon successful completion of this delete request, the server will
+//return NO_CONTENT status code without any data (no object will be returned).
+resource DomainRoleMember DELETE "/domain/{domainName}/member/{memberName}" {
+    DomainName domainName; //name of the domain
+    MemberName memberName; //name of the role member/principal
+    String auditRef (header="Y-Audit-Ref"); //Audit reference
+    authorize ("update", "{domainName}:");
     expected NO_CONTENT;
     exceptions {
         ResourceError NOT_FOUND;

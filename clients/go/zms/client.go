@@ -1143,6 +1143,41 @@ func (client ZMSClient) GetMembership(domainName DomainName, roleName EntityName
 	}
 }
 
+func (client ZMSClient) GetDomainRoleMembers(domainName DomainName) (*DomainRoleMembers, error) {
+	var data *DomainRoleMembers
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/member"
+	resp, err := client.httpGet(url, nil)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		err = json.Unmarshal(contentBytes, &errobj)
+		if err != nil {
+			return data, err
+		}
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
 func (client ZMSClient) PutMembership(domainName DomainName, roleName EntityName, memberName MemberName, auditRef string, membership *Membership) error {
 	headers := map[string]string{
 		"Y-Audit-Ref": auditRef,
@@ -2466,6 +2501,39 @@ func (client ZMSClient) DeleteUser(name SimpleName, auditRef string) error {
 		"Y-Audit-Ref": auditRef,
 	}
 	url := client.URL + "/user/" + fmt.Sprint(name)
+	resp, err := client.httpDelete(url, headers)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		err = json.Unmarshal(contentBytes, &errobj)
+		if err != nil {
+			return err
+		}
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
+func (client ZMSClient) DeleteDomainRoleMember(domainName DomainName, memberName MemberName, auditRef string) error {
+	headers := map[string]string{
+		"Y-Audit-Ref": auditRef,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/member/" + fmt.Sprint(memberName)
 	resp, err := client.httpDelete(url, headers)
 	if err != nil {
 		return err

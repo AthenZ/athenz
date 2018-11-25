@@ -72,7 +72,7 @@ type SubDomain TopLevelDomain {
 
 //Create a new top level domain. This is a privileged action for the "sys.auth" administrators.
 resource Domain POST "/domain" {
-    String         auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     TopLevelDomain detail; //TopLevelDomain object to be created
     authorize ("create", "sys.auth:domain");
     expected OK;
@@ -88,8 +88,8 @@ resource Domain POST "/domain" {
 //have the privilege to create subdomains.
 resource Domain POST "/subdomain/{parent}" {
     DomainName parent; //name of the parent domain
-    String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
-    SubDomain  detail; //Subdomain object to be created
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    SubDomain detail; //Subdomain object to be created
     authorize ("create", "{parent}:domain");
     expected OK;
     exceptions {
@@ -130,7 +130,7 @@ resource Domain POST "/userdomain/{name}" {
 //code without any data (no object will be returned).
 resource TopLevelDomain DELETE "/domain/{name}" {
     SimpleName name; //name of the domain to be deleted
-    String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     authorize ("delete", "sys.auth:domain");
     expected NO_CONTENT;
     exceptions {
@@ -148,7 +148,7 @@ resource TopLevelDomain DELETE "/domain/{name}" {
 resource SubDomain DELETE "/subdomain/{parent}/{name}" {
     DomainName parent; //name of the parent domain
     SimpleName name; //name of the subdomain to be deleted
-    String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     authorize ("delete", "{parent}:domain");
     expected NO_CONTENT;
     exceptions {
@@ -181,7 +181,7 @@ resource UserDomain DELETE "/userdomain/{name}" {
 //are not affected. Caller must have update privileges on the domain itself.
 resource Domain PUT "/domain/{name}/meta" {
     DomainName name; //name of the domain to be updated
-    String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     DomainMeta detail; //DomainMeta object with updated attribute values
     authorize ("update", "{name}:");
     expected NO_CONTENT;

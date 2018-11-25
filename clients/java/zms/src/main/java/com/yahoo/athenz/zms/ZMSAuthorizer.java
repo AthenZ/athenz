@@ -95,6 +95,9 @@ public class ZMSAuthorizer implements Authorizer, Closeable {
         
         // first let's find out what type of token we're given
         // either Role Token with version Z1 or principal token
+        // our token classes will always validate the given
+        // token and throw exceptions so we'll always get a valid
+        // principal object
         
         Principal principal;
         if (isRoleToken(token)) {
@@ -106,10 +109,6 @@ public class ZMSAuthorizer implements Authorizer, Closeable {
             principal = SimplePrincipal.create(principalToken.getDomain(),
                     principalToken.getName(), principalToken.getSignedToken(),
                     0, PRINCIPAL_AUTHORITY);
-        }
-        if (principal == null) {
-            LOGGER.error("ZMSAuthorizer.access: unable to create principal object");
-            return false;
         }
         return access(action, resource, principal, trustDomain);
     }

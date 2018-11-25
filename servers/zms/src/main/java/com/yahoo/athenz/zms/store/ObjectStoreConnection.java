@@ -18,20 +18,7 @@ package com.yahoo.athenz.zms.store;
 import java.io.Closeable;
 import java.util.List;
 
-import com.yahoo.athenz.zms.Assertion;
-import com.yahoo.athenz.zms.Domain;
-import com.yahoo.athenz.zms.DomainModifiedList;
-import com.yahoo.athenz.zms.Entity;
-import com.yahoo.athenz.zms.Membership;
-import com.yahoo.athenz.zms.Policy;
-import com.yahoo.athenz.zms.PrincipalRole;
-import com.yahoo.athenz.zms.PublicKeyEntry;
-import com.yahoo.athenz.zms.Quota;
-import com.yahoo.athenz.zms.ResourceAccessList;
-import com.yahoo.athenz.zms.Role;
-import com.yahoo.athenz.zms.RoleAuditLog;
-import com.yahoo.athenz.zms.RoleMember;
-import com.yahoo.athenz.zms.ServiceIdentity;
+import com.yahoo.athenz.zms.*;
 
 public interface ObjectStoreConnection extends Closeable {
     
@@ -61,7 +48,7 @@ public interface ObjectStoreConnection extends Closeable {
     
     boolean deletePrincipal(String principalName, boolean subDomains);
     List<String> listPrincipals(String domainName);
-    List<PrincipalRole> listPrincipalRoles(String principalName);
+    List<PrincipalRole> listPrincipalRoles(String domainName, String principalName);
     
     // Template commands
     
@@ -85,6 +72,8 @@ public interface ObjectStoreConnection extends Closeable {
     Membership getRoleMember(String domainName, String roleName, String member);
     boolean insertRoleMember(String domainName, String roleName, RoleMember roleMember, String principal, String auditRef);
     boolean deleteRoleMember(String domainName, String roleName, String member, String principal, String auditRef);
+
+    DomainRoleMembers listDomainRoleMembers(String domainName);
 
     // Policy commands
     

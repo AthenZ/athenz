@@ -50,3 +50,18 @@ type Membership Struct {
 type DefaultAdmins Struct {
     Array<ResourceName> admins; //list of domain administrators
 }
+
+type MemberRole Struct {
+    ResourceName roleName; //name of the role
+    Timestamp expiration (optional); //the expiration timestamp
+}
+
+type DomainRoleMember Struct {
+    MemberName memberName; //name of the member
+    Array<MemberRole> memberRoles; // roles for this member
+}
+
+type DomainRoleMembers Struct {
+    DomainName domainName; //name of the domain
+    Array<DomainRoleMember> members; //role members
+}
