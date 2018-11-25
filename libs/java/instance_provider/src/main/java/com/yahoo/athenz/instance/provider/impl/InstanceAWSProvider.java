@@ -55,6 +55,7 @@ public class InstanceAWSProvider implements InstanceProvider {
     static final String ATTR_INSTANCE_ID  = "instanceId";
 
     static final String ZTS_CERT_USAGE            = "certUsage";
+    static final String ZTS_CERT_EXPIRY_TIME      = "certExpiryTime";
     static final String ZTS_CERT_SSH              = "certSSH";
     static final String ZTS_CERT_USAGE_CLIENT     = "client";
 
@@ -68,8 +69,11 @@ public class InstanceAWSProvider implements InstanceProvider {
     static final String AWS_PROP_DNS_SUFFIX       = "athenz.zts.aws_dns_suffix";
     static final String AWS_PROP_REGION_NAME      = "athenz.zts.aws_region_name";
 
+    static final String AWS_PROP_CERT_VALIDITY_STS_ONLY = "athenz.zts.aws_cert_validity_sts_only";
+
     PublicKey awsPublicKey = null;      // AWS public key for validating instance documents
     long bootTimeOffset;                // boot time offset in milliseconds
+    long certValidityTime;              // cert validity for STS creds only case
     boolean supportRefresh = false;
     String awsRegion;
     String dnsSuffix = null;
@@ -103,6 +107,14 @@ public class InstanceAWSProvider implements InstanceProvider {
         if (dnsSuffix == null || dnsSuffix.isEmpty()) {
             LOGGER.error("AWS DNS Suffix not specified - no instance requests will be authorized");
         }
+
+        // default certificate expiry for requests without instance
+        // identity document
+
+        int certValidityDays = Integer.parseInt(System.getProperty(AWS_PROP_CERT_VALIDITY_STS_ONLY, "7"));
+        certValidityTime = TimeUnit.SECONDS.convert(certValidityDays, TimeUnit.DAYS);
+
+        // get the aws region
 
         awsRegion = System.getProperty(AWS_PROP_REGION_NAME);
     }
@@ -368,22 +380,22 @@ public class InstanceAWSProvider implements InstanceProvider {
         
         // validate our document against given signature if one is provided
         // if there is no instance document then we're going to ask ZTS not
-        // to issue SSH host certificates
+        // to issue SSH host certificates and request a certificate for
+        // a default of 7 days only
 
-        boolean sshCert = false;
-        if (info.getDocument() != null) {
+        boolean instanceDocumentCreds = info.getDocument() != null;
+        if (instanceDocumentCreds) {
             StringBuilder errMsg = new StringBuilder(256);
             if (!validateAWSDocument(confirmation.getProvider(), info,
                     awsAccount, instanceId.toString(), true, errMsg)) {
                 LOGGER.error("validateAWSDocument: {}", errMsg.toString());
                 throw error("Unable to validate AWS document: " + errMsg.toString());
             }
-            sshCert = true;
         }
             
         // set the attributes to be returned to the ZTS server
 
-        setConfirmationAttributes(confirmation, sshCert);
+        setConfirmationAttributes(confirmation, instanceDocumentCreds);
 
         // verify that the temporary credentials specified in the request
         // can be used to assume the given role thus verifying the
@@ -442,20 +454,19 @@ public class InstanceAWSProvider implements InstanceProvider {
         // if there is no instance document then we're going to ask ZTS not
         // to issue SSH host certificates
 
-        boolean sshCert = false;
-        if (info.getDocument() != null) {
+        boolean instanceDocumentCreds = info.getDocument() != null;
+        if (instanceDocumentCreds) {
             StringBuilder errMsg = new StringBuilder(256);
             if (!validateAWSDocument(confirmation.getProvider(), info,
                     awsAccount, instanceId, false, errMsg)) {
                 LOGGER.error("validateAWSDocument: {}", errMsg.toString());
                 throw error("Unable to validate AWS document: " + errMsg.toString());
             }
-            sshCert = true;
         }
 
         // set the attributes to be returned to the ZTS server
 
-        setConfirmationAttributes(confirmation, sshCert);
+        setConfirmationAttributes(confirmation, instanceDocumentCreds);
         
         // verify that the temporary credentials specified in the request
         // can be used to assume the given role thus verifying the
@@ -468,10 +479,13 @@ public class InstanceAWSProvider implements InstanceProvider {
         return confirmation;
     }
     
-    void setConfirmationAttributes(InstanceConfirmation confirmation, boolean sshCert) {
+    void setConfirmationAttributes(InstanceConfirmation confirmation, boolean instanceDocumentCreds) {
 
         Map<String, String> attributes = new HashMap<>();
-        attributes.put(ZTS_CERT_SSH, Boolean.toString(sshCert));
+        attributes.put(ZTS_CERT_SSH, Boolean.toString(instanceDocumentCreds));
+        if (!instanceDocumentCreds) {
+            attributes.put(ZTS_CERT_EXPIRY_TIME, Long.toString(certValidityTime));
+        }
         confirmation.setAttributes(attributes);
     }
     
