@@ -72,6 +72,21 @@
               </descriptors>
             </configuration>
           </execution>
+          <execution>
+            <id>package-zms-assembly-aws</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <tarLongFileMode>posix</tarLongFileMode>
+              <outputDirectory>../../../athenz/aws-setup/zms-setup/tars/</outputDirectory>
+              <finalName>athenz-zms</finalName>
+              <descriptors>
+                <descriptor>zms.xml</descriptor>
+              </descriptors>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
     </plugins>

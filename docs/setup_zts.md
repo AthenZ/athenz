@@ -75,7 +75,7 @@ is a sample implementation of cert Signer we have for development environment.
 
 You can use SelfCertSigner or have your implementation of Cert Signer.
  
-Refer [cert signer](cert_signer_store.md) for full details how to implement your cert signer.
+Refer [Certificate Signer](cert_signer.md) for full details how to implement your cert signer.
 
 ## Start/Stop ZTS Server
 ------------------------

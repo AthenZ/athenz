@@ -1,0 +1,52 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Roles needed for athens zts setup
+Parameters:
+  AthensServiceRole:
+    Type: String
+    Description: The Athens role name for the service
+    Default: athenz.zts-service
+Resources:
+  AthensServiceEC2Role:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Principal:
+              Service:
+                 - "ec2.amazonaws.com"
+            Action:
+                - "sts:AssumeRole"
+      Policies:
+        -
+          PolicyName: !Sub ${AthensServiceRole}.policy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+            - Effect: "Allow"
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+                - logs:DescribeLogStreams
+                - logs:DescribeLogGroups
+              Resource: "arn:aws:logs:*:*:*"
+            - Effect: "Allow"
+              Action:
+                - rds-db:connect
+              Resource:
+                - !Sub arn:aws:rds-db:us-west-2:${AWS::AccountId}:dbuser:*/zts
+                - !Sub arn:aws:rds-db:us-east-1:${AWS::AccountId}:dbuser:*/zts
+            - Effect: "Allow"
+              Action: "ec2:DescribeTags"
+              Resource: "*"
+      Path: /
+      RoleName: !Ref AthensServiceRole
+  AthensEc2InstanceProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    Properties:
+      Roles:
+        - !Ref AthensServiceEC2Role
+      InstanceProfileName: !Ref AthensServiceRole

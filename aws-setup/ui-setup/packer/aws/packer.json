@@ -1,0 +1,99 @@
+{
+  "variables": {
+    "subnet_id":"subnet-xxxxxxxx",
+    "vpc_id": "vpc-xxxxxxxxxxxxx",
+    "aws_region": "{{env `AWS_REGION`}}",
+    "aws_ami_name": "ui-aws-cd-image",
+    "aws_access_key": "{{env `AWS_ACCESS_KEY_ID`}}",
+    "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}",
+    "aws_session_token": "{{env `AWS_SESSION_TOKEN`}}",
+    "ssh_keypair_name":"keypair-name",
+    "ssh_private_key_file":"path to ssh key file",
+    "source_ami": "ami-02c71d7a"
+  },
+  "builders": [
+    {
+      "access_key": "{{user `aws_access_key`}}",
+      "secret_key": "{{user `aws_secret_key`}}",
+      "token": "{{user `aws_session_token`}}",
+      "name": "amazon-ebs",
+      "ssh_username": "centos",
+      "ssh_keypair_name":"{{user `ssh_keypair_name`}}",
+      "ssh_private_key_file":"{{user `ssh_private_key_file`}}",
+      "type": "amazon-ebs",
+      "region": "{{user `aws_region`}}",
+      "source_ami": "{{user `source_ami`}}",
+      "ami_block_device_mappings": [
+        {
+          "device_name": "/dev/sda1",
+          "volume_type": "gp2",
+          "volume_size": 50,
+          "encrypted": true,
+          "delete_on_termination": true
+        }
+      ],
+      "encrypt_boot": true,
+      "instance_type": "t2.micro",
+      "ami_name": "{{user `aws_ami_name`}}",
+      "ami_description": "UI Image for cloud formation",
+      "associate_public_ip_address": "true",
+      "subnet_id": "{{ user `subnet_id` }}",
+      "vpc_id": "{{ user `vpc_id` }}"
+    }],
+
+  "provisioners": [
+    {
+      "type": "shell",
+      "execute_command": "echo {{user `ssh_username`}} | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+      "inline": [
+        "mkdir -p /opt",
+        "chmod a+w /opt"
+      ]
+    },
+    {
+      "type": "file",
+      "source": "tars/",
+      "destination": "/opt/"
+    },
+    {
+      "type": "shell",
+      "execute_command": "echo {{user `ssh_username`}} | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+      "inline": [
+        "sudo tar -xzf /opt/athenz-ui-bin.tar.gz -C /opt/",
+        "sudo chmod 777 /opt/athenz-ui",
+        "mkdir -p /opt/athenz-ui/conf",
+        "mkdir -p /opt/athenz-ui/logs",
+        "sudo chmod 777 /opt/athenz-ui -R"
+      ]
+    },
+    {
+      "type": "file",
+      "source": "build/bin/",
+      "destination": "/opt/athenz-ui/bin/"
+    },
+    {
+      "type": "file",
+      "source": "build/conf/",
+      "destination": "/opt/athenz-ui/conf/"
+    },
+    {
+    "type": "file",
+    "source": "build/service/",
+    "destination": "/opt/athenz-ui/"
+    },
+    {
+      "type": "shell",
+      "execute_command": "echo {{user `ssh_username`}} | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+      "inline": [
+        "ls -ltr /opt/"
+      ]
+    },
+    {
+      "type": "shell",
+      "scripts": [
+        "packer/scripts/setup.sh"
+      ],
+      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
+    }
+  ]
+}

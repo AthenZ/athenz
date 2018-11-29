@@ -1,0 +1,813 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: 'Athenz ZTS standard 2 Availabilty zone configuration template'
+Parameters:
+  ZTSServiceName:
+    Type: String
+    Description: The service name for ZTS server
+    Default: "zts"
+  ZTSVPCCidrBlock:
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    ConstraintDescription: "must be an IP address block in Cidr notation."
+    MaxLength: "18"
+    MinLength: "9"
+    Type: String
+    Description: The CIDR block to use for the ZTS VPC.
+    Default: "10.0.0.0/18"
+  PrivateSubnet01CidrBlock:
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    ConstraintDescription: "must be an IP address block in Cidr notation."
+    MaxLength: "18"
+    MinLength: "9"
+    Type: String
+    Description: The CIDR block to use for the Private Subnet Zone 1.
+    Default: "10.0.0.0/22"
+  PrivateSubnet02CidrBlock:
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    ConstraintDescription: "must be an IP address block in Cidr notation."
+    MaxLength: "18"
+    MinLength: "9"
+    Type: String
+    Description: The CIDR block to use for the Private Subnet Zone 2.
+    Default: "10.0.4.0/22"
+  PublicSubnet01CidrBlock:
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    ConstraintDescription: "must be an IP address block in Cidr notation."
+    MaxLength: "18"
+    MinLength: "9"
+    Type: String
+    Description: The CIDR block to use for the Public Subnet Zone 1.
+    Default: "10.0.8.0/22"
+  PublicSubnet02CidrBlock:
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    ConstraintDescription: "must be an IP address block in Cidr notation."
+    MaxLength: "18"
+    MinLength: "9"
+    Type: String
+    Description: The CIDR block to use for the Public Subnet Zone 2.
+    Default: "10.0.12.0/22"
+  CertSignerPrivateSubnet01CidrBlock:
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    ConstraintDescription: "must be an IP address block in Cidr notation."
+    MaxLength: "18"
+    MinLength: "9"
+    Type: String
+    Description: The CIDR block to use for the Cert Signer Private Subnet Zone 1.
+    Default: "10.0.16.0/22"
+  CertSignerPrivateSubnet02CidrBlock:
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    ConstraintDescription: "must be an IP address block in Cidr notation."
+    MaxLength: "18"
+    MinLength: "9"
+    Type: String
+    Description: The CIDR block to use for the Cert Signer Private Subnet Zone 2.
+    Default: "10.0.20.0/22"
+  CertSignerPublicSubnet01CidrBlock:
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    ConstraintDescription: "must be an IP address block in Cidr notation."
+    MaxLength: "18"
+    MinLength: "9"
+    Type: String
+    Description: The CIDR block to use for the Cert Signer Public Subnet Zone 1.
+    Default: "10.0.26.0/23"
+  CertSignerPublicSubnet02CidrBlock:
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    ConstraintDescription: "must be an IP address block in Cidr notation."
+    MaxLength: "18"
+    MinLength: "9"
+    Type: String
+    Description: The CIDR block to use for the Cert Signer Public Subnet Zone 2.
+    Default: "10.0.30.0/23"
+  GroupName:
+    Type: String
+    Description: The Athens domain for the account
+    Default: "Athenz"
+  Environment:
+    Type: String
+    Description: The environment ZTS is running in
+    AllowedValues:
+      - prod
+      - stage
+      - dev
+  S3AccessLogBucketName:
+      Type: String
+      Description: S3 bucket name to store access logs
+  Route53HostedZoneName:
+    Type: String
+    Description: The hosted zone name to place a CNAME entry for. Must end with a period. Empty string means do not create one.
+  Route53RecordName:
+    Type: String
+    Description: The hosted records to be added
+Conditions:
+  CreateDNSRecordSet: !Not [!Equals [ !Ref Route53HostedZoneName, '']]
+Resources:
+  ZTSVPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: !Ref 'ZTSVPCCidrBlock'
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-${ZTSServiceName}
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Stack
+          Value: !Ref AWS::StackName
+  PrivateSubnet01:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: ""
+      CidrBlock: !Ref 'PrivateSubnet01CidrBlock'
+      VpcId: !Ref 'ZTSVPC'
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-${ZTSServiceName}-${AWS::Region}a-private
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Stack
+          Value: !Ref AWS::StackName
+  PrivateSubnet02:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+          - 1
+          - Fn::GetAZs: ""
+      CidrBlock: !Ref 'PrivateSubnet02CidrBlock'
+      VpcId: !Ref 'ZTSVPC'
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-${ZTSServiceName}-${AWS::Region}b-private
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Stack
+          Value: !Ref AWS::StackName
+  PublicSubnet01:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: ""
+      CidrBlock: !Ref 'PublicSubnet01CidrBlock'
+      VpcId: !Ref 'ZTSVPC'
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-${ZTSServiceName}-${AWS::Region}a-public
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Stack
+          Value: !Ref AWS::StackName
+  PublicSubnet02:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+          - 1
+          - Fn::GetAZs: ""
+      CidrBlock: !Ref 'PublicSubnet02CidrBlock'
+      VpcId: !Ref 'ZTSVPC'
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-${ZTSServiceName}-${AWS::Region}b-public
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Stack
+          Value: !Ref AWS::StackName
+  CertSignerPrivateSubnet01:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: ""
+      CidrBlock: !Ref 'CertSignerPrivateSubnet01CidrBlock'
+      VpcId: !Ref 'ZTSVPC'
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-certsignd-${AWS::Region}a-private
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Stack
+          Value: !Ref AWS::StackName
+  CertSignerPrivateSubnet02:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+          - 1
+          - Fn::GetAZs: ""
+      CidrBlock: !Ref 'CertSignerPrivateSubnet02CidrBlock'
+      VpcId: !Ref 'ZTSVPC'
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-certsignd-${AWS::Region}b-private
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Stack
+          Value: !Ref AWS::StackName
+  CertSignerPublicSubnet01:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: ""
+      CidrBlock: !Ref 'CertSignerPublicSubnet01CidrBlock'
+      VpcId: !Ref 'ZTSVPC'
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-certsignd-${AWS::Region}a-public
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Stack
+          Value: !Ref AWS::StackName
+  CertSignerPublicSubnet02:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+          - 1
+          - Fn::GetAZs: ""
+      CidrBlock: !Ref 'CertSignerPublicSubnet02CidrBlock'
+      VpcId: !Ref 'ZTSVPC'
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-certsignd-${AWS::Region}b-public
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Stack
+          Value: !Ref AWS::StackName
+  Nacl:
+    Type: "AWS::EC2::NetworkAcl"
+    Properties:
+      VpcId: !Ref 'ZTSVPC'
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-${ZTSServiceName}
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Stack
+          Value: !Ref AWS::StackName
+  NetworkAclEntry01:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref 'Nacl'
+      Egress: 'true'
+      RuleNumber: '100'
+      Protocol: "6"
+      RuleAction: allow
+      CidrBlock: !Ref 'ZTSVPCCidrBlock'
+      PortRange:
+        From: '22'
+        To: '22'
+  NetworkAclEntry02:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref 'Nacl'
+      Egress: 'true'
+      RuleNumber: '110'
+      Protocol: "6"
+      RuleAction: allow
+      CidrBlock: 0.0.0.0/0
+      PortRange:
+        From: '4443'
+        To: '4443'
+  NetworkAclEntry03:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref 'Nacl'
+      Egress: 'true'
+      RuleNumber: '120'
+      Protocol: "6"
+      RuleAction: allow
+      CidrBlock: 0.0.0.0/0
+      PortRange:
+        From: '8443'
+        To: '8443'
+  NetworkAclEntry04:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref 'Nacl'
+      Egress: 'true'
+      RuleNumber: '130'
+      Protocol: "6"
+      RuleAction: allow
+      CidrBlock: 0.0.0.0/0
+      PortRange:
+        From: '3306'
+        To: '3306'
+  NetworkAclEntry05:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref 'Nacl'
+      Egress: 'true'
+      RuleNumber: '140'
+      Protocol: "6"
+      RuleAction: allow
+      CidrBlock: 0.0.0.0/0
+      PortRange:
+        From: '80'
+        To: '80'
+  NetworkAclEntry06:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref 'Nacl'
+      Egress: 'true'
+      RuleNumber: '150'
+      Protocol: "6"
+      RuleAction: allow
+      CidrBlock: 0.0.0.0/0
+      PortRange:
+        From: '443'
+        To: '443'
+  NetworkAclEntry07:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref 'Nacl'
+      Egress: 'true'
+      RuleNumber: '160'
+      Protocol: "17"
+      RuleAction: allow
+      CidrBlock: 0.0.0.0/0
+      PortRange:
+        From: '123'
+        To: '123'
+  NetworkAclEntry08:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref 'Nacl'
+      Egress: 'true'
+      RuleNumber: '200'
+      Protocol: "6"
+      RuleAction: allow
+      CidrBlock: 0.0.0.0/0
+      PortRange:
+        From: '1024'
+        To: '65535'
+  NetworkAclEntry09:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref 'Nacl'
+      RuleNumber: '100'
+      Protocol: "6"
+      RuleAction: allow
+      CidrBlock: 0.0.0.0/0
+      PortRange:
+        From: '22'
+        To: '22'
+  NetworkAclEntry10:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref 'Nacl'
+      RuleNumber: '110'
+      Protocol: "6"
+      RuleAction: allow
+      CidrBlock: 0.0.0.0/0
+      PortRange:
+        From: '4443'
+        To: '4443'
+  NetworkAclEntry11:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref 'Nacl'
+      RuleNumber: '120'
+      Protocol: "6"
+      RuleAction: allow
+      CidrBlock: 0.0.0.0/0
+      PortRange:
+        From: '8443'
+        To: '8443'
+  NetworkAclEntry12:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref 'Nacl'
+      RuleNumber: '130'
+      Protocol: "6"
+      RuleAction: allow
+      CidrBlock: 0.0.0.0/0
+      PortRange:
+        From: '3306'
+        To: '3306'
+  NetworkAclEntry13:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref 'Nacl'
+      RuleNumber: '140'
+      Protocol: "6"
+      RuleAction: allow
+      CidrBlock: 0.0.0.0/0
+      PortRange:
+        From: '80'
+        To: '80'
+  NetworkAclEntry14:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref 'Nacl'
+      RuleNumber: '150'
+      Protocol: "6"
+      RuleAction: allow
+      CidrBlock: 0.0.0.0/0
+      PortRange:
+        From: '443'
+        To: '443'
+  NetworkAclEntry15:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref 'Nacl'
+      RuleNumber: '160'
+      Protocol: "17"
+      RuleAction: allow
+      CidrBlock: !Ref 'ZTSVPCCidrBlock'
+      PortRange:
+        From: '123'
+        To: '123'
+  NetworkAclEntry16:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId: !Ref 'Nacl'
+      RuleNumber: '200'
+      Protocol: "6"
+      RuleAction: allow
+      CidrBlock: 0.0.0.0/0
+      PortRange:
+        From: '1024'
+        To: '65535'
+  PrivateSubnet01Nacl:
+    Type: "AWS::EC2::SubnetNetworkAclAssociation"
+    Properties:
+      SubnetId: !Ref 'PrivateSubnet01'
+      NetworkAclId: !Ref 'Nacl'
+  PrivateSubnet02Nacl:
+    Type: "AWS::EC2::SubnetNetworkAclAssociation"
+    Properties:
+      SubnetId: !Ref 'PrivateSubnet02'
+      NetworkAclId: !Ref 'Nacl'
+  PublicSubnet01Nacl:
+    Type: "AWS::EC2::SubnetNetworkAclAssociation"
+    Properties:
+      SubnetId: !Ref 'PublicSubnet01'
+      NetworkAclId: !Ref 'Nacl'
+  PublicSubnet02Nacl:
+    Type: "AWS::EC2::SubnetNetworkAclAssociation"
+    Properties:
+      SubnetId: !Ref 'PublicSubnet02'
+      NetworkAclId: !Ref 'Nacl'
+  CertSignerPrivateSubnet01Nacl:
+    Type: "AWS::EC2::SubnetNetworkAclAssociation"
+    Properties:
+      SubnetId: !Ref 'CertSignerPrivateSubnet01'
+      NetworkAclId: !Ref 'Nacl'
+  CertSignerPrivateSubnet02Nacl:
+    Type: "AWS::EC2::SubnetNetworkAclAssociation"
+    Properties:
+      SubnetId: !Ref 'CertSignerPrivateSubnet02'
+      NetworkAclId: !Ref 'Nacl'
+  CertSignerPublicSubnet01Nacl:
+    Type: "AWS::EC2::SubnetNetworkAclAssociation"
+    Properties:
+      SubnetId: !Ref 'CertSignerPublicSubnet01'
+      NetworkAclId: !Ref 'Nacl'
+  CertSignerPublicSubnet02Nacl:
+    Type: "AWS::EC2::SubnetNetworkAclAssociation"
+    Properties:
+      SubnetId: !Ref 'CertSignerPublicSubnet02'
+      NetworkAclId: !Ref 'Nacl'
+  InternetGateway:
+    Type: "AWS::EC2::InternetGateway"
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-${ZTSServiceName}
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Stack
+          Value: !Ref AWS::StackName
+  VPCGatewayAttachment:
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Properties:
+      InternetGatewayId: !Ref 'InternetGateway'
+      VpcId: !Ref 'ZTSVPC'
+  PublicSubnet01NatGateway:
+    Type: "AWS::EC2::NatGateway"
+    Properties:
+      AllocationId: !GetAtt PublicSubnet01EIP.AllocationId
+      SubnetId: !Ref 'PublicSubnet01'
+      Tags:
+         - Key: Name
+           Value: !Sub ${Environment}-${ZTSServiceName}-${AWS::Region}a
+         - Key: Environment
+           Value: !Ref Environment
+         - Key: Stack
+           Value: !Ref AWS::StackName
+  PublicSubnet01EIP:
+      DependsOn: VPCGatewayAttachment
+      Type: AWS::EC2::EIP
+      Properties:
+        Domain: vpc
+  PublicSubnet02NatGateway:
+    Type: "AWS::EC2::NatGateway"
+    Properties:
+      AllocationId: !GetAtt PublicSubnet02EIP.AllocationId
+      SubnetId: !Ref 'PublicSubnet02'
+      Tags:
+         - Key: Name
+           Value: !Sub ${Environment}-${ZTSServiceName}-${AWS::Region}b
+         - Key: Environment
+           Value: !Ref Environment
+         - Key: Stack
+           Value: !Ref AWS::StackName
+  PublicSubnet02EIP:
+      DependsOn: VPCGatewayAttachment
+      Type: AWS::EC2::EIP
+      Properties:
+        Domain: vpc
+  CertSignerPublicSubnet01NatGateway:
+    Type: "AWS::EC2::NatGateway"
+    Properties:
+      AllocationId: !GetAtt CertSignerPublicSubnet01EIP.AllocationId
+      SubnetId: !Ref 'CertSignerPublicSubnet01'
+      Tags:
+         - Key: Name
+           Value: !Sub ${Environment}-certsignd-${AWS::Region}a
+         - Key: Environment
+           Value: !Ref Environment
+         - Key: Stack
+           Value: !Ref AWS::StackName
+  CertSignerPublicSubnet01EIP:
+      DependsOn: VPCGatewayAttachment
+      Type: AWS::EC2::EIP
+      Properties:
+        Domain: vpc
+  CertSignerPublicSubnet02NatGateway:
+    Type: "AWS::EC2::NatGateway"
+    Properties:
+      AllocationId: !GetAtt CertSignerPublicSubnet02EIP.AllocationId
+      SubnetId: !Ref 'CertSignerPublicSubnet02'
+      Tags:
+         - Key: Name
+           Value: !Sub ${Environment}-certsignd-${AWS::Region}b
+         - Key: Environment
+           Value: !Ref Environment
+         - Key: Stack
+           Value: !Ref AWS::StackName
+  CertSignerPublicSubnet02EIP:
+      DependsOn: VPCGatewayAttachment
+      Type: AWS::EC2::EIP
+      Properties:
+        Domain: vpc
+  PublicSubnetRouteTable:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      VpcId: !Ref 'ZTSVPC'
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-${ZTSServiceName}-${AWS::Region}-public
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Stack
+          Value: !Ref AWS::StackName
+  GatewayRoute:
+    Type: "AWS::EC2::Route"
+    Properties:
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !Ref 'InternetGateway'
+      RouteTableId: !Ref 'PublicSubnetRouteTable'
+    DependsOn: VPCGatewayAttachment
+  PrivateSubnet01RouteTable:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      VpcId: !Ref 'ZTSVPC'
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-${ZTSServiceName}-${AWS::Region}a-private
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Stack
+          Value: !Ref AWS::StackName
+  PrivateSubnet01Route:
+    Type: "AWS::EC2::Route"
+    Properties:
+      DestinationCidrBlock: '0.0.0.0/0'
+      NatGatewayId: !Ref 'PublicSubnet01NatGateway'
+      RouteTableId: !Ref 'PrivateSubnet01RouteTable'
+  PrivateSubnet02RouteTable:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      VpcId: !Ref 'ZTSVPC'
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-${ZTSServiceName}-${AWS::Region}b-private
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Stack
+          Value: !Ref AWS::StackName
+  PrivateSubnet02Route:
+    Type: "AWS::EC2::Route"
+    Properties:
+      DestinationCidrBlock: '0.0.0.0/0'
+      NatGatewayId: !Ref 'PublicSubnet02NatGateway'
+      RouteTableId: !Ref 'PrivateSubnet02RouteTable'
+    DependsOn: VPCGatewayAttachment
+  CertSignerPrivateSubnet01RouteTable:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      VpcId: !Ref 'ZTSVPC'
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-certsignd-${AWS::Region}a-private
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Stack
+          Value: !Ref AWS::StackName
+  CertSignerPrivateSubnet01Route:
+    Type: "AWS::EC2::Route"
+    Properties:
+      DestinationCidrBlock: '0.0.0.0/0'
+      NatGatewayId: !Ref 'CertSignerPublicSubnet01NatGateway'
+      RouteTableId: !Ref 'CertSignerPrivateSubnet01RouteTable'
+  CertSignerPrivateSubnet02RouteTable:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      VpcId: !Ref 'ZTSVPC'
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-certsignd-${AWS::Region}b-private
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Stack
+          Value: !Ref AWS::StackName
+  CertSignerPrivateSubnet02Route:
+    Type: "AWS::EC2::Route"
+    Properties:
+      DestinationCidrBlock: '0.0.0.0/0'
+      NatGatewayId: !Ref 'CertSignerPublicSubnet02NatGateway'
+      RouteTableId: !Ref 'CertSignerPrivateSubnet02RouteTable'
+    DependsOn: VPCGatewayAttachment
+  PublicSubnet01RouteTableAssociaton:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      RouteTableId: !Ref 'PublicSubnetRouteTable'
+      SubnetId: !Ref 'PublicSubnet01'
+  PublicSubnet02RouteTableAssociaton:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      RouteTableId: !Ref 'PublicSubnetRouteTable'
+      SubnetId: !Ref 'PublicSubnet02'
+  CertSignerPublicSubnet01RouteTableAssociaton:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      RouteTableId: !Ref 'PublicSubnetRouteTable'
+      SubnetId: !Ref 'CertSignerPublicSubnet01'
+  CertSignerPublicSubnet02RouteTableAssociaton:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      RouteTableId: !Ref 'PublicSubnetRouteTable'
+      SubnetId: !Ref 'CertSignerPublicSubnet02'
+  PrivateSubnet01RouteTableAssociation:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      RouteTableId: !Ref 'PrivateSubnet01RouteTable'
+      SubnetId: !Ref 'PrivateSubnet01'
+  PrivateSubnet02RouteTableAssociation:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      RouteTableId: !Ref 'PrivateSubnet02RouteTable'
+      SubnetId: !Ref 'PrivateSubnet02'
+  CertSignerPrivateSubnet01RouteTableAssociation:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      RouteTableId: !Ref 'CertSignerPrivateSubnet01RouteTable'
+      SubnetId: !Ref 'CertSignerPrivateSubnet01'
+  CertSignerPrivateSubnet02RouteTableAssociation:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      RouteTableId: !Ref 'CertSignerPrivateSubnet02RouteTable'
+      SubnetId: !Ref 'CertSignerPrivateSubnet02'
+  ZTSELBSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupName: !Sub ${GroupName}-${Environment}-elb-sg-${ZTSServiceName}-${AWS::Region}
+      GroupDescription: 'ZTS public elb security group'
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '4443'
+          ToPort: '4443'
+          CidrIp: '0.0.0.0/0'
+      VpcId: !Ref 'ZTSVPC'
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-elb-${ZTSServiceName}-${AWS::Region}
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Stack
+          Value: !Ref AWS::StackName
+  ZTSServerSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupName: !Sub ${GroupName}-${Environment}-server-sg-${ZTSServiceName}-${AWS::Region}
+      GroupDescription: 'ZTS public server security group'
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '4443'
+          ToPort: '4443'
+          CidrIp: '0.0.0.0/0'
+        - IpProtocol: tcp
+          FromPort: '8443'
+          ToPort: '8443'
+          CidrIp: !Ref 'ZTSVPCCidrBlock'
+      VpcId: !Ref 'ZTSVPC'
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-server-${ZTSServiceName}-${AWS::Region}
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Stack
+          Value: !Ref AWS::StackName
+  ZTSLoadBalancer:
+    Type: "AWS::ElasticLoadBalancing::LoadBalancer"
+    Properties:
+      HealthCheck:
+        HealthyThreshold: 2
+        Interval: 10
+        Target: !Sub HTTPS:8443/${ZTSServiceName}/v1/status
+        Timeout: 5
+        UnhealthyThreshold: 2
+      Listeners:
+        - InstancePort: 4443
+          InstanceProtocol: TCP
+          LoadBalancerPort: 4443
+          Protocol: TCP
+      Policies:
+        - PolicyName: "EnableProxyProtocol"
+          PolicyType: "ProxyProtocolPolicyType"
+          Attributes:
+          - Name: ProxyProtocol
+            Value: 'true'
+          InstancePorts:
+          - '4443'
+      LoadBalancerName: !Sub ${Environment}-elb-${ZTSServiceName}-${AWS::Region}
+      Scheme: 'internet-facing'
+      ConnectionDrainingPolicy:
+        Enabled: 'true'
+        Timeout: '60'
+      CrossZone: true
+      SecurityGroups:
+        - !Ref ZTSELBSecurityGroup
+      Subnets:
+        - !Ref 'PublicSubnet01'
+        - !Ref 'PublicSubnet02'
+      AccessLoggingPolicy:
+        S3BucketName: !Ref S3AccessLogBucketName
+        S3BucketPrefix: !Sub elb-${ZTSServiceName}
+        Enabled: 'true'
+        EmitInterval: '60'
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-elb-ZTS-${AWS::Region}
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Stack
+          Value: !Ref AWS::StackName
+  ZTSRecordSet:
+    Type: AWS::Route53::RecordSet
+    Condition: CreateDNSRecordSet
+    Properties:
+      Comment: CNAME record for the ZTS Server.
+      HostedZoneName: !Ref Route53HostedZoneName
+      Name: !Ref Route53RecordName
+      TTL: 60
+      Type: CNAME
+      ResourceRecords:
+        - !GetAtt ZTSLoadBalancer.DNSName
+Outputs:
+  ZTSVPCID:
+    Description: The ID of the ZTS VPC
+    Value: !Ref ZTSVPC
+    Export:
+      Name: !Sub "${AWS::StackName}-VPCID"
+  PrivateSubnet01ID:
+    Description: The ID of Private Subnet Availability Zone 1 in ZTS VPC
+    Value: !Ref PrivateSubnet01
+    Export:
+      Name:  !Sub "${AWS::StackName}-PrivateSubnet01ID"
+  PrivateSubnet02ID:
+    Description: The ID of Private Subnet Availability Zone 2 in ZTS VPC
+    Value: !Ref PrivateSubnet02
+    Export:
+      Name: !Sub "${AWS::StackName}-PrivateSubnet02ID"
+  LoadBalancerName :
+    Description: The name of ZTS Load Balancer
+    Value: !Ref ZTSLoadBalancer
+    Export:
+      Name: !Sub "${AWS::StackName}-LoadBalancerName"
+  ServerSecurityGroupID:
+    Description: The ID of ZTS Server security group
+    Value: !Ref ZTSServerSecurityGroup
+    Export:
+      Name: !Sub "${AWS::StackName}-ServerSecurityGroupID"
+
+      
