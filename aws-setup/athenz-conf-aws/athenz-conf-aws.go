@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"log"
 	"io/ioutil"
+	"log"
 	"os"
 
 	"github.com/yahoo/athenz/libs/go/zmssvctoken"
@@ -16,18 +16,18 @@ func usage() string {
 	buf.WriteString("usage: athenz-conf-aws -z <zms_url> -k <zms public key> [flags]\n")
 	buf.WriteString(" flags:\n")
 	buf.WriteString("   -z zms_url           Base URL of the ZMS server to use\n")
-	buf.WriteString("   -k zms_public key    Public key of ZMS server to use\n" )
+	buf.WriteString("   -k zms_public key    Public key of ZMS server to use\n")
 	buf.WriteString("   -t zts_url           Base URL of the ZTS server to use\n")
-	buf.WriteString("   -e zts_public key    Public key of zms server to use\n" )
-	buf.WriteString("   -o output_file       Output config filename (default=/opt/zts/conf/athenz.conf)\n" )
+	buf.WriteString("   -e zts_public key    Public key of zms server to use\n")
+	buf.WriteString("   -o output_file       Output config filename (default=/opt/zts/conf/athenz.conf)\n")
 	buf.WriteString("\n")
 	return buf.String()
 }
 
 func main() {
 
-	var ztsUrl, zmsUrl, ztsPublicKey, zmsPublicKey , outputFile string
-	flag.StringVar(&zmsUrl,"z", "", "Base URL of the ZMS server to use")
+	var ztsUrl, zmsUrl, ztsPublicKey, zmsPublicKey, outputFile string
+	flag.StringVar(&zmsUrl, "z", "", "Base URL of the ZMS server to use")
 	flag.StringVar(&ztsUrl, "t", "", "Base URL of the ZTS server to use")
 	flag.StringVar(&zmsPublicKey, "k", "", "Public key file of ZMS server to use")
 	flag.StringVar(&ztsPublicKey, "e", "", "Public key  file of ZTS server to use")
@@ -43,7 +43,7 @@ func main() {
 		log.Fatalf("zms url and key flags are mandatory")
 	}
 
-	if (ztsUrl == "" && ztsPublicKey != "" )|| (ztsUrl != "" && ztsPublicKey == ""){
+	if (ztsUrl == "" && ztsPublicKey != "") || (ztsUrl != "" && ztsPublicKey == "") {
 		fmt.Println(usage())
 		log.Fatalf("Both zts url and key should be passed")
 	}
@@ -55,14 +55,13 @@ func main() {
 	zmsKey := new(zmssvctoken.YBase64).EncodeToString(byte)
 
 	var ztsKey string
-	if ztsPublicKey != ""{
+	if ztsPublicKey != "" {
 		byte, err = ioutil.ReadFile(ztsPublicKey)
 		if err != nil {
 			log.Fatalln(err)
 		}
 		ztsKey = new(zmssvctoken.YBase64).EncodeToString(byte)
 	}
-
 
 	var buf bytes.Buffer
 	buf.WriteString("{\n")
