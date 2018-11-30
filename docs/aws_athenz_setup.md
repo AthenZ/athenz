@@ -1,12 +1,12 @@
 # Athenz Setup on AWS
-------------------
-- [Build the project](##-build-the-projet)
-- [ZMS Setup](##-zms-setup)
-- [ZTS Setup](##-zms-setup)
-- [ZMS Setup](##-zms-setup)
+
+- [Build the Project](#build-the-project)
+- [ZMS Setup](#zms-setup)
+- [ZTS Setup](#zts-setup)
+- [UI Setup](#ui-setup)
 
 ## Build the Project
------------------
+
 `mvn clean install`
 
 Make sure to have the following tar files:
