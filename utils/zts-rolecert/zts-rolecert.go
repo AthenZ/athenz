@@ -30,11 +30,12 @@ type signer struct {
 
 func main() {
 
-	var ztsURL, svcKeyFile, svcCertFile, dom, svc string
+	var ztsURL, svcKeyFile, svcCertFile, roleKeyFile, dom, svc string
 	var caCertFile, roleCertFile, roleDomain, roleName, dnsDomain string
 	var subjC, subjO, subjOU, ip, uri string
 	var spiffe bool
 
+	flag.StringVar(&roleKeyFile, "role-key-file", "", "role cert private key file (default: service identity private key)")
 	flag.StringVar(&roleCertFile, "role-cert-file", "", "output role certificate file")
 	flag.StringVar(&caCertFile, "cacert", "", "CA certificate file")
 	flag.StringVar(&svcKeyFile, "svc-key-file", "", "service identity private key file (required)")
@@ -55,6 +56,11 @@ func main() {
 	if svcKeyFile == "" || svcCertFile == "" || roleDomain == "" || roleName == "" ||
 		ztsURL == "" || dnsDomain == "" {
 		log.Fatalln("Error: missing required attributes. Run with -help for command line arguments")
+	}
+
+	// If a separate private key is not provided for role cert csr, use service identity private key
+	if roleKeyFile == "" {
+		roleKeyFile = svcKeyFile
 	}
 
 	// let's extract our domain/service values from our certificate
@@ -88,9 +94,9 @@ func main() {
 	}
 
 	// load private key
-	bytes, err := ioutil.ReadFile(svcKeyFile)
+	bytes, err := ioutil.ReadFile(roleKeyFile)
 	if err != nil {
-		log.Fatalf("Unable to read private key file %s, err: %v\n", svcKeyFile, err)
+		log.Fatalf("Unable to read private key file %s, err: %v\n", roleKeyFile, err)
 	}
 
 	// get our private key signer for csr
