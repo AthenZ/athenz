@@ -96,3 +96,4 @@ libs/go/ztsclientutil/bin/
 libs/go/ztsclientutil/pkg/
 libs/go/ztsclientutil/src/
 rdl/rdl-gen-athenz-server/rdl-gen-athenz-server
+**test-output**
