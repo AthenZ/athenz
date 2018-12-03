@@ -1110,66 +1110,6 @@ public class ZMSCoreTest {
     }
 
     @Test
-    public void testTenancyResourceGroup() {
-
-        Schema schema = ZMSSchema.instance();
-        Validator validator = new Validator(schema);
-
-        TenancyResourceGroup tp = new TenancyResourceGroup().setDomain("dom1")
-                .setResourceGroup("rg1").setService("svc1");
-        assertTrue(tp.equals(tp));
-
-        assertEquals(tp.getDomain(), "dom1");
-        assertEquals(tp.getResourceGroup(), "rg1");
-        assertEquals(tp.getService(), "svc1");
-
-        TenancyResourceGroup tp2 = new TenancyResourceGroup();
-        assertFalse(tp2.equals(tp));
-
-        tp2.setDomain("dom2");
-        assertFalse(tp2.equals(tp));
-
-        tp2.setDomain("dom1");
-        assertFalse(tp2.equals(tp));
-
-        tp2.setService("svc2");
-        assertFalse(tp2.equals(tp));
-        tp2.setService("svc1");
-        assertFalse(tp2.equals(tp));
-
-        tp2.setResourceGroup("rg2");
-        assertFalse(tp2.equals(tp));
-        tp2.setResourceGroup("rg1");
-        assertTrue((tp2.equals(tp)));
-
-        assertFalse(tp2.equals(null));
-    }
-
-    @Test
-    public void testUserMeta() {
-
-        UserMeta um = new UserMeta().setEnabled(false);
-        assertTrue(um.equals(um));
-
-        assertEquals(um.getEnabled(), Boolean.FALSE);
-
-        UserMeta um2 = new UserMeta();
-        assertFalse(um2.equals(um));
-
-        um2.init();
-        assertFalse(um2.equals(um));
-
-        um2.setEnabled(false);
-        assertEquals(um2, um);
-
-        // init does not change stage if false already
-        um2.init();
-        assertFalse(um2.getEnabled());
-
-        assertFalse(um2.equals(null));
-    }
-
-    @Test
     public void testDomainModifiedListMethod() {
         Schema schema = ZMSSchema.instance();
         Validator validator = new Validator(schema);
@@ -1475,57 +1415,6 @@ public class ZMSCoreTest {
 
         assertFalse(ut.equals(null));
         assertFalse(ut.equals(new String()));
-    }
-
-    @Test
-    public void testTenantRolesMethod() {
-        Schema schema = ZMSSchema.instance();
-        Validator validator = new Validator(schema);
-
-        // TenantRoleAction test
-        TenantRoleAction tra = new TenantRoleAction().setRole("testrole").setAction("add");
-        Result result = validator.validate(tra, "TenantRoleAction");
-        assertTrue(result.valid);
-
-        assertEquals(tra.getRole(), "testrole");
-        assertEquals(tra.getAction(), "add");
-
-        TenantRoleAction tra2 = new TenantRoleAction().setRole("testrole").setAction("add");
-        assertTrue(tra2.equals(tra));
-        assertTrue(tra.equals(tra));
-
-        tra2.setAction(null);
-        assertFalse(tra2.equals(tra));
-        tra2.setRole(null);
-        assertFalse(tra2.equals(tra));
-        assertFalse(tra.equals(new String()));
-
-        // TenantRoles test
-        List<TenantRoleAction> tral = Arrays.asList(tra);
-        TenantRoles tr = new TenantRoles().setDomain("test.provider.domain").setService("testservice")
-                .setTenant("test.tenant").setRoles(tral);
-
-        assertEquals(tr.getDomain(), "test.provider.domain");
-        assertEquals(tr.getService(), "testservice");
-        assertEquals(tr.getTenant(), "test.tenant");
-        assertEquals(tr.getRoles(), tral);
-
-        TenantRoles tr2 = new TenantRoles().setDomain("test.provider.domain").setService("testservice")
-                .setTenant("test.tenant").setRoles(tral);
-
-        assertTrue(tr2.equals(tr));
-        assertTrue(tr.equals(tr));
-        
-        tr2.setRoles(null);
-        assertFalse(tr2.equals(tr));
-        tr2.setTenant(null);
-        assertFalse(tr2.equals(tr));
-        tr2.setService(null);
-        assertFalse(tr2.equals(tr));
-        tr2.setDomain(null);
-        assertFalse(tr2.equals(tr));
-        assertFalse(tr2.equals(null));
-        assertFalse(tr.equals(new String()));
     }
 
     @Test
@@ -2137,5 +2026,38 @@ public class ZMSCoreTest {
 
         params2.add(new TemplateParam().setName("name1").setValue("val1"));
         assertTrue(dt2.equals(dt1));
+    }
+
+    @Test
+    public void testTenantRoleAction() {
+
+        TenantRoleAction tra1 = new TenantRoleAction();
+        tra1.setAction("action1");
+        tra1.setRole("role1");
+
+        assertEquals(tra1, tra1);
+        assertEquals("role1", tra1.getRole());
+        assertEquals("action1", tra1.getAction());
+
+        assertFalse(tra1.equals(null));
+        assertFalse(tra1.equals(new String()));
+
+        TenantRoleAction tra2 = new TenantRoleAction();
+        tra2.setAction("action1");
+        tra2.setRole("role1");
+
+        assertTrue(tra2.equals(tra1));
+
+        tra2.setAction("action2");
+        assertFalse(tra2.equals(tra1));
+
+        tra2.setAction(null);
+        assertFalse(tra2.equals(tra1));
+
+        tra2.setRole("role2");
+        assertFalse(tra2.equals(tra1));
+
+        tra2.setRole(null);
+        assertFalse(tra2.equals(tra1));
     }
 }

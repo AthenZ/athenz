@@ -58,6 +58,8 @@ public interface ZMSHandler {
     void deletePublicKeyEntry(ResourceContext context, String domain, String service, String id, String auditRef);
     void putTenancy(ResourceContext context, String domain, String service, String auditRef, Tenancy detail);
     void deleteTenancy(ResourceContext context, String domain, String service, String auditRef);
+    void putTenant(ResourceContext context, String domain, String service, String tenantDomain, String auditRef, Tenancy detail);
+    void deleteTenant(ResourceContext context, String domain, String service, String tenantDomain, String auditRef);
     TenantResourceGroupRoles putTenantResourceGroupRoles(ResourceContext context, String domain, String service, String tenantDomain, String resourceGroup, String auditRef, TenantResourceGroupRoles detail);
     TenantResourceGroupRoles getTenantResourceGroupRoles(ResourceContext context, String domain, String service, String tenantDomain, String resourceGroup);
     void deleteTenantResourceGroupRoles(ResourceContext context, String domain, String service, String tenantDomain, String resourceGroup, String auditRef);
