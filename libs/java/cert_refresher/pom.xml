@@ -30,7 +30,7 @@
   <packaging>jar</packaging>
 
   <properties>
-    <jmockit.version>1.43</jmockit.version>
+    <jmockit.version>1.44</jmockit.version>
   </properties>
 
   <dependencies>

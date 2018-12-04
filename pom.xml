@@ -69,24 +69,23 @@
   </ciManagement>
 
   <properties>
-    <jetty.version>9.4.12.v20180830</jetty.version>
+    <jetty.version>9.4.14.v20181114</jetty.version>
     <jersey.version>2.27</jersey.version>
     <jackson.version>2.9.7</jackson.version>
     <maven-surefire-plugin.version>2.22.0</maven-surefire-plugin.version>
     <rdl.version>1.5.1</rdl.version>
     <bouncycastle.version>1.60</bouncycastle.version>
-    <aws.version>1.11.426</aws.version>
-    <guava.version>26.0-jre</guava.version>
+    <aws.version>1.11.455</aws.version>
+    <guava.version>27.0.1-jre</guava.version>
     <logback.version>1.2.3</logback.version>
     <javax.version>3.1.0</javax.version>
     <javax.ws.version>2.1.1</javax.ws.version>
-    <mockito.version>2.23.0</mockito.version>
+    <mockito.version>2.23.4</mockito.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
 
   <modules>
-    <module>aws-setup/athenz-conf-aws</module>
     <module>rdl/rdl-gen-athenz-server</module>
     <module>core/zms</module>
     <module>core/zts</module>
@@ -116,6 +115,7 @@
     <module>utils/zts-roletoken</module>
     <module>utils/zts-rolecert</module>
     <module>utils/zts-svccert</module>
+    <module>aws-setup/athenz-conf-aws</module>
     <module>libs/nodejs/auth_core</module>
     <module>clients/nodejs/zts</module>
     <module>clients/nodejs/zpe</module>
