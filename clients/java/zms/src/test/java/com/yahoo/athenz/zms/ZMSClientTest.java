@@ -661,6 +661,9 @@ public class ZMSClientTest {
     
     @Test
     public void testClientConstructors() {
+
+        System.setProperty(ZMSClient.ZMS_CLIENT_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
+
         ZMSClient client = new ZMSClient("http://localhost:10080/zms/v1");
         assertNotNull(client);
         client.clearCredentials();
@@ -688,6 +691,8 @@ public class ZMSClientTest {
         assertNotNull(client);
         client.clearCredentials();
         client.close();
+
+        System.clearProperty(ZMSClient.ZMS_CLIENT_PROP_ATHENZ_CONF);
     }
 
     @Test
@@ -2416,6 +2421,8 @@ public class ZMSClientTest {
     @Test
     public void testCreateSSLContext() {
 
+        System.setProperty(ZMSClient.ZMS_CLIENT_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
+
         ZMSClient client = new ZMSClient();
 
         // no keystore path returns null
@@ -2462,6 +2469,7 @@ public class ZMSClientTest {
         System.clearProperty(ZMSClient.ZMS_CLIENT_PROP_TRUSTSTORE_PATH);
         System.clearProperty(ZMSClient.ZMS_CLIENT_PROP_TRUSTSTORE_TYPE);
         System.clearProperty(ZMSClient.ZMS_CLIENT_PROP_TRUSTSTORE_PASSWORD);
+        System.clearProperty(ZMSClient.ZMS_CLIENT_PROP_ATHENZ_CONF);
     }
 
     @Test
