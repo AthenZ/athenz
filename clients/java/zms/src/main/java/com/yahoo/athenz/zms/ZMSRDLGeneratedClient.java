@@ -1098,6 +1098,54 @@ public class ZMSRDLGeneratedClient {
 
     }
 
+    public Tenancy putTenant(String domain, String service, String tenantDomain, String auditRef, Tenancy detail) {
+        WebTarget target = base.path("/domain/{domain}/service/{service}/tenant/{tenantDomain}")
+            .resolveTemplate("domain", domain)
+            .resolveTemplate("service", service)
+            .resolveTemplate("tenantDomain", tenantDomain);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
+        }
+        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(detail, "application/json"));
+        int code = response.getStatus();
+        switch (code) {
+        case 204:
+            return null;
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
+    public Tenancy deleteTenant(String domain, String service, String tenantDomain, String auditRef) {
+        WebTarget target = base.path("/domain/{domain}/service/{service}/tenant/{tenantDomain}")
+            .resolveTemplate("domain", domain)
+            .resolveTemplate("service", service)
+            .resolveTemplate("tenantDomain", tenantDomain);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
+        }
+        Response response = invocationBuilder.delete();
+        int code = response.getStatus();
+        switch (code) {
+        case 204:
+            return null;
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
     public TenantResourceGroupRoles putTenantResourceGroupRoles(String domain, String service, String tenantDomain, String resourceGroup, String auditRef, TenantResourceGroupRoles detail) {
         WebTarget target = base.path("/domain/{domain}/service/{service}/tenant/{tenantDomain}/resourceGroup/{resourceGroup}")
             .resolveTemplate("domain", domain)

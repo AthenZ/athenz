@@ -1337,6 +1337,67 @@ public class ZMSResources {
     }
 
     @PUT
+    @Path("/domain/{domain}/service/{service}/tenant/{tenantDomain}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public void putTenant(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("tenantDomain") String tenantDomain, @HeaderParam("Y-Audit-Ref") String auditRef, Tenancy detail) {
+        try {
+            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context.authorize("update", "" + domain + ":tenant." + service + "", null);
+            this.delegate.putTenant(context, domain, service, tenantDomain, auditRef, detail);
+        } catch (ResourceException e) {
+            int code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource putTenant");
+                throw typedException(code, e, ResourceError.class);
+            }
+        }
+    }
+
+    @DELETE
+    @Path("/domain/{domain}/service/{service}/tenant/{tenantDomain}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public void deleteTenant(@PathParam("domain") String domain, @PathParam("service") String service, @PathParam("tenantDomain") String tenantDomain, @HeaderParam("Y-Audit-Ref") String auditRef) {
+        try {
+            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context.authorize("delete", "" + domain + ":tenant." + service + "", null);
+            this.delegate.deleteTenant(context, domain, service, tenantDomain, auditRef);
+        } catch (ResourceException e) {
+            int code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteTenant");
+                throw typedException(code, e, ResourceError.class);
+            }
+        }
+    }
+
+    @PUT
     @Path("/domain/{domain}/service/{service}/tenant/{tenantDomain}/resourceGroup/{resourceGroup}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
