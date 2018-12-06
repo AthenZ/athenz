@@ -20,6 +20,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
@@ -27,6 +28,7 @@ import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.KeyManager;
@@ -194,7 +196,7 @@ public class Utils {
      */
     public static KeyStore createKeyStore(final String athenzPublicCert, final String athenzPrivateKey) throws Exception {
 
-        X509Certificate certificate;
+        List<? extends Certificate> certificates;
         PrivateKey privateKey;
         KeyStore keyStore;
         File certFile;
@@ -214,8 +216,13 @@ public class Utils {
                     Thread.sleep(1000);
                 }
             } else {
-                certFile = new File(Utils.class.getClassLoader().getResource(athenzPublicCert).getFile());
-                keyFile = new File(Utils.class.getClassLoader().getResource(athenzPrivateKey).getFile());
+                URL certURL = Utils.class.getClassLoader().getResource(athenzPublicCert);
+                URL keyURL = Utils.class.getClassLoader().getResource(athenzPrivateKey);
+                if (null == certURL || null == keyURL) {
+                    throw new IllegalArgumentException("Certificate or private key file is empty.");
+                }
+                certFile = new File(certURL.getFile());
+                keyFile = new File(keyURL.getFile());
             }
         } catch (Throwable t) {
             throw new IllegalArgumentException(t);
@@ -237,12 +244,19 @@ public class Utils {
             } else {
                 throw new IllegalStateException("Unknown object type: " + key.getClass().getName());
             }
-            
-            certificate = (X509Certificate) cf.generateCertificate(publicCertStream);
+
+            certificates = (List<? extends Certificate>) cf.generateCertificates(publicCertStream);
+            if (certificates.isEmpty()) {
+                throw new IllegalArgumentException("Certificate file contains empty certificate or an invalid certificate.");
+            }
+             //We are going to assume that the first one is the main certificate which will be used for the alias
+            String alias = ((X509Certificate) certificates.get(0)).getSubjectX500Principal().getName();
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} number of certificates found.  Using {} alias to create the keystore", certificates.size(), alias);
+            }
             keyStore = KeyStore.getInstance("JKS");
-            String alias = certificate.getSubjectX500Principal().getName();
             keyStore.load(null);
-            keyStore.setKeyEntry(alias, privateKey, KEYSTORE_PASSWORD, new X509Certificate[]{certificate});
+            keyStore.setKeyEntry(alias, privateKey, KEYSTORE_PASSWORD, certificates.toArray(new X509Certificate[certificates.size()]));
         
         } catch (IOException e) {
             throw new IllegalArgumentException(e);
