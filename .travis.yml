@@ -1,4 +1,6 @@
 sudo: required
+#https://docs.travis-ci.com/user/reference/overview/
+dist: xenial
 services:
 - docker
 language: java

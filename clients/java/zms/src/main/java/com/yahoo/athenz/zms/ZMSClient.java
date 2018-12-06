@@ -231,19 +231,17 @@ public class ZMSClient implements Closeable {
         
         principal = identity;
         principalCheckDone = false;
-        
+
+        // we've already verified that our authority in the passed
+        // identity object is valid
         final Authority authority = principal.getAuthority();
-        if (authority != null) {
-            
-            client.addCredentials(authority.getHeader(), principal.getCredentials());
+        client.addCredentials(authority.getHeader(), principal.getCredentials());
         
-            // final check if the authority does not support authorization
-            // by the zms server then it's most likely a user authority and
-            // we need to get a principal token
+        // final check if the authority does not support authorization
+        // by the zms server then it's most likely a user authority and
+        // we need to get a principal token
             
-            principalCheckDone = authority.allowAuthorization();
-        }
-        
+        principalCheckDone = authority.allowAuthorization();
         return this;
     }
     
@@ -408,36 +406,23 @@ public class ZMSClient implements Closeable {
         ClientSSLContextBuilder builder = new SSLUtils.ClientSSLContextBuilder(clientProtocol)
                 .privateKeyStore(PRIVATE_KEY_STORE).keyStorePath(keyStorePath);
         
-        if (null != certAlias && !certAlias.isEmpty()) {
-            builder.certAlias(certAlias);
-        }
+        builder.certAlias(certAlias);
+
         if (null != keyStoreType && !keyStoreType.isEmpty()) {
             builder.keyStoreType(keyStoreType);
         }
-        if (null != keyStorePassword) {
-            builder.keyStorePassword(keyStorePassword);
-        }
-        if (null != keyStorePasswordAppName) {
-            builder.keyStorePasswordAppName(keyStorePasswordAppName);
-        }
-        if (null != keyManagerPassword) {
-            builder.keyManagerPassword(keyManagerPassword);
-        }
-        if (null != keyManagerPasswordAppName) {
-            builder.keyManagerPasswordAppName(keyManagerPasswordAppName);
-        }
-        if (null != trustStorePath && !trustStorePath.isEmpty()) {
-            builder.trustStorePath(trustStorePath);
-        }
+        builder.keyStorePassword(keyStorePassword);
+        builder.keyStorePasswordAppName(keyStorePasswordAppName);
+        builder.keyManagerPassword(keyManagerPassword);
+
+        builder.keyManagerPasswordAppName(keyManagerPasswordAppName);
+
+        builder.trustStorePath(trustStorePath);
         if (null != trustStoreType && !trustStoreType.isEmpty()) {
             builder.trustStoreType(trustStoreType);
         }
-        if (null != trustStorePassword) {
-            builder.trustStorePassword(trustStorePassword);
-        }
-        if (null != trustStorePasswordAppName) {
-            builder.trustStorePasswordAppName(trustStorePasswordAppName);
-        }
+        builder.trustStorePassword(trustStorePassword);
+        builder.trustStorePasswordAppName(trustStorePasswordAppName);
 
         return builder.build();
     }
@@ -1359,8 +1344,7 @@ public class ZMSClient implements Closeable {
     }
     
     /**
-     * Create a new tenant for the specified domain. The service specifies the 
-     * provider.
+     * Register a new provider service for a given tenant domain
      * @param tenantDomain name of the tenant domain
      * @param providerService name of the provider service
      *        format: provider-domain-name.provider-service-name, ex: "sports.storage"
@@ -1380,7 +1364,7 @@ public class ZMSClient implements Closeable {
     }
 
     /**
-     * Delete the specified tenant from a domain
+     * Delete the specified provider service from a tenant domain
      * @param tenantDomain name of the tenant domain
      * @param providerService name of the provider service,
      *        format: provider-domain-name.provider-service-name, ex: "sports.storage"
@@ -1391,6 +1375,45 @@ public class ZMSClient implements Closeable {
         updatePrincipal();
         try {
             client.deleteTenancy(tenantDomain, providerService, auditRef);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Register a new tenant domain for the provider service
+     * @param providerDomain provider domain name
+     * @param providerService provider service name
+     * @param tenantDomain name of the tenant domain
+     * @param auditRef string containing audit specification or ticket number
+     * @param tenant Tenancy object with tenant details
+     * @throws ZMSClientException in case of failure
+     */
+    public void putTenant(String providerDomain, String providerService, String tenantDomain, String auditRef, Tenancy tenant) {
+        updatePrincipal();
+        try {
+            client.putTenant(providerDomain, providerService, tenantDomain, auditRef, tenant);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Delete the specified tenant from provider service
+     * @param providerDomain provider domain name
+     * @param providerService provider service name
+     * @param tenantDomain name of the tenant domain
+     * @param auditRef string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
+     */
+    public void deleteTenant(String providerDomain, String providerService, String tenantDomain, String auditRef) {
+        updatePrincipal();
+        try {
+            client.deleteTenant(providerDomain, providerService, tenantDomain, auditRef);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
@@ -1630,13 +1653,7 @@ public class ZMSClient implements Closeable {
      * @throws ZMSClientException in case of failure
      */
     public UserToken getUserToken(String userName, String serviceNames) {
-        try {
-            return client.getUserToken(userName, serviceNames, null);
-        } catch (ResourceException ex) {
-            throw new ZMSClientException(ex.getCode(), ex.getData());
-        } catch (Exception ex) {
-            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
-        }
+        return getUserToken(userName, serviceNames, null);
     }
     
     /**

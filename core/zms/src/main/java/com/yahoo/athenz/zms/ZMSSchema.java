@@ -1201,7 +1201,7 @@ public class ZMSSchema {
 ;
 
         sb.resource("Tenancy", "PUT", "/domain/{domain}/tenancy/{service}")
-            .comment("Add a tenant for the specified service.")
+            .comment("Register the provider service in the tenant's domain.")
             .pathParam("domain", "DomainName", "name of the tenant domain")
             .pathParam("service", "ServiceName", "name of the provider service")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
@@ -1222,11 +1222,56 @@ public class ZMSSchema {
 ;
 
         sb.resource("Tenancy", "DELETE", "/domain/{domain}/tenancy/{service}")
-            .comment("Delete the tenant from the specified service. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+            .comment("Delete the provider service from the specified tenant domain. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
             .pathParam("domain", "DomainName", "name of the tenant domain")
             .pathParam("service", "ServiceName", "name of the provider service")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .auth("delete", "{domain}:tenancy")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("Tenancy", "PUT", "/domain/{domain}/service/{service}/tenant/{tenantDomain}")
+            .comment("Register a tenant domain for given provider service")
+            .name("PutTenant")
+            .pathParam("domain", "DomainName", "name of the provider domain")
+            .pathParam("service", "SimpleName", "name of the provider service")
+            .pathParam("tenantDomain", "DomainName", "name of the tenant domain")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .input("detail", "Tenancy", "tenancy object")
+            .auth("update", "{domain}:tenant.{service}")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("Tenancy", "DELETE", "/domain/{domain}/service/{service}/tenant/{tenantDomain}")
+            .comment("Delete the tenant domain from the provider service. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+            .name("DeleteTenant")
+            .pathParam("domain", "DomainName", "name of the provider domain")
+            .pathParam("service", "SimpleName", "name of the provider service")
+            .pathParam("tenantDomain", "DomainName", "name of the tenant domain")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .auth("delete", "{domain}:tenant.{service}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 
