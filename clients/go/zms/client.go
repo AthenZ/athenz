@@ -1920,6 +1920,76 @@ func (client ZMSClient) DeleteTenancy(domain DomainName, service ServiceName, au
 	}
 }
 
+func (client ZMSClient) PutTenant(domain DomainName, service SimpleName, tenantDomain DomainName, auditRef string, detail *Tenancy) error {
+	headers := map[string]string{
+		"Y-Audit-Ref": auditRef,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domain) + "/service/" + fmt.Sprint(service) + "/tenant/" + fmt.Sprint(tenantDomain)
+	contentBytes, err := json.Marshal(detail)
+	if err != nil {
+		return err
+	}
+	resp, err := client.httpPut(url, headers, contentBytes)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		err = json.Unmarshal(contentBytes, &errobj)
+		if err != nil {
+			return err
+		}
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
+func (client ZMSClient) DeleteTenant(domain DomainName, service SimpleName, tenantDomain DomainName, auditRef string) error {
+	headers := map[string]string{
+		"Y-Audit-Ref": auditRef,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domain) + "/service/" + fmt.Sprint(service) + "/tenant/" + fmt.Sprint(tenantDomain)
+	resp, err := client.httpDelete(url, headers)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		err = json.Unmarshal(contentBytes, &errobj)
+		if err != nil {
+			return err
+		}
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
 func (client ZMSClient) PutTenantResourceGroupRoles(domain DomainName, service SimpleName, tenantDomain DomainName, resourceGroup EntityName, auditRef string, detail *TenantResourceGroupRoles) (*TenantResourceGroupRoles, error) {
 	var data *TenantResourceGroupRoles
 	headers := map[string]string{
