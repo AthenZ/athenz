@@ -4,17 +4,16 @@
 
 [![Build Status](https://travis-ci.org/yahoo/athenz.svg?branch=master)](https://travis-ci.org/yahoo/athenz)
 
-Athenz is a set of services and libraries supporting service
-authentication and role-based authorization (RBAC) for provisioning
-and configuration (centralized authorization) use cases as well as
-serving/runtime (decentralized authorization) use cases. Athenz
-authorization system utilizes x.509 certificates and two types of tokens:
-Principal Tokens (N-Tokens) and RoleTokens (Z-Tokens). The use of
-x.509 certificates is strongly recommended over tokens. The name "Athenz"
-is derived from "AuthNZ" (N for authentication and Z for authorization).
+> Athenz is a set of services and libraries supporting service authentication and role-based authorization (RBAC) for provisioning and configuration (centralized authorization) use cases as well as serving/runtime (decentralized authorization) use cases. Athenz authorization system utilizes x.509 certificates and two types of tokens: Principal Tokens (N-Tokens) and RoleTokens (Z-Tokens). The use of x.509 certificates is strongly recommended over tokens. The name "Athenz" is derived from "AuthNZ" (N for authentication and Z for authorization).
+
+* [Background](#background)
+* [Install](#install)
+* [Usage](#usage)
+* [Contribute](#contribute)
+* [License](#license)
 
 ## Background
---------------
+-------------
 
 Athenz is an open source platform for X.509 certificate based service authentication
 and fine grained role based access control in dynamic infrastructures. It provides
@@ -55,8 +54,26 @@ from on-prem services with using AWS temporary credentials rather than
 static credentials. Athenz ZTS server can be used to request AWS temporary
 credentials for configured AWS IAM roles.
 
-## Table of Contents
---------------------
+## Install
+----------
+
+* [Development Environment](docs/dev_environment.md)
+* Local/Development Environment Setup
+    * [ZMS Server](docs/setup_zms.md)
+    * [ZTS Server](docs/setup_zts.md)
+    * [UI Server](docs/setup_ui.md)
+* Production Environment Setup
+    * [ZMS Server](docs/setup_zms_prod.md)
+    * [ZTS Server](docs/setup_zts_prod.md)
+    * [UI Server](docs/setup_ui_prod.md)
+* AWS Production Environment Setup
+    * [Introduction](docs/aws_athenz_setup.md)
+    * [ZMS Server](docs/aws_zms_setup.md)
+    * [ZTS Server](docs/aws_zts_setup.md)
+    * [UI Server](docs/aws_ui_setup.md)
+
+## Usage
+--------
 
 * Architecture
     * [Data Model](docs/data_model.md)
@@ -80,36 +97,15 @@ credentials for configured AWS IAM roles.
     * [ZPU Utility](docs/setup_zpu.md)
     * [Registering ZMS Service Identity](docs/reg_service_guide.md)
 
-## Install
-----------
-
-* [Development Environment](docs/dev_environment.md)
-* Local/Development Environment Setup
-    * [ZMS Server](docs/setup_zms.md)
-    * [ZTS Server](docs/setup_zts.md)
-    * [UI Server](docs/setup_ui.md)
-* Production Environment Setup
-    * [ZMS Server](docs/setup_zms_prod.md)
-    * [ZTS Server](docs/setup_zts_prod.md)
-    * [UI Server](docs/setup_ui_prod.md)
-* AWS Production Environment Setup
-    * [Introduction](docs/aws_athenz_setup.md)
-    * [ZMS Server](docs/aws_zms_setup.md)
-    * [ZTS Server](docs/aws_zts_setup.md)
-    * [UI Server](docs/aws_ui_setup.md)
-
-## Contact
-----------
-
-* [Athenz-Dev](https://groups.google.com/d/forum/athenz-dev) for
-  development discussions
-* [Athenz-Users](https://groups.google.com/d/forum/athenz-users) for
-  users questions
-
 ## Contribute
 -------------
 
 Please refer to the [contributing file](docs/contributing.md) for information about how to get involved. We welcome issues, questions, and pull requests.
+
+You can also contact us for any user and development discussions through our groups:
+
+* [Athenz-Dev](https://groups.google.com/d/forum/athenz-dev) for development discussions
+* [Athenz-Users](https://groups.google.com/d/forum/athenz-users) for users questions
 
 ## License
 ----------
