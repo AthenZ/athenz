@@ -6,6 +6,8 @@
 
 > Athenz is a set of services and libraries supporting service authentication and role-based authorization (RBAC) for provisioning and configuration (centralized authorization) use cases as well as serving/runtime (decentralized authorization) use cases. Athenz authorization system utilizes x.509 certificates and two types of tokens: Principal Tokens (N-Tokens) and RoleTokens (Z-Tokens). The use of x.509 certificates is strongly recommended over tokens. The name "Athenz" is derived from "AuthNZ" (N for authentication and Z for authorization).
 
+## Table of Contents
+
 * [Background](#background)
 * [Install](#install)
 * [Usage](#usage)
@@ -13,7 +15,6 @@
 * [License](#license)
 
 ## Background
--------------
 
 Athenz is an open source platform for X.509 certificate based service authentication
 and fine grained role based access control in dynamic infrastructures. It provides
@@ -55,7 +56,6 @@ static credentials. Athenz ZTS server can be used to request AWS temporary
 credentials for configured AWS IAM roles.
 
 ## Install
-----------
 
 * [Development Environment](docs/dev_environment.md)
 * Local/Development Environment Setup
@@ -73,7 +73,6 @@ credentials for configured AWS IAM roles.
     * [UI Server](docs/aws_ui_setup.md)
 
 ## Usage
---------
 
 * Architecture
     * [Data Model](docs/data_model.md)
@@ -98,7 +97,6 @@ credentials for configured AWS IAM roles.
     * [Registering ZMS Service Identity](docs/reg_service_guide.md)
 
 ## Contribute
--------------
 
 Please refer to the [contributing file](docs/contributing.md) for information about how to get involved. We welcome issues, questions, and pull requests.
 
@@ -108,7 +106,6 @@ You can also contact us for any user and development discussions through our gro
 * [Athenz-Users](https://groups.google.com/d/forum/athenz-users) for users questions
 
 ## License
-----------
 
 Copyright 2016 Yahoo Inc.
 
