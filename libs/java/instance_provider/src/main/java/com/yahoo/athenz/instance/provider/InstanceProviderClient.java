@@ -100,12 +100,10 @@ public class InstanceProviderClient {
             throw new ResourceException(ResourceException.FORBIDDEN, "Register Confirmation Exception");
         }
         int code = response.getStatus();
-        switch (code) {
-            case ResourceException.OK:
-                return response.readEntity(InstanceConfirmation.class);
-            default:
-                throw new ResourceException(code, responseText(response));
+        if (code == ResourceException.OK) {
+            return response.readEntity(InstanceConfirmation.class);
         }
+        throw new ResourceException(code, responseText(response));
     }
 
     public InstanceConfirmation postRefreshConfirmation(InstanceConfirmation confirmation) {
@@ -120,11 +118,9 @@ public class InstanceProviderClient {
             throw new ResourceException(ResourceException.FORBIDDEN, "Refresh Confirmation Exception");
         }
         int code = response.getStatus();
-        switch (code) {
-            case ResourceException.OK:
-                return response.readEntity(InstanceConfirmation.class);
-            default:
-                throw new ResourceException(code, responseText(response));
+        if (code == ResourceException.OK) {
+            return response.readEntity(InstanceConfirmation.class);
         }
+        throw new ResourceException(code, responseText(response));
     }
 }

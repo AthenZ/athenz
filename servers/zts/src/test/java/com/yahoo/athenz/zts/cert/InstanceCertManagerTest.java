@@ -425,12 +425,12 @@ public class InstanceCertManagerTest {
 
         // empty list matches everything
         
-        assertTrue(instance.verifyInstanceCertIPAddress("11.1.3.25"));
-        assertTrue(instance.verifyInstanceCertIPAddress("11.1.9.25"));
-        assertTrue(instance.verifyInstanceCertIPAddress("11.2.3.25"));
-        assertTrue(instance.verifyInstanceCertIPAddress("11.2.9.25"));
-        assertTrue(instance.verifyInstanceCertIPAddress("10.1.3.25"));
-        assertTrue(instance.verifyInstanceCertIPAddress("10.1.9.25"));
+        assertTrue(instance.verifyInstanceCertIPAddress("athenz.aws.us-west-2", "11.1.3.25"));
+        assertTrue(instance.verifyInstanceCertIPAddress("athenz.aws.us-west-2", "11.1.9.25"));
+        assertTrue(instance.verifyInstanceCertIPAddress("athenz.aws.us-west-2", "11.2.3.25"));
+        assertTrue(instance.verifyInstanceCertIPAddress("athenz.aws.us-east-1", "11.2.9.25"));
+        assertTrue(instance.verifyInstanceCertIPAddress("k8s.athenz.provider", "10.1.3.25"));
+        assertTrue(instance.verifyInstanceCertIPAddress("openstack.provider", "10.1.9.25"));
         
         assertTrue(instance.verifyCertRefreshIPAddress("10.1.3.25"));
         assertTrue(instance.verifyCertRefreshIPAddress("10.1.9.25"));
@@ -459,7 +459,7 @@ public class InstanceCertManagerTest {
         
         // subnet/netmask: 10.2.0.0/255.255.248.0
         // address range: 10.2.0.0 - 10.2.7.255
-        
+
         assertTrue(instance.verifyCertRefreshIPAddress("10.1.3.25"));
         assertFalse(instance.verifyCertRefreshIPAddress("10.1.9.25"));
         assertTrue(instance.verifyCertRefreshIPAddress("10.2.3.25"));
@@ -475,47 +475,102 @@ public class InstanceCertManagerTest {
         
         // subnet/netmask: 11.2.0.0/255.255.248.0
         // address range: 11.2.0.0 - 11.2.7.255
-        
-        assertTrue(instance.verifyInstanceCertIPAddress("11.1.3.25"));
-        assertFalse(instance.verifyInstanceCertIPAddress("11.1.9.25"));
-        assertTrue(instance.verifyInstanceCertIPAddress("11.2.3.25"));
-        assertFalse(instance.verifyInstanceCertIPAddress("11.2.9.25"));
-        
-        assertFalse(instance.verifyInstanceCertIPAddress("10.1.3.25"));
-        assertFalse(instance.verifyInstanceCertIPAddress("10.1.9.25"));
+
+        assertTrue(instance.verifyInstanceCertIPAddress("athenz.aws.us-west-2", "11.1.3.25"));
+        assertFalse(instance.verifyInstanceCertIPAddress("athenz.aws.us-west-2", "11.1.9.25"));
+        assertTrue(instance.verifyInstanceCertIPAddress("k8s.provider.cluster1", "11.2.3.25"));
+        assertFalse(instance.verifyInstanceCertIPAddress("k8s.provider.cluster2", "11.2.9.25"));
+
+        // no map file allows everything
+
+        assertTrue(instance.verifyInstanceCertIPAddress("openstack.cluster", "10.1.3.25"));
+        assertTrue(instance.verifyInstanceCertIPAddress("openstack.cluster", "10.1.9.25"));
+
+        // invalid addresses in 10.x range
+
+        assertFalse(instance.verifyInstanceCertIPAddress("athenz.aws.us-west-2", "10.1.3.25"));
+        assertFalse(instance.verifyInstanceCertIPAddress("athenz.aws.us-west-2", "10.1.9.25"));
+
+        // unknown domains are failure
+
+        assertFalse(instance.verifyInstanceCertIPAddress("vespa.cluster", "10.1.3.25"));
+        assertFalse(instance.verifyInstanceCertIPAddress("vespa.cluster", "10.1.9.25"));
+        assertFalse(instance.verifyInstanceCertIPAddress("vespa", "10.1.3.25"));
+        assertFalse(instance.verifyInstanceCertIPAddress("cluster", "10.1.9.25"));
+
         instance.shutdown();
     }
-    
+
+    @Test
+    public void testLoadAllowedCertIPAddressesInvalidFile() {
+
+        System.setProperty(ZTSConsts.ZTS_PROP_INSTANCE_CERT_IP_FNAME, "invalid-file");
+
+        try {
+            InstanceCertManager instance = new InstanceCertManager(null, null, true);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Unable to load Provider Allowed IP Blocks"));
+        }
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_INSTANCE_CERT_IP_FNAME);
+    }
+
+    @Test
+    public void testLoadAllowedCertIPAddressesInvalidJson() {
+
+        System.setProperty(ZTSConsts.ZTS_PROP_INSTANCE_CERT_IP_FNAME, "src/test/resources/instance_cert_ipblocks_invalid_json.txt");
+
+        try {
+            InstanceCertManager instance = new InstanceCertManager(null, null, true);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Unable to load Provider Allowed IP Blocks"));
+        }
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_INSTANCE_CERT_IP_FNAME);
+    }
+
+    @Test
+    public void testLoadAllowedCertIPAddressesInvalidIPFile() {
+
+        System.setProperty(ZTSConsts.ZTS_PROP_INSTANCE_CERT_IP_FNAME, "src/test/resources/instance_cert_ipblocks_invalid_ip.txt");
+
+        try {
+            InstanceCertManager instance = new InstanceCertManager(null, null, true);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Unable to load Provider Allowed IP Blocks"));
+        }
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_INSTANCE_CERT_IP_FNAME);
+    }
+
     @Test
     public void testLoadAllowedIPAddresses() {
         
-        final String propName = "test_ip_property";
         List<IPBlock> ipBlocks = new ArrayList<>();
 
-        System.clearProperty(propName);
         InstanceCertManager instance = new InstanceCertManager(null, null, true);
         instance.setCertSigner(null);
 
-        // not set property returns true
-        
-        assertTrue(instance.loadAllowedIPAddresses(ipBlocks, propName));
-        
+        // empty or null filename returns success
+
+        assertTrue(instance.loadAllowedIPAddresses(ipBlocks, null));
+        assertTrue(instance.loadAllowedIPAddresses(ipBlocks, ""));
+
         // file does not exist returns failure
         
-        System.setProperty(propName, "some-invalid-filename");
-        assertFalse(instance.loadAllowedIPAddresses(ipBlocks, propName));
+        assertFalse(instance.loadAllowedIPAddresses(ipBlocks, "some-invalid-filename"));
 
         // invalid json returns failure
         
-        System.setProperty(propName, "src/test/resources/invalid_ipblocks.txt");
-        assertFalse(instance.loadAllowedIPAddresses(ipBlocks, propName));
+        assertFalse(instance.loadAllowedIPAddresses(ipBlocks, "src/test/resources/invalid_ipblocks.txt"));
         
         // valid json with empty set returns failure
         
-        System.setProperty(propName, "src/test/resources/empty_ipblocks.txt");
-        assertFalse(instance.loadAllowedIPAddresses(ipBlocks, propName));
+        assertFalse(instance.loadAllowedIPAddresses(ipBlocks, "src/test/resources/empty_ipblocks.txt"));
 
-        System.clearProperty(propName);
         instance.shutdown();
     }
 

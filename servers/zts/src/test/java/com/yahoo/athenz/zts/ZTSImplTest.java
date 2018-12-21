@@ -4849,7 +4849,8 @@ public class ZTSImplTest {
         String certCsr = new String(Files.readAllBytes(path));
 
         InstanceCertManager instanceManager = Mockito.mock(InstanceCertManager.class);
-        Mockito.when(instanceManager.verifyInstanceCertIPAddress(Mockito.any())).thenReturn(false);
+        Mockito.when(instanceManager.verifyInstanceCertIPAddress(Mockito.any(), Mockito.any()))
+                .thenReturn(false);
         ztsImpl.instanceCertManager = instanceManager;
 
         InstanceRegisterInformation info = new InstanceRegisterInformation()

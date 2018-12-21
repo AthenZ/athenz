@@ -1,0 +1,11 @@
+{
+    "ipblocks": [
+        {
+            "filename": "src/test/resources/invalid_ipblocks.txt",
+            "providers": [
+                "athenz.aws.us-west-2",
+                "athenz.aws-ecs.us-west-2"
+            ]
+        }
+    ]
+}

@@ -30,7 +30,7 @@ type signer struct {
 func main() {
 	var ztsURL, serviceKey, serviceCert, domain, service, keyID string
 	var caCertFile, certFile, signerCertFile, dnsDomain, hdr, ip string
-	var subjC, subjO, subjOU, uri string
+	var subjC, subjO, subjOU, uri, provider, instance, instanceId string
 	var csr, spiffe bool
 	var expiryTime int
 	flag.BoolVar(&csr, "csr", false, "request csr only")
@@ -51,6 +51,8 @@ func main() {
 	flag.StringVar(&subjO, "subj-o", "Oath Inc.", "Subject O/Organization field")
 	flag.StringVar(&subjOU, "subj-ou", "Athenz", "Subject OU/OrganizationalUnit field")
 	flag.StringVar(&ip, "ip", "", "IP address")
+	flag.StringVar(&provider, "provider", "", "Athenz Provider")
+	flag.StringVar(&instance, "instance", "", "Instance Id")
 	flag.Parse()
 
 	if serviceKey == "" || domain == "" || service == "" ||
@@ -63,7 +65,6 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-
 	// get our private key signer for csr
 	pkSigner, err := newSigner(keyBytes)
 	if err != nil {
@@ -78,8 +79,11 @@ func main() {
 	hyphenDomain := strings.Replace(domain, ".", "-", -1)
 	host := fmt.Sprintf("%s.%s.%s", service, hyphenDomain, dnsDomain)
 	commonName := fmt.Sprintf("%s.%s", domain, service)
+	if instance != "" {
+		instanceId = fmt.Sprintf("%s.instanceid.athenz.%s", instance, dnsDomain)
+	}
 	if spiffe {
-		uri = fmt.Sprintf("spiffe://%s/service/%s", domain, service)
+		uri = fmt.Sprintf("spiffe://%s/sa/%s", domain, service)
 	}
 
 	subj := pkix.Name{
@@ -89,7 +93,7 @@ func main() {
 		Country:            []string{subjC},
 	}
 
-	csrData, err := generateCSR(pkSigner, subj, host, ip, uri)
+	csrData, err := generateCSR(pkSigner, subj, host, instanceId, ip, uri)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -103,13 +107,18 @@ func main() {
 
 	// for all other operations we need to have ZTS Server url
 	if ztsURL == "" {
-		fmt.Println("Error: missing ZTS Server url. Run with -help for command line arguments")
+		log.Fatalln("Error: missing ZTS Server url. Run with -help for command line arguments")
 	}
 
-	// if we're given a certficate then we'll use that otherwise
-	// we're going to generate a ntoken for our request
+	// if we're given a certificate then we'll use that otherwise
+	// we're going to generate a ntoken for our request unless
+	// we're using copper argos which only uses tls and the attestation
+	// data contains the authentication details
+
 	var client *zts.ZTSClient
-	if serviceCert == "" {
+	if provider != "" {
+		client, err = certClient(ztsURL, nil, "", caCertFile)
+	} else if serviceCert == "" {
 		client, err = ntokenClient(ztsURL, domain, service, keyID, caCertFile, hdr, keyBytes)
 	} else {
 		client, err = certClient(ztsURL, keyBytes, serviceCert, caCertFile)
@@ -118,26 +127,66 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	expiryTime32 := int32(expiryTime)
-	req := &zts.InstanceRefreshRequest{Csr: csrData, KeyId: keyID, ExpiryTime: &expiryTime32}
+	var certificate, caCertificates string
 
-	// request a tls certificate for this service
-	identity, err := client.PostInstanceRefreshRequest(zts.CompoundName(domain), zts.SimpleName(service), req)
-	if err != nil {
-		log.Fatalln(err)
+	// if we're given provider then we're going to use our
+	// copper argos model to request the certificate
+	if provider != "" {
+
+		if instanceId == "" {
+			log.Fatalln("Error: Please specify instance value. Run with -help for command line arguments")
+		}
+		ntoken, err := getNToken(domain, service, keyID, keyBytes)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		req := &zts.InstanceRegisterInformation{
+			Provider:        zts.ServiceName(provider),
+			Domain:          zts.DomainName(domain),
+			Service:         zts.SimpleName(service),
+			AttestationData: ntoken,
+			Csr:             csrData,
+		}
+
+		// request a tls certificate for this service
+		identity, _, err := client.PostInstanceRegisterInformation(req)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		certificate = identity.X509Certificate
+		caCertificates = identity.X509CertificateSigner
+
+	} else {
+
+		expiryTime32 := int32(expiryTime)
+		req := &zts.InstanceRefreshRequest{
+			Csr:        csrData,
+			KeyId:      keyID,
+			ExpiryTime: &expiryTime32,
+		}
+
+		// request a tls certificate for this service
+		identity, err := client.PostInstanceRefreshRequest(zts.CompoundName(domain), zts.SimpleName(service), req)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		certificate = identity.Certificate
+		caCertificates = identity.CaCertBundle
 	}
 
 	if certFile != "" {
-		err = ioutil.WriteFile(certFile, []byte(identity.Certificate), 0444)
+		err = ioutil.WriteFile(certFile, []byte(certificate), 0444)
 		if err != nil {
 			log.Fatalln(err)
 		}
 	} else {
-		fmt.Println(identity.Certificate)
+		fmt.Println(certificate)
 	}
 
 	if signerCertFile != "" {
-		err = ioutil.WriteFile(signerCertFile, []byte(identity.CaCertBundle), 0444)
+		err = ioutil.WriteFile(signerCertFile, []byte(caCertificates), 0444)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -168,7 +217,7 @@ func newSigner(privateKeyPEM []byte) (*signer, error) {
 	}
 }
 
-func generateCSR(keySigner *signer, subj pkix.Name, host, ip, uri string) (string, error) {
+func generateCSR(keySigner *signer, subj pkix.Name, host, instanceId, ip, uri string) (string, error) {
 
 	template := x509.CertificateRequest{
 		Subject:            subj,
@@ -176,6 +225,9 @@ func generateCSR(keySigner *signer, subj pkix.Name, host, ip, uri string) (strin
 	}
 	if host != "" {
 		template.DNSNames = []string{host}
+	}
+	if instanceId != "" {
+		template.DNSNames = append(template.DNSNames, instanceId)
 	}
 	if ip != "" {
 		template.IPAddresses = []net.IP{net.ParseIP(ip)}
@@ -202,11 +254,11 @@ func generateCSR(keySigner *signer, subj pkix.Name, host, ip, uri string) (strin
 	return buf.String(), nil
 }
 
-func ntokenClient(ztsURL, domain, service, keyID, caCertFile, hdr string, keyBytes []byte) (*zts.ZTSClient, error) {
+func getNToken(domain, service, keyID string, keyBytes []byte) (string, error) {
 	// get token builder instance
 	builder, err := zmssvctoken.NewTokenBuilder(domain, service, keyBytes, keyID)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	// set optional attributes
@@ -217,11 +269,15 @@ func ntokenClient(ztsURL, domain, service, keyID, caCertFile, hdr string, keyByt
 	tok := builder.Token()
 
 	// get a token for use
-	ntoken, err := tok.Value()
+	return tok.Value()
+}
+
+func ntokenClient(ztsURL, domain, service, keyID, caCertFile, hdr string, keyBytes []byte) (*zts.ZTSClient, error) {
+
+	ntoken, err := getNToken(domain, service, keyID, keyBytes)
 	if err != nil {
 		return nil, err
 	}
-
 	transport := &http.Transport{
 		Proxy: http.ProxyFromEnvironment,
 		ResponseHeaderTimeout: 30 * time.Second,
@@ -244,9 +300,13 @@ func ntokenClient(ztsURL, domain, service, keyID, caCertFile, hdr string, keyByt
 }
 
 func certClient(ztsURL string, keyBytes []byte, certfile, caCertFile string) (*zts.ZTSClient, error) {
-	certpem, err := ioutil.ReadFile(certfile)
-	if err != nil {
-		return nil, err
+	var certpem []byte
+	var err error
+	if certfile != "" {
+		certpem, err = ioutil.ReadFile(certfile)
+		if err != nil {
+			return nil, err
+		}
 	}
 	var cacertpem []byte
 	if caCertFile != "" {

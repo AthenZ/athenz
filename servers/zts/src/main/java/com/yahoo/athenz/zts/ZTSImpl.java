@@ -1739,9 +1739,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // before running any checks make sure it's coming from
         // an authorized ip address
-        
+
+        final String provider = info.getProvider();
         final String ipAddress = ServletRequestUtil.getRemoteAddress(ctx.request());
-        if (!instanceCertManager.verifyInstanceCertIPAddress(ipAddress)) {
+        if (!instanceCertManager.verifyInstanceCertIPAddress(provider, ipAddress)) {
             throw forbiddenError("Unknown IP: " + ipAddress, caller, domain);
         }
         
@@ -1749,7 +1750,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // authorized to launch instances in Athenz and the service has
         // authorized this provider to launch its instances
         
-        final String provider = info.getProvider();
         Principal providerService = createPrincipalForName(provider);
         StringBuilder errorMsg = new StringBuilder(256);
 
@@ -1969,7 +1969,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // an authorized ip address
         
         final String ipAddress = ServletRequestUtil.getRemoteAddress(ctx.request());
-        if (!instanceCertManager.verifyInstanceCertIPAddress(ipAddress)) {
+        if (!instanceCertManager.verifyInstanceCertIPAddress(provider, ipAddress)) {
             throw forbiddenError("Unknown IP: " + ipAddress, caller, domain);
         }
         

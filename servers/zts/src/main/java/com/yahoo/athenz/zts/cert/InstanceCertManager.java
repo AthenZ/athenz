@@ -5,12 +5,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yahoo.athenz.zts.utils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,10 +29,6 @@ import com.yahoo.athenz.common.server.cert.CertSigner;
 import com.yahoo.athenz.common.server.cert.CertSignerFactory;
 import com.yahoo.athenz.common.server.ssh.SSHSigner;
 import com.yahoo.athenz.common.server.ssh.SSHSignerFactory;
-import com.yahoo.athenz.zts.utils.IPBlock;
-import com.yahoo.athenz.zts.utils.IPPrefix;
-import com.yahoo.athenz.zts.utils.IPPrefixes;
-import com.yahoo.rdl.JSON;
 
 public class InstanceCertManager {
 
@@ -42,17 +40,23 @@ public class InstanceCertManager {
     private CertRecordStore certStore = null;
     private ScheduledExecutorService scheduledExecutor;
     private List<IPBlock> certRefreshIPBlocks;
-    private List<IPBlock> instanceCertIPBlocks;
+    private Map<String, List<IPBlock>> instanceCertIPBlocks;
     private String caX509CertificateSigner = null;
     private String sshUserCertificateSigner = null;
     private String sshHostCertificateSigner = null;
-    
+    private ObjectMapper jsonMapper;
+
     public InstanceCertManager(final PrivateKeyStore keyStore, Authorizer authorizer,
             boolean readOnlyMode) {
 
         // set our authorizer object
 
         this.authorizer = authorizer;
+
+        // initialize our jackson object mapper
+
+        jsonMapper = new ObjectMapper();
+        jsonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
         // create our x509 certsigner object
 
@@ -79,10 +83,12 @@ public class InstanceCertManager {
         // load our allowed cert refresh and instance register ip blocks
         
         certRefreshIPBlocks = new ArrayList<>();
-        loadAllowedIPAddresses(certRefreshIPBlocks, ZTSConsts.ZTS_PROP_CERT_REFRESH_IP_FNAME);
-        
-        instanceCertIPBlocks = new ArrayList<>();
-        loadAllowedIPAddresses(instanceCertIPBlocks, ZTSConsts.ZTS_PROP_INSTANCE_CERT_IP_FNAME);
+        loadAllowedIPAddresses(certRefreshIPBlocks, System.getProperty(ZTSConsts.ZTS_PROP_CERT_REFRESH_IP_FNAME));
+
+        if (!loadAllowedInstanceCertIPAddresses()) {
+            throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
+                    "Unable to load Provider Allowed IP Blocks");
+        }
 
         // start our thread to delete expired cert records once a day
         // unless we're running in read-only mode thus no modifications
@@ -100,6 +106,55 @@ public class InstanceCertManager {
         if (scheduledExecutor != null) {
             scheduledExecutor.shutdownNow();
         }
+    }
+
+    private boolean loadAllowedInstanceCertIPAddresses() {
+
+        instanceCertIPBlocks = new HashMap<>();
+
+        // read the file list of providers and allowed IP addresses
+        // if the config is not set then we have no restrictions
+        // otherwise all providers must be specified in the list
+
+        String providerIPMapFile =  System.getProperty(ZTSConsts.ZTS_PROP_INSTANCE_CERT_IP_FNAME);
+        if (providerIPMapFile == null || providerIPMapFile.isEmpty()) {
+            return true;
+        }
+
+        byte[] data = readFileContents(providerIPMapFile);
+        if (data == null) {
+            return false;
+        }
+
+        ProviderIPBlocks ipBlocks = null;
+        try {
+            ipBlocks = jsonMapper.readValue(data, ProviderIPBlocks.class);
+        } catch (Exception ex) {
+            LOGGER.error("Unable to parse Provider IP file: {} - {}", providerIPMapFile, ex.getMessage());
+        }
+
+        if (ipBlocks == null) {
+            return false;
+        }
+
+        for (ProviderIPBlock ipBlock : ipBlocks.getIpblocks()) {
+
+            List<IPBlock> certIPBlocks;
+            final String filename = ipBlock.getFilename();
+            if (filename == null) {
+                certIPBlocks = Collections.emptyList();
+            } else {
+                certIPBlocks = new ArrayList<>();
+                if (!loadAllowedIPAddresses(certIPBlocks, filename)) {
+                    LOGGER.error("Invalid provider ip file {}", filename);
+                    return false;
+                }
+            }
+            for (String provider : ipBlock.getProviders()) {
+                instanceCertIPBlocks.put(provider, certIPBlocks);
+            }
+        }
+        return true;
     }
 
     private void loadCertSigner() {
@@ -189,29 +244,31 @@ public class InstanceCertManager {
         return true;
     }
 
-    boolean loadAllowedIPAddresses(List<IPBlock> ipBlocks, final String propName) {
-        
-        // get the configured path for the list of ip addresses
-        
-        final String ipAddresses =  System.getProperty(propName);
-        if (ipAddresses == null) {
+    boolean loadAllowedIPAddresses(List<IPBlock> ipBlocks, final String ipAddressFileName) {
+
+        if (ipAddressFileName == null || ipAddressFileName.isEmpty()) {
             return true;
         }
 
-        byte[] data = readFileContents(ipAddresses);
+        byte[] data = readFileContents(ipAddressFileName);
         if (data == null) {
             return false;
         }
-        
-        IPPrefixes prefixes = JSON.fromBytes(data, IPPrefixes.class);
+
+        IPPrefixes prefixes = null;
+        try {
+            prefixes = jsonMapper.readValue(data, IPPrefixes.class);
+        } catch (Exception ex) {
+            LOGGER.error("Unable to parse IP file: {} - {}", ipAddressFileName, ex.getMessage());
+        }
+
         if (prefixes == null) {
-            LOGGER.error("Unable to parse IP file: {}", ipAddresses);
             return false;
         }
         
         List<IPPrefix> prefixList = prefixes.getPrefixes();
         if (prefixList == null || prefixList.isEmpty()) {
-            LOGGER.error("No prefix entries available in the IP file: {}", ipAddresses);
+            LOGGER.error("No prefix entries available in the IP file: {}", ipAddressFileName);
             return false;
         }
         
@@ -229,6 +286,7 @@ public class InstanceCertManager {
             } catch (Exception ex) {
                 LOGGER.error("Skipping invalid ip block entry: {}, error: {}",
                         ipEntry, ex.getMessage());
+                return false;
             }
         }
         
@@ -485,11 +543,22 @@ public class InstanceCertManager {
     public boolean verifyCertRefreshIPAddress(final String ipAddress) {
         return verifyIPAddressAccess(ipAddress, certRefreshIPBlocks);
     }
-    
-    public boolean verifyInstanceCertIPAddress(final String ipAddress) {
-        return verifyIPAddressAccess(ipAddress, instanceCertIPBlocks);
+
+    public boolean verifyInstanceCertIPAddress(final String provider, final String ipAddress) {
+
+        final List<IPBlock> certIPBlocks = instanceCertIPBlocks.get(provider);
+
+        // if we have no blocks defined for the provider, then we'll return
+        // failure if we have others defined or success if there are no
+        // providers defined at all
+
+        if (certIPBlocks == null) {
+            return instanceCertIPBlocks.isEmpty();
+        }
+
+        return verifyIPAddressAccess(ipAddress, certIPBlocks);
     }
-    
+
     private boolean verifyIPAddressAccess(final String ipAddress, final List<IPBlock> ipBlocks) {
         
         // if the list has no IP addresses then we allow all
