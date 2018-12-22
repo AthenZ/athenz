@@ -30,6 +30,11 @@ public class InstanceTestClassProvider implements InstanceProvider {
     }
 
     @Override
+    public Scheme getProviderScheme() {
+        return Scheme.CLASS;
+    }
+
+    @Override
     public void initialize(String provider, String endpoint, SSLContext sslContext, KeyStore keyStore) {
     }
 

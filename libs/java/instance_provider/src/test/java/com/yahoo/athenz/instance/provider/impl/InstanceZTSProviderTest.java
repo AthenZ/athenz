@@ -18,6 +18,7 @@ package com.yahoo.athenz.instance.provider.impl;
 import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
+import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.instance.provider.ResourceException;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
@@ -52,6 +53,7 @@ public class InstanceZTSProviderTest {
         InstanceZTSProvider provider = new InstanceZTSProvider();
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
         assertEquals("zts.athenz.cloud", provider.dnsSuffix);
+        assertEquals(InstanceProvider.Scheme.CLASS, provider.getProviderScheme());
         assertNull(provider.keyStore);
         assertNull(provider.principals);
         provider.close();
@@ -121,12 +123,12 @@ public class InstanceZTSProviderTest {
         Mockito.when(keystore.getPublicKey("sports", "api", "v0")).thenReturn(servicePublicKeyStringK0);
 
         String token = "invalidtoken";
-        assertNull(provider.authenticate(token, null, errMsg));
+        assertNull(provider.authenticate(token, null, servicePublicKeyStringK0, errMsg));
         assertTrue(errMsg.toString().contains("Invalid token"));
 
         errMsg.setLength(0);
         token = "v=S1;d=domain;n=service;t=1234;e=1235;k=0;h=host1;i=1.2.3.4;b=svc1,svc2;s=signature;bk=0;bn=svc1;bs=signature";
-        assertNull(provider.authenticate(token, null, errMsg));
+        assertNull(provider.authenticate(token, null, servicePublicKeyStringK0, errMsg));
         assertTrue(errMsg.toString().contains("authorized service token"));
 
         PrincipalToken tokenToSign = new PrincipalToken.Builder("1", "sports", "api")
@@ -135,12 +137,17 @@ public class InstanceZTSProviderTest {
         tokenToSign.sign(servicePrivateKeyStringK0);
 
         errMsg.setLength(0);
-        assertNotNull(provider.authenticate(tokenToSign.getSignedToken(), keystore, errMsg));
+        assertNotNull(provider.authenticate(tokenToSign.getSignedToken(), keystore, servicePublicKeyStringK0, errMsg));
+
+        // test with mismatch public key
+
+        assertNull(provider.authenticate(tokenToSign.getSignedToken(), keystore, "publicKey", errMsg));
 
         // create invalid signature
 
         errMsg.setLength(0);
-        assertNull(provider.authenticate(tokenToSign.getSignedToken().replace(";s=", ";s=abc"), keystore, errMsg));
+        assertNull(provider.authenticate(tokenToSign.getSignedToken().replace(";s=", ";s=abc"),
+                keystore, servicePublicKeyStringK0, errMsg));
         provider.close();
     }
 
@@ -155,7 +162,7 @@ public class InstanceZTSProviderTest {
         StringBuilder errMsg = new StringBuilder(256);
 
         String token = "invalidtoken";
-        assertFalse(provider.validateToken(token, "sports", "api", errMsg));
+        assertFalse(provider.validateToken(token, "sports", "api", servicePublicKeyStringK0, errMsg));
         assertTrue(errMsg.toString().contains("Invalid token"));
 
         errMsg.setLength(0);
@@ -166,14 +173,17 @@ public class InstanceZTSProviderTest {
         tokenToSign.sign(servicePrivateKeyStringK0);
 
         errMsg.setLength(0);
-        assertTrue(provider.validateToken(tokenToSign.getSignedToken(), "sports", "api", errMsg));
+        assertTrue(provider.validateToken(tokenToSign.getSignedToken(), "sports", "api",
+                servicePublicKeyStringK0, errMsg));
 
         errMsg.setLength(0);
-        assertFalse(provider.validateToken(tokenToSign.getSignedToken(), "sports", "ui", errMsg));
+        assertFalse(provider.validateToken(tokenToSign.getSignedToken(), "sports", "ui",
+                servicePublicKeyStringK0, errMsg));
         assertTrue(errMsg.toString().contains("service mismatch"));
 
         errMsg.setLength(0);
-        assertFalse(provider.validateToken(tokenToSign.getSignedToken(), "weather", "api", errMsg));
+        assertFalse(provider.validateToken(tokenToSign.getSignedToken(), "weather", "api",
+                servicePublicKeyStringK0, errMsg));
         assertTrue(errMsg.toString().contains("domain mismatch"));
 
         provider.close();
@@ -203,6 +213,7 @@ public class InstanceZTSProviderTest {
 
         Map<String, String> attributes = new HashMap<>();
         attributes.put(InstanceUtils.ZTS_INSTANCE_SAN_DNS, "api.sports.zts.athenz.cloud,inst1.instanceid.athenz.zts.athenz.cloud");
+        attributes.put(InstanceUtils.ZTS_INSTANCE_CSR_PUBLIC_KEY, servicePublicKeyStringK0);
         confirmation.setAttributes(attributes);
 
         assertNotNull(provider.confirmInstance(confirmation));
@@ -234,6 +245,7 @@ public class InstanceZTSProviderTest {
 
         Map<String, String> attributes = new HashMap<>();
         attributes.put(InstanceUtils.ZTS_INSTANCE_SAN_DNS, "backend.sports.zts.athenz.cloud,inst1.instanceid.athenz.zts.athenz.cloud");
+        attributes.put(InstanceUtils.ZTS_INSTANCE_CSR_PUBLIC_KEY, servicePublicKeyStringK0);
         confirmation.setAttributes(attributes);
 
         try {
@@ -270,6 +282,7 @@ public class InstanceZTSProviderTest {
         attributes.put(InstanceUtils.ZTS_INSTANCE_SAN_DNS, "api.sports.zts.athenz.cloud,inst1.instanceid.athenz.zts.athenz.cloud");
         attributes.put(InstanceUtils.ZTS_INSTANCE_CLIENT_IP, "10.1.1.1");
         attributes.put(InstanceUtils.ZTS_INSTANCE_SAN_IP, "10.1.1.2");
+        attributes.put(InstanceUtils.ZTS_INSTANCE_CSR_PUBLIC_KEY, servicePublicKeyStringK0);
         confirmation.setAttributes(attributes);
 
         try {
@@ -306,6 +319,7 @@ public class InstanceZTSProviderTest {
         attributes.put(InstanceUtils.ZTS_INSTANCE_SAN_DNS, "api.weather.zts.athenz.cloud,inst1.instanceid.athenz.zts.athenz.cloud");
         attributes.put(InstanceUtils.ZTS_INSTANCE_CLIENT_IP, "10.1.1.1");
         attributes.put(InstanceUtils.ZTS_INSTANCE_SAN_IP, "10.1.1.1");
+        attributes.put(InstanceUtils.ZTS_INSTANCE_CSR_PUBLIC_KEY, servicePublicKeyStringK0);
         confirmation.setAttributes(attributes);
 
         try {

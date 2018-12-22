@@ -26,10 +26,13 @@ import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class InstanceZTSProvider implements InstanceProvider {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceZTSProvider.class);
+    private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
 
     static final String ZTS_PROVIDER_DNS_SUFFIX  = "athenz.zts.provider_dns_suffix";
     static final String ZTS_PRINCIPAL_LIST       = "athenz.zts.provider_service_list";
@@ -37,6 +40,11 @@ public class InstanceZTSProvider implements InstanceProvider {
     KeyStore keyStore = null;
     String dnsSuffix = null;
     Set<String> principals = null;
+
+    @Override
+    public Scheme getProviderScheme() {
+        return Scheme.CLASS;
+    }
 
     @Override
     public void initialize(String provider, String providerEndpoint, SSLContext sslContext,
@@ -74,6 +82,10 @@ public class InstanceZTSProvider implements InstanceProvider {
         final String instanceDomain = confirmation.getDomain();
         final String instanceService = confirmation.getService();
 
+        final Map<String, String> instanceAttributes = confirmation.getAttributes();
+        final String csrPublicKey = InstanceUtils.getInstanceProperty(instanceAttributes,
+                InstanceUtils.ZTS_INSTANCE_CSR_PUBLIC_KEY);
+
         // make sure this service has been configured to be supported
         // by this zts provider
 
@@ -83,13 +95,11 @@ public class InstanceZTSProvider implements InstanceProvider {
 
         StringBuilder errMsg = new StringBuilder(256);
         if (!validateToken(confirmation.getAttestationData(), instanceDomain,
-                instanceService, errMsg)) {
+                instanceService, csrPublicKey, errMsg)) {
             LOGGER.error(errMsg.toString());
             throw forbiddenError("Unable to validate Certificate Request Auth Token");
         }
-        
-        final Map<String, String> instanceAttributes = confirmation.getAttributes();
-        
+
         // validate the certificate host names
         
         StringBuilder instanceId = new StringBuilder(256);
@@ -136,9 +146,9 @@ public class InstanceZTSProvider implements InstanceProvider {
     }
 
     boolean validateToken(final String signedToken, final String domainName,
-            final String serviceName, StringBuilder errMsg) {
+            final String serviceName, final String csrPublicKey, StringBuilder errMsg) {
         
-        final PrincipalToken serviceToken = authenticate(signedToken, keyStore, errMsg);
+        final PrincipalToken serviceToken = authenticate(signedToken, keyStore, csrPublicKey, errMsg);
         if (serviceToken == null) {
             return false;
         }
@@ -160,7 +170,8 @@ public class InstanceZTSProvider implements InstanceProvider {
         return true;
     }
 
-    PrincipalToken authenticate(String signedToken, KeyStore keyStore, StringBuilder errMsg) {
+    PrincipalToken authenticate(final String signedToken, KeyStore keyStore,
+            final String csrPublicKey, StringBuilder errMsg) {
 
         PrincipalToken serviceToken;
         try {
@@ -195,6 +206,29 @@ public class InstanceZTSProvider implements InstanceProvider {
             return null;
         }
 
+        // finally we want to make sure the public key in the csr
+        // matches the public key registered in Athenz
+
+        if (!validatePublicKeys(publicKey, csrPublicKey)) {
+            errMsg.append("CSR and Athenz public key mismatch");
+            LOGGER.error(errMsg.toString());
+            return null;
+        }
+
         return serviceToken;
+    }
+
+    public boolean validatePublicKeys(final String athenzPublicKey, final String csrPublicKey) {
+
+        // we are going to remove all whitespace, new lines
+        // in order to compare the pem encoded keys
+
+        Matcher matcher = WHITESPACE_PATTERN.matcher(athenzPublicKey);
+        final String normAthenzPublicKey = matcher.replaceAll("");
+
+        matcher = WHITESPACE_PATTERN.matcher(csrPublicKey);
+        final String normCsrPublicKey = matcher.replaceAll("");
+
+        return normAthenzPublicKey.equals(normCsrPublicKey);
     }
 }

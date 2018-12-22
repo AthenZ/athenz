@@ -25,6 +25,7 @@ import static org.testng.Assert.fail;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.yahoo.athenz.instance.provider.InstanceProvider;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
@@ -420,8 +421,10 @@ public class InstanceAWSProviderTest {
         
         InstanceAWSProvider provider = new InstanceAWSProvider();
         provider.awsRegion = "us-west-2";
+        assertEquals(InstanceProvider.Scheme.HTTP, provider.getProviderScheme());
+
         AWSAttestationData data = new AWSAttestationData();
-        
+
         // first with null and empty access point
         
         data.setAccess(null);

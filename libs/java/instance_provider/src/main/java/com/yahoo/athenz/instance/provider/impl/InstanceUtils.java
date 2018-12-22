@@ -24,17 +24,18 @@ public class InstanceUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceUtils.class);
 
-    static final String ZTS_CERT_USAGE            = "certUsage";
-    static final String ZTS_CERT_EXPIRY_TIME      = "certExpiryTime";
-    static final String ZTS_CERT_SSH              = "certSSH";
-    static final String ZTS_CERT_USAGE_CLIENT     = "client";
-    static final String ZTS_CERT_REFRESH          = "certRefresh";
+    static final String ZTS_CERT_USAGE              = "certUsage";
+    static final String ZTS_CERT_EXPIRY_TIME        = "certExpiryTime";
+    static final String ZTS_CERT_SSH                = "certSSH";
+    static final String ZTS_CERT_USAGE_CLIENT       = "client";
+    static final String ZTS_CERT_REFRESH            = "certRefresh";
 
-    static final String ZTS_CERT_INSTANCE_ID      = ".instanceid.athenz.";
-    static final String ZTS_INSTANCE_SAN_DNS      = "sanDNS";
-    static final String ZTS_INSTANCE_SAN_IP       = "sanIP";
-    static final String ZTS_INSTANCE_CLIENT_IP    = "clientIP";
-    static final String ZTS_INSTANCE_ID           = "instanceId";
+    static final String ZTS_CERT_INSTANCE_ID        = ".instanceid.athenz.";
+    static final String ZTS_INSTANCE_SAN_DNS        = "sanDNS";
+    static final String ZTS_INSTANCE_SAN_IP         = "sanIP";
+    static final String ZTS_INSTANCE_CLIENT_IP      = "clientIP";
+    static final String ZTS_INSTANCE_ID             = "instanceId";
+    static final String ZTS_INSTANCE_CSR_PUBLIC_KEY = "csrPublicKey";
 
     public static String getInstanceProperty(final Map<String, String> attributes,
             final String propertyName) {

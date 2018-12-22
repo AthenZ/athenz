@@ -70,6 +70,11 @@ public class InstanceAWSProvider implements InstanceProvider {
     String dnsSuffix = null;
 
     @Override
+    public Scheme getProviderScheme() {
+        return Scheme.HTTP;
+    }
+
+    @Override
     public void initialize(String provider, String providerEndpoint, SSLContext sslContext,
             KeyStore keyStore) {
         
