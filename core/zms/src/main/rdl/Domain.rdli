@@ -46,17 +46,6 @@ resource DomainList GET "/domain?limit={limit}&skip={skip}&prefix={prefix}&depth
     }
 }
 
-//Set of metadata attributes that all domains may have and can be changed.
-type DomainMeta Struct {
-    String description (optional); //a description of the domain
-    ResourceName org (optional); //a reference to an Organization. (i.e. org:media)
-    Bool enabled (optional, default=true); //Future use only, currently not used
-    Bool auditEnabled (optional, default=false); //Flag indicates whether or not domain modifications should be logged for SOX+Auditing. If true, the auditRef parameter must be supplied(not empty) for any API defining it.
-    String account (optional); // associated cloud (i.e. aws) account id
-    Int32 ypmId (optional); // associated product id
-    String applicationId (optional); // associated application id
-}
-
 //Top Level Domain object. The required attributes include the name of the
 //domain and list of domain administrators.
 type TopLevelDomain DomainMeta {
@@ -184,6 +173,25 @@ resource Domain PUT "/domain/{name}/meta" {
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     DomainMeta detail; //DomainMeta object with updated attribute values
     authorize ("update", "{name}:");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+//Update the specified top level domain metadata. Note that entities in the domain
+//are not affected. Caller must have update privileges on the domain itself.
+resource Domain PUT "/domain/{name}/meta/system/{attribute}" (name=PutDomainSystemMeta) {
+    DomainName name; //name of the domain to be updated
+    SimpleName attribute; //name of the system attribute to be modified
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    DomainMeta detail; //DomainMeta object with updated attribute values
+    authorize ("update", "{name}:meta.{attribute}");
     expected NO_CONTENT;
     exceptions {
         ResourceError NOT_FOUND;

@@ -70,18 +70,21 @@ public class ZMSSchema {
             .comment("Role Member name - could be one of three values: *, DomainName.* or ServiceName[*]")
             .pattern("\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*\\.\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(\\*)?");
 
-        sb.structType("Domain")
+        sb.structType("DomainMeta")
+            .comment("Set of metadata attributes that all domains may have and can be changed.")
+            .field("description", "String", true, "a description of the domain")
+            .field("org", "ResourceName", true, "a reference to an Organization. (i.e. org:media)")
+            .field("enabled", "Bool", true, "Future use only, currently not used", true)
+            .field("auditEnabled", "Bool", true, "Flag indicates whether or not domain modifications should be logged for SOX+Auditing. If true, the auditRef parameter must be supplied(not empty) for any API defining it.", false)
+            .field("account", "String", true, "associated cloud (i.e. aws) account id (system attribute - uniqueness check)")
+            .field("ypmId", "Int32", true, "associated product id (system attribute - uniqueness check)")
+            .field("applicationId", "String", true, "associated application id");
+
+        sb.structType("Domain", "DomainMeta")
             .comment("A domain is an independent partition of users, roles, and resources. Its name represents the definition of a namespace; the only way a new namespace can be created, from the top, is by creating Domains. Administration of a domain is governed by the parent domain (using reverse-DNS namespaces). The top level domains are governed by the special \"sys.auth\" domain.")
             .field("name", "DomainName", false, "the common name to be referred to, the symbolic id. It is immutable")
             .field("modified", "Timestamp", true, "the last modification timestamp of any object or attribute in this domain")
-            .field("id", "UUID", true, "unique identifier of the domain. generated on create, never reused")
-            .field("description", "String", true, "description of the domain")
-            .field("org", "ResourceName", true, "a reference to an Organization")
-            .field("enabled", "Bool", true, "Future use only, currently not used", true)
-            .field("auditEnabled", "Bool", true, "Flag indicates whether or not domain modifications should be logged for SOX+Auditing. If true, the auditRef parameter must be supplied(not empty) for any API defining it.", false)
-            .field("account", "String", true, "associated cloud (i.e. aws) account id")
-            .field("ypmId", "Int32", true, "associated product id")
-            .field("applicationId", "String", true, "associated application id");
+            .field("id", "UUID", true, "unique identifier of the domain. generated on create, never reused");
 
         sb.structType("RoleList")
             .comment("The representation for an enumeration of roles in the namespace, with pagination.")
@@ -213,16 +216,6 @@ public class ZMSSchema {
             .comment("A paginated list of domains.")
             .arrayField("names", "DomainName", false, "list of domain names")
             .field("next", "String", true, "if the response is a paginated list, this attribute specifies the value to be used in the next domain list request as the value for the skip query parameter.");
-
-        sb.structType("DomainMeta")
-            .comment("Set of metadata attributes that all domains may have and can be changed.")
-            .field("description", "String", true, "a description of the domain")
-            .field("org", "ResourceName", true, "a reference to an Organization. (i.e. org:media)")
-            .field("enabled", "Bool", true, "Future use only, currently not used", true)
-            .field("auditEnabled", "Bool", true, "Flag indicates whether or not domain modifications should be logged for SOX+Auditing. If true, the auditRef parameter must be supplied(not empty) for any API defining it.", false)
-            .field("account", "String", true, "associated cloud (i.e. aws) account id")
-            .field("ypmId", "Int32", true, "associated product id")
-            .field("applicationId", "String", true, "associated application id");
 
         sb.structType("TopLevelDomain", "DomainMeta")
             .comment("Top Level Domain object. The required attributes include the name of the domain and list of domain administrators.")
@@ -532,6 +525,28 @@ public class ZMSSchema {
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .input("detail", "DomainMeta", "DomainMeta object with updated attribute values")
             .auth("update", "{name}:")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("DomainMeta", "PUT", "/domain/{name}/meta/system/{attribute}")
+            .comment("Update the specified top level domain metadata. Note that entities in the domain are not affected. Caller must have update privileges on the domain itself.")
+            .name("PutDomainSystemMeta")
+            .pathParam("name", "DomainName", "name of the domain to be updated")
+            .pathParam("attribute", "SimpleName", "name of the system attribute to be modified")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .input("detail", "DomainMeta", "DomainMeta object with updated attribute values")
+            .auth("update", "{name}:meta.{attribute}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 

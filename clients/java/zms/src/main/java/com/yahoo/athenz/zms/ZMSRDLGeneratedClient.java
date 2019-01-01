@@ -266,6 +266,29 @@ public class ZMSRDLGeneratedClient {
 
     }
 
+    public Domain putDomainSystemMeta(String name, String attribute, String auditRef, DomainMeta detail) {
+        WebTarget target = base.path("/domain/{name}/meta/system/{attribute}")
+            .resolveTemplate("name", name)
+            .resolveTemplate("attribute", attribute);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
+        }
+        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(detail, "application/json"));
+        int code = response.getStatus();
+        switch (code) {
+        case 204:
+            return null;
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
     public DomainTemplate putDomainTemplate(String name, String auditRef, DomainTemplate domainTemplate) {
         WebTarget target = base.path("/domain/{name}/template")
             .resolveTemplate("name", name);

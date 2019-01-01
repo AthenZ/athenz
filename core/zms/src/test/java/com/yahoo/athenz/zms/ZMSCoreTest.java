@@ -696,7 +696,7 @@ public class ZMSCoreTest {
         Schema schema = ZMSSchema.instance();
         Validator validator = new Validator(schema);
 
-        Domain d = new Domain().init();
+        Domain d = new Domain();
         d.setName("test.domain").setModified(Timestamp.fromMillis(123456789123L)).setId(UUID.fromMillis(100))
                 .setDescription("test desc").setOrg("test-org").setEnabled(true).setAuditEnabled(true)
                 .setAccount("user.test").setYpmId(1).setApplicationId("101");
@@ -714,7 +714,7 @@ public class ZMSCoreTest {
         assertEquals((int) d.getYpmId(), 1);
         assertEquals(d.getApplicationId(), "101");
 
-        Domain d2 = new Domain().init();
+        Domain d2 = new Domain();
         d2.setName("test.domain").setModified(Timestamp.fromMillis(123456789123L)).setId(UUID.fromMillis(100))
                 .setDescription("test desc").setOrg("test-org").setEnabled(true).setAuditEnabled(true)
                 .setAccount("user.test").setYpmId(1).setApplicationId("101");
@@ -722,6 +722,14 @@ public class ZMSCoreTest {
         assertTrue(d2.equals(d));
         assertTrue(d.equals(d));
 
+        d2.setId(UUID.fromMillis(101));
+        assertFalse(d2.equals(d));
+        d2.setId(null);
+        assertFalse(d2.equals(d));
+        d2.setModified(null);
+        assertFalse(d2.equals(d));
+        d2.setName(null);
+        assertFalse(d2.equals(d));
         d2.setApplicationId(null);
         assertFalse(d2.equals(d));
         d2.setYpmId(null);
@@ -736,24 +744,8 @@ public class ZMSCoreTest {
         assertFalse(d2.equals(d));
         d2.setDescription(null);
         assertFalse(d2.equals(d));
-        d2.setId(UUID.fromMillis(101));
-        assertFalse(d2.equals(d));
-        d2.setId(null);
-        assertFalse(d2.equals(d));
-        d2.setModified(null);
-        assertFalse(d2.equals(d));
-        d2.setName(null);
-        assertFalse(d2.equals(d));
         assertFalse(d2.equals(null));
         assertFalse(d.equals(new String()));
-
-        // calling init when state set to false will not reset it
-
-        d2.setEnabled(false);
-        d2.setAuditEnabled(false);
-        d2.init();
-        assertFalse(d2.getAuditEnabled());
-        assertFalse(d2.getEnabled());
     }
 
     @Test

@@ -616,6 +616,43 @@ func (client ZMSClient) PutDomainMeta(name DomainName, auditRef string, detail *
 	}
 }
 
+func (client ZMSClient) PutDomainSystemMeta(name DomainName, attribute SimpleName, auditRef string, detail *DomainMeta) error {
+	headers := map[string]string{
+		"Y-Audit-Ref": auditRef,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(name) + "/meta/system/" + fmt.Sprint(attribute)
+	contentBytes, err := json.Marshal(detail)
+	if err != nil {
+		return err
+	}
+	resp, err := client.httpPut(url, headers, contentBytes)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		err = json.Unmarshal(contentBytes, &errobj)
+		if err != nil {
+			return err
+		}
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
 func (client ZMSClient) PutDomainTemplate(name DomainName, auditRef string, domainTemplate *DomainTemplate) error {
 	headers := map[string]string{
 		"Y-Audit-Ref": auditRef,

@@ -1620,6 +1620,12 @@ public class ZMSImplTest {
         DomainMeta meta = createDomainMetaObject("Test2 Domain", "NewOrg",
                 true, true, "12345", 1001);
         zms.putDomainMeta(mockDomRsrcCtx, "MetaDom1", auditRef, meta);
+        meta = createDomainMetaObject("Test2 Domain", "NewOrg",
+                true, true, "12345", 1001);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, "MetaDom1", "account", auditRef, meta);
+        meta = createDomainMetaObject("Test2 Domain", "NewOrg",
+                true, true, "12345", 1001);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, "MetaDom1", "productid", auditRef, meta);
 
         Domain resDom3 = zms.getDomain(mockDomRsrcCtx, "MetaDom1");
         assertNotNull(resDom3);
@@ -1631,8 +1637,9 @@ public class ZMSImplTest {
         assertEquals(Integer.valueOf(1001), resDom3.getYpmId());
 
         // put the meta data using same product id
-        meta.setDescription("just a new desc");
-        meta.setOrg("organs");
+
+        meta = createDomainMetaObject("just a new desc", "organs",
+                true, true, "12345", 1001);
         zms.putDomainMeta(mockDomRsrcCtx, "MetaDom1", auditRef, meta);
 
         resDom3 = zms.getDomain(mockDomRsrcCtx, "MetaDom1");
@@ -1645,9 +1652,11 @@ public class ZMSImplTest {
         assertEquals(Integer.valueOf(1001), resDom3.getYpmId());
 
         // put the meta data using new product
+        meta = createDomainMetaObject("just a new desc", "organs",
+                true, true, "12345", 1001);
         Integer newProductId = getRandomProductId();
         meta.setYpmId(newProductId);
-        zms.putDomainMeta(mockDomRsrcCtx, "MetaDom1", auditRef, meta);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, "MetaDom1", "productid", auditRef, meta);
 
         resDom3 = zms.getDomain(mockDomRsrcCtx, "MetaDom1");
         assertNotNull(resDom3);
@@ -1684,7 +1693,7 @@ public class ZMSImplTest {
         DomainMeta meta = createDomainMetaObject("Test2 Domain", "NewOrg",
                 true, true, "12345", null);
         try {
-            zmsImpl.putDomainMeta(mockDomRsrcCtx, "MetaDomProductid", auditRef, meta);
+            zmsImpl.putDomainSystemMeta(mockDomRsrcCtx, "MetaDomProductid", "productid", auditRef, meta);
             fail("bad request exc not thrown");
         } catch (ResourceException exc) {
             assertEquals(400, exc.getCode());
@@ -1703,7 +1712,7 @@ public class ZMSImplTest {
         meta = createDomainMetaObject("Test3 Domain", "NewOrg",
                 true, true, "12345", productId2);
         try {
-            zmsImpl.putDomainMeta(mockDomRsrcCtx, "MetaDomProductid", auditRef, meta);
+            zmsImpl.putDomainSystemMeta(mockDomRsrcCtx, "MetaDomProductid", "productid", auditRef, meta);
             fail("bad request exc not thrown");
         } catch (ResourceException exc) {
             assertEquals(400, exc.getCode());
@@ -5354,14 +5363,18 @@ public class ZMSImplTest {
         
         DomainMeta meta = createDomainMetaObject("Tenant Domain1", null, true, false, "12345", 0);
         zms.putDomainMeta(mockDomRsrcCtx, "signeddom1", auditRef, meta);
-        
+        meta = createDomainMetaObject("Tenant Domain1", null, true, false, "12345", 0);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, "signeddom1", "account", auditRef, meta);
+
         TopLevelDomain dom2 = createTopLevelDomainObject("SignedDom2",
                 "Test Domain2", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
 
         meta = createDomainMetaObject("Tenant Domain2", null, false, false, "12346", null);
         zms.putDomainMeta(mockDomRsrcCtx, "signeddom2", auditRef, meta);
-        
+        meta = createDomainMetaObject("Tenant Domain2", null, false, false, "12346", null);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, "signeddom2", "account", auditRef, meta);
+
         DomainList domList = zms.getDomainList(mockDomRsrcCtx, null, null, null, null,
                 null, null, null, null, null);
         List<String> domNames = domList.getNames();
@@ -12295,7 +12308,87 @@ public class ZMSImplTest {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Read-Only"));
         }
-        
+
+        try {
+            zmsTest.deleteTopLevelDomain(mockDomRsrcCtx, "domain", auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
+            zmsTest.postUserDomain(mockDomRsrcCtx, "user", auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
+            zmsTest.deleteUserDomain(mockDomRsrcCtx, "user", auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
+            zmsTest.postSubDomain(mockDomRsrcCtx, "athenz", auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
+            zmsTest.deleteSubDomain(mockDomRsrcCtx, "athenz", "sub", auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
+            zmsTest.putDomainTemplate(mockDomRsrcCtx, "athenz", auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
+            zmsTest.putDomainTemplateExt(mockDomRsrcCtx, "athenz", "template", auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
+            zmsTest.deleteDomainTemplate(mockDomRsrcCtx, "athenz", "template", auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
+            zmsTest.putEntity(mockDomRsrcCtx, "athenz", "entity", auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
+            zmsTest.deleteEntity(mockDomRsrcCtx, "athenz", "entity", auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
         Policy policy1 = createPolicyObject("ReadOnlyDom1", "Policy1");
         try {
             zmsTest.putPolicy(mockDomRsrcCtx, "ReadOnlyDom1", "Policy1", auditRef, policy1);
@@ -12304,7 +12397,31 @@ public class ZMSImplTest {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Read-Only"));
         }
-        
+
+        try {
+            zmsTest.deletePolicy(mockDomRsrcCtx, "ReadOnlyDom1", "Policy1", auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
+            zmsTest.putAssertion(mockDomRsrcCtx, "ReadOnlyDom1", "Policy1", auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
+            zmsTest.deleteAssertion(mockDomRsrcCtx, "ReadOnlyDom1", "Policy1", 101L, auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
         Role role1 = createRoleObject("ReadOnlyDom1", "Role1", null,
                 "user.joe", "user.jane");
         try {
@@ -12314,13 +12431,61 @@ public class ZMSImplTest {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Read-Only"));
         }
-        
+
+        try {
+            zmsTest.deleteRole(mockDomRsrcCtx, "ReadOnlyDom1", "Role1", auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
+            zmsTest.putMembership(mockDomRsrcCtx, "ReadOnlyDom1", "Role1", "Member1", auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
+            zmsTest.deleteMembership(mockDomRsrcCtx, "ReadOnlyDom1", "Role1", "Member1", auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
         ServiceIdentity service1 = createServiceObject("ReadOnlyDom1",
                 "Service1", "http://localhost", "/usr/bin/java", "root",
                 "users", "host1");
 
         try {
             zmsTest.putServiceIdentity(mockDomRsrcCtx, "ReadOnlyDom1", "Service1", auditRef, service1);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
+            zmsTest.deleteServiceIdentity(mockDomRsrcCtx, "ReadOnlyDom1", "Service1", auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
+            zmsTest.putPublicKeyEntry(mockDomRsrcCtx, "ReadOnlyDom1", "Service1", "0", auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
+            zmsTest.deletePublicKeyEntry(mockDomRsrcCtx, "ReadOnlyDom1", "Service1", "0", auditRef);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -12345,6 +12510,14 @@ public class ZMSImplTest {
 
         try {
             zmsTest.putDomainMeta(mockDomRsrcCtx, "dom1", auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
+            zmsTest.putDomainSystemMeta(mockDomRsrcCtx, "dom1", "account", auditRef, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -12413,6 +12586,30 @@ public class ZMSImplTest {
         try {
             zmsTest.deleteTenantResourceGroupRoles(mockDomRsrcCtx, "provider", "service", "tenant",
                     "resgroup", auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
+            zmsTest.putQuota(mockDomRsrcCtx, "domain", auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
+            zmsTest.deleteQuota(mockDomRsrcCtx, "domain", auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
+            zmsTest.putDefaultAdmins(mockDomRsrcCtx, "domain", auditRef, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -14789,6 +14986,8 @@ public class ZMSImplTest {
 
         DomainMeta meta = createDomainMetaObject("Tenant Domain1", null, true, false, "12345", 0);
         zms.putDomainMeta(mockDomRsrcCtx, "signeddom1", auditRef, meta);
+        meta = createDomainMetaObject("Tenant Domain1", null, true, false, "12345", 0);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, "signeddom1", "account", auditRef, meta);
 
         TopLevelDomain dom2 = createTopLevelDomainObject("SignedDom2",
                 "Test Domain2", "testOrg", adminUser);
@@ -14796,6 +14995,10 @@ public class ZMSImplTest {
 
         meta = createDomainMetaObject("Tenant Domain2", null, true, false, "12346", null);
         zms.putDomainMeta(mockDomRsrcCtx, "signeddom2", auditRef, meta);
+        meta = createDomainMetaObject("Tenant Domain2", null, true, false, "12346", null);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, "signeddom2", "account", auditRef, meta);
+        meta = createDomainMetaObject("Tenant Domain2", null, true, false, "12346", null);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, "signeddom2", "productid", auditRef, meta);
 
         DomainList domList = zms.getDomainList(mockDomRsrcCtx, null, null, null, null,
                 null, null, null, null, null);
