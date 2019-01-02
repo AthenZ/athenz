@@ -1,0 +1,10 @@
+{
+    "ipblocks": [
+        {
+            "filename": "src/test/resources/instance_cert_ipblocks_athenz.txt",
+            "providers": [
+                "athenz.aws.us-west-2",
+                "athenz.aws-ecs.us-west-2"
+            ]
+    ]
+}

@@ -1739,9 +1739,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // before running any checks make sure it's coming from
         // an authorized ip address
-        
+
+        final String provider = info.getProvider();
         final String ipAddress = ServletRequestUtil.getRemoteAddress(ctx.request());
-        if (!instanceCertManager.verifyInstanceCertIPAddress(ipAddress)) {
+        if (!instanceCertManager.verifyInstanceCertIPAddress(provider, ipAddress)) {
             throw forbiddenError("Unknown IP: " + ipAddress, caller, domain);
         }
         
@@ -1749,7 +1750,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // authorized to launch instances in Athenz and the service has
         // authorized this provider to launch its instances
         
-        final String provider = info.getProvider();
         Principal providerService = createPrincipalForName(provider);
         StringBuilder errorMsg = new StringBuilder(256);
 
@@ -1780,8 +1780,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw requestError("unable to get instance for provider: " + provider, caller, domain);
         }
         
-        InstanceConfirmation instance = generateInstanceConfirmObject(ctx, provider,
-                domain, service, info.getAttestationData(), certReqInstanceId, certReq);
+        InstanceConfirmation instance = generateInstanceConfirmObject(ctx, provider, domain,
+                service, info.getAttestationData(), certReqInstanceId, certReq,
+                instanceProvider.getProviderScheme());
 
         // make sure to close our provider when its no longer needed
 
@@ -1895,7 +1896,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
     InstanceConfirmation generateInstanceConfirmObject(ResourceContext ctx, final String provider,
             final String domain, final String service, final String attestationData,
-            final String instanceId, X509CertRequest certReq) {
+            final String instanceId, X509CertRequest certReq, InstanceProvider.Scheme providerScheme) {
         
         InstanceConfirmation instance = new InstanceConfirmation()
                 .setAttestationData(attestationData)
@@ -1927,6 +1928,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (account != null) {
             attributes.put(ZTSConsts.ZTS_INSTANCE_CLOUD_ACCOUNT, account);
         }
+
+        // if this is a class based provider then we're also going
+        // to provide the public key in the CSR
+
+        if (providerScheme == InstanceProvider.Scheme.CLASS) {
+            attributes.put(ZTSConsts.ZTS_INSTANCE_CSR_PUBLIC_KEY, Crypto.extractX509CSRPublicKey(certReq.getCertReq()));
+        }
+
         instance.setAttributes(attributes);
         return instance;
     }
@@ -1969,7 +1978,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // an authorized ip address
         
         final String ipAddress = ServletRequestUtil.getRemoteAddress(ctx.request());
-        if (!instanceCertManager.verifyInstanceCertIPAddress(ipAddress)) {
+        if (!instanceCertManager.verifyInstanceCertIPAddress(provider, ipAddress)) {
             throw forbiddenError("Unknown IP: " + ipAddress, caller, domain);
         }
         
@@ -2068,7 +2077,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
         
         InstanceConfirmation instance = generateInstanceConfirmObject(ctx, provider,
-                domain, service, info.getAttestationData(), instanceId, certReq);
+                domain, service, info.getAttestationData(), instanceId, certReq,
+                instanceProvider.getProviderScheme());
         
         // make sure to close our provider when its no longer needed
 

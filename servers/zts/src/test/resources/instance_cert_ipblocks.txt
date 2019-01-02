@@ -1,20 +1,23 @@
 {
-  "syncToken": "123456",
-  "createDate": "2018-03-17-01-16-14",
-  "prefixes": [
-    {
-      "ip_prefix": "11.1.0.0/21"
-    },
-    {
-      "ip_prefix": "11.2.0.0/ 21",
-      "service": "ATHENZ"
-    },
-    {
-      "ip_prefix": "172.300.10.2/32",
-      "region": "GLOBAL"
-    },
-    {
-      "ip_prefix": "10.11.12.13/32"
-    }
-  ]
+    "ipblocks": [
+        {
+            "filename": "src/test/resources/ipblocks_athenz.txt",
+            "providers": [
+                "athenz.aws.us-west-2",
+                "athenz.aws-ecs.us-west-2"
+            ]
+        },
+        {
+            "filename": "src/test/resources/ipblocks_k8s.txt",
+            "providers": [
+                "k8s.provider.cluster1",
+                "k8s.provider.cluster2"
+            ]
+        },
+        {
+            "providers": [
+                "openstack.cluster"
+            ]
+        }
+    ]
 }

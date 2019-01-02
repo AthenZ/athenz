@@ -4554,6 +4554,7 @@ public class ZTSImplTest {
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getProviderScheme()).thenReturn(InstanceProvider.Scheme.CLASS);
 
         Map<String, String> attrs = new HashMap<>();
         attrs.put("certSSH", "true");
@@ -4849,7 +4850,8 @@ public class ZTSImplTest {
         String certCsr = new String(Files.readAllBytes(path));
 
         InstanceCertManager instanceManager = Mockito.mock(InstanceCertManager.class);
-        Mockito.when(instanceManager.verifyInstanceCertIPAddress(Mockito.any())).thenReturn(false);
+        Mockito.when(instanceManager.verifyInstanceCertIPAddress(Mockito.any(), Mockito.any()))
+                .thenReturn(false);
         ztsImpl.instanceCertManager = instanceManager;
 
         InstanceRegisterInformation info = new InstanceRegisterInformation()

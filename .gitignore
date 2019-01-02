@@ -99,4 +99,6 @@ rdl/rdl-gen-athenz-server/rdl-gen-athenz-server
 aws-setup/ui-setup/tars/
 aws-setup/zms-setup/tars/
 aws-setup/zts-setup/tars/
+aws-setup/athenz-conf-aws/pkg/
+libs/go/athenzutils/pkg/
 **test-output**

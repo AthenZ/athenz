@@ -140,12 +140,13 @@ public final class ZTSConsts {
     public static final String ZTS_RESOURCE_INSTANCE = "sys.auth:instance";
     public static final String ZTS_RESOURCE_DNS      = "sys.auth:dns.";
     
-    public static final String ZTS_INSTANCE_SAN_DNS       = "sanDNS";
-    public static final String ZTS_INSTANCE_SAN_IP        = "sanIP";
-    public static final String ZTS_INSTANCE_SAN_URI       = "sanURI";
-    public static final String ZTS_INSTANCE_CLIENT_IP     = "clientIP";
-    public static final String ZTS_INSTANCE_CLOUD_ACCOUNT = "cloudAccount";
-    public static final String ZTS_INSTANCE_ID            = "instanceId";
+    public static final String ZTS_INSTANCE_SAN_DNS        = "sanDNS";
+    public static final String ZTS_INSTANCE_SAN_IP         = "sanIP";
+    public static final String ZTS_INSTANCE_SAN_URI        = "sanURI";
+    public static final String ZTS_INSTANCE_CLIENT_IP      = "clientIP";
+    public static final String ZTS_INSTANCE_CLOUD_ACCOUNT  = "cloudAccount";
+    public static final String ZTS_INSTANCE_ID             = "instanceId";
+    public static final String ZTS_INSTANCE_CSR_PUBLIC_KEY = "csrPublicKey";
 
     public static final String ZTS_PROP_AWS_ENABLED              = "athenz.zts.aws_enabled";
     public static final String ZTS_PROP_AWS_BUCKET_NAME          = "athenz.zts.aws_bucket_name";
