@@ -499,6 +499,9 @@ public class InstanceCertManagerTest {
         assertFalse(instance.verifyInstanceCertIPAddress("cluster", "10.1.9.25"));
 
         instance.shutdown();
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_REFRESH_IP_FNAME);
+        System.clearProperty(ZTSConsts.ZTS_PROP_INSTANCE_CERT_IP_FNAME);
     }
 
     @Test
