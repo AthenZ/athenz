@@ -1441,7 +1441,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateRequest(ctx.request(), caller);
 
         validate(meta, TYPE_DOMAIN_META, caller);
-        validateString(meta.getAccount(), TYPE_COMPOUND_NAME, caller);
         validateString(meta.getApplicationId(), TYPE_COMPOUND_NAME, caller);
 
         // for consistent handling of all requests, we're going to convert
@@ -1457,30 +1456,74 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(),
                 caller);
-        
+
+        // remove system attributes from the meta object
+
+        meta.setYpmId(null);
+        meta.setAccount(null);
+
         if (LOG.isDebugEnabled()) {
-            LOG.debug("putDomainMeta: name=" + domainName + ", meta=" + meta);
+            LOG.debug("putDomainMeta: name={}, meta={}", domainName, meta);
         }
 
-        // for top level domains, verify the meta data has a product id and that it is not used by
-        // any other domain(other than this one)
+        // process put domain meta request
 
-        if (productIdSupport && domainName.indexOf('.') == -1) {
-                
-            // if this productId is already used by any domain it will be
-            // seen in dbService and exception thrown
-            
-            Integer productId = meta.getYpmId();
-            if (productId == null) {
-                throw ZMSUtils.requestError("Unique Product Id must be specified for top level domain",
-                        caller);
-            }
-        }
-
-        dbService.executePutDomainMeta(ctx, domainName, meta, auditRef, caller);
+        dbService.executePutDomainMeta(ctx, domainName, meta, null, auditRef, caller);
         metric.stopTiming(timerMetric);
     }
-    
+
+    @Override
+    public void putDomainSystemMeta(ResourceContext ctx, String domainName, String attribute,
+            String auditRef, DomainMeta meta) {
+
+        final String caller = "putdomainsystemmeta";
+        metric.increment(ZMSConsts.HTTP_PUT);
+        logPrincipal(ctx);
+
+        if (readOnlyMode) {
+            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+        }
+
+        validateRequest(ctx.request(), caller);
+
+        validate(meta, TYPE_DOMAIN_META, caller);
+        validate(attribute, TYPE_SIMPLE_NAME, caller);
+        validateString(meta.getAccount(), TYPE_COMPOUND_NAME, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+        attribute = attribute.toLowerCase();
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
+        metric.increment(caller, domainName);
+        Object timerMetric = metric.startTiming("putdomainsystemmeta_timing", domainName);
+
+        // verify that request is properly authenticated for this request
+
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(),
+                caller);
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("putDomainSystemMeta: name={}, attribute={}, meta={}",
+                    domainName, attribute, meta);
+        }
+
+        // if this productId is already used by any domain it will be
+        // seen in dbService and exception thrown but we want to make
+        // sure here if product id support is required then we must
+        // have one specified for a top level domain.
+
+        if (productIdSupport && meta.getYpmId() == null && domainName.indexOf('.') == -1 &&
+                ZMSConsts.SYSTEM_META_PRODUCT_ID.equals(attribute)) {
+             throw ZMSUtils.requestError("Unique Product Id must be specified for top level domain", caller);
+        }
+
+        dbService.executePutDomainMeta(ctx, domainName, meta, attribute, auditRef, caller);
+        metric.stopTiming(timerMetric);
+    }
+
     void validateSolutionTemplates(List<String> templateNames, String caller) {
         for (String templateName : templateNames) {
             if (!serverSolutionTemplates.contains(templateName)) {

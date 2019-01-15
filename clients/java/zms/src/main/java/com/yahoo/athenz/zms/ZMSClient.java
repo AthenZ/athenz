@@ -674,6 +674,24 @@ public class ZMSClient implements Closeable {
     }
 
     /**
+     * Set the domain system meta parameters
+     * @param name domain name to be modified
+     * @param attribute system attribute being modified in this request
+     * @param auditRef string containing audit specification or ticket number
+     * @param detail meta parameters to be set on the domain
+     */
+    public void putDomainSystemMeta(String name, String attribute, String auditRef, DomainMeta detail) {
+        updatePrincipal();
+        try {
+            client.putDomainSystemMeta(name, attribute, auditRef, detail);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
      * Retrieve the list of roles defined for the specified domain
      * @param domainName name of the domain
      * @return list of role names
@@ -1181,14 +1199,7 @@ public class ZMSClient implements Closeable {
      * @throws ZMSClientException in case of failure
      */
     public ServiceIdentityList getServiceIdentityList(String domainName) {
-        updatePrincipal();
-        try {
-            return client.getServiceIdentityList(domainName, null, null);
-        } catch (ResourceException ex) {
-            throw new ZMSClientException(ex.getCode(), ex.getData());
-        } catch (Exception ex) {
-            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
-        }
+        return getServiceIdentityList(domainName, null, null);
     }
 
     /**
@@ -1719,10 +1730,7 @@ public class ZMSClient implements Closeable {
         
         Principal servicePrincipal = SimplePrincipal.create(token.getDomain(), token.getName(),
                 serviceToken, 0, PRINCIPAL_AUTHORITY);
-        if (servicePrincipal == null) {
-            throw new ZMSClientException(ZMSClientException.UNAUTHORIZED, "Invalid service token provided");
-        }
-        
+
         client.addCredentials(tokenHeader, serviceToken);
         principalCheckDone = true;
         

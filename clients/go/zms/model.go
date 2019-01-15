@@ -95,37 +95,18 @@ type SignedToken string
 type MemberName string
 
 //
-// Domain - A domain is an independent partition of users, roles, and
-// resources. Its name represents the definition of a namespace; the only way a
-// new namespace can be created, from the top, is by creating Domains.
-// Administration of a domain is governed by the parent domain (using
-// reverse-DNS namespaces). The top level domains are governed by the special
-// "sys.auth" domain.
+// DomainMeta - Set of metadata attributes that all domains may have and can be
+// changed.
 //
-type Domain struct {
+type DomainMeta struct {
 
 	//
-	// the common name to be referred to, the symbolic id. It is immutable
-	//
-	Name DomainName `json:"name"`
-
-	//
-	// the last modification timestamp of any object or attribute in this domain
-	//
-	Modified *rdl.Timestamp `json:"modified,omitempty" rdl:"optional"`
-
-	//
-	// unique identifier of the domain. generated on create, never reused
-	//
-	Id *rdl.UUID `json:"id,omitempty" rdl:"optional"`
-
-	//
-	// description of the domain
+	// a description of the domain
 	//
 	Description string `json:"description,omitempty" rdl:"optional"`
 
 	//
-	// a reference to an Organization
+	// a reference to an Organization. (i.e. org:media)
 	//
 	Org ResourceName `json:"org,omitempty" rdl:"optional"`
 
@@ -142,12 +123,13 @@ type Domain struct {
 	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional"`
 
 	//
-	// associated cloud (i.e. aws) account id
+	// associated cloud (i.e. aws) account id (system attribute - uniqueness
+	// check)
 	//
 	Account string `json:"account,omitempty" rdl:"optional"`
 
 	//
-	// associated product id
+	// associated product id (system attribute - uniqueness check)
 	//
 	YpmId *int32 `json:"ypmId,omitempty" rdl:"optional"`
 
@@ -155,6 +137,121 @@ type Domain struct {
 	// associated application id
 	//
 	ApplicationId string `json:"applicationId,omitempty" rdl:"optional"`
+}
+
+//
+// NewDomainMeta - creates an initialized DomainMeta instance, returns a pointer to it
+//
+func NewDomainMeta(init ...*DomainMeta) *DomainMeta {
+	var o *DomainMeta
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(DomainMeta)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *DomainMeta) Init() *DomainMeta {
+	if self.Enabled == nil {
+		d := true
+		self.Enabled = &d
+	}
+	if self.AuditEnabled == nil {
+		d := false
+		self.AuditEnabled = &d
+	}
+	return self
+}
+
+type rawDomainMeta DomainMeta
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a DomainMeta
+//
+func (self *DomainMeta) UnmarshalJSON(b []byte) error {
+	var m rawDomainMeta
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := DomainMeta(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *DomainMeta) Validate() error {
+	return nil
+}
+
+//
+// Domain - A domain is an independent partition of users, roles, and
+// resources. Its name represents the definition of a namespace; the only way a
+// new namespace can be created, from the top, is by creating Domains.
+// Administration of a domain is governed by the parent domain (using
+// reverse-DNS namespaces). The top level domains are governed by the special
+// "sys.auth" domain.
+//
+type Domain struct {
+
+	//
+	// a description of the domain
+	//
+	Description string `json:"description,omitempty" rdl:"optional"`
+
+	//
+	// a reference to an Organization. (i.e. org:media)
+	//
+	Org ResourceName `json:"org,omitempty" rdl:"optional"`
+
+	//
+	// Future use only, currently not used
+	//
+	Enabled *bool `json:"enabled,omitempty" rdl:"optional"`
+
+	//
+	// Flag indicates whether or not domain modifications should be logged for
+	// SOX+Auditing. If true, the auditRef parameter must be supplied(not empty) for
+	// any API defining it.
+	//
+	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional"`
+
+	//
+	// associated cloud (i.e. aws) account id (system attribute - uniqueness
+	// check)
+	//
+	Account string `json:"account,omitempty" rdl:"optional"`
+
+	//
+	// associated product id (system attribute - uniqueness check)
+	//
+	YpmId *int32 `json:"ypmId,omitempty" rdl:"optional"`
+
+	//
+	// associated application id
+	//
+	ApplicationId string `json:"applicationId,omitempty" rdl:"optional"`
+
+	//
+	// the common name to be referred to, the symbolic id. It is immutable
+	//
+	Name DomainName `json:"name"`
+
+	//
+	// the last modification timestamp of any object or attribute in this domain
+	//
+	Modified *rdl.Timestamp `json:"modified,omitempty" rdl:"optional"`
+
+	//
+	// unique identifier of the domain. generated on create, never reused
+	//
+	Id *rdl.UUID `json:"id,omitempty" rdl:"optional"`
 }
 
 //
@@ -1991,101 +2088,6 @@ func (self *DomainList) Validate() error {
 }
 
 //
-// DomainMeta - Set of metadata attributes that all domains may have and can be
-// changed.
-//
-type DomainMeta struct {
-
-	//
-	// a description of the domain
-	//
-	Description string `json:"description,omitempty" rdl:"optional"`
-
-	//
-	// a reference to an Organization. (i.e. org:media)
-	//
-	Org ResourceName `json:"org,omitempty" rdl:"optional"`
-
-	//
-	// Future use only, currently not used
-	//
-	Enabled *bool `json:"enabled,omitempty" rdl:"optional"`
-
-	//
-	// Flag indicates whether or not domain modifications should be logged for
-	// SOX+Auditing. If true, the auditRef parameter must be supplied(not empty) for
-	// any API defining it.
-	//
-	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional"`
-
-	//
-	// associated cloud (i.e. aws) account id
-	//
-	Account string `json:"account,omitempty" rdl:"optional"`
-
-	//
-	// associated product id
-	//
-	YpmId *int32 `json:"ypmId,omitempty" rdl:"optional"`
-
-	//
-	// associated application id
-	//
-	ApplicationId string `json:"applicationId,omitempty" rdl:"optional"`
-}
-
-//
-// NewDomainMeta - creates an initialized DomainMeta instance, returns a pointer to it
-//
-func NewDomainMeta(init ...*DomainMeta) *DomainMeta {
-	var o *DomainMeta
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(DomainMeta)
-	}
-	return o.Init()
-}
-
-//
-// Init - sets up the instance according to its default field values, if any
-//
-func (self *DomainMeta) Init() *DomainMeta {
-	if self.Enabled == nil {
-		d := true
-		self.Enabled = &d
-	}
-	if self.AuditEnabled == nil {
-		d := false
-		self.AuditEnabled = &d
-	}
-	return self
-}
-
-type rawDomainMeta DomainMeta
-
-//
-// UnmarshalJSON is defined for proper JSON decoding of a DomainMeta
-//
-func (self *DomainMeta) UnmarshalJSON(b []byte) error {
-	var m rawDomainMeta
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := DomainMeta(m)
-		*self = *((&o).Init())
-		err = self.Validate()
-	}
-	return err
-}
-
-//
-// Validate - checks for missing required fields, etc
-//
-func (self *DomainMeta) Validate() error {
-	return nil
-}
-
-//
 // TopLevelDomain - Top Level Domain object. The required attributes include
 // the name of the domain and list of domain administrators.
 //
@@ -2114,12 +2116,13 @@ type TopLevelDomain struct {
 	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional"`
 
 	//
-	// associated cloud (i.e. aws) account id
+	// associated cloud (i.e. aws) account id (system attribute - uniqueness
+	// check)
 	//
 	Account string `json:"account,omitempty" rdl:"optional"`
 
 	//
-	// associated product id
+	// associated product id (system attribute - uniqueness check)
 	//
 	YpmId *int32 `json:"ypmId,omitempty" rdl:"optional"`
 
@@ -2237,12 +2240,13 @@ type SubDomain struct {
 	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional"`
 
 	//
-	// associated cloud (i.e. aws) account id
+	// associated cloud (i.e. aws) account id (system attribute - uniqueness
+	// check)
 	//
 	Account string `json:"account,omitempty" rdl:"optional"`
 
 	//
-	// associated product id
+	// associated product id (system attribute - uniqueness check)
 	//
 	YpmId *int32 `json:"ypmId,omitempty" rdl:"optional"`
 
@@ -2374,12 +2378,13 @@ type UserDomain struct {
 	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional"`
 
 	//
-	// associated cloud (i.e. aws) account id
+	// associated cloud (i.e. aws) account id (system attribute - uniqueness
+	// check)
 	//
 	Account string `json:"account,omitempty" rdl:"optional"`
 
 	//
-	// associated product id
+	// associated product id (system attribute - uniqueness check)
 	//
 	YpmId *int32 `json:"ypmId,omitempty" rdl:"optional"`
 

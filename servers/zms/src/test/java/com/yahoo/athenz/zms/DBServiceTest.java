@@ -16,6 +16,7 @@
 package com.yahoo.athenz.zms;
 
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -1044,7 +1045,9 @@ public class DBServiceTest {
         
         DomainMeta meta = new DomainMeta().setDescription("Test2 Domain").setOrg("NewOrg")
                 .setEnabled(true).setAuditEnabled(false).setAccount("12345").setYpmId(1001);
-        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, auditRef, "putDomainMeta");
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, null, auditRef, "putDomainMeta");
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, "productid", auditRef, "putDomainMeta");
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, "account", auditRef, "putDomainMeta");
 
         Domain resDom2 = zms.getDomain(mockDomRsrcCtx, "MetaDom1");
         assertNotNull(resDom2);
@@ -1059,7 +1062,7 @@ public class DBServiceTest {
         
         meta = new DomainMeta().setDescription("Test2 Domain-New").setOrg("NewOrg-New")
                 .setEnabled(true).setAuditEnabled(false);
-        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, auditRef, "putDomainMeta");
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, null, auditRef, "putDomainMeta");
 
         Domain resDom3 = zms.getDomain(mockDomRsrcCtx, "MetaDom1");
         assertNotNull(resDom3);
@@ -1072,7 +1075,43 @@ public class DBServiceTest {
         
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "MetaDom1", auditRef);
     }
-    
+
+    @Test
+    public void testExecutePutDomainMetaRetryException() {
+
+        String domainName = "metadom1retry";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        DomainMeta meta = new DomainMeta().setDescription("Test2 Domain").setOrg("NewOrg")
+                .setEnabled(true).setAuditEnabled(false).setAccount("12345").setYpmId(1001);
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
+        Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockFileConn.updateDomain(ArgumentMatchers.any()))
+                .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        int saveRetryCount = zms.dbService.defaultRetryCount;
+        zms.dbService.defaultRetryCount = 2;
+
+        try {
+            zms.dbService.executePutDomainMeta(mockDomRsrcCtx, domainName, meta,
+                    null, auditRef, "testExecutePutDomainMetaRetryException");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.CONFLICT, ex.getCode());
+        }
+
+        zms.dbService.defaultRetryCount = saveRetryCount;
+        zms.dbService.store = saveStore;
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
     @Test
     public void testExecutePutMembership() {
 
@@ -3367,5 +3406,20 @@ public class DBServiceTest {
         assertFalse(zms.dbService.validResourceGroupObjectToDelete("role.name", "role.name."));
         assertFalse(zms.dbService.validResourceGroupObjectToDelete("role.name.test.name", "role.name."));
         assertTrue(zms.dbService.validResourceGroupObjectToDelete("role.name.test", "role.name."));
+    }
+
+    @Test
+    public void testUpdateSystemMetaFields() {
+
+        Domain domain = new Domain();
+        DomainMeta meta = new DomainMeta().setAccount("acct").setYpmId(1234);
+        zms.dbService.updateSystemMetaFields(domain, "account", meta);
+        zms.dbService.updateSystemMetaFields(domain, "productid", meta);
+        try {
+            zms.dbService.updateSystemMetaFields(domain, "unknown", meta);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
     }
 }

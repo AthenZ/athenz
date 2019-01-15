@@ -198,7 +198,10 @@ public final class ZMSConsts {
     public static final String OBJECT_SERVICE   = "service";
     public static final String OBJECT_PRINCIPAL = "principal";
     public static final String OBJECT_HOST      = "host";
-    
+
+    public static final String SYSTEM_META_PRODUCT_ID      = "productid";
+    public static final String SYSTEM_META_ACCOUNT         = "account";
+
     // HTTP operation types used in metrics
     public static final String HTTP_GET     = "GET";
     public static final String HTTP_PUT     = "PUT";
@@ -206,7 +209,7 @@ public final class ZMSConsts {
     public static final String HTTP_DELETE  = "DELETE";
     public static final String HTTP_OPTIONS = "OPTIONS";
     public static final String HTTP_REQUEST = "REQUEST";
-    
+
     public static final String STR_DEF_ROOT     = "/home/athenz";
 
     public static final int STRING_BLDR_SIZE_DEFAULT = 512;
