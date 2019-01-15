@@ -84,7 +84,18 @@ public interface Authority {
     default String getUserDomainName(String userName) {
         return userName;
     }
-    
+
+    /**
+     * If the authority is handling user principals, then this method will be
+     * called when users are added as members so the authority can validate
+     * that the role member is valid. If the member is not valid, the request
+     * (e.g. putRole, putMembership) will be rejected as invalid.
+     */
+
+    default boolean isValidUser(String username) {
+        return true;
+    }
+
     /**
      * Verify the credentials and if valid return the corresponding Principal, null otherwise.
      * @param creds the credentials (i.e. cookie, token, secret) that will identify the principal.
