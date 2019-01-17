@@ -473,7 +473,11 @@ public class ZTSClient implements Closeable {
         ztsClient.close();
     }
 
-    void setEnablePrefetch(boolean state) {
+    /**
+     * Call to enable/disable prefetch for the current ZTSClient.
+     * @param state whether prefetch is enabled or not
+     */
+    public void setEnablePrefetch(boolean state) {
         enablePrefetch = state;
     }
 
