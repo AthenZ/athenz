@@ -10,9 +10,10 @@ type DomainMeta Struct {
     ResourceName org (optional); //a reference to an Organization. (i.e. org:media)
     Bool enabled (optional, default=true); //Future use only, currently not used
     Bool auditEnabled (optional, default=false); //Flag indicates whether or not domain modifications should be logged for SOX+Auditing. If true, the auditRef parameter must be supplied(not empty) for any API defining it.
-    String account (optional); // associated cloud (i.e. aws) account id (system attribute - uniqueness check)
-    Int32 ypmId (optional); // associated product id (system attribute - uniqueness check)
-    String applicationId (optional); // associated application id
+    String account (optional); //associated cloud (i.e. aws) account id (system attribute - uniqueness check)
+    Int32 ypmId (optional); //associated product id (system attribute - uniqueness check)
+    String applicationId (optional); //associated application id
+    String certDnsDomain (optional); //domain certificate dns domain (system attribute)
 }
 
 //A domain is an independent partition of users, roles, and resources.

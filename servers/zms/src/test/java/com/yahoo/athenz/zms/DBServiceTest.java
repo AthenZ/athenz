@@ -1044,10 +1044,12 @@ public class DBServiceTest {
         // update meta with values for account and product ids
         
         DomainMeta meta = new DomainMeta().setDescription("Test2 Domain").setOrg("NewOrg")
-                .setEnabled(true).setAuditEnabled(false).setAccount("12345").setYpmId(1001);
+                .setEnabled(true).setAuditEnabled(false).setAccount("12345").setYpmId(1001)
+                .setCertDnsDomain("athenz1.cloud");
         zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, null, auditRef, "putDomainMeta");
         zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, "productid", auditRef, "putDomainMeta");
         zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, "account", auditRef, "putDomainMeta");
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, "certdnsdomain", auditRef, "putDomainMeta");
 
         Domain resDom2 = zms.getDomain(mockDomRsrcCtx, "MetaDom1");
         assertNotNull(resDom2);
@@ -1057,6 +1059,7 @@ public class DBServiceTest {
         assertFalse(resDom2.getAuditEnabled());
         assertEquals(Integer.valueOf(1001), resDom2.getYpmId());
         assertEquals("12345", resDom2.getAccount());
+        assertEquals(resDom2.getCertDnsDomain(), "athenz1.cloud");
 
         // now update without account and product ids
         
@@ -1072,7 +1075,8 @@ public class DBServiceTest {
         assertFalse(resDom3.getAuditEnabled());
         assertEquals(Integer.valueOf(1001), resDom3.getYpmId());
         assertEquals("12345", resDom3.getAccount());
-        
+        assertEquals(resDom3.getCertDnsDomain(), "athenz1.cloud");
+
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "MetaDom1", auditRef);
     }
 
@@ -3412,9 +3416,16 @@ public class DBServiceTest {
     public void testUpdateSystemMetaFields() {
 
         Domain domain = new Domain();
-        DomainMeta meta = new DomainMeta().setAccount("acct").setYpmId(1234);
+        DomainMeta meta = new DomainMeta()
+                .setAccount("acct")
+                .setYpmId(1234)
+                .setCertDnsDomain("athenz.cloud");
         zms.dbService.updateSystemMetaFields(domain, "account", meta);
+        assertEquals(domain.getAccount(), "acct");
         zms.dbService.updateSystemMetaFields(domain, "productid", meta);
+        assertEquals(domain.getYpmId().intValue(), 1234);
+        zms.dbService.updateSystemMetaFields(domain, "certdnsdomain", meta);
+        assertEquals(domain.getCertDnsDomain(), "athenz.cloud");
         try {
             zms.dbService.updateSystemMetaFields(domain, "unknown", meta);
             fail();

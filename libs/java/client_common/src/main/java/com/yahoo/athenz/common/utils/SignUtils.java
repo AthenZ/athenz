@@ -68,6 +68,7 @@ public class SignUtils {
     private static final String ATTR_SIGNATURE = "signature";
     private static final String ATTR_KEYID = "keyId";
     private static final String ATTR_CONTENTS = "contents";
+    private static final String ATTR_CERT_DNS_DOMAIN = "certDnsDomain";
 
     private static Struct asStruct(DomainPolicies domainPolicies) {
         // all of our fields are in canonical order based
@@ -193,8 +194,6 @@ public class SignUtils {
             struct.append(name, value);
         } else if (value instanceof Integer) {
             struct.append(name, value);
-        } else if (value instanceof Long) {
-            struct.append(name, value);
         } else if (value instanceof Boolean) {
             struct.append(name, value);
         } else {
@@ -203,9 +202,7 @@ public class SignUtils {
     }
     
     private static void appendArray(Struct struct, String name, Array array) {
-        if (array != null) {
-            struct.append(name, array);
-        }
+        struct.append(name, array);
     }
     
     private static Object asStruct(PolicyData policyData) {
@@ -241,6 +238,7 @@ public class SignUtils {
         // on their attribute name
         Struct struct = new Struct();
         appendObject(struct, ATTR_ACCOUNT, domainData.getAccount());
+        appendObject(struct, ATTR_CERT_DNS_DOMAIN, domainData.getCertDnsDomain());
         appendObject(struct, ATTR_ENABLED, domainData.getEnabled());
         appendObject(struct, ATTR_MODIFIED, domainData.getModified());
         appendObject(struct, ATTR_NAME, domainData.getName());
@@ -280,7 +278,7 @@ public class SignUtils {
         }
     }
     
-    private static String asCanonicalString(Object obj) {
+    static String asCanonicalString(Object obj) {
         StringBuilder strBuffer = new StringBuilder();
         if (obj instanceof Struct) {
             Struct struct = (Struct) obj;
@@ -308,6 +306,10 @@ public class SignUtils {
             strBuffer.append(obj);
         } else if (obj instanceof Long) {
             strBuffer.append(obj);
+        } else if (obj instanceof Boolean) {
+            strBuffer.append(obj);
+        } else {
+            strBuffer.append(obj.toString());
         }
         return strBuffer.toString();
     }

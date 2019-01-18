@@ -472,7 +472,7 @@ public class ZMSCoreTest {
         List<Entity> elist = new ArrayList<>();
         DomainData dd = new DomainData().setName("test.domain").setAccount("user.test").setYpmId(1).setRoles(rl)
                 .setPolicies(sp).setServices(sil).setEntities(elist).setModified(Timestamp.fromMillis(123456789123L))
-                .setEnabled(true).setApplicationId("101");
+                .setEnabled(true).setApplicationId("101").setCertDnsDomain("athenz.cloud");
         result = validator.validate(dd, "DomainData");
         assertTrue(result.valid, result.error);
 
@@ -486,11 +486,15 @@ public class ZMSCoreTest {
         assertEquals(dd.getModified(), Timestamp.fromMillis(123456789123L));
         assertEquals("101", dd.getApplicationId());
         assertTrue(dd.getEnabled());
+        assertEquals(dd.getCertDnsDomain(), "athenz.cloud");
 
         DomainData dd2 = new DomainData().setName("test.domain").setAccount("user.test").setYpmId(1).setRoles(rl)
                 .setPolicies(sp).setServices(sil).setEntities(elist).setModified(Timestamp.fromMillis(123456789123L))
-                .setEnabled(true).setApplicationId("101");
+                .setEnabled(true).setApplicationId("101").setCertDnsDomain("athenz.cloud");
         assertTrue(dd.equals(dd2));
+
+        dd2.setCertDnsDomain(null);
+        assertFalse(dd2.equals(dd));
 
         dd2.setApplicationId(null);
         assertFalse(dd2.equals(dd));
@@ -699,7 +703,7 @@ public class ZMSCoreTest {
         Domain d = new Domain();
         d.setName("test.domain").setModified(Timestamp.fromMillis(123456789123L)).setId(UUID.fromMillis(100))
                 .setDescription("test desc").setOrg("test-org").setEnabled(true).setAuditEnabled(true)
-                .setAccount("user.test").setYpmId(1).setApplicationId("101");
+                .setAccount("user.test").setYpmId(1).setApplicationId("101").setCertDnsDomain("athenz.cloud");
         Result result = validator.validate(d, "Domain");
         assertTrue(result.valid);
 
@@ -713,11 +717,12 @@ public class ZMSCoreTest {
         assertEquals(d.getAccount(), "user.test");
         assertEquals((int) d.getYpmId(), 1);
         assertEquals(d.getApplicationId(), "101");
+        assertEquals(d.getCertDnsDomain(), "athenz.cloud");
 
         Domain d2 = new Domain();
         d2.setName("test.domain").setModified(Timestamp.fromMillis(123456789123L)).setId(UUID.fromMillis(100))
                 .setDescription("test desc").setOrg("test-org").setEnabled(true).setAuditEnabled(true)
-                .setAccount("user.test").setYpmId(1).setApplicationId("101");
+                .setAccount("user.test").setYpmId(1).setApplicationId("101").setCertDnsDomain("athenz.cloud");
 
         assertTrue(d2.equals(d));
         assertTrue(d.equals(d));
@@ -729,6 +734,8 @@ public class ZMSCoreTest {
         d2.setModified(null);
         assertFalse(d2.equals(d));
         d2.setName(null);
+        assertFalse(d2.equals(d));
+        d2.setCertDnsDomain(null);
         assertFalse(d2.equals(d));
         d2.setApplicationId(null);
         assertFalse(d2.equals(d));
@@ -782,7 +789,8 @@ public class ZMSCoreTest {
 
         DomainMeta dm = new DomainMeta().init();
         dm.setDescription("domain desc").setOrg("org:test").setEnabled(true).setAuditEnabled(false)
-                .setAccount("user.test").setYpmId(10).setApplicationId("101");
+                .setAccount("user.test").setYpmId(10).setApplicationId("101")
+                .setCertDnsDomain("athenz.cloud");
 
         Result result = validator.validate(dm, "DomainMeta");
         assertTrue(result.valid);
@@ -794,13 +802,17 @@ public class ZMSCoreTest {
         assertEquals(dm.getAccount(), "user.test");
         assertEquals((int) dm.getYpmId(), 10);
         assertEquals(dm.getApplicationId(), "101");
+        assertEquals(dm.getCertDnsDomain(), "athenz.cloud");
 
         DomainMeta dm2 = new DomainMeta().init();
         dm2.setDescription("domain desc").setOrg("org:test").setEnabled(true).setAuditEnabled(false)
-                .setAccount("user.test").setYpmId(10).setApplicationId("101");
+                .setAccount("user.test").setYpmId(10).setApplicationId("101")
+                .setCertDnsDomain("athenz.cloud");
         assertTrue(dm2.equals(dm));
         assertTrue(dm.equals(dm));
 
+        dm2.setCertDnsDomain(null);
+        assertFalse(dm2.equals(dm));
         dm2.setApplicationId(null);
         assertFalse(dm2.equals(dm));
         dm2.setYpmId(null);
@@ -848,7 +860,7 @@ public class ZMSCoreTest {
         // TopLevelDomain test
         TopLevelDomain tld = new TopLevelDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("user.test").setYpmId(10).setName("testdomain").setAdminUsers(admins)
-                .setTemplates(dtl).setApplicationId("id1");
+                .setTemplates(dtl).setApplicationId("id1").setCertDnsDomain("athenz.cloud");
 
         result = validator.validate(tld, "TopLevelDomain");
         assertTrue(result.valid);
@@ -863,10 +875,11 @@ public class ZMSCoreTest {
         assertEquals(tld.getAdminUsers(), admins);
         assertEquals(tld.getApplicationId(), "id1");
         assertNotNull(tld.getTemplates());
+        assertEquals(tld.getCertDnsDomain(), "athenz.cloud");
 
         TopLevelDomain tld2 = new TopLevelDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("user.test").setYpmId(10).setName("testdomain").setAdminUsers(admins)
-                .setTemplates(dtl).setApplicationId("id1");
+                .setTemplates(dtl).setApplicationId("id1").setCertDnsDomain("athenz.cloud");
 
         assertTrue(tld2.equals(tld));
         assertTrue(tld.equals(tld));
@@ -876,6 +889,8 @@ public class ZMSCoreTest {
         tld2.setAdminUsers(null);
         assertFalse(tld2.equals(tld));
         tld2.setName(null);
+        assertFalse(tld2.equals(tld));
+        tld2.setCertDnsDomain(null);
         assertFalse(tld2.equals(tld));
         tld2.setApplicationId(null);
         assertFalse(tld2.equals(tld));
@@ -905,7 +920,7 @@ public class ZMSCoreTest {
         SubDomain sd = new SubDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("user.test").setYpmId(10).setName("testdomain").setAdminUsers(admins)
                 .setTemplates(new DomainTemplateList().setTemplateNames(Arrays.asList("vipng")))
-                .setParent("domain.parent").setApplicationId("101");
+                .setParent("domain.parent").setApplicationId("101").setCertDnsDomain("athenz.cloud");
 
         Result result = validator.validate(sd, "SubDomain");
         assertTrue(result.valid, result.error);
@@ -921,11 +936,12 @@ public class ZMSCoreTest {
         assertNotNull(sd.getTemplates());
         assertEquals(sd.getParent(), "domain.parent");
         assertEquals(sd.getApplicationId(), "101");
+        assertEquals(sd.getCertDnsDomain(), "athenz.cloud");
 
         SubDomain sd2 = new SubDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("user.test").setYpmId(10).setName("testdomain").setAdminUsers(admins)
                 .setTemplates(new DomainTemplateList().setTemplateNames(Arrays.asList("vipng")))
-                .setParent("domain.parent").setApplicationId("101");
+                .setParent("domain.parent").setApplicationId("101").setCertDnsDomain("athenz.cloud");
 
         assertTrue(sd2.equals(sd));
         assertTrue(sd.equals(sd));
@@ -937,6 +953,8 @@ public class ZMSCoreTest {
         sd2.setAdminUsers(null);
         assertFalse(sd2.equals(sd));
         sd2.setName(null);
+        assertFalse(sd2.equals(sd));
+        sd2.setCertDnsDomain(null);
         assertFalse(sd2.equals(sd));
         sd2.setApplicationId(null);
         assertFalse(sd2.equals(sd));
@@ -963,7 +981,7 @@ public class ZMSCoreTest {
         UserDomain ud = new UserDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("user.test").setYpmId(10).setName("testuser")
                 .setTemplates(new DomainTemplateList().setTemplateNames(Arrays.asList("template")))
-                .setApplicationId("101");
+                .setApplicationId("101").setCertDnsDomain("athenz.cloud");
 
         Result result = validator.validate(ud, "UserDomain");
         assertTrue(result.valid);
@@ -977,11 +995,12 @@ public class ZMSCoreTest {
         assertEquals(ud.getName(), "testuser");
         assertEquals(ud.getApplicationId(), "101");
         assertNotNull(ud.getTemplates());
+        assertEquals(ud.getCertDnsDomain(), "athenz.cloud");
 
         UserDomain ud2 = new UserDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("user.test").setYpmId(10).setName("testuser")
                 .setTemplates(new DomainTemplateList().setTemplateNames(Arrays.asList("template")))
-                .setApplicationId("101");
+                .setApplicationId("101").setCertDnsDomain("athenz.cloud");
 
         assertTrue(ud2.equals(ud));
         assertTrue(ud.equals(ud));
@@ -989,6 +1008,8 @@ public class ZMSCoreTest {
         ud2.setTemplates(null);
         assertFalse(ud2.equals(ud));
         ud2.setName(null);
+        assertFalse(ud2.equals(ud));
+        ud2.setCertDnsDomain(null);
         assertFalse(ud2.equals(ud));
         ud2.setApplicationId(null);
         assertFalse(ud2.equals(ud));

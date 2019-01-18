@@ -5,20 +5,15 @@ import static org.testng.Assert.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.yahoo.athenz.zms.*;
+import com.yahoo.rdl.Struct;
+import com.yahoo.rdl.Timestamp;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.yahoo.athenz.zms.Assertion;
-import com.yahoo.athenz.zms.DomainData;
-import com.yahoo.athenz.zms.DomainPolicies;
-import com.yahoo.athenz.zms.Policy;
-import com.yahoo.athenz.zms.PublicKeyEntry;
-import com.yahoo.athenz.zms.Role;
-import com.yahoo.athenz.zms.ServiceIdentity;
-import com.yahoo.athenz.zms.SignedPolicies;
 import com.yahoo.athenz.zts.PolicyData;
 import com.yahoo.athenz.zts.SignedPolicyData;
 
@@ -161,5 +156,43 @@ public class SignUtilsTest {
         check = SignUtils.asCanonicalString(mockDomain);
         assertNotNull(check);
         assertEquals(check,"{\"account\":\"chk_string\",\"policies\":{\"contents\":{\"policies\":[]}},\"roles\":[{\"members\":[\"check_item\"],\"roleMembers\":[]}],\"services\":[{\"publicKeys\":[]}],\"ypmId\":0}");
+    }
+
+    @Test
+    public void testAsStructRole() {
+
+        List<RoleMember> roleMembers1 = new ArrayList<>();
+        Role role1 = new Role().setName("role1").setRoleMembers(roleMembers1);
+
+        List<RoleMember> roleMembers2 = new ArrayList<>();
+        roleMembers2.add(new RoleMember().setMemberName("user.joe").setExpiration(Timestamp.fromMillis(0)));
+        roleMembers2.add(new RoleMember().setMemberName("user.jane").setExpiration(Timestamp.fromMillis(0)));
+        Role role2 = new Role().setName("role2").setRoleMembers(roleMembers2);
+
+        List<Role> roles = new ArrayList<>();
+        roles.add(role1);
+        roles.add(role2);
+        roles.add(new Role().setName("role3"));
+        DomainData data = new DomainData().setRoles(roles).setYpmId(100)
+                .setEnabled(Boolean.TRUE);
+
+        final String check = SignUtils.asCanonicalString(data);
+        final String expected = "{\"enabled\":true,\"roles\":[{\"name\":\"role1\",\"roleMembers\":[]},"
+            +"{\"name\":\"role2\",\"roleMembers\":[{\"expiration\":\"1970-01-01T00:00:00.000Z\","
+            +"\"memberName\":\"user.joe\"},{\"expiration\":\"1970-01-01T00:00:00.000Z\","
+            +"\"memberName\":\"user.jane\"}]},{\"name\":\"role3\"}],\"services\":[],\"ypmId\":100}";
+        assertEquals(check, expected);
+    }
+
+    @Test
+    public void testAsCannonicalStringObject() {
+
+        Struct struct = new Struct();
+        struct.append("long", Long.valueOf(100));
+        struct.append("float", Float.valueOf(100f));
+
+        final String check = SignUtils.asCanonicalString(struct);
+        final String expected = "{\"float\":100.0,\"long\":100}";
+        assertEquals(check, expected);
     }
 }

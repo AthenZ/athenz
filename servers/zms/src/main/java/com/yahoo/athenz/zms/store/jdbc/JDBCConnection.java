@@ -57,9 +57,9 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_DOMAIN_WITH_ACCOUNT = "SELECT name FROM domain WHERE account=?;";
     private static final String SQL_GET_DOMAIN_WITH_PRODUCT_ID = "SELECT name FROM domain WHERE ypm_id=?;";
     private static final String SQL_INSERT_DOMAIN = "INSERT INTO domain "
-            + "(name, description, org, uuid, enabled, audit_enabled, account, ypm_id, application_id) VALUES (?,?,?,?,?,?,?,?,?);";
+            + "(name, description, org, uuid, enabled, audit_enabled, account, ypm_id, application_id, cert_dns_domain) VALUES (?,?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_DOMAIN = "UPDATE domain "
-            + "SET description=?, org=?, uuid=?, enabled=?, audit_enabled=?, account=?, ypm_id=?, application_id=? WHERE name=?;";
+            + "SET description=?, org=?, uuid=?, enabled=?, audit_enabled=?, account=?, ypm_id=?, application_id=?, cert_dns_domain=? WHERE name=?;";
     private static final String SQL_UPDATE_DOMAIN_MOD_TIMESTAMP = "UPDATE domain "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE name=?;";
     private static final String SQL_GET_DOMAIN_MOD_TIMESTAMP = "SELECT modified FROM domain WHERE name=?;";
@@ -366,7 +366,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                     .setOrg(saveValue(rs.getString(ZMSConsts.DB_COLUMN_ORG)))
                     .setId(saveUuidValue(rs.getString(ZMSConsts.DB_COLUMN_UUID)))
                     .setAccount(saveValue(rs.getString(ZMSConsts.DB_COLUMN_ACCOUNT)))
-                    .setYpmId(rs.getInt(ZMSConsts.DB_COLUMN_PRODUCT_ID));
+                    .setYpmId(rs.getInt(ZMSConsts.DB_COLUMN_PRODUCT_ID))
+                    .setCertDnsDomain(rs.getString(ZMSConsts.DB_COLUMN_CERT_DNS_DOMAIN));
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -412,6 +413,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(7, processInsertValue(domain.getAccount()));
             ps.setInt(8, processInsertValue(domain.getYpmId()));
             ps.setString(9, processInsertValue(domain.getApplicationId()));
+            ps.setString(10, processInsertValue(domain.getCertDnsDomain()));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -467,7 +469,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(6, processInsertValue(domain.getAccount()));
             ps.setInt(7, processInsertValue(domain.getYpmId()));
             ps.setString(8, processInsertValue(domain.getApplicationId()));
-            ps.setString(9, domain.getName());
+            ps.setString(9, processInsertValue(domain.getCertDnsDomain()));
+            ps.setString(10, domain.getName());
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);

@@ -36,6 +36,9 @@ public class Domain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String applicationId;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String certDnsDomain;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -93,6 +96,13 @@ public class Domain {
     public String getApplicationId() {
         return applicationId;
     }
+    public Domain setCertDnsDomain(String certDnsDomain) {
+        this.certDnsDomain = certDnsDomain;
+        return this;
+    }
+    public String getCertDnsDomain() {
+        return certDnsDomain;
+    }
     public Domain setName(String name) {
         this.name = name;
         return this;
@@ -141,6 +151,9 @@ public class Domain {
                 return false;
             }
             if (applicationId == null ? a.applicationId != null : !applicationId.equals(a.applicationId)) {
+                return false;
+            }
+            if (certDnsDomain == null ? a.certDnsDomain != null : !certDnsDomain.equals(a.certDnsDomain)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

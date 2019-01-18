@@ -498,6 +498,10 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 1 {
 				return cli.SetDomainApplicationId(dn, args[0])
 			}
+		case "set-cert-dns-domain":
+			if argc == 1 {
+				return cli.SetDomainCertDnsDomain(dn, args[0])
+			}
 		case "set-domain-template":
 			if argc >= 1 {
 				return cli.SetDomainTemplate(dn, args[0:])
@@ -672,6 +676,16 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   application-id        : set the Application ID for the domain\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domain_example + " set-application-id 0oabg8pelxhjh0tcs0h7\n")
+	case "set-cert-dns-domain":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domain_param + " set-cert-dns-domain cert-domain-name\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain being updated\n")
+		}
+		buf.WriteString("   cert-domain-name      : set the x.509 certificate dns domain name for the domain\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domain_example + " set-cert-dns-domain athenz.cloud\n")
 	case "import-domain":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   import-domain domain [file.yaml [admin ...]] - no file means stdin\n")
@@ -1460,6 +1474,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-aws-account account-id\n")
 	buf.WriteString("   set-product-id product-id\n")
 	buf.WriteString("   set-application-id application-id\n")
+	buf.WriteString("   set-cert-dns-domain cert-dns-domain\n")
 	buf.WriteString("   import-domain domain [file.yaml [admin ...]] - no file means stdin\n")
 	buf.WriteString("   export-domain domain [file.yaml] - no file means stdout\n")
 	buf.WriteString("   delete-domain domain\n")

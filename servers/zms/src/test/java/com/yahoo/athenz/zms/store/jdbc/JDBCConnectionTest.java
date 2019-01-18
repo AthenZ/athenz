@@ -475,7 +475,8 @@ public class JDBCConnectionTest {
                 .setOrg("cloud_services")
                 .setAccount("123456789")
                 .setYpmId(1011)
-                .setApplicationId("application_id");
+                .setApplicationId("application_id")
+                .setCertDnsDomain("athenz.cloud");
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         boolean requestSuccess = jdbcConn.updateDomain(domain);
@@ -489,7 +490,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(6, "123456789");
         Mockito.verify(mockPrepStmt, times(1)).setInt(7, 1011);
         Mockito.verify(mockPrepStmt, times(1)).setString(8, "application_id");
-        Mockito.verify(mockPrepStmt, times(1)).setString(9, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setString(9, "athenz.cloud");
+        Mockito.verify(mockPrepStmt, times(1)).setString(10, "my-domain");
         jdbcConn.close();
     }
     
@@ -514,7 +516,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(6, "");
         Mockito.verify(mockPrepStmt, times(1)).setInt(7, 0);
         Mockito.verify(mockPrepStmt, times(1)).setString(8, "");
-        Mockito.verify(mockPrepStmt, times(1)).setString(9, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setString(9, "");
+        Mockito.verify(mockPrepStmt, times(1)).setString(10, "my-domain");
         jdbcConn.close();
     }
     

@@ -78,7 +78,8 @@ public class ZMSSchema {
             .field("auditEnabled", "Bool", true, "Flag indicates whether or not domain modifications should be logged for SOX+Auditing. If true, the auditRef parameter must be supplied(not empty) for any API defining it.", false)
             .field("account", "String", true, "associated cloud (i.e. aws) account id (system attribute - uniqueness check)")
             .field("ypmId", "Int32", true, "associated product id (system attribute - uniqueness check)")
-            .field("applicationId", "String", true, "associated application id");
+            .field("applicationId", "String", true, "associated application id")
+            .field("certDnsDomain", "String", true, "domain certificate dns domain (system attribute)");
 
         sb.structType("Domain", "DomainMeta")
             .comment("A domain is an independent partition of users, roles, and resources. Its name represents the definition of a namespace; the only way a new namespace can be created, from the top, is by creating Domains. Administration of a domain is governed by the parent domain (using reverse-DNS namespaces). The top level domains are governed by the special \"sys.auth\" domain.")
@@ -332,7 +333,8 @@ public class ZMSSchema {
             .arrayField("services", "ServiceIdentity", false, "list of services in the domain")
             .arrayField("entities", "Entity", false, "list of entities in the domain")
             .field("modified", "Timestamp", false, "last modification timestamp")
-            .field("applicationId", "String", true, "associated application id");
+            .field("applicationId", "String", true, "associated application id")
+            .field("certDnsDomain", "String", true, "domain certificate dns domain");
 
         sb.structType("SignedDomain")
             .comment("A domain object signed with server's private key. The signature and keyid are optional if the metaonly flag is set to true in the getSignedDomains api call")

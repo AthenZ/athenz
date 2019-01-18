@@ -92,6 +92,7 @@ func init() {
 	tDomainMeta.Field("account", "String", true, nil, "associated cloud (i.e. aws) account id (system attribute - uniqueness check)")
 	tDomainMeta.Field("ypmId", "Int32", true, nil, "associated product id (system attribute - uniqueness check)")
 	tDomainMeta.Field("applicationId", "String", true, nil, "associated application id")
+	tDomainMeta.Field("certDnsDomain", "String", true, nil, "domain certificate dns domain (system attribute)")
 	sb.AddType(tDomainMeta.Build())
 
 	tDomain := rdl.NewStructTypeBuilder("DomainMeta", "Domain")
@@ -392,6 +393,7 @@ func init() {
 	tDomainData.ArrayField("entities", "Entity", false, "list of entities in the domain")
 	tDomainData.Field("modified", "Timestamp", false, nil, "last modification timestamp")
 	tDomainData.Field("applicationId", "String", true, nil, "associated application id")
+	tDomainData.Field("certDnsDomain", "String", true, nil, "domain certificate dns domain")
 	sb.AddType(tDomainData.Build())
 
 	tSignedDomain := rdl.NewStructTypeBuilder("Struct", "SignedDomain")
