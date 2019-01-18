@@ -183,7 +183,8 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_ROLE_NAME         = "role_name";
     public static final String DB_COLUMN_ASSERT_DOMAIN_ID  = "assert_domain_id";
     public static final String DB_COLUMN_ASSERT_ID         = "assertion_id";
-    
+    public static final String DB_COLUMN_CERT_DNS_DOMAIN   = "cert_dns_domain";
+
     public static final String ADMIN_POLICY_NAME = "admin";
     public static final String ADMIN_ROLE_NAME   = "admin";
 
@@ -201,6 +202,7 @@ public final class ZMSConsts {
 
     public static final String SYSTEM_META_PRODUCT_ID      = "productid";
     public static final String SYSTEM_META_ACCOUNT         = "account";
+    public static final String SYSTEM_META_CERT_DNS_DOMAIN = "certdnsdomain";
 
     // HTTP operation types used in metrics
     public static final String HTTP_GET     = "GET";

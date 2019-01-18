@@ -460,6 +460,18 @@ func (cli Zms) SetDomainApplicationId(dn string, applicationID string) (*string,
 	return &s, nil
 }
 
+func (cli Zms) SetDomainCertDnsDomain(dn string, dnsDomain string) (*string, error) {
+	meta := zms.DomainMeta{
+		CertDnsDomain: dnsDomain,
+	}
+	err := cli.Zms.PutDomainSystemMeta(zms.DomainName(dn), zms.SimpleName("certdnsdomain"), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " cert-dns-domain successfully updated]\n"
+	return &s, nil
+}
+
 func (cli Zms) SetDefaultAdmins(dn string, admins []string) (*string, error) {
 	validatedAdmins := cli.createResourceList(cli.validatedUsers(admins, false))
 	defaultAdmins := zms.DefaultAdmins{Admins: validatedAdmins}

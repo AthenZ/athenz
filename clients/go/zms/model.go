@@ -137,6 +137,11 @@ type DomainMeta struct {
 	// associated application id
 	//
 	ApplicationId string `json:"applicationId,omitempty" rdl:"optional"`
+
+	//
+	// domain certificate dns domain (system attribute)
+	//
+	CertDnsDomain string `json:"certDnsDomain,omitempty" rdl:"optional"`
 }
 
 //
@@ -237,6 +242,11 @@ type Domain struct {
 	// associated application id
 	//
 	ApplicationId string `json:"applicationId,omitempty" rdl:"optional"`
+
+	//
+	// domain certificate dns domain (system attribute)
+	//
+	CertDnsDomain string `json:"certDnsDomain,omitempty" rdl:"optional"`
 
 	//
 	// the common name to be referred to, the symbolic id. It is immutable
@@ -2132,6 +2142,11 @@ type TopLevelDomain struct {
 	ApplicationId string `json:"applicationId,omitempty" rdl:"optional"`
 
 	//
+	// domain certificate dns domain (system attribute)
+	//
+	CertDnsDomain string `json:"certDnsDomain,omitempty" rdl:"optional"`
+
+	//
 	// name of the domain
 	//
 	Name SimpleName `json:"name"`
@@ -2254,6 +2269,11 @@ type SubDomain struct {
 	// associated application id
 	//
 	ApplicationId string `json:"applicationId,omitempty" rdl:"optional"`
+
+	//
+	// domain certificate dns domain (system attribute)
+	//
+	CertDnsDomain string `json:"certDnsDomain,omitempty" rdl:"optional"`
 
 	//
 	// name of the domain
@@ -2392,6 +2412,11 @@ type UserDomain struct {
 	// associated application id
 	//
 	ApplicationId string `json:"applicationId,omitempty" rdl:"optional"`
+
+	//
+	// domain certificate dns domain (system attribute)
+	//
+	CertDnsDomain string `json:"certDnsDomain,omitempty" rdl:"optional"`
 
 	//
 	// user id which will be the domain name
@@ -3697,6 +3722,11 @@ type DomainData struct {
 	// associated application id
 	//
 	ApplicationId string `json:"applicationId,omitempty" rdl:"optional"`
+
+	//
+	// domain certificate dns domain
+	//
+	CertDnsDomain string `json:"certDnsDomain,omitempty" rdl:"optional"`
 }
 
 //

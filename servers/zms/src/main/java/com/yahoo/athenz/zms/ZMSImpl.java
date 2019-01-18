@@ -1461,6 +1461,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         meta.setYpmId(null);
         meta.setAccount(null);
+        meta.setCertDnsDomain(null);
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("putDomainMeta: name={}, meta={}", domainName, meta);

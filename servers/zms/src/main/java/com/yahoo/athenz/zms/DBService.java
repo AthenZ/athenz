@@ -2110,7 +2110,8 @@ public class DBService {
                         .setOrg(domain.getOrg())
                         .setApplicationId(domain.getApplicationId())
                         .setAccount(domain.getAccount())
-                        .setYpmId(domain.getYpmId());
+                        .setYpmId(domain.getYpmId())
+                        .setCertDnsDomain(domain.getCertDnsDomain());
 
                 // then we're going to apply the updated fields
                 // from the given object
@@ -2164,6 +2165,9 @@ public class DBService {
                 break;
             case ZMSConsts.SYSTEM_META_PRODUCT_ID:
                 domain.setYpmId(meta.getYpmId());
+                break;
+            case ZMSConsts.SYSTEM_META_CERT_DNS_DOMAIN:
+                domain.setCertDnsDomain(meta.getCertDnsDomain());
                 break;
             default:
                 throw ZMSUtils.requestError("unknown system meta attribute: " + attribute, caller);

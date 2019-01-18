@@ -48,7 +48,8 @@ type DomainData Struct {
     Array<ServiceIdentity> services; //list of services in the domain
     Array<Entity> entities; //list of entities in the domain
     Timestamp modified; //last modification timestamp
-    String applicationId (optional); // associated application id
+    String applicationId (optional); //associated application id
+    String certDnsDomain (optional); //domain certificate dns domain
 }
 
 //A domain object signed with server's private key. The signature
