@@ -2482,7 +2482,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                         caller, domain); 
             }
             if (status != ServiceX509RefreshRequestStatus.SUCCESS) {
-                throw requestError("Request valiation failed: " + status,
+                throw requestError("Request validation failed: " + status,
                         caller, domain); 
             }
         }

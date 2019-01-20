@@ -109,14 +109,16 @@ public class X509CertRequest {
 
         List<String> certDnsNames = Crypto.extractX509CertDnsNames(cert);
         if (certDnsNames.size() != dnsNames.size()) {
-            LOGGER.error("compareDnsNames - Mismatch of dnsNames in certificate ({}) and CSR ({})",
-                    certDnsNames.size(), dnsNames.size());
+            LOGGER.error("compareDnsNames - Mismatch of dnsNames in certificate ({}: {}) and CSR ({}: {})",
+                    certDnsNames.size(), String.join(", ", certDnsNames),
+                    dnsNames.size(), String.join(", ", dnsNames));
             return false;
         }
         
         for (String dnsName : dnsNames) {
             if (!certDnsNames.contains(dnsName)) {
-                LOGGER.error("compareDnsNames - Unknown dnsName in certificate {}", dnsName);
+                LOGGER.error("compareDnsNames - Unknown dnsName in csr {}, csr-set ({}), certificate-set ({})",
+                        dnsName, String.join(", ", dnsNames), String.join(", ", certDnsNames));
                 return false;
             }
         }
