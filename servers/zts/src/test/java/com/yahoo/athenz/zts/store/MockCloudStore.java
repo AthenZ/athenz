@@ -15,13 +15,10 @@
  */
 package com.yahoo.athenz.zts.store;
 
+import com.amazonaws.services.securitytoken.model.*;
 import org.mockito.Mockito;
 
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
-import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
-import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
-import com.amazonaws.services.securitytoken.model.GetCallerIdentityRequest;
-import com.amazonaws.services.securitytoken.model.GetCallerIdentityResult;
 import com.yahoo.athenz.zts.AWSTemporaryCredentials;
 
 public class MockCloudStore extends CloudStore {
@@ -32,14 +29,14 @@ public class MockCloudStore extends CloudStore {
     private boolean returnSuperAWSRole = false;
     private AssumeRoleResult assumeRoleResult = null;
     private GetCallerIdentityResult callerIdentityResult = null;
-    
+    private boolean getServiceClientException = false;
+
     public MockCloudStore() {
         super();
     }
 
     @Override
-    public
-    boolean isAwsEnabled() {
+    public boolean isAwsEnabled() {
         return true;
     }
     
@@ -59,13 +56,17 @@ public class MockCloudStore extends CloudStore {
 
     @Override
     AWSSecurityTokenServiceClient getTokenServiceClient() {
-        AWSSecurityTokenServiceClient client = Mockito.mock(AWSSecurityTokenServiceClient.class);
-        Mockito.when(client.assumeRole(Mockito.any(AssumeRoleRequest.class))).thenReturn(assumeRoleResult);
-        Mockito.when(client.getCallerIdentity(Mockito.any(GetCallerIdentityRequest.class))).thenReturn(callerIdentityResult);
-        return client;
+        if (getServiceClientException) {
+            throw new AWSSecurityTokenServiceException("invalid client");
+        } else {
+            AWSSecurityTokenServiceClient client = Mockito.mock(AWSSecurityTokenServiceClient.class);
+            Mockito.when(client.assumeRole(Mockito.any(AssumeRoleRequest.class))).thenReturn(assumeRoleResult);
+            Mockito.when(client.getCallerIdentity(Mockito.any(GetCallerIdentityRequest.class))).thenReturn(callerIdentityResult);
+            return client;
+        }
     }
 
-    void setAssumeAWSRole(boolean returnSuperAWSRole) {
+    void setReturnSuperAWSRole(boolean returnSuperAWSRole) {
         this.returnSuperAWSRole = returnSuperAWSRole;
     }
     
@@ -84,5 +85,9 @@ public class MockCloudStore extends CloudStore {
         } else {
             return super.assumeAWSRole(account, roleName, principal, durationSeconds, externalId);
         }
+    }
+
+    public void setGetServiceClientException(boolean getServiceClientException) {
+        this.getServiceClientException = getServiceClientException;
     }
 }

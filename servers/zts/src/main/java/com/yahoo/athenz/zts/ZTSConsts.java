@@ -155,6 +155,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_AWS_PUBLIC_CERT          = "athenz.zts.aws_public_cert";
     public static final String ZTS_PROP_AWS_BOOT_TIME_OFFSET     = "athenz.zts.aws_boot_time_offset";
     public static final String ZTS_PROP_AWS_CREDS_CACHE_TIMEOUT  = "athenz.zts.aws_creds_cache_timeout";
+    public static final String ZTS_PROP_AWS_CREDS_INVALID_CACHE_TIMEOUT  = "athenz.zts.aws_creds_invalid_cache_timeout";
 
     public static final String ZTS_PROP_METRIC_FACTORY_CLASS             = "athenz.zts.metric_factory_class";
     public static final String ZTS_PROP_CERT_SIGNER_FACTORY_CLASS        = "athenz.zts.cert_signer_factory_class";
@@ -171,6 +172,6 @@ public final class ZTSConsts {
     public static final String ZTS_AUDIT_LOGGER_FACTORY_CLASS      = "com.yahoo.athenz.common.server.log.impl.DefaultAuditLoggerFactory";
     public static final String ZTS_PRINCIPAL_AUTHORITY_CLASS       = "com.yahoo.athenz.auth.impl.PrincipalAuthority";
     public static final String ZTS_CERT_RECORD_STORE_FACTORY_CLASS = "com.yahoo.athenz.zts.cert.impl.FileCertRecordStoreFactory";
-    
+
     public static final String ZTS_JSON_PARSER_ERROR_RESPONSE = "{\"code\":400,\"message\":\"Invalid Object: checkout https://github.com/yahoo/athenz/core/zts for object defintions\"}";
 }
