@@ -94,7 +94,7 @@ public class CloudStore {
 
         awsRegion = System.getProperty(ZTSConsts.ZTS_PROP_AWS_REGION_NAME);
 
-        // get the default cache timeout
+        // get the default cache timeout in seconds
 
         cacheTimeout = Integer.parseInt(
                 System.getProperty(ZTSConsts.ZTS_PROP_AWS_CREDS_CACHE_TIMEOUT, "600"));
@@ -445,7 +445,7 @@ public class CloudStore {
         // entries that have been expired already
 
         long checkTime = System.currentTimeMillis() - invalidCacheTimeout * 1000;
-        return awsInvalidCredsCache.entrySet().removeIf(entry -> entry.getValue() < checkTime);
+        return awsInvalidCredsCache.entrySet().removeIf(entry -> entry.getValue() <= checkTime);
     }
 
     boolean isFailedTempCredsRequest(final String cacheKey) {
@@ -461,7 +461,7 @@ public class CloudStore {
             return false;
         }
 
-        // we're going to cache any creds for configured number of minutes
+        // we're going to cache any creds for configured number of seconds
 
         long diffSeconds = (System.currentTimeMillis() - timeStamp) / 1000;
         return diffSeconds < invalidCacheTimeout;
