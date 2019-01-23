@@ -807,13 +807,31 @@ public class CloudStoreTest {
     public void testAssumeAWSRoleFailedCredsCache() {
         MockCloudStore cloudStore = new MockCloudStore();
         cloudStore.awsEnabled = true;
-        cloudStore.setGetServiceClientException(true);
         cloudStore.setReturnSuperAWSRole(true);
+        cloudStore.invalidCacheTimeout = 120;
 
-        // verify we get null and our failed cache contains the entry
+        // first we're going to return a regular exception
+        // in which case we won't cache the failed creds
 
+        cloudStore.setGetServiceException(403, false);
         assertNull(cloudStore.assumeAWSRole("account", "syncer", "athenz.syncer", null, null));
-        assertNotNull(cloudStore.awsInvalidCredsCache.contains(cloudStore.getCacheKey("account", "syncer", "athenz.syncer", null, null)));
+        assertNull(cloudStore.awsInvalidCredsCache.get(cloudStore.getCacheKey("account", "syncer", "athenz.syncer", null, null)));
+
+        // now we're going to return aamazon service exception
+        // but with 401 error code which means against no
+        // caching of failed credentials
+
+        cloudStore.setGetServiceException(401, true);
+        assertNull(cloudStore.assumeAWSRole("account", "syncer", "athenz.syncer", null, null));
+        assertNull(cloudStore.awsInvalidCredsCache.get(cloudStore.getCacheKey("account", "syncer", "athenz.syncer", null, null)));
+
+        // finally we're going to return access denied - 403
+        // amazon exception and we should cache the failed creds
+
+        cloudStore.setGetServiceException(403, true);
+        assertNull(cloudStore.assumeAWSRole("account", "syncer", "athenz.syncer", null, null));
+        assertNotNull(cloudStore.awsInvalidCredsCache.get(cloudStore.getCacheKey("account", "syncer", "athenz.syncer", null, null)));
+
         cloudStore.close();
     }
 

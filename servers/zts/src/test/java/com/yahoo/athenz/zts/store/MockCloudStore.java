@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.zts.store;
 
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.securitytoken.model.*;
 import org.mockito.Mockito;
 
@@ -29,7 +30,8 @@ public class MockCloudStore extends CloudStore {
     private boolean returnSuperAWSRole = false;
     private AssumeRoleResult assumeRoleResult = null;
     private GetCallerIdentityResult callerIdentityResult = null;
-    private boolean getServiceClientException = false;
+    private int exceptionStatusCode = 0;
+    private boolean amazonException = true;
 
     public MockCloudStore() {
         super();
@@ -56,8 +58,14 @@ public class MockCloudStore extends CloudStore {
 
     @Override
     AWSSecurityTokenServiceClient getTokenServiceClient() {
-        if (getServiceClientException) {
-            throw new AWSSecurityTokenServiceException("invalid client");
+        if (exceptionStatusCode != 0) {
+            if (amazonException) {
+                AmazonServiceException ex = new AmazonServiceException("Error");
+                ex.setStatusCode(exceptionStatusCode);
+                throw ex;
+            } else {
+                throw new IllegalArgumentException("Error");
+            }
         } else {
             AWSSecurityTokenServiceClient client = Mockito.mock(AWSSecurityTokenServiceClient.class);
             Mockito.when(client.assumeRole(Mockito.any(AssumeRoleRequest.class))).thenReturn(assumeRoleResult);
@@ -87,7 +95,8 @@ public class MockCloudStore extends CloudStore {
         }
     }
 
-    public void setGetServiceClientException(boolean getServiceClientException) {
-        this.getServiceClientException = getServiceClientException;
+    public void setGetServiceException(int statusCode, boolean amazonException) {
+        this.exceptionStatusCode = statusCode;
+        this.amazonException = amazonException;
     }
 }

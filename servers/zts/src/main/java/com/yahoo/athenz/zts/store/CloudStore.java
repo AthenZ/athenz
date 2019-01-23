@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.amazonaws.AmazonServiceException;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.slf4j.Logger;
@@ -551,16 +552,30 @@ public class CloudStore {
 
             Credentials awsCreds = res.getCredentials();
             tempCreds = new AWSTemporaryCredentials()
-                .setAccessKeyId(awsCreds.getAccessKeyId())
-                .setSecretAccessKey(awsCreds.getSecretAccessKey())
-                .setSessionToken(awsCreds.getSessionToken())
-                .setExpiration(Timestamp.fromMillis(awsCreds.getExpiration().getTime()));
+                    .setAccessKeyId(awsCreds.getAccessKeyId())
+                    .setSecretAccessKey(awsCreds.getSecretAccessKey())
+                    .setSessionToken(awsCreds.getSessionToken())
+                    .setExpiration(Timestamp.fromMillis(awsCreds.getExpiration().getTime()));
+
+        } catch (AmazonServiceException ex) {
+
+            LOGGER.error("CloudStore: assumeAWSRole - unable to assume role: {}, error: {}, status code: {}",
+                    req.getRoleArn(), ex.getMessage(), ex.getStatusCode());
+
+            // if this is access denied then we're going to cache
+            // the failed results
+
+            if (ex.getStatusCode() == ResourceException.FORBIDDEN) {
+                putInvalidCacheCreds(cacheKey);
+            }
+
+            return null;
 
         } catch (Exception ex) {
+
             LOGGER.error("CloudStore: assumeAWSRole - unable to assume role: {}, error: {}",
                     req.getRoleArn(), ex.getMessage());
 
-            putInvalidCacheCreds(cacheKey);
             return null;
         }
 
