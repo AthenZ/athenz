@@ -22,7 +22,20 @@ public class ZTSClientTokenCacher {
 
     private static final Logger LOG = LoggerFactory.getLogger(ZTSClientTokenCacher.class);
 
+    /**
+     * @deprecated use setRoleToken without the trustDomain argument instead
+     */
     public static void setRoleToken(String signedRoleToken, String roleName, String trustDomain) {
+        setRoleToken(signedRoleToken, roleName);
+    }
+
+    /**
+     * Add the given signed role token to the zts client static cache.
+     *
+     * @param signedRoleToken the role token
+     * @param roleName the role, can be null
+     */
+    public static void setRoleToken(String signedRoleToken, String roleName) {
         
         // parse domain, roles, principalName, and expiry out of the token
         
