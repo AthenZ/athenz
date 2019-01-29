@@ -377,8 +377,9 @@ public class JDBCConnectionTest {
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         boolean requestSuccess = jdbcConn.insertDomain(domain);
         assertTrue(requestSuccess);
-        
+
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my_domain");
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "my domain");
         Mockito.verify(mockPrepStmt, times(1)).setString(3, "cloud_services");
         Mockito.verify(mockPrepStmt, times(1)).setString(4, "e5e97240-e94e-11e4-8163-6d083f3f473f");
@@ -406,8 +407,9 @@ public class JDBCConnectionTest {
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         boolean requestSuccess = jdbcConn.insertDomain(domain);
         assertTrue(requestSuccess);
-        
+
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my_domain");
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "my domain");
         Mockito.verify(mockPrepStmt, times(1)).setString(3, "cloud_services");
         Mockito.verify(mockPrepStmt, times(1)).setString(4, "e5e97240-e94e-11e4-8163-6d083f3f473f");
@@ -430,8 +432,9 @@ public class JDBCConnectionTest {
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         boolean requestSuccess = jdbcConn.insertDomain(domain);
         assertTrue(requestSuccess);
-        
+
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my_domain");
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(3, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(4, "");
@@ -461,7 +464,61 @@ public class JDBCConnectionTest {
         }
         jdbcConn.close();
     }
-    
+
+    @Test
+    public void testInsertDomainDashFailure() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Domain domain = new Domain().setName("sports-api")
+                .setEnabled(true)
+                .setAuditEnabled(false)
+                .setDescription("my domain")
+                .setId(UUID.fromString("e5e97240-e94e-11e4-8163-6d083f3f473f"))
+                .setOrg("cloud_services");
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false);
+        Mockito.when(mockResultSet.getString(1))
+                .thenReturn("sports_api")
+                .thenReturn("sports-api");
+
+        try {
+            jdbcConn.insertDomain(domain);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("sports-api"));
+        }
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "sports_api");
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testInsertDomainDashException() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Domain domain = new Domain().setName("my.test-domain")
+                .setEnabled(true)
+                .setAuditEnabled(false)
+                .setDescription("my domain")
+                .setId(UUID.fromString("e5e97240-e94e-11e4-8163-6d083f3f473f"))
+                .setOrg("cloud_services");
+
+        Mockito.doThrow(new SQLException("failed operation", "state", 1001)).when(mockPrepStmt).setString(1, "my_test_domain");
+        try {
+            jdbcConn.insertDomain(domain);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
+        jdbcConn.close();
+    }
+
     @Test
     public void testUpdateDomain() throws Exception {
         
@@ -626,7 +683,7 @@ public class JDBCConnectionTest {
             .thenReturn("zdomain")
             .thenReturn("adomain")
             .thenReturn("bdomain");
-        
+
         List<String> domains = jdbcConn.listDomains(null, 0);
         
         // data back is sorted

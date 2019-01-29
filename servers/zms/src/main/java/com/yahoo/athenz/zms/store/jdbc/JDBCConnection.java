@@ -54,6 +54,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_DOMAIN = "SELECT * FROM domain WHERE name=?;";
     private static final String SQL_GET_DOMAIN_ID = "SELECT domain_id FROM domain WHERE name=?;";
     private static final String SQL_GET_ACTIVE_DOMAIN_ID = "SELECT domain_id FROM domain WHERE name=? AND enabled=true;";
+    private static final String SQL_GET_DOMAINS_WITH_NAME = "SELECT name FROM domain WHERE name LIKE ?;";
     private static final String SQL_GET_DOMAIN_WITH_ACCOUNT = "SELECT name FROM domain WHERE account=?;";
     private static final String SQL_GET_DOMAIN_WITH_PRODUCT_ID = "SELECT name FROM domain WHERE ypm_id=?;";
     private static final String SQL_INSERT_DOMAIN = "INSERT INTO domain "
@@ -402,7 +403,8 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         verifyDomainAccountUniqueness(domain.getName(), domain.getAccount(), caller);
         verifyDomainProductIdUniqueness(domain.getName(), domain.getYpmId(), caller);
-        
+        verifyDomainNameDashUniqueness(domain.getName(), caller);
+
         try (PreparedStatement ps = con.prepareStatement(SQL_INSERT_DOMAIN)) {
             ps.setString(1, domain.getName());
             ps.setString(2, processInsertValue(domain.getDescription()));
@@ -419,6 +421,31 @@ public class JDBCConnection implements ObjectStoreConnection {
             throw sqlError(ex, caller);
         }
         return (affectedRows > 0);
+    }
+
+    void verifyDomainNameDashUniqueness(final String name, String caller) {
+
+        // with our certificates we replace .'s with -'s
+        // so we need to make sure we don't allow creation
+        // of domains such as sports.api and sports-api since
+        // they'll have the same component value
+
+        final String domainMatch = name.replace('.', '-');
+        final String domainQuery = name.replace('.', '_').replace('-', '_');
+
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAINS_WITH_NAME)) {
+            ps.setString(1, domainQuery);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    final String domainName = rs.getString(1);
+                    if (domainMatch.equals(domainName.replace('.', '-'))) {
+                        throw requestError(caller, "Domain name conflict: " + domainName);
+                    }
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
     }
 
     void verifyDomainProductIdUniqueness(String name, Integer productId, String caller) {
