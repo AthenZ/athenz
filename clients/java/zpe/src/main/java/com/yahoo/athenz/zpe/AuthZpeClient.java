@@ -17,12 +17,11 @@ package com.yahoo.athenz.zpe;
 
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import javax.naming.InvalidNameException;
+import javax.naming.ldap.LdapName;
+import javax.naming.ldap.Rdn;
 import javax.security.auth.x500.X500Principal;
 
 import org.slf4j.Logger;
@@ -66,8 +65,9 @@ public class AuthZpeClient {
     private static ZpeClient zpeClt = null;
     private static PublicKeyStore publicKeyStore = null;
 
-    private static final Set<String> X509_ISSUERS = new HashSet<>();
-    
+    private static final Set<String> X509_ISSUERS_NAMES = new HashSet<>();
+    private static final List<List<Rdn>> X509_ISSUERS_RDNS = new ArrayList<>();
+
     private static final String ROLE_SEARCH = ":role.";
     
     public enum AccessCheckStatus {
@@ -191,16 +191,22 @@ public class AuthZpeClient {
      * @param issuers list of Athenz CA issuers separated by |
      */
     public static void setX509CAIssuers(final String issuers) {
+
         if (issuers == null || issuers.isEmpty()) {
             return;
         }
         
-        String[] issuerArray = issuers.replaceAll("\\s+" , "").split("\\|");
-        for (String issuer: issuerArray) {
+        String[] issuerArray = issuers.split("\\|");
+        for (String issuer : issuerArray) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("x509 issuer: {}", issuer);
             }
-            X509_ISSUERS.add(issuer);
+            X509_ISSUERS_NAMES.add(issuer.replaceAll("\\s+", ""));
+            try {
+                X509_ISSUERS_RDNS.add(new LdapName(issuer).getRdns());
+            } catch (InvalidNameException ex) {
+                LOG.error("Invalid issuer: {}, error: {}", issuer, ex.getMessage());
+            }
         }
     }
     
@@ -273,17 +279,15 @@ public class AuthZpeClient {
             LOG.debug("AUTHZPECLT:allowAccess: action=" + action + " resource=" + angResource);
         }
         zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME, DEFAULT_DOMAIN);
-        // validate the certificate against CAs
-        X500Principal issuerx500Principal = cert.getIssuerX500Principal();
-        String issuer = issuerx500Principal.getName();
-        
-        if (issuer == null || issuer.isEmpty() 
-                || !X509_ISSUERS.contains(issuer.replaceAll("\\s+" , ""))) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("AUTHZPECLT:allowAccess: missing or mismatch issuer {}", issuer);
-            }
+
+        // validate the certificate against CAs if the feature
+        // is configured. if the caller does not specify any
+        // issuers we're not going to make any checks
+
+        if (!certIssuerMatch(cert)) {
             return AccessCheckStatus.DENY_CERT_MISMATCH_ISSUER;
         }
+
         String subject = Crypto.extractX509CertCommonName(cert);
         if (subject == null || subject.isEmpty()) {
             if (LOG.isDebugEnabled()) {
@@ -952,6 +956,63 @@ public class AuthZpeClient {
         return null;
     }
 
+    static boolean certIssuerMatch(X509Certificate cert) {
+
+        // first check if we have any issuers configured
+
+        if (X509_ISSUERS_NAMES.isEmpty()) {
+            return true;
+        }
+
+        X500Principal issuerx500Principal = cert.getIssuerX500Principal();
+        String issuer = issuerx500Principal.getName();
+        boolean match = issuerMatch(issuer);
+
+        if (!match && LOG.isDebugEnabled()) {
+            LOG.debug("AUTHZPECLT:certIssuerMatch: missing or mismatch issuer {}", issuer);
+        }
+
+        return match;
+    }
+
+    static boolean issuerMatch(final String issuer) {
+
+        // verify we have a valid issuer before any checks
+
+        if (issuer == null || issuer.isEmpty()) {
+            return false;
+        }
+
+        // first we're going to check our quick check
+        // using the issuer as is without any rdn compare
+
+        if (X509_ISSUERS_NAMES.contains(issuer.replaceAll("\\s+" , ""))) {
+            return true;
+        }
+
+        // we're going to do more expensive rdn match
+
+
+        try {
+            X500Principal issuerCheck = new X500Principal(issuer);
+            List<Rdn> issuerRdns = new LdapName(issuerCheck.getName()).getRdns();
+
+            for (List<Rdn> rdns : X509_ISSUERS_RDNS) {
+                if (rdns.size() != issuerRdns.size()) {
+                    continue;
+                }
+                if (rdns.containsAll(issuerRdns)) {
+                    return true;
+                }
+            }
+        } catch (InvalidNameException ignored) {
+            // the caller will log the failure
+        }
+
+        return false;
+    }
+
+    /// CLOVER:OFF
     public static void main(String [] args) {
 
         if (args.length != 3) {
@@ -967,4 +1028,5 @@ public class AuthZpeClient {
         System.out.println("Authorization Response: "
                 + AuthZpeClient.allowAccess(roleToken, action, resource).toString());
     }
+    /// CLOVER:ON
 }
