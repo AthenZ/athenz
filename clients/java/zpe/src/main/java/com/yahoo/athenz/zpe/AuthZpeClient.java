@@ -276,13 +276,15 @@ public class AuthZpeClient {
         // validate the certificate against CAs
         X500Principal issuerx500Principal = cert.getIssuerX500Principal();
         String issuer = issuerx500Principal.getName();
-        
-        if (issuer == null || issuer.isEmpty() 
-                || !X509_ISSUERS.contains(issuer.replaceAll("\\s+" , ""))) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("AUTHZPECLT:allowAccess: missing or mismatch issuer {}", issuer);
+
+        if (!X509_ISSUERS.isEmpty()) {
+            if (issuer == null || issuer.isEmpty()
+                    || !X509_ISSUERS.contains(issuer.replaceAll("\\s+", ""))) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("AUTHZPECLT:allowAccess: missing or mismatch issuer {}", issuer);
+                }
+                return AccessCheckStatus.DENY_CERT_MISMATCH_ISSUER;
             }
-            return AccessCheckStatus.DENY_CERT_MISMATCH_ISSUER;
         }
         String subject = Crypto.extractX509CertCommonName(cert);
         if (subject == null || subject.isEmpty()) {
