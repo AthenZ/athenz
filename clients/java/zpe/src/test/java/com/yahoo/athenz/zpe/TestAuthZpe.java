@@ -15,10 +15,6 @@
  */
 package com.yahoo.athenz.zpe;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -47,6 +43,8 @@ import com.yahoo.athenz.zpe.AuthZpeClient.AccessCheckStatus;
 import com.yahoo.athenz.zts.DomainSignedPolicyData;
 import com.yahoo.athenz.zts.SignedPolicyData;
 import com.yahoo.rdl.JSON;
+
+import static org.testng.Assert.*;
 
 /**
  * These tests are dependent on a policy file in a local dir.
@@ -1041,5 +1039,42 @@ public class TestAuthZpe {
         Mockito.when(cert.getSubjectX500Principal()).thenReturn(x500PrincipalS);
         AccessCheckStatus status = AuthZpeClient.allowAccess(cert, angResource, action);
         Assert.assertEquals(status, expectedStatus);
+    }
+
+    @Test
+    public void testIssuerMatch() {
+
+        // our default set contains the following issuers:
+
+        // C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public
+        // C=US, ST=CA, O=Athenz, OU=Testing Domain2, CN=angler:role.public
+        // C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler.test:role.public";
+
+        // passing null or empty list to the set method has no impact
+        // make sure no exceptions are thrown
+
+        AuthZpeClient.setX509CAIssuers(null);
+        AuthZpeClient.setX509CAIssuers("");
+
+        // add a new entry in our list
+
+        AuthZpeClient.setX509CAIssuers("cn=Athenz CA, ou=engineering, o=My Company! Inc., c=us");
+
+        // passing values in the same order should match with our string set
+
+        assertTrue(AuthZpeClient.issuerMatch("cn=Athenz CA, ou=engineering, o=My Company! Inc., c=us"));
+
+        // passing values in different order should match our rdn check
+
+        assertTrue(AuthZpeClient.issuerMatch("o=My Company! Inc., cn=Athenz CA, c=us, ou=engineering"));
+
+        // passing an extra or less rdn component should fail
+
+        assertFalse(AuthZpeClient.issuerMatch("cn=Athenz CA, ou=engineering, o=My Company! Inc., l=Los Angeles, c=us"));
+        assertFalse(AuthZpeClient.issuerMatch("cn=Athenz CA, ou=engineering, c=us"));
+
+        // same number of components but different values
+
+        assertFalse(AuthZpeClient.issuerMatch("cn=Athenz CA, ou=engineering, o=My Company Inc., c=us"));
     }
 }
