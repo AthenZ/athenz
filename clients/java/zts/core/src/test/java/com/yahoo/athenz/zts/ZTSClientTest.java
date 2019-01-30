@@ -404,7 +404,7 @@ public class ZTSClientTest {
 
         Long expiryTime = roleToken.getExpiryTime();
         String token = "v=Z1;d=mydomain;r=admin;p=user_domain.user;h=localhost;a=f10bc905071a72d1;t=1448045776;e=" + expiryTime.toString() + ";k=0;i=10.11.12.13;s=pujvQuvaLa2jgE3k24bCw5Hm7AP9dUQkmkwNfX2bPhVXyhdRkOlbttF4exJm9V571sJXid6vsihgopCdxqW_qA--";
-        ZTSClientTokenCacher.setRoleToken(token, "admin", null);
+        ZTSClientTokenCacher.setRoleToken(token, "admin");
         cacheKey = client.getRoleTokenCacheKey("mydomain", "admin", null);
         assertEquals(cacheKey, "p=user_domain.user;d=mydomain;r=admin");
         assertNotNull(client.lookupRoleTokenInCache(cacheKey, 3000, 4000));
@@ -426,7 +426,7 @@ public class ZTSClientTest {
         RoleToken roleToken = new RoleToken().setToken("role_token")
                 .setExpiryTime((System.currentTimeMillis() / 1000) + 3500L);
         String coreTechToken = "v=Z1;d=coretech;r=admin;p=user_domain.user;h=localhost;a=f10bc905071a72d1;t=1448045776;e=" + roleToken.getExpiryTime() + ";k=0;i=10.11.12.13;s=pujvQuvaLa2jgE3k24bCw5Hm7AP9dUQkmkwNfX2bPhVXyhdRkOlbttF4exJm9V571sJXid6vsihgopCdxqW_qA--";
-        ZTSClientTokenCacher.setRoleToken(coreTechToken, "Role1", null);
+        ZTSClientTokenCacher.setRoleToken(coreTechToken, "Role1");
         String cacheKey = ztsClient.getRoleTokenCacheKey("coretech", "Role1", null);
         assertEquals(cacheKey, "p=user_domain.user;d=coretech;r=Role1");
         assertEquals(ztsClient.lookupRoleTokenInCache(cacheKey, 3000, 4000).getToken(), coreTechToken);
@@ -445,7 +445,7 @@ public class ZTSClientTest {
         //
         Long expiryTime = roleToken.getExpiryTime();
         String token = "v=Z1;d=mydomain;r=admin;p=mytenantdomain.myservice;h=localhost;a=f10bc905071a72d1;t=1448045776;e=" + expiryTime.toString() + ";k=0;i=10.11.12.13;s=pujvQuvaLa2jgE3k24bCw5Hm7AP9dUQkmkwNfX2bPhVXyhdRkOlbttF4exJm9V571sJXid6vsihgopCdxqW_qA--";
-        ZTSClientTokenCacher.setRoleToken(token, "admin", null);
+        ZTSClientTokenCacher.setRoleToken(token, "admin");
         String cacherKeyCacher = client.getRoleTokenCacheKey("mydomain", "admin", null);
         assertEquals(cacherKeyCacher, "p=mytenantdomain.myservice;d=mydomain;r=admin");
         assertNotNull(client.lookupRoleTokenInCache(cacherKeyCacher, 3000, 4000));
@@ -466,14 +466,14 @@ public class ZTSClientTest {
 
         // add new role token to cache using new domain=mydomain2 and new tenant domain=mytenantdomain2 and new service=myservice2
         String token2 = "v=Z1;d=mydomain2;r=admin;p=mytenantdomain2.myservice2;h=localhost;a=f10bc905071a72d1;t=1448045776;e=" + expiryTime.toString() + ";k=0;i=10.11.12.13;s=pujvQuvaLa2jgE3k24bCw5Hm7AP9dUQkmkwNfX2bPhVXyhdRkOlbttF4exJm9V571sJXid6vsihgopCdxqW_qA--";
-        ZTSClientTokenCacher.setRoleToken(token2, "admin", null);
+        ZTSClientTokenCacher.setRoleToken(token2, "admin");
         String cacheKeyNewDomain = client2.getRoleTokenCacheKey("mydomain2", "admin", null);
         assertEquals(cacheKeyNewDomain, "p=mytenantdomain2.myservice2;d=mydomain2;r=admin");
         assertEquals(client2.lookupRoleTokenInCache(cacheKeyNewDomain, 3000, 4000).getToken(), token2);
 
         // set role token without specifying role for the key
         //
-        ZTSClientTokenCacher.setRoleToken(token2, null, null);
+        ZTSClientTokenCacher.setRoleToken(token2, null);
         String cacheKeyNoRole = client2.getRoleTokenCacheKey("mydomain2", null, null);
         assertEquals(cacheKeyNoRole, "p=mytenantdomain2.myservice2;d=mydomain2");
         assertEquals(client2.lookupRoleTokenInCache(cacheKeyNoRole, 3000, 4000).getToken(), token2);
