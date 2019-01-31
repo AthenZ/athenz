@@ -262,7 +262,7 @@ public class AuthZpeClient {
      * a user represented by the X509Certificate
      * @param cert - X509Certificate
      *        
-     * @param angResource is a domain qualified resource the calling service
+     * @param resource is a domain qualified resource the calling service
      *        will check access for.  ex: my_domain:my_resource
      *        ex: "angler:pondsKernCounty"
      *        ex: "sports:service.storage.tenant.Activator.ActionMap"
@@ -273,10 +273,10 @@ public class AuthZpeClient {
      *        the result is ALLOW otherwise one of the DENY_* values specifies the exact
      *        reason why the access was denied
      */
-    public static AccessCheckStatus allowAccess(X509Certificate cert, String angResource, String action) {
-        StringBuilder matchRoleName = new StringBuilder(256);
+    public static AccessCheckStatus allowAccess(X509Certificate cert, String resource, String action) {
+
         if (LOG.isDebugEnabled()) {
-            LOG.debug("AUTHZPECLT:allowAccess: action=" + action + " resource=" + angResource);
+            LOG.debug("allowAccess: action={} resource={}", action, resource);
         }
         zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME, DEFAULT_DOMAIN);
 
@@ -290,36 +290,32 @@ public class AuthZpeClient {
 
         String subject = Crypto.extractX509CertCommonName(cert);
         if (subject == null || subject.isEmpty()) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("AUTHZPECLT:allowAccess: missing subject");
-            }
+            LOG.error("allowAccess: missing subject in x.509 certificate");
             return AccessCheckStatus.DENY_CERT_MISSING_SUBJECT;
         }
+
         int idx = subject.indexOf(ROLE_SEARCH);
         if (idx == -1) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("AUTHZPECLT:allowAccess: missing domain or role");
-            }
+            LOG.error("allowAccess: invalid role format in x.509 subject: {}", subject);
             return AccessCheckStatus.DENY_CERT_MISSING_ROLE_NAME;
         }
+
         String domainName = subject.substring(0, idx);
         if (domainName.isEmpty()) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("AUTHZPECLT:allowAccess: missing domain");
-            }
+            LOG.error("allowAccess: missing domain in x.509 subject: {}", subject);
             return AccessCheckStatus.DENY_CERT_MISSING_DOMAIN;
         }
+
         String roleName = subject.substring(idx + ROLE_SEARCH.length());
         if (roleName.isEmpty()) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("AUTHZPECLT:allowAccess: missing role name");
-            }
+            LOG.error("allowAccess: missing role in x.509 subject: {}", subject);
             return AccessCheckStatus.DENY_CERT_MISSING_ROLE_NAME;
         }
+
+        StringBuilder matchRoleName = new StringBuilder(256);
         List<String> roles = new ArrayList<>();
         roles.add(roleName);
-        return allowActionZPE(action, domainName, angResource, roles, matchRoleName);
-
+        return allowActionZPE(action, domainName, resource, roles, matchRoleName);
     }
     
     /**
@@ -327,7 +323,7 @@ public class AuthZpeClient {
      * a user represented by the user (cltToken, cltTokenName).
      * @param roleToken - value for the REST header: Athenz-Role-Auth
      *        ex: "v=Z1;d=angler;r=admin;a=aAkjbbDMhnLX;t=1431974053;e=1431974153;k=0"
-     * @param angResource is a domain qualified resource the calling service
+     * @param resource is a domain qualified resource the calling service
      *        will check access for.  ex: my_domain:my_resource
      *        ex: "angler:pondsKernCounty"
      *        ex: "sports:service.storage.tenant.Activator.ActionMap"
@@ -338,9 +334,9 @@ public class AuthZpeClient {
      *        the result is ALLOW otherwise one of the DENY_* values specifies the exact
      *        reason why the access was denied
      */
-    public static AccessCheckStatus allowAccess(String roleToken, String angResource, String action) {
+    public static AccessCheckStatus allowAccess(String roleToken, String resource, String action) {
         StringBuilder matchRoleName = new StringBuilder(256);
-        return allowAccess(roleToken, angResource, action, matchRoleName);
+        return allowAccess(roleToken, resource, action, matchRoleName);
     }
     
     /**
@@ -348,7 +344,7 @@ public class AuthZpeClient {
      * a user represented by the user (cltToken, cltTokenName).
      * @param roleToken - value for the REST header: Athenz-Role-Auth
      *        ex: "v=Z1;d=angler;r=admin;a=aAkjbbDMhnLX;t=1431974053;e=1431974153;k=0"
-     * @param angResource is a domain qualified resource the calling service
+     * @param resource is a domain qualified resource the calling service
      *        will check access for.  ex: my_domain:my_resource
      *        ex: "angler:pondsKernCounty"
      *        ex: "sports:service.storage.tenant.Activator.ActionMap"
@@ -362,11 +358,11 @@ public class AuthZpeClient {
      *        the result is ALLOW otherwise one of the DENY_* values specifies the exact
      *        reason why the access was denied
      */
-    public static AccessCheckStatus allowAccess(String roleToken, String angResource, String action,
+    public static AccessCheckStatus allowAccess(String roleToken, String resource, String action,
             StringBuilder matchRoleName) {
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("allowAccess: action=" + action + " resource=" + angResource);
+            LOG.debug("allowAccess: action={} resource={}", action, resource);
         }
         zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME, DEFAULT_DOMAIN);
 
@@ -378,7 +374,7 @@ public class AuthZpeClient {
             rToken = tokenCache.get(roleToken);
         } catch (Exception exc) {
             zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_CACHE_FAILURE, DEFAULT_DOMAIN);
-            LOG.error("allowAccess: token cache failure, exc: " + exc.getMessage());
+            LOG.error("allowAccess: token cache failure, exc: {}", exc.getMessage());
         }
 
         if (rToken == null) {
@@ -390,17 +386,14 @@ public class AuthZpeClient {
             if (!rToken.validate(getZtsPublicKey(rToken.getKeyId()), allowedOffset, false, null)) {
 
                 // check the token expiration
-                long now    = System.currentTimeMillis() / 1000;
-                long expiry = rToken.getExpiryTime();
-                if (expiry != 0 && expiry < now) {
-                    LOG.error("allowAccess: Authorization denied. Token expired. now=" +
-                            now + " expiry=" + expiry + " token=" + rToken.getSignedToken());
+
+                if (isTokenExpired(rToken)) {
                     zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_EXPIRED_TOKEN, rToken.getDomain());
                     return AccessCheckStatus.DENY_ROLETOKEN_EXPIRED;
                 }
 
-                LOG.error("allowAccess: Authorization denied. Authentication of token failed for token="
-                        + rToken.getSignedToken());
+                LOG.error("allowAccess: Authorization denied. Authentication failed for token={}",
+                        rToken.getUnsignedToken());
                 zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_INVALID_TOKEN, rToken.getDomain());
                 return AccessCheckStatus.DENY_ROLETOKEN_INVALID;
             }
@@ -412,14 +405,14 @@ public class AuthZpeClient {
             zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_CACHE_SUCCESS, rToken.getDomain());
         }
 
-        return allowAccess(rToken, angResource, action, matchRoleName);
+        return allowAccess(rToken, resource, action, matchRoleName);
     }
  
     /**
      * Determine if access(action) is allowed against the specified resource by
      * a user represented by the RoleToken.
      * @param rToken represents the role token sent by the client that wants access to the resource
-     * @param angResource is a domain qualified resource the calling service
+     * @param resource is a domain qualified resource the calling service
      *        will check access for.  ex: my_domain:my_resource
      *        ex: "angler:pondsKernCounty"
      *        ex: "sports:service.storage.tenant.Activator.ActionMap"
@@ -433,7 +426,7 @@ public class AuthZpeClient {
      *        the result is ALLOW otherwise one of the DENY_* values specifies the exact
      *        reason why the access was denied
      **/
-    public static AccessCheckStatus allowAccess(RoleToken rToken, String angResource, String action,
+    public static AccessCheckStatus allowAccess(RoleToken rToken, String resource, String action,
             StringBuilder matchRoleName) {
         
         // check the token expiration
@@ -442,19 +435,15 @@ public class AuthZpeClient {
             zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_INVALID_TOKEN, UNKNOWN_DOMAIN);
             return AccessCheckStatus.DENY_ROLETOKEN_INVALID;
         }
-        long now    = System.currentTimeMillis() / 1000;
-        long expiry = rToken.getExpiryTime();
-        if (expiry != 0 && expiry < now) {
-            String signedToken = rToken.getSignedToken();
-            LOG.error("allowAccess: Authorization denied. Token expired. now=" +
-                    now + " expiry=" + expiry + " token=" + signedToken);
+
+        if (isTokenExpired(rToken)) {
             Map<String, RoleToken> tokenCache;
             try {
                 ZpeClient zpeclt = getZpeClient();
                 tokenCache = zpeclt.getRoleTokenCacheMap();
-                tokenCache.remove(signedToken);
+                tokenCache.remove(rToken.getSignedToken());
             } catch (Exception exc) {
-                LOG.error("allowAccess: token cache failure, exc: " + exc.getMessage());
+                LOG.error("allowAccess: token cache failure, exc: {}", exc.getMessage());
             }
 
             zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_EXPIRED_TOKEN, rToken.getDomain());
@@ -467,12 +456,12 @@ public class AuthZpeClient {
         if (LOG.isDebugEnabled()) {
             if (roles != null) {
                 for (String role: roles) { 
-                    LOG.debug("allowAccess: token role=" + role);
+                    LOG.debug("allowAccess: token role={}", role);
                 }
             }
         }
 
-        return allowActionZPE(action, tokenDomain, angResource, roles, matchRoleName);
+        return allowActionZPE(action, tokenDomain, resource, roles, matchRoleName);
     }
 
     /**
@@ -480,7 +469,7 @@ public class AuthZpeClient {
      * a user represented by the list of role tokens.
      * @param roleTokenList - values from the REST header(s): Athenz-Role-Auth
      *        ex: "v=Z1;d=angler;r=admin;a=aAkjbbDMhnLX;t=1431974053;e=1431974153;k=0"
-     * @param angResource is a domain qualified resource the calling service
+     * @param resource is a domain qualified resource the calling service
      *        will check access for.  ex: my_domain:my_resource
      *        ex: "angler:pondsKernCounty"
      *        ex: "sports:service.storage.tenant.Activator.ActionMap"
@@ -495,13 +484,14 @@ public class AuthZpeClient {
      *        reason why the access was denied
      */
     public static AccessCheckStatus allowAccess(List<String> roleTokenList,
-            String angResource, String action, StringBuilder matchRoleName) {
+            String resource, String action, StringBuilder matchRoleName) {
 
         AccessCheckStatus retStatus = AccessCheckStatus.DENY_NO_MATCH;
-        StringBuilder     roleName  = null;
+        StringBuilder roleName  = null;
+
         for (String roleToken: roleTokenList) {
-            StringBuilder rName = new StringBuilder(64);
-            AccessCheckStatus status = allowAccess(roleToken, angResource, action, rName);
+            StringBuilder rName = new StringBuilder(256);
+            AccessCheckStatus status = allowAccess(roleToken, resource, action, rName);
             if (status == AccessCheckStatus.DENY) {
                 matchRoleName.append(rName);
                 return status;
@@ -516,6 +506,18 @@ public class AuthZpeClient {
         }
 
         return retStatus;
+    }
+
+    static boolean isTokenExpired(RoleToken roleToken) {
+
+        long now  = System.currentTimeMillis() / 1000;
+        long expiry = roleToken.getExpiryTime();
+        if (expiry != 0 && expiry < now) {
+            LOG.error("ExpiryCheck: Token expired. now={} expiry={} token={}" +
+                    now, expiry, roleToken.getUnsignedToken());
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -538,6 +540,11 @@ public class AuthZpeClient {
             ZpeClient zpeclt = getZpeClient();
             tokenCache = zpeclt.getRoleTokenCacheMap();
             rToken = tokenCache.get(roleToken);
+
+            if (isTokenExpired(rToken)) {
+                tokenCache.remove(roleToken);
+                rToken = null;
+            }
         } catch (Exception ignored) {
         }
 
@@ -628,50 +635,49 @@ public class AuthZpeClient {
 
     // check action access in the domain to the resource with the given roles
     //
-    static AccessCheckStatus allowActionZPE(String action, String tokenDomain, String angResource,
+    static AccessCheckStatus allowActionZPE(String action, String tokenDomain, String resource,
             List<String> roles, StringBuilder matchRoleName) {
 
         final String msgPrefix = "allowActionZPE: domain(" + tokenDomain + ") action(" + action +
-                ") resource(" + angResource + ")";
+                ") resource(" + resource + ")";
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug(msgPrefix + " STARTING");
+            LOG.debug("{} starting...", msgPrefix);
         }
 
         if (roles == null || roles.size() == 0) {
-            LOG.error(msgPrefix + " ERROR: No roles so access denied");
+            LOG.error("{} ERROR: No roles so access denied", msgPrefix);
             zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_INVALID_TOKEN, tokenDomain);
             return AccessCheckStatus.DENY_ROLETOKEN_INVALID;
         }
 
         if (tokenDomain == null || tokenDomain.isEmpty()) {
-            LOG.error(msgPrefix + " ERROR: No domain so access denied");
+            LOG.error("{} ERROR: No domain so access denied", msgPrefix);
             zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_INVALID_TOKEN, DEFAULT_DOMAIN);
             return AccessCheckStatus.DENY_ROLETOKEN_INVALID;
         }
 
         if (action == null || action.isEmpty()) {
-            LOG.error(msgPrefix + " ERROR: No action so access denied");
+            LOG.error("{} ERROR: No action so access denied", msgPrefix);
             zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_ERROR, tokenDomain);
             return AccessCheckStatus.DENY_INVALID_PARAMETERS;
         }
         action = action.toLowerCase();
 
-        if (angResource == null || angResource.isEmpty()) {
-            LOG.error(msgPrefix + " ERROR: No resource so access denied");
+        if (resource == null || resource.isEmpty()) {
+            LOG.error("{} ERROR: No resource so access denied", msgPrefix);
             zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_ERROR, tokenDomain);
             return AccessCheckStatus.DENY_INVALID_PARAMETERS;
         }
-        angResource = angResource.toLowerCase();
-        angResource = stripDomainPrefix(angResource, tokenDomain, null);
+        resource = resource.toLowerCase();
+        resource = stripDomainPrefix(resource, tokenDomain, null);
 
         // Note: if domain in token doesn't match domain in resource then there
         // will be no match of any resource in the assertions - so deny immediately
 
-        if (angResource == null) {
-            final String sbErr = msgPrefix + " ERROR: Domain mismatch in token(" +
-                    tokenDomain + ") and resource so access denied";
-            LOG.error(sbErr);
+        if (resource == null) {
+            LOG.error("{} ERROR: Domain mismatch in token({}) and resource so access denied",
+                    msgPrefix, tokenDomain);
             zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_DOMAIN_MISMATCH, tokenDomain);
             return AccessCheckStatus.DENY_DOMAIN_MISMATCH;
         }
@@ -682,7 +688,7 @@ public class AuthZpeClient {
         AccessCheckStatus status = AccessCheckStatus.DENY_DOMAIN_NOT_FOUND;
         Map<String, List<Struct>> roleMap = getRoleSpecificDenyPolicies(tokenDomain);
         if (roleMap != null && !roleMap.isEmpty()) {
-            if (actionByRole(action, tokenDomain, angResource, roles, roleMap, matchRoleName)) {
+            if (actionByRole(action, tokenDomain, resource, roles, roleMap, matchRoleName)) {
                 zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_DENY, tokenDomain);
                 return AccessCheckStatus.DENY;
             } else {
@@ -697,7 +703,7 @@ public class AuthZpeClient {
         
         roleMap = getWildCardDenyPolicies(tokenDomain);
         if (roleMap != null && !roleMap.isEmpty()) {
-            if (actionByWildCardRole(action, tokenDomain, angResource, roles, roleMap, matchRoleName)) {
+            if (actionByWildCardRole(action, tokenDomain, resource, roles, roleMap, matchRoleName)) {
                 zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_DENY, tokenDomain);
                 return AccessCheckStatus.DENY;
             } else {
@@ -712,7 +718,7 @@ public class AuthZpeClient {
         
         roleMap = getRoleSpecificAllowPolicies(tokenDomain);
         if (roleMap != null && !roleMap.isEmpty()) {
-            if (actionByRole(action, tokenDomain, angResource, roles, roleMap, matchRoleName)) {
+            if (actionByRole(action, tokenDomain, resource, roles, roleMap, matchRoleName)) {
                 zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_ALLOW, tokenDomain);
                 return AccessCheckStatus.ALLOW;
             } else {
@@ -727,7 +733,7 @@ public class AuthZpeClient {
         
         roleMap = getWildCardAllowPolicies(tokenDomain);
         if (roleMap != null && !roleMap.isEmpty()) {
-            if (actionByWildCardRole(action, tokenDomain, angResource, roles, roleMap, matchRoleName)) {
+            if (actionByWildCardRole(action, tokenDomain, resource, roles, roleMap, matchRoleName)) {
                 zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_ALLOW, tokenDomain);
                 return AccessCheckStatus.ALLOW;
             } else {
@@ -738,16 +744,10 @@ public class AuthZpeClient {
         }
         
         if (status == AccessCheckStatus.DENY_DOMAIN_NOT_FOUND) {
-            if (LOG.isDebugEnabled()) {
-                    LOG.debug(msgPrefix + ": No role map found for domain=" + tokenDomain
-                        + " so access denied");
-            }
+            LOG.error("{}: No role map found for domain={} so access denied", msgPrefix, tokenDomain);
             zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_DOMAIN_NOT_FOUND, tokenDomain);
         } else if (status == AccessCheckStatus.DENY_DOMAIN_EMPTY) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(msgPrefix + ": No policy assertions for domain=" + tokenDomain
-                        + " so access denied");
-            }
+            LOG.error("{}: No policy assertions for domain={} so access denied", msgPrefix, tokenDomain);
             zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_DOMAIN_EMPTY, tokenDomain);
         } else {
             zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_DENY_NO_MATCH, tokenDomain);
@@ -771,15 +771,14 @@ public class AuthZpeClient {
                 // this strings are only used for debug statements so we'll
                 // only retrieve them if debug option is enabled
                 
-                passertAction   = strAssert.getString(ZpeConsts.ZPE_FIELD_ACTION);
+                passertAction = strAssert.getString(ZpeConsts.ZPE_FIELD_ACTION);
                 passertResource = strAssert.getString(ZpeConsts.ZPE_FIELD_RESOURCE);
-                polName         = strAssert.getString(ZpeConsts.ZPE_FIELD_POLICY_NAME);
+                polName = strAssert.getString(ZpeConsts.ZPE_FIELD_POLICY_NAME);
 
                 final String passertRole = strAssert.getString(ZpeConsts.ZPE_FIELD_ROLE);
 
-                LOG.debug(msgPrefix + ": Process Assertion: policy(" + polName +
-                    ") assert-action=" + passertAction +
-                    " assert-resource=" + passertResource + " assert-role=" + passertRole);
+                LOG.debug("{}: Process Assertion: policy({}) assert-action={} assert-resource={} assert-role={}",
+                        msgPrefix, polName, passertAction, passertResource, passertRole);
             }
             
             // ex: "mod*
@@ -787,8 +786,8 @@ public class AuthZpeClient {
             matchStruct = (ZpeMatch) strAssert.get(ZpeConsts.ZPE_ACTION_MATCH_STRUCT);
             if (!matchStruct.matches(action)) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug(msgPrefix + ": policy(" + polName + ") regexpr-match: FAILed: assert-action("
-                            + passertAction + ") doesn't match action(" + action + ")");
+                    LOG.debug("{}: policy({}) regexpr-match: FAILed: assert-action({}) doesn't match action({})",
+                            msgPrefix, polName, passertAction, action);
                 }
                 continue;
             }
@@ -797,8 +796,8 @@ public class AuthZpeClient {
             matchStruct = (ZpeMatch) strAssert.get(ZpeConsts.ZPE_RESOURCE_MATCH_STRUCT);
             if (!matchStruct.matches(resource)) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug(msgPrefix + ": policy(" + polName + ") regexpr-match: FAILed: assert-resource("
-                            + passertResource + ") doesn't match resource(" + resource + ")");
+                    LOG.debug("{}: policy({}) regexpr-match: FAILed: assert-resource({}) doesn't match resource({})",
+                            msgPrefix, polName, passertResource, resource);
                 }
                 continue;
             }
@@ -814,7 +813,7 @@ public class AuthZpeClient {
         return false;
     }
     
-    static boolean actionByRole(String action, String domain, String angResource,
+    static boolean actionByRole(String action, String domain, String resource,
             List<String> roles, Map<String, List<Struct>> roleMap, StringBuilder matchRoleName) {
 
         // msgPrefix is only used in our debug statements so we're only
@@ -823,19 +822,19 @@ public class AuthZpeClient {
         String msgPrefix = null;
         if (LOG.isDebugEnabled()) {
             msgPrefix = "allowActionByRole: domain(" + domain + ") action(" + action +
-                    ") resource(" + angResource + ")";
+                    ") resource(" + resource + ")";
         }
         
         for (String role : roles) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug(msgPrefix + ": Process role (" + role + ")");
+                LOG.debug("{}: Process role ({})", msgPrefix, role);
             }
 
             List<Struct> asserts = roleMap.get(role);
             if (asserts == null || asserts.isEmpty()) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug(msgPrefix + ": No policy assertions in domain=" + domain
-                        + " for role=" + role + " so access denied");
+                    LOG.debug("{}: No policy assertions in domain={} for role={} so access denied",
+                            msgPrefix, domain, role);
                 }
                 continue;
             }
@@ -846,7 +845,7 @@ public class AuthZpeClient {
             // the assert resource value has the domain prefix
             // ex: "angler:angler.stuff"
             
-            if (matchAssertions(asserts, role, action, angResource, matchRoleName, msgPrefix)) {
+            if (matchAssertions(asserts, role, action, resource, matchRoleName, msgPrefix)) {
                 return true;
             }
         }
@@ -854,13 +853,13 @@ public class AuthZpeClient {
         return false;
     }
 
-    static boolean actionByWildCardRole(String action, String domain, String angResource,
+    static boolean actionByWildCardRole(String action, String domain, String resource,
             List<String> roles, Map<String, List<Struct>> roleMap, StringBuilder matchRoleName) {
 
         String msgPrefix = null;
         if (LOG.isDebugEnabled()) {
             msgPrefix = "allowActionByWildCardRole: domain(" + domain + ") action(" + action +
-                    ") resource(" + angResource + ")";
+                    ") resource(" + resource + ")";
         }
 
         // find policy matching resource and action
@@ -874,15 +873,15 @@ public class AuthZpeClient {
         for (String role: roles) {
             
             if (LOG.isDebugEnabled()) {
-                LOG.debug(msgPrefix + ": Process role (" + role + ")");
+                LOG.debug("{}: Process role ({})", msgPrefix, role);
             }
 
             for (String roleName : keys) {
                 List<Struct> asserts = roleMap.get(roleName);
                 if (asserts == null || asserts.isEmpty()) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug(msgPrefix + ": No policy assertions in domain=" + domain
-                            + " for role=" + role + " so access denied");
+                        LOG.debug("{}: No policy assertions in domain={} for role={} so access denied",
+                                msgPrefix, domain, role);
                     }
                     continue;
                 }
@@ -891,10 +890,9 @@ public class AuthZpeClient {
                 ZpeMatch matchStruct = (ZpeMatch) structAssert.get(ZpeConsts.ZPE_ROLE_MATCH_STRUCT);
                 if (!matchStruct.matches(role)) {
                     if (LOG.isDebugEnabled()) {
-                        String polName = structAssert.getString(ZpeConsts.ZPE_FIELD_POLICY_NAME);
-                        LOG.debug(msgPrefix + ": policy(" + polName +
-                            ") regexpr-match: FAILed: assert-role(" + roleName +
-                            ") doesnt match role(" + role + ")");
+                        final String polName = structAssert.getString(ZpeConsts.ZPE_FIELD_POLICY_NAME);
+                        LOG.debug("{}: policy({}) regexpr-match: FAILed: assert-role({}) doesnt match role({})",
+                                msgPrefix, polName, roleName, role);
                     }
                     continue;
                 }
@@ -907,7 +905,7 @@ public class AuthZpeClient {
                 // the assert resource value has the domain prefix
                 // ex: "angler:angler.stuff"
                 
-                if (matchAssertions(asserts, roleName, action, angResource, matchRoleName, msgPrefix)) {
+                if (matchAssertions(asserts, roleName, action, resource, matchRoleName, msgPrefix)) {
                     return true;
                 }
             }
@@ -921,7 +919,7 @@ public class AuthZpeClient {
             ZpeClient zpeclt = getZpeClient();
             return zpeclt.getWildcardAllowAssertions(domain);
         } catch (Exception exc) {
-            LOG.error("getWildCardAllowPolicies: exc: " + exc.getMessage());
+            LOG.error("getWildCardAllowPolicies: exc: {}", exc.getMessage());
         }
         return null;
     }
@@ -931,7 +929,7 @@ public class AuthZpeClient {
             ZpeClient zpeclt = getZpeClient();
             return zpeclt.getRoleAllowAssertions(domain);
         } catch (Exception exc) {
-            LOG.error("getRoleSpecificAllowPolicies: exc: " + exc.getMessage());
+            LOG.error("getRoleSpecificAllowPolicies: exc: {}", exc.getMessage());
         }
         return null;
     }
@@ -941,7 +939,7 @@ public class AuthZpeClient {
             ZpeClient zpeclt = getZpeClient();
             return zpeclt.getWildcardDenyAssertions(domain);
         } catch (Exception exc) {
-            LOG.error("getWildCardDenyPolicies: exc: " + exc.getMessage());
+            LOG.error("getWildCardDenyPolicies: exc: {}", exc.getMessage());
         }
         return null;
     }
@@ -951,7 +949,7 @@ public class AuthZpeClient {
             ZpeClient zpeclt = getZpeClient();
             return zpeclt.getRoleDenyAssertions(domain);
         } catch (Exception exc) {
-            LOG.error("getRoleSpecificDenyPolicies: exc: " + exc.getMessage());
+            LOG.error("getRoleSpecificDenyPolicies: exc: {}", exc.getMessage());
         }
         return null;
     }
@@ -964,15 +962,15 @@ public class AuthZpeClient {
             return true;
         }
 
-        X500Principal issuerx500Principal = cert.getIssuerX500Principal();
-        String issuer = issuerx500Principal.getName();
-        boolean match = issuerMatch(issuer);
+        X500Principal issuerX500Principal = cert.getIssuerX500Principal();
+        final String issuer = issuerX500Principal.getName();
 
-        if (!match && LOG.isDebugEnabled()) {
-            LOG.debug("AUTHZPECLT:certIssuerMatch: missing or mismatch issuer {}", issuer);
+        if (!issuerMatch(issuer)) {
+            LOG.error("certIssuerMatch: missing or mismatch issuer {}", issuer);
+            return false;
         }
 
-        return match;
+        return true;
     }
 
     static boolean issuerMatch(final String issuer) {
