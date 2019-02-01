@@ -23,9 +23,7 @@ import java.nio.file.Paths;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.security.auth.x500.X500Principal;
 
@@ -1076,5 +1074,57 @@ public class TestAuthZpe {
         // same number of components but different values
 
         assertFalse(AuthZpeClient.issuerMatch("cn=Athenz CA, ou=engineering, o=My Company Inc., c=us"));
+    }
+
+    @Test
+    public void testAllowActionZPEInvalid() {
+
+        // failure when roles is empty or not specified
+
+        StringBuilder matchRoleName = new StringBuilder();
+        assertEquals(AuthZpeClient.allowActionZPE("update", "athenz", "athenz:table", null, matchRoleName),
+                AccessCheckStatus.DENY_ROLETOKEN_INVALID);
+        List<String> roles = new ArrayList<>();
+        assertEquals(AuthZpeClient.allowActionZPE("update", "athenz", "athenz:table", roles,
+                matchRoleName), AccessCheckStatus.DENY_ROLETOKEN_INVALID);
+
+        // invalid when token domain is empty or null
+
+        roles.add("writers");
+        assertEquals(AuthZpeClient.allowActionZPE("update", "", "athenz:table", roles,
+                matchRoleName), AccessCheckStatus.DENY_ROLETOKEN_INVALID);
+        assertEquals(AuthZpeClient.allowActionZPE("update", null, "athenz:table", roles,
+                matchRoleName), AccessCheckStatus.DENY_ROLETOKEN_INVALID);
+    }
+
+    @Test
+    public void testAllowAccessInvalidRoleToken() {
+
+        // failure when role token is null
+
+        StringBuilder matchRoleName = new StringBuilder();
+        assertEquals(AuthZpeClient.allowAccess((RoleToken) null, "athenz:table", "update", matchRoleName),
+                AccessCheckStatus.DENY_ROLETOKEN_INVALID);
+    }
+
+    @Test
+    public void testValidateRoleTokenExpired() {
+
+        List<String> roles = new ArrayList<>();
+        roles.add("public");
+        RoleToken rtoken = createRoleToken("angler", roles, "0", 2);
+
+        assertNotNull(AuthZpeClient.validateRoleToken(rtoken.getSignedToken()));
+
+        // sleep 3 seconds for the token to expire
+
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+        }
+
+        // we should now get null since the token is expired
+
+        assertNull(AuthZpeClient.validateRoleToken(rtoken.getSignedToken()));
     }
 }
