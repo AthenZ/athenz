@@ -453,12 +453,8 @@ public class AuthZpeClient {
         String tokenDomain = rToken.getDomain(); // ZToken contains the domain
         List<String> roles = rToken.getRoles();  // ZToken contains roles
 
-        if (LOG.isDebugEnabled()) {
-            if (roles != null) {
-                for (String role: roles) { 
-                    LOG.debug("allowAccess: token role={}", role);
-                }
-            }
+        if (LOG.isDebugEnabled() && roles != null) {
+            LOG.debug("allowAccess: token roles={}", String.join(",", roles));
         }
 
         return allowActionZPE(action, tokenDomain, resource, roles, matchRoleName);
@@ -634,8 +630,31 @@ public class AuthZpeClient {
     }
 
     // check action access in the domain to the resource with the given roles
-    //
-    static AccessCheckStatus allowActionZPE(String action, String tokenDomain, String resource,
+
+    /**
+     * Determine if access(action) is allowed against the specified resource by
+     * a user represented by the given roles. The expected method for authorization
+     * check is the allowAccess methods. However, if the client is responsible for
+     * validating the role token (including expiration check), it may use this
+     * method directly by just specifying the tokenDomain and roles arguments
+     * which are directly extracted from the role token.
+     * @param action is the type of access attempted by a client
+     *        ex: "read"
+     *        ex: "scan"
+     * @param tokenDomain represents the domain the role token was issued for
+     * @param resource is a domain qualified resource the calling service
+     *        will check access for.  ex: my_domain:my_resource
+     *        ex: "angler:pondsKernCounty"
+     *        ex: "sports:service.storage.tenant.Activator.ActionMap"
+     * @param roles list of roles extracted from the role token
+     * @param matchRoleName - [out] will include the role name that the result was based on
+     *        it will be not be set if the failure is due to expired/invalid tokens or
+     *        there were no matches thus a default value of DENY_NO_MATCH is returned
+     * @return AccessCheckStatus if the user can access the resource via the specified action
+     *        the result is ALLOW otherwise one of the DENY_* values specifies the exact
+     *        reason why the access was denied
+     **/
+    public static AccessCheckStatus allowActionZPE(String action, String tokenDomain, String resource,
             List<String> roles, StringBuilder matchRoleName) {
 
         final String msgPrefix = "allowActionZPE: domain(" + tokenDomain + ") action(" + action +
