@@ -1046,10 +1046,10 @@ public class DBServiceTest {
         DomainMeta meta = new DomainMeta().setDescription("Test2 Domain").setOrg("NewOrg")
                 .setEnabled(true).setAuditEnabled(false).setAccount("12345").setYpmId(1001)
                 .setCertDnsDomain("athenz1.cloud");
-        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, null, auditRef, "putDomainMeta");
-        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, "productid", auditRef, "putDomainMeta");
-        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, "account", auditRef, "putDomainMeta");
-        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, "certdnsdomain", auditRef, "putDomainMeta");
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, null, false, auditRef, "putDomainMeta");
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, "productid", true, auditRef, "putDomainMeta");
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, "account", true, auditRef, "putDomainMeta");
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, "certdnsdomain", true, auditRef, "putDomainMeta");
 
         Domain resDom2 = zms.getDomain(mockDomRsrcCtx, "MetaDom1");
         assertNotNull(resDom2);
@@ -1065,7 +1065,7 @@ public class DBServiceTest {
         
         meta = new DomainMeta().setDescription("Test2 Domain-New").setOrg("NewOrg-New")
                 .setEnabled(true).setAuditEnabled(false);
-        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, null, auditRef, "putDomainMeta");
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, null, false, auditRef, "putDomainMeta");
 
         Domain resDom3 = zms.getDomain(mockDomRsrcCtx, "MetaDom1");
         assertNotNull(resDom3);
@@ -1105,7 +1105,7 @@ public class DBServiceTest {
 
         try {
             zms.dbService.executePutDomainMeta(mockDomRsrcCtx, domainName, meta,
-                    null, auditRef, "testExecutePutDomainMetaRetryException");
+                    null, false, auditRef, "testExecutePutDomainMetaRetryException");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ResourceException.CONFLICT, ex.getCode());
@@ -3420,17 +3420,113 @@ public class DBServiceTest {
                 .setAccount("acct")
                 .setYpmId(1234)
                 .setCertDnsDomain("athenz.cloud");
-        zms.dbService.updateSystemMetaFields(domain, "account", meta);
+        zms.dbService.updateSystemMetaFields(domain, "account", true, meta);
         assertEquals(domain.getAccount(), "acct");
-        zms.dbService.updateSystemMetaFields(domain, "productid", meta);
+        zms.dbService.updateSystemMetaFields(domain, "productid", true, meta);
         assertEquals(domain.getYpmId().intValue(), 1234);
-        zms.dbService.updateSystemMetaFields(domain, "certdnsdomain", meta);
+        zms.dbService.updateSystemMetaFields(domain, "certdnsdomain", true, meta);
         assertEquals(domain.getCertDnsDomain(), "athenz.cloud");
         try {
-            zms.dbService.updateSystemMetaFields(domain, "unknown", meta);
+            zms.dbService.updateSystemMetaFields(domain, "unknown", true, meta);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
         }
+
+        // test setting from null to valid values with no delete set
+
+        Domain domain1 = new Domain();
+        DomainMeta meta1 = new DomainMeta()
+                .setAccount("acct")
+                .setYpmId(1234)
+                .setCertDnsDomain("athenz.cloud");
+        zms.dbService.updateSystemMetaFields(domain1, "account", false, meta1);
+        assertEquals(domain1.getAccount(), "acct");
+        zms.dbService.updateSystemMetaFields(domain1, "productid", false, meta1);
+        assertEquals(domain1.getYpmId().intValue(), 1234);
+        zms.dbService.updateSystemMetaFields(domain1, "certdnsdomain", false, meta1);
+        assertEquals(domain1.getCertDnsDomain(), "athenz.cloud");
+
+        // setting from set values should be all rejected
+
+        Domain domain2 = new Domain()
+                .setAccount("acct")
+                .setYpmId(1234)
+                .setCertDnsDomain("athenz.cloud");
+        DomainMeta meta2 = new DomainMeta()
+                .setAccount("acct-new")
+                .setYpmId(1235)
+                .setCertDnsDomain("athenz.cloud.new");
+
+        // setting from the old value to new value with
+        // no delete flag should be rejected
+
+        try {
+            zms.dbService.updateSystemMetaFields(domain2, "account", false, meta2);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+            assertTrue(ex.getMessage().contains("reset system meta attribute"));
+        }
+
+        try {
+            zms.dbService.updateSystemMetaFields(domain2, "productid", false, meta2);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+            assertTrue(ex.getMessage().contains("reset system meta attribute"));
+        }
+
+        try {
+            zms.dbService.updateSystemMetaFields(domain2, "certdnsdomain", false, meta2);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+            assertTrue(ex.getMessage().contains("reset system meta attribute"));
+        }
+
+        // setting from set value to the same value should be allowed
+
+        Domain domain3 = new Domain()
+                .setAccount("acct")
+                .setYpmId(1234)
+                .setCertDnsDomain("athenz.cloud");
+        DomainMeta meta3 = new DomainMeta()
+                .setAccount("acct")
+                .setYpmId(1234)
+                .setCertDnsDomain("athenz.cloud");
+        zms.dbService.updateSystemMetaFields(domain3, "account", false, meta3);
+        assertEquals(domain3.getAccount(), "acct");
+        zms.dbService.updateSystemMetaFields(domain3, "productid", false, meta3);
+        assertEquals(domain3.getYpmId().intValue(), 1234);
+        zms.dbService.updateSystemMetaFields(domain3, "certdnsdomain", false, meta3);
+        assertEquals(domain3.getCertDnsDomain(), "athenz.cloud");
+    }
+
+    @Test
+    public void testDeleteSystemMetaAllowed() {
+
+        assertTrue(zms.dbService.isDeleteSystemMetaAllowed(true, null, null));
+        assertTrue(zms.dbService.isDeleteSystemMetaAllowed(true, null, "new"));
+        assertTrue(zms.dbService.isDeleteSystemMetaAllowed(true, null, ""));
+
+        assertTrue(zms.dbService.isDeleteSystemMetaAllowed(true, "old", null));
+        assertTrue(zms.dbService.isDeleteSystemMetaAllowed(true, "old", "new"));
+        assertTrue(zms.dbService.isDeleteSystemMetaAllowed(true, "old", ""));
+
+        assertTrue(zms.dbService.isDeleteSystemMetaAllowed(true, "", null));
+        assertTrue(zms.dbService.isDeleteSystemMetaAllowed(true, "", "new"));
+        assertTrue(zms.dbService.isDeleteSystemMetaAllowed(true, "", ""));
+
+        assertTrue(zms.dbService.isDeleteSystemMetaAllowed(false, null, null));
+        assertTrue(zms.dbService.isDeleteSystemMetaAllowed(false, null, "new"));
+        assertTrue(zms.dbService.isDeleteSystemMetaAllowed(false, null, ""));
+
+        assertFalse(zms.dbService.isDeleteSystemMetaAllowed(false, "old", null));
+        assertFalse(zms.dbService.isDeleteSystemMetaAllowed(false, "old", "new"));
+        assertFalse(zms.dbService.isDeleteSystemMetaAllowed(false, "old", ""));
+
+        assertFalse(zms.dbService.isDeleteSystemMetaAllowed(false, "", null));
+        assertFalse(zms.dbService.isDeleteSystemMetaAllowed(false, "", "new"));
+        assertTrue(zms.dbService.isDeleteSystemMetaAllowed(false, "", ""));
+
+        assertTrue(zms.dbService.isDeleteSystemMetaAllowed(false, "test", "test"));
     }
 }

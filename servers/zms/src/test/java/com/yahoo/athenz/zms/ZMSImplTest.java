@@ -514,6 +514,35 @@ public class ZMSImplTest {
         zms.putServiceIdentity(mockDomRsrcCtx, providerDomain, providerService, auditRef, service);
     }
 
+    private void setupPrincipalSystemMetaDelete(ZMSImpl zms, final String principal,
+            final String domainName, final String attributeName) {
+
+        Role role = createRoleObject("sys.auth", "metaadmin", null, principal, null);
+        zms.putRole(mockDomRsrcCtx, "sys.auth", "metaadmin", auditRef, role);
+
+        Policy policy = new Policy();
+        policy.setName("metaadmin");
+
+        Assertion assertion = new Assertion();
+        assertion.setAction("delete");
+        assertion.setEffect(AssertionEffect.ALLOW);
+        assertion.setResource("sys.auth:meta." + attributeName + "." + domainName);
+        assertion.setRole("sys.auth:role.metaadmin");
+
+        List<Assertion> assertList = new ArrayList<>();
+        assertList.add(assertion);
+
+        policy.setAssertions(assertList);
+
+        zms.putPolicy(mockDomRsrcCtx, "sys.auth", "metaadmin", auditRef, policy);
+    }
+
+    private void cleanupPrincipalSystemMetaDelete(ZMSImpl zms) {
+
+        zms.deleteRole(mockDomRsrcCtx, "sys.auth", "metaadmin", auditRef);
+        zms.deletePolicy(mockDomRsrcCtx, "sys.auth", "metaadmin", auditRef);
+    }
+
     private void setupTenantDomainProviderService(String tenantDomain, String providerDomain,
             String providerService, String providerEndpoint) {
         setupTenantDomainProviderService(zms, tenantDomain, providerDomain, providerService, providerEndpoint);
@@ -1337,6 +1366,17 @@ public class ZMSImplTest {
 
     @Test
     public void testDeleteDomain() {
+
+        // make sure we can't delete system domains
+
+        try {
+            zms.deleteDomain(mockDomRsrcCtx, auditRef, "sys.auth", "testDeleteDomain");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("reserved system domain"));
+        }
+
         TopLevelDomain dom = createTopLevelDomainObject(
             "TestDeleteDomain", null, null, adminUser);
         dom.setAuditEnabled(true);
@@ -1620,11 +1660,10 @@ public class ZMSImplTest {
         DomainMeta meta = createDomainMetaObject("Test2 Domain", "NewOrg",
                 true, true, "12345", 1001);
         zms.putDomainMeta(mockDomRsrcCtx, "MetaDom1", auditRef, meta);
-        meta = createDomainMetaObject("Test2 Domain", "NewOrg",
-                true, true, "12345", 1001);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, "MetaDom1", "auditenabled", auditRef, meta);
         zms.putDomainSystemMeta(mockDomRsrcCtx, "MetaDom1", "account", auditRef, meta);
-        meta = createDomainMetaObject("Test2 Domain", "NewOrg",
-                true, true, "12345", 1001);
+
+        setupPrincipalSystemMetaDelete(zms, mockDomRsrcCtx.principal().getFullName(), "metadom1", "productid");
         zms.putDomainSystemMeta(mockDomRsrcCtx, "MetaDom1", "productid", auditRef, meta);
 
         Domain resDom3 = zms.getDomain(mockDomRsrcCtx, "MetaDom1");
@@ -1633,7 +1672,7 @@ public class ZMSImplTest {
         assertEquals(resDom3.getOrg(), "NewOrg");
         assertTrue(resDom3.getEnabled());
         assertTrue(resDom3.getAuditEnabled());
-        assertEquals("12345", resDom3.getAccount());
+        assertEquals(resDom3.getAccount(), "12345");
         assertEquals(Integer.valueOf(1001), resDom3.getYpmId());
 
         // put the meta data using same product id
@@ -1648,7 +1687,7 @@ public class ZMSImplTest {
         assertEquals(resDom3.getOrg(), "organs");
         assertTrue(resDom3.getEnabled());
         assertTrue(resDom3.getAuditEnabled());
-        assertEquals("12345", resDom3.getAccount());
+        assertEquals(resDom3.getAccount(), "12345");
         assertEquals(Integer.valueOf(1001), resDom3.getYpmId());
 
         // put the meta data using new product
@@ -1664,9 +1703,10 @@ public class ZMSImplTest {
         assertEquals(resDom3.getOrg(), "organs");
         assertTrue(resDom3.getEnabled());
         assertTrue(resDom3.getAuditEnabled());
-        assertEquals("12345", resDom3.getAccount());
+        assertEquals(resDom3.getAccount(), "12345");
         assertEquals(newProductId, resDom3.getYpmId());
 
+        cleanupPrincipalSystemMetaDelete(zms);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "MetaDom1", auditRef);
     }
 
@@ -1690,6 +1730,7 @@ public class ZMSImplTest {
         assertFalse(resDom.getAuditEnabled());
         Integer productId = resDom.getYpmId();
 
+        setupPrincipalSystemMetaDelete(zms, mockDomRsrcCtx.principal().getFullName(), "metadomproductid", "productid");
         DomainMeta meta = createDomainMetaObject("Test2 Domain", "NewOrg",
                 true, true, "12345", null);
         try {
@@ -1719,6 +1760,7 @@ public class ZMSImplTest {
             assertTrue(exc.getMessage().contains("is already assigned to domain"));
         }
 
+        cleanupPrincipalSystemMetaDelete(zms);
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "MetaDomProductid", auditRef);
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "MetaDomProductid2", auditRef);
         System.clearProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT);
@@ -7242,6 +7284,7 @@ public class ZMSImplTest {
 
         DomainMeta meta = createDomainMetaObject("Tenant Domain", null, true, true, null, 0);
         zms.putDomainMeta(mockDomRsrcCtx, tenantDomain, auditRef, meta);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, tenantDomain, "auditenabled", auditRef, meta);
 
         Tenancy tenant = createTenantObject(tenantDomain, providerDomain + "." + providerService);
         try {
@@ -7422,6 +7465,8 @@ public class ZMSImplTest {
         DomainMeta meta =
             createDomainMetaObject("Tenant Domain", null, true, true, null, 0);
         zms.putDomainMeta(mockDomRsrcCtx, tenantDomain, auditRef, meta);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, tenantDomain, "auditenabled", auditRef, meta);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, tenantDomain, "enabled", auditRef, meta);
 
         // setup tenancy
         //
@@ -14997,8 +15042,11 @@ public class ZMSImplTest {
         zms.putDomainMeta(mockDomRsrcCtx, "signeddom2", auditRef, meta);
         meta = createDomainMetaObject("Tenant Domain2", null, true, false, "12346", null);
         zms.putDomainSystemMeta(mockDomRsrcCtx, "signeddom2", "account", auditRef, meta);
+
+        setupPrincipalSystemMetaDelete(zms, mockDomRsrcCtx.principal().getFullName(), "signeddom2", "productid");
         meta = createDomainMetaObject("Tenant Domain2", null, true, false, "12346", null);
         zms.putDomainSystemMeta(mockDomRsrcCtx, "signeddom2", "productid", auditRef, meta);
+        cleanupPrincipalSystemMetaDelete(zms);
 
         DomainList domList = zms.getDomainList(mockDomRsrcCtx, null, null, null, null,
                 null, null, null, null, null);

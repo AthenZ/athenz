@@ -170,7 +170,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected int statusPort;
     protected int serviceNameMinLength;
     protected Status successServerStatus = null;
-    
+    protected Set<String> reservedSystemDomains = null;
+
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
 
@@ -575,6 +576,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         serviceNameMinLength = Integer.parseInt(
                 System.getProperty(ZMSConsts.ZMS_PROP_SERVICE_NAME_MIN_LENGTH, "3"));
+
+        // setup our reserved system domain names
+
+        reservedSystemDomains = new HashSet<>();
+        reservedSystemDomains.add("sys");
+        reservedSystemDomains.add("sys.auth");
+        reservedSystemDomains.add(userDomain);
+        reservedSystemDomains.add(homeDomain);
     }
     
     void loadObjectStore() {
@@ -763,7 +772,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = "initstore";
 
         List<String> domains = dbService.listDomains(null, 0);
-        if (domains.size() > 0) {
+        if (domains.size() > 0 && domains.contains(SYS_AUTH)) {
             return;
         }
         
@@ -1031,6 +1040,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     Domain deleteDomain(ResourceContext ctx, String auditRef, String domainName, String caller) {
 
+        // make sure we're not deleting any of the reserved system domain
+
+        if (reservedSystemDomains.contains(domainName)) {
+            throw ZMSUtils.requestError("Cannot delete reserved system domain", caller);
+        }
+
         DomainList subDomainList = listDomains(null, null, domainName + ".", null, 0);
         if (subDomainList.getNames().size() > 0) {
             throw ZMSUtils.requestError(caller + ": Cannot delete domain " +
@@ -1227,9 +1242,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         
         AthenzDomain domain = getAthenzDomain(SYS_AUTH, true);
-        if (domain == null) {
-            return false;
-        }
         
         // evaluate our domain's roles and policies to see if access
         // is allowed or not for the given operation and resource
@@ -1247,9 +1259,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // the authorization policy resides in official sys.auth domain
 
         AthenzDomain domain = getAthenzDomain(SYS_AUTH, true);
-        if (domain == null) {
-            return false;
-        }
         
         // evaluate our domain's roles and policies to see if access
         // is allowed or not for the given operation and resource
@@ -1261,7 +1270,25 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         return accessStatus == AccessStatus.ALLOWED;
     }
-    
+
+    boolean isAllowedSystemMetaDelete(Principal principal, final String reqDomain,
+            final String attribute) {
+
+        // the authorization policy resides in official sys.auth domain
+
+        AthenzDomain domain = getAthenzDomain(SYS_AUTH, true);
+
+        // evaluate our domain's roles and policies to see if access
+        // is allowed or not for the given operation and resource
+        // our action are always converted to lowercase
+
+        String resource = SYS_AUTH + ":meta." + attribute + "." + reqDomain;
+        AccessStatus accessStatus = evaluateAccess(domain, principal.getFullName(), "delete",
+                resource, null, null);
+
+        return accessStatus == AccessStatus.ALLOWED;
+    }
+
     public void deleteSubDomain(ResourceContext ctx, String parent, String name, String auditRef) {
 
         final String caller = "deletesubdomain";
@@ -1457,19 +1484,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(),
                 caller);
 
-        // remove system attributes from the meta object
-
-        meta.setYpmId(null);
-        meta.setAccount(null);
-        meta.setCertDnsDomain(null);
-
         if (LOG.isDebugEnabled()) {
             LOG.debug("putDomainMeta: name={}, meta={}", domainName, meta);
         }
 
         // process put domain meta request
 
-        dbService.executePutDomainMeta(ctx, domainName, meta, null, auditRef, caller);
+        dbService.executePutDomainMeta(ctx, domainName, meta, null, false, auditRef, caller);
         metric.stopTiming(timerMetric);
     }
 
@@ -1503,13 +1524,18 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // verify that request is properly authenticated for this request
 
-        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(),
-                caller);
+        Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        verifyAuthorizedServiceOperation(principal.getAuthorizedService(), caller);
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("putDomainSystemMeta: name={}, attribute={}, meta={}",
                     domainName, attribute, meta);
         }
+
+        // if we are resetting the configured value then the caller
+        // must also have a delete action available for the same resource
+
+        boolean deleteAllowed = isAllowedSystemMetaDelete(principal, domainName, attribute);
 
         // if this productId is already used by any domain it will be
         // seen in dbService and exception thrown but we want to make
@@ -1521,7 +1547,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
              throw ZMSUtils.requestError("Unique Product Id must be specified for top level domain", caller);
         }
 
-        dbService.executePutDomainMeta(ctx, domainName, meta, attribute, auditRef, caller);
+        dbService.executePutDomainMeta(ctx, domainName, meta, attribute, deleteAllowed, auditRef, caller);
         metric.stopTiming(timerMetric);
     }
 

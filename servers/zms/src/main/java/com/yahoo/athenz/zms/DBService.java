@@ -2084,7 +2084,7 @@ public class DBService {
     }
     
     void executePutDomainMeta(ResourceContext ctx, String domainName, DomainMeta meta,
-            final String systemAttribute, String auditRef, String caller) {
+            final String systemAttribute, boolean deleteAllowed, String auditRef, String caller) {
 
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
@@ -2117,7 +2117,7 @@ public class DBService {
                 // from the given object
 
                 if (systemAttribute != null) {
-                    updateSystemMetaFields(updatedDomain, systemAttribute, meta);
+                    updateSystemMetaFields(updatedDomain, systemAttribute, deleteAllowed, meta);
                 } else {
                     updateDomainMetaFields(updatedDomain, meta);
                 }
@@ -2146,13 +2146,28 @@ public class DBService {
 
     void updateDomainMetaFields(Domain domain, DomainMeta meta) {
 
-        domain.setAuditEnabled(meta.getAuditEnabled());
         domain.setApplicationId(meta.getApplicationId());
         domain.setDescription(meta.getDescription());
         domain.setOrg(meta.getOrg());
     }
 
-    void updateSystemMetaFields(Domain domain, final String attribute, DomainMeta meta) {
+    boolean isDeleteSystemMetaAllowed(boolean deleteAllowed, Object oldValue, Object newValue) {
+
+        // if authorized or old value is not set, then there is
+        // no need to check any value
+
+        if (deleteAllowed || oldValue == null) {
+            return true;
+        }
+
+        // since our old value is not null then we will only
+        // allow if the new value is identical
+
+        return (newValue != null) ? oldValue.equals(newValue) : false;
+    }
+
+    void updateSystemMetaFields(Domain domain, final String attribute, boolean deleteAllowed,
+            DomainMeta meta) {
 
         final String caller = "putdomainsystemmeta";
 
@@ -2161,13 +2176,28 @@ public class DBService {
 
         switch (attribute) {
             case ZMSConsts.SYSTEM_META_ACCOUNT:
+                if (!isDeleteSystemMetaAllowed(deleteAllowed, domain.getAccount(), meta.getAccount())) {
+                    throw ZMSUtils.forbiddenError("unuathorized to reset system meta attribute: " + attribute, caller);
+                }
                 domain.setAccount(meta.getAccount());
                 break;
             case ZMSConsts.SYSTEM_META_PRODUCT_ID:
+                if (!isDeleteSystemMetaAllowed(deleteAllowed, domain.getYpmId(), meta.getYpmId())) {
+                    throw ZMSUtils.forbiddenError("unuathorized to reset system meta attribute: " + attribute, caller);
+                }
                 domain.setYpmId(meta.getYpmId());
                 break;
             case ZMSConsts.SYSTEM_META_CERT_DNS_DOMAIN:
+                if (!isDeleteSystemMetaAllowed(deleteAllowed, domain.getCertDnsDomain(), meta.getCertDnsDomain())) {
+                    throw ZMSUtils.forbiddenError("unuathorized to reset system meta attribute: " + attribute, caller);
+                }
                 domain.setCertDnsDomain(meta.getCertDnsDomain());
+                break;
+            case ZMSConsts.SYSTEM_META_AUDIT_ENABLED:
+                domain.setAuditEnabled(meta.getAuditEnabled());
+                break;
+            case ZMSConsts.SYSTEM_META_ENABLED:
+                domain.setEnabled(meta.getEnabled());
                 break;
             default:
                 throw ZMSUtils.requestError("unknown system meta attribute: " + attribute, caller);

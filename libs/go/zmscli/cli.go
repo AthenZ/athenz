@@ -473,18 +473,22 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				return cli.DeleteProviderResourceGroupRoles(dn, args[0], args[1], args[2])
 			}
 		case "set-domain-meta":
-			if argc == 3 {
+			if argc == 2 || argc == 3 {
 				descr := args[0]
 				org := args[1]
-				auditEnabled, err := strconv.ParseBool(args[2])
-				if err != nil {
-					return nil, err
-				}
-				return cli.SetDomainMeta(dn, descr, org, auditEnabled)
+				return cli.SetDomainMeta(dn, descr, org)
 			}
 		case "set-aws-account", "set-domain-account":
 			if argc == 1 {
 				return cli.SetDomainAccount(dn, args[0])
+			}
+		case "set-audit-enabled":
+			if argc == 1 {
+				auditEnabled, err := strconv.ParseBool(args[0])
+				if err != nil {
+					return nil, err
+				}
+				return cli.SetDomainAuditEnabled(dn, auditEnabled)
 			}
 		case "set-product-id", "set-domain-product-id":
 			if argc == 1 {
@@ -636,16 +640,15 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("     add a subdomain hosted in domain coretech with " + cli.UserDomain + ".john, " + cli.UserDomain + ".jane and the caller as administrators\n")
 	case "set-domain-meta":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domain_param + " set-domain-meta description org audit_enabled\n")
+		buf.WriteString("   " + domain_param + " set-domain-meta description org\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain        : name of the domain being updated\n")
 		}
 		buf.WriteString("   description   : set the description for the domain\n")
 		buf.WriteString("   org           : set the organization of the domain\n")
-		buf.WriteString("   audit_enabled : boolean flag indicating if the domain must comply with SOX auditing requirements\n")
 		buf.WriteString(" examples:\n")
-		buf.WriteString("   " + domain_example + " set-domain-meta \"Coretech Hosted\" cloud.services false\n")
+		buf.WriteString("   " + domain_example + " set-domain-meta \"Coretech Hosted\" cloud.services\n")
 	case "set-aws-account", "set-domain-account":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domain_param + " set-aws-account account-id\n")
@@ -656,6 +659,16 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   account-id    : set the aws account id for the domain\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domain_example + " set-aws-account \"134901934383\"\n")
+	case "set-audit-enabled":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domain_param + " set-audit-enabled audit-enabled\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain being updated\n")
+		}
+		buf.WriteString("   audit-enabled : enable/disable audit flag for the domain\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domain_example + " set-audit-enabled true\n")
 	case "set-product-id", "set-domain-product-id":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domain_param + " set-product-id product-id\n")
@@ -1470,7 +1483,8 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   lookup-domain-by-role role-member role-name\n")
 	buf.WriteString("   add-domain domain product-id [admin ...] - to add top level domains\n")
 	buf.WriteString("   add-domain domain [admin ...] - to add sub domains\n")
-	buf.WriteString("   set-domain-meta description org audit_enabled\n")
+	buf.WriteString("   set-domain-meta description org\n")
+	buf.WriteString("   set-audit-enabled audit-enabled\n")
 	buf.WriteString("   set-aws-account account-id\n")
 	buf.WriteString("   set-product-id product-id\n")
 	buf.WriteString("   set-application-id application-id\n")

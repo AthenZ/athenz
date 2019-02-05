@@ -203,6 +203,8 @@ public final class ZMSConsts {
     public static final String SYSTEM_META_PRODUCT_ID      = "productid";
     public static final String SYSTEM_META_ACCOUNT         = "account";
     public static final String SYSTEM_META_CERT_DNS_DOMAIN = "certdnsdomain";
+    public static final String SYSTEM_META_AUDIT_ENABLED   = "auditenabled";
+    public static final String SYSTEM_META_ENABLED         = "enabled";
 
     // HTTP operation types used in metrics
     public static final String HTTP_GET     = "GET";
