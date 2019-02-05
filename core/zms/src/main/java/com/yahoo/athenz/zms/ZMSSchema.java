@@ -542,7 +542,7 @@ public class ZMSSchema {
 ;
 
         sb.resource("DomainMeta", "PUT", "/domain/{name}/meta/system/{attribute}")
-            .comment("Update the specified top level domain metadata. Note that entities in the domain are not affected. Caller must have update privileges on the domain itself.")
+            .comment("Set the specified top level domain metadata. Note that entities in the domain are not affected. Caller must have update privileges on the domain itself. If the system attribute is one of the string attributes, then the caller must also have delete action on the same resource in order to reset the configured value")
             .name("PutDomainSystemMeta")
             .pathParam("name", "DomainName", "name of the domain to be updated")
             .pathParam("attribute", "SimpleName", "name of the system attribute to be modified")

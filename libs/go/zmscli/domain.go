@@ -403,7 +403,7 @@ func (cli Zms) SetCompleteDomainMeta(dn string, descr string, org string, auditE
 	return cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
 }
 
-func (cli Zms) SetDomainMeta(dn string, descr string, org string, auditEnabled bool) (*string, error) {
+func (cli Zms) SetDomainMeta(dn string, descr string, org string) (*string, error) {
 	domain, err := cli.Zms.GetDomain(zms.DomainName(dn))
 	if err != nil {
 		return nil, err
@@ -411,11 +411,21 @@ func (cli Zms) SetDomainMeta(dn string, descr string, org string, auditEnabled b
 	meta := zms.DomainMeta{
 		Description:   descr,
 		Org:           zms.ResourceName(org),
-		Enabled:       domain.Enabled,
-		AuditEnabled:  &auditEnabled,
 		ApplicationId: domain.ApplicationId,
 	}
 	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " metadata successfully updated]\n"
+	return &s, nil
+}
+
+func (cli Zms) SetDomainAuditEnabled(dn string, auditEnabled bool) (*string, error) {
+	meta := zms.DomainMeta{
+		AuditEnabled:  &auditEnabled,
+	}
+	err := cli.Zms.PutDomainSystemMeta(zms.DomainName(dn), zms.SimpleName("auditenabled"), cli.AuditRef, &meta)
 	if err != nil {
 		return nil, err
 	}
