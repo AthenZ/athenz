@@ -36,7 +36,6 @@
     "@athenz/auth-core": "^1.0.0"
   },
   "devDependencies": {
-    "bootstrap": "~3.3.6",
     "chai": "~3.5.0",
     "chai-as-promised": "~6.0.0",
     "chart.js": "^2.2.1",
