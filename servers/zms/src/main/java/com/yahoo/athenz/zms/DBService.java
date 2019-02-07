@@ -2879,19 +2879,13 @@ public class DBService {
                 // we're going to create a separate role for each one of tenant roles returned
                 // based on its action and set the caller as a member in each role
 
-                String principalName = getPrincipalName(ctx);
-                List<RoleMember> roleMembers = new ArrayList<>();
-                if (principalName != null) {
-                    RoleMember roleMember = new RoleMember();
-                    roleMember.setMemberName(principalName);
-                    roleMembers.add(roleMember);
-                }
+                final String principalName = getPrincipalName(ctx);
 
                 // now set up the roles and policies for all the provider roles returned.
 
-                String rolePrefix = ZMSUtils.getProviderResourceGroupRolePrefix(provSvcDomain,
+                final String rolePrefix = ZMSUtils.getProviderResourceGroupRolePrefix(provSvcDomain,
                         provSvcName, resourceGroup);
-                String trustedRolePrefix = ZMSUtils.getTrustedResourceGroupRolePrefix(provSvcDomain,
+                final String trustedRolePrefix = ZMSUtils.getTrustedResourceGroupRolePrefix(provSvcDomain,
                         provSvcName, tenantDomain, resourceGroup);
 
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
@@ -2899,6 +2893,17 @@ public class DBService {
                 boolean firstEntry = true;
 
                 for (String role : roles) {
+
+                    // we need to create a new object for each role since the list is updated
+                    // in case the role already has existing members, but we don't want to
+                    // add those members to other roles in our list
+
+                    List<RoleMember> roleMembers = new ArrayList<>();
+                    if (principalName != null) {
+                        RoleMember roleMember = new RoleMember();
+                        roleMember.setMemberName(principalName);
+                        roleMembers.add(roleMember);
+                    }
 
                     role = role.toLowerCase();
 

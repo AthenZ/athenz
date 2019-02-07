@@ -10538,32 +10538,39 @@ public class ZMSImplTest {
         zms.verifyAuthorizedServiceOperation("coretech.storage", "putpolicy");
         try {
             zms.verifyAuthorizedServiceOperation("coretech.storage", "postdomain");
+            fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
         }
+
         try {
             zms.verifyAuthorizedServiceOperation("coretech.storage", "deleterole");
+            fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
         }
         
         try {
             zms.verifyAuthorizedServiceOperation("sports.hockey", "putrole");
+            fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
         }
         try {
             zms.verifyAuthorizedServiceOperation("sports.hockey", "putpolicy");
+            fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
         }
         try {
             zms.verifyAuthorizedServiceOperation("sports.hockey", "deleterole");
+            fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
         }
         try {
             zms.verifyAuthorizedServiceOperation("sports.hockey", "putserviceidentity");
+            fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
         }
@@ -10580,50 +10587,34 @@ public class ZMSImplTest {
         zms.verifyAuthorizedServiceOperation("coretech.newsvc", "putmembership", "not_role", "platforms_role_deployer");
         
         // Third, try with restriction operation, with not-specified operation item.
-        boolean errorThrown = false;
-        int code = -1;
+
         try {
             zms.verifyAuthorizedServiceOperation("coretech.newsvc", "putmembership", "role", "platforms_deployer_new");
+            fail();
         } catch (ResourceException ex) {
-            errorThrown = true;
-            code = ex.getCode();
+            assertEquals(ex.getCode(), 403);
         }
-        assertEquals(403, code);
-        assertTrue(errorThrown);
-        errorThrown = false;
-        code = -1;
         
         try {
             zms.verifyAuthorizedServiceOperation("coretech.newsvc", "putmembership", "not_role", "platforms_deployer_new_new");
+            fail();
         } catch (ResourceException ex) {
-            errorThrown = true;
-            code = ex.getCode();
+            assertEquals(ex.getCode(), 403);
         }
-        assertEquals(403, code);
-        assertTrue(errorThrown);
-        errorThrown = false;
-        code = -1;
-        
         
         try {
             zms.verifyAuthorizedServiceOperation("coretech.storage2", "postdomain");
+            fail();
         } catch (ResourceException ex) {
-            errorThrown = true;
-            code = ex.getCode();
+            assertEquals(ex.getCode(), 403);
         }
-        assertEquals(403, code);
-        assertTrue(errorThrown);
-        errorThrown = false;
-        code = -1;
         
         try {
             zms.verifyAuthorizedServiceOperation("media.storage", "deleterole");
+            fail();
         } catch (ResourceException ex) {
-            errorThrown = true;
-            code = ex.getCode();
+            assertEquals(ex.getCode(), 403);
         }
-        assertEquals(403, code);
-        assertTrue(errorThrown);
     }
     
     @Test
@@ -10638,7 +10629,7 @@ public class ZMSImplTest {
             roleActions.add(new TenantRoleAction().setRole(f.name()).setAction(
                     (String) f.value()));
         }
-        String providerService  = "storage";
+        String providerService = "storage";
         String providerDomain = "coretech";
         String resourceGroup = "hockey";
         
@@ -10690,7 +10681,7 @@ public class ZMSImplTest {
             roleActions.add(new TenantRoleAction().setRole(f.name()).setAction(
                     (String) f.value()));
         }
-        String providerService  = "storage";
+        String providerService = "storage";
         String providerDomain = "coretech";
         String resourceGroup1 = "hockey";
         String resourceGroup2 = "baseball";
@@ -10712,9 +10703,12 @@ public class ZMSImplTest {
                 .setResourceGroup(resourceGroup2);
         zms.putProviderResourceGroupRoles(mockDomRsrcCtx, tenantDomain, providerDomain, providerService,
                 resourceGroup2, auditRef, providerRoles);
-        
+
         // verify group 1 roles
-        
+
+        final String roleWriter = providerDomain + "." + providerService + ".res_group." + resourceGroup1 + ".writer";
+        final String roleReader = providerDomain + "." + providerService + ".res_group." + resourceGroup1 + ".reader";
+
         ProviderResourceGroupRoles tRoles = zms.getProviderResourceGroupRoles(mockDomRsrcCtx,
                 tenantDomain, providerDomain, providerService, resourceGroup1);
         
@@ -10724,6 +10718,14 @@ public class ZMSImplTest {
         assertEquals(tenantDomain.toLowerCase(), tRoles.getTenant());
         assertEquals(resourceGroup1.toLowerCase(), tRoles.getResourceGroup());
         assertEquals(RESOURCE_PROVIDER_ROLE_ACTIONS.size(), tRoles.getRoles().size());
+
+        Role roleW = zms.getRole(mockDomRsrcCtx, tenantDomain, roleWriter, false, false);
+        assertEquals(roleW.getRoleMembers().size(), 1);
+        assertEquals(roleW.getRoleMembers().get(0).getMemberName(), mockDomRestRsrcCtx.principal().getFullName());
+
+        Role roleR = zms.getRole(mockDomRsrcCtx, tenantDomain, roleReader, false, false);
+        assertEquals(roleR.getRoleMembers().size(), 1);
+        assertEquals(roleR.getRoleMembers().get(0).getMemberName(), mockDomRestRsrcCtx.principal().getFullName());
 
         // verify group 2 roles
         
@@ -10736,7 +10738,33 @@ public class ZMSImplTest {
         assertEquals(tenantDomain.toLowerCase(), tRoles.getTenant());
         assertEquals(resourceGroup2.toLowerCase(), tRoles.getResourceGroup());
         assertEquals(RESOURCE_PROVIDER_ROLE_ACTIONS.size(), tRoles.getRoles().size());
-        
+
+        // add an additional service to the writer action role
+
+        final String newMember = tenantDomain + ".backend";
+
+        Membership mbr = generateMembership(roleWriter, newMember);
+        zms.putMembership(mockDomRsrcCtx, tenantDomain, roleWriter, newMember, auditRef, mbr);
+
+        // now let's re-add the group 1 roles again and verify that the
+        // member list is correct
+
+        providerRoles = new ProviderResourceGroupRoles()
+                .setDomain(providerDomain).setService(providerService)
+                .setTenant(tenantDomain).setRoles(roleActions)
+                .setResourceGroup(resourceGroup1);
+        zms.putProviderResourceGroupRoles(mockDomRsrcCtx, tenantDomain, providerDomain, providerService,
+                resourceGroup1, auditRef, providerRoles);
+
+        roleW = zms.getRole(mockDomRsrcCtx, tenantDomain, roleWriter, false, false);
+        assertEquals(roleW.getRoleMembers().size(), 2);
+        assertEquals(roleW.getRoleMembers().get(0).getMemberName(), mockDomRestRsrcCtx.principal().getFullName());
+        assertEquals(roleW.getRoleMembers().get(1).getMemberName(), newMember);
+
+        roleR = zms.getRole(mockDomRsrcCtx, tenantDomain, roleReader, false, false);
+        assertEquals(roleR.getRoleMembers().size(), 1);
+        assertEquals(roleR.getRoleMembers().get(0).getMemberName(), mockDomRestRsrcCtx.principal().getFullName());
+
         zms.deleteTopLevelDomain(mockDomRsrcCtx, tenantDomain, auditRef);
     }
     
