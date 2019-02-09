@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.zts.utils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -315,13 +316,13 @@ public class InstanceCertManager {
         this.certStore = certStore;
     }
     
-    public X509CertRecord getX509CertRecord(String provider, X509Certificate cert) {
+    public X509CertRecord getX509CertRecord(final String provider, X509Certificate cert) {
 
         if (certStore == null) {
             return null;
         }
 
-        String instanceId = X509CertUtils.extractRequestInstanceId(cert);
+        final String instanceId = X509CertUtils.extractRequestInstanceId(cert);
         if (instanceId == null) {
             LOGGER.error("getX509CertRecord: Certificate does not have instance id");
             return null;
@@ -329,13 +330,15 @@ public class InstanceCertManager {
 
         X509CertRecord certRecord;
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
-            certRecord = storeConnection.getX509CertRecord(provider, instanceId);
+            certRecord = storeConnection.getX509CertRecord(provider, instanceId,
+                    Crypto.extractX509CertCommonName(cert));
         }
         
         return certRecord;
     }
     
-    public X509CertRecord getX509CertRecord(String provider, String instanceId) {
+    public X509CertRecord getX509CertRecord(final String provider, final String instanceId,
+            final String service) {
 
         if (certStore == null) {
             return null;
@@ -343,7 +346,7 @@ public class InstanceCertManager {
 
         X509CertRecord certRecord;
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
-            certRecord = storeConnection.getX509CertRecord(provider, instanceId);
+            certRecord = storeConnection.getX509CertRecord(provider, instanceId, service);
         }
         
         return certRecord;
@@ -362,7 +365,8 @@ public class InstanceCertManager {
         return result;
     }
     
-    public boolean deleteX509CertRecord(String provider, String instanceId) {
+    public boolean deleteX509CertRecord(final String provider, final String instanceId,
+            final String service) {
         
         if (certStore == null) {
             return false;
@@ -370,7 +374,7 @@ public class InstanceCertManager {
         
         boolean result;
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
-            result = storeConnection.deleteX509CertRecord(provider, instanceId);
+            result = storeConnection.deleteX509CertRecord(provider, instanceId, service);
         }
         return result;
     }

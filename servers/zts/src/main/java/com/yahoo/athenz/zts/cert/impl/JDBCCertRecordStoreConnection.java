@@ -35,15 +35,15 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
 
     private static final int MYSQL_ER_OPTION_DUPLICATE_ENTRY = 1062;
 
-    private static final String SQL_GET_X509_RECORD = "SELECT * FROM certificates WHERE provider=? AND instanceId=?;";
+    private static final String SQL_GET_X509_RECORD = "SELECT * FROM certificates WHERE provider=? AND instanceId=? AND service=?;";
     private static final String SQL_INSERT_X509_RECORD = "INSERT INTO certificates " +
             "(provider, instanceId, service, currentSerial, currentTime, currentIP, prevSerial, prevTime, prevIP, clientCert) " +
             "VALUES (?, ?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_X509_RECORD = "UPDATE certificates SET " +
-            "currentSerial=?, currentTime=?, currentIP=?, prevSerial=?, prevTime=?, prevIP=?, service=?" +
-            "WHERE provider=? AND instanceId=?;";
+            "currentSerial=?, currentTime=?, currentIP=?, prevSerial=?, prevTime=?, prevIP=?" +
+            "WHERE provider=? AND instanceId=? AND service=?;";
     private static final String SQL_DELETE_X509_RECORD = "DELETE from certificates " +
-            "WHERE provider=? AND instanceId=?;";
+            "WHERE provider=? AND instanceId=? AND service=?;";
     private static final String SQL_DELETE_EXPIRED_X509_RECORDS = "DELETE FROM certificates " +
             "WHERE currentTime < ADDDATE(NOW(), INTERVAL -? MINUTE);";
     
@@ -102,7 +102,7 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
     }
     
     @Override
-    public X509CertRecord getX509CertRecord(String provider, String instanceId) {
+    public X509CertRecord getX509CertRecord(String provider, String instanceId, String service) {
         
         final String caller = "getX509CertRecord";
 
@@ -110,13 +110,14 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_X509_RECORD)) {
             ps.setString(1, provider);
             ps.setString(2, instanceId);
+            ps.setString(3, service);
             
             try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
                     certRecord = new X509CertRecord();
                     certRecord.setProvider(provider);
                     certRecord.setInstanceId(instanceId);
-                    certRecord.setService(rs.getString(DB_COLUMN_SERVICE));
+                    certRecord.setService(service);
                     certRecord.setCurrentIP(rs.getString(DB_COLUMN_CURRENT_IP));
                     certRecord.setCurrentSerial(rs.getString(DB_COLUMN_CURRENT_SERIAL));
                     certRecord.setCurrentTime(new Date(rs.getTimestamp(DB_COLUMN_CURRENT_TIME).getTime()));
@@ -145,9 +146,9 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
             ps.setString(4, certRecord.getPrevSerial());
             ps.setTimestamp(5, new java.sql.Timestamp(certRecord.getPrevTime().getTime()));
             ps.setString(6, certRecord.getPrevIP());
-            ps.setString(7, certRecord.getService());
-            ps.setString(8, certRecord.getProvider());
-            ps.setString(9, certRecord.getInstanceId());
+            ps.setString(7, certRecord.getProvider());
+            ps.setString(8, certRecord.getInstanceId());
+            ps.setString(9, certRecord.getService());
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -193,7 +194,7 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
     }
     
     @Override
-    public boolean deleteX509CertRecord(String provider, String instanceId) {
+    public boolean deleteX509CertRecord(String provider, String instanceId, String service) {
 
         int affectedRows;
         final String caller = "deleteX509CertRecord";
@@ -201,6 +202,7 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
         try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_X509_RECORD)) {
             ps.setString(1, provider);
             ps.setString(2, instanceId);
+            ps.setString(3, service);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);

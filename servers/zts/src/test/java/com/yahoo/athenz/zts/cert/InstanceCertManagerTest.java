@@ -122,7 +122,7 @@ public class InstanceCertManagerTest {
         Mockito.when(certStore.getConnection()).thenReturn(certConnection);
         
         X509CertRecord x509CertRecord = new X509CertRecord();
-        Mockito.when(certConnection.getX509CertRecord("ostk", "1001")).thenReturn(x509CertRecord);
+        Mockito.when(certConnection.getX509CertRecord("ostk", "1001", "athenz.production")).thenReturn(x509CertRecord);
         instanceManager.setCertStore(certStore);
         
         X509CertRecord certRecord = instanceManager.getX509CertRecord("ostk", cert);
@@ -141,10 +141,10 @@ public class InstanceCertManagerTest {
         Mockito.when(certStore.getConnection()).thenReturn(certConnection);
         
         X509CertRecord x509CertRecord = new X509CertRecord();
-        Mockito.when(certConnection.getX509CertRecord("ostk", "1001")).thenReturn(x509CertRecord);
+        Mockito.when(certConnection.getX509CertRecord("ostk", "1001", "athenz.production")).thenReturn(x509CertRecord);
         instance.setCertStore(certStore);
         
-        X509CertRecord certRecord = instance.getX509CertRecord("ostk", "1001");
+        X509CertRecord certRecord = instance.getX509CertRecord("ostk", "1001", "athenz.production");
         assertNotNull(certRecord);
         instance.shutdown();
     }
@@ -158,7 +158,7 @@ public class InstanceCertManagerTest {
         X509CertRecord certRecord = instance.getX509CertRecord("ostk", (X509Certificate) null);
         assertNull(certRecord);
 
-        certRecord = instance.getX509CertRecord("ostk", "instance-id");
+        certRecord = instance.getX509CertRecord("ostk", "instance-id", "athenz.production");
         assertNull(certRecord);
 
         instance.shutdown();
@@ -179,7 +179,7 @@ public class InstanceCertManagerTest {
         Mockito.when(certStore.getConnection()).thenReturn(certConnection);
         
         X509CertRecord x509CertRecord = new X509CertRecord();
-        Mockito.when(certConnection.getX509CertRecord("ostk", "1001")).thenReturn(x509CertRecord);
+        Mockito.when(certConnection.getX509CertRecord("ostk", "1001", "athenz.syncer")).thenReturn(x509CertRecord);
         instance.setCertStore(certStore);
 
         X509CertRecord certRecord = instance.getX509CertRecord("ostk", cert);
@@ -256,10 +256,10 @@ public class InstanceCertManagerTest {
         CertRecordStoreConnection certConnection = Mockito.mock(CertRecordStoreConnection.class);
         Mockito.when(certStore.getConnection()).thenReturn(certConnection);
         
-        Mockito.when(certConnection.deleteX509CertRecord("provider", "instance")).thenReturn(true);
+        Mockito.when(certConnection.deleteX509CertRecord("provider", "instance", "service")).thenReturn(true);
         instance.setCertStore(certStore);
 
-        boolean result = instance.deleteX509CertRecord("provider", "instance");
+        boolean result = instance.deleteX509CertRecord("provider", "instance", "service");
         assertTrue(result);
         instance.shutdown();
     }
@@ -270,7 +270,7 @@ public class InstanceCertManagerTest {
         instance.setCertSigner(null);
 
         instance.setCertStore(null);
-        boolean result = instance.deleteX509CertRecord("provider", "instance");
+        boolean result = instance.deleteX509CertRecord("provider", "instance", "service");
         assertFalse(result);
     }
     
