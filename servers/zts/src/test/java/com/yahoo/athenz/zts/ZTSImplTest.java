@@ -3150,7 +3150,7 @@ public class ZTSImplTest {
         CertRecordStore certStore = Mockito.mock(CertRecordStore.class);
         CertRecordStoreConnection certConnection = Mockito.mock(CertRecordStoreConnection.class);
         Mockito.when(certStore.getConnection()).thenReturn(certConnection);
-        Mockito.when(certConnection.getX509CertRecord("ostk", "1001")).thenReturn(certRecord);
+        Mockito.when(certConnection.getX509CertRecord("ostk", "1001", "athenz.production")).thenReturn(certRecord);
         Mockito.when(certConnection.updateX509CertRecord(ArgumentMatchers.isA(X509CertRecord.class))).thenReturn(true);
         zts.instanceCertManager.setCertStore(certStore);
         
@@ -3195,7 +3195,7 @@ public class ZTSImplTest {
         CertRecordStore certStore = Mockito.mock(CertRecordStore.class);
         CertRecordStoreConnection certConnection = Mockito.mock(CertRecordStoreConnection.class);
         Mockito.when(certStore.getConnection()).thenReturn(certConnection);
-        Mockito.when(certConnection.getX509CertRecord("ostk", "1001")).thenReturn(certRecord);
+        Mockito.when(certConnection.getX509CertRecord("ostk", "1001", "athenz.production")).thenReturn(certRecord);
         Mockito.when(certConnection.updateX509CertRecord(ArgumentMatchers.isA(X509CertRecord.class))).thenReturn(true);
         zts.instanceCertManager.setCertStore(certStore);
         
@@ -3240,7 +3240,7 @@ public class ZTSImplTest {
         CertRecordStore certStore = Mockito.mock(CertRecordStore.class);
         CertRecordStoreConnection certConnection = Mockito.mock(CertRecordStoreConnection.class);
         Mockito.when(certStore.getConnection()).thenReturn(certConnection);
-        Mockito.when(certConnection.getX509CertRecord("ostk", "1001")).thenReturn(certRecord);
+        Mockito.when(certConnection.getX509CertRecord("ostk", "1001", "athenz.production")).thenReturn(certRecord);
         Mockito.when(certConnection.updateX509CertRecord(ArgumentMatchers.isA(X509CertRecord.class))).thenReturn(true);
         zts.instanceCertManager.setCertStore(certStore);
         
@@ -3284,7 +3284,7 @@ public class ZTSImplTest {
         CertRecordStore certStore = Mockito.mock(CertRecordStore.class);
         CertRecordStoreConnection certConnection = Mockito.mock(CertRecordStoreConnection.class);
         Mockito.when(certStore.getConnection()).thenReturn(certConnection);
-        Mockito.when(certConnection.getX509CertRecord("ostk", "1001")).thenReturn(certRecord);
+        Mockito.when(certConnection.getX509CertRecord("ostk", "1001", "athenz.production")).thenReturn(certRecord);
         zts.instanceCertManager.setCertStore(certStore);
         
         // we'll get back 400 mismatch cn error message
@@ -5350,7 +5350,7 @@ public class ZTSImplTest {
         certRecord.setService("athenz.production");
         certRecord.setCurrentSerial("16503746516960996918");
         certRecord.setPrevSerial("16503746516960996918");
-        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001")).thenReturn(certRecord);
+        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(certRecord);
         Mockito.when(instanceManager.updateX509CertRecord(Mockito.any())).thenReturn(true);
         
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
@@ -5397,7 +5397,7 @@ public class ZTSImplTest {
         store.processDomain(tenantDomain, false);
 
         InstanceCertManager instanceCertManager = Mockito.mock(InstanceCertManager.class);
-        Mockito.when(instanceCertManager.getX509CertRecord("athenz.provider", "1001")).thenReturn(null);
+        Mockito.when(instanceCertManager.getX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(null);
         Mockito.when(instanceCertManager.insertX509CertRecord(Mockito.any())).thenReturn(false);
 
         ztsImpl.instanceCertManager = instanceCertManager;
@@ -5440,7 +5440,7 @@ public class ZTSImplTest {
         store.processDomain(tenantDomain, false);
 
         InstanceCertManager instanceCertManager = Mockito.mock(InstanceCertManager.class);
-        Mockito.when(instanceCertManager.getX509CertRecord("athenz.provider", "1001"))
+        Mockito.when(instanceCertManager.getX509CertRecord("athenz.provider", "1001", "athenz.production"))
                 .thenReturn(null);
         Mockito.when(instanceCertManager.insertX509CertRecord(Mockito.any())).thenReturn(true);
 
@@ -5497,7 +5497,7 @@ public class ZTSImplTest {
         Mockito.when(instanceProviderManager.getProvider("athenz.provider")).thenReturn(providerClient);
         Mockito.when(providerClient.refreshInstance(Mockito.any())).thenReturn(confirmation);
 
-        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001"))
+        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001", "athenz.production"))
                 .thenThrow(new ResourceException(400, "unknown record"));
 
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
@@ -5562,7 +5562,7 @@ public class ZTSImplTest {
         certRecord.setService("athenz.production");
         certRecord.setCurrentSerial("16503746516960996918");
         certRecord.setPrevSerial("16503746516960996918");
-        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001")).thenReturn(certRecord);
+        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(certRecord);
         Mockito.when(instanceManager.updateX509CertRecord(Mockito.any())).thenReturn(true);
 
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
@@ -5643,7 +5643,7 @@ public class ZTSImplTest {
         certRecord.setCurrentSerial("16503746516960996918");
         certRecord.setPrevSerial("16503746516960996918");
         certRecord.setClientCert(true);
-        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001")).thenReturn(certRecord);
+        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(certRecord);
         Mockito.when(instanceManager.updateX509CertRecord(Mockito.any())).thenReturn(true);
         
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
@@ -5741,7 +5741,7 @@ public class ZTSImplTest {
         certRecord.setService("athenz.production");
         certRecord.setCurrentSerial("16503746516960996918");
         certRecord.setPrevSerial("16503746516960996918");
-        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001")).thenReturn(certRecord);
+        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(certRecord);
         Mockito.when(instanceManager.updateX509CertRecord(Mockito.any())).thenReturn(true);
         
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
@@ -5808,7 +5808,7 @@ public class ZTSImplTest {
         certRecord.setService("athenz.production");
         certRecord.setCurrentSerial("16503746516960996918");
         certRecord.setPrevSerial("16503746516960996918");
-        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001")).thenReturn(certRecord);
+        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(certRecord);
         Mockito.when(instanceManager.updateX509CertRecord(Mockito.any())).thenReturn(true);
         
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
@@ -5873,7 +5873,7 @@ public class ZTSImplTest {
         certRecord.setService("athenz.production");
         certRecord.setCurrentSerial("16503746516960996918");
         certRecord.setPrevSerial("16503746516960996918");
-        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001")).thenReturn(certRecord);
+        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(certRecord);
         Mockito.when(instanceManager.updateX509CertRecord(Mockito.any())).thenReturn(true);
         Mockito.when(instanceManager.generateSSHIdentity(Mockito.any(), Mockito.any(), Mockito.eq("ssh-csr"),
                 Mockito.eq("user"))).thenReturn(false);
@@ -5939,7 +5939,7 @@ public class ZTSImplTest {
         certRecord.setService("athenz.production");
         certRecord.setCurrentSerial("101");
         certRecord.setPrevSerial("16503746516960996918");
-        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001")).thenReturn(certRecord);
+        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(certRecord);
         Mockito.when(instanceManager.updateX509CertRecord(Mockito.any())).thenReturn(true);
         
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
@@ -5991,7 +5991,7 @@ public class ZTSImplTest {
         certRecord.setService("athenz.production");
         certRecord.setCurrentSerial("16503746516960996918");
         certRecord.setPrevSerial("16503746516960996918");
-        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001")).thenReturn(certRecord);
+        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(certRecord);
         
         ztsImpl.instanceCertManager = instanceManager;
         
@@ -6080,7 +6080,7 @@ public class ZTSImplTest {
         certRecord.setService("athenz.production");
         certRecord.setCurrentSerial("16503746516960996918");
         certRecord.setPrevSerial("16503746516960996918");
-        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001")).thenReturn(certRecord);
+        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(certRecord);
         
         Mockito.when(instanceProviderManager.getProvider("athenz.provider")).thenReturn(providerClient);
         Mockito.when(providerClient.refreshInstance(Mockito.any())).thenReturn(confirmation);
@@ -6147,7 +6147,7 @@ public class ZTSImplTest {
         certRecord.setService("athenz.production");
         certRecord.setCurrentSerial("16503746516960996918");
         certRecord.setPrevSerial("16503746516960996918");
-        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001")).thenReturn(certRecord);
+        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(certRecord);
         
         Mockito.when(instanceProviderManager.getProvider("athenz.provider")).thenReturn(providerClient);
         Mockito.when(providerClient.refreshInstance(Mockito.any())).thenReturn(confirmation);
@@ -6212,7 +6212,7 @@ public class ZTSImplTest {
         Mockito.when(instanceProviderManager.getProvider("athenz.provider")).thenReturn(providerClient);
         Mockito.when(providerClient.refreshInstance(Mockito.any())).thenReturn(confirmation);
         
-        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001")).thenReturn(null);
+        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(null);
         
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
         String pem = new String(Files.readAllBytes(path));
@@ -6280,7 +6280,7 @@ public class ZTSImplTest {
         certRecord.setService("athenz2.production");
         certRecord.setCurrentSerial("16503746516960996918");
         certRecord.setPrevSerial("16503746516960996918");
-        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001")).thenReturn(certRecord);
+        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(certRecord);
         Mockito.when(instanceManager.updateX509CertRecord(Mockito.any())).thenReturn(true);
         
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
@@ -6349,7 +6349,7 @@ public class ZTSImplTest {
         certRecord.setService("athenz.production");
         certRecord.setCurrentSerial("101");
         certRecord.setPrevSerial("101");
-        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001")).thenReturn(certRecord);
+        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(certRecord);
         Mockito.when(instanceManager.updateX509CertRecord(Mockito.any())).thenReturn(true);
         
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
@@ -6418,7 +6418,7 @@ public class ZTSImplTest {
         certRecord.setService("athenz.production");
         certRecord.setCurrentSerial("16503746516960996918");
         certRecord.setPrevSerial("16503746516960996918");
-        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001")).thenReturn(certRecord);
+        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(certRecord);
         Mockito.when(instanceManager.updateX509CertRecord(Mockito.any())).thenReturn(true);
         
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
@@ -6485,7 +6485,7 @@ public class ZTSImplTest {
         certRecord.setService("athenz.production");
         certRecord.setCurrentSerial("16503746516960996918");
         certRecord.setPrevSerial("16503746516960996918");
-        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001")).thenReturn(certRecord);
+        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(certRecord);
         Mockito.when(instanceManager.updateX509CertRecord(Mockito.any())).thenReturn(false);
         
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
@@ -6643,7 +6643,7 @@ public class ZTSImplTest {
         certRecord.setService("athenz.production");
         certRecord.setCurrentSerial("16503746516960996918");
         certRecord.setPrevSerial("16503746516960996918");
-        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001")).thenReturn(certRecord);
+        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(certRecord);
         Mockito.when(instanceManager.updateX509CertRecord(Mockito.any())).thenReturn(false);
         
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
@@ -6701,7 +6701,7 @@ public class ZTSImplTest {
         certRecord.setService("athenz.production");
         certRecord.setCurrentSerial("16503746516960996918");
         certRecord.setPrevSerial("16503746516960996918");
-        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001")).thenReturn(certRecord);
+        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(certRecord);
         Mockito.when(instanceManager.updateX509CertRecord(Mockito.any())).thenReturn(true);
 
         CertificateAuthority certAuthority = new CertificateAuthority();
@@ -6750,7 +6750,7 @@ public class ZTSImplTest {
         certRecord.setService("athenz.production");
         certRecord.setCurrentSerial("123413");
         certRecord.setPrevSerial("16503746516960996918");
-        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001")).thenReturn(certRecord);
+        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(certRecord);
         Mockito.when(instanceManager.updateX509CertRecord(Mockito.any())).thenReturn(true);
 
         CertificateAuthority certAuthority = new CertificateAuthority();
@@ -6799,7 +6799,7 @@ public class ZTSImplTest {
         certRecord.setService("athenz.production");
         certRecord.setCurrentSerial("16503746516960996918");
         certRecord.setPrevSerial("16503746516960996918");
-        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001")).thenReturn(certRecord);
+        Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(certRecord);
         Mockito.when(instanceManager.updateX509CertRecord(Mockito.any())).thenReturn(true);
 
         CertificateAuthority certAuthority = new CertificateAuthority();
@@ -6839,7 +6839,7 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         InstanceCertManager instanceManager = Mockito.mock(InstanceCertManager.class);
-        Mockito.when(instanceManager.deleteX509CertRecord("athenz.provider", "1001")).thenReturn(true);
+        Mockito.when(instanceManager.deleteX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(true);
         Mockito.when(instanceManager.updateX509CertRecord(Mockito.any())).thenReturn(true);
         
         ztsImpl.instanceCertManager = instanceManager;

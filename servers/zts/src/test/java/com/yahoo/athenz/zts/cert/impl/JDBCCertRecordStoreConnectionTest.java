@@ -76,7 +76,7 @@ public class JDBCCertRecordStoreConnectionTest {
         Mockito.doReturn(tstamp).when(mockResultSet).getTimestamp(JDBCCertRecordStoreConnection.DB_COLUMN_PREV_TIME);
         
         JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn);
-        X509CertRecord certRecord = jdbcConn.getX509CertRecord("ostk", "instance-id");
+        X509CertRecord certRecord = jdbcConn.getX509CertRecord("ostk", "instance-id", "cn");
         
         assertNotNull(certRecord);
         assertEquals(certRecord.getService(), "cn");
@@ -97,7 +97,7 @@ public class JDBCCertRecordStoreConnectionTest {
         Mockito.when(mockResultSet.next()).thenReturn(false);
 
         JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn);
-        X509CertRecord certRecord = jdbcConn.getX509CertRecord("ostk", "instance-id-not-found");
+        X509CertRecord certRecord = jdbcConn.getX509CertRecord("ostk", "instance-id-not-found", "cn");
         assertNull(certRecord);
         jdbcConn.close();
     }
@@ -109,7 +109,7 @@ public class JDBCCertRecordStoreConnectionTest {
 
         JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn);
         try {
-            jdbcConn.getX509CertRecord("ostk", "exception");
+            jdbcConn.getX509CertRecord("ostk", "exception", "cn");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 500);
@@ -191,10 +191,10 @@ public class JDBCCertRecordStoreConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(3, "current-ip");
         Mockito.verify(mockPrepStmt, times(1)).setString(4, "prev-serial");
         Mockito.verify(mockPrepStmt, times(1)).setString(6, "prev-ip");
-        Mockito.verify(mockPrepStmt, times(1)).setString(7, "cn");
-        Mockito.verify(mockPrepStmt, times(1)).setString(8, "ostk");
-        Mockito.verify(mockPrepStmt, times(1)).setString(9, "instance-id");
-        
+        Mockito.verify(mockPrepStmt, times(1)).setString(7, "ostk");
+        Mockito.verify(mockPrepStmt, times(1)).setString(8, "instance-id");
+        Mockito.verify(mockPrepStmt, times(1)).setString(9, "cn");
+
         // common between insert/update so count is 2 times
         Mockito.verify(mockPrepStmt, times(2)).setTimestamp(5, new java.sql.Timestamp(now.getTime()));
         
@@ -260,9 +260,9 @@ public class JDBCCertRecordStoreConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(4, "prev-serial");
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(5, new java.sql.Timestamp(now.getTime()));
         Mockito.verify(mockPrepStmt, times(1)).setString(6, "prev-ip");
-        Mockito.verify(mockPrepStmt, times(1)).setString(7, "cn");
-        Mockito.verify(mockPrepStmt, times(1)).setString(8, "ostk");
-        Mockito.verify(mockPrepStmt, times(1)).setString(9, "instance-id");
+        Mockito.verify(mockPrepStmt, times(1)).setString(7, "ostk");
+        Mockito.verify(mockPrepStmt, times(1)).setString(8, "instance-id");
+        Mockito.verify(mockPrepStmt, times(1)).setString(9, "cn");
 
         jdbcConn.close();
     }
@@ -304,7 +304,7 @@ public class JDBCCertRecordStoreConnectionTest {
         JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn);
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
-        boolean requestSuccess = jdbcConn.deleteX509CertRecord("ostk", "instance-id");
+        boolean requestSuccess = jdbcConn.deleteX509CertRecord("ostk", "instance-id", "cn");
         assertTrue(requestSuccess);
         
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "ostk");
@@ -319,7 +319,7 @@ public class JDBCCertRecordStoreConnectionTest {
 
         Mockito.doThrow(new SQLException("error", "state", 503)).when(mockPrepStmt).executeUpdate();
         try {
-            jdbcConn.deleteX509CertRecord("ostk", "instance-id");
+            jdbcConn.deleteX509CertRecord("ostk", "instance-id", "cn");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 500);

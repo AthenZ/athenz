@@ -26,7 +26,7 @@ public class FileCertRecordStoreConnectionTest {
         
         // first verify that we don't have the entry
         
-        X509CertRecord certRecordCheck = con.getX509CertRecord("ostk", "instance-id");
+        X509CertRecord certRecordCheck = con.getX509CertRecord("ostk", "instance-id", "cn");
         assertNull(certRecordCheck);
         
         // now write the entry
@@ -49,7 +49,7 @@ public class FileCertRecordStoreConnectionTest {
         
         // now read the entry again
         
-        certRecordCheck = con.getX509CertRecord("ostk", "instance-id");
+        certRecordCheck = con.getX509CertRecord("ostk", "instance-id", "cn");
         assertNotNull(certRecordCheck);
         
         assertEquals(certRecordCheck.getCurrentIP(), "current-ip");
@@ -70,7 +70,7 @@ public class FileCertRecordStoreConnectionTest {
         result = con.updateX509CertRecord(certRecord);
         assertTrue(result);
         
-        certRecordCheck = con.getX509CertRecord("ostk", "instance-id");
+        certRecordCheck = con.getX509CertRecord("ostk", "instance-id", "cn");
         assertNotNull(certRecordCheck);
         
         assertEquals(certRecordCheck.getCurrentIP(), "updated-ip");
@@ -85,8 +85,8 @@ public class FileCertRecordStoreConnectionTest {
         
         // now delete the entry
         
-        con.deleteX509CertRecord("ostk", "instance-id");
-        certRecordCheck = con.getX509CertRecord("ostk", "instance-id");
+        con.deleteX509CertRecord("ostk", "instance-id", "cn");
+        certRecordCheck = con.getX509CertRecord("ostk", "instance-id", "cn");
         assertNull(certRecordCheck);
         
         con.close();
@@ -109,7 +109,7 @@ public class FileCertRecordStoreConnectionTest {
         result = con.updateX509CertRecord(null);
         assertTrue(result);
         
-        con.deleteX509CertRecord("unknown", "instance-id");
+        con.deleteX509CertRecord("unknown", "instance-id", "cn");
         con.close();
     }
     
@@ -140,13 +140,13 @@ public class FileCertRecordStoreConnectionTest {
         boolean result = con.insertX509CertRecord(certRecord);
         assertTrue(result);
         
-        X509CertRecord certRecordCheck = con.getX509CertRecord("ostk", "instance-id");
+        X509CertRecord certRecordCheck = con.getX509CertRecord("ostk", "instance-id", "cn");
         assertNotNull(certRecordCheck);
         
         Thread.sleep(1000);
         con.deleteExpiredX509CertRecords(0);
 
-        certRecordCheck = con.getX509CertRecord("ostk", "instance-id");
+        certRecordCheck = con.getX509CertRecord("ostk", "instance-id", "cn");
         assertNull(certRecordCheck);
         con.close();
     }

@@ -55,7 +55,7 @@ public class DynamoDBCertRecordStoreConnectionTest {
         Date now = new Date();
         long tstamp = now.getTime();
 
-        Mockito.doReturn(item).when(table).getItem("instanceId", "1234", "provider", "athenz.provider");
+        Mockito.doReturn(item).when(table).getItem("primaryKey", "athenz.provider:cn:1234");
 
         Mockito.doReturn("cn").when(item).getString("service");
         Mockito.doReturn("current-serial").when(item).getString("currentSerial");
@@ -68,7 +68,7 @@ public class DynamoDBCertRecordStoreConnectionTest {
 
         DynamoDBCertRecordStoreConnection dbConn = new DynamoDBCertRecordStoreConnection(dynamoDB, tableName);
         dbConn.setOperationTimeout(10);
-        X509CertRecord certRecord = dbConn.getX509CertRecord("athenz.provider", "1234");
+        X509CertRecord certRecord = dbConn.getX509CertRecord("athenz.provider", "1234", "cn");
 
         assertNotNull(certRecord);
         assertEquals(certRecord.getService(), "cn");
@@ -88,10 +88,10 @@ public class DynamoDBCertRecordStoreConnectionTest {
     @Test
     public void testGetX509CertRecordNotFoundNull() {
 
-        Mockito.doReturn(null).when(table).getItem("instanceId", "1234", "provider", "athenz.provider");
+        Mockito.doReturn(null).when(table).getItem("primaryKey", "athenz.provider:cn:1234");
 
         DynamoDBCertRecordStoreConnection dbConn = new DynamoDBCertRecordStoreConnection(dynamoDB, tableName);
-        X509CertRecord certRecord = dbConn.getX509CertRecord("athenz.provider", "1234");
+        X509CertRecord certRecord = dbConn.getX509CertRecord("athenz.provider", "1234", "cn");
         assertNull(certRecord);
         dbConn.close();
     }
@@ -100,10 +100,10 @@ public class DynamoDBCertRecordStoreConnectionTest {
     public void testGetX509CertRecordNotFoundException() {
 
         Mockito.doThrow(new AmazonDynamoDBException("item not found"))
-                .when(table).getItem("instanceId", "1234", "provider", "athenz.provider");
+                .when(table).getItem("primaryKey", "athenz.provider:cn:1234");
 
         DynamoDBCertRecordStoreConnection dbConn = new DynamoDBCertRecordStoreConnection(dynamoDB, tableName);
-        X509CertRecord certRecord = dbConn.getX509CertRecord("athenz.provider", "1234");
+        X509CertRecord certRecord = dbConn.getX509CertRecord("athenz.provider", "1234", "cn");
         assertNull(certRecord);
         dbConn.close();
     }
@@ -128,7 +128,9 @@ public class DynamoDBCertRecordStoreConnectionTest {
         certRecord.setClientCert(false);
 
         Item item = new Item()
-                .withPrimaryKey("instanceId", certRecord.getInstanceId(), "provider", certRecord.getProvider())
+                .withPrimaryKey("primaryKey", "athenz.provider:cn:1234")
+                .withString("instanceId", certRecord.getInstanceId())
+                .withString("provider", certRecord.getProvider())
                 .withString("service", certRecord.getService())
                 .withString("currentSerial", certRecord.getCurrentSerial())
                 .withString("currentIP", certRecord.getCurrentIP())
@@ -193,8 +195,10 @@ public class DynamoDBCertRecordStoreConnectionTest {
         certRecord.setClientCert(false);
 
         UpdateItemSpec item = new UpdateItemSpec()
-                .withPrimaryKey("instanceId", certRecord.getInstanceId(), "provider", certRecord.getProvider())
+                .withPrimaryKey("primaryKey", "athenz.provider:cn:1234")
                 .withAttributeUpdate(
+                        new AttributeUpdate("instanceId").put(certRecord.getInstanceId()),
+                        new AttributeUpdate("provider").put(certRecord.getProvider()),
                         new AttributeUpdate("service").put(certRecord.getService()),
                         new AttributeUpdate("currentSerial").put(certRecord.getCurrentSerial()),
                         new AttributeUpdate("currentIP").put(certRecord.getCurrentIP()),
@@ -242,12 +246,12 @@ public class DynamoDBCertRecordStoreConnectionTest {
     @Test
     public void testDeleteX509Record() {
         DeleteItemSpec deleteItemSpec = new DeleteItemSpec()
-                .withPrimaryKey("instanceId", "12345", "provider", "athenz.provider");
+                .withPrimaryKey("primaryKey", "athenz.provider:cn:1234");
         Mockito.doReturn(deleteOutcome).when(table).deleteItem(deleteItemSpec);
 
         DynamoDBCertRecordStoreConnection dbConn = new DynamoDBCertRecordStoreConnection(dynamoDB, tableName);
 
-        boolean requestSuccess = dbConn.deleteX509CertRecord("athenz.provider", "12345");
+        boolean requestSuccess = dbConn.deleteX509CertRecord("athenz.provider", "12345", "cn");
         assertTrue(requestSuccess);
         dbConn.close();
     }
@@ -260,7 +264,7 @@ public class DynamoDBCertRecordStoreConnectionTest {
 
         DynamoDBCertRecordStoreConnection dbConn = new DynamoDBCertRecordStoreConnection(dynamoDB, tableName);
 
-        boolean requestSuccess = dbConn.deleteX509CertRecord("athenz.provider", "12345");
+        boolean requestSuccess = dbConn.deleteX509CertRecord("athenz.provider", "12345", "cn");
         assertFalse(requestSuccess);
         dbConn.close();
     }

@@ -2245,7 +2245,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // extract our instance certificate record to make sure it
         // hasn't been revoked already
 
-        X509CertRecord x509CertRecord = instanceCertManager.getX509CertRecord(provider, instanceId);
+        X509CertRecord x509CertRecord = instanceCertManager.getX509CertRecord(provider,
+                instanceId, principalName);
         if (x509CertRecord == null) {
 
             // if the record is not present check to see if we're in recovery
@@ -2342,7 +2343,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // remove the cert record for this instance
 
-        instanceCertManager.deleteX509CertRecord(provider, instanceId);
+        instanceCertManager.deleteX509CertRecord(provider, instanceId, service);
         metric.stopTiming(timerMetric);
     }
      
