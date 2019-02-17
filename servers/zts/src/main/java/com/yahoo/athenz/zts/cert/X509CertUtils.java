@@ -29,21 +29,54 @@ public class X509CertUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(X509RoleCertRequest.class);
     private static final ThreadLocal<StringBuilder> TLS_BUILDER = ThreadLocal.withInitial(() -> new StringBuilder(256));
 
-    public static String extractRequestInstanceId(X509Certificate cert) {
+    public static String extractReqeustInstanceIdFromURI(final List<String> uriList) {
 
-        if (cert == null) {
-            return null;
+        for (String uri : uriList) {
+            if (!uri.startsWith(ZTSConsts.ZTS_CERT_INSTANCE_ID_URI)) {
+                continue;
+            }
+            // skip the provider value
+            int idx = uri.substring(ZTSConsts.ZTS_CERT_INSTANCE_ID_URI.length()).indexOf('/');
+            if (idx != -1) {
+                return uri.substring(ZTSConsts.ZTS_CERT_INSTANCE_ID_URI.length() + idx + 1);
+            }
         }
 
-        final List<String> dnsNames = Crypto.extractX509CertDnsNames(cert);
+        return null;
+    }
+
+    public static String extractReqeustInstanceIdFromDnsNames(final List<String> dnsNames) {
+
         for (String dnsName : dnsNames) {
-            int idx = dnsName.indexOf(ZTSConsts.ZTS_CERT_INSTANCE_ID);
+            int idx = dnsName.indexOf(ZTSConsts.ZTS_CERT_INSTANCE_ID_DNS);
             if (idx != -1) {
                 return dnsName.substring(0, idx);
             }
         }
 
         return null;
+    }
+
+    public static String extractRequestInstanceId(X509Certificate cert) {
+
+        if (cert == null) {
+            return null;
+        }
+
+        // first we're going to look for our uri field to see
+        // if we have an instance id uri available. the format is:
+        // athenz://instanceid/<provider>/<instance-id>
+
+        final List<String> uriList = Crypto.extractX509CertURIs(cert);
+        final String instanceId = extractReqeustInstanceIdFromURI(uriList);
+        if (instanceId != null) {
+            return instanceId;
+        }
+
+        // if no uri, then we'll fall back to our old dnsName field
+
+        final List<String> dnsNames = Crypto.extractX509CertDnsNames(cert);
+        return extractReqeustInstanceIdFromDnsNames(dnsNames);
     }
 
     public static void logCert(final Logger certLogger, final Principal principal,

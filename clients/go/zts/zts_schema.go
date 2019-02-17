@@ -253,6 +253,8 @@ func init() {
 	tInstanceRegisterInformation.Field("csr", "String", false, nil, "the Certificate Signing Request for the expected X.509 certificate in the response")
 	tInstanceRegisterInformation.Field("ssh", "String", true, nil, "if present, return an SSH host certificate. Format is JSON.")
 	tInstanceRegisterInformation.Field("token", "Bool", true, nil, "if true, return a service token signed by ZTS for this service")
+	tInstanceRegisterInformation.Field("expiryTime", "Int32", true, nil, "expiry time in minutes for the certificate (server enforces max expiry)")
+	tInstanceRegisterInformation.Field("hostname", "DomainName", true, nil, "optional hostname in case included in the csr SAN dnsName attribute")
 	sb.AddType(tInstanceRegisterInformation.Build())
 
 	tInstanceRefreshInformation := rdl.NewStructTypeBuilder("Struct", "InstanceRefreshInformation")
@@ -260,6 +262,8 @@ func init() {
 	tInstanceRefreshInformation.Field("csr", "String", true, nil, "the Certificate Signing Request for the expected X.509 certificate in the response")
 	tInstanceRefreshInformation.Field("ssh", "String", true, nil, "if present, return an SSH host certificate. Format is JSON.")
 	tInstanceRefreshInformation.Field("token", "Bool", true, nil, "if true, return a service token signed by ZTS for this service")
+	tInstanceRefreshInformation.Field("expiryTime", "Int32", true, nil, "expiry time in minutes for the certificate (server enforces max expiry)")
+	tInstanceRefreshInformation.Field("hostname", "DomainName", true, nil, "optional hostname in case included in the csr SAN dnsName attribute")
 	sb.AddType(tInstanceRefreshInformation.Build())
 
 	tInstanceIdentity := rdl.NewStructTypeBuilder("Struct", "InstanceIdentity")

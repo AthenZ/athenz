@@ -21,6 +21,7 @@ import java.util.Date;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
+import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.rdl.Timestamp;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
@@ -1026,5 +1027,56 @@ public class CloudStoreTest {
         assertEquals(cloudStore.awsInvalidCredsCache.size(), 0);
 
         cloudStore.close();
+    }
+
+    @Test
+    public void testSetupHttpClient() throws Exception {
+
+        CloudStore cloudStore = new CloudStore();
+        HttpClient client = Mockito.mock(HttpClient.class);
+        Mockito.doThrow(new Exception("Invalid client")).when(client).start();
+
+        try {
+            cloudStore.setupHttpClient(client);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 500);
+        }
+    }
+
+    @Test
+    public void testAWSCredentialsUpdaterExceptions () {
+
+        CloudStore cloudStore = Mockito.mock(CloudStore.class);
+
+        // we're going to test exceptions from three components
+        // and make sure our run does not throw any
+
+        // first operation - all return true
+        // second operation - fetchRoleCredentials throws exception
+        // third operation - removeExpiredCredentials throws exception
+        // forth opreation - removeExpiredInvalidCredentials throws exception
+
+        Mockito.when(cloudStore.fetchRoleCredentials())
+                .thenReturn(true)
+                .thenThrow(new NullPointerException("invalid state"))
+                .thenReturn(true)
+                .thenReturn(true);
+        Mockito.when(cloudStore.removeExpiredCredentials())
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenThrow(new NullPointerException("invalid state"))
+                .thenReturn(true);
+        Mockito.when(cloudStore.removeExpiredInvalidCredentials())
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenThrow(new NullPointerException("invalid state"));
+
+        CloudStore.AWSCredentialsUpdater updater = cloudStore.new AWSCredentialsUpdater();
+        updater.run();
+        updater.run();
+        updater.run();
+        updater.run();
     }
 }

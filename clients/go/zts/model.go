@@ -1675,6 +1675,16 @@ type InstanceRegisterInformation struct {
 	// if true, return a service token signed by ZTS for this service
 	//
 	Token *bool `json:"token,omitempty" rdl:"optional"`
+
+	//
+	// expiry time in minutes for the certificate (server enforces max expiry)
+	//
+	ExpiryTime *int32 `json:"expiryTime,omitempty" rdl:"optional"`
+
+	//
+	// optional hostname in case included in the csr SAN dnsName attribute
+	//
+	Hostname DomainName `json:"hostname,omitempty" rdl:"optional"`
 }
 
 //
@@ -1779,6 +1789,16 @@ type InstanceRefreshInformation struct {
 	// if true, return a service token signed by ZTS for this service
 	//
 	Token *bool `json:"token,omitempty" rdl:"optional"`
+
+	//
+	// expiry time in minutes for the certificate (server enforces max expiry)
+	//
+	ExpiryTime *int32 `json:"expiryTime,omitempty" rdl:"optional"`
+
+	//
+	// optional hostname in case included in the csr SAN dnsName attribute
+	//
+	Hostname DomainName `json:"hostname,omitempty" rdl:"optional"`
 }
 
 //
