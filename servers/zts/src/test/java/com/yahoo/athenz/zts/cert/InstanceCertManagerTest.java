@@ -71,6 +71,7 @@ public class InstanceCertManagerTest {
         instanceManager.setCertSigner(certSigner);
 
         // first time our signer was null and we should get back the cert
+        instanceManager.resetX509CertificateSigner();
         instanceManager.updateX509CertificateSigner();
         assertEquals("caCert", instanceManager.getX509CertificateSigner());
 
@@ -79,6 +80,31 @@ public class InstanceCertManagerTest {
         assertEquals("caCert", instanceManager.getX509CertificateSigner());
 
         instanceManager.shutdown();
+    }
+
+    @Test
+    public void testGetX509CertificateSigner() {
+
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_FACTORY_CLASS,
+                "com.yahoo.athenz.zts.cert.impl.SelfCertSignerFactory");
+        System.setProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_FNAME,
+                "src/test/resources/private_encrypted.key");
+        System.setProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_PASSWORD, "athenz");
+
+        InstanceCertManager instanceManager = new InstanceCertManager(null, null, false);
+
+        // first time our signer was null and we should get back the cert
+        instanceManager.resetX509CertificateSigner();
+        assertNotNull(instanceManager.getX509CertificateSigner());
+
+        // second time it should be a no-op
+        assertNotNull(instanceManager.getX509CertificateSigner());
+
+        instanceManager.shutdown();
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_FACTORY_CLASS);
+        System.clearProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_FNAME);
+        System.clearProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_PASSWORD);
     }
 
     @Test

@@ -435,6 +435,10 @@ public class InstanceCertManager {
         return caX509CertificateSigner;
     }
 
+    void resetX509CertificateSigner() {
+        caX509CertificateSigner = null;
+    }
+
     public SSHCertificates generateSSHCertificates(Principal principal, SSHCertRequest certRequest) {
 
         if (sshSigner == null) {

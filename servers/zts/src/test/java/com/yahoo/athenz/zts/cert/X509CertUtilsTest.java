@@ -20,6 +20,8 @@ import static org.testng.Assert.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.cert.CertificateParsingException;
 import java.util.ArrayList;
 import java.util.List;
@@ -64,6 +66,16 @@ public class X509CertUtilsTest {
     }
 
     @Test
+    public void textExtractRequestInstanceIdURI() throws IOException {
+
+        Path path = Paths.get("src/test/resources/athenz.instanceid.uri.pem");
+        String pem = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(pem);
+
+        assertEquals("id-001", X509CertUtils.extractRequestInstanceId(cert));
+    }
+
+    @Test
     public void testLogRecord() {
 
         File file = new File("src/test/resources/cert_log.pem");
@@ -98,5 +110,29 @@ public class X509CertUtilsTest {
         // all exceptions and the test will pass without any errors
 
         X509CertUtils.logCert(LOGGER, null, "10.11.12.13", "athenz.api", "id1234", null);
+    }
+
+    @Test
+    public void extractReqeustInstanceIdFromURI() {
+
+        // first no list
+
+        List<String> uriList = new ArrayList<>();
+        assertNull(X509CertUtils.extractReqeustInstanceIdFromURI(uriList));
+
+        // does not start with uri
+
+        uriList.add("spiffe://athenz/sa/api");
+        assertNull(X509CertUtils.extractReqeustInstanceIdFromURI(uriList));
+
+        // does not have correct format
+
+        uriList.add("athenz://instanceid/provider-id-001");
+        assertNull(X509CertUtils.extractReqeustInstanceIdFromURI(uriList));
+
+        // finally correct format
+
+        uriList.add("athenz://instanceid/provider/id-001");
+        assertEquals(X509CertUtils.extractReqeustInstanceIdFromURI(uriList), "id-001");
     }
 }

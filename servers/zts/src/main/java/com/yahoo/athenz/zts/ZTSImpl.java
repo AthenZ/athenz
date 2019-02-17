@@ -15,7 +15,6 @@
  */
 package com.yahoo.athenz.zts;
 
-import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -30,6 +29,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.Response;
 
+import com.yahoo.athenz.common.server.dns.HostnameResolver;
+import com.yahoo.athenz.common.server.dns.HostnameResolverFactory;
 import com.yahoo.athenz.zts.cert.*;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.slf4j.Logger;
@@ -86,6 +87,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected Schema schema = null;
     protected PrivateKey privateKey = null;
     protected PrivateKeyStore privateKeyStore = null;
+    protected HostnameResolver hostnameResolver = null;
     protected String privateKeyId = "0";
     protected int roleTokenDefaultTimeout;
     protected int roleTokenMaxTimeout;
@@ -114,7 +116,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected Status successServerStatus = null;
     protected boolean includeRoleCompleteFlag = true;
     protected boolean readOnlyMode = false;
-    protected boolean verifyCertRefreshHostnames = true;
     protected boolean verifyCertRequestIP = false;
     protected boolean verifyCertSubjectOU = false;
 
@@ -239,7 +240,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // check if we need to load any metric support for stats
         
         loadMetricObject();
-        
+
+        // check if we need to load our hostname resolver for cert requests
+
+        loadHostnameResolver();
+
        // create our cloud store if configured
 
         cloudStore = (implCloudStore == null) ? new CloudStore() : implCloudStore;
@@ -398,12 +403,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         readOnlyMode = Boolean.parseBoolean(
                 System.getProperty(ZTSConsts.ZTS_PROP_READ_ONLY_MODE, "false"));
 
-        // configure if during certificate refresh we should validate that
-        // the csr and cert contain the exact same set
-
-        verifyCertRefreshHostnames = Boolean.parseBoolean(
-                System.getProperty(ZTSConsts.ZTS_PROP_CERT_REFRESH_VERIFY_HOSTNAMES, "true"));
-
         // configure if we should verify the IP address that's included
         // in the certificate request
 
@@ -438,12 +437,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         String serverHostName = System.getProperty(ZTSConsts.ZTS_PROP_HOSTNAME);
         if (serverHostName == null || serverHostName.isEmpty()) {
+            serverHostName = "localhost";
             try {
                 InetAddress localhost = java.net.InetAddress.getLocalHost();
                 serverHostName = localhost.getCanonicalHostName();
             } catch (java.net.UnknownHostException e) {
                 LOGGER.info("Unable to determine local hostname: " + e.getMessage());
-                serverHostName = "localhost";
             }
         }
         
@@ -465,7 +464,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     
     ChangeLogStore getChangeLogStore(String homeDir) {
 
-        String clogFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_CHANGE_LOG_STORE_FACTORY_CLASS,
+        final String clogFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_CHANGE_LOG_STORE_FACTORY_CLASS,
                 ZTSConsts.ZTS_CHANGE_LOG_STORE_FACTORY_CLASS);
         ChangeLogStoreFactory clogFactory;
         try {
@@ -483,7 +482,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     
     void loadMetricObject() {
         
-        String metricFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_METRIC_FACTORY_CLASS,
+        final String metricFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_METRIC_FACTORY_CLASS,
                 ZTSConsts.ZTS_METRIC_FACTORY_CLASS);
 
         MetricFactory metricFactory;
@@ -500,10 +499,31 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric = metricFactory.create();
         metric.increment("zts_startup");
     }
-    
+
+    void loadHostnameResolver() {
+
+        final String resolverFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_HOSTNAME_RESOLVER_FACTORY_CLASS);
+        if (resolverFactoryClass == null) {
+            return;
+        }
+
+        HostnameResolverFactory resolverFactory;
+        try {
+            resolverFactory = (HostnameResolverFactory) Class.forName(resolverFactoryClass).newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            LOGGER.error("Invalid HostnameResolverFactory class: " + resolverFactoryClass
+                    + " error: " + e.getMessage());
+            throw new IllegalArgumentException("Invalid HostnameResolverFactory class");
+        }
+
+        // create our hostname resolver
+
+        hostnameResolver = resolverFactory.create();
+    }
+
     void loadServicePrivateKey() {
         
-        String pkeyFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
+        final String pkeyFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
                 ZTSConsts.ZTS_PKEY_STORE_FACTORY_CLASS);
         PrivateKeyStoreFactory pkeyFactory;
         try {
@@ -526,7 +546,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // get our authorities
         
-        String authListConfig = System.getProperty(ZTSConsts.ZTS_PROP_AUTHORITY_CLASSES,
+        final String authListConfig = System.getProperty(ZTSConsts.ZTS_PROP_AUTHORITY_CLASSES,
                 ZTSConsts.ZTS_PRINCIPAL_AUTHORITY_CLASS);
         authorities = new AuthorityList();
 
@@ -543,7 +563,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     
     void loadAuditLogger() {
         
-        String auditFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_AUDIT_LOGGER_FACTORY_CLASS,
+        final String auditFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_AUDIT_LOGGER_FACTORY_CLASS,
                 ZTSConsts.ZTS_AUDIT_LOGGER_FACTORY_CLASS);
         AuditLoggerFactory auditLogFactory;
         
@@ -741,15 +761,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return entry;
     }
     
-    void addServiceNameToList(String fullName, String prefix, List<String> names) {
-        
-        if (!fullName.startsWith(prefix)) {
-            return;
-        }
-        
-        names.add(fullName.substring(prefix.length()));
-    }
-    
     public ServiceIdentityList getServiceIdentityList(ResourceContext ctx, String domainName) {
         
         final String caller = "getserviceidentitylist";
@@ -782,19 +793,28 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(HTTP_REQUEST, domainName);
         metric.increment(caller, domainName);
         
-        List<String> names = new ArrayList<>();
-        String prefix = domainName + ".";
-        
+        ServiceIdentityList result = generateServiceIdentityList(domainName, domainData.getServices());
+        metric.stopTiming(timerMetric);
+        return result;
+    }
+
+    ServiceIdentityList generateServiceIdentityList(final String domainName, List<com.yahoo.athenz.zms.ServiceIdentity> services) {
+
         ServiceIdentityList result = new ServiceIdentityList();
-        List<com.yahoo.athenz.zms.ServiceIdentity> services = domainData.getServices();
         if (services != null) {
+
+            List<String> names = new ArrayList<>();
+            final String prefix = domainName + ".";
+
             for (com.yahoo.athenz.zms.ServiceIdentity service : services) {
-                addServiceNameToList(service.getName(), prefix, names);
+
+                final String fullName = service.getName();
+                if (fullName.startsWith(prefix)) {
+                    names.add(fullName.substring(prefix.length()));
+                }
             }
             result.setNames(names);
         }
-        
-        metric.stopTiming(timerMetric);
         return result;
     }
 
@@ -852,14 +872,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     Assertion ztsAssertion = new Assertion()
                             .setAction(zmsAssertion.getAction())
                             .setResource(zmsAssertion.getResource())
-                            .setRole(zmsAssertion.getRole());
-
-                    if (zmsAssertion.getEffect() != null
-                            && zmsAssertion.getEffect() == com.yahoo.athenz.zms.AssertionEffect.DENY) {
-                        ztsAssertion.setEffect(AssertionEffect.DENY);
-                    } else {
-                        ztsAssertion.setEffect(AssertionEffect.ALLOW);
-                    }
+                            .setRole(zmsAssertion.getRole())
+                            .setEffect(getAssertionEffect(zmsAssertion.getEffect()));
                     ztsAssertions.add(ztsAssertion);
                 }
                 ztsPolicy.setAssertions(ztsAssertions);
@@ -869,7 +883,15 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         return ztsPolicies;
     }
-    
+
+    AssertionEffect getAssertionEffect(com.yahoo.athenz.zms.AssertionEffect effect) {
+        if (effect != null && effect == com.yahoo.athenz.zms.AssertionEffect.DENY) {
+            return AssertionEffect.DENY;
+        } else {
+            return AssertionEffect.ALLOW;
+        }
+    }
+
     public Response getDomainSignedPolicyData(ResourceContext ctx, String domainName, String matchingTag) {
         
         final String caller = "getdomainsignedpolicydata";
@@ -1581,7 +1603,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         try {
             roleName = URLDecoder.decode(roleName, "UTF-8");
-        } catch (UnsupportedEncodingException ex) {
+        } catch (Exception ex) {
             LOGGER.error("Unable to decode {} - error {}", roleName, ex.getMessage());
         }
         validate(roleName, TYPE_AWS_ARN_ROLE_NAME, caller);
@@ -1765,9 +1787,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         } catch (CryptoException ex) {
             throw requestError("unable to parse PKCS10 CSR: " + ex.getMessage(), caller, domain);
         }
-        
-        if (!certReq.validate(providerService, domain, service, null,
-                validCertSubjectOrgValues, authorizer, errorMsg)) {
+
+        final String serviceDnsSuffix = dataStore.getDomainData(domain).getCertDnsDomain();
+        final List<String> providerDnsSuffixList = dataStore.getDataCache(ZTSConsts.ATHENZ_SYS_DOMAIN)
+                .getProviderDnsSuffixList(provider);
+
+        if (!certReq.validate(domain, service, validCertSubjectOrgValues, providerDnsSuffixList,
+                serviceDnsSuffix, info.getHostname(), hostnameResolver, errorMsg)) {
             throw requestError("CSR validation failed - " + errorMsg.toString(), caller, domain);
         }
 
@@ -1781,8 +1807,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
         
         InstanceConfirmation instance = generateInstanceConfirmObject(ctx, provider, domain,
-                service, info.getAttestationData(), certReqInstanceId, certReq,
-                instanceProvider.getProviderScheme());
+                service, info.getAttestationData(), certReqInstanceId, info.getHostname(),
+                certReq, instanceProvider.getProviderScheme());
 
         // make sure to close our provider when its no longer needed
 
@@ -1827,6 +1853,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 validCertSubjectOrgUnitValues)) {
             throw requestError("CSR Subject OrgUnit validation failed", caller, domain);
         }
+
+        // update the expiry time if one is provided in the request
+
+        certExpiryTime = getCertRequestExpiryTime(certExpiryTime, info.getExpiryTime());
 
         // generate certificate for the instance
 
@@ -1896,7 +1926,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
     InstanceConfirmation generateInstanceConfirmObject(ResourceContext ctx, final String provider,
             final String domain, final String service, final String attestationData,
-            final String instanceId, X509CertRequest certReq, InstanceProvider.Scheme providerScheme) {
+            final String instanceId, final String instanceHostname, X509CertRequest certReq,
+            InstanceProvider.Scheme providerScheme) {
         
         InstanceConfirmation instance = new InstanceConfirmation()
                 .setAttestationData(attestationData)
@@ -1907,18 +1938,21 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         Map<String, String> attributes = new HashMap<>();
         attributes.put(ZTSConsts.ZTS_INSTANCE_ID, instanceId);
-        attributes.put(ZTSConsts.ZTS_INSTANCE_SAN_DNS, String.join(",", certReq.getDnsNames()));
+        attributes.put(ZTSConsts.ZTS_INSTANCE_SAN_DNS, String.join(",", certReq.getProviderDnsNames()));
         attributes.put(ZTSConsts.ZTS_INSTANCE_CLIENT_IP, ServletRequestUtil.getRemoteAddress(ctx.request()));
         final List<String> certReqIps = certReq.getIpAddresses();
         if (certReqIps != null && !certReqIps.isEmpty()) {
             attributes.put(ZTSConsts.ZTS_INSTANCE_SAN_IP, String.join(",", certReqIps));
         }
 
-        // we have verified that we already have a single spiffe uri if present
+        // we have verified our athenz and spiffe uris but we're going
+        // to send them all to the provider in case provider wants
+        // to do further verification with additional uris if any were
+        // included in the csr
 
         final List<String> certUris = certReq.getUris();
         if (certUris != null && !certUris.isEmpty()) {
-            attributes.put(ZTSConsts.ZTS_INSTANCE_SAN_URI, certUris.get(0));
+            attributes.put(ZTSConsts.ZTS_INSTANCE_SAN_URI, String.join(",", certUris));
         }
         
         // if we have a cloud account setup for this domain, we're going
@@ -1934,6 +1968,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         if (providerScheme == InstanceProvider.Scheme.CLASS) {
             attributes.put(ZTSConsts.ZTS_INSTANCE_CSR_PUBLIC_KEY, Crypto.extractX509CSRPublicKey(certReq.getCertReq()));
+        }
+
+        // include the hostname if one is specified
+
+        if (instanceHostname != null && !instanceHostname.isEmpty()) {
+            attributes.put(ZTSConsts.ZTS_INSTANCE_HOSTNAME, instanceHostname);
         }
 
         instance.setAttributes(attributes);
@@ -2030,7 +2070,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         InstanceIdentity identity;
         if (x509Csr != null) {
             identity = processProviderX509RefreshRequest(ctx, principal, domain, service, provider,
-                    providerService, instanceId, info, cert, caller);
+                    instanceId, info, cert, caller);
         } else {
             identity = processProviderSSHRefreshRequest(ctx, principal, domain, service, provider,
                     instanceId, sshCsr, caller);
@@ -2042,8 +2082,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     
     InstanceIdentity processProviderX509RefreshRequest(ResourceContext ctx, final Principal principal,
             final String domain, final String service, final String provider,
-            final Principal providerService, final String instanceId,
-            InstanceRefreshInformation info, X509Certificate cert, final String caller) {
+            final String instanceId, InstanceRefreshInformation info, X509Certificate cert,
+            final String caller) {
 
         // parse and validate our CSR
         
@@ -2053,20 +2093,22 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         } catch (CryptoException ex) {
             throw requestError("unable to parse PKCS10 CSR", caller, domain);
         }
-        
+
+        final String serviceDnsSuffix = dataStore.getDomainData(domain).getCertDnsDomain();
+        final List<String> providerDnsSuffixList = dataStore.getDataCache(ZTSConsts.ATHENZ_SYS_DOMAIN)
+                .getProviderDnsSuffixList(provider);
+
         StringBuilder errorMsg = new StringBuilder(256);
-        if (!certReq.validate(providerService, domain, service, instanceId,
-                validCertSubjectOrgValues, authorizer, errorMsg)) {
+        if (!certReq.validate(domain, service, validCertSubjectOrgValues, providerDnsSuffixList,
+                serviceDnsSuffix, info.getHostname(), hostnameResolver, errorMsg)) {
             throw requestError("CSR validation failed - " + errorMsg.toString(), caller, domain);
         }
-        
-        // verify that the dns names in the certificate match to
-        // the values specified in the CSR. Since the provider is
-        // responsible for validating the SAN DNS entries, this is
-        // configured as an optional check and can be skipped.
 
-        if (verifyCertRefreshHostnames && !certReq.validateDnsNames(cert)) {
-            throw requestError("dnsName attribute mismatch in CSR", caller, domain);
+        // validate that the instance id in csr matches to what is
+        // specified in the uri and in the principal's certificate
+
+        if (!certReq.validateInstanceId(instanceId, cert)) {
+            throw requestError("CSR validation failed - instance id mismatch", caller, domain);
         }
         
         // validate attestation data is included in the request
@@ -2077,8 +2119,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
         
         InstanceConfirmation instance = generateInstanceConfirmObject(ctx, provider,
-                domain, service, info.getAttestationData(), instanceId, certReq,
-                instanceProvider.getProviderScheme());
+                domain, service, info.getAttestationData(), instanceId, info.getHostname(),
+                certReq, instanceProvider.getProviderScheme());
         
         // make sure to close our provider when its no longer needed
 
@@ -2150,6 +2192,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (x509CertRecord != null && x509CertRecord.getClientCert()) {
             certUsage = ZTSConsts.ZTS_CERT_USAGE_CLIENT;
         }
+
+        // update the expiry time if one is provided in the request
+
+        certExpiryTime = getCertRequestExpiryTime(certExpiryTime, info.getExpiryTime());
 
         // generate identity with the certificate
 
@@ -2236,6 +2282,22 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         identity.setInstanceId(instanceId);
 
         return identity;
+    }
+
+    int  getCertRequestExpiryTime(int certExpiryTime, Integer reqExpiryTime) {
+
+        if (reqExpiryTime == null || reqExpiryTime < 0) {
+            return certExpiryTime;
+        }
+
+        // we already verified that reqExpiryTime is not negative
+        // so if we certExpiryTime is 0, we'll just return that value
+
+        if (certExpiryTime == 0) {
+            return reqExpiryTime;
+        } else {
+            return reqExpiryTime < certExpiryTime ? reqExpiryTime : certExpiryTime;
+        }
     }
 
     X509CertRecord getValidatedX509CertRecord(ResourceContext ctx, final String provider,
@@ -2346,7 +2408,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         instanceCertManager.deleteX509CertRecord(provider, instanceId, service);
         metric.stopTiming(timerMetric);
     }
-     
+
+    @Deprecated
     @Override
     public Identity postInstanceRefreshRequest(ResourceContext ctx, String domain,
             String service, InstanceRefreshRequest req) {
@@ -2581,7 +2644,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return Response.status(ResourceException.CREATED).entity(certs).build();
     }
 
+    /// CLOVER:OFF
     // this method will be removed and replaced with call to postInstanceRegisterInformation
+    @Deprecated
     @Override
     public Identity postOSTKInstanceInformation(ResourceContext ctx, OSTKInstanceInformation info) {
 
@@ -2703,7 +2768,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
     
     // this method will be removed and replaced with call to postInstanceRefreshInformation
-
+    @Deprecated
     @Override
     public Identity postOSTKInstanceRefreshRequest(ResourceContext ctx, String domain,
             String service, OSTKInstanceRefreshRequest req) {
@@ -2840,7 +2905,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.stopTiming(timerMetric);
         return identity;
     }
-    
+    ///CLOVER:ON
+
     long getSvcTokenExpiryTime(Integer expiryTime) {
         
         long requestedValue = (expiryTime != null) ? expiryTime : ZTS_NTOKEN_DEFAULT_EXPIRY;
@@ -3057,17 +3123,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // process the DomainMetrics request in order to increment each of its attrs
         
         for (DomainMetric dm: dmList) {
-            DomainMetricType dmType = dm.getMetricType();
-            if (dmType == null) {
-                LOGGER.error("postDomainMetrics: ignore missing metric received for domain: {}", domainName);
-                continue;
-            }
-
-            final String dmt = dmType.toString().toLowerCase();
+            final String dmt = dm.getMetricType().toString().toLowerCase();
             int count = dm.getMetricVal();
             if (count <= 0) {
                 LOGGER.error("postDomainMetrics: ignore metric: {} invalid counter {} received for domain {}",
-                        dmt, count,  domainName);
+                        dmt, count, domainName);
                 continue;
             }
             String metricName = DOM_METRIX_PREFIX + dmt;

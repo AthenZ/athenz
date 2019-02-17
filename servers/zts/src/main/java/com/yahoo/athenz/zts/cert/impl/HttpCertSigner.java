@@ -70,16 +70,7 @@ public class HttpCertSigner implements CertSigner {
         // Instantiate and start our HttpClient
         
         httpClient = new HttpClient(ZTSUtils.createSSLContextObject(new String[] {"TLSv1.2"}, privateKeyStore));
-        httpClient.setFollowRedirects(false);
-        httpClient.setConnectTimeout(connectTimeout);
-        httpClient.setStopTimeout(TimeUnit.MILLISECONDS.convert(requestTimeout, TimeUnit.SECONDS));
-        try {
-            httpClient.start();
-        } catch (Exception ex) {
-            LOGGER.error("HttpCertSigner: unable to start http client", ex);
-            throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
-                    "Http client not available");
-        }
+        setupHttpClient(httpClient, requestTimeout, connectTimeout);
 
         // generate our post and get certificate URIs
 
@@ -91,16 +82,39 @@ public class HttpCertSigner implements CertSigner {
         }
         x509CertUri = serverBaseUri + "/x509";
     }
-    
+
+    void setupHttpClient(HttpClient client, long requestTimeout, long connectTimeout) {
+
+        client.setFollowRedirects(false);
+        client.setConnectTimeout(connectTimeout);
+        client.setStopTimeout(TimeUnit.MILLISECONDS.convert(requestTimeout, TimeUnit.SECONDS));
+        try {
+            client.start();
+        } catch (Exception ex) {
+            LOGGER.error("HttpCertSigner: unable to start http client", ex);
+            throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
+                    "Http client not available");
+        }
+    }
+
+    void setHttpClient(HttpClient client) {
+        stopHttpClient();
+        this.httpClient = client;
+    }
+
+    private void stopHttpClient() {
+        if (httpClient == null) {
+            return;
+        }
+        try {
+            httpClient.stop();
+        } catch (Exception ignored) {
+        }
+    }
+
     @Override
     public void close() {
-        try {
-            if (httpClient != null) {
-                httpClient.stop();
-            }
-        } catch (Exception ex) {
-            LOGGER.error("close: unable to stop httpClient", ex);
-        }
+        stopHttpClient();
     }
     
     @Override
@@ -170,7 +184,8 @@ public class HttpCertSigner implements CertSigner {
 
         ContentResponse response = null;
         for (int i = 0; i < requestRetryCount; i++) {
-            if ((response = processX509CertRequest(csr, extKeyUsage, expireMins, i + 1)) != null) {
+            response = processX509CertRequest(csr, extKeyUsage, expireMins, i + 1);
+            if (response != null) {
                 break;
             }
         }
@@ -225,10 +240,5 @@ public class HttpCertSigner implements CertSigner {
 
         X509CertSignObject pemCert = JSON.fromString(data, X509CertSignObject.class);
         return (pemCert != null) ? pemCert.getPem() : null;
-    }
-    
-    void setHttpClient(HttpClient client) {
-        close();
-        this.httpClient = client;
     }
 }

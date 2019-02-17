@@ -15,12 +15,10 @@
  */
 package com.yahoo.athenz.zts.cert;
 
+import java.util.List;
 import java.util.Set;
-
-import com.yahoo.athenz.auth.Authorizer;
-import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.util.CryptoException;
-import com.yahoo.athenz.zts.ZTSConsts;
+import com.yahoo.athenz.common.server.dns.HostnameResolver;
 
 public class X509ServiceCertRequest extends X509CertRequest {
 
@@ -28,9 +26,10 @@ public class X509ServiceCertRequest extends X509CertRequest {
         super(csr);
     }
 
-    public boolean validate(Principal providerService, String domain, String service,
-            String reqInstanceId, Set<String> validSubjectOValues, Authorizer authorizer,
-            StringBuilder errorMsg) {
+    public boolean validate(final String domain, final String service,
+        final Set<String> validSubjectOValues, final List<String> providerDnsSuffixList,
+        final String serviceDnsSuffix, final String instanceHostname,
+        HostnameResolver hostnameResolver, StringBuilder errorMsg) {
 
         // parse the cert request (csr) to extract the DNS entries
         // along with IP addresses. Validate that all hostnames
@@ -38,14 +37,6 @@ public class X509ServiceCertRequest extends X509CertRequest {
         // hostname is specified
 
         if (!parseCertRequest(errorMsg)) {
-            return false;
-        }
-
-        // if specified, we must make sure it matches to the given value
-
-        if (reqInstanceId != null && !instanceId.equals(reqInstanceId)) {
-            errorMsg.append("Instance id mismatch - URI: ").append(reqInstanceId)
-                    .append(" CSR: ").append(instanceId);
             return false;
         }
 
@@ -61,13 +52,9 @@ public class X509ServiceCertRequest extends X509CertRequest {
         // validate that the dnsSuffix used in the dnsName attribute has
         // been authorized to be used by the given provider
 
-        if (dnsSuffix != null && authorizer != null) {
-            final String dnsResource = ZTSConsts.ZTS_RESOURCE_DNS + dnsSuffix;
-            if (!authorizer.access(ZTSConsts.ZTS_ACTION_LAUNCH, dnsResource, providerService, null)) {
-                errorMsg.append("Provider '").append(providerService.getFullName())
-                        .append("' not authorized to handle ").append(dnsSuffix).append(" dns entries");
-                return false;
-            }
+        if (!validateDnsNames(providerDnsSuffixList, serviceDnsSuffix, instanceHostname, hostnameResolver)) {
+            errorMsg.append("Unable to validate CSR SAN dnsNames - invalid dns suffix");
+            return false;
         }
 
         // validate the O field in the certificate if necessary
