@@ -11,6 +11,8 @@ type InstanceRegisterInformation Struct {
     String csr; //the Certificate Signing Request for the expected X.509 certificate in the response
     String ssh (optional); //if present, return an SSH host certificate. Format is JSON.
     Bool token (optional); //if true, return a service token signed by ZTS for this service
+    Int32 expiryTime (optional); //expiry time in minutes for the certificate (server enforces max expiry)
+    DomainName hostname (optional); //optional hostname in case included in the csr SAN dnsName attribute
 }
 
 type InstanceRefreshInformation Struct {
@@ -18,6 +20,8 @@ type InstanceRefreshInformation Struct {
     String csr (optional); //the Certificate Signing Request for the expected X.509 certificate in the response
     String ssh (optional); //if present, return an SSH host certificate. Format is JSON.
     Bool token (optional); //if true, return a service token signed by ZTS for this service
+    Int32 expiryTime (optional); //expiry time in minutes for the certificate (server enforces max expiry)
+    DomainName hostname (optional); //optional hostname in case included in the csr SAN dnsName attribute
 }
 
 type InstanceIdentity Struct {

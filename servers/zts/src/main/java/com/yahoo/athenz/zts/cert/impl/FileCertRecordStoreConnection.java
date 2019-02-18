@@ -86,7 +86,7 @@ public class FileCertRecordStoreConnection implements CertRecordStoreConnection 
             // specified number of minutes then we'll delete it
             
             File file = new File(rootDir, fname);
-            if (currentTime - file.lastModified() < expiryTimeMins * 60 * 1000) {
+            if (notExpired(currentTime, file.lastModified(), expiryTimeMins)) {
                 continue;
             }
             //noinspection ResultOfMethodCallIgnored
@@ -94,6 +94,10 @@ public class FileCertRecordStoreConnection implements CertRecordStoreConnection 
             count += 1;
         }
         return count;
+    }
+
+    boolean notExpired(long currentTime, long lastModified, int expiryTimeMins) {
+        return (currentTime - lastModified < expiryTimeMins * 60 * 1000);
     }
 
     private String getRecordFileName(final String provider, final String instanceId, final String service) {

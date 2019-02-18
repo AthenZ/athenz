@@ -18,18 +18,20 @@ package com.yahoo.athenz.zts.cert;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.yahoo.athenz.common.server.dns.HostnameResolver;
+import com.yahoo.athenz.zts.ZTSConsts;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
-import com.yahoo.athenz.zts.ZTSConsts;
 
 public class X509CertRequest {
 
@@ -38,11 +40,11 @@ public class X509CertRequest {
 
     protected PKCS10CertificationRequest certReq;
     protected String instanceId = null;
-    protected String dnsSuffix = null;
     protected String normCsrPublicKey = null;
 
     protected String cn = null;
     protected List<String> dnsNames;
+    protected List<String> providerDnsNames;
     protected List<String> ipAddresses;
     protected List<String> uris;
     
@@ -55,6 +57,7 @@ public class X509CertRequest {
         dnsNames = Crypto.extractX509CSRDnsNames(certReq);
         ipAddresses = Crypto.extractX509CSRIPAddresses(certReq);
         uris = Crypto.extractX509CSRURIs(certReq);
+        providerDnsNames = new ArrayList<>();
     }
     
     public PKCS10CertificationRequest getCertReq() {
@@ -65,38 +68,126 @@ public class X509CertRequest {
         this.certReq = certReq;
     }
 
-    boolean parseCertRequest(StringBuilder errorMsg) {
+    public boolean parseCertRequest(StringBuilder errorMsg) {
         
         // first we need to determine our instance id and dns suffix
 
-        for (String dnsName : dnsNames) {
-            int idx = dnsName.indexOf(ZTSConsts.ZTS_CERT_INSTANCE_ID);
-            if (instanceId == null && idx != -1) {
-                instanceId = dnsName.substring(0, idx);
-                dnsSuffix = dnsName.substring(idx + ZTSConsts.ZTS_CERT_INSTANCE_ID.length());
-                break;
-            }
-        }
-        
-        // if we have no instance id or suffix, we have an invalid request
-        
-        if (instanceId == null || dnsSuffix == null || instanceId.isEmpty() || dnsSuffix.isEmpty()) {
-            errorMsg.append("CSR does not include required instance id DNS hostname entry");
+        if (!extractInstanceId()) {
+            errorMsg.append("CSR does not include required instance id entry");
             return false;
         }
-        
+
+        return true;
+    }
+
+    boolean extractInstanceId() {
+
+        // first check to see if we have the instance id is provided
+        // in the athenz uri field
+
+        instanceId = X509CertUtils.extractReqeustInstanceIdFromURI(uris);
+
+        // if we have no instance id from the URI, then we're going
+        // to fetch it from the dns list
+
+        if (instanceId == null) {
+            instanceId = X509CertUtils.extractReqeustInstanceIdFromDnsNames(dnsNames);
+        }
+
+        return instanceId != null && !instanceId.isEmpty();
+    }
+
+    /**
+     * Verifies that the CSR contains dnsName entries that have
+     * one of the following provided dns suffixes.
+     * @param providerDnsSuffixList dns suffixes registered for the provider
+     * @param serviceDnsSuffix dns suffix registered for the service
+     * @return true if all dnsNames in the CSR end with given suffixes
+     */
+    public boolean validateDnsNames(final List<String> providerDnsSuffixList, final String serviceDnsSuffix,
+            final String instanceHostname, HostnameResolver hostnameResolver) {
+
+        // if the CSR has no dns names then we have nothing to check
+
+        if (dnsNames.isEmpty()) {
+            return true;
+        }
+
+        // make sure our provider dns list is empty
+
+        providerDnsNames.clear();
+
         // verify that our dns name suffixes match before returning success
-        
-        final String dnsSuffixCheck = "." + dnsSuffix;
+        // if we have a match with our provider dns suffix then we're going
+        // to keep track of those entries in a separate list so we can
+        // send them to the provider for verification (provider does not
+        // have knowledge about the additional service dns domain entries
+        // so it doesn't need to get those
+
+        final String serviceDnsSuffixCheck = (serviceDnsSuffix != null) ? "." + serviceDnsSuffix : null;
+        List<String> providerDnsSuffixCheckList = null;
+        if (providerDnsSuffixList != null && !providerDnsSuffixList.isEmpty()) {
+            providerDnsSuffixCheckList = new ArrayList<>();
+            for (String dnsSuffix : providerDnsSuffixList) {
+                providerDnsSuffixCheckList.add("." + dnsSuffix);
+            }
+        }
+
         for (String dnsName : dnsNames) {
-            if (!dnsName.endsWith(dnsSuffixCheck)) {
-                errorMsg.append("DNS Name ").append(dnsName)
-                    .append(" does not end with expected suffix: ").append(dnsSuffix);
+            if (!dnsSuffixCheck(dnsName, providerDnsSuffixCheckList, serviceDnsSuffixCheck,
+                    instanceHostname, hostnameResolver)) {
                 return false;
             }
         }
-        
+
         return true;
+    }
+
+    boolean dnsSuffixCheck(final String dnsName, final List<String> providerDnsSuffixCheckList,
+            final String serviceDnsSuffixCheck, final String instanceHostname,
+             HostnameResolver hostnameResolver) {
+
+        if (providerDnsSuffixCheckList != null) {
+            for (String dnsSuffixCheck : providerDnsSuffixCheckList) {
+                if (dnsName.endsWith(dnsSuffixCheck)) {
+                    providerDnsNames.add(dnsName);
+                    return true;
+                }
+            }
+        }
+
+        if (serviceDnsSuffixCheck != null && dnsName.endsWith(serviceDnsSuffixCheck)) {
+            return true;
+        }
+
+        if (instanceHostnameCheck(dnsName, instanceHostname, hostnameResolver)) {
+            return true;
+        }
+
+        LOGGER.error("dnsSuffixCheck - dnsName {} does not end with provider {} / service {} suffix or hostname {}",
+                dnsName, providerDnsSuffixCheckList != null ? String.join(",", providerDnsSuffixCheckList) : "",
+                serviceDnsSuffixCheck, instanceHostname);
+        return false;
+    }
+
+    boolean instanceHostnameCheck(final String dnsName, final String instanceHostname, HostnameResolver hostnameResolver) {
+
+        // make sure we have valid value to check for
+
+        if (instanceHostname == null) {
+            return false;
+        }
+
+        // if no match there is no need to check with resolver
+
+        if (!dnsName.equalsIgnoreCase(instanceHostname)) {
+            return false;
+        }
+
+        // if resolver is given we need to make sure the value given
+        // is a valid hostname
+
+        return hostnameResolver == null ? true : hostnameResolver.isValidHostname(instanceHostname);
     }
 
     /**
@@ -123,6 +214,31 @@ public class X509CertRequest {
             }
         }
         
+        return true;
+    }
+
+    /**
+     * Compare instance id specified in this CSR and given X509 Certificate
+     * to make sure they match.
+     * @param reqInstanceId instance id specified in the request uri
+     * @param cert X509 Certificate to compare against
+     * @return true if both CSR and X509 Cert contain identical instance id
+     */
+    public boolean validateInstanceId(final String reqInstanceId, X509Certificate cert) {
+
+        // if specified, we must make sure it matches to the given value
+
+        if (!instanceId.equals(reqInstanceId)) {
+            LOGGER.error("Instanceid mismatch  csr: {}, uri: {}", instanceId, reqInstanceId);
+            return false;
+        }
+
+        final String certInstanceId = X509CertUtils.extractRequestInstanceId(cert);
+        if (!instanceId.equals(certInstanceId)) {
+            LOGGER.error("Instanceid mismatch  csr: {}, cert: {}", instanceId, certInstanceId);
+            return false;
+        }
+
         return true;
     }
 
@@ -231,7 +347,7 @@ public class X509CertRequest {
         return true;
     }
     
-    public boolean validatePublicKeys(String publicKey) {
+    public boolean validatePublicKeys(final String publicKey) {
 
         if (publicKey == null) {
             LOGGER.error("comparePublicKeys: No public key provided for validation");
@@ -246,15 +362,11 @@ public class X509CertRequest {
             return false;
         }
 
-        Matcher matcher = WHITESPACE_PATTERN.matcher(publicKey);
-        String normZtsPublicKey = matcher.replaceAll("");
-
-        if (!normZtsPublicKey.equals(normCsrPublicKey)) {
-            LOGGER.error("comparePublicKeys: Public key mismatch: '{}' vs '{}'",
-                    normCsrPublicKey, normZtsPublicKey);
+        if (!compareCsrPublicKey(publicKey)) {
+            LOGGER.error("comparePublicKeys: Public key mismatch");
             return false;
         }
-        
+
         return true;
     }
     
@@ -273,17 +385,19 @@ public class X509CertRequest {
             LOGGER.error("unable to extract certificate public key");
             return false;
         }
-        
-        Matcher matcher = WHITESPACE_PATTERN.matcher(certPublicKey);
-        String normCertPublicKey = matcher.replaceAll("");
 
-        if (!normCertPublicKey.equals(normCsrPublicKey)) {
-            LOGGER.error("comparePublicKeys: Public key mismatch: '{}' vs '{}'",
-                    normCsrPublicKey, normCertPublicKey);
+        if (!compareCsrPublicKey(certPublicKey)) {
+            LOGGER.error("comparePublicKeys: Public key mismatch");
             return false;
         }
-        
+
         return true;
+    }
+
+    boolean compareCsrPublicKey(final String publicKey) {
+        Matcher matcher = WHITESPACE_PATTERN.matcher(publicKey);
+        final String normPublicKey = matcher.replaceAll("");
+        return normPublicKey.equals(normCsrPublicKey);
     }
 
     public boolean validateIPAddress(final String ip) {
@@ -326,13 +440,25 @@ public class X509CertRequest {
 
         // we must only have a single spiffe uri in the list
 
-        if (uris.size() != 1) {
-            LOGGER.error("validateSpiffeURI: invalid number {} of values in uri list",
-                    uris.size());
-            return false;
+        String spiffeUri = null;
+        for (String uri : uris) {
+
+            if (!uri.toLowerCase().startsWith(ZTSConsts.ZTS_CERT_SPIFFE_URI)) {
+                continue;
+            }
+
+            if (spiffeUri != null) {
+                LOGGER.error("Multiple SPIFFE URIs in the CSR: {}/{}", uri, spiffeUri);
+                return false;
+            }
+
+            spiffeUri = uri;
         }
 
-        final String spiffeUri = uris.get(0);
+        if (spiffeUri == null) {
+            return true;
+        }
+
         URI uri;
         try {
             uri = new URI(spiffeUri);
@@ -341,17 +467,11 @@ public class X509CertRequest {
             return false;
         }
 
-        final String uriScheme = uri.getScheme();
         final String uriPath = uri.getPath();
         final String uriHost = uri.getHost();
 
-        if (uriScheme == null || uriPath == null || uriHost == null) {
+        if (uriPath == null || uriPath.isEmpty() || uriHost == null || uriHost.isEmpty()) {
             LOGGER.error("validateSpiffeURI: invalid uri {}", spiffeUri);
-            return false;
-        }
-
-        if (!uriScheme.equalsIgnoreCase("spiffe")) {
-            LOGGER.error("validateSpiffeURI: invalid uri scheme: {}", spiffeUri);
             return false;
         }
 
@@ -385,13 +505,13 @@ public class X509CertRequest {
     public String getInstanceId() {
         return instanceId;
     }
-
-    public String getDnsSuffix() {
-        return dnsSuffix;
-    }
     
     public List<String> getDnsNames() {
         return dnsNames;
+    }
+
+    public List<String> getProviderDnsNames() {
+        return providerDnsNames;
     }
 
     public List<String> getUris() {

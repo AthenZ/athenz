@@ -81,15 +81,7 @@ public class CloudStore {
         // Instantiate and start our HttpClient
 
         httpClient = new HttpClient();
-        httpClient.setFollowRedirects(false);
-        httpClient.setStopTimeout(1000);
-        try {
-            httpClient.start();
-        } catch (Exception ex) {
-            LOGGER.error("CloudStore: unable to start http client", ex);
-            throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
-                    "Http client not available");
-        }
+        setupHttpClient(httpClient);
 
         // check to see if we are given region name
 
@@ -108,6 +100,19 @@ public class CloudStore {
         awsEnabled = Boolean.parseBoolean(
                 System.getProperty(ZTSConsts.ZTS_PROP_AWS_ENABLED, "false"));
         initializeAwsSupport();
+    }
+
+    void setupHttpClient(HttpClient client) {
+
+        client.setFollowRedirects(false);
+        client.setStopTimeout(1000);
+        try {
+            client.start();
+        } catch (Exception ex) {
+            LOGGER.error("CloudStore: unable to start http client", ex);
+            throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
+                    "Http client not available");
+        }
     }
 
     public void close() {

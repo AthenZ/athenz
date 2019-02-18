@@ -20,6 +20,7 @@ import static org.testng.Assert.*;
 import java.util.concurrent.TimeoutException;
 
 import com.yahoo.athenz.common.server.cert.CertSigner;
+import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSConsts;
 
 import org.eclipse.jetty.client.HttpClient;
@@ -145,6 +146,17 @@ public class HttpCertSignerTest {
 
         String pem = certSigner.generateX509Certificate("csr", null, 0);
         assertEquals(pem, "pem-value");
+
+        pem = certSigner.generateX509Certificate("csr", ZTSConsts.ZTS_CERT_USAGE_CLIENT, 0);
+        assertEquals(pem, "pem-value");
+
+        pem = certSigner.generateX509Certificate("csr", ZTSConsts.ZTS_CERT_USAGE_CLIENT, 30);
+        assertEquals(pem, "pem-value");
+
+        certSigner.requestTimeout = 120;
+        pem = certSigner.generateX509Certificate("csr", ZTSConsts.ZTS_CERT_USAGE_CLIENT, 30);
+        assertEquals(pem, "pem-value");
+
         certSigner.close();
     }
 
@@ -297,5 +309,61 @@ public class HttpCertSignerTest {
         certSigner.close();
 
         System.clearProperty(ZTSConsts.ZTS_PROP_CERTSIGN_MAX_EXPIRY_TIME);
+    }
+
+    @Test
+    public void testInitInvalidUri() {
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERTSIGN_BASE_URI);
+
+        HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
+
+        try {
+            certFactory.create();
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("No CertSigner base uri specified"));
+        }
+
+        System.setProperty(ZTSConsts.ZTS_PROP_CERTSIGN_BASE_URI, "https://localhost:443/certsign/v2");
+    }
+
+    @Test
+    public void testSetupHttpClient() throws Exception {
+
+        HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
+        HttpCertSigner certSigner = (HttpCertSigner) certFactory.create();
+        HttpClient client = Mockito.mock(HttpClient.class);
+        Mockito.doThrow(new Exception("Invalid client")).when(client).start();
+
+        try {
+            certSigner.setupHttpClient(client, 120, 120);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 500);
+        }
+    }
+
+    @Test
+    public void testStopNullHttpClient() throws Exception {
+
+        HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
+        HttpCertSigner certSigner = (HttpCertSigner) certFactory.create();
+        certSigner.setHttpClient(null);
+        certSigner.close();
+    }
+
+    @Test
+    public void testLoadServicePrivateKeyInvalid() {
+
+        System.setProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS, "invalid.class");
+        try {
+            HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
+            certFactory.create();
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertTrue(ex.getMessage().contains("Invalid private key store"));
+        }
+        System.clearProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS);
     }
 }

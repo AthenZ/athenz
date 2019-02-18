@@ -15,12 +15,9 @@
  */
 package com.yahoo.athenz.zts.cache;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.Map;
+import java.util.*;
 
+import com.yahoo.athenz.zts.ZTSConsts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,10 +42,13 @@ public class DataCache {
     private final Map<String, Set<String>> hostCache;
     private final Map<String, Set<String>> awsRoleCache;
     private final Map<String, String> publicKeyCache;
+    private final Map<String, List<String>> providerDnsSuffixCache;
 
     public static final String ACTION_ASSUME_ROLE = "assume_role";
     private static final String ACTION_ASSUME_AWS_ROLE = "assume_aws_role";
-    
+    private static final String ACTION_LAUNCH = "launch";
+    private static final String RESOURCE_DNS_PREFIX = "sys.auth:dns.";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(DataCache.class);
     
     public DataCache() {
@@ -59,6 +59,7 @@ public class DataCache {
         hostCache = new HashMap<>();
         awsRoleCache = new HashMap<>();
         publicKeyCache = new HashMap<>();
+        providerDnsSuffixCache = new HashMap<>();
     }
     
     public void setDomainData(DomainData domainData) {
@@ -148,7 +149,33 @@ public class DataCache {
         
         processRoleTrustDomain(role.getName(), role.getTrust());
     }
-    
+
+    void processProviderDNSSuffixAssertion(Assertion assertion, Map<String, Role> roles) {
+
+        // make sure we're processing dns suffix assertion
+
+        final String resource = assertion.getResource();
+        if (!resource.startsWith(RESOURCE_DNS_PREFIX)) {
+            return;
+        }
+
+        Role role = roles.get(assertion.getRole());
+        if (role == null || role.getRoleMembers() == null) {
+            return;
+        }
+
+        final String dnsSuffix = resource.substring(RESOURCE_DNS_PREFIX.length());
+        for (RoleMember roleMember : role.getRoleMembers()) {
+
+            final String memberName = roleMember.getMemberName();
+            if (!providerDnsSuffixCache.containsKey(memberName)) {
+                providerDnsSuffixCache.put(memberName, new ArrayList<>());
+            }
+            final List<String> dnsSuffixesForProvider = providerDnsSuffixCache.get(memberName);
+            dnsSuffixesForProvider.add(dnsSuffix);
+        }
+    }
+
     void processAssumeRoleAssertion(Assertion assertion, Map<String, Role> roles) {
         
         final String roleName = assertion.getRole();
@@ -169,18 +196,30 @@ public class DataCache {
                     " and role: " + assertion.getRole());
         }
 
-        String role = assertion.getRole();
+        final String role = assertion.getRole();
         if (!awsRoleCache.containsKey(role)) {
-            awsRoleCache.put(assertion.getRole(), new HashSet<>());
+            awsRoleCache.put(role, new HashSet<>());
         }
         
         final Set<String> resourcesForRole = awsRoleCache.get(role);
         resourcesForRole.add(assertion.getResource());
     }
-    
+
+    void processLaunchAssertion(final String domainName, Assertion assertion, Map<String, Role> roles) {
+
+        // for now we're only processing launch assertion if the
+        // domain happens to be the sys.auth domain
+
+        if (!domainName.equals(ZTSConsts.ATHENZ_SYS_DOMAIN)) {
+            return;
+        }
+
+        processProviderDNSSuffixAssertion(assertion, roles);
+    }
+
     public void processPolicy(String domainName, Policy policy, Map<String, Role> roles) {
         
-        String policyName = policy.getName();
+        final String policyName = policy.getName();
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Processing policy: " + policyName);
         }
@@ -204,6 +243,9 @@ public class DataCache {
                     break;
                 case ACTION_ASSUME_ROLE:
                     processAssumeRoleAssertion(assertion, roles);
+                    break;
+                case ACTION_LAUNCH:
+                    processLaunchAssertion(domainName, assertion, roles);
                     break;
             }
         }
@@ -280,10 +322,19 @@ public class DataCache {
      * @param member whose roles we want
      * @return the list of roles
      */
-    public Set<MemberRole> getMemberRoleSet(String member) {
+    public Set<MemberRole> getMemberRoleSet(final String member) {
         return memberRoleCache.get(member);
     }
-    
+
+    /**
+     * Returns dns suffix list authorized for a provider
+     * @param provider name of the provider for the lookup
+     * @return the list of dns suffixes
+     */
+    public List<String> getProviderDnsSuffixList(final String provider) {
+        return providerDnsSuffixCache.get(provider);
+    }
+
     /**
      * Return roles configured for all access
      * @return the list of roles

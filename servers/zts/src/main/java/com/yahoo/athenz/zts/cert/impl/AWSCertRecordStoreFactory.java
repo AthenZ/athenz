@@ -80,31 +80,36 @@ public class AWSCertRecordStoreFactory implements CertRecordStoreFactory {
         
         return new JDBCCertRecordStore(dataSource);
     }
-    
-    String getAuthToken(String hostname, int port, String rdsUser, String rdsIamRole) {
-        
-        InstanceProfileCredentialsProvider awsCredProvider = new InstanceProfileCredentialsProvider(true);
-        
-          if (LOGGER.isDebugEnabled()) {
-              LOGGER.debug("getAuthToken: Access key id: {}", awsCredProvider.getCredentials().getAWSAccessKeyId());
-          }
-          
-          RdsIamAuthTokenGenerator generator = RdsIamAuthTokenGenerator.builder()
+
+    ///CLOVER:OFF
+    String getInstanceRegion() {
+        return EC2MetadataUtils.getEC2InstanceRegion();
+    }
+
+    RdsIamAuthTokenGenerator getTokenGenerator(InstanceProfileCredentialsProvider awsCredProvider) {
+        return RdsIamAuthTokenGenerator.builder()
                 .credentials(awsCredProvider)
-                .region(EC2MetadataUtils.getEC2InstanceRegion())
+                .region(getInstanceRegion())
                 .build();
+    }
+    ///CLOVER:ON
+
+    String getAuthToken(String hostname, int port, String rdsUser, String rdsIamRole) {
+
+        InstanceProfileCredentialsProvider awsCredProvider = new InstanceProfileCredentialsProvider(true);
+        RdsIamAuthTokenGenerator generator = getTokenGenerator(awsCredProvider);
         
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Instance {} Port {} User {} Region: {} Role: {}", hostname, port, rdsUser,
-                    EC2MetadataUtils.getEC2InstanceRegion(), rdsIamRole);
+                    getInstanceRegion(), rdsIamRole);
         }
         
         return generator.getAuthToken(GetIamAuthTokenRequest.builder()
                .hostname(hostname).port(port).userName(rdsUser)
                .build());
     }
-    
-   class CredentialsUpdater implements Runnable {
+
+    class CredentialsUpdater implements Runnable {
         
         @Override
         public void run() {

@@ -134,12 +134,15 @@ public final class ZTSConsts {
     public static final String ZTS_CERT_USAGE_CLIENT = "client";
     public static final String ZTS_CERT_USAGE_SERVER = "server";
     
-    public static final String ZTS_CERT_INSTANCE_ID  = ".instanceid.athenz.";
     public static final String ZTS_CERT_DNS_SUFFIX   = ".athenz.cloud";
     public static final String ZTS_ACTION_LAUNCH     = "launch";
     public static final String ZTS_RESOURCE_INSTANCE = "sys.auth:instance";
     public static final String ZTS_RESOURCE_DNS      = "sys.auth:dns.";
-    
+
+    public static final String ZTS_CERT_INSTANCE_ID_DNS  = ".instanceid.athenz.";
+    public static final String ZTS_CERT_INSTANCE_ID_URI  = "athenz://instanceid/";
+    public static final String ZTS_CERT_SPIFFE_URI       = "spiffe://";
+
     public static final String ZTS_INSTANCE_SAN_DNS        = "sanDNS";
     public static final String ZTS_INSTANCE_SAN_IP         = "sanIP";
     public static final String ZTS_INSTANCE_SAN_URI        = "sanURI";
@@ -147,6 +150,7 @@ public final class ZTSConsts {
     public static final String ZTS_INSTANCE_CLOUD_ACCOUNT  = "cloudAccount";
     public static final String ZTS_INSTANCE_ID             = "instanceId";
     public static final String ZTS_INSTANCE_CSR_PUBLIC_KEY = "csrPublicKey";
+    public static final String ZTS_INSTANCE_HOSTNAME       = "hostname";
 
     public static final String ZTS_PROP_AWS_ENABLED              = "athenz.zts.aws_enabled";
     public static final String ZTS_PROP_AWS_BUCKET_NAME          = "athenz.zts.aws_bucket_name";
@@ -164,7 +168,8 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_CHANGE_LOG_STORE_FACTORY_CLASS   = "athenz.zts.change_log_store_factory_class";
     public static final String ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS  = "athenz.zts.private_key_store_factory_class";
     public static final String ZTS_PROP_CERT_RECORD_STORE_FACTORY_CLASS  = "athenz.zts.cert_record_store_factory_class";
-    
+    public static final String ZTS_PROP_HOSTNAME_RESOLVER_FACTORY_CLASS  = "athenz.zts.hostname_resolver_factory_class";
+
     public static final String ZTS_METRIC_FACTORY_CLASS            = "com.yahoo.athenz.common.metrics.impl.NoOpMetricFactory";
     public static final String ZTS_CHANGE_LOG_STORE_FACTORY_CLASS  = "com.yahoo.athenz.zts.store.impl.ZMSFileChangeLogStoreFactory";
     public static final String ZTS_PKEY_STORE_FACTORY_CLASS        = "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory";

@@ -262,6 +262,7 @@
               </methodContexts>
               <statementContexts>
                 <log>System.out.println\(.*\);</log>
+                <log>LOGGER.info\(.*\);</log>
                 <iflog>^if \(LOG.*.is.*Enabled\(\)\).*</iflog>
               </statementContexts>
             </configuration>

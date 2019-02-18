@@ -68,7 +68,7 @@ public class DataStore implements DataCacheProvider {
     long lastDeleteRunTime;
 
     private static final String ROLE_POSTFIX = ":role.";
-    
+
     private final ReentrantReadWriteLock hostRWLock = new ReentrantReadWriteLock();
     private final Lock hostRLock = hostRWLock.readLock();
     private final Lock hostWLock = hostRWLock.writeLock();

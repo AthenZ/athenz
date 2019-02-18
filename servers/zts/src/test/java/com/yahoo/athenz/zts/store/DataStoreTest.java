@@ -3502,12 +3502,12 @@ public class DataStoreTest {
         
         List<SignedDomain> domains = new ArrayList<>();
 
-        /* we're going to create a new domain */
+        // we're going to create a new domain
         
         signedDomain = createSignedDomain("sports", "weather");
         domains.add(signedDomain);
         
-        /* we're going to update the coretech domain and set new roles */
+        // we're going to update the coretech domain and set new roles
         
         signedDomain = createSignedDomain("coretech", "weather");
 
@@ -3542,6 +3542,28 @@ public class DataStoreTest {
         assertEquals(accessibleRoles.size(), 1);
         assertTrue(accessibleRoles.contains("admin"));
         
+        accessibleRoles = new HashSet<>();
+        data = store.getDataCache("sports");
+        store.getAccessibleRoles(data, "sports", "user_domain.user", null, accessibleRoles, false);
+        assertEquals(accessibleRoles.size(), 2);
+        assertTrue(accessibleRoles.contains("admin"));
+        assertTrue(accessibleRoles.contains("writers"));
+
+        // run again without the delete run time
+
+        updater = store.new DataUpdater();
+        updater.run();
+
+        accessibleRoles = new HashSet<>();
+        data = store.getDataCache("coretech");
+        store.getAccessibleRoles(data, "coretech", "user_domain.user1", null, accessibleRoles, false);
+        assertEquals(accessibleRoles.size(), 0);
+
+        accessibleRoles = new HashSet<>();
+        store.getAccessibleRoles(data, "coretech", "user_domain.user8", null, accessibleRoles, false);
+        assertEquals(accessibleRoles.size(), 1);
+        assertTrue(accessibleRoles.contains("admin"));
+
         accessibleRoles = new HashSet<>();
         data = store.getDataCache("sports");
         store.getAccessibleRoles(data, "sports", "user_domain.user", null, accessibleRoles, false);
