@@ -24,6 +24,9 @@ public class ZTSClientTokenCacher {
 
     /**
      * @deprecated use setRoleToken without the trustDomain argument instead
+     * @param signedRoleToken the role token
+     * @param roleName the role, can be null
+     * @param trustDomain role token trust domain - not used - pass null
      */
     public static void setRoleToken(String signedRoleToken, String roleName, String trustDomain) {
         setRoleToken(signedRoleToken, roleName);

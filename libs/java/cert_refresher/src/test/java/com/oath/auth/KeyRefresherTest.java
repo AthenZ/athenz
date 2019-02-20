@@ -141,7 +141,7 @@ public class KeyRefresherTest {
         };
 
         keyRefresher.startup(1);
-        Thread.sleep(500);
+        Thread.sleep(1000);
         keyRefresher.shutdown();
     }
 
