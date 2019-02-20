@@ -2,6 +2,8 @@ github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/ardielle/ardielle-go v1.5.1 h1:7vSvfYuByBHGSk+8am0u2DT92+95UFtxdp5fkSEQTII=
 github.com/ardielle/ardielle-go v1.5.1/go.mod h1:I4hy1n795cUhaVt/ojz83SNVCYIGsAFAONtv2Dr7HUI=
+github.com/ardielle/ardielle-go v1.5.2 h1:TilHTpHIQJ27R1Tl/iITBzMwiUGSlVfiVhwDNGM3Zj4=
+github.com/ardielle/ardielle-go v1.5.2/go.mod h1:I4hy1n795cUhaVt/ojz83SNVCYIGsAFAONtv2Dr7HUI=
 github.com/ardielle/ardielle-tools v1.14.15 h1:BukXV+2FhI3mXbb4x9HdfTDfe9bC2yBhRWxk3Kl9yUA=
 github.com/ardielle/ardielle-tools v1.14.15/go.mod h1:md5tB6Ld1xXeYT0iETNHj4/Dm+funcuxeZn2yXWmvCY=
 github.com/boynton/repl v0.0.0-20170116235056-348863958e3e h1:lFJi7V/jlH3FDeZxW0o/oMfKAjPyc/yifX2z8eBeLt8=

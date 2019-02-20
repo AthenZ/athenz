@@ -27,8 +27,9 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <athenz.version>1.8.3</athenz.version>
+    <athenz.version>1.8.15</athenz.version>
     <jackson.version>2.9.7</jackson.version>
+    <jersey.version>2.27</jersey.version>
   </properties>
 
   <dependencies>
@@ -66,6 +67,11 @@
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
       <version>${jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.media</groupId>
+      <artifactId>jersey-media-json-jackson</artifactId>
+      <version>${jersey.version}</version>
     </dependency>
   </dependencies>
 

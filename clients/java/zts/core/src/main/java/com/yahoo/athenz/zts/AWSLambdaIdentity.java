@@ -34,7 +34,7 @@ public class AWSLambdaIdentity {
 
     /**
      * Set the private key for the labmda service identity
-     * @param privateKey
+     * @param privateKey use the given private key
      */
     public void setPrivateKey(PrivateKey privateKey) {
         this.privateKey = privateKey;
@@ -50,7 +50,7 @@ public class AWSLambdaIdentity {
 
     /**
      * Set the x.509 certificate for the lambda service idenitty
-     * @param x509Certificate
+     * @param x509Certificate use the given x.509 certificate
      */
     public void setX509Certificate(X509Certificate x509Certificate) {
         this.x509Certificate = x509Certificate;
@@ -66,7 +66,7 @@ public class AWSLambdaIdentity {
 
     /**
      * Set the Athenz CA certificates in pem format
-     * @param caCertificates
+     * @param caCertificates use the given set of ca certificates
      */
     public void setCaCertificates(String caCertificates) {
         this.caCertificates = caCertificates;

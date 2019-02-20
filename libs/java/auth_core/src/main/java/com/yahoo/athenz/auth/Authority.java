@@ -90,8 +90,9 @@ public interface Authority {
      * called when users are added as members so the authority can validate
      * that the role member is valid. If the member is not valid, the request
      * (e.g. putRole, putMembership) will be rejected as invalid.
+     * @param username name of the user to check
+     * @return true if username is valid, false otherwise
      */
-
     default boolean isValidUser(String username) {
         return true;
     }
