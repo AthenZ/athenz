@@ -306,6 +306,8 @@ public class AthenzJettyContainer {
         boolean renegotiationAllowed = Boolean.parseBoolean(System.getProperty(AthenzConsts.ATHENZ_PROP_RENEGOTIATION_ALLOWED, "true"));
 
         SslContextFactory sslContextFactory = new SslContextFactory();
+        sslContextFactory.setEndpointIdentificationAlgorithm(null);
+
         if (keyStorePath != null) {
             LOG.info("Using SSL KeyStore path: {}", keyStorePath);
             sslContextFactory.setKeyStorePath(keyStorePath);

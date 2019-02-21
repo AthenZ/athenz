@@ -149,8 +149,14 @@ public class CryptoTest {
         
         PublicKey publicKey = Crypto.loadPublicKey(ecPublicInvalidKey);
         assertNotNull(publicKey);
-        
-        assertFalse(Crypto.verify(serviceToken, publicKey, serviceECSignature));
+
+        boolean result;
+        try {
+            result = Crypto.verify(serviceToken, publicKey, serviceECSignature);
+        } catch (CryptoException ignored) {
+            result = false;
+        }
+        assertFalse(result);
     }
     
     @Test
