@@ -4713,6 +4713,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         String provSvcDomain = providerServiceDomain(provider); // provider service domain
         String provSvcName = providerServiceName(provider); // provider service name
 
+        // we can't have the provider and tenant be in the same domain
+        // as we don't allow delegation of roles onto themselves
+
+        if (provSvcDomain.equals(tenantDomain)) {
+            throw ZMSUtils.requestError("Provider and tenant domains cannot be the same", caller);
+        }
+
         if (dbService.getServiceIdentity(provSvcDomain, provSvcName) == null) {
             throw ZMSUtils.notFoundError("Unable to retrieve service=" + provider, caller);
         }
@@ -4832,6 +4839,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         providerService = providerService.toLowerCase();
         tenantDomain = tenantDomain.toLowerCase();
         AthenzObject.TENANCY.convertToLowerCase(detail);
+
+        // we can't have the provider and tenant be in the same domain
+        // as we don't allow delegation of roles onto themselves
+
+        if (providerDomain.equals(tenantDomain)) {
+            throw ZMSUtils.requestError("Provider and tenant domains cannot be the same", caller);
+        }
 
         // validate our detail object against uri components
 
@@ -4985,6 +4999,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         tenantDomain = tenantDomain.toLowerCase();
         resourceGroup = resourceGroup.toLowerCase();
         AthenzObject.TENANT_RESOURCE_GROUP_ROLES.convertToLowerCase(detail);
+
+        // we can't have the provider and tenant be in the same domain
+        // as we don't allow delegation of roles onto themselves
+
+        if (provSvcDomain.equals(tenantDomain)) {
+            throw ZMSUtils.requestError("Provider and tenant domains cannot be the same", caller);
+        }
 
         // validate our detail object against uri components
 
@@ -5489,6 +5510,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         tenantDomain = tenantDomain.toLowerCase();
         resourceGroup = resourceGroup.toLowerCase();
         AthenzObject.PROVIDER_RESOURCE_GROUP_ROLES.convertToLowerCase(detail);
+
+        // we can't have the provider and tenant be in the same domain
+        // as we don't allow delegation of roles onto themselves
+
+        if (provSvcDomain.equals(tenantDomain)) {
+            throw ZMSUtils.requestError("Provider and tenant domains cannot be the same", caller);
+        }
 
         // validate our detail object against uri components
 

@@ -138,6 +138,7 @@ public class ZMSImplTest {
 
         Mockito.when(mockServletRequest.getRemoteAddr()).thenReturn(MOCKCLIENTADDR);
         Mockito.when(mockServletRequest.isSecure()).thenReturn(true);
+        Mockito.when(mockServletRequest.getRequestURI()).thenReturn("/zms/v1/request");
         
         System.setProperty(ZMSConsts.ZMS_PROP_FILE_NAME, "src/test/resources/zms.properties");
         System.setProperty(ZMSConsts.ZMS_PROP_METRIC_FACTORY_CLASS, ZMSConsts.ZMS_METRIC_FACTORY_CLASS);
@@ -152,6 +153,8 @@ public class ZMSImplTest {
                 "src/test/resources/authorized_services.json");
         System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME,
                 "src/test/resources/solution_templates.json");
+        System.setProperty(ZMSConsts.ZMS_PROP_NOAUTH_URI_LIST,
+                "uri1,uri2,uri3+uri4");
         auditLogger = new DefaultAuditLogger();
         
         initializeZms();
@@ -15416,6 +15419,73 @@ public class ZMSImplTest {
         roles.setRoles(null);
         assertFalse(zms.validateProviderResourceGroupRolesObject(roles, "domain", "service",
                 "tenant", "resourcegroup"));
+    }
+
+    @Test
+    public void testTenancyIdenticalProviderTenantDomains() {
+
+        List<TenantRoleAction> roleActions = new ArrayList<>();
+        for (Struct.Field f : TABLE_PROVIDER_ROLE_ACTIONS) {
+            roleActions.add(new TenantRoleAction().setRole(f.name()).setAction(
+                    (String) f.value()));
+        }
+        String tenantDomain = "identicaldomain";
+        String providerDomain = "identicaldomain";
+        String providerService  = "storage";
+        String providerFullService = providerDomain + "." + providerService;
+        String resourceGroup = "group1";
+
+        TenantResourceGroupRoles tenantRoles = new TenantResourceGroupRoles()
+                .setDomain(providerDomain)
+                .setService(providerService)
+                .setTenant(tenantDomain)
+                .setRoles(roleActions).setResourceGroup(resourceGroup);
+
+        try {
+            zms.putTenantResourceGroupRoles(mockDomRsrcCtx, providerDomain, providerService,
+                    tenantDomain, resourceGroup, auditRef, tenantRoles);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Provider and tenant domains cannot be the same"));
+        }
+
+        Tenancy tenant = new Tenancy().setDomain(tenantDomain).setService(providerFullService);
+        try {
+            zms.putTenant(mockDomRsrcCtx, providerDomain, providerService, tenantDomain,
+                    auditRef, tenant);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Provider and tenant domains cannot be the same"));
+        }
+
+        tenant = createTenantObject(tenantDomain, providerFullService);
+        try {
+            zms.putTenancy(mockDomRsrcCtx, tenantDomain, providerFullService, auditRef, tenant);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Provider and tenant domains cannot be the same"));
+        }
+
+        ProviderResourceGroupRoles providerRoles = new ProviderResourceGroupRoles()
+                .setDomain(providerDomain).setService(providerService)
+                .setTenant(tenantDomain).setRoles(roleActions)
+                .setResourceGroup(resourceGroup);
+
+        try {
+            zms.putProviderResourceGroupRoles(mockDomRsrcCtx, tenantDomain, providerDomain,
+                    providerService, resourceGroup, auditRef, providerRoles);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Provider and tenant domains cannot be the same"));
+        }
+    }
+
+    @Test
+    public void testGetAuthorityInvalid() {
+        assertNull(zms.getAuthority("invalid.class"));
     }
 }
 

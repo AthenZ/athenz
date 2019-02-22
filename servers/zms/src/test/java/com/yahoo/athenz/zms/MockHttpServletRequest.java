@@ -372,8 +372,7 @@ class MockHttpServletRequest implements HttpServletRequest {
 
     @Override
     public String getRequestURI() {
-        // Auto-generated method stub
-        return null;
+        return "/zms/v1/request";
     }
 
     @Override
