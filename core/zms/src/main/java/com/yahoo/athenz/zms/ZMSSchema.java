@@ -548,7 +548,7 @@ public class ZMSSchema {
             .pathParam("attribute", "SimpleName", "name of the system attribute to be modified")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .input("detail", "DomainMeta", "DomainMeta object with updated attribute values")
-            .auth("update", "{name}:meta.{attribute}")
+            .auth("update", "sys.auth:meta.{attribute}.{name}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 

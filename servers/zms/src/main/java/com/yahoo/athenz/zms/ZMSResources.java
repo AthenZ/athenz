@@ -270,7 +270,7 @@ public class ZMSResources {
     public void putDomainSystemMeta(@PathParam("name") String name, @PathParam("attribute") String attribute, @HeaderParam("Y-Audit-Ref") String auditRef, DomainMeta detail) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
-            context.authorize("update", "" + name + ":meta." + attribute + "", null);
+            context.authorize("update", "sys.auth:meta." + attribute + "." + name + "", null);
             this.delegate.putDomainSystemMeta(context, name, attribute, auditRef, detail);
         } catch (ResourceException e) {
             int code = e.getCode();
