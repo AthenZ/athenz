@@ -194,7 +194,7 @@ resource Domain PUT "/domain/{name}/meta/system/{attribute}" (name=PutDomainSyst
     SimpleName attribute; //name of the system attribute to be modified
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     DomainMeta detail; //DomainMeta object with updated attribute values
-    authorize ("update", "{name}:meta.{attribute}");
+    authorize ("update", "sys.auth:meta.{attribute}.{name}");
     expected NO_CONTENT;
     exceptions {
         ResourceError NOT_FOUND;
