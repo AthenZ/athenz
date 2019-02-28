@@ -40,7 +40,6 @@ public class InstanceAWSLambdaProvider extends InstanceAWSProvider {
         // and we always do not allow ssh certs
         
         Map<String, String> attributes = new HashMap<>();
-        attributes.put(InstanceUtils.ZTS_CERT_USAGE, InstanceUtils.ZTS_CERT_USAGE_CLIENT);
         attributes.put(InstanceUtils.ZTS_CERT_SSH, "false");
         confirmation.setAttributes(attributes);
     }

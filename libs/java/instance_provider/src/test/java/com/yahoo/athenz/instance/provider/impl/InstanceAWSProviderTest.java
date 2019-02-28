@@ -412,7 +412,7 @@ public class InstanceAWSProviderTest {
         Map<String, String> attrs = result.getAttributes();
         assertNotNull(attrs);
         assertEquals(attrs.get("certSSH"), "false");
-        assertEquals(attrs.get("certExpiryTime"), Long.toString(7 * 24 * 60 * 60));
+        assertEquals(attrs.get("certExpiryTime"), Long.toString(7 * 24 * 60));
         System.clearProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX);
     }
     
@@ -668,7 +668,7 @@ public class InstanceAWSProviderTest {
 
         InstanceConfirmation result = provider.refreshInstance(confirmation);
         assertEquals(result.getDomain(), "athenz");
-        assertEquals(result.getAttributes().get("certExpiryTime"), Long.toString(7 * 24 * 60 * 60));
+        assertEquals(result.getAttributes().get("certExpiryTime"), Long.toString(7 * 24 * 60));
         System.clearProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX);
     }
 
