@@ -79,7 +79,7 @@ public class InstanceAWSLambdaProviderTest {
         confirmation.setAttributes(attributes);
         
         InstanceConfirmation result = provider.confirmInstance(confirmation);
-        assertEquals(result.getAttributes().get("certUsage"), "client");
+        assertNull(result.getAttributes().get("certUsage"));
         assertEquals(result.getDomain(), "athenz");
         System.clearProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX);
     }
@@ -101,7 +101,7 @@ public class InstanceAWSLambdaProviderTest {
         confirmation.setAttributes(attributes);
         
         InstanceConfirmation result = provider.confirmInstance(confirmation);
-        assertEquals(result.getAttributes().get("certUsage"), "client");
+        assertNull(result.getAttributes().get("certUsage"));
         assertEquals(result.getDomain(), "athenz");
         System.clearProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX);
     }

@@ -108,7 +108,7 @@ public class InstanceAWSProvider implements InstanceProvider {
         // identity document
 
         int certValidityDays = Integer.parseInt(System.getProperty(AWS_PROP_CERT_VALIDITY_STS_ONLY, "7"));
-        certValidityTime = TimeUnit.SECONDS.convert(certValidityDays, TimeUnit.DAYS);
+        certValidityTime = TimeUnit.MINUTES.convert(certValidityDays, TimeUnit.DAYS);
 
         // get the aws region
 
