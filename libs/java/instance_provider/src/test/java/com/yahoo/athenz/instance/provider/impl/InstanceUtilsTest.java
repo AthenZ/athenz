@@ -54,7 +54,7 @@ public class InstanceUtilsTest {
     @Test
     public void testValidateCertRequestHostnamesInvalidCount() {
         HashMap<String, String> attributes = new HashMap<>();
-        attributes.put("sanDNS", "service.athenz.athenz.cloud");
+        attributes.put("sanDNS", "service.athenz.athenz.cloud,service2.athenz.athenz.cloud,service3.athenz.athenz.cloud");
 
         assertFalse(InstanceUtils.validateCertRequestHostnames(attributes, "athenz", "api",  "athenz.cloud", null));
     }
@@ -102,6 +102,25 @@ public class InstanceUtilsTest {
         StringBuilder id = new StringBuilder(256);
         assertTrue(InstanceUtils.validateCertRequestHostnames(attributes, "athenz", "api", "athenz.cloud", id));
         assertEquals(id.toString(), "i-1234");
+    }
+
+    @Test
+    public void testValidateCertRequestHostnamesWithInstanceIdURI() {
+        HashMap<String, String> attributes = new HashMap<>();
+        attributes.put("sanDNS", "api.athenz.athenz.cloud");
+        attributes.put("sanURI", "spiffe://athenz/sa/cloud,athenz://instanceid/zts/i-1234");
+        StringBuilder id = new StringBuilder(256);
+        assertTrue(InstanceUtils.validateCertRequestHostnames(attributes, "athenz", "api", "athenz.cloud", id));
+        assertEquals(id.toString(), "i-1234");
+    }
+
+    @Test
+    public void testValidateCertRequestHostnamesWithInvalidInstanceIdURI() {
+        HashMap<String, String> attributes = new HashMap<>();
+        attributes.put("sanDNS", "api.athenz.athenz.cloud");
+        attributes.put("sanURI", "spiffe://athenz/sa/cloud,athenz://instanceid/zts");
+        StringBuilder id = new StringBuilder(256);
+        assertFalse(InstanceUtils.validateCertRequestHostnames(attributes, "athenz", "api", "athenz.cloud", id));
     }
 
     @Test

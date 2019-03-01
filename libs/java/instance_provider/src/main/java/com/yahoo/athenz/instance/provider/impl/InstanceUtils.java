@@ -32,10 +32,12 @@ public class InstanceUtils {
 
     static final String ZTS_CERT_INSTANCE_ID        = ".instanceid.athenz.";
     static final String ZTS_INSTANCE_SAN_DNS        = "sanDNS";
+    static final String ZTS_INSTANCE_SAN_URI        = "sanURI";
     static final String ZTS_INSTANCE_SAN_IP         = "sanIP";
     static final String ZTS_INSTANCE_CLIENT_IP      = "clientIP";
     static final String ZTS_INSTANCE_ID             = "instanceId";
     static final String ZTS_INSTANCE_CSR_PUBLIC_KEY = "csrPublicKey";
+    static final String ZTS_CERT_INSTANCE_ID_URI    = "athenz://instanceid/";
 
     public static String getInstanceProperty(final Map<String, String> attributes,
             final String propertyName) {
@@ -86,11 +88,12 @@ public class InstanceUtils {
 
         String[] hosts = hostnames.split(",");
 
-        // we only allow two hostnames in our AWS CSR:
+        // we only allow up to two hostnames in our AWS CSR:
         // service.<domain-with-dashes>.<dns-suffix>
         // <instance-id>.instanceid.athenz.<dns-suffix>
+        // instance id can be specified as URI
 
-        if (hosts.length != 2) {
+        if (hosts.length > 2) {
             LOGGER.error("Request does not contain expected number of SAN DNS entries: {}",
                     hosts.length);
             return false;
@@ -116,18 +119,50 @@ public class InstanceUtils {
             }
         }
 
-        // report error cases separately for easier debugging
-
-        if (!instanceIdCheck) {
-            LOGGER.error("Request does not contain expected instance id SAN DNS entry");
-            return false;
-        }
+        // if we have no host entry that it's a failure
 
         if (!hostCheck) {
             LOGGER.error("Request does not contain expected host SAN DNS entry");
             return false;
         }
 
+        // if there is no instance id field in dnsName check to
+        // see if it was passed in the uri as expected
+
+        if (!instanceIdCheck && !validateCertRequestUriId(attributes, instanceId)) {
+            LOGGER.error("Request does not contain expected instance id entry");
+            return false;
+        }
+
         return true;
+    }
+
+    public static boolean validateCertRequestUriId(final Map<String, String> attributes,
+            StringBuilder instanceId) {
+
+        // if the list is empty then something is not right thus we'll
+        // reject the request
+
+        final String uriList = InstanceUtils.getInstanceProperty(attributes, ZTS_INSTANCE_SAN_URI);
+        if (uriList == null || uriList.isEmpty()) {
+            LOGGER.error("Request contains no SAN URI entries for validation");
+            return false;
+        }
+
+        String[] uris = uriList.split(",");
+
+        for (String uri : uris) {
+            if (!uri.startsWith(ZTS_CERT_INSTANCE_ID_URI)) {
+                continue;
+            }
+            // skip the provider value
+            int idx = uri.substring(ZTS_CERT_INSTANCE_ID_URI.length()).indexOf('/');
+            if (idx != -1) {
+                instanceId.append(uri.substring(ZTS_CERT_INSTANCE_ID_URI.length() + idx + 1));
+                return true;
+            }
+        }
+
+        return false;
     }
 }
