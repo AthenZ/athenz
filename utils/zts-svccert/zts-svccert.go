@@ -8,6 +8,7 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -31,6 +32,7 @@ func main() {
 	var ztsURL, serviceKey, serviceCert, domain, service, keyID string
 	var caCertFile, certFile, signerCertFile, dnsDomain, hdr, ip string
 	var subjC, subjO, subjOU, uri, provider, instance, instanceId string
+	var attestationDataFile string
 	var csr, spiffe bool
 	var expiryTime int
 	flag.BoolVar(&csr, "csr", false, "request csr only")
@@ -43,7 +45,7 @@ func main() {
 	flag.StringVar(&serviceCert, "service-cert", "", "service certificate file")
 	flag.StringVar(&domain, "domain", "", "domain of service (required)")
 	flag.StringVar(&service, "service", "", "name of service (required)")
-	flag.StringVar(&keyID, "key-version", "", "key version (required)")
+	flag.StringVar(&keyID, "key-version", "", "key version")
 	flag.StringVar(&ztsURL, "zts", "", "url of the ZTS Service")
 	flag.StringVar(&dnsDomain, "dns-domain", "", "dns domain suffix to be included in the csr (required)")
 	flag.StringVar(&hdr, "hdr", "Athenz-Principal-Auth", "Header name")
@@ -53,10 +55,10 @@ func main() {
 	flag.StringVar(&ip, "ip", "", "IP address")
 	flag.StringVar(&provider, "provider", "", "Athenz Provider")
 	flag.StringVar(&instance, "instance", "", "Instance Id")
+	flag.StringVar(&attestationDataFile, "attestation-data", "", "Attestation Data File")
 	flag.Parse()
 
-	if serviceKey == "" || domain == "" || service == "" ||
-		keyID == "" || dnsDomain == "" {
+	if serviceKey == "" || domain == "" || service == "" || dnsDomain == "" {
 		log.Fatalln("Error: missing required attributes. Run with -help for command line arguments")
 	}
 
@@ -80,7 +82,11 @@ func main() {
 	host := fmt.Sprintf("%s.%s.%s", service, hyphenDomain, dnsDomain)
 	commonName := fmt.Sprintf("%s.%s", domain, service)
 	if instance != "" {
-		instanceId = fmt.Sprintf("%s.instanceid.athenz.%s", instance, dnsDomain)
+		uriProvider := "zts"
+		if provider != "" {
+			uriProvider = provider
+		}
+		instanceId = fmt.Sprintf("athenz://instanceid/%s/%s", uriProvider, instance)
 	}
 	if spiffe {
 		uri = fmt.Sprintf("spiffe://%s/sa/%s", domain, service)
@@ -136,15 +142,24 @@ func main() {
 		if instanceId == "" {
 			log.Fatalln("Error: Please specify instance value. Run with -help for command line arguments")
 		}
-		ntoken, err := getNToken(domain, service, keyID, keyBytes)
-		if err != nil {
-			log.Fatalln(err)
+		attestationData := ""
+		if attestationDataFile != "" {
+			attestationDataBytes, err := ioutil.ReadFile(attestationDataFile)
+			if err != nil {
+				log.Fatalln(err)
+			}
+			attestationData = string(attestationDataBytes)
+		} else {
+			attestationData, err = getNToken(domain, service, keyID, keyBytes)
+			if err != nil {
+				log.Fatalln(err)
+			}
 		}
 		req := &zts.InstanceRegisterInformation{
 			Provider:        zts.ServiceName(provider),
 			Domain:          zts.DomainName(domain),
 			Service:         zts.SimpleName(service),
-			AttestationData: ntoken,
+			AttestationData: attestationData,
 			Csr:             csrData,
 		}
 
@@ -227,7 +242,10 @@ func generateCSR(keySigner *signer, subj pkix.Name, host, instanceId, ip, uri st
 		template.DNSNames = []string{host}
 	}
 	if instanceId != "" {
-		template.DNSNames = append(template.DNSNames, instanceId)
+		uriptr, err := url.Parse(instanceId)
+		if err == nil {
+			template.URIs = []*url.URL{uriptr}
+		}
 	}
 	if ip != "" {
 		template.IPAddresses = []net.IP{net.ParseIP(ip)}
@@ -235,7 +253,11 @@ func generateCSR(keySigner *signer, subj pkix.Name, host, instanceId, ip, uri st
 	if uri != "" {
 		uriptr, err := url.Parse(uri)
 		if err == nil {
-			template.URIs = []*url.URL{uriptr}
+			if len(template.URIs) > 0 {
+				template.URIs = append(template.URIs, uriptr)
+			} else {
+				template.URIs = []*url.URL{uriptr}
+			}
 		}
 	}
 	csr, err := x509.CreateCertificateRequest(rand.Reader, &template, keySigner.key)
@@ -255,6 +277,11 @@ func generateCSR(keySigner *signer, subj pkix.Name, host, instanceId, ip, uri st
 }
 
 func getNToken(domain, service, keyID string, keyBytes []byte) (string, error) {
+
+	if keyID == "" {
+		return "", errors.New("Missing key-version for the specified private key")
+	}
+
 	// get token builder instance
 	builder, err := zmssvctoken.NewTokenBuilder(domain, service, keyBytes, keyID)
 	if err != nil {
