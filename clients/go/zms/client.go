@@ -213,6 +213,18 @@ func encodeInt64Param(name string, i int64, def int64) string {
 	}
 	return "&" + name + "=" + strconv.FormatInt(i, 10)
 }
+func encodeTimestampParam(name string, i rdl.Timestamp, def rdl.Timestamp) string {
+	if i == def {
+		return ""
+	}
+	return "&" + name + "=" + url.QueryEscape(i.String())
+}
+func encodeUUIDParam(name string, i rdl.UUID, def rdl.UUID) string {
+	if i.Equal(def) {
+		return ""
+	}
+	return "&" + name + "=" + i.String()
+}
 func encodeFloat32Param(name string, i float32, def float32) string {
 	if i == def {
 		return ""
@@ -249,6 +261,18 @@ func encodeOptionalInt64Param(name string, i *int64) string {
 	}
 	return "&" + name + "=" + strconv.Itoa(int(*i))
 }
+func encodeOptionalTimestampParam(name string, i *rdl.Timestamp) string {
+	if i == nil {
+		return ""
+	}
+	return "&" + name + "=" + url.QueryEscape(i.String())
+}
+func encodeOptionalUUIDParam(name string, i *rdl.UUID) string {
+	if i == nil {
+		return ""
+	}
+	return "&" + name + "=" + i.String()
+}
 func encodeParams(objs ...string) string {
 	s := strings.Join(objs, "")
 	if s == "" {
@@ -278,10 +302,7 @@ func (client ZMSClient) GetDomain(domain DomainName) (*Domain, error) {
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -316,10 +337,7 @@ func (client ZMSClient) GetDomainList(limit *int32, skip string, prefix string, 
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -358,10 +376,7 @@ func (client ZMSClient) PostTopLevelDomain(auditRef string, detail *TopLevelDoma
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -400,10 +415,7 @@ func (client ZMSClient) PostSubDomain(parent DomainName, auditRef string, detail
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -442,10 +454,7 @@ func (client ZMSClient) PostUserDomain(name SimpleName, auditRef string, detail 
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -475,10 +484,7 @@ func (client ZMSClient) DeleteTopLevelDomain(name SimpleName, auditRef string) e
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -508,10 +514,7 @@ func (client ZMSClient) DeleteSubDomain(parent DomainName, name SimpleName, audi
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -541,10 +544,7 @@ func (client ZMSClient) DeleteUserDomain(name SimpleName, auditRef string) error
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -578,10 +578,7 @@ func (client ZMSClient) PutDomainMeta(name DomainName, auditRef string, detail *
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -615,10 +612,7 @@ func (client ZMSClient) PutDomainSystemMeta(name DomainName, attribute SimpleNam
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -652,10 +646,7 @@ func (client ZMSClient) PutDomainTemplate(name DomainName, auditRef string, doma
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -689,10 +680,7 @@ func (client ZMSClient) PutDomainTemplateExt(name DomainName, template SimpleNam
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -724,10 +712,7 @@ func (client ZMSClient) GetDomainTemplateList(name DomainName) (*DomainTemplateL
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -757,10 +742,7 @@ func (client ZMSClient) DeleteDomainTemplate(name DomainName, template SimpleNam
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -792,10 +774,7 @@ func (client ZMSClient) GetDomainDataCheck(domainName DomainName) (*DomainDataCh
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -829,10 +808,7 @@ func (client ZMSClient) PutEntity(domainName DomainName, entityName EntityName, 
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -864,10 +840,7 @@ func (client ZMSClient) GetEntity(domainName DomainName, entityName EntityName) 
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -897,10 +870,7 @@ func (client ZMSClient) DeleteEntity(domainName DomainName, entityName EntityNam
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -932,10 +902,7 @@ func (client ZMSClient) GetEntityList(domainName DomainName) (*EntityList, error
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -967,10 +934,7 @@ func (client ZMSClient) GetRoleList(domainName DomainName, limit *int32, skip st
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -1002,10 +966,7 @@ func (client ZMSClient) GetRoles(domainName DomainName, members *bool) (*Roles, 
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -1037,10 +998,7 @@ func (client ZMSClient) GetRole(domainName DomainName, roleName EntityName, audi
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -1074,10 +1032,7 @@ func (client ZMSClient) PutRole(domainName DomainName, roleName EntityName, audi
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -1107,10 +1062,7 @@ func (client ZMSClient) DeleteRole(domainName DomainName, roleName EntityName, a
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -1142,10 +1094,7 @@ func (client ZMSClient) GetMembership(domainName DomainName, roleName EntityName
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -1177,10 +1126,7 @@ func (client ZMSClient) GetDomainRoleMembers(domainName DomainName) (*DomainRole
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -1214,10 +1160,7 @@ func (client ZMSClient) PutMembership(domainName DomainName, roleName EntityName
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -1247,10 +1190,7 @@ func (client ZMSClient) DeleteMembership(domainName DomainName, roleName EntityN
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -1284,10 +1224,7 @@ func (client ZMSClient) PutDefaultAdmins(domainName DomainName, auditRef string,
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -1319,10 +1256,7 @@ func (client ZMSClient) GetPolicyList(domainName DomainName, limit *int32, skip 
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -1354,10 +1288,7 @@ func (client ZMSClient) GetPolicies(domainName DomainName, assertions *bool) (*P
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -1389,10 +1320,7 @@ func (client ZMSClient) GetPolicy(domainName DomainName, policyName EntityName) 
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -1426,10 +1354,7 @@ func (client ZMSClient) PutPolicy(domainName DomainName, policyName EntityName, 
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -1459,10 +1384,7 @@ func (client ZMSClient) DeletePolicy(domainName DomainName, policyName EntityNam
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -1494,10 +1416,7 @@ func (client ZMSClient) GetAssertion(domainName DomainName, policyName EntityNam
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -1536,10 +1455,7 @@ func (client ZMSClient) PutAssertion(domainName DomainName, policyName EntityNam
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -1569,10 +1485,7 @@ func (client ZMSClient) DeleteAssertion(domainName DomainName, policyName Entity
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -1606,10 +1519,7 @@ func (client ZMSClient) PutServiceIdentity(domain DomainName, service SimpleName
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -1641,10 +1551,7 @@ func (client ZMSClient) GetServiceIdentity(domain DomainName, service SimpleName
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -1674,10 +1581,7 @@ func (client ZMSClient) DeleteServiceIdentity(domain DomainName, service SimpleN
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -1709,10 +1613,7 @@ func (client ZMSClient) GetServiceIdentities(domainName DomainName, publickeys *
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -1744,10 +1645,7 @@ func (client ZMSClient) GetServiceIdentityList(domainName DomainName, limit *int
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -1779,10 +1677,7 @@ func (client ZMSClient) GetPublicKeyEntry(domain DomainName, service SimpleName,
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -1816,10 +1711,7 @@ func (client ZMSClient) PutPublicKeyEntry(domain DomainName, service SimpleName,
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -1849,10 +1741,7 @@ func (client ZMSClient) DeletePublicKeyEntry(domain DomainName, service SimpleNa
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -1886,10 +1775,7 @@ func (client ZMSClient) PutTenancy(domain DomainName, service ServiceName, audit
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -1919,10 +1805,7 @@ func (client ZMSClient) DeleteTenancy(domain DomainName, service ServiceName, au
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -1956,10 +1839,7 @@ func (client ZMSClient) PutTenant(domain DomainName, service SimpleName, tenantD
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -1989,10 +1869,7 @@ func (client ZMSClient) DeleteTenant(domain DomainName, service SimpleName, tena
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -2031,10 +1908,7 @@ func (client ZMSClient) PutTenantResourceGroupRoles(domain DomainName, service S
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -2066,10 +1940,7 @@ func (client ZMSClient) GetTenantResourceGroupRoles(domain DomainName, service S
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -2099,10 +1970,7 @@ func (client ZMSClient) DeleteTenantResourceGroupRoles(domain DomainName, servic
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -2141,10 +2009,7 @@ func (client ZMSClient) PutProviderResourceGroupRoles(tenantDomain DomainName, p
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -2176,10 +2041,7 @@ func (client ZMSClient) GetProviderResourceGroupRoles(tenantDomain DomainName, p
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -2209,10 +2071,7 @@ func (client ZMSClient) DeleteProviderResourceGroupRoles(tenantDomain DomainName
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -2244,10 +2103,7 @@ func (client ZMSClient) GetAccess(action ActionName, resource ResourceName, doma
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -2279,10 +2135,7 @@ func (client ZMSClient) GetAccessExt(action ActionName, resource string, domain 
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -2314,10 +2167,7 @@ func (client ZMSClient) GetResourceAccessList(principal EntityName, action Actio
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -2355,10 +2205,7 @@ func (client ZMSClient) GetSignedDomains(domain DomainName, metaOnly string, met
 		if err != nil {
 			return nil, "", err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return nil, "", err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -2390,10 +2237,7 @@ func (client ZMSClient) GetUserToken(userName SimpleName, serviceNames string, h
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -2425,10 +2269,7 @@ func (client ZMSClient) OptionsUserToken(userName SimpleName, serviceNames strin
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -2460,10 +2301,7 @@ func (client ZMSClient) GetServicePrincipal() (*ServicePrincipal, error) {
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -2495,10 +2333,7 @@ func (client ZMSClient) GetServerTemplateList() (*ServerTemplateList, error) {
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -2530,10 +2365,7 @@ func (client ZMSClient) GetTemplate(template SimpleName) (*Template, error) {
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -2565,10 +2397,7 @@ func (client ZMSClient) GetUserList() (*UserList, error) {
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -2598,10 +2427,7 @@ func (client ZMSClient) DeleteUser(name SimpleName, auditRef string) error {
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -2631,10 +2457,7 @@ func (client ZMSClient) DeleteDomainRoleMember(domainName DomainName, memberName
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -2666,10 +2489,7 @@ func (client ZMSClient) GetQuota(name DomainName) (*Quota, error) {
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -2703,10 +2523,7 @@ func (client ZMSClient) PutQuota(name DomainName, auditRef string, quota *Quota)
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -2736,10 +2553,7 @@ func (client ZMSClient) DeleteQuota(name DomainName, auditRef string) error {
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -2771,10 +2585,7 @@ func (client ZMSClient) GetStatus() (*Status, error) {
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
