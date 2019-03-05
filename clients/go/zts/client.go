@@ -213,6 +213,18 @@ func encodeInt64Param(name string, i int64, def int64) string {
 	}
 	return "&" + name + "=" + strconv.FormatInt(i, 10)
 }
+func encodeTimestampParam(name string, i rdl.Timestamp, def rdl.Timestamp) string {
+	if i == def {
+		return ""
+	}
+	return "&" + name + "=" + url.QueryEscape(i.String())
+}
+func encodeUUIDParam(name string, i rdl.UUID, def rdl.UUID) string {
+	if i.Equal(def) {
+		return ""
+	}
+	return "&" + name + "=" + i.String()
+}
 func encodeFloat32Param(name string, i float32, def float32) string {
 	if i == def {
 		return ""
@@ -249,6 +261,18 @@ func encodeOptionalInt64Param(name string, i *int64) string {
 	}
 	return "&" + name + "=" + strconv.Itoa(int(*i))
 }
+func encodeOptionalTimestampParam(name string, i *rdl.Timestamp) string {
+	if i == nil {
+		return ""
+	}
+	return "&" + name + "=" + url.QueryEscape(i.String())
+}
+func encodeOptionalUUIDParam(name string, i *rdl.UUID) string {
+	if i == nil {
+		return ""
+	}
+	return "&" + name + "=" + i.String()
+}
 func encodeParams(objs ...string) string {
 	s := strings.Join(objs, "")
 	if s == "" {
@@ -278,10 +302,7 @@ func (client ZTSClient) GetResourceAccess(action ActionName, resource ResourceNa
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -313,10 +334,7 @@ func (client ZTSClient) GetResourceAccessExt(action ActionName, resource string,
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -348,10 +366,7 @@ func (client ZTSClient) GetServiceIdentity(domainName DomainName, serviceName Se
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -383,10 +398,7 @@ func (client ZTSClient) GetServiceIdentityList(domainName DomainName) (*ServiceI
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -418,10 +430,7 @@ func (client ZTSClient) GetPublicKeyEntry(domainName DomainName, serviceName Sim
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -453,10 +462,7 @@ func (client ZTSClient) GetHostServices(host string) (*HostServices, error) {
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -494,10 +500,7 @@ func (client ZTSClient) GetDomainSignedPolicyData(domainName DomainName, matchin
 		if err != nil {
 			return nil, "", err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return nil, "", err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -529,10 +532,7 @@ func (client ZTSClient) GetRoleToken(domainName DomainName, role EntityList, min
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -568,10 +568,7 @@ func (client ZTSClient) PostRoleCertificateRequest(domainName DomainName, roleNa
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -603,10 +600,7 @@ func (client ZTSClient) GetAccess(domainName DomainName, roleName EntityName, pr
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -638,10 +632,7 @@ func (client ZTSClient) GetRoleAccess(domainName DomainName, principal EntityNam
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -673,10 +664,7 @@ func (client ZTSClient) GetTenantDomains(providerDomainName DomainName, userName
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -712,10 +700,7 @@ func (client ZTSClient) PostInstanceRefreshRequest(domain CompoundName, service 
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -747,10 +732,7 @@ func (client ZTSClient) GetAWSTemporaryCredentials(domainName DomainName, role A
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -786,10 +768,7 @@ func (client ZTSClient) PostOSTKInstanceInformation(info *OSTKInstanceInformatio
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -825,10 +804,7 @@ func (client ZTSClient) PostOSTKInstanceRefreshRequest(domain CompoundName, serv
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -865,10 +841,7 @@ func (client ZTSClient) PostInstanceRegisterInformation(info *InstanceRegisterIn
 		if err != nil {
 			return nil, "", err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return nil, "", err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -904,10 +877,7 @@ func (client ZTSClient) PostInstanceRefreshInformation(provider ServiceName, dom
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -934,10 +904,7 @@ func (client ZTSClient) DeleteInstanceIdentity(provider ServiceName, domain Doma
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -973,10 +940,7 @@ func (client ZTSClient) PostDomainMetrics(domainName DomainName, req *DomainMetr
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -1008,10 +972,7 @@ func (client ZTSClient) GetStatus() (*Status, error) {
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
@@ -1047,10 +1008,7 @@ func (client ZTSClient) PostSSHCertRequest(certRequest *SSHCertRequest) (*SSHCer
 		if err != nil {
 			return data, err
 		}
-		err = json.Unmarshal(contentBytes, &errobj)
-		if err != nil {
-			return data, err
-		}
+		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
 			errobj.Code = resp.StatusCode
 		}
