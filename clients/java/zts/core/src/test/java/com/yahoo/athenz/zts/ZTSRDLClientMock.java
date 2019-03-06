@@ -34,6 +34,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     private String roleName   = null;
     private String policyName = null;
     private List<String> tenantDomains = null;
+    private boolean jwkFailure = false;
 
     Map<String, AWSTemporaryCredentials> credsMap = new HashMap<>();
     
@@ -67,6 +68,25 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
 
         return new HostServices().setHost(hostName)
                 .setNames(Arrays.asList("service1", "service2"));
+    }
+
+    public void setJwkFailure(boolean jwkFailure) {
+        this.jwkFailure = jwkFailure;
+    }
+
+    @Override
+    public JWKList getJWKList() {
+
+        if (jwkFailure) {
+            throw new ResourceException(500, "unable to retrieve jwk list");
+        }
+
+        JWKList jwkList = new JWKList();
+        List<JWK> list = new ArrayList<>();
+        list.add(new JWK().setKid("id1").setKty("RSA").setN("n").setE("e"));
+        jwkList.setKeys(list);
+
+        return jwkList;
     }
 
     @Override

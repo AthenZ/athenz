@@ -20,3 +20,4 @@ include "Instance.rdli";
 include "DomainMetrics.rdli";
 include "Status.rdli";
 include "SSHCert.rdli";
+include "OAauth.rdli";

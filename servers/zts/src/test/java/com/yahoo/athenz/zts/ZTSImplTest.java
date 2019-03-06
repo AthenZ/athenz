@@ -1129,8 +1129,29 @@ public class ZTSImplTest {
         hosts = zts.getHostServices(context, "host3");
         assertEquals(1, hosts.getNames().size());
         assertTrue(hosts.getNames().contains("coretech.backup"));
-        }
-    
+    }
+
+    @Test
+    public void testGetJWKList() {
+
+        Principal principal = SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        JWKList list = zts.getJWKList(context);
+        assertNotNull(list);
+        List<JWK> keys = list.getKeys();
+        assertEquals(keys.size(), 2);
+
+        JWK key1 = keys.get(0);
+        assertEquals(key1.getKty(), "RSA", key1.getKty());
+        assertEquals(key1.getKid(), "0", key1.getKid());
+
+        JWK key2 = keys.get(1);
+        assertEquals(key2.getKty(), "EC", key1.getKty());
+        assertEquals(key2.getKid(), "ec.0", key1.getKid());
+    }
+
     @Test
     public void testGetHostServicesInvalidHost() {
         

@@ -2644,6 +2644,26 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return Response.status(ResourceException.CREATED).entity(certs).build();
     }
 
+    @Override
+    public JWKList getJWKList(ResourceContext ctx) {
+
+        final String caller = "getjwklist";
+        final String callerTiming = "getjwklist_timing";
+
+        metric.increment(HTTP_GET);
+        metric.increment(HTTP_REQUEST);
+        metric.increment(caller);
+        Object timerMetric = metric.startTiming(callerTiming, null);
+        logPrincipal(ctx);
+
+        validateRequest(ctx.request(), caller);
+
+        final JWKList jwkList = dataStore.getZtsJWKList();
+
+        metric.stopTiming(timerMetric);
+        return jwkList;
+    }
+
     /// CLOVER:OFF
     // this method will be removed and replaced with call to postInstanceRegisterInformation
     @Deprecated
