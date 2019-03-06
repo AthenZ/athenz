@@ -349,6 +349,23 @@ func init() {
 	tSSHCertificates.Field("certificateSigner", "String", true, nil, "the SSH CA's public key for the sshCertificate (user or host)")
 	sb.AddType(tSSHCertificates.Build())
 
+	tJWK := rdl.NewStructTypeBuilder("Struct", "JWK")
+	tJWK.Field("kty", "String", false, nil, "key type: EC or RSA")
+	tJWK.Field("kid", "String", false, nil, "identifier")
+	tJWK.Field("alg", "String", true, nil, "key algorithm")
+	tJWK.Field("use", "String", true, nil, "usage: sig or enc")
+	tJWK.Field("crv", "String", true, nil, "ec curve name")
+	tJWK.Field("x", "String", true, nil, "ec x value")
+	tJWK.Field("y", "String", true, nil, "ec y value")
+	tJWK.Field("n", "String", true, nil, "rsa modulus value")
+	tJWK.Field("e", "String", true, nil, "rsa public exponent value")
+	sb.AddType(tJWK.Build())
+
+	tJWKList := rdl.NewStructTypeBuilder("Struct", "JWKList")
+	tJWKList.Comment("JSON Web Key (JWK) List")
+	tJWKList.ArrayField("keys", "JWK", false, "array of JWKs")
+	sb.AddType(tJWKList.Build())
+
 	mGetResourceAccess := rdl.NewResourceBuilder("ResourceAccess", "GET", "/access/{action}/{resource}")
 	mGetResourceAccess.Comment("Check access for the specified operation on the specified resource for the currently authenticated user. This is the slow centralized access for control-plane purposes. Use distributed mechanisms for decentralized (data-plane) access by fetching signed policies and role tokens for users. With this endpoint the resource is part of the uri and restricted to its strict definition of resource name. If needed, you can use the GetAccessExt api that allows resource name to be less restrictive.")
 	mGetResourceAccess.Input("action", "ActionName", true, "", "", false, nil, "action as specified in the policy assertion, i.e. update or read")
@@ -596,6 +613,13 @@ func init() {
 	mPostSSHCertRequest.Exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
 	mPostSSHCertRequest.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mPostSSHCertRequest.Build())
+
+	mGetJWKList := rdl.NewResourceBuilder("JWKList", "GET", "/keys")
+	mGetJWKList.Auth("", "", true, "")
+	mGetJWKList.Exception("BAD_REQUEST", "ResourceError", "")
+	mGetJWKList.Exception("NOT_FOUND", "ResourceError", "")
+	mGetJWKList.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mGetJWKList.Build())
 
 	var err error
 	schema, err = sb.BuildParanoid()

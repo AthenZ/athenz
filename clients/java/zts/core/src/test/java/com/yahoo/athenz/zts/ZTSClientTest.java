@@ -1650,7 +1650,35 @@ public class ZTSClientTest {
         
         client.close();
     }
-    
+
+    @Test
+    public void testGetJWKList() {
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        ZTSClient.cancelPrefetch();
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        JWKList jwkList = client.getJWKList();
+        assertNotNull(jwkList);
+        assertEquals(jwkList.getKeys().size(), 1);
+        assertEquals(jwkList.getKeys().get(0).getKid(), "id1");
+        assertEquals(jwkList.getKeys().get(0).getKty(), "RSA");
+
+        try {
+            ztsClientMock.setJwkFailure(true);
+            client.getJWKList();
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(ex.getCode(), 500);
+        }
+
+        client.close();
+    }
+
     @Test
     public void testGetPublicKeyEntry() {
         

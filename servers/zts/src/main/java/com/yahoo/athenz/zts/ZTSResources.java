@@ -578,6 +578,30 @@ public class ZTSResources {
     }
 
     @GET
+    @Path("/keys")
+    @Produces(MediaType.APPLICATION_JSON)
+    public JWKList getJWKList() {
+        try {
+            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context.authenticate();
+            return this.delegate.getJWKList(context);
+        } catch (ResourceException e) {
+            int code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getJWKList");
+                throw typedException(code, e, ResourceError.class);
+            }
+        }
+    }
+
+    @GET
     @Path("/schema")
     @Produces(MediaType.APPLICATION_JSON)
     public Schema getRdlSchema() {

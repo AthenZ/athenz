@@ -814,6 +814,21 @@ public class ZTSClient implements Closeable {
     }
 
     /**
+     * Retrieve list of ZTS Server public keys in Json WEB Key (JWK) format
+     * @return list of public keys (JWKs) on success. ZTSClientException will be thrown in case of failure
+     */
+    public JWKList getJWKList() {
+        updateServicePrincipal();
+        try {
+            return ztsClient.getJWKList();
+        } catch (ResourceException ex) {
+            throw new ZTSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZTSClientException(ZTSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
      * For the specified requester(user/service) return the corresponding Role Token that
      * includes the list of roles that the principal has access to in the specified domain.
      * The client will automatically fulfill the request from the cache, if possible.

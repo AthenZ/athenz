@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,6 +38,7 @@ import java.util.Set;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSTestUtils;
+import org.bouncycastle.jce.spec.ECParameterSpec;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -170,19 +172,52 @@ public class DataStoreTest {
                 pkey, "0");
 
         System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz_no_zms_publickeys.conf");
-        DataStore store = new DataStore(clogStore, null);
-        assertNotNull(store);
-        assertEquals(store.zmsPublicKeyCache.size(), 0);
+        try {
+            new DataStore(clogStore, null);
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertTrue(ex.getMessage().contains("Unable to initialize public keys"));
+        }
+
+        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz_no_zts_publickeys.conf");
+        try {
+            new DataStore(clogStore, null);
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertTrue(ex.getMessage().contains("Unable to initialize public keys"));
+        }
 
         System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz_zms_invalid_publickeys.conf");
-        store = new DataStore(clogStore, null);
-        assertNotNull(store);
-        assertEquals(store.zmsPublicKeyCache.size(), 0);
+        try {
+            new DataStore(clogStore, null);
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertTrue(ex.getMessage().contains("Unable to initialize public keys"));
+        }
+
+        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz_zts_invalid_publickeys.conf");
+        try {
+            new DataStore(clogStore, null);
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertTrue(ex.getMessage().contains("Unable to initialize public keys"));
+        }
 
         System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz_invalid.conf");
-        store = new DataStore(clogStore, null);
-        assertNotNull(store);
-        assertEquals(store.zmsPublicKeyCache.size(), 0);
+        try {
+            new DataStore(clogStore, null);
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertTrue(ex.getMessage().contains("Unable to initialize public keys"));
+        }
+
+        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz_invalid_zts_pem_publickey.conf");
+        try {
+            new DataStore(clogStore, null);
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertTrue(ex.getMessage().contains("Unable to initialize public keys"));
+        }
 
         System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
     }
@@ -3747,5 +3782,18 @@ public class DataStoreTest {
         domainList.add(userDomain);
         domainList.add("coretech");
         assertFalse(store.validDomainListResponse(domainList));
+    }
+
+    @Test
+    public void testGetInvalidCurveName() {
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+        DataStore store = new DataStore(clogStore, null);
+        ECParameterSpec spec = Mockito.mock(ECParameterSpec.class);
+        Mockito.when(spec.getCurve()).thenReturn(null);
+        Mockito.when(spec.getG()).thenReturn(null);
+        Mockito.when(spec.getH()).thenReturn(new BigInteger("100"));
+        Mockito.when(spec.getN()).thenReturn(new BigInteger("100"));
+        assertNull(store.getCurveName(spec));
     }
 }

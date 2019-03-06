@@ -299,6 +299,21 @@ public class ZTSSchema {
             .arrayField("certificates", "SSHCertificate", false, "set of user ssh certificates")
             .field("certificateSigner", "String", true, "the SSH CA's public key for the sshCertificate (user or host)");
 
+        sb.structType("JWK")
+            .field("kty", "String", false, "key type: EC or RSA")
+            .field("kid", "String", false, "identifier")
+            .field("alg", "String", true, "key algorithm")
+            .field("use", "String", true, "usage: sig or enc")
+            .field("crv", "String", true, "ec curve name")
+            .field("x", "String", true, "ec x value")
+            .field("y", "String", true, "ec y value")
+            .field("n", "String", true, "rsa modulus value")
+            .field("e", "String", true, "rsa public exponent value");
+
+        sb.structType("JWKList")
+            .comment("JSON Web Key (JWK) List")
+            .arrayField("keys", "JWK", false, "array of JWKs");
+
 
         sb.resource("ResourceAccess", "GET", "/access/{action}/{resource}")
             .comment("Check access for the specified operation on the specified resource for the currently authenticated user. This is the slow centralized access for control-plane purposes. Use distributed mechanisms for decentralized (data-plane) access by fetching signed policies and role tokens for users. With this endpoint the resource is part of the uri and restricted to its strict definition of resource name. If needed, you can use the GetAccessExt api that allows resource name to be less restrictive.")
@@ -622,6 +637,16 @@ public class ZTSSchema {
             .exception("FORBIDDEN", "ResourceError", "")
 
             .exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("JWKList", "GET", "/keys")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
 
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;

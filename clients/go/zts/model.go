@@ -2797,3 +2797,208 @@ func (self *SSHCertificates) Validate() error {
 	}
 	return nil
 }
+
+//
+// JWK -
+//
+type JWK struct {
+
+	//
+	// key type: EC or RSA
+	//
+	Kty string `json:"kty"`
+
+	//
+	// identifier
+	//
+	Kid string `json:"kid"`
+
+	//
+	// key algorithm
+	//
+	Alg string `json:"alg,omitempty" rdl:"optional"`
+
+	//
+	// usage: sig or enc
+	//
+	Use string `json:"use,omitempty" rdl:"optional"`
+
+	//
+	// ec curve name
+	//
+	Crv string `json:"crv,omitempty" rdl:"optional"`
+
+	//
+	// ec x value
+	//
+	X string `json:"x,omitempty" rdl:"optional"`
+
+	//
+	// ec y value
+	//
+	Y string `json:"y,omitempty" rdl:"optional"`
+
+	//
+	// rsa modulus value
+	//
+	N string `json:"n,omitempty" rdl:"optional"`
+
+	//
+	// rsa public exponent value
+	//
+	E string `json:"e,omitempty" rdl:"optional"`
+}
+
+//
+// NewJWK - creates an initialized JWK instance, returns a pointer to it
+//
+func NewJWK(init ...*JWK) *JWK {
+	var o *JWK
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(JWK)
+	}
+	return o
+}
+
+type rawJWK JWK
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a JWK
+//
+func (self *JWK) UnmarshalJSON(b []byte) error {
+	var m rawJWK
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := JWK(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *JWK) Validate() error {
+	if self.Kty == "" {
+		return fmt.Errorf("JWK.kty is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Kty)
+		if !val.Valid {
+			return fmt.Errorf("JWK.kty does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Kid == "" {
+		return fmt.Errorf("JWK.kid is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Kid)
+		if !val.Valid {
+			return fmt.Errorf("JWK.kid does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Alg != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.Alg)
+		if !val.Valid {
+			return fmt.Errorf("JWK.alg does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Use != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.Use)
+		if !val.Valid {
+			return fmt.Errorf("JWK.use does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Crv != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.Crv)
+		if !val.Valid {
+			return fmt.Errorf("JWK.crv does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.X != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.X)
+		if !val.Valid {
+			return fmt.Errorf("JWK.x does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Y != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.Y)
+		if !val.Valid {
+			return fmt.Errorf("JWK.y does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.N != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.N)
+		if !val.Valid {
+			return fmt.Errorf("JWK.n does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.E != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.E)
+		if !val.Valid {
+			return fmt.Errorf("JWK.e does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
+// JWKList - JSON Web Key (JWK) List
+//
+type JWKList struct {
+
+	//
+	// array of JWKs
+	//
+	Keys []*JWK `json:"keys"`
+}
+
+//
+// NewJWKList - creates an initialized JWKList instance, returns a pointer to it
+//
+func NewJWKList(init ...*JWKList) *JWKList {
+	var o *JWKList
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(JWKList)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *JWKList) Init() *JWKList {
+	if self.Keys == nil {
+		self.Keys = make([]*JWK, 0)
+	}
+	return self
+}
+
+type rawJWKList JWKList
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a JWKList
+//
+func (self *JWKList) UnmarshalJSON(b []byte) error {
+	var m rawJWKList
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := JWKList(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *JWKList) Validate() error {
+	if self.Keys == nil {
+		return fmt.Errorf("JWKList: Missing required field: keys")
+	}
+	return nil
+}
