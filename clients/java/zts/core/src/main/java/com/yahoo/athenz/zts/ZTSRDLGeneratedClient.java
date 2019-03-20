@@ -525,7 +525,7 @@ public class ZTSRDLGeneratedClient {
     }
 
     public JWKList getJWKList() {
-        WebTarget target = base.path("/keys");
+        WebTarget target = base.path("/oauth2/keys");
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
             invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
@@ -536,6 +536,24 @@ public class ZTSRDLGeneratedClient {
         switch (code) {
         case 200:
             return response.readEntity(JWKList.class);
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
+    public AccessTokenResponse postAccessTokenRequest(String request) {
+        WebTarget target = base.path("/oauth2/token");
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(request, "application/json"));
+        int code = response.getStatus();
+        switch (code) {
+        case 200:
+            return response.readEntity(AccessTokenResponse.class);
         default:
             throw new ResourceException(code, response.readEntity(ResourceError.class));
         }

@@ -35,6 +35,7 @@ public interface ZTSHandler {
     Status getStatus(ResourceContext context);
     Response postSSHCertRequest(ResourceContext context, SSHCertRequest certRequest);
     JWKList getJWKList(ResourceContext context);
+    AccessTokenResponse postAccessTokenRequest(ResourceContext context, String request);
     Schema getRdlSchema(ResourceContext context);
     ResourceContext newResourceContext(HttpServletRequest request, HttpServletResponse response);
 }
