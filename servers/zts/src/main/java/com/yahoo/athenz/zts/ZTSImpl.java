@@ -29,9 +29,13 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.Response;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.dns.HostnameResolverFactory;
 import com.yahoo.athenz.zts.cert.*;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,6 +93,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected PrivateKeyStore privateKeyStore = null;
     protected HostnameResolver hostnameResolver = null;
     protected String privateKeyId = "0";
+    protected SignatureAlgorithm privateKeyAlg = null;
     protected int roleTokenDefaultTimeout;
     protected int roleTokenMaxTimeout;
     protected long x509CertRefreshResetTime;
@@ -118,6 +123,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected boolean readOnlyMode = false;
     protected boolean verifyCertRequestIP = false;
     protected boolean verifyCertSubjectOU = false;
+    protected String ztsOAuthIssuer;
+    protected ObjectMapper jsonMapper;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -148,6 +155,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private static final String HTTP_GET = "GET";
     private static final String HTTP_POST = "POST";
     private static final String HTTP_REQUEST = "REQUEST";
+
+    private static final String KEY_SCOPE = "scope";
+    private static final String KEY_GRANT_TYPE = "grant_type";
+    private static final String KEY_EXPIRES_IN = "expires_in";
+    private static final String KEY_ID = "kid";
+
+    private static final String OAUTH_GRANT_CREDENTIALS = "client_credentials";
+    private static final String OAUTH_BEARER_TOKEN = "Bearer";
 
     // domain metrics prefix
     private static final String DOM_METRIX_PREFIX = "dom_metric_";
@@ -286,6 +301,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // make sure to set the keystore for any instance that requires it
         
         setAuthorityKeyStore();
+
+        // initialize our jackson object mapper
+
+        jsonMapper = new ObjectMapper();
+        jsonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
     
     void loadSystemProperties() {
@@ -431,6 +451,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (validCertSubjectOrgUnitValueList != null) {
             validCertSubjectOrgUnitValues = new HashSet<>(Arrays.asList(validCertSubjectOrgUnitValueList.split("\\|")));
         }
+
+        // retrieve our oauth settings
+
+        ztsOAuthIssuer = System.getProperty(ZTSConsts.ZTS_PROP_OAUTH_ISSUER, serverHostName);
     }
     
     static String getServerHostName() {
@@ -540,6 +564,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         privateKeyStore = pkeyFactory.create();
         privateKey = privateKeyStore.getPrivateKey(ZTSConsts.ZTS_SERVICE, serverHostName, privKeyId);
         privateKeyId = privKeyId.toString();
+
+        // determine the signature algorithm based on the key type
+        // only supported types are not RSA and EC
+
+        privateKeyAlg = ZTSConsts.ECDSA.equalsIgnoreCase(privateKey.getAlgorithm()) ?
+                SignatureAlgorithm.ES256 : SignatureAlgorithm.RS256;
     }
     
     void loadAuthorities() {
@@ -1205,7 +1235,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
     
     // Token interface
-    public RoleToken getRoleToken(ResourceContext ctx, String domainName, String roleName,
+    public RoleToken getRoleToken(ResourceContext ctx, String domainName, String roleNames,
             Integer minExpiryTime, Integer maxExpiryTime, String proxyForPrincipal) {
         
         final String caller = "getroletoken";
@@ -1215,8 +1245,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         validateRequest(ctx.request(), caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
-        if (roleName != null && !roleName.isEmpty()) {
-            validate(roleName, TYPE_ENTITY_LIST, caller);
+        if (roleNames != null && !roleNames.isEmpty()) {
+            validate(roleNames, TYPE_ENTITY_LIST, caller);
         }
         if (proxyForPrincipal != null && !proxyForPrincipal.isEmpty()) {
             validate(proxyForPrincipal, TYPE_ENTITY_NAME, caller);
@@ -1227,8 +1257,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // saves all of its object names in lower case
         
         domainName = domainName.toLowerCase();
-        if (roleName != null) {
-            roleName = roleName.toLowerCase();
+        if (roleNames != null) {
+            roleNames = roleNames.toLowerCase();
         }
         if (proxyForPrincipal != null) {
             proxyForPrincipal = normalizeDomainAliasUser(proxyForPrincipal.toLowerCase());
@@ -1243,15 +1273,15 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("getRoleToken(domain: " + domainName + ", principal: " + principalName +
-                    ", role-name: " + roleName + ", proxy-for: " + proxyForPrincipal + ")");
+                    ", role-name: " + roleNames + ", proxy-for: " + proxyForPrincipal + ")");
         }
         
         // do not allow empty (not null) values for role
         
-        roleName = convertEmptyStringToNull(roleName);
+        roleNames = convertEmptyStringToNull(roleNames);
         proxyForPrincipal = convertEmptyStringToNull(proxyForPrincipal);
         
-        if (leastPrivilegePrincipal && roleName == null) {
+        if (leastPrivilegePrincipal && roleNames == null) {
             throw requestError("getRoleToken: Client must specify a roleName to request a token for",
                     caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
         }
@@ -1297,8 +1327,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // it could contain multiple values separated by commas
         
         String[] requestedRoleList = null;
-        if (roleName != null) {
-            requestedRoleList = roleName.split(",");
+        if (roleNames != null) {
+            requestedRoleList = roleNames.split(",");
         }
         
         // process our request and retrieve the roles for the principal
@@ -1339,7 +1369,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         long tokenTimeout = determineTokenTimeout(minExpiryTime, maxExpiryTime);
         List<String> roleList = new ArrayList<>(roles);
-        boolean domainCompleteRoleSet = (includeRoleCompleteFlag && roleName == null);
+        boolean domainCompleteRoleSet = (includeRoleCompleteFlag && roleNames == null);
         com.yahoo.athenz.auth.token.RoleToken token =
                 new com.yahoo.athenz.auth.token.RoleToken.Builder(ZTS_ROLE_TOKEN_VERSION, domainName, roleList)
                     .expirationWindow(tokenTimeout).host(serverHostName).keyId(privateKeyId)
@@ -1353,6 +1383,225 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         metric.stopTiming(timerMetric);
         return roleToken;
+    }
+
+    String decodeString(final String encodedString) {
+
+        try {
+            return URLDecoder.decode(encodedString, "UTF-8");
+        } catch (Exception ex) {
+            LOGGER.error("Unable to decode: {}, error: {}", encodedString, ex.getMessage());
+            return null;
+        }
+    }
+
+    @Override
+    public AccessTokenResponse postAccessTokenRequest(ResourceContext ctx, String request) {
+
+        final String caller = "postaccesstokenrequest";
+        final String callerTiming = "postaccesstokenrequest_timing";
+
+        metric.increment(HTTP_POST);
+        logPrincipal(ctx);
+
+        validateRequest(ctx.request(), caller);
+
+        if (request == null || request.isEmpty()) {
+            throw requestError("Empty request body", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+        }
+
+        // get our principal's name
+
+        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        final String principalName = principal.getFullName();
+
+        // update our metric with dimension
+
+        metric.increment(HTTP_REQUEST, principal.getDomain());
+        metric.increment(caller, principal.getDomain());
+
+        Object timerMetric = metric.startTiming(callerTiming, principal.getDomain());
+
+        // decode and store the attributes that could exist in our
+        // request body
+
+        String grantType = null;
+        String scope = null;
+        int expiryTime = 0;
+
+        String[] comps = request.split("&");
+        for (String comp : comps) {
+            int idx = comp.indexOf('=');
+            if (idx == -1) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("postAccessTokenRequest: skipping invalid component: {}", comp);
+                }
+                continue;
+            }
+            final String key = decodeString(comp.substring(0, idx));
+            if (key == null) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("postAccessTokenRequest: skipping invalid component: {}", comp);
+                }
+                continue;
+            }
+            final String value = decodeString(comp.substring(idx + 1));
+            if (value == null) {
+                continue;
+            }
+            switch (key) {
+                case KEY_GRANT_TYPE:
+                    grantType = value.toLowerCase();
+                    break;
+                case KEY_SCOPE:
+                    scope = value.toLowerCase();
+                    break;
+                case KEY_EXPIRES_IN:
+                    expiryTime = ZTSUtils.parseInt(value, 0);
+                    break;
+            }
+        }
+
+        // validate the request data
+
+        if (!OAUTH_GRANT_CREDENTIALS.equals(grantType)) {
+            throw requestError("Invalid grant request: " + grantType, caller, principal.getDomain());
+        }
+
+        // we must have scope provided so we know what access
+        // the client is looking for
+
+        if (scope == null || scope.isEmpty()) {
+            throw requestError("Invalid request: no scope provided", caller, principal.getDomain());
+        }
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("postAccessTokenRequest(principal: {}, grant-type: {}, scope: {}, expires-in: {})",
+                    principalName, grantType, scope, expiryTime);
+        }
+
+        // our scopes are space separated list of values
+
+        AccessTokenRequest tokenRequest = new AccessTokenRequest(scope);
+
+        // first retrieve our domain data object from the cache
+
+        final String domainName = tokenRequest.getDomainName();
+        DataCache data = dataStore.getDataCache(domainName);
+        if (data == null) {
+            // just increment the request counter without any dimension
+            // we don't want to get persistent indexes for invalid domains
+
+            metric.increment(HTTP_REQUEST, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+            metric.increment(caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+
+            throw notFoundError("No such domain: " + domainName, caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+        }
+
+        // update our metric with dimension. we're moving the metric here
+        // after the domain name has been confirmed as valid since with
+        // dimensions we get stuck with persistent indexes so we only want
+        // to create them for valid domain names
+
+        metric.increment(HTTP_REQUEST, domainName);
+        metric.increment(caller, domainName);
+
+        // check if the authorized service domain matches to the
+        // requested domain name
+
+        checkRoleTokenAuthorizedServiceRequest(principal, domainName, caller);
+
+        // process our request and retrieve the roles for the principal
+
+        Set<String> roles = new HashSet<>();
+        String[] requestedRoles = tokenRequest.getRoleNames();
+        dataStore.getAccessibleRoles(data, domainName, principalName, requestedRoles, roles, false);
+
+        // if we don't have the openid scope requested then we return
+        // failure if we don't have access to any roles
+
+        if (roles.isEmpty() && !tokenRequest.isOpenidScope()) {
+            throw forbiddenError("No access to any roles in domain: " + domainName, caller, domainName);
+        }
+
+        long tokenTimeout = determineTokenTimeout(null, expiryTime);
+        long iat = System.currentTimeMillis() / 1000;
+
+        AccessToken accessToken = new AccessToken().setVer(1).setAud(domainName)
+                .setCid(principalName).setIat(iat).setExp(iat + tokenTimeout).setUid(principalName)
+                .setSub(principalName).setIss(ztsOAuthIssuer);
+
+        if (!roles.isEmpty()) {
+            accessToken.setScp(new ArrayList<>(roles));
+        }
+
+        final String accessTokenStr = oauthTokenAsString(accessToken);
+        if (accessTokenStr == null) {
+            throw serverError("Unable to convert access token to string", caller, domainName);
+        }
+
+        String accessJwts = Jwts.builder().setPayload(accessTokenStr).setHeaderParam(KEY_ID, privateKeyId)
+                .signWith(privateKeyAlg, privateKey).compact();
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("access token for principal {}: {}", principalName, accessTokenStr);
+        }
+
+        // now let's check to see if we need to create openid token
+
+        String idJwts = null;
+        if (tokenRequest.isOpenidScope()) {
+
+            // id tokens are only valid for 1 hour
+
+            IdToken idToken = new IdToken().setVer(1).setAud(domainName).setAuth_time(iat)
+                    .setIat(iat).setExp(iat + 3600).setIss(ztsOAuthIssuer).setSub(principalName);
+
+            final String idTokenStr = oauthTokenAsString(idToken);
+            if (idTokenStr == null) {
+                throw serverError("Unable to convert id token to string", caller, domainName);
+            }
+
+            idJwts = Jwts.builder().setPayload(idTokenStr).setHeaderParam(KEY_ID, privateKeyId)
+                    .signWith(privateKeyAlg, privateKey).compact();
+
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("id token for principal {}: {}", principalName, idTokenStr);
+            }
+        }
+
+        AccessTokenResponse response = new AccessTokenResponse().setAccess_token(accessJwts)
+                .setToken_type(OAUTH_BEARER_TOKEN).setExpires_in((int) tokenTimeout).setId_token(idJwts);
+
+        // if either we were asked for full domain roles or the requested list of roles
+        // does not match the returned list of roles then we need to return the updated
+        // set of scopes
+
+        if (tokenRequest.sendScopeResponse() || requestedRoles != null && requestedRoles.length != roles.size()) {
+            List<String> domainRoles = new ArrayList<>();
+            for (String role : roles) {
+                domainRoles.add(domainName + AccessTokenRequest.OBJECT_ROLE + role);
+            }
+            if (tokenRequest.isOpenidScope()) {
+                domainRoles.add(AccessTokenRequest.OBJECT_OPENID);
+            }
+            response.setScope(String.join(" ", domainRoles));
+        }
+
+        metric.stopTiming(timerMetric);
+        return response;
+    }
+
+    <T> String oauthTokenAsString(T oauthToken) {
+
+        String token = null;
+        try {
+            token = jsonMapper.writerWithView(oauthToken.getClass()).writeValueAsString(oauthToken);
+        } catch (Exception ex) {
+            LOGGER.error("Unable to marshall access token object '{}', error: {}",
+                    oauthToken, ex.getMessage());
+        }
+        return token;
     }
 
     boolean compareRoleSets(Set<String> set1, Set<String> set2) {
@@ -2128,7 +2377,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         try {
             instance = instanceProvider.refreshInstance(instance);
         } catch (com.yahoo.athenz.instance.provider.ResourceException ex) {
-            
+
+            LOGGER.error("Unable to confirm refresh request for {}/{}.{}: {}",
+                    provider, domain, service, ex);
+
             // for backward compatibility initially we'll only look for
             // specifically 403 response and treat responses like 404
             // as success. Later, we'll change the behavior to only

@@ -578,7 +578,7 @@ public class ZTSResources {
     }
 
     @GET
-    @Path("/keys")
+    @Path("/oauth2/keys")
     @Produces(MediaType.APPLICATION_JSON)
     public JWKList getJWKList() {
         try {
@@ -596,6 +596,33 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             default:
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getJWKList");
+                throw typedException(code, e, ResourceError.class);
+            }
+        }
+    }
+
+    @POST
+    @Path("/oauth2/token")
+    @Consumes("application/x-www-form-urlencoded")
+    @Produces(MediaType.APPLICATION_JSON)
+    public AccessTokenResponse postAccessTokenRequest(String request) {
+        try {
+            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context.authenticate();
+            return this.delegate.postAccessTokenRequest(context, request);
+        } catch (ResourceException e) {
+            int code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource postAccessTokenRequest");
                 throw typedException(code, e, ResourceError.class);
             }
         }

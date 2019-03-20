@@ -349,6 +349,38 @@ func init() {
 	tSSHCertificates.Field("certificateSigner", "String", true, nil, "the SSH CA's public key for the sshCertificate (user or host)")
 	sb.AddType(tSSHCertificates.Build())
 
+	tOAuth2Token := rdl.NewStructTypeBuilder("Struct", "OAuth2Token")
+	tOAuth2Token.Field("ver", "Int32", false, nil, "token version")
+	tOAuth2Token.Field("aud", "String", false, nil, "token audience")
+	tOAuth2Token.Field("exp", "Int64", false, nil, "expiry time in seconds.")
+	tOAuth2Token.Field("iat", "Int64", false, nil, "issued time in seconds (unix epoch)")
+	tOAuth2Token.Field("iss", "String", false, nil, "issuer identifier")
+	tOAuth2Token.Field("sub", "String", false, nil, "subject identifier")
+	sb.AddType(tOAuth2Token.Build())
+
+	tAccessToken := rdl.NewStructTypeBuilder("OAuth2Token", "AccessToken")
+	tAccessToken.Field("cid", "String", false, nil, "client id requesting the token")
+	tAccessToken.Field("uid", "String", false, nil, "user/service uid")
+	tAccessToken.ArrayField("scp", "String", true, "array of scopes")
+	sb.AddType(tAccessToken.Build())
+
+	tIdToken := rdl.NewStructTypeBuilder("OAuth2Token", "IdToken")
+	tIdToken.Field("nonce", "String", true, nil, "nonce value to prevent replay attacks")
+	tIdToken.Field("auth_time", "Int64", true, nil, "authentication time")
+	tIdToken.Field("acr", "String", true, nil, "authentication context class reference")
+	tIdToken.Field("amr", "String", true, nil, "authentication methods references")
+	tIdToken.Field("azp", "String", true, nil, "authorized party")
+	sb.AddType(tIdToken.Build())
+
+	tAccessTokenResponse := rdl.NewStructTypeBuilder("Struct", "AccessTokenResponse")
+	tAccessTokenResponse.Field("access_token", "String", false, nil, "access token")
+	tAccessTokenResponse.Field("token_type", "String", false, nil, "token type e.g. Bearer")
+	tAccessTokenResponse.Field("expires_in", "Int32", true, nil, "expiration in seconds")
+	tAccessTokenResponse.Field("scope", "String", true, nil, "scope of the access token e.g. openid")
+	tAccessTokenResponse.Field("refresh_token", "String", true, nil, "refresh token")
+	tAccessTokenResponse.Field("id_token", "String", true, nil, "id token")
+	sb.AddType(tAccessTokenResponse.Build())
+
 	tJWK := rdl.NewStructTypeBuilder("Struct", "JWK")
 	tJWK.Field("kty", "String", false, nil, "key type: EC or RSA")
 	tJWK.Field("kid", "String", false, nil, "identifier")
@@ -365,6 +397,9 @@ func init() {
 	tJWKList.Comment("JSON Web Key (JWK) List")
 	tJWKList.ArrayField("keys", "JWK", false, "array of JWKs")
 	sb.AddType(tJWKList.Build())
+
+	tAccessTokenRequest := rdl.NewAliasTypeBuilder("String", "AccessTokenRequest")
+	sb.AddType(tAccessTokenRequest.Build())
 
 	mGetResourceAccess := rdl.NewResourceBuilder("ResourceAccess", "GET", "/access/{action}/{resource}")
 	mGetResourceAccess.Comment("Check access for the specified operation on the specified resource for the currently authenticated user. This is the slow centralized access for control-plane purposes. Use distributed mechanisms for decentralized (data-plane) access by fetching signed policies and role tokens for users. With this endpoint the resource is part of the uri and restricted to its strict definition of resource name. If needed, you can use the GetAccessExt api that allows resource name to be less restrictive.")
@@ -614,12 +649,21 @@ func init() {
 	mPostSSHCertRequest.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mPostSSHCertRequest.Build())
 
-	mGetJWKList := rdl.NewResourceBuilder("JWKList", "GET", "/keys")
+	mGetJWKList := rdl.NewResourceBuilder("JWKList", "GET", "/oauth2/keys")
 	mGetJWKList.Auth("", "", true, "")
 	mGetJWKList.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetJWKList.Exception("NOT_FOUND", "ResourceError", "")
 	mGetJWKList.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetJWKList.Build())
+
+	mPostAccessTokenRequest := rdl.NewResourceBuilder("AccessTokenResponse", "POST", "/oauth2/token")
+	mPostAccessTokenRequest.Input("request", "AccessTokenRequest", false, "", "", false, nil, "")
+	mPostAccessTokenRequest.Auth("", "", true, "")
+	mPostAccessTokenRequest.Exception("BAD_REQUEST", "ResourceError", "")
+	mPostAccessTokenRequest.Exception("FORBIDDEN", "ResourceError", "")
+	mPostAccessTokenRequest.Exception("NOT_FOUND", "ResourceError", "")
+	mPostAccessTokenRequest.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mPostAccessTokenRequest.Build())
 
 	var err error
 	schema, err = sb.BuildParanoid()

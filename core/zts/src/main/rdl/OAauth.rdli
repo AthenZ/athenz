@@ -4,6 +4,38 @@
 //Name Types
 include "Names.tdl";
 
+type OAuth2Token Struct {
+    Int32 ver; //token version
+    String aud; //token audience
+    Int64 exp; //expiry time in seconds.
+    Int64 iat; //issued time in seconds (unix epoch)
+    String iss; //issuer identifier
+    String sub; //subject identifier
+}
+
+type AccessToken OAuth2Token {
+    String cid; //client id requesting the token
+    String uid; //user/service uid
+    Array<String> scp (optional); //array of scopes
+}
+
+type IdToken OAuth2Token {
+    String nonce (optional); //nonce value to prevent replay attacks
+    Int64 auth_time (optional); //authentication time
+    String acr (optional); //authentication context class reference
+    String amr (optional); //authentication methods references
+    String azp (optional); //authorized party
+}
+
+type AccessTokenResponse Struct {
+    String access_token; //access token
+    String token_type; //token type e.g. Bearer
+    Int32 expires_in (optional); //expiration in seconds
+    String scope (optional); //scope of the access token e.g. openid
+    String refresh_token (optional); //refresh token
+    String id_token (optional); //id token
+}
+
 type JWK Struct {
     String kty; //key type: EC or RSA
     String kid; //identifier
@@ -21,12 +53,26 @@ type JWKList Struct {
     Array<JWK> keys; //array of JWKs
 }
 
-resource JWKList GET "/keys" {
+resource JWKList GET "/oauth2/keys" {
     authenticate;
     expected OK;
     exceptions {
         ResourceError BAD_REQUEST;
         ResourceError UNAUTHORIZED;
         ResourceError NOT_FOUND;
+    }
+}
+
+type AccessTokenRequest String;
+
+resource AccessTokenResponse POST "/oauth2/token" {
+    authenticate;
+    AccessTokenRequest request;
+    consumes application/x-www-form-urlencoded
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
     }
 }

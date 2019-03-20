@@ -138,7 +138,7 @@ public class DataCache {
     public void processRole(Role role) {
         
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Processing role: " + role.getName());
+            LOGGER.debug("Processing role: {}", role.getName());
         }
         
         /* first process members */
@@ -192,8 +192,8 @@ public class DataCache {
     void processAWSAssumeRoleAssertion(Assertion assertion) {
         
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Processing AWS Assume Role for resource: " + assertion.getResource() +
-                    " and role: " + assertion.getRole());
+            LOGGER.debug("Processing AWS Assume Role for resource: {} and role: {}",
+                    assertion.getResource(), assertion.getRole());
         }
 
         final String role = assertion.getRole();
@@ -221,7 +221,7 @@ public class DataCache {
         
         final String policyName = policy.getName();
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Processing policy: " + policyName);
+            LOGGER.debug("Processing policy: {}", policyName);
         }
         
         List<Assertion> assertions = policy.getAssertions();
@@ -281,8 +281,8 @@ public class DataCache {
         try {
             keyValue = Crypto.ybase64DecodeString(publicKey);
         } catch (CryptoException ex) {
-            LOGGER.error("Invalid public key for " + serviceName + " with id " + keyId
-                    + " with value '" + publicKey + "':" + ex.getMessage());
+            LOGGER.error("Invalid public key for {} with id {} with value '{}': {}",
+                    serviceName, keyId, publicKey, ex.getMessage());
         }
         
         if (keyValue != null) {
@@ -305,14 +305,14 @@ public class DataCache {
     public void processServiceIdentity(com.yahoo.athenz.zms.ServiceIdentity service) {
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Processing service identity: " + service.getName());
+            LOGGER.debug("Processing service identity: {}", service.getName());
         }
         
-        /* first process the hosts for the service */
+        // first process the hosts for the service
 
         processServiceIdentityHosts(service.getName(), service.getHosts());
 
-        /* now process the public keys */
+        // now process the public keys
 
         processServiceIdentityPublicKeys(service.getName(), service.getPublicKeys());
     }
