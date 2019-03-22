@@ -203,7 +203,7 @@ $ go get github.com/yahoo/athenz/utils/zms-svctoken/...
 
 The full server source code is available from:
 
-https://github.com/yahoo/athenz/tree/master/examples/go/centralized-use-case/server
+<https://github.com/yahoo/athenz/tree/master/examples/go/centralized-use-case/server>
 
 #### Server Import Dependency Update
 ------------------------------------
@@ -226,7 +226,7 @@ our request contains the Athenz principal token:
 ```go
 
     const authHeader = "Athenz-Principal-Auth"
-    
+
     func movieHandler(w http.ResponseWriter, r *http.Request) {
         // first let's verify that we have an ntoken
         if r.Header[authHeader] == nil {
@@ -264,7 +264,7 @@ Finally, we are going to contact ZMS for the authorization check.
         }
         io.WriteString(w, "Name: Slap Shot; Director: George Roy Hill\n")
     }
-    
+
     func authorizeRequest(ntoken, resource, action string) bool {
         // for our test example we're just going to skip
         // validating self-signed certificates
@@ -313,7 +313,7 @@ for specific services. We're running our go server on the local
 box so we're using localhost as the hostname.
 
 * The zms_svctoken utility should already be built and installed
-on your host. cd to the directory that includes the private keys for the test
+on your host. `cd` to the directory that includes the private keys for the test
 services we created in the section [Athenz Management Setup](#athenz-management-setup)
 above.
 

@@ -27,7 +27,7 @@
 ## What is Copper Argos
 -----------------------
 
-Copper Argos is to extend Athenz with generalized model for service providers to launch other identities in an authorized way thru a callback-based verification model. With this model each provider is responsible for their instance document verification service instead of embedding that logic inside ZTS.
+Copper Argos extends Athenz with generalized model for service providers to launch other identities in an authorized way through a callback-based verification model. With this model each provider is responsible for their instance document verification service instead of embedding that logic inside ZTS.
 
 ## Provider Service Registration
 --------------------------------
@@ -147,7 +147,7 @@ type InstanceRegisterInformation
     ServiceName provider;  //the provider service name (i.e. "aws.us-west-2")
     DomainName domain;     //the domain of the instance
     SimpleName service;    //the service this instance is supposed to run
-    String attestationData;//signed identity document containing attributes 
+    String attestationData;//signed identity document containing attributes
                            //like IP address, instance-id, account#, signature, etc
     String csr;            //the Certificate Signing Request for the expected
                            //X.509 certificate in the response
@@ -201,7 +201,7 @@ InstanceRefreshInformation is the information a provider-hosted booting instance
 
 ```
 type InstanceRefreshInformation Struct {
-    String attestationData (optional); //identity attestation data including 
+    String attestationData (optional); //identity attestation data including
                                        //document with its signature containing attributes like IP
                                        //address, instance-id, account#, etc.
     String csr (optional);             //the Certificate Signing Request for the expected
@@ -239,7 +239,7 @@ resource InstanceIdentity DELETE "/instance/{provider}/{domain}/{service}/{insta
     DomainName domain;      //the domain of the instance
     SimpleName service;     //the service this instance is supposed to run
     PathElement instanceId; //the instance id that’s unique within this provider
-    authorize(“delete”, {domain}:instance.{instanceId}; 
+    authorize(“delete”, {domain}:instance.{instanceId};
     expected NO_CONTENT;
     exceptions {
         ResourceError BAD_REQUEST;
