@@ -20,6 +20,8 @@ import java.util.List;
 
 public class AthenzUtils {
 
+    private final static String ROLE_SEP = ":role.";
+
     /**
      * Return the Athenz Service principal for the given certificate which
      * could be either a service certificate or a role certificate.
@@ -41,7 +43,7 @@ public class AthenzUtils {
         // has the <domain>:role.<rolename> format or service
         // certificate which has the <domain>.<service> format
 
-        if (principal.contains(":role.")) {
+        if (principal.contains(ROLE_SEP)) {
 
             // it's a role certificate so we're going to extract
             // our service principal from the SAN email fieid
@@ -66,5 +68,26 @@ public class AthenzUtils {
         }
 
         return principal;
+    }
+
+    /**
+     * Return if the given x.509 certificate is a role certificate or not
+     * @param x509Cert x.509 athenz service or role certificate
+     * @return true if role certificate, false if service identity certificate
+     */
+    public static boolean isRoleCertificate(X509Certificate x509Cert) {
+
+        // let's first get the common name of the certificate
+
+        final String principal = Crypto.extractX509CertCommonName(x509Cert);
+        if (principal == null) {
+            return false;
+        }
+
+        // check to see if we're dealing with role certificate which
+        // has the <domain>:role.<rolename> format or service
+        // certificate which has the <domain>.<service> format
+
+        return principal.contains(ROLE_SEP);
     }
 }
