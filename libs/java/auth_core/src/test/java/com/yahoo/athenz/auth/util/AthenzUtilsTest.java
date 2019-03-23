@@ -22,8 +22,7 @@ import java.io.InputStream;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNull;
+import static org.testng.Assert.*;
 
 public class AthenzUtilsTest {
 
@@ -88,6 +87,36 @@ public class AthenzUtilsTest {
             X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
 
             assertNull(AthenzUtils.extractServicePrincipal(cert));
+        }
+    }
+
+    @Test
+    public void testIsRoleCertificateServiceCertificate() throws Exception {
+        try (InputStream inStream = new FileInputStream("src/test/resources/x509_altnames_singleip.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+
+            assertFalse(AthenzUtils.isRoleCertificate(cert));
+        }
+    }
+
+    @Test
+    public void testIsRoleCertificateRoleCertificate() throws Exception {
+        try (InputStream inStream = new FileInputStream("src/test/resources/valid_email_x509.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+
+            assertTrue(AthenzUtils.isRoleCertificate(cert));
+        }
+    }
+
+    @Test
+    public void testIsRoleCertificateNoCn() throws Exception {
+        try (InputStream inStream = new FileInputStream("src/test/resources/no_cn_x509.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+
+            assertFalse(AthenzUtils.isRoleCertificate(cert));
         }
     }
 }

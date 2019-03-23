@@ -256,12 +256,12 @@ public class AuthZpeClient {
     public static PublicKey getZmsPublicKey(String keyId) {
         return publicKeyStore.getZmsKey(keyId);
     }
-    
+
     /**
      * Determine if access(action) is allowed against the specified resource by
      * a user represented by the X509Certificate
      * @param cert - X509Certificate
-     *        
+     *
      * @param resource is a domain qualified resource the calling service
      *        will check access for.  ex: my_domain:my_resource
      *        ex: "angler:pondsKernCounty"
@@ -274,6 +274,31 @@ public class AuthZpeClient {
      *        reason why the access was denied
      */
     public static AccessCheckStatus allowAccess(X509Certificate cert, String resource, String action) {
+        StringBuilder matchRoleName = new StringBuilder(256);
+        return allowAccess(cert, resource, action, matchRoleName);
+    }
+
+    /**
+     * Determine if access(action) is allowed against the specified resource by
+     * a user represented by the X509Certificate
+     * @param cert - X509Certificate
+     *
+     * @param resource is a domain qualified resource the calling service
+     *        will check access for.  ex: my_domain:my_resource
+     *        ex: "angler:pondsKernCounty"
+     *        ex: "sports:service.storage.tenant.Activator.ActionMap"
+     * @param action is the type of access attempted by a client
+     *        ex: "read"
+     *        ex: "scan"
+     * @param matchRoleName - [out] will include the role name that the result was based on
+     *        it will be not be set if the failure is due to expired/invalid tokens or
+     *        there were no matches thus a default value of DENY_NO_MATCH is returned
+     * @return AccessCheckStatus if the user can access the resource via the specified action
+     *        the result is ALLOW otherwise one of the DENY_* values specifies the exact
+     *        reason why the access was denied
+     */
+    public static AccessCheckStatus allowAccess(X509Certificate cert, String resource, String action,
+            StringBuilder matchRoleName) {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("allowAccess: action={} resource={}", action, resource);
@@ -312,7 +337,6 @@ public class AuthZpeClient {
             return AccessCheckStatus.DENY_CERT_MISSING_ROLE_NAME;
         }
 
-        StringBuilder matchRoleName = new StringBuilder(256);
         List<String> roles = new ArrayList<>();
         roles.add(roleName);
         return allowActionZPE(action, domainName, resource, roles, matchRoleName);
