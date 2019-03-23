@@ -5,71 +5,71 @@
 <!DOCTYPE html>
 <html lang="en" class="no-js">
   <head>
-    
+
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       <meta http-equiv="x-ua-compatible" content="ie=edge">
-      
+
         <meta name="description" content="Athenz User Guide">
-      
-      
-      
-      
+
+
+
+
         <meta name="lang:clipboard.copy" content="Copy to clipboard">
-      
+
         <meta name="lang:clipboard.copied" content="Copied to clipboard">
-      
+
         <meta name="lang:search.language" content="en">
-      
+
         <meta name="lang:search.pipeline.stopwords" content="True">
-      
+
         <meta name="lang:search.pipeline.trimmer" content="True">
-      
+
         <meta name="lang:search.result.none" content="No matching documents">
-      
+
         <meta name="lang:search.result.one" content="1 matching document">
-      
+
         <meta name="lang:search.result.other" content="# matching documents">
-      
+
         <meta name="lang:search.tokenizer" content="[\s\-]+">
-      
+
       <link rel="shortcut icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.0.4, mkdocs-material-3.1.0">
-    
-    
-      
+
+
+
         <title>Service Identity X.509 Certificate Support Requirements - Copper Argos - Athenz</title>
-      
-    
-    
+
+
+
       <link rel="stylesheet" href="../assets/stylesheets/application.11e41852.css">
-      
-      
-    
-    
+
+
+
+
       <script src="../assets/javascripts/modernizr.20ef595d.js"></script>
-    
-    
-      
+
+
+
         <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700|Roboto+Mono">
         <style>body,input{font-family:"Roboto","Helvetica Neue",Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono","Courier New",Courier,monospace}</style>
-      
-    
+
+
     <link rel="stylesheet" href="../assets/fonts/material-icons.css">
-    
-    
+
+
       <link rel="stylesheet" href="../extra.css">
-    
-    
+
+
   </head>
-  
+
     <body dir="ltr">
-  
+
     <svg class="md-svg">
       <defs>
-        
-        
+
+
           <svg xmlns="http://www.w3.org/2000/svg" width="416" height="448"
     viewBox="0 0 416 448" id="__github">
   <path fill="currentColor" d="M160 304q0 10-3.125 20.5t-10.75 19-18.125
@@ -88,26 +88,26 @@
         46.75-30.25t47.25-9.75q12.75 25.5 12.75 54.5 0 21.75-6.75 42 34 40 34
         99.5z" />
 </svg>
-        
+
       </defs>
     </svg>
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" data-md-component="overlay" for="__drawer"></label>
-    
+
       <a href="#copper-argos-athenz-service-identity-x509-certificates-development" tabindex="1" class="md-skip">
         Skip to content
       </a>
-    
-    
+
+
       <header class="md-header" data-md-component="header">
   <nav class="md-header-nav md-grid">
     <div class="md-flex">
       <div class="md-flex__cell md-flex__cell--shrink">
         <a href=".." title="Athenz" class="md-header-nav__button md-logo">
-          
+
             <i class="md-icon"></i>
-          
+
         </a>
       </div>
       <div class="md-flex__cell md-flex__cell--shrink">
@@ -115,23 +115,23 @@
       </div>
       <div class="md-flex__cell md-flex__cell--stretch">
         <div class="md-flex__ellipsis md-header-nav__title" data-md-component="title">
-          
-            
+
+
               <span class="md-header-nav__topic">
                 Athenz
               </span>
               <span class="md-header-nav__topic">
                 Service Identity X.509 Certificate Support Requirements - Copper Argos
               </span>
-            
-          
+
+
         </div>
       </div>
       <div class="md-flex__cell md-flex__cell--shrink">
-        
-          
+
+
             <label class="md-icon md-icon--search md-header-nav__button" for="__search"></label>
-            
+
 <div class="md-search" data-md-component="search" role="dialog">
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
@@ -154,26 +154,26 @@
     </div>
   </div>
 </div>
-          
-        
+
+
       </div>
-      
+
         <div class="md-flex__cell md-flex__cell--shrink">
           <div class="md-header-nav__source">
-            
 
 
-  
+
+
 
 
   <a href="https://github.com/yahoo/athenz/" title="Go to repository" class="md-source" data-md-source="github">
-    
+
       <div class="md-source__icon">
         <svg viewBox="0 0 24 24" width="24" height="24">
           <use xlink:href="#__github" width="24" height="24"></use>
         </svg>
       </div>
-    
+
     <div class="md-source__repository">
       GitHub
     </div>
@@ -181,66 +181,66 @@
 
           </div>
         </div>
-      
+
     </div>
   </nav>
 </header>
-    
+
     <div class="md-container">
-      
-        
-      
-      
+
+
+
+
       <main class="md-main">
         <div class="md-main__inner md-grid" data-md-component="container">
-          
-            
+
+
               <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     <nav class="md-nav md-nav--primary" data-md-level="0">
   <label class="md-nav__title md-nav__title--site" for="__drawer">
     <a href=".." title="Athenz" class="md-nav__button md-logo">
-      
+
         <i class="md-icon"></i>
-      
+
     </a>
     Athenz
   </label>
-  
+
     <div class="md-nav__source">
-      
 
 
-  
+
+
 
 
   <a href="https://github.com/yahoo/athenz/" title="Go to repository" class="md-source" data-md-source="github">
-    
+
       <div class="md-source__icon">
         <svg viewBox="0 0 24 24" width="24" height="24">
           <use xlink:href="#__github" width="24" height="24"></use>
         </svg>
       </div>
-    
+
     <div class="md-source__repository">
       GitHub
     </div>
   </a>
 
     </div>
-  
+
   <ul class="md-nav__list" data-md-scrollfix>
-    
-      
-      
-      
+
+
+
+
 
 
   <li class="md-nav__item md-nav__item--nested">
-    
+
       <input class="md-toggle md-nav__toggle" data-md-toggle="nav-1" type="checkbox" id="nav-1">
-    
+
     <label class="md-nav__link" for="nav-1">
       Getting Started
     </label>
@@ -249,11 +249,11 @@
         Getting Started
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
-        
-        
-          
-          
-          
+
+
+
+
+
 
 
   <li class="md-nav__item">
@@ -262,10 +262,10 @@
     </a>
   </li>
 
-        
-          
-          
-          
+
+
+
+
 
 
   <li class="md-nav__item">
@@ -274,16 +274,16 @@
     </a>
   </li>
 
-        
-          
-          
-          
+
+
+
+
 
 
   <li class="md-nav__item md-nav__item--nested">
-    
+
       <input class="md-toggle md-nav__toggle" data-md-toggle="nav-1-3" type="checkbox" id="nav-1-3">
-    
+
     <label class="md-nav__link" for="nav-1-3">
       Local/Development Environment Setup
     </label>
@@ -292,11 +292,11 @@
         Local/Development Environment Setup
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
-        
-        
-          
-          
-          
+
+
+
+
+
 
 
   <li class="md-nav__item">
@@ -305,10 +305,10 @@
     </a>
   </li>
 
-        
-          
-          
-          
+
+
+
+
 
 
   <li class="md-nav__item">
@@ -317,10 +317,10 @@
     </a>
   </li>
 
-        
-          
-          
-          
+
+
+
+
 
 
   <li class="md-nav__item">
@@ -329,21 +329,21 @@
     </a>
   </li>
 
-        
+
       </ul>
     </nav>
   </li>
 
-        
-          
-          
-          
+
+
+
+
 
 
   <li class="md-nav__item md-nav__item--nested">
-    
+
       <input class="md-toggle md-nav__toggle" data-md-toggle="nav-1-4" type="checkbox" id="nav-1-4">
-    
+
     <label class="md-nav__link" for="nav-1-4">
       Production Environment Setup
     </label>
@@ -352,11 +352,11 @@
         Production Environment Setup
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
-        
-        
-          
-          
-          
+
+
+
+
+
 
 
   <li class="md-nav__item">
@@ -365,10 +365,10 @@
     </a>
   </li>
 
-        
-          
-          
-          
+
+
+
+
 
 
   <li class="md-nav__item">
@@ -377,10 +377,10 @@
     </a>
   </li>
 
-        
-          
-          
-          
+
+
+
+
 
 
   <li class="md-nav__item">
@@ -389,26 +389,26 @@
     </a>
   </li>
 
-        
+
       </ul>
     </nav>
   </li>
 
-        
+
       </ul>
     </nav>
   </li>
 
-    
-      
-      
-      
+
+
+
+
 
 
   <li class="md-nav__item md-nav__item--nested">
-    
+
       <input class="md-toggle md-nav__toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2">
-    
+
     <label class="md-nav__link" for="nav-2">
       AWS Setup
     </label>
@@ -417,11 +417,11 @@
         AWS Setup
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
-        
-        
-          
-          
-          
+
+
+
+
+
 
 
   <li class="md-nav__item">
@@ -430,10 +430,10 @@
     </a>
   </li>
 
-        
-          
-          
-          
+
+
+
+
 
 
   <li class="md-nav__item">
@@ -442,10 +442,10 @@
     </a>
   </li>
 
-        
-          
-          
-          
+
+
+
+
 
 
   <li class="md-nav__item">
@@ -454,10 +454,10 @@
     </a>
   </li>
 
-        
-          
-          
-          
+
+
+
+
 
 
   <li class="md-nav__item">
@@ -466,21 +466,21 @@
     </a>
   </li>
 
-        
+
       </ul>
     </nav>
   </li>
 
-    
-      
-      
-      
+
+
+
+
 
 
   <li class="md-nav__item md-nav__item--nested">
-    
+
       <input class="md-toggle md-nav__toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3">
-    
+
     <label class="md-nav__link" for="nav-3">
       Architecture
     </label>
@@ -489,11 +489,11 @@
         Architecture
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
-        
-        
-          
-          
-          
+
+
+
+
+
 
 
   <li class="md-nav__item">
@@ -502,10 +502,10 @@
     </a>
   </li>
 
-        
-          
-          
-          
+
+
+
+
 
 
   <li class="md-nav__item">
@@ -514,10 +514,10 @@
     </a>
   </li>
 
-        
-          
-          
-          
+
+
+
+
 
 
   <li class="md-nav__item">
@@ -526,21 +526,21 @@
     </a>
   </li>
 
-        
+
       </ul>
     </nav>
   </li>
 
-    
-      
-      
-      
+
+
+
+
 
 
   <li class="md-nav__item md-nav__item--nested">
-    
+
       <input class="md-toggle md-nav__toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4">
-    
+
     <label class="md-nav__link" for="nav-4">
       Features
     </label>
@@ -549,11 +549,11 @@
         Features
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
-        
-        
-          
-          
-          
+
+
+
+
+
 
 
   <li class="md-nav__item">
@@ -562,21 +562,21 @@
     </a>
   </li>
 
-        
+
       </ul>
     </nav>
   </li>
 
-    
-      
-      
-      
+
+
+
+
 
 
   <li class="md-nav__item md-nav__item--nested">
-    
+
       <input class="md-toggle md-nav__toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5">
-    
+
     <label class="md-nav__link" for="nav-5">
       Developer Guide
     </label>
@@ -585,11 +585,11 @@
         Developer Guide
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
-        
-        
-          
-          
-          
+
+
+
+
+
 
 
   <li class="md-nav__item">
@@ -598,10 +598,10 @@
     </a>
   </li>
 
-        
-          
-          
-          
+
+
+
+
 
 
   <li class="md-nav__item">
@@ -610,10 +610,10 @@
     </a>
   </li>
 
-        
-          
-          
-          
+
+
+
+
 
 
   <li class="md-nav__item">
@@ -622,10 +622,10 @@
     </a>
   </li>
 
-        
-          
-          
-          
+
+
+
+
 
 
   <li class="md-nav__item">
@@ -634,10 +634,10 @@
     </a>
   </li>
 
-        
-          
-          
-          
+
+
+
+
 
 
   <li class="md-nav__item">
@@ -646,23 +646,23 @@
     </a>
   </li>
 
-        
+
       </ul>
     </nav>
   </li>
 
-    
-      
-      
-      
 
-  
+
+
+
+
+
 
 
   <li class="md-nav__item md-nav__item--active md-nav__item--nested">
-    
+
       <input class="md-toggle md-nav__toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6" checked>
-    
+
     <label class="md-nav__link" for="nav-6">
       Customizing Athenz
     </label>
@@ -671,11 +671,11 @@
         Customizing Athenz
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
-        
-        
-          
-          
-          
+
+
+
+
+
 
 
   <li class="md-nav__item">
@@ -684,10 +684,10 @@
     </a>
   </li>
 
-        
-          
-          
-          
+
+
+
+
 
 
   <li class="md-nav__item">
@@ -696,10 +696,10 @@
     </a>
   </li>
 
-        
-          
-          
-          
+
+
+
+
 
 
   <li class="md-nav__item">
@@ -708,236 +708,236 @@
     </a>
   </li>
 
-        
-          
-          
-          
 
-  
+
+
+
+
+
 
 
   <li class="md-nav__item md-nav__item--active">
-    
+
     <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-    
-      
-    
-    
+
+
+
+
       <label class="md-nav__link md-nav__link--active" for="__toc">
         Service Identity X.509 Certificate Support Requirements - Copper Argos
       </label>
-    
+
     <a href="./" title="Service Identity X.509 Certificate Support Requirements - Copper Argos" class="md-nav__link md-nav__link--active">
       Service Identity X.509 Certificate Support Requirements - Copper Argos
     </a>
-    
-      
+
+
 <nav class="md-nav md-nav--secondary">
-  
-  
-    
-  
-  
+
+
+
+
+
     <label class="md-nav__title" for="__toc">Table of contents</label>
     <ul class="md-nav__list" data-md-scrollfix>
-      
+
         <li class="md-nav__item">
   <a href="#what-is-copper-argos" title="What is Copper Argos" class="md-nav__link">
     What is Copper Argos
   </a>
-  
+
 </li>
-      
+
         <li class="md-nav__item">
   <a href="#provider-service-registration" title="Provider Service Registration" class="md-nav__link">
     Provider Service Registration
   </a>
-  
+
 </li>
-      
+
         <li class="md-nav__item">
   <a href="#tenant-service-launch-authorization" title="Tenant Service Launch Authorization" class="md-nav__link">
     Tenant Service Launch Authorization
   </a>
-  
+
 </li>
-      
+
         <li class="md-nav__item">
   <a href="#instance-register-request" title="Instance Register Request" class="md-nav__link">
     Instance Register Request
   </a>
-  
+
 </li>
-      
+
         <li class="md-nav__item">
   <a href="#instance-refresh-request" title="Instance Refresh Request" class="md-nav__link">
     Instance Refresh Request
   </a>
-  
+
 </li>
-      
+
         <li class="md-nav__item">
   <a href="#instance-revocation-request" title="Instance Revocation Request" class="md-nav__link">
     Instance Revocation Request
   </a>
-  
+
 </li>
-      
+
         <li class="md-nav__item">
   <a href="#athenz-rdl" title="Athenz RDL" class="md-nav__link">
     Athenz RDL
   </a>
-  
+
     <nav class="md-nav">
       <ul class="md-nav__list">
-        
+
           <li class="md-nav__item">
   <a href="#instance-register-request_1" title="Instance Register Request" class="md-nav__link">
     Instance Register Request
   </a>
-  
+
 </li>
-        
+
           <li class="md-nav__item">
   <a href="#instance-identity-response" title="Instance Identity Response" class="md-nav__link">
     Instance Identity Response
   </a>
-  
+
 </li>
-        
+
           <li class="md-nav__item">
   <a href="#instance-refresh-request_1" title="Instance Refresh Request" class="md-nav__link">
     Instance Refresh Request
   </a>
-  
+
 </li>
-        
+
           <li class="md-nav__item">
   <a href="#instance-revoke-request" title="Instance Revoke Request" class="md-nav__link">
     Instance Revoke Request
   </a>
-  
+
 </li>
-        
+
       </ul>
     </nav>
-  
+
 </li>
-      
+
         <li class="md-nav__item">
   <a href="#instance-provider-rdl" title="Instance Provider RDL" class="md-nav__link">
     Instance Provider RDL
   </a>
-  
+
 </li>
-      
+
         <li class="md-nav__item">
   <a href="#authorization-policies" title="Authorization Policies" class="md-nav__link">
     Authorization Policies
   </a>
-  
+
     <nav class="md-nav">
       <ul class="md-nav__list">
-        
+
           <li class="md-nav__item">
   <a href="#system-providers" title="System Providers" class="md-nav__link">
     System Providers
   </a>
-  
+
 </li>
-        
+
           <li class="md-nav__item">
   <a href="#provider-authorized-dns-suffix" title="Provider Authorized DNS Suffix" class="md-nav__link">
     Provider Authorized DNS Suffix
   </a>
-  
+
 </li>
-        
+
           <li class="md-nav__item">
   <a href="#service-authorized-providers" title="Service Authorized Providers" class="md-nav__link">
     Service Authorized Providers
   </a>
-  
+
 </li>
-        
+
       </ul>
     </nav>
-  
+
 </li>
-      
+
         <li class="md-nav__item">
   <a href="#sample-implementation-and-setup-tasks" title="Sample Implementation and Setup Tasks" class="md-nav__link">
     Sample Implementation and Setup Tasks
   </a>
-  
+
     <nav class="md-nav">
       <ul class="md-nav__list">
-        
+
           <li class="md-nav__item">
   <a href="#athenz-system-setup" title="Athenz System Setup" class="md-nav__link">
     Athenz System Setup
   </a>
-  
+
 </li>
-        
+
           <li class="md-nav__item">
   <a href="#provider-service-implementation-and-registration" title="Provider Service Implementation and Registration" class="md-nav__link">
     Provider Service Implementation and Registration
   </a>
-  
+
 </li>
-        
+
           <li class="md-nav__item">
   <a href="#athenz-authorized-provider-registration" title="Athenz Authorized Provider Registration" class="md-nav__link">
     Athenz Authorized Provider Registration
   </a>
-  
+
 </li>
-        
+
           <li class="md-nav__item">
   <a href="#tenant-service-registration" title="Tenant Service Registration" class="md-nav__link">
     Tenant Service Registration
   </a>
-  
+
 </li>
-        
+
           <li class="md-nav__item">
   <a href="#provider-client-implementation" title="Provider Client Implementation" class="md-nav__link">
     Provider Client Implementation
   </a>
-  
+
 </li>
-        
+
       </ul>
     </nav>
-  
+
 </li>
-      
-      
-      
-      
-      
+
+
+
+
+
     </ul>
-  
+
 </nav>
-    
+
   </li>
 
-        
+
       </ul>
     </nav>
   </li>
 
-    
-      
-      
-      
+
+
+
+
 
 
   <li class="md-nav__item md-nav__item--nested">
-    
+
       <input class="md-toggle md-nav__toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
-    
+
     <label class="md-nav__link" for="nav-7">
       User Guide
     </label>
@@ -946,11 +946,11 @@
         User Guide
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
-        
-        
-          
-          
-          
+
+
+
+
+
 
 
   <li class="md-nav__item">
@@ -959,10 +959,10 @@
     </a>
   </li>
 
-        
-          
-          
-          
+
+
+
+
 
 
   <li class="md-nav__item">
@@ -971,10 +971,10 @@
     </a>
   </li>
 
-        
-          
-          
-          
+
+
+
+
 
 
   <li class="md-nav__item">
@@ -983,223 +983,223 @@
     </a>
   </li>
 
-        
+
       </ul>
     </nav>
   </li>
 
-    
+
   </ul>
 </nav>
                   </div>
                 </div>
               </div>
-            
-            
+
+
               <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
-                    
+
 <nav class="md-nav md-nav--secondary">
-  
-  
-    
-  
-  
+
+
+
+
+
     <label class="md-nav__title" for="__toc">Table of contents</label>
     <ul class="md-nav__list" data-md-scrollfix>
-      
+
         <li class="md-nav__item">
   <a href="#what-is-copper-argos" title="What is Copper Argos" class="md-nav__link">
     What is Copper Argos
   </a>
-  
+
 </li>
-      
+
         <li class="md-nav__item">
   <a href="#provider-service-registration" title="Provider Service Registration" class="md-nav__link">
     Provider Service Registration
   </a>
-  
+
 </li>
-      
+
         <li class="md-nav__item">
   <a href="#tenant-service-launch-authorization" title="Tenant Service Launch Authorization" class="md-nav__link">
     Tenant Service Launch Authorization
   </a>
-  
+
 </li>
-      
+
         <li class="md-nav__item">
   <a href="#instance-register-request" title="Instance Register Request" class="md-nav__link">
     Instance Register Request
   </a>
-  
+
 </li>
-      
+
         <li class="md-nav__item">
   <a href="#instance-refresh-request" title="Instance Refresh Request" class="md-nav__link">
     Instance Refresh Request
   </a>
-  
+
 </li>
-      
+
         <li class="md-nav__item">
   <a href="#instance-revocation-request" title="Instance Revocation Request" class="md-nav__link">
     Instance Revocation Request
   </a>
-  
+
 </li>
-      
+
         <li class="md-nav__item">
   <a href="#athenz-rdl" title="Athenz RDL" class="md-nav__link">
     Athenz RDL
   </a>
-  
+
     <nav class="md-nav">
       <ul class="md-nav__list">
-        
+
           <li class="md-nav__item">
   <a href="#instance-register-request_1" title="Instance Register Request" class="md-nav__link">
     Instance Register Request
   </a>
-  
+
 </li>
-        
+
           <li class="md-nav__item">
   <a href="#instance-identity-response" title="Instance Identity Response" class="md-nav__link">
     Instance Identity Response
   </a>
-  
+
 </li>
-        
+
           <li class="md-nav__item">
   <a href="#instance-refresh-request_1" title="Instance Refresh Request" class="md-nav__link">
     Instance Refresh Request
   </a>
-  
+
 </li>
-        
+
           <li class="md-nav__item">
   <a href="#instance-revoke-request" title="Instance Revoke Request" class="md-nav__link">
     Instance Revoke Request
   </a>
-  
+
 </li>
-        
+
       </ul>
     </nav>
-  
+
 </li>
-      
+
         <li class="md-nav__item">
   <a href="#instance-provider-rdl" title="Instance Provider RDL" class="md-nav__link">
     Instance Provider RDL
   </a>
-  
+
 </li>
-      
+
         <li class="md-nav__item">
   <a href="#authorization-policies" title="Authorization Policies" class="md-nav__link">
     Authorization Policies
   </a>
-  
+
     <nav class="md-nav">
       <ul class="md-nav__list">
-        
+
           <li class="md-nav__item">
   <a href="#system-providers" title="System Providers" class="md-nav__link">
     System Providers
   </a>
-  
+
 </li>
-        
+
           <li class="md-nav__item">
   <a href="#provider-authorized-dns-suffix" title="Provider Authorized DNS Suffix" class="md-nav__link">
     Provider Authorized DNS Suffix
   </a>
-  
+
 </li>
-        
+
           <li class="md-nav__item">
   <a href="#service-authorized-providers" title="Service Authorized Providers" class="md-nav__link">
     Service Authorized Providers
   </a>
-  
+
 </li>
-        
+
       </ul>
     </nav>
-  
+
 </li>
-      
+
         <li class="md-nav__item">
   <a href="#sample-implementation-and-setup-tasks" title="Sample Implementation and Setup Tasks" class="md-nav__link">
     Sample Implementation and Setup Tasks
   </a>
-  
+
     <nav class="md-nav">
       <ul class="md-nav__list">
-        
+
           <li class="md-nav__item">
   <a href="#athenz-system-setup" title="Athenz System Setup" class="md-nav__link">
     Athenz System Setup
   </a>
-  
+
 </li>
-        
+
           <li class="md-nav__item">
   <a href="#provider-service-implementation-and-registration" title="Provider Service Implementation and Registration" class="md-nav__link">
     Provider Service Implementation and Registration
   </a>
-  
+
 </li>
-        
+
           <li class="md-nav__item">
   <a href="#athenz-authorized-provider-registration" title="Athenz Authorized Provider Registration" class="md-nav__link">
     Athenz Authorized Provider Registration
   </a>
-  
+
 </li>
-        
+
           <li class="md-nav__item">
   <a href="#tenant-service-registration" title="Tenant Service Registration" class="md-nav__link">
     Tenant Service Registration
   </a>
-  
+
 </li>
-        
+
           <li class="md-nav__item">
   <a href="#provider-client-implementation" title="Provider Client Implementation" class="md-nav__link">
     Provider Client Implementation
   </a>
-  
+
 </li>
-        
+
       </ul>
     </nav>
-  
+
 </li>
-      
-      
-      
-      
-      
+
+
+
+
+
     </ul>
-  
+
 </nav>
                   </div>
                 </div>
               </div>
-            
-          
+
+
           <div class="md-content">
             <article class="md-content__inner md-typeset">
-              
-                
+
+
                   <a href="https://github.com/yahoo/athenz/edit/master/docs/copper_argos_dev.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
-                
-                
+
+
                 <h1 id="copper-argos-athenz-service-identity-x509-certificates-development">Copper Argos: Athenz Service Identity X.509 Certificates Development</h1>
 <hr />
 <ul>
@@ -1228,7 +1228,7 @@
 </ul>
 <h2 id="what-is-copper-argos">What is Copper Argos</h2>
 <hr />
-<p>Copper Argos is to extend Athenz with generalized model for service providers to launch other identities in an authorized way thru a callback-based verification model. With this model each provider is responsible for their instance document verification service instead of embedding that logic inside ZTS.</p>
+<p>Copper Argos extends Athenz with generalized model for service providers to launch other identities in an authorized way through a callback-based verification model. With this model each provider is responsible for their instance document verification service instead of embedding that logic inside ZTS.</p>
 <h2 id="provider-service-registration">Provider Service Registration</h2>
 <hr />
 <p>Each provider is a registered service identity object in Athenz. As such, the provider domain administrator will create the service identity object in their domain and provide the following attributes using zms-cil utility or the REST API. (Athenz UI does not expose optional service attributes since they’re not commonly used).
@@ -1331,7 +1331,7 @@ There will be policy granting access to the specified Provider SAN dnsName attri
     ServiceName provider;  //the provider service name (i.e. &quot;aws.us-west-2&quot;)
     DomainName domain;     //the domain of the instance
     SimpleName service;    //the service this instance is supposed to run
-    String attestationData;//signed identity document containing attributes 
+    String attestationData;//signed identity document containing attributes
                            //like IP address, instance-id, account#, signature, etc
     String csr;            //the Certificate Signing Request for the expected
                            //X.509 certificate in the response
@@ -1381,7 +1381,7 @@ resource InstanceIdentity POST &quot;/instance&quot; {
 <hr />
 <p>InstanceRefreshInformation is the information a provider-hosted booting instance must provide to Athenz to refresh the TLS certificate it was issued initially. The request must be done using the previously issued client TLS certificate.</p>
 <div class="codehilite"><pre><span></span>type InstanceRefreshInformation Struct {
-    String attestationData (optional); //identity attestation data including 
+    String attestationData (optional); //identity attestation data including
                                        //document with its signature containing attributes like IP
                                        //address, instance-id, account#, etc.
     String csr (optional);             //the Certificate Signing Request for the expected
@@ -1418,7 +1418,7 @@ resource InstanceIdentity POST &quot;/instance/{provider}/{domain}/{service}/{in
     DomainName domain<span class="p">;</span>      <span class="o">//</span>the domain of the instance
     SimpleName service<span class="p">;</span>     <span class="o">//</span>the service this instance is supposed to run
     PathElement instanceId<span class="p">;</span> <span class="o">//</span>the instance id that<span class="err">’</span>s unique within this provider
-    authorize<span class="p">(</span><span class="err">“</span>delete<span class="err">”</span><span class="p">,</span> <span class="p">{</span>domain<span class="p">}:</span>instance<span class="o">.</span><span class="p">{</span>instanceId<span class="p">};</span> 
+    authorize<span class="p">(</span><span class="err">“</span>delete<span class="err">”</span><span class="p">,</span> <span class="p">{</span>domain<span class="p">}:</span>instance<span class="o">.</span><span class="p">{</span>instanceId<span class="p">};</span>
     expected NO_CONTENT<span class="p">;</span>
     exceptions <span class="p">{</span>
         ResourceError BAD_REQUEST<span class="p">;</span>
@@ -1603,26 +1603,26 @@ $ zms-cli -d weather add-policy openstack_providers grant launch to openstack_pr
 <li>The client will generate a CSR based on the details it received from its provider service, include the CSR in the InstanceRegisterInformation object and post it to ZTS.</li>
 <li>The client will be responsible for storing the certificate used from ZTS on the local host and use it for its subsequent requests to ZTS to refresh the certificate.</li>
 </ul>
-                
-                  
-                
-              
-              
-                
 
 
-              
+
+
+
+
+
+
+
             </article>
           </div>
         </div>
       </main>
-      
-        
+
+
 <footer class="md-footer">
-  
+
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid">
-        
+
           <a href="../cert_signer/" title="Certificate Signer" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-flex__cell md-flex__cell--shrink">
               <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
@@ -1636,8 +1636,8 @@ $ zms-cli -d weather add-policy openstack_providers grant launch to openstack_pr
               </span>
             </div>
           </a>
-        
-        
+
+
           <a href="../zms_client/" title="ZMS Client Utility" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
               <span class="md-flex__ellipsis">
@@ -1651,36 +1651,36 @@ $ zms-cli -d weather add-policy openstack_providers grant launch to openstack_pr
               <i class="md-icon md-icon--arrow-forward md-footer-nav__button"></i>
             </div>
           </a>
-        
+
       </nav>
     </div>
-  
+
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
       <div class="md-footer-copyright">
-        
+
         powered by
         <a href="https://www.mkdocs.org">MkDocs</a>
         and
         <a href="https://squidfunk.github.io/mkdocs-material/">
           Material for MkDocs</a>
       </div>
-      
-        
-      
+
+
+
     </div>
   </div>
 </footer>
-      
+
     </div>
-    
+
       <script src="../assets/javascripts/application.9e1f3b71.js"></script>
-      
+
       <script>app.initialize({version:"1.0.4",url:{base:".."}})</script>
-      
-    
-    
-      
-    
+
+
+
+
+
   </body>
 </html>
