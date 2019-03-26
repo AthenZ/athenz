@@ -33,12 +33,18 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.Response;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zms.Assertion;
 import com.yahoo.athenz.zms.AssertionEffect;
 import com.yahoo.athenz.zms.Policy;
 import com.yahoo.athenz.zms.ServiceIdentity;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureException;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -215,6 +221,10 @@ public class ZTSImplTest {
         ZTSImpl.serverHostName = "localhost";
 
         authorizer = new ZTSAuthorizer(store);
+
+        // enable openid scope
+
+        AccessTokenRequest.setSupportOpenidScope(true);
     }
     
     @AfterMethod
@@ -8436,7 +8446,6 @@ public class ZTSImplTest {
         assertEquals(zts.getAssertionEffect(AssertionEffect.DENY), com.yahoo.athenz.zts.AssertionEffect.DENY);
     }
 
-
     @Test
     public void testGetCertRequestExpiryTime() {
 
@@ -8465,5 +8474,373 @@ public class ZTSImplTest {
         assertNotNull(ztsImpl.hostnameResolver);
 
         System.clearProperty(ZTSConsts.ZTS_PROP_HOSTNAME_RESOLVER_FACTORY_CLASS);
+    }
+
+    @Test
+    public void testPostAccessTokenRequest() throws IOException {
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        AccessTokenResponse resp = zts.postAccessTokenRequest(context,
+                "grant_type=client_credentials&scope=coretech:domain");
+        assertNotNull(resp);
+        assertEquals("coretech:role.writers", resp.getScope());
+
+        String accessTokenStr = resp.getAccess_token();
+        assertNotNull(accessTokenStr);
+
+        Jws<Claims> claims = null;
+        try {
+            claims = Jwts.parser().setSigningKey(Crypto.extractPublicKey(privateKey))
+                    .parseClaimsJws(accessTokenStr);
+        } catch (SignatureException e) {
+            throw new ResourceException(ResourceException.UNAUTHORIZED);
+        }
+        assertNotNull(claims);
+        assertEquals("user_domain.user", claims.getBody().getSubject());
+        assertEquals("coretech", claims.getBody().getAudience());
+        assertEquals(zts.ztsOAuthIssuer, claims.getBody().getIssuer());
+        List<String> scopes = (List<String>) claims.getBody().get("scp");
+        assertNotNull(scopes);
+        assertEquals(1, scopes.size());
+        assertEquals("writers", scopes.get(0));
+
+        Principal principal1 = SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user1;s=signature", 0, null);
+        ResourceContext context1 = createResourceContext(principal1);
+
+        resp = zts.postAccessTokenRequest(context1,
+                "grant_type=client_credentials&scope=coretech:domain&expires_in=100");
+        assertNotNull(resp);
+        assertEquals("coretech:role.readers coretech:role.writers", resp.getScope());
+
+        accessTokenStr = resp.getAccess_token();
+        assertNotNull(accessTokenStr);
+        assertEquals(Integer.valueOf(100), resp.getExpires_in());
+
+        claims = null;
+        try {
+            claims = Jwts.parser().setSigningKey(Crypto.extractPublicKey(privateKey))
+                    .parseClaimsJws(accessTokenStr);
+        } catch (SignatureException e) {
+            throw new ResourceException(ResourceException.UNAUTHORIZED);
+        }
+        assertNotNull(claims);
+        assertEquals("user_domain.user1", claims.getBody().getSubject());
+        assertEquals("coretech", claims.getBody().getAudience());
+        assertEquals(100 * 1000, claims.getBody().getExpiration().getTime() - claims.getBody().getIssuedAt().getTime());
+    }
+
+    @Test
+    public void testPostAccessTokenRequestECPrivateKey() {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zts_private_ec.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        cloudStore.setHttpClient(null);
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
+                "grant_type=client_credentials&scope=coretech:domain");
+        assertNotNull(resp);
+        assertEquals("coretech:role.writers", resp.getScope());
+
+        String accessTokenStr = resp.getAccess_token();
+        assertNotNull(accessTokenStr);
+
+        Jws<Claims> claims = null;
+        try {
+            claims = Jwts.parser().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey))
+                    .parseClaimsJws(accessTokenStr);
+        } catch (SignatureException e) {
+            throw new ResourceException(ResourceException.UNAUTHORIZED);
+        }
+        assertNotNull(claims);
+        assertEquals("user_domain.user", claims.getBody().getSubject());
+        assertEquals("coretech", claims.getBody().getAudience());
+        assertEquals(zts.ztsOAuthIssuer, claims.getBody().getIssuer());
+        List<String> scopes = (List<String>) claims.getBody().get("scp");
+        assertNotNull(scopes);
+        assertEquals(1, scopes.size());
+        assertEquals("writers", scopes.get(0));
+
+        // set back to our zts rsa private key
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zts_private.pem");
+    }
+
+    @Test
+    public void testPostAccessTokenRequestSingleRole() {
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        AccessTokenResponse resp = zts.postAccessTokenRequest(context,
+                "grant_type=client_credentials&scope=coretech:role.writers");
+        assertNotNull(resp);
+        assertNull(resp.getScope());
+    }
+
+    @Test
+    public void testPostAccessTokenRequestOpenIdScope() {
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        AccessTokenResponse resp = zts.postAccessTokenRequest(context,
+                "grant_type=client_credentials&scope=coretech:domain openid coretech:service.api");
+        assertNotNull(resp);
+        assertEquals("coretech:role.writers openid", resp.getScope());
+
+        String accessToken = resp.getAccess_token();
+        assertNotNull(accessToken);
+
+        String idToken = resp.getId_token();
+        assertNotNull(idToken);
+    }
+
+    @Test
+    public void testPostAccessTokenRequestOpenIdScopeOnly() {
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        // we should only get back openid scope
+
+        AccessTokenResponse resp = zts.postAccessTokenRequest(context,
+                "grant_type=client_credentials&scope=coretech:role.role999 openid coretech:service.api");
+        assertNotNull(resp);
+        assertEquals("openid", resp.getScope());
+
+        String accessToken = resp.getAccess_token();
+        assertNotNull(accessToken);
+
+        String idTokenStr = resp.getId_token();
+        assertNotNull(idTokenStr);
+
+        Jws<Claims> claims = null;
+        try {
+            claims = Jwts.parser().setSigningKey(Crypto.extractPublicKey(privateKey))
+                    .parseClaimsJws(idTokenStr);
+        } catch (SignatureException e) {
+            throw new ResourceException(ResourceException.UNAUTHORIZED);
+        }
+        assertNotNull(claims);
+        assertEquals("user_domain.user", claims.getBody().getSubject());
+        assertEquals("coretech", claims.getBody().getAudience());
+        assertEquals(zts.ztsOAuthIssuer, claims.getBody().getIssuer());
+        assertEquals(3600 * 1000, claims.getBody().getExpiration().getTime() - claims.getBody().getIssuedAt().getTime());
+    }
+
+    @Test
+    public void testPostAccessTokenRequestOpenIdScopeOnlyDisabled() {
+
+        AccessTokenRequest.setSupportOpenidScope(false);
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        // no role access and no openid - we should get back 403
+        try {
+            zts.postAccessTokenRequest(context,
+                    "grant_type=client_credentials&scope=coretech:role.role999 openid coretech:service.api");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(403, ex.getCode());
+        }
+
+        AccessTokenResponse resp = zts.postAccessTokenRequest(context,
+                "grant_type=client_credentials&scope=coretech:domain openid coretech:service.api");
+        assertNotNull(resp);
+        assertEquals("coretech:role.writers", resp.getScope());
+
+        assertNotNull(resp.getAccess_token());
+        assertNull(resp.getId_token());
+    }
+
+    @Test
+    public void testPostAccessTokenRequestInvalidDomain() {
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            zts.postAccessTokenRequest(context, "grant_type=client_credentials&scope=sportstest:domain");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(404, ex.getCode());
+        }
+    }
+
+    @Test
+    public void testPostAccessTokenRequestNoRoleMatch() {
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            zts.postAccessTokenRequest(context, "grant_type=client_credentials&scope=coretech:role.testrole");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(403, ex.getCode());
+        }
+    }
+
+    @Test
+    public void testPostAccessTokenRequestInvalidAccessTokenMarshall() {
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        ObjectMapper mapper = Mockito.mock(ObjectMapper.class);
+        zts.jsonMapper = mapper;
+        Mockito.when(mapper.writerWithView(AccessToken.class)).thenThrow(new IllegalArgumentException("unknown access token"));
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            zts.postAccessTokenRequest(context, "grant_type=client_credentials&scope=coretech:domain");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(500, ex.getCode());
+            assertTrue(ex.getMessage().contains("Unable to convert access token"), ex.getMessage());
+        }
+    }
+
+    @Test
+    public void testPostAccessTokenRequestInvalidIdTokenMarshall() {
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        ObjectMapper mapper = Mockito.mock(ObjectMapper.class);
+        ObjectWriter objectWriter = zts.jsonMapper.writerWithView(AccessToken.class);
+        Mockito.when(mapper.writerWithView(AccessToken.class)).thenReturn(objectWriter);
+
+        zts.jsonMapper = mapper;
+        Mockito.when(mapper.writerWithView(IdToken.class)).thenThrow(new IllegalArgumentException("unknown id token"));
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            zts.postAccessTokenRequest(context, "grant_type=client_credentials&scope=coretech:domain openid coretech:service.api");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(500, ex.getCode());
+            assertTrue(ex.getMessage().contains("Unable to convert id token"), ex.getMessage());
+        }
+    }
+
+    @Test
+    public void testPostAccessTokenRequestInvalidRequest() {
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            zts.postAccessTokenRequest(context, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(400, ex.getCode());
+        }
+
+        try {
+            zts.postAccessTokenRequest(context, "");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(400, ex.getCode());
+        }
+
+        try {
+            zts.postAccessTokenRequest(context, "grant_type=unknown_type&scope=openid");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(400, ex.getCode());
+            assertTrue(ex.getMessage().contains("Invalid grant request"));
+        }
+
+        try {
+            zts.postAccessTokenRequest(context, "grant_type%=client_credentials");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(400, ex.getCode());
+            assertTrue(ex.getMessage().contains("Invalid grant request"));
+        }
+
+        try {
+            zts.postAccessTokenRequest(context, "grant_type=client_credentials%");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(400, ex.getCode());
+            assertTrue(ex.getMessage().contains("Invalid grant request"));
+        }
+
+        try {
+            zts.postAccessTokenRequest(context, "grant_type");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(400, ex.getCode());
+            assertTrue(ex.getMessage().contains("Invalid grant request"));
+        }
+
+        try {
+            zts.postAccessTokenRequest(context, "grant_type=client_credentials");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(400, ex.getCode());
+            assertTrue(ex.getMessage().contains("no scope provided"));
+        }
+
+        try {
+            zts.postAccessTokenRequest(context, "grant_type=client_credentials&scope=");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(400, ex.getCode());
+            assertTrue(ex.getMessage().contains("no scope provided"));
+        }
     }
 }

@@ -2799,6 +2799,480 @@ func (self *SSHCertificates) Validate() error {
 }
 
 //
+// OAuth2Token -
+//
+type OAuth2Token struct {
+
+	//
+	// token version
+	//
+	Ver int32 `json:"ver"`
+
+	//
+	// token audience
+	//
+	Aud string `json:"aud"`
+
+	//
+	// expiry time in seconds.
+	//
+	Exp int64 `json:"exp"`
+
+	//
+	// issued time in seconds (unix epoch)
+	//
+	Iat int64 `json:"iat"`
+
+	//
+	// issuer identifier
+	//
+	Iss string `json:"iss"`
+
+	//
+	// subject identifier
+	//
+	Sub string `json:"sub"`
+}
+
+//
+// NewOAuth2Token - creates an initialized OAuth2Token instance, returns a pointer to it
+//
+func NewOAuth2Token(init ...*OAuth2Token) *OAuth2Token {
+	var o *OAuth2Token
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(OAuth2Token)
+	}
+	return o
+}
+
+type rawOAuth2Token OAuth2Token
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a OAuth2Token
+//
+func (self *OAuth2Token) UnmarshalJSON(b []byte) error {
+	var m rawOAuth2Token
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := OAuth2Token(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *OAuth2Token) Validate() error {
+	if self.Aud == "" {
+		return fmt.Errorf("OAuth2Token.aud is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Aud)
+		if !val.Valid {
+			return fmt.Errorf("OAuth2Token.aud does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Iss == "" {
+		return fmt.Errorf("OAuth2Token.iss is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Iss)
+		if !val.Valid {
+			return fmt.Errorf("OAuth2Token.iss does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Sub == "" {
+		return fmt.Errorf("OAuth2Token.sub is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Sub)
+		if !val.Valid {
+			return fmt.Errorf("OAuth2Token.sub does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
+// AccessToken -
+//
+type AccessToken struct {
+
+	//
+	// token version
+	//
+	Ver int32 `json:"ver"`
+
+	//
+	// token audience
+	//
+	Aud string `json:"aud"`
+
+	//
+	// expiry time in seconds.
+	//
+	Exp int64 `json:"exp"`
+
+	//
+	// issued time in seconds (unix epoch)
+	//
+	Iat int64 `json:"iat"`
+
+	//
+	// issuer identifier
+	//
+	Iss string `json:"iss"`
+
+	//
+	// subject identifier
+	//
+	Sub string `json:"sub"`
+
+	//
+	// client id requesting the token
+	//
+	Cid string `json:"cid"`
+
+	//
+	// user/service uid
+	//
+	Uid string `json:"uid"`
+
+	//
+	// array of scopes
+	//
+	Scp []string `json:"scp,omitempty" rdl:"optional"`
+}
+
+//
+// NewAccessToken - creates an initialized AccessToken instance, returns a pointer to it
+//
+func NewAccessToken(init ...*AccessToken) *AccessToken {
+	var o *AccessToken
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(AccessToken)
+	}
+	return o
+}
+
+type rawAccessToken AccessToken
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a AccessToken
+//
+func (self *AccessToken) UnmarshalJSON(b []byte) error {
+	var m rawAccessToken
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := AccessToken(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *AccessToken) Validate() error {
+	if self.Aud == "" {
+		return fmt.Errorf("AccessToken.aud is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Aud)
+		if !val.Valid {
+			return fmt.Errorf("AccessToken.aud does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Iss == "" {
+		return fmt.Errorf("AccessToken.iss is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Iss)
+		if !val.Valid {
+			return fmt.Errorf("AccessToken.iss does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Sub == "" {
+		return fmt.Errorf("AccessToken.sub is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Sub)
+		if !val.Valid {
+			return fmt.Errorf("AccessToken.sub does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Cid == "" {
+		return fmt.Errorf("AccessToken.cid is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Cid)
+		if !val.Valid {
+			return fmt.Errorf("AccessToken.cid does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Uid == "" {
+		return fmt.Errorf("AccessToken.uid is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Uid)
+		if !val.Valid {
+			return fmt.Errorf("AccessToken.uid does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
+// IdToken -
+//
+type IdToken struct {
+
+	//
+	// token version
+	//
+	Ver int32 `json:"ver"`
+
+	//
+	// token audience
+	//
+	Aud string `json:"aud"`
+
+	//
+	// expiry time in seconds.
+	//
+	Exp int64 `json:"exp"`
+
+	//
+	// issued time in seconds (unix epoch)
+	//
+	Iat int64 `json:"iat"`
+
+	//
+	// issuer identifier
+	//
+	Iss string `json:"iss"`
+
+	//
+	// subject identifier
+	//
+	Sub string `json:"sub"`
+
+	//
+	// nonce value to prevent replay attacks
+	//
+	Nonce string `json:"nonce,omitempty" rdl:"optional"`
+
+	//
+	// authentication time
+	//
+	Auth_time *int64 `json:"auth_time,omitempty" rdl:"optional"`
+
+	//
+	// authentication context class reference
+	//
+	Acr string `json:"acr,omitempty" rdl:"optional"`
+
+	//
+	// authentication methods references
+	//
+	Amr string `json:"amr,omitempty" rdl:"optional"`
+
+	//
+	// authorized party
+	//
+	Azp string `json:"azp,omitempty" rdl:"optional"`
+}
+
+//
+// NewIdToken - creates an initialized IdToken instance, returns a pointer to it
+//
+func NewIdToken(init ...*IdToken) *IdToken {
+	var o *IdToken
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(IdToken)
+	}
+	return o
+}
+
+type rawIdToken IdToken
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a IdToken
+//
+func (self *IdToken) UnmarshalJSON(b []byte) error {
+	var m rawIdToken
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := IdToken(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *IdToken) Validate() error {
+	if self.Aud == "" {
+		return fmt.Errorf("IdToken.aud is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Aud)
+		if !val.Valid {
+			return fmt.Errorf("IdToken.aud does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Iss == "" {
+		return fmt.Errorf("IdToken.iss is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Iss)
+		if !val.Valid {
+			return fmt.Errorf("IdToken.iss does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Sub == "" {
+		return fmt.Errorf("IdToken.sub is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Sub)
+		if !val.Valid {
+			return fmt.Errorf("IdToken.sub does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Nonce != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.Nonce)
+		if !val.Valid {
+			return fmt.Errorf("IdToken.nonce does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Acr != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.Acr)
+		if !val.Valid {
+			return fmt.Errorf("IdToken.acr does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Amr != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.Amr)
+		if !val.Valid {
+			return fmt.Errorf("IdToken.amr does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Azp != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.Azp)
+		if !val.Valid {
+			return fmt.Errorf("IdToken.azp does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
+// AccessTokenResponse -
+//
+type AccessTokenResponse struct {
+
+	//
+	// access token
+	//
+	Access_token string `json:"access_token"`
+
+	//
+	// token type e.g. Bearer
+	//
+	Token_type string `json:"token_type"`
+
+	//
+	// expiration in seconds
+	//
+	Expires_in *int32 `json:"expires_in,omitempty" rdl:"optional"`
+
+	//
+	// scope of the access token e.g. openid
+	//
+	Scope string `json:"scope,omitempty" rdl:"optional"`
+
+	//
+	// refresh token
+	//
+	Refresh_token string `json:"refresh_token,omitempty" rdl:"optional"`
+
+	//
+	// id token
+	//
+	Id_token string `json:"id_token,omitempty" rdl:"optional"`
+}
+
+//
+// NewAccessTokenResponse - creates an initialized AccessTokenResponse instance, returns a pointer to it
+//
+func NewAccessTokenResponse(init ...*AccessTokenResponse) *AccessTokenResponse {
+	var o *AccessTokenResponse
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(AccessTokenResponse)
+	}
+	return o
+}
+
+type rawAccessTokenResponse AccessTokenResponse
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a AccessTokenResponse
+//
+func (self *AccessTokenResponse) UnmarshalJSON(b []byte) error {
+	var m rawAccessTokenResponse
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := AccessTokenResponse(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *AccessTokenResponse) Validate() error {
+	if self.Access_token == "" {
+		return fmt.Errorf("AccessTokenResponse.access_token is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Access_token)
+		if !val.Valid {
+			return fmt.Errorf("AccessTokenResponse.access_token does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Token_type == "" {
+		return fmt.Errorf("AccessTokenResponse.token_type is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Token_type)
+		if !val.Valid {
+			return fmt.Errorf("AccessTokenResponse.token_type does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Scope != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.Scope)
+		if !val.Valid {
+			return fmt.Errorf("AccessTokenResponse.scope does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Refresh_token != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.Refresh_token)
+		if !val.Valid {
+			return fmt.Errorf("AccessTokenResponse.refresh_token does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Id_token != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.Id_token)
+		if !val.Valid {
+			return fmt.Errorf("AccessTokenResponse.id_token does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
 // JWK -
 //
 type JWK struct {
@@ -3002,3 +3476,8 @@ func (self *JWKList) Validate() error {
 	}
 	return nil
 }
+
+//
+// AccessTokenRequest -
+//
+type AccessTokenRequest string

@@ -546,7 +546,13 @@ func (gen *javaServerGenerator) handlerSignature(r *rdl.Resource) string {
 	switch r.Method {
 	case "OPTIONS":
 	case "POST", "PUT", "PATCH":
-		spec += "@Consumes(MediaType.APPLICATION_JSON)\n    "
+		if len(r.Consumes) > 0 {
+			for _, v := range r.Consumes {
+				spec += "@Consumes(\"" + v + "\")\n    "
+			}
+		} else {
+			spec += "@Consumes(MediaType.APPLICATION_JSON)\n    "
+		}
 		fallthrough
 	default:
 		spec += "@Produces(MediaType.APPLICATION_JSON)\n    "

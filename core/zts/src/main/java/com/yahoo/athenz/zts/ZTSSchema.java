@@ -299,6 +299,34 @@ public class ZTSSchema {
             .arrayField("certificates", "SSHCertificate", false, "set of user ssh certificates")
             .field("certificateSigner", "String", true, "the SSH CA's public key for the sshCertificate (user or host)");
 
+        sb.structType("OAuth2Token")
+            .field("ver", "Int32", false, "token version")
+            .field("aud", "String", false, "token audience")
+            .field("exp", "Int64", false, "expiry time in seconds.")
+            .field("iat", "Int64", false, "issued time in seconds (unix epoch)")
+            .field("iss", "String", false, "issuer identifier")
+            .field("sub", "String", false, "subject identifier");
+
+        sb.structType("AccessToken", "OAuth2Token")
+            .field("cid", "String", false, "client id requesting the token")
+            .field("uid", "String", false, "user/service uid")
+            .arrayField("scp", "String", true, "array of scopes");
+
+        sb.structType("IdToken", "OAuth2Token")
+            .field("nonce", "String", true, "nonce value to prevent replay attacks")
+            .field("auth_time", "Int64", true, "authentication time")
+            .field("acr", "String", true, "authentication context class reference")
+            .field("amr", "String", true, "authentication methods references")
+            .field("azp", "String", true, "authorized party");
+
+        sb.structType("AccessTokenResponse")
+            .field("access_token", "String", false, "access token")
+            .field("token_type", "String", false, "token type e.g. Bearer")
+            .field("expires_in", "Int32", true, "expiration in seconds")
+            .field("scope", "String", true, "scope of the access token e.g. openid")
+            .field("refresh_token", "String", true, "refresh token")
+            .field("id_token", "String", true, "id token");
+
         sb.structType("JWK")
             .field("kty", "String", false, "key type: EC or RSA")
             .field("kid", "String", false, "identifier")
@@ -313,6 +341,8 @@ public class ZTSSchema {
         sb.structType("JWKList")
             .comment("JSON Web Key (JWK) List")
             .arrayField("keys", "JWK", false, "array of JWKs");
+
+    
 
 
         sb.resource("ResourceAccess", "GET", "/access/{action}/{resource}")
@@ -641,10 +671,23 @@ public class ZTSSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
-        sb.resource("JWKList", "GET", "/keys")
+        sb.resource("JWKList", "GET", "/oauth2/keys")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("AccessTokenRequest", "POST", "/oauth2/token")
+            .input("request", "AccessTokenRequest", "")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
 
             .exception("NOT_FOUND", "ResourceError", "")
 

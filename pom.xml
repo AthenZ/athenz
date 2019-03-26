@@ -175,6 +175,7 @@
               <consoleOutput>true</consoleOutput>
               <failsOnError>false</failsOnError>
               <linlXRef>false</linlXRef>
+              <suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
             </configuration>
             <goals>
               <goal>check</goal>

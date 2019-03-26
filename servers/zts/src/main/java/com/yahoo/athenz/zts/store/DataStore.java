@@ -69,17 +69,6 @@ public class DataStore implements DataCacheProvider {
 
     private static final String ROLE_POSTFIX = ":role.";
 
-    private static final String RSA = "RSA";
-    private static final String RSA_SHA1 = "SHA1withRSA";
-    private static final String RSA_SHA256 = "SHA256withRSA";
-
-    private static final String ECDSA = "ECDSA";
-    private static final String ECDSA_SHA1 = "SHA1withECDSA";
-    private static final String ECDSA_SHA256 = "SHA256withECDSA";
-
-    public static final String SHA1 = "SHA1";
-    public static final String SHA256 = "SHA256";
-
     private final ReentrantReadWriteLock hostRWLock = new ReentrantReadWriteLock();
     private final Lock hostRLock = hostRWLock.readLock();
     private final Lock hostWLock = hostRWLock.writeLock();
@@ -104,6 +93,7 @@ public class DataStore implements DataCacheProvider {
 
         cacheStore = CacheBuilder.newBuilder().concurrencyLevel(25).build();
         zmsPublicKeyCache = CacheBuilder.newBuilder().concurrencyLevel(25).build();
+
         ztsJWKList = new JWKList();
 
         hostCache = new HashMap<>();
@@ -231,7 +221,7 @@ public class DataStore implements DataCacheProvider {
         final Base64.Encoder encoder = Base64.getEncoder();
 
         switch (publicKey.getAlgorithm()) {
-            case RSA:
+            case ZTSConsts.RSA:
                 jwk = new JWK();
                 jwk.setKid(keyId);
                 jwk.setUse("sig");
@@ -241,7 +231,7 @@ public class DataStore implements DataCacheProvider {
                 jwk.setN(new String(encoder.encode(rsaPublicKey.getModulus().toByteArray())));
                 jwk.setE(new String(encoder.encode(rsaPublicKey.getPublicExponent().toByteArray())));
                 break;
-            case ECDSA:
+            case ZTSConsts.ECDSA:
                 jwk = new JWK();
                 jwk.setKid(keyId);
                 jwk.setUse("sig");
@@ -432,7 +422,7 @@ public class DataStore implements DataCacheProvider {
             domainCache.processServiceIdentity(service);
         }
     }
-    
+
     public boolean processDomain(SignedDomain signedDomain, boolean saveInStore) {
 
         DomainData domainData = signedDomain.getDomain();
@@ -1079,7 +1069,7 @@ public class DataStore implements DataCacheProvider {
     public Map<String, String> getPublicKeyCache() {
         return publicKeyCache;
     }
-    
+
     class DataUpdater implements Runnable {
         
         @Override

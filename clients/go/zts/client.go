@@ -1021,7 +1021,7 @@ func (client ZTSClient) PostSSHCertRequest(certRequest *SSHCertRequest) (*SSHCer
 
 func (client ZTSClient) GetJWKList() (*JWKList, error) {
 	var data *JWKList
-	url := client.URL + "/keys"
+	url := client.URL + "/oauth2/keys"
 	resp, err := client.httpGet(url, nil)
 	if err != nil {
 		return data, err
@@ -1037,6 +1037,42 @@ func (client ZTSClient) GetJWKList() (*JWKList, error) {
 	default:
 		var errobj rdl.ResourceError
 		contentBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
+func (client ZTSClient) PostAccessTokenRequest(request AccessTokenRequest) (*AccessTokenResponse, error) {
+	var data *AccessTokenResponse
+	url := client.URL + "/oauth2/token"
+	contentBytes, err := json.Marshal(request)
+	if err != nil {
+		return data, err
+	}
+	resp, err := client.httpPost(url, nil, contentBytes)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err = ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}

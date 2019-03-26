@@ -58,6 +58,9 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_CERT_ALLOWED_OU_VALUES = "athenz.zts.cert_allowed_ou_values";
     public static final String ZTS_PROP_INSTANCE_CERT_IP_FNAME = "athenz.zts.instance_cert_ip_fname";
 
+    public static final String ZTS_PROP_OAUTH_ISSUER           = "athenz.zts.oauth_issuer";
+    public static final String ZTS_PROP_OAUTH_OPENID_SCOPE     = "athenz.zts.oauth_openid_scope";
+
     public static final String ZTS_PROP_CERTSIGN_BASE_URI        = "athenz.zts.certsign_base_uri";
     public static final String ZTS_PROP_CERTSIGN_REQUEST_TIMEOUT = "athenz.zts.certsign_request_timeout";
     public static final String ZTS_PROP_CERTSIGN_CONNECT_TIMEOUT = "athenz.zts.certsign_connect_timeout";
@@ -151,6 +154,9 @@ public final class ZTSConsts {
     public static final String ZTS_INSTANCE_ID             = "instanceId";
     public static final String ZTS_INSTANCE_CSR_PUBLIC_KEY = "csrPublicKey";
     public static final String ZTS_INSTANCE_HOSTNAME       = "hostname";
+
+    public static final String RSA = "RSA";
+    public static final String ECDSA = "ECDSA";
 
     public static final String ZTS_PROP_AWS_ENABLED              = "athenz.zts.aws_enabled";
     public static final String ZTS_PROP_AWS_BUCKET_NAME          = "athenz.zts.aws_bucket_name";
