@@ -151,6 +151,10 @@ public class AccessTokenRequest {
         return domainName;
     }
 
+    public String getServiceName() {
+        return serviceName;
+    }
+
     public String[] getRoleNames() {
         return roleNames == null ? null : roleNames.toArray(new String[0]);
     }

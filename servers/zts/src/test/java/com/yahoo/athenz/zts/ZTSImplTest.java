@@ -8651,7 +8651,7 @@ public class ZTSImplTest {
         }
         assertNotNull(claims);
         assertEquals("user_domain.user", claims.getBody().getSubject());
-        assertEquals("coretech", claims.getBody().getAudience());
+        assertEquals("coretech.api", claims.getBody().getAudience());
         assertEquals(zts.ztsOAuthIssuer, claims.getBody().getIssuer());
         assertEquals(3600 * 1000, claims.getBody().getExpiration().getTime() - claims.getBody().getIssuedAt().getTime());
     }

@@ -1554,8 +1554,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
             // id tokens are only valid for 1 hour
 
-            IdToken idToken = new IdToken().setVer(1).setAud(domainName).setAuth_time(iat)
-                    .setIat(iat).setExp(iat + 3600).setIss(ztsOAuthIssuer).setSub(principalName);
+            IdToken idToken = new IdToken().setVer(1).setIss(ztsOAuthIssuer).setSub(principalName)
+                    .setAud(tokenRequest.getDomainName() + "." + tokenRequest.getServiceName())
+                    .setAuth_time(iat).setIat(iat).setExp(iat + 3600);
 
             final String idTokenStr = oauthTokenAsString(idToken);
             if (idTokenStr == null) {
