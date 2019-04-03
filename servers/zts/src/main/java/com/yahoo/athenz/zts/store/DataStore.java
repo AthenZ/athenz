@@ -236,6 +236,7 @@ public class DataStore implements DataCacheProvider {
                 jwk.setKid(keyId);
                 jwk.setUse("sig");
                 jwk.setKty("EC");
+                jwk.setAlg("ES256");
                 final ECPublicKey ecPublicKey = (ECPublicKey) publicKey;
                 final ECPoint ecPoint = ecPublicKey.getW();
                 jwk.setX(new String(encoder.encode(ecPoint.getAffineX().toByteArray())));
