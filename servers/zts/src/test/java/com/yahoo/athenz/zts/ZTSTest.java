@@ -17,6 +17,7 @@ package com.yahoo.athenz.zts;
 
 import static org.testng.Assert.assertNotNull;
 
+import com.yahoo.athenz.auth.impl.FilePrivateKeyStore;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -40,6 +41,10 @@ public class ZTSTest {
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_FILE_STORE_PATH, "/tmp/zts_server_cert_store");
         System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
         System.setProperty(ZTSConsts.ZTS_PROP_FILE_NAME, "src/test/resources/zts.properties");
+        System.setProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
+                "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory");
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,
+                "src/test/resources/zts_private.pem");
 
         ZTSBinder binder = new ZTSBinder();
         binder.configure();
