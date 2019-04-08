@@ -2772,7 +2772,10 @@ public class ZTSClientTest {
     @Test
     public void testGenerateAccessTokenRequestBody() throws UnsupportedEncodingException {
 
-        ZTSClient client = new ZTSClient();
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+
         assertEquals("grant_type=client_credentials&scope=coretech%3Adomain",
                 client.generateAccessTokenRequestBody("coretech", null, null, 0));
         assertEquals("grant_type=client_credentials&expires_in=100&scope=coretech%3Adomain",
@@ -2796,7 +2799,10 @@ public class ZTSClientTest {
 
         final String cacheKey = "accesstestkey1";
 
-        ZTSClient client = new ZTSClient();
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+
         assertNull(client.lookupAccessTokenResponseInCache(cacheKey, 3600));
 
         AccessTokenResponse response1 = new AccessTokenResponse();
