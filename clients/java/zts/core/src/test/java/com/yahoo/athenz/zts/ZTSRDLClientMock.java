@@ -141,7 +141,32 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
         lastRoleTokenFetchedTime.put(key, lastUpdatedTime);
         return roleToken;
     }
-    
+
+    @Override
+    public AccessTokenResponse postAccessTokenRequest(String request) {
+
+        AccessTokenResponse tokenResponse = new AccessTokenResponse();
+        tokenResponse.setExpires_in(3600);
+        tokenResponse.setAccess_token("accesstoken");
+        tokenResponse.setToken_type("Bearer");
+
+        if (request.equals("grant_type=client_credentials&expires_in=3600&scope=coretech%3Adomain")) {
+            tokenResponse.setScope("coretech:role.role1");
+        } else if (request.equals("grant_type=client_credentials&expires_in=3600&scope=coretech%3Adomain+coretech%3Arole.role1")) {
+            tokenResponse.setScope("coretech:role.role1");
+        } else if (request.equals("grant_type=client_credentials&expires_in=3600&scope=coretech%3Adomain+openid+coretech%3Aservice.backend")) {
+            tokenResponse.setScope("coretech:role.role1");
+            tokenResponse.setId_token("idtoken");
+        } else if (request.equals("grant_type=client_credentials&expires_in=500&scope=resourceexception%3Adomain")) {
+            throw new ResourceException(400, "Unable to get access token");
+        } else if (request.equals("grant_type=client_credentials&expires_in=500&scope=exception%3Adomain")) {
+            throw new IllegalArgumentException("Unable to get access token");
+        } else {
+            throw new ResourceException(404, "domain not found");
+        }
+        return tokenResponse;
+    }
+
     @Override
     public ServiceIdentity getServiceIdentity(String domainName, String serviceName) {
         if (domainName.equals("unknown.domain")) {

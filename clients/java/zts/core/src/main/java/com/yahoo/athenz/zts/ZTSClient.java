@@ -27,19 +27,7 @@ import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.ServiceLoader;
-import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
@@ -147,8 +135,9 @@ public class ZTSClient implements Closeable {
 
     public static final String ROLE_TOKEN_HEADER = System.getProperty(RoleAuthority.ATHENZ_PROP_ROLE_HEADER,
             RoleAuthority.HTTP_HEADER);
-    
+
     final static ConcurrentHashMap<String, RoleToken> ROLE_TOKEN_CACHE = new ConcurrentHashMap<>();
+    final static ConcurrentHashMap<String, AccessTokenResponseCacheEntry> ACCESS_TOKEN_CACHE = new ConcurrentHashMap<>();
     final static ConcurrentHashMap<String, AWSTemporaryCredentials> AWS_CREDS_CACHE = new ConcurrentHashMap<>();
 
     private static final long FETCH_EPSILON = 60; // if cache expires in the next minute, fetch it.
@@ -847,21 +836,21 @@ public class ZTSClient implements Closeable {
      * The client will automatically fulfill the request from the cache, if possible.
      * The default minimum expiry time is 900 secs (15 mins).
      * @param domainName name of the domain
-     * @param roleName only interested in roles with this name
+     * @param roleNames only interested in roles with these names, comma separated list of roles
      * @return ZTS generated Role Token. ZTSClientException will be thrown in case of failure
      */
-    public RoleToken getRoleToken(String domainName, String roleName) {
-        if (roleName == null || roleName.isEmpty()) {
-            throw new IllegalArgumentException("RoleName cannot be null or empty");
+    public RoleToken getRoleToken(String domainName, String roleNames) {
+        if (roleNames == null || roleNames.isEmpty()) {
+            throw new IllegalArgumentException("RoleNames cannot be null or empty");
         }
-        return getRoleToken(domainName, roleName, null, null, false, null);
+        return getRoleToken(domainName, roleNames, null, null, false, null);
     }
     
     /**
      * For the specified requester(user/service) return the corresponding Role Token that
      * includes the list of roles that the principal has access to in the specified domain
      * @param domainName name of the domain
-     * @param roleName (optional) only interested in roles with this name
+     * @param roleNames only interested in roles with these names, comma separated list of roles
      * @param minExpiryTime (optional) specifies that the returned RoleToken must be
      *          at least valid (min/lower bound) for specified number of seconds,
      * @param maxExpiryTime (optional) specifies that the returned RoleToken must be
@@ -869,9 +858,9 @@ public class ZTSClient implements Closeable {
      * @param ignoreCache ignore the cache and retrieve the token from ZTS Server
      * @return ZTS generated Role Token. ZTSClientException will be thrown in case of failure
      */
-    public RoleToken getRoleToken(String domainName, String roleName, Integer minExpiryTime,
+    public RoleToken getRoleToken(String domainName, String roleNames, Integer minExpiryTime,
             Integer maxExpiryTime, boolean ignoreCache) {
-        return getRoleToken(domainName, roleName, minExpiryTime, maxExpiryTime,
+        return getRoleToken(domainName, roleNames, minExpiryTime, maxExpiryTime,
                 ignoreCache, null);
     }
     
@@ -879,7 +868,7 @@ public class ZTSClient implements Closeable {
      * For the specified requester(user/service) return the corresponding Role Token that
      * includes the list of roles that the principal has access to in the specified domain
      * @param domainName name of the domain
-     * @param roleName (optional) only interested in roles with this name
+     * @param roleNames only interested in roles with these names, comma separated list of roles
      * @param minExpiryTime (optional) specifies that the returned RoleToken must be
      *          at least valid (min/lower bound) for specified number of seconds,
      * @param maxExpiryTime (optional) specifies that the returned RoleToken must be
@@ -888,27 +877,27 @@ public class ZTSClient implements Closeable {
      * @param proxyForPrincipal (optional) this request is proxy for this principal
      * @return ZTS generated Role Token. ZTSClientException will be thrown in case of failure
      */
-    public RoleToken getRoleToken(String domainName, String roleName, Integer minExpiryTime,
+    public RoleToken getRoleToken(String domainName, String roleNames, Integer minExpiryTime,
             Integer maxExpiryTime, boolean ignoreCache, String proxyForPrincipal) {
         
         RoleToken roleToken;
-        
+
         // first lookup in our cache to see if it can be satisfied
         // only if we're not asked to ignore the cache
 
         String cacheKey = null;
         if (!cacheDisabled) {
-            cacheKey = getRoleTokenCacheKey(domainName, roleName, proxyForPrincipal);
+            cacheKey = getRoleTokenCacheKey(domainName, roleNames, proxyForPrincipal);
             if (cacheKey != null && !ignoreCache) {
-                roleToken = lookupRoleTokenInCache(cacheKey, minExpiryTime, maxExpiryTime);
+                roleToken = lookupRoleTokenInCache(cacheKey, minExpiryTime, maxExpiryTime, tokenMinExpiryTime);
                 if (roleToken != null) {
                     return roleToken;
                 }
                 // start prefetch for this token if prefetch is enabled
                 if (enablePrefetch && prefetchAutoEnable) {
-                    if (prefetchRoleToken(domainName, roleName, minExpiryTime, maxExpiryTime,
+                    if (prefetchRoleToken(domainName, roleNames, minExpiryTime, maxExpiryTime,
                             proxyForPrincipal)) {
-                        roleToken = lookupRoleTokenInCache(cacheKey, minExpiryTime, maxExpiryTime);
+                        roleToken = lookupRoleTokenInCache(cacheKey, minExpiryTime, maxExpiryTime, tokenMinExpiryTime);
                     }
                     if (roleToken != null) {
                         return roleToken;
@@ -928,7 +917,7 @@ public class ZTSClient implements Closeable {
             // provider needs to know who the client is so we'll be passing
             // the client's domain and service names as the first two fields
             
-            roleToken = provider.fetchToken(domain, service, domainName, roleName,
+            roleToken = provider.fetchToken(domain, service, domainName, roleNames,
                     minExpiryTime, maxExpiryTime, proxyForPrincipal);
             if (roleToken != null) {
                 if (LOG.isDebugEnabled()) {
@@ -942,11 +931,33 @@ public class ZTSClient implements Closeable {
         
         updateServicePrincipal();
         try {
-            roleToken = ztsClient.getRoleToken(domainName, roleName,
+            roleToken = ztsClient.getRoleToken(domainName, roleNames,
                     minExpiryTime, maxExpiryTime, proxyForPrincipal);
         } catch (ResourceException ex) {
+
+            // if we have an entry in our cache then we'll return that
+            // instead of returning failure
+
+            if (cacheKey != null && !ignoreCache) {
+                roleToken = lookupRoleTokenInCache(cacheKey, null, null, 1);
+                if (roleToken != null) {
+                    return roleToken;
+                }
+            }
+
             throw new ZTSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
+
+            // if we have an entry in our cache then we'll return that
+            // instead of returning failure
+
+            if (cacheKey != null && !ignoreCache) {
+                roleToken = lookupRoleTokenInCache(cacheKey, null, null, 1);
+                if (roleToken != null) {
+                    return roleToken;
+                }
+            }
+
             throw new ZTSClientException(ZTSClientException.BAD_REQUEST, ex.getMessage());
         }
         
@@ -955,13 +966,123 @@ public class ZTSClient implements Closeable {
         
         if (!cacheDisabled) {
             if (cacheKey == null) {
-                cacheKey = getRoleTokenCacheKey(domainName, roleName, proxyForPrincipal);
+                cacheKey = getRoleTokenCacheKey(domainName, roleNames, proxyForPrincipal);
             }
             if (cacheKey != null) {
                 ROLE_TOKEN_CACHE.put(cacheKey, roleToken);
             }
         }
         return roleToken;
+    }
+
+    /**
+     * For the specified requester(user/service) return the corresponding Access Token that
+     * includes the list of roles that the principal has access to in the specified domain
+     * @param domainName name of the domain
+     * @param roleNames (optional) only interested in roles with these names, comma separated list of roles
+     * @param expiryTime (optional) specifies that the returned Access must be
+     *          at least valid for specified number of seconds. Pass 0 to use
+     *          server default timeout.
+     * @return ZTS generated Access Token Response object. ZTSClientException will be thrown in case of failure
+     */
+    public AccessTokenResponse getAccessToken(String domainName, List<String> roleNames, long expiryTime) {
+        return getAccessToken(domainName, roleNames, null, expiryTime, false);
+    }
+
+    /**
+     * For the specified requester(user/service) return the corresponding Access Token that
+     * includes the list of roles that the principal has access to in the specified domain
+     * @param domainName name of the domain
+     * @param roleNames (optional) only interested in roles with these names, comma separated list of roles
+     * @param idTokenServiceName (optional) as part of the response return an id token whose audience
+     *          is the specified service (only service name e.g. api) in the
+     *          domainName domain.
+     * @param expiryTime (optional) specifies that the returned Access must be
+     *          at least valid for specified number of seconds. Pass 0 to use
+     *          server default timeout.
+     * @param ignoreCache ignore the cache and retrieve the token from ZTS Server
+     * @return ZTS generated Access Token Response object. ZTSClientException will be thrown in case of failure
+     */
+    public AccessTokenResponse getAccessToken(String domainName, List<String> roleNames, String idTokenServiceName,
+            long expiryTime, boolean ignoreCache) {
+
+        AccessTokenResponse accessTokenResponse;
+
+        // first lookup in our cache to see if it can be satisfied
+        // only if we're not asked to ignore the cache
+
+        String cacheKey = null;
+        if (!cacheDisabled) {
+            cacheKey = getAccessTokenCacheKey(domainName, roleNames, idTokenServiceName);
+            if (cacheKey != null && !ignoreCache) {
+                accessTokenResponse = lookupAccessTokenResponseInCache(cacheKey, expiryTime);
+                if (accessTokenResponse != null) {
+                    return accessTokenResponse;
+                }
+            }
+        }
+
+        // if no hit then we need to request a new token from ZTS
+
+        updateServicePrincipal();
+        try {
+            final String requestBody = generateAccessTokenRequestBody(domainName, roleNames,
+                    idTokenServiceName, expiryTime);
+            accessTokenResponse = ztsClient.postAccessTokenRequest(requestBody);
+        } catch (ResourceException ex) {
+            if (cacheKey != null && !ignoreCache) {
+                accessTokenResponse = lookupAccessTokenResponseInCache(cacheKey, -1);
+                if (accessTokenResponse != null) {
+                    return accessTokenResponse;
+                }
+            }
+            throw new ZTSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            if (cacheKey != null && !ignoreCache) {
+                accessTokenResponse = lookupAccessTokenResponseInCache(cacheKey, -1);
+                if (accessTokenResponse != null) {
+                    return accessTokenResponse;
+                }
+            }
+            throw new ZTSClientException(ZTSClientException.BAD_REQUEST, ex.getMessage());
+        }
+
+        // need to add the token to our cache. If our principal was
+        // updated then we need to retrieve a new cache key
+
+        if (!cacheDisabled) {
+            if (cacheKey == null) {
+                cacheKey = getAccessTokenCacheKey(domainName, roleNames, idTokenServiceName);
+            }
+            if (cacheKey != null) {
+                ACCESS_TOKEN_CACHE.put(cacheKey, new AccessTokenResponseCacheEntry(accessTokenResponse));
+            }
+        }
+        return accessTokenResponse;
+    }
+
+    String generateAccessTokenRequestBody(String domainName, List<String> roleNames,
+            String idTokenServiceName, long expiryTime) throws UnsupportedEncodingException {
+
+        StringBuilder body = new StringBuilder(256);
+        body.append("grant_type=client_credentials");
+        if (expiryTime > 0) {
+            body.append("&expires_in=").append(expiryTime);
+        }
+
+        StringBuilder scope = new StringBuilder(256);
+        scope.append(domainName).append(":domain");
+        if (idTokenServiceName != null && !idTokenServiceName.isEmpty()) {
+            scope.append(" openid ").append(domainName).append(":service.").append(idTokenServiceName);
+        }
+        if (roleNames != null) {
+            for (String role : roleNames) {
+                scope.append(' ').append(domainName).append(":role.").append(role);
+            }
+        }
+        final String scopeStr = scope.toString();
+        body.append("&scope=").append(URLEncoder.encode(scopeStr, "UTF-8"));
+        return body.toString();
     }
 
     /**
@@ -1446,7 +1567,53 @@ public class ZTSClient implements Closeable {
         startPrefetch();
         return true;
     }
-    
+
+    String getAccessTokenCacheKey(String domainName, List<String> roleNames, String idTokenServiceName) {
+
+        // if we don't have a tenant domain specified but we have a ssl context
+        // then we're going to use the hash code for our sslcontext as the
+        // value for our tenant
+
+        String tenantDomain = domain;
+        if (domain == null && sslContext != null) {
+            tenantDomain = sslContext.toString();
+        }
+        return getAccessTokenCacheKey(tenantDomain, service, domainName, roleNames, idTokenServiceName);
+    }
+
+    String getAccessTokenCacheKey(String tenantDomain, String tenantService, String domainName,
+            List<String> roleNames, String idTokenServiceName) {
+
+        // before we generate a cache key we need to have a valid domain
+
+        if (tenantDomain == null) {
+            return null;
+        }
+
+        StringBuilder cacheKey = new StringBuilder(256);
+        cacheKey.append("p=");
+        cacheKey.append(tenantDomain);
+        if (tenantService != null) {
+            cacheKey.append(".").append(tenantService);
+        }
+
+        cacheKey.append(";d=");
+        cacheKey.append(domainName);
+
+        if (roleNames != null && !roleNames.isEmpty()) {
+            cacheKey.append(";r=");
+            cacheKey.append(ZTSClient.multipleRoleKey(roleNames));
+        }
+
+        if (idTokenServiceName != null && !idTokenServiceName.isEmpty()) {
+            cacheKey.append(";o=");
+            cacheKey.append(idTokenServiceName);
+        }
+
+        return cacheKey.toString();
+    }
+
+
     String getRoleTokenCacheKey(String domainName, String roleName, String proxyForPrincipal) {
 
         // if we don't have a tenant domain specified but we have a ssl context
@@ -1501,10 +1668,6 @@ public class ZTSClient implements Closeable {
         return cacheKey.toString();
     }
     
-    boolean isExpiredToken(long expiryTime, Integer minExpiryTime, Integer maxExpiryTime) {
-        return isExpiredToken(expiryTime, minExpiryTime, maxExpiryTime, ZTSClient.tokenMinExpiryTime);
-    }
-    
     static boolean isExpiredToken(long expiryTime, Integer minExpiryTime, Integer maxExpiryTime,
             int tokenMinExpiryTime) {
 
@@ -1525,7 +1688,7 @@ public class ZTSClient implements Closeable {
         return minExpiryTime == null && maxExpiryTime == null && expiryTime < tokenMinExpiryTime;
     }
     
-    RoleToken lookupRoleTokenInCache(String cacheKey, Integer minExpiryTime, Integer maxExpiryTime) {
+    RoleToken lookupRoleTokenInCache(String cacheKey, Integer minExpiryTime, Integer maxExpiryTime, int serverMinExpiryTime) {
 
         RoleToken roleToken = ROLE_TOKEN_CACHE.get(cacheKey);
         if (roleToken == null) {
@@ -1540,21 +1703,51 @@ public class ZTSClient implements Closeable {
         
         long expiryTime = roleToken.getExpiryTime() - (System.currentTimeMillis() / 1000);
         
-        if (isExpiredToken(expiryTime, minExpiryTime, maxExpiryTime, tokenMinExpiryTime)) {
+        if (isExpiredToken(expiryTime, minExpiryTime, maxExpiryTime, serverMinExpiryTime)) {
             
             if (LOG.isInfoEnabled()) {
                 LOG.info("LookupRoleTokenInCache: role-cache-lookup key: {} token-expiry: {}"
                         + " req-min-expiry: {} req-max-expiry: {} client-min-expiry: {} result: expired",
-                        cacheKey, expiryTime, minExpiryTime, maxExpiryTime, tokenMinExpiryTime);
+                        cacheKey, expiryTime, minExpiryTime, maxExpiryTime, serverMinExpiryTime);
             }
-            
-            ROLE_TOKEN_CACHE.remove(cacheKey);
+
+            // if the token is completely expired then we'll remove it from the cache
+
+            if (expiryTime < 1) {
+                ROLE_TOKEN_CACHE.remove(cacheKey);
+            }
+
             return null;
         }
         
         return roleToken;
     }
-    
+
+    AccessTokenResponse lookupAccessTokenResponseInCache(String cacheKey, long expiryTime) {
+
+        AccessTokenResponseCacheEntry accessTokenResponseCacheEntry = ACCESS_TOKEN_CACHE.get(cacheKey);
+        if (accessTokenResponseCacheEntry == null) {
+            if (LOG.isInfoEnabled()) {
+                LOG.info("LookupAccessTokenResponseInCache: cache-lookup key: {} result: not found", cacheKey);
+            }
+            return null;
+        }
+
+        // before returning our cache hit we need to make sure it
+        // it was at least 1/4th time left before the token expires
+        // if the expiryTime is -1 then we return the token as
+        // long as its not expired
+
+        if (accessTokenResponseCacheEntry.isExpired(expiryTime)) {
+            if (accessTokenResponseCacheEntry.isExpired(-1)) {
+                ACCESS_TOKEN_CACHE.remove(cacheKey);
+            }
+            return null;
+        }
+
+        return accessTokenResponseCacheEntry.accessTokenResponse();
+    }
+
     AWSTemporaryCredentials lookupAwsCredInCache(String cacheKey, Integer minExpiryTime,
             Integer maxExpiryTime) {
 
