@@ -29,10 +29,8 @@ import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x500.style.IETFUtils;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
@@ -41,6 +39,7 @@ import java.security.cert.CertificateFactory;
 import java.util.*;
 
 import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 
@@ -128,7 +127,7 @@ public class ZTSClientTest {
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
         ZTSClient client = new ZTSClient("http://localhost:4080/", principal);
-        assertTrue(client.isExpiredToken(100, 200, null));
+        assertTrue(client.isExpiredToken(100, 200, null, 900));
         client.close();
     }
     
@@ -137,8 +136,8 @@ public class ZTSClientTest {
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
         ZTSClient client = new ZTSClient("http://localhost:4080/", principal);
-        assertTrue(client.isExpiredToken(500, null, 300));
-        assertTrue(client.isExpiredToken(500, 200, 300));
+        assertTrue(client.isExpiredToken(500, null, 300, 900));
+        assertTrue(client.isExpiredToken(500, 200, 300, 900));
         client.close();
     }
     
@@ -147,9 +146,9 @@ public class ZTSClientTest {
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
         ZTSClient client = new ZTSClient("http://localhost:4080/", principal);
-        assertFalse(client.isExpiredToken(500, null, 600));
-        assertFalse(client.isExpiredToken(500, 200, null));
-        assertFalse(client.isExpiredToken(500, 200, 501));
+        assertFalse(client.isExpiredToken(500, null, 600, 900));
+        assertFalse(client.isExpiredToken(500, 200, null, 900));
+        assertFalse(client.isExpiredToken(500, 200, 501, 900));
         client.close();
     }
     
@@ -160,7 +159,7 @@ public class ZTSClientTest {
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
         ZTSClient client = new ZTSClient("http://localhost:4080/", principal);
-        assertTrue(client.isExpiredToken(500, null, null));
+        assertTrue(client.isExpiredToken(500, null, null, 600));
         client.close();
     }
 
@@ -171,7 +170,7 @@ public class ZTSClientTest {
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
         ZTSClient client = new ZTSClient("http://localhost:4080/", principal);
-        assertFalse(client.isExpiredToken(500, null, null));
+        assertFalse(client.isExpiredToken(500, null, null, 400));
         client.close();
     }
     
@@ -365,7 +364,7 @@ public class ZTSClientTest {
         ZTSClient client = new ZTSClient("http://localhost:4080/", principal);
         
         String cacheKey = "p=auth_creds;d=coretech;r=Role1";
-        assertNull(client.lookupRoleTokenInCache(cacheKey, null, null));
+        assertNull(client.lookupRoleTokenInCache(cacheKey, null, null, 900));
         client.close();
     }
     
@@ -381,8 +380,8 @@ public class ZTSClientTest {
         RoleToken roleToken = new RoleToken().setToken("role_token").setExpiryTime((System.currentTimeMillis() / 1000) + 1000L);
         client.ROLE_TOKEN_CACHE.put(cacheKey, roleToken);
         
-        assertNull(client.lookupRoleTokenInCache(cacheKey, 3000, 4000));
-        assertNull(client.lookupRoleTokenInCache(cacheKey, 500, 800));
+        assertNull(client.lookupRoleTokenInCache(cacheKey, 3000, 4000,  900));
+        assertNull(client.lookupRoleTokenInCache(cacheKey, 500, 800,  900));
         
         client.ROLE_TOKEN_CACHE.clear();
         client.close();
@@ -400,14 +399,14 @@ public class ZTSClientTest {
         RoleToken roleToken = new RoleToken().setToken("role_token").setExpiryTime((System.currentTimeMillis() / 1000) + 3500L);
         client.ROLE_TOKEN_CACHE.put(cacheKey, roleToken);
         
-        assertNotNull(client.lookupRoleTokenInCache(cacheKey, 3000, 4000));
+        assertNotNull(client.lookupRoleTokenInCache(cacheKey, 3000, 4000, 900));
 
         Long expiryTime = roleToken.getExpiryTime();
         String token = "v=Z1;d=mydomain;r=admin;p=user_domain.user;h=localhost;a=f10bc905071a72d1;t=1448045776;e=" + expiryTime.toString() + ";k=0;i=10.11.12.13;s=pujvQuvaLa2jgE3k24bCw5Hm7AP9dUQkmkwNfX2bPhVXyhdRkOlbttF4exJm9V571sJXid6vsihgopCdxqW_qA--";
         ZTSClientTokenCacher.setRoleToken(token, "admin");
         cacheKey = client.getRoleTokenCacheKey("mydomain", "admin", null);
         assertEquals(cacheKey, "p=user_domain.user;d=mydomain;r=admin");
-        assertNotNull(client.lookupRoleTokenInCache(cacheKey, 3000, 4000));
+        assertNotNull(client.lookupRoleTokenInCache(cacheKey, 3000, 4000, 900));
         
         client.ROLE_TOKEN_CACHE.clear();
         client.close();
@@ -429,7 +428,7 @@ public class ZTSClientTest {
         ZTSClientTokenCacher.setRoleToken(coreTechToken, "Role1");
         String cacheKey = ztsClient.getRoleTokenCacheKey("coretech", "Role1", null);
         assertEquals(cacheKey, "p=user_domain.user;d=coretech;r=Role1");
-        assertEquals(ztsClient.lookupRoleTokenInCache(cacheKey, 3000, 4000).getToken(), coreTechToken);
+        assertEquals(ztsClient.lookupRoleTokenInCache(cacheKey, 3000, 4000, 900).getToken(), coreTechToken);
         ztsClient.close();
 
         // rest of tests use ZTSClient object created using domain name and service parameters
@@ -439,7 +438,7 @@ public class ZTSClientTest {
         String cacheKeyRole1 = client.getRoleTokenCacheKey("mydomain", "Role1", null);
         client.ROLE_TOKEN_CACHE.put(cacheKeyRole1, roleToken);
         
-        assertNotNull(client.lookupRoleTokenInCache(cacheKeyRole1, 3000, 4000));
+        assertNotNull(client.lookupRoleTokenInCache(cacheKeyRole1, 3000, 4000, 900));
         
         // add new role token to the cache
         //
@@ -448,43 +447,43 @@ public class ZTSClientTest {
         ZTSClientTokenCacher.setRoleToken(token, "admin");
         String cacherKeyCacher = client.getRoleTokenCacheKey("mydomain", "admin", null);
         assertEquals(cacherKeyCacher, "p=mytenantdomain.myservice;d=mydomain;r=admin");
-        assertNotNull(client.lookupRoleTokenInCache(cacherKeyCacher, 3000, 4000));
+        assertNotNull(client.lookupRoleTokenInCache(cacherKeyCacher, 3000, 4000, 900));
 
         // now let's get another client - same domain and service as first one
         //
         ZTSClient client1 = new ZTSClient(null, "mytenantdomain", "myservice", siaMockProvider);
-        assertNotNull(client1.lookupRoleTokenInCache(cacheKey, 3000, 4000));
-        assertNotNull(client1.lookupRoleTokenInCache(cacherKeyCacher, 3000, 4000));
+        assertNotNull(client1.lookupRoleTokenInCache(cacheKey, 3000, 4000, 900));
+        assertNotNull(client1.lookupRoleTokenInCache(cacherKeyCacher, 3000, 4000, 900));
         
         // now let's get yet another client - different domain and service 
         //
         ZTSClient client2 = new ZTSClient(null, "mytenantdomain2", "myservice2", siaMockProvider);
 
         // cache still contains role tokens for the following keys
-        assertNotNull(client2.lookupRoleTokenInCache(cacheKey, 3000, 4000));
-        assertNotNull(client2.lookupRoleTokenInCache(cacherKeyCacher, 3000, 4000));
+        assertNotNull(client2.lookupRoleTokenInCache(cacheKey, 3000, 4000, 900));
+        assertNotNull(client2.lookupRoleTokenInCache(cacherKeyCacher, 3000, 4000, 900));
 
         // add new role token to cache using new domain=mydomain2 and new tenant domain=mytenantdomain2 and new service=myservice2
         String token2 = "v=Z1;d=mydomain2;r=admin;p=mytenantdomain2.myservice2;h=localhost;a=f10bc905071a72d1;t=1448045776;e=" + expiryTime.toString() + ";k=0;i=10.11.12.13;s=pujvQuvaLa2jgE3k24bCw5Hm7AP9dUQkmkwNfX2bPhVXyhdRkOlbttF4exJm9V571sJXid6vsihgopCdxqW_qA--";
         ZTSClientTokenCacher.setRoleToken(token2, "admin");
         String cacheKeyNewDomain = client2.getRoleTokenCacheKey("mydomain2", "admin", null);
         assertEquals(cacheKeyNewDomain, "p=mytenantdomain2.myservice2;d=mydomain2;r=admin");
-        assertEquals(client2.lookupRoleTokenInCache(cacheKeyNewDomain, 3000, 4000).getToken(), token2);
+        assertEquals(client2.lookupRoleTokenInCache(cacheKeyNewDomain, 3000, 4000, 900).getToken(), token2);
 
         // set role token without specifying role for the key
         //
         ZTSClientTokenCacher.setRoleToken(token2, null);
         String cacheKeyNoRole = client2.getRoleTokenCacheKey("mydomain2", null, null);
         assertEquals(cacheKeyNoRole, "p=mytenantdomain2.myservice2;d=mydomain2");
-        assertEquals(client2.lookupRoleTokenInCache(cacheKeyNoRole, 3000, 4000).getToken(), token2);
+        assertEquals(client2.lookupRoleTokenInCache(cacheKeyNoRole, 3000, 4000, 900).getToken(), token2);
 
         // now let's get yet another client
         //
         ZTSClient client3 = new ZTSClient(null, principal);
 
         // cache still contains role tokens for the following keys
-        assertNotNull(client3.lookupRoleTokenInCache(cacheKey, 3000, 4000));
-        assertNotNull(client3.lookupRoleTokenInCache(cacherKeyCacher, 3000, 4000));
+        assertNotNull(client3.lookupRoleTokenInCache(cacheKey, 3000, 4000, 900));
+        assertNotNull(client3.lookupRoleTokenInCache(cacherKeyCacher, 3000, 4000, 900));
 
         String cacheKeyNoSvc = client3.getRoleTokenCacheKey("mydomain3", null, null);
         assertEquals(cacheKeyNoSvc, "p=user_domain.user;d=mydomain3");
@@ -533,7 +532,7 @@ public class ZTSClientTest {
 
         // not in cache
         String cacheKey = client.getRoleTokenCacheKey(domName, null, null);
-        rToken = client.lookupRoleTokenInCache(cacheKey, null, null);
+        rToken = client.lookupRoleTokenInCache(cacheKey, null, null, 900);
         assertNull(rToken);
 
         // don't ignore cache so 1st thing it will do is check in the cache
@@ -2768,5 +2767,246 @@ public class ZTSClientTest {
         assertNotNull(descr);
 
         assertEquals("signedToken", descr.getSignedToken());
+    }
+
+    @Test
+    public void testGenerateAccessTokenRequestBody() throws UnsupportedEncodingException {
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+
+        assertEquals("grant_type=client_credentials&scope=coretech%3Adomain",
+                client.generateAccessTokenRequestBody("coretech", null, null, 0));
+        assertEquals("grant_type=client_credentials&expires_in=100&scope=coretech%3Adomain",
+                client.generateAccessTokenRequestBody("coretech", null, null, 100));
+        assertEquals("grant_type=client_credentials&expires_in=100&scope=coretech%3Adomain",
+                client.generateAccessTokenRequestBody("coretech", null, "", 100));
+        assertEquals("grant_type=client_credentials&expires_in=100&scope=coretech%3Adomain+openid+coretech%3Aservice.api",
+                client.generateAccessTokenRequestBody("coretech", null, "api", 100));
+        assertEquals("grant_type=client_credentials&expires_in=100&scope=coretech%3Adomain+openid+coretech%3Aservice.api+coretech%3Arole.readers",
+                client.generateAccessTokenRequestBody("coretech", Collections.singletonList("readers"), "api", 100));
+        List<String> roles = new ArrayList<>();
+        roles.add("readers");
+        roles.add("writers");
+        assertEquals("grant_type=client_credentials&expires_in=100&scope=coretech%3Adomain+openid+coretech%3Aservice.api+coretech%3Arole.readers+coretech%3Arole.writers",
+                client.generateAccessTokenRequestBody("coretech", roles, "api", 100));
+        client.close();
+    }
+
+    @Test
+    public void testLookupAccessTokenResponseInCache() throws InterruptedException {
+
+        final String cacheKey = "accesstestkey1";
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+
+        assertNull(client.lookupAccessTokenResponseInCache(cacheKey, 3600));
+
+        AccessTokenResponse response1 = new AccessTokenResponse();
+        response1.setExpires_in(3600);
+        client.ACCESS_TOKEN_CACHE.put(cacheKey, new AccessTokenResponseCacheEntry(response1));
+
+        // with standard 1 hour check, our entry is not expired
+
+        assertNotNull(client.lookupAccessTokenResponseInCache(cacheKey, 3600));
+
+        // with a 60 hour check, our entry is expired, however our entry
+        // will not be removed from the cache
+
+        assertNull(client.lookupAccessTokenResponseInCache(cacheKey, 36000));
+        assertNotNull(client.ACCESS_TOKEN_CACHE.get(cacheKey));
+
+        // add a second entry with 1 second timeout
+
+        AccessTokenResponse response2 = new AccessTokenResponse();
+        response2.setExpires_in(1);
+        client.ACCESS_TOKEN_CACHE.put(cacheKey, new AccessTokenResponseCacheEntry(response2));
+
+        // sleep a second and then ask for a cache entry
+
+        Thread.sleep(1000);
+
+        // entry is not returned from lookup and also removed from the cache
+
+        assertNull(client.lookupAccessTokenResponseInCache(cacheKey, 3600));
+        assertNull(client.ACCESS_TOKEN_CACHE.get(cacheKey));
+        client.close();
+    }
+
+    @Test
+    public void testGetAccessTokenCacheKey() {
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+        ZTSClient client = new ZTSClient("http://localhost:4080/", principal);
+
+        assertNull(client.getAccessTokenCacheKey(null, "service", "coretech", null, null));
+
+        assertEquals("p=sports;d=coretech", client.getAccessTokenCacheKey("sports", null, "coretech", null, null));
+        assertEquals("p=sports.api;d=coretech", client.getAccessTokenCacheKey("sports", "api", "coretech", null, null));
+        assertEquals("p=sports.api;d=coretech;r=readers",
+                client.getAccessTokenCacheKey("sports", "api", "coretech", Collections.singletonList("readers"), null));
+
+        List<String> roles = new ArrayList<>();
+        roles.add("writers");
+        roles.add("readers");
+        assertEquals("p=sports.api;d=coretech;r=readers,writers",
+                client.getAccessTokenCacheKey("sports", "api", "coretech", roles, null));
+
+        assertEquals("p=sports.api;d=coretech;r=readers,writers",
+                client.getAccessTokenCacheKey("sports", "api", "coretech", roles, ""));
+
+        assertEquals("p=sports.api;d=coretech;r=readers,writers;o=backend",
+                client.getAccessTokenCacheKey("sports", "api", "coretech", roles, "backend"));
+
+        // using tenant domain details from principal object
+
+        assertEquals("p=user_domain.user;d=coretech;r=readers,writers;o=backend",
+                client.getAccessTokenCacheKey("coretech", roles, "backend"));
+
+        client.close();
+    }
+
+    @Test
+    public void testGetAccessTokenCacheKeySSLContext() {
+
+        SSLContext sslContext = Mockito.mock(SSLContext.class);
+        final String contextStr = sslContext.toString();
+
+        ZTSClient client = new ZTSClient("http://localhost:4080/", sslContext);
+
+        final String expectedStr = "p=" + contextStr + ";d=coretech;r=readers;o=backend";
+        assertEquals(expectedStr, client.getAccessTokenCacheKey("coretech", Collections.singletonList("readers"), "backend"));
+
+        client.close();
+    }
+
+    @Test
+    public void testGetAccessToken() {
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        AccessTokenResponse accessTokenResponse = client.getAccessToken("coretech", null, 3600);
+        assertNotNull(accessTokenResponse);
+        assertEquals("accesstoken", accessTokenResponse.getAccess_token());
+        assertTrue(3600 == accessTokenResponse.getExpires_in());
+        assertNull(accessTokenResponse.getId_token());
+
+        accessTokenResponse = client.getAccessToken("coretech", Collections.singletonList("role1"), 3600);
+        assertNotNull(accessTokenResponse);
+        assertEquals("accesstoken", accessTokenResponse.getAccess_token());
+        assertTrue(3600 == accessTokenResponse.getExpires_in());
+        assertNull(accessTokenResponse.getId_token());
+
+        // the second request should be addressed from the cache
+
+        accessTokenResponse = client.getAccessToken("coretech", Collections.singletonList("role1"), 3600);
+        assertNotNull(accessTokenResponse);
+        assertEquals("accesstoken", accessTokenResponse.getAccess_token());
+        assertTrue(3600 == accessTokenResponse.getExpires_in());
+        assertNull(accessTokenResponse.getId_token());
+
+        // now with id token
+
+        accessTokenResponse = client.getAccessToken("coretech", null, "backend", 3600, false);
+        assertNotNull(accessTokenResponse);
+        assertEquals("accesstoken", accessTokenResponse.getAccess_token());
+        assertEquals("idtoken", accessTokenResponse.getId_token());
+        assertTrue(3600 == accessTokenResponse.getExpires_in());
+
+        // now with id token and cache disabled
+
+        accessTokenResponse = client.getAccessToken("coretech", null, "backend", 3600, true);
+        assertNotNull(accessTokenResponse);
+        assertEquals("accesstoken", accessTokenResponse.getAccess_token());
+        assertEquals("idtoken", accessTokenResponse.getId_token());
+        assertTrue(3600 == accessTokenResponse.getExpires_in());
+
+
+        ZTSClient.setCacheDisable(true);
+        accessTokenResponse = client.getAccessToken("coretech", null, "backend", 3600, true);
+        assertNotNull(accessTokenResponse);
+        assertEquals("accesstoken", accessTokenResponse.getAccess_token());
+        assertEquals("idtoken", accessTokenResponse.getId_token());
+        assertTrue(3600 == accessTokenResponse.getExpires_in());
+        ZTSClient.setCacheDisable(false);
+
+        client.close();
+    }
+
+    @Test
+    public void testGetAccessTokenFailures() {
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        try {
+            client.getAccessToken("weather", null, 500);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(404, ex.getCode());
+        }
+
+        // look for regular general exception
+
+        try {
+            client.getAccessToken("exception", null, 500);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(400, ex.getCode());
+        }
+
+        // add an entry to the cache and expect to find the entry
+        // in the cache with failed request.
+
+        AccessTokenResponse tokenResponse = new AccessTokenResponse();
+        tokenResponse.setAccess_token("accesstoken1");
+        tokenResponse.setExpires_in(100);
+
+        client.ACCESS_TOKEN_CACHE.put("p=user_domain.user;d=weather", new AccessTokenResponseCacheEntry(tokenResponse));
+        client.ACCESS_TOKEN_CACHE.put("p=user_domain.user;d=exception", new AccessTokenResponseCacheEntry(tokenResponse));
+
+        // with cache disabled we're not going to get any data back
+
+        try {
+            client.getAccessToken("weather", null, null, 500, true);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(404, ex.getCode());
+        }
+
+        // look for regular general exception
+
+        try {
+            client.getAccessToken("exception", null, null, 500, true);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(400, ex.getCode());
+        }
+
+        // with cache enabled we'll get our entries back even if
+        // the request is rejected
+
+        AccessTokenResponse result = client.getAccessToken("weather", null, 500);
+        assertNotNull(result);
+        assertEquals("accesstoken1", result.getAccess_token());
+
+        result = client.getAccessToken("exception", null, 500);
+        assertNotNull(result);
+        assertEquals("accesstoken1", result.getAccess_token());
+
+        client.close();
     }
 }
