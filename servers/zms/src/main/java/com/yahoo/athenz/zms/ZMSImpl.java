@@ -49,6 +49,7 @@ import com.yahoo.athenz.zms.store.ObjectStore;
 import com.yahoo.athenz.zms.store.ObjectStoreFactory;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 
+import java.io.File;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ArrayList;
@@ -171,6 +172,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected int serviceNameMinLength;
     protected Status successServerStatus = null;
     protected Set<String> reservedSystemDomains = null;
+    protected File healthCheckFile = null;
 
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
@@ -584,6 +586,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         reservedSystemDomains.add("sys.auth");
         reservedSystemDomains.add(userDomain);
         reservedSystemDomains.add(homeDomain);
+
+        // setup our health check file
+
+        final String healthCheckPath = System.getProperty(ZMSConsts.ZMS_PROP_HEALTH_CHECK_PATH);
+        if (healthCheckPath != null && !healthCheckPath.isEmpty()) {
+            healthCheckFile = new File(healthCheckPath);
+        }
     }
     
     void loadObjectStore() {
@@ -6372,7 +6381,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (dlist.getNames() == null || dlist.getNames().isEmpty()) {
             throw ZMSUtils.notFoundError("Error - no domains available", caller);
         }
-        
+
+        // check if we're configured to check for the status file
+
+        if (healthCheckFile != null && !healthCheckFile.exists()) {
+            throw ZMSUtils.notFoundError("Error - no status available", caller);
+        }
+
         metric.stopTiming(timerMetric);
         return successServerStatus;
     }

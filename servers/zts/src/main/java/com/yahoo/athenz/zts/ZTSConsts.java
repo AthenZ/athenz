@@ -52,6 +52,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_NOAUTH_URI_LIST        = "athenz.zts.no_auth_uri_list";
     public static final String ZTS_PROP_ROLE_COMPLETE_FLAG     = "athenz.zts.role_complete_flag";
     public static final String ZTS_PROP_READ_ONLY_MODE         = "athenz.zts.read_only_mode";
+    public static final String ZTS_PROP_HEALTH_CHECK_PATH      = "athenz.zts.health_check_path";
 
     public static final String ZTS_PROP_CERT_REFRESH_IP_FNAME  = "athenz.zts.cert_refresh_ip_fname";
     public static final String ZTS_PROP_CERT_ALLOWED_O_VALUES  = "athenz.zts.cert_allowed_o_values";
