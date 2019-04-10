@@ -152,7 +152,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
 
         if (request.equals("grant_type=client_credentials&expires_in=3600&scope=coretech%3Adomain")) {
             tokenResponse.setScope("coretech:role.role1");
-        } else if (request.equals("grant_type=client_credentials&expires_in=3600&scope=coretech%3Adomain+coretech%3Arole.role1")) {
+        } else if (request.equals("grant_type=client_credentials&expires_in=3600&scope=coretech%3Arole.role1")) {
             tokenResponse.setScope("coretech:role.role1");
         } else if (request.equals("grant_type=client_credentials&expires_in=3600&scope=coretech%3Adomain+openid+coretech%3Aservice.backend")) {
             tokenResponse.setScope("coretech:role.role1");

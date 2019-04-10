@@ -1071,14 +1071,18 @@ public class ZTSClient implements Closeable {
         }
 
         StringBuilder scope = new StringBuilder(256);
-        scope.append(domainName).append(":domain");
+        if (roleNames == null || roleNames.isEmpty()) {
+            scope.append(domainName).append(":domain");
+        } else {
+            for (String role : roleNames) {
+                if (scope.length() != 0) {
+                    scope.append(' ');
+                }
+                scope.append(domainName).append(":role.").append(role);
+            }
+        }
         if (idTokenServiceName != null && !idTokenServiceName.isEmpty()) {
             scope.append(" openid ").append(domainName).append(":service.").append(idTokenServiceName);
-        }
-        if (roleNames != null) {
-            for (String role : roleNames) {
-                scope.append(' ').append(domainName).append(":role.").append(role);
-            }
         }
         final String scopeStr = scope.toString();
         body.append("&scope=").append(URLEncoder.encode(scopeStr, "UTF-8"));

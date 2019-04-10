@@ -2784,12 +2784,12 @@ public class ZTSClientTest {
                 client.generateAccessTokenRequestBody("coretech", null, "", 100));
         assertEquals("grant_type=client_credentials&expires_in=100&scope=coretech%3Adomain+openid+coretech%3Aservice.api",
                 client.generateAccessTokenRequestBody("coretech", null, "api", 100));
-        assertEquals("grant_type=client_credentials&expires_in=100&scope=coretech%3Adomain+openid+coretech%3Aservice.api+coretech%3Arole.readers",
+        assertEquals("grant_type=client_credentials&expires_in=100&scope=coretech%3Arole.readers+openid+coretech%3Aservice.api",
                 client.generateAccessTokenRequestBody("coretech", Collections.singletonList("readers"), "api", 100));
         List<String> roles = new ArrayList<>();
         roles.add("readers");
         roles.add("writers");
-        assertEquals("grant_type=client_credentials&expires_in=100&scope=coretech%3Adomain+openid+coretech%3Aservice.api+coretech%3Arole.readers+coretech%3Arole.writers",
+        assertEquals("grant_type=client_credentials&expires_in=100&scope=coretech%3Arole.readers+coretech%3Arole.writers+openid+coretech%3Aservice.api",
                 client.generateAccessTokenRequestBody("coretech", roles, "api", 100));
         client.close();
     }
