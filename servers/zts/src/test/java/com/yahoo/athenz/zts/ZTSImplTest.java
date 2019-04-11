@@ -16,6 +16,8 @@
 package com.yahoo.athenz.zts;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -7289,6 +7291,54 @@ public class ZTSImplTest {
         
         Status status = ztsImpl.getStatus(context);
         assertEquals(status.getCode(), ResourceException.OK);
+    }
+
+    @Test
+    public void testGetStatusWithStatusFile() throws IOException {
+
+        System.setProperty(ZTSConsts.ZTS_PROP_HEALTH_CHECK_PATH, "/tmp/zts-healthcheck");
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null);
+
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        ztsImpl.statusPort = 0;
+
+        Principal principal = SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        // without the file we should get failure - make sure
+        // to delete it just in case left over from previous run
+
+        File healthCheckFile = new File("/tmp/zts-healthcheck");
+        healthCheckFile.delete();
+
+        try {
+            ztsImpl.getStatus(context);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+        }
+
+        // create the status file
+
+        new FileOutputStream(healthCheckFile).close();
+        Status status = ztsImpl.getStatus(context);
+        assertEquals(ResourceException.OK, status.getCode());
+
+        // delete the status file
+
+        healthCheckFile.delete();
+        try {
+            ztsImpl.getStatus(context);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+        }
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_HEALTH_CHECK_PATH);
     }
 
     @Test

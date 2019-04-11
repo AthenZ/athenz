@@ -16,6 +16,7 @@
 package com.yahoo.athenz.zms;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -14887,7 +14888,46 @@ public class ZMSImplTest {
         Status status = zmsImpl.getStatus(mockDomRsrcCtx);
         assertEquals(status.getCode(), ResourceException.OK);
     }
-    
+
+    @Test
+    public void testGetStatusWithStatusFile() throws IOException {
+
+        System.setProperty(ZMSConsts.ZMS_PROP_HEALTH_CHECK_PATH, "/tmp/zms-healthcheck");
+        ZMSImpl zmsImpl = zmsInit();
+        zmsImpl.statusPort = 0;
+
+        // without the file we should get failure - make sure
+        // to delete it just in case left over from previous run
+
+        File healthCheckFile = new File("/tmp/zms-healthcheck");
+        healthCheckFile.delete();
+
+        try {
+            zmsImpl.getStatus(mockDomRsrcCtx);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+        }
+
+        // create the status file
+
+        new FileOutputStream(healthCheckFile).close();
+        Status status = zmsImpl.getStatus(mockDomRsrcCtx);
+        assertEquals(ResourceException.OK, status.getCode());
+
+        // delete the status file
+
+        healthCheckFile.delete();
+        try {
+            zmsImpl.getStatus(mockDomRsrcCtx);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+        }
+
+        System.clearProperty(ZMSConsts.ZMS_PROP_HEALTH_CHECK_PATH);
+    }
+
     @Test
     public void testValidateString() {
         ZMSImpl zmsImpl = zmsInit();

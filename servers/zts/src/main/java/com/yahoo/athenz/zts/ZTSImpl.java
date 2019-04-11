@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.zts;
 
+import java.io.File;
 import java.net.InetAddress;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -125,6 +126,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected boolean verifyCertSubjectOU = false;
     protected String ztsOAuthIssuer;
     protected ObjectMapper jsonMapper;
+    protected File healthCheckFile = null;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -455,6 +457,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // retrieve our oauth settings
 
         ztsOAuthIssuer = System.getProperty(ZTSConsts.ZTS_PROP_OAUTH_ISSUER, serverHostName);
+
+        // setup our health check file
+
+        final String healthCheckPath = System.getProperty(ZTSConsts.ZTS_PROP_HEALTH_CHECK_PATH);
+        if (healthCheckPath != null && !healthCheckPath.isEmpty()) {
+            healthCheckFile = new File(healthCheckPath);
+        }
     }
     
     static String getServerHostName() {
@@ -3438,7 +3447,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                         ZTSConsts.ZTS_UNKNOWN_DOMAIN);
             }
         }
-        
+
+        // check if we're configured to check for the status file
+
+        if (healthCheckFile != null && !healthCheckFile.exists()) {
+            throw notFoundError("Error - no status available", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+        }
+
         metric.stopTiming(timerMetric);
         return successServerStatus;
     }

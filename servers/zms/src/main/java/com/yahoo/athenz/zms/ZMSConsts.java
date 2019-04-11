@@ -38,7 +38,8 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_VIRTUAL_DOMAIN_LIMIT = "athenz.zms.virtual_domain_limit";
     public static final String ZMS_PROP_READ_ONLY_MODE       = "athenz.zms.read_only_mode";
     public static final String ZMS_PROP_DOMAIN_NAME_MAX_SIZE = "athenz.zms.domain_name_max_len";
-    
+    public static final String ZMS_PROP_HEALTH_CHECK_PATH    = "athenz.zms.health_check_path";
+
     public static final String ZMS_PROP_CONFLICT_RETRY_COUNT      = "athenz.zms.request_conflict_retry_count";
     public static final String ZMS_PROP_CONFLICT_RETRY_SLEEP_TIME = "athenz.zms.request_conflict_retry_sleep_time";
 
