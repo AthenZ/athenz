@@ -80,20 +80,20 @@ Running this setup script completes the following tasks:
 Set the following environment variable before starting the UI Server:
 
 ```shell
-$ export UI_SERVER=<ui-server-host-name> ZMS_SERVER=<zms-server-host-name>
 $ cd athenz-ui-X.Y
-$ bin/athenz_ui start
+$ export UI_SERVER=<ui-server-host-name> ZMS_SERVER=<zms-server-host-name>
+$ sudo -E bin/athenz_ui start
 ```
 
 Based on the sample configuration file provided, Athenz UI Server will be listening
-on port 9443.
+on port 443.
 
 To stop the UI server, execute the following commands:
 
 ```shell
-$ export UI_SERVER=<ui-server-host-name> ZMS_SERVER=<zms-server-host-name>
 $ cd athenz-ui-X.Y
-$ bin/athenz_ui stop
+$ export UI_SERVER=<ui-server-host-name> ZMS_SERVER=<zms-server-host-name>
+$ sudo -E bin/athenz_ui stop
 ```
 
 ## UI Access
@@ -102,7 +102,7 @@ $ bin/athenz_ui stop
 To access Athenz UI in your browser, visit:
 
 ```
-https://<ui-server-host-name>:9443
+https://<ui-server-host-name>
 ```
 
 Since the development setup is using self-signed X509 certificates for

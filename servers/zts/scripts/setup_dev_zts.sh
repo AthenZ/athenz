@@ -58,4 +58,4 @@ $ROOT/bin/$HOST_PLATFORM/zms-cli -c $ROOT/var/zts_server/certs/zms_cert.pem -z h
 echo "Generating Athenz configuration file..."
 $ROOT/bin/$HOST_PLATFORM/athenz-conf -o $ROOT/conf/zts_server/athenz.conf -c $ROOT/var/zts_server/certs/zms_cert.pem -z https://$ZMS_HOSTNAME:4443/ -t https://$ZTS_HOSTNAME:8443/
 
-echo "ZTS Dev Enviornment setup complete"
+echo "ZTS Dev Environment setup complete"

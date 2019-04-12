@@ -32,10 +32,16 @@ mkdir -p "${ZMS_LOG_DIR}"
 # setup our required java attributes for startup
 
 JAVA_OPTS="${JAVA_OPTS} -Dathenz.root_dir=${ROOT}"
+JAVA_OPTS="${JAVA_OPTS} -Dathenz.jetty_home=${ROOT}"
 JAVA_OPTS="${JAVA_OPTS} -Dathenz.zms.root_dir=${ROOT}"
 JAVA_OPTS="${JAVA_OPTS} -Dathenz.prop_file=${ROOT}/conf/zms_server/athenz.properties"
 JAVA_OPTS="${JAVA_OPTS} -Dathenz.zms.prop_file=${ROOT}/conf/zms_server/zms.properties"
 JAVA_OPTS="${JAVA_OPTS} -Dlogback.configurationFile=${ROOT}/conf/zms_server/logback.xml"
+JAVA_OPTS="${JAVA_OPTS} -Dathenz.ssl_key_store=${ROOT}/var/zms_server/certs/zms_keystore.pkcs12"
+JAVA_OPTS="${JAVA_OPTS} -Dathenz.access_log_dir=${ZMS_LOG_DIR}"
+JAVA_OPTS="${JAVA_OPTS} -Dathenz.auth.private_key_store.private_key=${ROOT}/var/zms_server/keys/zms_private.pem"
+JAVA_OPTS="${JAVA_OPTS} -Dathenz.zms.authz_service_fname=${ROOT}/conf/zms_server/authorized_services.json"
+JAVA_OPTS="${JAVA_OPTS} -Dathenz.zms.solution_templates_fname=${ROOT}/conf/zms_server/solution_templates.json"
 
 ZMS_CLASSPATH=${ROOT}/lib/jars/*
 ZMS_BOOTSTRAP_CLASS=com.yahoo.athenz.container.AthenzJettyContainer

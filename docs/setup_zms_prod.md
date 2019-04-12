@@ -226,7 +226,7 @@ $ cd athenz-zms-X.Y
 $ vi conf/zms_server/zms.properties
 ```
 
-Modify the `athenz.zms.domain_admin=user.${USER}` line and include comma
+Modify the `athenz.zms.domain_admin=user.admin` line and include comma
 separated list of unix user ids that should be set as Athenz system
 administrators. e.g. `athenz.zms.domain_admin=user.joe,user.john`
 

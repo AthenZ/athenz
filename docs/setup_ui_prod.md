@@ -114,18 +114,18 @@ $ bin/<platform>/athenz-conf -o config/athenz.conf -z https://<zms-server>:4443/
 Set the following environment variable before starting the UI Server:
 
 ```shell
-$ export UI_SERVER=<ui-server-host-name> ZMS_SERVER=<zms-server-host-name>
 $ cd athenz-ui-X.Y
-$ bin/athenz_ui start
+$ export UI_SERVER=<ui-server-host-name> ZMS_SERVER=<zms-server-host-name>
+$ sudo -E bin/athenz_ui start
 ```
 
 Based on the sample configuration file provided, Athenz UI Server will be listening
-on port 9443.
+on port 443.
 
 To stop the UI server, execute the following commands:
 
 ```shell
-$ export UI_SERVER=<ui-server-host-name> ZMS_SERVER=<zms-server-host-name>
 $ cd athenz-ui-X.Y
-$ bin/athenz_ui stop
+$ export UI_SERVER=<ui-server-host-name> ZMS_SERVER=<zms-server-host-name>
+$ sudo -E bin/athenz_ui stop
 ```
