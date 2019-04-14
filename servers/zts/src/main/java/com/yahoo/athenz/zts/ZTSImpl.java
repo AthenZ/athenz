@@ -30,12 +30,11 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.Response;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yahoo.athenz.auth.token.AccessToken;
+import com.yahoo.athenz.auth.token.IdToken;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.dns.HostnameResolverFactory;
 import com.yahoo.athenz.zts.cert.*;
-import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.slf4j.Logger;
@@ -125,7 +124,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected boolean verifyCertRequestIP = false;
     protected boolean verifyCertSubjectOU = false;
     protected String ztsOAuthIssuer;
-    protected ObjectMapper jsonMapper;
     protected File healthCheckFile = null;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
@@ -303,11 +301,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // make sure to set the keystore for any instance that requires it
         
         setAuthorityKeyStore();
-
-        // initialize our jackson object mapper
-
-        jsonMapper = new ObjectMapper();
-        jsonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
     
     void loadSystemProperties() {
@@ -1536,25 +1529,22 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         long tokenTimeout = determineTokenTimeout(null, expiryTime);
         long iat = System.currentTimeMillis() / 1000;
 
-        AccessToken accessToken = new AccessToken().setVer(1).setAud(domainName)
-                .setCid(principalName).setIat(iat).setExp(iat + tokenTimeout).setUid(principalName)
-                .setSub(principalName).setIss(ztsOAuthIssuer);
+        AccessToken accessToken = new AccessToken();
+        accessToken.setVersion(1);
+        accessToken.setAudience(domainName);
+        accessToken.setClientId(principalName);
+        accessToken.setIssueTime(iat);
+        accessToken.setAuthTime(iat);
+        accessToken.setExpiryTime(iat + tokenTimeout);
+        accessToken.setUserId(principalName);
+        accessToken.setSubject(principalName);
+        accessToken.setIssuer(ztsOAuthIssuer);
 
         if (!roles.isEmpty()) {
-            accessToken.setScp(new ArrayList<>(roles));
+            accessToken.setScope(new ArrayList<>(roles));
         }
 
-        final String accessTokenStr = oauthTokenAsString(accessToken);
-        if (accessTokenStr == null) {
-            throw serverError("Unable to convert access token to string", caller, domainName);
-        }
-
-        String accessJwts = Jwts.builder().setPayload(accessTokenStr).setHeaderParam(KEY_ID, privateKeyId)
-                .signWith(privateKeyAlg, privateKey).compact();
-
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("access token for principal {}: {}", principalName, accessTokenStr);
-        }
+        String accessJwts = accessToken.getSignedToken(privateKey, privateKeyId, privateKeyAlg);
 
         // now let's check to see if we need to create openid token
 
@@ -1563,21 +1553,16 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
             // id tokens are only valid for 1 hour
 
-            IdToken idToken = new IdToken().setVer(1).setIss(ztsOAuthIssuer).setSub(principalName)
-                    .setAud(tokenRequest.getDomainName() + "." + tokenRequest.getServiceName())
-                    .setAuth_time(iat).setIat(iat).setExp(iat + 3600);
+            IdToken idToken = new IdToken();
+            idToken.setVersion(1);
+            idToken.setAudience(tokenRequest.getDomainName() + "." + tokenRequest.getServiceName());
+            idToken.setIssueTime(iat);
+            idToken.setExpiryTime(iat + 3600);
+            idToken.setAuthTime(iat);
+            idToken.setSubject(principalName);
+            idToken.setIssuer(ztsOAuthIssuer);
 
-            final String idTokenStr = oauthTokenAsString(idToken);
-            if (idTokenStr == null) {
-                throw serverError("Unable to convert id token to string", caller, domainName);
-            }
-
-            idJwts = Jwts.builder().setPayload(idTokenStr).setHeaderParam(KEY_ID, privateKeyId)
-                    .signWith(privateKeyAlg, privateKey).compact();
-
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("id token for principal {}: {}", principalName, idTokenStr);
-            }
+            idJwts = idToken.getSignedToken(privateKey, privateKeyId, privateKeyAlg);
         }
 
         AccessTokenResponse response = new AccessTokenResponse().setAccess_token(accessJwts)
@@ -1600,18 +1585,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         metric.stopTiming(timerMetric);
         return response;
-    }
-
-    <T> String oauthTokenAsString(T oauthToken) {
-
-        String token = null;
-        try {
-            token = jsonMapper.writerWithView(oauthToken.getClass()).writeValueAsString(oauthToken);
-        } catch (Exception ex) {
-            LOGGER.error("Unable to marshall access token object '{}', error: {}",
-                    oauthToken, ex.getMessage());
-        }
-        return token;
     }
 
     boolean compareRoleSets(Set<String> set1, Set<String> set2) {
