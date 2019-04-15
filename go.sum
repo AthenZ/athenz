@@ -4,6 +4,8 @@ github.com/ardielle/ardielle-go v1.5.1 h1:7vSvfYuByBHGSk+8am0u2DT92+95UFtxdp5fkS
 github.com/ardielle/ardielle-go v1.5.1/go.mod h1:I4hy1n795cUhaVt/ojz83SNVCYIGsAFAONtv2Dr7HUI=
 github.com/ardielle/ardielle-go v1.5.2 h1:TilHTpHIQJ27R1Tl/iITBzMwiUGSlVfiVhwDNGM3Zj4=
 github.com/ardielle/ardielle-go v1.5.2/go.mod h1:I4hy1n795cUhaVt/ojz83SNVCYIGsAFAONtv2Dr7HUI=
+github.com/ardielle/ardielle-tools v1.5.3 h1:ohEfGpWhVU/3taQHzP48YtP7bYpoSXuRAgu2o2dSTS4=
+github.com/ardielle/ardielle-tools v1.5.3/go.mod h1:oZN+JRMnqGiIhrzkRN9l26Cej9dEx4jeNG6A+AdkShk=
 github.com/ardielle/ardielle-tools v1.14.15 h1:BukXV+2FhI3mXbb4x9HdfTDfe9bC2yBhRWxk3Kl9yUA=
 github.com/ardielle/ardielle-tools v1.14.15/go.mod h1:md5tB6Ld1xXeYT0iETNHj4/Dm+funcuxeZn2yXWmvCY=
 github.com/boynton/repl v0.0.0-20170116235056-348863958e3e h1:lFJi7V/jlH3FDeZxW0o/oMfKAjPyc/yifX2z8eBeLt8=
@@ -25,6 +27,7 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.1.1/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
+github.com/stretchr/objx v0.2.0/go.mod h1:qt09Ya8vawLte6SNmTgCsAVtYtaKzEcn8ATUoHMkEqE=
 github.com/stretchr/testify v1.2.2 h1:bSDNvY7ZPG5RlJ8otE/7V6gMiyenm9RtJ7IUVIAoJ1w=
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
 github.com/stretchr/testify v1.3.0 h1:TivCn/peBQ7UY8ooIcPgZFpTNSz0Q2U6UrFlUfqbe0Q=

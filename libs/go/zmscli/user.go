@@ -31,4 +31,3 @@ func (cli Zms) DeleteUser(user string) (*string, error) {
 	s := "[Deleted user: " + user + "]"
 	return &s, nil
 }
-
