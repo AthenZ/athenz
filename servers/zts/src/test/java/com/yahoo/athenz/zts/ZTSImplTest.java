@@ -8773,55 +8773,6 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostAccessTokenRequestInvalidAccessTokenMarshall() {
-
-        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
-
-        ObjectMapper mapper = Mockito.mock(ObjectMapper.class);
-        zts.jsonMapper = mapper;
-        Mockito.when(mapper.writerWithView(AccessToken.class)).thenThrow(new IllegalArgumentException("unknown access token"));
-
-        Principal principal = SimplePrincipal.create("user_domain", "user",
-                "v=U1;d=user_domain;n=user;s=signature", 0, null);
-        ResourceContext context = createResourceContext(principal);
-
-        try {
-            zts.postAccessTokenRequest(context, "grant_type=client_credentials&scope=coretech:domain");
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(500, ex.getCode());
-            assertTrue(ex.getMessage().contains("Unable to convert access token"), ex.getMessage());
-        }
-    }
-
-    @Test
-    public void testPostAccessTokenRequestInvalidIdTokenMarshall() {
-
-        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
-
-        ObjectMapper mapper = Mockito.mock(ObjectMapper.class);
-        ObjectWriter objectWriter = zts.jsonMapper.writerWithView(AccessToken.class);
-        Mockito.when(mapper.writerWithView(AccessToken.class)).thenReturn(objectWriter);
-
-        zts.jsonMapper = mapper;
-        Mockito.when(mapper.writerWithView(IdToken.class)).thenThrow(new IllegalArgumentException("unknown id token"));
-
-        Principal principal = SimplePrincipal.create("user_domain", "user",
-                "v=U1;d=user_domain;n=user;s=signature", 0, null);
-        ResourceContext context = createResourceContext(principal);
-
-        try {
-            zts.postAccessTokenRequest(context, "grant_type=client_credentials&scope=coretech:domain openid coretech:service.api");
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(500, ex.getCode());
-            assertTrue(ex.getMessage().contains("Unable to convert id token"), ex.getMessage());
-        }
-    }
-
-    @Test
     public void testPostAccessTokenRequestInvalidRequest() {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
