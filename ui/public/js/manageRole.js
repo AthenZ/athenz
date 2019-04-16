@@ -1,9 +1,9 @@
 'use strict';
-var $ = require('jquery');
-var common = require('./common');
-var roleHelper = require('./roleHelper');
 
-(function() {
+(function($) {
+  var common = require('./common');
+  var roleHelper = require('./roleHelper');
+
   var roleSection = $('.roles-section');
 
   if(roleSection.length) {
@@ -123,4 +123,4 @@ var roleHelper = require('./roleHelper');
 
     common.handleRowExpandClick(roleSection, 'role');
   }
-})();
+})(window.jQuery);

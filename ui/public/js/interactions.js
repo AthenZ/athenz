@@ -1,9 +1,7 @@
 'use strict';
 
-var $ = require('jquery');
-var common = require('./common');
-
-(function() {
+(function($) {
+  var common = require('./common');
   $('.show-details').click(function() {
     var container = $(this).closest('.expandable-content');
     if(container) {
@@ -22,4 +20,4 @@ var common = require('./common');
    * the entity row's first cell's text value.
    */
   $('body').on('click', '.icon-more', common.handleMoreClick);
-})();
+})(window.jQuery);

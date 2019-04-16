@@ -1,6 +1,6 @@
 'use strict';
 
-var $ = require('jquery');
+const $ = window.jQuery;
 
 var getId = function(id) {
   return '#' + id.replace(/(:|\.|\[|\]|,)/g, '\\$1');

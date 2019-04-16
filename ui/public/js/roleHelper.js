@@ -1,6 +1,6 @@
 'use strict';
 
-var $ = require('jquery');
+const $ = window.jQuery;
 
 module.exports = {
   populateRoles: function(context, rolesNode) {
