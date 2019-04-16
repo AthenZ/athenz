@@ -79,6 +79,7 @@
               <goal>single</goal>
             </goals>
             <configuration>
+              <attach>false</attach>
               <tarLongFileMode>posix</tarLongFileMode>
               <outputDirectory>../../../athenz/aws-setup/zms-setup/tars/</outputDirectory>
               <finalName>athenz-zms</finalName>
