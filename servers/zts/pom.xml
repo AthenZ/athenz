@@ -19,7 +19,7 @@
   <parent>
     <groupId>com.yahoo.athenz</groupId>
     <artifactId>athenz</artifactId>
-    <version>1.8.19-SNAPSHOT</version>
+    <version>1.8.20-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -156,7 +156,7 @@
     <dependency>
       <groupId>io.jsonwebtoken</groupId>
       <artifactId>jjwt</artifactId>
-      <version>0.9.0</version>
+      <version>${jjwt.version}</version>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>

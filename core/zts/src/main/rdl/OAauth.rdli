@@ -4,29 +4,6 @@
 //Name Types
 include "Names.tdl";
 
-type OAuth2Token Struct {
-    Int32 ver; //token version
-    String aud; //token audience
-    Int64 exp; //expiry time in seconds.
-    Int64 iat; //issued time in seconds (unix epoch)
-    String iss; //issuer identifier
-    String sub; //subject identifier
-}
-
-type AccessToken OAuth2Token {
-    String cid; //client id requesting the token
-    String uid; //user/service uid
-    Array<String> scp (optional); //array of scopes
-}
-
-type IdToken OAuth2Token {
-    String nonce (optional); //nonce value to prevent replay attacks
-    Int64 auth_time (optional); //authentication time
-    String acr (optional); //authentication context class reference
-    String amr (optional); //authentication methods references
-    String azp (optional); //authorized party
-}
-
 type AccessTokenResponse Struct {
     String access_token; //access token
     String token_type; //token type e.g. Bearer

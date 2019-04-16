@@ -306,7 +306,7 @@ func ntokenClient(ztsURL, domain, service, keyID, caCertFile, hdr string, keyByt
 		return nil, err
 	}
 	transport := &http.Transport{
-		Proxy: http.ProxyFromEnvironment,
+		Proxy:                 http.ProxyFromEnvironment,
 		ResponseHeaderTimeout: 30 * time.Second,
 	}
 	if caCertFile != "" {

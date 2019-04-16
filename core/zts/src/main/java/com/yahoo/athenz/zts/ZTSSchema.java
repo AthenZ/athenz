@@ -299,26 +299,6 @@ public class ZTSSchema {
             .arrayField("certificates", "SSHCertificate", false, "set of user ssh certificates")
             .field("certificateSigner", "String", true, "the SSH CA's public key for the sshCertificate (user or host)");
 
-        sb.structType("OAuth2Token")
-            .field("ver", "Int32", false, "token version")
-            .field("aud", "String", false, "token audience")
-            .field("exp", "Int64", false, "expiry time in seconds.")
-            .field("iat", "Int64", false, "issued time in seconds (unix epoch)")
-            .field("iss", "String", false, "issuer identifier")
-            .field("sub", "String", false, "subject identifier");
-
-        sb.structType("AccessToken", "OAuth2Token")
-            .field("cid", "String", false, "client id requesting the token")
-            .field("uid", "String", false, "user/service uid")
-            .arrayField("scp", "String", true, "array of scopes");
-
-        sb.structType("IdToken", "OAuth2Token")
-            .field("nonce", "String", true, "nonce value to prevent replay attacks")
-            .field("auth_time", "Int64", true, "authentication time")
-            .field("acr", "String", true, "authentication context class reference")
-            .field("amr", "String", true, "authentication methods references")
-            .field("azp", "String", true, "authorized party");
-
         sb.structType("AccessTokenResponse")
             .field("access_token", "String", false, "access token")
             .field("token_type", "String", false, "token type e.g. Bearer")

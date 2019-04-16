@@ -423,7 +423,7 @@ func (cli Zms) SetDomainMeta(dn string, descr string, org string) (*string, erro
 
 func (cli Zms) SetDomainAuditEnabled(dn string, auditEnabled bool) (*string, error) {
 	meta := zms.DomainMeta{
-		AuditEnabled:  &auditEnabled,
+		AuditEnabled: &auditEnabled,
 	}
 	err := cli.Zms.PutDomainSystemMeta(zms.DomainName(dn), zms.SimpleName("auditenabled"), cli.AuditRef, &meta)
 	if err != nil {
