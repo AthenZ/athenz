@@ -65,6 +65,7 @@
               <goal>single</goal>
             </goals>
             <configuration>
+              <attach>false</attach>
               <tarLongFileMode>posix</tarLongFileMode>
               <outputDirectory>../../../athenz/aws-setup/ui-setup/tars/</outputDirectory>
               <finalName>athenz-ui</finalName>

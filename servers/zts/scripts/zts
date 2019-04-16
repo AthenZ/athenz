@@ -32,10 +32,20 @@ mkdir -p "${ZTS_LOG_DIR}"
 # setup our required java attributes for startup
 
 JAVA_OPTS="${JAVA_OPTS} -Dathenz.root_dir=${ROOT}"
+JAVA_OPTS="${JAVA_OPTS} -Dathenz.jetty_home=${ROOT}"
 JAVA_OPTS="${JAVA_OPTS} -Dathenz.zts.root_dir=${ROOT}"
+JAVA_OPTS="${JAVA_OPTS} -Dathenz.athenz_conf=${ROOT}/conf/zts_server/athenz.conf"
 JAVA_OPTS="${JAVA_OPTS} -Dathenz.prop_file=${ROOT}/conf/zts_server/athenz.properties"
 JAVA_OPTS="${JAVA_OPTS} -Dathenz.zts.prop_file=${ROOT}/conf/zts_server/zts.properties"
 JAVA_OPTS="${JAVA_OPTS} -Dlogback.configurationFile=${ROOT}/conf/zts_server/logback.xml"
+JAVA_OPTS="${JAVA_OPTS} -Dathenz.ssl_key_store=${ROOT}/var/zts_server/certs/zts_keystore.pkcs12"
+JAVA_OPTS="${JAVA_OPTS} -Dathenz.ssl_trust_store=${ROOT}/var/zts_server/certs/zts_truststore.jks"
+JAVA_OPTS="${JAVA_OPTS} -Dathenz.zts.ssl_key_store=${ROOT}/var/zts_server/certs/zts_keystore.pkcs12"
+JAVA_OPTS="${JAVA_OPTS} -Dathenz.zts.ssl_trust_store=${ROOT}/var/zts_server/certs/zts_truststore.jks"
+JAVA_OPTS="${JAVA_OPTS} -Djavax.net.ssl.trustStore=${ROOT}/var/zts_server/certs/zts_truststore.jks"
+JAVA_OPTS="${JAVA_OPTS} -Dathenz.access_log_dir=${ZTS_LOG_DIR}"
+JAVA_OPTS="${JAVA_OPTS} -Dathenz.auth.private_key_store.private_key=${ROOT}/var/zts_server/keys/zts_private.pem"
+JAVA_OPTS="${JAVA_OPTS} -Dathenz.zts.self_signer_private_key_fname=${ROOT}/var/zts_server/keys/zts_private.pem"
 
 ZTS_CLASSPATH=${ROOT}/lib/jars/*
 ZTS_BOOTSTRAP_CLASS=com.yahoo.athenz.container.AthenzJettyContainer

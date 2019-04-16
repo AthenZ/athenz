@@ -1,6 +1,6 @@
 {
     "services" : {
-        "athenz.ci": {
+        "athenz.ci-test": {
             "allowedOperations": [
                 { "name": "putrole" },
                 { "name": "putmembership",
@@ -13,7 +13,7 @@
                 }
             ]
         },
-        "athenz.ui": {
+        "athenz.ui-server": {
             "allowedOperations": [
                 { "name":"putmembership" },
                 { "name":"deletemembership" },

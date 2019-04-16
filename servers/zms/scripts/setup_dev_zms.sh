@@ -24,4 +24,4 @@ openssl req -x509 -nodes -newkey rsa:2048 -keyout zms_key.pem -out zms_cert.pem 
 echo "Generating PKCS12 keystore for ZMS Server..."
 openssl pkcs12 -export -out zms_keystore.pkcs12 -in zms_cert.pem -inkey zms_key.pem -noiter -password pass:athenz
 
-echo "ZMS Dev Enviornment setup complete"
+echo "ZMS Dev Environment setup complete"
