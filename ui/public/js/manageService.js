@@ -1,8 +1,8 @@
 'use strict';
-var $ = require('jquery');
-var common = require('./common');
 
-(function() {
+(function($) {
+  var common = require('./common');
+
   var serviceSection = $('.services-section');
   if(serviceSection.length) {
     var serviceModal = $('.add-service-modal', serviceSection);
@@ -66,4 +66,4 @@ var common = require('./common');
       });
     });
   }
-})();
+})(window.jQuery);

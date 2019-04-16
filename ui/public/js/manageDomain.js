@@ -1,9 +1,7 @@
 'use strict';
 
-var $ = require('jquery');
-var common = require('./common');
-
-(function() {
+(function($) {
+  var common = require('./common');
   var domainSection = $('.manage-container .domain-list');
   if(domainSection.length) {
     common.handleButtonSubmit(
@@ -43,4 +41,4 @@ var common = require('./common');
       })
     );
   }
-})();
+})(window.jQuery);

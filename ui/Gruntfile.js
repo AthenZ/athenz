@@ -41,7 +41,7 @@ module.exports = function(grunt) {
             }]
           ]
         },
-        src: ['public/js/' + '*'],
+        src: ['public/js/' + 'index.js'],
         dest: 'build/<%= pkg.version %>/js/bundle.js'
       },
       jsDev: {
@@ -50,7 +50,7 @@ module.exports = function(grunt) {
             debug: true
           }
         },
-        src: ['public/js/' + '*'],
+        src: ['public/js/' + 'index.js'],
         dest: 'build/<%= pkg.version %>/js/bundle.js'
       }
     },

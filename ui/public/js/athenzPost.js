@@ -1,9 +1,8 @@
 'use strict';
 
-var $ = require('jquery');
-var common = require('./common');
+(function($) {
+  var common = require('./common');
 
-(function() {
   var fetchAuthSvcToken = function() {
     /* global zms, serviceFQN */
     if (zms !== '' && serviceFQN !== '') {
@@ -38,4 +37,4 @@ var common = require('./common');
       fetchAuthSvcToken(zms, serviceFQN);
     }
   });
-})();
+})(window.jQuery);

@@ -1,8 +1,8 @@
 'use strict';
-var $ = require('jquery');
-var common = require('./common');
 
-(function() {
+(function($) {
+  var common = require('./common');
+
   var policySection = $('.policies-section');
   if(policySection.length) {
     var policyModal = $('.add-policy-modal', policySection);
@@ -82,4 +82,4 @@ var common = require('./common');
       });
     });
   }
-})();
+})(window.jQuery);
