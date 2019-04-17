@@ -8681,29 +8681,13 @@ public class ZTSImplTest {
 
         // we should only get back openid scope
 
-        AccessTokenResponse resp = zts.postAccessTokenRequest(context,
-                "grant_type=client_credentials&scope=coretech:role.role999 openid coretech:service.api");
-        assertNotNull(resp);
-        assertEquals("openid", resp.getScope());
-
-        String accessToken = resp.getAccess_token();
-        assertNotNull(accessToken);
-
-        String idTokenStr = resp.getId_token();
-        assertNotNull(idTokenStr);
-
-        Jws<Claims> claims = null;
         try {
-            claims = Jwts.parser().setSigningKey(Crypto.extractPublicKey(privateKey))
-                    .parseClaimsJws(idTokenStr);
-        } catch (SignatureException e) {
-            throw new ResourceException(ResourceException.UNAUTHORIZED);
+            zts.postAccessTokenRequest(context,
+                    "grant_type=client_credentials&scope=coretech:role.role999 openid coretech:service.api");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(403, ex.getCode());
         }
-        assertNotNull(claims);
-        assertEquals("user_domain.user", claims.getBody().getSubject());
-        assertEquals("coretech.api", claims.getBody().getAudience());
-        assertEquals(zts.ztsOAuthIssuer, claims.getBody().getIssuer());
-        assertEquals(3600 * 1000, claims.getBody().getExpiration().getTime() - claims.getBody().getIssuedAt().getTime());
     }
 
     @Test

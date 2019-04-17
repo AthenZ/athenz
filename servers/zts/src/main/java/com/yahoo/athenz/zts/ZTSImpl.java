@@ -1519,10 +1519,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         String[] requestedRoles = tokenRequest.getRoleNames();
         dataStore.getAccessibleRoles(data, domainName, principalName, requestedRoles, roles, false);
 
-        // if we don't have the openid scope requested then we return
-        // failure if we don't have access to any roles
+        // we return failure if we don't have access to any roles
 
-        if (roles.isEmpty() && !tokenRequest.isOpenidScope()) {
+        if (roles.isEmpty()) {
             throw forbiddenError("No access to any roles in domain: " + domainName, caller, domainName);
         }
 
