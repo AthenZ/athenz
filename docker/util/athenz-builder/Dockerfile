@@ -5,13 +5,13 @@ FROM openjdk:8-jdk-alpine
 RUN apk add --no-cache curl tar bash procps
 
 ARG MAVEN_VERSION=3.5.4
+ARG MAVEN_BIN_URL=https://apache.osuosl.org/maven/maven-3/${MAVEN_VERSION}/binaries
+ARG MAVEN_BIN_SHA=ce50b1c91364cb77efe3776f756a6d92b76d9038b0a0782f7d53acf1e997a14d
 ARG USER_HOME_DIR="/root"
-ARG SHA=ce50b1c91364cb77efe3776f756a6d92b76d9038b0a0782f7d53acf1e997a14d
-ARG BASE_URL=https://apache.osuosl.org/maven/maven-3/${MAVEN_VERSION}/binaries
 
 RUN mkdir -p /usr/share/maven /usr/share/maven/ref \
-  && curl -fsSL -o /tmp/apache-maven.tar.gz ${BASE_URL}/apache-maven-${MAVEN_VERSION}-bin.tar.gz \
-  && echo "${SHA}  /tmp/apache-maven.tar.gz" | sha256sum -c - \
+  && curl -fsSL -o /tmp/apache-maven.tar.gz ${MAVEN_BIN_URL}/apache-maven-${MAVEN_VERSION}-bin.tar.gz \
+  && echo "${MAVEN_BIN_SHA}  /tmp/apache-maven.tar.gz" | sha256sum -c - \
   && tar -xzf /tmp/apache-maven.tar.gz -C /usr/share/maven --strip-components=1 \
   && rm -f /tmp/apache-maven.tar.gz \
   && ln -s /usr/share/maven/bin/mvn /usr/bin/mvn
@@ -30,7 +30,7 @@ RUN mvn install -pl core/zms -pl core/zts -pl libs/java/auth_core -pl libs/java/
 RUN mkdir -p /tmp/zms \
     && mkdir -p /tmp/zts \
     && mkdir -p /opt/athenz/zms \
-    && mkdir -p /opt/athenz/zts \
+    && mkdir -p /opt/athenz/zts
 
 RUN tar xvzf ./assembly/zms/target/athenz-zms*-bin.tar.gz -C /tmp/zms \
     && mv /tmp/zms/athenz-zms-*-SNAPSHOT/* /tmp/zms/ \
@@ -48,8 +48,6 @@ RUN tar xvzf ./assembly/zts/target/athenz-zts*-bin.tar.gz -C /tmp/zts \
 
 WORKDIR /opt/athenz
 
-RUN rm -rf /athenz
+RUN rm -rf /athenz \
     && rm -rf /tmp/zms \
     && rm -rf /tmp/zts
-
-WORKDIR /opt/athenz
