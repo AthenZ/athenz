@@ -3,7 +3,7 @@ module github.com/yahoo/athenz
 require (
 	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/ardielle/ardielle-go v1.5.2
-	github.com/ardielle/ardielle-tools v1.5.3
+	github.com/ardielle/ardielle-tools v1.5.4 // indirect
 	github.com/boynton/repl v0.0.0-20170116235056-348863958e3e
 	github.com/dimfeld/httptreemux v5.0.1+incompatible
 	github.com/gorilla/context v1.1.1 // indirect
