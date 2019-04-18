@@ -124,7 +124,7 @@ public class ZTSTLSClientAccessToken {
             cmd = parser.parse(options, args);
         } catch (ParseException e) {
             System.out.println(e.getMessage());
-            formatter.printHelp("zts-tls-client", options);
+            formatter.printHelp("zts-access-token-client", options);
             System.exit(1);
         }
         
