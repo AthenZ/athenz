@@ -39,6 +39,10 @@
       <outputDirectory>bin</outputDirectory>
     </fileSet>
     <fileSet>
+      <directory>${basedir}/../../utils/zts-accesstoken/target</directory>
+      <outputDirectory>bin</outputDirectory>
+    </fileSet>
+    <fileSet>
       <directory>${basedir}/../../utils/zts-svccert/target</directory>
       <outputDirectory>bin</outputDirectory>
     </fileSet>

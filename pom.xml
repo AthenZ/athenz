@@ -88,6 +88,7 @@
 
   <modules>
     <module>rdl/rdl-gen-athenz-server</module>
+    <module>rdl/rdl-gen-athenz-go-client</module>
     <module>core/zms</module>
     <module>core/zts</module>
     <module>libs/java/auth_core</module>
@@ -114,6 +115,7 @@
     <module>utils/zpe_policy_updater</module>
     <module>utils/zpe-updater</module>
     <module>utils/zts-roletoken</module>
+    <module>utils/zts-accesstoken</module>
     <module>utils/zts-rolecert</module>
     <module>utils/zts-svccert</module>
     <module>aws-setup/athenz-conf-aws</module>
