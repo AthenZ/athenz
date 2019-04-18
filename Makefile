@@ -14,3 +14,7 @@ run-docker:
 	docker run -d -h localhost -p 3306:3306 -e MYSQL_ROOT_PASSWORD=mariadb --name athenz-zms-db athenz-zms-db 
 	docker run -d -h localhost -p 3307:3306 -e MYSQL_ROOT_PASSWORD=mariadb --name athenz-zts-db athenz-zts-db 
 
+run-zms-extra-jars:
+	docker run -d -h localhost -p 4443:4443 -v `pwd`/docker/zms/conf:/opt/athenz/zms/conf/zms_server -v `pwd`/docker/zms/var:/opt/athenz/zms/var -v `pwd`:/opt/athenz/zms/logs/zms_server --name athenz-zms -e USER_CLASSPATH='lib/usr/jars/*' -v `pwd`/docker/zms/jars:/opt/athenz/zms/lib/usr/jars athenz-zms
+run-zms-custom-cmd:
+	docker run -d -h localhost -p 4443:4443 -v `pwd`/docker/zms/conf:/opt/athenz/zms/conf/zms_server -v `pwd`/docker/zms/var:/opt/athenz/zms/var -v `pwd`:/opt/athenz/zms/logs/zms_server --name athenz-zms athenz-zms -classpath "/path/to/all/jars"
