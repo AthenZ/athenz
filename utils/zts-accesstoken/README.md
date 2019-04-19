@@ -9,13 +9,13 @@ There are two possible ways to use the utility:
 1) using your athenz service identity certificate
 
 ```shell
-$ zts-accesstoken -domain <domain> [-role <role>] [-service <service>] -svc-key-file <private-key-file> -svc-cert-file <service-cert-file> -zts <ZTS url> [-expire-time <expire-time-in-mins>]
+$ zts-accesstoken -domain <domain> [-roles <roles>] [-service <service>] -svc-key-file <private-key-file> -svc-cert-file <service-cert-file> -zts <ZTS url> [-expire-time <expire-time-in-mins>]
 ```
 
 2) using ntoken from a file
 
 ```shell
-$ zts-accesstoken -domain <domain> [-role <role>] [-service <service>] -ntoken-file <ntoken-file> -zts <ZTS url> [-expire-time <expire-time-in-mins>]
+$ zts-accesstoken -domain <domain> [-roles <roles>] [-service <service>] -ntoken-file <ntoken-file> -hdr Yahoo-Principal-Auth -zts <ZTS url> [-expire-time <expire-time-in-mins>]
 ```
 
 The service identity ntoken can be obtained by using the zms-svctoken
