@@ -91,11 +91,11 @@ public class ZTSUtils {
         return settingValue;
     }
     
-    public static SslContextFactory createSSLContextObject(String[] clientProtocols) {
+    public static SslContextFactory.Client createSSLContextObject(String[] clientProtocols) {
         return createSSLContextObject(clientProtocols, null);
     }
     
-    public static SslContextFactory createSSLContextObject(final String[] clientProtocols,
+    public static SslContextFactory.Client createSSLContextObject(final String[] clientProtocols,
             final PrivateKeyStore privateKeyStore) {
         
         String keyStorePath = System.getProperty(ZTSConsts.ZTS_PROP_KEYSTORE_PATH);
@@ -116,7 +116,7 @@ public class ZTSUtils {
                 ZTS_DEFAULT_EXCLUDED_PROTOCOLS);
         boolean wantClientAuth = Boolean.parseBoolean(System.getProperty(ZTSConsts.ZTS_PROP_WANT_CLIENT_CERT, "false"));
         
-        SslContextFactory sslContextFactory = new SslContextFactory();
+        SslContextFactory.Client sslContextFactory = new SslContextFactory.Client();
         if (keyStorePath != null) {
             LOGGER.info("createSSLContextObject: using SSL KeyStore path: " + keyStorePath);
             sslContextFactory.setKeyStorePath(keyStorePath);

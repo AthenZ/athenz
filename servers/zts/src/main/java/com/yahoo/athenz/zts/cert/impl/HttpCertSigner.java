@@ -88,6 +88,7 @@ public class HttpCertSigner implements CertSigner {
         client.setFollowRedirects(false);
         client.setConnectTimeout(connectTimeout);
         client.setStopTimeout(TimeUnit.MILLISECONDS.convert(requestTimeout, TimeUnit.SECONDS));
+        client.setRemoveIdleDestinations(true);
         try {
             client.start();
         } catch (Exception ex) {
