@@ -191,6 +191,10 @@ public class HttpCertSigner implements CertSigner {
             }
         }
         if (response == null) {
+
+            // dump our http client state since all of our retries have failed
+
+            httpClient.dump();
             return null;
         }
         
