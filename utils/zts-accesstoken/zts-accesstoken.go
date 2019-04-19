@@ -18,8 +18,8 @@ import (
 )
 
 func usage() {
-	fmt.Println("usage: zts-accesstoken -domain <domain> [-roles <role>] [-service <service>] <credentials> -zts <zts-server-url> [-hdr <auth-header-name>] [-expire-time <time-in-mins>]")
-	fmt.Println("           <credentials> := -svc-key-file <private-key-file> -svc-cert-file <service-cert-file> | -ntoken-file <ntoken-file>")
+	fmt.Println("usage: zts-accesstoken -domain <domain> [-roles <roles>] [-service <service>] <credentials> -zts <zts-server-url> [-expire-time <time-in-mins>]")
+	fmt.Println("           <credentials> := -svc-key-file <private-key-file> -svc-cert-file <service-cert-file> | -ntoken-file <ntoken-file> [-hdr <auth-header-name>]")
 	os.Exit(1)
 }
 
