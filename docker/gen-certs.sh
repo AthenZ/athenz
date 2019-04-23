@@ -28,6 +28,11 @@ openssl pkcs12 -export -noiter -out ${ZTS_KEYSTORE_PATH} -passout 'pass:athenz' 
 rm -f ${ZTS_TRUSTSTORE_PATH}
 keytool -importcert -noprompt -alias zms -keystore ${ZTS_TRUSTSTORE_PATH} -file ${ZMS_CERT_OUT_PATH} -storepass 'athenz'
 
+# prepare ZTS public key for signing
+ZTS_SIGN_PRIVATE_KEY_PATH='./zts/var/keys/zts_private.pem'
+ZTS_SIGN_PUBLIC_KEY_PATH='./zts/var/keys/zts_public.pem'
+openssl rsa -in ${ZTS_SIGN_PRIVATE_KEY_PATH} -passin 'pass:athenz' -pubout > ${ZTS_SIGN_PUBLIC_KEY_PATH}
+
 # -------------------------------- UI --------------------------------
 
 UI_PK_PATH='./ui/keys/ui_key.pem'

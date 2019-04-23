@@ -6,6 +6,7 @@ build-docker:
 	docker build -t athenz-ui -f docker/ui/Dockerfile ui
 	docker build -t athenz-zms-db -f docker/db/zms/Dockerfile servers/zms/schema
 	docker build -t athenz-zts-db -f docker/db/zts/Dockerfile servers/zts/schema
+	docker build -t athenz-cli -f docker/util/cli/Dockerfile .
 
 run-docker:
 	mkdir -p `pwd`/logs/zms
