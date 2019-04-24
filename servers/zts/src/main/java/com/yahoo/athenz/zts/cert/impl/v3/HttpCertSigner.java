@@ -13,22 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zts.cert.impl.v2;
+package com.yahoo.athenz.zts.cert.impl.v3;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.cert.X509CertSignObject;
+import com.yahoo.athenz.zts.cert.impl.v2.AbstractHttpCertSigner;
 
 public class HttpCertSigner extends AbstractHttpCertSigner {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpCertSigner.class);
-    private static final String X509_CERTIFICATE_PATH = "/x509";
+
+    private static final String X509_CERTIFICATE_PATH = "/sig/x509-cert/keys/x509-key";
+    private static final String X509_KEY_META_IDENTIFIER = "x509-key";
+    
+    //default certificate expiration value of 30 days in seconds
+    private static final int DEFAULT_CERT_EXPIRE_SECS = (int) TimeUnit.SECONDS.convert(30, TimeUnit.DAYS);
 
     @Override
     public String getX509CertUri(String serverBaseUri) {
@@ -43,21 +49,26 @@ public class HttpCertSigner extends AbstractHttpCertSigner {
             extKeyUsage.add(2);
         }
 
-        X509CertSignObject csrCert = new X509CertSignObject();
-        csrCert.setPem(csr);
-        csrCert.setX509ExtKeyUsage(extKeyUsage);
+        X509CertificateSigningRequest csrCert = new X509CertificateSigningRequest();
+        csrCert.setKeyMeta(new KeyMeta(X509_KEY_META_IDENTIFIER));
+        csrCert.setCsr(csr);
+        csrCert.setExtKeyUsage(extKeyUsage);
+        csrCert.setValidity(DEFAULT_CERT_EXPIRE_SECS);
+        
         if (expireMins > 0 && expireMins < getMaxCertExpiryTimeMins()) {
-            csrCert.setExpiryTime(expireMins);
+            //Validity period of the certificate in seconds in V3 API.  Convert mins to seconds
+            csrCert.setValidity((int) TimeUnit.SECONDS.convert(expireMins, TimeUnit.MINUTES));
         }
+            
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("keyUsage: {} expireMins: {}", csrCert.getX509ExtKeyUsage(), csrCert.getExpiryTime());
+            LOGGER.debug("keyMeta: {} keyUsage: {} expireSec: {}", csrCert.getKeyMeta(), csrCert.getExtKeyUsage(), csrCert.getValidity());
         }
         return csrCert;
     }
 
     @Override
     public String parseResponse(InputStream response) throws IOException {
-        X509CertSignObject pemCert = JACKSON_MAPPER.readValue(response, X509CertSignObject.class);
-        return (pemCert != null) ? pemCert.getPem() : null;
+        X509Certificate cert = JACKSON_MAPPER.readValue(response, X509Certificate.class);
+        return (cert != null) ? cert.getCert() : null;
     }
 }
