@@ -88,7 +88,6 @@ public class HttpCertSigner implements CertSigner {
         client.setFollowRedirects(false);
         client.setConnectTimeout(connectTimeout);
         client.setStopTimeout(TimeUnit.MILLISECONDS.convert(requestTimeout, TimeUnit.SECONDS));
-        client.setRemoveIdleDestinations(true);
         try {
             client.start();
         } catch (Exception ex) {
@@ -191,10 +190,6 @@ public class HttpCertSigner implements CertSigner {
             }
         }
         if (response == null) {
-
-            // dump our http client state since all of our retries have failed
-
-            httpClient.dump();
             return null;
         }
         
