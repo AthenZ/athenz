@@ -96,7 +96,7 @@ public class ZTSUtilsTest {
         System.setProperty(ZTSConsts.ZTS_PROP_EXCLUDED_PROTOCOLS, ZTSUtils.ZTS_DEFAULT_EXCLUDED_PROTOCOLS);
         System.setProperty(ZTSConsts.ZTS_PROP_WANT_CLIENT_CERT, "true");
         
-        SslContextFactory.Client sslContextFactory = ZTSUtils.createSSLContextObject(null);
+        SslContextFactory sslContextFactory = ZTSUtils.createSSLContextObject(null);
         assertNotNull(sslContextFactory);
         assertEquals(sslContextFactory.getKeyStorePath(), "file:///tmp/keystore");
         assertEquals(sslContextFactory.getKeyStoreType(), "PKCS12");
@@ -110,7 +110,7 @@ public class ZTSUtilsTest {
     @Test
     public void testCreateSSLContextObjectNoValues() {
         
-        SslContextFactory.Client sslContextFactory = ZTSUtils.createSSLContextObject(null);
+        SslContextFactory sslContextFactory = ZTSUtils.createSSLContextObject(null);
         
         assertNotNull(sslContextFactory);
         assertFalse(sslContextFactory.getWantClientAuth());
@@ -130,7 +130,7 @@ public class ZTSUtilsTest {
         System.setProperty(ZTSConsts.ZTS_PROP_TRUSTSTORE_PASSWORD, "pass123");
         System.setProperty(ZTSConsts.ZTS_PROP_KEYMANAGER_PASSWORD, "pass123");
 
-        SslContextFactory.Client sslContextFactory = ZTSUtils.createSSLContextObject(null);
+        SslContextFactory sslContextFactory = ZTSUtils.createSSLContextObject(null);
         assertNotNull(sslContextFactory);
         assertFalse(sslContextFactory.getWantClientAuth());
         assertNull(sslContextFactory.getKeyStoreResource());
@@ -150,7 +150,7 @@ public class ZTSUtilsTest {
         System.setProperty(ZTSConsts.ZTS_PROP_EXCLUDED_PROTOCOLS, ZTSUtils.ZTS_DEFAULT_EXCLUDED_PROTOCOLS);
         System.setProperty(ZTSConsts.ZTS_PROP_WANT_CLIENT_CERT, "true");
 
-        SslContextFactory.Client sslContextFactory = ZTSUtils.createSSLContextObject(null);
+        SslContextFactory sslContextFactory = ZTSUtils.createSSLContextObject(null);
         assertNotNull(sslContextFactory);
         assertTrue(sslContextFactory.getWantClientAuth());
         assertEquals(sslContextFactory.getKeyStorePath(), "file:///tmp/keystore");

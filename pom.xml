@@ -69,7 +69,7 @@
   </ciManagement>
 
   <properties>
-    <jetty.version>9.4.16.v20190411</jetty.version>
+    <jetty.version>9.4.15.v20190215</jetty.version>
     <jersey.version>2.28</jersey.version>
     <jackson.version>2.9.8</jackson.version>
     <maven-surefire-plugin.version>2.22.0</maven-surefire-plugin.version>

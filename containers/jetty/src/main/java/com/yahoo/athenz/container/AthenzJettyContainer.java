@@ -286,7 +286,7 @@ public class AthenzJettyContainer {
         this.privateKeyStore = pkeyFactory.create();
     }
     
-    SslContextFactory.Server createSSLContextObject(boolean needClientAuth) {
+    SslContextFactory createSSLContextObject(boolean needClientAuth) {
         
         final String keyStorePath = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH);
         final String keyStorePasswordAppName = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD_APPNAME);
@@ -305,7 +305,7 @@ public class AthenzJettyContainer {
         boolean enableOCSP = Boolean.parseBoolean(System.getProperty(AthenzConsts.ATHENZ_PROP_ENABLE_OCSP, "false"));
         boolean renegotiationAllowed = Boolean.parseBoolean(System.getProperty(AthenzConsts.ATHENZ_PROP_RENEGOTIATION_ALLOWED, "true"));
 
-        SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
+        SslContextFactory sslContextFactory = new SslContextFactory();
         sslContextFactory.setEndpointIdentificationAlgorithm(null);
 
         if (keyStorePath != null) {
