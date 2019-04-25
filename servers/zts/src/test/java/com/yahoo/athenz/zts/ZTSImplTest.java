@@ -74,11 +74,7 @@ import com.yahoo.athenz.zts.ZTSImpl.AthenzObject;
 import com.yahoo.athenz.zts.ZTSImpl.ServiceX509RefreshRequestStatus;
 import com.yahoo.athenz.zts.ZTSAuthorizer.AccessStatus;
 import com.yahoo.athenz.zts.cache.DataCache;
-import com.yahoo.athenz.zts.cert.CertRecordStore;
-import com.yahoo.athenz.zts.cert.CertRecordStoreConnection;
-import com.yahoo.athenz.zts.cert.InstanceCertManager;
-import com.yahoo.athenz.zts.cert.X509CertRecord;
-import com.yahoo.athenz.zts.cert.X509CertRequest;
+import com.yahoo.athenz.zts.cert.*;
 import com.yahoo.athenz.zts.store.ChangeLogStore;
 import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.DataStore;
@@ -8130,6 +8126,14 @@ public class ZTSImplTest {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Read-Only mode"));
         }
+
+        try {
+            ztsImpl.postRoleCertificateRequestExt(ctx, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only mode"));
+        }
     }
 
     @Test
@@ -8827,5 +8831,446 @@ public class ZTSImplTest {
             assertEquals(400, ex.getCode());
             assertTrue(ex.getMessage().contains("no scope provided"));
         }
+    }
+
+    @Test
+    public void testPostRoleCertificateExtRequest() throws IOException {
+
+        Path path = Paths.get("src/test/resources/athenz_coretech_role_uri.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        // this csr is for coretech:role.readers and coretech:role.writers roles
+
+        RoleCertificateRequest req = new RoleCertificateRequest()
+                .setCsr(csr).setExpiryTime(3600L);
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        CloudStore cloudStore = new MockCloudStore();
+        store.setCloudStore(cloudStore);
+        zts.cloudStore = cloudStore;
+
+        Principal principal = SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        RoleCertificate roleCertificate = zts.postRoleCertificateRequestExt(context, req);
+        assertNotNull(roleCertificate);
+    }
+
+    @Test
+    public void testPostRoleCertificateExtProxyUserRequest() throws IOException {
+
+        Path path = Paths.get("src/test/resources/athenz_coretech_proxy_role_uri.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        // this csr is for coretech:role.readers and coretech:role.writers roles
+
+        RoleCertificateRequest req = new RoleCertificateRequest()
+                .setCsr(csr).setExpiryTime(3600L)
+                .setProxyForPrincipal("user_domain.user1");
+
+        List<RoleMember> writers = new ArrayList<>();
+        writers.add(new RoleMember().setMemberName("user_domain.proxy-user1"));
+        writers.add(new RoleMember().setMemberName("user_domain.user1"));
+
+        List<RoleMember> readers = new ArrayList<>();
+        readers.add(new RoleMember().setMemberName("user_domain.proxy-user1"));
+        readers.add(new RoleMember().setMemberName("user_domain.user4"));
+        readers.add(new RoleMember().setMemberName("user_domain.user1"));
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", writers,
+                readers, true);
+
+        store.processDomain(signedDomain, false);
+
+        CloudStore cloudStore = new MockCloudStore();
+        store.setCloudStore(cloudStore);
+        zts.cloudStore = cloudStore;
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        RoleCertificate roleCertificate = zts.postRoleCertificateRequestExt(context, req);
+        assertNotNull(roleCertificate);
+    }
+
+    @Test
+    public void testPostRoleCertificateExtInvalidProxyUserRequest() throws IOException {
+
+        Path path = Paths.get("src/test/resources/athenz_coretech_proxy_role_uri.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        // this csr is for coretech:role.readers and coretech:role.writers roles
+
+        RoleCertificateRequest req = new RoleCertificateRequest()
+                .setCsr(csr).setExpiryTime(3600L)
+                .setProxyForPrincipal("user_domain.user1");
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        CloudStore cloudStore = new MockCloudStore();
+        store.setCloudStore(cloudStore);
+        zts.cloudStore = cloudStore;
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user100",
+                "v=U1;d=user_domain;n=proxy-user100;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            zts.postRoleCertificateRequestExt(context, req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+    }
+
+    @Test
+    public void testPostRoleCertificateExtAuthzService() throws IOException {
+
+        Path path = Paths.get("src/test/resources/athenz_coretech_proxy_role_uri.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        // this csr is for coretech:role.readers and coretech:role.writers roles
+
+        RoleCertificateRequest req = new RoleCertificateRequest()
+                .setCsr(csr).setExpiryTime(3600L);
+
+        CloudStore cloudStore = new MockCloudStore();
+        store.setCloudStore(cloudStore);
+        zts.cloudStore = cloudStore;
+
+        Principal principal = SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user1;s=signature", 0, null);
+        ((SimplePrincipal) principal).setAuthorizedService("sports.hockey.api");
+
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            zts.postRoleCertificateRequestExt(context, req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+            assertTrue(ex.getMessage().contains("Authorized Service Principals not allowed"));
+        }
+    }
+
+    @Test
+    public void testPostRoleCertificateExtInvalidCSR() throws IOException {
+
+        // this csr is for coretech:role.readers and coretech:role.writers roles
+
+        RoleCertificateRequest req = new RoleCertificateRequest()
+                .setCsr("invalid-csr").setExpiryTime(3600L);
+
+        CloudStore cloudStore = new MockCloudStore();
+        store.setCloudStore(cloudStore);
+        zts.cloudStore = cloudStore;
+
+        Principal principal = SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user1;s=signature", 0, null);
+
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            zts.postRoleCertificateRequestExt(context, req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Unable to parse PKCS10 CSR"));
+        }
+    }
+
+    @Test
+    public void testPostRoleCertificateExtNoRoleURI() throws IOException {
+
+        Path path = Paths.get("src/test/resources/role_single_ip.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        // this csr is for coretech:role.readers and coretech:role.writers roles
+
+        RoleCertificateRequest req = new RoleCertificateRequest()
+                .setCsr(csr).setExpiryTime(3600L);
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        CloudStore cloudStore = new MockCloudStore();
+        store.setCloudStore(cloudStore);
+        zts.cloudStore = cloudStore;
+
+        Principal principal = SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            zts.postRoleCertificateRequestExt(context, req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("No roles requested in CSR"));
+        }
+    }
+
+    @Test
+    public void testPostRoleCertificateExtSingleRoleOnly() throws IOException {
+
+        Path path = Paths.get("src/test/resources/athenz_role_uri.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        // this csr is for coretech:role.readers and coretech:role.writers roles
+
+        RoleCertificateRequest req = new RoleCertificateRequest()
+                .setCsr(csr).setExpiryTime(3600L);
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        CloudStore cloudStore = new MockCloudStore();
+        store.setCloudStore(cloudStore);
+        zts.cloudStore = cloudStore;
+
+        Principal principal = SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        zts.singleDomainInRoleCert = true;
+        try {
+            zts.postRoleCertificateRequestExt(context, req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("cannot contain roles from multiple domains"));
+        }
+    }
+
+    @Test
+    public void testPostRoleCertificateExtUserAccessForbidden() throws IOException {
+
+        Path path = Paths.get("src/test/resources/athenz_coretech_proxy_role_uri.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        // this csr is for coretech:role.readers and coretech:role.writers roles
+
+        RoleCertificateRequest req = new RoleCertificateRequest()
+                .setCsr(csr).setExpiryTime(3600L)
+                .setProxyForPrincipal("user_domain.user1");
+
+        List<RoleMember> writers = new ArrayList<>();
+        writers.add(new RoleMember().setMemberName("user_domain.proxy-user1"));
+        writers.add(new RoleMember().setMemberName("user_domain.user1"));
+
+        List<RoleMember> readers = new ArrayList<>();
+        readers.add(new RoleMember().setMemberName("user_domain.proxy-user1"));
+        readers.add(new RoleMember().setMemberName("user_domain.user4"));
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", writers,
+                readers, true);
+
+        store.processDomain(signedDomain, false);
+
+        CloudStore cloudStore = new MockCloudStore();
+        store.setCloudStore(cloudStore);
+        zts.cloudStore = cloudStore;
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            zts.postRoleCertificateRequestExt(context, req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+            assertTrue(ex.getMessage().contains("Not authorized to assume all requested roles by proxy principal"));
+        }
+    }
+
+    @Test
+    public void testPostRoleCertificateExtProxyAccessForbidden() throws IOException {
+
+        Path path = Paths.get("src/test/resources/athenz_coretech_proxy_role_uri.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        // this csr is for coretech:role.readers and coretech:role.writers roles
+
+        RoleCertificateRequest req = new RoleCertificateRequest()
+                .setCsr(csr).setExpiryTime(3600L)
+                .setProxyForPrincipal("user_domain.user1");
+
+        List<RoleMember> writers = new ArrayList<>();
+        writers.add(new RoleMember().setMemberName("user_domain.proxy-user1"));
+        writers.add(new RoleMember().setMemberName("user_domain.user1"));
+
+        List<RoleMember> readers = new ArrayList<>();
+        readers.add(new RoleMember().setMemberName("user_domain.user4"));
+        readers.add(new RoleMember().setMemberName("user_domain.user1"));
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", writers,
+                readers, true);
+
+        store.processDomain(signedDomain, false);
+
+        CloudStore cloudStore = new MockCloudStore();
+        store.setCloudStore(cloudStore);
+        zts.cloudStore = cloudStore;
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            zts.postRoleCertificateRequestExt(context, req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+            assertTrue(ex.getMessage().contains("Not authorized to assume all requested roles by user principal"));
+        }
+    }
+
+    @Test
+    public void testPostRoleCertificateExtValidateFailed() throws IOException {
+
+        Path path = Paths.get("src/test/resources/athenz_coretech_proxy_role_uri.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        // this csr is for coretech:role.readers and coretech:role.writers roles
+
+        RoleCertificateRequest req = new RoleCertificateRequest()
+                .setCsr(csr).setExpiryTime(3600L)
+                .setProxyForPrincipal("user_domain.user1");
+
+        List<RoleMember> writers = new ArrayList<>();
+        writers.add(new RoleMember().setMemberName("user_domain.proxy-user2"));
+        writers.add(new RoleMember().setMemberName("user_domain.user1"));
+
+        List<RoleMember> readers = new ArrayList<>();
+        readers.add(new RoleMember().setMemberName("user_domain.proxy-user2"));
+        readers.add(new RoleMember().setMemberName("user_domain.user4"));
+        readers.add(new RoleMember().setMemberName("user_domain.user1"));
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", writers,
+                readers, true);
+
+        store.processDomain(signedDomain, false);
+
+        CloudStore cloudStore = new MockCloudStore();
+        store.setCloudStore(cloudStore);
+        zts.cloudStore = cloudStore;
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user2",
+                "v=U1;d=user_domain;n=proxy-user2;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            zts.postRoleCertificateRequestExt(context, req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Unable to validate cert request"));
+        }
+    }
+
+    @Test
+    public void testPostRoleCertificateExtRequestNullCertReturn() throws IOException {
+
+        Path path = Paths.get("src/test/resources/athenz_coretech_role_uri.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        // this csr is for coretech:role.readers and coretech:role.writers roles
+
+        RoleCertificateRequest req = new RoleCertificateRequest()
+                .setCsr(csr).setExpiryTime(3600L);
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        CloudStore cloudStore = new MockCloudStore();
+        store.setCloudStore(cloudStore);
+        zts.cloudStore = cloudStore;
+
+        Principal principal = SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        InstanceCertManager certManager = Mockito.mock(InstanceCertManager.class);
+        Mockito.when(certManager.generateIdentity(csr, "user_domain.user1",
+                "client", 3600)).thenReturn(null);
+        zts.instanceCertManager = certManager;
+
+        try {
+            zts.postRoleCertificateRequestExt(context, req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 500);
+            assertTrue(ex.getMessage().contains("Unable to create certificate from the cert signer"));
+        }
+    }
+
+    @Test
+    public void testPostRoleCertificateExtInvalidRoleDomain() throws IOException {
+
+        Path path = Paths.get("src/test/resources/athenz_coretech_role_uri.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        // this csr is for coretech:role.readers and coretech:role.writers roles
+
+        RoleCertificateRequest req = new RoleCertificateRequest()
+                .setCsr(csr).setExpiryTime(3600L);
+
+        CloudStore cloudStore = new MockCloudStore();
+        store.setCloudStore(cloudStore);
+        zts.cloudStore = cloudStore;
+
+        Principal principal = SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            zts.postRoleCertificateRequestExt(context, req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+            assertTrue(ex.getMessage().contains("Not authorized to assume all requested roles by user principal"));
+        }
+    }
+
+    @Test
+    public void testValidateRoleCertificateExtRequest() throws IOException {
+
+        Path path = Paths.get("src/test/resources/athenz_coretech_role_uri_ip.csr");
+        String csr = new String(Files.readAllBytes(path));
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+
+        assertTrue(zts.validateRoleCertificateExtRequest(certReq, "user_domain.user1", null, null, "10.11.12.13"));
+    }
+
+    @Test
+    public void testValidateRoleCertificateExtRequestInvalidOU() throws IOException {
+
+        Path path = Paths.get("src/test/resources/athenz_coretech_role_uri.csr");
+        String csr = new String(Files.readAllBytes(path));
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+
+        zts.verifyCertSubjectOU = true;
+        assertFalse(zts.validateRoleCertificateExtRequest(certReq, "user_domain.user1", null, null, null));
+    }
+
+    @Test
+    public void testValidateRoleCertificateExtRequestInvalidIP() throws IOException {
+
+        Path path = Paths.get("src/test/resources/athenz_coretech_role_uri_ip.csr");
+        String csr = new String(Files.readAllBytes(path));
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+
+        assertFalse(zts.validateRoleCertificateExtRequest(certReq, "user_domain.user1", null, null, "10.20.20.20"));
+
+        // with disabled ip check, we should get success
+
+        zts.verifyCertRequestIP = false;
+        assertTrue(zts.validateRoleCertificateExtRequest(certReq, "user_domain.user1", null, null, "10.20.20.20"));
     }
 }

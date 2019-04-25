@@ -169,6 +169,7 @@ func init() {
 	tRoleCertificateRequest := rdl.NewStructTypeBuilder("Struct", "RoleCertificateRequest")
 	tRoleCertificateRequest.Comment("RoleCertificateRequest - a certificate signing request")
 	tRoleCertificateRequest.Field("csr", "String", false, nil, "")
+	tRoleCertificateRequest.Field("proxyForPrincipal", "EntityName", true, nil, "this request is proxy for this principal")
 	tRoleCertificateRequest.Field("expiryTime", "Int64", false, nil, "")
 	sb.AddType(tRoleCertificateRequest.Build())
 
@@ -377,6 +378,11 @@ func init() {
 
 	tAccessTokenRequest := rdl.NewAliasTypeBuilder("String", "AccessTokenRequest")
 	sb.AddType(tAccessTokenRequest.Build())
+
+	tRoleCertificate := rdl.NewStructTypeBuilder("Struct", "RoleCertificate")
+	tRoleCertificate.Comment("Copyright 2019 Oath Holdings Inc Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. RoleCertificate - a role certificate")
+	tRoleCertificate.Field("x509Certificate", "String", false, nil, "")
+	sb.AddType(tRoleCertificate.Build())
 
 	mGetResourceAccess := rdl.NewResourceBuilder("ResourceAccess", "GET", "/access/{action}/{resource}")
 	mGetResourceAccess.Comment("Check access for the specified operation on the specified resource for the currently authenticated user. This is the slow centralized access for control-plane purposes. Use distributed mechanisms for decentralized (data-plane) access by fetching signed policies and role tokens for users. With this endpoint the resource is part of the uri and restricted to its strict definition of resource name. If needed, you can use the GetAccessExt api that allows resource name to be less restrictive.")
@@ -641,6 +647,17 @@ func init() {
 	mPostAccessTokenRequest.Exception("NOT_FOUND", "ResourceError", "")
 	mPostAccessTokenRequest.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mPostAccessTokenRequest.Build())
+
+	mPostRoleCertificateRequestExt := rdl.NewResourceBuilder("RoleCertificate", "POST", "/rolecert")
+	mPostRoleCertificateRequestExt.Comment("Return a TLS certificate for the list of roles that the principal can assume. Role certificates are valid for 7 days by default The principal is in the CN field of the Subject and the SAN URI field contains the athenz roles the principal can assume")
+	mPostRoleCertificateRequestExt.Name("PostRoleCertificateRequestExt")
+	mPostRoleCertificateRequestExt.Input("req", "RoleCertificateRequest", false, "", "", false, nil, "csr request")
+	mPostRoleCertificateRequestExt.Auth("", "", true, "")
+	mPostRoleCertificateRequestExt.Exception("BAD_REQUEST", "ResourceError", "")
+	mPostRoleCertificateRequestExt.Exception("FORBIDDEN", "ResourceError", "")
+	mPostRoleCertificateRequestExt.Exception("NOT_FOUND", "ResourceError", "")
+	mPostRoleCertificateRequestExt.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mPostRoleCertificateRequestExt.Build())
 
 	var err error
 	schema, err = sb.BuildParanoid()

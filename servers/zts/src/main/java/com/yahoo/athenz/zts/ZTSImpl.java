@@ -107,6 +107,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected String userDomainAlias;
     protected String userDomainAliasPrefix;
     protected boolean leastPrivilegePrincipal = false;
+    protected boolean singleDomainInRoleCert = false;
     protected Set<String> authorizedProxyUsers = null;
     protected Set<String> validCertSubjectOrgValues = null;
     protected Set<String> validCertSubjectOrgUnitValues = null;
@@ -334,7 +335,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         leastPrivilegePrincipal = Boolean.parseBoolean(
                 System.getProperty(ZTSConsts.ZTS_PROP_LEAST_PRIVILEGE_PRINCIPLE, "false"));
-        
+
+        singleDomainInRoleCert = Boolean.parseBoolean(
+                System.getProperty(ZTSConsts.ZTS_PROP_SINGLE_DOMAIN_IN_ROLE_CERT, "false"));
+
         // Default Role Token timeout is 2 hours. If the client asks for role tokens
         // with a min expiry time of 1 hour, the setting of 2 hours allows the client
         // to at least cache the tokens for 1 hour. We're going to set the ZTS client's
@@ -1538,10 +1542,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         accessToken.setUserId(principalName);
         accessToken.setSubject(principalName);
         accessToken.setIssuer(ztsOAuthIssuer);
-
-        if (!roles.isEmpty()) {
-            accessToken.setScope(new ArrayList<>(roles));
-        }
+        accessToken.setScope(new ArrayList<>(roles));
 
         String accessJwts = accessToken.getSignedToken(privateKey, privateKeyId, privateKeyAlg);
 
@@ -1767,8 +1768,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     boolean validateRoleCertificateRequest(final String csr, final String domainName,
-            Set<String> roles, final String principal, X509Certificate cert,
-            final String ip) {
+            Set<String> roles, final String principal, X509Certificate cert, final String ip) {
 
         X509RoleCertRequest certReq;
         try {
@@ -1782,6 +1782,23 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             return false;
         }
 
+        // validate the role cert has the correct subject ou
+
+        if (!validateRoleCertSubjectOU(certReq, cert)) {
+            return false;
+        }
+
+        // validate the ip address if any provided
+
+        return verifyCertRequestIP ? certReq.validateIPAddress(cert, ip) : true;
+    }
+
+    boolean validateRoleCertSubjectOU(X509RoleCertRequest certReq, X509Certificate cert) {
+
+        if (!verifyCertSubjectOU) {
+            return true;
+        }
+
         // the role certificate can use the value from the service
         // certificate so let's fetch that information
 
@@ -1789,8 +1806,173 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // validate the CSR subject ou field
 
-        if (verifyCertSubjectOU && !certReq.validateSubjectOUField(null, certOU,
-                validCertSubjectOrgUnitValues)) {
+        return certReq.validateSubjectOUField(null, certOU, validCertSubjectOrgUnitValues);
+    }
+
+    @Override
+    public RoleCertificate postRoleCertificateRequestExt(ResourceContext ctx, RoleCertificateRequest req) {
+
+        final String caller = "postrolecertificaterequestext";
+        final String callerTiming = "postrolecertificaterequestext_timing";
+        metric.increment(HTTP_POST);
+        logPrincipal(ctx);
+
+        if (readOnlyMode) {
+            throw requestError("Server in Maintenance Read-Only mode. Please try your request later",
+                    caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+        }
+
+        validateRequest(ctx.request(), caller);
+        validate(req, TYPE_ROLE_CERTIFICATE_REQUEST, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case since ZMS Server
+        // saves all of its object names in lower case
+
+        String proxyForPrincipal = req.getProxyForPrincipal();
+
+        if (proxyForPrincipal != null) {
+            proxyForPrincipal = normalizeDomainAliasUser(proxyForPrincipal.toLowerCase());
+        }
+
+        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        final String domainName = principal.getDomain();
+
+        metric.increment(HTTP_REQUEST, domainName);
+        metric.increment(caller, domainName);
+        Object timerMetric = metric.startTiming(callerTiming, domainName);
+
+        // verify that this is not an authorized service principal
+        // which is only supported for get role token operations
+
+        if (isAuthorizedServicePrincipal(principal)) {
+            throw forbiddenError("Authorized Service Principals not allowed", caller, domainName);
+        }
+
+        // get our principal's name
+
+        String principalName = principal.getFullName();
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("postRoleCertificateRequestExt(principal: {}, proxy-for: {}",
+                    principalName, proxyForPrincipal);
+        }
+
+        // we can only have a proxy for principal request if the original
+        // caller is authorized for such operations
+
+        if (proxyForPrincipal != null && !isAuthorizedProxyUser(authorizedProxyUsers, principalName)) {
+            LOGGER.error("postRoleCertificateRequestExt: Principal: " + principalName +
+                    " not authorized for proxy role certificate request");
+            throw forbiddenError("postRoleCertificateRequestExt: Principal: " + principalName
+                    + " not authorized for proxy role certificate request", caller, domainName);
+        }
+
+        X509RoleCertRequest certReq;
+        try {
+            certReq = new X509RoleCertRequest(req.getCsr());
+        } catch (CryptoException ex) {
+            throw requestError("Unable to parse PKCS10 CSR: " + ex.getMessage(), caller, domainName);
+        }
+
+        Map<String, String[]> requestedRoleList = certReq.getRequestedRoleList();
+        if (requestedRoleList == null) {
+            throw requestError("No roles requested in CSR", caller, domainName);
+        }
+
+        if (singleDomainInRoleCert && requestedRoleList.size() != 1) {
+            throw requestError("Role Certificate cannot contain roles from multiple domains", caller, domainName);
+        }
+
+        // verify access to the requested roles
+
+        if (!verifyAccessToRoles(principalName, requestedRoleList)) {
+            throw forbiddenError("Not authorized to assume all requested roles by user principal", caller, domainName);
+        }
+
+        // if this is proxy for operation then we want to make sure that
+        // both principals have access to the same set of roles so we'll
+        // remove any roles that are authorized by only one of the principals
+
+        String proxyUser = null;
+        if (proxyForPrincipal != null) {
+
+            if (!verifyAccessToRoles(proxyForPrincipal, requestedRoleList)) {
+                throw forbiddenError("Not authorized to assume all requested roles by proxy principal", caller, domainName);
+            }
+
+            // we need to switch our principal
+
+            proxyUser = principalName;
+            principalName = proxyForPrincipal;
+        }
+
+        // validate request/csr details
+
+        X509Certificate cert = principal.getX509Certificate();
+        final String ipAddress = ServletRequestUtil.getRemoteAddress(ctx.request());
+
+        if (!validateRoleCertificateExtRequest(certReq, principalName, proxyUser, cert, ipAddress)) {
+            throw requestError("postRoleCertificateRequestExt: Unable to validate cert request",
+                    caller, domainName);
+        }
+
+        final String x509Cert = instanceCertManager.generateX509Certificate(req.getCsr(),
+                ZTSConsts.ZTS_CERT_USAGE_CLIENT, (int) req.getExpiryTime());
+        if (null == x509Cert || x509Cert.isEmpty()) {
+            throw serverError("postRoleCertificateRequest: Unable to create certificate from the cert signer",
+                    caller, domainName);
+        }
+        RoleCertificate roleCertificate = new RoleCertificate().setX509Certificate(x509Cert);
+
+        // log our certificate
+
+        instanceCertManager.log(principal, ipAddress, ZTSConsts.ZTS_SERVICE,
+                null, Crypto.loadX509Certificate(x509Cert));
+
+        metric.stopTiming(timerMetric);
+        return roleCertificate;
+    }
+
+    boolean verifyAccessToRoles(final String principalName, Map<String, String[]> requestedRoleList) {
+
+        for (String domainName : requestedRoleList.keySet()) {
+
+            DataCache data = dataStore.getDataCache(domainName);
+            if (data == null) {
+
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("verifyAccessToRoles - no such domain: {}", domainName);
+                }
+                return false;
+            }
+
+            Set<String> roles = new HashSet<>();
+            final String[] requestedRoles = requestedRoleList.get(domainName);
+            dataStore.getAccessibleRoles(data, domainName, principalName, requestedRoles,
+                    roles, false);
+
+            if (roles.isEmpty() || roles.size() != requestedRoles.length) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("verifyAccessToRoles - unauthorized access to roles in domain: {}", domainName);
+                }
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    boolean validateRoleCertificateExtRequest(X509RoleCertRequest certReq, final String principal,
+                                              final String proxyUser, X509Certificate cert, final String ip) {
+
+        if (!certReq.validate(principal, proxyUser, validCertSubjectOrgValues)) {
+            return false;
+        }
+
+        // validate the role cert has the correct subject ou
+
+        if (!validateRoleCertSubjectOU(certReq, cert)) {
             return false;
         }
 

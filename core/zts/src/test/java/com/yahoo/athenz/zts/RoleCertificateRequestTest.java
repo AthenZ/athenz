@@ -28,9 +28,11 @@ public class RoleCertificateRequestTest {
 
         RoleCertificateRequest data1 = new RoleCertificateRequest();
         data1.setCsr("csr1");
+        data1.setProxyForPrincipal("proxy");
 
         RoleCertificateRequest data2 = new RoleCertificateRequest();
         data2.setCsr("csr1");
+        data2.setProxyForPrincipal("proxy");
 
         assertEquals(data1, data1);
         assertEquals(data1, data2);
@@ -40,6 +42,7 @@ public class RoleCertificateRequestTest {
         // verify getters
         assertEquals("csr1", data2.getCsr());
         assertEquals(101, data2.getExpiryTime());
+        assertEquals("proxy", data2.getProxyForPrincipal());
 
         assertNotEquals(data2, data1);
 
@@ -51,6 +54,14 @@ public class RoleCertificateRequestTest {
 
         data1.setCsr(null);
         assertNotEquals(data2, data1);
+        data1.setCsr("csr1");
+
+        data1.setProxyForPrincipal("proxy1");
+        assertNotEquals(data2, data1);
+
+        data1.setProxyForPrincipal(null);
+        assertNotEquals(data2, data1);
+        data1.setProxyForPrincipal("proxy1");
 
         assertNotEquals(data1, null);
         assertNotEquals("data", data2);
