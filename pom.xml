@@ -261,7 +261,7 @@
               </excludes>
               <contextFilters>main,log,iflog</contextFilters>
               <methodContexts>
-                <main>(.* )?public static void main\(String\[\] argv\).*</main>
+                <main>(.* )?public static void main\(String\[\] args\).*</main>
               </methodContexts>
               <statementContexts>
                 <log>System.out.println\(.*\);</log>

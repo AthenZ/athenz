@@ -28,6 +28,11 @@
 
   <dependencies>
     <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>athenz-client-common</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcpkix-jdk15on</artifactId>
       <version>${bouncycastle.version}</version>

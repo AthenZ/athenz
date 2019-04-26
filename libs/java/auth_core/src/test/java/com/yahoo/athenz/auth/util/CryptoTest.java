@@ -39,9 +39,6 @@ import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import com.yahoo.athenz.auth.util.Crypto;
-import com.yahoo.athenz.auth.util.CryptoException;
-
 public class CryptoTest {
 
     private final File rsaPrivateKey = new File("./src/test/resources/rsa_private.key");

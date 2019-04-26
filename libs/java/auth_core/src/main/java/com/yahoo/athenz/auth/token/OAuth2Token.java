@@ -15,6 +15,13 @@
  */
 package com.yahoo.athenz.auth.token;
 
+import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.Jwts;
+
+import java.security.PublicKey;
+
 public class OAuth2Token {
 
     public static final String HDR_KEY_ID = "kid";
@@ -29,6 +36,41 @@ public class OAuth2Token {
     protected String audience;
     protected String issuer;
     protected String subject;
+    protected Jws<Claims> claims = null;
+
+    public OAuth2Token() {
+    }
+
+    public OAuth2Token(final String token, JwtsSigningKeyResolver keyResolver) {
+
+        claims = Jwts.parser()
+                .setSigningKeyResolver(keyResolver)
+                .setAllowedClockSkewSeconds(60)
+                .parseClaimsJws(token);
+
+        setTokenFields();
+    }
+
+    public OAuth2Token(final String token, PublicKey publicKey) {
+
+        claims = Jwts.parser()
+                .setSigningKey(publicKey)
+                .setAllowedClockSkewSeconds(60)
+                .parseClaimsJws(token);
+
+        setTokenFields();
+    }
+
+    void setTokenFields() {
+        final Claims body = claims.getBody();
+        setVersion(body.get(CLAIM_VERSION, Integer.class));
+        setAudience(body.getAudience());
+        setExpiryTime(body.getExpiration().getTime() / 1000);
+        setIssueTime(body.getIssuedAt().getTime() / 1000);
+        setAuthTime(body.get(CLAIM_AUTH_TIME, Long.class));
+        setIssuer(body.getIssuer());
+        setSubject(body.getSubject());
+    }
 
     public int getVersion() {
         return version;
