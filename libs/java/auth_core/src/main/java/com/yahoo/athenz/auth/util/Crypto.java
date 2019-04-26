@@ -1180,7 +1180,7 @@ public class Crypto {
         return writer.toString();
     }
     
-    public static void main(String [] args) throws CryptoException {
+    public static void main(String[] args) throws CryptoException {
         if (args.length >= 2) {
             String op = args[0];
             if ("sign".equals(op)) {
@@ -1225,5 +1225,4 @@ public class Crypto {
         System.out.println("usage: r Crypto verify msg privateKeyFile signature");
         System.exit(1);
     }
-    
 }

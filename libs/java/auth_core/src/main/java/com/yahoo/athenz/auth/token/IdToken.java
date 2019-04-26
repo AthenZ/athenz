@@ -15,14 +15,28 @@
  */
 package com.yahoo.athenz.auth.token;
 
+import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.time.Instant;
 import java.util.Date;
 
 public class IdToken extends OAuth2Token {
+
+    public IdToken() {
+        super();
+    }
+
+    public IdToken(final String token, JwtsSigningKeyResolver keyResolver) {
+        super(token, keyResolver);
+    }
+
+    public IdToken(final String token, PublicKey publicKey) {
+        super(token, publicKey);
+    }
 
     public String getSignedToken(final PrivateKey key, final String keyId,
             final SignatureAlgorithm keyAlg) {

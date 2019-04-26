@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.auth.token;
 
+import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import com.yahoo.athenz.auth.util.Crypto;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -34,10 +35,7 @@ public class IdTokenTest {
     private final File ecPrivateKey = new File("./src/test/resources/ec_private.key");
     private final File ecPublicKey = new File("./src/test/resources/ec_public.key");
 
-    @Test
-    public void testIdToken() {
-
-        long now = System.currentTimeMillis() / 1000;
+    IdToken createIdToken(long now) {
 
         IdToken token = new IdToken();
         token.setAuthTime(now);
@@ -47,9 +45,10 @@ public class IdTokenTest {
         token.setAudience("coretech");
         token.setVersion(1);
         token.setIssuer("athenz");
+        return token;
+    }
 
-        // verify the getters
-
+    void validateIdToken(IdToken token, long now) {
         assertEquals(now, token.getAuthTime());
         assertEquals("subject", token.getSubject());
         assertEquals(now + 3600, token.getExpiryTime());
@@ -57,21 +56,74 @@ public class IdTokenTest {
         assertEquals("coretech", token.getAudience());
         assertEquals(1, token.getVersion());
         assertEquals("athenz", token.getIssuer());
+    }
+
+    @Test
+    public void testIdToken() {
+
+        long now = System.currentTimeMillis() / 1000;
+
+        IdToken token = createIdToken(now);
+
+        // verify the getters
+
+        validateIdToken(token, now);
 
         // now get the signed token
 
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
-        String accessJws = token.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
-        assertNotNull(accessJws);
+        String idJws = token.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
+        assertNotNull(idJws);
 
         // now verify our signed token
 
         PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
-        Jws<Claims> claims = Jwts.parser().setSigningKey(publicKey).parseClaimsJws(accessJws);
+        Jws<Claims> claims = Jwts.parser().setSigningKey(publicKey).parseClaimsJws(idJws);
         assertNotNull(claims);
 
         assertEquals("subject", claims.getBody().getSubject());
         assertEquals("coretech", claims.getBody().getAudience());
         assertEquals("athenz", claims.getBody().getIssuer());
+    }
+
+    @Test
+    public void testIdTokenSignedToken() {
+
+        long now = System.currentTimeMillis() / 1000;
+
+        IdToken token = createIdToken(now);
+
+        // now get the signed token
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        String idJws = token.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
+        assertNotNull(idJws);
+
+        // now verify our signed token
+
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(null, null);
+        resolver.addPublicKey("eckey1", Crypto.loadPublicKey(ecPublicKey));
+
+        IdToken checkToken = new IdToken(idJws, resolver);
+        validateIdToken(checkToken, now);
+    }
+
+    @Test
+    public void testIdTokenSignedTokenPublicKey() {
+
+        long now = System.currentTimeMillis() / 1000;
+
+        IdToken token = createIdToken(now);
+
+        // now get the signed token
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        String idJws = token.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
+        assertNotNull(idJws);
+
+        // now verify our signed token
+
+        IdToken checkToken = new IdToken(idJws, Crypto.loadPublicKey(ecPublicKey));
+        validateIdToken(checkToken, now);
     }
 }
