@@ -82,6 +82,9 @@ public class IPBlockTest {
         assertFalse(ipBlock.ipCheck(IPBlock.convertIPToLong("10.0.0.0")));
         assertFalse(ipBlock.ipCheck(IPBlock.convertIPToLong("10.2.0.0")));
         assertFalse(ipBlock.ipCheck(IPBlock.convertIPToLong("10.2.1.255")));
+
+        ipBlock = new IPBlock("35.160.0.0/13");
+        assertTrue(ipBlock.ipCheck(IPBlock.convertIPToLong("35.166.98.147")));
     }
     
     @Test

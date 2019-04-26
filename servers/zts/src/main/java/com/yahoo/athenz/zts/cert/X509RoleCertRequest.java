@@ -17,13 +17,13 @@ package com.yahoo.athenz.zts.cert;
 
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
+import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.security.cert.X509Certificate;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class X509RoleCertRequest extends X509CertRequest {
 
@@ -31,6 +31,55 @@ public class X509RoleCertRequest extends X509CertRequest {
 
     public X509RoleCertRequest(String csr) throws CryptoException {
         super(csr);
+    }
+
+    public Map<String, String[]> getRequestedRoleList() {
+
+        // first extract the URI list from the request
+
+        if (uris == null || uris.isEmpty()) {
+            return null;
+        }
+
+        Map<String, List<String>> domainRoles = new HashMap<>();
+
+        // the format of our URIs is:
+        // athenz://role/<domainName>/<roleName>
+
+        for (String uri : uris) {
+
+            if (!uri.toLowerCase().startsWith(ZTSConsts.ZTS_CERT_ROLE_URI)) {
+                continue;
+            }
+
+            final String roleUri = uri.substring(ZTSConsts.ZTS_CERT_ROLE_URI.length());
+            int idx = roleUri.indexOf('/');
+            if (idx == -1) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Invalid role name '{}' in CSR", uri);
+                }
+                return null;
+            }
+
+            final String domainName = roleUri.substring(0, idx);
+            List<String> rolesForDomain = domainRoles.get(domainName);
+            if (rolesForDomain == null) {
+                rolesForDomain = new ArrayList<>();
+                domainRoles.put(domainName, rolesForDomain);
+            }
+            rolesForDomain.add(roleUri.substring(idx + 1));
+        }
+
+        if (domainRoles.isEmpty()) {
+            return null;
+        }
+
+        Map<String, String[]> roles = new HashMap<>();
+        for (String domainName : domainRoles.keySet()) {
+            roles.put(domainName, domainRoles.get(domainName).toArray(new String[0]));
+        }
+
+        return roles;
     }
 
     String validateAndExtractRoleName(Set<String> roles, final String domainName) {
@@ -79,10 +128,6 @@ public class X509RoleCertRequest extends X509CertRequest {
     public boolean validate(Set<String> roles, final String domainName,
             final String principal, Set<String> validCertSubjectOrgValues) {
 
-        if (!extractCommonName()) {
-            return false;
-        }
-
         // validate that the common name matches to the role name
         // that is being returned in the response
 
@@ -107,6 +152,35 @@ public class X509RoleCertRequest extends X509CertRequest {
         // validate spiffe uri if one is provided
 
         return validateSpiffeURI(domainName, "ra", roleName);
+    }
+
+    public boolean validate(final String principal, final String proxyUser,
+            Set<String> validCertSubjectOrgValues) {
+
+        // first make sure the cn is our expected principal
+
+        if (!validateCommonName(principal)) {
+            return false;
+        }
+
+        // now let's check if we have an rfc822 field for the
+        // proxy principal if proxy user is the one making the
+        // role request
+
+        if (proxyUser != null && !validateEmail(proxyUser)) {
+            return false;
+        }
+
+        // validate the o field value is specified
+
+        if (!validateSubjectOField(validCertSubjectOrgValues)) {
+            return false;
+        }
+
+        // validate spiffe uri to make sure we don't have
+        // any specified
+
+        return spiffeUri == null;
     }
 
     public boolean validateIPAddress(X509Certificate cert, final String ip) {

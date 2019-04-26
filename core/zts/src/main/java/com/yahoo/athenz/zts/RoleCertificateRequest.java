@@ -3,6 +3,7 @@
 //
 
 package com.yahoo.athenz.zts;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
 
 //
@@ -11,6 +12,9 @@ import com.yahoo.rdl.*;
 //
 public class RoleCertificateRequest {
     public String csr;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String proxyForPrincipal;
     public long expiryTime;
 
     public RoleCertificateRequest setCsr(String csr) {
@@ -19,6 +23,13 @@ public class RoleCertificateRequest {
     }
     public String getCsr() {
         return csr;
+    }
+    public RoleCertificateRequest setProxyForPrincipal(String proxyForPrincipal) {
+        this.proxyForPrincipal = proxyForPrincipal;
+        return this;
+    }
+    public String getProxyForPrincipal() {
+        return proxyForPrincipal;
     }
     public RoleCertificateRequest setExpiryTime(long expiryTime) {
         this.expiryTime = expiryTime;
@@ -36,6 +47,9 @@ public class RoleCertificateRequest {
             }
             RoleCertificateRequest a = (RoleCertificateRequest) another;
             if (csr == null ? a.csr != null : !csr.equals(a.csr)) {
+                return false;
+            }
+            if (proxyForPrincipal == null ? a.proxyForPrincipal != null : !proxyForPrincipal.equals(a.proxyForPrincipal)) {
                 return false;
             }
             if (expiryTime != a.expiryTime) {

@@ -1033,8 +1033,13 @@ func (self *RoleToken) Validate() error {
 // request
 //
 type RoleCertificateRequest struct {
-	Csr        string `json:"csr"`
-	ExpiryTime int64  `json:"expiryTime"`
+	Csr string `json:"csr"`
+
+	//
+	// this request is proxy for this principal
+	//
+	ProxyForPrincipal EntityName `json:"proxyForPrincipal,omitempty" rdl:"optional"`
+	ExpiryTime        int64      `json:"expiryTime"`
 }
 
 //
@@ -1076,6 +1081,12 @@ func (self *RoleCertificateRequest) Validate() error {
 		val := rdl.Validate(ZTSSchema(), "String", self.Csr)
 		if !val.Valid {
 			return fmt.Errorf("RoleCertificateRequest.csr does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.ProxyForPrincipal != "" {
+		val := rdl.Validate(ZTSSchema(), "EntityName", self.ProxyForPrincipal)
+		if !val.Valid {
+			return fmt.Errorf("RoleCertificateRequest.proxyForPrincipal does not contain a valid EntityName (%v)", val.Error)
 		}
 	}
 	return nil
@@ -3113,3 +3124,56 @@ func (self *JWKList) Validate() error {
 // AccessTokenRequest -
 //
 type AccessTokenRequest string
+
+//
+// RoleCertificate - Copyright 2019 Oath Holdings Inc Licensed under the terms
+// of the Apache version 2.0 license. See LICENSE file for terms.
+// RoleCertificate - a role certificate
+//
+type RoleCertificate struct {
+	X509Certificate string `json:"x509Certificate"`
+}
+
+//
+// NewRoleCertificate - creates an initialized RoleCertificate instance, returns a pointer to it
+//
+func NewRoleCertificate(init ...*RoleCertificate) *RoleCertificate {
+	var o *RoleCertificate
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(RoleCertificate)
+	}
+	return o
+}
+
+type rawRoleCertificate RoleCertificate
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a RoleCertificate
+//
+func (self *RoleCertificate) UnmarshalJSON(b []byte) error {
+	var m rawRoleCertificate
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := RoleCertificate(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *RoleCertificate) Validate() error {
+	if self.X509Certificate == "" {
+		return fmt.Errorf("RoleCertificate.x509Certificate is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.X509Certificate)
+		if !val.Valid {
+			return fmt.Errorf("RoleCertificate.x509Certificate does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}

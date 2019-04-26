@@ -40,24 +40,50 @@ public class X509CertRequest {
 
     protected PKCS10CertificationRequest certReq;
     protected String instanceId = null;
+    protected String spiffeUri = null;
     protected String normCsrPublicKey = null;
 
-    protected String cn = null;
+    protected String cn;
     protected List<String> dnsNames;
     protected List<String> providerDnsNames;
     protected List<String> ipAddresses;
     protected List<String> uris;
     
     public X509CertRequest(String csr) throws CryptoException {
+
         certReq = Crypto.getPKCS10CertRequest(csr);
         if (certReq == null) {
             throw new CryptoException("Invalid csr provided");
         }
-        
+
+
+        // extract the dns names but we can't process them now
+        // since we need to know what the provider and domain
+        // allowed dns suffix values
+
         dnsNames = Crypto.extractX509CSRDnsNames(certReq);
-        ipAddresses = Crypto.extractX509CSRIPAddresses(certReq);
-        uris = Crypto.extractX509CSRURIs(certReq);
         providerDnsNames = new ArrayList<>();
+
+        ipAddresses = Crypto.extractX509CSRIPAddresses(certReq);
+
+        // extract the common name for the request
+
+        try {
+            cn = Crypto.extractX509CSRCommonName(certReq);
+        } catch (Exception ex) {
+            throw new CryptoException("Unable to extract CN from CSR:" + ex.getMessage());
+        }
+
+        // extract our URI values
+
+        uris = Crypto.extractX509CSRURIs(certReq);
+
+        // process to make sure we only have a single spiffe uri
+        // present in our request
+
+        if (!extractSpiffeURI()) {
+            throw new CryptoException("Invalid SPIFFE URI present in CSR");
+        }
     }
     
     public PKCS10CertificationRequest getCertReq() {
@@ -242,26 +268,7 @@ public class X509CertRequest {
         return true;
     }
 
-    boolean extractCommonName() {
-        try {
-            cn = Crypto.extractX509CSRCommonName(certReq);
-        } catch (Exception ex) {
-
-            // we want to catch all the exceptions here as we want to
-            // handle all the errors and not let container to return
-            // standard server error
-
-            LOGGER.error("compareCommonName: unable to extract csr cn: {}", ex.getMessage());
-            return false;
-        }
-        return true;
-    }
-
     public boolean validateCommonName(String reqCommonName) {
-        
-        if (!extractCommonName()) {
-            return false;
-        }
         
         if (!reqCommonName.equalsIgnoreCase(cn)) {
             LOGGER.error("compareCommonName - cn mismatch: {} vs. {}", reqCommonName, cn);
@@ -422,15 +429,7 @@ public class X509CertRequest {
         return ipAddresses.get(0).equals(ip);
     }
 
-    boolean validateSpiffeURI(final String domain, final String name, final String value) {
-
-        // the expected default format is
-        // spiffe://[<provider-cluster>/ns/]<athenz-domain>/sa/<athenz-service>
-        // spiffe://[<provider-cluster>/ns/]<athenz-domain>/ra/<athenz-role>
-        //
-        // so we'll be validating that our request has:
-        // spiffe://<provider-cluster>/ns/<domain>/<name>/<value> or
-        // spiffe://<domain>/<name>/<value> or
+    boolean extractSpiffeURI() {
 
         // first extract the URI list from the request
 
@@ -440,20 +439,34 @@ public class X509CertRequest {
 
         // we must only have a single spiffe uri in the list
 
-        String spiffeUri = null;
+        String spUri = null;
         for (String uri : uris) {
 
             if (!uri.toLowerCase().startsWith(ZTSConsts.ZTS_CERT_SPIFFE_URI)) {
                 continue;
             }
 
-            if (spiffeUri != null) {
-                LOGGER.error("Multiple SPIFFE URIs in the CSR: {}/{}", uri, spiffeUri);
+            if (spUri != null) {
+                LOGGER.error("Multiple SPIFFE URIs in the CSR: {}/{}", uri, spUri);
                 return false;
             }
 
-            spiffeUri = uri;
+            spUri = uri;
         }
+
+        spiffeUri = spUri;
+        return true;
+    }
+
+    boolean validateSpiffeURI(final String domain, final String name, final String value) {
+
+        // the expected default format is
+        // spiffe://[<provider-cluster>/ns/]<athenz-domain>/sa/<athenz-service>
+        // spiffe://[<provider-cluster>/ns/]<athenz-domain>/ra/<athenz-role>
+        //
+        // so we'll be validating that our request has:
+        // spiffe://<provider-cluster>/ns/<domain>/<name>/<value> or
+        // spiffe://<domain>/<name>/<value> or
 
         if (spiffeUri == null) {
             return true;

@@ -27,9 +27,9 @@ public class X509ServiceCertRequest extends X509CertRequest {
     }
 
     public boolean validate(final String domain, final String service,
-        final Set<String> validSubjectOValues, final List<String> providerDnsSuffixList,
-        final String serviceDnsSuffix, final String instanceHostname,
-        HostnameResolver hostnameResolver, StringBuilder errorMsg) {
+            final Set<String> validSubjectOValues, final List<String> providerDnsSuffixList,
+            final String serviceDnsSuffix, final String instanceHostname,
+            HostnameResolver hostnameResolver, StringBuilder errorMsg) {
 
         // parse the cert request (csr) to extract the DNS entries
         // along with IP addresses. Validate that all hostnames
