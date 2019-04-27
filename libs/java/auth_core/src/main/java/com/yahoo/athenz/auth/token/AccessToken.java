@@ -15,10 +15,13 @@
  */
 package com.yahoo.athenz.auth.token;
 
+import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
@@ -35,6 +38,29 @@ public class AccessToken extends OAuth2Token {
     private String clientId;
     private String userId;
     private List<String> scope;
+
+    public AccessToken() {
+        super();
+    }
+
+    public AccessToken(final String token, JwtsSigningKeyResolver keyResolver) {
+
+        super(token, keyResolver);
+        setAccessTokenFields();
+    }
+
+    public AccessToken(final String token, PublicKey publicKey) {
+
+        super(token, publicKey);
+        setAccessTokenFields();
+    }
+
+    void setAccessTokenFields() {
+        final Claims body = claims.getBody();
+        setClientId(body.get(CLAIM_CLIENT_ID, String.class));
+        setUserId(body.get(CLAIM_UID, String.class));
+        setScope(body.get(CLAIM_SCOPE, List.class));
+    }
 
     public String getClientId() {
         return clientId;
@@ -68,6 +94,7 @@ public class AccessToken extends OAuth2Token {
                 .setExpiration(Date.from(Instant.ofEpochSecond(expiryTime)))
                 .setIssuer(issuer)
                 .setAudience(audience)
+                .claim(CLAIM_AUTH_TIME, authTime)
                 .claim(CLAIM_VERSION, version)
                 .claim(CLAIM_SCOPE, scope)
                 .claim(CLAIM_UID, userId)
