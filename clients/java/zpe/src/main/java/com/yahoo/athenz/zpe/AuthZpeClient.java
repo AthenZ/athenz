@@ -22,8 +22,11 @@ import java.util.*;
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
+import javax.net.ssl.SSLContext;
 import javax.security.auth.x500.X500Principal;
 
+import com.yahoo.athenz.auth.token.AccessToken;
+import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,6 +64,7 @@ public class AuthZpeClient {
 
     private static String zpeClientImplName;
     private static int allowedOffset = 300;
+    private static JwtsSigningKeyResolver accessSignKeyResolver = null;
 
     private static ZpeClient zpeClt = null;
     private static PublicKeyStore publicKeyStore = null;
@@ -160,6 +164,10 @@ public class AuthZpeClient {
         // load the x509 issuers
         
         setX509CAIssuers(System.getProperty(ZpeConsts.ZPE_PROP_X509_CA_ISSUERS));
+
+        // initialize the access token signing key resolver
+
+        setAccessTokenSingKeyResolver(null, null);
     }
     
     public static void init() {
@@ -230,7 +238,31 @@ public class AuthZpeClient {
         }
         publicKeyStore = publicKeyStoreFactory.create();
     }
-    
+
+    /**
+     * Set the server connection details for the sign key resolver for access
+     * tokens. By default, the resolver is looking for the "athenz.athenz_conf"
+     * system property, parses the athenz.conf file and loads any public keys
+     * defined. The caller can also specify the server URL and the sslcontext
+     * (if required) for the resolver to call and fetch the public keys that
+     * will be required to verify the token signatures
+     * @param serverUrl server url to fetch json web keys
+     * @param sslContext ssl context to be used when establishing connection
+     */
+    public static void setAccessTokenSingKeyResolver(final String serverUrl, SSLContext sslContext) {
+        accessSignKeyResolver = new JwtsSigningKeyResolver(serverUrl, sslContext);
+    }
+
+    /**
+     * Include the specified public key and id in the access token
+     * signing resolver
+     * @param keyId public key id
+     * @param key public key for the given id
+     */
+    public static void addAccessTokenSingKeyResolverKey(final String keyId, PublicKey key) {
+        accessSignKeyResolver.addPublicKey(keyId, key);
+    }
+
     /**
      * Set the ZPE Client implementation class name in case the default
      * ZPE client is not sufficient for some reason.
@@ -240,7 +272,7 @@ public class AuthZpeClient {
         
         zpeClientImplName = className;
         try {
-            zpeClt = getZpeClient();
+            zpeClt = (ZpeClient) Class.forName(zpeClientImplName).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
             LOG.error("Unable to instantiate zpe class: " + zpeClientImplName
                     + ", error: " + ex.getMessage());
@@ -366,8 +398,10 @@ public class AuthZpeClient {
     /**
      * Determine if access(action) is allowed against the specified resource by
      * a user represented by the user (cltToken, cltTokenName).
-     * @param roleToken - value for the REST header: Athenz-Role-Auth
+     * @param token - either role of access token. For role tokens:
+     *        value for the HTTP header: Athenz-Role-Auth
      *        ex: "v=Z1;d=angler;r=admin;a=aAkjbbDMhnLX;t=1431974053;e=1431974153;k=0"
+     *        For access tokens: value for HTTP header: Authorization: Bearer access-token
      * @param resource is a domain qualified resource the calling service
      *        will check access for.  ex: my_domain:my_resource
      *        ex: "angler:pondsKernCounty"
@@ -382,7 +416,7 @@ public class AuthZpeClient {
      *        the result is ALLOW otherwise one of the DENY_* values specifies the exact
      *        reason why the access was denied
      */
-    public static AccessCheckStatus allowAccess(String roleToken, String resource, String action,
+    public static AccessCheckStatus allowAccess(String token, String resource, String action,
             StringBuilder matchRoleName) {
 
         if (LOG.isDebugEnabled()) {
@@ -390,26 +424,33 @@ public class AuthZpeClient {
         }
         zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME, DEFAULT_DOMAIN);
 
-        RoleToken rToken = null;
-        Map<String, RoleToken> tokenCache = null;
-        try {
-            ZpeClient zpeclt = getZpeClient();
-            tokenCache = zpeclt.getRoleTokenCacheMap();
-            rToken = tokenCache.get(roleToken);
-        } catch (Exception exc) {
-            zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_CACHE_FAILURE, DEFAULT_DOMAIN);
-            LOG.error("allowAccess: token cache failure, exc: {}", exc.getMessage());
+        // check if we're given role or access token
+
+        if (token.startsWith("v=Z1;")) {
+            return allowRoleTokenAccess(token, resource, action, matchRoleName);
+        } else {
+            return allowAccessTokenAccess(token, resource, action, matchRoleName);
         }
+    }
+
+    static AccessCheckStatus allowRoleTokenAccess(String roleToken, String resource, String action,
+            StringBuilder matchRoleName) {
+
+        Map<String, RoleToken> tokenCache = zpeClt.getRoleTokenCacheMap();
+        RoleToken rToken = tokenCache.get(roleToken);
 
         if (rToken == null) {
 
             zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_CACHE_NOT_FOUND, DEFAULT_DOMAIN);
             rToken = new RoleToken(roleToken);
 
-            // validate the token
+            // validate the token. validation also verifies that
+            // the token is not expired
+
             if (!rToken.validate(getZtsPublicKey(rToken.getKeyId()), allowedOffset, false, null)) {
 
-                // check the token expiration
+                // check the token expiration and provide a more specific
+                // status code to the caller
 
                 if (isTokenExpired(rToken)) {
                     zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_EXPIRED_TOKEN, rToken.getDomain());
@@ -421,17 +462,43 @@ public class AuthZpeClient {
                 zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_INVALID_TOKEN, rToken.getDomain());
                 return AccessCheckStatus.DENY_ROLETOKEN_INVALID;
             }
-
-            if (tokenCache != null) {
-                tokenCache.put(roleToken, rToken);
-            }
+            tokenCache.put(roleToken, rToken);
         } else {
             zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_CACHE_SUCCESS, rToken.getDomain());
         }
 
         return allowAccess(rToken, resource, action, matchRoleName);
     }
- 
+
+    static AccessCheckStatus allowAccessTokenAccess(String accessToken, String resource,
+            String action, StringBuilder matchRoleName) {
+
+        Map<String, AccessToken> tokenCache = zpeClt.getAccessTokenCacheMap();;
+        AccessToken acsToken = tokenCache.get(accessToken);
+
+        if (acsToken == null) {
+
+            zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_CACHE_NOT_FOUND, DEFAULT_DOMAIN);
+
+            try {
+                acsToken = new AccessToken(accessToken, accessSignKeyResolver);
+            } catch (Exception ex) {
+
+                LOG.error("allowAccess: Authorization denied. Authentication failed for token={}",
+                        ex.getMessage());
+                zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_INVALID_TOKEN, DEFAULT_DOMAIN);
+                return AccessCheckStatus.DENY_ROLETOKEN_INVALID;
+            }
+
+            tokenCache.put(accessToken, acsToken);
+
+        } else {
+            zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_CACHE_SUCCESS, acsToken.getAudience());
+        }
+
+        return allowAccess(acsToken, resource, action, matchRoleName);
+    }
+
     /**
      * Determine if access(action) is allowed against the specified resource by
      * a user represented by the RoleToken.
@@ -454,6 +521,7 @@ public class AuthZpeClient {
             StringBuilder matchRoleName) {
         
         // check the token expiration
+
         if (rToken == null) {
             LOG.error("allowAccess: Authorization denied. Token is null");
             zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_INVALID_TOKEN, UNKNOWN_DOMAIN);
@@ -461,15 +529,6 @@ public class AuthZpeClient {
         }
 
         if (isTokenExpired(rToken)) {
-            Map<String, RoleToken> tokenCache;
-            try {
-                ZpeClient zpeclt = getZpeClient();
-                tokenCache = zpeclt.getRoleTokenCacheMap();
-                tokenCache.remove(rToken.getSignedToken());
-            } catch (Exception exc) {
-                LOG.error("allowAccess: token cache failure, exc: {}", exc.getMessage());
-            }
-
             zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_EXPIRED_TOKEN, rToken.getDomain());
             return AccessCheckStatus.DENY_ROLETOKEN_EXPIRED;
         }
@@ -477,9 +536,45 @@ public class AuthZpeClient {
         String tokenDomain = rToken.getDomain(); // ZToken contains the domain
         List<String> roles = rToken.getRoles();  // ZToken contains roles
 
-        if (LOG.isDebugEnabled() && roles != null) {
-            LOG.debug("allowAccess: token roles={}", String.join(",", roles));
+        return allowActionZPE(action, tokenDomain, resource, roles, matchRoleName);
+    }
+
+    /**
+     * Determine if access(action) is allowed against the specified resource by
+     * a user represented by the AccessToken.
+     * @param accessToken represents the access token sent by the client that wants access to the resource
+     * @param resource is a domain qualified resource the calling service
+     *        will check access for.  ex: my_domain:my_resource
+     *        ex: "angler:pondsKernCounty"
+     *        ex: "sports:service.storage.tenant.Activator.ActionMap"
+     * @param action is the type of access attempted by a client
+     *        ex: "read"
+     *        ex: "scan"
+     * @param matchRoleName - [out] will include the role name that the result was based on
+     *        it will be not be set if the failure is due to expired/invalid tokens or
+     *        there were no matches thus a default value of DENY_NO_MATCH is returned
+     * @return AccessCheckStatus if the user can access the resource via the specified action
+     *        the result is ALLOW otherwise one of the DENY_* values specifies the exact
+     *        reason why the access was denied
+     **/
+    public static AccessCheckStatus allowAccess(AccessToken accessToken, String resource, String action,
+            StringBuilder matchRoleName) {
+
+        // check the token expiration
+
+        if (accessToken == null) {
+            LOG.error("allowAccess: Authorization denied. Token is null");
+            zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_INVALID_TOKEN, UNKNOWN_DOMAIN);
+            return AccessCheckStatus.DENY_ROLETOKEN_INVALID;
         }
+
+        if (isTokenExpired(accessToken)) {
+            zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_EXPIRED_TOKEN, accessToken.getAudience());
+            return AccessCheckStatus.DENY_ROLETOKEN_EXPIRED;
+        }
+
+        String tokenDomain = accessToken.getAudience();
+        List<String> roles = accessToken.getScope();
 
         return allowActionZPE(action, tokenDomain, resource, roles, matchRoleName);
     }
@@ -507,7 +602,7 @@ public class AuthZpeClient {
             String resource, String action, StringBuilder matchRoleName) {
 
         AccessCheckStatus retStatus = AccessCheckStatus.DENY_NO_MATCH;
-        StringBuilder roleName  = null;
+        StringBuilder roleName = null;
 
         for (String roleToken: roleTokenList) {
             StringBuilder rName = new StringBuilder(256);
@@ -517,7 +612,7 @@ public class AuthZpeClient {
                 return status;
             } else if (retStatus != AccessCheckStatus.ALLOW) { // only DENY over-rides ALLOW
                 retStatus = status;
-                roleName  = rName;
+                roleName = rName;
             }
         }
 
@@ -540,6 +635,18 @@ public class AuthZpeClient {
         return false;
     }
 
+    static boolean isTokenExpired(AccessToken accessToken) {
+
+        long now  = System.currentTimeMillis() / 1000;
+        long expiry = accessToken.getExpiryTime();
+        if (expiry != 0 && expiry < now) {
+            LOG.error("ExpiryCheck: Token expired. now={} expiry={} token={}" +
+                    now, expiry, accessToken.getClientId());
+            return true;
+        }
+        return false;
+    }
+
     /**
      * Validate the RoleToken and return the parsed token object that
      * could be used to extract all fields from the role token. If the role
@@ -550,22 +657,15 @@ public class AuthZpeClient {
      */
     public static RoleToken validateRoleToken(String roleToken) {
 
-        RoleToken rToken = null;
-        
         // first check in our cache in case we have already seen and successfully
         // validated this role token (signature validation is expensive)
         
-        Map<String, RoleToken> tokenCache = null;
-        try {
-            ZpeClient zpeclt = getZpeClient();
-            tokenCache = zpeclt.getRoleTokenCacheMap();
-            rToken = tokenCache.get(roleToken);
+        Map<String, RoleToken> tokenCache = zpeClt.getRoleTokenCacheMap();
+        RoleToken rToken = tokenCache.get(roleToken);
 
-            if (isTokenExpired(rToken)) {
-                tokenCache.remove(roleToken);
-                rToken = null;
-            }
-        } catch (Exception ignored) {
+        if (rToken != null && isTokenExpired(rToken)) {
+            tokenCache.remove(roleToken);
+            rToken = null;
         }
 
         // if the token is not in the cache then we need to
@@ -579,22 +679,10 @@ public class AuthZpeClient {
             if (!rToken.validate(getZtsPublicKey(rToken.getKeyId()), allowedOffset, false, null)) {
                 return null;
             }
-
-            if (tokenCache != null) {
-                tokenCache.put(roleToken, rToken);
-            }
+            tokenCache.put(roleToken, rToken);
         }
         
         return rToken;
-    }
-    
-    static ZpeClient getZpeClient() throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-
-        if (zpeClt != null) {
-            return zpeClt;
-        }
-        
-        return (ZpeClient) Class.forName(zpeClientImplName).newInstance();
     }
 
     /*
@@ -684,14 +772,14 @@ public class AuthZpeClient {
         final String msgPrefix = "allowActionZPE: domain(" + tokenDomain + ") action(" + action +
                 ") resource(" + resource + ")";
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("{} starting...", msgPrefix);
-        }
-
         if (roles == null || roles.size() == 0) {
             LOG.error("{} ERROR: No roles so access denied", msgPrefix);
             zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_INVALID_TOKEN, tokenDomain);
             return AccessCheckStatus.DENY_ROLETOKEN_INVALID;
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("{} roles({}) starting...", msgPrefix, String.join(",", roles));
         }
 
         if (tokenDomain == null || tokenDomain.isEmpty()) {
@@ -729,7 +817,7 @@ public class AuthZpeClient {
         // over allow assertions
 
         AccessCheckStatus status = AccessCheckStatus.DENY_DOMAIN_NOT_FOUND;
-        Map<String, List<Struct>> roleMap = getRoleSpecificDenyPolicies(tokenDomain);
+        Map<String, List<Struct>> roleMap = zpeClt.getRoleDenyAssertions(tokenDomain);
         if (roleMap != null && !roleMap.isEmpty()) {
             if (actionByRole(action, tokenDomain, resource, roles, roleMap, matchRoleName)) {
                 zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_DENY, tokenDomain);
@@ -744,7 +832,7 @@ public class AuthZpeClient {
         // if the check was not explicitly denied by a standard role, then
         // let's process our wildcard roles for deny assertions
         
-        roleMap = getWildCardDenyPolicies(tokenDomain);
+        roleMap = zpeClt.getWildcardDenyAssertions(tokenDomain);
         if (roleMap != null && !roleMap.isEmpty()) {
             if (actionByWildCardRole(action, tokenDomain, resource, roles, roleMap, matchRoleName)) {
                 zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_DENY, tokenDomain);
@@ -759,7 +847,7 @@ public class AuthZpeClient {
         // so far it did not match any deny assertions so now let's
         // process our allow assertions
         
-        roleMap = getRoleSpecificAllowPolicies(tokenDomain);
+        roleMap = zpeClt.getRoleAllowAssertions(tokenDomain);
         if (roleMap != null && !roleMap.isEmpty()) {
             if (actionByRole(action, tokenDomain, resource, roles, roleMap, matchRoleName)) {
                 zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_ALLOW, tokenDomain);
@@ -774,7 +862,7 @@ public class AuthZpeClient {
         // at this point we either got an allow or didn't match anything so we're
         // going to try the wildcard roles
         
-        roleMap = getWildCardAllowPolicies(tokenDomain);
+        roleMap = zpeClt.getWildcardAllowAssertions(tokenDomain);
         if (roleMap != null && !roleMap.isEmpty()) {
             if (actionByWildCardRole(action, tokenDomain, resource, roles, roleMap, matchRoleName)) {
                 zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_ALLOW, tokenDomain);
@@ -957,46 +1045,6 @@ public class AuthZpeClient {
         return false;
     }
 
-    static Map<String, List<Struct>> getWildCardAllowPolicies(String domain) {
-        try {
-            ZpeClient zpeclt = getZpeClient();
-            return zpeclt.getWildcardAllowAssertions(domain);
-        } catch (Exception exc) {
-            LOG.error("getWildCardAllowPolicies: exc: {}", exc.getMessage());
-        }
-        return null;
-    }
-
-    static Map<String, List<Struct>> getRoleSpecificAllowPolicies(String domain) {
-        try {
-            ZpeClient zpeclt = getZpeClient();
-            return zpeclt.getRoleAllowAssertions(domain);
-        } catch (Exception exc) {
-            LOG.error("getRoleSpecificAllowPolicies: exc: {}", exc.getMessage());
-        }
-        return null;
-    }
-    
-    static Map<String, List<Struct>> getWildCardDenyPolicies(String domain) {
-        try {
-            ZpeClient zpeclt = getZpeClient();
-            return zpeclt.getWildcardDenyAssertions(domain);
-        } catch (Exception exc) {
-            LOG.error("getWildCardDenyPolicies: exc: {}", exc.getMessage());
-        }
-        return null;
-    }
-
-    static Map<String, List<Struct>> getRoleSpecificDenyPolicies(String domain) {
-        try {
-            ZpeClient zpeclt = getZpeClient();
-            return zpeclt.getRoleDenyAssertions(domain);
-        } catch (Exception exc) {
-            LOG.error("getRoleSpecificDenyPolicies: exc: {}", exc.getMessage());
-        }
-        return null;
-    }
-
     static boolean certIssuerMatch(X509Certificate cert) {
 
         // first check if we have any issuers configured
@@ -1053,8 +1101,7 @@ public class AuthZpeClient {
         return false;
     }
 
-    /// CLOVER:OFF
-    public static void main(String [] args) {
+    public static void main(String[] args) {
 
         if (args.length != 3) {
             System.out.println("usage: AuthZpeClient <role-token> <action> <resource>");
@@ -1069,5 +1116,4 @@ public class AuthZpeClient {
         System.out.println("Authorization Response: "
                 + AuthZpeClient.allowAccess(roleToken, action, resource).toString());
     }
-    /// CLOVER:ON
 }

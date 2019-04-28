@@ -20,14 +20,12 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import com.yahoo.athenz.auth.token.AccessToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,13 +50,14 @@ public class ZpeUpdPolLoader implements Closeable {
 
     private static final Logger LOG = LoggerFactory.getLogger(ZpeUpdPolLoader.class);
      
-    static long   sleepTimeMillis = -1;
-    static long   cleanupTokenInterval = 600000; // 600 secs = 10 minutes
-    static long   lastTokenCleanup     = System.currentTimeMillis();
-    
+    static long sleepTimeMillis = -1;
+    static long cleanupTokenInterval = 600000; // 600 secs = 10 minutes
+    static long lastRoleTokenCleanup = System.currentTimeMillis();
+    static long lastAccessTokenCleanup = System.currentTimeMillis();
+
     static {
         
-        String timeoutSecs = System.getProperty(ZpeConsts.ZPE_PROP_MON_TIMEOUT, null);
+        String timeoutSecs = System.getProperty(ZpeConsts.ZPE_PROP_MON_TIMEOUT);
         if (timeoutSecs == null) {
             // default to 5 minutes
             sleepTimeMillis = TimeUnit.MILLISECONDS.convert(5, TimeUnit.MINUTES);
@@ -74,7 +73,7 @@ public class ZpeUpdPolLoader implements Closeable {
             }
         }
 
-        timeoutSecs = System.getProperty(ZpeConsts.ZPE_PROP_MON_CLEANUP_TOKENS, null);
+        timeoutSecs = System.getProperty(ZpeConsts.ZPE_PROP_MON_CLEANUP_TOKENS);
         if (timeoutSecs != null) {
             try {
                 long secs = Long.parseLong(timeoutSecs);
@@ -111,24 +110,26 @@ public class ZpeUpdPolLoader implements Closeable {
 
     // cache of active Role Tokens
     static ConcurrentHashMap<String, RoleToken> roleTokenCacheMap = new ConcurrentHashMap<>();
-    
+
+    // cache of active Access Tokens
+    static ConcurrentHashMap<String, AccessToken> accessTokenCacheMap = new ConcurrentHashMap<>();
+
     // array of file status objects
     static class ZpeFileStatus {
-        String  fname;
-        String  domain;
-        long    modifyTimeMillis;
+        String fname;
+        String domain;
+        long modifyTimeMillis;
         boolean validPolFile;
         
         ZpeFileStatus(String fname, long modTimeMillis) {
-            domain           = null;
+            domain = null;
             modifyTimeMillis = modTimeMillis;
-            validPolFile     = false;
+            validPolFile = false;
         }
     }
-    private Map<String, ZpeFileStatus> fileStatusRef = new ConcurrentHashMap<>();
-    
-    private String polDirName;
 
+    private Map<String, ZpeFileStatus> fileStatusRef = new ConcurrentHashMap<>();
+    private String polDirName;
 
     ZpeUpdPolLoader(String dirName) {
     
@@ -178,6 +179,10 @@ public class ZpeUpdPolLoader implements Closeable {
         return roleTokenCacheMap;
     }
 
+    static public Map<String, AccessToken> getAccessTokenCacheMap() {
+        return accessTokenCacheMap;
+    }
+
     public void start() throws Exception {
         if (polDirName == null) {
             String errMsg = "ERROR: start: no policy directory name, can't monitor data files";
@@ -202,33 +207,25 @@ public class ZpeUpdPolLoader implements Closeable {
     static public void cleanupRoleTokenCache() {
         // is it time to cleanup?
         long now = System.currentTimeMillis();
-        if (now < (cleanupTokenInterval + lastTokenCleanup)) {
+        if (now < (cleanupTokenInterval + lastRoleTokenCleanup)) {
             return;
         }
 
-        List<String> expired = new ArrayList<>();
-        long nowSecs         = now / 1000;
-        for (java.util.Enumeration<String> keys = roleTokenCacheMap.keys();
-             keys.hasMoreElements();) {
-            String key = keys.nextElement();
-            RoleToken rToken = roleTokenCacheMap.get(key);
-            if (rToken == null) {
-                continue;
-            }
-            long expiry = rToken.getExpiryTime();
-            if (expiry != 0 && expiry < nowSecs) {
-                expired.add(key);
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("cleanupRoleTokenCache: Remove expired token. now(secs)="
-                            + nowSecs + " expiry=" + expiry + " token=" + key);
-                }
-            }
+        long nowSecs = now / 1000;
+        roleTokenCacheMap.entrySet().removeIf(entry -> entry.getValue().getExpiryTime() < nowSecs);
+        lastRoleTokenCleanup = now; // reset time of last cleanup
+    }
+
+    static public void cleanupAccessTokenCache() {
+        // is it time to cleanup?
+        long now = System.currentTimeMillis();
+        if (now < (cleanupTokenInterval + lastAccessTokenCleanup)) {
+            return;
         }
-        // HAVE: list of expired tokens
-        for (String key: expired) {
-            roleTokenCacheMap.remove(key);
-        }
-        lastTokenCleanup = now; // reset time of last cleanup
+
+        long nowSecs = now / 1000;
+        accessTokenCacheMap.entrySet().removeIf(entry -> entry.getValue().getExpiryTime() < nowSecs);
+        lastAccessTokenCleanup = now; // reset time of last cleanup
     }
 
     void loadDb() {
