@@ -19,6 +19,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
+import com.yahoo.athenz.auth.token.AccessToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,6 +79,10 @@ public class ZpeUpdater implements ZpeClient {
     //
     public Map<String, RoleToken> getRoleTokenCacheMap() {
         return ZpeUpdPolLoader.getRoleTokenCacheMap();
+    }
+
+    public Map<String, AccessToken> getAccessTokenCacheMap() {
+        return ZpeUpdPolLoader.getAccessTokenCacheMap();
     }
 
     public Map<String, List<Struct>> getWildcardAllowAssertions(String domain) {
