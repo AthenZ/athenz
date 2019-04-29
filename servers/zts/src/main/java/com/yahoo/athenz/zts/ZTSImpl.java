@@ -2178,7 +2178,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String provider = info.getProvider();
         final String ipAddress = ServletRequestUtil.getRemoteAddress(ctx.request());
         if (!instanceCertManager.verifyInstanceCertIPAddress(provider, ipAddress)) {
-            throw forbiddenError("Unknown IP: " + ipAddress, caller, domain);
+            throw forbiddenError("Unknown IP: " + ipAddress + " for Provider: " + provider, caller, domain);
         }
         
         // run the authorization checks to make sure the provider has been
@@ -2432,7 +2432,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         final String ipAddress = ServletRequestUtil.getRemoteAddress(ctx.request());
         if (!instanceCertManager.verifyInstanceCertIPAddress(provider, ipAddress)) {
-            throw forbiddenError("Unknown IP: " + ipAddress, caller, domain);
+            throw forbiddenError("Unknown IP: " + ipAddress + " for Provider: " + provider, caller, domain);
         }
         
         // we are going to get two use cases here. client asking for:
