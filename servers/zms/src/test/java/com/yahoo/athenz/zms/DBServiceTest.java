@@ -16,6 +16,7 @@
 package com.yahoo.athenz.zms;
 
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
+import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.mockito.Mock;
@@ -279,7 +280,8 @@ public class DBServiceTest {
         
         String auditCheck   = "testaudit";
         String caller     = "testCheckDomainAuditEnabledFlagTrueRefValid";
-        Domain dom = zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, auditCheck, caller);
+        String principal = "testprincipal";
+        Domain dom = zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, auditCheck, caller, principal);
         assertNotNull(dom);
     }
 
@@ -318,8 +320,9 @@ public class DBServiceTest {
         Mockito.doReturn(domain).when(mockFileConn).getDomain(domainName);
         
         String caller = "testCheckDomainAuditEnabledFlagTrueRefNull";
+        String principal = "testprincipal";
         try {
-            zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, null, caller);
+            zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, null, caller, principal);
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
             assertTrue(ex.getMessage().contains("Audit reference required"));
@@ -335,8 +338,9 @@ public class DBServiceTest {
         
         String auditCheck = "";  // empty string
         String caller = "testCheckDomainAuditEnabledFlagTrueRefEmpty";
+        String principal = "testprincipal";
         try {
-            zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, auditCheck, caller);
+            zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, auditCheck, caller, principal);
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
             assertTrue(ex.getMessage().contains("Audit reference required"));
@@ -352,7 +356,8 @@ public class DBServiceTest {
         
         String auditCheck = "testaudit";
         String caller = "testCheckDomainAuditEnabledFlagFalseRefValid";
-        Domain dom = zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, auditCheck, caller);
+        String principal = "testprincipal";
+        Domain dom = zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, auditCheck, caller, principal);
         assertNotNull(dom);
     }
 
@@ -364,7 +369,8 @@ public class DBServiceTest {
         Mockito.doReturn(domain).when(mockFileConn).getDomain(domainName);
         
         String caller = "testCheckDomainAuditEnabledFlagFalseRefNull";
-        Domain dom = zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, null, caller);
+        String principal = "testprincipal";
+        Domain dom = zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, null, caller, principal);
         assertNotNull(dom);
     }
 
@@ -391,7 +397,8 @@ public class DBServiceTest {
         
         String auditCheck   = "";
         String caller     = "testCheckDomainAuditEnabledFlagFalseRefEmpty";
-        Domain dom = zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, auditCheck, caller);
+        String principal = "testprincipal";
+        Domain dom = zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, auditCheck, caller, principal);
         assertNotNull(dom);
     }
     
@@ -404,12 +411,63 @@ public class DBServiceTest {
         
         String auditCheck   = "testaudit";
         String caller     = "testCheckDomainAuditEnabledDefault";
+        String principal = "testprincipal";
         try {
-            zms.dbService.checkDomainAuditEnabled(mockFileConn, "unknown_domain", auditCheck, caller);
+            zms.dbService.checkDomainAuditEnabled(mockFileConn, "unknown_domain", auditCheck, caller, principal);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
         }
+    }
+
+    @Test
+    public void testCheckDomainAuditEnabledRefValid() {
+
+        String domainName = "audit-test-domain-name";
+        Domain domain = new Domain().setAuditEnabled(true).setEnabled(true);
+        Mockito.doReturn(domain).when(mockFileConn).getDomain(domainName);
+
+        String auditCheck   = "testaudit";
+        String caller     = "testCheckDomainAuditEnabledFlagTrueRefValid";
+        String principal = "testprincipal";
+
+        AuditReferenceValidator mockAuditReferenceValidator = Mockito.mock(AuditReferenceValidator.class);
+
+        zms.dbService.auditReferenceValidator = mockAuditReferenceValidator;
+
+        Mockito.when(zms.dbService.auditReferenceValidator.validateReference(auditCheck, principal, caller)).thenReturn(true);
+
+        Domain dom = zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, auditCheck, caller, principal);
+        assertNotNull(dom);
+
+        zms.dbService.auditReferenceValidator = null;
+    }
+
+    @Test
+    public void testCheckDomainAuditEnabledRefFail() {
+
+        String domainName = "audit-test-domain-name";
+        Domain domain = new Domain().setAuditEnabled(true).setEnabled(true);
+        Mockito.doReturn(domain).when(mockFileConn).getDomain(domainName);
+
+        String auditCheck   = "testaudit";
+        String caller     = "testCheckDomainAuditEnabledFlagTrueRefValid";
+        String principal = "testprincipal";
+
+        AuditReferenceValidator mockAuditReferenceValidator = Mockito.mock(AuditReferenceValidator.class);
+
+        zms.dbService.auditReferenceValidator = mockAuditReferenceValidator;
+
+        Mockito.when(zms.dbService.auditReferenceValidator.validateReference(auditCheck, principal, caller)).thenReturn(false);
+
+        try {
+            zms.dbService.checkDomainAuditEnabled(mockFileConn, domainName, auditCheck, caller, principal);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        zms.dbService.auditReferenceValidator = null;
     }
 
     @Test
@@ -2315,7 +2373,7 @@ public class DBServiceTest {
         System.setProperty(ZMSConsts.ZMS_PROP_CONFLICT_RETRY_COUNT, "-100");
         System.setProperty(ZMSConsts.ZMS_PROP_CONFLICT_RETRY_SLEEP_TIME, "-1000");
 
-        DBService dbService = new DBService(null, null, "user");
+        DBService dbService = new DBService(null, null, "user", null);
         assertEquals(120, dbService.defaultRetryCount);
         assertEquals(250, dbService.retrySleepTime);
 
@@ -2327,7 +2385,7 @@ public class DBServiceTest {
     public void testShouldRetryOperation() {
         
         FileObjectStore store = new FileObjectStore(new File("."), new File("."));
-        DBService dbService = new DBService(store, null, "user");
+        DBService dbService = new DBService(store, null, "user", null);
         
         // regardless of exception, count of 0 or 1 returns false
         
