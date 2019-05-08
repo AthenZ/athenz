@@ -179,6 +179,32 @@ public class CertificateAuthority implements Authority {
             return null;
         }
 
+        // check to see if we have SPIFFE ID as a principal in SAN entries
+
+        if (principalName.indexOf(":role.") == -1) {
+            String spiffeId = null;
+            for (String certDNSName : uris) {
+                if (certDNSName.startsWith("spiffe://") && certDNSName.contains("/sa/")) {
+                    if (spiffeId != null) {
+                        reportError("CertificateAuthority: Duplicated SPIFFE ID in SAN entry", errMsg);
+                        return null;
+                    }
+                    spiffeId = certDNSName;
+                }
+            }
+
+            // extract principal name from SPIFFE ID
+
+            if (spiffeId != null) {
+                String[] uriFileds = spiffeId.split("/");
+                if (uriFileds.length == 7 && uriFileds[3].equals("ns")) {
+                    principalName = uriFileds[4] + "." + uriFileds[6];
+                } else if (uriFileds.length == 5) {
+                    principalName = uriFileds[2] + "." + uriFileds[4];
+                }
+            }
+        }
+
         // extract domain and service names from the name. We must have
         // a valid service identity in the form domain.service
 
