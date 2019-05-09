@@ -15527,5 +15527,25 @@ public class ZMSImplTest {
     public void testGetAuthorityInvalid() {
         assertNull(zms.getAuthority("invalid.class"));
     }
+
+    @Test
+    public void testLoadAuditRefValidator(){
+        System.setProperty(ZMSConsts.ZMS_PROP_AUDIT_REF_VALIDATOR_FACTORY_CLASS, "com.yahoo.athenz.zms.audit.MockAuditReferenceValidatorFactoryImpl");
+        zms.loadAuditRefValidator();
+        assertNotNull(zms.auditReferenceValidator);
+        System.clearProperty(ZMSConsts.ZMS_PROP_AUDIT_REF_VALIDATOR_FACTORY_CLASS);
+    }
+
+    @Test
+    public void testNullLoadAuditRefValidator(){
+        System.setProperty(ZMSConsts.ZMS_PROP_AUDIT_REF_VALIDATOR_FACTORY_CLASS, "does.not.exist");
+        try {
+            zms.loadAuditRefValidator();
+        } catch (IllegalArgumentException e) {
+            assertEquals(e.getMessage(), "Invalid audit reference factory class");
+        }
+
+        System.clearProperty(ZMSConsts.ZMS_PROP_AUDIT_REF_VALIDATOR_FACTORY_CLASS);
+    }
 }
 

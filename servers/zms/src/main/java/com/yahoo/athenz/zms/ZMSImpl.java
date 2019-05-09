@@ -47,6 +47,8 @@ import com.yahoo.athenz.zms.config.SolutionTemplates;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.athenz.zms.store.ObjectStore;
 import com.yahoo.athenz.zms.store.ObjectStoreFactory;
+import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
+import com.yahoo.athenz.common.server.audit.AuditReferenceValidatorFactory;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 
 import java.io.File;
@@ -173,6 +175,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected Status successServerStatus = null;
     protected Set<String> reservedSystemDomains = null;
     protected File healthCheckFile = null;
+    protected AuditReferenceValidator auditReferenceValidator = null;
 
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
@@ -402,6 +405,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // let's load our audit logger
         
         loadAuditLogger();
+
+        // load any audit reference validator
+
+        loadAuditRefValidator();
         
         // load any configured authorities to authenticate principals
         
@@ -609,7 +616,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         
         ObjectStore store = objFactory.create(keyStore);
-        dbService = new DBService(store, auditLogger, userDomain);
+        dbService = new DBService(store, auditLogger, userDomain, auditReferenceValidator);
     }
     
     void loadMetricObject() {
@@ -699,6 +706,26 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // create our audit logger
         
         auditLogger = auditLogFactory.create();
+    }
+
+    void loadAuditRefValidator() {
+        final String auditRefValidatorClass = System.getProperty(ZMSConsts.ZMS_PROP_AUDIT_REF_VALIDATOR_FACTORY_CLASS);
+        AuditReferenceValidatorFactory auditReferenceValidatorFactory;
+
+        if (auditRefValidatorClass != null && !auditRefValidatorClass.isEmpty()) {
+
+            try {
+                auditReferenceValidatorFactory = (AuditReferenceValidatorFactory) Class.forName(auditRefValidatorClass).newInstance();
+            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+                LOG.error("Invalid AuditReferenceValidatorFactory class: " + auditRefValidatorClass
+                        + " error: " + e.getMessage());
+                throw new IllegalArgumentException("Invalid audit reference factory class");
+            }
+
+            // create our audit reference validator
+
+            auditReferenceValidator = auditReferenceValidatorFactory.create();
+        }
     }
     
     void loadServerPublicKeys() {
