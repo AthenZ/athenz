@@ -69,6 +69,6 @@ public class HttpCertSigner extends AbstractHttpCertSigner {
     @Override
     public String parseResponse(InputStream response) throws IOException {
         X509Certificate cert = JACKSON_MAPPER.readValue(response, X509Certificate.class);
-        return (cert != null) ? cert.getCert() : null;
+        return cert.getCert();
     }
 }

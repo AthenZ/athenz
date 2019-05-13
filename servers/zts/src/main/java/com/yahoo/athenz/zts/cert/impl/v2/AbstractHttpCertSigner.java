@@ -28,9 +28,14 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,10 +51,16 @@ import com.yahoo.athenz.zts.utils.ZTSUtils;
 public abstract class AbstractHttpCertSigner implements CertSigner {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpCertSigner.class);
     private static final String CONTENT_JSON = "application/json";
+    
     protected static final ObjectMapper JACKSON_MAPPER = new ObjectMapper();
 
+    private static final int DEFAULT_MAX_POOL_TOTAL = 30;
+    private static final int DEFAULT_MAX_POOL_PER_ROUTE = 20;
+    
     private CloseableHttpClient httpClient;
-    private SslContextFactory sslContextFactory;
+    private final PoolingHttpClientConnectionManager connManager;
+    private final SslContextFactory sslContextFactory;
+    
     String x509CertUri;
     int requestRetryCount;
     int maxCertExpiryTimeMins;
@@ -88,10 +99,11 @@ public abstract class AbstractHttpCertSigner implements CertSigner {
         }
         
         x509CertUri = getX509CertUri(serverBaseUri);
-        
-        this.httpClient = getHttpClient(connectionTimeoutSec, readTimeoutSec, sslContextFactory.getSslContext());
+        this.connManager = createConnectionPooling(sslContextFactory.getSslContext());
+        this.httpClient = createHttpClient(connectionTimeoutSec, readTimeoutSec, sslContextFactory.getSslContext(), this.connManager);
 
-        LOGGER.info("HttpCertSigner v2 initialized with url: {} connectionTimeoutSec: {}, readTimeoutSec: {}", x509CertUri, connectionTimeoutSec, readTimeoutSec);
+        LOGGER.info("HttpCertSigner initialized with url: {} connectionTimeoutSec: {}, readTimeoutSec: {}", x509CertUri, connectionTimeoutSec, readTimeoutSec);
+        LOGGER.info("HttpCertSigner connection pool stats {} ", this.connManager.getTotalStats().toString());
     }
 
     /**
@@ -114,14 +126,36 @@ public abstract class AbstractHttpCertSigner implements CertSigner {
      */
     public abstract String parseResponse(InputStream response) throws IOException;
     
+    
     /**
      * 
-     * @param connectionTimeoutMs
-     * @param readTimeoutMs
      * @param sslContext
-     * @return CloseableHttpClient httpclient
+     * @return
      */
-    CloseableHttpClient getHttpClient(int connectionTimeoutSec, int readTimeoutSec, SSLContext sslContext) {
+    PoolingHttpClientConnectionManager createConnectionPooling(SSLContext sslContext) {
+        SSLConnectionSocketFactory sslsf = null;
+        Registry<ConnectionSocketFactory> registry = null;
+        PoolingHttpClientConnectionManager poolingHttpClientConnectionManager = null;
+        sslsf = new SSLConnectionSocketFactory(sslContext);
+        registry = RegistryBuilder.<ConnectionSocketFactory>create().register("https", sslsf).build();
+        poolingHttpClientConnectionManager = new PoolingHttpClientConnectionManager(registry);
+        
+        //route is host + port.  Since we have only one, set the max and the route the same
+        poolingHttpClientConnectionManager.setDefaultMaxPerRoute(DEFAULT_MAX_POOL_PER_ROUTE);
+        poolingHttpClientConnectionManager.setMaxTotal(DEFAULT_MAX_POOL_TOTAL);
+        return poolingHttpClientConnectionManager;
+    }
+
+    /**
+     * 
+     * @param connectionTimeoutSec
+     * @param readTimeoutSec
+     * @param sslContext
+     * @param poolingHttpClientConnectionManager
+     * @return
+     */
+    CloseableHttpClient createHttpClient(int connectionTimeoutSec, int readTimeoutSec, SSLContext sslContext, PoolingHttpClientConnectionManager poolingHttpClientConnectionManager) {
+        
         //apache http client expects in milliseconds
         RequestConfig config = RequestConfig.custom()
                 .setConnectTimeout((int) TimeUnit.MILLISECONDS.convert(connectionTimeoutSec, TimeUnit.SECONDS))
@@ -129,23 +163,27 @@ public abstract class AbstractHttpCertSigner implements CertSigner {
                 .setRedirectsEnabled(false)
                 .build();
         return HttpClients.custom()
+                .setConnectionManager(poolingHttpClientConnectionManager)
                 .setDefaultRequestConfig(config)
                 .setSSLContext(sslContext)
                 .build();
     }
     
+
     public void setHttpClient(CloseableHttpClient client) {
         this.httpClient = client;
     }
 
     @Override
     public void close() {
-        if (this.sslContextFactory != null) {
-            try {
-                this.sslContextFactory.stop();
-            } catch (Exception e) {
-                LOGGER.error("unable to stop sslContextFactory", e);
+        try {
+            this.sslContextFactory.stop();
+            this.httpClient.close();
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("connManager stats close(): {}" , this.connManager.getTotalStats().toString());
             }
+            this.connManager.close();
+        } catch (Exception ignored) {
         }
     }
     
@@ -172,7 +210,8 @@ public abstract class AbstractHttpCertSigner implements CertSigner {
     public String generateX509Certificate(String csr, String keyUsage, int expireMins) {
         StringEntity entity = null;
         try {
-            entity = new StringEntity(JACKSON_MAPPER.writeValueAsString(getX509CertSigningRequest(csr, keyUsage, expireMins)));
+            String requestContent = JACKSON_MAPPER.writeValueAsString(getX509CertSigningRequest(csr, keyUsage, expireMins));
+            entity = new StringEntity(requestContent);
         } catch (Throwable t) {
             LOGGER.error("unable to generate csr", t);
             return null;
@@ -205,25 +244,27 @@ public abstract class AbstractHttpCertSigner implements CertSigner {
      * @throws IOException
      */
     String processHttpResponse(HttpUriRequest request, int expectedStatusCode) throws ClientProtocolException, IOException {
-        try (CloseableHttpResponse response = httpClient.execute(request)) {
-            //check for status code first
-            int statusCode = response.getStatusLine().getStatusCode();
-            if (statusCode != expectedStatusCode) {
-                //we have a response but not 201.  Don't bother retry
-                LOGGER.error("unable to fetch requested uri '" + x509CertUri +
-                        "' status: " + statusCode);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("connManager stats before: {}" , this.connManager.getTotalStats().toString());
+        }
+        CloseableHttpResponse response = httpClient.execute(request);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("connManager stats after: {}" , this.connManager.getTotalStats().toString());
+        }
+        // check for status code first
+        int statusCode = response.getStatusLine().getStatusCode();
+        if (statusCode != expectedStatusCode) {
+            // we have a response but not 201. Don't bother retry
+            LOGGER.error("unable to fetch requested uri '" + x509CertUri + "' status: " + statusCode);
+            return null;
+        }
+        // check for content
+        try (InputStream data = response.getEntity().getContent()) {
+            if (data == null) {
+                LOGGER.error("received empty response from uri '" + x509CertUri + "' status: " + statusCode);
                 return null;
             }
-            //check for content
-            try (InputStream data = response.getEntity().getContent()) {
-                if (data == null) {
-                    LOGGER.error("received empty response from uri '" + x509CertUri +
-                            "' status: " + statusCode);
-                    return null;
-                }
-                
-                return parseResponse(data);
-            }
+            return parseResponse(data);
         }
     }
     
