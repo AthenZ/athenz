@@ -58,8 +58,9 @@ public abstract class AbstractHttpCertSigner implements CertSigner {
     private static final int DEFAULT_MAX_POOL_PER_ROUTE = 20;
     
     private CloseableHttpClient httpClient;
-    private PoolingHttpClientConnectionManager connManager;
-    private SslContextFactory sslContextFactory;
+    private final PoolingHttpClientConnectionManager connManager;
+    private final SslContextFactory sslContextFactory;
+    
     String x509CertUri;
     int requestRetryCount;
     int maxCertExpiryTimeMins;
@@ -98,8 +99,8 @@ public abstract class AbstractHttpCertSigner implements CertSigner {
         }
         
         x509CertUri = getX509CertUri(serverBaseUri);
-        
-        initHttpClient(connectionTimeoutSec, readTimeoutSec, sslContextFactory.getSslContext());
+        this.connManager = createConnectionPooling(sslContextFactory.getSslContext());
+        this.httpClient = createHttpClient(connectionTimeoutSec, readTimeoutSec, sslContextFactory.getSslContext(), this.connManager);
 
         LOGGER.info("HttpCertSigner initialized with url: {} connectionTimeoutSec: {}, readTimeoutSec: {}", x509CertUri, connectionTimeoutSec, readTimeoutSec);
         LOGGER.info("HttpCertSigner connection pool stats {} ", this.connManager.getTotalStats().toString());
@@ -125,29 +126,35 @@ public abstract class AbstractHttpCertSigner implements CertSigner {
      */
     public abstract String parseResponse(InputStream response) throws IOException;
     
+    
     /**
      * 
-     * @param connectionTimeoutMs
-     * @param readTimeoutMs
      * @param sslContext
-     * @return CloseableHttpClient httpclient
+     * @return
      */
-    void initHttpClient(int connectionTimeoutSec, int readTimeoutSec, SSLContext sslContext) {
-        
+    PoolingHttpClientConnectionManager createConnectionPooling(SSLContext sslContext) {
         SSLConnectionSocketFactory sslsf = null;
         Registry<ConnectionSocketFactory> registry = null;
         PoolingHttpClientConnectionManager poolingHttpClientConnectionManager = null;
-        if (sslContext != null) {
-            sslsf = new SSLConnectionSocketFactory(sslContext);
-            registry = RegistryBuilder.<ConnectionSocketFactory>create().register("https", sslsf).build();
-            poolingHttpClientConnectionManager = new PoolingHttpClientConnectionManager(registry);
-        } else {
-            poolingHttpClientConnectionManager = new PoolingHttpClientConnectionManager();
-        }
+        sslsf = new SSLConnectionSocketFactory(sslContext);
+        registry = RegistryBuilder.<ConnectionSocketFactory>create().register("https", sslsf).build();
+        poolingHttpClientConnectionManager = new PoolingHttpClientConnectionManager(registry);
+        
         //route is host + port.  Since we have only one, set the max and the route the same
         poolingHttpClientConnectionManager.setDefaultMaxPerRoute(DEFAULT_MAX_POOL_PER_ROUTE);
         poolingHttpClientConnectionManager.setMaxTotal(DEFAULT_MAX_POOL_TOTAL);
-        this.connManager = poolingHttpClientConnectionManager;
+        return poolingHttpClientConnectionManager;
+    }
+
+    /**
+     * 
+     * @param connectionTimeoutSec
+     * @param readTimeoutSec
+     * @param sslContext
+     * @param poolingHttpClientConnectionManager
+     * @return
+     */
+    CloseableHttpClient createHttpClient(int connectionTimeoutSec, int readTimeoutSec, SSLContext sslContext, PoolingHttpClientConnectionManager poolingHttpClientConnectionManager) {
         
         //apache http client expects in milliseconds
         RequestConfig config = RequestConfig.custom()
@@ -155,13 +162,14 @@ public abstract class AbstractHttpCertSigner implements CertSigner {
                 .setSocketTimeout((int) TimeUnit.MILLISECONDS.convert(readTimeoutSec, TimeUnit.SECONDS))
                 .setRedirectsEnabled(false)
                 .build();
-        this.httpClient = HttpClients.custom()
+        return HttpClients.custom()
                 .setConnectionManager(poolingHttpClientConnectionManager)
                 .setDefaultRequestConfig(config)
                 .setSSLContext(sslContext)
                 .build();
     }
     
+
     public void setHttpClient(CloseableHttpClient client) {
         this.httpClient = client;
     }
@@ -169,18 +177,12 @@ public abstract class AbstractHttpCertSigner implements CertSigner {
     @Override
     public void close() {
         try {
-            if (this.sslContextFactory != null) {
-                this.sslContextFactory.stop();
+            this.sslContextFactory.stop();
+            this.httpClient.close();
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("connManager stats close(): {}" , this.connManager.getTotalStats().toString());
             }
-            if (this.httpClient != null) {
-                this.httpClient.close();
-                if (this.connManager != null) {
-                    if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug("connManager stats close(): {}" , this.connManager.getTotalStats().toString());
-                    }
-                    this.connManager.close();
-                }
-            }
+            this.connManager.close();
         } catch (Exception ignored) {
         }
     }
@@ -208,7 +210,8 @@ public abstract class AbstractHttpCertSigner implements CertSigner {
     public String generateX509Certificate(String csr, String keyUsage, int expireMins) {
         StringEntity entity = null;
         try {
-            entity = new StringEntity(JACKSON_MAPPER.writeValueAsString(getX509CertSigningRequest(csr, keyUsage, expireMins)));
+            String requestContent = JACKSON_MAPPER.writeValueAsString(getX509CertSigningRequest(csr, keyUsage, expireMins));
+            entity = new StringEntity(requestContent);
         } catch (Throwable t) {
             LOGGER.error("unable to generate csr", t);
             return null;

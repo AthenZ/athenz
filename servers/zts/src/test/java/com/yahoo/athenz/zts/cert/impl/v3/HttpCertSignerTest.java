@@ -19,6 +19,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.mockito.Mockito;
+import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -164,6 +165,17 @@ public class HttpCertSignerTest {
 
         certSigner.close();
     }
+    
+    @Test
+    public void testGenerateX509CertificateInvalidCsr() throws Exception {
+       HttpCertSigner testHttpCertSigner = new HttpCertSigner() {
+            public Object getX509CertSigningRequest(String csr, String keyUsage, int expireMins) {
+                throw new IllegalArgumentException();
+            }
+        };
+        assertNull(testHttpCertSigner.generateX509Certificate("csr", null, 0));
+        testHttpCertSigner.close();
+    }
 
     @Test
     public void testGetCACertificateException() throws Exception {
@@ -303,6 +315,27 @@ public class HttpCertSignerTest {
             assertTrue(ex.getMessage().contains("Invalid private key store"));
         }
         System.clearProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS);
+    }
+    
+    @Test
+    public void testInvalidSSLContext() throws Exception {
+        System.setProperty(ZTSConsts.ZTS_PROP_KEYSTORE_PATH, "invalid.keystore");
+        try {
+            HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
+            certFactory.create();
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("unable to start sslContextFactory"));
+        }
+        System.clearProperty(ZTSConsts.ZTS_PROP_KEYSTORE_PATH);
+    }
+ 
+    @Test
+    public void tesKeyMeta() throws Exception {
+        KeyMeta keyMeta = new KeyMeta("keymeta");
+        Assert.assertEquals(keyMeta.getIdentifier(), "keymeta");
+        keyMeta.setIdentifier("");
+        Assert.assertEquals(keyMeta.getIdentifier(), "");
     }
 }
 

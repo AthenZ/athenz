@@ -58,6 +58,6 @@ public class HttpCertSigner extends AbstractHttpCertSigner {
     @Override
     public String parseResponse(InputStream response) throws IOException {
         X509CertSignObject pemCert = JACKSON_MAPPER.readValue(response, X509CertSignObject.class);
-        return (pemCert != null) ? pemCert.getPem() : null;
+        return pemCert.getPem();
     }
 }
