@@ -4,6 +4,10 @@ FROM openjdk:8-jre-alpine
 
 WORKDIR /opt/athenz/zms
 
+# only useful if UserAuthority.java is used
+# RUN apk add musl linux-pam linux-pam-dev
+RUN apk add linux-pam
+
 COPY --from=builder /opt/athenz/zms .
 
 ENV JAVA_OPTS=''

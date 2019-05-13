@@ -6,39 +6,37 @@ build-docker:
 	docker build -t athenz-ui -f docker/ui/Dockerfile ui
 	docker build -t athenz-zms-db -f docker/db/zms/Dockerfile servers/zms/schema
 	docker build -t athenz-zts-db -f docker/db/zts/Dockerfile servers/zts/schema
-	docker build -t athenz-cli -f docker/util/cli/Dockerfile .
+	docker build -t athenz-zms-cli -f docker/util/cli/Dockerfile .
 
 run-docker:
-	mkdir -p `pwd`/logs/zms
+	docker run -d -h localhost -p 3306:3306 \
+		--net=host \
+		-e MYSQL_ROOT_PASSWORD=mariadb \
+		--name athenz-zms-db athenz-zms-db
+	docker run -d -h localhost -p 3307:3306 \
+		--net=host \
+		-e MYSQL_ROOT_PASSWORD=mariadb \
+		--name athenz-zts-db athenz-zts-db
 	docker run -d -h localhost -p 4443:4443 \
 		--net=host \
 		-v `pwd`/docker/zms/conf:/opt/athenz/zms/conf/zms_server \
 		-v `pwd`/docker/zms/var:/opt/athenz/zms/var \
 		-v `pwd`/logs/zms:/opt/athenz/zms/logs/zms_server \
-		--name athenz-zms athenz-zms
-	mkdir -p `pwd`/logs/zts
+		--name athenz-zms athenz-zms-server
 	docker run -d -h localhost -p 8443:8443 \
 		--net=host \
 		-v `pwd`/docker/zts/conf:/opt/athenz/zts/conf/zts_server \
 		-v `pwd`/docker/zts/var:/opt/athenz/zts/var \
 		-v `pwd`/logs/zts:/opt/athenz/zts/logs/zts_server \
-		--name athenz-zts athenz-zts
+		--name athenz-zts athenz-zts-server
 	docker run -d -h localhost -p 9443:9443 \
 		--net=host \
 		-v `pwd`/docker/ui/keys:/opt/athenz/ui/keys \
 		--name athenz-ui athenz-ui
-	docker run -d -h localhost -p 3306:3306 \
-		--net=host \
-		-e MYSQL_ROOT_PASSWORD=mariadb \
-		--name athenz-zms-db athenz-zms-db
-	docker run -d -h localhost -p 3306:3307 \
-		--net=host \
-		-e MYSQL_ROOT_PASSWORD=mariadb \
-		--name athenz-zts-db athenz-zts-db
 
-clean:
-	docker ps -a | grep athenz- | awk '{print $$1}'  | xargs docker stop
-	docker ps -a | grep athenz- | awk '{print $$1}'  | xargs docker rm
+clean-docker:
+	docker ps -a | grep athenz- | awk '{print $$1}' | xargs docker stop
+	docker ps -a | grep athenz- | awk '{print $$1}' | xargs docker rm
 	# docker stop athenz-zts; docker rm athenz-zts
 
 # run-zms-extra-jars:

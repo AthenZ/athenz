@@ -1,0 +1,110 @@
+version: '3.7'
+
+networks:
+  hostnet:
+    external: true
+    name: host
+
+services:
+
+  zms-db:
+    image: athenz-zms-db
+    environment:
+      MYSQL_ROOT_PASSWORD: 'mariadb'
+    ports:
+      - target: 3306
+        published: 3306
+        protocol: tcp
+        mode: host
+    networks:
+      hostnet: {}
+    deploy:
+      restart_policy:
+        condition: any
+        max_attempts: 3
+      placement:
+        constraints:
+          - node.role==manager
+  zts-db:
+    image: athenz-zts-db
+    environment:
+      MYSQL_ROOT_PASSWORD: 'mariadb'
+    ports:
+      - target: 3306
+        published: 3307
+        protocol: tcp
+        mode: host
+    networks:
+      hostnet: {}
+    deploy:
+      restart_policy:
+        condition: any
+        max_attempts: 3
+      placement:
+        constraints:
+          - node.role==manager
+
+  zms-server:
+    image: athenz-zms
+    depends_on:
+      - zms-db
+    ports:
+      - target: 4443
+        published: 4443
+        protocol: tcp
+        mode: host
+    networks:
+      hostnet: {}
+    volumes:
+      - ./zms/conf:/opt/athenz/zms/conf/zms_server
+      - ./zms/var:/opt/athenz/zms/var
+      - ./logs/zms:/opt/athenz/zms/logs/zms_server
+    deploy:
+      restart_policy:
+        condition: any
+        max_attempts: 3
+      placement:
+        constraints:
+          - node.role==manager
+  zts-server:
+    image: athenz-zts
+    depends_on:
+      - zts-db
+      - zms-server
+    ports:
+      - target: 8443
+        published: 8443
+        protocol: tcp
+        mode: host
+    networks:
+      hostnet: {}
+    volumes:
+      - ./zts/conf:/opt/athenz/zts/conf/zts_server
+      - ./zts/var:/opt/athenz/zts/var
+      - ./logs/zts:/opt/athenz/zts/logs/zts_server
+    deploy:
+      restart_policy:
+        condition: any
+        max_attempts: 3
+      placement:
+        constraints:
+          - node.role==manager
+
+  # ui:
+  #   image: athenz-ui
+  #   depends_on:
+  #     - zms
+  #     - zts
+  #   ports:
+  #     - 9443:9443
+  #   volumes:
+  #     - ./ui/keys:/opt/athenz/ui/keys
+  #   networks:
+  #     hostnet: {}
+  #   deploy:
+  #     restart_policy:
+  #       condition: any
+  #       max_attempts: 3
+  #     placement:
+  #       constraints:
+  #         - node.role==manager
