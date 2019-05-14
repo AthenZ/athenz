@@ -18,6 +18,8 @@ services:
         mode: host
     networks:
       hostnet: {}
+    volumes:
+      - ./db/zms/zms-db.cnf:/etc/mysql/conf.d/zms-db.cnf
     deploy:
       restart_policy:
         condition: any
@@ -30,12 +32,14 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: 'mariadb'
     ports:
-      - target: 3306
+      - target: 3307
         published: 3307
         protocol: tcp
         mode: host
     networks:
       hostnet: {}
+    volumes:
+      - ./db/zts/zts-db.cnf:/etc/mysql/conf.d/zts-db.cnf
     deploy:
       restart_policy:
         condition: any
@@ -90,21 +94,24 @@ services:
         constraints:
           - node.role==manager
 
-  # ui:
-  #   image: athenz-ui
-  #   depends_on:
-  #     - zms
-  #     - zts
-  #   ports:
-  #     - 9443:9443
-  #   volumes:
-  #     - ./ui/keys:/opt/athenz/ui/keys
-  #   networks:
-  #     hostnet: {}
-  #   deploy:
-  #     restart_policy:
-  #       condition: any
-  #       max_attempts: 3
-  #     placement:
-  #       constraints:
-  #         - node.role==manager
+  ui:
+    image: athenz-ui
+    depends_on:
+      - zms
+      - zts
+    ports:
+      - target: 9443
+        published: 9443
+        protocol: tcp
+        mode: host
+    networks:
+      hostnet: {}
+    volumes:
+      - ./ui/keys:/opt/athenz/ui/keys
+    deploy:
+      restart_policy:
+        condition: any
+        max_attempts: 3
+      placement:
+        constraints:
+          - node.role==manager

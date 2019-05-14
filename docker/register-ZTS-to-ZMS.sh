@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# to script directory
+cd "$(dirname "$0")"
+
 ZMS_CONTAINER=`docker ps -aqf "name=zms-server"`
 
 docker exec $ZMS_CONTAINER addgroup -S athenz-admin

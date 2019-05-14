@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# to script directory
+cd "$(dirname "$0")"
+
 # -------------------------------- ZMS --------------------------------
 
 ZMS_PK_PATH='./zms/var/certs/zms_key.pem'

@@ -4,6 +4,5 @@ COPY zms_server.sql /docker-entrypoint-initdb.d/
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 
-EXPOSE 3306
+# EXPOSE 3306
 CMD ["mysqld"]
-
