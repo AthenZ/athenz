@@ -44,6 +44,39 @@ docker stack rm athenz
 rm -rf ./docker/logs
 ```
 
+## about UI set up
+```bash
+# add athenz.ui service to ZMS
+docker run -it --net=host \
+    -v `pwd`/docker/zms/var/certs/zms_cert.pem:/etc/certs/zms_cert.pem \
+    --name athenz-zms-cli athenz-zms-cli \
+    -i user.admin -z https://localhost:4443/zms/v1 -c /etc/certs/zms_cert.pem \
+    add-domain athenz admin \
+    ; docker rm athenz-zms-cli
+docker run -it --net=host \
+    -v `pwd`/docker/zms/var/certs/zms_cert.pem:/etc/certs/zms_cert.pem \
+    -v `pwd`/docker/ui/keys/athenz.ui_pub.pem:/etc/certs/athenz.ui_pub.pem \
+    --name athenz-zms-cli athenz-zms-cli \
+    -i user.admin -z https://localhost:4443/zms/v1 -c /etc/certs/zms_cert.pem \
+    -d athenz add-service ui 0 /etc/certs/athenz.ui_pub.pem \
+    ; docker rm athenz-zms-cli
+docker run -it --net=host \
+    -v `pwd`/docker/zms/var/certs/zms_cert.pem:/etc/certs/zms_cert.pem \
+    --name athenz-zms-cli athenz-zms-cli \
+    -i user.admin -z https://localhost:4443/zms/v1 -c /etc/certs/zms_cert.pem \
+    show-domain athenz \
+    ; docker rm athenz-zms-cli
+
+# run the UI docker
+docker run -d -h localhost \
+    --network=host -p 9443 \
+    -v `pwd`/docker/zts/conf/athenz.conf:/opt/athenz/ui/config/athenz.conf \
+    -v `pwd`/docker/ui/keys:/opt/athenz/ui/keys \
+    -e ZMS_SERVER='garm.wfan.ogk.ynwm.yahoo.co.jp' \
+    -e UI_SERVER='garm.wfan.ogk.ynwm.yahoo.co.jp' \
+    --name athenz-ui athenz-ui
+```
+
 ## useful commands
 ```bash
 docker stack ps athenz

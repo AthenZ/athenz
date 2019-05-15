@@ -31,10 +31,11 @@ run-docker:
 		-v `pwd`/docker/zts/var:/opt/athenz/zts/var \
 		-v `pwd`/docker/logs/zts:/opt/athenz/zts/logs/zts_server \
 		--name athenz-zts-server athenz-zts
-	docker run -d -h localhost \
-		--network=host -p 9443 \
-		-v `pwd`/docker/ui/keys:/opt/athenz/ui/keys \
-		--name athenz-ui athenz-ui
+	# docker run -d -h localhost \
+	# 	--network=host -p 9443 \
+	# 	-v `pwd`/docker/zts/conf/athenz.conf:/opt/athenz/ui/config/athenz.conf \
+	# 	-v `pwd`/docker/ui/keys:/opt/athenz/ui/keys \
+	# 	--name athenz-ui athenz-ui
 
 clean-docker:
 	docker ps -a | grep athenz- | awk '{print $$1}' | xargs docker stop
