@@ -6,7 +6,8 @@ WORKDIR /opt/athenz/zms
 
 # only useful if UserAuthority.java is used
 # RUN apk add musl linux-pam linux-pam-dev
-RUN apk add linux-pam
+RUN apk add --update linux-pam && \
+    rm -rf /var/cache/apk/*
 
 COPY --from=builder /opt/athenz/zms .
 
