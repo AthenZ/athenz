@@ -19,10 +19,12 @@ public class AccessTokenResponseCacheEntry {
 
     private AccessTokenResponse accessTokenResponse;
     long expiryTime;
+    long serverExpirySecs;
 
     AccessTokenResponseCacheEntry(AccessTokenResponse accessTokenResponse) {
         this.accessTokenResponse = accessTokenResponse;
         this.expiryTime = System.currentTimeMillis() / 1000 + accessTokenResponse.getExpires_in();
+        this.serverExpirySecs = accessTokenResponse.getExpires_in();
     }
 
     public boolean isExpired(long expirySeconds) {
@@ -37,6 +39,13 @@ public class AccessTokenResponseCacheEntry {
             return expiryTime <= now;
         }
 
+        // if we have no expiry seconds specified, then we're going
+        // to use the original server expiry seconds specified in
+        // the token response object
+
+        if (expirySeconds == 0) {
+            expirySeconds = serverExpirySecs;
+        }
         return (expiryTime < System.currentTimeMillis() / 1000 + expirySeconds / 4);
     }
 
