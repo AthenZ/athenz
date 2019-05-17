@@ -57,6 +57,7 @@ public class AccessTokenResponseCacheEntryTest {
         assertFalse(entry.isExpired(100));
         assertFalse(entry.isExpired(200));
         assertFalse(entry.isExpired(-1));
+        assertFalse(entry.isExpired(0));
         assertTrue(entry.isExpired(500));
 
         AccessTokenResponse tokenResponse2 = new AccessTokenResponse();
@@ -69,5 +70,20 @@ public class AccessTokenResponseCacheEntryTest {
         assertTrue(entry2.isExpired(200));
         assertTrue(entry2.isExpired(-1));
         assertTrue(entry2.isExpired(500));
+        assertTrue(entry2.isExpired(0));
+
+        AccessTokenResponse tokenResponse3 = new AccessTokenResponse();
+        tokenResponse3.setExpires_in(4);
+
+        AccessTokenResponseCacheEntry entry3 = new AccessTokenResponseCacheEntry(tokenResponse3);
+        Thread.sleep(2000);
+
+        assertFalse(entry3.isExpired(4));
+        assertFalse(entry3.isExpired(0));
+
+        Thread.sleep(2000);
+
+        assertTrue(entry3.isExpired(4));
+        assertTrue(entry3.isExpired(0));
     }
 }
