@@ -13,7 +13,12 @@
  */
 package com.oath.auth;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
@@ -30,12 +35,19 @@ class TrustStore {
         this.keyStoreProvider = keyStoreProvider;
     }
 
-    public TrustManager[] getTrustManagers() throws Exception {
+    public TrustManager[] getTrustManagers() throws FileNotFoundException, KeyRefresherException, IOException  {
         final KeyStore keystore = keyStoreProvider.provide();
 
-        final TrustManagerFactory trustManagerFactory = TrustManagerFactory
-            .getInstance(TrustManagerFactory.getDefaultAlgorithm());
-        trustManagerFactory.init(keystore);
+        TrustManagerFactory trustManagerFactory;
+        try {
+            trustManagerFactory = TrustManagerFactory
+                .getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            trustManagerFactory.init(keystore);
+        } catch (NoSuchAlgorithmException e) {
+            throw new KeyRefresherException("No Provider supports a TrustManagerFactorySpi implementation for the specified algorithm.", e);
+        } catch (KeyStoreException e) {
+            throw new KeyRefresherException("Unable to generate TrustManagerFactory.", e);
+        }
         return trustManagerFactory.getTrustManagers();
     }
 

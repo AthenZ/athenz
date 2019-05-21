@@ -75,7 +75,7 @@ public class KeyStoreTest {
         assertTrue(chain.length == 2);
     }
     
-    @Test (expected = IllegalArgumentException.class)
+    @Test (expected = KeyRefresherException.class)
     public void testCreateKeyStoreEmpty() throws Exception {
         Utils.createKeyStore("rsa_public_x510_empty.cert", "rsa_private.key");
     }

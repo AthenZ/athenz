@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Yahoo Holdings, Inc.
+ * Copyright 2019 Oath Holdings Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.oath.auth;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.security.KeyStore;
+public class KeyRefresherException extends Exception {
 
-/**
- * Interface to provide a KeyStore object which could be
- * either a PrivateKey/Certificate key pair store or a
- * Trust CA Certificate store
- */
-public interface KeyStoreProvider {
+    private static final long serialVersionUID = 1L;
 
-    KeyStore provide() throws KeyRefresherException, FileNotFoundException, IOException;
+    public KeyRefresherException() {
+        super();
+    }
+    
+    public KeyRefresherException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public KeyRefresherException(String message) {
+        super(message);
+    }
+
+    public KeyRefresherException(Throwable cause) {
+        super(cause);
+    }
 }
-

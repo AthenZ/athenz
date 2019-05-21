@@ -16,6 +16,8 @@
 package com.oath.auth;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyStore;
 
@@ -31,9 +33,11 @@ class CaCertKeyStoreProvider implements KeyStoreProvider {
     }
 
     @Override
-    public KeyStore provide() throws Exception {
+    public KeyStore provide() throws KeyRefresherException, FileNotFoundException, IOException {
+        KeyStore keyStore = null;
         try (InputStream inputStream = new FileInputStream(caCertFilePath)) {
-            return Utils.generateTrustStore(inputStream);
+            keyStore = Utils.generateTrustStore(inputStream);
         }
+        return keyStore;
     }
 }
