@@ -8,8 +8,7 @@ require (
 	github.com/dimfeld/httptreemux v5.0.1+incompatible
 	github.com/gorilla/context v1.1.1 // indirect
 	github.com/gorilla/mux v1.6.2
-	github.com/jawher/mow.cli v1.0.5 // indirect
-	github.com/stretchr/objx v0.2.0 // indirect
+	github.com/jawher/mow.cli v1.1.0 // indirect
 	github.com/stretchr/testify v1.3.0
 	golang.org/x/crypto v0.0.0-20180910181607-0e37d006457b
 	golang.org/x/net v0.0.0-20180921000356-2f5d2388922f

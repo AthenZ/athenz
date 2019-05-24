@@ -69,13 +69,13 @@
   </ciManagement>
 
   <properties>
-    <jetty.version>9.4.15.v20190215</jetty.version>
+    <jetty.version>9.4.18.v20190429</jetty.version>
     <jersey.version>2.28</jersey.version>
-    <jackson.version>2.9.8</jackson.version>
+    <jackson.version>2.9.9</jackson.version>
     <maven-surefire-plugin.version>2.22.0</maven-surefire-plugin.version>
     <rdl.version>1.5.2</rdl.version>
     <bouncycastle.version>1.61</bouncycastle.version>
-    <aws.version>1.11.534</aws.version>
+    <aws.version>1.11.560</aws.version>
     <guava.version>27.1-jre</guava.version>
     <logback.version>1.2.3</logback.version>
     <javax.version>3.1.0</javax.version>
