@@ -25,7 +25,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import com.yahoo.athenz.zms.Access;
+import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zms.ZMSClient;
 import com.yahoo.athenz.zms.ZMSClientException;
 import com.oath.auth.KeyRefresher;
@@ -42,9 +42,11 @@ public class ZMSTLSClient {
         
         CommandLine cmd = parseCommandLine(args);
 
-        final String resource = cmd.getOptionValue("resource").toLowerCase();
-        final String action = cmd.getOptionValue("action").toLowerCase();
-        final String principal = cmd.getOptionValue("principal").toLowerCase();
+        final String command = cmd.getOptionValue("method").toLowerCase();
+        final String resource = cmd.getOptionValue("resource");
+        final String action = cmd.getOptionValue("action");
+        final String domain = cmd.getOptionValue("domain");
+        final String principal = cmd.getOptionValue("principal");
         final String zmsUrl = cmd.getOptionValue("zmsurl");
         final String keyPath = cmd.getOptionValue("key");
         final String certPath = cmd.getOptionValue("cert");
@@ -62,11 +64,25 @@ public class ZMSTLSClient {
                     keyRefresher.getTrustManagerProxy());
             
             try (ZMSClient zmsClient = new ZMSClient(zmsUrl, sslContext)) {
+
                 try {
-                    Access access = zmsClient.getAccess(action, resource, null, principal);
-                    System.out.println("Access: " + access.getGranted());
+                    switch (command) {
+                        case "getdomainrolemembers":
+                            DomainRoleMembers drMembers = zmsClient.getDomainRoleMembers(domain);
+                            for (DomainRoleMember member : drMembers.getMembers()) {
+                                System.out.println("Member: " + member.getMemberName());
+                                for (MemberRole role : member.getMemberRoles()) {
+                                    System.out.println("  Role: " + role.getRoleName());
+                                }
+                            }
+                            break;
+                        case "access":
+                            Access access = zmsClient.getAccess(action, resource, null, principal);
+                            System.out.println("Access: " + access.getGranted());
+                            break;
+                    }
                 } catch (ZMSClientException ex) {
-                    System.out.println("Unable to carry out access check: " + ex.getMessage());
+                    System.out.println("Unable to carry out request: " + ex.getMessage());
                     System.exit(2);
                 }
             }
@@ -80,17 +96,25 @@ public class ZMSTLSClient {
     private static CommandLine parseCommandLine(String[] args) {
         
         Options options = new Options();
-        
+
+        Option command = new Option("m", "method", true, "zms api method name");
+        command.setRequired(true);
+        options.addOption(command);
+
+        Option domain = new Option("d", "domain", true, "domain name");
+        domain.setRequired(false);
+        options.addOption(domain);
+
         Option resource = new Option("r", "resource", true, "resource value");
-        resource.setRequired(true);
+        resource.setRequired(false);
         options.addOption(resource);
         
         Option action = new Option("a", "action", true, "action");
-        action.setRequired(true);
+        action.setRequired(false);
         options.addOption(action);
         
         Option principal = new Option("u", "principal", true, "principal to check for");
-        principal.setRequired(true);
+        principal.setRequired(false);
         options.addOption(principal);
         
         Option key = new Option("k", "key", true, "private key path");
