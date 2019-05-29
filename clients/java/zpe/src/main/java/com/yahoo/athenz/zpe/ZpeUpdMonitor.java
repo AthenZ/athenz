@@ -69,7 +69,7 @@ public class ZpeUpdMonitor implements Runnable {
         if (exc == null) {
             LOG.debug(msg);
         } else {
-            LOG.error("{}, exc: {}", msg, exc.getMessage());
+            LOG.error("{}, exc: {}", msg, exc);
         }
     }
 

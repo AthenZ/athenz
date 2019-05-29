@@ -69,7 +69,7 @@ public class ZpeUpdPolLoader implements Closeable {
                 String errMsg = "start: WARNING: Failed using system property("
                         + ZpeConsts.ZPE_PROP_MON_TIMEOUT
                         + ") Got property value=" + timeoutSecs;
-                LOG.warn(errMsg + ", exc: " + exc.getMessage());
+                LOG.warn("{}, exc: {}", errMsg, exc);
             }
         }
 
@@ -82,7 +82,7 @@ public class ZpeUpdPolLoader implements Closeable {
                 String errMsg = "start: WARNING: Failed using system property("
                         + ZpeConsts.ZPE_PROP_MON_CLEANUP_TOKENS
                         + ") Got property value=" + timeoutSecs;
-                LOG.warn(errMsg + ", exc: " + exc.getMessage());
+                LOG.warn("{}, exc: {}", errMsg, exc);
             }
         }
     }
@@ -138,7 +138,7 @@ public class ZpeUpdPolLoader implements Closeable {
             try {
                 loadDb();
             } catch (Exception exc) {
-                LOG.error("loadDb Failed, exc: " + exc.getMessage());
+                LOG.error("loadDb Failed, exc: {}", exc);
             }
         }
     }
@@ -185,8 +185,7 @@ public class ZpeUpdPolLoader implements Closeable {
 
     public void start() throws Exception {
         if (polDirName == null) {
-            String errMsg = "ERROR: start: no policy directory name, can't monitor data files";
-            throw new Exception(errMsg);
+            throw new Exception("ERROR: start: no policy directory name, can't monitor data files");
         }
         
         if (updMonWorker == null) {
@@ -248,13 +247,13 @@ public class ZpeUpdPolLoader implements Closeable {
         }
         
         if (LOG.isDebugEnabled()) {
-            LOG.debug("loadDb: START thrd=" + Thread.currentThread().getId() + " directory=" + polDirName);
+            LOG.debug("loadDb: START thrd={} directory={}", Thread.currentThread().getId(), polDirName);
         }
         for (File polFile: polFileNames) {
             
             String fileName = polFile.getName();
             if (LOG.isDebugEnabled()) {
-                LOG.debug("loadDb: START thrd=" + Thread.currentThread().getId() + " file name=" + fileName);
+                LOG.debug("loadDb: START thrd={} file name={}", Thread.currentThread().getId(), fileName);
             }
             long lastModMilliSeconds = polFile.lastModified();
             Map<String, ZpeFileStatus> fsmap = getFileStatusMap();
@@ -263,7 +262,7 @@ public class ZpeUpdPolLoader implements Closeable {
                 
                 if (!polFile.exists()) { // file was deleted
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("loadDb: file(" + fileName + " ) was deleted or doesn't exist");
+                        LOG.debug("loadDb: file({}) was deleted or doesn't exist", fileName);
                     }
                     fsmap.remove(fileName);
                     
@@ -290,11 +289,11 @@ public class ZpeUpdPolLoader implements Closeable {
                     String timeMsg = " last-file-mod-time=" + lastModMilliSeconds;
                     if (fstat.validPolFile) {
                         if (LOG.isDebugEnabled()) {
-                            LOG.debug("loadDb: ignore reload file: " + fileName + " since up to date: " + timeMsg);
+                            LOG.debug("loadDb: ignore reload file: {} since up to date: {}", fileName, timeMsg);
                         }
                         continue;
                     } else if (LOG.isDebugEnabled()) {
-                        LOG.debug("loadDb: retry load file: " + fileName + " since last load was bad: " + timeMsg);
+                        LOG.debug("loadDb: retry load file: {} since last load was bad: {}", fileName, timeMsg);
                     }
             
                 }
@@ -332,8 +331,9 @@ public class ZpeUpdPolLoader implements Closeable {
      * list per role and put it into the domain policy maps(domRoleMap, domWildcardRoleMap).
      **/
     private void loadFile(File polFile) {
+
         if (LOG.isDebugEnabled()) {
-            LOG.debug("loadFile: file(" + polFile.getName() + ")");
+            LOG.debug("loadFile: file({})", polFile.getName());
         }
         
         Path path = Paths.get(polDirName + File.separator + polFile.getName());
@@ -341,10 +341,10 @@ public class ZpeUpdPolLoader implements Closeable {
         try {
             spols = JSON.fromBytes(Files.readAllBytes(path), DomainSignedPolicyData.class);
         } catch (Exception ex) {
-            LOG.error("loadFile: unable to decode policy file=" + polFile.getName() + " error: " + ex.getMessage());
+            LOG.error("loadFile: unable to decode policy file={} error: {}", polFile.getName(), ex);
         }
         if (spols == null) {
-            LOG.error("loadFile: unable to decode domain file=" + polFile.getName());
+            LOG.error("loadFile: unable to decode domain file={}", polFile.getName());
             // mark this as an invalid file
             Map<String, ZpeFileStatus> fsmap = getFileStatusMap();
             ZpeFileStatus fstat = fsmap.get(polFile.getName());
@@ -363,7 +363,11 @@ public class ZpeUpdPolLoader implements Closeable {
         boolean verified = false;
         if (signedPolicyData != null) {
             java.security.PublicKey pubKey = AuthZpeClient.getZtsPublicKey(keyId);
-            verified = Crypto.verify(SignUtils.asCanonicalString(signedPolicyData), pubKey, signature);
+            if (pubKey == null) {
+                LOG.error("loadFile: unable to fetch zts public key for id: {}", keyId);
+            } else {
+                verified = Crypto.verify(SignUtils.asCanonicalString(signedPolicyData), pubKey, signature);
+            }
         }
         
         PolicyData policyData = null;
@@ -375,12 +379,16 @@ public class ZpeUpdPolLoader implements Closeable {
             
             if (policyData != null) {
                 java.security.PublicKey pubKey = AuthZpeClient.getZmsPublicKey(keyId);
-                verified = Crypto.verify(SignUtils.asCanonicalString(policyData), pubKey, signature);
+                if (pubKey == null) {
+                    LOG.error("loadFile: unable to fetch zms public key for id: {}", keyId);
+                } else {
+                    verified = Crypto.verify(SignUtils.asCanonicalString(policyData), pubKey, signature);
+                }
             }
         }
         
          if (!verified || policyData == null) {
-             LOG.error("loadFile: policy file=" + polFile.getName() + " is invalid");
+             LOG.error("loadFile: policy file={} is invalid", polFile.getName());
              // mark this as an invalid file
              Map<String, ZpeFileStatus> fsmap = getFileStatusMap();
              ZpeFileStatus fstat = fsmap.get(polFile.getName());
@@ -394,7 +402,7 @@ public class ZpeUpdPolLoader implements Closeable {
         
         String domainName = policyData.getDomain();
         if (LOG.isDebugEnabled()) {
-            LOG.debug("loadFile: policy file(" + polFile.getName() + ") for domain(" + domainName + ") is valid");
+            LOG.debug("loadFile: policy file({}) for domain({}) is valid", polFile.getName(), domainName);
         }
         
         // Process the policies into assertions, process the assertions: action, resource, role
@@ -410,7 +418,7 @@ public class ZpeUpdPolLoader implements Closeable {
         for (Policy policy : policies) {
             String pname = policy.getName();
             if (LOG.isDebugEnabled()) {
-                LOG.debug("loadFile: domain(" + domainName + ") policy(" + pname + ")");
+                LOG.debug("loadFile: domain([}) policy({})", domainName, pname);
             }
             List<Assertion> assertions = policy.getAssertions();
             if (assertions == null) {
