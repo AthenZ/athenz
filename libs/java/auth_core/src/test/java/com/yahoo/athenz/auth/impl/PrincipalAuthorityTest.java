@@ -592,4 +592,10 @@ public class PrincipalAuthorityTest {
         Principal check = serviceAuthority.authenticate(t, "10", "10", null);
         assertNull(check);
     }
+
+    @Test
+    public void testGetAuthenticateChallenge() {
+        PrincipalAuthority serviceAuthority = new PrincipalAuthority();
+        assertEquals(serviceAuthority.getAuthenticateChallenge(), "AthenzPrincipalToken realm=\"athenz\"");
+    }
 }

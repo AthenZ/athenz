@@ -57,6 +57,15 @@ public interface Authority {
     String getHeader();
 
     /**
+     * @return the string to be returned as the value for WWW-Authenticate header:
+     *        WWW-Authenticate  = "WWW-Authenticate" ":" 1#challenge
+     * in case all authorities fail to authenticate a request.
+     */
+    default String getAuthenticateChallenge() {
+        return null;
+    }
+
+    /**
      * @return a boolean flag indicating whether or not authenticated principals
      * by this authority are allowed to be "authorized" to make changes. If this
      * flag is false, then the principal must first get a ZMS UserToken and then
@@ -75,7 +84,19 @@ public interface Authority {
     default String getUserDomainName(String userName) {
         return userName;
     }
-    
+
+    /**
+     * If the authority is handling user principals, then this method will be
+     * called when users are added as members so the authority can validate
+     * that the role member is valid. If the member is not valid, the request
+     * (e.g. putRole, putMembership) will be rejected as invalid.
+     * @param username name of the user to check
+     * @return true if username is valid, false otherwise
+     */
+    default boolean isValidUser(String username) {
+        return true;
+    }
+
     /**
      * Verify the credentials and if valid return the corresponding Principal, null otherwise.
      * @param creds the credentials (i.e. cookie, token, secret) that will identify the principal.

@@ -22,7 +22,16 @@ import javax.net.ssl.SSLContext;
 
 public class InstanceTestClassProvider implements InstanceProvider {
 
-    public InstanceTestClassProvider() {
+    public InstanceTestClassProvider() throws InstantiationException {
+        boolean exc = Boolean.parseBoolean(System.getProperty("athenz.instance.test.class.exception", "false"));
+        if (exc) {
+            throw new InstantiationException();
+        }
+    }
+
+    @Override
+    public Scheme getProviderScheme() {
+        return Scheme.CLASS;
     }
 
     @Override

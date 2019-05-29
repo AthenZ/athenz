@@ -1,0 +1,19 @@
+{
+  "syncToken": "123456",
+  "createDate": "2018-03-17-01-16-14",
+  "prefixes": [
+    {
+      "ip_prefix": "11.1.0.0/21"
+    },
+    {
+      "ip_prefix": "172.255.10.2/32",
+      "region": "GLOBAL"
+    },
+    {
+      "ip_prefix": "10.11.12.13/32"
+    },
+    {
+      "ipv6_prefix": "::1"
+    }
+  ]
+}

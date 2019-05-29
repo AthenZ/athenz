@@ -4,21 +4,26 @@
 //Domain types
 include "Names.tdl";
 
+//Set of metadata attributes that all domains may have and can be changed.
+type DomainMeta Struct {
+    String description (optional); //a description of the domain
+    ResourceName org (optional); //a reference to an Organization. (i.e. org:media)
+    Bool enabled (optional, default=true); //Future use only, currently not used
+    Bool auditEnabled (optional, default=false); //Flag indicates whether or not domain modifications should be logged for SOX+Auditing. If true, the auditRef parameter must be supplied(not empty) for any API defining it.
+    String account (optional); //associated cloud (i.e. aws) account id (system attribute - uniqueness check)
+    Int32 ypmId (optional); //associated product id (system attribute - uniqueness check)
+    String applicationId (optional); //associated application id
+    String certDnsDomain (optional); //domain certificate dns domain (system attribute)
+}
+
 //A domain is an independent partition of users, roles, and resources.
 //Its name represents the definition of a namespace; the only way a
 //new namespace can be created, from the top, is by creating Domains.
 //Administration of a domain is governed by the parent domain (using
 //reverse-DNS namespaces). The top level domains are governed by the
 //special "sys.auth" domain.
-type Domain Struct {
+type Domain DomainMeta {
     DomainName name; //the common name to be referred to, the symbolic id. It is immutable
     Timestamp modified (optional); //the last modification timestamp of any object or attribute in this domain
     UUID id (optional); //unique identifier of the domain. generated on create, never reused
-    String description (optional); //description of the domain
-    ResourceName org (optional); //a reference to an Organization
-    Bool enabled (optional, default=true); //Future use only, currently not used
-    Bool auditEnabled (optional, default=false); //Flag indicates whether or not domain modifications should be logged for SOX+Auditing. If true, the auditRef parameter must be supplied(not empty) for any API defining it.
-    String account (optional); // associated cloud (i.e. aws) account id
-    Int32 ypmId (optional); // associated product id
-    String applicationId (optional); // associated application id
 }

@@ -176,6 +176,9 @@ public class SSHCertificateTest {
         data1.setPublicKey("publickey1");
         data2.setPublicKey("publickey2");
 
+        req1.setCsr("csr1");
+        assertEquals("csr1", req1.getCsr());
+
         req1.setCertRequestData(data1);
         assertEquals(data1, req1.getCertRequestData());
 
@@ -191,6 +194,12 @@ public class SSHCertificateTest {
         assertNotEquals(req1, req2);
 
         meta2.setRequestor("req1");
+        assertNotEquals(req1, req2);
+
+        req2.setCsr("csr2");
+        assertNotEquals(req1, req2);
+
+        req2.setCsr("csr1");
         assertEquals(req1, req2);
 
         assertNotEquals(null, req1);

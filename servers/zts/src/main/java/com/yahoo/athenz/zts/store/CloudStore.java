@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.amazonaws.AmazonServiceException;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.slf4j.Logger;
@@ -54,14 +55,17 @@ import com.yahoo.rdl.Timestamp;
 public class CloudStore {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CloudStore.class);
+    private static final String AWS_ROLE_SESSION_NAME = "athenz-zts-service";
 
     String awsRole = null;
     String awsRegion;
     boolean awsEnabled;
-    private int cacheTimeout;
+    int cacheTimeout;
+    int invalidCacheTimeout;
     BasicSessionCredentials credentials;
     private Map<String, String> cloudAccountCache;
-    private ConcurrentHashMap<String, AWSTemporaryCredentials> awsCredsCache;
+    ConcurrentHashMap<String, AWSTemporaryCredentials> awsCredsCache;
+    ConcurrentHashMap<String, Long> awsInvalidCredsCache;
     private HttpClient httpClient;
 
     private ScheduledExecutorService scheduledThreadPool = null;
@@ -72,34 +76,43 @@ public class CloudStore {
 
         cloudAccountCache = new HashMap<>();
         awsCredsCache = new ConcurrentHashMap<>();
+        awsInvalidCredsCache = new ConcurrentHashMap<>();
 
         // Instantiate and start our HttpClient
 
         httpClient = new HttpClient();
-        httpClient.setFollowRedirects(false);
-        httpClient.setStopTimeout(1000);
-        try {
-            httpClient.start();
-        } catch (Exception ex) {
-            LOGGER.error("CloudStore: unable to start http client", ex);
-            throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
-                    "Http client not available");
-        }
+        setupHttpClient(httpClient);
 
         // check to see if we are given region name
 
         awsRegion = System.getProperty(ZTSConsts.ZTS_PROP_AWS_REGION_NAME);
 
-        // get the default cache timeout
+        // get the default cache timeout in seconds
 
         cacheTimeout = Integer.parseInt(
                 System.getProperty(ZTSConsts.ZTS_PROP_AWS_CREDS_CACHE_TIMEOUT, "600"));
+
+        invalidCacheTimeout = Integer.parseInt(
+                System.getProperty(ZTSConsts.ZTS_PROP_AWS_CREDS_INVALID_CACHE_TIMEOUT, "120"));
 
         // initialize aws support
 
         awsEnabled = Boolean.parseBoolean(
                 System.getProperty(ZTSConsts.ZTS_PROP_AWS_ENABLED, "false"));
         initializeAwsSupport();
+    }
+
+    void setupHttpClient(HttpClient client) {
+
+        client.setFollowRedirects(false);
+        client.setStopTimeout(1000);
+        try {
+            client.start();
+        } catch (Exception ex) {
+            LOGGER.error("CloudStore: unable to start http client", ex);
+            throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
+                    "Http client not available");
+        }
     }
 
     public void close() {
@@ -188,13 +201,8 @@ public class CloudStore {
             return false;
         }
 
-        try {
-            if (!parseInstanceInfo(document)) {
-                return false;
-            }
-        } catch (Exception ex) {
-            LOGGER.error("CloudStore: unable to parse instance identity document: {}, error: {}",
-                    document, ex.getMessage());
+        if (!parseInstanceInfo(document)) {
+            LOGGER.error("CloudStore: unable to parse instance identity document: {}", document);
             return false;
         }
 
@@ -216,20 +224,15 @@ public class CloudStore {
         // all possible index out of bounds exceptions here and just
         // report the error and return false
 
-        try {
-            if (!parseIamRoleInfo(iamRole)) {
-                return false;
-            }
-        } catch (Exception ex) {
-            LOGGER.error("CloudStore: unable to parse iam role data: {}, error: {}",
-                    iamRole, ex.getMessage());
+        if (!parseIamRoleInfo(iamRole)) {
+            LOGGER.error("CloudStore: unable to parse iam role data: {}", iamRole);
             return false;
         }
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("CloudStore: service meta information:");
-            LOGGER.debug("CloudStore:   role:   {}", awsRole);
-            LOGGER.debug("CloudStore:   region: {}", awsRegion);
+            LOGGER.debug("CloudStore: role:   {}", awsRole);
+            LOGGER.debug("CloudStore: region: {}", awsRegion);
         }
         return true;
     }
@@ -371,7 +374,7 @@ public class CloudStore {
     }
 
     AssumeRoleRequest getAssumeRoleRequest(String account, String roleName, String principal,
-                                           Integer durationSeconds, String externalId) {
+            Integer durationSeconds, String externalId) {
 
         // assume the target role to get the credentials for the client
         // aws format is arn:aws:iam::<account-id>:role/<role-name>
@@ -380,7 +383,11 @@ public class CloudStore {
 
         AssumeRoleRequest req = new AssumeRoleRequest();
         req.setRoleArn(arn);
-        req.setRoleSessionName(principal);
+
+        // for role session name AWS has a limit on length: 64
+        // so we need to make sure our session is shorter than that
+
+        req.setRoleSessionName(AWS_ROLE_SESSION_NAME);
         if (durationSeconds != null && durationSeconds > 0) {
             req.setDurationSeconds(durationSeconds);
         }
@@ -434,6 +441,49 @@ public class CloudStore {
         return awsCredsCache.entrySet().removeIf(entry -> entry.getValue().getExpiration().millis() < now);
     }
 
+    boolean removeExpiredInvalidCredentials() {
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Checking for expired invalid cached credentials in {} entries", awsInvalidCredsCache.size());
+        }
+
+        // iterate through all entries in the map and remove any
+        // entries that have been expired already
+
+        long checkTime = System.currentTimeMillis() - invalidCacheTimeout * 1000;
+        return awsInvalidCredsCache.entrySet().removeIf(entry -> entry.getValue() <= checkTime);
+    }
+
+    boolean isFailedTempCredsRequest(final String cacheKey) {
+
+        // if our cache is disabled there is no need for a lookup
+
+        if (invalidCacheTimeout == 0) {
+            return false;
+        }
+
+        Long timeStamp = awsInvalidCredsCache.get(cacheKey);
+        if (timeStamp == null) {
+            return false;
+        }
+
+        // we're going to cache any creds for configured number of seconds
+
+        long diffSeconds = (System.currentTimeMillis() - timeStamp) / 1000;
+        return diffSeconds < invalidCacheTimeout;
+    }
+
+    void putInvalidCacheCreds(final String key) {
+
+        // if our cache is disabled we do nothing
+
+        if (invalidCacheTimeout == 0) {
+            return;
+        }
+
+        awsInvalidCredsCache.put(key, System.currentTimeMillis());
+    }
+
     AWSTemporaryCredentials getCachedCreds(final String cacheKey, Integer durationSeconds) {
 
         // if our cache is disabled there is no need for a lookup
@@ -479,11 +529,23 @@ public class CloudStore {
                     "AWS Support not enabled");
         }
 
+        // first check to see if we already have the temp creds cached
+
         final String cacheKey = getCacheKey(account, roleName, principal,
                 durationSeconds, externalId);
         AWSTemporaryCredentials tempCreds = getCachedCreds(cacheKey, durationSeconds);
         if (tempCreds != null) {
             return tempCreds;
+        }
+
+        // before going to AWS STS, check if we have the request in our failed
+        // cache since we don't want to generate too many requests AWS STS
+        // and eventually become rate limited
+
+        if (isFailedTempCredsRequest(cacheKey)) {
+            LOGGER.error("CloudStore: assumeAWSRole - failed cached request for account {} with role: {}",
+                    account, roleName);
+            return null;
         }
 
         AssumeRoleRequest req = getAssumeRoleRequest(account, roleName, principal,
@@ -495,14 +557,30 @@ public class CloudStore {
 
             Credentials awsCreds = res.getCredentials();
             tempCreds = new AWSTemporaryCredentials()
-                .setAccessKeyId(awsCreds.getAccessKeyId())
-                .setSecretAccessKey(awsCreds.getSecretAccessKey())
-                .setSessionToken(awsCreds.getSessionToken())
-                .setExpiration(Timestamp.fromMillis(awsCreds.getExpiration().getTime()));
+                    .setAccessKeyId(awsCreds.getAccessKeyId())
+                    .setSecretAccessKey(awsCreds.getSecretAccessKey())
+                    .setSessionToken(awsCreds.getSessionToken())
+                    .setExpiration(Timestamp.fromMillis(awsCreds.getExpiration().getTime()));
+
+        } catch (AmazonServiceException ex) {
+
+            LOGGER.error("CloudStore: assumeAWSRole - unable to assume role: {}, error: {}, status code: {}",
+                    req.getRoleArn(), ex.getMessage(), ex.getStatusCode());
+
+            // if this is access denied then we're going to cache
+            // the failed results
+
+            if (ex.getStatusCode() == ResourceException.FORBIDDEN) {
+                putInvalidCacheCreds(cacheKey);
+            }
+
+            return null;
 
         } catch (Exception ex) {
+
             LOGGER.error("CloudStore: assumeAWSRole - unable to assume role: {}, error: {}",
                     req.getRoleArn(), ex.getMessage());
+
             return null;
         }
 
@@ -528,6 +606,7 @@ public class CloudStore {
         }
     }
 
+    ///CLOVER:OFF
     public boolean verifyInstanceDocument(OSTKInstanceInformation info, String publicKey) {
 
         // for now we're only validating the document signature
@@ -545,6 +624,7 @@ public class CloudStore {
         }
         return verified;
     }
+    ///CLOVER:ON
 
     class AWSCredentialsUpdater implements Runnable {
 
@@ -566,6 +646,13 @@ public class CloudStore {
                 removeExpiredCredentials();
             } catch (Exception ex) {
                 LOGGER.error("AWSCredentialsUpdater: unable to remove expired aws credentials: {}",
+                        ex.getMessage());
+            }
+
+            try {
+                removeExpiredInvalidCredentials();
+            } catch (Exception ex) {
+                LOGGER.error("AWSCredentialsUpdater: unable to remove expired invalid aws credentials: {}",
                         ex.getMessage());
             }
         }

@@ -17,6 +17,7 @@ package com.yahoo.athenz.instance.provider.impl;
 
 import static org.testng.Assert.assertEquals;
 
+import com.yahoo.athenz.instance.provider.InstanceProvider;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
@@ -33,7 +34,8 @@ public class InstanceHttpProviderTest {
         
         InstanceHttpProvider provider = new InstanceHttpProvider();
         provider.initialize("provider", "https://localhost:4443/instance", SSLContext.getDefault(), null);
-        
+        assertEquals(InstanceProvider.Scheme.HTTP, provider.getProviderScheme());
+
         InstanceProviderClient client = Mockito.mock(InstanceProviderClient.class);
         provider.client = client;
         

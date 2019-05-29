@@ -27,7 +27,6 @@ public class InstanceConfirmationTest {
     @Test
     public void testInstanceConfirmationEquals() {
         InstanceConfirmation confirm = new InstanceConfirmation();
-        //noinspection EqualsWithItself
         assertEquals(confirm, confirm);
         //noinspection ConstantConditions,ObjectEqualsNull,SimplifiedTestNGAssertion
         assertFalse(confirm.equals(null));

@@ -1,0 +1,14 @@
+[Unit]
+Description=Athenz ZTS Service
+Wants=network-online.target ntpd.service
+After=network-online.target
+
+[Service]
+ExecStart=/opt/zts/bin/zts.sh
+Restart=on-failure
+RestartSec=20
+User=athenz-zts
+Group=athenz
+
+[Install]
+WantedBy=multi-user.target

@@ -20,23 +20,22 @@ import java.io.File;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  * Used in monitoring the policy directory for file changes.
  */
 public class ZpeUpdMonitor implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(ZpeUpdMonitor.class);
 
+    private String dirName;
+    private boolean firstRun = true;
     private final ZpeUpdPolLoader updLoader;
-    private volatile boolean      shutdownThread = false;
-    private String                dirName;
-    private boolean               firstRun = true;
-    
+    private volatile boolean shutdownThread = false;
+
     private java.io.FilenameFilter polFileNameFilter = (dir, name) -> name.endsWith(".pol");
 
     ZpeUpdMonitor(final ZpeUpdPolLoader zpeUpdLoader) {
         updLoader = zpeUpdLoader;
-        dirName   = updLoader.getDirName();
+        dirName = updLoader.getDirName();
     }
 
     public void cancel() {
@@ -44,30 +43,33 @@ public class ZpeUpdMonitor implements Runnable {
     }
     
     public File[] loadFileStatus() {
+
         if (dirName == null) {
             return null;
         }
         // read all the file names in the policy directory and add to the list
+
         File pdir = new File(dirName);
         File [] files = pdir.listFiles(polFileNameFilter);
         if (files == null || files.length == 0) {
             if (pdir.exists()) {
-                LOG.error("loadFileStatus: the directory=" + dirName + " exists, but there are no policy files in it");
+                LOG.error("loadFileStatus: the directory={} exists, but there are no policy files in it", dirName);
             } else {
-                LOG.error("loadFileStatus: the directory=" + dirName + " does NOT exist");
+                LOG.error("loadFileStatus: the directory={} does NOT exist", dirName);
             }
         }
         return files;
     }
 
     private void logRunMsg(Exception exc) {
+
         dirName = dirName == null ? "MISSING-POL-DIR-NAME" : dirName;
         String msg = "Reload directory=" + dirName;
 
         if (exc == null) {
             LOG.debug(msg);
         } else {
-            LOG.error(msg + ", exc: " + exc.getMessage());
+            LOG.error("{}, exc: {}", msg, exc.getMessage());
         }
     }
 
@@ -83,8 +85,11 @@ public class ZpeUpdMonitor implements Runnable {
             return;
         }
 
-        // perform cleanup of RoleTokens - expired ones will be removed
+        // perform cleanup of RoleTokens and AccessTokens
+        // expired ones will be removed
+
         ZpeUpdPolLoader.cleanupRoleTokenCache();
+        ZpeUpdPolLoader.cleanupAccessTokenCache();
 
         try {
             updLoader.loadDb(loadFileStatus());
@@ -103,6 +108,5 @@ public class ZpeUpdMonitor implements Runnable {
             logRunMsg(null);
         }
     }
-
 }
 

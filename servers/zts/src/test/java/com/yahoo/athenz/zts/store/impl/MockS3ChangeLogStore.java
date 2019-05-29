@@ -27,9 +27,16 @@ class MockS3ChangeLogStore extends S3ChangeLogStore {
         super(cloudStore);
         awsS3Client = mock(AmazonS3.class);
     }
-    
+
+    void resetAWSS3Client() {
+        awsS3Client = null;
+    }
+
     @Override
     AmazonS3 getS3Client() {
+        if (awsS3Client == null) {
+            awsS3Client = mock(AmazonS3.class);
+        }
         return awsS3Client;
     }
 }

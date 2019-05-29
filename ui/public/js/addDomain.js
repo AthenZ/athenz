@@ -1,11 +1,9 @@
 /*globals userId:false */
 'use strict';
 
-var $ = require('jquery');
-var selectizeCommon = require('./selectize').selectizeCommon;
-require('select2');
+(function($) {
+  var selectizeCommon = require('./selectize').selectizeCommon;
 
-(function() {
   var domainForm = $('.domain-form form');
 
   if(domainForm.length) {
@@ -17,4 +15,4 @@ require('select2');
 
     selectizeCommon(domainForm);
   }
-})();
+})(window.jQuery);

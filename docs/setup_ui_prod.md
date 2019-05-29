@@ -40,7 +40,7 @@ $ nodemon --version
 Download latest Athenz UI release from
 
 ```
-https://github.com/yahoo/athenz/releases/latest
+https://bintray.com/yahoo/maven/athenz-ui/_latestVersion#files
 ```
 
 ```shell
@@ -65,8 +65,8 @@ commands:
 
 ```shell
 $ cd keys
-$ openssl genrsa -out athenz.ui.pem 2048
-$ openssl rsa -in athenz.ui.pem -pubout > athenz.ui_pub.pem
+$ openssl genrsa -out athenz.ui-server.pem 2048
+$ openssl rsa -in athenz.ui-server.pem -pubout > athenz.ui-server_pub.pem
 ```
 
 ### X509 Certificate
@@ -92,7 +92,7 @@ register a new service in `athenz` domain:
 ```shell
 $ cd athenz-ui-X.Y
 $ bin/<platform>/zms-cli -z https://<zms-server>:4443/zms/v1 add-domain athenz
-$ bin/<platform>/zms-cli -z https://<zms-server>:4443/zms/v1 -d athenz add-service ui 0 keys/athenz.ui_pub.pem
+$ bin/<platform>/zms-cli -z https://<zms-server>:4443/zms/v1 -d athenz add-service ui-server 0 keys/athenz.ui-server_pub.pem
 ```
 
 ### Generate Athenz Configuration File
@@ -114,18 +114,18 @@ $ bin/<platform>/athenz-conf -o config/athenz.conf -z https://<zms-server>:4443/
 Set the following environment variable before starting the UI Server:
 
 ```shell
-$ export UI_SERVER=<ui-server-host-name> ZMS_SERVER=<zms-server-host-name>
 $ cd athenz-ui-X.Y
-$ bin/athenz_ui start
+$ export UI_SERVER=<ui-server-host-name> ZMS_SERVER=<zms-server-host-name>
+$ sudo -E bin/athenz_ui start
 ```
 
 Based on the sample configuration file provided, Athenz UI Server will be listening
-on port 9443.
+on port 443.
 
 To stop the UI server, execute the following commands:
 
 ```shell
-$ export UI_SERVER=<ui-server-host-name> ZMS_SERVER=<zms-server-host-name>
 $ cd athenz-ui-X.Y
-$ bin/athenz_ui stop
+$ export UI_SERVER=<ui-server-host-name> ZMS_SERVER=<zms-server-host-name>
+$ sudo -E bin/athenz_ui stop
 ```

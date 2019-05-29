@@ -12,8 +12,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/natefinch/lumberjack"
 	"github.com/yahoo/athenz/utils/zpe-updater"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 func main() {

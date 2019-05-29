@@ -1,0 +1,10 @@
+{
+  "syncToken": "123456",
+  "createDate": "2018-03-17-01-16-14",
+  "prefixes": [
+    {
+      "ip_prefix": "11.2.0.0/ 21",
+      "service": "ATHENZ"
+    }
+  ]
+}

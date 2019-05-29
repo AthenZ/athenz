@@ -33,6 +33,8 @@ import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Timestamp;
 import com.yahoo.rdl.UUID;
+import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
+
 
 public class DBService {
     
@@ -50,8 +52,9 @@ public class DBService {
     private static final String ROLE_PREFIX = "role.";
     private static final String POLICY_PREFIX = "policy.";
     private static final String TEMPLATE_DOMAIN_NAME = "_domain_";
+    AuditReferenceValidator auditReferenceValidator;
     
-    public DBService(ObjectStore store, AuditLogger auditLogger, String userDomain) {
+    public DBService(ObjectStore store, AuditLogger auditLogger, String userDomain, AuditReferenceValidator auditReferenceValidator) {
         
         this.store = store;
         this.userDomain = userDomain;
@@ -85,6 +88,8 @@ public class DBService {
         // create our quota checker class
         
         quotaCheck = new QuotaChecker();
+
+        this.auditReferenceValidator = auditReferenceValidator;
     }
 
     static class DataCache {
@@ -208,29 +213,33 @@ public class DBService {
                 .setApplicationId(applicationId);
         
         // get our connection object
-        
-        int retryCount = defaultRetryCount;
-        do {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
-                
+
                 // before adding this domain we need to verify our
                 // quota check for sub-domains
-                
+
                 quotaCheck.checkSubdomainQuota(con, domainName, caller);
-                
+
                 boolean objectsInserted = con.insertDomain(domain);
                 if (!objectsInserted) {
                     con.rollbackChanges();
                     throw ZMSUtils.requestError("makeDomain: Cannot create domain: " +
                             domainName + " - already exists", caller);
                 }
-                
+
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
                 auditDetails.append("{\"domain\": ");
                 auditLogDomain(auditDetails, domain);
-                
+
                 // first create and process the admin role
-                
+
                 Role adminRole = ZMSUtils.makeAdminRole(domainName, adminUsers);
                 auditDetails.append(", \"role\": ");
                 if (!processRole(con, null, domainName, ZMSConsts.ADMIN_ROLE_NAME, adminRole,
@@ -239,9 +248,9 @@ public class DBService {
                     throw ZMSUtils.internalServerError("makeDomain: Cannot process role: '" +
                             adminRole.getName(), caller);
                 }
-                
+
                 // now create and process the admin policy
-                
+
                 Policy adminPolicy = ZMSUtils.makeAdminPolicy(domainName, adminRole);
                 auditDetails.append(", \"policy\": ");
                 if (!processPolicy(con, null, domainName, ZMSConsts.ADMIN_POLICY_NAME, adminPolicy,
@@ -250,10 +259,10 @@ public class DBService {
                     throw ZMSUtils.internalServerError("makeDomain: Cannot process policy: '" +
                             adminPolicy.getName(), caller);
                 }
-                
+
                 // go through our list of templates and add the specified
                 // roles and polices to our domain
-                
+
                 if (solutionTemplates != null) {
                     for (String templateName : solutionTemplates) {
                         auditDetails.append(", \"template\": ");
@@ -268,25 +277,22 @@ public class DBService {
                 auditDetails.append("}");
 
                 // update our domain time-stamp and save changes
-                
+
                 saveChanges(con, domainName);
 
                 // audit log entry
-                
+
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_POST,
                         domainName, auditDetails.toString());
-                
+
                 return domain;
-                
+
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
                     throw ex;
                 }
             }
-            retryCount -= 1;
-        } while (retryCount > 0);
-        
-        return null;
+        }
     }
     
     boolean processPolicy(ObjectStoreConnection con, Policy originalPolicy, String domainName,
@@ -671,7 +677,7 @@ public class DBService {
                 
             case ResourceException.GONE:
 
-                // this error indicates that the server is reporting is in
+                // this error indicates that the server is reporting it is in
                 // read-only mode which indicates a fail-over has taken place
                 // and we need to clear all connections and start new ones
                 // this could only happen with write operations against the
@@ -702,172 +708,186 @@ public class DBService {
     
     void executePutPolicy(ResourceContext ctx, String domainName, String policyName, Policy policy,
             String auditRef, String caller) {
-        
-        int retryCount = defaultRetryCount;
-        do {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
-                
+
                 // first verify that auditing requirements are met
-                
-                checkDomainAuditEnabled(con, domainName, auditRef, caller);
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx));
 
                 // check that quota is not exceeded
-                
+
                 quotaCheck.checkPolicyQuota(con, domainName, policy, caller);
-                
+
                 // retrieve our original policy
-                
+
                 Policy originalPolicy = getPolicy(con, domainName, policyName);
 
                 // now process the request
-                
+
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
                 if (!processPolicy(con, originalPolicy, domainName, policyName, policy, false, auditDetails)) {
                     con.rollbackChanges();
                     throw ZMSUtils.internalServerError("unable to put policy: " + policy.getName(), caller);
                 }
-                
+
                 // update our domain time-stamp and save changes
-                
+
                 saveChanges(con, domainName);
 
                 // audit log the request
-                
+
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         policyName, auditDetails.toString());
-                
+
                 return;
-                
+
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
                     throw ex;
                 }
             }
-            retryCount -= 1;
-        } while (retryCount > 0);
+        }
     }
     
     void executePutRole(ResourceContext ctx, String domainName, String roleName, Role role,
             String auditRef, String caller) {
-        
-        int retryCount = defaultRetryCount;
-        do {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
-                
+
+                String principal = getPrincipalName(ctx);
                 // first verify that auditing requirements are met
-                
-                checkDomainAuditEnabled(con, domainName, auditRef, caller);
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, principal);
 
                 // check that quota is not exceeded
-                
+
                 quotaCheck.checkRoleQuota(con, domainName, role, caller);
-                
+
                 // retrieve our original role
-                
+
                 Role originalRole = getRole(con, domainName, roleName, false, false);
 
                 // now process the request
-                
+
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
                 if (!processRole(con, originalRole, domainName, roleName, role,
-                        getPrincipalName(ctx), auditRef, false, auditDetails)) {
+                        principal, auditRef, false, auditDetails)) {
                     con.rollbackChanges();
                     throw ZMSUtils.internalServerError("unable to put role: " + role.getName(), caller);
                 }
-                
+
                 // update our domain time-stamp and save changes
-                
+
                 saveChanges(con, domainName);
 
                 // audit log the request
-                
+
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         roleName, auditDetails.toString());
-                
+
                 return;
-                
+
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
                     throw ex;
                 }
             }
-            retryCount -= 1;
-        } while (retryCount > 0);
+        }
     }
 
     void executePutServiceIdentity(ResourceContext ctx, String domainName, String serviceName,
             ServiceIdentity service, String auditRef, String caller) {
-        
-        int retryCount = defaultRetryCount;
-        do {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
-                
+
                 // first verify that auditing requirements are met
-                
-                checkDomainAuditEnabled(con, domainName, auditRef, caller);
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx));
 
                 // check that quota is not exceeded
-                
+
                 quotaCheck.checkServiceIdentityQuota(con, domainName, service, caller);
-                
+
                 // retrieve our original service identity object
-                
+
                 ServiceIdentity originalService = getServiceIdentity(con, domainName, serviceName);
 
                 // now process the request
-                
+
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
                 if (!processServiceIdentity(con, originalService, domainName, serviceName,
                         service, false, auditDetails)) {
                     con.rollbackChanges();
                     throw ZMSUtils.internalServerError("unable to put service: " + service.getName(), caller);
                 }
-                
+
                 // update our domain time-stamp and save changes
-                
+
                 saveChanges(con, domainName);
 
                 // audit log the request
-                
+
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         serviceName, auditDetails.toString());
-                
+
                 return;
-                
+
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
                     throw ex;
                 }
             }
-            retryCount -= 1;
-        } while (retryCount > 0);
+        }
     }
     
     void executePutPublicKeyEntry(ResourceContext ctx, String domainName, String serviceName,
             PublicKeyEntry keyEntry, String auditRef, String caller) {
-        
-        int retryCount = defaultRetryCount;
-        do {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
-                
+
                 // first verify that auditing requirements are met
-                
-                checkDomainAuditEnabled(con, domainName, auditRef, caller);
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx));
 
                 // check to see if this key already exists or not
-                
+
                 PublicKeyEntry originalKeyEntry = con.getPublicKeyEntry(domainName, serviceName,
                         keyEntry.getId(), false);
-                
+
                 // now we need verify our quota check if we know that
                 // that we'll be adding another public key
-                
+
                 if (originalKeyEntry == null) {
                     quotaCheck.checkServiceIdentityPublicKeyQuota(con, domainName, serviceName, caller);
                 }
-                
+
                 // now process the request
-                
+
                 boolean requestSuccess;
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
 
@@ -878,60 +898,63 @@ public class DBService {
                     requestSuccess = con.updatePublicKeyEntry(domainName, serviceName, keyEntry);
                     auditDetails.append("{\"updated-publicKeys\": [");
                 }
-                
+
                 if (!requestSuccess) {
                     con.rollbackChanges();
                     throw ZMSUtils.internalServerError("unable to put public key: " + keyEntry.getId() +
                             " in service " + ZMSUtils.serviceResourceName(domainName, serviceName), caller);
                 }
-                
+
                 // update our service and domain time-stamp and save changes
-                
+
                 con.updateServiceIdentityModTimestamp(domainName, serviceName);
                 saveChanges(con, domainName);
 
                 // audit log the request
-                
+
                 auditLogPublicKeyEntry(auditDetails, keyEntry, true);
                 auditDetails.append("]}");
-                
+
                 if (null != ctx) {
                     auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                             serviceName, auditDetails.toString());
                 }
-                
+
                 return;
-                
+
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
                     throw ex;
                 }
             }
-            retryCount -= 1;
-        } while (retryCount > 0);
+        }
     }
     
     void executeDeletePublicKeyEntry(ResourceContext ctx, String domainName, String serviceName,
             String keyId, String auditRef, String caller) {
-        
-        int retryCount = defaultRetryCount;
-        do {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
-                
+
                 // first verify that auditing requirements are met
-                
-                checkDomainAuditEnabled(con, domainName, auditRef, caller);
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx));
 
                 // now process the request
-                
+
                 if (!con.deletePublicKeyEntry(domainName, serviceName, keyId)) {
                     con.rollbackChanges();
                     throw ZMSUtils.notFoundError("unable to delete public key: " + keyId +
                             " in service " + ZMSUtils.serviceResourceName(domainName, serviceName), caller);
                 }
-                
+
                 // update our service and domain time-stamp and save changes
-                
+
                 con.updateServiceIdentityModTimestamp(domainName, serviceName);
                 saveChanges(con, domainName);
 
@@ -939,21 +962,20 @@ public class DBService {
 
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
                 auditDetails.append("{\"deleted-publicKeys\": [{\"id\": \"").append(keyId).append("\"}]}");
-                
+
                 if (null != ctx) {
                     auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
                             serviceName, auditDetails.toString());
                 }
 
                 return;
-                
+
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
                     throw ex;
                 }
             }
-            retryCount -= 1;
-        } while (retryCount > 0);
+        }
     }
     
     boolean isTrustRole(Role role) {
@@ -967,132 +989,146 @@ public class DBService {
     
     void executePutMembership(ResourceContext ctx, String domainName, String roleName,
             RoleMember roleMember, String auditRef, String caller) {
-        
-        int retryCount = defaultRetryCount;
-        do {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
             try (ObjectStoreConnection con = store.getConnection(true, true)) {
-                
+
+                String principal = getPrincipalName(ctx);
+
                 // first verify that auditing requirements are met
-                
-                checkDomainAuditEnabled(con, domainName, auditRef, caller);
-                
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, principal);
+
                 // before inserting a member we need to verify that
                 // this is a group role and not a delegated one.
-                
+
                 if (isTrustRole(con.getRole(domainName, roleName))) {
                     con.rollbackChanges();
                     throw ZMSUtils.requestError(caller + ": " + roleName +
                             "is a delegated role", caller);
                 }
-                
+
                 // now we need verify our quota check
-                
+
                 quotaCheck.checkRoleMembershipQuota(con, domainName, roleName, caller);
-                
+
                 // process our insert role member support. since this is a "single"
                 // operation, we are not using any transactions.
-                
+
                 if (!con.insertRoleMember(domainName, roleName, roleMember,
-                        getPrincipalName(ctx), auditRef)) {
+                        principal, auditRef)) {
                     con.rollbackChanges();
                     throw ZMSUtils.requestError(caller + ": unable to insert role member: " +
                             roleMember.getMemberName() + " to role: " + roleName, caller);
                 }
 
                 // update our role and domain time-stamps, and invalidate local cache entry
-                
+
                 con.updateRoleModTimestamp(domainName, roleName);
                 con.updateDomainModTimestamp(domainName);
                 cacheStore.invalidate(domainName);
-                
+
                 // audit log the request
 
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         roleName, "{\"member\": \"" + roleMember.getMemberName() + "\"}");
-                
+
                 return;
-                
+
             } catch (ResourceException ex) {
-                
+
                 // otherwise check if we need to retry or return failure
-                
+
                 if (!shouldRetryOperation(ex, retryCount)) {
                     throw ex;
                 }
             }
-            retryCount -= 1;
-        } while (retryCount > 0);
+        }
     }
     
     void executePutEntity(ResourceContext ctx, String domainName, String entityName,
             Entity entity, String auditRef, String caller) {
-        
-        int retryCount = defaultRetryCount;
-        do {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
-                
+
                 // first verify that auditing requirements are met
-                
-                checkDomainAuditEnabled(con, domainName, auditRef, caller);
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx));
 
                 // check that quota is not exceeded
-                
+
                 quotaCheck.checkEntityQuota(con, domainName, entity, caller);
-                
+
                 // check to see if this key already exists or not
-                
+
                 Entity originalEntity = con.getEntity(domainName, entityName);
-                
+
                 // now process the request
-                
+
                 boolean requestSuccess;
                 if (originalEntity == null) {
                     requestSuccess = con.insertEntity(domainName, entity);
                 } else {
                     requestSuccess = con.updateEntity(domainName, entity);
                 }
-                
+
                 if (!requestSuccess) {
                     con.rollbackChanges();
                     throw ZMSUtils.internalServerError("unable to put entity: "
                             + entity.getName(), caller);
                 }
-                
+
                 // update our domain time-stamp and save changes
-                
+
                 saveChanges(con, domainName);
 
                 // audit log the request
-                
+
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         entity.getName(), JSON.string(entity.getValue()));
-                
+
                 return;
-                
+
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
                     throw ex;
                 }
             }
-            retryCount -= 1;
-        } while (retryCount > 0);
+        }
     }
     
     void executeDeleteMembership(ResourceContext ctx, String domainName, String roleName,
             String normalizedMember, String auditRef, String caller) {
-        
-        int retryCount = defaultRetryCount;
-        do {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
             try (ObjectStoreConnection con = store.getConnection(true, true)) {
-                
+
+                String principal = getPrincipalName(ctx);
+
                 // first verify that auditing requirements are met
-                
-                checkDomainAuditEnabled(con, domainName, auditRef, caller);
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, principal);
 
                 // if this is the admin role then we need to make sure
                 // the admin is not himself who happens to be the last
                 // member in the role
-                
+
                 if (ZMSConsts.ADMIN_ROLE_NAME.equals(roleName)) {
                     List<RoleMember> members = con.listRoleMembers(domainName, roleName);
                     if (members.size() == 1 && members.get(0).getMemberName().equals(normalizedMember)) {
@@ -1100,18 +1136,18 @@ public class DBService {
                                 ": Cannot delete last member of 'admin' role", caller);
                     }
                 }
-                
+
                 // process our delete role member operation
-                
+
                 if (!con.deleteRoleMember(domainName, roleName, normalizedMember,
-                        getPrincipalName(ctx), auditRef)) {
+                        principal, auditRef)) {
                     con.rollbackChanges();
                     throw ZMSUtils.notFoundError(caller + ": unable to delete role member: " +
                             normalizedMember + " from role: " + roleName, caller);
                 }
 
                 // update our role and domain time-stamps, and invalidate local cache entry
-                
+
                 con.updateRoleModTimestamp(domainName, roleName);
                 con.updateDomainModTimestamp(domainName);
                 cacheStore.invalidate(domainName);
@@ -1120,168 +1156,179 @@ public class DBService {
 
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
                         roleName, "{\"member\": \"" + normalizedMember + "\"}");
-                
+
                 return;
-                
+
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
                     throw ex;
                 }
             }
-            retryCount -= 1;
-        } while (retryCount > 0);
+        }
     }
     
     void executeDeleteServiceIdentity(ResourceContext ctx, String domainName, String serviceName,
             String auditRef, String caller) {
-        
-        int retryCount = defaultRetryCount;
-        do {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
-                
+
                 // first verify that auditing requirements are met
-                
-                checkDomainAuditEnabled(con, domainName, auditRef, caller);
-                
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx));
+
                 // process our delete service request
-                
+
                 if (!con.deleteServiceIdentity(domainName, serviceName)) {
                     con.rollbackChanges();
                     throw ZMSUtils.notFoundError(caller + ": unable to delete service: " + serviceName, caller);
                 }
-                
+
                 // update our domain time-stamp and save changes
-                
+
                 saveChanges(con, domainName);
 
                 // audit log the request
-                
+
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
                         serviceName, null);
-                
+
                 return;
-                
+
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
                     throw ex;
                 }
             }
-            retryCount -= 1;
-        } while (retryCount > 0);
+        }
     }
 
     void executeDeleteEntity(ResourceContext ctx, String domainName, String entityName,
             String auditRef, String caller) {
-        
-        int retryCount = defaultRetryCount;
-        do {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
-                
+
                 // first verify that auditing requirements are met
-                
-                checkDomainAuditEnabled(con, domainName, auditRef, caller);
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx));
 
                 // process our delete role request
-                
+
                 if (!con.deleteEntity(domainName, entityName)) {
                     con.rollbackChanges();
                     throw ZMSUtils.notFoundError(caller + ": unable to delete entity: " + entityName, caller);
                 }
 
                 // update our domain time-stamp and save changes
-                
+
                 saveChanges(con, domainName);
 
                 // audit log the request
-                
+
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
                         entityName, null);
-                
+
                 return;
-                
+
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
                     throw ex;
                 }
             }
-            retryCount -= 1;
-        } while (retryCount > 0);
+        }
     }
     
     void executeDeleteRole(ResourceContext ctx, String domainName, String roleName,
             String auditRef, String caller) {
-        
-        int retryCount = defaultRetryCount;
-        do {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
-                
+
                 // first verify that auditing requirements are met
-                
-                checkDomainAuditEnabled(con, domainName, auditRef, caller);
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx));
 
                 // process our delete role request
-                
+
                 if (!con.deleteRole(domainName, roleName)) {
                     con.rollbackChanges();
                     throw ZMSUtils.notFoundError(caller + ": unable to delete role: " + roleName, caller);
                 }
 
                 // update our domain time-stamp and save changes
-                
+
                 saveChanges(con, domainName);
 
                 // audit log the request
-                
+
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
                         roleName, null);
-                
+
                 return;
-                
+
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
                     throw ex;
                 }
             }
-            retryCount -= 1;
-        } while (retryCount > 0);
+        }
     }
     
     void executeDeletePolicy(ResourceContext ctx, String domainName, String policyName,
             String auditRef, String caller) {
-        
-        int retryCount = defaultRetryCount;
-        do {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
-                
+
                 // first verify that auditing requirements are met
-                
-                checkDomainAuditEnabled(con, domainName, auditRef, caller);
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx));
 
                 // process our delete policy request
-                
+
                 if (!con.deletePolicy(domainName, policyName)) {
                     con.rollbackChanges();
                     throw ZMSUtils.notFoundError(caller + ": unable to delete policy: " + policyName, caller);
                 }
 
                 // update our domain time-stamp and save changes
-                
+
                 saveChanges(con, domainName);
 
                 // audit log the request
-                
+
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
                         policyName, null);
-                
+
                 return;
-                
+
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
                     throw ex;
                 }
             }
-            retryCount -= 1;
-        } while (retryCount > 0);
+        }
     }
     
     /**
@@ -1289,7 +1336,7 @@ public class DBService {
      * an exception will be thrown. This is the first check before any write
      * operation is carried out so we don't really have anything to roll-back
      **/
-    Domain checkDomainAuditEnabled(ObjectStoreConnection con, String domainName, String auditRef, String caller) {
+    Domain checkDomainAuditEnabled(ObjectStoreConnection con, String domainName, String auditRef, String caller, String principal) {
 
         Domain domain = con.getDomain(domainName);
         if (domain == null) {
@@ -1297,46 +1344,54 @@ public class DBService {
             throw ZMSUtils.notFoundError(caller + ": Unknown domain: " + domainName, caller);
         }
 
-        if (domain.getAuditEnabled() && (auditRef == null || auditRef.length() == 0)) {
-            con.rollbackChanges();
-            throw ZMSUtils.requestError(caller + ": Audit reference required for domain: " + domainName, caller);
+        if (domain.getAuditEnabled()) {
+            if (auditRef == null || auditRef.length() == 0) {
+                con.rollbackChanges();
+                throw ZMSUtils.requestError(caller + ": Audit reference required for domain: " + domainName, caller);
+            }
+
+            if (auditReferenceValidator != null && !auditReferenceValidator.validateReference(auditRef, principal, caller)) {
+                con.rollbackChanges();
+                throw ZMSUtils.requestError(caller + ": Audit reference validation failed for domain: " + domainName + ", auditRef: " + auditRef, caller);
+            }
         }
         
         return domain;
     }
     
     Domain executeDeleteDomain(ResourceContext ctx, String domainName, String auditRef, String caller) {
-        
-        int retryCount = defaultRetryCount;
-        do {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
-                
+
                 // first verify that auditing requirements are met
-                
-                Domain domain = checkDomainAuditEnabled(con, domainName, auditRef, caller);
+
+                Domain domain = checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx));
 
                 // now process the request
-                
+
                 con.deleteDomain(domainName);
                 con.commitChanges();
                 cacheStore.invalidate(domainName);
 
                 // audit log the request
-                
+
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
                         domainName, null);
-                
+
                 return domain;
-                
+
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
                     throw ex;
                 }
             }
-            retryCount -= 1;
-        } while (retryCount > 0);
-        
-        return null;
+        }
     }
     
     List<String> listPrincipals(String domainName, boolean domainOnly) {
@@ -1392,7 +1447,53 @@ public class DBService {
             return users;
         }
     }
-    
+
+    void removePrincipalFromDomainRoles(ObjectStoreConnection con, String domainName, String principalName,
+            String adminUser, String auditRef) {
+
+        // extract all the roles that this principal is member of
+        // we have to this here so that there are records of
+        // entries in the role member audit logs and the domain
+        // entries are properly invalidated
+
+        List<PrincipalRole> roles = con.listPrincipalRoles(domainName, principalName);
+
+        // we want to check if we had any roles otherwise
+        // we don't want to update the domain mod timestamp
+
+        if (roles.isEmpty()) {
+            return;
+        }
+
+        for (PrincipalRole role : roles) {
+
+            final String roleName = role.getRoleName();
+
+            // process our delete role member operation
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("removePrincipalFromDomainRoles: removing member {} from {}:role.{}",
+                        principalName, domainName, roleName);
+            }
+
+            // we are going to ignore all errors here rather than
+            // rejecting the full operation
+
+            try {
+                con.deleteRoleMember(domainName, roleName, principalName, adminUser, auditRef);
+            } catch (ResourceException ex) {
+                LOG.error("removePrincipalFromDomainRoles: unable to remove {} from {}:role.{} - error {}",
+                        principalName, domainName, roleName, ex.getMessage());
+            }
+
+            // update our role and domain time-stamps, and invalidate local cache entry
+
+            con.updateRoleModTimestamp(domainName, roleName);
+        }
+
+        con.updateDomainModTimestamp(domainName);
+    }
+
     void removePrincipalFromAllRoles(ObjectStoreConnection con, String principalName,
             String adminUser, String auditRef) {
         
@@ -1403,7 +1504,7 @@ public class DBService {
         
         List<PrincipalRole> roles;
         try {
-            roles = con.listPrincipalRoles(principalName);
+            roles = con.listPrincipalRoles(null, principalName);
         } catch (ResourceException ex) {
             
             // if there is no such principal then we have nothing to do
@@ -1414,7 +1515,7 @@ public class DBService {
                 throw ex;
             }
         }
-        
+
         for (PrincipalRole role : roles) {
             
             final String domainName = role.getDomainName();
@@ -1466,54 +1567,90 @@ public class DBService {
             cacheStore.invalidate(subDomain);
         }
     }
-    
-    void executeDeleteUser(ResourceContext ctx, String userName, String domainName, String auditRef, String caller) {
-        
-        int retryCount = defaultRetryCount;
-        do {
+
+    void executeDeleteDomainRoleMember(ResourceContext ctx, String domainName,
+             String memberName, String auditRef, String caller) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
             try (ObjectStoreConnection con = store.getConnection(true, true)) {
-                
+
+                // remove this user from all roles manually so that we
+                // can have an audit log record for each role
+
+                removePrincipalFromDomainRoles(con, domainName, memberName,
+                        getPrincipalName(ctx), auditRef);
+
+                // audit log the request
+
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
+                        memberName, null);
+
+                return;
+
+            } catch (ResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
+            }
+        }
+    }
+
+    void executeDeleteUser(ResourceContext ctx, String userName, String domainName,
+             String auditRef, String caller) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(true, true)) {
+
                 // remove all principal domains
 
                 removePrincipalDomains(con, domainName);
-                
+
                 // extract all principals that this user has - this would
                 // include the user self plus all services this user
                 // has created in the personal domain + sub-domains
-                
+
                 List<String> userSvcPrincipals = con.listPrincipals(domainName);
 
                 // remove this user from all roles manually so that we
                 // can have an audit log record for each role
-                
+
                 final String adminPrincipal = getPrincipalName(ctx);
                 removePrincipalFromAllRoles(con, userName, adminPrincipal, auditRef);
                 for (String userSvcPrincipal : userSvcPrincipals) {
                     removePrincipalFromAllRoles(con, userSvcPrincipal, adminPrincipal, auditRef);
                 }
-                
+
                 // finally delete the principal object. any roles that were
                 // left behind will be cleaned up from this operation
-                
+
                 if (!con.deletePrincipal(userName, true)) {
                     throw ZMSUtils.notFoundError(caller + ": unable to delete user: "
                             + userName, caller);
                 }
 
                 // audit log the request
-                
+
                 auditLogRequest(ctx, userName, auditRef, caller, ZMSConsts.HTTP_DELETE,
                         userName, null);
-                
+
                 return;
-                
+
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
                     throw ex;
                 }
             }
-            retryCount -= 1;
-        } while (retryCount > 0);
+        }
     }
     
     ServiceIdentity getServiceIdentity(String domainName, String serviceName) {
@@ -1685,7 +1822,13 @@ public class DBService {
             return membership;
         }
     }
-    
+
+    DomainRoleMembers listDomainRoleMembers(String domainName) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            return con.listDomainRoleMembers(domainName);
+        }
+    }
+
     Role getRole(String domainName, String roleName, Boolean auditLog, Boolean expand) {
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
@@ -1819,99 +1962,105 @@ public class DBService {
     
     void executePutAssertion(ResourceContext ctx, String domainName, String policyName,
             Assertion assertion, String auditRef, String caller) {
-        
-        int retryCount = defaultRetryCount;
-        do {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
             try (ObjectStoreConnection con = store.getConnection(true, true)) {
-                
+
                 // first verify that auditing requirements are met
-                
-                checkDomainAuditEnabled(con, domainName, auditRef, caller);
-                
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx));
+
                 // now we need verify our quota check
-                
+
                 quotaCheck.checkPolicyAssertionQuota(con, domainName, policyName, caller);
-                
+
                 // process our insert assertion. since this is a "single"
                 // operation, we are not using any transactions.
-                
+
                 if (!con.insertAssertion(domainName, policyName, assertion)) {
                     throw ZMSUtils.requestError(caller + ": unable to insert assertion: " +
                             " to policy: " + policyName, caller);
                 }
 
                 // update our policy and domain time-stamps, and invalidate local cache entry
-                
+
                 con.updatePolicyModTimestamp(domainName, policyName);
                 con.updateDomainModTimestamp(domainName);
                 cacheStore.invalidate(domainName);
-                
+
                 // audit log the request
 
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
                 auditLogAssertion(auditDetails, assertion, true);
-                
+
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         policyName, auditDetails.toString());
-                
+
                 return;
-                
+
             } catch (ResourceException ex) {
-                
+
                 // otherwise check if we need to retry or return failure
-                
+
                 if (!shouldRetryOperation(ex, retryCount)) {
                     throw ex;
                 }
             }
-            retryCount -= 1;
-        } while (retryCount > 0);
+        }
     }
     
     void executeDeleteAssertion(ResourceContext ctx, String domainName, String policyName,
             Long assertionId, String auditRef, String caller) {
 
-        int retryCount = defaultRetryCount;
-        do {
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
             try (ObjectStoreConnection con = store.getConnection(true, true)) {
-                
+
                 // first verify that auditing requirements are met
-                
-                checkDomainAuditEnabled(con, domainName, auditRef, caller);
-                
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx));
+
                 // process our delete assertion. since this is a "single"
                 // operation, we are not using any transactions.
-                
+
                 if (!con.deleteAssertion(domainName, policyName, assertionId)) {
                     throw ZMSUtils.requestError(caller + ": unable to delete assertion: " +
                             assertionId + " from policy: " + policyName, caller);
                 }
 
                 // update our policy and domain time-stamps, and invalidate local cache entry
-                
+
                 con.updatePolicyModTimestamp(domainName, policyName);
                 con.updateDomainModTimestamp(domainName);
                 cacheStore.invalidate(domainName);
-                
+
                 // audit log the request
 
                 final String auditDetails = "{\"policy\": \"" + policyName +
                         "\", \"assertionId\": \"" + assertionId + "\"}";
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
                         policyName, auditDetails);
-                
+
                 return;
-                
+
             } catch (ResourceException ex) {
-                
+
                 // otherwise check if we need to retry or return failure
-                
+
                 if (!shouldRetryOperation(ex, retryCount)) {
                     throw ex;
                 }
             }
-            retryCount -= 1;
-        } while (retryCount > 0);
+        }
     }
     
     List<String> listEntities(String domainName) {
@@ -1952,45 +2101,44 @@ public class DBService {
     }
     
     void executePutDomainMeta(ResourceContext ctx, String domainName, DomainMeta meta,
-            String auditRef, String caller) {
-        
-        int retryCount = defaultRetryCount;
-        Domain domain;
-        do {
+            final String systemAttribute, boolean deleteAllowed, String auditRef, String caller) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
-                
+
                 // first verify that auditing requirements are met
-                
-                domain = checkDomainAuditEnabled(con, domainName, auditRef, caller);
-                
-                // now process the request
-                
+
+                Domain domain = checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx));
+
+                // now process the request. first we're going to make a
+                // copy of our domain
+
                 Domain updatedDomain = new Domain()
                         .setName(domain.getName())
                         .setEnabled(domain.getEnabled())
                         .setId(domain.getId())
-                        .setAuditEnabled(meta.getAuditEnabled())
-                        .setDescription(meta.getDescription())
-                        .setOrg(meta.getOrg());
-                
-                // we'll only update account/product id fields if the meta
-                // object does not contain nulls
-                
-                if (meta.getAccount() == null && meta.getYpmId() == null) {
-                    updatedDomain.setAccount(domain.getAccount());
-                    updatedDomain.setYpmId(domain.getYpmId());
+                        .setAuditEnabled(domain.getAuditEnabled())
+                        .setDescription(domain.getDescription())
+                        .setOrg(domain.getOrg())
+                        .setApplicationId(domain.getApplicationId())
+                        .setAccount(domain.getAccount())
+                        .setYpmId(domain.getYpmId())
+                        .setCertDnsDomain(domain.getCertDnsDomain());
+
+                // then we're going to apply the updated fields
+                // from the given object
+
+                if (systemAttribute != null) {
+                    updateSystemMetaFields(updatedDomain, systemAttribute, deleteAllowed, meta);
                 } else {
-                    updatedDomain.setYpmId(meta.getYpmId());
-                    updatedDomain.setAccount(meta.getAccount());
+                    updateDomainMetaFields(updatedDomain, meta);
                 }
-                
-                // if meta application ID is null, update to existing application ID
-                if (meta.getApplicationId() == null) {
-                    updatedDomain.setApplicationId(domain.getApplicationId());
-                } else {
-                    updatedDomain.setApplicationId(meta.getApplicationId());
-                }
-                
+
                 con.updateDomain(updatedDomain);
                 con.commitChanges();
                 cacheStore.invalidate(domainName);
@@ -2002,36 +2150,99 @@ public class DBService {
 
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         domainName, auditDetails.toString());
-                
+
                 return;
-                
+
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
                     throw ex;
                 }
             }
-            retryCount -= 1;
-        } while (retryCount > 0);
+        }
     }
-    
+
+    void updateDomainMetaFields(Domain domain, DomainMeta meta) {
+
+        domain.setApplicationId(meta.getApplicationId());
+        domain.setDescription(meta.getDescription());
+        domain.setOrg(meta.getOrg());
+    }
+
+    boolean isDeleteSystemMetaAllowed(boolean deleteAllowed, Object oldValue, Object newValue) {
+
+        // if authorized or old value is not set, then there is
+        // no need to check any value
+
+        if (deleteAllowed || oldValue == null) {
+            return true;
+        }
+
+        // since our old value is not null then we will only
+        // allow if the new value is identical
+
+        return (newValue != null) ? oldValue.equals(newValue) : false;
+    }
+
+    void updateSystemMetaFields(Domain domain, final String attribute, boolean deleteAllowed,
+            DomainMeta meta) {
+
+        final String caller = "putdomainsystemmeta";
+
+        // system attributes we'll only set if they're available
+        // in the given object
+
+        switch (attribute) {
+            case ZMSConsts.SYSTEM_META_ACCOUNT:
+                if (!isDeleteSystemMetaAllowed(deleteAllowed, domain.getAccount(), meta.getAccount())) {
+                    throw ZMSUtils.forbiddenError("unuathorized to reset system meta attribute: " + attribute, caller);
+                }
+                domain.setAccount(meta.getAccount());
+                break;
+            case ZMSConsts.SYSTEM_META_PRODUCT_ID:
+                if (!isDeleteSystemMetaAllowed(deleteAllowed, domain.getYpmId(), meta.getYpmId())) {
+                    throw ZMSUtils.forbiddenError("unuathorized to reset system meta attribute: " + attribute, caller);
+                }
+                domain.setYpmId(meta.getYpmId());
+                break;
+            case ZMSConsts.SYSTEM_META_CERT_DNS_DOMAIN:
+                if (!isDeleteSystemMetaAllowed(deleteAllowed, domain.getCertDnsDomain(), meta.getCertDnsDomain())) {
+                    throw ZMSUtils.forbiddenError("unuathorized to reset system meta attribute: " + attribute, caller);
+                }
+                domain.setCertDnsDomain(meta.getCertDnsDomain());
+                break;
+            case ZMSConsts.SYSTEM_META_AUDIT_ENABLED:
+                domain.setAuditEnabled(meta.getAuditEnabled());
+                break;
+            case ZMSConsts.SYSTEM_META_ENABLED:
+                domain.setEnabled(meta.getEnabled());
+                break;
+            default:
+                throw ZMSUtils.requestError("unknown system meta attribute: " + attribute, caller);
+        }
+    }
+
     void executePutDomainTemplate(ResourceContext ctx, String domainName, DomainTemplate domainTemplate,
             String auditRef, String caller) {
-        
-        int retryCount = defaultRetryCount;
-        do {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
-                
+
                 // first verify that auditing requirements are met
-                
-                checkDomainAuditEnabled(con, domainName, auditRef, caller);
-                
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx));
+
                 // go through our list of templates and add the specified
                 // roles and polices to our domain
-                
+
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
                 auditDetails.append("{\"add-templates\": ");
                 boolean firstEntry = true;
-                
+
                 for (String templateName : domainTemplate.getTemplateNames()) {
                     firstEntry = auditLogSeparator(auditDetails, firstEntry);
                     if (!addSolutionTemplate(con, domainName, templateName, getPrincipalName(ctx),
@@ -2041,70 +2252,72 @@ public class DBService {
                     }
                 }
                 auditDetails.append("}");
-                
+
                 // update our domain time-stamp and save changes
-                
+
                 saveChanges(con, domainName);
-                
+
                 // audit log the request
-                
+
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         domainName, auditDetails.toString());
-                
+
                 return;
-                
+
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
                     throw ex;
                 }
             }
-            retryCount -= 1;
-        } while (retryCount > 0);
+        }
     }
     
     void executeDeleteDomainTemplate(ResourceContext ctx, String domainName, String templateName,
             String auditRef, String caller) {
-        
-        int retryCount = defaultRetryCount;
-        do {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
-                
+
                 // first verify that auditing requirements are met
-                
-                checkDomainAuditEnabled(con, domainName, auditRef, caller);
-                
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx));
+
                 // go through our list of templates and add the specified
                 // roles and polices to our domain
-                
+
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
                 auditDetails.append("{\"templates\": ");
-                
+
                 Template template = ZMSImpl.serverSolutionTemplates.get(templateName);
                 if (!deleteSolutionTemplate(con, domainName, templateName, template, auditDetails)) {
                     con.rollbackChanges();
                     throw ZMSUtils.internalServerError("unable to delete domain template: " + domainName, caller);
                 }
-                
+
                 auditDetails.append("}");
-                
+
                 // update our domain time-stamp and save changes
-                
+
                 saveChanges(con, domainName);
 
                 // audit log the request
 
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
                         domainName, auditDetails.toString());
-                
+
                 return;
-                
+
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
                     throw ex;
                 }
             }
-            retryCount -= 1;
-        } while (retryCount > 0);
+        }
     }
     
     boolean addSolutionTemplate(ObjectStoreConnection con, String domainName, String templateName,
@@ -2373,7 +2586,7 @@ public class DBService {
     ServiceIdentity updateTemplateServiceIdentity(ServiceIdentity serviceIdentity,
             String domainName, List<TemplateParam> params) {
         
-        String templateServiceName = serviceIdentity.getName().replace(TEMPLATE_DOMAIN_NAME, domainName);;
+        String templateServiceName = serviceIdentity.getName().replace(TEMPLATE_DOMAIN_NAME, domainName);
         if (params != null) {
             for (TemplateParam param : params) {
                 final String paramKey = "_" + param.getName() + "_";
@@ -2412,15 +2625,19 @@ public class DBService {
     
     void setupTenantAdminPolicy(String tenantDomain, String provSvcDomain,
             String provSvcName, String auditRef, String caller) {
-        
-        int retryCount = defaultRetryCount;
-        do {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
-                
+
                 // first verify that auditing requirements are met
-                
-                checkDomainAuditEnabled(con, tenantDomain, auditRef, caller);
-                
+
+                checkDomainAuditEnabled(con, tenantDomain, auditRef, caller, provSvcDomain + "." + provSvcName);
+
                 String domainAdminRole = ZMSUtils.roleResourceName(tenantDomain, ZMSConsts.ADMIN_ROLE_NAME);
                 String serviceRoleResourceName = ZMSUtils.getTrustedResourceGroupRolePrefix(provSvcDomain,
                         provSvcName, tenantDomain, null) + ZMSConsts.ADMIN_ROLE_NAME;
@@ -2428,20 +2645,20 @@ public class DBService {
                 // our tenant admin role/policy name
 
                 final String tenancyResource = "tenancy." + provSvcDomain + '.' + provSvcName;
-                
+
                 String adminName = tenancyResource + ".admin";
                 String tenantAdminRole = ZMSUtils.roleResourceName(tenantDomain, adminName);
 
                 // tenant admin role - if it already exists then we skip it
                 // by default it has no members.
-                
+
                 if (con.getRole(tenantDomain, adminName) == null) {
                     con.insertRole(tenantDomain, new Role().setName(tenantAdminRole));
                 }
-                
+
                 // tenant admin policy - check to see if this already exists. If it does
                 // then we don't have anything to do
-                
+
                 if (con.getPolicy(tenantDomain, adminName) == null) {
 
                     Policy adminPolicy = new Policy().setName(ZMSUtils.policyResourceName(tenantDomain, adminName));
@@ -2449,81 +2666,84 @@ public class DBService {
 
                     // we are going to create 2 assertions - one for the domain admin role
                     // and another for the tenant admin role
-                    
+
                     Assertion assertion = new Assertion().setRole(domainAdminRole)
                             .setResource(serviceRoleResourceName).setAction(ZMSConsts.ACTION_ASSUME_ROLE)
                             .setEffect(AssertionEffect.ALLOW);
                     con.insertAssertion(tenantDomain, adminName, assertion);
-                    
+
                     assertion = new Assertion().setRole(tenantAdminRole)
                             .setResource(serviceRoleResourceName).setAction(ZMSConsts.ACTION_ASSUME_ROLE)
                             .setEffect(AssertionEffect.ALLOW);
                     con.insertAssertion(tenantDomain, adminName, assertion);
-                    
+
                     // the tenant admin role must have the capability to provision
                     // new resource groups in the domain which requires update
                     // action capability on resource tenancy.<prov_domain>.<prov_svc>
-                    
+
                     String tenantResourceName = tenantDomain + ":" + tenancyResource;
                     assertion = new Assertion().setRole(tenantAdminRole)
                             .setResource(tenantResourceName).setAction(ZMSConsts.ACTION_UPDATE)
                             .setEffect(AssertionEffect.ALLOW);
                     con.insertAssertion(tenantDomain, adminName, assertion);
                 }
-                
+
                 // update our domain time-stamp and save changes
-                
+
                 saveChanges(con, tenantDomain);
 
                 return;
-                
+
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
                     throw ex;
                 }
             }
-            retryCount -= 1;
-        } while (retryCount > 0);
+        }
     }
     
     void executePutTenantRoles(ResourceContext ctx, String provSvcDomain, String provSvcName, String tenantDomain,
             String resourceGroup, List<TenantRoleAction> roles, String auditRef, String caller) {
-        
-        int retryCount = defaultRetryCount;
-        do {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
 
                 // first verify that auditing requirements are met
-                
-                checkDomainAuditEnabled(con, provSvcDomain, auditRef, caller);
-                
+
+                checkDomainAuditEnabled(con, provSvcDomain, auditRef, caller, getPrincipalName(ctx));
+
                 String trustedRolePrefix = ZMSUtils.getTrustedResourceGroupRolePrefix(provSvcDomain,
                         provSvcName, tenantDomain, resourceGroup);
-                
+
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
                 auditDetails.append("{\"put-tenant-roles\": [");
                 boolean firstEntry = true;
-                
+
                 for (TenantRoleAction ra : roles) {
-                    
+
                     String tenantRole = ra.getRole();
                     String tenantAction = ra.getAction();
                     String trustedRole = trustedRolePrefix + tenantRole;
                     String trustedName = trustedRole.substring((provSvcDomain + ":role.").length());
-                    
+
                     Role role = new Role().setName(trustedRole).setTrust(tenantDomain);
-                    
+
                     if (LOG.isInfoEnabled()) {
                         LOG.info(caller + ": add trusted Role to domain " + provSvcDomain +
                                 ": " + trustedRole + " -> " + role);
                     }
-                    
+
                     // retrieve our original role in case one exists
-                    
+
                     Role originalRole = getRole(con, provSvcDomain, trustedName, false, false);
 
                     // now process the request
-                    
+
                     firstEntry = auditLogSeparator(auditDetails, firstEntry);
 
                     auditDetails.append("{\"role\": ");
@@ -2532,7 +2752,7 @@ public class DBService {
                         con.rollbackChanges();
                         throw ZMSUtils.internalServerError("unable to put role: " + trustedRole, caller);
                     }
-                    
+
                     String policyResourceName = ZMSUtils.policyResourceName(provSvcDomain, trustedName);
                     final String resourceName = provSvcDomain + ":service." +
                             ZMSUtils.getTenantResourceGroupRolePrefix(provSvcName, tenantDomain, resourceGroup) + '*';
@@ -2540,20 +2760,20 @@ public class DBService {
                             new Assertion().setRole(trustedRole)
                                     .setResource(resourceName)
                                     .setAction(tenantAction));
-                    
+
                     Policy policy = new Policy().setName(policyResourceName).setAssertions(assertions);
-                    
+
                     if (LOG.isInfoEnabled()) {
                         LOG.info(caller + ": add trust policy to domain " + provSvcDomain +
                                 ": " + trustedRole + " -> " + policy);
                     }
-                    
+
                     // retrieve our original policy
-                    
+
                     Policy originalPolicy = getPolicy(con, provSvcDomain, trustedName);
 
                     // now process the request
-                    
+
                     auditDetails.append(", \"policy\": ");
                     if (!processPolicy(con, originalPolicy, provSvcDomain, trustedName, policy, false, auditDetails)) {
                         con.rollbackChanges();
@@ -2561,25 +2781,24 @@ public class DBService {
                     }
                     auditDetails.append('}');
                 }
-                
+
                 // update our domain time-stamp and save changes
-                
+
                 saveChanges(con, provSvcDomain);
 
                 // audit log the request
-                
+
                 auditLogRequest(ctx, provSvcDomain, auditRef, caller, ZMSConsts.HTTP_PUT,
                         tenantDomain, auditDetails.toString());
-                
+
                 return;
-                
+
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
                     throw ex;
                 }
             }
-            retryCount -= 1;
-        } while (retryCount > 0);
+        }
     }
     
     void addAssumeRolePolicy(ObjectStoreConnection con, String rolePrefix,
@@ -2661,72 +2880,80 @@ public class DBService {
     
     void executePutProviderRoles(ResourceContext ctx, String tenantDomain, String provSvcDomain,
             String provSvcName, String resourceGroup, List<String> roles, String auditRef, String caller) {
-            
-        int retryCount = defaultRetryCount;
-        do {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
 
                 // first verify that auditing requirements are met
-                
-                checkDomainAuditEnabled(con, tenantDomain, auditRef, caller);
-                
+
+                checkDomainAuditEnabled(con, tenantDomain, auditRef, caller, getPrincipalName(ctx));
+
                 // we're going to create a separate role for each one of tenant roles returned
                 // based on its action and set the caller as a member in each role
-                
-                String principalName = getPrincipalName(ctx);
-                List<RoleMember> roleMembers = new ArrayList<>();
-                if (principalName != null) {
-                    RoleMember roleMember = new RoleMember();
-                    roleMember.setMemberName(principalName);
-                    roleMembers.add(roleMember);
-                }
-                
+
+                final String principalName = getPrincipalName(ctx);
+
                 // now set up the roles and policies for all the provider roles returned.
-                
-                String rolePrefix = ZMSUtils.getProviderResourceGroupRolePrefix(provSvcDomain,
+
+                final String rolePrefix = ZMSUtils.getProviderResourceGroupRolePrefix(provSvcDomain,
                         provSvcName, resourceGroup);
-                String trustedRolePrefix = ZMSUtils.getTrustedResourceGroupRolePrefix(provSvcDomain,
+                final String trustedRolePrefix = ZMSUtils.getTrustedResourceGroupRolePrefix(provSvcDomain,
                         provSvcName, tenantDomain, resourceGroup);
-                
+
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
                 auditDetails.append("{\"put-provider-roles\": [");
                 boolean firstEntry = true;
-                
+
                 for (String role : roles) {
-                    
+
+                    // we need to create a new object for each role since the list is updated
+                    // in case the role already has existing members, but we don't want to
+                    // add those members to other roles in our list
+
+                    List<RoleMember> roleMembers = new ArrayList<>();
+                    if (principalName != null) {
+                        RoleMember roleMember = new RoleMember();
+                        roleMember.setMemberName(principalName);
+                        roleMembers.add(roleMember);
+                    }
+
                     role = role.toLowerCase();
-                    
+
                     if (LOG.isInfoEnabled()) {
                         LOG.info("executePutProviderRoles: provision ASSUME_ROLE policy for access remote role in "
                                 + provSvcDomain + "." + provSvcName + ": " + resourceGroup + "." + role);
                     }
-                    
+
                     firstEntry = auditLogSeparator(auditDetails, firstEntry);
-                    
+
                     addAssumeRolePolicy(con, rolePrefix, trustedRolePrefix, role, roleMembers,
-                        tenantDomain, principalName, auditRef, auditDetails, caller);
+                            tenantDomain, principalName, auditRef, auditDetails, caller);
                 }
-                
+
                 auditDetails.append("]}");
-                
+
                 // update our domain time-stamp and save changes
-                
+
                 saveChanges(con, tenantDomain);
 
                 // audit log the request
-                
+
                 auditLogRequest(ctx, tenantDomain, auditRef, caller, ZMSConsts.HTTP_PUT,
                         provSvcDomain, auditDetails.toString());
-                
+
                 return;
-                
+
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
                     throw ex;
                 }
             }
-            retryCount -= 1;
-        } while (retryCount > 0);
+        }
     }
     
     void executeDeleteTenancy(ResourceContext ctx, String tenantDomain, String provSvcDomain,
@@ -2740,82 +2967,85 @@ public class DBService {
                 resourceGroup);
 
         final String pnamePrefix = "tenancy." + rnamePrefix;
-        
-        int retryCount = defaultRetryCount;
-        do {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
 
                 // first verify that auditing requirements are met
-                
-                checkDomainAuditEnabled(con, tenantDomain, auditRef, caller);
-                
+
+                checkDomainAuditEnabled(con, tenantDomain, auditRef, caller, getPrincipalName(ctx));
+
                 // first let's process and remove any policies that start with our
                 // provider prefix
-                
+
                 List<String> pnames = con.listPolicies(tenantDomain, null);
-                
+
                 for (String pname : pnames) {
-                    
+
                     if (!validResourceGroupObjectToDelete(pname, pnamePrefix)) {
                         if (LOG.isDebugEnabled()) {
                             LOG.debug(caller + ": --ignore policy " + pname);
                         }
                         continue;
                     }
-                    
+
                     if (LOG.isInfoEnabled()) {
                         LOG.info(caller + ": --delete policy " + pname);
                     }
-                    
+
                     con.deletePolicy(tenantDomain, pname);
                 }
-                
+
                 // now we're going to find any roles that have the provider prefix as
                 // well but we're going to be careful about removing them. We'll check
                 // and if we have no more policies referencing them then we'll remove
-                
+
                 List<String> rnames = con.listRoles(tenantDomain);
                 for (String rname : rnames) {
-                    
+
                     if (!validResourceGroupObjectToDelete(rname, rnamePrefix)) {
                         if (LOG.isDebugEnabled()) {
                             LOG.debug(caller + ": --ignore role " + rname);
                         }
                         continue;
                     }
-                    
+
                     if (!con.listPolicies(tenantDomain, rname).isEmpty()) {
                         if (LOG.isDebugEnabled()) {
                             LOG.debug(caller + ": --ignore role " + rname + " due to active references");
                         }
                         continue;
                     }
-                    
+
                     if (LOG.isInfoEnabled()) {
                         LOG.info(caller + ": --delete role " + rname);
                     }
-                    
+
                     con.deleteRole(tenantDomain, rname);
                 }
-                
+
                 // update our domain time-stamp and save changes
-                
+
                 saveChanges(con, tenantDomain);
 
                 // audit log the request
-                
+
                 auditLogRequest(ctx, tenantDomain, auditRef, caller, ZMSConsts.HTTP_DELETE,
                         ZMSUtils.entityResourceName(provSvcDomain, provSvcName), null);
-                
+
                 return;
-                
+
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
                     throw ex;
                 }
             }
-            retryCount -= 1;
-        } while (retryCount > 0);
+        }
     }
 
     boolean validResourceGroupObjectToDelete(String name, String prefix) {
@@ -2839,53 +3069,56 @@ public class DBService {
         // look for this tenants roles, ex: storage.tenant.sports.reader
         
         String rolePrefix = ZMSUtils.getTenantResourceGroupRolePrefix(provSvcName, tenantDomain, resourceGroup);
-        
-        int retryCount = defaultRetryCount;
-        do {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
 
                 // first verify that auditing requirements are met
-                
-                checkDomainAuditEnabled(con, provSvcDomain, auditRef, caller);
-                
+
+                checkDomainAuditEnabled(con, provSvcDomain, auditRef, caller, getPrincipalName(ctx));
+
                 // find roles and policies matching the prefix
-                
+
                 List<String> rnames = con.listRoles(provSvcDomain);
-                
+
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
                 auditDetails.append("{\"tenant-roles\": [");
                 boolean firstEntry = true;
-                for (String rname: rnames) {
+                for (String rname : rnames) {
                     if (isTrustRoleForTenant(con, provSvcDomain, rname, rolePrefix,
                             resourceGroup, tenantDomain)) {
 
                         // good, its exactly what we are looking for
-                        
+
                         con.deleteRole(provSvcDomain, rname);
                         con.deletePolicy(provSvcDomain, rname);
                         firstEntry = auditLogString(auditDetails, rname, firstEntry);
                     }
                 }
                 auditDetails.append("]}");
-                
+
                 // update our domain time-stamp and save changes
-                
+
                 saveChanges(con, provSvcDomain);
 
                 // audit log the request
-                
+
                 auditLogRequest(ctx, tenantDomain, auditRef, caller, ZMSConsts.HTTP_DELETE,
                         provSvcDomain, auditDetails.toString());
-                
+
                 return;
-                
+
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
                     throw ex;
                 }
             }
-            retryCount -= 1;
-        } while (retryCount > 0);
+        }
     }
     
     boolean isTrustRoleForTenant(ObjectStoreConnection con, String provSvcDomain, String roleName,
@@ -3150,64 +3383,70 @@ public class DBService {
 
     void executePutQuota(ResourceContext ctx, String domainName, Quota quota,
             String auditRef, String caller) {
-        
-        int retryCount = defaultRetryCount;
-        do {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
             try (ObjectStoreConnection con = store.getConnection(true, true)) {
-                
+
                 // process our insert quota. since this is a "single"
                 // operation, we are not using any transactions.
-                
+
                 if (con.getQuota(domainName) != null) {
                     con.updateQuota(domainName, quota);
                 } else {
                     con.insertQuota(domainName, quota);
                 }
-                
+
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         domainName, null);
-                
+
                 return;
-                
+
             } catch (ResourceException ex) {
-                
+
                 // otherwise check if we need to retry or return failure
-                
+
                 if (!shouldRetryOperation(ex, retryCount)) {
                     throw ex;
                 }
             }
-            retryCount -= 1;
-        } while (retryCount > 0);
+        }
     }
 
     void executeDeleteQuota(ResourceContext ctx, String domainName, String auditRef, String caller) {
-        
-        int retryCount = defaultRetryCount;
-        do {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
             try (ObjectStoreConnection con = store.getConnection(true, true)) {
-                
+
                 // process our delete quota request - it's a single
                 // operation so no need to make it a transaction
-                
+
                 if (!con.deleteQuota(domainName)) {
                     throw ZMSUtils.notFoundError(caller + ": unable to delete quota: " + domainName, caller);
                 }
 
                 // audit log the request
-                
+
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
                         domainName, null);
-                
+
                 return;
-                
+
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
                     throw ex;
                 }
             }
-            retryCount -= 1;
-        } while (retryCount > 0);
+        }
     }
 
     public Quota getQuota(String domainName) {

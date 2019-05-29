@@ -21,8 +21,8 @@ const config = {
     userDomain: 'user',
     authHeader: 'Athenz-Principal-Auth',
     strictSSL: false,
-    user: 'ui',
-    serviceFQN: 'athenz.ui',
+    user: 'ui-server',
+    serviceFQN: 'athenz.ui-server',
     authKeyVersion: '0',
     envLabel: '',
     userIcon: function(user) {
@@ -30,7 +30,7 @@ const config = {
     },
     userLink: function (user) {
       const domain = process.env.UI_SERVER || 'localhost';
-      return 'https://' + domain + ':9443/athenz/domain/create/userdomain';
+      return 'https://' + domain + ':443/athenz/domain/create/userdomain';
     },
     headerLinks: [
       {title: 'Website', url: 'http://www.athenz.io', target: '_blank'},
@@ -56,8 +56,8 @@ const config = {
     userDomain: 'user',
     authHeader: 'Athenz-Principal-Auth',
     strictSSL: true,
-    user: 'ui',
-    serviceFQN: 'athenz.ui',
+    user: 'ui-server',
+    serviceFQN: 'athenz.ui-server',
     authKeyVersion: '0',
     envLabel: '',
     userIcon: function(user) {
@@ -65,7 +65,7 @@ const config = {
     },
     userLink: function (user) {
       const domain = process.env.UI_SERVER || 'localhost';
-      return 'https://' + domain + ':9443/athenz/domain/create/userdomain';
+      return 'https://' + domain + ':443/athenz/domain/create/userdomain';
     },
     headerLinks: [
       {title: 'Website', url: 'http://www.athenz.io', target: '_blank'},
@@ -95,7 +95,7 @@ module.exports = function() {
   c.userDomain = c.userDomain || 'user';
   c.authHeader = c.authHeader || 'Athenz-Principal-Auth';
   c.strictSSL = c.strictSSL || false;
-  c.user = c.user || 'ui';
+  c.user = c.user || 'ui-server';
   c.serviceFQN = c.serviceFQN || process.env.DOMAIN_NAME + '.' + process.env.SERVICE_NAME;
   c.authKeyVersion = c.authKeyVersion || '0';
   c.envLabel = c.envLabel || 'development';

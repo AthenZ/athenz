@@ -18,6 +18,7 @@ package com.yahoo.athenz.zpe;
 import java.util.List;
 import java.util.Map;
 
+import com.yahoo.athenz.auth.token.AccessToken;
 import com.yahoo.athenz.auth.token.RoleToken;
 import com.yahoo.rdl.Struct;
 
@@ -29,6 +30,9 @@ public interface ZpeClient {
 
     // return current cache of role tokens
     Map<String, RoleToken> getRoleTokenCacheMap();
+
+    // return current cache of access tokens
+    Map<String, AccessToken> getAccessTokenCacheMap();
 
     // return the role assertion map for the specified domain with allow effect
     // key is role name, value is List of assertions for that role

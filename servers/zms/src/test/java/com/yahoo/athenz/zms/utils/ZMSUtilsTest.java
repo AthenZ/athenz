@@ -21,15 +21,18 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.impl.SimplePrincipal;
+import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
+import com.yahoo.athenz.common.server.log.AuditLogger;
+import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
+import com.yahoo.athenz.common.server.log.impl.DefaultAuditLoggerFactory;
+import com.yahoo.athenz.zms.*;
+import org.mockito.Mockito;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import com.yahoo.athenz.zms.Assertion;
-import com.yahoo.athenz.zms.AssertionEffect;
-import com.yahoo.athenz.zms.ResourceException;
-import com.yahoo.athenz.zms.Role;
-import com.yahoo.athenz.zms.RoleMember;
-import com.yahoo.athenz.zms.utils.ZMSUtils;
+import javax.servlet.http.HttpServletRequestWrapper;
 
 public class ZMSUtilsTest {
 
@@ -249,5 +252,60 @@ public class ZMSUtilsTest {
         ZMSUtils.removeMembers(null, list);
         assertEquals(list.size(), 1);
         assertEquals(list.get(0).getMemberName(), "member1");
+    }
+
+    @Test
+    public void testParseBoolean() {
+        assertEquals(true, ZMSUtils.parseBoolean(null, true));
+        assertEquals(false, ZMSUtils.parseBoolean(null, false));
+        assertEquals(true, ZMSUtils.parseBoolean("", true));
+        assertEquals(false, ZMSUtils.parseBoolean("", false));
+        assertEquals(true, ZMSUtils.parseBoolean("true", false));
+        assertEquals(false, ZMSUtils.parseBoolean("false", true));
+        assertEquals(false, ZMSUtils.parseBoolean("unknown", false));
+    }
+
+    @Test
+    public void testAddAssertion() {
+
+        Policy policy = new Policy();
+        ZMSUtils.addAssertion(policy, "service", "update", "writers", AssertionEffect.ALLOW);
+        ZMSUtils.addAssertion(policy, "table", "delete", "writers", AssertionEffect.DENY);
+
+        assertEquals(policy.getAssertions().size(), 2);
+        Assertion assertion = policy.getAssertions().get(1);
+        assertEquals(assertion.getResource(), "table");
+        assertEquals(assertion.getRole(), "writers");
+        assertEquals(assertion.getAction(), "delete");
+        assertEquals(assertion.getEffect(), AssertionEffect.DENY);
+    }
+
+    @Test
+    public void testRemoveDomainPrefixForService() {
+
+        assertEquals(ZMSUtils.removeDomainPrefixForService("athenz.api", "athenz"), "api");
+        assertEquals(ZMSUtils.removeDomainPrefixForService("athenz.dev.api", "athenz.dev"), "api");
+        assertEquals(ZMSUtils.removeDomainPrefixForService("athenz.dev.api", "athenz"), "dev.api");
+        assertEquals(ZMSUtils.removeDomainPrefixForService("athenz.api", "coretech"), "athenz.api");
+    }
+
+    @Test
+    public void testGetAudtLogMsgBuilder() {
+
+        List<String> roles = Arrays.asList("role1", "role2");
+        Principal principal = SimplePrincipal.create("athenz", "creds", roles, null);
+        RsrcCtxWrapper ctx = Mockito.mock(RsrcCtxWrapper.class);
+        Mockito.when(ctx.principal()).thenReturn(principal);
+        HttpServletRequestWrapper request = Mockito.mock(HttpServletRequestWrapper.class);
+        Mockito.when(ctx.request()).thenReturn(request);
+        Mockito.when(request.getRemoteAddr()).thenReturn("10.11.12.13");
+
+        AuditLoggerFactory factory = new DefaultAuditLoggerFactory();
+        AuditLogger auditLogger = factory.create();
+
+        AuditLogMsgBuilder msgBuilder = ZMSUtils.getAuditLogMsgBuilder(ctx, auditLogger, "athenz",
+                "audit-ref", "unit-test", "putRole");
+        assertNotNull(msgBuilder);
+        assertTrue(msgBuilder.who().contains("who-roles=[role1, role2]"), msgBuilder.who());
     }
 }

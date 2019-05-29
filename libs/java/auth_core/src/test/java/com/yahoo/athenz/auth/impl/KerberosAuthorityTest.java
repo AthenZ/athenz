@@ -279,8 +279,8 @@ public class KerberosAuthorityTest {
         }
 
         kauth.login(true);
-        initState = kauth.getInitState();
-        assertNull(initState);
+	initState = kauth.getInitState();
+        assertTrue(initState == null || initState instanceof javax.security.auth.login.LoginException);
 
         System.clearProperty(KerberosAuthority.KRB_PROP_LOGIN_WINDOW);
         System.clearProperty(KerberosAuthority.KRB_PROP_SVCPRPL);
@@ -365,5 +365,11 @@ public class KerberosAuthorityTest {
         KerberosAuthority check  = new KerberosAuthority();
 
         assertFalse(check.isTargetPrincipal(null,null));
+    }
+
+    @Test
+    public void testGetAuthenticateChallenge() {
+        KerberosAuthority krbAuthority  = new KerberosAuthority();
+        assertEquals(krbAuthority.getAuthenticateChallenge(), "Negotiate");
     }
 }

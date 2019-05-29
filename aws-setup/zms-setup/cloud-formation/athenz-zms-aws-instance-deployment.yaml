@@ -1,0 +1,178 @@
+Description: 'Athenz ZMS standard 2 Availabilty zone instance deployment template'
+Parameters:
+  ServiceRole:
+    Type: String
+    Description: The ZMS Service IAM Role Name
+    Default: "athenz.zms-service"
+  KeyName:
+    Type: String
+    Description: The EC2 key pair for the instance
+  ServiceName:
+    Type: String
+    Description: The service name for ZMS server
+    Default: "zms"
+  ResourceStackName:
+    Type: String
+    Description: Name of Stack used to create AWS Resources
+  Environment:
+    Type: String
+    Description: The environment ZMS is running in
+    AllowedValues:
+      - prod
+      - stage
+      - dev
+  ImageId:
+    Type: AWS::EC2::Image::Id
+    Description: "The ImageId to use for the EC2 instance.  Should be a format like ami-XXXXXXXX"
+  AutoScalingMinSize:
+    Type: String
+    Description: The minimum instances for auto scaling
+    Default: "2"
+  AutoScalingMaxSize:
+    Type: String
+    Description: The maximum instances for auto scaling
+    Default: "4"
+  AutoScalingDesiredCapacity:
+    Type: String
+    Description: The desired number of instances
+    Default: "2"
+  EbsOptimized:
+    Type: String
+    Description: If EBS is to be optimized
+    AllowedValues:
+      - "true"
+      - "false"
+    Default: "false"
+  Ec2InstanceType:
+    Type: String
+    Description: The instance type to use for the host
+    Default: t2.large
+    AllowedValues:
+      - t2.nano
+      - t2.micro
+      - t2.small
+      - t2.medium
+      - t2.large
+      - t2.xlarge
+      - t2.2xlarge
+      - m4.large
+      - m4.xlarge
+      - m4.2xlarge
+      - m4.4xlarge
+      - m4.10xlarge
+      - m4.16xlarge
+      - m5.large
+      - m5.xlarge
+      - m5.2xlarge
+      - m5.4xlarge
+      - m5.12xlarge
+      - m5.24xlarge
+      - m5d.large
+      - m5d.xlarge
+      - m5d.2xlarge
+      - m5d.4xlarge
+      - m5d.12xlarge
+      - m5d.24xlarge
+  EbsVolumeType:
+    Type: String
+    Description: The value for EBS Volume type in Block Device Mappings for Launch Configuration
+    Default: "gp2"
+  EbsVolumeSize:
+    Type: Number
+    Description: The value for EBS Volume size Block Device Mappings for Launch Configuration
+    Default: "50"
+Resources:
+  ZMSEC2AutoScalingGroup:
+    Type: 'AWS::AutoScaling::AutoScalingGroup'
+    Properties:
+      LaunchConfigurationName: !Ref ZMSLaunchConfig
+      LoadBalancerNames:
+      - Fn::ImportValue: !Sub "${ResourceStackName}-LoadBalancerName"
+      MaxSize: !Ref AutoScalingMaxSize
+      MinSize: !Ref AutoScalingMinSize
+      Cooldown: 300
+      VPCZoneIdentifier:
+        - Fn::ImportValue: !Sub "${ResourceStackName}-PrivateSubnet01ID"
+        - Fn::ImportValue: !Sub "${ResourceStackName}-PrivateSubnet02ID"
+      DesiredCapacity: !Ref AutoScalingDesiredCapacity
+      HealthCheckGracePeriod: 900
+      HealthCheckType: ELB
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-asg-${ServiceName}-${AWS::Region}
+          PropagateAtLaunch: true
+        - Key: Environment
+          Value: !Ref Environment
+          PropagateAtLaunch: true
+        - Key: Stack
+          Value: !Ref AWS::StackName
+          PropagateAtLaunch: true
+  ZMSEC2IncreaseGroupSizeScalingPolicy:
+    Type: "AWS::AutoScaling::ScalingPolicy"
+    Properties:
+      AdjustmentType: ChangeInCapacity
+      AutoScalingGroupName: !Ref ZMSEC2AutoScalingGroup
+      Cooldown: 180
+      ScalingAdjustment: 1
+  CPUAlarmHigh:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      EvaluationPeriods: '5'
+      Statistic: Average
+      Threshold: '50'
+      Unit: Percent
+      AlarmDescription: Alarm if CPU too high or metric disappears indicating instance
+        is down
+      Period: '60'
+      AlarmActions:
+      - Ref:  ZMSEC2IncreaseGroupSizeScalingPolicy
+      Namespace: AWS/EC2
+      Dimensions:
+      - Name: AutoScalingGroupName
+        Value:
+          Ref: ZMSEC2AutoScalingGroup
+      ComparisonOperator: GreaterThanThreshold
+      MetricName: CPUUtilization
+  ZMSEC2DecreaseGroupSizeScalingPolicy:
+    Type: "AWS::AutoScaling::ScalingPolicy"
+    Properties:
+      AdjustmentType: ChangeInCapacity
+      AutoScalingGroupName: !Ref ZMSEC2AutoScalingGroup
+      Cooldown: 300
+      ScalingAdjustment: -1
+  CPUAlarmLow:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      EvaluationPeriods: '5'
+      Statistic: Average
+      Threshold: '20'
+      Unit: Percent
+      AlarmDescription: Alarm if CPU too low
+      Period: '60'
+      AlarmActions:
+      - Ref:  ZMSEC2DecreaseGroupSizeScalingPolicy
+      Namespace: AWS/EC2
+      Dimensions:
+      - Name: AutoScalingGroupName
+        Value:
+          Ref: ZMSEC2AutoScalingGroup
+      ComparisonOperator: LessThanThreshold
+      MetricName: CPUUtilization
+  ZMSLaunchConfig:
+    Type: 'AWS::AutoScaling::LaunchConfiguration'
+    Properties:
+      AssociatePublicIpAddress: false
+      IamInstanceProfile: !Sub arn:aws:iam::${AWS::AccountId}:instance-profile/${ServiceRole}
+      ImageId: !Ref ImageId
+      KeyName: !Ref KeyName
+      InstanceType: !Ref Ec2InstanceType
+      EbsOptimized: !Ref EbsOptimized
+      SecurityGroups:
+        - Fn::ImportValue: !Sub "${ResourceStackName}-ServerSecurityGroupID"
+      BlockDeviceMappings:
+        - DeviceName: "/dev/sda1"
+          Ebs:
+            VolumeSize: !Ref EbsVolumeSize
+            VolumeType: !Ref EbsVolumeType
+            DeleteOnTermination: true
+      InstanceMonitoring: true

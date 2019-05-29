@@ -251,6 +251,7 @@ public class ResourceException extends RuntimeException {
 
 }
 `
+
 func javaType(reg rdl.TypeRegistry, rdlType rdl.TypeRef, optional bool, items rdl.TypeRef, keys rdl.TypeRef) string {
 	t := reg.FindType(rdlType)
 	if t == nil || t.Variant == 0 {

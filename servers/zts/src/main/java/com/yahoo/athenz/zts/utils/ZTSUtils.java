@@ -114,7 +114,7 @@ public class ZTSUtils {
                 ZTS_DEFAULT_EXCLUDED_CIPHER_SUITES);
         String excludedProtocols = System.getProperty(ZTSConsts.ZTS_PROP_EXCLUDED_PROTOCOLS,
                 ZTS_DEFAULT_EXCLUDED_PROTOCOLS);
-        Boolean wantClientAuth = Boolean.parseBoolean(System.getProperty(ZTSConsts.ZTS_PROP_WANT_CLIENT_CERT, "false"));
+        boolean wantClientAuth = Boolean.parseBoolean(System.getProperty(ZTSConsts.ZTS_PROP_WANT_CLIENT_CERT, "false"));
         
         SslContextFactory sslContextFactory = new SslContextFactory();
         if (keyStorePath != null) {
@@ -282,7 +282,7 @@ public class ZTSUtils {
             if (dnsName.startsWith(prefix) && dnsName.endsWith(ZTS_CERT_DNS_SUFFIX)) {
                 continue;
             }
-            if (dnsName.contains(ZTSConsts.ZTS_CERT_INSTANCE_ID)) {
+            if (dnsName.contains(ZTSConsts.ZTS_CERT_INSTANCE_ID_DNS)) {
                 continue;
             }
             LOGGER.error("validateServiceCertReqDNSNames - Invalid dnsName SAN entry: {}", dnsName);
@@ -296,7 +296,7 @@ public class ZTSUtils {
         List<String> dnsNames = Crypto.extractX509CSRDnsNames(certReq);
         String reqInstanceId = null;
         for (String dnsName : dnsNames) {
-            int idx = dnsName.indexOf(ZTSConsts.ZTS_CERT_INSTANCE_ID);
+            int idx = dnsName.indexOf(ZTSConsts.ZTS_CERT_INSTANCE_ID_DNS);
             if (idx != -1) {
                 reqInstanceId = dnsName.substring(0, idx);
                 break;
@@ -353,7 +353,7 @@ public class ZTSUtils {
             try (FileInputStream instream = new FileInputStream(new File(trustStorePath))) {
                 KeyStore trustStore = KeyStore.getInstance(trustStoreType);
                 final String password = getApplicationSecret(privateKeyStore, trustStorePasswordAppName, trustStorePassword);
-                trustStore.load(instream, password != null ? password.toCharArray() : EMPTY_PASSWORD);
+                trustStore.load(instream, getPasswordChars(password));
                 tmfactory.init(trustStore);
             }
 
@@ -361,8 +361,8 @@ public class ZTSUtils {
             try (FileInputStream instream = new FileInputStream(new File(keyStorePath))) {
                 KeyStore keyStore = KeyStore.getInstance(keyStoreType);
                 final String password = getApplicationSecret(privateKeyStore, keyStorePasswordAppName, keyStorePassword);
-                keyStore.load(instream, password != null ? password.toCharArray() : EMPTY_PASSWORD);
-                kmfactory.init(keyStore, password != null ? password.toCharArray() : EMPTY_PASSWORD);
+                keyStore.load(instream, getPasswordChars(password));
+                kmfactory.init(keyStore, getPasswordChars(password));
             }
 
             KeyManager[] keymanagers = kmfactory.getKeyManagers();
@@ -375,5 +375,29 @@ public class ZTSUtils {
         }
 
         return sslcontext;
+    }
+
+    static char[] getPasswordChars(final String password) {
+        return password != null ? password.toCharArray() : EMPTY_PASSWORD;
+    }
+
+    public static int parseInt(final String value, int defaultValue) {
+        int intVal = defaultValue;
+        if (value != null && !value.isEmpty()) {
+            try {
+                intVal = Integer.parseInt(value);
+            } catch (NumberFormatException ex) {
+                LOGGER.error("Invalid integer: {}", value);
+            }
+        }
+        return intVal;
+    }
+
+    public static boolean parseBoolean(final String value, boolean defaultValue) {
+        boolean boolVal = defaultValue;
+        if (value != null && !value.isEmpty()) {
+            boolVal = Boolean.parseBoolean(value);
+        }
+        return boolVal;
     }
 }

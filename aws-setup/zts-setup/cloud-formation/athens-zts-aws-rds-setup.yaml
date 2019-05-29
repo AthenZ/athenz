@@ -1,0 +1,225 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: 'Athenz ZTS standard 2 Availabilty zone RDS configuration template'
+Parameters:
+  ServiceName:
+    Type: String
+    Description: The service name for ZTS server
+    Default: "zts"
+  GroupName:
+    Type: String
+    Description: The Athens domain for the account
+    Default: "Athenz"
+  ResourceStackName:
+    Type: String
+    Description: Name of Stack used to create AWS Resources
+  Environment:
+    Type: String
+    Description: The environment ZTS is running in
+    AllowedValues:
+      - prod
+      - stage
+      - dev
+  DatabaseName:
+    Type: String
+    Description: Database Name
+    Default: "ztsstore"
+    MinLength: "1"
+    MaxLength: "64"
+    AllowedPattern: "[a-zA-Z][a-zA-Z0-9]*"
+    ConstraintDescription: "must begin with a letter and contain only alphanumeric characters."
+  DatabaseUsername:
+    NoEcho: "true"
+    Type: String
+    Description: Database Username
+    Default: "dbuser"
+    MinLength: "1"
+    MaxLength: "16"
+    AllowedPattern: "[a-zA-Z][a-zA-Z0-9]*"
+    ConstraintDescription: "must begin with a letter and contain only alphanumeric characters."
+  DatabasePassword:
+    NoEcho: "true"
+    Type: String
+    Description: Database Password
+    Default: "dbpasswd"
+    MinLength: "1"
+    MaxLength: "41"
+    AllowedPattern: "[a-zA-Z0-9]+"
+    ConstraintDescription: "must contain only alphanumeric characters."
+  DatabaseInstanceClass:
+    Type: String
+    Description: "The database instance type"
+    Default: "db.t2.medium"
+    AllowedValues:
+      - db.t1.micro
+      - db.t1.micro
+      - db.t1.micro
+      - db.t1.micro
+      - db.m1.small
+      - db.m1.medium
+      - db.m1.large
+      - db.m1.xlarge
+      - db.m2.xlarge
+      - db.m2.2xlarge
+      - db.m2.4xlarge
+      - db.m3.medium
+      - db.m3.large
+      - db.m3.xlarge
+      - db.m3.2xlarge
+      - db.m4.large
+      - db.m4.xlarge
+      - db.m4.2xlarge
+      - db.m4.4xlarge
+      - db.m4.10xlarge
+      - db.r3.large
+      - db.r3.xlarge
+      - db.r3.2xlarge
+      - db.r3.4xlarge
+      - db.r3.8xlarge
+      - db.m2.xlarge
+      - db.m2.2xlarge
+      - db.m2.4xlarge
+      - db.cr1.8xlarge
+      - db.t2.micro
+      - db.t2.small
+      - db.t2.medium
+      - db.t2.large"
+    ConstraintDescription: "must select a valid database instance type."
+  EncryptDatabaseStorage:
+    Type: String
+    Description: The Athens domain for the account
+    AllowedValues:
+      - "true"
+      - "false"
+    Default: "true"
+  Route53HostedZoneName:
+    Type: String
+    Description: The hosted zone name to place a CNAME entry for. Must end with a period. Empty string means do not create one.
+  Route53DatabaseRecordName:
+    Type: String
+    Description: The hosted records to be added
+Conditions:
+  CreateDNSRecordSet: !Not [!Equals [ !Ref Route53HostedZoneName, '']]
+  EnableDatabaseEncryption: !Equals [ !Ref EncryptDatabaseStorage , true]
+
+Resources:
+  DatabaseSubnetGroup:
+      Type: AWS::RDS::DBSubnetGroup
+      Properties:
+        DBSubnetGroupDescription: CloudFormation managed DB subnet group.
+        DBSubnetGroupName: !Sub ${Environment}-${ServiceName}-db-subnet
+        SubnetIds:
+        - Fn::ImportValue: !Sub "${ResourceStackName}-PrivateSubnet01ID"
+        - Fn::ImportValue: !Sub "${ResourceStackName}-PrivateSubnet02ID"
+  DatabaseCluster:
+      Type: AWS::RDS::DBCluster
+      Properties:
+        Engine: aurora
+        DatabaseName: !Ref "DatabaseName"
+        MasterUsername: !Ref "DatabaseUsername"
+        MasterUserPassword: !Ref "DatabasePassword"
+        BackupRetentionPeriod: 7
+        PreferredBackupWindow: 01:00-02:00
+        PreferredMaintenanceWindow: mon:03:00-mon:04:00
+        DBSubnetGroupName: !Ref "DatabaseSubnetGroup"
+        VpcSecurityGroupIds: [!Ref "ZTSDBVPCSecurityGroup"]
+        StorageEncrypted: !Ref EncryptDatabaseStorage
+        KmsKeyId: !If [EnableDatabaseEncryption, !GetAtt DatabaseEncryptionKey.Arn, !Ref "AWS::NoValue"]
+  ZTSDBVPCSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupName: !Sub ${GroupName}-${Environment}-rds-sg-${ServiceName}-${AWS::Region}
+      GroupDescription: 'ZTS public db security group'
+      SecurityGroupIngress:
+        - IpProtocol: TCP
+          FromPort: '3306'
+          ToPort: '3306'
+          CidrIp: '10.0.0.0/20'
+      VpcId:
+        Fn::ImportValue: !Sub "${ResourceStackName}-VPCID"
+      Tags:
+       - Key: Name
+         Value: !Sub ${Environment}-rds-sg-${ServiceName}-${AWS::Region}
+       - Key: Environment
+         Value: !Ref Environment
+       - Key: Stack
+         Value: !Ref AWS::StackName
+  DatabaseEncryptionKey:
+    Type: 'AWS::KMS::Key'
+    Condition: EnableDatabaseEncryption
+    Properties:
+      Description: "KMS key for database encryption"
+      EnableKeyRotation: true
+      Enabled: true
+      KeyPolicy:
+        Version: 2012-10-17
+        Id: key-default-1
+        Statement:
+          - Sid: Enable IAM User Permissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action: 'kms:*'
+            Resource: '*'
+      Tags:
+        - Key: Name
+          Value: !Sub ${DatabaseName}-${AWS::Region}-encryption-key
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Stack
+          Value: !Ref AWS::StackName
+  DatabaseEncryptionKeyAlias:
+    Type: AWS::KMS::Alias
+    Condition: EnableDatabaseEncryption
+    Properties:
+      AliasName: !Sub alias/${DatabaseName}-${AWS::Region}-encryption-key
+      TargetKeyId: !Ref DatabaseEncryptionKey
+  DatabasePrimaryInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      Engine: aurora
+      DBClusterIdentifier: !Ref "DatabaseCluster"
+      DBInstanceClass: !Ref DatabaseInstanceClass
+      DBSubnetGroupName: !Ref "DatabaseSubnetGroup"
+      PubliclyAccessible: "false"
+      DBInstanceIdentifier: !Ref "DatabaseName"
+      Tags:
+        - Key: Name
+          Value: !Ref "DatabaseName"
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Stack
+          Value: !Ref AWS::StackName
+  DatabaseReplicaInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      Engine: aurora
+      DBClusterIdentifier: !Ref "DatabaseCluster"
+      DBInstanceClass: !Ref DatabaseInstanceClass
+      DBSubnetGroupName: !Ref "DatabaseSubnetGroup"
+      PubliclyAccessible: "false"
+      DBInstanceIdentifier: !Sub ${DatabaseName}-${AWS::Region}
+      Tags:
+        - Key: Name
+          Value: !Sub ${DatabaseName}-${AWS::Region}
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Stack
+          Value: !Ref AWS::StackName
+  ZTSDatabaseRecordSet:
+    Type: AWS::Route53::RecordSet
+    Condition: CreateDNSRecordSet
+    Properties:
+      Comment: CNAME record for the ZTS DB.
+      HostedZoneName: !Ref Route53HostedZoneName
+      Name: !Ref Route53DatabaseRecordName
+      TTL: 60
+      Type: CNAME
+      ResourceRecords:
+        - !GetAtt DatabaseCluster.Endpoint.Address
+Outputs:
+  DatabasePrimaryInstanceEndpoint:
+    Description: Endpoint for primary database
+    Value: !GetAtt DatabasePrimaryInstance.Endpoint.Address
+  DatabaseReplicaInstanceEndpoint:
+    Description: Endpoint for primary database
+    Value: !GetAtt DatabaseReplicaInstance.Endpoint.Address

@@ -20,6 +20,21 @@ import javax.net.ssl.SSLContext;
 
 public interface InstanceProvider {
 
+    enum Scheme {
+        HTTP,
+        CLASS,
+        UNKNOWN
+    }
+
+    /**
+     * Get Provider scheme. Currently supported schemes are HTTP
+     * or CLASS. By default we'll return UNKNOWN.
+     */
+
+    default Scheme getProviderScheme() {
+        return Scheme.UNKNOWN;
+    }
+
     /**
      * Set provider details and initialize the provider object
      * @param provider name of the provider (service identity name)

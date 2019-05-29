@@ -30,6 +30,11 @@ public class InstanceHttpProvider implements InstanceProvider {
     private static final String PROP_CONNECT_TIMEOUT  = "athenz.instance.provider.client.connect_timeout";
 
     @Override
+    public Scheme getProviderScheme() {
+        return Scheme.HTTP;
+    }
+
+    @Override
     public void initialize(String provider, String providerEndpoint, SSLContext sslContext,
             KeyStore keyStore) {
 

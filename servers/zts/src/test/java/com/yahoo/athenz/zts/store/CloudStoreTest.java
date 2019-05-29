@@ -21,6 +21,7 @@ import java.util.Date;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
+import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.rdl.Timestamp;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
@@ -163,13 +164,13 @@ public class CloudStoreTest {
         CloudStore store = new CloudStore();
         AssumeRoleRequest req = store.getAssumeRoleRequest("1234", "admin", "sys.auth.zts", null, null);
         assertEquals("arn:aws:iam::1234:role/admin", req.getRoleArn());
-        assertEquals("sys.auth.zts", req.getRoleSessionName());
+        assertEquals("athenz-zts-service", req.getRoleSessionName());
         assertNull(req.getDurationSeconds());
         assertNull(req.getExternalId());
 
         req = store.getAssumeRoleRequest("12345", "adminuser", "athenz.zts", 101, "external");
         assertEquals("arn:aws:iam::12345:role/adminuser", req.getRoleArn());
-        assertEquals("athenz.zts", req.getRoleSessionName());
+        assertEquals("athenz-zts-service", req.getRoleSessionName());
         assertEquals(Integer.valueOf(101), req.getDurationSeconds());
         assertEquals("external", req.getExternalId());
         store.close();
@@ -598,7 +599,25 @@ public class CloudStoreTest {
         assertFalse(store.fetchRoleCredentials());
         store.close();
     }
-    
+
+    @Test
+    public void testFetchRoleCredential() throws InterruptedException, ExecutionException, TimeoutException {
+
+        CloudStore store = new CloudStore();
+        store.awsRole = "athenz.zts";
+
+        HttpClient httpClient = Mockito.mock(HttpClient.class);
+        ContentResponse response = Mockito.mock(ContentResponse.class);
+        Mockito.when(response.getStatus()).thenReturn(200);
+        Mockito.when(response.getContentAsString()).thenReturn("{\"AccessKeyId\":\"id\",\"SecretAccessKey\":\"key\",\"Token\":\"token\"}");
+
+        store.setHttpClient(httpClient);
+        Mockito.when(httpClient.GET("http://169.254.169.254/latest/meta-data/iam/security-credentials/athenz.zts")).thenReturn(response);
+
+        assertTrue(store.fetchRoleCredentials());
+        store.close();
+    }
+
     @Test
     public void testInitializeAwsSupportInvalidDocument()  throws InterruptedException, ExecutionException, TimeoutException {
         
@@ -659,7 +678,66 @@ public class CloudStoreTest {
         }
         store.close();
     }
-    
+
+    @Test
+    public void testInitializeAwsSupport()  throws ExecutionException, TimeoutException {
+
+        CloudStore store = new CloudStore();
+        HttpClient httpClient = Mockito.mock(HttpClient.class);
+
+        ContentResponse responseDoc = Mockito.mock(ContentResponse.class);
+        Mockito.when(responseDoc.getStatus()).thenReturn(200);
+        Mockito.when(responseDoc.getContentAsString()).thenReturn(AWS_INSTANCE_DOCUMENT);
+
+        ContentResponse responseSig = Mockito.mock(ContentResponse.class);
+        Mockito.when(responseSig.getStatus()).thenReturn(200);
+        Mockito.when(responseSig.getContentAsString()).thenReturn("pkcs7-signature");
+
+        ContentResponse responseInfo = Mockito.mock(ContentResponse.class);
+        Mockito.when(responseInfo.getStatus()).thenReturn(200);
+        Mockito.when(responseInfo.getContentAsString()).thenReturn(AWS_IAM_ROLE_INFO);
+
+        ContentResponse responseCreds = Mockito.mock(ContentResponse.class);
+        Mockito.when(responseCreds.getStatus()).thenReturn(200);
+        Mockito.when(responseCreds.getContentAsString()).thenReturn("{\"AccessKeyId\":\"id\",\"SecretAccessKey\":\"key\",\"Token\":\"token\"}");
+
+        store.setHttpClient(httpClient);
+        try {
+            Mockito.when(httpClient.GET("http://169.254.169.254/latest/dynamic/instance-identity/document")).thenReturn(responseDoc);
+        } catch (InterruptedException ignored) {
+        }
+        try {
+            Mockito.when(httpClient.GET("http://169.254.169.254/latest/dynamic/instance-identity/pkcs7")).thenReturn(responseSig);
+        } catch (InterruptedException ignored) {
+        }
+        try {
+            Mockito.when(httpClient.GET("http://169.254.169.254/latest/meta-data/iam/info")).thenReturn(responseInfo);
+        } catch (InterruptedException ignored) {
+        }
+        try {
+            Mockito.when(httpClient.GET("http://169.254.169.254/latest/meta-data/iam/security-credentials/athenz.zts")).thenReturn(responseCreds);
+        } catch (InterruptedException ignored) {
+        }
+
+        // set creds update time every second
+
+        System.setProperty(ZTSConsts.ZTS_PROP_AWS_CREDS_UPDATE_TIMEOUT, "1");
+
+        store.awsEnabled = true;
+        store.initializeAwsSupport();
+
+        // sleep a couple of seconds for the background thread to run
+        // before we try to shutting it down
+
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException ignored) {
+        }
+        store.close();
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_AWS_CREDS_UPDATE_TIMEOUT);
+    }
+
     @Test
     public void testAssumeAWSRoleAWSNotEnabled() {
         CloudStore cloudStore = new CloudStore();
@@ -684,7 +762,7 @@ public class CloudStoreTest {
         Mockito.when(creds.getExpiration()).thenReturn(new Date());
         Mockito.when(mockResult.getCredentials()).thenReturn(creds);
         cloudStore.setAssumeRoleResult(mockResult);
-        cloudStore.setAssumeAWSRole(true);
+        cloudStore.setReturnSuperAWSRole(true);
 
         AWSTemporaryCredentials awsCreds = cloudStore.assumeAWSRole("account", "syncer", "athenz.syncer", null, null);
         assertNotNull(awsCreds);
@@ -693,7 +771,71 @@ public class CloudStoreTest {
         assertEquals(awsCreds.getSecretAccessKey(), "secretaccesskey");
         cloudStore.close();
     }
-    
+
+    @Test
+    public void testAssumeAWSRoleFailedCreds() {
+        MockCloudStore cloudStore = new MockCloudStore();
+        cloudStore.awsEnabled = true;
+        AssumeRoleResult mockResult = Mockito.mock(AssumeRoleResult.class);
+        Credentials creds = Mockito.mock(Credentials.class);
+        Mockito.when(creds.getAccessKeyId()).thenReturn("accesskeyid");
+        Mockito.when(creds.getSecretAccessKey()).thenReturn("secretaccesskey");
+        Mockito.when(creds.getSessionToken()).thenReturn("sessiontoken");
+        Mockito.when(creds.getExpiration()).thenReturn(new Date());
+        Mockito.when(mockResult.getCredentials()).thenReturn(creds);
+        cloudStore.setAssumeRoleResult(mockResult);
+        cloudStore.setReturnSuperAWSRole(true);
+
+        // add our key to the invalid cache
+
+        cloudStore.putInvalidCacheCreds(cloudStore.getCacheKey("account", "syncer", "athenz.syncer", null, null));
+        assertNull(cloudStore.assumeAWSRole("account", "syncer", "athenz.syncer", null, null));
+        assertNull(cloudStore.assumeAWSRole("account", "syncer", "athenz.syncer", null, null));
+
+        // now set the timeout to 1 second and sleep that long and after
+        // that our test case should work as before
+
+        cloudStore.invalidCacheTimeout = 1;
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException ignored) {
+        }
+        assertNotNull(cloudStore.assumeAWSRole("account", "syncer", "athenz.syncer", null, null));
+        cloudStore.close();
+    }
+
+    @Test
+    public void testAssumeAWSRoleFailedCredsCache() {
+        MockCloudStore cloudStore = new MockCloudStore();
+        cloudStore.awsEnabled = true;
+        cloudStore.setReturnSuperAWSRole(true);
+        cloudStore.invalidCacheTimeout = 120;
+
+        // first we're going to return a regular exception
+        // in which case we won't cache the failed creds
+
+        cloudStore.setGetServiceException(403, false);
+        assertNull(cloudStore.assumeAWSRole("account", "syncer", "athenz.syncer", null, null));
+        assertNull(cloudStore.awsInvalidCredsCache.get(cloudStore.getCacheKey("account", "syncer", "athenz.syncer", null, null)));
+
+        // now we're going to return aamazon service exception
+        // but with 401 error code which means against no
+        // caching of failed credentials
+
+        cloudStore.setGetServiceException(401, true);
+        assertNull(cloudStore.assumeAWSRole("account", "syncer", "athenz.syncer", null, null));
+        assertNull(cloudStore.awsInvalidCredsCache.get(cloudStore.getCacheKey("account", "syncer", "athenz.syncer", null, null)));
+
+        // finally we're going to return access denied - 403
+        // amazon exception and we should cache the failed creds
+
+        cloudStore.setGetServiceException(403, true);
+        assertNull(cloudStore.assumeAWSRole("account", "syncer", "athenz.syncer", null, null));
+        assertNotNull(cloudStore.awsInvalidCredsCache.get(cloudStore.getCacheKey("account", "syncer", "athenz.syncer", null, null)));
+
+        cloudStore.close();
+    }
+
     @Test
     public void testGetSshKeyReqType() {
         CloudStore cloudStore = new CloudStore();
@@ -832,5 +974,109 @@ public class CloudStoreTest {
         assertEquals(testCreds.getSecretAccessKey(), "accesskey");
         assertEquals(testCreds.getSessionToken(), "token");
         cloudStore.close();
+    }
+
+    @Test
+    public void testInvalidCacheCreds() {
+
+        CloudStore cloudStore = new CloudStore();
+        cloudStore.awsEnabled = true;
+
+        // standard checks
+
+        cloudStore.putInvalidCacheCreds("cacheKey");
+        assertTrue(cloudStore.isFailedTempCredsRequest("cacheKey"));
+        assertFalse(cloudStore.isFailedTempCredsRequest("unknown-key"));
+
+        // now set the timeout to only 1 second
+        // and sleep so our records are expired
+
+        cloudStore.invalidCacheTimeout = 1;
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException ignored) {
+        }
+        // this time our cache key is no longer considered failed
+
+        assertFalse(cloudStore.isFailedTempCredsRequest("cacheKey"));
+
+        // set the timeout to 0 value which should disable
+        // cache functionality thus our put does nothing
+
+        cloudStore.invalidCacheTimeout = 0;
+        cloudStore.putInvalidCacheCreds("newKey");
+        assertFalse(cloudStore.isFailedTempCredsRequest("newKey"));
+
+        // set the timeout back to 2 mins and verify
+        // expired check does not remove any entries
+
+        cloudStore.invalidCacheTimeout = 120;
+        assertEquals(cloudStore.awsInvalidCredsCache.size(), 1);
+
+        cloudStore.removeExpiredInvalidCredentials();
+        assertEquals(cloudStore.awsInvalidCredsCache.size(), 1);
+
+        // now set it to 1 second and it should remove it
+
+        cloudStore.invalidCacheTimeout = 1;
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException ignored) {
+        }
+        cloudStore.removeExpiredInvalidCredentials();
+        assertEquals(cloudStore.awsInvalidCredsCache.size(), 0);
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testSetupHttpClient() throws Exception {
+
+        CloudStore cloudStore = new CloudStore();
+        HttpClient client = Mockito.mock(HttpClient.class);
+        Mockito.doThrow(new Exception("Invalid client")).when(client).start();
+
+        try {
+            cloudStore.setupHttpClient(client);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 500);
+        }
+    }
+
+    @Test
+    public void testAWSCredentialsUpdaterExceptions () {
+
+        CloudStore cloudStore = Mockito.mock(CloudStore.class);
+
+        // we're going to test exceptions from three components
+        // and make sure our run does not throw any
+
+        // first operation - all return true
+        // second operation - fetchRoleCredentials throws exception
+        // third operation - removeExpiredCredentials throws exception
+        // forth opreation - removeExpiredInvalidCredentials throws exception
+
+        Mockito.when(cloudStore.fetchRoleCredentials())
+                .thenReturn(true)
+                .thenThrow(new NullPointerException("invalid state"))
+                .thenReturn(true)
+                .thenReturn(true);
+        Mockito.when(cloudStore.removeExpiredCredentials())
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenThrow(new NullPointerException("invalid state"))
+                .thenReturn(true);
+        Mockito.when(cloudStore.removeExpiredInvalidCredentials())
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenThrow(new NullPointerException("invalid state"));
+
+        CloudStore.AWSCredentialsUpdater updater = cloudStore.new AWSCredentialsUpdater();
+        updater.run();
+        updater.run();
+        updater.run();
+        updater.run();
     }
 }

@@ -38,7 +38,8 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_VIRTUAL_DOMAIN_LIMIT = "athenz.zms.virtual_domain_limit";
     public static final String ZMS_PROP_READ_ONLY_MODE       = "athenz.zms.read_only_mode";
     public static final String ZMS_PROP_DOMAIN_NAME_MAX_SIZE = "athenz.zms.domain_name_max_len";
-    
+    public static final String ZMS_PROP_HEALTH_CHECK_PATH    = "athenz.zms.health_check_path";
+
     public static final String ZMS_PROP_CONFLICT_RETRY_COUNT      = "athenz.zms.request_conflict_retry_count";
     public static final String ZMS_PROP_CONFLICT_RETRY_SLEEP_TIME = "athenz.zms.request_conflict_retry_sleep_time";
 
@@ -94,6 +95,8 @@ public final class ZMSConsts {
 
     public static final String ZMS_PROP_AUDIT_LOGGER_FACTORY_CLASS      = "athenz.zms.audit_logger_factory_class";
     public static final String ZMS_AUDIT_LOGGER_FACTORY_CLASS           = "com.yahoo.athenz.common.server.log.impl.DefaultAuditLoggerFactory";
+
+    public static final String ZMS_PROP_AUDIT_REF_VALIDATOR_FACTORY_CLASS = "athenz.zms.audit_ref_validator_factory_class";
 
     public static final String ZMS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS = "athenz.zms.private_key_store_factory_class";
     public static final String ZMS_PRIVATE_KEY_STORE_FACTORY_CLASS      = "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory";
@@ -183,7 +186,8 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_ROLE_NAME         = "role_name";
     public static final String DB_COLUMN_ASSERT_DOMAIN_ID  = "assert_domain_id";
     public static final String DB_COLUMN_ASSERT_ID         = "assertion_id";
-    
+    public static final String DB_COLUMN_CERT_DNS_DOMAIN   = "cert_dns_domain";
+
     public static final String ADMIN_POLICY_NAME = "admin";
     public static final String ADMIN_ROLE_NAME   = "admin";
 
@@ -198,7 +202,13 @@ public final class ZMSConsts {
     public static final String OBJECT_SERVICE   = "service";
     public static final String OBJECT_PRINCIPAL = "principal";
     public static final String OBJECT_HOST      = "host";
-    
+
+    public static final String SYSTEM_META_PRODUCT_ID      = "productid";
+    public static final String SYSTEM_META_ACCOUNT         = "account";
+    public static final String SYSTEM_META_CERT_DNS_DOMAIN = "certdnsdomain";
+    public static final String SYSTEM_META_AUDIT_ENABLED   = "auditenabled";
+    public static final String SYSTEM_META_ENABLED         = "enabled";
+
     // HTTP operation types used in metrics
     public static final String HTTP_GET     = "GET";
     public static final String HTTP_PUT     = "PUT";
@@ -206,7 +216,7 @@ public final class ZMSConsts {
     public static final String HTTP_DELETE  = "DELETE";
     public static final String HTTP_OPTIONS = "OPTIONS";
     public static final String HTTP_REQUEST = "REQUEST";
-    
+
     public static final String STR_DEF_ROOT     = "/home/athenz";
 
     public static final int STRING_BLDR_SIZE_DEFAULT = 512;

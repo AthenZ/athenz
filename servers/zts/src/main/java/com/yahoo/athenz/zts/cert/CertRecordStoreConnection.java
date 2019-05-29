@@ -34,9 +34,10 @@ public interface CertRecordStoreConnection extends Closeable {
      * Retrieve the certificate record for the given instance
      * @param provider name of the provider
      * @param instanceId instance id
+     * @param service name of the service
      * @return X509CertRecord object or null if not found
      */
-    X509CertRecord getX509CertRecord(String provider, String instanceId);
+    X509CertRecord getX509CertRecord(String provider, String instanceId, String service);
     
     /**
      * Update the specified certificate record in the store
@@ -56,9 +57,10 @@ public interface CertRecordStoreConnection extends Closeable {
      * Delete the certificate record for the given instance
      * @param provider name of the provider
      * @param instanceId instance id
+     * @param service name of the service
      * @return true on success otherwise false
      */
-    boolean deleteX509CertRecord(String provider, String instanceId);
+    boolean deleteX509CertRecord(String provider, String instanceId, String service);
     
     /**
      * Delete all expired x509 certificate records. A certificate is

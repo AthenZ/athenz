@@ -35,6 +35,8 @@ public class ValidateTest {
         assertFalse(Validate.principalName("::doe"));
         assertFalse(Validate.principalName("doe::"));
         assertFalse(Validate.principalName("user:john:doe"));
+        assertFalse(Validate.principalName(null));
+        assertFalse(Validate.principalName(""));
     }
     
     @Test
@@ -55,6 +57,8 @@ public class ValidateTest {
         
         assertFalse(Validate.domainName("domain$sub"));
         assertFalse(Validate.domainName("coretech:domain"));
+        assertFalse(Validate.domainName(""));
+        assertFalse(Validate.domainName(null));
     }
     
     @Test

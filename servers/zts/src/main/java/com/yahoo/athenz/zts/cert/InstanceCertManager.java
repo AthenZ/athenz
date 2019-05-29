@@ -1,18 +1,19 @@
 package com.yahoo.athenz.zts.cert;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.zts.utils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,11 +30,6 @@ import com.yahoo.athenz.common.server.cert.CertSigner;
 import com.yahoo.athenz.common.server.cert.CertSignerFactory;
 import com.yahoo.athenz.common.server.ssh.SSHSigner;
 import com.yahoo.athenz.common.server.ssh.SSHSignerFactory;
-import com.yahoo.athenz.zts.utils.IPBlock;
-import com.yahoo.athenz.zts.utils.IPPrefix;
-import com.yahoo.athenz.zts.utils.IPPrefixes;
-import com.yahoo.athenz.auth.util.Crypto;
-import com.yahoo.rdl.JSON;
 
 public class InstanceCertManager {
 
@@ -45,17 +41,23 @@ public class InstanceCertManager {
     private CertRecordStore certStore = null;
     private ScheduledExecutorService scheduledExecutor;
     private List<IPBlock> certRefreshIPBlocks;
-    private List<IPBlock> instanceCertIPBlocks;
+    private Map<String, List<IPBlock>> instanceCertIPBlocks;
     private String caX509CertificateSigner = null;
     private String sshUserCertificateSigner = null;
     private String sshHostCertificateSigner = null;
-    
+    private ObjectMapper jsonMapper;
+
     public InstanceCertManager(final PrivateKeyStore keyStore, Authorizer authorizer,
             boolean readOnlyMode) {
 
         // set our authorizer object
 
         this.authorizer = authorizer;
+
+        // initialize our jackson object mapper
+
+        jsonMapper = new ObjectMapper();
+        jsonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
         // create our x509 certsigner object
 
@@ -82,10 +84,12 @@ public class InstanceCertManager {
         // load our allowed cert refresh and instance register ip blocks
         
         certRefreshIPBlocks = new ArrayList<>();
-        loadAllowedIPAddresses(certRefreshIPBlocks, ZTSConsts.ZTS_PROP_CERT_REFRESH_IP_FNAME);
-        
-        instanceCertIPBlocks = new ArrayList<>();
-        loadAllowedIPAddresses(instanceCertIPBlocks, ZTSConsts.ZTS_PROP_INSTANCE_CERT_IP_FNAME);
+        loadAllowedIPAddresses(certRefreshIPBlocks, System.getProperty(ZTSConsts.ZTS_PROP_CERT_REFRESH_IP_FNAME));
+
+        if (!loadAllowedInstanceCertIPAddresses()) {
+            throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
+                    "Unable to load Provider Allowed IP Blocks");
+        }
 
         // start our thread to delete expired cert records once a day
         // unless we're running in read-only mode thus no modifications
@@ -105,7 +109,56 @@ public class InstanceCertManager {
         }
     }
 
-    void loadCertSigner() {
+    private boolean loadAllowedInstanceCertIPAddresses() {
+
+        instanceCertIPBlocks = new HashMap<>();
+
+        // read the file list of providers and allowed IP addresses
+        // if the config is not set then we have no restrictions
+        // otherwise all providers must be specified in the list
+
+        String providerIPMapFile =  System.getProperty(ZTSConsts.ZTS_PROP_INSTANCE_CERT_IP_FNAME);
+        if (providerIPMapFile == null || providerIPMapFile.isEmpty()) {
+            return true;
+        }
+
+        byte[] data = readFileContents(providerIPMapFile);
+        if (data == null) {
+            return false;
+        }
+
+        ProviderIPBlocks ipBlocks = null;
+        try {
+            ipBlocks = jsonMapper.readValue(data, ProviderIPBlocks.class);
+        } catch (Exception ex) {
+            LOGGER.error("Unable to parse Provider IP file: {} - {}", providerIPMapFile, ex.getMessage());
+        }
+
+        if (ipBlocks == null) {
+            return false;
+        }
+
+        for (ProviderIPBlock ipBlock : ipBlocks.getIpblocks()) {
+
+            List<IPBlock> certIPBlocks;
+            final String filename = ipBlock.getFilename();
+            if (filename == null) {
+                certIPBlocks = Collections.emptyList();
+            } else {
+                certIPBlocks = new ArrayList<>();
+                if (!loadAllowedIPAddresses(certIPBlocks, filename)) {
+                    LOGGER.error("Invalid provider ip file {}", filename);
+                    return false;
+                }
+            }
+            for (String provider : ipBlock.getProviders()) {
+                instanceCertIPBlocks.put(provider, certIPBlocks);
+            }
+        }
+        return true;
+    }
+
+    private void loadCertSigner() {
 
         String certSignerFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_FACTORY_CLASS,
                 ZTSConsts.ZTS_CERT_SIGNER_FACTORY_CLASS);
@@ -123,7 +176,7 @@ public class InstanceCertManager {
         certSigner = certSignerFactory.create();
     }
 
-    void loadSSHSigner(Authorizer authorizer) {
+    private void loadSSHSigner(Authorizer authorizer) {
 
         String sshSignerFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_SSH_SIGNER_FACTORY_CLASS);
         if (sshSignerFactoryClass == null || sshSignerFactoryClass.isEmpty()) {
@@ -154,6 +207,28 @@ public class InstanceCertManager {
         this.certSigner = certSigner;
     }
 
+    Path getFilePath(File file) {
+        return Paths.get(file.toURI());
+    }
+
+    byte[] readFileContents(final String filename) {
+
+        File caFile = new File(filename);
+        if (!caFile.exists()) {
+            LOGGER.error("Configured file {} does not exist", filename);
+            return null;
+        }
+
+        byte[] data = null;
+        try {
+            data = Files.readAllBytes(getFilePath(caFile));
+        } catch (Exception ex) {
+            LOGGER.error("Unable to read {}: {}", filename, ex.getMessage());
+        }
+
+        return data;
+    }
+
     boolean loadCAX509CertificateBundle() {
 
         final String caFileName = System.getProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME);
@@ -161,54 +236,40 @@ public class InstanceCertManager {
             return true;
         }
 
-        File caFile = new File(caFileName);
-        if (!caFile.exists()) {
-            LOGGER.error("Configured X.509 CA file {} does not exist", caFileName);
+        byte[] data = readFileContents(caFileName);
+        if (data == null) {
             return false;
         }
 
-        try {
-            caX509CertificateSigner = new String(Files.readAllBytes(Paths.get(caFile.toURI())));
-        } catch (IOException ex) {
-            LOGGER.error("Failed to read configured X.509 CA file {}: {}",
-                    caFileName, ex.getMessage());
-            return false;
-        }
-
+        caX509CertificateSigner = new String(data);
         return true;
     }
 
-    boolean loadAllowedIPAddresses(List<IPBlock> ipBlocks, final String propName) {
-        
-        // get the configured path for the list of ip addresses
-        
-        final String ipAddresses =  System.getProperty(propName);
-        if (ipAddresses == null) {
+    boolean loadAllowedIPAddresses(List<IPBlock> ipBlocks, final String ipAddressFileName) {
+
+        if (ipAddressFileName == null || ipAddressFileName.isEmpty()) {
             return true;
         }
-        
-        File ipFile = new File(ipAddresses);
-        if (!ipFile.exists()) {
-            LOGGER.error("Configured allowed IP file {} does not exist", ipAddresses);
+
+        byte[] data = readFileContents(ipAddressFileName);
+        if (data == null) {
             return false;
         }
-        
-        IPPrefixes prefixes;
+
+        IPPrefixes prefixes = null;
         try {
-            prefixes = JSON.fromBytes(Files.readAllBytes(Paths.get(ipFile.toURI())), IPPrefixes.class);
-        } catch (IOException ex) {
-            LOGGER.error("Unable to parse IP file: {}", ipAddresses, ex);
-            return false;
+            prefixes = jsonMapper.readValue(data, IPPrefixes.class);
+        } catch (Exception ex) {
+            LOGGER.error("Unable to parse IP file: {} - {}", ipAddressFileName, ex.getMessage());
         }
-        
+
         if (prefixes == null) {
-            LOGGER.error("Unable to parse IP file: {}", ipAddresses);
             return false;
         }
         
         List<IPPrefix> prefixList = prefixes.getPrefixes();
         if (prefixList == null || prefixList.isEmpty()) {
-            LOGGER.error("No prefix entries available in the IP file: {}", ipAddresses);
+            LOGGER.error("No prefix entries available in the IP file: {}", ipAddressFileName);
             return false;
         }
         
@@ -226,6 +287,7 @@ public class InstanceCertManager {
             } catch (Exception ex) {
                 LOGGER.error("Skipping invalid ip block entry: {}, error: {}",
                         ipEntry, ex.getMessage());
+                return false;
             }
         }
         
@@ -248,51 +310,19 @@ public class InstanceCertManager {
         // create our cert record store instance
         
         certStore = certRecordStoreFactory.create(keyStore);
-        
-        // default timeout in seconds for certificate store commands
-        
-        if (certStore != null) {
-            int opTimeout = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_CERT_OP_TIMEOUT, "10"));
-            if (opTimeout < 0) {
-                opTimeout = 10;
-            }
-            certStore.setOperationTimeout(opTimeout);
-        }
     }
     
     public void setCertStore(CertRecordStore certStore) {
         this.certStore = certStore;
     }
     
-    public X509CertRecord getX509CertRecord(String provider, X509Certificate cert) {
+    public X509CertRecord getX509CertRecord(final String provider, X509Certificate cert) {
 
         if (certStore == null) {
             return null;
         }
-        
-        Collection<List<?>> certAttributes;
-        try {
-            certAttributes = cert.getSubjectAlternativeNames();
-        } catch (CertificateParsingException ex) {
-            LOGGER.error("getX509CertRecord: Unable to get cert SANS: {}", ex.getMessage());
-            return null;
-        }
-        
-        if (certAttributes == null) {
-            LOGGER.error("getX509CertRecord: Certificate does not have SANs");
-            return null;
-        }
-        
-        String instanceId = null;
-        final List<String> dnsNames = Crypto.extractX509CertDnsNames(cert);
-        for (String dnsName : dnsNames) {
-             int idx = dnsName.indexOf(ZTSConsts.ZTS_CERT_INSTANCE_ID);
-             if (idx != -1) {
-                 instanceId = dnsName.substring(0, idx);
-                 break;
-            }
-        }
-        
+
+        final String instanceId = X509CertUtils.extractRequestInstanceId(cert);
         if (instanceId == null) {
             LOGGER.error("getX509CertRecord: Certificate does not have instance id");
             return null;
@@ -300,13 +330,15 @@ public class InstanceCertManager {
 
         X509CertRecord certRecord;
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
-            certRecord = storeConnection.getX509CertRecord(provider, instanceId);
+            certRecord = storeConnection.getX509CertRecord(provider, instanceId,
+                    Crypto.extractX509CertCommonName(cert));
         }
         
         return certRecord;
     }
     
-    public X509CertRecord getX509CertRecord(String provider, String instanceId) {
+    public X509CertRecord getX509CertRecord(final String provider, final String instanceId,
+            final String service) {
 
         if (certStore == null) {
             return null;
@@ -314,7 +346,7 @@ public class InstanceCertManager {
 
         X509CertRecord certRecord;
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
-            certRecord = storeConnection.getX509CertRecord(provider, instanceId);
+            certRecord = storeConnection.getX509CertRecord(provider, instanceId, service);
         }
         
         return certRecord;
@@ -333,7 +365,8 @@ public class InstanceCertManager {
         return result;
     }
     
-    public boolean deleteX509CertRecord(String provider, String instanceId) {
+    public boolean deleteX509CertRecord(final String provider, final String instanceId,
+            final String service) {
         
         if (certStore == null) {
             return false;
@@ -341,7 +374,7 @@ public class InstanceCertManager {
         
         boolean result;
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
-            result = storeConnection.deleteX509CertRecord(provider, instanceId);
+            result = storeConnection.deleteX509CertRecord(provider, instanceId, service);
         }
         return result;
     }
@@ -387,21 +420,29 @@ public class InstanceCertManager {
                 .setX509CertificateSigner(getX509CertificateSigner());
     }
 
+    void updateX509CertificateSigner() {
+        if (caX509CertificateSigner == null) {
+            caX509CertificateSigner = getCACertificate();
+        }
+    }
+
     public String getX509CertificateSigner() {
         if (caX509CertificateSigner == null) {
             synchronized (InstanceCertManager.class) {
-                if (caX509CertificateSigner == null) {
-                    caX509CertificateSigner = getCACertificate();
-                }
+                updateX509CertificateSigner();
             }
         }
         return caX509CertificateSigner;
     }
 
-    public SSHCertificates getSSHCertificates(Principal principal, SSHCertRequest certRequest) {
+    void resetX509CertificateSigner() {
+        caX509CertificateSigner = null;
+    }
+
+    public SSHCertificates generateSSHCertificates(Principal principal, SSHCertRequest certRequest) {
 
         if (sshSigner == null) {
-            LOGGER.error("getSSHCertificates: SSHSigner not available");
+            LOGGER.error("SSH Signer is not available");
             return null;
         }
 
@@ -409,47 +450,70 @@ public class InstanceCertManager {
         // of this request. the signer already was given the authorizer object
         // that it can use for those checks.
 
-        return sshSigner.generateCertificate(principal, certRequest);
+        return sshSigner.generateCertificate(principal, certRequest, null);
     }
 
-    public boolean generateSshIdentity(InstanceIdentity identity, String sshCsr, String sshCertType) {
-        
-        if (sshCsr == null || sshCsr.isEmpty()) {
+    public boolean generateSSHIdentity(Principal principal, InstanceIdentity identity,
+            String sshCsr, String certType) {
+
+        if (sshSigner == null || sshCsr == null || sshCsr.isEmpty()) {
             return true;
         }
-        
-        SSHRequest sshReq = new SSHRequest(sshCsr, sshCertType);
-        if (!sshReq.validateType()) {
+
+        SSHCertRequest certRequest = new SSHCertRequest();
+        certRequest.setCsr(sshCsr);
+
+        SSHCertificates sshCerts;
+        try {
+            sshCerts = sshSigner.generateCertificate(principal, certRequest, certType);
+        } catch (com.yahoo.athenz.common.server.rest.ResourceException ex) {
+            LOGGER.error("SSHSigner was unable to generate SSH certificate for {}/{} - error {}/{}",
+                    identity.getInstanceId(), identity.getName(), ex.getCode(), ex.getMessage());
+            return false;
+        } catch (Exception ex) {
+            LOGGER.error("SSHSigner was unable to generate SSH certificate for {}/{} - error {}",
+                    identity.getInstanceId(), identity.getName(), ex.getMessage());
             return false;
         }
-        
-        final String sshCert = certSigner.generateSSHCertificate(sshCsr);
-        if (sshCert == null || sshCert.isEmpty()) {
-            LOGGER.error("CertSigner was unable to generate SSH certificate for {}/{}",
+
+        if (sshCerts == null || sshCerts.getCertificates().isEmpty()) {
+            LOGGER.error("SSHSigner returned an empty certificate set for {}/{}",
                     identity.getInstanceId(), identity.getName());
             return false;
         }
 
-        identity.setSshCertificate(sshCert);
-        identity.setSshCertificateSigner(getSshCertificateSigner(sshReq.getSshReqType()));
+        identity.setSshCertificate(sshCerts.getCertificates().get(0).getCertificate());
+        identity.setSshCertificateSigner(getSSHCertificateSigner(certType));
         return true;
     }
-    
-    String getSshCertificateSigner(String sshReqType) {
-        
+
+    void updateSSHHostCertificateSigner() {
+        if (sshHostCertificateSigner == null) {
+            sshHostCertificateSigner = sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_HOST);
+        }
+    }
+
+    void updateSSHUserCertificateSigner() {
+        if (sshUserCertificateSigner == null) {
+            sshUserCertificateSigner = sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_USER);
+        }
+    }
+
+    String getSSHCertificateSigner(String sshReqType) {
+
+        if (sshSigner == null) {
+            return null;
+        }
+
         if (sshHostCertificateSigner == null) {
             synchronized (InstanceCertManager.class) {
-                if (sshHostCertificateSigner == null) {
-                    sshHostCertificateSigner = certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_HOST);
-                }
+                updateSSHHostCertificateSigner();
             }
         }
         
         if (sshUserCertificateSigner == null) {
             synchronized (InstanceCertManager.class) {
-                if (sshUserCertificateSigner == null) {
-                    sshUserCertificateSigner = certSigner.getSSHCertificate(ZTSConsts.ZTS_SSH_USER);
-                }
+                updateSSHUserCertificateSigner();
             }
         }
         
@@ -487,11 +551,22 @@ public class InstanceCertManager {
     public boolean verifyCertRefreshIPAddress(final String ipAddress) {
         return verifyIPAddressAccess(ipAddress, certRefreshIPBlocks);
     }
-    
-    public boolean verifyInstanceCertIPAddress(final String ipAddress) {
-        return verifyIPAddressAccess(ipAddress, instanceCertIPBlocks);
+
+    public boolean verifyInstanceCertIPAddress(final String provider, final String ipAddress) {
+
+        final List<IPBlock> certIPBlocks = instanceCertIPBlocks.get(provider);
+
+        // if we have no blocks defined for the provider, then we'll return
+        // failure if we have others defined or success if there are no
+        // providers defined at all
+
+        if (certIPBlocks == null) {
+            return instanceCertIPBlocks.isEmpty();
+        }
+
+        return verifyIPAddressAccess(ipAddress, certIPBlocks);
     }
-    
+
     private boolean verifyIPAddressAccess(final String ipAddress, final List<IPBlock> ipBlocks) {
         
         // if the list has no IP addresses then we allow all
@@ -508,7 +583,25 @@ public class InstanceCertManager {
         }
         return false;
     }
-    
+
+    public void log(final Principal principal, final String ip, final String provider,
+                    final String instanceId, final X509Certificate x509Cert) {
+
+        if (certStore == null) {
+            return;
+        }
+
+        // catch and ignore all exceptions. logging is not significant
+        // to return failure if we have received a valid certificate
+        // from our certificate signer. The certstore implementation
+        // must log any failures.
+
+        try {
+            certStore.log(principal, ip, provider, instanceId, x509Cert);
+        } catch (Exception ignored) {
+        }
+    }
+
     class ExpiredX509CertRecordCleaner implements Runnable {
         
         private CertRecordStore store;

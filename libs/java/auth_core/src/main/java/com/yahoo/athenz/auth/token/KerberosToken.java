@@ -86,8 +86,8 @@ public class KerberosToken extends Token {
                 }
                 userName = userName.substring(0, index);
             }
-
             return true;
+
         } catch (PrivilegedActionException paexc) {
             if (errMsg == null) {
                 errMsg = new StringBuilder(512);

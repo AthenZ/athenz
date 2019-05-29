@@ -36,8 +36,7 @@ public class MockZMSFileChangeLogStore extends ZMSFileChangeLogStore {
     private final ZMSClient zms;
     private DomainList domList = null;
     private String tagHeader;
-    private final String userDomain;
-    
+
     public MockZMSFileChangeLogStore(String rootDirectory, PrivateKey privateKey, String privateKeyId) {
         
         super(rootDirectory, privateKey, privateKeyId);
@@ -47,7 +46,7 @@ public class MockZMSFileChangeLogStore extends ZMSFileChangeLogStore {
         // we're going to return on domain for local list and then another
         // for server list - thus ending up with initialized store with no domains
         
-        userDomain = System.getProperty(ZTSConsts.ZTS_PROP_USER_DOMAIN, "user");
+        final String userDomain = System.getProperty(ZTSConsts.ZTS_PROP_USER_DOMAIN, "user");
 
         DomainList localDomainList = new DomainList();
         List<String> localDomains = new ArrayList<>();
@@ -81,13 +80,16 @@ public class MockZMSFileChangeLogStore extends ZMSFileChangeLogStore {
     
     @SuppressWarnings("unchecked")
     public void setSignedDomains(SignedDomains signedDomains) {
-        if (signedDomains != null) {
-            when(zms.getSignedDomains(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.<Map>any())).thenReturn(signedDomains);
-        } else {
-            when(zms.getSignedDomains(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.<Map>any())).thenThrow(new ZMSClientException(500, "Invalid request"));
-        }
+        when(zms.getSignedDomains(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.<Map>any()))
+                .thenReturn(signedDomains);
     }
-    
+
+    @SuppressWarnings("unchecked")
+    public void setSignedDomainsExc() {
+        when(zms.getSignedDomains(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.<Map>any()))
+                .thenThrow(new ZMSClientException(500, "Invalid request"));
+    }
+
     public void setTagHeader(String tagHeader) {
         this.tagHeader = tagHeader;
     }

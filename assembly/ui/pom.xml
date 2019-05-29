@@ -19,7 +19,7 @@
   <parent>
     <groupId>com.yahoo.athenz</groupId>
     <artifactId>athenz</artifactId>
-    <version>1.7.54-SNAPSHOT</version>
+    <version>1.8.24-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -53,6 +53,22 @@
             <configuration>
               <tarLongFileMode>posix</tarLongFileMode>
               <finalName>athenz-ui-${project.version}</finalName>
+              <descriptors>
+                <descriptor>ui.xml</descriptor>
+              </descriptors>
+            </configuration>
+          </execution>
+          <execution>
+            <id>package-ui-assembly-aws</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <attach>false</attach>
+              <tarLongFileMode>posix</tarLongFileMode>
+              <outputDirectory>../../../athenz/aws-setup/ui-setup/tars/</outputDirectory>
+              <finalName>athenz-ui</finalName>
               <descriptors>
                 <descriptor>ui.xml</descriptor>
               </descriptors>

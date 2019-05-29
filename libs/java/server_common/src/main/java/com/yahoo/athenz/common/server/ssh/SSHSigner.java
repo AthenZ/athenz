@@ -27,18 +27,24 @@ public interface SSHSigner {
      * for a given principal
      * @param principal Principal requesting the ssh certificates
      * @param certRequest SSH Certificate Request
-     * @return SSH Certificates
+     * @param certType requested certificate type: user or host or null. If null,
+     *                 no verification is necessary otherwise the implementation
+     *                 must verify that the certRequest matches the requested type.
+     * @return SSH Certificates. Any error conditions are handled
+     * by throwing com.yahoo.athenz.common.rest.ResourceExceptions
      */
-    default SSHCertificates generateCertificate(Principal principal, SSHCertRequest certRequest) {
+    default SSHCertificates generateCertificate(Principal principal, SSHCertRequest certRequest,
+            final String certType) {
         return null;
     }
 
     /**
      * Retrieve the SSH Signer certificate for the given type
-     * @param type signer type: user or host
-     * @return SSH Signer Certificate
+     * @param certType signer type: user or host
+     * @return SSH Signer Certificate. Any error conditions are handled
+     * by throwing com.yahoo.athenz.common.rest.ResourceExceptions
      */
-    default String getSignerCertificate(String type) {
+    default String getSignerCertificate(String certType) {
         return null;
     }
 

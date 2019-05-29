@@ -39,6 +39,7 @@ resource RoleToken GET "/domain/{domainName}/token?role={role}&minExpiryTime={mi
 // RoleCertificateRequest - a certificate signing request
 type RoleCertificateRequest Struct {
     String csr;
+    EntityName proxyForPrincipal (optional); //this request is proxy for this principal
     Int64 expiryTime;
 }
 

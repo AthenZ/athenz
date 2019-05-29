@@ -15,14 +15,21 @@
  */
 package com.oath.auth;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.security.KeyStore;
+import java.security.cert.X509Certificate;
+import java.util.Enumeration;
+
 import org.junit.Test;
 
 public class KeyStoreTest {
 
+    static final String ALIAS_NAME = "cn=athenz.syncer,o=my test company,l=sunnyvale,st=ca,c=us";
+    
     @Test
     public void testGetKeyStore() throws Exception {
 
@@ -37,10 +44,39 @@ public class KeyStoreTest {
         } catch (Exception ignored) {
         }
     }
-    
+
+
     @Test
     public void testCreateKeyStore() throws Exception {
         KeyStore keyStore = Utils.createKeyStore("rsa_public_x509.cert", "rsa_private.key");
         assertNotNull(keyStore);
+        String alias = null;
+        for (Enumeration<?> e = keyStore.aliases(); e.hasMoreElements(); ) {
+            alias = (String)e.nextElement();
+            assertEquals(ALIAS_NAME, alias);
+        }
+        X509Certificate[] chain = (X509Certificate[]) keyStore.getCertificateChain(alias);
+        assertNotNull(chain);
+        assertTrue(chain.length == 1);
+    }
+
+    @Test
+    public void testCreateKeyStoreChain() throws Exception {
+        KeyStore keyStore = Utils.createKeyStore("rsa_public_x510_w_intermediate.cert", "rsa_private.key");
+        assertNotNull(keyStore);
+        String alias = null;
+        for (Enumeration<?> e = keyStore.aliases(); e.hasMoreElements(); ) {
+            alias = (String)e.nextElement();
+            assertEquals(ALIAS_NAME, alias);
+        }
+        
+        X509Certificate[] chain = (X509Certificate[]) keyStore.getCertificateChain(alias);
+        assertNotNull(chain);
+        assertTrue(chain.length == 2);
+    }
+    
+    @Test (expected = KeyRefresherException.class)
+    public void testCreateKeyStoreEmpty() throws Exception {
+        Utils.createKeyStore("rsa_public_x510_empty.cert", "rsa_private.key");
     }
 }

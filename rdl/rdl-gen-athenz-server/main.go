@@ -67,12 +67,6 @@ func GenerateZMSJavaServer(banner string, schema *rdl.Schema, outdir string, ns 
 	out.Flush()
 	file.Close()
 
-	for _, r := range schema.Resources {
-		if len(r.Outputs) > 0 {
-			javaServerMakeResultModel(banner, schema, reg, outdir, r, ns, base)
-		}
-	}
-
 	//ResourceContext interface
 	s := "ResourceContext"
 	out, file, _, err = outputWriter(packageDir, s, ".java")
@@ -126,52 +120,6 @@ func GenerateZMSJavaServer(banner string, schema *rdl.Schema, outdir string, ns 
 		return err
 	}
 	err = javaGenerateResourceError(banner, schema, out, ns)
-	out.Flush()
-	file.Close()
-	return err
-}
-
-func javaServerMakeResultModel(banner string, schema *rdl.Schema, reg rdl.TypeRegistry, outdir string, r *rdl.Resource, ns string, base string) error {
-	cName := capitalize(string(r.Type))
-	packageDir, err := javaGenerationDir(outdir, schema, ns)
-	if err != nil {
-		return err
-	}
-	methName, _ := javaMethodName(reg, r)
-	s := capitalize(methName) + "Result"
-	out, file, _, err := outputWriter(packageDir, s, ".java")
-	if err != nil {
-		return err
-	}
-	rType := javaType(reg, rdl.TypeRef(r.Type), false, "", "")
-	gen := &javaServerGenerator{reg, schema, cName, out, nil, banner, ns, base}
-	funcMap := template.FuncMap{
-		"header": func() string { return javaGenerationHeader(gen.banner) },
-		"package": func() string {
-			s := javaGenerationPackage(gen.schema, ns)
-			if s == "" {
-				return s
-			}
-			return "package " + s + ";\n"
-		},
-		"openBrace":  func() string { return "{" },
-		"name":       func() string { return uncapitalize(string(safeTypeVarName(r.Type))) },
-		"cName":      func() string { return string(rType) },
-		"resultArgs": func() string { return gen.resultArgs(r) },
-		"resultSig":  func() string { return gen.resultSignature(r) },
-		"rName": func() string {
-			return capitalize(s)
-		},
-		"pathParamsKey":    func() string { return gen.makePathParamsKey(r) },
-		"pathParamsDecls":  func() string { return gen.makePathParamsDecls(r) },
-		"pathParamsSig":    func() []string { return gen.makePathParamsSig(r) },
-		"pathParamsAssign": func() string { return gen.makePathParamsAssign(r) },
-		"headerParams":     func() []string { return gen.makeHeaderParams(r) },
-		"headerParamsSig":  func() []string { return gen.makeHeaderParamsSig(r) },
-		"headerAssign":     func() string { return gen.makeHeaderAssign(r) },
-	}
-	t := template.Must(template.New(gen.name).Funcs(funcMap).Parse(javaServerResultTemplate))
-	err = t.Execute(gen.writer, gen.schema)
 	out.Flush()
 	file.Close()
 	return err
@@ -299,6 +247,7 @@ func (gen *javaServerGenerator) makeHeaderAssign(r *rdl.Resource) string {
 const javaServerHandlerTemplate = `{{header}}
 {{package}}
 import com.yahoo.rdl.*;
+import javax.ws.rs.core.Response;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -308,41 +257,6 @@ import javax.servlet.http.HttpServletResponse;
 public interface {{cName}}Handler {{openBrace}} {{range .Resources}}
     {{methodSig .}};{{end}}
     ResourceContext newResourceContext(HttpServletRequest request, HttpServletResponse response);
-}
-`
-const javaServerResultTemplate = `{{header}}
-{{package}}
-import javax.ws.rs.core.Response;
-import javax.ws.rs.WebApplicationException;
-
-public final class {{rName}} {
-    private ResourceContext context;{{pathParamsDecls}}
-    private int code; //normal result
-
-    {{rName}}(ResourceContext context) {
-        this.context = context;
-        this.code = 0;
-    }
-
-    public void done(int code, {{cName}} {{name}}{{range headerParamsSig}}, {{.}}{{end}}) {
-        Response resp = Response.status(code).entity({{name}}){{headerAssign}}
-            .build();
-        throw new WebApplicationException(resp);
-    }
-
-    public void done(int code) {
-        done(code, new ResourceError().code(code).message(ResourceException.codeToString(code)){{range headerParams}}, ""{{end}});
-    }
-
-    public void done(int code{{range headerParamsSig}}, {{.}}{{end}}) {
-        done(code, new ResourceError().code(code).message(ResourceException.codeToString(code)){{range headerParams}}, {{.}}{{end}});
-    }
-
-    public void done(int code, Object entity{{range headerParamsSig}}, {{.}}{{end}}) {
-        this.code = code;
-        throw new WebApplicationException(Response.status(code).entity(entity){{headerAssign}}.build());
-    }
-
 }
 `
 
@@ -492,12 +406,7 @@ func (gen *javaServerGenerator) resourcePath(r *rdl.Resource) string {
 }
 
 func (gen *javaServerGenerator) handlerBody(r *rdl.Resource) string {
-	resultWrapper := len(r.Outputs) > 0
 	noContent := r.Expected == "NO_CONTENT" && r.Alternatives == nil
-	returnType := "void"
-	if !resultWrapper && !noContent {
-		returnType = javaType(gen.registry, r.Type, false, "", "")
-	}
 	s := "        try {\n"
 	s += "            ResourceContext context = this.delegate.newResourceContext(this.request, this.response);\n"
 	var fargs []string
@@ -542,32 +451,14 @@ func (gen *javaServerGenerator) handlerBody(r *rdl.Resource) string {
 	if len(fargs) > 0 {
 		sargs = ", " + strings.Join(fargs, ", ")
 	}
-	if resultWrapper {
-		tmp, _ := javaMethodName(gen.registry, r)
-		rName := capitalize(tmp) + "Result"
-		pathParamsArgs := strings.Join(gen.makePathParamsArgs(r), ", ")
-		if pathParamsArgs == "" {
-			pathParamsArgs = "null"
-		}
-		s += "            " + rName + " result = new " + rName + "(context);\n"
-		sargs += ", result"
+	if noContent {
 		s += "            this.delegate." + methName + "(context" + sargs + ");\n"
 	} else {
-		if noContent {
-			s += "            this.delegate." + methName + "(context" + sargs + ");\n"
-		} else {
-			s += "            return this.delegate." + methName + "(context" + sargs + ");\n"
-		}
+		s += "            return this.delegate." + methName + "(context" + sargs + ");\n"
 	}
 	s += "        } catch (ResourceException e) {\n"
 	s += "            int code = e.getCode();\n"
 	s += "            switch (code) {\n"
-	if len(r.Alternatives) > 0 {
-		for _, alt := range r.Alternatives {
-			s += "            case ResourceException." + alt + ":\n"
-		}
-		s += "                throw typedException(code, e, " + returnType + ".class);\n"
-	}
 	if r.Exceptions != nil && len(r.Exceptions) > 0 {
 		keys := sortedExceptionKeys(r.Exceptions)
 		for _, ecode := range keys {
@@ -621,10 +512,14 @@ func (gen *javaServerGenerator) paramInit(qname string, pname string, ptype rdl.
 func (gen *javaServerGenerator) handlerSignature(r *rdl.Resource) string {
 	reg := gen.registry
 	noContent := r.Expected == "NO_CONTENT" && r.Alternatives == nil
-	resultWrapper := len(r.Outputs) > 0
+	responseReturn := r.Expected != "OK" || r.Alternatives != nil || len(r.Outputs) > 0
 	returnType := "void"
-	if !noContent && !resultWrapper {
-		returnType = javaType(reg, r.Type, false, "", "")
+	if !noContent {
+		if responseReturn {
+			returnType = "Response"
+		} else {
+			returnType = javaType(gen.registry, r.Type, false, "", "")
+		}
 	}
 	var params []string
 	for _, v := range r.Inputs {
@@ -651,7 +546,13 @@ func (gen *javaServerGenerator) handlerSignature(r *rdl.Resource) string {
 	switch r.Method {
 	case "OPTIONS":
 	case "POST", "PUT", "PATCH":
-		spec += "@Consumes(MediaType.APPLICATION_JSON)\n    "
+		if len(r.Consumes) > 0 {
+			for _, v := range r.Consumes {
+				spec += "@Consumes(\"" + v + "\")\n    "
+			}
+		} else {
+			spec += "@Consumes(MediaType.APPLICATION_JSON)\n    "
+		}
 		fallthrough
 	default:
 		spec += "@Produces(MediaType.APPLICATION_JSON)\n    "
@@ -695,18 +596,19 @@ func (gen *javaServerGenerator) handlerReturnType(r *rdl.Resource, methName stri
 func (gen *javaServerGenerator) serverMethodSignature(r *rdl.Resource) string {
 	reg := gen.registry
 	noContent := r.Expected == "NO_CONTENT" && r.Alternatives == nil
-	resultWrapper := len(r.Outputs) > 0
+	responseReturn := r.Expected != "OK" || r.Alternatives != nil || len(r.Outputs) > 0
 	returnType := "void"
-	if !noContent && !resultWrapper {
-		returnType = javaType(reg, r.Type, false, "", "")
+	if !noContent {
+		if responseReturn {
+			returnType = "Response"
+		} else {
+			returnType = javaType(gen.registry, r.Type, false, "", "")
+		}
 	}
 	methName, params := javaMethodName(reg, r)
 	sparams := ""
 	if len(params) > 0 {
 		sparams = ", " + strings.Join(params, ", ")
-	}
-	if resultWrapper {
-		sparams = sparams + ", " + capitalize(methName) + "Result result"
 	}
 	return returnType + " " + methName + "(ResourceContext context" + sparams + ")"
 }

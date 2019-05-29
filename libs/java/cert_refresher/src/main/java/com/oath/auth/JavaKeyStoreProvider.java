@@ -15,6 +15,8 @@
  */
 package com.oath.auth;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.security.KeyStore;
 
 /**
@@ -32,7 +34,7 @@ class JavaKeyStoreProvider implements KeyStoreProvider {
     }
 
     @Override
-    public KeyStore provide() throws Exception {
+    public KeyStore provide() throws FileNotFoundException, IOException, KeyRefresherException {
         return Utils.getKeyStore(jksFilePath, password);
     }
 }

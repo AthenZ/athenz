@@ -1,3 +1,18 @@
+/*
+ * Copyright 2019 Oath Holdings Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.yahoo.athenz.zts.cert;
 
 import java.io.IOException;
@@ -5,16 +20,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.cert.X509Certificate;
-import java.util.List;
+import java.util.*;
 
 import static org.testng.Assert.*;
 
+import com.yahoo.athenz.common.server.dns.HostnameResolver;
+import com.yahoo.athenz.zts.cert.impl.TestHostnameResolver;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
-import com.yahoo.athenz.auth.Authorizer;
-import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
 
@@ -88,7 +103,7 @@ public class X509CertRequestTest {
     }
     
     @Test
-    public void testCompareCommonName() throws IOException {
+    public void testValidateCommonName() throws IOException {
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
         
@@ -97,11 +112,11 @@ public class X509CertRequestTest {
         assertNotNull(certReq);
         certReq.parseCertRequest(errorMsg);
 
-        assertTrue(certReq.compareCommonName("athenz.production"));
+        assertTrue(certReq.validateCommonName("athenz.production"));
         assertEquals(certReq.getCommonName(), "athenz.production");
         
-        assertFalse(certReq.compareCommonName("sys.production"));
-        assertFalse(certReq.compareCommonName("athenz.storage"));
+        assertFalse(certReq.validateCommonName("sys.production"));
+        assertFalse(certReq.validateCommonName("athenz.storage"));
     }
     
     @Test
@@ -116,22 +131,9 @@ public class X509CertRequestTest {
 
         assertEquals(certReq.getInstanceId(), "1001");
     }
-    
-    @Test
-    public void testDnsSuffix() throws IOException {
-        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
-        String csr = new String(Files.readAllBytes(path));
-        
-        StringBuilder errorMsg = new StringBuilder(256);
-        X509CertRequest certReq = new X509CertRequest(csr);
-        assertNotNull(certReq);
-        certReq.parseCertRequest(errorMsg);
 
-        assertEquals(certReq.getDnsSuffix(), "ostk.athenz.cloud");
-    }
-    
     @Test
-    public void testCompareDnsNames() throws IOException {
+    public void testValidateDnsNamesWithCert() throws IOException {
         
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
@@ -145,11 +147,116 @@ public class X509CertRequestTest {
         String pem = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(pem);
         
-        assertTrue(certReq.compareDnsNames(cert));
+        assertTrue(certReq.validateDnsNames(cert));
     }
-    
+
     @Test
-    public void testCompareDnsNamesMismatchSize() throws IOException {
+    public void testValidateDnsNamesWithValues() throws IOException {
+
+        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        StringBuilder errorMsg = new StringBuilder(256);
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertNotNull(certReq);
+        certReq.parseCertRequest(errorMsg);
+
+        assertTrue(certReq.validateDnsNames(null, "ostk.athenz.cloud", null, null));
+
+        // empty provider suffix list
+
+        List<String> providerDnsSuffixList = new ArrayList<>();
+        assertTrue(certReq.validateDnsNames(providerDnsSuffixList, "ostk.athenz.cloud", null, null));
+
+        // provider suffix list with no match
+
+        providerDnsSuffixList.add("ostk.myathenz.cloud");
+        assertTrue(certReq.validateDnsNames(providerDnsSuffixList, "ostk.athenz.cloud", null, null));
+        assertTrue(certReq.validateDnsNames(providerDnsSuffixList, "ostk.athenz.cloud", "host1.athenz.cloud", null));
+
+        // no match if service list does not match
+
+        assertFalse(certReq.validateDnsNames(providerDnsSuffixList, "ostk.athenz2.cloud", null, null));
+
+        // add the same domain to the provider suffix list
+
+        providerDnsSuffixList.add("ostk.athenz.cloud");
+        assertTrue(certReq.validateDnsNames(providerDnsSuffixList, "ostk.athenz2.cloud", null, null));
+        assertTrue(certReq.validateDnsNames(providerDnsSuffixList, "ostk.athenz.cloud", null, null));
+        assertTrue(certReq.validateDnsNames(providerDnsSuffixList, "", null, null));
+        assertTrue(certReq.validateDnsNames(providerDnsSuffixList, null, null, null));
+    }
+
+    @Test
+    public void testValidateDnsNamesWithMultipleDomainValues() throws IOException {
+
+        Path path = Paths.get("src/test/resources/multi_dns_domain.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        StringBuilder errorMsg = new StringBuilder(256);
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertNotNull(certReq);
+        certReq.parseCertRequest(errorMsg);
+
+        // only one domain will not match
+
+        assertFalse(certReq.validateDnsNames(null, "ostk.athenz.info", null, null));
+
+        // only provider suffix list will not match
+
+        List<String> providerDnsSuffixList = new ArrayList<>();
+        providerDnsSuffixList.add("ostk.athenz.cloud");
+        assertFalse(certReq.validateDnsNames(providerDnsSuffixList, null, null, null));
+
+        // specifying both values match
+
+        assertTrue(certReq.validateDnsNames(providerDnsSuffixList, "ostk.athenz.info", null, null));
+
+        // tests with hostname field
+
+        assertFalse(certReq.validateDnsNames(providerDnsSuffixList, "zts.athenz.info", null, null));
+        assertFalse(certReq.validateDnsNames(providerDnsSuffixList, "zts.athenz.info",
+                "host1.athenz.info", null));
+        assertFalse(certReq.validateDnsNames(providerDnsSuffixList, "zts.athenz.info",
+                "athenz.ostk.athenz.info", null));
+        assertTrue(certReq.validateDnsNames(providerDnsSuffixList, "zts.athenz.info",
+                "api.athenz.ostk.athenz.info", null));
+
+        // now specify a resolver for the hostname check
+
+        HostnameResolver resolver = new TestHostnameResolver();
+        assertFalse(certReq.validateDnsNames(providerDnsSuffixList, "zts.athenz.info",
+                "api.athenz.ostk.athenz.info", resolver));
+
+        // include resolver with invalid hostname
+
+        ((TestHostnameResolver) resolver).addValidHostname("api1.athenz.ostk.athenz.info");
+        assertFalse(certReq.validateDnsNames(providerDnsSuffixList, "zts.athenz.info",
+                "api.athenz.ostk.athenz.info", resolver));
+
+        // now add the hostname to the list
+
+        ((TestHostnameResolver) resolver).addValidHostname("api.athenz.ostk.athenz.info");
+        assertTrue(certReq.validateDnsNames(providerDnsSuffixList, "zts.athenz.info",
+                "api.athenz.ostk.athenz.info", resolver));
+    }
+
+    @Test
+    public void testValidateDnsNamesNoValues() throws IOException {
+
+        Path path = Paths.get("src/test/resources/valid_cn_only.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        StringBuilder errorMsg = new StringBuilder(256);
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertNotNull(certReq);
+        certReq.parseCertRequest(errorMsg);
+
+        assertTrue(certReq.validateDnsNames(null, null, null, null));
+    }
+
+    @Test
+    public void testValidateDnsNamesMismatchSize() throws IOException {
         
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
@@ -161,11 +268,11 @@ public class X509CertRequestTest {
         String pem = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(pem);
         
-        assertFalse(certReq.compareDnsNames(cert));
+        assertFalse(certReq.validateDnsNames(cert));
     }
     
     @Test
-    public void testCompareDnsNamesMismatchValues() throws IOException {
+    public void testValidateDnsNamesMismatchValues() throws IOException {
         
         Path path = Paths.get("src/test/resources/athenz.mismatch.dns.csr");
         String csr = new String(Files.readAllBytes(path));
@@ -177,11 +284,11 @@ public class X509CertRequestTest {
         String pem = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(pem);
         
-        assertFalse(certReq.compareDnsNames(cert));
+        assertFalse(certReq.validateDnsNames(cert));
     }
     
     @Test
-    public void testComparePublicKeysCert() throws IOException {
+    public void testValidatePublicKeysCert() throws IOException {
         
         Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
         String csr = new String(Files.readAllBytes(path));
@@ -193,11 +300,11 @@ public class X509CertRequestTest {
         String pem = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(pem);
         
-        assertTrue(certReq.comparePublicKeys(cert));
+        assertTrue(certReq.validatePublicKeys(cert));
     }
     
     @Test
-    public void testComparePublicKeysCertFailure() throws IOException {
+    public void testValidatePublicKeysCertFailure() throws IOException {
         
         Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
         String csr = new String(Files.readAllBytes(path));
@@ -208,11 +315,11 @@ public class X509CertRequestTest {
         X509Certificate cert = Mockito.mock(X509Certificate.class);
         Mockito.when(cert.getPublicKey()).thenReturn(null);
         
-        assertFalse(certReq.comparePublicKeys(cert));
+        assertFalse(certReq.validatePublicKeys(cert));
     }
     
     @Test
-    public void testComparePublicKeysCertCSRFailure() throws IOException {
+    public void testValidatePublicKeysCertCSRFailure() throws IOException {
         
         Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
         String csr = new String(Files.readAllBytes(path));
@@ -228,11 +335,11 @@ public class X509CertRequestTest {
         String pem = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(pem);
         
-        assertFalse(certReq.comparePublicKeys(cert));
+        assertFalse(certReq.validatePublicKeys(cert));
     }
     
     @Test
-    public void testComparePublicKeysCertMismatch() throws IOException {
+    public void testValidatePublicKeysCertMismatch() throws IOException {
         
         Path path = Paths.get("src/test/resources/athenz.mismatch.dns.csr");
         String csr = new String(Files.readAllBytes(path));
@@ -244,11 +351,11 @@ public class X509CertRequestTest {
         String pem = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(pem);
         
-        assertFalse(certReq.comparePublicKeys(cert));
+        assertFalse(certReq.validatePublicKeys(cert));
     }
     
     @Test
-    public void testComparePublicKeysNull() throws IOException {
+    public void testValidatePublicKeysNull() throws IOException {
         
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
@@ -256,11 +363,11 @@ public class X509CertRequestTest {
         X509CertRequest certReq = new X509CertRequest(csr);
         assertNotNull(certReq);
         
-        assertFalse(certReq.comparePublicKeys((String) null));
+        assertFalse(certReq.validatePublicKeys((String) null));
     }
     
     @Test
-    public void testComparePublicKeysFailure() throws IOException {
+    public void testValidatePublicKeysFailure() throws IOException {
         
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
@@ -272,116 +379,11 @@ public class X509CertRequestTest {
         Mockito.when(req.getSubjectPublicKeyInfo()).thenReturn(null);
         certReq.setCertReq(req);
         
-        assertFalse(certReq.comparePublicKeys("publickey"));
+        assertFalse(certReq.validatePublicKeys("publickey"));
     }
     
     @Test
-    public void testValidateInvalidDnsNames() throws IOException {
-        
-        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
-        String csr = new String(Files.readAllBytes(path));
-        
-        X509CertRequest certReq = new X509CertRequest(csr);
-        assertNotNull(certReq);
-        
-        StringBuilder errorMsg = new StringBuilder(256);
-        assertFalse(certReq.validate(null, "sys", "production", null, null, errorMsg));
-    }
-    
-    @Test
-    public void testValidateInvalidInstanceId() throws IOException {
-        
-        Path path = Paths.get("src/test/resources/valid_email.csr");
-        String csr = new String(Files.readAllBytes(path));
-        
-        X509CertRequest certReq = new X509CertRequest(csr);
-        assertNotNull(certReq);
-        
-        StringBuilder errorMsg = new StringBuilder(256);
-        assertFalse(certReq.validate(null, "athenz", "production", null, null, errorMsg));
-    }
-    
-    @Test
-    public void testValidateInstanceIdMismatch() throws IOException {
-        
-        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
-        String csr = new String(Files.readAllBytes(path));
-        
-        X509CertRequest certReq = new X509CertRequest(csr);
-        assertNotNull(certReq);
-        
-        StringBuilder errorMsg = new StringBuilder(256);
-        assertFalse(certReq.validate(null, "athenz", "production", "1002", null, errorMsg));
-    }
-    
-    @Test
-    public void testValidateCnMismatch() throws IOException {
-        
-        Path path = Paths.get("src/test/resources/athenz.mismatch.cn.csr");
-        String csr = new String(Files.readAllBytes(path));
-        
-        X509CertRequest certReq = new X509CertRequest(csr);
-        assertNotNull(certReq);
-        
-        StringBuilder errorMsg = new StringBuilder(256);
-        assertFalse(certReq.validate(null, "athenz", "production", "1001", null, errorMsg));
-        assertTrue(errorMsg.toString().contains("Unable to validate CSR common name"));
-    }
-    
-    @Test
-    public void testValidateDnsSuffixMismatch() throws IOException {
-        
-        Path path = Paths.get("src/test/resources/athenz.mismatch.dns.csr");
-        String csr = new String(Files.readAllBytes(path));
-        
-        X509CertRequest certReq = new X509CertRequest(csr);
-        assertNotNull(certReq);
-        
-        StringBuilder errorMsg = new StringBuilder(256);
-        assertFalse(certReq.validate(null, "athenz", "production", "1001", null, errorMsg));
-        assertTrue(errorMsg.toString().contains("does not end with expected suffix"));
-    }
-    
-    @Test
-    public void testValidateDnsSuffixNotAuthorized() throws IOException {
-        
-        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
-        String csr = new String(Files.readAllBytes(path));
-        
-        X509CertRequest certReq = new X509CertRequest(csr);
-        assertNotNull(certReq);
-        
-        Authorizer authorizer = Mockito.mock(Authorizer.class);
-        Principal provider = Mockito.mock(Principal.class);
-        Mockito.when(authorizer.access("launch", "sys.auth:dns.ostk.athenz.cloud", provider, null))
-            .thenReturn(false);
-        
-        StringBuilder errorMsg = new StringBuilder(256);
-        assertFalse(certReq.validate(provider, "athenz", "production", "1001", authorizer, errorMsg));
-        assertTrue(errorMsg.toString().contains("not authorized to handle"));
-    }
-    
-    @Test
-    public void testValidate() throws IOException {
-        
-        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
-        String csr = new String(Files.readAllBytes(path));
-        
-        X509CertRequest certReq = new X509CertRequest(csr);
-        assertNotNull(certReq);
-        
-        Authorizer authorizer = Mockito.mock(Authorizer.class);
-        Principal provider = Mockito.mock(Principal.class);
-        Mockito.when(authorizer.access("launch", "sys.auth:dns.ostk.athenz.cloud", provider, null))
-            .thenReturn(true);
-        
-        StringBuilder errorMsg = new StringBuilder(256);
-        assertTrue(certReq.validate(provider, "athenz", "production", "1001", authorizer, errorMsg));
-        assertTrue(certReq.validate(provider, "athenz", "production", "1001", null, errorMsg));
-    }
-    
-    @Test
-    public void testComparePublicKeysString() throws IOException {
+    public void testValidatePublicKeysString() throws IOException {
         
         Path path = Paths.get("src/test/resources/valid.csr");
         String csr = new String(Files.readAllBytes(path));
@@ -392,7 +394,7 @@ public class X509CertRequestTest {
                 + "TgiiPGT7+jzm6BRcssOBTPFIMkePT2a8Tq+FYSmFnHfbQjwmYw2uMK8CAwEAAQ==\n"
                 + "-----END PUBLIC KEY-----";
         
-        assertTrue(certReq.comparePublicKeys(ztsPublicKey));
+        assertTrue(certReq.validatePublicKeys(ztsPublicKey));
     }
     
     @Test
@@ -408,7 +410,7 @@ public class X509CertRequestTest {
                 + "TgiiPGT7+jzm6BRcssOBTPFIMkePT2a8Tq+FYSmFnHfbQjwmYw2uMK8CAwEAAQ==\n"
                 + "-----END PUBLIC KEY-----";
         
-        assertTrue(certReq.comparePublicKeys(ztsPublicKey));
+        assertTrue(certReq.validatePublicKeys(ztsPublicKey));
     }
 
     @Test
@@ -424,7 +426,7 @@ public class X509CertRequestTest {
                 + "TgiiPGT7+jzm6BRcssOBTPFIMkePT2a8Tq+FYSmFnHfbQjwmYw2uMK8CAwEAAQ==\n"
                 + "-----END PUBLIC KEY-----";
         
-        assertFalse(certReq.comparePublicKeys(ztsPublicKey));
+        assertFalse(certReq.validatePublicKeys(ztsPublicKey));
     }
     
     @Test
@@ -444,7 +446,143 @@ public class X509CertRequestTest {
                 + "TgiiPGT7+jzm6BRcssOBTPFIMkePT2a8Tq+FYSmFnHfbQjwmYw2uMK8CAwEAAQ=="
                 + "-----END PUBLIC KEY-----";
         
-        assertTrue(certReq.comparePublicKeys(ztsPublicKey1));
-        assertTrue(certReq.comparePublicKeys(ztsPublicKey2));
+        assertTrue(certReq.validatePublicKeys(ztsPublicKey1));
+        assertTrue(certReq.validatePublicKeys(ztsPublicKey2));
+    }
+
+    @Test
+    public void testValidateCertCNFailure() throws IOException {
+
+        Path path = Paths.get("src/test/resources/multiple_cn.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        try {
+            new X509CertRequest(csr);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Subject contains multiple values"));
+        }
+    }
+
+    @Test
+    public void testValidateSpiffeURINoValues() throws IOException {
+
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertTrue(certReq.validateSpiffeURI("domain", "sa", "api"));
+    }
+
+    @Test
+    public void testValidateSpiffeURIMultipleValues() throws IOException {
+
+        Path path = Paths.get("src/test/resources/multiple_uri.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        try {
+            new X509CertRequest(csr);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Invalid SPIFFE URI present"));
+        }
+    }
+
+    @Test
+    public void testValidateSpiffeURI() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_role.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertTrue(certReq.validateSpiffeURI("coretech", "ra", "api"));
+        assertFalse(certReq.validateSpiffeURI("coretech", "ra", "backend"));
+        assertFalse(certReq.validateSpiffeURI("coretech", "sa", "api"));
+    }
+
+    @Test
+    public void testValidateOUFieldCheck() throws IOException {
+
+        // the ou is "Testing Domain"
+
+        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertNotNull(certReq);
+
+        HashSet<String> validOrgUnits = new HashSet<>();
+
+        assertFalse(certReq.validateSubjectOUField(null, null, null));
+        assertFalse(certReq.validateSubjectOUField("Testing Domains", null, null));
+        assertFalse(certReq.validateSubjectOUField(null, "Testing Domains", null));
+        assertFalse(certReq.validateSubjectOUField("Bad1", "Bad2", null));
+        assertFalse(certReq.validateSubjectOUField(null, null, validOrgUnits));
+        assertFalse(certReq.validateSubjectOUField("Testing Domains", "None Test", validOrgUnits));
+
+        // add invalid entry into set
+        validOrgUnits.add("Testing Domains");
+        assertFalse(certReq.validateSubjectOUField("Testing Domains", "None Test", validOrgUnits));
+
+        assertTrue(certReq.validateSubjectOUField("Testing Domain", null, null));
+        assertTrue(certReq.validateSubjectOUField("Testing Domain", "Bad2", validOrgUnits));
+
+        assertTrue(certReq.validateSubjectOUField(null, "Testing Domain", null));
+        assertTrue(certReq.validateSubjectOUField("Bad1", "Testing Domain", validOrgUnits));
+
+        // add valid entry inti set
+        validOrgUnits.add("Testing Domain");
+        assertTrue(certReq.validateSubjectOUField(null, null, validOrgUnits));
+        assertTrue(certReq.validateSubjectOUField("Bad1", "Bad2", validOrgUnits));
+    }
+
+    @Test
+    public void testValidateOUFieldCheckMissingOU() throws IOException {
+
+        // no ou field available
+        Path path = Paths.get("src/test/resources/athenz.single_ip.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertNotNull(certReq);
+
+        HashSet<String> validOrgUnits = new HashSet<>();
+        validOrgUnits.add("Athenz");
+
+        assertTrue(certReq.validateSubjectOUField(null, null, null));
+        assertTrue(certReq.validateSubjectOUField("Testing Domains", null, null));
+        assertTrue(certReq.validateSubjectOUField(null, "Testing Domains", null));
+        assertTrue(certReq.validateSubjectOUField("Bad1", "Bad2", null));
+        assertTrue(certReq.validateSubjectOUField(null, null, validOrgUnits));
+        assertTrue(certReq.validateSubjectOUField("Testing Domains", "None Test", validOrgUnits));
+    }
+
+    @Test
+    public void testValidateOUFieldCheckInvalidOU() throws IOException {
+
+        // multiple ou field: Athenz and Yahoo which we don't support
+        Path path = Paths.get("src/test/resources/athenz.multiple_ou.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertNotNull(certReq);
+
+        assertFalse(certReq.validateSubjectOUField("Athenz", null, null));
+        assertFalse(certReq.validateSubjectOUField("Yahoo", null, null));
+    }
+
+    @Test
+    public void testExtractInstanceIdURI() throws IOException {
+
+        Path path = Paths.get("src/test/resources/athenz.instanceid.uri.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertNotNull(certReq);
+
+        StringBuilder errMsg = new StringBuilder();
+        assertTrue(certReq.parseCertRequest(errMsg));
+        assertEquals(certReq.getInstanceId(), "id-001");
     }
 }
+

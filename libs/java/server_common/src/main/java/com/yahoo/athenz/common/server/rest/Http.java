@@ -15,9 +15,11 @@
  */
 package com.yahoo.athenz.common.server.rest;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.ArrayList;
 import java.security.cert.X509Certificate;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -33,9 +35,11 @@ public class Http {
 
     private static final Logger LOG = LoggerFactory.getLogger(Http.class);
 
+    public static final String WWW_AUTHENTICATE  = "WWW-Authenticate";
     public static final String INVALID_CRED_ATTR = "com.yahoo.athenz.auth.credential.error";
+    public static final String AUTH_CHALLENGES   = "com.yahoo.athenz.auth.credential.challenges";
     public static final String JAVAX_CERT_ATTR   = "javax.servlet.request.X509Certificate";
-    
+
     public static class AuthorityList {
         List<Authority> authorities;
 
@@ -66,7 +70,7 @@ public class Http {
         return null;
     }
 
-    private static String authenticatingCredentials(HttpServletRequest request,
+    static String authenticatingCredentials(HttpServletRequest request,
             Authority authority) {
         final String header = authority.getHeader();
         if (header == null) {
@@ -91,12 +95,14 @@ public class Http {
         }
 
         StringBuilder authErrMsg = new StringBuilder(512);
+        Set<String> authChallenges = null;
         for (Authority authority : authorities.authorities) {
             Principal principal = null;
             StringBuilder errMsg = new StringBuilder(512);
             switch (authority.getCredSource()) {
             case HEADER:
                 String creds = authenticatingCredentials(request, authority);
+
                 if (creds != null) {
                     principal = authority.authenticate(creds, ServletRequestUtil.getRemoteAddress(request),
                             request.getMethod(), errMsg);
@@ -119,7 +125,15 @@ public class Http {
             if (principal != null) {
                 return principal;
             }
-            
+
+            final String challenge = authority.getAuthenticateChallenge();
+            if (challenge != null) {
+                if (authChallenges == null) {
+                    authChallenges = new HashSet<>();
+                }
+                authChallenges.add(challenge);
+            }
+
             // otherwise if we have a specific error message from an authority
             // then we'll keep it in case all other authorities also fail and
             // we need to log the reason for failure
@@ -151,6 +165,14 @@ public class Http {
             LOG.error("authenticate: No credentials provided");
         }
 
+        // if we have challenges specified, we're going to set it as a request
+        // attribute and let the caller decide if they want to add it to the
+        // response as a header in its context handler
+
+        if (authChallenges != null) {
+            request.setAttribute(AUTH_CHALLENGES,  String.join(", ", authChallenges));
+        }
+
         throw new ResourceException(ResourceException.UNAUTHORIZED, "Invalid credentials");
     }
 
@@ -165,9 +187,6 @@ public class Http {
             String resource, String otherDomain) {
         Principal principal = authenticate(request, authorities);
         authorize(authorizer, principal, action, resource, otherDomain);
-        if (principal == null) {
-            return null;
-        }
         return principal.getFullName();
     }
 

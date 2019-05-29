@@ -730,52 +730,105 @@ public class Crypto {
         return null;
     }
     
-    public static String extractX509CSRCommonName(PKCS10CertificationRequest certReq) {
+    public static String extractX509CSRSubjectField(PKCS10CertificationRequest certReq, ASN1ObjectIdentifier id) {
         
-        String cn = null;
         X500Name x500name = certReq.getSubject();
-        RDN cnRdn = x500name.getRDNs(BCStyle.CN)[0];
-        if (cnRdn != null) {
-            cn = IETFUtils.valueToString(cnRdn.getFirst().getValue());
+        if (x500name == null) {
+            return null;
         }
-        return cn;
+        RDN[] rdns = x500name.getRDNs(id);
+
+        // we're only supporting a single field in Athenz certificates so
+        // any other multiple value will be considered invalid
+
+        if (rdns == null || rdns.length == 0) {
+            return null;
+        }
+
+        if (rdns.length != 1) {
+            throw new CryptoException("CSR Subject contains multiple values for the same field.");
+        }
+
+        return IETFUtils.valueToString(rdns[0].getFirst().getValue());
     }
-    
-    public static String extractX509CSREmail(PKCS10CertificationRequest certReq) {
-        
-        String rfc822 = null;
+
+    public static String extractX509CSRCommonName(PKCS10CertificationRequest certReq) {
+        // in case there are multiple CNs, we're only looking at the first one
+        // in Athenz we should never have multiple CNs so we're going to reject
+        // any csr that has multiple values
+
+        return extractX509CSRSubjectField(certReq, BCStyle.CN);
+    }
+
+    public static String extractX509CSRSubjectOField(PKCS10CertificationRequest certReq) {
+
+        // in case there are multiple Os, we're only looking at the first one
+        // in Athenz we should never have multiple Os so we're going to reject
+        // any csr that has multiple values
+
+        return extractX509CSRSubjectField(certReq, BCStyle.O);
+    }
+
+    public static String extractX509CSRSubjectOUField(PKCS10CertificationRequest certReq) {
+
+        // in case there are multiple OUs, we're only looking at the first one
+        // in Athenz we should never have multiple OUs so we're going to reject
+        // any certificate that has multiple values
+
+        return extractX509CSRSubjectField(certReq, BCStyle.OU);
+    }
+
+    private static List<String> extractX509CSRSANField(PKCS10CertificationRequest certReq, int tagNo) {
+
+        List<String> values = new ArrayList<>();
         Attribute[] attributes = certReq.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);
         for (Attribute attribute : attributes) {
             for (ASN1Encodable value : attribute.getAttributeValues()) {
                 Extensions extensions = Extensions.getInstance(value);
                 GeneralNames gns = GeneralNames.fromExtensions(extensions, Extension.subjectAlternativeName);
+                if (gns == null) {
+                    continue;
+                }
                 for (GeneralName name : gns.getNames()) {
-                    if (name.getTagNo() == GeneralName.rfc822Name) {
-                        rfc822 = (((DERIA5String) name.getName()).getString());
-                        break;
+
+                    // GeneralName ::= CHOICE {
+                    //     otherName                       [0]     OtherName,
+                    //     rfc822Name                      [1]     IA5String,
+                    //     dNSName                         [2]     IA5String,
+                    //     x400Address                     [3]     ORAddress,
+                    //     directoryName                   [4]     Name,
+                    //     ediPartyName                    [5]     EDIPartyName,
+                    //     uniformResourceIdentifier       [6]     IA5String,
+                    //     iPAddress                       [7]     OCTET STRING,
+                    //     registeredID                    [8]     OBJECT IDENTIFIER}
+
+                    if (name.getTagNo() == tagNo) {
+                        values.add(((DERIA5String) name.getName()).getString());
                     }
                 }
             }
         }
-        return rfc822;
+        return values;
+    }
+
+    public static String extractX509CSREmail(PKCS10CertificationRequest certReq) {
+        List<String> emails = extractX509CSRSANField(certReq, GeneralName.rfc822Name);
+        if (emails.size() == 0) {
+            return null;
+        }
+        return emails.get(0);
+    }
+
+    public static List<String> extractX509CSREmails(PKCS10CertificationRequest certReq) {
+        return extractX509CSRSANField(certReq, GeneralName.rfc822Name);
     }
 
     public static List<String> extractX509CSRDnsNames(PKCS10CertificationRequest certReq) {
-        
-        List<String> dnsNames = new ArrayList<>();
-        Attribute[] attributes = certReq.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);
-        for (Attribute attribute : attributes) {
-            for (ASN1Encodable value : attribute.getAttributeValues()) {
-                Extensions extensions = Extensions.getInstance(value);
-                GeneralNames gns = GeneralNames.fromExtensions(extensions, Extension.subjectAlternativeName);
-                for (GeneralName name : gns.getNames()) {
-                    if (name.getTagNo() == GeneralName.dNSName) {
-                        dnsNames.add(((DERIA5String) name.getName()).getString());
-                    }
-                }
-            }
-        }
-        return dnsNames;
+        return extractX509CSRSANField(certReq, GeneralName.dNSName);
+    }
+
+    public static List<String> extractX509CSRURIs(PKCS10CertificationRequest certReq) {
+        return extractX509CSRSANField(certReq, GeneralName.uniformResourceIdentifier);
     }
 
     public static List<String> extractX509CSRIPAddresses(PKCS10CertificationRequest certReq) {
@@ -786,6 +839,9 @@ public class Crypto {
             for (ASN1Encodable value : attribute.getAttributeValues()) {
                 Extensions extensions = Extensions.getInstance(value);
                 GeneralNames gns = GeneralNames.fromExtensions(extensions, Extension.subjectAlternativeName);
+                if (gns == null) {
+                    continue;
+                }
                 for (GeneralName name : gns.getNames()) {
                     if (name.getTagNo() == GeneralName.iPAddress) {
                         try {
@@ -860,95 +916,58 @@ public class Crypto {
         }
         return strWriter.toString();
     }
-    
+
+    public static String extractX509CertSubjectField(X509Certificate x509Cert, ASN1ObjectIdentifier id) {
+
+        String principalName = x509Cert.getSubjectX500Principal().getName();
+        if (principalName == null || principalName.isEmpty()) {
+            return null;
+        }
+        X500Name x500name = new X500Name(principalName);
+        RDN[] rdns = x500name.getRDNs(id);
+
+        // we're only supporting a single field in Athenz certificates so
+        // any other multiple value will be considered invalid
+
+        if (rdns == null || rdns.length == 0) {
+            return null;
+        }
+
+        if (rdns.length != 1) {
+            throw new CryptoException("CSR Subject contains multiple values for the same field.");
+        }
+
+        return IETFUtils.valueToString(rdns[0].getFirst().getValue());
+    }
+
     public static String extractX509CertCommonName(X509Certificate x509Cert) {
         
         // in case there are multiple CNs, we're only looking at the first one
+        // in Athenz we should never have multiple CNs so we're going to reject
+        // any certificate that has multiple values
 
-        String cn = null;
-        String principalName = x509Cert.getSubjectX500Principal().getName();
-        if (principalName != null && !principalName.isEmpty()) {
-            X500Name x500name = new X500Name(principalName);
-            RDN cnRdn = x500name.getRDNs(BCStyle.CN)[0];
-            if (cnRdn != null) {
-                cn = IETFUtils.valueToString(cnRdn.getFirst().getValue());
-            }
-        }
-        return cn;
+        return extractX509CertSubjectField(x509Cert, BCStyle.CN);
     }
 
-    public static List<String> extractX509CertDnsNames(X509Certificate x509Cert) {
-        Collection<List<?>> altNames = null;
-        try {
-            altNames = x509Cert.getSubjectAlternativeNames();
-        } catch (CertificateParsingException ex) {
-            LOG.error("extractX509IPAddresses: Caught CertificateParsingException when parsing certificate: "
-                + ex.getMessage());
-        }
+    public static String extractX509CertSubjectOUField(X509Certificate x509Cert) {
 
-        if (altNames == null) {
-            return Collections.emptyList();
-        }
+        // in case there are multiple OUs, we're only looking at the first one
+        // in Athenz we should never have multiple OUs so we're going to reject
+        // any certificate that has multiple values
 
-        List<String> dnsNames = new ArrayList<>();
-        for (@SuppressWarnings("rawtypes") List item : altNames) {
-            Integer type = (Integer) item.get(0);
-
-            // GeneralName ::= CHOICE {
-            //     otherName                       [0]     OtherName,
-            //     rfc822Name                      [1]     IA5String,
-            //     dNSName                         [2]     IA5String,
-            //     x400Address                     [3]     ORAddress,
-            //     directoryName                   [4]     Name,
-            //     ediPartyName                    [5]     EDIPartyName,
-            //     uniformResourceIdentifier       [6]     IA5String,
-            //     iPAddress                       [7]     OCTET STRING,
-            //     registeredID                    [8]     OBJECT IDENTIFIER}
-
-            if (type == GeneralName.dNSName) {
-                dnsNames.add((String) item.get(1));
-            }
-        }
-        return dnsNames;
+        return extractX509CertSubjectField(x509Cert, BCStyle.OU);
     }
 
-    public static List<String> extractX509CertEmails(X509Certificate x509Cert) {
-        Collection<List<?>> altNames = null;
-        try {
-            altNames = x509Cert.getSubjectAlternativeNames();
-        } catch (CertificateParsingException ex) {
-            LOG.error("extractX509IPAddresses: Caught CertificateParsingException when parsing certificate: "
-                + ex.getMessage());
-        }
+    public static String extractX509CertSubjectOField(X509Certificate x509Cert) {
 
-        if (altNames == null) {
-            return Collections.emptyList();
-        }
+        // in case there are multiple Os, we're only looking at the first one
+        // in Athenz we should never have multiple Os so we're going to reject
+        // any certificate that has multiple values
 
-        List<String> emails = new ArrayList<>();
-        for (@SuppressWarnings("rawtypes") List item : altNames) {
-            Integer type = (Integer) item.get(0);
-
-            // GeneralName ::= CHOICE {
-            //     otherName                       [0]     OtherName,
-            //     rfc822Name                      [1]     IA5String,
-            //     dNSName                         [2]     IA5String,
-            //     x400Address                     [3]     ORAddress,
-            //     directoryName                   [4]     Name,
-            //     ediPartyName                    [5]     EDIPartyName,
-            //     uniformResourceIdentifier       [6]     IA5String,
-            //     iPAddress                       [7]     OCTET STRING,
-            //     registeredID                    [8]     OBJECT IDENTIFIER}
-
-            if (type == GeneralName.rfc822Name) {
-                emails.add((String) item.get(1));
-            }
-        }
-        return emails;
+        return extractX509CertSubjectField(x509Cert, BCStyle.O);
     }
-    
-    public static List<String> extractX509CertIPAddresses(X509Certificate x509Cert) {
-        
+
+    private static List<String> extractX509CertSANField(X509Certificate x509Cert, int tagNo) {
         Collection<List<?>> altNames = null;
         try {
             altNames = x509Cert.getSubjectAlternativeNames();
@@ -956,15 +975,15 @@ public class Crypto {
             LOG.error("extractX509IPAddresses: Caught CertificateParsingException when parsing certificate: "
                     + ex.getMessage());
         }
-        
+
         if (altNames == null) {
             return Collections.emptyList();
         }
-        
-        List<String> ipAddresses = new ArrayList<>();
+
+        List<String> values = new ArrayList<>();
         for (@SuppressWarnings("rawtypes") List item : altNames) {
             Integer type = (Integer) item.get(0);
-            
+
             // GeneralName ::= CHOICE {
             //     otherName                       [0]     OtherName,
             //     rfc822Name                      [1]     IA5String,
@@ -975,14 +994,30 @@ public class Crypto {
             //     uniformResourceIdentifier       [6]     IA5String,
             //     iPAddress                       [7]     OCTET STRING,
             //     registeredID                    [8]     OBJECT IDENTIFIER}
-            
-            if (type == GeneralName.iPAddress) {
-                ipAddresses.add((String) item.get(1));
+
+            if (type == tagNo) {
+                values.add((String) item.get(1));
             }
         }
-        return ipAddresses;
+        return values;
+    }
+
+    public static List<String> extractX509CertDnsNames(X509Certificate x509Cert) {
+        return extractX509CertSANField(x509Cert, GeneralName.dNSName);
+    }
+
+    public static List<String> extractX509CertEmails(X509Certificate x509Cert) {
+        return extractX509CertSANField(x509Cert, GeneralName.rfc822Name);
     }
     
+    public static List<String> extractX509CertIPAddresses(X509Certificate x509Cert) {
+        return extractX509CertSANField(x509Cert, GeneralName.iPAddress);
+    }
+
+    public static List<String> extractX509CertURIs(X509Certificate x509Cert) {
+        return extractX509CertSANField(x509Cert, GeneralName.uniformResourceIdentifier);
+    }
+
     public static String extractX509CertPublicKey(X509Certificate x509Cert) {
         
         PublicKey publicKey = x509Cert.getPublicKey();
@@ -1145,7 +1180,7 @@ public class Crypto {
         return writer.toString();
     }
     
-    public static void main(String [] args) throws CryptoException {
+    public static void main(String[] args) throws CryptoException {
         if (args.length >= 2) {
             String op = args[0];
             if ("sign".equals(op)) {
@@ -1190,5 +1225,4 @@ public class Crypto {
         System.out.println("usage: r Crypto verify msg privateKeyFile signature");
         System.exit(1);
     }
-    
 }

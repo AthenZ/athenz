@@ -15,7 +15,6 @@
  */
 package com.oath.auth;
 
-import com.google.common.io.Resources;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
@@ -54,11 +53,12 @@ public class SocketTest {
 
     @Before
     public void setup() throws Exception {
+        ClassLoader classLoader = this.getClass().getClassLoader();
         keyRefresher = Utils.generateKeyRefresher(
-                Resources.getResource("truststore.jks").getPath(), //trust store
+                classLoader.getResource("truststore.jks").getPath(), //trust store
                 "123456".toCharArray(),
-                Resources.getResource("gdpr.aws.core.cert.pem").getPath(), //public
-                Resources.getResource("gdpr.aws.core.key.pem").getPath() //private
+                classLoader.getResource("gdpr.aws.core.cert.pem").getPath(), //public
+                classLoader.getResource("gdpr.aws.core.key.pem").getPath() //private
         );
 
         try {
@@ -133,9 +133,10 @@ public class SocketTest {
         assertEquals("athenz.production", getCN(s.getSession().getPeerCertificates()));
 
         //update the ssl context on the server
+        ClassLoader classLoader = this.getClass().getClassLoader();
         keyRefresher.getKeyManagerProxy().setKeyManager(Utils.getKeyManagers(
-                Resources.getResource("gdpr.aws.core.cert.pem").getPath(),
-                Resources.getResource("gdpr.aws.core.key.pem").getPath()));
+                classLoader.getResource("gdpr.aws.core.cert.pem").getPath(),
+                classLoader.getResource("gdpr.aws.core.key.pem").getPath()));
 
         //setup socket for the second call
         SSLContext sslContext2 = SSLContext.getInstance("TLSv1.2");

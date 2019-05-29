@@ -18,6 +18,7 @@ package com.yahoo.athenz.auth.impl;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 
 import org.slf4j.Logger;
@@ -76,7 +77,7 @@ public class FilePrivateKeyStore implements PrivateKeyStore {
         try (InputStream is = getClass().getResourceAsStream(resourceName)) {
             String resourceData = getString(is);
             if (resourceData != null) {
-                key = Crypto.ybase64(resourceData.getBytes("UTF-8"));
+                key = Crypto.ybase64(resourceData.getBytes(StandardCharsets.UTF_8));
             }
         } catch (IOException e) {
             if (LOG.isDebugEnabled()) {

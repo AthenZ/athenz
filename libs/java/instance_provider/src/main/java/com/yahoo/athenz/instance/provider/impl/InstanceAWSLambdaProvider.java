@@ -24,7 +24,8 @@ public class InstanceAWSLambdaProvider extends InstanceAWSProvider {
 
     @Override
     boolean validateAWSDocument(final String provider, AWSAttestationData info,
-            final String awsAccount, final String instanceId, StringBuilder errMsg) {
+            final String awsAccount, final String instanceId, boolean checkTime,
+            StringBuilder errMsg) {
         
         // for lambda we don't have an instance document so we
         // are going to trust based on temporary credentials only
@@ -33,12 +34,13 @@ public class InstanceAWSLambdaProvider extends InstanceAWSProvider {
     }
     
     @Override
-    void setConfirmationAttributes(InstanceConfirmation confirmation) {
+    void setConfirmationAttributes(InstanceConfirmation confirmation, boolean sshCert) {
         
         // for lambda we can only issue client certificates
+        // and we always do not allow ssh certs
         
         Map<String, String> attributes = new HashMap<>();
-        attributes.put(ZTS_CERT_USAGE, ZTS_CERT_USAGE_CLIENT);
+        attributes.put(InstanceUtils.ZTS_CERT_SSH, "false");
         confirmation.setAttributes(attributes);
     }
 }

@@ -37,7 +37,8 @@ Download and install [Apache Maven](http://maven.apache.org/download.cgi).
 --------------
 
 If you don't have git client installed on your host, you can download
-one from [Git website](https://git-scm.com/downloads)
+one from [Git website](https://git-scm.com/downloads). 2.x version of
+the git client is required.
 
 ### Go
 ------

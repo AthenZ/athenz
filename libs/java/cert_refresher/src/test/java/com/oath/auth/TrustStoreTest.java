@@ -16,19 +16,23 @@
 package com.oath.auth;
 
 import static org.junit.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
-import com.google.common.io.Resources;
 import java.security.cert.X509Certificate;
+import java.util.HashSet;
+import java.util.Set;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import org.junit.Test;
 
 public class TrustStoreTest {
 
+    private ClassLoader classLoader = this.getClass().getClassLoader();
+
     @Test
     public void builtFromJKSFile() throws Exception {
 
-        String filePath = Resources.getResource("truststore.jks").getFile();
+        String filePath = classLoader.getResource("truststore.jks").getFile();
 
         JavaKeyStoreProvider provider = new JavaKeyStoreProvider(filePath, "123456".toCharArray());
         TrustStore trustStore = new TrustStore(filePath, provider);
@@ -47,7 +51,7 @@ public class TrustStoreTest {
     @Test
     public void builtFromCaCert() throws Exception {
 
-        String filePath = Resources.getResource("ca.cert.pem").getFile();
+        String filePath = classLoader.getResource("ca.cert.pem").getFile();
 
         CaCertKeyStoreProvider provider = new CaCertKeyStoreProvider(filePath);
         TrustStore trustStore = new TrustStore(filePath, provider);
@@ -63,4 +67,26 @@ public class TrustStoreTest {
             certificate.getIssuerX500Principal().getName());
     }
 
+    @Test
+    public void builtFromMultipleCaCert() throws Exception {
+
+        String filePath = classLoader.getResource("ca.certs.pem").getFile();
+
+        CaCertKeyStoreProvider provider = new CaCertKeyStoreProvider(filePath);
+        TrustStore trustStore = new TrustStore(filePath, provider);
+
+        assertEquals(filePath, trustStore.getFilePath());
+        TrustManager[] trustManagers = trustStore.getTrustManagers();
+        assertEquals(1, trustManagers.length);
+        X509TrustManager trustManager = (X509TrustManager) trustManagers[0];
+        X509Certificate[] acceptedIssuers = trustManager.getAcceptedIssuers();
+        assertEquals(3, acceptedIssuers.length);
+        Set<String> issuers = new HashSet<>();
+        for (X509Certificate cert : acceptedIssuers) {
+            issuers.add(cert.getIssuerX500Principal().getName());
+        }
+        assertTrue(issuers.contains("CN=athenz.production,OU=Testing Domain,O=Athenz,ST=CA,C=US"));
+        assertTrue(issuers.contains("CN=athenz.production1,OU=Testing Domain,O=Athenz,ST=CA,C=US"));
+        assertTrue(issuers.contains("CN=athenz.production2,OU=Testing Domain,O=Athenz,ST=CA,C=US"));
+    }
 }

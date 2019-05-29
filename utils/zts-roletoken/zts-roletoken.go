@@ -15,8 +15,8 @@ import (
 
 	"github.com/yahoo/athenz/clients/go/zts"
 	"github.com/yahoo/athenz/libs/go/athenzconf"
+	"github.com/yahoo/athenz/libs/go/athenzutils"
 	"github.com/yahoo/athenz/libs/go/zmssvctoken"
-	"github.com/yahoo/athenz/libs/go/ztsclientutil"
 )
 
 func usage() {
@@ -68,7 +68,7 @@ func fetchRoleToken(domain, role, ztsURL, svcKeyFile, svcCertFile, ntoken, ntoke
 	var client *zts.ZTSClient
 	var err error
 	if certCredentials {
-		client, err = ztsclientutil.ZtsClient(ztsURL, svcKeyFile, svcCertFile, "", proxy)
+		client, err = athenzutils.ZtsClient(ztsURL, svcKeyFile, svcCertFile, "", proxy)
 	} else {
 		client, err = ztsNtokenClient(ztsURL, ntoken, ntokenFile, hdr)
 	}

@@ -251,3 +251,24 @@ func (cli Zms) CheckMembers(dn string, rn string, members []string) (*string, er
 	s := buf.String()
 	return &s, nil
 }
+
+func (cli Zms) DeleteDomainRoleMember(dn, member string) (*string, error) {
+	err := cli.Zms.DeleteDomainRoleMember(zms.DomainName(dn), zms.MemberName(member), cli.AuditRef)
+	if err != nil {
+		return nil, err
+	}
+	s := "[Deleted member: " + member + "]"
+	return &s, nil
+}
+
+func (cli Zms) ListDomainRoleMembers(dn string) (*string, error) {
+	var buf bytes.Buffer
+	roleMembers, err := cli.Zms.GetDomainRoleMembers(zms.DomainName(dn))
+	if err != nil {
+		return nil, err
+	}
+	buf.WriteString("role members:\n")
+	cli.dumpDomainRoleMembers(&buf, roleMembers)
+	s := buf.String()
+	return &s, nil
+}

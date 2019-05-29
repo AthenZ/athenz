@@ -86,6 +86,7 @@ utils/zts-roletoken/src/
 utils/zts-svccert/bin/
 utils/zts-svccert/pkg/
 utils/zts-svccert/src/
+utils/zts-accesstoken/pkg/
 utils/zts-rolecert/bin/
 utils/zts-rolecert/pkg/
 utils/zts-rolecert/src/
@@ -96,3 +97,14 @@ libs/go/ztsclientutil/bin/
 libs/go/ztsclientutil/pkg/
 libs/go/ztsclientutil/src/
 rdl/rdl-gen-athenz-server/rdl-gen-athenz-server
+rdl/rdl-gen-athenz-go-client/rdl-gen-athenz-go-client
+aws-setup/ui-setup/tars/
+aws-setup/zms-setup/tars/
+aws-setup/zts-setup/tars/
+aws-setup/athenz-conf-aws/pkg/
+libs/go/athenzutils/pkg/
+**test-output**
+clients/nodejs/zpe/package-lock.json
+clients/nodejs/zts/package-lock.json
+libs/nodejs/auth_core/package-lock.json
+ui/package-lock.json

@@ -14,10 +14,9 @@ import (
 	"strconv"
 	"strings"
 
-	"golang.org/x/net/proxy"
-
 	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/yahoo/athenz/clients/go/zms"
+	"golang.org/x/net/proxy"
 )
 
 type Zms struct {
@@ -355,6 +354,14 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 1 {
 				return cli.DeleteRole(dn, args[0])
 			}
+		case "delete-domain-role-member":
+			if argc == 1 {
+				return cli.DeleteDomainRoleMember(dn, args[0])
+			}
+		case "list-domain-role-members":
+			if argc == 0 {
+				return cli.ListDomainRoleMembers(dn)
+			}
 		case "list-service", "list-services":
 			if argc == 0 {
 				return cli.ListServices(dn)
@@ -466,18 +473,22 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				return cli.DeleteProviderResourceGroupRoles(dn, args[0], args[1], args[2])
 			}
 		case "set-domain-meta":
-			if argc == 3 {
+			if argc == 2 || argc == 3 {
 				descr := args[0]
 				org := args[1]
-				auditEnabled, err := strconv.ParseBool(args[2])
-				if err != nil {
-					return nil, err
-				}
-				return cli.SetDomainMeta(dn, descr, org, auditEnabled)
+				return cli.SetDomainMeta(dn, descr, org)
 			}
 		case "set-aws-account", "set-domain-account":
 			if argc == 1 {
 				return cli.SetDomainAccount(dn, args[0])
+			}
+		case "set-audit-enabled":
+			if argc == 1 {
+				auditEnabled, err := strconv.ParseBool(args[0])
+				if err != nil {
+					return nil, err
+				}
+				return cli.SetDomainAuditEnabled(dn, auditEnabled)
 			}
 		case "set-product-id", "set-domain-product-id":
 			if argc == 1 {
@@ -490,6 +501,10 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 		case "set-application-id":
 			if argc == 1 {
 				return cli.SetDomainApplicationId(dn, args[0])
+			}
+		case "set-cert-dns-domain":
+			if argc == 1 {
+				return cli.SetDomainCertDnsDomain(dn, args[0])
 			}
 		case "set-domain-template":
 			if argc >= 1 {
@@ -625,16 +640,15 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("     add a subdomain hosted in domain coretech with " + cli.UserDomain + ".john, " + cli.UserDomain + ".jane and the caller as administrators\n")
 	case "set-domain-meta":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domain_param + " set-domain-meta description org audit_enabled\n")
+		buf.WriteString("   " + domain_param + " set-domain-meta description org\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain        : name of the domain being updated\n")
 		}
 		buf.WriteString("   description   : set the description for the domain\n")
 		buf.WriteString("   org           : set the organization of the domain\n")
-		buf.WriteString("   audit_enabled : boolean flag indicating if the domain must comply with SOX auditing requirements\n")
 		buf.WriteString(" examples:\n")
-		buf.WriteString("   " + domain_example + " set-domain-meta \"Coretech Hosted\" cloud.services false\n")
+		buf.WriteString("   " + domain_example + " set-domain-meta \"Coretech Hosted\" cloud.services\n")
 	case "set-aws-account", "set-domain-account":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domain_param + " set-aws-account account-id\n")
@@ -645,6 +659,16 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   account-id    : set the aws account id for the domain\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domain_example + " set-aws-account \"134901934383\"\n")
+	case "set-audit-enabled":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domain_param + " set-audit-enabled audit-enabled\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain being updated\n")
+		}
+		buf.WriteString("   audit-enabled : enable/disable audit flag for the domain\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domain_example + " set-audit-enabled true\n")
 	case "set-product-id", "set-domain-product-id":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domain_param + " set-product-id product-id\n")
@@ -665,6 +689,16 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   application-id        : set the Application ID for the domain\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domain_example + " set-application-id 0oabg8pelxhjh0tcs0h7\n")
+	case "set-cert-dns-domain":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domain_param + " set-cert-dns-domain cert-domain-name\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain being updated\n")
+		}
+		buf.WriteString("   cert-domain-name      : set the x.509 certificate dns domain name for the domain\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domain_example + " set-cert-dns-domain athenz.cloud\n")
 	case "import-domain":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   import-domain domain [file.yaml [admin ...]] - no file means stdin\n")
@@ -674,14 +708,6 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   admin     : additional list of administrators to be added to the domain\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   import-domain coretech coretech.yaml " + cli.UserDomain + ".john\n")
-	case "update-domain":
-		buf.WriteString(" syntax:\n")
-		buf.WriteString("   update-domain domain [file.yaml] - no file means stdin\n")
-		buf.WriteString(" parameters:\n")
-		buf.WriteString("   domain    : name of the domain being updated\n")
-		buf.WriteString("   file.yaml : file that contains domain contents in yaml format\n")
-		buf.WriteString(" examples:\n")
-		buf.WriteString("   update-domain coretech coretech.yaml\n")
 	case "export-domain":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   export-domain domain [file.yaml] - no file means stdout\n")
@@ -964,6 +990,26 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   user_or_service   : users or services to be removed as members\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domain_example + " delete-provider-role-member storage.db stats_db access media.sports.storage\n")
+	case "list-domain-role-members":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domain_param + " list-domain-role-members\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain            : name of the domain\n")
+		}
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domain_example + " list-domain-role-members\n")
+	case "delete-domain-role-member":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domain_param + " delete-domain-role-member member\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain            : name of the domain\n")
+		}
+		buf.WriteString("   member            : name of the member to be removed from all roles in the domain\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domain_example + " delete-domain-role-member media.sports.storage\n")
+		buf.WriteString("   " + domain_example + " delete-domain-role-member user.johndoe\n")
 	case "delete-role":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domain_param + " delete-role role\n")
@@ -1165,17 +1211,6 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   entity : name of the entity to be deleted\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domain_example + " delete-entity profile\n")
-	case "show-tenancy":
-		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domain_param + " show-tenancy provider\n")
-		buf.WriteString(" parameters:\n")
-		if !interactive {
-			buf.WriteString("   domain   : name of the tenant's domain\n")
-		}
-		buf.WriteString("   provider : provider's service name to verify if the domain is a tenant\n")
-		buf.WriteString("            : the provider's name must be service common name in <domain>.<service> format\n")
-		buf.WriteString(" examples:\n")
-		buf.WriteString("   " + domain_example + " show-tenancy weather.storage\n")
 	case "add-tenancy":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domain_param + " add-tenancy provider\n")
@@ -1199,75 +1234,6 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("            : the provider's name must be service common name in <domain>.<service> format\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domain_example + " delete-tenancy weather.storage\n")
-	case "add-tenancy-resource-group":
-		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domain_param + " add-tenancy-resource-group provider resource_group\n")
-		buf.WriteString(" parameters:\n")
-		if !interactive {
-			buf.WriteString("   domain         : name of the tenant's domain\n")
-		}
-		buf.WriteString("   provider       : provider's service name to auto-provision tenancy for the domain\n")
-		buf.WriteString("                  : the provider's name must be service common name in <domain>.<service> format\n")
-		buf.WriteString("                  : the provider must support auto-provisioning and have configured endpoint in the service\n")
-		buf.WriteString("   resource_group : name of the tenant's resource group\n")
-		buf.WriteString(" examples:\n")
-		buf.WriteString("   " + domain_example + " add-tenancy-resource-group weather.storage dev_group\n")
-	case "delete-tenancy-resource-group":
-		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domain_param + " delete-tenancy-resource-group provider resource_group\n")
-		buf.WriteString(" parameters:\n")
-		if !interactive {
-			buf.WriteString("   domain         : name of the tenant's domain\n")
-		}
-		buf.WriteString("   provider       : provider's service name to remove the tenant from\n")
-		buf.WriteString("                  : the provider's name must be service common name in <domain>.<service> format\n")
-		buf.WriteString("   resource_group : name of the tenant's resource group\n")
-		buf.WriteString(" examples:\n")
-		buf.WriteString("   " + domain_example + " delete-tenancy-resource-group weather.storage dev_group\n")
-	case "show-tenant-roles":
-		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domain_param + " show-tenant-roles service tenant_domain\n")
-		buf.WriteString(" parameters:\n")
-		if !interactive {
-			buf.WriteString("   domain        : provider's domain name\n")
-		}
-		buf.WriteString("   service       : provider's service name\n")
-		buf.WriteString("   tenant_domain : name of the tenant's domain to list roles for\n")
-		buf.WriteString(" examples:\n")
-		buf.WriteString("   tenant domain: coretech\n")
-		buf.WriteString("   provider domain: sports\n")
-		buf.WriteString("   provider service: hosted\n")
-		buf.WriteString("   " + tenant_example + " show-tenant-roles hosted coretech\n")
-	case "add-tenant-roles":
-		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domain_param + " add-tenant-roles service tenant_domain role=action [role=action ...]\n")
-		buf.WriteString(" parameters:\n")
-		if !interactive {
-			buf.WriteString("   domain        : provider's domain name\n")
-		}
-		buf.WriteString("   service       : provider's service name\n")
-		buf.WriteString("   tenant_domain : name of the tenant's domain to add roles for\n")
-		buf.WriteString("   role          : name of the role to be added\n")
-		buf.WriteString("   action        : the action value for the role\n")
-		buf.WriteString(" examples:\n")
-		buf.WriteString("   tenant domain: coretech\n")
-		buf.WriteString("   provider domain: sports\n")
-		buf.WriteString("   provider service: hosted\n")
-		buf.WriteString("   " + tenant_example + " add-tenant-roles hosted coretech readers=read writers=modify\n")
-	case "delete-tenant-roles":
-		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domain_param + " delete-tenant-roles service tenant_domain\n")
-		buf.WriteString(" parameters:\n")
-		if !interactive {
-			buf.WriteString("   domain        : provider's domain name\n")
-		}
-		buf.WriteString("   service       : provider's service name\n")
-		buf.WriteString("   tenant_domain : name of the tenant's domain to remove all previously setup tenancy roles\n")
-		buf.WriteString(" examples:\n")
-		buf.WriteString("   tenant domain: coretech\n")
-		buf.WriteString("   provider domain: sports\n")
-		buf.WriteString("   provider service: hosted\n")
-		buf.WriteString("   " + tenant_example + " delete-tenant-roles hosted coretech\n")
 	case "show-tenant-resource-group-roles":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domain_param + " show-tenant-resource-group-roles service tenant_domain resource_group\n")
@@ -1517,13 +1483,14 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   lookup-domain-by-role role-member role-name\n")
 	buf.WriteString("   add-domain domain product-id [admin ...] - to add top level domains\n")
 	buf.WriteString("   add-domain domain [admin ...] - to add sub domains\n")
-	buf.WriteString("   set-domain-meta description org audit_enabled\n")
+	buf.WriteString("   set-domain-meta description org\n")
+	buf.WriteString("   set-audit-enabled audit-enabled\n")
 	buf.WriteString("   set-aws-account account-id\n")
 	buf.WriteString("   set-product-id product-id\n")
 	buf.WriteString("   set-application-id application-id\n")
+	buf.WriteString("   set-cert-dns-domain cert-dns-domain\n")
 	buf.WriteString("   import-domain domain [file.yaml [admin ...]] - no file means stdin\n")
 	buf.WriteString("   export-domain domain [file.yaml] - no file means stdout\n")
-	buf.WriteString("   update-domain domain [file.yaml] - no file means stdin\n")
 	buf.WriteString("   delete-domain domain\n")
 	buf.WriteString("   get-signed-domains [matching_tag]\n")
 	buf.WriteString("   use-domain [domain]\n")
@@ -1555,6 +1522,8 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   add-provider-role-member provider_service resource_group provider_role user_or_service [user_or_service ...]\n")
 	buf.WriteString("   show-provider-role-member provider_service resource_group provider_role\n")
 	buf.WriteString("   delete-provider-role-member provider_service resource_group provider_role user_or_service [user_or_service ...]\n")
+	buf.WriteString("   list-domain-role-members\n")
+	buf.WriteString("   delete-domain-role-member member\n")
 	buf.WriteString("   delete-role role\n")
 	buf.WriteString("\n")
 	buf.WriteString(" Service commands:\n")
@@ -1579,14 +1548,8 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   delete-entity entity\n")
 	buf.WriteString("\n")
 	buf.WriteString(" Tenancy commands:\n")
-	buf.WriteString("   show-tenancy provider\n")
 	buf.WriteString("   add-tenancy provider\n")
 	buf.WriteString("   delete-tenancy provider\n")
-	buf.WriteString("   add-tenancy-resource-group provider resource_group\n")
-	buf.WriteString("   delete-tenancy-resource-group provider resource-group\n")
-	buf.WriteString("   show-tenant-roles service tenant_domain\n")
-	buf.WriteString("   add-tenant-roles service tenant_domain role=action [role=action ...]\n")
-	buf.WriteString("   delete-tenant-roles service tenant_domain\n")
 	buf.WriteString("   show-tenant-resource-group-roles service tenant_domain resource_group\n")
 	buf.WriteString("   add-tenant-resource-group-roles service tenant_domain resource_group role=action [role=action ...]\n")
 	buf.WriteString("   delete-tenant-resource-group-roles service tenant_domain resource_group\n")

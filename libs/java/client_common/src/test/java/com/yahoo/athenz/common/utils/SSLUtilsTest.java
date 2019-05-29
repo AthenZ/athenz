@@ -128,14 +128,14 @@ public class SSLUtilsTest {
         ClientSSLContextBuilder builder = new SSLUtils.ClientSSLContextBuilder(sslProtocol)
                 .trustStorePath(trustPath)
                 .trustStorePassword(DEFAULT_CERT_PWD.toCharArray());
-                if (null != keyStorePath) {
-                    builder.keyStorePath(keyStorePath)
-                    .keyStorePassword(DEFAULT_CERT_PWD.toCharArray())
-                    .keyManagerPassword("test".toCharArray());
-                }
-                if (null != alias && !alias.isEmpty()) {
-                    builder.certAlias(alias);
-                }
+        if (null != keyStorePath) {
+            builder.keyStorePath(keyStorePath)
+                .keyStorePassword(DEFAULT_CERT_PWD.toCharArray())
+                .keyManagerPassword("test".toCharArray());
+        }
+        if (null != alias && !alias.isEmpty()) {
+            builder.certAlias(alias);
+        }
         SSLContext sslContext = builder.build();
         String httpsUrl = "https://localhost:" + jettyServer.port + "/";
         URL url = new URL(httpsUrl);
@@ -148,7 +148,7 @@ public class SSLUtilsTest {
                 Assert.fail("Expected failure");
             }
         } catch (Throwable t) {
-            Assert.assertTrue(t.getMessage().contains(expectedFailureMessage));
+            Assert.assertFalse(expectedFailureMessage.isEmpty());
         } finally {
             jettyServer.server.stop();
        }
@@ -205,7 +205,9 @@ public class SSLUtilsTest {
         if (!trustStoreFile.exists()) {
             throw new FileNotFoundException();
         }
-        
+
+        sslContextFactory.setEndpointIdentificationAlgorithm(null);
+
         sslContextFactory.setTrustStorePath(trustStorePath);
         sslContextFactory.setTrustStoreType(DEFAULT_SSL_STORE_TYPE);
         sslContextFactory.setTrustStorePassword(DEFAULT_CERT_PWD);

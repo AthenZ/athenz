@@ -1,0 +1,50 @@
+site_name: Athenz
+repo_url: https://github.com/yahoo/athenz
+repo_name: GitHub
+site_description: Athenz User Guide
+strict: true
+theme: material
+extra_css: [extra.css]
+markdown_extensions:
+  - codehilite
+
+nav:
+- Getting Started:
+    - About: index.md
+    - Development Environment: dev_environment.md
+    - Local/Development Environment Setup:
+        - ZMS Server: setup_zms.md
+        - ZTS Server: setup_zts.md
+        - UI Server: setup_ui.md
+    - Production Environment Setup:
+        - ZMS Server: setup_zms_prod.md
+        - ZTS Server: setup_zts_prod.md
+        - UI Server: setup_ui_prod.md
+- AWS Setup:
+    - Introduction: aws_athenz_setup.md
+    - ZMS Server : aws_zms_setup.md
+    - ZTS Server: aws_zts_setup.md
+    - UI Server: aws_ui_setup.md
+- Architecture:
+    - Data Model: data_model.md
+    - System View: system_view.md
+    - Authorization Flow: auth_flow.md
+- Features:
+    - Service Identity X.509 Certificates - Copper Argos: copper_argos.md
+- Developer Guide:
+    - Centralized Access Control: dev_centralized_access.md
+    - Java Client/Servlet Example: example_java_centralized_access.md
+    - Go Client/Server Example: example_go_centralized_access.md
+    - Decentralized Access Control: dev_decentralized_access.md
+    - Java Client/Servlet Example: example_java_decentralized_access.md
+- Customizing Athenz:
+    - Principal Authentication: principal_authentication.md
+    - Private Key Store: private_key_store.md
+    - Certificate Signer: cert_signer.md
+    - Service Identity X.509 Certificate Support Requirements - Copper Argos: copper_argos_dev.md
+- User Guide:
+    - ZMS Client Utility: zms_client.md
+    - ZPU Utility: setup_zpu.md
+    - Registering ZMS Service Identity: reg_service_guide.md
+
+

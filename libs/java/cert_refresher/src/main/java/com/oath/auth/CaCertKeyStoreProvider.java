@@ -16,10 +16,10 @@
 package com.oath.auth;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyStore;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
 
 /**
  * creates a key store and adds a certificate authority certificate
@@ -33,16 +33,11 @@ class CaCertKeyStoreProvider implements KeyStoreProvider {
     }
 
     @Override
-    public KeyStore provide() throws Exception {
-        CertificateFactory factory = CertificateFactory.getInstance("X.509");
+    public KeyStore provide() throws KeyRefresherException, FileNotFoundException, IOException {
+        KeyStore keyStore = null;
         try (InputStream inputStream = new FileInputStream(caCertFilePath)) {
-            X509Certificate certificate = (X509Certificate) factory
-                .generateCertificate(inputStream);
-            String alias = certificate.getSubjectX500Principal().getName();
-            KeyStore keyStore = KeyStore.getInstance("JKS");
-            keyStore.load(null);
-            keyStore.setCertificateEntry(alias, certificate);
-            return keyStore;
+            keyStore = Utils.generateTrustStore(inputStream);
         }
+        return keyStore;
     }
 }

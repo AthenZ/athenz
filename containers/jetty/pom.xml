@@ -17,7 +17,7 @@
   <parent>
     <groupId>com.yahoo.athenz</groupId>
     <artifactId>athenz</artifactId>
-    <version>1.7.54-SNAPSHOT</version>
+    <version>1.8.24-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -53,6 +53,17 @@
       <groupId>${project.groupId}</groupId>
       <artifactId>athenz-instance-provider</artifactId>
       <version>${project.parent.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.inject</groupId>
+      <artifactId>jersey-hk2</artifactId>
+      <version>${jersey.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>javax.inject</groupId>
+          <artifactId>javax.inject</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.media</groupId>
@@ -126,6 +137,11 @@
       <version>${bouncycastle.version}</version>
     </dependency>
     <dependency>
+      <groupId>javax.ws.rs</groupId>
+      <artifactId>javax.ws.rs-api</artifactId>
+      <version>${javax.ws.version}</version>
+    </dependency>
+    <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
       <version>${logback.version}</version>
@@ -133,7 +149,7 @@
     <dependency>
       <groupId>com.gu</groupId>
       <artifactId>kinesis-logback-appender</artifactId>
-      <version>1.4.2</version>
+      <version>1.4.4</version>
       <exclusions>
         <exclusion>
           <groupId>com.amazonaws</groupId>
@@ -179,30 +195,6 @@
       </plugin>
     </plugins>
   </build>
-  
-  <profiles>
-    <profile>
-      <id>coverage</id>
-      <activation>
-        <property>
-          <name>coverage</name>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>com.atlassian.maven.plugins</groupId>
-            <artifactId>maven-clover2-plugin</artifactId>
-            <version>4.0.4</version>
-            <configuration>
-              <jdk>1.8</jdk>
-              <licenseLocation>${HOME}/license/clover.license</licenseLocation>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
 
   <distributionManagement>
     <repository>

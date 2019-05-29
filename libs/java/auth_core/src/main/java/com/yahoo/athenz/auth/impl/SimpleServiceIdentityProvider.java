@@ -35,8 +35,8 @@ public class SimpleServiceIdentityProvider implements ServiceIdentityProvider {
 
     private String domain;
     private String service;
-    private PrivateKey key = null;
-    private long tokenTimeout = 3600;
+    private PrivateKey key;
+    private long tokenTimeout;
     private String keyId;
     private String host = null;
     private Authority authority;
@@ -114,9 +114,7 @@ public class SimpleServiceIdentityProvider implements ServiceIdentityProvider {
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create(domainName,
                 serviceName, token.getSignedToken(), System.currentTimeMillis() / 1000,
                 authority);
-        if (principal != null) {
-            principal.setUnsignedCreds(token.getUnsignedToken());
-        }
+        principal.setUnsignedCreds(token.getUnsignedToken());
         return principal;
     }
     

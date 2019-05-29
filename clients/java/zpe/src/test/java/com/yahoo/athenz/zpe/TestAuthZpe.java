@@ -15,10 +15,6 @@
  */
 package com.yahoo.athenz.zpe;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -27,12 +23,12 @@ import java.nio.file.Paths;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.security.auth.x500.X500Principal;
 
+import com.yahoo.athenz.auth.token.AccessToken;
+import io.jsonwebtoken.SignatureAlgorithm;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
@@ -47,6 +43,8 @@ import com.yahoo.athenz.zpe.AuthZpeClient.AccessCheckStatus;
 import com.yahoo.athenz.zts.DomainSignedPolicyData;
 import com.yahoo.athenz.zts.SignedPolicyData;
 import com.yahoo.rdl.JSON;
+
+import static org.testng.Assert.*;
 
 /**
  * These tests are dependent on a policy file in a local dir.
@@ -72,7 +70,9 @@ public class TestAuthZpe {
     private RoleToken rToken0CoreTechPublic = null;
     private RoleToken rToken0EmptyPublic = null;
     private RoleToken rToken0AnglerRegex = null;
-    
+
+    private String accessToken0AnglerRegex = null;
+
     private static boolean sleepCompleted = false;
     
     @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -117,6 +117,7 @@ public class TestAuthZpe {
         roles.add("matchcompare");
         roles.add("matchregex");
         rToken0AnglerRegex = createRoleToken("angler", roles, "0");
+        accessToken0AnglerRegex = createAccessToken("angler", roles, "0");
 
         // NOTE: we will create file with different suffix so as not to confuse
         // ZPE update-load thread due to possible timing issue.
@@ -168,9 +169,8 @@ public class TestAuthZpe {
         renamedFile = new File("./src/test/resources/pol_dir/empty.pol");
         file.renameTo(renamedFile);
         
-        String issuers = "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public | C=US, ST=CA, O=Athenz, OU=Testing Domain2, CN=angler:role.public | C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler.test:role.public";
+        String issuers = "InvalidToBeSkipped | C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public | C=US, ST=CA, O=Athenz, OU=Testing Domain2, CN=angler:role.public | C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler.test:role.public";
         System.setProperty(ZpeConsts.ZPE_PROP_X509_CA_ISSUERS, issuers);
-        
     }
     
     @BeforeMethod
@@ -190,6 +190,18 @@ public class TestAuthZpe {
         }
         
         sleepCompleted = true;
+
+        // even if we're passing invalid value, we'll default
+        // to 300 seconds
+
+        AuthZpeClient.setTokenAllowedOffset(-100);
+
+        // setup our public keys for access tokens
+
+        AuthZpeClient.addAccessTokenSingKeyResolverKey("0", Crypto.extractPublicKey(ztsPrivateKeyK0));
+        AuthZpeClient.addAccessTokenSingKeyResolverKey("1", Crypto.extractPublicKey(ztsPrivateKeyK1));
+        AuthZpeClient.addAccessTokenSingKeyResolverKey("17", Crypto.extractPublicKey(ztsPrivateKeyK17));
+        AuthZpeClient.addAccessTokenSingKeyResolverKey("99", Crypto.extractPublicKey(ztsPrivateKeyK99));
     }
     
     private RoleToken createRoleToken(String svcDomain, List<String> roles, String keyId, long expiry) {
@@ -215,6 +227,75 @@ public class TestAuthZpe {
         return createRoleToken(svcDomain, roles, keyId, expirationTime);
     }
 
+    private String createAccessToken(String svcDomain, List<String> roles, String keyId, long expiry) {
+
+        AccessToken token = new AccessToken();
+        token.setVersion(1);
+        token.setAudience(svcDomain);
+        token.setScope(roles);
+
+        long now = System.currentTimeMillis();
+        token.setIssuer("athenz");
+        token.setIssueTime(now);
+        token.setExpiryTime(now + expiry);
+
+        PrivateKey key = null;
+        if ("1".equals(keyId)) {
+            key = ztsPrivateKeyK1;
+        } else if ("0".equals(keyId)) {
+            key = ztsPrivateKeyK0;
+        } else if ("17".equals(keyId)) {
+            key = ztsPrivateKeyK17;
+        } else if ("99".equals(keyId)) {
+            key = ztsPrivateKeyK99;
+        }
+        assertNotNull(key);
+        return token.getSignedToken(key, keyId, SignatureAlgorithm.RS256);
+    }
+
+    private String createInvalidAccessToken(String svcDomain, List<String> roles) {
+
+        AccessToken token = new AccessToken();
+        token.setVersion(1);
+        token.setAudience(svcDomain);
+        token.setScope(roles);
+
+        long now = System.currentTimeMillis();
+        token.setIssuer("athenz");
+        token.setIssueTime(now);
+        token.setExpiryTime(now + 120);
+
+        // using key with id 0 but including id of 1
+
+        return token.getSignedToken(ztsPrivateKeyK0, "1", SignatureAlgorithm.RS256);
+    }
+
+    private String createAccessToken(String svcDomain, List<String> roles, String keyId) {
+        return createAccessToken(svcDomain, roles, keyId, expirationTime);
+    }
+
+    @Test
+    public void testInvalidPublicKeyStore() {
+
+        try {
+            AuthZpeClient.setPublicKeyStoreFactoryClass("invalidclass");
+            fail();
+        } catch (Exception ex) {
+        }
+    }
+
+    @Test
+    public void testInvalidZpeClientClass() {
+
+        try {
+            AuthZpeClient.setZPEClientClass("invalidclass");
+            fail();
+        } catch (Exception ex) {
+        }
+
+        AuthZpeClient.setZPEClientClass("com.yahoo.athenz.zpe.ZpeUpdater");
+    }
+
     @Test
     public void testKeyIds() {
         String action      = "read";
@@ -235,11 +316,10 @@ public class TestAuthZpe {
     }
     
     @Test
-    public void testWrongKeyId() {
-        String action      = "REad";
+    public void testMultipleTokens() {
+        String action = "REad";
         StringBuilder roleName = new StringBuilder();
 
-        //Test key id 0 on Sports domain - should fail because its signed with key id 1
         String resource = "sports.NFL_DB";
         AccessCheckStatus status = AuthZpeClient.allowAccess(rToken0SportsAdmin, resource, action, roleName);
         Assert.assertEquals(status, AccessCheckStatus.ALLOW);
@@ -263,7 +343,20 @@ public class TestAuthZpe {
         Assert.assertEquals(status, AccessCheckStatus.ALLOW);
         Assert.assertEquals(roleName.toString(), "admin");
     }
-    
+
+    @Test
+    public void testMultipleTokenListEmpty() {
+        String action = "REad";
+        String resource = "sports.NFL_DB";
+        StringBuilder roleName = new StringBuilder();
+
+        // multi token list - empty
+
+        List<String> tokenList = new ArrayList<>();
+        AccessCheckStatus status = AuthZpeClient.allowAccess(tokenList, resource, action, roleName);
+        Assert.assertEquals(status, AccessCheckStatus.DENY_NO_MATCH);
+    }
+
     @Test
     public void testPublicReadAllowedMixCaseActionResource() {
 
@@ -758,6 +851,69 @@ public class TestAuthZpe {
     }
 
     @Test
+    public void testAllowAccessMatchAllAccessToken() {
+
+        String action = "all";
+        String resource = "angler:stuff";
+        StringBuilder roleName = new StringBuilder();
+
+        AccessCheckStatus status = AuthZpeClient.allowAccess(accessToken0AnglerRegex, resource, action, roleName);
+        Assert.assertEquals(status, AccessCheckStatus.ALLOW);
+        Assert.assertEquals(roleName.toString(), "matchall");
+
+        // second time for the same token we should get from the cache
+
+        status = AuthZpeClient.allowAccess(accessToken0AnglerRegex, resource, action, roleName);
+        Assert.assertEquals(status, AccessCheckStatus.ALLOW);
+        Assert.assertEquals(roleName.toString(), "matchall");
+    }
+
+    @Test
+    public void testAllowAccessMatchAllAccessTokenInvalid() {
+
+        String action = "all";
+        String resource = "angler:stuff";
+        StringBuilder roleName = new StringBuilder();
+
+        // create a token with a key id that does not exist
+
+        List<String> roles = Collections.singletonList("matchall");
+        final String invalidKeyIdToken = createInvalidAccessToken("angler", roles);
+
+        AccessCheckStatus status = AuthZpeClient.allowAccess(invalidKeyIdToken, resource, action, roleName);
+        Assert.assertEquals(status, AccessCheckStatus.DENY_ROLETOKEN_INVALID);
+    }
+
+    @Test
+    public void testAllowAccessNullAccessToken() {
+
+        String action = "all";
+        String resource = "angler:stuff";
+        StringBuilder roleName = new StringBuilder();
+
+        AccessCheckStatus status = AuthZpeClient.allowAccess((AccessToken) null, resource, action, roleName);
+        Assert.assertEquals(status, AccessCheckStatus.DENY_ROLETOKEN_INVALID);
+    }
+
+    @Test
+    public void testAllowAccessExpiredAccessToken() {
+
+        String action = "all";
+        String resource = "angler:stuff";
+        StringBuilder roleName = new StringBuilder();
+
+        long now = System.currentTimeMillis() / 1000;
+        AccessToken accessToken = new AccessToken();
+        accessToken.setIssueTime(now -3600);
+        accessToken.setExpiryTime(now - 3000);
+        accessToken.setAudience("angler");
+        accessToken.setScope(Collections.singletonList("matchall"));
+
+        AccessCheckStatus status = AuthZpeClient.allowAccess(accessToken, resource, action, roleName);
+        Assert.assertEquals(status, AccessCheckStatus.DENY_ROLETOKEN_EXPIRED);
+    }
+
+    @Test
     public void testAllowAccessMatchStartsWithAllowed() {
 
         String action = "startswith";
@@ -1025,13 +1181,15 @@ public class TestAuthZpe {
             { "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public", "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler", AccessCheckStatus.DENY_CERT_MISSING_ROLE_NAME, "angler:stuff" }, 
             { "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public", "", AccessCheckStatus.DENY_CERT_MISSING_SUBJECT, "angler:stuff" }, 
             { "", "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public", AccessCheckStatus.DENY_CERT_MISMATCH_ISSUER, "angler:stuff"},
-            { "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler.test:role.public", "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler.test:role.public", AccessCheckStatus.DENY_DOMAIN_NOT_FOUND, "angler.test:stuff"}
+            { "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler.test:role.public", "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler.test:role.public", AccessCheckStatus.DENY_DOMAIN_NOT_FOUND, "angler.test:stuff"},
+            { "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public", "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=:role.public", AccessCheckStatus.DENY_CERT_MISSING_DOMAIN, "angler:stuff" },
+            { "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public", "C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.", AccessCheckStatus.DENY_CERT_MISSING_ROLE_NAME, "angler:stuff" }
         };
     }
     
     @Test(dataProvider = "x509CertData")
     public void testX509CertificateReadAllowed(String issuer, String subject, AccessCheckStatus expectedStatus, String angResource) {
-        String action      = "read";
+        final String action = "read";
         X509Certificate cert = Mockito.mock(X509Certificate.class);
         X500Principal x500Principal = Mockito.mock(X500Principal.class);
         X500Principal x500PrincipalS = Mockito.mock(X500Principal.class);
@@ -1041,5 +1199,94 @@ public class TestAuthZpe {
         Mockito.when(cert.getSubjectX500Principal()).thenReturn(x500PrincipalS);
         AccessCheckStatus status = AuthZpeClient.allowAccess(cert, angResource, action);
         Assert.assertEquals(status, expectedStatus);
+    }
+
+    @Test
+    public void testIssuerMatch() {
+
+        // our default set contains the following issuers:
+
+        // C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public
+        // C=US, ST=CA, O=Athenz, OU=Testing Domain2, CN=angler:role.public
+        // C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler.test:role.public";
+
+        // passing null or empty list to the set method has no impact
+        // make sure no exceptions are thrown
+
+        AuthZpeClient.setX509CAIssuers(null);
+        AuthZpeClient.setX509CAIssuers("");
+
+        // add a new entry in our list
+
+        AuthZpeClient.setX509CAIssuers("cn=Athenz CA, ou=engineering, o=My Company! Inc., c=us");
+
+        // passing values in the same order should match with our string set
+
+        assertTrue(AuthZpeClient.issuerMatch("cn=Athenz CA, ou=engineering, o=My Company! Inc., c=us"));
+
+        // passing values in different order should match our rdn check
+
+        assertTrue(AuthZpeClient.issuerMatch("o=My Company! Inc., cn=Athenz CA, c=us, ou=engineering"));
+
+        // passing an extra or less rdn component should fail
+
+        assertFalse(AuthZpeClient.issuerMatch("cn=Athenz CA, ou=engineering, o=My Company! Inc., l=Los Angeles, c=us"));
+        assertFalse(AuthZpeClient.issuerMatch("cn=Athenz CA, ou=engineering, c=us"));
+
+        // same number of components but different values
+
+        assertFalse(AuthZpeClient.issuerMatch("cn=Athenz CA, ou=engineering, o=My Company Inc., c=us"));
+    }
+
+    @Test
+    public void testAllowActionZPEInvalid() {
+
+        // failure when roles is empty or not specified
+
+        StringBuilder matchRoleName = new StringBuilder();
+        assertEquals(AuthZpeClient.allowActionZPE("update", "athenz", "athenz:table", null, matchRoleName),
+                AccessCheckStatus.DENY_ROLETOKEN_INVALID);
+        List<String> roles = new ArrayList<>();
+        assertEquals(AuthZpeClient.allowActionZPE("update", "athenz", "athenz:table", roles,
+                matchRoleName), AccessCheckStatus.DENY_ROLETOKEN_INVALID);
+
+        // invalid when token domain is empty or null
+
+        roles.add("writers");
+        assertEquals(AuthZpeClient.allowActionZPE("update", "", "athenz:table", roles,
+                matchRoleName), AccessCheckStatus.DENY_ROLETOKEN_INVALID);
+        assertEquals(AuthZpeClient.allowActionZPE("update", null, "athenz:table", roles,
+                matchRoleName), AccessCheckStatus.DENY_ROLETOKEN_INVALID);
+    }
+
+    @Test
+    public void testAllowAccessInvalidRoleToken() {
+
+        // failure when role token is null
+
+        StringBuilder matchRoleName = new StringBuilder();
+        assertEquals(AuthZpeClient.allowAccess((RoleToken) null, "athenz:table", "update", matchRoleName),
+                AccessCheckStatus.DENY_ROLETOKEN_INVALID);
+    }
+
+    @Test
+    public void testValidateRoleTokenExpired() {
+
+        List<String> roles = new ArrayList<>();
+        roles.add("public");
+        RoleToken rtoken = createRoleToken("angler", roles, "0", 2);
+
+        assertNotNull(AuthZpeClient.validateRoleToken(rtoken.getSignedToken()));
+
+        // sleep 3 seconds for the token to expire
+
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+        }
+
+        // we should now get null since the token is expired
+
+        assertNull(AuthZpeClient.validateRoleToken(rtoken.getSignedToken()));
     }
 }

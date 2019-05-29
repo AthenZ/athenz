@@ -194,14 +194,15 @@ public class ZMSUtils {
         }
     }
     
+    @SuppressWarnings("SuspiciousListRemoveInLoop")
     public static void removeMembers(List<RoleMember> originalRoleMembers,
-            List<RoleMember> removeRoleMembers) {
+                                     List<RoleMember> removeRoleMembers) {
         if (removeRoleMembers == null || originalRoleMembers == null) {
             return;
         }
         for (RoleMember removeMember : removeRoleMembers) {
             String removeName = removeMember.getMemberName();
-            for (int j = 0; j < originalRoleMembers.size(); j ++) {
+            for (int j = 0; j < originalRoleMembers.size(); j++) {
                 if (removeName.equalsIgnoreCase(originalRoleMembers.get(j).getMemberName())) {
                     originalRoleMembers.remove(j);
                 }
@@ -250,12 +251,13 @@ public class ZMSUtils {
         if (ctx != null) {
             Principal princ = ((RsrcCtxWrapper) ctx).principal();
             if (princ != null) {
+                String fullName = princ.getFullName();
                 String unsignedCreds = princ.getUnsignedCredentials();
                 if (unsignedCreds == null) {
                     StringBuilder sb = new StringBuilder();
                     sb.append("who-name=").append(princ.getName());
                     sb.append(",who-domain=").append(princ.getDomain());
-                    sb.append(",who-fullname=").append(princ.getFullName());
+                    sb.append(",who-fullname=").append(fullName);
                     List<String> roles = princ.getRoles();
                     if (roles != null && roles.size() > 0) {
                         sb.append(",who-roles=").append(roles.toString());
@@ -263,6 +265,7 @@ public class ZMSUtils {
                     unsignedCreds = sb.toString();
                 }
                 msgBldr.who(unsignedCreds);
+                msgBldr.whoFullName(fullName);
             }
 
             // get the client IP
@@ -336,5 +339,13 @@ public class ZMSUtils {
             Thread.sleep(millis);
         } catch (InterruptedException ignored) {
         }
+    }
+
+    public static boolean parseBoolean(final String value, boolean defaultValue) {
+        boolean boolVal = defaultValue;
+        if (value != null && !value.isEmpty()) {
+            boolVal = Boolean.parseBoolean(value.trim());
+        }
+        return boolVal;
     }
 }

@@ -65,7 +65,7 @@ public class InstanceAWSECSProviderTest {
                 + bootTime + "\",\"region\": \"us-west-2\",\"instanceId\": \"i-1234\"}");
         data.setSignature("signature");
         assertTrue(provider.validateAWSDocument("athenz.aws-ecs.us-west-2", data,
-                "1234", "i-1234", errMsg));
+                "1234", "i-1234", true, errMsg));
     }
     
     @Test

@@ -32,10 +32,16 @@ import com.yahoo.athenz.auth.util.Crypto;
 public class CertificateAuthority implements Authority {
 
     private static final Logger LOG = LoggerFactory.getLogger(CertificateAuthority.class);
+
     private static final String ATHENZ_PROP_EXCLUDED_PRINCIPALS = "athenz.auth.certificate.excluded_principals";
+    private static final String ATHENZ_PROP_EXCLUDE_ROLE_CERTIFICATES = "athenz.auth.certificate.exclude_role_certificates";
+
+    private static final String ATHENZ_AUTH_CHALLENGE = "AthenzX509Certificate realm=\"athenz\"";
+    private static final String ZTS_CERT_ROLE_URI     = "athenz://role/";
 
     private Set<String> excludedPrincipalSet = null;
-    
+    private boolean excludeRoleCertificates;
+
     @Override
     public void initialize() {
         
@@ -43,6 +49,9 @@ public class CertificateAuthority implements Authority {
         if (exPrincipals != null && !exPrincipals.isEmpty()) {
             excludedPrincipalSet = new HashSet<>(Arrays.asList(exPrincipals.split(",")));
         }
+
+        excludeRoleCertificates = Boolean.parseBoolean(
+                System.getProperty(ATHENZ_PROP_EXCLUDE_ROLE_CERTIFICATES, "false"));
     }
 
     @Override
@@ -56,6 +65,11 @@ public class CertificateAuthority implements Authority {
     }
 
     @Override
+    public String getAuthenticateChallenge() {
+        return ATHENZ_AUTH_CHALLENGE;
+    }
+
+    @Override
     public Principal authenticate(String creds, String remoteAddr, String httpMethod, StringBuilder errMsg) {
         return null;
     }
@@ -64,46 +78,45 @@ public class CertificateAuthority implements Authority {
     public CredSource getCredSource() {
         return CredSource.CERTIFICATE;
     }
-    
+
+    void reportError(final String message, StringBuilder errMsg) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(message);
+        }
+        if (errMsg != null) {
+            errMsg.append(message);
+        }
+    }
+
     @Override
     public Principal authenticate(X509Certificate[] certs, StringBuilder errMsg) {
 
         if (LOG.isDebugEnabled()) {
             if (certs != null) {
                 for (X509Certificate cert : certs) {
-                    LOG.debug("CertificateAuthority:authenticate: TLS Certificate: " + cert);
+                    LOG.debug("CertificateAuthority: TLS Certificate: " + cert);
                 }
             }
         }
 
-        errMsg = errMsg == null ? new StringBuilder(512) : errMsg;
-
         // make sure we have at least one valid certificate in our list
         
         if (certs == null || certs[0] == null) {
-            errMsg.append("CertificateAuthority:authenticate: No certificate available in request");
+            reportError("CertificateAuthority: No certificate available in request", errMsg);
             return null;
         }
         
         X509Certificate x509Cert = certs[0];
         String principalName = Crypto.extractX509CertCommonName(x509Cert);
         if (principalName == null || principalName.isEmpty()) {
-            final String message = "CertificateAuthority:authenticate: Certificate principal is empty";
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(message);
-            }
-            errMsg.append(message);
+            reportError("CertificateAuthority: Certificate principal is empty", errMsg);
             return null;
         }
 
         // make sure the principal is not on our excluded list
         
         if (excludedPrincipalSet != null && excludedPrincipalSet.contains(principalName)) {
-            final String message = "CertificateAuthority:authenticate: Principal is excluded";
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(message);
-            }
-            errMsg.append(message);
+            reportError("CertificateAuthority: Principal is excluded", errMsg);
             return null;
         }
         
@@ -112,7 +125,14 @@ public class CertificateAuthority implements Authority {
         List<String> roles = null;
         int idx = principalName.indexOf(":role.");
         if (idx != -1) {
-            
+
+            // check to make sure role certs are allowed for principal
+
+            if (excludeRoleCertificates) {
+                reportError("CertificateAuthority: Role Certificates not allowed", errMsg);
+                return null;
+            }
+
             // fist we need to keep the role name in our object
             
             roles = new ArrayList<>();
@@ -122,18 +142,41 @@ public class CertificateAuthority implements Authority {
             
             List<String> emails = Crypto.extractX509CertEmails(x509Cert);
             if (emails.isEmpty()) {
-                errMsg.append("CertificateAuthority:authenticate: Invalid role cert, no email SAN entry")
-                        .append(principalName);
+                reportError("CertificateAuthority: Invalid role cert, no email SAN entry", errMsg);
                 return null;
             }
             String email = emails.get(0);
             idx = email.indexOf('@');
             if (idx == -1) {
-                errMsg.append("CertificateAuthority:authenticate: Invalid role cert, invalid email SAN entry")
-                        .append(principalName);
+                reportError("CertificateAuthority: Invalid role cert, invalid email SAN entry", errMsg);
                 return null;
             }
             principalName = email.substring(0, idx);
+        }
+
+        // check to see if we have a role certificate where roles
+        // are presented as URIs in the SAN
+
+        List<String> uris = Crypto.extractX509CertURIs(x509Cert);
+        for (String uri : uris) {
+            if (!uri.toLowerCase().startsWith(ZTS_CERT_ROLE_URI)) {
+                continue;
+            }
+            if (roles == null) {
+                roles = new ArrayList<>();
+            }
+            final String roleUri = uri.substring(ZTS_CERT_ROLE_URI.length());
+            idx = roleUri.indexOf('/');
+            if (idx == -1) {
+                reportError("CertificateAuthority: Invalid role cert, invalid uri SAN entry", errMsg);
+                return null;
+            }
+            roles.add(roleUri.substring(0, idx) + ":role." + roleUri.substring(idx + 1));
+        }
+
+        if (excludeRoleCertificates && roles != null) {
+            reportError("CertificateAuthority: Role Certificates not allowed", errMsg);
+            return null;
         }
 
         // extract domain and service names from the name. We must have
@@ -141,8 +184,7 @@ public class CertificateAuthority implements Authority {
 
         idx = principalName.lastIndexOf('.');
         if (idx == -1) {
-            errMsg.append("CertificateAuthority:authenticate: Principal is not a valid service identity: ")
-                    .append(principalName);
+            reportError("CertificateAuthority: Principal is not a valid service identity", errMsg);
             return null;
         }
 

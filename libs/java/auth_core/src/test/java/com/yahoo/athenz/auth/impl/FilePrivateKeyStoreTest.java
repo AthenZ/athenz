@@ -20,6 +20,7 @@ import static org.testng.Assert.*;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 
 import org.testng.annotations.Test;
@@ -95,7 +96,7 @@ public class FilePrivateKeyStoreTest {
         
         FilePrivateKeyStoreFactory factory = new FilePrivateKeyStoreFactory();
         FilePrivateKeyStore store = (FilePrivateKeyStore) factory.create();
-        try (InputStream is = new ByteArrayInputStream(str.getBytes("UTF-8"))) {
+        try (InputStream is = new ByteArrayInputStream(str.getBytes(StandardCharsets.UTF_8))) {
             String getStr = store.getString(is);
             assertEquals(getStr, str);
         }

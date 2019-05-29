@@ -15,13 +15,14 @@ type SSHCertRequestMeta Struct {
     String requestor; //requesting user
     String origin; //origin FQDN or ip
     String clientInfo (optional); //client info
-    String sshClientVersion; //ssh client version
+    String sshClientVersion (optional); //ssh client version
     String certType; //cert type - user or host
 }
 
 type SSHCertRequest Struct {
     SSHCertRequestData certRequestData; //ssh certificate request data
     SSHCertRequestMeta certRequestMeta; //ssh certificate request meta
+    String csr (optional); //free-form csr if not using data/meta fields.
 }
 
 type SSHCertificate Struct {

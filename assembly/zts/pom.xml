@@ -19,7 +19,7 @@
   <parent>
     <groupId>com.yahoo.athenz</groupId>
     <artifactId>athenz</artifactId>
-    <version>1.7.54-SNAPSHOT</version>
+    <version>1.8.24-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -67,6 +67,22 @@
             <configuration>
               <tarLongFileMode>posix</tarLongFileMode>
               <finalName>athenz-zts-${project.version}</finalName>
+              <descriptors>
+                <descriptor>zts.xml</descriptor>
+              </descriptors>
+            </configuration>
+          </execution>
+          <execution>
+            <id>package-zts-assembly-aws</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <attach>false</attach>
+              <tarLongFileMode>posix</tarLongFileMode>
+              <outputDirectory>../../../athenz/aws-setup/zts-setup/tars/</outputDirectory>
+              <finalName>athenz-zts</finalName>
               <descriptors>
                 <descriptor>zts.xml</descriptor>
               </descriptors>

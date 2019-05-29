@@ -37,7 +37,7 @@ public class ZpeMetric {
     public static final String ZPE_WRITE_INTERVAL = "3600000";
     
     public ConcurrentHashMap<String, AtomicIntegerArray> counter = new ConcurrentHashMap<>();
-    private static Timer FETCH_TIMER;
+    private static volatile Timer FETCH_TIMER;
     private static final Object TIMER_LOCK = new Object();
     static boolean statsEnabled = Boolean.parseBoolean(System.getProperty(ZpeConsts.ZPE_PROP_STATS_ENABLED, "false"));
     
@@ -49,11 +49,14 @@ public class ZpeMetric {
         //setting the timer to the interval specified in the system property
         if (statsEnabled) {
             Integer interval = Integer.parseInt(System.getProperty(ZpeConsts.ZPE_PROP_METRIC_WRITE_INTERVAL, ZPE_WRITE_INTERVAL));
-            if (FETCH_TIMER == null) {
+            Timer timer = FETCH_TIMER;
+            if (timer == null) {
                 synchronized (TIMER_LOCK) {
-                    if (FETCH_TIMER == null) {
-                        FETCH_TIMER = new Timer();
-                        FETCH_TIMER.schedule(new SchedulerService(), interval, interval);
+                    timer = FETCH_TIMER;
+                    if (timer == null) {
+                        timer = new Timer();
+                        timer.schedule(new SchedulerService(), interval, interval);
+                        FETCH_TIMER = timer;
                     }
                 }
             }

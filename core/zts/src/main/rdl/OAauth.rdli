@@ -1,0 +1,55 @@
+// Copyright 2018 Oath Holdings Inc.
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+//Name Types
+include "Names.tdl";
+
+type AccessTokenResponse Struct {
+    String access_token; //access token
+    String token_type; //token type e.g. Bearer
+    Int32 expires_in (optional); //expiration in seconds
+    String scope (optional); //scope of the access token e.g. openid
+    String refresh_token (optional); //refresh token
+    String id_token (optional); //id token
+}
+
+type JWK Struct {
+    String kty; //key type: EC or RSA
+    String kid; //identifier
+    String alg (optional); //key algorithm
+    String use (optional); //usage: sig or enc
+    String crv (optional); //ec curve name
+    String x (optional); //ec x value
+    String y (optional); //ec y value
+    String n (optional); //rsa modulus value
+    String e (optional); //rsa public exponent value
+}
+
+//JSON Web Key (JWK) List
+type JWKList Struct {
+    Array<JWK> keys; //array of JWKs
+}
+
+resource JWKList GET "/oauth2/keys" {
+    authenticate;
+    expected OK;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError UNAUTHORIZED;
+        ResourceError NOT_FOUND;
+    }
+}
+
+type AccessTokenRequest String;
+
+resource AccessTokenResponse POST "/oauth2/token" {
+    authenticate;
+    AccessTokenRequest request;
+    consumes application/x-www-form-urlencoded
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+    }
+}

@@ -33,8 +33,9 @@ import org.slf4j.LoggerFactory;
 
 public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnection {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DynamoDBCertRecordStoreConnection.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDBCertRecordStoreConnection.class);
 
+    private static final String KEY_PRIMARY = "primaryKey";
     private static final String KEY_PROVIDER = "provider";
     private static final String KEY_INSTANCE_ID = "instanceId";
     private static final String KEY_SERVICE = "service";
@@ -68,18 +69,19 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
     }
     
     @Override
-    public X509CertRecord getX509CertRecord(String provider, String instanceId) {
-        
+    public X509CertRecord getX509CertRecord(String provider, String instanceId, String service) {
+
+        final String primaryKey = getPrimaryKey(provider, instanceId, service);
         try {
-            Item item = table.getItem(KEY_INSTANCE_ID, instanceId, KEY_PROVIDER, provider);
+            Item item = table.getItem(KEY_PRIMARY, primaryKey);
             if (item == null) {
-                LOG.error("DynamoDB Get Error for {}/{}: item not found", provider, instanceId);
+                LOGGER.error("DynamoDB Get Error for {}: item not found", primaryKey);
                 return null;
             }
             X509CertRecord certRecord = new X509CertRecord();
             certRecord.setProvider(provider);
             certRecord.setInstanceId(instanceId);
-            certRecord.setService(item.getString(KEY_SERVICE));
+            certRecord.setService(service);
             certRecord.setCurrentSerial(item.getString(KEY_CURRENT_SERIAL));
             certRecord.setCurrentIP(item.getString(KEY_CURRENT_IP));
             certRecord.setCurrentTime(new Date(item.getLong(KEY_CURRENT_TIME)));
@@ -89,8 +91,7 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
             certRecord.setClientCert(item.getBoolean(KEY_CLIENT_CERT));
             return certRecord;
         } catch (Exception ex) {
-            LOG.error("DynamoDB Get Error for {}/{}: {}/{}", provider, instanceId,
-                    ex.getClass(), ex.getMessage());
+            LOGGER.error("DynamoDB Get Error for {}: {}/{}", primaryKey, ex.getClass(), ex.getMessage());
             return null;
         }
     }
@@ -98,10 +99,15 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
     @Override
     public boolean updateX509CertRecord(X509CertRecord certRecord) {
 
+        final String primaryKey = getPrimaryKey(certRecord.getProvider(), certRecord.getInstanceId(),
+                certRecord.getService());
+
         try {
             UpdateItemSpec updateItemSpec = new UpdateItemSpec()
-                    .withPrimaryKey(KEY_INSTANCE_ID, certRecord.getInstanceId(), KEY_PROVIDER, certRecord.getProvider())
+                    .withPrimaryKey(KEY_PRIMARY, primaryKey)
                     .withAttributeUpdate(
+                            new AttributeUpdate(KEY_INSTANCE_ID).put(certRecord.getInstanceId()),
+                            new AttributeUpdate(KEY_PROVIDER).put(certRecord.getProvider()),
                             new AttributeUpdate(KEY_SERVICE).put(certRecord.getService()),
                             new AttributeUpdate(KEY_CURRENT_SERIAL).put(certRecord.getCurrentSerial()),
                             new AttributeUpdate(KEY_CURRENT_IP).put(certRecord.getCurrentIP()),
@@ -115,8 +121,7 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
             table.updateItem(updateItemSpec);
             return true;
         } catch (Exception ex) {
-            LOG.error("DynamoDB Update Error for {}/{}: {}/{}", certRecord.getProvider(),
-                    certRecord.getInstanceId(), ex.getClass(), ex.getMessage());
+            LOGGER.error("DynamoDB Update Error for {}: {}/{}", primaryKey, ex.getClass(), ex.getMessage());
             return false;
         }
     }
@@ -124,9 +129,13 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
     @Override
     public boolean insertX509CertRecord(X509CertRecord certRecord) {
 
+        final String primaryKey = getPrimaryKey(certRecord.getProvider(), certRecord.getInstanceId(),
+                certRecord.getService());
         try {
             Item item = new Item()
-                    .withPrimaryKey(KEY_INSTANCE_ID, certRecord.getInstanceId(), KEY_PROVIDER, certRecord.getProvider())
+                    .withPrimaryKey(KEY_PRIMARY, primaryKey)
+                    .withString(KEY_INSTANCE_ID, certRecord.getInstanceId())
+                    .withString(KEY_PROVIDER, certRecord.getProvider())
                     .withString(KEY_SERVICE, certRecord.getService())
                     .withString(KEY_CURRENT_SERIAL, certRecord.getCurrentSerial())
                     .withString(KEY_CURRENT_IP, certRecord.getCurrentIP())
@@ -139,23 +148,22 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
             table.putItem(item);
             return true;
         } catch (Exception ex) {
-            LOG.error("DynamoDB Insert Error for {}/{}: {}/{}", certRecord.getProvider(),
-                    certRecord.getInstanceId(), ex.getClass(), ex.getMessage());
+            LOGGER.error("DynamoDB Insert Error for {}: {}/{}", primaryKey, ex.getClass(), ex.getMessage());
             return false;
         }
     }
     
     @Override
-    public boolean deleteX509CertRecord(String provider, String instanceId) {
+    public boolean deleteX509CertRecord(String provider, String instanceId, String service) {
 
+        final String primaryKey = getPrimaryKey(provider, instanceId, service);
         try {
             DeleteItemSpec deleteItemSpec = new DeleteItemSpec()
-                    .withPrimaryKey(KEY_INSTANCE_ID, instanceId, KEY_PROVIDER, provider);
+                    .withPrimaryKey(KEY_PRIMARY, primaryKey);
             table.deleteItem(deleteItemSpec);
             return true;
         } catch (Exception ex) {
-            LOG.error("DynamoDB Delete Error for {}/{}: {}/{}", provider, instanceId,
-                    ex.getClass(), ex.getMessage());
+            LOGGER.error("DynamoDB Delete Error for {}: {}/{}", primaryKey, ex.getClass(), ex.getMessage());
             return false;
         }
     }
@@ -169,5 +177,9 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
         // the epoch time + timeout seconds when it should retire
 
         return 0;
+    }
+
+    private String getPrimaryKey(final String provider, final String instanceId, final String service) {
+        return provider + ":" + service + ":" + instanceId;
     }
 }

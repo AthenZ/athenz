@@ -44,6 +44,7 @@ public class ResourceExceptionTest {
         assertEquals(ResourceException.codeForSymbol("SERVICE_UNAVAILABLE"), 503);
         assertEquals(ResourceException.codeForSymbol("UNAUTHORIZED"), 401);
         assertEquals(ResourceException.codeForSymbol("1111"), 1111);
+        assertEquals(ResourceException.codeForSymbol("abc"), 0);
     }
 
     @Test
@@ -77,5 +78,6 @@ public class ResourceExceptionTest {
         ResourceException exception = new ResourceException(200);
         assertEquals(exception.getCode(), 200);
         assertEquals(exception.getData(), "OK");
+        assertEquals(exception.getData(String.class), "OK");
     }
 }

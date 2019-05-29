@@ -91,7 +91,7 @@ public class InstanceProviderClient {
     public InstanceConfirmation postInstanceConfirmation(InstanceConfirmation confirmation) {
         WebTarget target = base.path("/instance");
         Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
-        Response response = null;
+        Response response;
         try {
             response = invocationBuilder.post(Entity.entity(confirmation, MediaType.APPLICATION_JSON));
         } catch (Exception ex) {
@@ -100,18 +100,16 @@ public class InstanceProviderClient {
             throw new ResourceException(ResourceException.FORBIDDEN, "Register Confirmation Exception");
         }
         int code = response.getStatus();
-        switch (code) {
-            case ResourceException.OK:
-                return response.readEntity(InstanceConfirmation.class);
-            default:
-                throw new ResourceException(code, responseText(response));
+        if (code == ResourceException.OK) {
+            return response.readEntity(InstanceConfirmation.class);
         }
+        throw new ResourceException(code, responseText(response));
     }
 
     public InstanceConfirmation postRefreshConfirmation(InstanceConfirmation confirmation) {
         WebTarget target = base.path("/refresh");
         Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
-        Response response = null;
+        Response response;
         try {
             response = invocationBuilder.post(Entity.entity(confirmation, MediaType.APPLICATION_JSON));
         } catch (Exception ex) {
@@ -120,11 +118,9 @@ public class InstanceProviderClient {
             throw new ResourceException(ResourceException.FORBIDDEN, "Refresh Confirmation Exception");
         }
         int code = response.getStatus();
-        switch (code) {
-            case ResourceException.OK:
-                return response.readEntity(InstanceConfirmation.class);
-            default:
-                throw new ResourceException(code, responseText(response));
+        if (code == ResourceException.OK) {
+            return response.readEntity(InstanceConfirmation.class);
         }
+        throw new ResourceException(code, responseText(response));
     }
 }

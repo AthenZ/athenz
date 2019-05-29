@@ -74,7 +74,7 @@ We recommend to have a strong admin password for better security.
 Download latest ZMS binary release from
 
 ```
-https://github.com/yahoo/athenz/releases/latest
+https://bintray.com/yahoo/maven/athenz-zms/_latestVersion#files
 ```
 
 ```shell
@@ -103,18 +103,24 @@ $ vi zms.properties
 
 Make the following changes:
 
-1. Uncomment the `#athenz.zms.jdbcstore=` line and set it to point to your
+1. Configure the ZMS Server to use JDBC object store implementation.
+   Uncomment the `#athenz.zms.object_store_factory_class=` line and set
+   it to point to the JDBC Factory class name. It should be set to:
+   
+   athenz.zms.object_store_factory_class=com.yahoo.athenz.zms.store.impl.JDBCObjectStoreFactory
+   
+2. Uncomment the `#athenz.zms.jdbcstore=` line and set it to point to your
    MySQL Server instance. For example if your DB Server is running on
    a host called db1.athenz.com, then your line would be:
    
    athenz.zms.jdbc_store=jdbc:mysql://db1.athenz.com:3306/zms_server
 
-2. Uncomment the `#athenz.zms.jdbc_user=` line and set it to the user
+3. Uncomment the `#athenz.zms.jdbc_user=` line and set it to the user
    configured to have full access over zms server database:
    
    athenz.zms.jdbc_user=zms_admin
 
-3. Uncomment the `#athenz.zms.jdbc_password=` line and set it to the
+4. Uncomment the `#athenz.zms.jdbc_password=` line and set it to the
    configured password the for the jdbc user with full access:
    
    athenz.zms.jdbc_password=rdvXC7wgvm3g
@@ -220,7 +226,7 @@ $ cd athenz-zms-X.Y
 $ vi conf/zms_server/zms.properties
 ```
 
-Modify the `athenz.zms.domain_admin=user.${USER}` line and include comma
+Modify the `athenz.zms.domain_admin=user.admin` line and include comma
 separated list of unix user ids that should be set as Athenz system
 administrators. e.g. `athenz.zms.domain_admin=user.joe,user.john`
 

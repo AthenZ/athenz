@@ -24,6 +24,8 @@ import com.yahoo.athenz.auth.Principal;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.yahoo.athenz.auth.impl.PrincipalAuthority;
+import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 import com.yahoo.athenz.common.metrics.Metric;
@@ -33,7 +35,7 @@ import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
 public class RsrcCtxWrapperTest {
 
     @Test
-    public void TestRsrcCtxWrapperSimpleAssertion() {
+    public void testRsrcCtxWrapperSimpleAssertion() {
         HttpServletRequest reqMock = Mockito.mock(HttpServletRequest.class);
         HttpServletResponse resMock = Mockito.mock(HttpServletResponse.class);
 
@@ -52,7 +54,8 @@ public class RsrcCtxWrapperTest {
         Mockito.when(reqMock.getMethod()).thenReturn("POST");
         authListMock.add(authMock);
 
-        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, false, authorizerMock, metricMock);
+        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, false,
+                authorizerMock, metricMock);
 
         assertNotNull(wrapper.context());
 
@@ -66,18 +69,40 @@ public class RsrcCtxWrapperTest {
 
         // after authenticate, principal should be set
         assertEquals(wrapper.principal(), prin);
+    }
 
-        // invalid kerberos request
+    @Test
+    public void testAuthenticateException() {
+        HttpServletRequest reqMock = Mockito.mock(HttpServletRequest.class);
+        HttpServletResponse resMock = Mockito.mock(HttpServletResponse.class);
+
+        AuthorityList authListMock = new AuthorityList();
+        Authorizer authorizerMock = Mockito.mock(Authorizer.class);
+        Authority authMock = Mockito.mock(Authority.class);
+        Metric metricMock = Mockito.mock(Metric.class);
+        Principal prin = Mockito.mock(Principal.class);
+
+        Mockito.when(authMock.getHeader()).thenReturn("testheader");
+        Mockito.when(reqMock.getHeader("testheader")).thenReturn("testcred");
+        Mockito.when(authMock.getCredSource()).thenReturn(com.yahoo.athenz.auth.Authority.CredSource.HEADER);
+        Mockito.when(authMock.authenticate(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenThrow(new com.yahoo.athenz.common.server.rest.ResourceException(403));
+        Mockito.when(reqMock.getRemoteAddr()).thenReturn("1.1.1.1");
+        Mockito.when(reqMock.getMethod()).thenReturn("POST");
+        authListMock.add(authMock);
+
+        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, false,
+                authorizerMock, metricMock);
+
         try {
-            wrapper.authenticateKerberos();
-            fail();
+            wrapper.authenticate();
         } catch (ResourceException ex) {
-            assertNotNull(ex);
+            assertEquals(403, ex.getCode());
         }
     }
 
     @Test
-    public void TestAuthorize() {
+    public void testAuthorize() {
         HttpServletRequest reqMock = Mockito.mock(HttpServletRequest.class);
         HttpServletResponse resMock = Mockito.mock(HttpServletResponse.class);
 
@@ -109,7 +134,7 @@ public class RsrcCtxWrapperTest {
     }
 
     @Test(expectedExceptions = { ResourceException.class })
-    public void TestAuthorizeInvalid() {
+    public void testAuthorizeInvalid() {
         HttpServletRequest reqMock = Mockito.mock(HttpServletRequest.class);
         HttpServletResponse resMock = Mockito.mock(HttpServletResponse.class);
 
@@ -129,5 +154,55 @@ public class RsrcCtxWrapperTest {
 
         // when not set authority
         wrapper.authorize("add-domain", "test", "test");
+    }
+
+    @Test
+    public void testLogPrincipal() {
+
+        HttpServletRequest servletRequest = new MockHttpServletRequest();
+        HttpServletResponse servletResponse = Mockito.mock(HttpServletResponse.class);
+
+        AuthorityList authListMock = new AuthorityList();
+        Authorizer authorizerMock = Mockito.mock(Authorizer.class);
+        Metric metricMock = Mockito.mock(Metric.class);
+
+        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(servletRequest, servletResponse,
+                authListMock, false, authorizerMock, metricMock);
+
+        wrapper.logPrincipal((Principal) null);
+        assertNull(servletRequest.getAttribute("com.yahoo.athenz.auth.principal"));
+
+        wrapper.logPrincipal((String) null);
+        assertNull(servletRequest.getAttribute("com.yahoo.athenz.auth.principal"));
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+
+        wrapper.logPrincipal(principal);
+        assertEquals(servletRequest.getAttribute("com.yahoo.athenz.auth.principal"), "hockey.kings");
+    }
+
+    @Test
+    public void testThrowZtsException() {
+
+        HttpServletRequest servletRequest = new MockHttpServletRequest();
+        HttpServletResponse servletResponse = Mockito.mock(HttpServletResponse.class);
+
+        AuthorityList authListMock = new AuthorityList();
+        Authorizer authorizerMock = Mockito.mock(Authorizer.class);
+        Metric metricMock = Mockito.mock(Metric.class);
+
+        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(servletRequest, servletResponse,
+                authListMock, false, authorizerMock, metricMock);
+
+        com.yahoo.athenz.common.server.rest.ResourceException restExc =
+                new com.yahoo.athenz.common.server.rest.ResourceException(503, null);
+
+        try {
+            wrapper.throwZtsException(restExc);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(503, ex.getCode());
+        }
     }
 }

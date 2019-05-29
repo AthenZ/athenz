@@ -33,7 +33,6 @@ import com.yahoo.athenz.zms.Policy;
 import com.yahoo.athenz.zms.Role;
 import com.yahoo.athenz.zms.RoleMember;
 import com.yahoo.athenz.zms.ServiceIdentity;
-import com.yahoo.athenz.zts.cache.DataCache;
 
 public class DataCacheTest {
 
@@ -961,4 +960,103 @@ public class DataCacheTest {
         assertEquals(publicKeyMap.get("testDomain.storage2_3"), ZTS_PEM_CERT2);
         assertEquals(publicKeyMap.get("testDomain.storage2_4"), ZTS_PEM_CERT3);
     }
+
+    @Test
+    public void testProcessServiceIdentityPublicKey() {
+
+        DataCache cache = new DataCache();
+
+        // null key does not get processed
+
+        cache.processServiceIdentityPublicKey("service1", "id1", null);
+        assertNull(cache.getPublicKeyMap().get("service1_id1"));
+
+        // invalid ybase64 encoded key does not get processed
+
+        cache.processServiceIdentityPublicKey("service1", "id1", "invalid-data");
+        assertNull(cache.getPublicKeyMap().get("service1_id1"));
+
+        // now valid data
+
+        cache.processServiceIdentityPublicKey("service1", "id1", ZTS_Y64_CERT0);
+        assertEquals(cache.getPublicKeyMap().get("service1_id1"), ZTS_PEM_CERT0);
+    }
+
+    @Test
+    public void testProcessAWSAssumeRoleAssertion() {
+
+        DataCache cache = new DataCache();
+
+        assertNull(cache.getAWSResourceRoleSet("role"));
+
+        Assertion assertion = new Assertion();
+        assertion.setAction("update");
+        assertion.setResource("resource");
+        assertion.setRole("role");
+
+        cache.processAWSAssumeRoleAssertion(assertion);
+        Set<String> set = cache.getAWSResourceRoleSet("role");
+        assertEquals(1, set.size());
+
+        // calling with same assertion - no changes
+
+        cache.processAWSAssumeRoleAssertion(assertion);
+        set = cache.getAWSResourceRoleSet("role");
+        assertEquals(1, set.size());
+    }
+
+    @Test
+    public void testProcessProviderDNSSuffixAssertion() {
+
+        DataCache cache = new DataCache();
+        assertNull(cache.getProviderDnsSuffixList("athenz.provider"));
+
+        Assertion assertion = new Assertion();
+        assertion.setAction("launch");
+        assertion.setResource("resource");
+        assertion.setRole("role");
+
+        // should have no impact since no dns resource
+
+        Map<String, Role> roles = new HashMap<>();
+        cache.processProviderDNSSuffixAssertion(assertion, roles);
+        assertNull(cache.getProviderDnsSuffixList("athenz.provider"));
+
+        // valid assertion but no role
+
+        assertion.setResource("sys.auth:dns.athenz.cloud");
+        cache.processProviderDNSSuffixAssertion(assertion, roles);
+        assertNull(cache.getProviderDnsSuffixList("athenz.provider"));
+
+        // valid role but no members
+
+        Role role = new Role();
+        roles.put("role", role);
+        cache.processProviderDNSSuffixAssertion(assertion, roles);
+        assertNull(cache.getProviderDnsSuffixList("athenz.provider"));
+
+        // add a member to the role
+
+        List<RoleMember> roleMembers = new ArrayList<>();
+        RoleMember roleMember = new RoleMember().setMemberName("athenz.provider");
+        roleMembers.add(roleMember);
+        role.setRoleMembers(roleMembers);
+
+        cache.processProviderDNSSuffixAssertion(assertion, roles);
+        List<String> suffixList = cache.getProviderDnsSuffixList("athenz.provider");
+        assertNotNull(suffixList);
+        assertEquals(suffixList.size(), 1);
+        assertTrue(suffixList.contains("athenz.cloud"));
+
+        // another assertion with different suffix
+
+        assertion.setResource("sys.auth:dns.athenz.info");
+        cache.processProviderDNSSuffixAssertion(assertion, roles);
+        suffixList = cache.getProviderDnsSuffixList("athenz.provider");
+        assertNotNull(suffixList);
+        assertEquals(suffixList.size(), 2);
+        assertTrue(suffixList.contains("athenz.cloud"));
+        assertTrue(suffixList.contains("athenz.info"));
+    }
 }
+

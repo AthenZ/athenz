@@ -38,9 +38,9 @@ func (cli Zms) dumpDomain(buf *bytes.Buffer, domain *zms.Domain) {
 	}
 	if domain.Account != "" {
 		buf.WriteString(indent_level1)
-		buf.WriteString("aws_account: ")
+		buf.WriteString("aws_account: '")
 		buf.WriteString(domain.Account)
-		buf.WriteString("\n")
+		buf.WriteString("'\n")
 	}
 	productID := int(*domain.YpmId)
 	if productID != 0 {
@@ -493,4 +493,17 @@ func (cli Zms) dumpQuota(buf *bytes.Buffer, quota *zms.Quota) {
 	buf.WriteString("modified: ")
 	buf.WriteString(quota.Modified.String())
 	buf.WriteString("\n")
+}
+
+func (cli Zms) dumpDomainRoleMembers(buf *bytes.Buffer, domainRoleMembers *zms.DomainRoleMembers) {
+	for _, roleMember := range domainRoleMembers.Members {
+		buf.WriteString(indent_level1_dash + string(roleMember.MemberName) + "\n")
+		for _, role := range roleMember.MemberRoles {
+			buf.WriteString(indent_level2_dash + string(role.RoleName))
+			if role.Expiration != nil {
+				buf.WriteString(" " + role.Expiration.String())
+			}
+			buf.WriteString("\n")
+		}
+	}
 }

@@ -31,28 +31,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
+import com.yahoo.athenz.zms.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.yahoo.athenz.zms.Assertion;
-import com.yahoo.athenz.zms.AssertionEffect;
-import com.yahoo.athenz.zms.Domain;
-import com.yahoo.athenz.zms.DomainModified;
-import com.yahoo.athenz.zms.DomainModifiedList;
-import com.yahoo.athenz.zms.Entity;
-import com.yahoo.athenz.zms.Membership;
-import com.yahoo.athenz.zms.Policy;
-import com.yahoo.athenz.zms.PrincipalRole;
-import com.yahoo.athenz.zms.PublicKeyEntry;
-import com.yahoo.athenz.zms.Quota;
-import com.yahoo.athenz.zms.ResourceAccess;
-import com.yahoo.athenz.zms.ResourceAccessList;
-import com.yahoo.athenz.zms.ResourceException;
-import com.yahoo.athenz.zms.Role;
-import com.yahoo.athenz.zms.RoleAuditLog;
-import com.yahoo.athenz.zms.RoleMember;
-import com.yahoo.athenz.zms.ServiceIdentity;
-import com.yahoo.athenz.zms.ZMSConsts;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
@@ -72,18 +54,19 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_DOMAIN = "SELECT * FROM domain WHERE name=?;";
     private static final String SQL_GET_DOMAIN_ID = "SELECT domain_id FROM domain WHERE name=?;";
     private static final String SQL_GET_ACTIVE_DOMAIN_ID = "SELECT domain_id FROM domain WHERE name=? AND enabled=true;";
+    private static final String SQL_GET_DOMAINS_WITH_NAME = "SELECT name FROM domain WHERE name LIKE ?;";
     private static final String SQL_GET_DOMAIN_WITH_ACCOUNT = "SELECT name FROM domain WHERE account=?;";
     private static final String SQL_GET_DOMAIN_WITH_PRODUCT_ID = "SELECT name FROM domain WHERE ypm_id=?;";
     private static final String SQL_INSERT_DOMAIN = "INSERT INTO domain "
-            + "(name, description, org, uuid, enabled, audit_enabled, account, ypm_id, application_id) VALUES (?,?,?,?,?,?,?,?,?);";
+            + "(name, description, org, uuid, enabled, audit_enabled, account, ypm_id, application_id, cert_dns_domain) VALUES (?,?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_DOMAIN = "UPDATE domain "
-            + "SET description=?, org=?, uuid=?, enabled=?, audit_enabled=?, account=?, ypm_id=?, application_id=? WHERE name=?;";
+            + "SET description=?, org=?, uuid=?, enabled=?, audit_enabled=?, account=?, ypm_id=?, application_id=?, cert_dns_domain=? WHERE name=?;";
     private static final String SQL_UPDATE_DOMAIN_MOD_TIMESTAMP = "UPDATE domain "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE name=?;";
     private static final String SQL_GET_DOMAIN_MOD_TIMESTAMP = "SELECT modified FROM domain WHERE name=?;";
-    private static final String SQL_LIST_DOMAIN = "SELECT name, modified FROM domain;";
+    private static final String SQL_LIST_DOMAIN = "SELECT name, modified, account, ypm_id FROM domain;";
     private static final String SQL_LIST_DOMAIN_PREFIX = "SELECT name, modified FROM domain WHERE name>=? AND name<?;";
-    private static final String SQL_LIST_DOMAIN_MODIFIED = "SELECT name, modified FROM domain WHERE modified>?;";
+    private static final String SQL_LIST_DOMAIN_MODIFIED = "SELECT name, modified, account, ypm_id FROM domain WHERE modified>?;";
     private static final String SQL_LIST_DOMAIN_PREFIX_MODIFIED = "SELECT name, modified FROM domain "
             + "WHERE name>=? AND name<? AND modified>?;";
     private static final String SQL_LIST_DOMAIN_ROLE_NAME_MEMBER = "SELECT domain.name FROM domain "
@@ -244,6 +227,10 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN role ON role_member.role_id=role.role_id "
             + "JOIN domain ON domain.domain_id=role.domain_id "
             + "WHERE role_member.principal_id=?;";
+    private static final String SQL_LIST_PRINCIPAL_DOMAIN_ROLES = "SELECT role.name AS role_name FROM role_member "
+            + "JOIN role ON role_member.role_id=role.role_id "
+            + "JOIN domain ON domain.domain_id=role.domain_id "
+            + "WHERE role_member.principal_id=? AND domain.domain_id=?;";
     private static final String SQL_GET_QUOTA = "SELECT * FROM quota WHERE domain_id=?;";
     private static final String SQL_INSERT_QUOTA = "INSERT INTO quota (domain_id, role, role_member, "
             + "policy, assertion, service, service_host, public_key, entity, subdomain) "
@@ -252,7 +239,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "policy=?, assertion=?, service=?, service_host=?, public_key=?, entity=?, "
             + "subdomain=? WHERE domain_id=?;";
     private static final String SQL_DELETE_QUOTA = "DELETE FROM quota WHERE domain_id=?;";
-    
+
     private static final String CACHE_DOMAIN    = "d:";
     private static final String CACHE_ROLE      = "r:";
     private static final String CACHE_POLICY    = "p:";
@@ -380,7 +367,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                     .setOrg(saveValue(rs.getString(ZMSConsts.DB_COLUMN_ORG)))
                     .setId(saveUuidValue(rs.getString(ZMSConsts.DB_COLUMN_UUID)))
                     .setAccount(saveValue(rs.getString(ZMSConsts.DB_COLUMN_ACCOUNT)))
-                    .setYpmId(rs.getInt(ZMSConsts.DB_COLUMN_PRODUCT_ID));
+                    .setYpmId(rs.getInt(ZMSConsts.DB_COLUMN_PRODUCT_ID))
+                    .setCertDnsDomain(rs.getString(ZMSConsts.DB_COLUMN_CERT_DNS_DOMAIN));
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
@@ -415,7 +403,8 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         verifyDomainAccountUniqueness(domain.getName(), domain.getAccount(), caller);
         verifyDomainProductIdUniqueness(domain.getName(), domain.getYpmId(), caller);
-        
+        verifyDomainNameDashUniqueness(domain.getName(), caller);
+
         try (PreparedStatement ps = con.prepareStatement(SQL_INSERT_DOMAIN)) {
             ps.setString(1, domain.getName());
             ps.setString(2, processInsertValue(domain.getDescription()));
@@ -426,11 +415,37 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(7, processInsertValue(domain.getAccount()));
             ps.setInt(8, processInsertValue(domain.getYpmId()));
             ps.setString(9, processInsertValue(domain.getApplicationId()));
+            ps.setString(10, processInsertValue(domain.getCertDnsDomain()));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
         return (affectedRows > 0);
+    }
+
+    void verifyDomainNameDashUniqueness(final String name, String caller) {
+
+        // with our certificates we replace .'s with -'s
+        // so we need to make sure we don't allow creation
+        // of domains such as sports.api and sports-api since
+        // they'll have the same component value
+
+        final String domainMatch = name.replace('.', '-');
+        final String domainQuery = name.replace('.', '_').replace('-', '_');
+
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAINS_WITH_NAME)) {
+            ps.setString(1, domainQuery);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    final String domainName = rs.getString(1);
+                    if (domainMatch.equals(domainName.replace('.', '-'))) {
+                        throw requestError(caller, "Domain name conflict: " + domainName);
+                    }
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
     }
 
     void verifyDomainProductIdUniqueness(String name, Integer productId, String caller) {
@@ -481,7 +496,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(6, processInsertValue(domain.getAccount()));
             ps.setInt(7, processInsertValue(domain.getYpmId()));
             ps.setString(8, processInsertValue(domain.getApplicationId()));
-            ps.setString(9, domain.getName());
+            ps.setString(9, processInsertValue(domain.getCertDnsDomain()));
+            ps.setString(10, domain.getName());
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -1310,9 +1326,17 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
     
     @Override
-    public List<PrincipalRole> listPrincipalRoles(String principalName) {
+    public List<PrincipalRole> listPrincipalRoles(String domainName, String principalName) {
         
         final String caller = "listPrincipalRoles";
+        if (domainName == null) {
+            return listPrincipalRolesForAllDomains(principalName, caller);
+        } else {
+            return listPrincipalRolesForOneDomain(domainName, principalName, caller);
+        }
+    }
+
+    List<PrincipalRole> listPrincipalRolesForAllDomains(String principalName, String caller) {
 
         int principalId = getPrincipalId(principalName);
         if (principalId == 0) {
@@ -1334,7 +1358,34 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
         return roles;
     }
-    
+
+    List<PrincipalRole> listPrincipalRolesForOneDomain(String domainName, String principalName, String caller) {
+
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int principalId = getPrincipalId(principalName);
+        if (principalId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_PRINCIPAL, principalName);
+        }
+        List<PrincipalRole> roles = new ArrayList<>();
+        try (PreparedStatement ps = con.prepareStatement(SQL_LIST_PRINCIPAL_DOMAIN_ROLES)) {
+            ps.setInt(1, principalId);
+            ps.setInt(2, domainId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    PrincipalRole role = new PrincipalRole();
+                    role.setRoleName(rs.getString(ZMSConsts.DB_COLUMN_ROLE_NAME));
+                    roles.add(role);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return roles;
+    }
+
     @Override
     public List<RoleAuditLog> listRoleAuditLogs(String domainName, String roleName) {
         
@@ -2728,7 +2779,9 @@ public class JDBCConnection implements ObjectStoreConnection {
                 while (rs.next()) {
                     DomainModified dm = new DomainModified()
                             .setName(rs.getString(ZMSConsts.DB_COLUMN_NAME))
-                            .setModified(rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime());
+                            .setModified(rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime())
+                            .setAccount(saveValue(rs.getString(ZMSConsts.DB_COLUMN_ACCOUNT)))
+                            .setYpmId(rs.getInt(ZMSConsts.DB_COLUMN_PRODUCT_ID));
                     nameMods.add(dm);
                 }
             }
@@ -3246,7 +3299,57 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
         return (affectedRows > 0);
     }
-    
+
+    @Override
+    public DomainRoleMembers listDomainRoleMembers(String domainName) {
+
+        final String caller = "listDomainRoleMembers";
+
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        DomainRoleMembers domainRoleMembers = new DomainRoleMembers();
+        domainRoleMembers.setDomainName(domainName);
+
+        Map<String, DomainRoleMember> memberMap = new HashMap<>();
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_ROLE_MEMBERS)) {
+            ps.setInt(1, domainId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    final String roleName = rs.getString(1);
+                    final String memberName = rs.getString(2);
+                    java.sql.Timestamp expiration = rs.getTimestamp(3);
+
+                    DomainRoleMember domainRoleMember = memberMap.get(memberName);
+                    if (domainRoleMember == null) {
+                        domainRoleMember = new DomainRoleMember();
+                        domainRoleMember.setMemberName(memberName);
+                        memberMap.put(memberName, domainRoleMember);
+                    }
+                    List<MemberRole> memberRoles = domainRoleMember.getMemberRoles();
+                    if (memberRoles == null) {
+                        memberRoles = new ArrayList<>();
+                        domainRoleMember.setMemberRoles(memberRoles);
+                    }
+                    MemberRole memberRole = new MemberRole();
+                    memberRole.setRoleName(roleName);
+                    if (expiration != null) {
+                        memberRole.setExpiration(Timestamp.fromMillis(expiration.getTime()));
+                    }
+                    memberRoles.add(memberRole);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+
+        if (!memberMap.isEmpty()) {
+            domainRoleMembers.setMembers(new ArrayList<>(memberMap.values()));
+        }
+        return domainRoleMembers;
+    }
+
     RuntimeException notFoundError(String caller, String objectType, String objectName) {
         rollbackChanges();
         String message = "unknown " + objectType + " - " + objectName;

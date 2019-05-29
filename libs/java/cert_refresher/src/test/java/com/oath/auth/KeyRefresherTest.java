@@ -15,7 +15,6 @@
  */
 package com.oath.auth;
 
-import com.google.common.io.Resources;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Test;
@@ -29,6 +28,7 @@ import static org.junit.Assert.*;
 public class KeyRefresherTest {
 
     private final MessageDigest md = MessageDigest.getInstance("MD5");
+    private ClassLoader classLoader = this.getClass().getClassLoader();
 
     @Mocked
     private KeyManagerProxy mockedKeyManagerProxy;
@@ -45,7 +45,7 @@ public class KeyRefresherTest {
     @Test
     public void haveFilesBeenChangedTestFilesAltered() throws Exception {
         KeyRefresher keyRefresher = new KeyRefresher("", "", mockedTrustStore, mockedKeyManagerProxy, mockedTrustManagerProxy);
-        assertTrue(keyRefresher.haveFilesBeenChanged(Resources.getResource("testFile").getPath(), new byte[md.getDigestLength()]));
+        assertTrue(keyRefresher.haveFilesBeenChanged(classLoader.getResource("testFile").getPath(), new byte[md.getDigestLength()]));
     }
 
     @Test
@@ -53,14 +53,14 @@ public class KeyRefresherTest {
         byte[] checksum = new byte[md.getDigestLength()];
         KeyRefresher keyRefresher = new KeyRefresher("", "", mockedTrustStore, mockedKeyManagerProxy, mockedTrustManagerProxy);
         // first call is changed because we don't have checksum
-        assertTrue(keyRefresher.haveFilesBeenChanged(Resources.getResource("testFile").getPath(), checksum));
+        assertTrue(keyRefresher.haveFilesBeenChanged(classLoader.getResource("testFile").getPath(), checksum));
         // second call should be no change
-        assertFalse(keyRefresher.haveFilesBeenChanged(Resources.getResource("testFile").getPath(), checksum));
+        assertFalse(keyRefresher.haveFilesBeenChanged(classLoader.getResource("testFile").getPath(), checksum));
         // now let's modify our contents of the checksum
         checksum[0] = 0;
         checksum[1] = 1;
         checksum[2] = 2;
-        assertTrue(keyRefresher.haveFilesBeenChanged(Resources.getResource("testFile").getPath(), checksum));
+        assertTrue(keyRefresher.haveFilesBeenChanged(classLoader.getResource("testFile").getPath(), checksum));
     }
 
     @Test
@@ -79,7 +79,7 @@ public class KeyRefresherTest {
     @Test
     public void filesBeenChangedTestIOException() throws Exception {
         KeyRefresher keyRefresher = new KeyRefresher("", "", mockedTrustStore, mockedKeyManagerProxy, mockedTrustManagerProxy);
-        assertFalse(keyRefresher.haveFilesBeenChanged(Resources.getResource("").getPath(), new byte[md.getDigestLength()]));
+        assertFalse(keyRefresher.haveFilesBeenChanged(classLoader.getResource("").getPath(), new byte[md.getDigestLength()]));
     }
 
     @Test
@@ -91,7 +91,7 @@ public class KeyRefresherTest {
            mockedMessageDigest.digest(); result = stuff;
         }};
 
-        assertFalse(keyRefresher.haveFilesBeenChanged(Resources.getResource("testFile").getPath(), stuff));
+        assertFalse(keyRefresher.haveFilesBeenChanged(classLoader.getResource("testFile").getPath(), stuff));
     }
 
     @Test
@@ -104,8 +104,8 @@ public class KeyRefresherTest {
            mockedTrustManagerProxy.setTrustManager((TrustManager[]) any); times = 0;
         }};
 
-        String certFile = Resources.getResource("gdpr.aws.core.cert.pem").getFile();
-        String keyFile = Resources.getResource("gdpr.aws.core.key.pem").getFile();
+        String certFile = classLoader.getResource("gdpr.aws.core.cert.pem").getFile();
+        String keyFile = classLoader.getResource("gdpr.aws.core.key.pem").getFile();
 
         KeyRefresher keyRefresher = new KeyRefresher(certFile, keyFile, mockedTrustStore, mockedKeyManagerProxy, mockedTrustManagerProxy){
             @Override
@@ -129,8 +129,8 @@ public class KeyRefresherTest {
             minTimes = 1;
         }};
 
-        String certFile = Resources.getResource("gdpr.aws.core.cert.pem").getFile();
-        String keyFile = Resources.getResource("gdpr.aws.core.key.pem").getFile();
+        String certFile = classLoader.getResource("gdpr.aws.core.cert.pem").getFile();
+        String keyFile = classLoader.getResource("gdpr.aws.core.key.pem").getFile();
 
         KeyRefresher keyRefresher = new KeyRefresher(certFile, keyFile,
             mockedTrustStore, mockedKeyManagerProxy, mockedTrustManagerProxy) {
@@ -141,7 +141,7 @@ public class KeyRefresherTest {
         };
 
         keyRefresher.startup(1);
-        Thread.sleep(500);
+        Thread.sleep(1000);
         keyRefresher.shutdown();
     }
 
@@ -154,6 +154,9 @@ public class KeyRefresherTest {
         
         keyRefresher = Utils.generateKeyRefresherFromCaCert("ca.cert.pem", "gdpr.aws.core.cert.pem",
                 "gdpr.aws.core.key.pem");
+        keyRefresher.startup();
+        Thread.sleep(500);
         assertNotNull(keyRefresher);
+        keyRefresher.shutdown();
     }
 }

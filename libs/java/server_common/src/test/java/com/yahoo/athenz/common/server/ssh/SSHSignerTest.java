@@ -42,7 +42,7 @@ public class SSHSignerTest {
         SSHCertRequest certRequest = new SSHCertRequest();
         Principal principal = Mockito.mock(Principal.class);
         SSHCertificates certs = new SSHCertificates();
-        Mockito.when(signer.generateCertificate(principal, certRequest)).thenReturn(certs);
+        Mockito.when(signer.generateCertificate(principal, certRequest, "user")).thenReturn(certs);
         Mockito.when(signer.getSignerCertificate("user")).thenReturn("ssh-cert");
 
         SSHSignerFactory factory = () -> signer;
@@ -50,7 +50,7 @@ public class SSHSignerTest {
         SSHSigner testSigner = factory.create();
         assertNotNull(testSigner);
 
-        assertEquals(certs, testSigner.generateCertificate(principal, certRequest));
+        assertEquals(certs, testSigner.generateCertificate(principal, certRequest, "user"));
         assertEquals("ssh-cert", testSigner.getSignerCertificate("user"));
         testSigner.close();
     }

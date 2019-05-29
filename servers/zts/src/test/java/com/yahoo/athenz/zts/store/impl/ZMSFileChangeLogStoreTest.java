@@ -20,9 +20,21 @@ import static org.testng.Assert.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+import java.security.PrivateKey;
+import java.util.Set;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.zts.ZTSConsts;
+import com.yahoo.athenz.zts.ZTSTestUtils;
+import com.yahoo.athenz.zts.utils.FilesHelper;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -55,23 +67,25 @@ public class ZMSFileChangeLogStoreTest {
     
     @BeforeMethod
     public void setup() {
-        ZMSFileChangeLogStore.deleteDirectory(new File(FSTORE_PATH));
+        ZTSTestUtils.deleteDirectory(new File(FSTORE_PATH));
+        System.setProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
+        System.setProperty(ZTSConsts.ZTS_PROP_FILE_NAME, "src/test/resources/zts.properties");
     }
     
     @AfterMethod
     public void shutdown() {
-        ZMSFileChangeLogStore.deleteDirectory(new File(FSTORE_PATH));
+        ZTSTestUtils.deleteDirectory(new File(FSTORE_PATH));
     }
  
     @Test
-    public void FileStructStoreValidDir() {
+    public void testFileStructStoreValidDir() {
         
         ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
         assertNotNull(fstore);
     }
     
     @Test
-    public void FileStructStoreInvalid() {
+    public void testFileStructStoreInvalid() {
         
         try {
             File rootDir = new File(FSTORE_PATH);
@@ -90,7 +104,19 @@ public class ZMSFileChangeLogStoreTest {
     }
 
     @Test
-    public void getNonExistent() {
+    public void testInvalidFileMkdirFail() {
+
+        try {
+            @SuppressWarnings("unused")
+            ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore("/usr\ninvaliddir", null, null);
+            fail();
+        } catch (RuntimeException ex) {
+            assertTrue(true);
+        }
+    }
+
+    @Test
+    public void testGetNonExistent() {
 
         ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
         Struct st = fstore.get("NotExistent", Struct.class);
@@ -98,7 +124,7 @@ public class ZMSFileChangeLogStoreTest {
     }
 
     @Test
-    public void getExistent() {
+    public void testGetExistent() {
 
         ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
         Struct data = new Struct();
@@ -111,7 +137,7 @@ public class ZMSFileChangeLogStoreTest {
     }
     
     @Test
-    public void deleteExistent() {
+    public void testDeleteExistent() {
         
         ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
         Struct data = new Struct();
@@ -124,7 +150,7 @@ public class ZMSFileChangeLogStoreTest {
     }
     
     @Test
-    public void deleteNonExistent() {
+    public void testDeleteNonExistent() {
         
         ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
         
@@ -133,26 +159,48 @@ public class ZMSFileChangeLogStoreTest {
     }
     
     @Test
-    public void scanEmpty() {
+    public void testGetLocalDomainListEmpty() {
         ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
-        List<String> ls = fstore.scan();
+        List<String> ls = fstore.getLocalDomainList();
         assertEquals(ls.size(), 0);
     }
-    
+
     @Test
-    public void scanSingle() {
+    public void testGetLocalDomainListError() {
+        ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
+
+        File dir = Mockito.spy(fstore.rootDir);
+        Mockito.when(dir.list()).thenReturn(null);
+        fstore.rootDir = dir;
+
+        List<String> ls = fstore.getLocalDomainList();
+        assertEquals(ls.size(), 0);
+    }
+
+    @Test
+    public void testGetLocalDomainListSingle() throws IOException {
+
+        File rootDir = new File(FSTORE_PATH);
+        //noinspection ResultOfMethodCallIgnored
+        rootDir.mkdirs();
+        Struct lastModStruct = new Struct();
+        lastModStruct.put("lastModTime", 1001);
+        File file = new File(FSTORE_PATH, ".lastModTime");
+        Path path = Paths.get(file.toURI());
+        Files.write(path, JSON.bytes(lastModStruct));
+
         ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
         Struct data = new Struct();
         data.put("key", "val1");
         fstore.put("test1", JSON.bytes(data));
         
-        List<String> ls = fstore.scan();
+        List<String> ls = fstore.getLocalDomainList();
         assertEquals(ls.size(), 1);
         assertTrue(ls.contains("test1"));
     }
 
     @Test
-    public void scanMultiple() {
+    public void testGetLocalDomainListMultiple() {
         ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
         
         Struct data = new Struct();
@@ -167,7 +215,7 @@ public class ZMSFileChangeLogStoreTest {
         data.put("key", "val1");
         fstore.put("test3", JSON.bytes(data));
         
-        List<String> ls = fstore.scan();
+        List<String> ls = fstore.getLocalDomainList();
         assertEquals(ls.size(), 3);
         assertTrue(ls.contains("test1"));
         assertTrue(ls.contains("test2"));
@@ -175,7 +223,7 @@ public class ZMSFileChangeLogStoreTest {
     }
     
     @Test
-    public void scanHidden() {
+    public void testGetLocalDomainListHidden() {
         ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
         
         Struct data = new Struct();
@@ -190,13 +238,13 @@ public class ZMSFileChangeLogStoreTest {
         data.put("key", "val1");
         fstore.put(".test3", JSON.bytes(data));
         
-        List<String> ls = fstore.scan();
+        List<String> ls = fstore.getLocalDomainList();
         assertEquals(ls.size(), 1);
         assertTrue(ls.contains("test1"));
     }
     
     @Test
-    public void scanDelete() {
+    public void testGetLocalDomainListDelete() {
         ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
         
         Struct data = new Struct();
@@ -213,7 +261,7 @@ public class ZMSFileChangeLogStoreTest {
         
         fstore.delete("test2");
         
-        List<String> ls = fstore.scan();
+        List<String> ls = fstore.getLocalDomainList();
         assertEquals(ls.size(), 2);
         assertTrue(ls.contains("test1"));
         assertTrue(ls.contains("test3"));
@@ -227,7 +275,7 @@ public class ZMSFileChangeLogStoreTest {
     }
     
     @Test
-    public void getSignedDomainList() {
+    public void testGetSignedDomainList() {
         ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
         ZMSClient zmsClient = Mockito.mock(ZMSClient.class);
         
@@ -245,7 +293,7 @@ public class ZMSFileChangeLogStoreTest {
     }
 
     @Test
-    public void getSignedDomainListNonRateFailure() {
+    public void testGetSignedDomainListNonRateFailure() {
         ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
         ZMSClient zmsClient = Mockito.mock(ZMSClient.class);
 
@@ -263,7 +311,7 @@ public class ZMSFileChangeLogStoreTest {
     }
 
     @Test
-    public void getSignedDomainListRateFailure() {
+    public void testGetSignedDomainListRateFailure() {
         ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
         ZMSClient zmsClient = Mockito.mock(ZMSClient.class);
 
@@ -283,7 +331,7 @@ public class ZMSFileChangeLogStoreTest {
     }
 
     @Test
-    public void getSignedDomainListOneBadDomain() {
+    public void testGetSignedDomainListOneBadDomain() {
         ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
         ZMSClient zmsClient = Mockito.mock(ZMSClient.class);
         
@@ -309,5 +357,142 @@ public class ZMSFileChangeLogStoreTest {
         List<SignedDomain> returnList = fstore.getSignedDomainList(zmsClient, domainList);
         assertEquals(returnList.size(), 1);
         assertEquals(returnList.get(0).getDomain().getName(), "athenz");
+    }
+
+    @Test
+    public void testGetZMSClient() {
+
+        File privKeyFile = new File("src/test/resources/zts_private.pem");
+        final String privKey = Crypto.encodedFile(privKeyFile);
+        PrivateKey privateKey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
+        ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, privateKey, "0");
+        ZMSClient zmsClient = fstore.getZMSClient();
+        assertNotNull(zmsClient);
+    }
+
+    @Test
+    public void testGetUpdatedSignedDomainsNull() {
+        MockZMSFileChangeLogStore store = new MockZMSFileChangeLogStore(FSTORE_PATH, null, "0");
+        store.setSignedDomainsExc();
+        StringBuilder str = new StringBuilder();
+        assertNull(store.getUpdatedSignedDomains(str));
+    }
+
+    @Test
+    public void testGetUpdatedSignedDomainsNullDomains() {
+        MockZMSFileChangeLogStore store = new MockZMSFileChangeLogStore(FSTORE_PATH, null, "0");
+        SignedDomains domains = new SignedDomains();
+        store.setSignedDomains(domains);
+        StringBuilder str = new StringBuilder();
+        assertNull(store.getUpdatedSignedDomains(str));
+    }
+
+    @Test
+    public void testJsonValueAsBytes() {
+
+        ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
+        ObjectMapper mapper = Mockito.mock(ObjectMapper.class);
+        Mockito.when(mapper.writerWithView(Struct.class)).thenThrow(new RuntimeException("invalid class"));
+        fstore.jsonMapper = mapper;
+        Struct testStruct = new Struct();
+        testStruct.putIfAbsent("key", "value");
+        assertNull(fstore.jsonValueAsBytes(testStruct, Struct.class));
+    }
+
+    @Test
+    public void testGetJsonException() throws IOException {
+
+        ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
+        Struct data = new Struct();
+        data.put("key", "val1");
+        fstore.put("test1", JSON.bytes(data));
+
+        ObjectMapper mapper = Mockito.mock(ObjectMapper.class);
+        File file = new File(FSTORE_PATH, "test1");
+        Mockito.when(mapper.readValue(file, Struct.class)).thenThrow(new RuntimeException("invalid class"));
+        fstore.jsonMapper = mapper;
+
+        assertNull(fstore.get("test1", Struct.class));
+    }
+
+    @Test
+    public void testPutException() throws IOException {
+
+        ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
+        FilesHelper helper = Mockito.mock(FilesHelper.class);
+        Mockito.when(helper.write(Mockito.any(), Mockito.any()))
+                .thenThrow(new IOException("io exception"));
+        fstore.filesHelper = helper;
+
+        Struct data = new Struct();
+        data.put("key", "val1");
+        try {
+            fstore.put("test1", JSON.bytes(data));
+            fail();
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
+    }
+
+    @Test
+    public void testDeleteException() throws IOException {
+
+        ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
+
+        // create the file
+
+        Struct data = new Struct();
+        data.put("key", "val1");
+        fstore.put("test1", JSON.bytes(data));
+
+        // update the helper to be our mock
+
+        FilesHelper helper = Mockito.mock(FilesHelper.class);
+        Mockito.doThrow(new IOException("io exception")).when(helper).delete(Mockito.any());
+        fstore.filesHelper = helper;
+
+        try {
+            fstore.delete("test1");
+            fail();
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
+    }
+
+    @Test
+    public void testSetupDomainFileException() throws IOException {
+
+        ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
+        FilesHelper helper = Mockito.mock(FilesHelper.class);
+        Mockito.doThrow(new IOException("io exception")).when(helper).createEmptyFile(Mockito.any());
+        fstore.filesHelper = helper;
+
+        try {
+            File file = new File(FSTORE_PATH, "domain");
+            fstore.setupDomainFile(file);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
+    }
+
+    @Test
+    public void testSetFilePermissionsException() throws IOException {
+
+        ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
+        FilesHelper helper = Mockito.mock(FilesHelper.class);
+        Mockito.when(helper.setPosixFilePermissions(Mockito.any(), Mockito.any()))
+                .thenThrow(new IOException("io exception"));
+        fstore.filesHelper = helper;
+
+        try {
+            File file = new File(FSTORE_PATH, "domain");
+            Set<PosixFilePermission> perms = EnumSet.of(PosixFilePermission.OWNER_READ,
+                    PosixFilePermission.OWNER_WRITE, PosixFilePermission.OWNER_EXECUTE);
+            fstore.setupFilePermissions(file, perms);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
     }
 }

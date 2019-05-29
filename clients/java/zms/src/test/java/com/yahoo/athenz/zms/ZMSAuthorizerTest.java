@@ -142,6 +142,11 @@ public class ZMSAuthorizerTest {
         String domain = "AuthorizerDom2";
         ZMSAuthorizer authorizer = new ZMSAuthorizer(domain);
         assertNotNull(authorizer);
+
+        // closing with no client should cause no exceptions
+
+        authorizer.client = null;
+        authorizer.close();
     }
 
     @Test

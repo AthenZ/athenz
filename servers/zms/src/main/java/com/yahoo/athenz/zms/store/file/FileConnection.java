@@ -15,9 +15,9 @@
  */
 package com.yahoo.athenz.zms.store.file;
 
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
+import com.yahoo.athenz.zms.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,29 +27,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 
-import com.yahoo.athenz.zms.Assertion;
-import com.yahoo.athenz.zms.AssertionEffect;
-import com.yahoo.athenz.zms.Domain;
-import com.yahoo.athenz.zms.DomainMeta;
-import com.yahoo.athenz.zms.DomainModified;
-import com.yahoo.athenz.zms.DomainModifiedList;
-import com.yahoo.athenz.zms.Entity;
-import com.yahoo.athenz.zms.Membership;
-import com.yahoo.athenz.zms.Policy;
-import com.yahoo.athenz.zms.PrincipalRole;
-import com.yahoo.athenz.zms.PublicKeyEntry;
-import com.yahoo.athenz.zms.Quota;
-import com.yahoo.athenz.zms.ResourceAccessList;
-import com.yahoo.athenz.zms.ResourceException;
-import com.yahoo.athenz.zms.Role;
-import com.yahoo.athenz.zms.RoleAuditLog;
-import com.yahoo.athenz.zms.RoleMember;
-import com.yahoo.athenz.zms.ServiceIdentity;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
@@ -103,7 +81,8 @@ public class FileConnection implements ObjectStoreConnection {
                 .setName(domainStruct.getName())
                 .setOrg(domainStruct.getMeta().getOrg())
                 .setYpmId(domainStruct.getMeta().getYpmId())
-                .setApplicationId(domainStruct.getMeta().getApplicationId());
+                .setApplicationId(domainStruct.getMeta().getApplicationId())
+                .setCertDnsDomain(domainStruct.getMeta().getCertDnsDomain());
         if (domainStruct.getMeta().getAuditEnabled() != null) {
             domain.setAuditEnabled(domainStruct.getMeta().getAuditEnabled());
         } else {
@@ -116,7 +95,15 @@ public class FileConnection implements ObjectStoreConnection {
         }
         return domain;
     }
-    
+
+    private String[] getDomainList() {
+        String[] fnames = rootDir.list();
+        if (fnames == null) {
+            fnames = new String[0];
+        }
+        return fnames;
+    }
+
     @Override
     public long getDomainModTimestamp(String domainName) {
         DomainStruct domainStruct = getDomainStruct(domainName);
@@ -148,7 +135,8 @@ public class FileConnection implements ObjectStoreConnection {
                 .setEnabled(domain.getEnabled())
                 .setOrg(domain.getOrg())
                 .setYpmId(domain.getYpmId())
-                .setApplicationId(domain.getApplicationId());
+                .setApplicationId(domain.getApplicationId())
+                .setCertDnsDomain(domain.getCertDnsDomain());
         domainStruct.setMeta(meta);
         
         putDomainStruct(domain.getName(), domainStruct);
@@ -187,7 +175,8 @@ public class FileConnection implements ObjectStoreConnection {
                 .setEnabled(domain.getEnabled())
                 .setOrg(domain.getOrg())
                 .setYpmId(domain.getYpmId())
-                .setApplicationId(domain.getApplicationId());
+                .setApplicationId(domain.getApplicationId())
+                .setCertDnsDomain(domain.getCertDnsDomain());
         domainStruct.setMeta(meta);
 
         putDomainStruct(domain.getName(), domainStruct);
@@ -217,11 +206,8 @@ public class FileConnection implements ObjectStoreConnection {
     public List<String> listDomains(String prefix, long modifiedSince) {
 
         List<String> domainList = new ArrayList<>();
-        String[] fnames = rootDir.list();
-        if (fnames == null) {
-            return domainList;
-        }
-        List<String> slist  = new ArrayList<>(java.util.Arrays.asList(fnames));
+        String[] fnames = getDomainList();
+        List<String> slist = new ArrayList<>(java.util.Arrays.asList(fnames));
         java.util.Collections.sort(slist);
         for (String name : slist) {
             if (prefix != null) {
@@ -357,20 +343,19 @@ public class FileConnection implements ObjectStoreConnection {
 
         // Now set the dest for the returned domain names
 
-        String dirName = rootDir.getAbsolutePath() + File.separator;
         for (String dname : domainList) {
-            long ts = 0;
-            try {
-                File dfile = new File(dirName + dname);
-                ts = dfile.lastModified();
-                if (ts <= modifiedSince) {
-                    continue;
-                }
-            } catch (Exception exc) {
-                LOG.error("FileStructStore: FAILED to get timestamp for file "
-                        + dname + ", error: " + exc.getMessage());
+            DomainStruct domainStruct = getDomainStruct(dname);
+            if (domainStruct == null) {
+                return null;
             }
-            DomainModified dm = new DomainModified().setName(dname).setModified(ts);
+            long ts = domainStruct.getModified().millis();
+            if (ts <= modifiedSince) {
+                continue;
+            }
+            DomainModified dm = new DomainModified().setName(dname)
+                    .setModified(ts)
+                    .setYpmId(domainStruct.getMeta().getYpmId())
+                    .setAccount(domainStruct.getMeta().getAccount());
             nameMods.add(dm);
         }
 
@@ -425,46 +410,49 @@ public class FileConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public List<PrincipalRole> listPrincipalRoles(String principalName) {
+    public List<PrincipalRole> listPrincipalRoles(String domainName, String principalName) {
 
         List<PrincipalRole> roles = new ArrayList<>();
 
-        // we're going to go through all domains
-        
-        String[] fnames = rootDir.list();
-        if (fnames == null) {
-            return roles;
-        }
-
-        for (String fname : fnames) {
-            File f = new File(rootDir, fname);
-            DomainStruct domainStruct = null;
-            try {
-                Path path = Paths.get(f.toURI());
-                domainStruct = JSON.fromBytes(Files.readAllBytes(path), DomainStruct.class);
-            } catch (IOException ignored) {
-            }
+        if (domainName != null) {
+            DomainStruct domainStruct = getDomainStruct(domainName);
             if (domainStruct == null) {
-                continue;
+                throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "listPrincipalRoles");
             }
-            
-            for (Role role: domainStruct.getRoles().values()) {
-                List<RoleMember> roleMembers = role.getRoleMembers();
-                if (roleMembers == null) {
+            addPrincipalRoles(domainStruct, roles, domainName, principalName);
+        } else {
+            // we're going to go through all domains
+
+            String[] fnames = getDomainList();
+            for (String fname : fnames) {
+                DomainStruct domainStruct = getDomainStruct(fname);
+                if (domainStruct == null) {
                     continue;
                 }
-                for (RoleMember roleMember : roleMembers) {
-                    final String memberName = roleMember.getMemberName();
-                    if (memberName.equals(principalName)) {
-                        PrincipalRole pRole = new PrincipalRole();
-                        pRole.setDomainName(fname);
-                        pRole.setRoleName(extractRoleName(fname, role.getName()));
-                        roles.add(pRole);
-                    }
-                }
+                addPrincipalRoles(domainStruct, roles, fname, principalName);
             }
         }
         return roles;
+    }
+
+    public void addPrincipalRoles(DomainStruct domainStruct, List<PrincipalRole> roles,
+            String domainName, String principalName) {
+
+        for (Role role: domainStruct.getRoles().values()) {
+            List<RoleMember> roleMembers = role.getRoleMembers();
+            if (roleMembers == null) {
+                continue;
+            }
+            for (RoleMember roleMember : roleMembers) {
+                final String memberName = roleMember.getMemberName();
+                if (memberName.equals(principalName)) {
+                    PrincipalRole pRole = new PrincipalRole();
+                    pRole.setDomainName(domainName);
+                    pRole.setRoleName(extractRoleName(domainName, role.getName()));
+                    roles.add(pRole);
+                }
+            }
+        }
     }
 
     @Override
@@ -472,23 +460,12 @@ public class FileConnection implements ObjectStoreConnection {
         
         // we're going to go through all domains and extract any
         // principal that satisfies our filter domainName
-        
 
-        String[] fnames = rootDir.list();
-        if (fnames == null) {
-            return Collections.emptyList();
-        }
-
+        String[] fnames = getDomainList();
         Set<String> principals = new HashSet<>();
         String domainNamePrefix = domainName == null ? null : domainName + ".";
         for (String fname : fnames) {
-            File f = new File(rootDir, fname);
-            DomainStruct domainStruct = null;
-            try {
-                Path path = Paths.get(f.toURI());
-                domainStruct = JSON.fromBytes(Files.readAllBytes(path), DomainStruct.class);
-            } catch (IOException ignored) {
-            }
+            DomainStruct domainStruct = getDomainStruct(fname);
             if (domainStruct == null) {
                 continue;
             }
@@ -512,26 +489,17 @@ public class FileConnection implements ObjectStoreConnection {
         return new ArrayList<>(principals);
     }
     
+    @SuppressWarnings("SuspiciousListRemoveInLoop")
     @Override
     public boolean deletePrincipal(String principalName, boolean subDomains) {
         
         // we're going to go through all domains and delete any
         // principal that satisfies our criteria
-        
-        String[] fnames = rootDir.list();
-        if (fnames == null) {
-            return false;
-        }
 
+        String[] fnames = getDomainList();
         String domainNamePrefix = subDomains ? principalName + "." : null;
         for (String fname : fnames) {
-            File f = new File(rootDir, fname);
-            DomainStruct domainStruct = null;
-            try {
-                Path path = Paths.get(f.toURI());
-                domainStruct = JSON.fromBytes(Files.readAllBytes(path), DomainStruct.class);
-            } catch (IOException ignored) {
-            }
+            DomainStruct domainStruct = getDomainStruct(fname);
             if (domainStruct == null) {
                 continue;
             }
@@ -1102,7 +1070,7 @@ public class FileConnection implements ObjectStoreConnection {
         return updatePublicKeyEntry(domainName, serviceName, publicKey);
     }
 
-   boolean removePublicKeyEntry(List<PublicKeyEntry> keyList, String keyId) {
+    boolean removePublicKeyEntry(List<PublicKeyEntry> keyList, String keyId) {
 
         if (keyList == null) {
             return false;
@@ -1487,5 +1455,49 @@ public class FileConnection implements ObjectStoreConnection {
     public int countEntities(String domainName) {
         final List<String> list =  listEntities(domainName);
         return list == null ? 0 : list.size();
+    }
+
+    @Override
+    public DomainRoleMembers listDomainRoleMembers(String domainName) {
+
+        DomainStruct domainStruct = getDomainStruct(domainName);
+        if (domainStruct == null) {
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "listDomainRoleMembers");
+        }
+
+        DomainRoleMembers domainRoleMembers = new DomainRoleMembers();
+        domainRoleMembers.setDomainName(domainName);
+        Map<String, DomainRoleMember> memberMap = new HashMap<>();
+
+        for (Role role: domainStruct.getRoles().values()) {
+            List<RoleMember> roleMembers = role.getRoleMembers();
+            if (roleMembers == null) {
+                continue;
+            }
+            for (RoleMember roleMember : roleMembers) {
+
+                final String memberName = roleMember.getMemberName();
+                DomainRoleMember domainRoleMember = memberMap.get(memberName);
+                if (domainRoleMember == null) {
+                    domainRoleMember = new DomainRoleMember();
+                    domainRoleMember.setMemberName(memberName);
+                    memberMap.put(memberName, domainRoleMember);
+                }
+                List<MemberRole> memberRoles = domainRoleMember.getMemberRoles();
+                if (memberRoles == null) {
+                    memberRoles = new ArrayList<>();
+                    domainRoleMember.setMemberRoles(memberRoles);
+                }
+                MemberRole memberRole = new MemberRole();
+                memberRole.setRoleName(role.getName());
+                memberRole.setExpiration(roleMember.getExpiration());
+                memberRoles.add(memberRole);
+            }
+        }
+
+        if (!memberMap.isEmpty()) {
+            domainRoleMembers.setMembers(new ArrayList<>(memberMap.values()));
+        }
+        return domainRoleMembers;
     }
 }

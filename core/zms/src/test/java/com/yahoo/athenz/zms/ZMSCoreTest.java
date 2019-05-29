@@ -65,7 +65,8 @@ public class ZMSCoreTest {
     }
 
     @Test
-    public void testRolesMethod() {
+    public void testRoleAuditLog() {
+
         Schema schema = ZMSSchema.instance();
         Validator validator = new Validator(schema);
 
@@ -82,9 +83,11 @@ public class ZMSCoreTest {
         assertEquals(ral.getAuditRef(), "zmstest");
 
         RoleAuditLog ral2 = new RoleAuditLog().setMember("user.test").setAdmin("user.admin")
-                .setCreated(Timestamp.fromMillis(123456789123L)).setAction("add");
+                .setCreated(Timestamp.fromMillis(123456789123L)).setAction("add").setAuditRef("zmstest");
+
+        assertTrue(ral2.equals(ral));
         assertTrue(ral.equals(ral));
-        
+
         ral2.setAuditRef(null);
         assertFalse(ral2.equals(ral));
         ral2.setAction(null);
@@ -96,14 +99,26 @@ public class ZMSCoreTest {
         ral2.setMember(null);
         assertFalse(ral2.equals(ral));
         assertFalse(ral2.equals(new String()));
+    }
+
+    @Test
+    public void testRolesMethod() {
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+
+        RoleAuditLog ral = new RoleAuditLog().setMember("user.test").setAdmin("user.admin")
+                .setCreated(Timestamp.fromMillis(123456789123L)).setAction("add").setAuditRef("zmstest");
 
         List<RoleAuditLog> rall = Arrays.asList(ral);
 
         // Role test
         List<String> members = Arrays.asList("user.boynton");
-        Role r = new Role().setName("sys.auth:role.admin").setMembers(members)
+        List<RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("member1"));
+
+        Role r = new Role().setName("sys.auth:role.admin").setMembers(members).setRoleMembers(roleMembers)
                 .setModified(Timestamp.fromMillis(123456789123L)).setTrust("domain.admin").setAuditLog(rall);
-        result = validator.validate(r, "Role");
+        Result result = validator.validate(r, "Role");
         assertTrue(result.valid);
 
         assertEquals(r.getName(), "sys.auth:role.admin");
@@ -111,14 +126,18 @@ public class ZMSCoreTest {
         assertEquals(r.getMembers(), members);
         assertEquals(r.getTrust(), "domain.admin");
         assertEquals(r.getAuditLog(), rall);
+        assertEquals(r.getRoleMembers(), roleMembers);
 
-        Role r2 = new Role().setName("sys.auth:role.admin").setMembers(members)
-                .setModified(Timestamp.fromMillis(123456789123L)).setTrust("domain.admin");
+        Role r2 = new Role().setName("sys.auth:role.admin").setMembers(members).setRoleMembers(roleMembers)
+                .setModified(Timestamp.fromMillis(123456789123L)).setTrust("domain.admin").setAuditLog(rall);
+        assertTrue(r2.equals(r));
         assertTrue(r.equals(r));
         
         r2.setAuditLog(null);
         assertFalse(r2.equals(r));
         r2.setTrust(null);
+        assertFalse(r2.equals(r));
+        r2.setRoleMembers(null);
         assertFalse(r2.equals(r));
         r2.setMembers(null);
         assertFalse(r2.equals(r));
@@ -131,15 +150,22 @@ public class ZMSCoreTest {
         List<Role> rl = Arrays.asList(r);
 
         // Roles test
-        Roles rs = new Roles().setList(rl);
-        result = validator.validate(rs, "Roles");
+        Roles rs1 = new Roles().setList(rl);
+        assertTrue(rs1.equals(rs1));
+
+        result = validator.validate(rs1, "Roles");
         assertTrue(result.valid);
 
-        assertEquals(rs.getList(), rl);
+        assertEquals(rs1.getList(), rl);
 
-        assertTrue(rs.equals(rs));
-        assertFalse(rs.equals(new Roles()));
-        assertFalse(rs.equals(new String()));
+        Roles rs2 = new Roles().setList(rl);
+        assertTrue(rs2.equals(rs1));
+
+        rs2.setList(null);
+        assertFalse(rs2.equals(rs1));
+
+        assertFalse(rs1.equals(null));
+        assertFalse(rs1.equals(new String()));
     }
 
     @Test
@@ -157,8 +183,8 @@ public class ZMSCoreTest {
         assertEquals(rl.getNames(), names);
         assertEquals(rl.getNext(), "next");
 
-        RoleList rl2 = new RoleList().setNames(names);
-
+        RoleList rl2 = new RoleList().setNames(names).setNext("next");
+        assertTrue(rl2.equals(rl));
         assertTrue(rl.equals(rl));
         
         rl2.setNext(null);
@@ -221,12 +247,9 @@ public class ZMSCoreTest {
     }
 
     @Test
-    public void testSignedDomainsMethod() {
+    public void testAssertionMethod() {
         Schema schema = ZMSSchema.instance();
         Validator validator = new Validator(schema);
-
-        Role r = new Role().setName("test.role");
-        List<Role> rl = Arrays.asList(r);
 
         // assertion test
         Assertion a = new Assertion().setRole("test.role").setResource("test.resource.*").setAction("test-action")
@@ -241,9 +264,11 @@ public class ZMSCoreTest {
         assertEquals((long) a.getId(), 0L);
 
         Assertion a2 = new Assertion().setRole("test.role").setResource("test.resource.*").setAction("test-action")
-                .setEffect(AssertionEffect.ALLOW);
+                .setEffect(AssertionEffect.ALLOW).setId(0L);
+
+        assertTrue(a2.equals(a));
         assertTrue(a.equals(a));
-        
+
         a2.setId(null);
         assertFalse(a2.equals(a));
         a2.setEffect(null);
@@ -255,22 +280,38 @@ public class ZMSCoreTest {
         a2.setRole(null);
         assertFalse(a2.equals(a));
         assertFalse(a.equals(new String()));
+    }
+
+    @Test
+    public void testSignedDomainsMethod() {
+
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+
+        Role r = new Role().setName("test.role");
+        List<Role> rl = Arrays.asList(r);
+
+        Assertion a = new Assertion().setRole("test.role").setResource("test.resource.*").setAction("test-action")
+                .setEffect(AssertionEffect.ALLOW).setId(0L);
 
         List<Assertion> al = Arrays.asList(a);
 
         // Policy test
         Policy p = new Policy().setName("test-policy").setModified(Timestamp.fromMillis(123456789123L))
                 .setAssertions(al);
-        result = validator.validate(p, "Policy");
+        Result result = validator.validate(p, "Policy");
         assertTrue(result.valid);
 
         assertEquals(p.getName(), "test-policy");
         assertEquals(p.getModified(), Timestamp.fromMillis(123456789123L));
         assertEquals(p.getAssertions(), al);
 
-        Policy p2 = new Policy().setName("test-policy").setModified(Timestamp.fromMillis(123456789123L));
+        Policy p2 = new Policy().setName("test-policy").setModified(Timestamp.fromMillis(123456789123L))
+                .setAssertions(al);
+
+        assertTrue(p2.equals(p));
         assertTrue(p.equals(p));
-        
+
         p2.setAssertions(null);
         assertFalse(p2.equals(p));
         p2.setModified(null);
@@ -281,6 +322,8 @@ public class ZMSCoreTest {
 
         // PublicKeyEntry test
         PublicKeyEntry pke = new PublicKeyEntry().setId("v1").setKey("pubkey====");
+        assertTrue(pke.equals(pke));
+
         result = validator.validate(pke, "PublicKeyEntry");
         assertTrue(result.valid);
 
@@ -300,8 +343,7 @@ public class ZMSCoreTest {
 
         // Entity test
         Entity e = new Entity().setName("test.entity").setValue(new Struct().with("key", "test"));
-        result = validator.validate(e, "Entity");
-        //assertTrue(result.valid, result.error);
+        assertTrue(e.equals(e));
 
         assertEquals(e.getName(), "test.entity");
         assertTrue(e.getValue().equals(new Struct().with("key", (Object) "test")));
@@ -325,7 +367,8 @@ public class ZMSCoreTest {
         assertEquals(dps.getDomain(), "dps.domain");
         assertEquals(dps.getPolicies(), pl);
 
-        DomainPolicies dps2 = new DomainPolicies().setDomain("dps.domain");
+        DomainPolicies dps2 = new DomainPolicies().setDomain("dps.domain").setPolicies(pl);
+        assertTrue(dps2.equals(dps));
         assertTrue(dps.equals(dps));
         
         dps2.setPolicies(null);
@@ -363,7 +406,8 @@ public class ZMSCoreTest {
         // ServiceIdentity test
         ServiceIdentity si = new ServiceIdentity().setName("test.service").setPublicKeys(pkel)
                 .setProviderEndpoint("http://test.endpoint").setModified(Timestamp.fromMillis(123456789123L))
-                .setExecutable("exec/path").setHosts(hosts).setUser("user.test").setGroup("test.group");
+                .setExecutable("exec/path").setHosts(hosts).setUser("user.test").setGroup("test.group")
+                .setDescription("description");
         result = validator.validate(si, "ServiceIdentity");
         assertTrue(result.valid);
 
@@ -375,10 +419,14 @@ public class ZMSCoreTest {
         assertEquals(si.getHosts(), hosts);
         assertEquals(si.getUser(), "user.test");
         assertEquals(si.getGroup(), "test.group");
+        assertEquals(si.getDescription(), "description");
 
         ServiceIdentity si2 = new ServiceIdentity().setName("test.service").setPublicKeys(pkel)
                 .setProviderEndpoint("http://test.endpoint").setModified(Timestamp.fromMillis(123456789123L))
-                .setExecutable("exec/path").setHosts(hosts).setUser("user.test");
+                .setExecutable("exec/path").setHosts(hosts).setUser("user.test").setGroup("test.group")
+                .setDescription("description");
+
+        assertTrue(si2.equals(si));
         assertTrue(si.equals(si));
         
         si2.setGroup(null);
@@ -395,6 +443,8 @@ public class ZMSCoreTest {
         assertFalse(si2.equals(si));
         si2.setPublicKeys(null);
         assertFalse(si2.equals(si));
+        si2.setDescription(null);
+        assertFalse(si2.equals(si));
         si2.setName(null);
         assertFalse(si2.equals(si));
         assertFalse(si.equals(new String()));
@@ -408,15 +458,21 @@ public class ZMSCoreTest {
 
         assertEquals(sis.getList(), sil);
 
+        ServiceIdentities sis2 = new ServiceIdentities().setList(sil);
+        assertTrue(sis2.equals(sis));
         assertTrue(sis.equals(sis));
-        assertFalse(sis.equals(new ServiceIdentities()));
+
+        sis2.setList(null);
+        assertFalse(sis2.equals(sis));
+
+        assertFalse(sis.equals(null));
         assertFalse(sis.equals(new String()));
 
         // DomainData test
         List<Entity> elist = new ArrayList<>();
         DomainData dd = new DomainData().setName("test.domain").setAccount("user.test").setYpmId(1).setRoles(rl)
                 .setPolicies(sp).setServices(sil).setEntities(elist).setModified(Timestamp.fromMillis(123456789123L))
-                .setEnabled(true);
+                .setEnabled(true).setApplicationId("101").setCertDnsDomain("athenz.cloud");
         result = validator.validate(dd, "DomainData");
         assertTrue(result.valid, result.error);
 
@@ -428,13 +484,21 @@ public class ZMSCoreTest {
         assertEquals(dd.getServices(), sil);
         assertEquals(dd.getEntities(), elist);
         assertEquals(dd.getModified(), Timestamp.fromMillis(123456789123L));
+        assertEquals("101", dd.getApplicationId());
         assertTrue(dd.getEnabled());
-        
+        assertEquals(dd.getCertDnsDomain(), "athenz.cloud");
+
         DomainData dd2 = new DomainData().setName("test.domain").setAccount("user.test").setYpmId(1).setRoles(rl)
                 .setPolicies(sp).setServices(sil).setEntities(elist).setModified(Timestamp.fromMillis(123456789123L))
-                .setEnabled(true);
+                .setEnabled(true).setApplicationId("101").setCertDnsDomain("athenz.cloud");
         assertTrue(dd.equals(dd2));
-        
+
+        dd2.setCertDnsDomain(null);
+        assertFalse(dd2.equals(dd));
+
+        dd2.setApplicationId(null);
+        assertFalse(dd2.equals(dd));
+
         dd2.setModified(null);
         assertFalse(dd2.equals(dd));
         
@@ -455,9 +519,15 @@ public class ZMSCoreTest {
         assertFalse(dd2.equals(dd));
         
         dd2.setRoles(rl);
+        dd2.setEnabled(false);
+        assertFalse(dd2.equals(dd));
+        dd2.setEnabled(null);
+        assertFalse(dd2.equals(dd));
+
+        dd2.setEnabled(true);
         dd2.setYpmId(null);
         assertFalse(dd2.equals(dd));
-        
+
         dd2.setYpmId(1);
         dd2.setAccount(null);
         assertFalse(dd2.equals(dd));
@@ -476,7 +546,8 @@ public class ZMSCoreTest {
         assertEquals(sd.getSignature(), "zmssignature");
         assertEquals(sd.getKeyId(), "v1");
 
-        SignedDomain sd2 = new SignedDomain().setDomain(dd).setSignature("zmssignature");
+        SignedDomain sd2 = new SignedDomain().setDomain(dd).setSignature("zmssignature").setKeyId("v1");
+        assertTrue(sd2.equals(sd));
         assertTrue(sd.equals(sd));
         
         sd2.setKeyId(null);
@@ -488,33 +559,43 @@ public class ZMSCoreTest {
         assertFalse(sd.equals(new String()));
 
         List<SignedDomain> sdl = Arrays.asList(sd);
+
         // SignedDomains test
-        SignedDomains sds = new SignedDomains().setDomains(sdl);
-        result = validator.validate(sds, "SignedDomains");
+        SignedDomains sds1 = new SignedDomains().setDomains(sdl);
+        result = validator.validate(sds1, "SignedDomains");
         assertTrue(result.valid);
 
-        assertEquals(sds.getDomains(), sdl);
+        assertEquals(sds1.getDomains(), sdl);
 
-        assertTrue(sds.equals(sds));
-        assertFalse(sds.equals(new SignedDomains()));
-        assertFalse(sds.equals(new String()));
+        SignedDomains sds2 = new SignedDomains().setDomains(sdl);
+        assertTrue(sds2.equals(sds1));
+        assertTrue(sds1.equals(sds1));
 
+        sds2.setDomains(null);
+        assertFalse(sds2.equals(sds1));
+
+        assertFalse(sds1.equals(null));
+        assertFalse(sds1.equals(new String()));
     }
 
     @Test
     public void testAccess() {
+
         Access a = new Access().setGranted(true);
+        assertEquals(a.getGranted(), true);
+        assertTrue(a.equals(a));
+
         Schema schema = ZMSSchema.instance();
         Validator validator = new Validator(schema);
         Result result = validator.validate(a, "Access");
         assertTrue(result.valid);
 
         Access a2 = new Access().setGranted(false);
-        assertEquals(a.getGranted(), true);
+        assertFalse(a2.equals(a));
 
-        assertTrue(a.equals(a));
-        
-        assertFalse(a.equals(a2));
+        a2.setGranted(true);
+        assertTrue(a2.equals(a));
+
         assertFalse(a.equals(new String()));
     }
 
@@ -538,13 +619,17 @@ public class ZMSCoreTest {
         assertEquals(dlp.getPolicyName(), "test.policy");
         assertEquals(dlp.getRoleName(), "test.role");
 
-        DanglingPolicy dlp2 = new DanglingPolicy().setPolicyName("test.policy");
+        DanglingPolicy dlp2 = new DanglingPolicy().setPolicyName("test.policy").setRoleName("test.role");
+        assertTrue(dlp2.equals(dlp));
         assertTrue(dlp.equals(dlp));
         
         dlp2.setRoleName(null);
         assertFalse(dlp2.equals(dlp));
         dlp2.setPolicyName(null);
         assertFalse(dlp2.equals(dlp));
+
+        assertFalse(dlp.equals(null));
+        assertFalse(dlp.equals(new String()));
 
         List<DanglingPolicy> dlpl = Arrays.asList(dlp);
         List<String> pwt = Arrays.asList("provider.without.trust");
@@ -565,8 +650,11 @@ public class ZMSCoreTest {
         assertEquals(ddc.getRoleWildCardCount(), 10);
 
         DomainDataCheck ddc2 = new DomainDataCheck().setDanglingRoles(dlrl).setDanglingPolicies(dlpl).setPolicyCount(10)
-                .setAssertionCount(10).setRoleWildCardCount(10).setProvidersWithoutTrust(pwt);
+                .setAssertionCount(10).setRoleWildCardCount(10).setProvidersWithoutTrust(pwt)
+                .setTenantsWithoutAssumeRole(twar);
+
         assertTrue(ddc.equals(ddc));
+        assertTrue(ddc2.equals(ddc));
         
         ddc2.setTenantsWithoutAssumeRole(null);
         assertFalse(ddc2.equals(ddc));
@@ -612,29 +700,45 @@ public class ZMSCoreTest {
         Schema schema = ZMSSchema.instance();
         Validator validator = new Validator(schema);
 
-        Domain d = new Domain().init();
-        d.setName("test.domain").setModified(Timestamp.fromMillis(123456789123L)).setId(UUID.fromString("test-id"))
+        Domain d = new Domain();
+        d.setName("test.domain").setModified(Timestamp.fromMillis(123456789123L)).setId(UUID.fromMillis(100))
                 .setDescription("test desc").setOrg("test-org").setEnabled(true).setAuditEnabled(true)
-                .setAccount("user.test").setYpmId(1);
+                .setAccount("user.test").setYpmId(1).setApplicationId("101").setCertDnsDomain("athenz.cloud");
         Result result = validator.validate(d, "Domain");
         assertTrue(result.valid);
 
         assertEquals(d.getName(), "test.domain");
         assertEquals(d.getModified(), Timestamp.fromMillis(123456789123L));
-        assertEquals(d.getId(), UUID.fromString("test-id"));
+        assertEquals(d.getId(), UUID.fromMillis(100));
         assertEquals(d.getDescription(), "test desc");
         assertEquals(d.getOrg(), "test-org");
         assertTrue(d.getEnabled());
         assertTrue(d.getAuditEnabled());
         assertEquals(d.getAccount(), "user.test");
         assertEquals((int) d.getYpmId(), 1);
+        assertEquals(d.getApplicationId(), "101");
+        assertEquals(d.getCertDnsDomain(), "athenz.cloud");
 
-        Domain d2 = new Domain().setName("test.domain").setModified(Timestamp.fromMillis(123456789123L))
-                .setId(UUID.fromString("test-id")).setDescription("test desc").setOrg("test-org").setEnabled(true)
-                .setAuditEnabled(true).setAccount("user.test");
+        Domain d2 = new Domain();
+        d2.setName("test.domain").setModified(Timestamp.fromMillis(123456789123L)).setId(UUID.fromMillis(100))
+                .setDescription("test desc").setOrg("test-org").setEnabled(true).setAuditEnabled(true)
+                .setAccount("user.test").setYpmId(1).setApplicationId("101").setCertDnsDomain("athenz.cloud");
 
+        assertTrue(d2.equals(d));
         assertTrue(d.equals(d));
-        
+
+        d2.setId(UUID.fromMillis(101));
+        assertFalse(d2.equals(d));
+        d2.setId(null);
+        assertFalse(d2.equals(d));
+        d2.setModified(null);
+        assertFalse(d2.equals(d));
+        d2.setName(null);
+        assertFalse(d2.equals(d));
+        d2.setCertDnsDomain(null);
+        assertFalse(d2.equals(d));
+        d2.setApplicationId(null);
+        assertFalse(d2.equals(d));
         d2.setYpmId(null);
         assertFalse(d2.equals(d));
         d2.setAccount(null);
@@ -646,12 +750,6 @@ public class ZMSCoreTest {
         d2.setOrg(null);
         assertFalse(d2.equals(d));
         d2.setDescription(null);
-        assertFalse(d2.equals(d));
-        d2.setId(null);
-        assertFalse(d2.equals(d));
-        d2.setModified(null);
-        assertFalse(d2.equals(d));
-        d2.setName(null);
         assertFalse(d2.equals(d));
         assertFalse(d2.equals(null));
         assertFalse(d.equals(new String()));
@@ -672,7 +770,8 @@ public class ZMSCoreTest {
         assertEquals(dl.getNames(), domainnames);
         assertEquals(dl.getNext(), "next");
 
-        DomainList dl2 = new DomainList().setNames(domainnames);
+        DomainList dl2 = new DomainList().setNames(domainnames).setNext("next");
+        assertTrue(dl2.equals(dl));
         assertTrue(dl.equals(dl));
         
         dl2.setNext(null);
@@ -690,7 +789,8 @@ public class ZMSCoreTest {
 
         DomainMeta dm = new DomainMeta().init();
         dm.setDescription("domain desc").setOrg("org:test").setEnabled(true).setAuditEnabled(false)
-                .setAccount("user.test").setYpmId(10);
+                .setAccount("user.test").setYpmId(10).setApplicationId("101")
+                .setCertDnsDomain("athenz.cloud");
 
         Result result = validator.validate(dm, "DomainMeta");
         assertTrue(result.valid);
@@ -701,11 +801,20 @@ public class ZMSCoreTest {
         assertFalse(dm.getAuditEnabled());
         assertEquals(dm.getAccount(), "user.test");
         assertEquals((int) dm.getYpmId(), 10);
+        assertEquals(dm.getApplicationId(), "101");
+        assertEquals(dm.getCertDnsDomain(), "athenz.cloud");
 
-        DomainMeta dm2 = new DomainMeta().setDescription("domain desc").setOrg("org:test").setEnabled(true)
-                .setAuditEnabled(false).setAccount("user.test");
+        DomainMeta dm2 = new DomainMeta().init();
+        dm2.setDescription("domain desc").setOrg("org:test").setEnabled(true).setAuditEnabled(false)
+                .setAccount("user.test").setYpmId(10).setApplicationId("101")
+                .setCertDnsDomain("athenz.cloud");
+        assertTrue(dm2.equals(dm));
         assertTrue(dm.equals(dm));
-        
+
+        dm2.setCertDnsDomain(null);
+        assertFalse(dm2.equals(dm));
+        dm2.setApplicationId(null);
+        assertFalse(dm2.equals(dm));
         dm2.setYpmId(null);
         assertFalse(dm2.equals(dm));
         dm2.setAccount(null);
@@ -720,6 +829,14 @@ public class ZMSCoreTest {
         assertFalse(dm2.equals(dm));
         assertFalse(dm2.equals(null));
         assertFalse(dm.equals(new String()));
+
+        // init will not reset false state
+
+        dm2.setEnabled(false);
+        dm2.setAuditEnabled(false);
+        dm2.init();
+        assertFalse(dm2.getAuditEnabled());
+        assertFalse(dm2.getEnabled());
     }
 
     @Test
@@ -743,7 +860,7 @@ public class ZMSCoreTest {
         // TopLevelDomain test
         TopLevelDomain tld = new TopLevelDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("user.test").setYpmId(10).setName("testdomain").setAdminUsers(admins)
-                .setTemplates(dtl);
+                .setTemplates(dtl).setApplicationId("id1").setCertDnsDomain("athenz.cloud");
 
         result = validator.validate(tld, "TopLevelDomain");
         assertTrue(result.valid);
@@ -756,19 +873,26 @@ public class ZMSCoreTest {
         assertEquals((int) tld.getYpmId(), 10);
         assertEquals(tld.getName(), "testdomain");
         assertEquals(tld.getAdminUsers(), admins);
+        assertEquals(tld.getApplicationId(), "id1");
         assertNotNull(tld.getTemplates());
+        assertEquals(tld.getCertDnsDomain(), "athenz.cloud");
 
         TopLevelDomain tld2 = new TopLevelDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
-                .setAuditEnabled(false).setAccount("user.test").setYpmId(10).setName("testdomain")
-                .setAdminUsers(admins);
+                .setAuditEnabled(false).setAccount("user.test").setYpmId(10).setName("testdomain").setAdminUsers(admins)
+                .setTemplates(dtl).setApplicationId("id1").setCertDnsDomain("athenz.cloud");
 
+        assertTrue(tld2.equals(tld));
         assertTrue(tld.equals(tld));
-        
+
         tld2.setTemplates(null);
         assertFalse(tld2.equals(tld));
         tld2.setAdminUsers(null);
         assertFalse(tld2.equals(tld));
         tld2.setName(null);
+        assertFalse(tld2.equals(tld));
+        tld2.setCertDnsDomain(null);
+        assertFalse(tld2.equals(tld));
+        tld2.setApplicationId(null);
         assertFalse(tld2.equals(tld));
         tld2.setYpmId(null);
         assertFalse(tld2.equals(tld));
@@ -796,7 +920,7 @@ public class ZMSCoreTest {
         SubDomain sd = new SubDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("user.test").setYpmId(10).setName("testdomain").setAdminUsers(admins)
                 .setTemplates(new DomainTemplateList().setTemplateNames(Arrays.asList("vipng")))
-                .setParent("domain.parent");
+                .setParent("domain.parent").setApplicationId("101").setCertDnsDomain("athenz.cloud");
 
         Result result = validator.validate(sd, "SubDomain");
         assertTrue(result.valid, result.error);
@@ -811,12 +935,15 @@ public class ZMSCoreTest {
         assertEquals(sd.getAdminUsers(), admins);
         assertNotNull(sd.getTemplates());
         assertEquals(sd.getParent(), "domain.parent");
+        assertEquals(sd.getApplicationId(), "101");
+        assertEquals(sd.getCertDnsDomain(), "athenz.cloud");
 
         SubDomain sd2 = new SubDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("user.test").setYpmId(10).setName("testdomain").setAdminUsers(admins)
-                .setTemplates(new DomainTemplateList().setTemplateNames(Arrays.asList("test.template")))
-                .setParent("domain.parent2");
+                .setTemplates(new DomainTemplateList().setTemplateNames(Arrays.asList("vipng")))
+                .setParent("domain.parent").setApplicationId("101").setCertDnsDomain("athenz.cloud");
 
+        assertTrue(sd2.equals(sd));
         assertTrue(sd.equals(sd));
         
         sd2.setParent(null);
@@ -826,6 +953,10 @@ public class ZMSCoreTest {
         sd2.setAdminUsers(null);
         assertFalse(sd2.equals(sd));
         sd2.setName(null);
+        assertFalse(sd2.equals(sd));
+        sd2.setCertDnsDomain(null);
+        assertFalse(sd2.equals(sd));
+        sd2.setApplicationId(null);
         assertFalse(sd2.equals(sd));
         sd2.setYpmId(null);
         assertFalse(sd2.equals(sd));
@@ -849,7 +980,8 @@ public class ZMSCoreTest {
 
         UserDomain ud = new UserDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("user.test").setYpmId(10).setName("testuser")
-                .setTemplates(new DomainTemplateList().setTemplateNames(Arrays.asList("template")));
+                .setTemplates(new DomainTemplateList().setTemplateNames(Arrays.asList("template")))
+                .setApplicationId("101").setCertDnsDomain("athenz.cloud");
 
         Result result = validator.validate(ud, "UserDomain");
         assertTrue(result.valid);
@@ -861,16 +993,25 @@ public class ZMSCoreTest {
         assertEquals(ud.getAccount(), "user.test");
         assertEquals((int) ud.getYpmId(), 10);
         assertEquals(ud.getName(), "testuser");
+        assertEquals(ud.getApplicationId(), "101");
         assertNotNull(ud.getTemplates());
+        assertEquals(ud.getCertDnsDomain(), "athenz.cloud");
 
         UserDomain ud2 = new UserDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
-                .setAuditEnabled(false).setAccount("user.test").setYpmId(10).setName("testuser");
+                .setAuditEnabled(false).setAccount("user.test").setYpmId(10).setName("testuser")
+                .setTemplates(new DomainTemplateList().setTemplateNames(Arrays.asList("template")))
+                .setApplicationId("101").setCertDnsDomain("athenz.cloud");
 
+        assertTrue(ud2.equals(ud));
         assertTrue(ud.equals(ud));
-        
+
         ud2.setTemplates(null);
         assertFalse(ud2.equals(ud));
         ud2.setName(null);
+        assertFalse(ud2.equals(ud));
+        ud2.setCertDnsDomain(null);
+        assertFalse(ud2.equals(ud));
+        ud2.setApplicationId(null);
         assertFalse(ud2.equals(ud));
         ud2.setYpmId(null);
         assertFalse(ud2.equals(ud));
@@ -889,26 +1030,142 @@ public class ZMSCoreTest {
     }
 
     @Test
+    public void testRoleMember() {
+
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+
+        RoleMember rm = new RoleMember().setMemberName("user.test1").setExpiration(Timestamp.fromMillis(123456789123L));
+        assertTrue(rm.equals(rm));
+
+        Result result = validator.validate(rm, "RoleMember");
+        assertTrue(result.valid);
+
+        assertEquals(rm.getMemberName(), "user.test1");
+        assertEquals(rm.getExpiration().millis(), 123456789123L);
+
+        RoleMember rm2 = new RoleMember();
+        assertFalse(rm2.equals(rm));
+
+        rm2.setMemberName("user.test2");
+        assertFalse(rm2.equals(rm));
+
+        rm2.setMemberName("user.test1");
+        assertFalse(rm2.equals(rm));
+
+        rm2.setExpiration(Timestamp.fromMillis(123456789124L));
+        assertFalse(rm2.equals(rm));
+        rm2.setExpiration(Timestamp.fromMillis(123456789123L));
+        assertTrue(rm2.equals(rm));
+
+        assertFalse(rm2.equals(null));
+    }
+
+    @Test
+    public void testStatus() {
+
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+
+        Status st = new Status().setCode(101).setMessage("ok");
+        assertTrue(st.equals(st));
+
+        Result result = validator.validate(st, "Status");
+        assertTrue(result.valid);
+
+        assertEquals(st.getCode(), 101);
+        assertEquals(st.getMessage(), "ok");
+
+        Status st2 = new Status().setCode(1020);
+        assertFalse(st2.equals(st));
+
+        st2.setCode(101);
+        assertFalse(st2.equals(st));
+
+        st2.setMessage("failed");
+        assertFalse(st2.equals(st));
+        st2.setMessage("ok");
+        assertTrue(st2.equals(st));
+
+        assertFalse(st2.equals(null));
+    }
+
+    @Test
+    public void testTemplateParam() {
+
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+
+        TemplateParam tp = new TemplateParam().setName("name").setValue("service");
+        assertTrue(tp.equals(tp));
+
+        Result result = validator.validate(tp, "TemplateParam");
+        assertTrue(result.valid);
+
+        assertEquals(tp.getName(), "name");
+        assertEquals(tp.getValue(), "service");
+
+        TemplateParam tp2 = new TemplateParam();
+        assertFalse(tp2.equals(tp));
+
+        tp2.setName("name2");
+        assertFalse(tp2.equals(tp));
+
+        tp2.setName("name");
+        assertFalse(tp2.equals(tp));
+
+        tp2.setValue("value2");
+        assertFalse(tp2.equals(tp));
+        tp2.setValue("service");
+        assertTrue(tp2.equals(tp));
+
+        assertFalse(tp2.equals(null));
+    }
+
+    @Test
     public void testDomainModifiedListMethod() {
         Schema schema = ZMSSchema.instance();
         Validator validator = new Validator(schema);
 
         // DomainModified test
-        DomainModified dm = new DomainModified().setName("test.domain").setModified(123456789123L);
+        DomainModified dm = new DomainModified().setName("test.domain")
+                .setModified(123456789123L)
+                .setAccount("1234")
+                .setYpmId(1001);
+        assertTrue(dm.equals(dm));
 
         Result result = validator.validate(dm, "DomainModified");
         assertTrue(result.valid);
 
         assertEquals(dm.getName(), "test.domain");
         assertEquals(dm.getModified(), 123456789123L);
+        assertEquals(dm.getAccount(), "1234");
+        assertEquals(dm.getYpmId().intValue(), 1001);
 
-        DomainModified dm2 = new DomainModified().setName("test.domain");
-        assertTrue(dm.equals(dm));
-        
+        DomainModified dm2 = new DomainModified().setName("test.domain")
+                .setModified(123456789123L)
+                .setAccount("1234")
+                .setYpmId(1001);
+        assertTrue(dm2.equals(dm));
+
+        dm2.setYpmId(1002);
+        assertFalse(dm2.equals(dm));
+        dm2.setYpmId(null);
+        assertFalse(dm2.equals(dm));
+
+        dm2.setAccount("1235");
+        assertFalse(dm2.equals(dm));
+        dm2.setAccount(null);
+        assertFalse(dm2.equals(dm));
+
         dm2.setModified(123456789124L);
         assertFalse(dm2.equals(dm));
+        dm2.setModified(0);
+        assertFalse(dm2.equals(dm));
+
         dm2.setName(null);
         assertFalse(dm2.equals(dm));
+
         assertFalse(dm2.equals(null));
 
         // DomainModifiedList test
@@ -920,28 +1177,15 @@ public class ZMSCoreTest {
 
         assertEquals(dmlist.getNameModList(), dml);
 
+        DomainModifiedList dmlist2 = new DomainModifiedList().setNameModList(dml);
+        assertTrue(dmlist2.equals(dmlist));
         assertTrue(dmlist.equals(dmlist));
-        assertFalse(dmlist.equals(new DomainModifiedList()));
-    }
 
-    @Test
-    public void testDomainTemplateMethod() {
-        Schema schema = ZMSSchema.instance();
-        Validator validator = new Validator(schema);
+        dmlist2.setNameModList(null);
+        assertFalse(dmlist2.equals(dmlist));
 
-        List<String> dl = Arrays.asList("user_provisioning");
-
-        DomainTemplate dt = new DomainTemplate().setTemplateNames(dl);
-        Result result = validator.validate(dt, "DomainTemplate");
-        assertTrue(result.valid);
-
-        assertEquals(dt.getTemplateNames(), dl);
-
-        DomainTemplate dt2 = new DomainTemplate();
-        assertTrue(dt.equals(dt));
-        assertFalse(dt.equals(dt2));
-        assertFalse(dt.equals(null));
-        assertFalse(dt.equals(new String()));
+        assertFalse(dmlist.equals(null));
+        assertFalse(dmlist.equals(new String()));
     }
 
     @Test
@@ -950,7 +1194,14 @@ public class ZMSCoreTest {
         Validator validator = new Validator(schema);
 
         Membership ms = new Membership().init();
-        ms.setMemberName("test.member").setIsMember(false).setRoleName("test.role");
+        assertTrue(ms.getIsMember());
+
+        ms.setMemberName("test.member").setIsMember(false).setRoleName("test.role")
+                .setExpiration(Timestamp.fromMillis(100));
+
+        // init second time does not change state
+        ms.init();
+        assertFalse(ms.getIsMember());
 
         Result result = validator.validate(ms, "Membership");
         assertTrue(result.valid);
@@ -958,10 +1209,16 @@ public class ZMSCoreTest {
         assertEquals(ms.getMemberName(), "test.member");
         assertFalse(ms.getIsMember());
         assertEquals(ms.getRoleName(), "test.role");
+        assertEquals(ms.getExpiration(), Timestamp.fromMillis(100));
 
-        Membership ms2 = new Membership().setMemberName("test.member").setIsMember(false);
+        Membership ms2 = new Membership().setMemberName("test.member").setIsMember(false)
+                .setExpiration(Timestamp.fromMillis(100)).setRoleName("test.role");
+
+        assertTrue(ms2.equals(ms));
         assertTrue(ms.equals(ms));
-        
+
+        ms2.setExpiration(null);
+        assertFalse(ms2.equals(ms));
         ms2.setRoleName(null);
         assertFalse(ms2.equals(ms));
         ms2.setIsMember(null);
@@ -987,11 +1244,13 @@ public class ZMSCoreTest {
 
         assertEquals(da.getAdmins(), dal);
 
-        DefaultAdmins da2 = new DefaultAdmins();
+        DefaultAdmins da2 = new DefaultAdmins().setAdmins(dal);
+        assertTrue(da2.equals(da));
         assertTrue(da.equals(da));
+
+        da2.setAdmins(null);
         assertFalse(da.equals(da2));
         assertFalse(da.equals(null));
-
     }
 
     @Test
@@ -1009,7 +1268,8 @@ public class ZMSCoreTest {
         assertEquals(pl.getNames(), plist);
         assertEquals(pl.getNext(), "next");
 
-        PolicyList pl2 = new PolicyList().setNames(plist);
+        PolicyList pl2 = new PolicyList().setNames(plist).setNext("next");
+        assertTrue(pl2.equals(pl));
         assertTrue(pl.equals(pl));
         
         pl2.setNext(null);
@@ -1017,7 +1277,6 @@ public class ZMSCoreTest {
         pl2.setNames(null);
         assertFalse(pl2.equals(pl));
         assertFalse(pl2.equals(null));
-
     }
 
     @Test
@@ -1035,16 +1294,17 @@ public class ZMSCoreTest {
         assertEquals(sil.getNames(), slist);
         assertEquals(sil.getNext(), "next");
 
-        ServiceIdentityList sil2 = new ServiceIdentityList().setNames(slist);
+        ServiceIdentityList sil2 = new ServiceIdentityList().setNames(slist).setNext("next");
+        assertTrue(sil2.equals(sil));
         assertTrue(sil.equals(sil));
         
         sil2.setNext(null);
         assertFalse(sil2.equals(sil));
+
         sil2.setNames(null);
         assertFalse(sil2.equals(sil));
         assertFalse(sil2.equals(null));
         assertFalse(sil.equals(new String()));
-
     }
 
     @Test
@@ -1061,12 +1321,18 @@ public class ZMSCoreTest {
 
         assertEquals(tl.getTemplateNames(), tnames);
 
-        TemplateList tl2 = new TemplateList();
+        TemplateList tl2 = new TemplateList().setTemplateNames(tnames);
+        assertTrue(tl2.equals(tl));
         assertTrue(tl.equals(tl));
-        assertFalse(tl.equals(tl2));
+
+        tl2.setTemplateNames(Arrays.asList("testtemplate2"));
+        assertFalse(tl2.equals(tl));
+
+        tl2.setTemplateNames(null);
+        assertFalse(tl2.equals(tl));
+
         assertFalse(tl.equals(null));
         assertFalse(tl.equals(new String()));
-
     }
 
     @Test
@@ -1083,11 +1349,33 @@ public class ZMSCoreTest {
 
         assertEquals(tl.getTemplateNames(), tnames);
 
-        DomainTemplate tl2 = new DomainTemplate();
+        DomainTemplate tl2 = new DomainTemplate().setTemplateNames(tnames);
+        assertTrue(tl2.equals(tl));
         assertTrue(tl.equals(tl));
-        assertFalse(tl.equals(tl2));
+
+        tl2.setTemplateNames(null);
+        assertFalse(tl2.equals(tl));
+
+        assertFalse(tl.equals(null));
         assertFalse(tl.equals(new String()));
 
+
+        // DomainTemplateList test
+        List<String> templateNames = Arrays.asList("test");
+        DomainTemplateList dtl = new DomainTemplateList().setTemplateNames(templateNames);
+
+        result = validator.validate(dtl, "DomainTemplateList");
+        assertTrue(result.valid);
+
+        DomainTemplateList dtl2 = new DomainTemplateList().setTemplateNames(templateNames);
+        assertTrue(dtl2.equals(dtl));
+        assertTrue(dtl.equals(dtl));
+
+        dtl2.setTemplateNames(null);
+        assertFalse(dtl2.equals(dtl));
+
+        assertFalse(dtl.equals(null));
+        assertFalse(dtl.equals(new String()));
     }
 
     @Test
@@ -1097,18 +1385,22 @@ public class ZMSCoreTest {
 
         List<String> tnames = Arrays.asList("testtemplate");
 
-        ServerTemplateList tl = new ServerTemplateList().setTemplateNames(tnames);
+        ServerTemplateList tl1 = new ServerTemplateList().setTemplateNames(tnames);
 
-        Result result = validator.validate(tl, "ServerTemplateList");
+        Result result = validator.validate(tl1, "ServerTemplateList");
         assertTrue(result.valid);
 
-        assertEquals(tl.getTemplateNames(), tnames);
+        assertEquals(tl1.getTemplateNames(), tnames);
 
-        ServerTemplateList tl2 = new ServerTemplateList();
-        assertTrue(tl.equals(tl));
-        assertFalse(tl.equals(tl2));
-        assertFalse(tl.equals(new String()));
+        ServerTemplateList tl2 = new ServerTemplateList().setTemplateNames(tnames);
+        assertTrue(tl2.equals(tl1));
+        assertTrue(tl1.equals(tl1));
 
+        tl2.setTemplateNames(null);
+        assertFalse(tl2.equals(tl1));
+
+        assertFalse(tl1.equals(null));
+        assertFalse(tl1.equals(new String()));
     }
 
     @Test
@@ -1116,66 +1408,26 @@ public class ZMSCoreTest {
         Schema schema = ZMSSchema.instance();
         Validator validator = new Validator(schema);
 
-        UserToken ut = new UserToken().setToken("testtoken");
+        UserToken ut = new UserToken().setToken("testtoken").setHeader("hdr");
 
         Result result = validator.validate(ut, "UserToken");
         assertTrue(result.valid);
 
         assertEquals(ut.getToken(), "testtoken");
+        assertEquals(ut.getHeader(), "hdr");
 
-        UserToken ut2 = new UserToken().setToken("test");
+        UserToken ut2 = new UserToken().setToken("testtoken").setHeader("hdr");
+        assertTrue(ut2.equals(ut));
         assertTrue(ut.equals(ut));
-        assertFalse(ut.equals(ut2));
+
+        ut2.setHeader(null);
+        assertFalse(ut2.equals(ut));
+
+        ut2.setToken(null);
+        assertFalse(ut2.equals(ut));
+
+        assertFalse(ut.equals(null));
         assertFalse(ut.equals(new String()));
-    }
-
-    @Test
-    public void testTenantRolesMethod() {
-        Schema schema = ZMSSchema.instance();
-        Validator validator = new Validator(schema);
-
-        // TenantRoleAction test
-        TenantRoleAction tra = new TenantRoleAction().setRole("testrole").setAction("add");
-        Result result = validator.validate(tra, "TenantRoleAction");
-        assertTrue(result.valid);
-
-        assertEquals(tra.getRole(), "testrole");
-        assertEquals(tra.getAction(), "add");
-
-        TenantRoleAction tra2 = new TenantRoleAction().setRole("testrole");
-        assertTrue(tra.equals(tra));
-        
-        tra2.setAction(null);
-        assertFalse(tra2.equals(tra));
-        tra2.setRole(null);
-        assertFalse(tra2.equals(tra));
-        assertFalse(tra.equals(new String()));
-
-        // TenantRoles test
-        List<TenantRoleAction> tral = Arrays.asList(tra);
-        TenantRoles tr = new TenantRoles().setDomain("test.provider.domain").setService("testservice")
-                .setTenant("test.tenant").setRoles(tral);
-
-        assertEquals(tr.getDomain(), "test.provider.domain");
-        assertEquals(tr.getService(), "testservice");
-        assertEquals(tr.getTenant(), "test.tenant");
-        assertEquals(tr.getRoles(), tral);
-
-        TenantRoles tr2 = new TenantRoles().setDomain("test.provider.domain").setService("testservice")
-                .setTenant("test.tenant");
-        assertTrue(tr.equals(tr));
-        
-        tr2.setRoles(null);
-        assertFalse(tr2.equals(tr));
-        tr2.setTenant(null);
-        assertFalse(tr2.equals(tr));
-        tr2.setService(null);
-        assertFalse(tr2.equals(tr));
-        tr2.setDomain(null);
-        assertFalse(tr2.equals(tr));
-        assertFalse(tr2.equals(null));
-        assertFalse(tr.equals(new String()));
-
     }
 
     @Test
@@ -1192,11 +1444,15 @@ public class ZMSCoreTest {
 
         assertEquals(el.getNames(), elist);
 
-        EntityList el2 = new EntityList();
+        EntityList el2 = new EntityList().setNames(elist);
+        assertTrue(el2.equals(el));
         assertTrue(el.equals(el));
-        assertFalse(el.equals(el2));
-        assertFalse(el.equals(new String()));
 
+        el2.setNames(null);
+        assertFalse(el2.equals(el));
+
+        assertFalse(el.equals(null));
+        assertFalse(el.equals(new String()));
     }
 
     @Test
@@ -1209,18 +1465,22 @@ public class ZMSCoreTest {
 
         List<Policy> plist = Arrays.asList(new Policy().setName("test").setAssertions(Arrays.asList(a)));
 
-        Policies ps = new Policies().setList(plist);
+        Policies ps1 = new Policies().setList(plist);
 
-        Result result = validator.validate(ps, "Policies");
+        Result result = validator.validate(ps1, "Policies");
         assertTrue(result.valid);
 
-        assertEquals(ps.getList(), plist);
+        assertEquals(ps1.getList(), plist);
 
-        Policies ps2 = new Policies();
-        assertTrue(ps.equals(ps));
-        assertFalse(ps.equals(ps2));
-        assertFalse(ps.equals(new String()));
+        Policies ps2 = new Policies().setList(plist);
+        assertTrue(ps2.equals(ps1));
+        assertTrue(ps1.equals(ps1));
 
+        ps2.setList(null);
+        assertFalse(ps2.equals(ps1));
+
+        assertFalse(ps1.equals(null));
+        assertFalse(ps1.equals(new String()));
     }
 
     @Test
@@ -1239,9 +1499,11 @@ public class ZMSCoreTest {
         assertEquals(t.getService(), "test-service");
         assertEquals(t.getResourceGroups(), rg);
 
-        Tenancy t2 = new Tenancy().setDomain("test.domain").setService("test-service");
+        Tenancy t2 = new Tenancy().setDomain("test.domain").setService("test-service").setResourceGroups(rg);
+
+        assertTrue(t2.equals(t));
         assertTrue(t.equals(t));
-        
+
         t2.setResourceGroups(null);
         assertFalse(t2.equals(t));
         t2.setService(null);
@@ -1250,7 +1512,6 @@ public class ZMSCoreTest {
         assertFalse(t2.equals(t));
         assertFalse(t2.equals(null));
         assertFalse(t.equals(new String()));
-
     }
 
     @Test
@@ -1271,7 +1532,8 @@ public class ZMSCoreTest {
         assertEquals(ra.getPrincipal(), "test.principal");
         assertEquals(ra.getAssertions(), al);
 
-        ResourceAccess ra2 = new ResourceAccess().setPrincipal("test.principal");
+        ResourceAccess ra2 = new ResourceAccess().setPrincipal("test.principal").setAssertions(al);
+        assertTrue(ra2.equals(ra));
         assertTrue(ra.equals(ra));
         
         ra2.setAssertions(null);
@@ -1282,15 +1544,23 @@ public class ZMSCoreTest {
 
         // ResourceAccessList test
         List<ResourceAccess> ralist = Arrays.asList(ra);
-        ResourceAccessList ral = new ResourceAccessList().setResources(ralist);
-        result = validator.validate(ral, "ResourceAccessList");
+
+        ResourceAccessList ral1 = new ResourceAccessList().setResources(ralist);
+        assertTrue(ral1.equals(ral1));
+
+        result = validator.validate(ral1, "ResourceAccessList");
         assertTrue(result.valid);
 
-        assertEquals(ral.getResources(), ralist);
+        assertEquals(ral1.getResources(), ralist);
 
-        assertTrue(ral.equals(ral));
-        assertFalse(ral.equals(new ResourceAccessList()));
-        assertFalse(ral.equals(null));
+        ResourceAccessList ral2 = new ResourceAccessList().setResources(ralist);
+        assertTrue(ral2.equals(ral1));
+
+        ral2.setResources(null);
+        assertFalse(ral2.equals(ral1));
+
+        assertFalse(ral1.equals(null));
+        assertFalse(ral1.equals(new String()));
     }
 
     @Test
@@ -1308,9 +1578,12 @@ public class ZMSCoreTest {
         assertEquals(sp.getService(), "test-service");
         assertEquals(sp.getToken(), "test-token");
 
-        ServicePrincipal sp2 = new ServicePrincipal().setDomain("test.domain").setService("test-service");
+        ServicePrincipal sp2 = new ServicePrincipal().setDomain("test.domain").setService("test-service")
+                .setToken("test-token");
+
+        assertTrue(sp2.equals(sp));
         assertTrue(sp.equals(sp));
-        
+
         sp2.setToken(null);
         assertFalse(sp2.equals(sp));
         sp2.setService(null);
@@ -1319,7 +1592,6 @@ public class ZMSCoreTest {
         assertFalse(sp2.equals(sp));
         assertFalse(sp2.equals(null));
         assertFalse(sp.equals(new String()));
-
     }
 
     @Test
@@ -1334,21 +1606,28 @@ public class ZMSCoreTest {
         assertions.add(a);
         List<Policy> pl = Arrays.asList(new Policy().setName("sys.auth:policy.test-policy")
                 .setAssertions(assertions).setModified(Timestamp.fromMillis(123456789123L)));
-        Template t = new Template().setRoles(rl).setPolicies(pl);
+
+        List<ServiceIdentity> sl = new ArrayList<>();
+        Template t = new Template().setRoles(rl).setPolicies(pl).setServices(sl);
 
         Result result = validator.validate(t, "Template");
         assertTrue(result.valid, result.error);
 
         assertEquals(t.getPolicies(), pl);
         assertEquals(t.getRoles(), rl);
+        assertEquals(t.getServices(), sl);
 
-        Template t2 = new Template().setRoles(rl);
+        Template t2 = new Template().setRoles(rl).setPolicies(pl).setServices(sl);
+        assertTrue(t2.equals(t));
         assertTrue(t.equals(t));
-        
-        t2.setRoles(null);
+
+        t2.setServices(null);
         assertFalse(t2.equals(t));
         t2.setPolicies(null);
         assertFalse(t2.equals(t));
+        t2.setRoles(null);
+        assertFalse(t2.equals(t));
+
         assertFalse(t2.equals(null));
         assertFalse(t.equals(new String()));
         
@@ -1383,9 +1662,11 @@ public class ZMSCoreTest {
         assertEquals(prgr.getResourceGroup(), "test-group");
 
         ProviderResourceGroupRoles prgr2 = new ProviderResourceGroupRoles().setDomain("test.domain")
-                .setService("test-service").setTenant("test.tenant").setRoles(tral);
+                .setService("test-service").setTenant("test.tenant").setRoles(tral).setResourceGroup("test-group");
+
+        assertTrue(prgr2.equals(prgr));
         assertTrue(prgr.equals(prgr));
-        
+
         prgr2.setResourceGroup(null);
         assertFalse(prgr2.equals(prgr));
         prgr2.setRoles(null);
@@ -1412,10 +1693,11 @@ public class ZMSCoreTest {
         assertEquals(trgr.getResourceGroup(), "test.tenant");
 
         TenantResourceGroupRoles trgr2 = new TenantResourceGroupRoles().setDomain("test.domain")
-                .setService("test-service").setTenant("test.domain").setRoles(tral);
+                .setService("test-service").setTenant("test.domain").setRoles(tral).setResourceGroup("test.tenant");
 
         assertTrue(trgr.equals(trgr));
-        
+        assertTrue(trgr2.equals(trgr));
+
         trgr2.setResourceGroup(null);
         assertFalse(trgr2.equals(trgr));
         trgr2.setRoles(null);
@@ -1470,6 +1752,8 @@ public class ZMSCoreTest {
         Validator validator = new Validator(schema);
 
         User user1 = new User().setName("joe");
+        assertTrue(user1.equals(user1));
+
         Result result = validator.validate(user1, "User");
         assertTrue(result.valid);
         assertEquals(user1.getName(), "joe");
@@ -1481,10 +1765,10 @@ public class ZMSCoreTest {
         User user3 = new User().setName("joe");
         User user4 = new User();
 
-        assertTrue(user1.equals(user3));
+        assertTrue(user3.equals(user1));
 
-        assertFalse(user1.equals(user2));
-        assertFalse(user1.equals(user4));
+        assertFalse(user2.equals(user1));
+        assertFalse(user4.equals(user1));
         assertFalse(user1.equals(null));
     }
     
@@ -1496,7 +1780,10 @@ public class ZMSCoreTest {
         ArrayList<String> users1 = new ArrayList<>();
         users1.add("joe");
         users1.add("jane");
+
         UserList userList1 = new UserList().setNames(users1);
+        assertTrue(userList1.equals(userList1));
+
         Result result = validator.validate(userList1, "UserList");
         assertTrue(result.valid);
         assertEquals(userList1.getNames().size(), 2);
@@ -1508,9 +1795,11 @@ public class ZMSCoreTest {
         assertFalse(result.valid);
 
         UserList userList3 = new UserList().setNames(users1);
-        
-        assertTrue(userList1.equals(userList3));
-        assertFalse(userList1.equals(userList2));
+        assertTrue(userList3.equals(userList1));
+        userList3.setNames(null);
+        assertFalse(userList3.equals(userList1));
+
+        assertFalse(userList2.equals(userList1));
         assertFalse(userList1.equals(null));
     }
     
@@ -1521,7 +1810,8 @@ public class ZMSCoreTest {
 
         Quota quota = new Quota().setName("athenz").setAssertion(10).setEntity(11)
                 .setPolicy(12).setPublicKey(13).setRole(14).setRoleMember(15)
-                .setService(16).setServiceHost(17).setSubdomain(18);
+                .setService(16).setServiceHost(17).setSubdomain(18)
+                .setModified(Timestamp.fromMillis(100));
 
         Result result = validator.validate(quota, "Quota");
         assertTrue(result.valid);
@@ -1536,26 +1826,251 @@ public class ZMSCoreTest {
         assertEquals(quota.getService(), 16);
         assertEquals(quota.getServiceHost(), 17);
         assertEquals(quota.getSubdomain(), 18);
-        
+        assertEquals(Timestamp.fromMillis(100), quota.getModified());
+
         Quota quota2 = new Quota().setName("athenz").setAssertion(10).setEntity(11)
                 .setPolicy(12).setPublicKey(13).setRole(14).setRoleMember(15)
-                .setService(16).setServiceHost(17).setSubdomain(18);
+                .setService(16).setServiceHost(17).setSubdomain(18)
+                .setModified(Timestamp.fromMillis(100));
 
-        assertTrue(quota.equals(quota2));
-        
-        quota2.setPolicy(101);
-        assertFalse(quota.equals(quota2));
-        quota2.setPolicy(12);
-        assertTrue(quota.equals(quota2));
+        assertTrue(quota2.equals(quota));
+        assertTrue(quota.equals(quota));
 
-        quota2.setRole(102);
-        assertFalse(quota.equals(quota2));
-        quota2.setRole(14);
-        assertTrue(quota.equals(quota2));
+        quota2.setModified(null);
+        assertFalse(quota2.equals(quota));
+        quota2.setModified(Timestamp.fromMillis(100));
+        assertTrue(quota2.equals(quota));
+
+        quota2.setPublicKey(101);
+        assertFalse(quota2.equals(quota));
+        quota2.setPublicKey(13);
+        assertTrue(quota2.equals(quota));
+
+        quota2.setServiceHost(101);
+        assertFalse(quota2.equals(quota));
+        quota2.setServiceHost(17);
+        assertTrue(quota2.equals(quota));
 
         quota2.setService(103);
-        assertFalse(quota.equals(quota2));
+        assertFalse(quota2.equals(quota));
         quota2.setService(16);
-        assertTrue(quota.equals(quota2));
+        assertTrue(quota2.equals(quota));
+
+        quota2.setEntity(103);
+        assertFalse(quota2.equals(quota));
+        quota2.setEntity(11);
+        assertTrue(quota2.equals(quota));
+
+        quota2.setAssertion(103);
+        assertFalse(quota2.equals(quota));
+        quota2.setAssertion(10);
+        assertTrue(quota2.equals(quota));
+
+        quota2.setPolicy(101);
+        assertFalse(quota2.equals(quota));
+        quota2.setPolicy(12);
+        assertTrue(quota2.equals(quota));
+
+        quota2.setRoleMember(103);
+        assertFalse(quota2.equals(quota));
+        quota2.setRoleMember(15);
+        assertTrue(quota2.equals(quota));
+
+        quota2.setRole(102);
+        assertFalse(quota2.equals(quota));
+        quota2.setRole(14);
+        assertTrue(quota2.equals(quota));
+
+        quota2.setSubdomain(102);
+        assertFalse(quota2.equals(quota));
+        quota2.setSubdomain(18);
+        assertTrue(quota2.equals(quota));
+
+        quota2.setName(null);
+        assertFalse(quota2.equals(quota));
+        quota2.setName("name2");
+        assertFalse(quota2.equals(quota));
+
+        assertFalse(quota2.equals(null));
+        assertFalse(quota2.equals(new String()));
+    }
+
+    @Test
+    public void testMemberRole() {
+
+        MemberRole mbr1 = new MemberRole();
+        mbr1.setRoleName("role1");
+        mbr1.setExpiration(Timestamp.fromMillis(100));
+
+        assertEquals("role1", mbr1.getRoleName());
+        assertEquals(Timestamp.fromMillis(100), mbr1.getExpiration());
+
+        assertTrue(mbr1.equals(mbr1));
+        assertFalse(mbr1.equals(null));
+
+        MemberRole mbr2 = new MemberRole();
+        assertFalse(mbr2.equals(mbr1));
+
+        mbr2.setRoleName("role2");
+        assertFalse(mbr2.equals(mbr1));
+
+        mbr2.setRoleName("role1");
+        assertFalse(mbr2.equals(mbr1));
+
+        mbr2.setExpiration(Timestamp.fromMillis(101));
+        assertFalse(mbr2.equals(mbr1));
+
+        mbr2.setExpiration(Timestamp.fromMillis(100));
+        assertTrue(mbr2.equals(mbr1));
+    }
+
+    @Test
+    public void testDomainRoleMember() {
+
+        List<MemberRole> list1 = new ArrayList<>();
+        list1.add(new MemberRole().setRoleName("role1"));
+
+        List<MemberRole> list2 = new ArrayList<>();
+
+        DomainRoleMember mbr1 = new DomainRoleMember();
+        mbr1.setMemberName("mbr1");
+        mbr1.setMemberRoles(list1);
+
+        assertEquals("mbr1", mbr1.getMemberName());
+        assertEquals(list1, mbr1.getMemberRoles());
+
+        assertTrue(mbr1.equals(mbr1));
+        assertFalse(mbr1.equals(null));
+
+        DomainRoleMember mbr2 = new DomainRoleMember();
+        assertFalse(mbr2.equals(mbr1));
+
+        mbr2.setMemberName("mbr2");
+        assertFalse(mbr2.equals(mbr1));
+
+        mbr2.setMemberName("mbr1");
+        assertFalse(mbr2.equals(mbr1));
+
+        mbr2.setMemberRoles(list2);
+        assertFalse(mbr2.equals(mbr1));
+
+        list2.add(new MemberRole().setRoleName("role1"));
+        assertTrue(mbr2.equals(mbr1));
+    }
+
+    @Test
+    public void testDomainRoleMembers() {
+
+        List<DomainRoleMember> list1 = new ArrayList<>();
+        list1.add(new DomainRoleMember().setMemberName("mbr1"));
+
+        List<DomainRoleMember> list2 = new ArrayList<>();
+
+        DomainRoleMembers mbr1 = new DomainRoleMembers();
+        mbr1.setDomainName("dom1");
+        mbr1.setMembers(list1);
+
+        assertEquals("dom1", mbr1.getDomainName());
+        assertEquals(list1, mbr1.getMembers());
+
+        assertTrue(mbr1.equals(mbr1));
+        assertFalse(mbr1.equals(null));
+
+        DomainRoleMembers mbr2 = new DomainRoleMembers();
+        assertFalse(mbr2.equals(mbr1));
+
+        mbr2.setDomainName("dom2");
+        assertFalse(mbr2.equals(mbr1));
+
+        mbr2.setDomainName("dom1");
+        assertFalse(mbr2.equals(mbr1));
+
+        mbr2.setMembers(list2);
+        assertFalse(mbr2.equals(mbr1));
+
+        list2.add(new DomainRoleMember().setMemberName("mbr1"));
+        assertTrue(mbr2.equals(mbr1));
+    }
+
+    @Test
+    public void testDomainTemplateMethod() {
+
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+
+        List<String> dl = Arrays.asList("user_provisioning");
+
+        DomainTemplate dt = new DomainTemplate().setTemplateNames(dl);
+        Result result = validator.validate(dt, "DomainTemplate");
+        assertTrue(result.valid);
+
+        List<TemplateParam> params1 = new ArrayList<>();
+        params1.add(new TemplateParam().setName("name1").setValue("val1"));
+
+        List<TemplateParam> params2 = new ArrayList<>();
+
+        List<String> names1 = new ArrayList<>();
+        names1.add("tmpl1");
+
+        List<String> names2 = new ArrayList<>();
+
+        DomainTemplate dt1 = new DomainTemplate();
+        dt1.setParams(params1);
+        dt1.setTemplateNames(names1);
+
+        assertEquals(params1, dt1.getParams());
+        assertEquals(names1, dt1.getTemplateNames());
+
+        assertTrue(dt1.equals(dt1));
+        assertFalse(dt1.equals(null));
+        assertFalse(dt1.equals(new String()));
+
+        DomainTemplate dt2 = new DomainTemplate();
+        assertFalse(dt2.equals(dt1));
+
+        dt2.setTemplateNames(names2);
+        assertFalse(dt2.equals(dt1));
+
+        names2.add("tmpl1");
+        assertFalse(dt2.equals(dt1));
+
+        dt2.setParams(params2);
+        assertFalse(dt2.equals(dt1));
+
+        params2.add(new TemplateParam().setName("name1").setValue("val1"));
+        assertTrue(dt2.equals(dt1));
+    }
+
+    @Test
+    public void testTenantRoleAction() {
+
+        TenantRoleAction tra1 = new TenantRoleAction();
+        tra1.setAction("action1");
+        tra1.setRole("role1");
+
+        assertEquals(tra1, tra1);
+        assertEquals("role1", tra1.getRole());
+        assertEquals("action1", tra1.getAction());
+
+        assertFalse(tra1.equals(null));
+        assertFalse(tra1.equals(new String()));
+
+        TenantRoleAction tra2 = new TenantRoleAction();
+        tra2.setAction("action1");
+        tra2.setRole("role1");
+
+        assertTrue(tra2.equals(tra1));
+
+        tra2.setAction("action2");
+        assertFalse(tra2.equals(tra1));
+
+        tra2.setAction(null);
+        assertFalse(tra2.equals(tra1));
+
+        tra2.setRole("role2");
+        assertFalse(tra2.equals(tra1));
+
+        tra2.setRole(null);
+        assertFalse(tra2.equals(tra1));
     }
 }

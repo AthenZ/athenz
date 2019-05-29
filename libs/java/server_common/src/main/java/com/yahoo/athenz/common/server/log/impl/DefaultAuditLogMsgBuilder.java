@@ -15,6 +15,11 @@
  */
 package com.yahoo.athenz.common.server.log.impl;
 
+import java.time.Instant;
+
+import com.fasterxml.uuid.EthernetAddress;
+import com.fasterxml.uuid.Generators;
+import com.fasterxml.uuid.impl.TimeBasedGenerator;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 
 /*
@@ -22,7 +27,7 @@ import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
  * Builds the Audit logging message to be passed to the AuditLog interface.
  * The log message built by this class can be parsed into a Struct (see parse()).
  * Example string built:
- *   VERS=(athenz-def-1.0);WHEN=(2015-04-02T18:30:58.441Z);WHO=(v=U1;d=user;n=jdoe);
+ *   VERS=(athenz-def-1.0);UUID=(391c0ed4-ce6c-11e8-bb3c-dafc29a0b98f);WHEN=(2015-04-02T18:30:58.441Z);WHO=(v=U1;d=user;n=jdoe);
  *   WHY=(audittest);WHERE=(server-ip=localhost,server-https-port=0,server-http-port=10080);
  *   CLIENT-IP=(MOCKCLIENT_HOST_NAME);WHAT-method=(PUT);WHAT-api=(puttenancy);
  *   WHAT-domain=(AddTenancyDom1);WHAT-entity=(tenancy.coretech.storage.reader);
@@ -33,8 +38,10 @@ public class DefaultAuditLogMsgBuilder implements AuditLogMsgBuilder {
     // Keys used in Struct returned by parse() method
     //
     // These keys will contain a String value
+    public static final String PARSE_UUID = "UUID";
     public static final String PARSE_VERS = "VERS";
     public static final String PARSE_WHEN = "WHEN";
+    public static final String PARSE_WHEN_EPOCH = "WHEN-epoch";
     public static final String PARSE_WHO  = "WHO";
     public static final String PARSE_WHY  = "WHY";
     public static final String PARSE_WHERE = "WHERE";
@@ -43,6 +50,7 @@ public class DefaultAuditLogMsgBuilder implements AuditLogMsgBuilder {
     public static final String PARSE_WHAT_API  = "WHAT-api";
     public static final String PARSE_WHAT_DOM  = "WHAT-domain";
     public static final String PARSE_WHAT_ENT  = "WHAT-entity";
+    public static final String PARSE_WHO_FULL_NAME  = "WHO-fullname";
 
     // This key will contain a Struct value
     public static final String PARSE_WHAT_DETAILS = "WHAT-details";
@@ -69,16 +77,19 @@ public class DefaultAuditLogMsgBuilder implements AuditLogMsgBuilder {
 
     // data members used for log message fields
     //
+    protected String uuid = null;        // unique identifier
     protected String who = null;         // The calling client/user requesting the change. Ex: "user.roger"
     protected String why = null;         // The audit reference or SOX ticket number.
     protected String clientIp = null;    // The IP address of the calling client(who).
     protected String when     = null;    // date-time in UTC
+    protected String whenEpoch     = null;    // date-time epoch timestamp for types that do not support datetime
     protected String where    = null;    // The server hostname that received the requests
     protected String whatMethod  = null; // This is the REST method, ie. "PUT" or "POST", etc
     protected String whatApi     = null; // This is the server public method serving the request, ex: "putRole"
     protected String whatDomain  = null; // This is the Athenz domain being changed, ex: "xobni"
     protected String whatEntity  = null; // This is the entity in the Athenz domain being changed.
     protected String whatDetails = null; // This will contain specifics of the entity(whatEntity) that was changed.
+    protected String whoFullName = null; // Full name of the calling client/user requesting the change. Ex: "roger"
 
     // Version of the log message produced. In case newer versions of the message creation
     // are implemented later.
@@ -90,6 +101,8 @@ public class DefaultAuditLogMsgBuilder implements AuditLogMsgBuilder {
     static final int    SB_MIN_SIZE_INIT = 128;
     static final int    SB_MED_SIZE_INIT = 512;
     static final int    SB_MAX_SIZE_INIT = 1024;
+
+    private static final TimeBasedGenerator UUIDV1 = Generators.timeBasedGenerator(EthernetAddress.fromInterface());
 
     public DefaultAuditLogMsgBuilder() {
     }
@@ -310,14 +323,58 @@ public class DefaultAuditLogMsgBuilder implements AuditLogMsgBuilder {
      */
     @Override
     public String build() {
-        return versionTag() + PARSE_WHEN + "=(" + when() +
-                ");" + PARSE_WHO + "=(" + who() +
-                ");" + PARSE_WHY + "=(" + why() +
-                ");" + PARSE_WHERE + "=(" + where() +
-                ");" + PARSE_CLIENT_IP + "=(" + clientIp() +
-                ");" + PARSE_WHAT_METH + "=(" + whatMethod() + ");" + PARSE_WHAT_API + "=(" +
-                whatApi() + ");" + PARSE_WHAT_DOM + "=(" + whatDomain() + ");" + PARSE_WHAT_ENT + "=(" +
-                whatEntity() + ");" + PARSE_WHAT_DETAILS + "=(" + whatDetails() + ");";
+        return versionTag() 
+                + PARSE_UUID + "=(" + uuId() + ");" 
+                + PARSE_WHEN + "=(" + when() + ");"
+                + PARSE_WHO + "=(" + who() + ");"
+                + PARSE_WHY + "=(" + why() + ");"
+                + PARSE_WHERE + "=(" + where() + ");"
+                + PARSE_CLIENT_IP + "=(" + clientIp() + ");"
+                + PARSE_WHAT_METH + "=(" + whatMethod() + ");"
+                + PARSE_WHAT_API + "=(" + whatApi() + ");"
+                + PARSE_WHAT_DOM + "=(" + whatDomain() + ");"
+                + PARSE_WHAT_ENT + "=(" + whatEntity() + ");"
+                + PARSE_WHAT_DETAILS + "=(" + whatDetails() + ");"
+                + PARSE_WHO_FULL_NAME + "=(" + whoFullName() + ");"
+                + PARSE_WHEN_EPOCH + "=(" + whenEpoch() + ");"
+                ;
     }
+
+    public String whenEpoch() {
+        if (when == null) {
+            return NULL_STR;
+        }
+        //Example: 2018-10-23T19:15:28.395Z
+        return String.valueOf(Instant.parse(when).toEpochMilli());
+    }
+
+    @Override
+    public AuditLogMsgBuilder uuId(String UUID) {
+        this.uuid = UUID;
+        return this;
+    }
+
+    @Override
+    public String uuId() {
+        if (this.uuid == null) {
+            return UUIDV1.generate().toString();
+        }
+        return this.uuid;
+    }
+
+    @Override
+    public AuditLogMsgBuilder whoFullName(String whoVal) {
+        this.whoFullName = whoVal;
+        return this;
+    }
+
+    @Override
+    public String whoFullName() {
+        if (this.whoFullName == null) {
+            return NULL_STR;
+        }
+        return this.whoFullName;
+    }
+
 }
 

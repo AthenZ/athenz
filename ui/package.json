@@ -41,12 +41,12 @@
     "lodash.clone": "^4.5.0",
     "node-rest-client": "^2.5.0",
     "request": "^2.79.0",
+    "select2": "^4.0.2",
     "serve-favicon": "^2.4.0",
     "url-pattern": "^1.0.1",
     "@athenz/auth-core": "^1.0.0"
   },
   "devDependencies": {
-    "bootstrap": "^3.3.6",
     "chai": "^3.5.0",
     "chai-as-promised": "^6.0.0",
     "chart.js": "^2.2.1",

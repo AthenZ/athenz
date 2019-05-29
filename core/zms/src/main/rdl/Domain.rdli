@@ -46,17 +46,6 @@ resource DomainList GET "/domain?limit={limit}&skip={skip}&prefix={prefix}&depth
     }
 }
 
-//Set of metadata attributes that all domains may have and can be changed.
-type DomainMeta Struct {
-    String description (optional); //a description of the domain
-    ResourceName org (optional); //a reference to an Organization. (i.e. org:media)
-    Bool enabled (optional, default=true); //Future use only, currently not used
-    Bool auditEnabled (optional, default=false); //Flag indicates whether or not domain modifications should be logged for SOX+Auditing. If true, the auditRef parameter must be supplied(not empty) for any API defining it.
-    String account (optional); // associated cloud (i.e. aws) account id
-    Int32 ypmId (optional); // associated product id
-    String applicationId (optional); // associated application id
-}
-
 //Top Level Domain object. The required attributes include the name of the
 //domain and list of domain administrators.
 type TopLevelDomain DomainMeta {
@@ -72,7 +61,7 @@ type SubDomain TopLevelDomain {
 
 //Create a new top level domain. This is a privileged action for the "sys.auth" administrators.
 resource Domain POST "/domain" {
-    String         auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     TopLevelDomain detail; //TopLevelDomain object to be created
     authorize ("create", "sys.auth:domain");
     expected OK;
@@ -88,8 +77,8 @@ resource Domain POST "/domain" {
 //have the privilege to create subdomains.
 resource Domain POST "/subdomain/{parent}" {
     DomainName parent; //name of the parent domain
-    String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
-    SubDomain  detail; //Subdomain object to be created
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    SubDomain detail; //Subdomain object to be created
     authorize ("create", "{parent}:domain");
     expected OK;
     exceptions {
@@ -130,7 +119,7 @@ resource Domain POST "/userdomain/{name}" {
 //code without any data (no object will be returned).
 resource TopLevelDomain DELETE "/domain/{name}" {
     SimpleName name; //name of the domain to be deleted
-    String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     authorize ("delete", "sys.auth:domain");
     expected NO_CONTENT;
     exceptions {
@@ -148,7 +137,7 @@ resource TopLevelDomain DELETE "/domain/{name}" {
 resource SubDomain DELETE "/subdomain/{parent}/{name}" {
     DomainName parent; //name of the parent domain
     SimpleName name; //name of the subdomain to be deleted
-    String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     authorize ("delete", "{parent}:domain");
     expected NO_CONTENT;
     exceptions {
@@ -181,9 +170,31 @@ resource UserDomain DELETE "/userdomain/{name}" {
 //are not affected. Caller must have update privileges on the domain itself.
 resource Domain PUT "/domain/{name}/meta" {
     DomainName name; //name of the domain to be updated
-    String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     DomainMeta detail; //DomainMeta object with updated attribute values
     authorize ("update", "{name}:");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+//Set the specified top level domain metadata. Note that entities in the domain
+//are not affected. Caller must have update privileges on the domain itself.
+//If the system attribute is one of the string attributes, then the caller
+//must also have delete action on the same resource in order to reset the
+//configured value
+resource Domain PUT "/domain/{name}/meta/system/{attribute}" (name=PutDomainSystemMeta) {
+    DomainName name; //name of the domain to be updated
+    SimpleName attribute; //name of the system attribute to be modified
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    DomainMeta detail; //DomainMeta object with updated attribute values
+    authorize ("update", "sys.auth:meta.{attribute}.{name}");
     expected NO_CONTENT;
     exceptions {
         ResourceError NOT_FOUND;

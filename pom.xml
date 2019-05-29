@@ -20,7 +20,7 @@
   <groupId>com.yahoo.athenz</groupId>
   <artifactId>athenz</artifactId>
   <packaging>pom</packaging>
-  <version>1.7.54-SNAPSHOT</version>
+  <version>1.8.24-SNAPSHOT</version>
 
   <name>AthenZ</name>
   <description>
@@ -69,22 +69,26 @@
   </ciManagement>
 
   <properties>
-    <jetty.version>9.4.11.v20180605</jetty.version>
-    <jersey.version>2.25.1</jersey.version>
-    <jackson.version>2.9.6</jackson.version>
+    <jetty.version>9.4.18.v20190429</jetty.version>
+    <jersey.version>2.28</jersey.version>
+    <jackson.version>2.9.9</jackson.version>
     <maven-surefire-plugin.version>2.22.0</maven-surefire-plugin.version>
-    <rdl.version>1.4.14</rdl.version>
-    <bouncycastle.version>1.59</bouncycastle.version>
-    <aws.version>1.11.357</aws.version>
-    <guava.version>25.1-jre</guava.version>
+    <rdl.version>1.5.2</rdl.version>
+    <bouncycastle.version>1.61</bouncycastle.version>
+    <aws.version>1.11.560</aws.version>
+    <guava.version>27.1-jre</guava.version>
     <logback.version>1.2.3</logback.version>
     <javax.version>3.1.0</javax.version>
+    <javax.ws.version>2.1.1</javax.ws.version>
+    <mockito.version>2.27.0</mockito.version>
+    <jjwt.version>0.9.1</jjwt.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
 
   <modules>
     <module>rdl/rdl-gen-athenz-server</module>
+    <module>rdl/rdl-gen-athenz-go-client</module>
     <module>core/zms</module>
     <module>core/zts</module>
     <module>libs/java/auth_core</module>
@@ -93,7 +97,8 @@
     <module>libs/java/instance_provider</module>
     <module>libs/java/cert_refresher</module>
     <module>clients/java/zms</module>
-    <module>clients/java/zts</module>
+    <module>clients/java/zts/core</module>
+    <module>clients/java/zts/shade</module>
     <module>clients/java/zpe</module>
     <module>servers/zms</module>
     <module>servers/zts</module>
@@ -102,7 +107,7 @@
     <module>clients/go/zts</module>
     <module>libs/go/zmscli</module>
     <module>libs/go/zmssvctoken</module>
-    <module>libs/go/ztsclientutil</module>
+    <module>libs/go/athenzutils</module>
     <module>libs/go/athenzconf</module>
     <module>utils/zms-cli</module>
     <module>utils/athenz-conf</module>
@@ -110,8 +115,10 @@
     <module>utils/zpe_policy_updater</module>
     <module>utils/zpe-updater</module>
     <module>utils/zts-roletoken</module>
+    <module>utils/zts-accesstoken</module>
     <module>utils/zts-rolecert</module>
     <module>utils/zts-svccert</module>
+    <module>aws-setup/athenz-conf-aws</module>
     <module>libs/nodejs/auth_core</module>
     <module>clients/nodejs/zts</module>
     <module>clients/nodejs/zpe</module>
@@ -124,7 +131,7 @@
   </modules>
 
   <build>
-   <pluginManagement>
+    <pluginManagement>
       <plugins>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -170,7 +177,7 @@
               <encoding>UTF-8</encoding>
               <consoleOutput>true</consoleOutput>
               <failsOnError>false</failsOnError>
-              <linlXRef>false</linlXRef>
+              <suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
             </configuration>
             <goals>
               <goal>check</goal>
@@ -183,8 +190,7 @@
         <version>3.0.1</version>
         <executions>
           <execution>
-            <id>jar-no-fork</id>
-            <phase>prepare-package</phase>
+            <id>attach-sources</id>
             <goals>
               <goal>jar-no-fork</goal>
             </goals>
@@ -198,7 +204,7 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>1.7.25</version>
+      <version>1.7.26</version>
     </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
@@ -215,7 +221,7 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>2.19.0</version>
+      <version>${mockito.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -245,15 +251,23 @@
       <build>
         <plugins>
           <plugin>
-            <groupId>com.atlassian.maven.plugins</groupId>
-            <artifactId>maven-clover2-plugin</artifactId>
-            <version>4.0.6</version>
+            <groupId>org.openclover</groupId>
+            <artifactId>clover-maven-plugin</artifactId>
+            <version>4.3.1</version>
             <configuration>
               <jdk>1.8</jdk>
-              <licenseLocation>${HOME}/license/clover.license</licenseLocation>
               <excludes>
                 <exclude>**/*Resources.java</exclude>
               </excludes>
+              <contextFilters>main,log,iflog</contextFilters>
+              <methodContexts>
+                <main>(.* )?public static void main\(String\[\] args\).*</main>
+              </methodContexts>
+              <statementContexts>
+                <log>System.out.println\(.*\);</log>
+                <log>LOGGER.info\(.*\);</log>
+                <iflog>^if \(LOG.*.is.*Enabled\(\)\).*</iflog>
+              </statementContexts>
             </configuration>
           </plugin>
         </plugins>

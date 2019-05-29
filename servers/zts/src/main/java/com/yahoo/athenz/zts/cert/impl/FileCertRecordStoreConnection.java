@@ -24,13 +24,17 @@ import java.nio.file.Paths;
 
 import com.yahoo.athenz.zts.cert.CertRecordStoreConnection;
 import com.yahoo.athenz.zts.cert.X509CertRecord;
+import com.yahoo.athenz.zts.utils.FilesHelper;
 import com.yahoo.rdl.JSON;
 
 public class FileCertRecordStoreConnection implements CertRecordStoreConnection {
     
     File rootDir;
+    FilesHelper filesHelper;
+
     public FileCertRecordStoreConnection(File rootDir) {
         this.rootDir = rootDir;
+        this.filesHelper = new FilesHelper();
     }
 
     @Override
@@ -42,8 +46,8 @@ public class FileCertRecordStoreConnection implements CertRecordStoreConnection 
     }
 
     @Override
-    public X509CertRecord getX509CertRecord(String provider, String instanceId) {
-        return getCertRecord(provider, instanceId);
+    public X509CertRecord getX509CertRecord(String provider, String instanceId, String service) {
+        return getCertRecord(provider, instanceId, service);
     }
     
     @Override
@@ -63,8 +67,8 @@ public class FileCertRecordStoreConnection implements CertRecordStoreConnection 
     }
     
     @Override
-    public boolean deleteX509CertRecord(String provider, String instanceId) {
-        deleteCertRecord(provider, instanceId);
+    public boolean deleteX509CertRecord(String provider, String instanceId, String service) {
+        deleteCertRecord(provider, instanceId, service);
         return true;
     }
     
@@ -81,25 +85,33 @@ public class FileCertRecordStoreConnection implements CertRecordStoreConnection 
             // if the modification timestamp is older than
             // specified number of minutes then we'll delete it
             
-            File f = new File(rootDir, fname);
-            if (currentTime - f.lastModified() < expiryTimeMins * 60 * 1000) {
+            File file = new File(rootDir, fname);
+            if (notExpired(currentTime, file.lastModified(), expiryTimeMins)) {
                 continue;
             }
             //noinspection ResultOfMethodCallIgnored
-            f.delete();
+            file.delete();
             count += 1;
         }
         return count;
     }
-    
-    private synchronized X509CertRecord getCertRecord(String provider, String instanceId) {
-        File f = new File(rootDir, provider + "-" + instanceId);
-        if (!f.exists()) {
+
+    boolean notExpired(long currentTime, long lastModified, int expiryTimeMins) {
+        return (currentTime - lastModified < expiryTimeMins * 60 * 1000);
+    }
+
+    private String getRecordFileName(final String provider, final String instanceId, final String service) {
+        return provider + "-" + instanceId + "-" + service;
+    }
+
+    private synchronized X509CertRecord getCertRecord(String provider, String instanceId, String service) {
+        File file = new File(rootDir, getRecordFileName(provider, instanceId, service));
+        if (!file.exists()) {
             return null;
         }
         X509CertRecord record = null;
         try {
-            Path path = Paths.get(f.toURI());
+            Path path = Paths.get(file.toURI());
             record = JSON.fromBytes(Files.readAllBytes(path), X509CertRecord.class);
         } catch (IOException ignored) {
         }
@@ -108,10 +120,10 @@ public class FileCertRecordStoreConnection implements CertRecordStoreConnection 
 
     private synchronized void putCertRecord(X509CertRecord certRecord) {
         
-        File f = new File(rootDir, certRecord.getProvider() + "-" + certRecord.getInstanceId());
+        File file = new File(rootDir, getRecordFileName(certRecord.getProvider(), certRecord.getInstanceId(), certRecord.getService()));
         String data = JSON.string(certRecord);
         try {
-            FileWriter fileWriter = new FileWriter(f);
+            FileWriter fileWriter = new FileWriter(file);
             fileWriter.write(data);
             fileWriter.flush();
             fileWriter.close();
@@ -119,12 +131,11 @@ public class FileCertRecordStoreConnection implements CertRecordStoreConnection 
         }
     }
 
-    private synchronized void deleteCertRecord(String provider, String instanceId) {
-        File f = new File(rootDir, provider + "-" + instanceId);
-        if (f.exists()) {
-            if (!f.delete()) {
-                throw new RuntimeException("Cannot delete file: " + f);
-            }
+    private synchronized void deleteCertRecord(String provider, String instanceId, String service) {
+        File file = new File(rootDir, getRecordFileName(provider, instanceId, service));
+        try {
+            filesHelper.delete(file);
+        } catch (IOException ignored) {
         }
     }
 }

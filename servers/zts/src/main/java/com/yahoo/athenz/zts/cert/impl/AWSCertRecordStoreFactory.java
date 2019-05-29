@@ -37,7 +37,7 @@ import com.yahoo.athenz.zts.cert.CertRecordStoreFactory;
 
 public class AWSCertRecordStoreFactory implements CertRecordStoreFactory {
 
-    private static final Logger LOG = LoggerFactory.getLogger(AWSCertRecordStoreFactory.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AWSCertRecordStoreFactory.class);
     
     private static Properties mysqlConnectionProperties = new Properties();
     private static String rdsUser = null;
@@ -59,8 +59,8 @@ public class AWSCertRecordStoreFactory implements CertRecordStoreFactory {
         final String jdbcStore = String.format("jdbc:%s://%s:%d/%s", rdsEngine, rdsMaster, rdsPort, rdsDatabase);
         String rdsToken = getAuthToken(rdsMaster, rdsPort, rdsUser, rdsIamRole);
         
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Connecting to {} with auth token {}", jdbcStore, rdsToken);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Connecting to {} with auth token {}", jdbcStore, rdsToken);
         }
 
         mysqlConnectionProperties.setProperty(ZTSConsts.DB_PROP_VERIFY_SERVER_CERT,
@@ -80,37 +80,42 @@ public class AWSCertRecordStoreFactory implements CertRecordStoreFactory {
         
         return new JDBCCertRecordStore(dataSource);
     }
-    
-    String getAuthToken(String hostname, int port, String rdsUser, String rdsIamRole) {
-        
-        InstanceProfileCredentialsProvider awsCredProvider = new InstanceProfileCredentialsProvider(true);
-        
-          if (LOG.isDebugEnabled()) {
-              LOG.debug("getAuthToken: Access key id: {}", awsCredProvider.getCredentials().getAWSAccessKeyId());
-          }
-          
-          RdsIamAuthTokenGenerator generator = RdsIamAuthTokenGenerator.builder()
+
+    ///CLOVER:OFF
+    String getInstanceRegion() {
+        return EC2MetadataUtils.getEC2InstanceRegion();
+    }
+
+    RdsIamAuthTokenGenerator getTokenGenerator(InstanceProfileCredentialsProvider awsCredProvider) {
+        return RdsIamAuthTokenGenerator.builder()
                 .credentials(awsCredProvider)
-                .region(EC2MetadataUtils.getEC2InstanceRegion())
+                .region(getInstanceRegion())
                 .build();
+    }
+    ///CLOVER:ON
+
+    String getAuthToken(String hostname, int port, String rdsUser, String rdsIamRole) {
+
+        InstanceProfileCredentialsProvider awsCredProvider = new InstanceProfileCredentialsProvider(true);
+        RdsIamAuthTokenGenerator generator = getTokenGenerator(awsCredProvider);
         
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Instance {} Port {} User {} Region: {} Role: {}", hostname, port, rdsUser,
-                    EC2MetadataUtils.getEC2InstanceRegion(), rdsIamRole);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Instance {} Port {} User {} Region: {} Role: {}", hostname, port, rdsUser,
+                    getInstanceRegion(), rdsIamRole);
         }
         
         return generator.getAuthToken(GetIamAuthTokenRequest.builder()
                .hostname(hostname).port(port).userName(rdsUser)
                .build());
     }
-    
-   class CredentialsUpdater implements Runnable {
+
+    class CredentialsUpdater implements Runnable {
         
         @Override
         public void run() {
 
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("CredentialsUpdater: Starting credential updater thread...");
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("CredentialsUpdater: Starting credential updater thread...");
             }
             
             try {
@@ -118,7 +123,7 @@ public class AWSCertRecordStoreFactory implements CertRecordStoreFactory {
                 mysqlConnectionProperties.setProperty(ZTSConsts.DB_PROP_PASSWORD, rdsToken);
                 
             } catch (Throwable t) {
-                LOG.error("CredentialsUpdater: unable to update auth token: {}", t.getMessage());
+                LOGGER.error("CredentialsUpdater: unable to update auth token: {}", t.getMessage());
             }
         }
     }

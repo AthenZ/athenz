@@ -20,9 +20,8 @@ import static org.testng.Assert.*;
 import java.util.concurrent.TimeoutException;
 
 import com.yahoo.athenz.common.server.cert.CertSigner;
+import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.cert.impl.HttpCertSigner;
-import com.yahoo.athenz.zts.cert.impl.HttpCertSignerFactory;
 
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
@@ -147,6 +146,17 @@ public class HttpCertSignerTest {
 
         String pem = certSigner.generateX509Certificate("csr", null, 0);
         assertEquals(pem, "pem-value");
+
+        pem = certSigner.generateX509Certificate("csr", ZTSConsts.ZTS_CERT_USAGE_CLIENT, 0);
+        assertEquals(pem, "pem-value");
+
+        pem = certSigner.generateX509Certificate("csr", ZTSConsts.ZTS_CERT_USAGE_CLIENT, 30);
+        assertEquals(pem, "pem-value");
+
+        certSigner.requestTimeout = 120;
+        pem = certSigner.generateX509Certificate("csr", ZTSConsts.ZTS_CERT_USAGE_CLIENT, 30);
+        assertEquals(pem, "pem-value");
+
         certSigner.close();
     }
 
@@ -283,48 +293,6 @@ public class HttpCertSignerTest {
     }
     
     @Test
-    public void testGenerateSSHCertificate() throws Exception {
-
-        HttpClient httpClient = Mockito.mock(HttpClient.class);
-
-        HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
-        HttpCertSigner certSigner = (HttpCertSigner) certFactory.create();
-        certSigner.setHttpClient(httpClient);
-
-        Request request = Mockito.mock(Request.class);
-        Mockito.when(httpClient.POST("https://localhost:443/certsign/v2/ssh")).thenReturn(request);
-
-        ContentResponse response = Mockito.mock(ContentResponse.class);
-        Mockito.when(request.send()).thenReturn(response);
-        Mockito.when(response.getStatus()).thenReturn(201);
-        Mockito.when(response.getContentAsString()).thenReturn("{\"type\":\"user\",\"opensshkey\": \"ssh-key\"}");
-
-        String pem = certSigner.generateSSHCertificate("ssh-key-req");
-        assertEquals(pem, "ssh-key");
-        certSigner.close();
-    }
-    
-    @Test
-    public void testGetSSHCertificate() throws Exception {
-
-        HttpClient httpClient = Mockito.mock(HttpClient.class);
-
-        HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
-        HttpCertSigner certSigner = (HttpCertSigner) certFactory.create();
-        certSigner.setHttpClient(httpClient);
-
-        ContentResponse response = Mockito.mock(ContentResponse.class);
-        Mockito.when(httpClient.GET("https://localhost:443/certsign/v2/ssh")).thenReturn(response);
-        Mockito.when(response.getStatus()).thenReturn(200);
-        Mockito.when(response.getContentAsString()).thenReturn("{\"certs\": [{\"type\":\"user\",\"opensshkey\":\"user-key\"},{\"type\":\"host\",\"opensshkey\":\"host-key\"}]}");
-
-        String pem = certSigner.getSSHCertificate("user");
-        assertNotNull(pem);
-        assertEquals(pem, "user-key");
-        certSigner.close();
-    }
-    
-    @Test
     public void testGetMaxCertExpiryTime() {
         
         System.clearProperty(ZTSConsts.ZTS_PROP_CERTSIGN_MAX_EXPIRY_TIME);
@@ -341,5 +309,61 @@ public class HttpCertSignerTest {
         certSigner.close();
 
         System.clearProperty(ZTSConsts.ZTS_PROP_CERTSIGN_MAX_EXPIRY_TIME);
+    }
+
+    @Test
+    public void testInitInvalidUri() {
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERTSIGN_BASE_URI);
+
+        HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
+
+        try {
+            certFactory.create();
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("No CertSigner base uri specified"));
+        }
+
+        System.setProperty(ZTSConsts.ZTS_PROP_CERTSIGN_BASE_URI, "https://localhost:443/certsign/v2");
+    }
+
+    @Test
+    public void testSetupHttpClient() throws Exception {
+
+        HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
+        HttpCertSigner certSigner = (HttpCertSigner) certFactory.create();
+        HttpClient client = Mockito.mock(HttpClient.class);
+        Mockito.doThrow(new Exception("Invalid client")).when(client).start();
+
+        try {
+            certSigner.setupHttpClient(client, 120, 120);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 500);
+        }
+    }
+
+    @Test
+    public void testStopNullHttpClient() throws Exception {
+
+        HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
+        HttpCertSigner certSigner = (HttpCertSigner) certFactory.create();
+        certSigner.setHttpClient(null);
+        certSigner.close();
+    }
+
+    @Test
+    public void testLoadServicePrivateKeyInvalid() {
+
+        System.setProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS, "invalid.class");
+        try {
+            HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
+            certFactory.create();
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertTrue(ex.getMessage().contains("Invalid private key store"));
+        }
+        System.clearProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS);
     }
 }

@@ -120,9 +120,10 @@ public class SimpleServiceIdentityProviderTest {
         assertEquals(provider.getAuthority(), authority);
         
         SimpleServiceIdentityProvider provider2 = new SimpleServiceIdentityProvider("coretech",
-                "athenz", key, "1", 3600);
+                "athenz", key, "1", 3900);
         assertNotEquals(provider2.getAuthority(), authority);
         provider2.setAuthority(authority);
+        provider2.setTokenTimeout(3600);
         assertEquals(provider2.getAuthority(), authority);
     }
 }

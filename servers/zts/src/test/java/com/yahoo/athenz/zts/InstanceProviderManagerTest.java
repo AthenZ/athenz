@@ -74,7 +74,7 @@ public class InstanceProviderManagerTest {
 
         // we want to make sure we start we clean dir structure
 
-        ZMSFileChangeLogStore.deleteDirectory(new File(ZTS_DATA_STORE_PATH));
+        ZTSTestUtils.deleteDirectory(new File(ZTS_DATA_STORE_PATH));
 
         File privKeyFile = new File(ZTS_PRIVATE_KEY);
         String privKey = Crypto.encodedFile(privKeyFile);
@@ -91,7 +91,7 @@ public class InstanceProviderManagerTest {
 
     @AfterMethod
     public void shutdown() {
-        ZMSFileChangeLogStore.deleteDirectory(new File(ZTS_DATA_STORE_PATH));
+        ZTSTestUtils.deleteDirectory(new File(ZTS_DATA_STORE_PATH));
         System.clearProperty(ZTSConsts.ZTS_PROP_PROVIDER_ENDPOINTS);
     }
     
@@ -201,9 +201,8 @@ public class InstanceProviderManagerTest {
         store.processDomain(signedDomain, false);
         
         InstanceProviderManager provider = new InstanceProviderManager(store, SSLContext.getDefault(), null);
-        InstanceProvider client = provider.getProvider("coretech.weather");
-        assertNotNull(client);
-        client.close();
+        InstanceProvider client = provider.getProvider("coretech.weather2");
+        assertNull(client);
     }
     
     @Test
@@ -217,7 +216,20 @@ public class InstanceProviderManagerTest {
         assertNotNull(client);
         client.close();
     }
-    
+
+    @Test
+    public void testGetClassProviderException() {
+
+        SignedDomain signedDomain = createSignedDomainClassEndpoint("coretech", "weather", true, true);
+        store.processDomain(signedDomain, false);
+
+        System.setProperty("athenz.instance.test.class.exception", "true");
+        InstanceProviderManager provider = new InstanceProviderManager(store, null, null);
+        InstanceProvider client = provider.getProvider("coretech.weather");
+        assertNull(client);
+        System.clearProperty("athenz.instance.test.class.exception");
+    }
+
     @Test
     public void testGetProviderClientInvalidDomain() {
 

@@ -11,6 +11,8 @@ include "Entity.tdl";
 type DomainModified Struct {
     DomainName name; //name of the domain
     Int64 modified; //last modified timestamp of the domain
+    String account (optional); //associated cloud (i.e. aws) account id
+    Int32 ypmId (optional); //associated product id
 }
 
 //A list of {domain, modified-timestamp} tuples.
@@ -46,7 +48,8 @@ type DomainData Struct {
     Array<ServiceIdentity> services; //list of services in the domain
     Array<Entity> entities; //list of entities in the domain
     Timestamp modified; //last modification timestamp
-    String applicationId (optional); // associated application id
+    String applicationId (optional); //associated application id
+    String certDnsDomain (optional); //domain certificate dns domain
 }
 
 //A domain object signed with server's private key. The signature
@@ -68,9 +71,10 @@ type SignedDomains Struct {
 //timestamp as the value of the ETag header. The client will need to use this
 //value during its next call to request the changes since the previous request.
 // When metaonly set to true, dont add roles, policies or services, dont sign
-resource SignedDomains GET "/sys/modified_domains?domain={domain}&metaonly={metaOnly}" {
+resource SignedDomains GET "/sys/modified_domains?domain={domain}&metaonly={metaOnly}&metaattr={metaAttr}" {
     DomainName domain (optional); //filter the domain list only to the specified name
     String metaOnly (optional); // valid values are "true" or "false"
+    SimpleName metaAttr (optional); // domain meta attribute to filter/return, valid values "account", "ypmId", or "all"
     String matchingTag (header="If-None-Match"); //Retrieved from the previous request, this timestamp specifies to the server to return any domains modified since this time
     String tag (header="ETag", out); //The current latest modification timestamp is returned in this header
     authenticate;

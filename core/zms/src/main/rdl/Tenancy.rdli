@@ -35,7 +35,7 @@ type ProviderResourceGroupRoles Struct {
     EntityName resourceGroup; //tenant resource group
 }
 
-//Add a tenant for the specified service.
+//Register the provider service in the tenant's domain.
 resource Tenancy PUT "/domain/{domain}/tenancy/{service}" {
     DomainName domain; //name of the tenant domain
     ServiceName service; //name of the provider service
@@ -53,7 +53,7 @@ resource Tenancy PUT "/domain/{domain}/tenancy/{service}" {
     }
 }
 
-//Delete the tenant from the specified service. Upon successful completion of
+//Delete the provider service from the specified tenant domain. Upon successful completion of
 //this delete request, the server will return NO_CONTENT status code without
 //any data (no object will be returned).
 resource Tenancy DELETE "/domain/{domain}/tenancy/{service}" {
@@ -61,6 +61,45 @@ resource Tenancy DELETE "/domain/{domain}/tenancy/{service}" {
     ServiceName service; //name of the provider service
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     authorize ("delete", "{domain}:tenancy");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+//Register a tenant domain for given provider service
+resource Tenancy PUT "/domain/{domain}/service/{service}/tenant/{tenantDomain}" (name=PutTenant) {
+    DomainName domain; //name of the provider domain
+    SimpleName service; //name of the provider service
+    DomainName tenantDomain; //name of the tenant domain
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    Tenancy detail; //tenancy object
+    authorize ("update", "{domain}:tenant.{service}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+//Delete the tenant domain from the provider service. Upon successful completion of
+//this delete request, the server will return NO_CONTENT status code without
+//any data (no object will be returned).
+resource Tenancy DELETE "/domain/{domain}/service/{service}/tenant/{tenantDomain}" (name=DeleteTenant) {
+    DomainName domain; //name of the provider domain
+    SimpleName service; //name of the provider service
+    DomainName tenantDomain; //name of the tenant domain
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    authorize ("delete", "{domain}:tenant.{service}");
     expected NO_CONTENT;
     exceptions {
         ResourceError NOT_FOUND;
@@ -81,7 +120,7 @@ resource TenantResourceGroupRoles PUT "/domain/{domain}/service/{service}/tenant
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     TenantResourceGroupRoles detail; //list of roles to be added/updated for the tenant
     authorize ("update", "{domain}:tenant.{service}");
-    expected OK, CREATED;
+    expected OK;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;
@@ -136,7 +175,7 @@ resource ProviderResourceGroupRoles PUT "/domain/{tenantDomain}/provDomain/{prov
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     ProviderResourceGroupRoles detail; //list of roles to be added/updated for the provider
     authorize ("update", "{tenantDomain}:tenancy.{provDomain}.{provService}");
-    expected OK, CREATED;
+    expected OK;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;

@@ -27,7 +27,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <athenz.version>1.7.33</athenz.version>
+    <athenz.version>1.8.22</athenz.version>
   </properties>
 
   <dependencies>

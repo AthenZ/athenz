@@ -17,15 +17,20 @@ package com.yahoo.athenz.zts.cert.impl;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
+import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.cert.CertRecordStore;
 import com.yahoo.athenz.zts.cert.CertRecordStoreConnection;
+import com.yahoo.athenz.zts.cert.X509CertUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.security.cert.X509Certificate;
+
 public class DynamoDBCertRecordStore implements CertRecordStore {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DynamoDBCertRecordStore.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDBCertRecordStore.class);
+    private static final Logger CERTLOGGER = LoggerFactory.getLogger("X509CertLogger");
 
     private DynamoDB dynamoDB;
     private String tableName;
@@ -38,10 +43,9 @@ public class DynamoDBCertRecordStore implements CertRecordStore {
     @Override
     public CertRecordStoreConnection getConnection() {
         try {
-            DynamoDBCertRecordStoreConnection dynamoConn = new DynamoDBCertRecordStoreConnection(dynamoDB, tableName);
-            return dynamoConn;
+            return new DynamoDBCertRecordStoreConnection(dynamoDB, tableName);
         } catch (Exception ex) {
-            LOG.error("getConnection: {}", ex.getMessage());
+            LOGGER.error("getConnection: {}", ex.getMessage());
             throw new ResourceException(ResourceException.SERVICE_UNAVAILABLE, ex.getMessage());
         }
     }
@@ -52,5 +56,11 @@ public class DynamoDBCertRecordStore implements CertRecordStore {
     
     @Override
     public void clearConnections() {
+    }
+
+    @Override
+    public void log(final Principal principal, final String ip, final String provider,
+                    final String instanceId, final X509Certificate x509Cert) {
+        X509CertUtils.logCert(CERTLOGGER, principal, ip, provider, instanceId, x509Cert);
     }
 }

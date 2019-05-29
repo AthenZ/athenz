@@ -17,6 +17,7 @@ package com.yahoo.athenz.zts.store;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.yahoo.athenz.zts.*;
 import com.yahoo.rdl.*;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.config.AthenzConfig;
@@ -26,9 +27,6 @@ import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zms.Role;
 import com.yahoo.athenz.zms.SignedDomain;
 import com.yahoo.athenz.zms.SignedDomains;
-import com.yahoo.athenz.zts.HostServices;
-import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.ZTSImpl;
 import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.cache.DataCacheProvider;
 import com.yahoo.athenz.zts.cache.MemberRole;
@@ -39,17 +37,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.PublicKey;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.security.interfaces.ECPublicKey;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.ECPoint;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.bouncycastle.asn1.x9.ECNamedCurveTable;
+import org.bouncycastle.asn1.x9.X9ECParameters;
+import org.bouncycastle.jcajce.provider.asymmetric.util.EC5Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,13 +61,14 @@ public class DataStore implements DataCacheProvider {
     final Cache<String, PublicKey> zmsPublicKeyCache;
     final Map<String, List<String>> hostCache;
     final Map<String, String> publicKeyCache;
+    final JWKList ztsJWKList;
     
     long updDomainRefreshTime;
     long delDomainRefreshTime ;
     long lastDeleteRunTime;
 
     private static final String ROLE_POSTFIX = ":role.";
-    
+
     private final ReentrantReadWriteLock hostRWLock = new ReentrantReadWriteLock();
     private final Lock hostRLock = hostRWLock.readLock();
     private final Lock hostWLock = hostRWLock.writeLock();
@@ -92,7 +93,9 @@ public class DataStore implements DataCacheProvider {
 
         cacheStore = CacheBuilder.newBuilder().concurrencyLevel(25).build();
         zmsPublicKeyCache = CacheBuilder.newBuilder().concurrencyLevel(25).build();
-        
+
+        ztsJWKList = new JWKList();
+
         hostCache = new HashMap<>();
         publicKeyCache = new HashMap<>();
 
@@ -114,14 +117,20 @@ public class DataStore implements DataCacheProvider {
         
         /* load the zms public key from configuration files */
         
-        loadZMSPublicKeys();
+        if (!loadZMSPublicKeys()) {
+            throw new IllegalArgumentException("Unable to initialize public keys");
+        }
     }
     
     String generateServiceKeyName(String domain, String service, String keyId) {
         return domain + "." + service + "_" + keyId;
     }
-    
-    void loadZMSPublicKeys() {
+
+    public JWKList getZtsJWKList() {
+        return ztsJWKList;
+    }
+
+    boolean loadZMSPublicKeys() {
 
         final String rootDir = ZTSImpl.getRootDir();
         String confFileName = System.getProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF,
@@ -130,23 +139,115 @@ public class DataStore implements DataCacheProvider {
         AthenzConfig conf;
         try {
             conf = JSON.fromBytes(Files.readAllBytes(path), AthenzConfig.class);
-            ArrayList<com.yahoo.athenz.zms.PublicKeyEntry> publicKeys = conf.getZmsPublicKeys();
-            if (publicKeys != null) {
-                for (com.yahoo.athenz.zms.PublicKeyEntry publicKey : publicKeys) { 
-                    String id = publicKey.getId();
-                    String key = publicKey.getKey();
-                    if (key == null || id == null) {
-                        continue;
-                    }
-                    PublicKey zmsKey = Crypto.loadPublicKey(Crypto.ybase64DecodeString(key));
-                    zmsPublicKeyCache.put(id, zmsKey);
+            final ArrayList<com.yahoo.athenz.zms.PublicKeyEntry> zmsPublicKeys = conf.getZmsPublicKeys();
+            if (zmsPublicKeys == null) {
+                LOGGER.error("Conf file {} has no ZMS Public keys", confFileName);
+                return false;
+            }
+            for (com.yahoo.athenz.zms.PublicKeyEntry publicKey : zmsPublicKeys) {
+                final String id = publicKey.getId();
+                final String key = publicKey.getKey();
+                if (key == null || id == null) {
+                    LOGGER.error("Missing required zms public key attributes: {}/{}", id, key);
+                    continue;
+                }
+                zmsPublicKeyCache.put(id, Crypto.loadPublicKey(Crypto.ybase64DecodeString(key)));
+            }
+            if (zmsPublicKeyCache.size() == 0) {
+                LOGGER.error("No valid public ZMS keys in conf file: {}", confFileName);
+                return false;
+            }
+            final ArrayList<com.yahoo.athenz.zms.PublicKeyEntry> ztsPublicKeys = conf.getZtsPublicKeys();
+            if (ztsPublicKeys == null) {
+                LOGGER.error("Conf file {} has no ZTS Public keys", confFileName);
+                return false;
+            }
+            final List<JWK> jwkList = new ArrayList<>();
+            for (com.yahoo.athenz.zms.PublicKeyEntry publicKey : ztsPublicKeys) {
+                final String id = publicKey.getId();
+                final String key = publicKey.getKey();
+                if (key == null || id == null) {
+                    LOGGER.error("Missing required zts public key attributes: {}/{}", id, key);
+                    continue;
+                }
+                final JWK jwk = getJWK(key, id);
+                if (jwk != null) {
+                    jwkList.add(jwk);
                 }
             }
-        } catch (IOException e) {
-            LOGGER.info("Unable to parse conf file " + confFileName);
+            if (jwkList.isEmpty()) {
+                LOGGER.error("No valid public ZTS keys in conf file: {}", confFileName);
+                return false;
+            }
+            ztsJWKList.setKeys(jwkList);
+        } catch (IOException ex) {
+            LOGGER.error("Unable to parse conf file {}, error: {}", confFileName, ex.getMessage());
+            return false;
         }
+        return true;
     }
-    
+
+    String getCurveName(org.bouncycastle.jce.spec.ECParameterSpec ecParameterSpec) {
+
+        String curveName = null;
+        for (Enumeration names = ECNamedCurveTable.getNames(); names.hasMoreElements();) {
+
+            final String name = (String) names.nextElement();
+            final X9ECParameters params = ECNamedCurveTable.getByName(name);
+
+            if (params.getN().equals(ecParameterSpec.getN())
+                    && params.getH().equals(ecParameterSpec.getH())
+                    && params.getCurve().equals(ecParameterSpec.getCurve())
+                    && params.getG().equals(ecParameterSpec.getG())) {
+                curveName = name;
+                break;
+            }
+        }
+        return curveName;
+    }
+
+    JWK getJWK(final String pemKey, final String keyId) {
+
+        PublicKey publicKey;
+
+        try {
+            publicKey = Crypto.loadPublicKey(Crypto.ybase64DecodeString(pemKey));
+        } catch (Exception ex) {
+            LOGGER.error("Invalid public key: {}", ex.getMessage());
+            return null;
+        }
+
+        JWK jwk = null;
+        final Base64.Encoder encoder = Base64.getUrlEncoder();
+
+        switch (publicKey.getAlgorithm()) {
+            case ZTSConsts.RSA:
+                jwk = new JWK();
+                jwk.setKid(keyId);
+                jwk.setUse("sig");
+                jwk.setKty("RSA");
+                jwk.setAlg("RS256");
+                final RSAPublicKey rsaPublicKey = (RSAPublicKey) publicKey;
+                jwk.setN(new String(encoder.encode(rsaPublicKey.getModulus().toByteArray())));
+                jwk.setE(new String(encoder.encode(rsaPublicKey.getPublicExponent().toByteArray())));
+                break;
+            case ZTSConsts.ECDSA:
+                jwk = new JWK();
+                jwk.setKid(keyId);
+                jwk.setUse("sig");
+                jwk.setKty("EC");
+                jwk.setAlg("ES256");
+                final ECPublicKey ecPublicKey = (ECPublicKey) publicKey;
+                final ECPoint ecPoint = ecPublicKey.getW();
+                jwk.setX(new String(encoder.encode(ecPoint.getAffineX().toByteArray())));
+                jwk.setY(new String(encoder.encode(ecPoint.getAffineY().toByteArray())));
+                jwk.setCrv(getCurveName(EC5Util.convertSpec(ecPublicKey.getParams(), false)));
+                break;
+        }
+
+        return jwk;
+    }
+
     boolean processLocalDomains(List<String> localDomainList) {
 
         /* we can't have a lastModTime set if we have no local
@@ -194,7 +295,7 @@ public class DataStore implements DataCacheProvider {
         return true;
     }
     
-    public boolean init() {
+    public void init() {
         
         /* now let's retrieve the list of locally saved domains */
 
@@ -221,7 +322,8 @@ public class DataStore implements DataCacheProvider {
          * modification time */
 
         if (!processDomainUpdates()) {
-            return false;
+            throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
+                    "Unable to initialize storage subsystem");
         }
 
         /* Start our monitoring thread to get changes from ZMS */
@@ -229,8 +331,6 @@ public class DataStore implements DataCacheProvider {
         ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(1);
         scheduledThreadPool.scheduleAtFixedRate(new DataUpdater(), updDomainRefreshTime,
                 updDomainRefreshTime, TimeUnit.SECONDS);
-
-        return true;
     }
 
     boolean processLocalDomain(String domainName) {
@@ -323,7 +423,7 @@ public class DataStore implements DataCacheProvider {
             domainCache.processServiceIdentity(service);
         }
     }
-    
+
     public boolean processDomain(SignedDomain signedDomain, boolean saveInStore) {
 
         DomainData domainData = signedDomain.getDomain();
@@ -970,7 +1070,7 @@ public class DataStore implements DataCacheProvider {
     public Map<String, String> getPublicKeyCache() {
         return publicKeyCache;
     }
-    
+
     class DataUpdater implements Runnable {
         
         @Override

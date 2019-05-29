@@ -17,6 +17,8 @@ package com.yahoo.athenz.zms.store.file;
 
 import static org.testng.Assert.*;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 
 import org.testng.annotations.Test;
 
@@ -31,7 +33,7 @@ public class FileObjectStoreTest {
     }
 
     @Test
-    public void TestFileObjectStoreInvalidDirectories() {
+    public void testFileObjectStoreInvalidDirectories() {
         File fileDir = new File("/invalid_athenz/zms_store");
         File quotaDir = new File("/invalid_athenz/zms_quota");
         FileObjectStore store = null;
@@ -41,5 +43,26 @@ public class FileObjectStoreTest {
         } catch (Exception ignored) {
         }
         assertNull(store);
+    }
+
+    @Test
+    public void testFileObjectStoreFileAsRoot() {
+        File tmpFile = new File("/tmp/athenz-file-root");
+        try {
+            tmpFile.createNewFile();
+        } catch (IOException ignored) {
+        }
+        File quotaDir = new File("/invalid_athenz/zms_quota");
+        FileObjectStore store = null;
+        try {
+            store = new FileObjectStore(tmpFile, quotaDir);
+            fail();
+        } catch (Exception ignored) {
+        }
+        assertNull(store);
+        try {
+            Files.delete(tmpFile.toPath());
+        } catch (IOException ignored) {
+        }
     }
 }
