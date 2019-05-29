@@ -73,7 +73,7 @@ func main() {
 	host := fmt.Sprintf("%s.%s.%s", service, hyphenDomain, dnsDomain)
 	rfc822 := fmt.Sprintf("%s.%s@%s", domain, service, dnsDomain)
 	if spiffe {
-		uri = fmt.Sprintf("spiffe://%s/role/%s", roleDomain, roleName)
+		uri = fmt.Sprintf("spiffe://%s/ra/%s", roleDomain, roleName)
 	}
 
 	//note: RFC 6125 states that if the SAN (Subject Alternative Name) exists,
