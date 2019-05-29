@@ -22,23 +22,38 @@ ENV MAVEN_CONFIG "$USER_HOME_DIR/.m2"
 COPY --from=rdl /usr/bin/rdl /usr/bin/rdl
 COPY --from=rdl /usr/bin/rdl-gen-athenz-server /usr/bin/rdl-gen-athenz-server
 
-WORKDIR /athenz
-COPY . .
-
 # install go
 RUN apk add --no-cache --virtual .build-deps gcc musl-dev openssl go git
+ENV GOPATH="/root/go"
+WORKDIR ${GOPATH}/src/github.com/yahoo/athenz
+COPY . .
 
-ENV CGO_ENABLED=1
-ENV GO111MODULE=off
-RUN mvn install -Dmaven.test.skip=true \
+# cache maven dependency
+# RUN mvn dependency:go-offline -DexcludeGroupIds="com.yahoo.athenz"
+
+RUN mkdir -p "${GOPATH}/bin"
+ENV PATH="${GOPATH}/bin:${PATH}"
+RUN GO111MODULE=on \
+  CGO_ENABLED=0 \
+  CGO_CXXFLAGS="-g -Ofast -march=native" \
+  CGO_FFLAGS="-g -Ofast -march=native" \
+  CGO_LDFLAGS="-g -Ofast -march=native" \
+  GOOS=$(go env GOOS) \
+  GOARCH=$(go env GOARCH) \
+  mvn install -Dmaven.test.skip=true \
   -pl core/zms \
   -pl core/zts \
   -pl libs/java/auth_core \
   -pl libs/java/client_common \
-  -pl clients/java/zts \
+  -pl clients/java/zts/core \
+  -pl clients/java/zts/shade \
+  # go projects
+  -pl rdl/rdl-gen-athenz-go-client \
+  -pl clients/go/zms \
+  -pl clients/go/zts \
   -pl libs/go/zmscli \
   -pl libs/go/zmssvctoken \
-  -pl libs/go/ztsclientutil \
+  -pl libs/go/athenzutils \
   -pl libs/go/athenzconf \
   -pl utils/zms-cli \
   -pl utils/athenz-conf \
@@ -46,8 +61,10 @@ RUN mvn install -Dmaven.test.skip=true \
   -pl utils/zpe_policy_updater \
   -pl utils/zpe-updater \
   -pl utils/zts-roletoken \
+  -pl utils/zts-accesstoken \
   -pl utils/zts-rolecert \
-  -pl utils/zts-svccert
+  -pl utils/zts-svccert \
+  -pl assembly/utils
 
 # RUN mkdir -p /tmp/zms \
 #   && mkdir -p /tmp/zts \
