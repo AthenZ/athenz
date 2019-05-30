@@ -6,7 +6,7 @@ build-docker:
 	docker build -t athenz-ui -f docker/ui/Dockerfile ui
 	docker build -t athenz-zms-db -f docker/db/zms/Dockerfile servers/zms/schema
 	docker build -t athenz-zts-db -f docker/db/zts/Dockerfile servers/zts/schema
-	docker build -t athenz-zms-cli -f docker/util/cli/Dockerfile .
+	docker build -t athenz-zms-cli -f docker/util/Dockerfile .
 
 run-docker:
 	docker run -d -h localhost \
