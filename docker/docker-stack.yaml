@@ -100,8 +100,8 @@ services:
   #     - zms
   #     - zts
   #   ports:
-  #     - target: 9443
-  #       published: 9443
+  #     - target: 443
+  #       published: 443
   #       protocol: tcp
   #       mode: host
   #   networks:

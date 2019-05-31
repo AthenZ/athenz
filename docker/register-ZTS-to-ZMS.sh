@@ -12,7 +12,7 @@ docker exec $ZMS_CONTAINER sh -c 'echo "admin:12345678" | chpasswd'
 # confirm zms version
 docker run --name athenz-zms-cli athenz-zms-cli version; docker rm athenz-zms-cli
 
-# clear stdin
+# clear stdin (optional)
 sleep 1
 read -N 10000000 -t 0.01
 

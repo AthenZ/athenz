@@ -33,7 +33,7 @@ run-docker:
 		-v `pwd`/docker/logs/zts:/opt/athenz/zts/logs/zts_server \
 		--name athenz-zts-server athenz-zts
 	# docker run -d -h localhost \
-	# 	--network=host -p 9443 \
+	# 	--network=host -p 443 \
 	# 	-v `pwd`/docker/zts/conf/athenz.conf:/opt/athenz/ui/config/athenz.conf \
 	# 	-v `pwd`/docker/ui/keys:/opt/athenz/ui/keys \
 	# 	--name athenz-ui athenz-ui

@@ -1,13 +1,12 @@
-## pending issues
-1. athenz ui not config-ed
-
 # setups
+
 ```bash
 # 0. back to project root
 cd ..
 
 # 1. generate server certificates
-sh ./docker/gen-certs.sh
+docker build -t athenz-setup -f docker/setup-scripts/common/Dockerfile docker/setup-scripts
+docker run -it  -v `pwd`/docker:/docker --name athenz-setup athenz-setup sh; docker rm athenz-setup
 
 # 2. build docker images
 make build-docker
@@ -27,12 +26,12 @@ sh ./docker/register-ZTS-to-ZMS.sh
 
 # 5. generate athenz.conf for ZTS
 docker run -it --network=host \
-  -v `pwd`/docker/zts/conf/athenz.conf:/tmp/athenz.conf \
-  --name athenz-cli-util athenz-cli-util \
-  ./utils/athenz-conf/target/linux/athenz-conf \
-  -i user.admin -t https://localhost:8443 -z https://localhost:4443 \
-  -k -o /tmp/athenz.conf \
-  ; docker rm athenz-cli-util;
+    -v `pwd`/docker/zts/conf/athenz.conf:/tmp/athenz.conf \
+    --name athenz-cli-util athenz-cli-util \
+    ./utils/athenz-conf/target/linux/athenz-conf \
+    -i user.admin -t https://localhost:8443 -z https://localhost:4443 \
+    -k -o /tmp/athenz.conf \
+    ; docker rm athenz-cli-util;
 
 # 6. restart ZTS
 # alternative: using make file
@@ -61,11 +60,13 @@ docker run -it --net=host \
     ; docker rm athenz-zms-cli
 docker run -it --net=host \
     -v `pwd`/docker/zms/var/certs/zms_cert.pem:/etc/certs/zms_cert.pem \
-    -v `pwd`/docker/ui/keys/athenz.ui_pub.pem:/etc/certs/athenz.ui_pub.pem \
+    -v `pwd`/docker/ui/keys/athenz.ui-server_pub.pem:/etc/certs/athenz.ui-server_pub.pem \
     --name athenz-zms-cli athenz-zms-cli \
     -i user.admin -z https://localhost:4443/zms/v1 -c /etc/certs/zms_cert.pem \
-    -d athenz add-service ui-server 0 /etc/certs/athenz.ui_pub.pem \
+    -d athenz add-service ui-server 0 /etc/certs/athenz.ui-server_pub.pem \
     ; docker rm athenz-zms-cli
+
+# verify domain
 docker run -it --net=host \
     -v `pwd`/docker/zms/var/certs/zms_cert.pem:/etc/certs/zms_cert.pem \
     --name athenz-zms-cli athenz-zms-cli \
@@ -75,7 +76,7 @@ docker run -it --net=host \
 
 # run the UI docker
 docker run -d -h localhost \
-    --network=host -p 9443 \
+    --network=host -p 443 \
     -v `pwd`/docker/zts/conf/athenz.conf:/opt/athenz/ui/config/athenz.conf \
     -v `pwd`/docker/ui/keys:/opt/athenz/ui/keys \
     -e ZMS_SERVER=`hostname` \
@@ -103,3 +104,13 @@ mysql -v -u root --password=mariadb --host=127.0.0.1 --port=3307
 ```
 ### note for production
 - remove `RUN apk add linux-pam` in the docker file
+
+## TO-DO
+
+-   UI
+    1.  convert `default-config.js` parameters to ENV
+    1.  configurable listering port
+-   athenz-cli
+    -   build with separated docker files
+-   common
+    -   split setup script for different component

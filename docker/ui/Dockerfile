@@ -25,7 +25,7 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /sbin/tini /sbin/tini
 COPY --from=builder /tmp/work /opt/athenz/ui
 
-EXPOSE 9443
+EXPOSE 443
 
 ENTRYPOINT ["/sbin/tini", "--"]
 CMD ["npm", "start"]
