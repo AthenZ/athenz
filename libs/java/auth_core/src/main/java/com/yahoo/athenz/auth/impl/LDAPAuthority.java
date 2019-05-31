@@ -34,7 +34,6 @@ import java.util.Hashtable;
 
 public class LDAPAuthority implements Authority {
 
-
     private static final Logger LOG = LoggerFactory.getLogger(LDAPAuthority.class);
     public static final String ATHENZ_PROP_LDAP_BASE_DN = "athenz.auth.ldap.base_dn";
     public static final String ATHENZ_PROP_LDAP_PORT = "athenz.auth.ldap.port";

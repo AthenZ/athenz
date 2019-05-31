@@ -193,7 +193,4 @@ public class LDAPAuthorityTest {
         }
 
     }
-
-
-
 }
