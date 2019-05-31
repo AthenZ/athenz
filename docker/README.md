@@ -20,13 +20,19 @@ make run-docker
 # alternative: using docker stack
 mkdir -p `pwd`/docker/logs/zms
 mkdir -p `pwd`/docker/logs/zts
-docker stack deploy -c docker/docker-stack.yaml athenz
+docker stack deploy -c ./docker/docker-stack.yaml athenz
 
 # 4. add ZTS public key to ZMS
 sh ./docker/register-ZTS-to-ZMS.sh
 
 # 5. generate athenz.conf for ZTS
-# athenz-conf -i user.admin -t https://localhost:8443 -z https://localhost:4443
+docker run -it --network=host \
+  -v `pwd`/docker/zts/conf/athenz.conf:/tmp/athenz.conf \
+  --name athenz-cli-util athenz-cli-util \
+  ./utils/athenz-conf/target/linux/athenz-conf \
+  -i user.admin -t https://localhost:8443 -z https://localhost:4443 \
+  -k -o /tmp/athenz.conf \
+  ; docker rm athenz-cli-util;
 
 # 6. restart ZTS
 # alternative: using make file
@@ -58,7 +64,7 @@ docker run -it --net=host \
     -v `pwd`/docker/ui/keys/athenz.ui_pub.pem:/etc/certs/athenz.ui_pub.pem \
     --name athenz-zms-cli athenz-zms-cli \
     -i user.admin -z https://localhost:4443/zms/v1 -c /etc/certs/zms_cert.pem \
-    -d athenz add-service ui 0 /etc/certs/athenz.ui_pub.pem \
+    -d athenz add-service ui-server 0 /etc/certs/athenz.ui_pub.pem \
     ; docker rm athenz-zms-cli
 docker run -it --net=host \
     -v `pwd`/docker/zms/var/certs/zms_cert.pem:/etc/certs/zms_cert.pem \
@@ -72,8 +78,8 @@ docker run -d -h localhost \
     --network=host -p 9443 \
     -v `pwd`/docker/zts/conf/athenz.conf:/opt/athenz/ui/config/athenz.conf \
     -v `pwd`/docker/ui/keys:/opt/athenz/ui/keys \
-    -e ZMS_SERVER='garm.wfan.ogk.ynwm.yahoo.co.jp' \
-    -e UI_SERVER='garm.wfan.ogk.ynwm.yahoo.co.jp' \
+    -e ZMS_SERVER=`hostname` \
+    -e UI_SERVER=`hostname` \
     --name athenz-ui athenz-ui
 ```
 

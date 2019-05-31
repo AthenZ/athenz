@@ -12,6 +12,10 @@ docker exec $ZMS_CONTAINER sh -c 'echo "admin:12345678" | chpasswd'
 # confirm zms version
 docker run --name athenz-zms-cli athenz-zms-cli version; docker rm athenz-zms-cli
 
+# clear stdin
+sleep 1
+read -N 10000000 -t 0.01
+
 # confirm the target user belongs to the admin role
 docker run -it --net=host \
   -v `pwd`/zms/var/certs/zms_cert.pem:/etc/certs/zms_cert.pem \

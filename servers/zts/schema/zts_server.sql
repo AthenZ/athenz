@@ -7,6 +7,10 @@ SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
 
+SET GLOBAL innodb_file_format=Barracuda;
+SET GLOBAL innodb_file_per_table=1;
+SET GLOBAL innodb_large_prefix=1;
+
 -- -----------------------------------------------------
 -- Schema zts_store
 -- -----------------------------------------------------
@@ -32,7 +36,7 @@ CREATE TABLE IF NOT EXISTS `zts_store`.`certificates` (
   `prevIP` VARCHAR(64) NOT NULL,
   `clientCert` TINYINT(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`provider`, `instanceId`, `service`))
-ENGINE = InnoDB DEFAULT CHARSET=latin1;
+ENGINE = InnoDB DEFAULT ROW_FORMAT=DYNAMIC;
 
 
 SET SQL_MODE=@OLD_SQL_MODE;
