@@ -73,7 +73,7 @@ public class LDAPAuthority implements Authority {
     @Override
     public Principal authenticate(String creds, String remoteAddr, String httpMethod, StringBuilder errMsg) {
 
-        if(isNull(errMsg)) {
+        if (isNull(errMsg)) {
             LOG.error(errMsg.toString());
             return null;
         }
