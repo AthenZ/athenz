@@ -38,13 +38,13 @@ make build-docker
 ```bash
 cd ${PROJECT_ROOT}
 
-# create folder for log files
-mkdir -p `pwd`/docker/logs/zms
-mkdir -p `pwd`/docker/logs/zts
-
 # mount the configuration folder to the docker image and update required files (certificates & key stores) by the script
 docker build -t athenz-setup -f ./docker/setup-scripts/common/Dockerfile ./docker/setup-scripts
 docker run -it  -v `pwd`/docker:/docker --name athenz-setup athenz-setup sh; docker rm athenz-setup
+
+# create folder for log files
+mkdir -p `pwd`/docker/logs/zms
+mkdir -p `pwd`/docker/logs/zts
 
 # run athenz
 # P.S. ZTS is not running normally at this state. We will update it in the following section.
@@ -167,7 +167,7 @@ rm -rf ./docker/logs
 
 <a id="markdown-setup-zms-for-zts" name="setup-zms-for-zts"></a>
 ### setup ZMS for ZTS
-[register-ZTS-to-ZMS.sh](../register-ZTS-to-ZMS.sh)
+- [register-ZTS-to-ZMS.sh](../register-ZTS-to-ZMS.sh)
 ```bash
 cd ${PROJECT_ROOT}
 
