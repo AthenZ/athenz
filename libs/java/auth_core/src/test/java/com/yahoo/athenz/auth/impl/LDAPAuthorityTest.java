@@ -1,3 +1,18 @@
+/*
+ * Copyright 2019 Yahoo Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.yahoo.athenz.auth.impl;
 
 import static org.mockito.Mockito.*;
@@ -32,7 +47,7 @@ public class LDAPAuthorityTest {
         principal = ldapAuthority.authenticate("dGVzdHVzZXI6dGVzdHB3ZA==","","", errMsg);
         assertNull(principal);
         //set the value of baseDN and portNumber to original values
-        resetProperties(oldBaseDN, oldPortNumber, oldHostname);
+        resetProperties();
     }
 
     @Test
@@ -46,7 +61,7 @@ public class LDAPAuthorityTest {
         //port number is null and hence should should return null
         principal = ldapAuthority.authenticate("Basic dGVzdHVzZXI6dGVzdHB3ZA==", "","",errMsg);
         assertNull(principal);
-        resetProperties(oldBaseDN, oldPortNumber, oldHostname);
+        resetProperties();
 
 
         setProperties();
@@ -55,7 +70,7 @@ public class LDAPAuthorityTest {
         //base dn is null and hence principal should be null
         principal = ldapAuthority.authenticate("Basic dGVzdHVzZXI6dGVzdHB3ZA==", "","",errMsg);
         assertNull(principal);
-        resetProperties(oldBaseDN, oldPortNumber, oldHostname);
+        resetProperties();
 
 
         setProperties();
@@ -95,7 +110,7 @@ public class LDAPAuthorityTest {
         errMsg = new StringBuilder();
         principal = ldapAuthority.authenticate("Basic !@#$%","","",  errMsg);
         assertNull(principal);
-        resetProperties(oldBaseDN, oldPortNumber, oldHostname);
+        resetProperties();
     }
 
     @Test
@@ -162,7 +177,7 @@ public class LDAPAuthorityTest {
         principal = ldapAuthority.authenticate("Basic dGVzdHVzZXI6d3Jvbmdwd2Q=", "", "", errMsg);
         assertNull(principal);
 
-        resetProperties(oldBaseDN, oldPortNumber, oldHostname);
+        resetProperties();
     }
 
     public void setProperties()
@@ -172,8 +187,7 @@ public class LDAPAuthorityTest {
         oldHostname = System.setProperty(hostnameProp, "localhost");
     }
 
-    public void resetProperties(String oldBaseDN, String oldPortNumber, String oldHostName)
-    {
+    public void resetProperties() {
         if(oldBaseDN == null) {
             System.clearProperty(baseDNProp);
         } else {

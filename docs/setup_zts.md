@@ -96,4 +96,3 @@ Stop the ZTS Server by executing:
 $ cd athenz-zts-X.Y
 $ bin/zts stop
 ```
-

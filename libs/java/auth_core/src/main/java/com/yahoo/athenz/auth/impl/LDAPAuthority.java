@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Yahoo Inc.
+ * Copyright 2019 Yahoo Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,18 +34,20 @@ import java.util.Hashtable;
 
 public class LDAPAuthority implements Authority {
 
+
     private static final Logger LOG = LoggerFactory.getLogger(LDAPAuthority.class);
-    public static final String ATHENZ_PROP_LDAP_BASE_DN = "athenz.auth.ldap.base_dn";
-    public static final String ATHENZ_PROP_LDAP_PORT = "athenz.auth.ldap.port";
-    public static final String ATHENZ_AUTH_CHALLENGE = "LDAPAuthentication realm=\"athenz\"";
-    public static final String ATHENZ_PROP_HOSTNAME = "athenz.auth.ldap.hostname";
-    private String baseDN, portNumber, hostName;
+    static final String ATHENZ_PROP_LDAP_BASE_DN = "athenz.auth.ldap.base_dn";
+    static final String ATHENZ_PROP_LDAP_PORT = "athenz.auth.ldap.port";
+    static final String ATHENZ_AUTH_CHALLENGE = "LDAPAuthentication realm=\"athenz\"";
+    static final String ATHENZ_PROP_HOSTNAME = "athenz.auth.ldap.hostname";
+    private String baseDN, portNumber, hostName, providerURL;
 
     @Override
     public void initialize() {
         baseDN = System.getProperty(ATHENZ_PROP_LDAP_BASE_DN);
         portNumber = System.getProperty(ATHENZ_PROP_LDAP_PORT);
         hostName = System.getProperty(ATHENZ_PROP_HOSTNAME);
+        providerURL = "ldap://" + hostName + ":" + portNumber;
     }
 
     @Override
@@ -70,20 +72,8 @@ public class LDAPAuthority implements Authority {
 
     @Override
     public Principal authenticate(String creds, String remoteAddr, String httpMethod, StringBuilder errMsg) {
-        if (baseDN == null) {
-            errMsg.append("LDAPAuthority: failed: value of Base Distinguished Name not set");
-            LOG.error(errMsg.toString());
-            return null;
-        }
 
-        if (portNumber == null) {
-            errMsg.append("LDAPAuthority: failed: value of Port Number not set");
-            LOG.error(errMsg.toString());
-            return null;
-        }
-
-        if (hostName == null) {
-            errMsg.append("LDAPAuthority: failed: value of host name not set");
+        if(isNull(errMsg)) {
             LOG.error(errMsg.toString());
             return null;
         }
@@ -139,10 +129,12 @@ public class LDAPAuthority implements Authority {
 
     }
 
+
+
     DirContext getDirContext(String finalDN, String password) throws NamingException {
         Hashtable env = new Hashtable();
         env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
-        env.put(Context.PROVIDER_URL, "ldap://" + hostName + ":" + portNumber);
+        env.put(Context.PROVIDER_URL, providerURL);
         env.put(Context.SECURITY_AUTHENTICATION, "simple");
         env.put(Context.SECURITY_PRINCIPAL, finalDN);
         env.put(Context.SECURITY_CREDENTIALS, password);
@@ -152,5 +144,24 @@ public class LDAPAuthority implements Authority {
     SimplePrincipal getSimplePrincipal(String creds, String username) {
         SimplePrincipal simplePrincipal = (SimplePrincipal) SimplePrincipal.create(getDomain().toLowerCase(), username.toLowerCase(), creds, this);
         return simplePrincipal;
+    }
+
+    boolean isNull(StringBuilder errMsg) {
+        if (baseDN == null) {
+            errMsg.append("LDAPAuthority: failed: value of Base Distinguished Name not set");
+            return true;
+        }
+
+        if (portNumber == null) {
+            errMsg.append("LDAPAuthority: failed: value of Port Number not set");
+            return true;
+        }
+
+        if (hostName == null) {
+            errMsg.append("LDAPAuthority: failed: value of host name not set");
+            return true;
+        }
+
+        return false;
     }
 }

@@ -9,6 +9,8 @@
     * [Kerberos Authority](#kerberos-authority)
     * [Certificate Authority](#certificate-authority)
     * [Role Authority](#role-authority)
+    * [LDAP Authority](#LDAP-authority)
+        
     
 For a principal (either user or service) to authenticate himself/herself
 in Athenz, the server must have the appropriate authentication authority
@@ -176,3 +178,20 @@ support RoleTokens as a method for centralized authorization
 checks. It allows a client that retrieved its Role Token from
 ZTS Server to submit to ZMS Server for centralized authorization
 check.
+
+### LDAP Authority
+------------------
+
+Class: com.yahoo.athenz.auth.impl.LDAPAuthority
+
+Lightweight Directory Access Protocol (LDAP) authority uses the bind operation 
+to authenticate users. The authentication mechanism used is `simple` where 
+plain text username and passwords are used. The `hostname`, `port number` and `base DN`
+property of the LDAP server needs to be provided. An example of base dn is: 
+ ```
+ LDAP Server Base DN: dc=example,dc=com
+ ```
+
+
+
+
