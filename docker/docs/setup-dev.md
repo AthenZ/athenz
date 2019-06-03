@@ -10,7 +10,6 @@
     - [Build docker images](#build-docker-images)
     - [Deploy ZMS & ZTS with docker stack](#deploy-zms--zts-with-docker-stack)
     - [Prepare ZMS configuration](#prepare-zms-configuration)
-        - [command](#command)
         - [details](#details)
     - [Prepare ZTS configuration based on ZMS configuration](#prepare-zts-configuration-based-on-zms-configuration)
         - [details](#details-1)
@@ -43,6 +42,10 @@ cd ${PROJECT_ROOT}
 mkdir -p `pwd`/docker/logs/zms
 mkdir -p `pwd`/docker/logs/zts
 
+# mount the configuration folder to the docker image and update required files (certificates & key stores) by the script
+docker build -t athenz-setup -f ./docker/setup-scripts/common/Dockerfile ./docker/setup-scripts
+docker run -it  -v `pwd`/docker:/docker --name athenz-setup athenz-setup sh; docker rm athenz-setup
+
 # run athenz
 # P.S. ZTS is not running normally at this state. We will update it in the following section.
 docker stack deploy -c ./docker/docker-stack.yaml athenz
@@ -54,18 +57,6 @@ rm -rf ./docker/logs
 
 <a id="markdown-prepare-zms-configuration" name="prepare-zms-configuration"></a>
 ## Prepare ZMS configuration
-
-<a id="markdown-command" name="command"></a>
-### command
-```bash
-cd ${PROJECT_ROOT}
-
-# build the docker environment for running the script
-docker build -t athenz-setup -f ./docker/setup-scripts/common/Dockerfile ./docker/setup-scripts
-
-# mount the configuration folder to the docker image and update required files by the script
-docker run -it  -v `pwd`/docker:/docker --name athenz-setup athenz-setup sh; docker rm athenz-setup
-```
 
 <a id="markdown-details" name="details"></a>
 ### details
@@ -176,6 +167,7 @@ docker run -it  -v `pwd`/docker:/docker --name athenz-setup athenz-setup sh; doc
 
 <a id="markdown-setup-zms-for-zts" name="setup-zms-for-zts"></a>
 ### setup ZMS for ZTS
+[register-ZTS-to-ZMS.sh](../register-ZTS-to-ZMS.sh)
 ```bash
 cd ${PROJECT_ROOT}
 
@@ -257,4 +249,3 @@ docker run -d -h localhost \
     -e UI_SERVER=`hostname` \
     --name athenz-ui athenz-ui
 ```
-
