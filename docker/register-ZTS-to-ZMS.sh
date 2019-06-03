@@ -5,6 +5,8 @@ cd "$(dirname "$0")"
 
 ZMS_CONTAINER=`docker ps -aqf "name=zms-server"`
 
+# add linux-pam and admin user for Athenz
+docker exec $ZMS_CONTAINER apk add --no-cache --update openssl linux-pam
 docker exec $ZMS_CONTAINER addgroup -S athenz-admin
 docker exec $ZMS_CONTAINER adduser -s /sbin/nologin -G athenz-admin -S -D -H admin
 docker exec $ZMS_CONTAINER sh -c 'echo "admin:12345678" | chpasswd'
