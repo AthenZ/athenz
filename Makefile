@@ -1,8 +1,8 @@
 build-docker:
 	docker build -t rdl-athenz-server -f docker/util/rdl-athenz-server/Dockerfile rdl/rdl-gen-athenz-server
 	docker build -t athenz-builder -f docker/util/athenz-builder/Dockerfile .
-	docker build -t athenz-zms -f docker/zms/Dockerfile .
-	docker build -t athenz-zts -f docker/zts/Dockerfile .
+	docker build -t athenz-zms-server -f docker/zms/Dockerfile .
+	docker build -t athenz-zts-server -f docker/zts/Dockerfile .
 	docker build -t athenz-ui -f docker/ui/Dockerfile ui
 	docker build -t athenz-zms-db -f docker/db/zms/Dockerfile servers/zms/schema
 	docker build -t athenz-zts-db -f docker/db/zts/Dockerfile servers/zts/schema
@@ -25,13 +25,13 @@ run-docker:
 		-v `pwd`/docker/zms/conf:/opt/athenz/zms/conf/zms_server \
 		-v `pwd`/docker/zms/var:/opt/athenz/zms/var \
 		-v `pwd`/docker/logs/zms:/opt/athenz/zms/logs/zms_server \
-		--name athenz-zms-server athenz-zms
+		--name athenz-zms-server athenz-zms-server
 	docker run -d -h localhost \
 		--network=host -p 8443 \
 		-v `pwd`/docker/zts/conf:/opt/athenz/zts/conf/zts_server \
 		-v `pwd`/docker/zts/var:/opt/athenz/zts/var \
 		-v `pwd`/docker/logs/zts:/opt/athenz/zts/logs/zts_server \
-		--name athenz-zts-server athenz-zts
+		--name athenz-zts-server athenz-zts-server
 	# docker run -d -h localhost \
 	# 	--network=host -p 443 \
 	# 	-v `pwd`/docker/zts/conf/athenz.conf:/opt/athenz/ui/config/athenz.conf \
