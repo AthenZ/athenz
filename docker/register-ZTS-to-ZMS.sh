@@ -16,7 +16,7 @@ docker run --name athenz-zms-cli athenz-zms-cli version; docker rm athenz-zms-cl
 
 # clear stdin (optional)
 sleep 1
-read -N 10000000 -t 0.01
+while read -r -t 0; do read -r; done
 
 # confirm the target user belongs to the admin role
 docker run -it --net=host \
