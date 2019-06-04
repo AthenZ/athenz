@@ -1,4 +1,4 @@
-[mysqld] 
+[mysqld]
 port=3307
 innodb_file_format=Barracuda
 innodb_file_per_table=ON
