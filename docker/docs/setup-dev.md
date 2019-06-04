@@ -40,7 +40,14 @@ cd ${PROJECT_ROOT}
 
 # mount the configuration folder to the docker image and update required files (certificates & key stores) by the script
 docker build -t athenz-setup -f ./docker/setup-scripts/common/Dockerfile ./docker/setup-scripts
-docker run -it  -v `pwd`/docker:/docker --name athenz-setup athenz-setup sh; docker rm athenz-setup
+docker run -it  -v `pwd`/docker:/docker \
+    -e ZMS_PK_PASS=${ZMS_PK_PASS:-athenz} \
+    -e ZMS_KEYSTORE_PASS=${ZMS_KEYSTORE_PASS:-athenz} \
+    -e ZTS_PK_PASS=${ZTS_PK_PASS:-athenz} \
+    -e ZTS_KEYSTORE_PASS=${ZTS_KEYSTORE_PASS:-athenz} \
+    -e ZTS_TRUSTSTORE_PASS=${ZTS_TRUSTSTORE_PASS:-athenz} \
+    -e UI_PK_PASS=${UI_PK_PASS:-athenz} \
+    --name athenz-setup athenz-setup; docker rm athenz-setup;
 
 # create folder for log files
 mkdir -p `pwd`/docker/logs/zms
@@ -109,7 +116,7 @@ rm -rf ./docker/logs
 <a id="markdown-details-1" name="details-1"></a>
 ### details
 1. ZTS database configuration
-    
+  
     1. [zts-db.cnf](../db/zts/zts-db.cnf)
 1. ZTS service key pair
     1. [zts_private.pem](../zts/var/keys/zts_private.pem)
