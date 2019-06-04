@@ -42,9 +42,9 @@ public class InstanceCertManager {
     private ScheduledExecutorService scheduledExecutor;
     private List<IPBlock> certRefreshIPBlocks;
     private Map<String, List<IPBlock>> instanceCertIPBlocks;
-    private String caX509CertificateSigner = null;
-    private String sshUserCertificateSigner = null;
-    private String sshHostCertificateSigner = null;
+    private String caX509CertificateSigner;
+    private String sshUserCertificateSigner;
+    private String sshHostCertificateSigner;
     private ObjectMapper jsonMapper;
 
     public InstanceCertManager(final PrivateKeyStore keyStore, Authorizer authorizer,
@@ -73,13 +73,12 @@ public class InstanceCertManager {
         
         loadCertificateObjectStore(keyStore);
 
-        // check to see if we have been provided with a x.509 certificate
-        // bundle or we need to fetch one from the cert signed
+        // check to see if we have been provided with a x.509/ssh certificate
+        // bundle or we need to fetch one from the certsigner
 
-        if (!loadCAX509CertificateBundle()) {
-            throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
-                    "Unable to load X.509 CA Certificate bundle");
-        }
+        caX509CertificateSigner = loadCertificateBundle(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME);
+        sshUserCertificateSigner = loadCertificateBundle(ZTSConsts.ZTS_PROP_SSH_USER_CA_CERT_FNAME);
+        sshHostCertificateSigner = loadCertificateBundle(ZTSConsts.ZTS_PROP_SSH_HOST_CA_CERT_FNAME);
 
         // load our allowed cert refresh and instance register ip blocks
         
@@ -229,20 +228,20 @@ public class InstanceCertManager {
         return data;
     }
 
-    boolean loadCAX509CertificateBundle() {
+    String loadCertificateBundle(final String propertyName) {
 
-        final String caFileName = System.getProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME);
+        final String caFileName = System.getProperty(propertyName);
         if (caFileName == null || caFileName.isEmpty()) {
-            return true;
+            return null;
         }
 
         byte[] data = readFileContents(caFileName);
         if (data == null) {
-            return false;
+            throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
+                    "Unable to load Certificate bundle from: " + caFileName);
         }
 
-        caX509CertificateSigner = new String(data);
-        return true;
+        return new String(data);
     }
 
     boolean loadAllowedIPAddresses(List<IPBlock> ipBlocks, final String ipAddressFileName) {
