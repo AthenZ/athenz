@@ -610,16 +610,21 @@ public class InstanceCertManagerTest {
         InstanceCertManager instance = new InstanceCertManager(null, null, true);
         instance.setCertSigner(null);
 
-        assertTrue(instance.loadCAX509CertificateBundle());
+        assertNull(instance.loadCertificateBundle("unknown_propery"));
 
         System.setProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME, "");
-        assertTrue(instance.loadCAX509CertificateBundle());
+        assertNull(instance.loadCertificateBundle(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME));
 
         System.setProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME, "non-existent-file");
-        assertFalse(instance.loadCAX509CertificateBundle());
+        try {
+            instance.loadCertificateBundle(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(500, ex.getCode());
+        }
 
         System.setProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME, "src/test/resources/valid_cn_x509.cert");
-        assertTrue(instance.loadCAX509CertificateBundle());
+        assertNotNull(instance.loadCertificateBundle(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME));
         System.clearProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME);
         instance.shutdown();
     }
@@ -692,7 +697,7 @@ public class InstanceCertManagerTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(500, ex.getCode());
-            assertTrue(ex.getMessage().contains("Unable to load X.509 CA Certificate bundle"));
+            assertTrue(ex.getMessage().contains("Unable to load Certificate bundle from: invalid-file"));
         }
         System.clearProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME);
     }
