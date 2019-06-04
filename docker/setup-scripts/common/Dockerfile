@@ -1,4 +1,4 @@
-FROM alpine
+FROM openjdk:8-jre-alpine
 
 # install openssl
 RUN apk add --no-cache --update openssl
