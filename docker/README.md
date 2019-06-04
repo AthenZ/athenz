@@ -38,6 +38,8 @@ mysql -v -u root --password=mariadb --host=127.0.0.1 --port=3307
     1.  configurable listering port
 -   ZTS
     1.  `docker/zts/var/zts_store/` create as root user by docker for storing policy
+-   ZTS-DB
+    1.  `DEFAULT CHARSET = latin1`
 -   athenz-cli
     -   build with separated docker files
 -   common
