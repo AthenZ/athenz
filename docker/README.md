@@ -5,6 +5,16 @@
 ## useful commands
 
 ```bash
+
+mkdir -p `pwd`/docker/logs/zms
+mkdir -p `pwd`/docker/logs/zts
+docker stack deploy -c ./docker/docker-stack.yaml athenz
+
+docker stack rm athenz
+rm -rf ./docker/logs
+
+# ---
+
 docker stack ps athenz
 less ./docker/logs/zms/server.log
 less ./docker/logs/zts/server.log
@@ -26,6 +36,8 @@ mysql -v -u root --password=mariadb --host=127.0.0.1 --port=3307
 -   UI
     1.  convert `default-config.js` parameters to ENV
     1.  configurable listering port
+-   ZTS
+    1.  `docker/zts/var/zts_store/` create as root user by docker for storing policy
 -   athenz-cli
     -   build with separated docker files
 -   common
