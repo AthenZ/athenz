@@ -4,12 +4,13 @@
 cd "$(dirname "$0")"
 
 ZMS_CONTAINER=`docker ps -aqf "name=zms-server"`
+ZMS_ADMIN_PASS=${ZMS_ADMIN_PASS:-replace_me_with_a_strong_passowrd}
 
 # add linux-pam and admin user for Athenz
 docker exec $ZMS_CONTAINER apk add --no-cache --update openssl linux-pam
 docker exec $ZMS_CONTAINER addgroup -S athenz-admin
 docker exec $ZMS_CONTAINER adduser -s /sbin/nologin -G athenz-admin -S -D -H admin
-docker exec $ZMS_CONTAINER sh -c 'echo "admin:12345678" | chpasswd'
+docker exec $ZMS_CONTAINER -e ZMS_ADMIN_PASS=${ZMS_ADMIN_PASS} sh -c 'echo "admin:${ZMS_ADMIN_PASS}" | chpasswd'
 
 # confirm zms version
 docker run --name athenz-zms-cli athenz-zms-cli version; docker rm athenz-zms-cli

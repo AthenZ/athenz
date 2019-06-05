@@ -3,6 +3,7 @@ FROM maven:3-alpine AS mvn
 RUN mvn -v
 COPY . .
 RUN mvn help:evaluate -Dexpression=project.version -q -DforceStdout > PKG_VERSION
+# RUN cat pom.xml | grep "<version>.*</version>" | head -1 | awk -F'[><]' '{print $3}'
 
 FROM golang:1.12-alpine AS builder
 

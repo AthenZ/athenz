@@ -55,6 +55,8 @@ mkdir -p `pwd`/docker/logs/zts
 
 # run athenz
 # P.S. ZTS is not running normally at this state. We will update it in the following section.
+export ZMS_MYSQL_ROOT_PASSWORD=${ZMS_MYSQL_ROOT_PASSWORD:-mariadb}
+export ZTS_MYSQL_ROOT_PASSWORD=${ZTS_MYSQL_ROOT_PASSWORD:-mariadb}
 docker stack deploy -c ./docker/docker-stack.yaml athenz
 
 # stop athenz
@@ -180,10 +182,11 @@ cd ${PROJECT_ROOT}
 
 # requirement: ZMS is running
 
-# 1. add ZTS service public key to ZMS (admin user password is set to 12345678)
+# 1. add ZTS service public key to ZMS (if not specified, admin user password is set to `replace_me_with_a_strong_passowrd`)
+export ZMS_ADMIN_PASS=${ZMS_ADMIN_PASS:-replace_me_with_a_strong_passowrd}
 sh ./docker/register-ZTS-to-ZMS.sh
 
-# 2. generate athenz.conf for ZTS (admin user password: 12345678)
+# 2. generate athenz.conf for ZTS (admin user password: `ZMS_ADMIN_PASS`)
 docker run -it --network=host \
     -v `pwd`/docker/zts/conf/athenz.conf:/tmp/athenz.conf \
     --name athenz-cli-util athenz-cli-util \
@@ -217,7 +220,7 @@ docker service update --force $ZTS_SERVICE
 ```bash
 cd ${PROJECT_ROOT}
 
-# requirement: ZMS is running (admin user password: 12345678)
+# requirement: ZMS is running (admin user password: `ZMS_ADMIN_PASS`)
 
 # 1. add athenz.ui-server service to ZMS
 docker run -it --net=host \
