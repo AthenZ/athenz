@@ -28,12 +28,18 @@ run-docker:
 		-e ZMS_JDBC_PASSWORD=${ZMS_JDBC_PASSWORD} \
 		-e ZMS_SSL_KEY_STORE_PASSWORD=${ZMS_SSL_KEY_STORE_PASSWORD} \
 		--name athenz-zms-server athenz-zms
-	# docker run -d -h localhost \
-	# 	--network=host -p 8443 \
-	# 	-v `pwd`/docker/zts/conf:/opt/athenz/zts/conf/zts_server \
-	# 	-v `pwd`/docker/zts/var:/opt/athenz/zts/var \
-	# 	-v `pwd`/docker/logs/zts:/opt/athenz/zts/logs/zts_server \
-	# 	--name athenz-zts-server athenz-zts
+	docker run -d -h localhost \
+		--network=host -p 8443 \
+		-v `pwd`/docker/zts/conf:/opt/athenz/zts/conf/zts_server \
+		-v `pwd`/docker/zts/var:/opt/athenz/zts/var \
+		-v `pwd`/docker/logs/zts:/opt/athenz/zts/logs/zts_server \
+		-e ZTS_CERT_JDBC_PASSWORD=${ZTS_CERT_JDBC_PASSWORD} \
+		-e ZTS_SELF_SIGNER_PRIVATE_KEY_PASSWORD=${ZTS_SELF_SIGNER_PRIVATE_KEY_PASSWORD} \
+		-e ZTS_ZTS_SSL_KEY_STORE_PASSWORD=${ZTS_ZTS_SSL_KEY_STORE_PASSWORD} \
+		-e ZTS_ZTS_SSL_TRUST_STORE_PASSWORD=${ZTS_ZTS_SSL_TRUST_STORE_PASSWORD} \
+		-e ZTS_SSL_KEY_STORE_PASSWORD=${ZTS_SSL_KEY_STORE_PASSWORD} \
+		-e ZTS_SSL_TRUST_STORE_PASSWORD=${ZTS_SSL_TRUST_STORE_PASSWORD} \
+		--name athenz-zts-server athenz-zts
 	# docker run -d -h localhost \
 	# 	--network=host -p 443 \
 	# 	-v `pwd`/docker/zts/conf/athenz.conf:/opt/athenz/ui/config/athenz.conf \

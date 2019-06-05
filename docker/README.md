@@ -21,6 +21,14 @@ less ./docker/logs/zts/server.log
 
 sudo systemctl restart docker
 
+# remove single docker
+docker stop athenz-zms-server; docker rm athenz-zms-server; sudo rm -f ./docker/logs/zms/server.log
+docker stop athenz-zts-server; docker rm athenz-zts-server; sudo rm -f ./docker/logs/zts/server.log
+
+# inspect
+docker inspect athenz-zms-server | less
+docker inspect athenz-zts-server | less
+
 # check connectivity
 apk add curl
 curl localhost:4443/zms/v1 -o -
@@ -28,12 +36,13 @@ curl localhost:3306 -o -
 telnet localhost 4443
 
 # mysql
-mysql -v -u root --password=mariadb --host=127.0.0.1 --port=3306
-mysql -v -u root --password=mariadb --host=127.0.0.1 --port=3307
+mysql -v -u root --password=${ZMS_JDBC_PASSWORD} --host=127.0.0.1 --port=3306
+mysql -v -u root --password=${ZTS_CERT_JDBC_PASSWORD} --host=127.0.0.1 --port=3307
 
 # keytool
 keytool -list -keystore docker/zms/var/certs/zms_keystore.pkcs12
 keytool -list -keystore docker/zts/var/certs/zts_truststore.jks
+keytool -list -keystore docker/zts/var/certs/zts_keystore.pkcs12
 ```
 ## TO-DO
 
