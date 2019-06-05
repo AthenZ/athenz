@@ -10,7 +10,7 @@ services:
   zms-db:
     image: athenz-zms-db
     environment:
-      MYSQL_ROOT_PASSWORD: ${ZMS_MYSQL_ROOT_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${ZMS_JDBC_PASSWORD}
     ports:
       - target: 3306
         published: 3306
@@ -30,7 +30,7 @@ services:
   zts-db:
     image: athenz-zts-db
     environment:
-      MYSQL_ROOT_PASSWORD: ${ZTS_MYSQL_ROOT_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${ZTS_CERT_JDBC_PASSWORD}
     ports:
       - target: 3307
         published: 3307
@@ -52,6 +52,10 @@ services:
     image: athenz-zms
     depends_on:
       - zms-db
+    environment:
+      ZMS_JDBC_PASSWORD: ${ZMS_JDBC_PASSWORD}
+      ZMS_SSL_KEY_STORE_PASSWORD: ${ZMS_SSL_KEY_STORE_PASSWORD}
+      ZMS_SSL_TRUST_STORE_PASSWORD: ${ZMS_SSL_TRUST_STORE_PASSWORD}
     ports:
       - target: 4443
         published: 4443
@@ -75,6 +79,13 @@ services:
     depends_on:
       - zts-db
       - zms-server
+    environment:
+      ZTS_CERT_JDBC_PASSWORD: ${ZTS_CERT_JDBC_PASSWORD}
+      ZTS_SELF_SIGNER_PRIVATE_KEY_PASSWORD: ${ZTS_SELF_SIGNER_PRIVATE_KEY_PASSWORD}
+      ZTS_ZTS_SSL_KEY_STORE_PASSWORD: ${ZTS_ZTS_SSL_KEY_STORE_PASSWORD}
+      ZTS_ZTS_SSL_TRUST_STORE_PASSWORD: ${ZTS_ZTS_SSL_TRUST_STORE_PASSWORD}
+      ZTS_SSL_KEY_STORE_PASSWORD: ${ZTS_SSL_KEY_STORE_PASSWORD}
+      ZTS_SSL_TRUST_STORE_PASSWORD: ${ZTS_SSL_TRUST_STORE_PASSWORD}
     ports:
       - target: 8443
         published: 8443

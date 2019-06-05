@@ -38,14 +38,26 @@ make build-docker
 ```bash
 cd ${PROJECT_ROOT}
 
+# prepare passwords \
+export ZMS_PK_PASS=${ZMS_PK_PASS:-athenz}
+export ZMS_SSL_KEY_STORE_PASSWORD=${ZMS_SSL_KEY_STORE_PASSWORD:-athenz}
+export ZMS_JDBC_PASSWORD=${ZMS_JDBC_PASSWORD:-mariadb}
+export ZTS_PK_PASS=${ZTS_PK_PASS:-athenz}
+export ZTS_SSL_KEY_STORE_PASSWORD=${ZTS_SSL_KEY_STORE_PASSWORD:-athenz}
+export ZTS_SSL_TRUST_STORE_PASSWORD=${ZTS_SSL_TRUST_STORE_PASSWORD:-athenz}
+export ZTS_ZTS_SSL_KEY_STORE_PASSWORD=${ZTS_SSL_KEY_STORE_PASSWORD}
+export ZTS_ZTS_SSL_TRUST_STORE_PASSWORD=${ZTS_SSL_TRUST_STORE_PASSWORD}
+export ZTS_CERT_JDBC_PASSWORD=${ZTS_CERT_JDBC_PASSWORD:-mariadb}
+export UI_PK_PASS=${UI_PK_PASS:-athenz}
+
 # mount the configuration folder to the docker image and update required files (certificates & key stores) by the script
 docker build -t athenz-setup -f ./docker/setup-scripts/common/Dockerfile ./docker/setup-scripts
 docker run -it  -v `pwd`/docker:/docker \
     -e ZMS_PK_PASS=${ZMS_PK_PASS:-athenz} \
-    -e ZMS_KEYSTORE_PASS=${ZMS_KEYSTORE_PASS:-athenz} \
+    -e ZMS_SSL_KEY_STORE_PASSWORD=${ZMS_SSL_KEY_STORE_PASSWORD:-athenz} \
     -e ZTS_PK_PASS=${ZTS_PK_PASS:-athenz} \
-    -e ZTS_KEYSTORE_PASS=${ZTS_KEYSTORE_PASS:-athenz} \
-    -e ZTS_TRUSTSTORE_PASS=${ZTS_TRUSTSTORE_PASS:-athenz} \
+    -e ZTS_SSL_KEY_STORE_PASSWORD=${ZTS_SSL_KEY_STORE_PASSWORD:-athenz} \
+    -e ZTS_SSL_TRUST_STORE_PASSWORD=${ZTS_SSL_TRUST_STORE_PASSWORD:-athenz} \
     -e UI_PK_PASS=${UI_PK_PASS:-athenz} \
     --name athenz-setup athenz-setup; docker rm athenz-setup;
 
@@ -55,8 +67,6 @@ mkdir -p `pwd`/docker/logs/zts
 
 # run athenz
 # P.S. ZTS is not running normally at this state. We will update it in the following section.
-export ZMS_MYSQL_ROOT_PASSWORD=${ZMS_MYSQL_ROOT_PASSWORD:-mariadb}
-export ZTS_MYSQL_ROOT_PASSWORD=${ZTS_MYSQL_ROOT_PASSWORD:-mariadb}
 docker stack deploy -c ./docker/docker-stack.yaml athenz
 
 # stop athenz
@@ -86,7 +96,7 @@ rm -rf ./docker/logs
         athenz.zms.object_store_factory_class=com.yahoo.athenz.zms.store.impl.JDBCObjectStoreFactory
         athenz.zms.jdbc_store=jdbc:mysql://localhost:3306/zms_server
         athenz.zms.jdbc_user=root
-        athenz.zms.jdbc_password=mariadb
+        #athenz.zms.jdbc_password=mariadb
         ```
     1. [user authentication](../zms/conf/zms.properties#L10-L12)
         ```properties
@@ -106,10 +116,10 @@ rm -rf ./docker/logs
         ```properties
         athenz.ssl_key_store=/opt/athenz/zms/var/certs/zms_keystore.pkcs12
         athenz.ssl_key_store_type=PKCS12
-        athenz.ssl_key_store_password=athenz
-        # athenz.ssl_trust_store=
-        # athenz.ssl_trust_store_type=
-        # athenz.ssl_trust_store_password=
+        #athenz.ssl_key_store_password=athenz
+        #athenz.ssl_trust_store=
+        #athenz.ssl_trust_store_type=
+        #athenz.ssl_trust_store_password=
         ```
 
 <a id="markdown-prepare-zts-configuration-based-on-zms-configuration" name="prepare-zts-configuration-based-on-zms-configuration"></a>
@@ -137,7 +147,7 @@ rm -rf ./docker/logs
         athenz.zts.cert_record_store_factory_class=com.yahoo.athenz.zts.cert.impl.JDBCCertRecordStoreFactory
         athenz.zts.cert_jdbc_store=jdbc:mysql://localhost:3307/zts_store
         athenz.zts.cert_jdbc_user=root
-        athenz.zts.cert_jdbc_password=mariadb
+        #athenz.zts.cert_jdbc_password=mariadb
         ```
     1. [user authentication](../zts/conf/zts.properties#L10-L12)
         ```properties
@@ -153,22 +163,32 @@ rm -rf ./docker/logs
         athenz.zts.self_signer_private_key_fname=/opt/athenz/zts/var/keys/zts_private.pem
         # athenz.zts.self_signer_private_key_password=
         # athenz.zts.self_signer_cert_dn=cn=Self Signed Athenz CA,o=Athenz,c=US
-
         athenz.zts.cert_signer_factory_class=com.yahoo.athenz.zts.cert.impl.SelfCertSignerFactory
         ```
-1. `athenz.properties`
-    1. [trust store and key store settings](../zts/conf/athenz.properties#L28-L51)
+    1. [ZTS client TLS config](../zts/conf/zts.properties#L28-L51)
         ```properties
         athenz.zts.ssl_key_store=/opt/athenz/zts/var/certs/zts_keystore.pkcs12
         athenz.zts.ssl_key_store_type=PKCS12
-        athenz.zts.ssl_key_store_password=athenz
-
+        #athenz.zts.ssl_key_store_password=athenz
+    
         athenz.zts.ssl_trust_store=/opt/athenz/zts/var/certs/zts_truststore.jks
         javax.net.ssl.trustStore=/opt/athenz/zts/var/certs/zts_truststore.jks
         athenz.zts.ssl_trust_store_type=JKS
         javax.net.ssl.trustStoreType=JKS
-        athenz.zts.ssl_trust_store_password=athenz
-        javax.net.ssl.trustStorePassword=athenz
+        #athenz.zts.ssl_trust_store_password=athenz
+        #javax.net.ssl.trustStorePassword=athenz
+        ```
+1. `athenz.properties`
+  
+    1. [trust store and key store settings](../zts/conf/athenz.properties#L28-L47)
+        ```properties
+        athenz.ssl_key_store=/opt/athenz/zts/var/certs/zts_keystore.pkcs12
+        athenz.ssl_key_store_type=PKCS12
+        #athenz.ssl_key_store_password=athenz
+    
+        athenz.ssl_trust_store=/opt/athenz/zts/var/certs/zts_truststore.jks
+        athenz.ssl_trust_store_type=JKS
+        #athenz.ssl_trust_store_password=athenz
         ```
 1. `athenz.conf`
     1. [ZMS URL](../zts/conf/athenz.conf#L2)

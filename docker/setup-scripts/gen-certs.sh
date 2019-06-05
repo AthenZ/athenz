@@ -6,10 +6,10 @@ cd ./docker
 
 # resolve passwords from environment
 ZMS_PK_PASS=${ZMS_PK_PASS:-athenz}
-ZMS_KEYSTORE_PASS=${ZMS_KEYSTORE_PASS:-athenz}
+ZMS_SSL_KEY_STORE_PASSWORD=${ZMS_SSL_KEY_STORE_PASSWORD:-athenz}
 ZTS_PK_PASS=${ZTS_PK_PASS:-athenz}
-ZTS_KEYSTORE_PASS=${ZTS_KEYSTORE_PASS:-athenz}
-ZTS_TRUSTSTORE_PASS=${ZTS_TRUSTSTORE_PASS:-athenz}
+ZTS_SSL_KEY_STORE_PASSWORD=${ZTS_SSL_KEY_STORE_PASSWORD:-athenz}
+ZTS_SSL_TRUST_STORE_PASSWORD=${ZTS_SSL_TRUST_STORE_PASSWORD:-athenz}
 UI_PK_PASS=${UI_PK_PASS:-athenz}
 
 # -------------------------------- ZMS --------------------------------
@@ -22,7 +22,7 @@ ZMS_KEYSTORE_PATH='./zms/var/certs/zms_keystore.pkcs12'
 # create ZMS certificate
 openssl req -new -extensions v3_req -config ${ZMS_CERT_CONFIG_PATH} -keyout ${ZMS_PK_PATH} -passout "pass:${ZMS_PK_PASS}" | openssl req -x509 -extensions v3_req -days 365 -config ${ZMS_CERT_CONFIG_PATH} -key ${ZMS_PK_PATH} -passin "pass:${ZMS_PK_PASS}" -in /dev/stdin -out ${ZMS_CERT_OUT_PATH}
 # create ZMS keystore
-openssl pkcs12 -export -noiter -out ${ZMS_KEYSTORE_PATH} -passout "pass:${ZMS_KEYSTORE_PASS}" -in ${ZMS_CERT_OUT_PATH} -inkey ${ZMS_PK_PATH} -passin "pass:${ZMS_PK_PASS}"
+openssl pkcs12 -export -noiter -out ${ZMS_KEYSTORE_PATH} -passout "pass:${ZMS_SSL_KEY_STORE_PASSWORD}" -in ${ZMS_CERT_OUT_PATH} -inkey ${ZMS_PK_PATH} -passin "pass:${ZMS_PK_PASS}"
 
 # -------------------------------- ZTS --------------------------------
 
@@ -35,10 +35,10 @@ ZTS_TRUSTSTORE_PATH='./zts/var/certs/zts_truststore.jks'
 # create ZTS certificate
 openssl req -new -extensions v3_req -config ${ZTS_CERT_CONFIG_PATH} -keyout ${ZTS_PK_PATH} -passout "pass:${ZTS_PK_PASS}" | openssl req -x509 -extensions v3_req -days 365 -config ${ZTS_CERT_CONFIG_PATH} -key ${ZTS_PK_PATH} -passin "pass:${ZTS_PK_PASS}" -in /dev/stdin -out ${ZTS_CERT_OUT_PATH}
 # create ZTS keystore
-openssl pkcs12 -export -noiter -out ${ZTS_KEYSTORE_PATH} -passout "pass:${ZTS_KEYSTORE_PASS}" -in ${ZTS_CERT_OUT_PATH} -inkey ${ZTS_PK_PATH} -passin "pass:${ZTS_PK_PASS}"
+openssl pkcs12 -export -noiter -out ${ZTS_KEYSTORE_PATH} -passout "pass:${ZTS_SSL_KEY_STORE_PASSWORD}" -in ${ZTS_CERT_OUT_PATH} -inkey ${ZTS_PK_PATH} -passin "pass:${ZTS_PK_PASS}"
 # create ZTS truststore
 rm -f ${ZTS_TRUSTSTORE_PATH}
-keytool -importcert -noprompt -alias zms -keystore ${ZTS_TRUSTSTORE_PATH} -file ${ZMS_CERT_OUT_PATH} -storepass "${ZTS_TRUSTSTORE_PASS}"
+keytool -importcert -noprompt -alias zms -keystore ${ZTS_TRUSTSTORE_PATH} -file ${ZMS_CERT_OUT_PATH} -storepass "${ZTS_SSL_TRUST_STORE_PASSWORD}"
 
 # prepare ZTS service public key (also used for certificate signing in dev env.)
 ZTS_SIGN_PRIVATE_KEY_PATH='./zts/var/keys/zts_private.pem'

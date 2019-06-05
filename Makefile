@@ -20,18 +20,18 @@ run-docker:
 		-v `pwd`/docker/db/zts/zts-db.cnf:/etc/mysql/conf.d/zts-db.cnf \
 		-e MYSQL_ROOT_PASSWORD=mariadb \
 		--name athenz-zts-db athenz-zts-db
-	docker run -d -h localhost \
-		--network=host -p 4443 \
-		-v `pwd`/docker/zms/conf:/opt/athenz/zms/conf/zms_server \
-		-v `pwd`/docker/zms/var:/opt/athenz/zms/var \
-		-v `pwd`/docker/logs/zms:/opt/athenz/zms/logs/zms_server \
-		--name athenz-zms-server athenz-zms
-	docker run -d -h localhost \
-		--network=host -p 8443 \
-		-v `pwd`/docker/zts/conf:/opt/athenz/zts/conf/zts_server \
-		-v `pwd`/docker/zts/var:/opt/athenz/zts/var \
-		-v `pwd`/docker/logs/zts:/opt/athenz/zts/logs/zts_server \
-		--name athenz-zts-server athenz-zts
+	# docker run -d -h localhost \
+	# 	--network=host -p 4443 \
+	# 	-v `pwd`/docker/zms/conf:/opt/athenz/zms/conf/zms_server \
+	# 	-v `pwd`/docker/zms/var:/opt/athenz/zms/var \
+	# 	-v `pwd`/docker/logs/zms:/opt/athenz/zms/logs/zms_server \
+	# 	--name athenz-zms-server athenz-zms
+	# docker run -d -h localhost \
+	# 	--network=host -p 8443 \
+	# 	-v `pwd`/docker/zts/conf:/opt/athenz/zts/conf/zts_server \
+	# 	-v `pwd`/docker/zts/var:/opt/athenz/zts/var \
+	# 	-v `pwd`/docker/logs/zts:/opt/athenz/zts/logs/zts_server \
+	# 	--name athenz-zts-server athenz-zts
 	# docker run -d -h localhost \
 	# 	--network=host -p 443 \
 	# 	-v `pwd`/docker/zts/conf/athenz.conf:/opt/athenz/ui/config/athenz.conf \

@@ -38,6 +38,7 @@ mysql -v -u root --password=mariadb --host=127.0.0.1 --port=3307
     1.  configurable listering port
 -   ZMS
     1.  NO retry on DB connection error
+    1.  `Loading class `com.mysql.jdbc.Driver'. This is deprecated. The new driver class is `com.mysql.cj.jdbc.Driver'. The driver is automatically registered via the SPI and manual loading of the driver class is generally unnecessary.`
 -   ZTS
     1.  `docker/zts/var/zts_store/` create as root user by docker for storing policy
 -   ZTS-DB
