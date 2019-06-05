@@ -30,6 +30,9 @@ telnet localhost 4443
 # mysql
 mysql -v -u root --password=mariadb --host=127.0.0.1 --port=3306
 mysql -v -u root --password=mariadb --host=127.0.0.1 --port=3307
+
+# keytool
+keytool -list -keystore docker/zts/var/certs/zts_truststore.jks
 ```
 ## TO-DO
 
