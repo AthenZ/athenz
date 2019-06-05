@@ -53,7 +53,7 @@ host that will be running the ZTS Server. For the `zms-public-cert-path`
 argument below pass the full path of the zms_cert.pem.
 
 ```shell
-$ cd athenz-zms-X.Y
+$ cd athenz-zts-X.Y
 $ bin/setup_dev_zts.sh <zms-hostname> <zms-public-cert-path>
 ```
 
@@ -96,4 +96,3 @@ Stop the ZTS Server by executing:
 $ cd athenz-zts-X.Y
 $ bin/zts stop
 ```
-
