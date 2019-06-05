@@ -108,3 +108,4 @@ clients/nodejs/zpe/package-lock.json
 clients/nodejs/zts/package-lock.json
 libs/nodejs/auth_core/package-lock.json
 ui/package-lock.json
+.envrc

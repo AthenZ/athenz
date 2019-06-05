@@ -1146,9 +1146,38 @@ public class ZMSImplTest {
         Domain resDom2 = zms.getDomain(mockDomRsrcCtx, "AddSubDom1.AddSubDom2");
         assertNotNull(resDom2);
 
+        assertFalse(resDom2.getAuditEnabled());
+
         zms.deleteSubDomain(mockDomRsrcCtx, "AddSubDom1", "AddSubDom2", auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "AddSubDom1", auditRef);
     }
+
+    @Test
+    public void testCreateSubDomainInAuditEnabledParent() {
+
+        TopLevelDomain dom1 = createTopLevelDomainObject("AddSubDom1",
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        DomainMeta meta = createDomainMetaObject("Test Domain1", "testOrg",
+                true, true, "12345", 1001);
+        zms.putDomainMeta(mockDomRsrcCtx, "AddSubDom1", auditRef, meta);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, "AddSubDom1", "auditenabled", auditRef, meta);
+
+        SubDomain dom2 = createSubDomainObject("AddSubDom2", "AddSubDom1",
+                "Test Domain2", "testOrg", adminUser);
+        Domain resDom1 = zms.postSubDomain(mockDomRsrcCtx, "AddSubDom1", auditRef, dom2);
+        assertNotNull(resDom1);
+
+        Domain resDom2 = zms.getDomain(mockDomRsrcCtx, "AddSubDom1.AddSubDom2");
+        assertNotNull(resDom2);
+
+        assertTrue(resDom2.getAuditEnabled());
+
+        zms.deleteSubDomain(mockDomRsrcCtx, "AddSubDom1", "AddSubDom2", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "AddSubDom1", auditRef);
+    }
+
 
     @Test
     public void testCreateUserDomain() {
@@ -1227,7 +1256,7 @@ public class ZMSImplTest {
         
         System.setProperty(ZMSConsts.ZMS_PROP_VIRTUAL_DOMAIN_LIMIT, "5");
         ZMSImpl zmsTest = zmsInit();
-        
+
         SubDomain dom = createSubDomainObject("sub1", "user.user1",
                 "Test Domain2", "testOrg", adminUser);
         Domain resDom = zmsTest.postSubDomain(mockDomRsrcCtx, "user.user1", auditRef, dom);
