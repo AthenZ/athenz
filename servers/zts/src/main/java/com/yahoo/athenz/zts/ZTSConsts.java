@@ -104,6 +104,8 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_X509_CA_CERT_FNAME      = "athenz.zts.x509_ca_cert_fname";
     public static final String ZTS_PROP_SSH_HOST_CA_CERT_FNAME  = "athenz.zts.ssh_host_ca_cert_fname";
     public static final String ZTS_PROP_SSH_USER_CA_CERT_FNAME  = "athenz.zts.ssh_user_ca_cert_fname";
+    public static final String ZTS_PROP_RESP_X509_SIGNER_CERTS  = "athenz.zts.resp_x509_signer_certs";
+    public static final String ZTS_PROP_RESP_SSH_SIGNER_CERTS   = "athenz.zts.resp_ssh_signer_certs";
 
     public static final String DB_PROP_USER               = "user";
     public static final String DB_PROP_PASSWORD           = "password";

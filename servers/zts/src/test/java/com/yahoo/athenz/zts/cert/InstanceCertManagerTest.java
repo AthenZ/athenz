@@ -108,6 +108,29 @@ public class InstanceCertManagerTest {
     }
 
     @Test
+    public void testGetX509CertificateSignerWhenDisabled() {
+
+        System.setProperty(ZTSConsts.ZTS_PROP_RESP_X509_SIGNER_CERTS, "false");
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_FACTORY_CLASS,
+                "com.yahoo.athenz.zts.cert.impl.SelfCertSignerFactory");
+        System.setProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_FNAME,
+                "src/test/resources/private_encrypted.key");
+        System.setProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_PASSWORD, "athenz");
+
+        InstanceCertManager instanceManager = new InstanceCertManager(null, null, false);
+
+        instanceManager.resetX509CertificateSigner();
+        assertNull(instanceManager.getX509CertificateSigner());
+
+        instanceManager.shutdown();
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_RESP_X509_SIGNER_CERTS);
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_FACTORY_CLASS);
+        System.clearProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_FNAME);
+        System.clearProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_PASSWORD);
+    }
+
+    @Test
     public void testGenerateIdentityNullCert() {
         
         CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class);
@@ -321,7 +344,25 @@ public class InstanceCertManagerTest {
         assertEquals(instanceManager.getSSHCertificateSigner("user"), "ssh-user");
         instanceManager.shutdown();
     }
-    
+
+    @Test
+    public void testGetSSHCertificateSignerWhenDisabled() {
+
+        SSHSigner sshSigner = Mockito.mock(com.yahoo.athenz.common.server.ssh.SSHSigner.class);
+        Mockito.when(sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_HOST)).thenReturn("ssh-host");
+        Mockito.when(sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_USER)).thenReturn("ssh-user");
+
+        System.setProperty(ZTSConsts.ZTS_PROP_RESP_SSH_SIGNER_CERTS, "false");
+        InstanceCertManager instanceManager = new InstanceCertManager(null, null, true);
+        instanceManager.setSSHSigner(sshSigner);
+
+        assertNull(instanceManager.getSSHCertificateSigner("host"));
+        assertNull(instanceManager.getSSHCertificateSigner("user"));
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_RESP_SSH_SIGNER_CERTS);
+        instanceManager.shutdown();
+    }
+
     @Test
     public void testGenerateSshIdentityNoSsh() {
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.service");
