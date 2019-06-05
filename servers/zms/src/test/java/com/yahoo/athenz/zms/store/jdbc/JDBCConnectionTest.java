@@ -754,12 +754,14 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.next()).thenReturn(true);
         Mockito.doReturn("role1").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_NAME);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_TRUST);
+        Mockito.doReturn(true).when(mockResultSet).getBoolean(ZMSConsts.DB_COLUMN_AUDIT_ENABLED);
         Mockito.doReturn(new java.sql.Timestamp(1454358916)).when(mockResultSet).getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Role role = jdbcConn.getRole("my-domain", "role1");
         assertNotNull(role);
         assertEquals("my-domain:role.role1", role.getName());
+        assertTrue(role.getAuditEnabled());
         
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "role1");
@@ -813,7 +815,7 @@ public class JDBCConnectionTest {
         
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        Role role = new Role().setName("my-domain:role.role1");
+        Role role = new Role().setName("my-domain:role.role1").setAuditEnabled(true);
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
@@ -826,9 +828,10 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "role1");
         Mockito.verify(mockPrepStmt, times(1)).setInt(2, 5);
         Mockito.verify(mockPrepStmt, times(1)).setString(3, "");
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(4, true);
         jdbcConn.close();
     }
-    
+
     @Test
     public void testInsertRoleInvalidRoleDomain() throws Exception {
         
@@ -908,7 +911,7 @@ public class JDBCConnectionTest {
         
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        Role role = new Role().setName("my-domain:role.role1");
+        Role role = new Role().setName("my-domain:role.role1").setAuditEnabled(true);
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
@@ -925,7 +928,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "role1");
         // update role
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "");
-        Mockito.verify(mockPrepStmt, times(1)).setInt(2, 4);
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(2, true);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(3, 4);
         jdbcConn.close();
     }
     
@@ -952,7 +956,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "role1");
         // update role
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "trust_domain");
-        Mockito.verify(mockPrepStmt, times(1)).setInt(2, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(2, false);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(3, 7);
         jdbcConn.close();
     }
     

@@ -596,6 +596,7 @@ public class FileConnection implements ObjectStoreConnection {
         List<RoleMember> members = role.getRoleMembers();
         if (originalRole != null) {
             role.setRoleMembers(originalRole.getRoleMembers());
+            role.setAuditEnabled(role.getAuditEnabled());
         } else {
             role.setRoleMembers(null);
         }

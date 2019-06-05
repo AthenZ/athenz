@@ -46,6 +46,8 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
@@ -1153,7 +1155,7 @@ public class DBServiceTest {
         Domain domain = new Domain().setAuditEnabled(false);
         Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockFileConn);
         Mockito.when(mockFileConn.getDomain(domainName)).thenReturn(domain);
-        Mockito.when(mockFileConn.updateDomain(ArgumentMatchers.any()))
+        Mockito.when(mockFileConn.updateDomain(any()))
                 .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
 
         ObjectStore saveStore = zms.dbService.store;
@@ -2401,7 +2403,6 @@ public class DBServiceTest {
         
         exc = new ResourceException(ResourceException.GONE, "unit-test");
         assertTrue(dbService.shouldRetryOperation(exc, 2));
-        
         // all others return false
         
         exc = new ResourceException(ResourceException.BAD_REQUEST, "unit-test");
@@ -3587,4 +3588,82 @@ public class DBServiceTest {
 
         assertTrue(zms.dbService.isDeleteSystemMetaAllowed(false, "test", "test"));
     }
+
+    @Test
+    public void testUpdateRoleSystemMetaFields() {
+        Role role = new Role();
+        RoleSystemMeta meta = new RoleSystemMeta()
+                .setAuditEnabled(true);
+        zms.dbService.updateRoleSystemMetaFields(role, "auditenabled", true, meta);
+        assertTrue(role.getAuditEnabled());
+        try {
+            zms.dbService.updateRoleSystemMetaFields(role, "unknown", true, meta);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+    }
+
+    @Test
+    public void testAuditLogRoleSystemMeta() {
+        StringBuilder auditDetails = new StringBuilder();
+        Role role = new Role().setName("role1").setAuditEnabled(true);
+        zms.dbService.auditLogRoleSystemMeta(auditDetails, role);
+        assertEquals("{\"name\": \"role1\", \"auditEnabled\": \"true\"}", auditDetails.toString());
+    }
+
+    @Test
+    public void testExecutePutRoleSystemMeta() {
+
+
+        List<String> admins = new ArrayList<>();
+        admins.add(adminUser);
+
+        zms.dbService.makeDomain(mockDomRsrcCtx, "MetaDom1", "test desc", "testOrg", false, admins, "", 1234, "", null, auditRef);
+
+        Role role = createRoleObject("MetaDom1", "MetaRole1", null, "user.john", "user.jane");
+        zms.dbService.executePutRole(mockDomRsrcCtx, "MetaDom1", "MetaRole1", role, "test", "putrole");
+
+        RoleSystemMeta rsm = new RoleSystemMeta();
+        rsm.setAuditEnabled(true);
+
+        try {
+            zms.dbService.executePutRoleSystemMeta(mockDomRsrcCtx, "MetaDom1", "MetaRole1",
+                    rsm,"auditenabled", true, auditRef, "putrolesystemmeta");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        zms.dbService.executeDeleteDomain(mockDomRsrcCtx, "MetaDom1", auditRef, "deletedomain");
+
+        Domain dom2 = new Domain()
+                .setName("MetaDom2")
+                .setAuditEnabled(true)
+                .setYpmId(1234)
+                .setCertDnsDomain("athenz.cloud");
+
+
+        zms.dbService.makeDomain(mockDomRsrcCtx, "MetaDom2", "test desc", "testOrg", true, admins, "", 1234, "", null, auditRef);
+        DomainMeta meta2 = new DomainMeta()
+                .setAccount("acct")
+                .setYpmId(1234)
+                .setCertDnsDomain("athenz.cloud");
+        zms.dbService.updateSystemMetaFields(dom2, "auditenabled", false, meta2);
+        Role role2 = createRoleObject("MetaDom2", "MetaRole2", null, "user.john", "user.jane");
+        zms.dbService.executePutRole(mockDomRsrcCtx, "MetaDom2", "MetaRole2",role2, "test", "putrole");
+        RoleSystemMeta rsm2 = new RoleSystemMeta();
+        rsm2.setAuditEnabled(true);
+        zms.dbService.executePutRoleSystemMeta(mockDomRsrcCtx, "MetaDom2", "MetaRole2",
+                rsm2,"auditenabled", true, auditRef, "putrolesystemmeta");
+        Role resRole2 = zms.dbService.getRole("MetaDom2", "MetaRole2", false, true);
+
+        assertTrue(resRole2.getAuditEnabled());
+
+        zms.dbService.executeDeleteDomain(mockDomRsrcCtx, "MetaDom2", auditRef, "deletedomain");
+
+
+
+    }
+
 }

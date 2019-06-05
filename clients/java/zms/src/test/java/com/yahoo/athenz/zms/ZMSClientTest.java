@@ -2993,4 +2993,18 @@ public class ZMSClientTest {
             assertEquals(ex.getCode(), 401);
         }
     }
+    @Test
+    public void testPutRoleSystemMeta() {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        RoleSystemMeta meta = new RoleSystemMeta().setAuditEnabled(true);
+        try {
+            Mockito.when(c.putRoleSystemMeta("domain1", "role1", "auditenabled", AUDIT_REF, meta)).thenThrow(new NullPointerException());
+            client.putRoleSystemMeta("domain1", "role1", "auditenabled", AUDIT_REF, meta);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+    }
 }

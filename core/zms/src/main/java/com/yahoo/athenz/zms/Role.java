@@ -27,6 +27,9 @@ public class Role {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public List<RoleAuditLog> auditLog;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Boolean auditEnabled;
 
     public Role setName(String name) {
         this.name = name;
@@ -70,6 +73,13 @@ public class Role {
     public List<RoleAuditLog> getAuditLog() {
         return auditLog;
     }
+    public Role setAuditEnabled(Boolean auditEnabled) {
+        this.auditEnabled = auditEnabled;
+        return this;
+    }
+    public Boolean getAuditEnabled() {
+        return auditEnabled;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -94,6 +104,9 @@ public class Role {
                 return false;
             }
             if (auditLog == null ? a.auditLog != null : !auditLog.equals(a.auditLog)) {
+                return false;
+            }
+            if (auditEnabled == null ? a.auditEnabled != null : !auditEnabled.equals(a.auditEnabled)) {
                 return false;
             }
         }

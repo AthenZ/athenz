@@ -86,8 +86,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN domain ON domain.domain_id=role.domain_id "
             + "WHERE domain.name=? AND role.name=?;";
     private static final String SQL_GET_ROLE_ID = "SELECT role_id FROM role WHERE domain_id=? AND name=?;";
-    private static final String SQL_INSERT_ROLE = "INSERT INTO role (name, domain_id, trust) VALUES (?,?,?);";
-    private static final String SQL_UPDATE_ROLE = "UPDATE role SET trust=? WHERE role_id=?;";
+    private static final String SQL_INSERT_ROLE = "INSERT INTO role (name, domain_id, trust, auditenabled) VALUES (?,?,?,?);";
+    private static final String SQL_UPDATE_ROLE = "UPDATE role SET trust=?,auditenabled=? WHERE role_id=?;";
     private static final String SQL_DELETE_ROLE = "DELETE FROM role WHERE domain_id=? AND name=?;";
     private static final String SQL_UPDATE_ROLE_MOD_TIMESTAMP = "UPDATE role "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE role_id=?;";
@@ -1052,7 +1052,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                 if (rs.next()) {
                     return new Role().setName(ZMSUtils.roleResourceName(domainName, roleName))
                             .setModified(Timestamp.fromMillis(rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime()))
-                            .setTrust(saveValue(rs.getString(ZMSConsts.DB_COLUMN_TRUST)));
+                            .setTrust(saveValue(rs.getString(ZMSConsts.DB_COLUMN_TRUST)))
+                            .setAuditEnabled(rs.getBoolean(ZMSConsts.DB_COLUMN_AUDIT_ENABLED));
                 }
             }
         } catch (SQLException ex) {
@@ -1104,6 +1105,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(1, roleName);
             ps.setInt(2, domainId);
             ps.setString(3, processInsertValue(role.getTrust()));
+            ps.setBoolean(4, processInsertValue(role.getAuditEnabled(), false));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -1134,7 +1136,8 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_ROLE)) {
             ps.setString(1, processInsertValue(role.getTrust()));
-            ps.setInt(2, roleId);
+            ps.setBoolean(2, processInsertValue(role.getAuditEnabled(), false));
+            ps.setInt(3, roleId);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
