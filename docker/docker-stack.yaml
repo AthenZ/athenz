@@ -10,7 +10,7 @@ services:
   zms-db:
     image: athenz-zms-db
     environment:
-      MYSQL_ROOT_PASSWORD: 'mariadb'
+      MYSQL_ROOT_PASSWORD: ${ZMS_MYSQL_ROOT_PASSWORD}
     ports:
       - target: 3306
         published: 3306
@@ -30,7 +30,7 @@ services:
   zts-db:
     image: athenz-zts-db
     environment:
-      MYSQL_ROOT_PASSWORD: 'mariadb'
+      MYSQL_ROOT_PASSWORD: ${ZTS_MYSQL_ROOT_PASSWORD}
     ports:
       - target: 3307
         published: 3307
