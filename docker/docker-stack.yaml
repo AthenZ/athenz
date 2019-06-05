@@ -59,7 +59,6 @@ services:
     environment:
       ZMS_JDBC_PASSWORD: ${ZMS_JDBC_PASSWORD}
       ZMS_SSL_KEY_STORE_PASSWORD: ${ZMS_SSL_KEY_STORE_PASSWORD}
-      ZMS_SSL_TRUST_STORE_PASSWORD: ${ZMS_SSL_TRUST_STORE_PASSWORD}
     ports:
       - target: 4443
         published: 4443
