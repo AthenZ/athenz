@@ -171,3 +171,24 @@ resource DefaultAdmins PUT "/domain/{domainName}/admins" {
         ResourceError TOO_MANY_REQUESTS;
     }
 }
+
+//Set the specified role metadata. Caller must have update privileges on the sys.auth domain.
+//If the system attribute is one of the string attributes, then the caller
+//must also have delete action on the same resource in order to reset the configured value
+resource Role PUT "/domain/{domainName}/role/{roleName}/meta/system/{attribute}" {
+    DomainName domainName; //name of the domain
+    EntityName roleName; //name of the role
+    SimpleName attribute; //name of the system attribute to be modified
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    RoleSystemMeta detail; //RoleSystemMeta object with updated attribute values
+    authorize ("update", "sys.auth:role.meta.{attribute}.{domainName}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}

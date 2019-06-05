@@ -2068,4 +2068,23 @@ public class ZMSClient implements Closeable {
             throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
         }
     }
+
+    /**
+     * Set the role system meta parameters
+     * @param domainName domain name containing the role to be modified
+     * @param roleName role name to be modified
+     * @param attribute role meta attribute being modified in this request
+     * @param auditRef string containing audit specification or ticket number
+     * @param meta meta parameters to be set on the role
+     */
+    public void putRoleSystemMeta(String domainName, String roleName, String attribute, String auditRef, RoleSystemMeta meta) {
+        updatePrincipal();
+        try {
+            client.putRoleSystemMeta(domainName, roleName, attribute, auditRef, meta);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
 }

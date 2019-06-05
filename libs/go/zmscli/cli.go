@@ -526,6 +526,14 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 0 {
 				return cli.DeleteQuota(dn)
 			}
+		case "set-role-audit-enabled":
+			if argc == 2 {
+				auditEnabled, err := strconv.ParseBool(args[1])
+				if err != nil {
+					return nil, err
+				}
+				return cli.SetRoleAuditEnabled(dn, args[0], auditEnabled)
+			}
 		default:
 			return nil, fmt.Errorf("Unrecognized command '%v'. Type 'zms-cli help' to see help information", cmd)
 		}
@@ -1461,6 +1469,17 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("                      :     public-key\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domain_example + " set-quota role=100 policy=50 service=25\n")
+	case "set-role-audit-enabled":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domain_param + " set-role-audit-enabled role audit-enabled\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain that role belongs to\n")
+		}
+		buf.WriteString("   role    : name of the role to be modified\n")
+		buf.WriteString("   audit-enabled : enable/disable audit flag for the role\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domain_example + " set-role-audit-enabled readers true\n")
 	default:
 		if interactive {
 			buf.WriteString("Unknown command. Type 'help' to see available commands")
@@ -1525,6 +1544,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   list-domain-role-members\n")
 	buf.WriteString("   delete-domain-role-member member\n")
 	buf.WriteString("   delete-role role\n")
+	buf.WriteString("   set-role-audit-enabled role audit-enabled\n")
 	buf.WriteString("\n")
 	buf.WriteString(" Service commands:\n")
 	buf.WriteString("   list-service\n")

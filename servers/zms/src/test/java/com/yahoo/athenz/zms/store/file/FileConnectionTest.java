@@ -371,6 +371,7 @@ public class FileConnectionTest {
         File quotaDir = new File("/home/athenz/zms_quota");
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
             Role role = new Role();
+            role.setAuditEnabled(false);
             try {
                 fileconnection.updateRole("domain1", role);
             } catch (Exception ex) {

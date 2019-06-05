@@ -41,6 +41,7 @@ public interface ZMSHandler {
     void putMembership(ResourceContext context, String domainName, String roleName, String memberName, String auditRef, Membership membership);
     void deleteMembership(ResourceContext context, String domainName, String roleName, String memberName, String auditRef);
     void putDefaultAdmins(ResourceContext context, String domainName, String auditRef, DefaultAdmins defaultAdmins);
+    void putRoleSystemMeta(ResourceContext context, String domainName, String roleName, String attribute, String auditRef, RoleSystemMeta detail);
     PolicyList getPolicyList(ResourceContext context, String domainName, Integer limit, String skip);
     Policies getPolicies(ResourceContext context, String domainName, Boolean assertions);
     Policy getPolicy(ResourceContext context, String domainName, String policyName);

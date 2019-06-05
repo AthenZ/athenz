@@ -272,3 +272,15 @@ func (cli Zms) ListDomainRoleMembers(dn string) (*string, error) {
 	s := buf.String()
 	return &s, nil
 }
+
+func (cli Zms) SetRoleAuditEnabled(dn string, rn string, auditEnabled bool) (*string, error) {
+	meta := zms.RoleSystemMeta{
+		AuditEnabled: &auditEnabled,
+	}
+	err := cli.Zms.PutRoleSystemMeta(zms.DomainName(dn), zms.EntityName(rn), zms.SimpleName("auditenabled"), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " role " + rn + " audit-enabled successfully updated]\n"
+	return &s, nil
+}
