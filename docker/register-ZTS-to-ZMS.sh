@@ -10,7 +10,7 @@ ZMS_ADMIN_PASS=${ZMS_ADMIN_PASS:-replace_me_with_a_strong_passowrd}
 docker exec $ZMS_CONTAINER apk add --no-cache --update openssl linux-pam
 docker exec $ZMS_CONTAINER addgroup -S athenz-admin
 docker exec $ZMS_CONTAINER adduser -s /sbin/nologin -G athenz-admin -S -D -H admin
-docker exec $ZMS_CONTAINER -e ZMS_ADMIN_PASS=${ZMS_ADMIN_PASS} sh -c 'echo "admin:${ZMS_ADMIN_PASS}" | chpasswd'
+docker exec -e ZMS_ADMIN_PASS=${ZMS_ADMIN_PASS} $ZMS_CONTAINER sh -c 'echo "admin:${ZMS_ADMIN_PASS}" | chpasswd'
 
 # confirm zms version
 docker run --name athenz-zms-cli athenz-zms-cli version; docker rm athenz-zms-cli

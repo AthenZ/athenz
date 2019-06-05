@@ -36,6 +36,8 @@ mysql -v -u root --password=mariadb --host=127.0.0.1 --port=3307
 -   UI
     1.  convert `default-config.js` parameters to ENV
     1.  configurable listering port
+-   ZMS
+    1.  NO retry on DB connection error
 -   ZTS
     1.  `docker/zts/var/zts_store/` create as root user by docker for storing policy
 -   ZTS-DB
