@@ -42,9 +42,11 @@ public class InstanceCertManager {
     private ScheduledExecutorService scheduledExecutor;
     private List<IPBlock> certRefreshIPBlocks;
     private Map<String, List<IPBlock>> instanceCertIPBlocks;
-    private String caX509CertificateSigner;
-    private String sshUserCertificateSigner;
-    private String sshHostCertificateSigner;
+    private String caX509CertificateSigner = null;
+    private String sshUserCertificateSigner = null;
+    private String sshHostCertificateSigner = null;
+    private boolean responseSendSSHSignerCerts;
+    private boolean responseSendX509SignerCerts;
     private ObjectMapper jsonMapper;
 
     public InstanceCertManager(final PrivateKeyStore keyStore, Authorizer authorizer,
@@ -76,9 +78,22 @@ public class InstanceCertManager {
         // check to see if we have been provided with a x.509/ssh certificate
         // bundle or we need to fetch one from the certsigner
 
-        caX509CertificateSigner = loadCertificateBundle(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME);
-        sshUserCertificateSigner = loadCertificateBundle(ZTSConsts.ZTS_PROP_SSH_USER_CA_CERT_FNAME);
-        sshHostCertificateSigner = loadCertificateBundle(ZTSConsts.ZTS_PROP_SSH_HOST_CA_CERT_FNAME);
+        responseSendSSHSignerCerts = Boolean.parseBoolean(
+                System.getProperty(ZTSConsts.ZTS_PROP_RESP_SSH_SIGNER_CERTS, "true"));
+        responseSendX509SignerCerts = Boolean.parseBoolean(
+                System.getProperty(ZTSConsts.ZTS_PROP_RESP_X509_SIGNER_CERTS, "true"));
+
+        // if we're not asked to skip sending certificate signers then
+        // check to see if we need to load them from files instead of
+        // certsigner directly
+
+        if (responseSendX509SignerCerts) {
+            caX509CertificateSigner = loadCertificateBundle(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME);
+        }
+        if (responseSendSSHSignerCerts) {
+            sshUserCertificateSigner = loadCertificateBundle(ZTSConsts.ZTS_PROP_SSH_USER_CA_CERT_FNAME);
+            sshHostCertificateSigner = loadCertificateBundle(ZTSConsts.ZTS_PROP_SSH_HOST_CA_CERT_FNAME);
+        }
 
         // load our allowed cert refresh and instance register ip blocks
         
@@ -426,6 +441,14 @@ public class InstanceCertManager {
     }
 
     public String getX509CertificateSigner() {
+
+        // if configured not to send x.509 signer certs
+        // then we'll return right away as null
+
+        if (!responseSendX509SignerCerts) {
+            return null;
+        }
+
         if (caX509CertificateSigner == null) {
             synchronized (InstanceCertManager.class) {
                 updateX509CertificateSigner();
@@ -499,6 +522,13 @@ public class InstanceCertManager {
     }
 
     String getSSHCertificateSigner(String sshReqType) {
+
+        // if configured not to send SSH signer certs
+        // then we'll return right away as null
+
+        if (!responseSendSSHSignerCerts) {
+            return null;
+        }
 
         if (sshSigner == null) {
             return null;
