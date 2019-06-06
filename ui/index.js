@@ -26,6 +26,7 @@ var hbs = require('express-handlebars');
 
 var pageUtils = require('./src/utils/page');
 var hbsHelpers = require('./src/utils/handlebarHelpers');
+var middleware = require('./src/utils/middleware.js');
 var routeHandlers = require('./src/routeHandlers/main');
 var searchRoutes = require('./src/routeHandlers/search');
 var domainRoutes = require('./src/routeHandlers/domain');
@@ -84,13 +85,7 @@ var client = require('./src/rdl-rest.js')({
 
 // middle-ware to redirect when there is trailing slash so that urls are
 // guaranteed not to contain trailing slash
-app.use(function(req, res, next) {
-  if (req.url.substr(-1) === '/' && req.url.length > 1) {
-    res.redirect(301, req.url.slice(0, -1));
-  } else {
-    next();
-  }
-});
+app.use(middleware.redirectOnTrailingSlash);
 
 loginUtils.signUserToken(app);
 loginUtils.authenticateUser(app);
