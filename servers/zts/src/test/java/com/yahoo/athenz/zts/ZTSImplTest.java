@@ -238,7 +238,7 @@ public class ZTSImplTest {
 
         Map<String, Integer> getMap() { return metrixMap; }
 
-        public void  increment(String metric, String domainName, int count) {
+        public void  increment(String metric, String domainName, String principalDomain, int count) {
             String key = metric + domainName;
             metrixMap.put(key, count);
         }
@@ -9272,5 +9272,22 @@ public class ZTSImplTest {
 
         zts.verifyCertRequestIP = false;
         assertTrue(zts.validateRoleCertificateExtRequest(certReq, "user_domain.user1", null, null, "10.20.20.20"));
+    }
+
+
+    @Test
+    public void testGetPrincipalDomain() {
+        Principal principal = SimplePrincipal.create("sports", "api",
+                "creds", 0, new PrincipalAuthority());
+        ResourceContext ctx = createResourceContext(principal);
+
+        assertEquals(zts.getPrincipalDomain(ctx), "sports");
+    }
+
+    @Test
+    public void testGetPrincipalDomainNull() {
+
+        ResourceContext ctx = createResourceContext(null);
+        assertNull(zts.getPrincipalDomain(ctx));
     }
 }

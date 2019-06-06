@@ -31,22 +31,39 @@ public class NoOpMetric implements Metric {
     }
 
     @Override
-    public void increment(String metric, String domainName) {
+    public void increment(String metric, String requestDomainName) {
     }
 
     @Override
-    public void increment(String metric, String domainName, int count) {
+    public void increment(String metric, String requestDomainName, String principalDomainName) {
     }
 
     @Override
-    public Object startTiming(String metric, String domainName) {
+    public void increment(String metric, String requestDomainName, int count) {
+    }
+
+    @Override
+    public void increment(String metric, String requestDomainName, String principalDomainName, int count) {
+    }
+
+    @Override
+    public Object startTiming(String metric, String requestDomainName) {
+        return null;
+    }
+
+    @Override
+    public Object startTiming(String metric, String requestDomainName, String principalDomainName) {
         return null;
     }
 
     @Override
     public void stopTiming(Object timerMetric) {
     }
-    
+
+    @Override
+    public void stopTiming(Object timerMetric, String requestDomainName, String principalDomainName) {
+    }
+
     @Override
     public void flush() {
     }

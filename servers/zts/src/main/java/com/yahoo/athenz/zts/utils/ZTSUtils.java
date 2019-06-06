@@ -164,7 +164,7 @@ public class ZTSUtils {
     }
     
     public static boolean emitMonmetricError(int errorCode, String caller,
-                                             String domainName, Metric metric) {
+            String domainName, Metric metric) {
 
         if (errorCode < 1) {
             return false;
@@ -180,7 +180,7 @@ public class ZTSUtils {
         String errCode = Integer.toString(errorCode);
         metric.increment("ERROR");
         if (domainName != null) {
-            metric.increment(caller.toLowerCase() + "_error_" + errCode, domainName);
+            metric.increment(caller.toLowerCase() + "_error_" + errCode, domainName, domainName);
         } else {
             metric.increment(caller.toLowerCase() + "_error_" + errCode);
         }

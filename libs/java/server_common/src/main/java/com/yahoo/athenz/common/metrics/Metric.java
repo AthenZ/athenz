@@ -26,20 +26,50 @@ public interface Metric {
     /**
      * Increment the counter for the specified metric for the given domainName
      * @param metric Name of the counter
-     * @param domainName Name of the domain. domainName is optional can be
-     * passed as null to indicate that the counter is global and not per-domain
+     * @param requestDomainName Name of the request domain. requestDomainName is
+     *      optional and can be passed as null to indicate that the counter is
+     *      global and not per-domain
      */
-    void increment(String metric, String domainName);
-    
+    void increment(String metric, String requestDomainName);
+
+    /**
+     * Increment the counter for the specified metric for the given domainName
+     * by a service from a given principal domain
+     * @param metric Name of the counter
+     * @param requestDomainName Name of the request domain. requestDomainName is
+     *      optional and can be passed as null to indicate that the counter is
+     *      global and not per-domain
+     * @param principalDomainName Name of the principal domain. principalDomainName is
+     *      optional and can be passed as null in case the request has no principal
+     */
+    default void increment(String metric, String requestDomainName, String principalDomainName) {
+        increment(metric, requestDomainName);
+    }
+
     /**
      * Increment the sum by the specified count for the given metric against the domainName
      * @param metric Name of the counter
-     * @param domainName Name of the domain. domainName is optional can be
-     * passed as null to indicate that the counter is global and not per-domain
-     * @param count amount inwhich to increment the metric sum
+     * @param requestDomainName Name of the request domain. requestDomainName is
+     *      optional and can be passed as null to indicate that the counter is
+     *      global and not per-domain
+     * @param count amount in which to increment the metric sum
      */
-    void increment(String metric, String domainName, int count);
-    
+    void increment(String metric, String requestDomainName, int count);
+
+    /**
+     * Increment the sum by the specified count for the given metric against the domainName
+     * @param metric Name of the counter
+     * @param requestDomainName Name of the request domain. requestDomainName is
+     *      optional and can be passed as null to indicate that the counter is
+     *      global and not per-domain
+     * @param principalDomainName Name of the principal domain. principalDomainName is
+     *      optional and can be passed as null in case the request has no principal
+     * @param count amount in which to increment the metric sum
+     */
+    default void increment(String metric, String requestDomainName, String principalDomainName, int count) {
+        increment(metric, requestDomainName, count);
+    }
+
     /**
      * Start the latency timer for the specified metric for the given domainName.
      * The implementation must be able to support simultaneous handling of
@@ -49,21 +79,60 @@ public interface Metric {
      * we only want to keep track of average latency time for successfully
      * completed requests.
      * @param metric Name of the counter
-     * @param domainName Name of the domain. domainName is optional can be
-     * passed as null to indicate that the counter is global and not per-domain
-     * @return timer object. The server will use this as the argument to 
-     * the stopTiming method to indicate that the operation has completed
-     * and the time must be recorded for the metric.
+     * @param requestDomainName Name of the request domain. requestDomainName is
+     *      optional and can be passed as null to indicate that the counter is
+     *      global and not per-domain
+     * @return timer object. The server will use this as the argument to
+     *      the stopTiming method to indicate that the operation has completed
+     *      and the time must be recorded for the metric.
      */
-    Object startTiming(String metric, String domainName);
-    
+    Object startTiming(String metric, String requestDomainName);
+
+    /**
+     * Start the latency timer for the specified metric for the given domainName.
+     * The implementation must be able to support simultaneous handling of
+     * multiple timer counters (but not the same metric). It's possible that
+     * the application/lib started a latency timer for a metric but will not call
+     * the stopTiming method of the request didn't complete successfully since
+     * we only want to keep track of average latency time for successfully
+     * completed requests.
+     * @param metric Name of the counter
+     * @param requestDomainName Name of the request domain. requestDomainName is
+     *      optional and can be passed as null to indicate that the counter is
+     *      global and not per-domain
+     * @param principalDomainName Name of the principal domain. principalDomainName is
+     *      optional and can be passed as null in case the request has no principal
+     * @return timer object. The server will use this as the argument to
+     *      the stopTiming method to indicate that the operation has completed
+     *      and the time must be recorded for the metric.
+     */
+    default Object startTiming(String metric, String requestDomainName, String principalDomainName) {
+        return startTiming(metric, requestDomainName);
+    }
+
     /**
      * Stop the latency timer for the specified metric.
      * @param timerMetric timer object that was returned by the startTiming
      * method call.
      */
     void stopTiming(Object timerMetric);
-    
+
+    /**
+     * Stop the latency timer for the specified metric.
+     * @param timerMetric timer object that was returned by the startTiming
+     * @param requestDomainName Name of the request domain. requestDomainName is
+     *      optional and can be passed as null to indicate that the counter is
+     *      global and not per-domain
+     * @param principalDomainName Name of the principal domain. principalDomainName is
+     *      optional and can be passed as null in case the request has no principal
+     * @return timer object. The server will use this as the argument to
+     *      the stopTiming method to indicate that the operation has completed
+     *      and the time must be recorded for the metric.
+     */
+    default void stopTiming(Object timerMetric, String requestDomainName, String principalDomainName) {
+        stopTiming(timerMetric);
+    }
+
     /**
      * Flush any buffered metrics to destination.
      */

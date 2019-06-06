@@ -31,5 +31,70 @@ public class MetricsTest {
         Metric metric = factory.create();
         
         assertEquals(metric.getClass().getName(), Class.forName("com.yahoo.athenz.common.metrics.impl.NoOpMetric").getName());
+
+        metric.increment("metric1");
+        metric.increment("metric1", "athenz");
+        metric.increment("metric1", "athenz", 3);
+        metric.increment("metric1", "athenz", "sports");
+        metric.increment("metric1", "athenz", "sports", 3);
+
+        assertNull(metric.startTiming("metric1", "athenz"));
+        assertNull(metric.startTiming("metric1", "athenz", "sports"));
+
+        metric.stopTiming("metric1");
+        metric.stopTiming("metric1", "athenz", "sports");
+
+        metric.flush();
+        metric.quit();
+    }
+
+    @Test
+    public void testMetricInterface() {
+
+        Metric metric = new Metric() {
+
+            @Override
+            public void increment(String metric) {
+            }
+
+            @Override
+            public void increment(String metric, String requestDomainName) {
+            }
+
+            @Override
+            public void increment(String metric, String requestDomainName, int count) {
+            }
+
+            @Override
+            public Object startTiming(String metric, String requestDomainName) {
+                return null;
+            }
+
+            @Override
+            public void stopTiming(Object timerMetric) {
+            }
+
+            @Override
+            public void flush() {
+            }
+
+            @Override
+            public void quit() {
+            }
+        };
+
+        metric.increment("metric1");
+        //metric.increment("metric1", "athenz");
+        metric.increment("metric1", "athenz", 3);
+        metric.increment("metric1", "athenz", "sports");
+        metric.increment("metric1", "athenz", "sports", 3);
+
+        //assertNull(metric.startTiming("metric1", "athenz"));
+        assertNull(metric.startTiming("metric1", "athenz", "sports"));
+
+        //metric.stopTiming("metric1");
+        metric.stopTiming("metric1", "athenz", "sports");
+        metric.flush();
+        metric.quit();
     }
 }
