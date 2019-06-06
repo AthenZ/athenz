@@ -1146,9 +1146,38 @@ public class ZMSImplTest {
         Domain resDom2 = zms.getDomain(mockDomRsrcCtx, "AddSubDom1.AddSubDom2");
         assertNotNull(resDom2);
 
+        assertFalse(resDom2.getAuditEnabled());
+
         zms.deleteSubDomain(mockDomRsrcCtx, "AddSubDom1", "AddSubDom2", auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "AddSubDom1", auditRef);
     }
+
+    @Test
+    public void testCreateSubDomainInAuditEnabledParent() {
+
+        TopLevelDomain dom1 = createTopLevelDomainObject("AddSubDom1",
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        DomainMeta meta = createDomainMetaObject("Test Domain1", "testOrg",
+                true, true, "12345", 1001);
+        zms.putDomainMeta(mockDomRsrcCtx, "AddSubDom1", auditRef, meta);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, "AddSubDom1", "auditenabled", auditRef, meta);
+
+        SubDomain dom2 = createSubDomainObject("AddSubDom2", "AddSubDom1",
+                "Test Domain2", "testOrg", adminUser);
+        Domain resDom1 = zms.postSubDomain(mockDomRsrcCtx, "AddSubDom1", auditRef, dom2);
+        assertNotNull(resDom1);
+
+        Domain resDom2 = zms.getDomain(mockDomRsrcCtx, "AddSubDom1.AddSubDom2");
+        assertNotNull(resDom2);
+
+        assertTrue(resDom2.getAuditEnabled());
+
+        zms.deleteSubDomain(mockDomRsrcCtx, "AddSubDom1", "AddSubDom2", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "AddSubDom1", auditRef);
+    }
+
 
     @Test
     public void testCreateUserDomain() {
@@ -1227,7 +1256,7 @@ public class ZMSImplTest {
         
         System.setProperty(ZMSConsts.ZMS_PROP_VIRTUAL_DOMAIN_LIMIT, "5");
         ZMSImpl zmsTest = zmsInit();
-        
+
         SubDomain dom = createSubDomainObject("sub1", "user.user1",
                 "Test Domain2", "testOrg", adminUser);
         Domain resDom = zmsTest.postSubDomain(mockDomRsrcCtx, "user.user1", auditRef, dom);
@@ -15546,6 +15575,79 @@ public class ZMSImplTest {
         }
 
         System.clearProperty(ZMSConsts.ZMS_PROP_AUDIT_REF_VALIDATOR_FACTORY_CLASS);
+    }
+
+    @Test
+    public void testDefaultValuesOnCreation() {
+
+        TestAuditLogger alogger = new TestAuditLogger();
+        String storeFile = ZMS_DATA_STORE_FILE + "_defaultcheck";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+        assertEquals(zmsImpl.virtualDomainLimit, 5);
+        assertNull(zmsImpl.userDomainAliasPrefix);
+        assertEquals(zmsImpl.signedPolicyTimeout, 1000 * 604800);
+
+    }
+
+    @Test
+    public void testConfigOverridesOnCreation() {
+
+        TestAuditLogger alogger = new TestAuditLogger();
+        String storeFile = ZMS_DATA_STORE_FILE + "_overridecheck";
+
+        System.setProperty(ZMSConsts.ZMS_PROP_USER_DOMAIN_ALIAS, "xyz");
+        System.setProperty(ZMSConsts.ZMS_PROP_SIGNED_POLICY_TIMEOUT, "86400");
+        System.setProperty(ZMSConsts.ZMS_PROP_VIRTUAL_DOMAIN_LIMIT, "10");
+        System.setProperty(ZMSConsts.ZMS_PROP_CORS_ORIGIN_LIST, "a.com,b.com");
+
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+        assertEquals(zmsImpl.virtualDomainLimit, 10);
+        assertEquals(zmsImpl.userDomainAliasPrefix, "xyz.");
+        assertEquals(zmsImpl.signedPolicyTimeout, 1000 * 86400);
+
+        assertTrue(zmsImpl.isValidCORSOrigin("a.com"));
+
+        System.clearProperty(ZMSConsts.ZMS_PROP_USER_DOMAIN_ALIAS);
+        System.clearProperty(ZMSConsts.ZMS_PROP_SIGNED_POLICY_TIMEOUT);
+        System.clearProperty(ZMSConsts.ZMS_PROP_VIRTUAL_DOMAIN_LIMIT);
+        System.clearProperty(ZMSConsts.ZMS_PROP_CORS_ORIGIN_LIST);
+
+    }
+
+    @Test
+    public void testPostSubDomainWithInvalidProductId() {
+
+        TestAuditLogger alogger = new TestAuditLogger();
+        String storeFile = ZMS_DATA_STORE_FILE + "_overridecheck";
+
+
+        System.setProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT, "true");
+
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+
+        TopLevelDomain dom1 = createTopLevelDomainObject("AddSubDom1",
+                "Test Domain1", "testOrg", adminUser);
+        zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        DomainMeta meta = createDomainMetaObject("Test Domain1", "testOrg",
+                true, true, "12345", 1001);
+        zmsImpl.putDomainMeta(mockDomRsrcCtx, "AddSubDom1", auditRef, meta);
+        zmsImpl.putDomainSystemMeta(mockDomRsrcCtx, "AddSubDom1", "auditenabled", auditRef, meta);
+
+        SubDomain dom2 = createSubDomainObject("AddSubDom2", "AddSubDom1",
+                "Test Domain2", "testOrg", adminUser);
+        dom2.setYpmId(-1);
+
+        try{
+
+            zmsImpl.postSubDomain(mockDomRsrcCtx, "AddSubDom1", auditRef, dom2);
+            fail("ProductId error not thrown.");
+        } catch (ResourceException e) {
+            assertEquals(e.getCode(), 400);
+        }
+
+        zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "AddSubDom1", auditRef);
+        System.clearProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT);
     }
 }
 

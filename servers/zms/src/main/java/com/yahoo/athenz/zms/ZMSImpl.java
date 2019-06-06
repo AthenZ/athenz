@@ -1258,6 +1258,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         
         List<String> adminUsers = normalizedAdminUsers(detail.getAdminUsers());
+
+        // inherit audit_enabled flag from parent domain
+        AthenzDomain parentDomain = getAthenzDomain(parent, false);
+        if (parentDomain != null && parentDomain.getDomain() != null) {
+            detail.setAuditEnabled(parentDomain.getDomain().getAuditEnabled());
+        }
+
         Domain domain = createSubDomain(ctx, detail.getParent(), detail.getName(), detail.getDescription(),
                 detail.getOrg(), detail.getAuditEnabled(), adminUsers, detail.getAccount(),
                 productId, detail.getApplicationId(), solutionTemplates, auditRef, caller);
