@@ -62,3 +62,8 @@ keytool -list -keystore docker/zts/var/certs/zts_keystore.pkcs12
     -   build with separated docker files
 -   common
     -   split setup script for different component
+
+## important files
+- [docker-stack.yaml](./docker-stack.yaml)
+- [zms Dockerfile](./zms/Dockerfile)
+- [zts Dockerfile](./zts/Dockerfile)
