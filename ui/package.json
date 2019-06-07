@@ -12,8 +12,8 @@
   "scripts": {
     "build": "make",
     "lint": "grunt lint",
-    "test": "./node_modules/nyc/bin/nyc.js node_modules/.bin/jenkins-mocha --require test/config/mock.js test/unit/*.js",
-    "testDev": "mocha --require test/config/mock.js test/unit/*.js",
+    "test": "./node_modules/nyc/bin/nyc.js node_modules/.bin/jenkins-mocha --require test/config/mock.js test/unit/*.js test/unit/*/*.js",
+    "testDev": "mocha ./test/unit -name '*.js' --recursive",
     "functional": "grunt functional-sd",
     "noop": "echo Ignoring this section."
   },
