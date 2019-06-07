@@ -50,18 +50,16 @@ keytool -list -keystore docker/zts/var/certs/zts_keystore.pkcs12
     1.  convert `default-config.js` parameters to ENV
     1.  configurable listering port
 -   ZMS
-    1.  NO retry on DB connection error
-    1.  `Loading class `com.mysql.jdbc.Driver'. This is deprecated. The new driver class is `com.mysql.cj.jdbc.Driver'. The driver is automatically registered via the SPI and manual loading of the driver class is generally unnecessary.`
+    1.  NO retry on DB connection error when deploy with docker stack
+    1.  Warning message in docker log: `Loading class `com.mysql.jdbc.Driver'. This is deprecated. The new driver class is `com.mysql.cj.jdbc.Driver'. The driver is automatically registered via the SPI and manual loading of the driver class is generally unnecessary.`
 -   ZTS
-    1.  `docker/zts/var/zts_store/` create as root user by docker for storing policy
+    1.  `docker/zts/var/zts_store/` create as root user by docker for storing policy, better to change the default location folder outside the Athenz project folder
 -   ZTS-DB
     1.  `DEFAULT CHARSET = latin1`
--   athenz-builder
-    1.  use `maven:3-alpine` instead of `openjdk:8-jdk-alpine`
 -   athenz-cli
-    -   build with separated docker files
+    -   build with separated docker files (add go.mod to support caching the dependency)
 -   common
-    -   split setup script for different component
+    -   split setup script (gen-certs.sh) for different component
 
 ## important files
 - [docker-stack.yaml](./docker-stack.yaml)
