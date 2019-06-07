@@ -15586,7 +15586,6 @@ public class ZMSImplTest {
         assertEquals(zmsImpl.virtualDomainLimit, 5);
         assertNull(zmsImpl.userDomainAliasPrefix);
         assertEquals(zmsImpl.signedPolicyTimeout, 1000 * 604800);
-
     }
 
     @Test
@@ -15611,7 +15610,6 @@ public class ZMSImplTest {
         System.clearProperty(ZMSConsts.ZMS_PROP_SIGNED_POLICY_TIMEOUT);
         System.clearProperty(ZMSConsts.ZMS_PROP_VIRTUAL_DOMAIN_LIMIT);
         System.clearProperty(ZMSConsts.ZMS_PROP_CORS_ORIGIN_LIST);
-
     }
 
     @Test
@@ -15619,7 +15617,6 @@ public class ZMSImplTest {
 
         TestAuditLogger alogger = new TestAuditLogger();
         String storeFile = ZMS_DATA_STORE_FILE + "_overridecheck";
-
 
         System.setProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT, "true");
 
@@ -15638,8 +15635,7 @@ public class ZMSImplTest {
                 "Test Domain2", "testOrg", adminUser);
         dom2.setYpmId(-1);
 
-        try{
-
+        try {
             zmsImpl.postSubDomain(mockDomRsrcCtx, "AddSubDom1", auditRef, dom2);
             fail("ProductId error not thrown.");
         } catch (ResourceException e) {
@@ -15648,6 +15644,22 @@ public class ZMSImplTest {
 
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "AddSubDom1", auditRef);
         System.clearProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT);
+    }
+
+    @Test
+    public void testGetPrincipalDomain() {
+        Principal principal = SimplePrincipal.create("sports", "api",
+                "creds", 0, new PrincipalAuthority());
+        ResourceContext ctx = createResourceContext(principal);
+
+        assertEquals(zms.getPrincipalDomain(ctx), "sports");
+    }
+
+    @Test
+    public void testGetPrincipalDomainNull() {
+
+        ResourceContext ctx = createResourceContext(null);
+        assertNull(zms.getPrincipalDomain(ctx));
     }
 }
 

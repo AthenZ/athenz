@@ -871,7 +871,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.increment(ZMSConsts.HTTP_GET);
         metric.increment(ZMSConsts.HTTP_REQUEST);
         metric.increment(caller);
-        Object timerMetric = metric.startTiming("getdomainlist_timing", null);
+
+        final String principalDomain = getPrincipalDomain(ctx);
+        Object timerMetric = metric.startTiming("getdomainlist_timing", null, principalDomain);
         logPrincipal(ctx);
 
         validateRequest(ctx.request(), caller);
@@ -936,7 +938,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             dlist = listDomains(limit, skip, prefix, depth, modTime);
         }
         
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, null, principalDomain);
         return dlist;
     }
 
@@ -954,17 +956,18 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // policy, service, etc name)
         
         domainName = domainName.toLowerCase();
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
 
-        Object timerMetric = metric.startTiming("getdomain_timing", domainName);
+        Object timerMetric = metric.startTiming("getdomain_timing", domainName, principalDomain);
         
         Domain domain = dbService.getDomain(domainName, false);
         if (domain == null) {
             throw ZMSUtils.notFoundError("getDomain: Domain not found: " + domainName, caller);
         }
 
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
         return domain;
     }
 
@@ -986,9 +989,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validate(domainName, TYPE_DOMAIN_NAME, caller);
 
         domainName = domainName.toLowerCase();
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("posttopleveldomain_timing", domainName);
+
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("posttopleveldomain_timing", domainName, principalDomain);
         
         if (domainName.indexOf('_') != -1 && !isSysAdminUser(((RsrcCtxWrapper) ctx).principal())) {
             throw ZMSUtils.requestError("Domain name cannot contain underscores", caller);
@@ -1039,7 +1044,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             detail.getOrg(), detail.getAuditEnabled(), adminUsers,
             detail.getAccount(), productId, detail.getApplicationId(), solutionTemplates, auditRef);
 
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
         return domain;
     }
     
@@ -1054,13 +1059,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
-
         validate(domainName, TYPE_DOMAIN_NAME, caller);
 
         domainName = domainName.toLowerCase();
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("deletetopleveldomain_timing", domainName);
+
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("deletetopleveldomain_timing", domainName, principalDomain);
         
         // verify that request is properly authenticated for this request
         
@@ -1071,7 +1077,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // policy, service, etc name)
         
         deleteDomain(ctx, auditRef, domainName, caller);
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
     }
 
     Domain deleteDomain(ResourceContext ctx, String auditRef, String domainName, String caller) {
@@ -1150,9 +1156,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         name = name.toLowerCase();
         AthenzObject.USER_DOMAIN.convertToLowerCase(detail);
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, name);
-        metric.increment(caller, name);
-        Object timerMetric = metric.startTiming("postuserdomain_timing", name);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, name, principalDomain);
+        metric.increment(caller, name, principalDomain);
+        Object timerMetric = metric.startTiming("postuserdomain_timing", name, principalDomain);
         
         if (detail.getName().indexOf('_') != -1 && !isSysAdminUser(((RsrcCtxWrapper) ctx).principal())) {
             throw ZMSUtils.requestError("Domain name cannot contain underscores", caller);
@@ -1184,7 +1191,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 detail.getDescription(), detail.getOrg(), detail.getAuditEnabled(), adminUsers,
                 detail.getAccount(), 0, detail.getApplicationId(), solutionTemplates, auditRef, caller);
 
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, name, principalDomain);
         return domain;
     }
     
@@ -1210,9 +1217,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         parent = parent.toLowerCase();
         AthenzObject.SUB_DOMAIN.convertToLowerCase(detail);
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, parent);
-        metric.increment(caller, parent);
-        Object timerMetric = metric.startTiming("postsubdomain_timing", parent);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, parent, principalDomain);
+        metric.increment(caller, parent, principalDomain);
+        Object timerMetric = metric.startTiming("postsubdomain_timing", parent, principalDomain);
         
         if (detail.getName().indexOf('_') != -1 && !isSysAdminUser(((RsrcCtxWrapper) ctx).principal())) {
             throw ZMSUtils.requestError("Domain name cannot contain underscores", caller);
@@ -1269,7 +1277,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 detail.getOrg(), detail.getAuditEnabled(), adminUsers, detail.getAccount(),
                 productId, detail.getApplicationId(), solutionTemplates, auditRef, caller);
 
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, parent, principalDomain);
         return domain;
     }
 
@@ -1352,9 +1360,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         name = name.toLowerCase();
         String domainName = parent + "." + name;
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, parent);
-        metric.increment(caller, parent);
-        Object timerMetric = metric.startTiming("deletesubdomain_timing", parent);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, parent, principalDomain);
+        metric.increment(caller, parent, principalDomain);
+        Object timerMetric = metric.startTiming("deletesubdomain_timing", parent, principalDomain);
 
         validate(parent, TYPE_DOMAIN_NAME, caller);
         validate(name, TYPE_SIMPLE_NAME, caller);
@@ -1364,7 +1373,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
         
         deleteDomain(ctx, auditRef, domainName, caller);
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, parent, principalDomain);
     }
 
     public void deleteUserDomain(ResourceContext ctx, String name, String auditRef) {
@@ -1386,9 +1395,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // policy, service, etc name)
         
         name = name.toLowerCase();
-        metric.increment(ZMSConsts.HTTP_REQUEST, name);
-        metric.increment(caller, name);
-        Object timerMetric = metric.startTiming("deleteuserdomain_timing", name);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, name, principalDomain);
+        metric.increment(caller, name, principalDomain);
+        Object timerMetric = metric.startTiming("deleteuserdomain_timing", name, principalDomain);
         
         // verify that request is properly authenticated for this request
         
@@ -1396,7 +1406,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         String domainName = homeDomainPrefix + name;
         deleteDomain(ctx, auditRef, domainName, caller);
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, name, principalDomain);
     }
     
     public UserList getUserList(ResourceContext ctx) {
@@ -1409,12 +1419,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         metric.increment(ZMSConsts.HTTP_REQUEST);
         metric.increment(caller);
-        Object timerMetric = metric.startTiming("getuserlist_timing", null);
+        final String principalDomain = getPrincipalDomain(ctx);
+        Object timerMetric = metric.startTiming("getuserlist_timing", null, principalDomain);
         
         List<String> names = dbService.listPrincipals(userDomain, true);
         UserList result = new UserList().setNames(names);
 
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, null, principalDomain);
         return result;
     }
 
@@ -1440,16 +1451,17 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainName = domainName.toLowerCase();
         memberName = memberName.toLowerCase();
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("deletedomainrolemember_timing", domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("deletedomainrolemember_timing", domainName, principalDomain);
 
         // verify that request is properly authenticated for this request
 
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
 
         dbService.executeDeleteDomainRoleMember(ctx, domainName, memberName, auditRef, caller);
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
     }
 
     @Override
@@ -1472,9 +1484,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // policy, service, etc name)
         
         name = name.toLowerCase();
-        metric.increment(ZMSConsts.HTTP_REQUEST, userDomain);
-        metric.increment(caller, userDomain);
-        Object timerMetric = metric.startTiming("deleteuser_timing", name);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, userDomain, principalDomain);
+        metric.increment(caller, userDomain, principalDomain);
+        Object timerMetric = metric.startTiming("deleteuser_timing", name, principalDomain);
         
         // verify that request is properly authenticated for this request
         
@@ -1483,7 +1496,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         String userName = userDomainPrefix + name;
         String domainName = homeDomainPrefix + getUserDomainName(name);
         dbService.executeDeleteUser(ctx, userName, domainName, auditRef, caller);
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, name, principalDomain);
     }
     
     String getUserDomainName(String userName) {
@@ -1518,9 +1531,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // policy, service, etc name)
         
         domainName = domainName.toLowerCase();
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("putdomainmeta_timing", domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("putdomainmeta_timing", domainName, principalDomain);
         
         // verify that request is properly authenticated for this request
         
@@ -1534,7 +1548,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // process put domain meta request
 
         dbService.executePutDomainMeta(ctx, domainName, meta, null, false, auditRef, caller);
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
     }
 
     @Override
@@ -1561,9 +1575,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         domainName = domainName.toLowerCase();
         attribute = attribute.toLowerCase();
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("putdomainsystemmeta_timing", domainName);
+
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("putdomainsystemmeta_timing", domainName, principalDomain);
 
         // verify that request is properly authenticated for this request
 
@@ -1591,7 +1607,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         dbService.executePutDomainMeta(ctx, domainName, meta, attribute, deleteAllowed, auditRef, caller);
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
     }
 
     void validateSolutionTemplates(List<String> templateNames, String caller) {
@@ -1617,16 +1633,17 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // policy, service, etc name)
         
         domainName = domainName.toLowerCase();
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("getdomaintemplatelist_timing", domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("getdomaintemplatelist_timing", domainName, principalDomain);
         
         DomainTemplateList domainTemplateList = dbService.listDomainTemplates(domainName);
         if (domainTemplateList == null) {
             throw ZMSUtils.notFoundError("getDomainTemplateList: Domain not found: '" + domainName + "'", caller);
         }
 
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
         return domainTemplateList;
     }
 
@@ -1653,10 +1670,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         domainName = domainName.toLowerCase();
         AthenzObject.DOMAIN_TEMPLATE.convertToLowerCase(domainTemplate);
-        
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("putdomaintemplate_timing", domainName);
+
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("putdomaintemplate_timing", domainName, principalDomain);
         
         // verify that all template names are valid
         
@@ -1675,7 +1693,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         dbService.executePutDomainTemplate(ctx, domainName, domainTemplate, auditRef, caller);
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
     }
 
     @Override
@@ -1703,10 +1721,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainName = domainName.toLowerCase();
         templateName = templateName.toLowerCase();
         AthenzObject.DOMAIN_TEMPLATE.convertToLowerCase(domainTemplate);
-        
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("putdomaintemplateext_timing", domainName);
+
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("putdomaintemplateext_timing", domainName, principalDomain);
         
         // verify that all template names are valid
         
@@ -1729,7 +1748,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 caller, "name", templateName);
 
         dbService.executePutDomainTemplate(ctx, domainName, domainTemplate, auditRef, caller);
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
     }
     
     public void deleteDomainTemplate(ResourceContext ctx, String domainName, String templateName, String auditRef) {
@@ -1753,10 +1772,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         domainName = domainName.toLowerCase();
         templateName = templateName.toLowerCase();
-        
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("deletedomaintemplate_timing", domainName);
+
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("deletedomaintemplate_timing", domainName, principalDomain);
         
         if (LOG.isDebugEnabled()) {
             LOG.debug("deleteDomainTemplate: domain=" + domainName + ", template=" + templateName);
@@ -1772,7 +1792,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateSolutionTemplates(templateNames, caller);
 
         dbService.executeDeleteDomainTemplate(ctx, domainName, templateName, auditRef, caller);
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
     }
     
     Principal createPrincipalForName(String principalName) {
@@ -2155,14 +2175,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         String domainName = retrieveResourceDomain(resource, action, trustDomain);
         if (domainName == null) {
-            metric.increment(ZMSConsts.HTTP_REQUEST, ZMSConsts.ZMS_INVALID_DOMAIN);
-            metric.increment(caller, ZMSConsts.ZMS_INVALID_DOMAIN);
+            metric.increment(ZMSConsts.HTTP_REQUEST, ZMSConsts.ZMS_INVALID_DOMAIN, principal.getDomain());
+            metric.increment(caller, ZMSConsts.ZMS_INVALID_DOMAIN, principal.getDomain());
             throw ZMSUtils.notFoundError("getAccessCheck: Unable to extract resource domain", caller);
         }
         AthenzDomain domain = retrieveAccessDomain(domainName, principal);
         if (domain == null) {
-            metric.increment(ZMSConsts.HTTP_REQUEST, ZMSConsts.ZMS_UNKNOWN_DOMAIN);
-            metric.increment(caller, ZMSConsts.ZMS_UNKNOWN_DOMAIN);
+            metric.increment(ZMSConsts.HTTP_REQUEST, ZMSConsts.ZMS_UNKNOWN_DOMAIN, principal.getDomain());
+            metric.increment(caller, ZMSConsts.ZMS_UNKNOWN_DOMAIN, principal.getDomain());
             throw ZMSUtils.notFoundError("getAccessCheck: Resource Domain not found: '"
                     + domainName + "'", caller);
         }
@@ -2180,9 +2200,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // dimensions we get stuck with persistent indexes so we only want
         // to create them for valid domain names
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("getaccess_timing", domainName);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principal.getDomain());
+        metric.increment(caller, domainName, principal.getDomain());
+        Object timerMetric = metric.startTiming("getaccess_timing", domainName, principal.getDomain());
 
         // if the check principal is given then we need to carry out the access
         // check against that principal
@@ -2201,7 +2221,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         Access access = new Access().setGranted(accessAllowed);
 
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principal.getDomain());
         return access;
     }
 
@@ -2262,16 +2282,17 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         entityName = entityName.toLowerCase();
         AthenzObject.ENTITY.convertToLowerCase(resource);
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("putentity_timing", domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("putentity_timing", domainName, principalDomain);
 
         // verify that request is properly authenticated for this request
         
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
         
         dbService.executePutEntity(ctx, domainName, entityName, resource, auditRef, caller);
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
     }
 
     @Override
@@ -2290,15 +2311,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         domainName = domainName.toLowerCase();
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("getentitylist_timing", domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("getentitylist_timing", domainName, principalDomain);
         
         EntityList result = new EntityList();
         List<String> names = dbService.listEntities(domainName);
         result.setNames(names);
 
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
         return result;
     }
     
@@ -2319,9 +2341,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainName = domainName.toLowerCase();
         entityName = entityName.toLowerCase();
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("getentity_timing", null);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("getentity_timing", domainName, principalDomain);
 
         Entity entity = dbService.getEntity(domainName, entityName);
         if (entity == null) {
@@ -2329,7 +2352,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     ZMSUtils.entityResourceName(domainName, entityName) + "'", caller);
         }
         
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
         return entity;
     }
     
@@ -2356,16 +2379,17 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainName = domainName.toLowerCase();
         entityName = entityName.toLowerCase();
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("deleteentity_timing", null);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("deleteentity_timing", domainName, principalDomain);
         
         // verify that request is properly authenticated for this request
         
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
         
         dbService.executeDeleteEntity(ctx, domainName, entityName, auditRef, caller);
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
     }
 
     public ServerTemplateList getServerTemplateList(ResourceContext ctx) {
@@ -2374,7 +2398,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.increment(ZMSConsts.HTTP_GET);
         metric.increment(ZMSConsts.HTTP_REQUEST);
         metric.increment(caller);
-        Object timerMetric = metric.startTiming("getservertemplatelist_timing", null);
+
+        final String principalDomain = getPrincipalDomain(ctx);
+        Object timerMetric = metric.startTiming("getservertemplatelist_timing", null, principalDomain);
         logPrincipal(ctx);
 
         validateRequest(ctx.request(), caller);
@@ -2382,7 +2408,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         ServerTemplateList result = new ServerTemplateList();
         result.setTemplateNames(new ArrayList<>(serverSolutionTemplates.names()));
 
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, null, principalDomain);
         return result;
     }
     
@@ -2392,7 +2418,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.increment(ZMSConsts.HTTP_GET);
         metric.increment(ZMSConsts.HTTP_REQUEST);
         metric.increment(caller);
-        Object timerMetric = metric.startTiming("gettemplate_timing", null);
+
+        final String principalDomain = getPrincipalDomain(ctx);
+        Object timerMetric = metric.startTiming("gettemplate_timing", null, principalDomain);
         logPrincipal(ctx);
 
         validateRequest(ctx.request(), caller);
@@ -2418,7 +2446,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         }
         
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, null, principalDomain);
         return template;
     }
 
@@ -2440,9 +2468,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             skip = skip.toLowerCase();
         }
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("getrolelist_timing", domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("getrolelist_timing", domainName, principalDomain);
         
         RoleList result = new RoleList();
         
@@ -2453,7 +2482,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             result.setNext(next);
         }
 
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
         return result;
     }
     
@@ -2494,9 +2523,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         domainName = domainName.toLowerCase();
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("getroles_timing", domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("getroles_timing", domainName, principalDomain);
         
         Roles result = new Roles();
         
@@ -2506,7 +2536,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         result.setList(setupRoleList(domain, members));
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
         return result;
     }
 
@@ -2526,12 +2556,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         domainName = domainName.toLowerCase();
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("getdomainrolemembers_timing", domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("getdomainrolemembers_timing", domainName, principalDomain);
 
         DomainRoleMembers roleMembers = dbService.listDomainRoleMembers(domainName);
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
         return roleMembers;
     }
 
@@ -2554,9 +2585,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainName = domainName.toLowerCase();
         roleName = roleName.toLowerCase();
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("getrole_timing", domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("getrole_timing", domainName, principalDomain);
         
         Role role = dbService.getRole(domainName, roleName, auditLog, expand);
         if (role == null) {
@@ -2564,7 +2596,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     ZMSUtils.roleResourceName(domainName, roleName) + "'", caller);
         }
 
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
         return role;
     }
 
@@ -2685,9 +2717,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         roleName = roleName.toLowerCase();
         AthenzObject.ROLE.convertToLowerCase(role);
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("putrole_timing", domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("putrole_timing", domainName, principalDomain);
         
         // verify that request is properly authenticated for this request
         
@@ -2712,7 +2745,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // process our request
         
         dbService.executePutRole(ctx, domainName, roleName, role, auditRef, caller);
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
     }
     
     public void deleteRole(ResourceContext ctx, String domainName, String roleName, String auditRef) {
@@ -2737,9 +2770,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainName = domainName.toLowerCase();
         roleName = roleName.toLowerCase();
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("deleterole_timing", domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("deleterole_timing", domainName, principalDomain);
         
         // verify that request is properly authenticated for this request
         
@@ -2754,7 +2788,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         
         dbService.executeDeleteRole(ctx, domainName, roleName, auditRef, caller);
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
     }
 
     boolean memberNameMatch(String memberName, String matchName) {
@@ -2816,13 +2850,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         roleName = roleName.toLowerCase();
         memberName = normalizeDomainAliasUser(memberName.toLowerCase());
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("getmembership_timing", domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("getmembership_timing", domainName, principalDomain);
 
         Membership result = dbService.getMembership(domainName, roleName, memberName);
         
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
         return result;
     }
 
@@ -2854,9 +2889,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         memberName = memberName.toLowerCase();
         AthenzObject.MEMBERSHIP.convertToLowerCase(membership);
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("putmembership_timing", domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("putmembership_timing", domainName, principalDomain);
 
         // verify that request is properly authenticated for this request
         
@@ -2883,7 +2919,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         dbService.executePutMembership(ctx, domainName, roleName,
                 getNormalizedMember(roleMember), auditRef, caller);
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
     }
 
     public void deleteMembership(ResourceContext ctx, String domainName, String roleName,
@@ -2911,9 +2947,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         roleName = roleName.toLowerCase();
         memberName = memberName.toLowerCase();
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("deletemembership_timing", domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("deletemembership_timing", domainName, principalDomain);
         
         // verify that request is properly authenticated for this request
         
@@ -2923,7 +2960,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         roleMember.setMemberName(memberName);
         String normalizedMember = getNormalizedMember(roleMember).getMemberName();
         dbService.executeDeleteMembership(ctx, domainName, roleName, normalizedMember, auditRef, caller);
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
     }
 
     public Quota getQuota(ResourceContext ctx, String domainName) {
@@ -2941,13 +2978,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         domainName = domainName.toLowerCase();
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("getquota_timing", domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("getquota_timing", domainName, principalDomain);
 
         Quota result = dbService.getQuota(domainName);
         
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
         return result;
     }
 
@@ -2974,9 +3012,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainName = domainName.toLowerCase();
         AthenzObject.QUOTA.convertToLowerCase(quota);
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("putquota_timing", domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("putquota_timing", domainName, principalDomain);
 
         // verify that request is properly authenticated for this request
         
@@ -2990,7 +3029,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         dbService.executePutQuota(ctx, domainName, quota, auditRef, caller);
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
     }
 
     public void deleteQuota(ResourceContext ctx, String domainName, String auditRef) {
@@ -3013,16 +3052,17 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         domainName = domainName.toLowerCase();
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("deletequota_timing", domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("deletequota_timing", domainName, principalDomain);
         
         // verify that request is properly authenticated for this request
         
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
         
         dbService.executeDeleteQuota(ctx, domainName, auditRef, caller);
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
     }
     
     boolean hasExceededListLimit(Integer limit, int count) {
@@ -3096,9 +3136,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             skip = skip.toLowerCase();
         }
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("getpolicylist_timing", domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("getpolicylist_timing", domainName, principalDomain);
         
         List<String> names = new ArrayList<>();
         String next = processListRequest(domainName, AthenzObject.POLICY, limit, skip, names);
@@ -3107,7 +3148,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             result.setNext(next);
         }
         
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
         return result;
     }
 
@@ -3147,9 +3188,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         domainName = domainName.toLowerCase();
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("getpolicies_timing", domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("getpolicies_timing", domainName, principalDomain);
         
         Policies result = new Policies();
         
@@ -3159,7 +3201,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         result.setList(setupPolicyList(domain, assertions));
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
         return result;
     }
     
@@ -3180,9 +3222,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainName = domainName.toLowerCase();
         policyName = policyName.toLowerCase();
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("getpolicy_timing", domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("getpolicy_timing", domainName, principalDomain);
         
         Policy policy = dbService.getPolicy(domainName, policyName);
         if (policy == null) {
@@ -3190,7 +3233,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     ZMSUtils.policyResourceName(domainName, policyName) + "'", caller);
         }
 
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
         return policy;
     }
     
@@ -3212,9 +3255,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainName = domainName.toLowerCase();
         policyName = policyName.toLowerCase();
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("getassertion_timing", domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("getassertion_timing", domainName, principalDomain);
         
         Assertion assertion = dbService.getAssertion(domainName, policyName, assertionId);
         if (assertion == null) {
@@ -3223,7 +3267,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     assertionId + "'", caller);
         }
 
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
         return assertion;
     }
 
@@ -3257,9 +3301,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         policyName = policyName.toLowerCase();
         AthenzObject.ASSERTION.convertToLowerCase(assertion);
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("putassertion_timing", domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("putassertion_timing", domainName, principalDomain);
 
         // we are not going to allow any user to update
         // the admin policy since that is required
@@ -3274,7 +3319,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validatePolicyAssertion(assertion, caller);
         
         dbService.executePutAssertion(ctx, domainName, policyName, assertion, auditRef, caller);
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
         return assertion;
     }
     
@@ -3301,9 +3346,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainName = domainName.toLowerCase();
         policyName = policyName.toLowerCase();
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("deleteassertion_timing", domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("deleteassertion_timing", domainName, principalDomain);
         
         // we are not going to allow any user to update
         // the admin policy since that is required
@@ -3318,7 +3364,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
         
         dbService.executeDeleteAssertion(ctx, domainName, policyName, assertionId, auditRef, caller);
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
     }
     
     void validatePolicyAssertions(List<Assertion> assertions, String caller) {
@@ -3426,9 +3472,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         policyName = policyName.toLowerCase();
         AthenzObject.POLICY.convertToLowerCase(policy);
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("putpolicy_timing", domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("putpolicy_timing", domainName, principalDomain);
         
         // we are not going to allow any user to update
         // the admin policy since that is required
@@ -3451,7 +3498,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validatePolicyAssertions(policy.getAssertions(), caller);
         
         dbService.executePutPolicy(ctx, domainName, policyName, policy, auditRef, caller);
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
     }
     
     public void deletePolicy(ResourceContext ctx, String domainName, String policyName, String auditRef) {
@@ -3480,9 +3527,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainName = domainName.toLowerCase();
         policyName = policyName.toLowerCase();
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("deletepolicy_timing", domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("deletepolicy_timing", domainName, principalDomain);
 
         // we are not going to allow any user to delete
         // the admin role and policy since those are required
@@ -3493,7 +3541,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         
         dbService.executeDeletePolicy(ctx, domainName, policyName, auditRef, caller);
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
     }
 
     boolean matchDelegatedTrustAssertion(Assertion assertion, String roleName, 
@@ -3848,9 +3896,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         serviceName = serviceName.toLowerCase();
         AthenzObject.SERVICE_IDENTITY.convertToLowerCase(service);
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("putserviceidentity_timing", domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("putserviceidentity_timing", domainName, principalDomain);
 
         // validate that the service name is valid
 
@@ -3876,7 +3925,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         
         dbService.executePutServiceIdentity(ctx, domainName, serviceName, service, auditRef, caller);
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
     }
     
     public ServiceIdentity getServiceIdentity(ResourceContext ctx, String domainName, String serviceName) {
@@ -3896,9 +3945,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainName = domainName.toLowerCase();
         serviceName = serviceName.toLowerCase();
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("getserviceidentity_timing", domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("getserviceidentity_timing", domainName, principalDomain);
 
         ServiceIdentity service = dbService.getServiceIdentity(domainName, serviceName);
         if (service == null) {
@@ -3906,7 +3956,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     ZMSUtils.serviceResourceName(domainName, serviceName) + "'", caller);
         }
         
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
         return service;
     }
     
@@ -3933,16 +3983,17 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainName = domainName.toLowerCase();
         serviceName = serviceName.toLowerCase();
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("deleteserviceidentity_timing", domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("deleteserviceidentity_timing", domainName, principalDomain);
         
         // verify that request is properly authenticated for this request
         
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
         
         dbService.executeDeleteServiceIdentity(ctx, domainName, serviceName, auditRef, caller);
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
     }
 
     List<ServiceIdentity> setupServiceIdentityList(AthenzDomain domain, Boolean publicKeys, Boolean hosts) {
@@ -3991,9 +4042,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         domainName = domainName.toLowerCase();
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("getserviceidentities_timing", domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("getserviceidentities_timing", domainName, principalDomain);
         
         ServiceIdentities result = new ServiceIdentities();
         
@@ -4004,7 +4056,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         result.setList(setupServiceIdentityList(domain, publicKeys, hosts));
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
         return result;
     }
     
@@ -4027,9 +4079,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             skip = skip.toLowerCase();
         }
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("getserviceidentitylist_timing", domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("getserviceidentitylist_timing", domainName, principalDomain);
         
         List<String> names = new ArrayList<>();
         String next = processListRequest(domainName, AthenzObject.SERVICE_IDENTITY, limit, skip, names);
@@ -4038,7 +4091,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             result.setNext(next);
         }
 
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
         return result;
     }
 
@@ -4060,9 +4113,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         serviceName = serviceName.toLowerCase();
         keyId = keyId.toLowerCase();
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("getpublickeyentry_timing", domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("getpublickeyentry_timing", domainName, principalDomain);
         
         PublicKeyEntry entry = dbService.getServicePublicKeyEntry(domainName, serviceName, keyId, false);
         if (entry == null) {
@@ -4070,7 +4124,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     ZMSUtils.serviceResourceName(domainName, serviceName) + " not found", caller);
         }
         
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
         return entry;
     }
 
@@ -4098,16 +4152,17 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         serviceName = serviceName.toLowerCase();
         keyId = keyId.toLowerCase();
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("deletepublickeyentry_timing", domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("deletepublickeyentry_timing", domainName, principalDomain);
 
         // verify that request is properly authenticated for this request
         
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
 
         dbService.executeDeletePublicKeyEntry(ctx, domainName, serviceName, keyId, auditRef, caller);
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
     }
 
     @Override
@@ -4137,9 +4192,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         keyId = keyId.toLowerCase();
         AthenzObject.PUBLIC_KEY_ENTRY.convertToLowerCase(keyEntry);
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("putpublickeyentry_timing", domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("putpublickeyentry_timing", domainName, principalDomain);
 
         // verify that request is properly authenticated for this request
         
@@ -4158,7 +4214,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         
         dbService.executePutPublicKeyEntry(ctx, domainName, serviceName, keyEntry, auditRef, caller);
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
     }
 
     String removeQuotes(String value) {
@@ -4340,7 +4396,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.increment(ZMSConsts.HTTP_GET);
         metric.increment(ZMSConsts.HTTP_REQUEST);
         metric.increment(caller);
-        Object timerMetric = metric.startTiming("getsigneddomains_timing", null);
+        final String principalDomain = getPrincipalDomain(ctx);
+        Object timerMetric = metric.startTiming("getsigneddomains_timing", null, principalDomain);
         logPrincipal(ctx);
 
         validateRequest(ctx.request(), caller);
@@ -4470,7 +4527,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         Timestamp youngest = Timestamp.fromMillis(youngestDomMod);
         EntityTag eTag = new EntityTag(youngest.toString());
 
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, null, principalDomain);
         return Response.status(ResourceException.OK).entity(sdoms)
                 .header("ETag", eTag.toString()).build();
     }
@@ -4566,7 +4623,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.increment(ZMSConsts.HTTP_GET);
         metric.increment(ZMSConsts.HTTP_REQUEST);
         metric.increment(caller);
-        Object timerMetric = metric.startTiming("getusertoken_timing", null);
+        final String principalDomain = getPrincipalDomain(ctx);
+        Object timerMetric = metric.startTiming("getusertoken_timing", null, principalDomain);
         logPrincipal(ctx);
 
         validateRequest(ctx.request(), caller);
@@ -4613,7 +4671,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             setStandardCORSHeaders(ctx);
         }
 
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, null, principalDomain);
         return userToken;
     }
 
@@ -4623,7 +4681,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.increment(ZMSConsts.HTTP_OPTIONS);
         metric.increment(ZMSConsts.HTTP_REQUEST);
         metric.increment(caller);
-        Object timerMetric = metric.startTiming("optionsusertoken_timing", null);
+        final String principalDomain = getPrincipalDomain(ctx);
+        Object timerMetric = metric.startTiming("optionsusertoken_timing", null, principalDomain);
         
         validateRequest(ctx.request(), caller);
 
@@ -4653,7 +4712,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         ctx.response().addHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_METHODS, ZMSConsts.HTTP_GET);
         ctx.response().addHeader(ZMSConsts.HTTP_ACCESS_CONTROL_MAX_AGE, "2592000");
         
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, null, principalDomain);
         return null;
     }
 
@@ -4744,9 +4803,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.requestError("Invalid tenancy object", caller);
         }
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, tenantDomain);
-        metric.increment(caller, tenantDomain);
-        Object timerMetric = metric.startTiming("puttenancy_timing", tenantDomain);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, tenantDomain, principalDomain);
+        metric.increment(caller, tenantDomain, principalDomain);
+        Object timerMetric = metric.startTiming("puttenancy_timing", tenantDomain, principalDomain);
 
         // verify that request is properly authenticated for this request
         
@@ -4792,7 +4852,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     auditRef, caller);
         }
 
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, tenantDomain, principalDomain);
     }
 
     @Override
@@ -4818,9 +4878,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         tenantDomain = tenantDomain.toLowerCase();
         provider = provider.toLowerCase();
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, tenantDomain);
-        metric.increment(caller, tenantDomain);
-        Object timerMetric = metric.startTiming("deletetenancy_timing", tenantDomain);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, tenantDomain, principalDomain);
+        metric.increment(caller, tenantDomain, principalDomain);
+        Object timerMetric = metric.startTiming("deletetenancy_timing", tenantDomain, principalDomain);
 
         // verify that request is properly authenticated for this request
         
@@ -4853,7 +4914,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         dbService.executeDeleteTenancy(ctx, tenantDomain, provSvcDomain, provSvcName,
                 null, auditRef, caller);
 
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, tenantDomain, principalDomain);
     }
 
     @Override
@@ -4896,9 +4957,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.requestError("Invalid tenancy object", caller);
         }
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, providerDomain);
-        metric.increment(caller, providerDomain);
-        Object timerMetric = metric.startTiming("puttenant_timing", providerDomain);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, providerDomain, principalDomain);
+        metric.increment(caller, providerDomain, principalDomain);
+        Object timerMetric = metric.startTiming("puttenant_timing", providerDomain, principalDomain);
 
         // verify that request is properly authenticated for this request
 
@@ -4911,7 +4973,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         setupTenantAdminPolicyInProvider(ctx, providerDomain, providerService, tenantDomain,
                 auditRef, caller);
 
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, providerDomain, principalDomain);
     }
 
     @Override
@@ -4940,9 +5002,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         providerService = providerService.toLowerCase();
         tenantDomain = tenantDomain.toLowerCase();
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, providerDomain);
-        metric.increment(caller, providerDomain);
-        Object timerMetric = metric.startTiming("deletetenant_timing", providerDomain);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, providerDomain, principalDomain);
+        metric.increment(caller, providerDomain, principalDomain);
+        Object timerMetric = metric.startTiming("deletetenant_timing", providerDomain, principalDomain);
 
         // verify that request is properly authenticated for this request
 
@@ -4955,7 +5018,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         dbService.executeDeleteTenantRoles(ctx, providerDomain, providerService, tenantDomain,
                 null, auditRef, caller);
 
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, providerDomain, principalDomain);
     }
 
     boolean validateTenancyObject(Tenancy tenant, final String tenantDomain, final String providerService) {
@@ -5057,9 +5120,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.requestError("Invalid tenant resource group role object", caller);
         }
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, provSvcDomain);
-        metric.increment(caller, provSvcDomain);
-        Object timerMetric = metric.startTiming("puttenantresourcegrouproles_timing", provSvcDomain);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, provSvcDomain, principalDomain);
+        metric.increment(caller, provSvcDomain, principalDomain);
+        Object timerMetric = metric.startTiming("puttenantresourcegrouproles_timing", provSvcDomain, principalDomain);
         
         // verify that request is properly authenticated for this request
         
@@ -5080,7 +5144,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         dbService.executePutTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain,
                 resourceGroup, detail.getRoles(), auditRef, caller);
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, provSvcDomain, principalDomain);
         return detail;
     }
 
@@ -5096,9 +5160,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         domainName = domainName.toLowerCase();
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, domainName);
-        metric.increment(caller, domainName);
-        Object timerMetric = metric.startTiming("getdomaindatacheck_timing", domainName);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("getdomaindatacheck_timing", domainName, principalDomain);
         
         if (LOG.isDebugEnabled()) {
             LOG.debug("getDomainDataCheck: domain=" + domainName);
@@ -5364,7 +5429,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             ddc.setTenantsWithoutAssumeRole(tenantsWithoutProv);
         }
 
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
         return ddc;
     }
      
@@ -5395,9 +5460,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         tenantDomain = tenantDomain.toLowerCase();
         resourceGroup = resourceGroup.toLowerCase();
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, provSvcDomain);
-        metric.increment(caller, provSvcDomain);
-        Object timerMetric = metric.startTiming("deleteproviderresourcegrouproles_timing", provSvcDomain);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, provSvcDomain, principalDomain);
+        metric.increment(caller, provSvcDomain, principalDomain);
+        Object timerMetric = metric.startTiming("deleteproviderresourcegrouproles_timing", provSvcDomain, principalDomain);
         
         // verify that request is properly authenticated for this request
         
@@ -5419,7 +5485,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 resourceGroup, auditRef, caller);
         }
 
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, provSvcDomain, principalDomain);
     }
 
     public ProviderResourceGroupRoles getProviderResourceGroupRoles(ResourceContext ctx, String tenantDomain,
@@ -5444,9 +5510,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         tenantDomain = tenantDomain.toLowerCase();
         resourceGroup = resourceGroup.toLowerCase();
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, provSvcDomain);
-        metric.increment(caller, provSvcDomain);
-        Object timerMetric = metric.startTiming("getproviderresourcegrouproles_timing", provSvcDomain);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, provSvcDomain, principalDomain);
+        metric.increment(caller, provSvcDomain, principalDomain);
+        Object timerMetric = metric.startTiming("getproviderresourcegrouproles_timing", provSvcDomain, principalDomain);
 
         if (dbService.getDomain(tenantDomain, false) == null) {
             throw ZMSUtils.notFoundError("No such domain: " + tenantDomain, caller);
@@ -5481,7 +5548,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         provRoles.setRoles(tralist);
 
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, provSvcDomain, principalDomain);
         return provRoles;
     }
      
@@ -5568,9 +5635,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.requestError("Invalid provider resource group role object", caller);
         }
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, provSvcDomain);
-        metric.increment(caller, provSvcDomain);
-        Object timerMetric = metric.startTiming("putproviderresourcegrouproles_timing", provSvcDomain);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, provSvcDomain, principalDomain);
+        metric.increment(caller, provSvcDomain, principalDomain);
+        Object timerMetric = metric.startTiming("putproviderresourcegrouproles_timing", provSvcDomain, principalDomain);
         
         // verify that request is properly authenticated for this request
         
@@ -5619,7 +5687,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     resourceGroup, roleActions, auditRef, caller);
         }
 
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, provSvcDomain, principalDomain);
         return detail;
     }
 
@@ -5681,9 +5749,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         tenantDomain = tenantDomain.toLowerCase();
         resourceGroup = resourceGroup.toLowerCase();
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, provSvcDomain);
-        metric.increment(caller, provSvcDomain);
-        Object timerMetric = metric.startTiming("gettenantresourcegrouproles_timing", provSvcDomain);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, provSvcDomain, principalDomain);
+        metric.increment(caller, provSvcDomain, principalDomain);
+        Object timerMetric = metric.startTiming("gettenantresourcegrouproles_timing", provSvcDomain, principalDomain);
 
         if (dbService.getDomain(provSvcDomain, false) == null) {
             throw ZMSUtils.notFoundError("getTenantResourceGroupRoles: No such domain: " + provSvcDomain, caller);
@@ -5719,7 +5788,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         troles.setRoles(tralist);
 
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, provSvcDomain, principalDomain);
         return troles;
     }
 
@@ -5750,9 +5819,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         tenantDomain = tenantDomain.toLowerCase();
         resourceGroup = resourceGroup.toLowerCase();
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, provSvcDomain);
-        metric.increment(caller, provSvcDomain);
-        Object timerMetric = metric.startTiming("deletetenantresourcegrouproles_timing", provSvcDomain);
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, provSvcDomain, principalDomain);
+        metric.increment(caller, provSvcDomain, principalDomain);
+        Object timerMetric = metric.startTiming("deletetenantresourcegrouproles_timing", provSvcDomain, principalDomain);
 
         // verify that request is properly authenticated for this request
         
@@ -5760,7 +5830,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         dbService.executeDeleteTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain,
                 resourceGroup, auditRef, caller);
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, provSvcDomain, principalDomain);
     }
     
     String extractDomainName(String resource) {
@@ -5992,7 +6062,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.increment(ZMSConsts.HTTP_PUT);
         metric.increment(ZMSConsts.HTTP_REQUEST);
         metric.increment(caller);
-        Object timerMetric = metric.startTiming("putdefaultadmins_timing", null);
         logPrincipal(ctx);
 
         if (LOG.isDebugEnabled()) {
@@ -6006,6 +6075,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateRequest(ctx.request(), caller);
 
         validate(domainName, TYPE_DOMAIN_NAME, caller);
+        final String principalDomain = getPrincipalDomain(ctx);
+        Object timerMetric = metric.startTiming("putdefaultadmins_timing", domainName, principalDomain);
 
         // verify that request is properly authenticated for this request
         
@@ -6071,7 +6142,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 defaultAdmins, auditRef, caller);
         
         addDefaultAdminMembers(ctx, domainName, adminRole, defaultAdmins, auditRef, caller);
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
     }
 
     void addDefaultAdminAssertion(ResourceContext ctx, String domainName, Policy adminPolicy,
@@ -6260,11 +6331,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateRequest(ctx.request(), caller);
         
         Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        final String principalDomain = principal.getDomain();
+
         Authority authority = principal.getAuthority();
 
-        metric.increment(ZMSConsts.HTTP_REQUEST, principal.getDomain());
-        metric.increment(caller, principal.getDomain());
-        Object timerMetric = metric.startTiming("getserviceprincipal_timing", principal.getDomain());
+        metric.increment(ZMSConsts.HTTP_REQUEST, principalDomain, principalDomain);
+        metric.increment(caller, principalDomain, principalDomain);
+        Object timerMetric = metric.startTiming("getserviceprincipal_timing", principalDomain, principalDomain);
 
         // If the authority does not support authorization then we're going to
         // generate a new ServiceToken signed by ZMS and send that back.
@@ -6289,7 +6362,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             servicePrincipal.setToken(principal.getCredentials());
         }
 
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, principalDomain, principalDomain);
         return servicePrincipal;
     }
     
@@ -6355,7 +6428,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.increment(ZMSConsts.HTTP_GET);
         metric.increment(ZMSConsts.HTTP_REQUEST);
         metric.increment(caller);
-        Object timerMetric = metric.startTiming("getresourceaccesslist_timing", null);
+
+        final String principalDomain = getPrincipalDomain(ctx);
+        Object timerMetric = metric.startTiming("getresourceaccesslist_timing", null, principalDomain);
         logPrincipal(ctx);
 
         validateRequest(ctx.request(), caller);
@@ -6388,7 +6463,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         ResourceAccessList rsrcAccessList = dbService.getResourceAccessList(principal, action);
 
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, null, principalDomain);
         return rsrcAccessList;
     }
 
@@ -6406,7 +6481,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // create our timer object
         
         metric.increment(caller);
-        Object timerMetric = metric.startTiming("getstatus_timing", null);
+        final String principalDomain = getPrincipalDomain(ctx);
+        Object timerMetric = metric.startTiming("getstatus_timing", null, principalDomain);
         
         // for now we're going to verify our database connectivity
         // in case of failure we're going to return not found
@@ -6422,10 +6498,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.notFoundError("Error - no status available", caller);
         }
 
-        metric.stopTiming(timerMetric);
+        metric.stopTiming(timerMetric, null, principalDomain);
         return successServerStatus;
     }
-    
+
+    String getPrincipalDomain(ResourceContext ctx) {
+        final Principal ctxPrincipal = ((RsrcCtxWrapper) ctx).principal();
+        return ctxPrincipal == null ? null : ctxPrincipal.getDomain();
+    }
+
     void logPrincipal(ResourceContext ctx) {
         
         // we are going to log our principal and validate that it
