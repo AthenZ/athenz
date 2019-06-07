@@ -38,7 +38,7 @@ make build-docker
 ```bash
 cd ${PROJECT_ROOT}
 
-# prepare passwords \
+# prepare passwords (values in *.properties files will overwrite this setting)
 export ZMS_PK_PASS=${ZMS_PK_PASS:-athenz}
 export ZMS_SSL_KEY_STORE_PASSWORD=${ZMS_SSL_KEY_STORE_PASSWORD:-athenz}
 export ZMS_JDBC_PASSWORD=${ZMS_JDBC_PASSWORD:-mariadb}
