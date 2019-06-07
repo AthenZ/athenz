@@ -84,7 +84,7 @@ docker run --net=host \
   -dns-domain dns.athenz.cloud \
   -instance dummy-instance \
   -hdr Athenz-Principal-Auth \
-  -cert-file /etc/acceptance-test/client.crt \
+  -cert-file /etc/acceptance-test/service.crt \
   -signer-cert-file /etc/acceptance-test/intermediate.crt \
   ; docker rm athenz-cli-util > /dev/null;
 ### less ./docker/acceptance-test/service.crt ./docker/acceptance-test/intermediate.crt
@@ -95,6 +95,7 @@ docker run --net=host \
   -v `pwd`/docker/acceptance-test:/etc/acceptance-test \
   --name athenz-cli-util athenz-cli-util \
   ./utils/zts-rolecert/target/linux/zts-rolecert \
+  -domain garm -service tester \
   -svc-key-file /etc/acceptance-test/private.pem \
   -svc-cert-file /etc/acceptance-test/service.crt \
   -zts https://localhost:8443/zts/v1 \
