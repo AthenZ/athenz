@@ -42,7 +42,7 @@ ZTS_SIGN_PRIVATE_KEY_PATH='./zts/var/keys/zts_private.pem'
 ZTS_SIGN_PUBLIC_KEY_PATH='./zts/var/keys/zts_public.pem'
 openssl rsa -in ${ZTS_SIGN_PRIVATE_KEY_PATH} -pubout > ${ZTS_SIGN_PUBLIC_KEY_PATH}
 
-# prepare root CA certificate for certificate signed by ZTS
+# prepare root CA certificate for certificate signed by ZTS (make sure equals to the hard-coded value in Athenz, i.e. CN=Self Signed Athenz CA)
 ZTS_SIGN_ROOT_CA_CERT_CONFIG_PATH='./zts/var/keys/service_root_CA_cert.cnf'
 ZTS_SIGN_ROOT_CA_CERT_PATH='./zts/var/keys/zts_root_ca_cert.pem'
 openssl req -new -config ${ZTS_SIGN_ROOT_CA_CERT_CONFIG_PATH} -x509 -days 365 -extensions v3_ca -key ${ZTS_SIGN_PRIVATE_KEY_PATH} -out ${ZTS_SIGN_ROOT_CA_CERT_PATH}

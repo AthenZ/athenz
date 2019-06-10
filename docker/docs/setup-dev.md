@@ -69,6 +69,10 @@ mkdir -p `pwd`/docker/logs/zts
 # P.S. ZTS is not running normally at this state. We will update it in the following section.
 docker stack deploy -c ./docker/docker-stack.yaml athenz
 
+# (optional) restart ZMS service in docker stack if failed to DB during start up
+ZMS_SERVICE=`docker stack services -qf "name=athenz_zms-server" athenz`
+docker service update --force $ZMS_SERVICE
+
 # stop athenz
 docker stack rm athenz
 rm -rf ./docker/logs

@@ -7,10 +7,8 @@ x509_extensions	= v3_ca
 
 [ dn ]
 C = US
-ST = CA
 O = Athenz
-OU = Testing Domain
-CN = localhost
+CN = Self Signed Athenz CA
 
 [ v3_ca ]
 subjectKeyIdentifier=hash
