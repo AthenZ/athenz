@@ -1,0 +1,18 @@
+[req]
+default_bits = 1024
+prompt = no
+default_md = sha256
+distinguished_name = dn
+x509_extensions	= v3_ca
+
+[ dn ]
+C = US
+ST = CA
+O = Athenz
+OU = Testing Domain
+CN = localhost
+
+[ v3_ca ]
+subjectKeyIdentifier=hash
+authorityKeyIdentifier=keyid:always,issuer
+basicConstraints = critical,CA:true

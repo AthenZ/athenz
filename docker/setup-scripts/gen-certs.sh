@@ -36,14 +36,21 @@ ZTS_TRUSTSTORE_PATH='./zts/var/certs/zts_truststore.jks'
 openssl req -new -extensions v3_req -config ${ZTS_CERT_CONFIG_PATH} -keyout ${ZTS_PK_PATH} -passout "pass:${ZTS_PK_PASS}" | openssl req -x509 -extensions v3_req -days 365 -config ${ZTS_CERT_CONFIG_PATH} -key ${ZTS_PK_PATH} -passin "pass:${ZTS_PK_PASS}" -in /dev/stdin -out ${ZTS_CERT_OUT_PATH}
 # create ZTS keystore
 openssl pkcs12 -export -noiter -out ${ZTS_KEYSTORE_PATH} -passout "pass:${ZTS_SSL_KEY_STORE_PASSWORD}" -in ${ZTS_CERT_OUT_PATH} -inkey ${ZTS_PK_PATH} -passin "pass:${ZTS_PK_PASS}"
-# create ZTS truststore
-rm -f ${ZTS_TRUSTSTORE_PATH}
-keytool -importcert -noprompt -alias zms -keystore ${ZTS_TRUSTSTORE_PATH} -file ${ZMS_CERT_OUT_PATH} -storepass "${ZTS_SSL_TRUST_STORE_PASSWORD}"
 
 # prepare ZTS service public key (also used for certificate signing in dev env.)
 ZTS_SIGN_PRIVATE_KEY_PATH='./zts/var/keys/zts_private.pem'
 ZTS_SIGN_PUBLIC_KEY_PATH='./zts/var/keys/zts_public.pem'
 openssl rsa -in ${ZTS_SIGN_PRIVATE_KEY_PATH} -pubout > ${ZTS_SIGN_PUBLIC_KEY_PATH}
+
+# prepare root CA certificate for certificate signed by ZTS
+ZTS_SIGN_ROOT_CA_CERT_CONFIG_PATH='./zts/var/keys/service_root_CA_cert.cnf'
+ZTS_SIGN_ROOT_CA_CERT_PATH='./zts/var/keys/zts_root_ca_cert.pem'
+openssl req -new -config ${ZTS_SIGN_ROOT_CA_CERT_CONFIG_PATH} -x509 -days 365 -extensions v3_ca -key ${ZTS_SIGN_PRIVATE_KEY_PATH} -out ${ZTS_SIGN_ROOT_CA_CERT_PATH}
+
+# create ZTS truststore
+rm -f ${ZTS_TRUSTSTORE_PATH}
+keytool -importcert -noprompt -alias zms -keystore ${ZTS_TRUSTSTORE_PATH} -file ${ZMS_CERT_OUT_PATH} -alias zmsCert -storepass "${ZTS_SSL_TRUST_STORE_PASSWORD}"
+keytool -importcert -noprompt -alias zms -keystore ${ZTS_TRUSTSTORE_PATH} -file ${ZTS_SIGN_ROOT_CA_CERT_PATH} -alias serviceRootCA -storepass "${ZTS_SSL_TRUST_STORE_PASSWORD}"
 
 # -------------------------------- UI --------------------------------
 
