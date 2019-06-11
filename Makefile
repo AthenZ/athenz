@@ -34,6 +34,7 @@ run-docker:
 		-v `pwd`/docker/zts/conf:/opt/athenz/zts/conf/zts_server \
 		-v `pwd`/docker/zts/var:/opt/athenz/zts/var \
 		-v `pwd`/docker/logs/zts:/opt/athenz/zts/logs/zts_server \
+		# -e JAVA_OPTS='-Djavax.net.debug=all' \
 		-e ZTS_CERT_JDBC_PASSWORD=${ZTS_CERT_JDBC_PASSWORD} \
 		-e ZTS_SELF_SIGNER_PRIVATE_KEY_PASSWORD=${ZTS_SELF_SIGNER_PRIVATE_KEY_PASSWORD} \
 		-e ZTS_ZTS_SSL_KEY_STORE_PASSWORD=${ZTS_ZTS_SSL_KEY_STORE_PASSWORD} \
