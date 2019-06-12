@@ -39,16 +39,17 @@ make build-docker
 cd ${PROJECT_ROOT}
 
 # prepare passwords (values in *.properties files will overwrite this setting)
-export ZMS_PK_PASS=${ZMS_PK_PASS:-athenz}
-export ZMS_SSL_KEY_STORE_PASSWORD=${ZMS_SSL_KEY_STORE_PASSWORD:-athenz}
-export ZMS_JDBC_PASSWORD=${ZMS_JDBC_PASSWORD:-mariadb}
-export ZTS_PK_PASS=${ZTS_PK_PASS:-athenz}
-export ZTS_SSL_KEY_STORE_PASSWORD=${ZTS_SSL_KEY_STORE_PASSWORD:-athenz}
-export ZTS_SSL_TRUST_STORE_PASSWORD=${ZTS_SSL_TRUST_STORE_PASSWORD:-athenz}
-export ZTS_ZTS_SSL_KEY_STORE_PASSWORD=${ZTS_SSL_KEY_STORE_PASSWORD}
-export ZTS_ZTS_SSL_TRUST_STORE_PASSWORD=${ZTS_SSL_TRUST_STORE_PASSWORD}
-export ZTS_CERT_JDBC_PASSWORD=${ZTS_CERT_JDBC_PASSWORD:-mariadb}
-export UI_PK_PASS=${UI_PK_PASS:-athenz}
+ZMS_PK_PASS=${ZMS_PK_PASS:-athenz}
+ZMS_SSL_KEY_STORE_PASSWORD=${ZMS_SSL_KEY_STORE_PASSWORD:-athenz}
+ZMS_JDBC_PASSWORD=${ZMS_JDBC_PASSWORD:-mariadb}
+ZTS_PK_PASS=${ZTS_PK_PASS:-athenz}
+ZTS_SSL_KEY_STORE_PASSWORD=${ZTS_SSL_KEY_STORE_PASSWORD:-athenz}
+ZTS_SSL_TRUST_STORE_PASSWORD=${ZTS_SSL_TRUST_STORE_PASSWORD:-athenz}
+ZTS_SIGN_KEYSTORE_PASSWORD=${ZTS_SIGN_KEYSTORE_PASSWORD:-athenz}
+ZTS_ZTS_SSL_KEY_STORE_PASSWORD=${ZTS_SSL_KEY_STORE_PASSWORD}
+ZTS_ZTS_SSL_TRUST_STORE_PASSWORD=${ZTS_SSL_TRUST_STORE_PASSWORD}
+ZTS_CERT_JDBC_PASSWORD=${ZTS_CERT_JDBC_PASSWORD:-mariadb}
+UI_PK_PASS=${UI_PK_PASS:-athenz}
 
 # mount the configuration folder to the docker image and update required files (certificates & key stores) by the script
 docker build -t athenz-setup -f ./docker/setup-scripts/common/Dockerfile ./docker/setup-scripts
@@ -207,7 +208,7 @@ cd ${PROJECT_ROOT}
 # requirement: ZMS is running
 
 # 1. add ZTS service public key to ZMS (if not specified, admin user password is set to `replace_me_with_a_strong_passowrd`)
-export ZMS_ADMIN_PASS=${ZMS_ADMIN_PASS:-replace_me_with_a_strong_passowrd}
+ZMS_ADMIN_PASS=${ZMS_ADMIN_PASS:-replace_me_with_a_strong_passowrd}
 sh ./docker/register-ZTS-to-ZMS.sh
 
 # 2. generate athenz.conf for ZTS (admin user password: `ZMS_ADMIN_PASS`)

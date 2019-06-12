@@ -43,6 +43,7 @@ mysql -v -u root --password=${ZTS_CERT_JDBC_PASSWORD} --host=127.0.0.1 --port=33
 keytool -list -keystore docker/zms/var/certs/zms_keystore.pkcs12
 keytool -list -keystore docker/zts/var/certs/zts_truststore.jks
 keytool -list -keystore docker/zts/var/certs/zts_keystore.pkcs12
+keytool -list -keystore docker/zts/var/keys/zts_cert_signer_keystore.pkcs12
 ```
 ## TO-DO
 
@@ -50,10 +51,12 @@ keytool -list -keystore docker/zts/var/certs/zts_keystore.pkcs12
     1.  convert `default-config.js` parameters to ENV
     1.  configurable listering port
 -   ZMS
+    1.  trustore password not exported; if empty, will cause error even if trustore not set
     1.  NO retry on DB connection error when deploy with docker stack
     1.  Warning message in docker log: `Loading class `com.mysql.jdbc.Driver'. This is deprecated. The new driver class is `com.mysql.cj.jdbc.Driver'. The driver is automatically registered via the SPI and manual loading of the driver class is generally unnecessary.`
 -   ZTS
     1.  `docker/zts/var/zts_store/` create as root user by docker for storing policy, better to change the default location folder outside the Athenz project folder
+    2.  should expose `ZTS_SELF_SIGNER_PRIVATE_KEY_PASSWORD` and `ZTS_SIGN_KEYSTORE_PASSWORD` in docker file?
 -   ZTS-DB
     1.  `DEFAULT CHARSET = latin1`
 -   athenz-cli

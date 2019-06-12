@@ -33,6 +33,7 @@ CMD [ \
   "-Dathenz.zts.self_signer_private_key_password=${ZTS_SELF_SIGNER_PRIVATE_KEY_PASSWORD}", \
   "-Dathenz.zts.ssl_key_store_password=${ZTS_ZTS_SSL_KEY_STORE_PASSWORD}", \
   "-Dathenz.zts.ssl_trust_store_password=${ZTS_ZTS_SSL_TRUST_STORE_PASSWORD}", \
+  "-Dathenz.zts.keystore_signer.keystore.password=${ZTS_SIGN_KEYSTORE_PASSWORD}", \
   "-Djavax.net.ssl.trustStorePassword=${ZTS_ZTS_SSL_TRUST_STORE_PASSWORD}", \
   "-Dathenz.ssl_key_store_password=${ZTS_SSL_KEY_STORE_PASSWORD}", \
   "-Dathenz.ssl_trust_store_password=${ZTS_SSL_TRUST_STORE_PASSWORD}", \
