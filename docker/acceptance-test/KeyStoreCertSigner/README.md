@@ -1,6 +1,12 @@
 # KeyStoreCertSigner
 Load the CA certificate and its corresponding private key from keystore, and sign service certificate using them.
 
+## build
+```bash
+mvn clean package
+ls ./target/*.jar
+```
+
 ## sample configuration
 ```properties
 athenz.zts.keystore_signer.keystore=/opt/athenz/zts/var/keys/zts_cert_signer_keystore.pkcs12
