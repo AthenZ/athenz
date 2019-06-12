@@ -5,20 +5,21 @@
 ## useful commands
 
 ```bash
-
+# start docker stack
 mkdir -p `pwd`/docker/logs/zms
 mkdir -p `pwd`/docker/logs/zts
 docker stack deploy -c ./docker/docker-stack.yaml athenz
 
+# reset docker stack
 docker stack rm athenz
 rm -rf ./docker/logs
 
-# ---
-
+# debug docker stack
 docker stack ps athenz
 less ./docker/logs/zms/server.log
 less ./docker/logs/zts/server.log
 
+# restart docker
 sudo systemctl restart docker
 
 # remove single docker
@@ -59,10 +60,12 @@ keytool -list -keystore docker/zts/var/keys/zts_cert_signer_keystore.pkcs12
     2.  should expose `ZTS_SELF_SIGNER_PRIVATE_KEY_PASSWORD` and `ZTS_SIGN_KEYSTORE_PASSWORD` in docker file?
 -   ZTS-DB
     1.  `DEFAULT CHARSET = latin1`
+-   ZPU
+    1.  If volume not mount to `/home/athenz/tmp/zpe/`, will have error: `2019/06/12 06:34:09 Failed to get policies for domain: garm, Error:Unable to write Policies for domain:"garm" to file, Error:rename /home/athenz/tmp/zpe/garm.tmp /etc/acceptance-test/zpu/garm.pol: invalid cross-device link`
 -   athenz-cli
-    -   build with separated docker files (add go.mod to support caching the dependency)
+    1.  build with separated docker files (add go.mod to support caching the dependency)
 -   common
-    -   split setup script (gen-certs.sh) for different component
+    1.  split setup script (gen-certs.sh) for different component
 
 ## important files
 - [docker-stack.yaml](./docker-stack.yaml)

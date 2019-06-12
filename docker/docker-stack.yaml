@@ -101,7 +101,7 @@ services:
       - ./zts/conf:/opt/athenz/zts/conf/zts_server
       - ./zts/var:/opt/athenz/zts/var
       - ./logs/zts:/opt/athenz/zts/logs/zts_server
-      - ./acceptance-test/KeyStoreCertSigner/target/keystore-cert-signer-1.0-SNAPSHOT.jar:/usr/lib/jars/kcs.jar
+      - ./acceptance-test/KeyStoreCertSigner/keystore-cert-signer-1.0-SNAPSHOT.jar:/usr/lib/jars/kcs.jar
     deploy:
       restart_policy:
         condition: any
