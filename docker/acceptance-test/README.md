@@ -47,7 +47,7 @@ docker run -it --net=host \
   -d garm add-group-role demo-role garm.tester \
   ; docker rm athenz-zms-cli > /dev/null;
 
-# add policy to ZMS and test the client certificate
+# add policy to ZMS to test access control
 docker run -it --net=host \
   -v `pwd`/docker/zms/var/certs/zms_cert.pem:/etc/certs/zms_cert.pem \
   -v `pwd`/docker/ui/keys/athenz.ui-server_pub.pem:/etc/certs/athenz.ui-server_pub.pem \
@@ -87,9 +87,9 @@ docker run --net=host \
 ### <role token print in stdout>
 ```
 
-- [x] 2. get valid client certificate
+- [x] 2. get valid service certificate
 ```bash
-# get client certificate for the service
+# get service certificate for the service
 docker run --net=host \
   -v `pwd`/docker/zts/var/certs/zts_cert.pem:/etc/certs/zts_cert.pem \
   -v `pwd`/docker/acceptance-test:/etc/acceptance-test \
@@ -120,9 +120,9 @@ curl -k --cert ./docker/acceptance-test/service.crt --key ./docker/acceptance-te
 ### {"granted":true}
 ```
 
-- [x] 2. get valid role certificate
+- [x] 3. get valid role certificate
 ```bash
-# get role token by client certificate
+# get role token by service certificate
 docker run --net=host \
   -v `pwd`/docker/zts/var/certs/zts_cert.pem:/etc/certs/zts_cert.pem \
   -v `pwd`/docker/acceptance-test:/etc/acceptance-test \
@@ -150,7 +150,7 @@ curl -k --cert ./docker/acceptance-test/role.crt --key ./docker/acceptance-test/
 ### {"granted":true}
 ```
 
-- [x] 3. get policy
+- [x] 4. get policy
 ```bash
 # get policy - ZPU
 mkdir -p ./docker/acceptance-test/zpu/metrics
