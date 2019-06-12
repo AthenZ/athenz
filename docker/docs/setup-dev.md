@@ -5,19 +5,19 @@
 <!-- TOC depthFrom:2 updateOnSave:true -->
 
 - [Deploy Athenz with docker (development environment)](#deploy-athenz-with-docker-development-environment)
-  - [Index](#index)
-  - [Component dependency](#component-dependency)
-  - [Build docker images](#build-docker-images)
-  - [Deploy ZMS & ZTS with docker stack](#deploy-zms--zts-with-docker-stack)
-  - [Prepare ZMS configuration](#prepare-zms-configuration)
-    - [details](#details)
-  - [Prepare ZTS configuration based on ZMS configuration](#prepare-zts-configuration-based-on-zms-configuration)
-    - [details](#details-1)
-    - [setup ZMS for ZTS](#setup-zms-for-zts)
-  - [UI](#ui)
-    - [prepare UI configuration](#prepare-ui-configuration)
-    - [setup ZMS for UI](#setup-zms-for-ui)
-    - [deploy UI](#deploy-ui)
+    - [Index](#index)
+    - [Component dependency](#component-dependency)
+    - [Build docker images](#build-docker-images)
+    - [Deploy ZMS & ZTS with docker stack](#deploy-zms--zts-with-docker-stack)
+    - [Prepare ZMS configuration](#prepare-zms-configuration)
+        - [details](#details)
+    - [Prepare ZTS configuration based on ZMS configuration](#prepare-zts-configuration-based-on-zms-configuration)
+        - [details](#details-1)
+        - [setup ZMS for ZTS](#setup-zms-for-zts)
+    - [UI](#ui)
+        - [prepare UI configuration](#prepare-ui-configuration)
+        - [setup ZMS for UI](#setup-zms-for-ui)
+        - [deploy UI](#deploy-ui)
 
 <!-- /TOC -->
 
@@ -173,7 +173,7 @@ rm -rf ./docker/logs
         athenz.auth.private_key_store.private_key=/opt/athenz/zts/var/keys/zts_private.pem
         athenz.auth.private_key_store.private_key_id=0
         ```
-    1. [ZTS signing key for self-signed certificate](../zts/conf/zts.properties#L123-L129)
+    1. [ZTS service certificate signing class and its config](../zts/conf/zts.properties#L123-L129)
         
         ```properties
         athenz.zts.cert_signer_factory_class=com.yahoo.athenz.zts.cert.impl.KeyStoreCertSignerFactory
