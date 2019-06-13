@@ -23,8 +23,8 @@ less ./docker/logs/zts/server.log
 sudo systemctl restart docker
 
 # remove single docker
-docker stop athenz-zms-server; docker rm athenz-zms-server; sudo rm -f ./docker/logs/zms/server.log
-docker stop athenz-zts-server; docker rm athenz-zts-server; sudo rm -f ./docker/logs/zts/server.log
+docker stop athenz-zms-server; docker rm athenz-zms-server; sudo rm -f ./docker/logs/zms/*
+docker stop athenz-zts-server; docker rm athenz-zts-server; sudo rm -f ./docker/logs/zts/*
 
 # inspect
 docker inspect athenz-zms-server | less
