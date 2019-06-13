@@ -16,14 +16,22 @@
 package com.yahoo.athenz.auth.token;
 
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
+import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.auth.util.CryptoException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 public class AccessToken extends OAuth2Token {
@@ -34,10 +42,16 @@ public class AccessToken extends OAuth2Token {
     public static final String CLAIM_SCOPE = "scp";
     public static final String CLAIM_UID = "uid";
     public static final String CLAIM_CLIENT_ID = "client_id";
+    public static final String CLAIM_CONFIRM = "cnf";
+
+    public static final String CLAIM_CONFIRM_X509_HASH = "x5t#S256";
+
+    private static final Logger LOG = LoggerFactory.getLogger(AccessToken.class);
 
     private String clientId;
     private String userId;
     private List<String> scope;
+    private LinkedHashMap<String, Object> confirm;
 
     public AccessToken() {
         super();
@@ -60,6 +74,7 @@ public class AccessToken extends OAuth2Token {
         setClientId(body.get(CLAIM_CLIENT_ID, String.class));
         setUserId(body.get(CLAIM_UID, String.class));
         setScope(body.get(CLAIM_SCOPE, List.class));
+        setConfirm(body.get(CLAIM_CONFIRM, LinkedHashMap.class));
     }
 
     public String getClientId() {
@@ -86,6 +101,48 @@ public class AccessToken extends OAuth2Token {
         this.scope = scope;
     }
 
+    public LinkedHashMap<String, Object> getConfirm() {
+        return confirm;
+    }
+
+    public void setConfirm(LinkedHashMap<String, Object> confirm) {
+        this.confirm = confirm;
+    }
+
+    public void setConfirmEntry(final String key, final Object value) {
+        if (confirm == null) {
+            confirm = new LinkedHashMap<>();
+        }
+        confirm.put(key, value);
+    }
+
+    public void setConfirmX509CertHash(X509Certificate cert) {
+        setConfirmEntry(CLAIM_CONFIRM_X509_HASH, getX509CertificateHash(cert));
+    }
+
+    public boolean confirmX509CertHash(X509Certificate cert) {
+        final String cnfHash = (String) getConfirmEntry(CLAIM_CONFIRM_X509_HASH);
+        if (cnfHash == null) {
+            return false;
+        }
+        final String certHash = getX509CertificateHash(cert);
+        return cnfHash.equals(certHash);
+    }
+
+    String getX509CertificateHash(X509Certificate cert) {
+        try {
+            byte[] encCert = Crypto.sha256(cert.getEncoded());
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(encCert);
+        } catch (CryptoException | CertificateEncodingException ex) {
+            LOG.error("Unable to get X.509 certificate hash", ex);
+            return null;
+        }
+    }
+
+    public Object getConfirmEntry(final String key) {
+        return confirm == null ? null : confirm.get(key);
+    }
+
     public String getSignedToken(final PrivateKey key, final String keyId,
             final SignatureAlgorithm keyAlg) {
 
@@ -99,6 +156,7 @@ public class AccessToken extends OAuth2Token {
                 .claim(CLAIM_SCOPE, scope)
                 .claim(CLAIM_UID, userId)
                 .claim(CLAIM_CLIENT_ID, clientId)
+                .claim(CLAIM_CONFIRM, confirm)
                 .setHeaderParam(HDR_KEY_ID, keyId)
                 .setHeaderParam(HDR_TOKEN_TYPE, HDR_TOKEN_JWT)
                 .signWith(keyAlg, key)

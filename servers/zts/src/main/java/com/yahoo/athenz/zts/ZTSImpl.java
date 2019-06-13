@@ -1553,6 +1553,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         accessToken.setIssuer(ztsOAuthIssuer);
         accessToken.setScope(new ArrayList<>(roles));
 
+        // if we have a certificate used for mTLS authentication then
+        // we're going to bind the certificate to the access token
+
+        X509Certificate cert = principal.getX509Certificate();
+        if (cert != null) {
+            accessToken.setConfirmX509CertHash(cert);
+        }
+
         String accessJwts = accessToken.getSignedToken(privateKey, privateKeyId, privateKeyAlg);
 
         // now let's check to see if we need to create openid token
