@@ -120,7 +120,7 @@ make build-docker
     ```bash
     # [DEV env. only] run setup scripts (6.1)
     docker run --rm --entrypoint /usr/bin/run.sh \
-      -e ZTS_CERT_SIGNER_PK_PASS=${ZTS_PK_PASS:-athenz} \
+      -e ZTS_CERT_SIGNER_PK_PASS=${ZTS_CERT_SIGNER_PK_PASS:-athenz} \
       -v `pwd`/docker:/usr/bin/docker \
       -v `pwd`/docker/setup-scripts/6.1.create-zts-cert-signer-pair.sh:/usr/bin/run.sh \
       openssl-alpine
@@ -317,6 +317,7 @@ docker run -it --rm --network=host \
   -k -o /tmp/athenz.conf
 
 # 3. restart ZTS service in docker stack
+rm -f ./docker/logs/zts/server.log
 ZTS_SERVICE=`docker stack services -qf "name=athenz_zts-server" athenz`
 docker service update --force $ZTS_SERVICE
 ```

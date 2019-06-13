@@ -32,7 +32,7 @@ CMD [ \
   # system properties for passwords
   "-Dathenz.zts.cert_jdbc_password=${ZTS_CERT_JDBC_PASSWORD}", \
   "-Dathenz.ssl_key_store_password=${ZTS_SSL_KEYSTORE_PASS}", \
-  "-Dathenz.ssl_trust_store_password=${ZTS_SSL_TRUSTSTORE_PASSWORD}", \
+  "-Dathenz.ssl_trust_store_password=${ZTS_SSL_TRUSTSTORE_PASS}", \
   "-Dathenz.zts.ssl_key_store_password=${ZTS_ZTS_SSL_KEYSTORE_PASS}", \
   "-Dathenz.zts.ssl_trust_store_password=${ZTS_ZTS_SSL_TRUSTSTORE_PASS}", \
   "-Djavax.net.ssl.trustStorePassword=${ZTS_ZTS_SSL_TRUSTSTORE_PASS}", \
