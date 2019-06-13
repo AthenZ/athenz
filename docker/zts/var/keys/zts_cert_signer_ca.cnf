@@ -8,9 +8,9 @@ x509_extensions	= v3_ca
 [ dn ]
 C = US
 O = Athenz
-CN = Self Signed Athenz CA
+CN = Sample Self Signed Athenz CA
 
 [ v3_ca ]
+basicConstraints = critical,CA:true
 subjectKeyIdentifier=hash
 authorityKeyIdentifier=keyid:always,issuer
-basicConstraints = critical,CA:true
