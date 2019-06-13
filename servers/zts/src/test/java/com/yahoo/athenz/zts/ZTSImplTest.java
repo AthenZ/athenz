@@ -8591,6 +8591,50 @@ public class ZTSImplTest {
     }
 
     @Test
+    public void testPostAccessTokenRequestmTLSBound() throws IOException {
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "x509-certificate-details", 0, new CertificateAuthority());
+
+        Path path = Paths.get("src/test/resources/mtls_token_spec.cert");
+        String certStr = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(certStr);
+        ((SimplePrincipal) principal).setX509Certificate(cert);
+
+        ResourceContext context = createResourceContext(principal);
+
+        AccessTokenResponse resp = zts.postAccessTokenRequest(context,
+                "grant_type=client_credentials&scope=coretech:domain");
+        assertNotNull(resp);
+        assertEquals("coretech:role.writers", resp.getScope());
+
+        String accessTokenStr = resp.getAccess_token();
+        assertNotNull(accessTokenStr);
+
+        Jws<Claims> claims = null;
+        try {
+            claims = Jwts.parser().setSigningKey(Crypto.extractPublicKey(privateKey))
+                    .parseClaimsJws(accessTokenStr);
+        } catch (SignatureException e) {
+            throw new ResourceException(ResourceException.UNAUTHORIZED);
+        }
+        assertNotNull(claims);
+        assertEquals("user_domain.user", claims.getBody().getSubject());
+        assertEquals("coretech", claims.getBody().getAudience());
+        assertEquals(zts.ztsOAuthIssuer, claims.getBody().getIssuer());
+        List<String> scopes = (List<String>) claims.getBody().get("scp");
+        assertNotNull(scopes);
+        assertEquals(1, scopes.size());
+        assertEquals("writers", scopes.get(0));
+
+        LinkedHashMap<String, Object> cnf = (LinkedHashMap<String, Object>) claims.getBody().get("cnf");
+        assertEquals("A4DtL2JmUMhAsvJj5tKyn64SqzmuXbMrJa0n761y5v0", cnf.get("x5t#S256"));
+    }
+
+    @Test
     public void testPostAccessTokenRequestECPrivateKey() {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/zts_private_ec.pem");

@@ -19,16 +19,24 @@ import ch.qos.logback.core.net.ssl.SSL;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import com.yahoo.athenz.auth.token.jwts.MockJwtsSigningKeyResolver;
 import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.auth.util.CryptoException;
 import io.jsonwebtoken.*;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
+import java.util.Base64;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import static org.testng.Assert.*;
@@ -59,6 +67,17 @@ public class AccessTokenTest {
         accessToken.setAudience("coretech");
         accessToken.setVersion(1);
         accessToken.setIssuer("athenz");
+        accessToken.setConfirmEntry("x5t#uri", "spiffe://athenz/sa/api");
+
+        try {
+            Path path = Paths.get("src/test/resources/mtls_token_spec.cert");
+            String certStr = new String(Files.readAllBytes(path));
+            X509Certificate cert = Crypto.loadX509Certificate(certStr);
+            accessToken.setConfirmX509CertHash(cert);
+        } catch (IOException ignored) {
+            fail();
+        }
+
         return accessToken;
     }
 
@@ -74,6 +93,22 @@ public class AccessTokenTest {
         assertEquals("coretech", accessToken.getAudience());
         assertEquals(1, accessToken.getVersion());
         assertEquals("athenz", accessToken.getIssuer());
+        LinkedHashMap<String, Object> confirm = accessToken.getConfirm();
+        assertNotNull(confirm);
+        assertEquals("A4DtL2JmUMhAsvJj5tKyn64SqzmuXbMrJa0n761y5v0", confirm.get("x5t#S256"));
+        assertEquals("A4DtL2JmUMhAsvJj5tKyn64SqzmuXbMrJa0n761y5v0", accessToken.getConfirmEntry("x5t#S256"));
+        assertEquals("spiffe://athenz/sa/api", confirm.get("x5t#uri"));
+        assertEquals("spiffe://athenz/sa/api", accessToken.getConfirmEntry("x5t#uri"));
+        assertNull(accessToken.getConfirmEntry("unknown"));
+
+        try {
+            Path path = Paths.get("src/test/resources/mtls_token_spec.cert");
+            String certStr = new String(Files.readAllBytes(path));
+            X509Certificate cert = Crypto.loadX509Certificate(certStr);
+            assertTrue(accessToken.confirmX509CertHash(cert));
+        } catch (IOException ignored) {
+            fail();
+        }
     }
 
     @Test
@@ -318,6 +353,57 @@ public class AccessTokenTest {
             System.clearProperty(JwtsSigningKeyResolver.ZTS_PROP_ATHENZ_CONF);
         } else {
             System.setProperty(JwtsSigningKeyResolver.ZTS_PROP_ATHENZ_CONF, oldConf);
+        }
+    }
+
+    @Test
+    public void testAccessTokenNullConfirm() {
+        AccessToken accessToken = new AccessToken();
+        assertNull(accessToken.getConfirm());
+        assertNull(accessToken.getConfirmEntry("key"));
+    }
+
+    @Test
+    public void testGetX509CertificateHash() throws CertificateEncodingException {
+
+        X509Certificate mockCert = Mockito.mock(X509Certificate.class);
+        Mockito.when(mockCert.getEncoded()).thenThrow(new CryptoException());
+
+        AccessToken accessToken = new AccessToken();
+        assertNull(accessToken.getX509CertificateHash(mockCert));
+    }
+
+    @Test
+    public void testConfirmX509CertHashFailure() {
+
+        long now = System.currentTimeMillis() / 1000;
+        AccessToken accessToken = createAccessToken(now);
+
+        try {
+            Path path = Paths.get("src/test/resources/valid_cn_x509.cert");
+            String certStr = new String(Files.readAllBytes(path));
+            X509Certificate cert = Crypto.loadX509Certificate(certStr);
+            assertFalse(accessToken.confirmX509CertHash(cert));
+        } catch (IOException ignored) {
+            fail();
+        }
+    }
+
+    @Test
+    public void testConfirmX509CertHashNoHash() {
+
+        AccessToken accessToken = new AccessToken();
+        accessToken.setVersion(1);
+        accessToken.setIssuer("athenz");
+        accessToken.setConfirmEntry("x5t#uri", "spiffe://athenz/sa/api");
+
+        try {
+            Path path = Paths.get("src/test/resources/valid_cn_x509.cert");
+            String certStr = new String(Files.readAllBytes(path));
+            X509Certificate cert = Crypto.loadX509Certificate(certStr);
+            assertFalse(accessToken.confirmX509CertHash(cert));
+        } catch (IOException ignored) {
+            fail();
         }
     }
 }
