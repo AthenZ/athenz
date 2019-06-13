@@ -25,6 +25,7 @@ sudo systemctl restart docker
 # remove single docker
 docker stop athenz-zms-server; docker rm athenz-zms-server; sudo rm -f ./docker/logs/zms/*
 docker stop athenz-zts-server; docker rm athenz-zts-server; sudo rm -f ./docker/logs/zts/*
+docker stop athenz-ui; docker rm athenz-ui
 
 # inspect
 docker inspect athenz-zms-server | less
@@ -42,9 +43,10 @@ mysql -v -u root --password=${ZTS_CERT_JDBC_PASSWORD} --host=127.0.0.1 --port=33
 
 # keytool
 keytool -list -keystore docker/zms/var/certs/zms_keystore.pkcs12
-keytool -list -keystore docker/zts/var/certs/zts_truststore.jks
+keytool -list -keystore docker/zms/var/certs/zms_truststore.jks
 keytool -list -keystore docker/zts/var/certs/zts_keystore.pkcs12
-keytool -list -keystore docker/zts/var/keys/zts_cert_signer_keystore.pkcs12
+keytool -list -keystore docker/zts/var/certs/zts_truststore.jks
+# keytool -list -keystore docker/zts/var/keys/zts_cert_signer_keystore.pkcs12
 ```
 ## TO-DO
 
@@ -52,12 +54,11 @@ keytool -list -keystore docker/zts/var/keys/zts_cert_signer_keystore.pkcs12
     1.  convert `default-config.js` parameters to ENV
     1.  configurable listering port
 -   ZMS
-    1.  trustore password not exported; if empty, will cause error even if trustore not set
     1.  NO retry on DB connection error when deploy with docker stack
     1.  Warning message in docker log: `Loading class `com.mysql.jdbc.Driver'. This is deprecated. The new driver class is `com.mysql.cj.jdbc.Driver'. The driver is automatically registered via the SPI and manual loading of the driver class is generally unnecessary.`
 -   ZTS
     1.  `docker/zts/var/zts_store/` create as root user by docker for storing policy, better to change the default location folder outside the Athenz project folder
-    2.  should expose `ZTS_SELF_SIGNER_PRIVATE_KEY_PASSWORD` and `ZTS_SIGN_KEYSTORE_PASSWORD` in docker file?
+    2.  should expose `ZTS_CERT_SIGNER_PK_PASS`  in docker file?
 -   ZTS-DB
     1.  `DEFAULT CHARSET = latin1`
 -   ZPU
@@ -65,7 +66,7 @@ keytool -list -keystore docker/zts/var/keys/zts_cert_signer_keystore.pkcs12
 -   athenz-cli
     1.  build with separated docker files (add go.mod to support caching the dependency)
 -   common
-    1.  split setup script (gen-certs.sh) for different component
+    1.  file permission for keys (`chmod`)
 
 ## important files
 - [docker-stack.yaml](./docker-stack.yaml)

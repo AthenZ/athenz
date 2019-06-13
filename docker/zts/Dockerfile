@@ -13,11 +13,12 @@ ENV CONF_PATH='conf/zts_server'
 
 # ENV for passwords
 ENV ZTS_CERT_JDBC_PASSWORD=''
-ENV ZTS_SELF_SIGNER_PRIVATE_KEY_PASSWORD=''
-ENV ZTS_ZTS_SSL_KEY_STORE_PASSWORD=''
-ENV ZTS_ZTS_SSL_TRUST_STORE_PASSWORD=''
-ENV ZTS_SSL_KEY_STORE_PASSWORD=''
-ENV ZTS_SSL_TRUST_STORE_PASSWORD=''
+ENV ZTS_SSL_KEYSTORE_PASS=''
+ENV ZTS_SSL_TRUSTSTORE_PASS=''
+ENV ZTS_ZTS_SSL_KEYSTORE_PASS=''
+ENV ZTS_ZTS_SSL_TRUSTSTORE_PASS=''
+ENV ZTS_CERT_SIGNER_PK_PASS=''
+
 
 ENTRYPOINT ["sh", "-c", "eval $0 $@", "java"]
 CMD [ \
@@ -30,13 +31,12 @@ CMD [ \
   "-Dlogback.configurationFile=${CONF_PATH}/logback.xml", \
   # system properties for passwords
   "-Dathenz.zts.cert_jdbc_password=${ZTS_CERT_JDBC_PASSWORD}", \
-  "-Dathenz.zts.self_signer_private_key_password=${ZTS_SELF_SIGNER_PRIVATE_KEY_PASSWORD}", \
-  "-Dathenz.zts.ssl_key_store_password=${ZTS_ZTS_SSL_KEY_STORE_PASSWORD}", \
-  "-Dathenz.zts.ssl_trust_store_password=${ZTS_ZTS_SSL_TRUST_STORE_PASSWORD}", \
-  "-Dathenz.zts.keystore_signer.keystore.password=${ZTS_SIGN_KEYSTORE_PASSWORD}", \
-  "-Djavax.net.ssl.trustStorePassword=${ZTS_ZTS_SSL_TRUST_STORE_PASSWORD}", \
-  "-Dathenz.ssl_key_store_password=${ZTS_SSL_KEY_STORE_PASSWORD}", \
-  "-Dathenz.ssl_trust_store_password=${ZTS_SSL_TRUST_STORE_PASSWORD}", \
+  "-Dathenz.ssl_key_store_password=${ZTS_SSL_KEYSTORE_PASS}", \
+  "-Dathenz.ssl_trust_store_password=${ZTS_SSL_TRUSTSTORE_PASSWORD}", \
+  "-Dathenz.zts.ssl_key_store_password=${ZTS_ZTS_SSL_KEYSTORE_PASS}", \
+  "-Dathenz.zts.ssl_trust_store_password=${ZTS_ZTS_SSL_TRUSTSTORE_PASS}", \
+  "-Djavax.net.ssl.trustStorePassword=${ZTS_ZTS_SSL_TRUSTSTORE_PASS}", \
+  "-Dathenz.zts.self_signer_private_key_password=${ZTS_CERT_SIGNER_PK_PASS}", \
   # main class
   "com.yahoo.athenz.container.AthenzJettyContainer" \
 ]

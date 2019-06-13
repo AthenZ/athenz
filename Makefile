@@ -23,26 +23,25 @@ run-docker:
 		--name athenz-zts-db athenz-zts-db
 	docker run -d -h localhost \
 		--network=host -p 4443 \
-		-v `pwd`/docker/zms/conf:/opt/athenz/zms/conf/zms_server \
 		-v `pwd`/docker/zms/var:/opt/athenz/zms/var \
+		-v `pwd`/docker/zms/conf:/opt/athenz/zms/conf/zms_server \
 		-v `pwd`/docker/logs/zms:/opt/athenz/zms/logs/zms_server \
 		-e ZMS_JDBC_PASSWORD=${ZMS_JDBC_PASSWORD} \
-		-e ZMS_SSL_KEY_STORE_PASSWORD=${ZMS_SSL_KEY_STORE_PASSWORD} \
+		-e ZMS_SSL_KEYSTORE_PASS=${ZMS_SSL_KEYSTORE_PASS} \
+		-e ZMS_SSL_TRUSTSTORE_PASS=${ZMS_SSL_TRUSTSTORE_PASS} \
 		--name athenz-zms-server athenz-zms
 	docker run -d -h localhost \
 		--network=host -p 8443 \
-		-v `pwd`/docker/zts/conf:/opt/athenz/zts/conf/zts_server \
 		-v `pwd`/docker/zts/var:/opt/athenz/zts/var \
+		-v `pwd`/docker/zts/conf:/opt/athenz/zts/conf/zts_server \
 		-v `pwd`/docker/logs/zts:/opt/athenz/zts/logs/zts_server \
-		-v `pwd`/docker/acceptance-test/KeyStoreCertSigner/keystore-cert-signer-1.0-SNAPSHOT.jar:/usr/lib/jars/kcs.jar \
 		# -e JAVA_OPTS='-Djavax.net.debug=all' \
 		-e ZTS_CERT_JDBC_PASSWORD=${ZTS_CERT_JDBC_PASSWORD} \
-		-e ZTS_SELF_SIGNER_PRIVATE_KEY_PASSWORD=${ZTS_SELF_SIGNER_PRIVATE_KEY_PASSWORD} \
-		-e ZTS_ZTS_SSL_KEY_STORE_PASSWORD=${ZTS_ZTS_SSL_KEY_STORE_PASSWORD} \
-		-e ZTS_ZTS_SSL_TRUST_STORE_PASSWORD=${ZTS_ZTS_SSL_TRUST_STORE_PASSWORD} \
-		-e ZTS_SIGN_KEYSTORE_PASSWORD=${ZTS_SIGN_KEYSTORE_PASSWORD} \
-		-e ZTS_SSL_KEY_STORE_PASSWORD=${ZTS_SSL_KEY_STORE_PASSWORD} \
-		-e ZTS_SSL_TRUST_STORE_PASSWORD=${ZTS_SSL_TRUST_STORE_PASSWORD} \
+		-e ZTS_SSL_KEYSTORE_PASS=${ZTS_SSL_KEYSTORE_PASS} \
+		-e ZTS_SSL_TRUSTSTORE_PASS=${ZTS_SSL_TRUSTSTORE_PASS} \
+		-e ZTS_ZTS_SSL_KEYSTORE_PASS=${ZTS_ZTS_SSL_KEYSTORE_PASS} \
+		-e ZTS_ZTS_SSL_TRUSTSTORE_PASS=${ZTS_ZTS_SSL_TRUSTSTORE_PASS} \
+		-e ZTS_CERT_SIGNER_PK_PASS=${ZTS_CERT_SIGNER_PK_PASS} \
 		--name athenz-zts-server athenz-zts
 	# docker run -d -h localhost \
 	# 	--network=host -p 443 \

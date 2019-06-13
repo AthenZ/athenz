@@ -25,8 +25,10 @@
 ## Component dependency
 ![Athenz-components](./images/Athenz-components.png)
 
+
 <a id="markdown-build-docker-images" name="build-docker-images"></a>
 ## Build docker images
+
 ```bash
 cd ${PROJECT_ROOT}
 
@@ -35,49 +37,121 @@ make build-docker
 
 <a id="markdown-deploy-zms--zts-with-docker-stack" name="deploy-zms--zts-with-docker-stack"></a>
 ## Deploy ZMS & ZTS with docker stack
-```bash
-cd ${PROJECT_ROOT}
 
-# prepare passwords (values in *.properties files will overwrite this setting)
-export ZMS_PK_PASS=${ZMS_PK_PASS:-athenz}
-export ZMS_SSL_KEY_STORE_PASSWORD=${ZMS_SSL_KEY_STORE_PASSWORD:-athenz}
-export ZMS_JDBC_PASSWORD=${ZMS_JDBC_PASSWORD:-mariadb}
-export ZTS_PK_PASS=${ZTS_PK_PASS:-athenz}
-export ZTS_SSL_KEY_STORE_PASSWORD=${ZTS_SSL_KEY_STORE_PASSWORD:-athenz}
-export ZTS_SSL_TRUST_STORE_PASSWORD=${ZTS_SSL_TRUST_STORE_PASSWORD:-athenz}
-export ZTS_SIGN_KEYSTORE_PASSWORD=${ZTS_SIGN_KEYSTORE_PASSWORD:-athenz}
-export ZTS_ZTS_SSL_KEY_STORE_PASSWORD=${ZTS_SSL_KEY_STORE_PASSWORD}
-export ZTS_ZTS_SSL_TRUST_STORE_PASSWORD=${ZTS_SSL_TRUST_STORE_PASSWORD}
-export ZTS_CERT_JDBC_PASSWORD=${ZTS_CERT_JDBC_PASSWORD:-mariadb}
-export UI_PK_PASS=${UI_PK_PASS:-athenz}
+1. prepare passwords
+    ```bash
+    cd ${PROJECT_ROOT}
 
-# mount the configuration folder to the docker image and update required files (certificates & key stores) by the script
-docker build -t athenz-setup -f ./docker/setup-scripts/common/Dockerfile ./docker/setup-scripts
-docker run -it  -v `pwd`/docker:/docker \
-  -e ZMS_PK_PASS=${ZMS_PK_PASS:-athenz} \
-  -e ZMS_SSL_KEY_STORE_PASSWORD=${ZMS_SSL_KEY_STORE_PASSWORD:-athenz} \
-  -e ZTS_PK_PASS=${ZTS_PK_PASS:-athenz} \
-  -e ZTS_SSL_KEY_STORE_PASSWORD=${ZTS_SSL_KEY_STORE_PASSWORD:-athenz} \
-  -e ZTS_SSL_TRUST_STORE_PASSWORD=${ZTS_SSL_TRUST_STORE_PASSWORD:-athenz} \
-  -e UI_PK_PASS=${UI_PK_PASS:-athenz} \
-  --name athenz-setup athenz-setup; docker rm athenz-setup;
+    # prepare passwords (values in *.properties files will overwrite these settings)
+    ### DB password
+    export ZMS_JDBC_PASSWORD=${ZMS_JDBC_PASSWORD:-mariadb}
+    export ZTS_CERT_JDBC_PASSWORD=${ZTS_CERT_JDBC_PASSWORD:-mariadb}
+    ### SSL private key password
+    export ZMS_PK_PASS=${ZMS_PK_PASS:-athenz}
+    export ZTS_PK_PASS=${ZTS_PK_PASS:-athenz}
+    export UI_PK_PASS=${UI_PK_PASS:-athenz}
+    ### keystore password
+    export ZMS_SSL_KEYSTORE_PASS=${ZMS_SSL_KEYSTORE_PASS:-athenz}
+    export ZTS_SSL_KEYSTORE_PASS=${ZTS_SSL_KEYSTORE_PASS:-athenz}
+    export ZTS_ZTS_SSL_KEYSTORE_PASS=${ZTS_SSL_KEYSTORE_PASS}
+    ### truststore password
+    export ZMS_SSL_TRUSTSTORE_PASS=${ZMS_SSL_TRUSTSTORE_PASS:-athenz}
+    export ZTS_SSL_TRUSTSTORE_PASS=${ZTS_SSL_TRUSTSTORE_PASS:-athenz}
+    export ZTS_ZTS_SSL_TRUSTSTORE_PASS=${ZTS_SSL_TRUSTSTORE_PASS}
+    ### ZTS self cert signer private key password
+    export ZTS_CERT_SIGNER_PK_PASS=${ZTS_CERT_SIGNER_PK_PASS:-athenz}
+    ```
+1. prepare keys, certificates, keystores and truststores
+  
+    ```bash
+    # build execution env.
+    docker build -t openssl-alpine -f ./docker/setup-scripts/openssl/Dockerfile ./docker/setup-scripts
+    docker build -t keytool-alpine -f ./docker/setup-scripts/keytool/Dockerfile ./docker/setup-scripts
+    
+    # test docker image
+    docker run --rm openssl-alpine
+    docker run --rm keytool-alpine
+    
+    # run setup scripts (1)
+    docker run --rm --entrypoint /usr/bin/run.sh \
+      -e ZMS_PK_PASS=${ZMS_PK_PASS:-athenz} \
+      -e ZTS_PK_PASS=${ZTS_PK_PASS:-athenz} \
+      -e UI_PK_PASS=${UI_PK_PASS:-athenz} \
+      -v `pwd`/docker:/usr/bin/docker \
+      -v `pwd`/docker/setup-scripts/1.create-private-key.sh:/usr/bin/run.sh \
+      openssl-alpine
+    
+    # run setup scripts (2)
+    docker run --rm --entrypoint /usr/bin/run.sh \
+      -v `pwd`/docker:/usr/bin/docker \
+      -v `pwd`/docker/setup-scripts/2.create-service-keypair.sh:/usr/bin/run.sh \
+      openssl-alpine
+    
+    # run setup scripts (3)
+    docker run --rm --entrypoint /usr/bin/run.sh \
+      -e ZMS_PK_PASS=${ZMS_PK_PASS:-athenz} \
+      -e ZTS_PK_PASS=${ZTS_PK_PASS:-athenz} \
+      -e UI_PK_PASS=${UI_PK_PASS:-athenz} \
+      -v `pwd`/docker:/usr/bin/docker \
+      -v `pwd`/docker/setup-scripts/3.generate-self-signed-certificate.sh:/usr/bin/run.sh \
+      openssl-alpine
+    
+    # run setup scripts (4)
+    docker run --rm --entrypoint /usr/bin/run.sh \
+      -e ZMS_PK_PASS=${ZMS_PK_PASS:-athenz} \
+      -e ZTS_PK_PASS=${ZTS_PK_PASS:-athenz} \
+      -e UI_PK_PASS=${UI_PK_PASS:-athenz} \
+      -e ZMS_SSL_KEYSTORE_PASS=${ZMS_SSL_KEYSTORE_PASS:-athenz} \
+      -e ZTS_SSL_KEYSTORE_PASS=${ZTS_SSL_KEYSTORE_PASS:-athenz} \
+      -v `pwd`/docker:/usr/bin/docker \
+      -v `pwd`/docker/setup-scripts/4.create-keystore.sh:/usr/bin/run.sh \
+      openssl-alpine
+    
+    # run setup scripts (5)
+    docker run --rm --entrypoint /usr/bin/run.sh \
+      -e ZMS_SSL_TRUSTSTORE_PASS=${ZMS_SSL_TRUSTSTORE_PASS:-athenz} \
+      -e ZTS_SSL_TRUSTSTORE_PASS=${ZTS_SSL_TRUSTSTORE_PASS:-athenz} \
+      -v `pwd`/docker:/usr/bin/docker \
+      -v `pwd`/docker/setup-scripts/5.create-truststore.sh:/usr/bin/run.sh \
+      keytool-alpine
+    ```
+1. **[DEV env. only]** prepare key and certificate pairs for ZTS self cert signer
+  
+    ```bash
+    # [DEV env. only] run setup scripts (6.1)
+    docker run --rm --entrypoint /usr/bin/run.sh \
+      -e ZTS_CERT_SIGNER_PK_PASS=${ZTS_PK_PASS:-athenz} \
+      -v `pwd`/docker:/usr/bin/docker \
+      -v `pwd`/docker/setup-scripts/6.1.create-zts-cert-signer-pair.sh:/usr/bin/run.sh \
+      openssl-alpine
+    
+    # [DEV env. only] run setup scripts (6.2)
+    docker run --rm --entrypoint /usr/bin/run.sh \
+      -e ZTS_SSL_TRUSTSTORE_PASS=${ZTS_SSL_TRUSTSTORE_PASS:-athenz} \
+      -v `pwd`/docker:/usr/bin/docker \
+      -v `pwd`/docker/setup-scripts/6.2.trust-zts-cert-signer-CA.sh:/usr/bin/run.sh \
+      keytool-alpine
+    ```
+1. run with docker stack
+    ```bash
+    # create folder for log files
+    mkdir -p `pwd`/docker/logs/zms
+    mkdir -p `pwd`/docker/logs/zts
 
-# create folder for log files
-mkdir -p `pwd`/docker/logs/zms
-mkdir -p `pwd`/docker/logs/zts
+    # run athenz
+    # P.S. ZTS is not running normally at this state. We will update it in the following section.
+    docker stack deploy -c ./docker/docker-stack.yaml athenz
 
-# run athenz
-# P.S. ZTS is not running normally at this state. We will update it in the following section.
-docker stack deploy -c ./docker/docker-stack.yaml athenz
-
-# (optional) restart ZMS service in docker stack if failed to DB during start up
-ZMS_SERVICE=`docker stack services -qf "name=athenz_zms-server" athenz`
-docker service update --force $ZMS_SERVICE
-
-# stop athenz
-docker stack rm athenz
-rm -rf ./docker/logs
-```
+    # (optional) restart ZMS service in docker stack if failed to DB during start up
+    ZMS_SERVICE=`docker stack services -qf "name=athenz_zms-server" athenz`
+    docker service update --force $ZMS_SERVICE
+    ```
+1. stop
+    ```bash
+    # stop athenz
+    docker stack rm athenz
+    rm -rf ./docker/logs
+    ```
 
 <a id="markdown-prepare-zms-configuration" name="prepare-zms-configuration"></a>
 ## Prepare ZMS configuration
@@ -95,8 +169,14 @@ rm -rf ./docker/logs
     1. [dev_x509_cert.cnf](../zms/var/certs/dev_x509_cert.cnf)
     1. [zms_cert.pem](../zms/var/certs/zms_cert.pem)
     1. [zms_keystore.pkcs12](../zms/var/certs/zms_keystore.pkcs12)
+    
+1. ZMS trust store with ZTS and UI CA certificate
+
+    1. [zms_truststore.jks](../zms/var/certs/zms_truststore.jks)
+
 1. `zms.properties`
     1. [database access](../zms/conf/zms.properties#L126-L169)
+      
         ```properties
         athenz.zms.object_store_factory_class=com.yahoo.athenz.zms.store.impl.JDBCObjectStoreFactory
         athenz.zms.jdbc_store=jdbc:mysql://localhost:3306/zms_server
@@ -122,9 +202,9 @@ rm -rf ./docker/logs
         athenz.ssl_key_store=/opt/athenz/zms/var/certs/zms_keystore.pkcs12
         athenz.ssl_key_store_type=PKCS12
         #athenz.ssl_key_store_password=athenz
-        #athenz.ssl_trust_store=
-        #athenz.ssl_trust_store_type=
-        #athenz.ssl_trust_store_password=
+        athenz.ssl_trust_store=/opt/athenz/zms/var/certs/zms_truststore.jks
+        athenz.ssl_trust_store_type=JKS
+        #athenz.ssl_trust_store_password=athenz
         ```
 
 <a id="markdown-prepare-zts-configuration-based-on-zms-configuration" name="prepare-zts-configuration-based-on-zms-configuration"></a>
@@ -136,9 +216,8 @@ rm -rf ./docker/logs
   
     1. [zts-db.cnf](../db/zts/zts-db.cnf)
     
-1. ZTS service certificate signing key pair
+1. ZTS service key pair
   
-    1. `zts_cert_signer_keystore.pkcs12`
     1. [zts_private.pem](../zts/var/keys/zts_private.pem)
     1. [zts_public.pem](../zts/var/keys/zts_public.pem)
     
@@ -148,14 +227,20 @@ rm -rf ./docker/logs
     1. [zts_cert.pem](../zts/var/certs/zts_cert.pem)
     1. [zts_keystore.pkcs12](../zts/var/certs/zts_keystore.pkcs12)
     
-1. ZTS trust store with ZMS CA/certificate
+1. ZTS trust store with ZMS CA certificate
   
     1. [zts_truststore.jks](../zts/var/certs/zts_truststore.jks)
     
+1. ZTS cert signer
+
+    1. [zts_cert_signer_ca.cnf](../zts/var/certs/zts_cert_signer_ca.cnf)
+    1. [zts_cert_signer_key.pem](../zts/var/certs/zts_cert_signer_key.pem)
+    1. [zts_cert_signer_cert.pem](../zts/var/certs/zts_cert_signer_cert.pem)
+
 1. `zts.properties`
   
     1. [database access](../zts/conf/zts.properties#L188-L220)
-        
+      
         ```properties
         athenz.zts.cert_record_store_factory_class=com.yahoo.athenz.zts.cert.impl.JDBCCertRecordStoreFactory
         athenz.zts.cert_jdbc_store=jdbc:mysql://localhost:3307/zts_store
@@ -163,32 +248,30 @@ rm -rf ./docker/logs
         #athenz.zts.cert_jdbc_password=mariadb
         ```
     1. [user authentication](../zts/conf/zts.properties#L10-L12)
-        
+      
         ```properties
         athenz.zts.authority_classes=com.yahoo.athenz.auth.impl.PrincipalAuthority,com.yahoo.athenz.auth.impl.CertificateAuthority
         ```
     1. [ZTS service key](../zts/conf/zts.properties#L14-L23)
-        
+      
         ```properties
         athenz.auth.private_key_store.private_key=/opt/athenz/zts/var/keys/zts_private.pem
         athenz.auth.private_key_store.private_key_id=0
         ```
     1. [ZTS service certificate signing class and its config](../zts/conf/zts.properties#L123-L129)
-        
+      
         ```properties
-        athenz.zts.cert_signer_factory_class=com.yahoo.athenz.zts.cert.impl.KeyStoreCertSignerFactory
-        athenz.zts.keystore_signer.keystore=/opt/athenz/zts/var/keys/zts_cert_signer_keystore.pkcs12
-        #athenz.zts.keystore_signer.keystore.password=athenz
-        athenz.zts.keystore_signer.keystore.ca_alias=zts_cert_signer_ca
-        #athenz.zts.keystore_signer.keystore.max_cert_expire_time=43200
+        athenz.zts.self_signer_private_key_fname=/opt/athenz/zts/var/keys/zts_private.pem
+        #athenz.zts.self_signer_private_key_password=athenz
+        athenz.zts.self_signer_cert_dn=cn=Sample Self Signed Athenz CA,o=Athenz,c=US
         ```
     1. [ZTS client TLS config](../zts/conf/zts.properties#L28-L51)
-        
+      
         ```properties
         athenz.zts.ssl_key_store=/opt/athenz/zts/var/certs/zts_keystore.pkcs12
         athenz.zts.ssl_key_store_type=PKCS12
-    #athenz.zts.ssl_key_store_password=athenz
-        
+        #athenz.zts.ssl_key_store_password=athenz
+    
         athenz.zts.ssl_trust_store=/opt/athenz/zts/var/certs/zts_truststore.jks
         javax.net.ssl.trustStore=/opt/athenz/zts/var/certs/zts_truststore.jks
         athenz.zts.ssl_trust_store_type=JKS
@@ -196,7 +279,6 @@ rm -rf ./docker/logs
         #athenz.zts.ssl_trust_store_password=athenz
         #javax.net.ssl.trustStorePassword=athenz
         ```
-    
 1. `athenz.properties`
   
     1. [trust store and key store settings](../zts/conf/athenz.properties#L28-L47)
@@ -227,13 +309,12 @@ export ZMS_ADMIN_PASS=${ZMS_ADMIN_PASS:-replace_me_with_a_strong_passowrd}
 sh ./docker/register-ZTS-to-ZMS.sh
 
 # 2. generate athenz.conf for ZTS (admin user password: `ZMS_ADMIN_PASS`)
-docker run -it --network=host \
+docker run -it --rm --network=host \
   -v `pwd`/docker/zts/conf/athenz.conf:/tmp/athenz.conf \
-  --name athenz-cli-util athenz-cli-util \
+  athenz-cli-util \
   ./utils/athenz-conf/target/linux/athenz-conf \
   -i user.admin -t https://localhost:8443 -z https://localhost:4443 \
-  -k -o /tmp/athenz.conf \
-  ; docker rm athenz-cli-util > /dev/null;
+  -k -o /tmp/athenz.conf
 
 # 3. restart ZTS service in docker stack
 ZTS_SERVICE=`docker stack services -qf "name=athenz_zts-server" athenz`
@@ -263,27 +344,24 @@ cd ${PROJECT_ROOT}
 # requirement: ZMS is running (admin user password: `ZMS_ADMIN_PASS`)
 
 # 1. add athenz.ui-server service to ZMS
-docker run -it --net=host \
+docker run -it --rm --net=host \
   -v `pwd`/docker/zms/var/certs/zms_cert.pem:/etc/certs/zms_cert.pem \
-  --name athenz-zms-cli athenz-zms-cli \
+  athenz-zms-cli \
   -i user.admin -z https://localhost:4443/zms/v1 -c /etc/certs/zms_cert.pem \
-  add-domain athenz admin \
-  ; docker rm athenz-zms-cli > /dev/null;
-docker run -it --net=host \
+  add-domain athenz admin
+docker run -it --rm --net=host \
   -v `pwd`/docker/zms/var/certs/zms_cert.pem:/etc/certs/zms_cert.pem \
   -v `pwd`/docker/ui/keys/athenz.ui-server_pub.pem:/etc/certs/athenz.ui-server_pub.pem \
-  --name athenz-zms-cli athenz-zms-cli \
+  athenz-zms-cli \
   -i user.admin -z https://localhost:4443/zms/v1 -c /etc/certs/zms_cert.pem \
-  -d athenz add-service ui-server 0 /etc/certs/athenz.ui-server_pub.pem \
-  ; docker rm athenz-zms-cli > /dev/null;
+  -d athenz add-service ui-server 0 /etc/certs/athenz.ui-server_pub.pem
 
 # 2. verify domain
-docker run -it --net=host \
+docker run -it --rm --net=host \
   -v `pwd`/docker/zms/var/certs/zms_cert.pem:/etc/certs/zms_cert.pem \
-  --name athenz-zms-cli athenz-zms-cli \
+  athenz-zms-cli \
   -i user.admin -z https://localhost:4443/zms/v1 -c /etc/certs/zms_cert.pem \
-  show-domain athenz \
-  ; docker rm athenz-zms-cli > /dev/null;
+  show-domain athenz
 ```
 
 <a id="markdown-deploy-ui" name="deploy-ui"></a>

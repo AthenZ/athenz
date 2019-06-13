@@ -21,11 +21,11 @@ ZTS_SSL_TRUSTSTORE_PASS=${ZTS_SSL_TRUSTSTORE_PASS:-athenz}
 # -------------------------------- ZMS --------------------------------
 rm -f ${ZMS_SSL_TRUSTSTORE_PATH}
 CERT_ALIAS='zts-https'
-keytool -importcert -noprompt -keystore ${ZMS_SSL_TRUSTSTORE_PATH} -storepass "${ZMS_SSL_TRUSTSTORE_PASS}" -alias "${CERT_ALIAS}" -file ${ZTS_X509_OUT_PATH}
+keytool -importcert -noprompt -keystore ${ZMS_SSL_TRUSTSTORE_PATH} -storepass "${ZMS_SSL_TRUSTSTORE_PASS}" -storetype JKS -alias "${CERT_ALIAS}" -file ${ZTS_X509_OUT_PATH}
 CERT_ALIAS='ui-https'
-keytool -importcert -noprompt -keystore ${ZMS_SSL_TRUSTSTORE_PATH} -storepass "${ZMS_SSL_TRUSTSTORE_PASS}" -alias "${CERT_ALIAS}" -file ${UI_X509_OUT_PATH}
+keytool -importcert -noprompt -keystore ${ZMS_SSL_TRUSTSTORE_PATH} -storepass "${ZMS_SSL_TRUSTSTORE_PASS}" -storetype JKS -alias "${CERT_ALIAS}" -file ${UI_X509_OUT_PATH}
 
 # -------------------------------- ZTS --------------------------------
 rm -f ${ZTS_SSL_TRUSTSTORE_PATH}
 CERT_ALIAS='zms-https'
-keytool -importcert -noprompt -keystore ${ZTS_SSL_TRUSTSTORE_PATH} -storepass "${ZTS_SSL_TRUSTSTORE_PASS}" -alias "${CERT_ALIAS}" -file ${ZMS_X509_OUT_PATH}
+keytool -importcert -noprompt -keystore ${ZTS_SSL_TRUSTSTORE_PATH} -storepass "${ZTS_SSL_TRUSTSTORE_PASS}" -storetype JKS -alias "${CERT_ALIAS}" -file ${ZMS_X509_OUT_PATH}

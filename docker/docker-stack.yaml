@@ -58,7 +58,8 @@ services:
       - zms-db
     environment:
       ZMS_JDBC_PASSWORD: ${ZMS_JDBC_PASSWORD}
-      ZMS_SSL_KEY_STORE_PASSWORD: ${ZMS_SSL_KEY_STORE_PASSWORD}
+      ZMS_SSL_KEYSTORE_PASS: ${ZMS_SSL_KEYSTORE_PASS}
+      ZMS_SSL_TRUSTSTORE_PASS: ${ZMS_SSL_TRUSTSTORE_PASS}
     ports:
       - target: 4443
         published: 4443
@@ -67,8 +68,8 @@ services:
     networks:
       hostnet: {}
     volumes:
-      - ./zms/conf:/opt/athenz/zms/conf/zms_server
       - ./zms/var:/opt/athenz/zms/var
+      - ./zms/conf:/opt/athenz/zms/conf/zms_server
       - ./logs/zms:/opt/athenz/zms/logs/zms_server
     deploy:
       restart_policy:
@@ -84,12 +85,11 @@ services:
       - zms-server
     environment:
       ZTS_CERT_JDBC_PASSWORD: ${ZTS_CERT_JDBC_PASSWORD}
-      ZTS_SELF_SIGNER_PRIVATE_KEY_PASSWORD: ${ZTS_SELF_SIGNER_PRIVATE_KEY_PASSWORD}
-      ZTS_ZTS_SSL_KEY_STORE_PASSWORD: ${ZTS_ZTS_SSL_KEY_STORE_PASSWORD}
-      ZTS_ZTS_SSL_TRUST_STORE_PASSWORD: ${ZTS_ZTS_SSL_TRUST_STORE_PASSWORD}
-      ZTS_SIGN_KEYSTORE_PASSWORD: ${ZTS_SIGN_KEYSTORE_PASSWORD}
-      ZTS_SSL_KEY_STORE_PASSWORD: ${ZTS_SSL_KEY_STORE_PASSWORD}
-      ZTS_SSL_TRUST_STORE_PASSWORD: ${ZTS_SSL_TRUST_STORE_PASSWORD}
+      ZTS_SSL_KEYSTORE_PASS: ${ZTS_SSL_KEYSTORE_PASS}
+      ZTS_SSL_TRUSTSTORE_PASS: ${ZTS_SSL_TRUSTSTORE_PASS}
+      ZTS_ZTS_SSL_KEYSTORE_PASS: ${ZTS_ZTS_SSL_KEYSTORE_PASS}
+      ZTS_ZTS_SSL_TRUSTSTORE_PASS: ${ZTS_ZTS_SSL_TRUSTSTORE_PASS}
+      ZTS_CERT_SIGNER_PK_PASS: ${ZTS_CERT_SIGNER_PK_PASS}
     ports:
       - target: 8443
         published: 8443
@@ -98,10 +98,9 @@ services:
     networks:
       hostnet: {}
     volumes:
-      - ./zts/conf:/opt/athenz/zts/conf/zts_server
       - ./zts/var:/opt/athenz/zts/var
+      - ./zts/conf:/opt/athenz/zts/conf/zts_server
       - ./logs/zts:/opt/athenz/zts/logs/zts_server
-      - ./acceptance-test/KeyStoreCertSigner/keystore-cert-signer-1.0-SNAPSHOT.jar:/usr/lib/jars/kcs.jar
     deploy:
       restart_policy:
         condition: any
