@@ -3615,12 +3615,14 @@ public class DBServiceTest {
     @Test
     public void testExecutePutRoleSystemMeta() {
 
-        TopLevelDomain dom1 = createTopLevelDomainObject("MetaDom1",
-                "Test Domain1", "testOrg", adminUser, true, false);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        List<String> admins = new ArrayList<>();
+        admins.add(adminUser);
+
+        zms.dbService.makeDomain(mockDomRsrcCtx, "MetaDom1", "test desc", "testOrg", false, admins, "", 1234, "", null, auditRef);
 
         Role role = createRoleObject("MetaDom1", "MetaRole1", null, "user.john", "user.jane");
-        zms.putRole(mockDomRsrcCtx, "MetaDom1", "MetaRole1", "test", role);
+        zms.dbService.executePutRole(mockDomRsrcCtx, "MetaDom1", "MetaRole1", role, "test", "putrole");
 
         RoleSystemMeta rsm = new RoleSystemMeta();
         rsm.setAuditEnabled(true);
@@ -3633,8 +3635,7 @@ public class DBServiceTest {
             assertEquals(ex.getCode(), 400);
         }
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "MetaDom1", auditRef);
-
+        zms.dbService.executeDeleteDomain(mockDomRsrcCtx, "MetaDom1", auditRef, "deletedomain");
 
         Domain dom2 = new Domain()
                 .setName("MetaDom2")
@@ -3642,8 +3643,7 @@ public class DBServiceTest {
                 .setYpmId(1234)
                 .setCertDnsDomain("athenz.cloud");
 
-        List<String> admins = new ArrayList<>();
-        admins.add(adminUser);
+
         zms.dbService.makeDomain(mockDomRsrcCtx, "MetaDom2", "test desc", "testOrg", true, admins, "", 1234, "", null, auditRef);
         DomainMeta meta2 = new DomainMeta()
                 .setAccount("acct")
