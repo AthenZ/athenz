@@ -11,6 +11,7 @@ services:
     image: athenz-zms-db
     environment:
       MYSQL_ROOT_PASSWORD: ${ZMS_JDBC_PASSWORD}
+      MYSQL_PWD: ${ZMS_JDBC_PASSWORD}
     ports:
       - target: 3306
         published: 3306
@@ -33,6 +34,7 @@ services:
     image: athenz-zts-db
     environment:
       MYSQL_ROOT_PASSWORD: ${ZTS_CERT_JDBC_PASSWORD}
+      MYSQL_PWD: ${ZTS_CERT_JDBC_PASSWORD}
     ports:
       - target: 3307
         published: 3307
@@ -53,7 +55,7 @@ services:
           - node.role==manager
 
   zms-server:
-    image: athenz-zms
+    image: athenz-zms-server
     depends_on:
       - zms-db
     environment:
@@ -79,7 +81,7 @@ services:
         constraints:
           - node.role==manager
   zts-server:
-    image: athenz-zts
+    image: athenz-zts-server
     depends_on:
       - zts-db
       - zms-server
