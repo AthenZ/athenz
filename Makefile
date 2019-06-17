@@ -2,8 +2,8 @@ build-docker:
 	docker build -t rdl-athenz-server -f docker/util/rdl-athenz-server/Dockerfile rdl/rdl-gen-athenz-server
 	docker build -t athenz-mvn-base -f docker/util/athenz-mvn-base/Dockerfile .
 	docker build -t athenz-builder -f docker/util/athenz-builder/Dockerfile .
-	docker build -t athenz-zms -f docker/zms/Dockerfile .
-	docker build -t athenz-zts -f docker/zts/Dockerfile .
+	docker build -t athenz-zms-server -f docker/zms/Dockerfile .
+	docker build -t athenz-zts-server -f docker/zts/Dockerfile .
 	docker build -t athenz-ui -f docker/ui/Dockerfile ui
 	docker build -t athenz-zms-db -f docker/db/zms/Dockerfile servers/zms/schema
 	docker build -t athenz-zts-db -f docker/db/zts/Dockerfile servers/zts/schema
