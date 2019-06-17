@@ -2,12 +2,11 @@
 
 set -e
 
-# host="$1"
+host="$1"
 
-until mysqladmin ping --silent; do
-  >&2 echo "MySQL is unavailable - sleeping..."
+until mysqladmin ping --host "${host}" --silent; do
+  echo "MySQL is unavailable - sleeping..."
   sleep 1
 done
 
->&2 echo "MySQL is up!"
-logout
+echo "MySQL is up!"

@@ -1,0 +1,37 @@
+#!/bin/sh
+
+# to script directory
+cd "$(dirname "$0")"
+
+# variables
+DOCKER_NETWORK='host'
+
+# start ZTS DB
+docker run -d -h localhost \
+  --network=host \
+  -v `pwd`/docker/db/zts/zts-db.cnf:/etc/mysql/conf.d/zts-db.cnf \
+  -e MYSQL_ROOT_PASSWORD=${ZTS_CERT_JDBC_PASSWORD} \
+  --name athenz-zts-db athenz-zts-db
+
+# wait for ZTS DB ready
+ZTS_DB_IP=`docker inspect -f "{{ .NetworkSettings.Networks.${DOCKER_NETWORK}.IPAddress }}" athenz-zts-db`
+ZTS_DB_IP=${ZTS_DB_IP:-127.0.0.1}
+docker run --rm -h localhost \
+  --network=host \
+  -v `pwd`/docker/db/zts/zts-db.cnf:/etc/my.cnf \
+  -e MYSQL_PWD=${ZTS_CERT_JDBC_PASSWORD} \
+  --name wait-for-mysql wait-for-mysql "${ZTS_DB_IP}"
+
+# start ZTS
+docker run -d -h localhost \
+  --network=host \
+  -v `pwd`/docker/zts/var:/opt/athenz/zts/var \
+  -v `pwd`/docker/zts/conf:/opt/athenz/zts/conf/zts_server \
+  -v `pwd`/docker/logs/zts:/opt/athenz/zts/logs/zts_server \
+  -e ZTS_CERT_JDBC_PASSWORD=${ZTS_CERT_JDBC_PASSWORD} \
+  -e ZTS_SSL_KEYSTORE_PASS=${ZTS_SSL_KEYSTORE_PASS} \
+  -e ZTS_SSL_TRUSTSTORE_PASS=${ZTS_SSL_TRUSTSTORE_PASS} \
+  -e ZTS_ZTS_SSL_KEYSTORE_PASS=${ZTS_ZTS_SSL_KEYSTORE_PASS} \
+  -e ZTS_ZTS_SSL_TRUSTSTORE_PASS=${ZTS_ZTS_SSL_TRUSTSTORE_PASS} \
+  -e ZTS_CERT_SIGNER_PK_PASS=${ZTS_CERT_SIGNER_PK_PASS} \
+  --name athenz-zts-server athenz-zts-server

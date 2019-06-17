@@ -7,4 +7,4 @@ COPY wait-for-mysql.sh .
 
 ENV MYSQL_PWD=''
 
-ENTRYPOINT [　"wait-for-mysql.sh" ]
+ENTRYPOINT [ "wait-for-mysql.sh" ]

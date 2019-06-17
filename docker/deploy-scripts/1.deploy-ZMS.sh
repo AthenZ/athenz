@@ -3,25 +3,32 @@
 # to script directory
 cd "$(dirname "$0")"
 
+# variables
+DOCKER_NETWORK='host'
+
 # start ZMS DB
 docker run -d -h localhost \
   --network=host \
-  # -p 3306 \
   -v `pwd`/docker/db/zms/zms-db.cnf:/etc/mysql/conf.d/zms-db.cnf \
   -e MYSQL_ROOT_PASSWORD=${ZMS_JDBC_PASSWORD} \
   --name athenz-zms-db athenz-zms-db
 
 # wait for ZMS DB ready
+ZMS_DB_IP=`docker inspect -f "{{ .NetworkSettings.Networks.${DOCKER_NETWORK}.IPAddress }}" athenz-zms-db`
+ZMS_DB_IP=${ZMS_DB_IP:-127.0.0.1}
 docker run --rm -h localhost \
   --network=host \
   -v `pwd`/docker/db/zms/zms-db.cnf:/etc/my.cnf \
   -e MYSQL_PWD=${ZMS_JDBC_PASSWORD} \
-  --name wait-for-mysql wait-for-mysql
+  --name wait-for-mysql wait-for-mysql "${ZMS_DB_IP}"
 
 # start ZMS
 docker run -d -h localhost \
   --network=host \
-  # -p 3307 \
-  -v `pwd`/docker/db/zts/zts-db.cnf:/etc/mysql/conf.d/zts-db.cnf \
-  -e MYSQL_ROOT_PASSWORD=${ZTS_CERT_JDBC_PASSWORD} \
-  --name athenz-zts-db athenz-zts-db
+  -v `pwd`/docker/zms/var:/opt/athenz/zms/var \
+  -v `pwd`/docker/zms/conf:/opt/athenz/zms/conf/zms_server \
+  -v `pwd`/docker/logs/zms:/opt/athenz/zms/logs/zms_server \
+  -e ZMS_JDBC_PASSWORD=${ZMS_JDBC_PASSWORD} \
+  -e ZMS_SSL_KEYSTORE_PASS=${ZMS_SSL_KEYSTORE_PASS} \
+  -e ZMS_SSL_TRUSTSTORE_PASS=${ZMS_SSL_TRUSTSTORE_PASS} \
+  --name athenz-zms-server athenz-zms-server
