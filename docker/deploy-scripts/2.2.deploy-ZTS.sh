@@ -45,3 +45,4 @@ docker run -d -h localhost \
   --name athenz-zts-server athenz-zts-server
 
 # TODO: wait for ZTS to be ready
+printf "\nWill wait for ZTS to be ready...\n"

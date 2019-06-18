@@ -1,3 +1,8 @@
+```bash
+source docker/setup-scripts/0.export-default-passwords.sh
+```
+
+
 # Deploy Athenz with docker (development environment)
 
 <a id="markdown-index" name="index"></a>

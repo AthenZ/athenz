@@ -11,9 +11,6 @@ build-docker:
 	docker build -t athenz-zms-cli -f docker/util/zms-cli/Dockerfile .
 	docker build -t athenz-cli-util -f docker/util/Dockerfile .
 
-setup-env:
-	source docker/setup-scripts/0.export-default-passwords.sh
-
 run-zms-dev:
 	sh docker/deploy-scripts/1.1.deploy-ZMS.sh
 	sh docker/deploy-scripts/1.2.config-zms-domain-admin.dev.sh

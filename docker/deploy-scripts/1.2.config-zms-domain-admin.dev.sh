@@ -5,7 +5,7 @@ cd "$(dirname "$0")"
 
 # variables
 DOCKER_NETWORK=${DOCKER_NETWORK:-host}
-USER_TOKEN_PATH=${USER_TOKEN_PATH:-"./user-token.txt"}
+USER_TOKEN_PATH=${USER_TOKEN_PATH:-"`pwd`/user-token.txt"}
 ZMS_ADMIN_PASS=${ZMS_ADMIN_PASS:-replace_me_with_a_strong_passowrd}
 
 # get ZMS container info.
@@ -14,7 +14,7 @@ ZMS_IP=`docker inspect -f "{{ .NetworkSettings.Networks.${DOCKER_NETWORK}.IPAddr
 ZMS_IP=${ZMS_IP:-127.0.0.1}
 
 # add linux-pam and Athenz domain admin user
-printf "\nWill install linux-pam to ZMS container for UserAuthority...\n"
+printf "\nWill install linux-pam to ZMS container for using UserAuthority...\n"
 docker exec "$ZMS_CONTAINER" apk add --no-cache --update openssl linux-pam
 
 printf "\nWill add Athenz domain admin user to ZMS container...\n"
