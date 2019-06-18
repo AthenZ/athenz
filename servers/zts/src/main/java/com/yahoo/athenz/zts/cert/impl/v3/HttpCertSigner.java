@@ -25,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.cert.impl.v2.AbstractHttpCertSigner;
 
 public class HttpCertSigner extends AbstractHttpCertSigner {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpCertSigner.class);
