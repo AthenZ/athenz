@@ -1348,7 +1348,38 @@ public class ZTSImplTest {
         assertFalse(roleToken.getToken().contains(";c=1;"));
         zts.includeRoleCompleteFlag = true;
     }
-    
+
+    @Test
+    public void testGetRoleTokenWithRoleAuthority() {
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, new CertificateAuthority());
+        ResourceContext context = createResourceContext(principal);
+
+        // for the first principal we're not going to match - not including
+        // the writers role so that it would fail
+
+        List<String> principalRoles = new ArrayList<>();
+        principalRoles.add("coretech:role.readers");
+        principal.setRoles(principalRoles);
+
+        try {
+            zts.getRoleToken(context, "coretech", null, 600, 1200, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(403, ex.getCode());
+        }
+
+        // now include the role and verify valid response
+
+        principalRoles.add("coretech:role.writers");
+        RoleToken roleToken = zts.getRoleToken(context, "coretech", null, 600, 1200, null);
+        assertNotNull(roleToken);
+    }
+
     @Test
     public void testGetRoleTokenDisabledDomain() {
         
@@ -8531,7 +8562,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostAccessTokenRequest() throws IOException {
+    public void testPostAccessTokenRequest() {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
@@ -8548,7 +8579,7 @@ public class ZTSImplTest {
         String accessTokenStr = resp.getAccess_token();
         assertNotNull(accessTokenStr);
 
-        Jws<Claims> claims = null;
+        Jws<Claims> claims;
         try {
             claims = Jwts.parser().setSigningKey(Crypto.extractPublicKey(privateKey))
                     .parseClaimsJws(accessTokenStr);
@@ -8577,7 +8608,6 @@ public class ZTSImplTest {
         assertNotNull(accessTokenStr);
         assertEquals(Integer.valueOf(100), resp.getExpires_in());
 
-        claims = null;
         try {
             claims = Jwts.parser().setSigningKey(Crypto.extractPublicKey(privateKey))
                     .parseClaimsJws(accessTokenStr);
@@ -8588,6 +8618,40 @@ public class ZTSImplTest {
         assertEquals("user_domain.user1", claims.getBody().getSubject());
         assertEquals("coretech", claims.getBody().getAudience());
         assertEquals(100 * 1000, claims.getBody().getExpiration().getTime() - claims.getBody().getIssuedAt().getTime());
+    }
+
+    @Test
+    public void testPostAccessTokenRequestRoleAuthority() {
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user1;s=signature", 0, new CertificateAuthority());
+        ResourceContext context = createResourceContext(principal);
+
+        List<String> principalRoles = new ArrayList<>();
+        principalRoles.add("coretech:role.readers");
+        principal.setRoles(principalRoles);
+
+        // initially we only have a single role so our request
+        // is going to be rejected
+
+        try {
+            zts.postAccessTokenRequest(context, "grant_type=client_credentials&scope=coretech:domain");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(403, ex.getCode());
+        }
+
+        // now add the second role as well
+
+        principalRoles.add("coretech:role.writers");
+
+        AccessTokenResponse resp = zts.postAccessTokenRequest(context,
+                "grant_type=client_credentials&scope=coretech:domain&expires_in=100");
+        assertNotNull(resp);
+        assertEquals("coretech:role.readers coretech:role.writers", resp.getScope());
     }
 
     @Test
@@ -8614,7 +8678,7 @@ public class ZTSImplTest {
         String accessTokenStr = resp.getAccess_token();
         assertNotNull(accessTokenStr);
 
-        Jws<Claims> claims = null;
+        Jws<Claims> claims;
         try {
             claims = Jwts.parser().setSigningKey(Crypto.extractPublicKey(privateKey))
                     .parseClaimsJws(accessTokenStr);
@@ -8658,7 +8722,7 @@ public class ZTSImplTest {
         String accessTokenStr = resp.getAccess_token();
         assertNotNull(accessTokenStr);
 
-        Jws<Claims> claims = null;
+        Jws<Claims> claims;
         try {
             claims = Jwts.parser().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey))
                     .parseClaimsJws(accessTokenStr);
@@ -9333,5 +9397,78 @@ public class ZTSImplTest {
 
         ResourceContext ctx = createResourceContext(null);
         assertNull(zts.getPrincipalDomain(ctx));
+    }
+
+    @Test
+    public void testValidatePrincipalNotRoleIdentity() {
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("sports", "api",
+                "creds", 0, new PrincipalAuthority());
+
+        // no errors with regular principal
+
+        zts.validatePrincipalNotRoleIdentity(principal, "testCaller");
+
+        // set roles and check for exception
+
+        principal.setRoles(Collections.singletonList("role1"));
+        try {
+            zts.validatePrincipalNotRoleIdentity(principal, "testCaller");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(403, ex.getCode());
+        }
+    }
+
+    @Test
+    public void testIsPrincipalRoleCertificateAccessValid() {
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("sports", "api",
+                "creds", 0, new PrincipalAuthority());
+
+        Set<String> roles = new HashSet<>();
+        roles.add("readers");
+        roles.add("writers");
+
+        // without any roles we should return true
+
+        assertTrue(zts.isPrincipalRoleCertificateAccessValid(principal, "domain1", roles));
+        assertTrue(zts.isPrincipalRoleCertificateAccessValid(principal, "domain2", roles));
+
+        // with empty roles we should have same behavior
+
+        principal.setRoles(Collections.emptyList());
+        assertTrue(zts.isPrincipalRoleCertificateAccessValid(principal, "domain1", roles));
+        assertTrue(zts.isPrincipalRoleCertificateAccessValid(principal, "domain2", roles));
+
+        // set the principal with roles not matching
+
+        List<String> principalRoles = new ArrayList<>();
+        principalRoles.add("domain1:role.admin");
+        principalRoles.add("domain1:role.editor");
+        principal.setRoles(principalRoles);
+
+        // we should get failure for both
+
+        assertFalse(zts.isPrincipalRoleCertificateAccessValid(principal, "domain1", roles));
+        assertFalse(zts.isPrincipalRoleCertificateAccessValid(principal, "domain2", roles));
+
+        // set principal roles to include one of the roles
+
+        principalRoles.add("domain1:role.readers");
+
+        // we should get failure still
+
+        assertFalse(zts.isPrincipalRoleCertificateAccessValid(principal, "domain1", roles));
+        assertFalse(zts.isPrincipalRoleCertificateAccessValid(principal, "domain2", roles));
+
+        // now make sure it has both roles
+
+        principalRoles.add("domain1:role.writers");
+
+        // should get success with correct domain name and failure with domain2
+
+        assertTrue(zts.isPrincipalRoleCertificateAccessValid(principal, "domain1", roles));
+        assertFalse(zts.isPrincipalRoleCertificateAccessValid(principal, "domain2", roles));
     }
 }
