@@ -42,10 +42,14 @@ mysql -v -u root --password=${ZMS_JDBC_PASSWORD} --host=127.0.0.1 --port=3306
 mysql -v -u root --password=${ZTS_CERT_JDBC_PASSWORD} --host=127.0.0.1 --port=3307
 
 # keytool
+openssl pkey -in docker/zms/var/certs/zms_key.pem
+openssl pkey -in docker/zts/var/certs/zts_key.pem
+openssl pkey -in docker/ui/var/certs/ui_key.pem
 keytool -list -keystore docker/zms/var/certs/zms_keystore.pkcs12
-keytool -list -keystore docker/zms/var/certs/zms_truststore.jks
 keytool -list -keystore docker/zts/var/certs/zts_keystore.pkcs12
+keytool -list -keystore docker/zms/var/certs/zms_truststore.jks
 keytool -list -keystore docker/zts/var/certs/zts_truststore.jks
+# openssl pkey -in docker/zts/var/keys/zts_cert_signer_key.pem
 # keytool -list -keystore docker/zts/var/keys/zts_cert_signer_keystore.pkcs12
 ```
 ## TO-DO

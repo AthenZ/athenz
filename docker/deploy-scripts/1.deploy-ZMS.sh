@@ -3,6 +3,9 @@
 # to script directory
 cd "$(dirname "$0")"
 
+# to project root
+cd ../..
+
 # variables
 DOCKER_NETWORK='host'
 

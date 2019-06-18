@@ -2,4 +2,4 @@
 port=3306
 
 [mysqladmin]
-port=3307
+port=3306
