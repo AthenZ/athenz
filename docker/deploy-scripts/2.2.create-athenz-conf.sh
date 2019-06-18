@@ -30,6 +30,6 @@ docker run --rm -it --network="${DOCKER_NETWORK}" \
   --name athenz-cli-util athenz-cli-util \
   ./utils/athenz-conf/target/linux/athenz-conf \
   -f /etc/token/ntoken \
-  -z "https://${ZMS_IP}:4443/zms/v1" -c /etc/certs/zms_cert.pem \
+  -z "https://localhost:4443/zms/v1" -c /etc/certs/zms_cert.pem \
   -t https://localhost:8443 \
   -o /tmp/athenz.conf
