@@ -7,37 +7,18 @@
 - [Deploy Athenz with docker (development environment)](#Deploy-Athenz-with-docker-development-environment)
     - [Index](#Index)
     - [Component dependency](#Component-dependency)
-    - [Build docker images](#Build-docker-images)
-    - [Deploy ZMS & ZTS with docker stack](#Deploy-ZMS--ZTS-with-docker-stack)
     - [Prepare ZMS configuration](#Prepare-ZMS-configuration)
         - [details](#details)
     - [Prepare ZTS configuration based on ZMS configuration](#Prepare-ZTS-configuration-based-on-ZMS-configuration)
         - [details](#details-1)
-        - [setup ZMS for ZTS](#setup-ZMS-for-ZTS)
     - [UI](#UI)
         - [prepare UI configuration](#prepare-UI-configuration)
-        - [setup ZMS for UI](#setup-ZMS-for-UI)
-        - [deploy UI](#deploy-UI)
 
 <!-- /TOC -->
 
 <a id="markdown-component-dependency" name="component-dependency"></a>
 ## Component dependency
 ![Athenz-components](./images/Athenz-components.png)
-
-
-<a id="markdown-build-docker-images" name="build-docker-images"></a>
-## Build docker images
-
-```bash
-cd ${PROJECT_ROOT}
-
-make build-docker
-```
-
-<a id="markdown-deploy-zms--zts-with-docker-stack" name="deploy-zms--zts-with-docker-stack"></a>
-
-
 
 <a id="markdown-prepare-zms-configuration" name="prepare-zms-configuration"></a>
 ## Prepare ZMS configuration
@@ -124,9 +105,7 @@ make build-docker
     1. [zts_cert_signer_cert.pem](../zts/var/certs/zts_cert_signer_cert.pem)
 
 1. `zts.properties`
-  
     1. [database access](../zts/conf/zts.properties#L188-L220)
-      
         ```properties
         athenz.zts.cert_record_store_factory_class=com.yahoo.athenz.zts.cert.impl.JDBCCertRecordStoreFactory
         athenz.zts.cert_jdbc_store=jdbc:mysql://localhost:3307/zts_store
@@ -182,7 +161,7 @@ make build-docker
     1. [ZMS URL](../zts/conf/athenz.conf#L2)
     1. [ZMS public keys](../zts/conf/athenz.conf#L4-L9)
 
-<a id="markdown-setup-zms-for-zts" name="setup-zms-for-zts"></a>
+<a id="markdown-ui" name="ui"></a>
 ## UI
 
 <a id="markdown-prepare-ui-configuration" name="prepare-ui-configuration"></a>
@@ -196,6 +175,3 @@ make build-docker
     1. [ui_cert.pem](../ui/keys/ui_cert.pem)
 1. `athenz.conf`
     1. same as ZTS configuration
-
-<a id="markdown-setup-zms-for-ui" name="setup-zms-for-ui"></a>
-
