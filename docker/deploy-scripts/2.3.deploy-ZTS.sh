@@ -15,7 +15,7 @@ DOCKER_NETWORK=${DOCKER_NETWORK:-host}
 # start ZTS DB
 printf "\nWill start ZTS DB...\n"
 docker run -d -h localhost \
-  --network=host \
+  --network="${DOCKER_NETWORK}" \
   -v "`pwd`/docker/db/zts/zts-db.cnf:/etc/mysql/conf.d/zts-db.cnf" \
   -e "MYSQL_ROOT_PASSWORD=${ZTS_CERT_JDBC_PASSWORD}" \
   --name athenz-zts-db athenz-zts-db
@@ -25,7 +25,7 @@ ZTS_DB_CONTAINER=`docker ps -aqf "name=zts-db"`
 ZTS_DB_IP=`docker inspect -f "{{ .NetworkSettings.Networks.${DOCKER_NETWORK}.IPAddress }}" ${ZTS_DB_CONTAINER}`
 ZTS_DB_IP=${ZTS_DB_IP:-127.0.0.1}
 docker run --rm -h localhost \
-  --network=host \
+  --network="${DOCKER_NETWORK}" \
   -v "`pwd`/docker/db/zts/zts-db.cnf:/etc/my.cnf" \
   -e "MYSQL_PWD=${ZTS_CERT_JDBC_PASSWORD}" \
   --name wait-for-mysql wait-for-mysql "${ZTS_DB_IP}"
@@ -33,7 +33,7 @@ docker run --rm -h localhost \
 # start ZTS
 printf "\nWill start ZTS server...\n"
 docker run -d -h localhost \
-  --network=host \
+  --network="${DOCKER_NETWORK}" \
   -v "`pwd`/docker/zts/var:/opt/athenz/zts/var" \
   -v "`pwd`/docker/zts/conf:/opt/athenz/zts/conf/zts_server" \
   -v "`pwd`/docker/logs/zts:/opt/athenz/zts/logs/zts_server" \

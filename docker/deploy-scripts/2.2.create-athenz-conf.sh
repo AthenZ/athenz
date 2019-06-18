@@ -22,22 +22,14 @@ printf "\n"
 docker run --rm --name athenz-zms-cli athenz-zms-cli version
 
 # confirm the user token is valid
-printf "\nWill show Athenz admin domain...\n"
-docker run --rm --network="${DOCKER_NETWORK}" \
+printf "\nWill create athenz.conf...\n"
+docker run --rm -it --network="${DOCKER_NETWORK}" \
   -v "${N_TOKEN_PATH}:/etc/token/ntoken" \
   -v "`pwd`/docker/zms/var/certs/zms_cert.pem:/etc/certs/zms_cert.pem" \
-  --name athenz-zms-cli athenz-zms-cli \
+  -v "`pwd`/docker/zts/conf/athenz.conf:/tmp/athenz.conf" \
+  --name athenz-cli-util athenz-cli-util \
+  ./utils/athenz-conf/target/linux/athenz-conf \
   -f /etc/token/ntoken \
   -z "https://${ZMS_IP}:4443/zms/v1" -c /etc/certs/zms_cert.pem \
-  -d sys.auth show-role admin
-
-# add ZTS service to ZMS
-printf "\nWill register ZTS service public key to ZMS...\n"
-docker run --rm --network="${DOCKER_NETWORK}" \
-  -v "${N_TOKEN_PATH}:/etc/token/ntoken" \
-  -v "`pwd`/docker/zms/var/certs/zms_cert.pem:/etc/certs/zms_cert.pem" \
-  -v "`pwd`/docker/zts/var/keys/zts_public.pem:/etc/certs/zts_public.pem" \
-  --name athenz-zms-cli athenz-zms-cli \
-  -f /etc/token/ntoken \
-  -z "https://${ZMS_IP}:4443/zms/v1" -c /etc/certs/zms_cert.pem \
-  -d sys.auth add-service zts 0 /etc/certs/zts_public.pem
+  -t https://localhost:8443 \
+  -o /tmp/athenz.conf

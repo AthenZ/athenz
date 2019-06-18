@@ -3,6 +3,9 @@
 # to script directory
 cd "$(dirname "$0")"
 
+# to project root
+cd ../..
+
 # variables
 DOCKER_NETWORK=${DOCKER_NETWORK:-host}
 USER_TOKEN_PATH=${USER_TOKEN_PATH:-"`pwd`/docker/deploy-scripts/user-token.txt"}

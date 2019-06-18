@@ -6,10 +6,13 @@ cd "$(dirname "$0")"
 # to project root
 cd ../..
 
+# variables
+DOCKER_NETWORK=${DOCKER_NETWORK:-host}
+
 # start UI
 printf "\nWill start Athenz UI...\n"
 docker run -d -h localhost \
-  --network=host \
+  --network="${DOCKER_NETWORK}" \
   -v "`pwd`/docker/zts/conf/athenz.conf:/opt/athenz/ui/config/athenz.conf" \
   -v "`pwd`/docker/ui/keys:/opt/athenz/ui/keys" \
   -e "ZMS_SERVER=`hostname`" \
