@@ -11,7 +11,6 @@ services:
     image: athenz-zms-db
     environment:
       MYSQL_ROOT_PASSWORD: ${ZMS_JDBC_PASSWORD}
-      MYSQL_PWD: ${ZMS_JDBC_PASSWORD}
     ports:
       - target: 3306
         published: 3306
@@ -21,8 +20,13 @@ services:
       hostnet: {}
     volumes:
       - ./db/zms/zms-db.cnf:/etc/mysql/conf.d/zms-db.cnf
+      - ./db/zms/zms-db.cnf:/etc/my.cnf"
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "--silent"]
+      test: ["CMD", "mysqladmin", "ping", "--protocol=TCP", "--password=${ZMS_JDBC_PASSWORD}"]
+      start_period: 15s
+      interval: 30s
+      timeout: 10s
+      retries: 3
     deploy:
       restart_policy:
         condition: any
@@ -34,7 +38,6 @@ services:
     image: athenz-zts-db
     environment:
       MYSQL_ROOT_PASSWORD: ${ZTS_CERT_JDBC_PASSWORD}
-      MYSQL_PWD: ${ZTS_CERT_JDBC_PASSWORD}
     ports:
       - target: 3307
         published: 3307
@@ -44,8 +47,13 @@ services:
       hostnet: {}
     volumes:
       - ./db/zts/zts-db.cnf:/etc/mysql/conf.d/zts-db.cnf
+      - ./db/zts/zts-db.cnf:/etc/my.cnf"
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "--silent"]
+      test: ["CMD", "mysqladmin", "ping", "--protocol=TCP", "--password=${ZTS_CERT_JDBC_PASSWORD}"]
+      start_period: 15s
+      interval: 30s
+      timeout: 10s
+      retries: 3
     deploy:
       restart_policy:
         condition: any
@@ -115,6 +123,9 @@ services:
     depends_on:
       - zms
       - zts
+    environment:
+      ZMS_SERVER: ${HOSTNAME}
+      UI_SERVER: ${HOSTNAME}
     ports:
       - target: 443
         published: 443

@@ -28,7 +28,7 @@ make run-docker-dev
 make remove-all
 ```
 
-## Verify Athenz
+## Verify Athenz Deployment
 [acceptance-test](./acceptance-test)
 
 ## Configuration Details
@@ -77,27 +77,34 @@ keytool -list -keystore docker/zts/var/certs/zts_truststore.jks
 ```bash
 cd ${PROJECT_ROOT}
 
-# start docker stack (some components will fail, don't panic)
+# 1. set passwords (P.S. values in *.properties files will overwrite these values)
+source docker/setup-scripts/0.export-default-passwords.sh
+
+# 2. generate key-pairs, certificates and keystore/truststore
+make setup-dev
+
+# 3. start docker stack (some components will fail, don't panic)
 mkdir -p `pwd`/docker/logs/zms
 mkdir -p `pwd`/docker/logs/zts
 docker stack deploy -c ./docker/docker-stack.yaml athenz
 
 # (optional) restart ZMS service if DB is not ready during start up
+rm -f ./docker/logs/zms/server.log
 ZMS_SERVICE=`docker stack services -qf "name=athenz_zms-server" athenz`
 docker service update --force $ZMS_SERVICE
 
-# setup ZMS for ZTS
+# 4.1. setup ZMS for ZTS
 sh docker/deploy-scripts/1.2.config-zms-domain-admin.dev.sh
 sh docker/deploy-scripts/2.1.register-ZTS-service.sh
 sh docker/deploy-scripts/2.2.create-athenz-conf.sh
-# restart ZTS service to apply the new setting
+# 4.2. restart ZTS service to apply the new setting
 rm -f ./docker/logs/zts/server.log
 ZTS_SERVICE=`docker stack services -qf "name=athenz_zts-server" athenz`
 docker service update --force $ZTS_SERVICE
 
-# setup ZMS for UI
+# 5.1. setup ZMS for UI
 sh docker/deploy-scripts/3.1.register-UI-service.sh
-# restart UI service to apply the new setting
+# 5.2. restart UI service to apply the new setting
 UI_SERVICE=`docker stack services -qf "name=athenz_ui" athenz`
 docker service update --force $UI_SERVICE
 ```
@@ -145,4 +152,3 @@ sudo systemctl restart docker
 - [setup-scripts](./setup-scripts)
 - [deploy-scripts](../deploy-scripts)
 - [docker-stack.yaml](./docker-stack.yaml)
-
