@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yahoo.athenz.zts.cert.impl.v2;
+package com.yahoo.athenz.zts.cert.impl.v3;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,7 +49,7 @@ import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
 
 public abstract class AbstractHttpCertSigner implements CertSigner {
-    private static final Logger LOGGER = LoggerFactory.getLogger(HttpCertSigner.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractHttpCertSigner.class);
     private static final String CONTENT_JSON = "application/json";
     
     protected static final ObjectMapper JACKSON_MAPPER = new ObjectMapper();
@@ -87,13 +87,13 @@ public abstract class AbstractHttpCertSigner implements CertSigner {
         try {
             this.sslContextFactory.start();
         } catch (Exception e) {
-            LOGGER.error("HttpCertSigner v2: unable to start SSL Context.");
+            LOGGER.error("HttpCertSigner: unable to start SSL Context.");
             throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR, "unable to start sslContextFactory");
         }
         
         String serverBaseUri = System.getProperty(ZTSConsts.ZTS_PROP_CERTSIGN_BASE_URI);
         if (serverBaseUri == null) {
-            LOGGER.error("HttpCertSigner v2: no base uri specified");
+            LOGGER.error("HttpCertSigner: no base uri specified");
             throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
                     "No CertSigner base uri specified: " + ZTSConsts.ZTS_PROP_CERTSIGN_BASE_URI);
         }
