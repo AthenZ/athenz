@@ -1,18 +1,24 @@
-## prepare athenz-cli for testing
+# test scripts
 
+## prepare access token
 ```bash
-# cat > ./docker/util/Dockerfile
+cd ${PROJECT_ROOT}
 
-# docker build -t athenz-cli-util -f docker/util/Dockerfile .
+# variables
+DOCKER_NETWORK=${DOCKER_NETWORK:-host}
+USER_TOKEN_PATH=${USER_TOKEN_PATH:-"`pwd`/docker/deploy-scripts/user-token.txt"}
+ZMS_ADMIN_PASS=${ZMS_ADMIN_PASS:-replace_me_with_a_strong_passowrd}
 
-# test inspect docker image
-docker run -it --rm --network=host athenz-cli-util sh ; docker rm athenz-cli-util > /dev/null;
+# get ZMS container info.
+ZMS_CONTAINER=`docker ps -aqf "name=zms-server"`
+ZMS_IP=`docker inspect -f "{{ .NetworkSettings.Networks.${DOCKER_NETWORK}.IPAddress }}" ${ZMS_CONTAINER}`
+ZMS_IP=${ZMS_IP:-127.0.0.1}
 
-# alias
-acli() { docker run --rm --network=host athenz-cli-util $@ ; docker rm athenz-cli-util > /dev/null; }
-
-# test cli
-acli ./utils/zms-cli/target/linux/zms-cli version
+# get access token
+curl --silent -k -u "admin:${ZMS_ADMIN_PASS}" "https://${ZMS_IP}:4443/zms/v1/user/_self_/token" \
+  | sed 's/^{"token":"//' | sed 's/"}$//' \
+  > ${USER_TOKEN_PATH}
+rc=$?; if [[ $rc != 0 ]]; then exit $rc; else printf "\nUser token of admin saved in ${USER_TOKEN_PATH}\n"; fi
 ```
 
 ## acceptance-test for ZTS
@@ -25,37 +31,45 @@ cd ${PROJECT_ROOT}
 
 # add garm.tester service to ZMS
 docker run -it --rm --net=host \
+  -v "${USER_TOKEN_PATH}:/etc/token/ntoken" \
   -v `pwd`/docker/zms/var/certs/zms_cert.pem:/etc/certs/zms_cert.pem \
-  athenz-zms-cli \
-  -i user.admin -z https://localhost:4443/zms/v1 -c /etc/certs/zms_cert.pem \
+  --name athenz-zms-cli athenz-zms-cli \
+  -f /etc/token/ntoken -i user.admin \
+  -z https://localhost:4443/zms/v1 -c /etc/certs/zms_cert.pem \
   add-domain garm admin
 docker run -it --rm --net=host \
+  -v "${USER_TOKEN_PATH}:/etc/token/ntoken" \
   -v `pwd`/docker/zms/var/certs/zms_cert.pem:/etc/certs/zms_cert.pem \
   -v `pwd`/docker/acceptance-test/public.pem:/etc/certs/public.pem \
-  athenz-zms-cli \
-  -i user.admin -z https://localhost:4443/zms/v1 -c /etc/certs/zms_cert.pem \
+  --name athenz-zms-cli athenz-zms-cli \
+  -f /etc/token/ntoken \
+  -z https://localhost:4443/zms/v1 -c /etc/certs/zms_cert.pem \
   -d garm add-service tester tmp /etc/certs/public.pem
 
 # add demo-role to garm domain with member garm.tester to ZMS
 docker run -it --rm --net=host \
+  -v "${USER_TOKEN_PATH}:/etc/token/ntoken" \
   -v `pwd`/docker/zms/var/certs/zms_cert.pem:/etc/certs/zms_cert.pem \
   -v `pwd`/docker/acceptance-test/public.pem:/etc/certs/public.pem \
-  athenz-zms-cli \
-  -i user.admin -z https://localhost:4443/zms/v1 -c /etc/certs/zms_cert.pem \
+  --name athenz-zms-cli athenz-zms-cli \
+  -f /etc/token/ntoken \
+  -z https://localhost:4443/zms/v1 -c /etc/certs/zms_cert.pem \
   -d garm add-group-role demo-role garm.tester
 
 # add policy to ZMS to test access control
 docker run -it --rm --net=host \
+  -v "${USER_TOKEN_PATH}:/etc/token/ntoken" \
   -v `pwd`/docker/zms/var/certs/zms_cert.pem:/etc/certs/zms_cert.pem \
   -v `pwd`/docker/ui/keys/athenz.ui-server_pub.pem:/etc/certs/athenz.ui-server_pub.pem \
-  athenz-zms-cli \
-  -i user.admin -z https://localhost:4443/zms/v1 -c /etc/certs/zms_cert.pem \
+  --name athenz-zms-cli athenz-zms-cli \
+  -f /etc/token/ntoken \
+  -z https://localhost:4443/zms/v1 -c /etc/certs/zms_cert.pem \
   -d garm add-policy demo-policy grant get to demo-role on treasure
 ```
 ```bash
 # generate n-token locally
 docker run --rm -v `pwd`/docker/acceptance-test:/etc/acceptance-test \
-  athenz-cli-util \
+  --name athenz-cli-util athenz-cli-util \
   ./utils/zms-svctoken/target/linux/zms-svctoken \
   -domain garm -service tester \
   -key-version tmp \
@@ -71,7 +85,7 @@ less ./docker/acceptance-test/n-token
 docker run --rm --net=host \
   -v `pwd`/docker/zts/var/certs/zts_cert.pem:/etc/ssl/certs/ca-certificates.crt \
   -v `pwd`/docker/acceptance-test:/etc/acceptance-test \
-  athenz-cli-util \
+  --name athenz-cli-util athenz-cli-util \
   ./utils/zts-roletoken/target/linux/zts-roletoken \
   -domain garm -role demo-role \
   -ntoken-file /etc/acceptance-test/n-token \
@@ -87,7 +101,7 @@ docker run --rm --net=host \
 docker run --rm --net=host \
   -v `pwd`/docker/zts/var/certs/zts_cert.pem:/etc/certs/zts_cert.pem \
   -v `pwd`/docker/acceptance-test:/etc/acceptance-test \
-  athenz-cli-util \
+  --name athenz-cli-util athenz-cli-util \
   ./utils/zts-svccert/target/linux/zts-svccert \
   -domain garm -service tester \
   -key-version tmp \
@@ -124,7 +138,11 @@ CERT_ALIAS='dev-zts-cert-signer-ca'
 sudo keytool -delete -noprompt -keystore ${ZTS_SSL_TRUSTSTORE_PATH} -storepass "${ZTS_SSL_TRUSTSTORE_PASS}" -storetype JKS -alias "${CERT_ALIAS}"
 sudo keytool -importcert -noprompt -keystore ${ZTS_SSL_TRUSTSTORE_PATH} -storepass "${ZTS_SSL_TRUSTSTORE_PASS}" -storetype JKS -alias "${CERT_ALIAS}" -file ${ZTS_CERT_SIGNER_CA_PATH}
 
-# restart ZTS service
+# (using make) restart ZTS container
+ZTS_CONTAINER=`docker ps -aqf "name=zts-server"`
+docker restart "${ZTS_CONTAINER}"
+
+# (using docker-stack) restart ZTS service
 rm -f ./docker/logs/zts/server.log
 ZTS_SERVICE=`docker stack services -qf "name=athenz_zts-server" athenz`
 docker service update --force $ZTS_SERVICE
@@ -134,7 +152,7 @@ docker service update --force $ZTS_SERVICE
 docker run --rm --net=host \
   -v `pwd`/docker/zts/var/certs/zts_cert.pem:/etc/certs/zts_cert.pem \
   -v `pwd`/docker/acceptance-test:/etc/acceptance-test \
-  athenz-cli-util \
+  --name athenz-cli-util athenz-cli-util \
   ./utils/zts-rolecert/target/linux/zts-rolecert \
   -domain garm -service tester \
   -svc-key-file /etc/acceptance-test/private.pem \
@@ -167,7 +185,7 @@ docker run --rm --net=host \
   -v `pwd`/docker/acceptance-test:/etc/acceptance-test \
   -v `pwd`/docker/acceptance-test/zpu:/home/athenz/tmp/zpe \
   -v `pwd`/docker/zts/conf/athenz.conf:/tmp/athenz.conf \
-  athenz-cli-util \
+  --name athenz-cli-util athenz-cli-util \
   ./utils/zpe-updater/target/linux/zpu \
   -athenzConf /tmp/athenz.conf -zpuConf /etc/acceptance-test/zpu.conf \
   -logFile /etc/acceptance-test/zpu.log

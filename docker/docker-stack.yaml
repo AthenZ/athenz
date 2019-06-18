@@ -110,25 +110,28 @@ services:
         constraints:
           - node.role==manager
 
-  # ui:
-  #   image: athenz-ui
-  #   depends_on:
-  #     - zms
-  #     - zts
-  #   ports:
-  #     - target: 443
-  #       published: 443
-  #       protocol: tcp
-  #       mode: host
-  #   networks:
-  #     hostnet: {}
-  #   volumes:
-  #     - ./zts/conf/athenz.conf:/opt/athenz/ui/config/athenz.conf
-  #     - ./ui/keys:/opt/athenz/ui/keys
-  #   deploy:
-  #     restart_policy:
-  #       condition: any
-  #       max_attempts: 3
-  #     placement:
-  #       constraints:
-  #         - node.role==manager
+  ui:
+    image: athenz-ui
+    depends_on:
+      - zms
+      - zts
+    ports:
+      - target: 443
+        published: 443
+        protocol: tcp
+        mode: host
+    networks:
+      hostnet: {}
+    volumes:
+      - ./zts/conf/athenz.conf:/opt/athenz/ui/config/athenz.conf
+      - ./ui/var/certs/ui_key.pem:/opt/athenz/ui/keys/ui_key.pem
+      - ./ui/var/certs/ui_cert.pem:/opt/athenz/ui/keys/ui_cert.pem
+      - ./ui/var/keys/athenz.ui-server.pem:/opt/athenz/ui/keys/athenz.ui-server.pem
+      - ./ui/var/keys/athenz.ui-server_pub.pem:/opt/athenz/ui/keys/athenz.ui-server_pub.pem
+    deploy:
+      restart_policy:
+        condition: any
+        max_attempts: 3
+      placement:
+        constraints:
+          - node.role==manager
