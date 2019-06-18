@@ -5,7 +5,7 @@ cd "$(dirname "$0")"
 
 # variables
 DOCKER_NETWORK=${DOCKER_NETWORK:-host}
-USER_TOKEN_PATH=${USER_TOKEN_PATH:-"`pwd`/user-token.txt"}
+USER_TOKEN_PATH=${USER_TOKEN_PATH:-"`pwd`/docker/deploy-scripts/user-token.txt"}
 ZMS_ADMIN_PASS=${ZMS_ADMIN_PASS:-replace_me_with_a_strong_passowrd}
 
 # get ZMS container info.

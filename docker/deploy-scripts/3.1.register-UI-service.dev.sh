@@ -7,9 +7,9 @@ cd "$(dirname "$0")"
 cd ../..
 
 # variables
-USER_TOKEN_PATH=${USER_TOKEN_PATH:-"`pwd`/user-token.txt"}
+USER_TOKEN_PATH=${USER_TOKEN_PATH:-"`pwd`/docker/deploy-scripts/user-token.txt"}
 [[ -r "${USER_TOKEN_PATH}" ]] && N_TOKEN_PATH="${USER_TOKEN_PATH}"
-N_TOKEN_PATH=${N_TOKEN_PATH:-"`pwd`/n-token.txt"}
+N_TOKEN_PATH=${N_TOKEN_PATH:-"`pwd`/docker/deploy-scripts/n-token.txt"}
 DOCKER_NETWORK=${DOCKER_NETWORK:-host}
 ZMS_ADMIN_PASS=${ZMS_ADMIN_PASS:-replace_me_with_a_strong_passowrd}
 
