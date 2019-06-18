@@ -28,6 +28,6 @@ remove-docker:
 	docker ps -a | grep athenz- | awk '{print $$1}' | xargs docker rm
 
 remove-log:
-	rm -rf ./docker/logs
+	sudo rm -rf ./docker/logs
 
 remove-all: remove-docker remove-log
