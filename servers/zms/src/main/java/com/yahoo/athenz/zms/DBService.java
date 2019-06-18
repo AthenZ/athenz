@@ -442,8 +442,12 @@ public class DBService {
         
         boolean requestSuccess;
         if (originalRole == null) {
+            // auditEnabled can only be set with system admin privileges
+            role.setAuditEnabled(false);
             requestSuccess = con.insertRole(domainName, role);
         } else {
+            // carrying over auditEnabled from original role
+            role.setAuditEnabled(originalRole.getAuditEnabled());
             requestSuccess = con.updateRole(domainName, role);
         }
         
@@ -3495,10 +3499,10 @@ public class DBService {
                     throw ZMSUtils.requestError(caller + ": auditenabled flag not set for domain: " + domainName + " to add it on the role: " + roleName, caller);
                 }
 
-                Role rolefromdb = getRole(domainName, roleName, false, true);
+                Role rolefromdb = getRole(domainName, roleName, false, false);
 
                 // now process the request. first we're going to make a
-                // copy of our domain
+                // copy of our role
 
                 Role updatedRole = new Role()
                         .setName(rolefromdb.getName())

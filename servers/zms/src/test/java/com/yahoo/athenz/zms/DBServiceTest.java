@@ -3666,4 +3666,30 @@ public class DBServiceTest {
 
     }
 
+    @Test
+    public void testProcessRoleInsert() {
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+        Role role = new Role().setName("newRole").setAuditEnabled(true);
+        StringBuilder auditDetails = new StringBuilder("testAudit");
+        zms.dbService.processRole(conn, null, "auditedDomain", "testRole1",
+                role, adminUser, auditRef, false, auditDetails);
+        assertFalse(role.getAuditEnabled());
+    }
+
+    @Test
+    public void testProcessRoleUpdate() {
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+        Role originalRole = new Role().setName("originalRole").setAuditEnabled(false);
+        Role role = new Role().setName("newRole").setAuditEnabled(true);
+        StringBuilder auditDetails = new StringBuilder("testAudit");
+        zms.dbService.processRole(conn, originalRole, "auditedDomain", "newRole",
+                role, adminUser, auditRef, false, auditDetails);
+        assertFalse(role.getAuditEnabled()); // original role does not have auditEnabled
+
+        originalRole.setAuditEnabled(true);
+        Role role2 = new Role().setName("newRole2").setAuditEnabled(false);
+        zms.dbService.processRole(conn, originalRole, "auditedDomain", "newRole2",
+                role2, adminUser, auditRef, false, auditDetails);
+        assertTrue(role2.getAuditEnabled()); // original role has auditEnabled
+    }
 }
