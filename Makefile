@@ -18,6 +18,11 @@ run-docker:
 	sh docker/deploy-scripts/4.register-UI-to-ZMS.dev.sh
 	sh docker/deploy-scripts/5.deploy-UI.sh
 
-clean-docker:
+remove-docker:
 	docker ps -a | grep athenz- | awk '{print $$1}' | xargs docker stop
 	docker ps -a | grep athenz- | awk '{print $$1}' | xargs docker rm
+
+remove-log:
+	rm -rf ./docker/logs
+
+remove-all: remove-docker remove-log

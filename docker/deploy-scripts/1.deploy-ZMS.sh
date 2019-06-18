@@ -9,7 +9,11 @@ cd ../..
 # variables
 DOCKER_NETWORK='host'
 
+# check password
+[[ -z "$ZMS_JDBC_PASSWORD" ]] && echo "ZMS_JDBC_PASSWORD not set" && exit 1
+
 # start ZMS DB
+printf "\nWill start ZMS DB...\n"
 docker run -d -h localhost \
   --network=host \
   -v `pwd`/docker/db/zms/zms-db.cnf:/etc/mysql/conf.d/zms-db.cnf \
@@ -17,7 +21,8 @@ docker run -d -h localhost \
   --name athenz-zms-db athenz-zms-db
 
 # wait for ZMS DB ready
-ZMS_DB_IP=`docker inspect -f "{{ .NetworkSettings.Networks.${DOCKER_NETWORK}.IPAddress }}" athenz-zms-db`
+ZMS_DB_CONTAINER=`docker ps -aqf "name=zms-db"`
+ZMS_DB_IP=`docker inspect -f "{{ .NetworkSettings.Networks.${DOCKER_NETWORK}.IPAddress }}" ${ZMS_DB_CONTAINER}`
 ZMS_DB_IP=${ZMS_DB_IP:-127.0.0.1}
 docker run --rm -h localhost \
   --network=host \
@@ -26,6 +31,7 @@ docker run --rm -h localhost \
   --name wait-for-mysql wait-for-mysql "${ZMS_DB_IP}"
 
 # start ZMS
+printf "\nWill start ZMS server...\n"
 docker run -d -h localhost \
   --network=host \
   -v `pwd`/docker/zms/var:/opt/athenz/zms/var \
