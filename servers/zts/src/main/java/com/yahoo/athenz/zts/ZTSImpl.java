@@ -1281,13 +1281,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         Object timerMetric = metric.startTiming(callerTiming, domainName, principalDomain);
         
         // get our principal's name
-        
+
         final Principal principal = ((RsrcCtxWrapper) ctx).principal();
         String principalName = principal.getFullName();
-        
+
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("getRoleToken(domain: " + domainName + ", principal: " + principalName +
-                    ", role-name: " + roleNames + ", proxy-for: " + proxyForPrincipal + ")");
+            LOGGER.debug("getRoleToken(domain: {}, principal: {}, role-name: {}, proxy-for: {})",
+                    domainName, principalName, roleNames, proxyForPrincipal);
         }
         
         // do not allow empty (not null) values for role
@@ -1304,8 +1304,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // caller is authorized for such operations
         
         if (proxyForPrincipal != null && !isAuthorizedProxyUser(authorizedProxyUsers, principalName)) {
-            LOGGER.error("getRoleToken: Principal: " + principalName +
-                    " not authorized for proxy role token request");
+            LOGGER.error("getRoleToken: Principal {} not authorized for proxy role token request", principalName);
             throw forbiddenError("getRoleToken: Principal: " + principalName
                     + " not authorized for proxy role token request", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
         }
@@ -1380,6 +1379,16 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             proxyUser = principalName;
             principalName = proxyForPrincipal;
         }
+
+        // if the request was done by a role certificate we need to make sure
+        // that it is issued for the roles we're returning in the role token
+
+        if (!isPrincipalRoleCertificateAccessValid(principal, domainName, roles)) {
+            throw forbiddenError("getRoleToken: Role based Principal does not include all roles",
+                    caller, domainName);
+        }
+
+        // generate and return role token
 
         long tokenTimeout = determineTokenTimeout(minExpiryTime, maxExpiryTime);
         List<String> roleList = new ArrayList<>(roles);
@@ -1536,6 +1545,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         if (roles.isEmpty()) {
             throw forbiddenError("No access to any roles in domain: " + domainName, caller, domainName);
+        }
+
+        // if the request was done by a role certificate we need to make sure
+        // that it is issued for the roles we're returning in the role token
+
+        if (!isPrincipalRoleCertificateAccessValid(principal, domainName, roles)) {
+            throw forbiddenError("Role based Principal does not include all roles",
+                    caller, domainName);
         }
 
         long tokenTimeout = determineTokenTimeout(null, expiryTime);
@@ -1696,7 +1713,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(roleName, TYPE_ENTITY_NAME, caller);
         validate(req, TYPE_ROLE_CERTIFICATE_REQUEST, caller);
-        
+
+        // validate principal object to make sure we're not
+        // processing a role identity and instead we require
+        // a service identity
+
+        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        validatePrincipalNotRoleIdentity(principal, caller);
+
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case since ZMS Server
         // saves all of its object names in lower case
@@ -1710,7 +1734,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // verify that this is not an authorized service principal
         // which is only supported for get role token operations
 
-        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
         if (isAuthorizedServicePrincipal(principal)) {
             throw forbiddenError("Authorized Service Principals not allowed", caller, domainName);
         }
@@ -1844,6 +1867,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         validateRequest(ctx.request(), caller);
         validate(req, TYPE_ROLE_CERTIFICATE_REQUEST, caller);
 
+        // validate principal object to make sure we're not
+        // processing a role identity and instead we require
+        // a service identity
+
+        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        validatePrincipalNotRoleIdentity(principal, caller);
+
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case since ZMS Server
         // saves all of its object names in lower case
@@ -1854,7 +1884,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             proxyForPrincipal = normalizeDomainAliasUser(proxyForPrincipal.toLowerCase());
         }
 
-        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
         final String domainName = principal.getDomain();
 
         metric.increment(HTTP_REQUEST, domainName, domainName);
@@ -2030,6 +2059,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw forbiddenError("Authorized Service Principals not allowed", caller, domainName);
         }
 
+        // validate principal object to make sure we're not
+        // processing a role identity and instead we require
+        // a service identity
+
+        validatePrincipalNotRoleIdentity(principal, caller);
+
         // since the role name might contain a path and thus it has
         // been encoded, we're going to decode it first before using it
         
@@ -2065,7 +2100,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         // get our principal's name
         
-        final String principalName = ((RsrcCtxWrapper) ctx).principal().getFullName();
+        final String principalName = principal.getFullName();
         final String roleResource = domainName + ":" + roleName.toLowerCase();
         
         // we need to first verify that our principal is indeed configured
@@ -2831,6 +2866,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         validate(domain, TYPE_DOMAIN_NAME, caller);
         validate(service, TYPE_SIMPLE_NAME, caller);
         validate(instanceId, TYPE_PATH_ELEMENT, caller);
+
+        // validate principal object to make sure we're not
+        // processing a role identity and instead we require
+        // a service identity
+
+        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        validatePrincipalNotRoleIdentity(principal, caller);
         
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
@@ -2870,6 +2912,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         validate(service, TYPE_SIMPLE_NAME, caller);
         validate(req, TYPE_INSTANCE_REFRESH_REQUEST, caller);
 
+        // validate principal object to make sure we're not
+        // processing a role identity and instead we require
+        // a service identity
+
+        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        validatePrincipalNotRoleIdentity(principal, caller);
+
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
         // policy, service, etc name)
@@ -2883,8 +2932,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment(caller, domain, principalDomain);
 
         // make sure the credentials match to whatever the request is
-
-        Principal principal = ((RsrcCtxWrapper) ctx).principal();
 
         String fullServiceName = domain + "." + service;
         final String principalName = principal.getFullName();
@@ -3697,6 +3744,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
     }
 
+    void validatePrincipalNotRoleIdentity(Principal principal, final String caller) {
+        if (principal != null && principal.getRoles() != null) {
+            throw forbiddenError("Role Identity not authorized for request", caller,
+                    ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+        }
+    }
+
     String getPrincipalDomain(ResourceContext ctx) {
         final Principal ctxPrincipal = ((RsrcCtxWrapper) ctx).principal();
         return ctxPrincipal == null ? null : ctxPrincipal.getDomain();
@@ -3781,5 +3835,30 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             }
         }
         return user;
+    }
+
+    boolean isPrincipalRoleCertificateAccessValid(Principal principal, String domainName, Set<String> roles) {
+
+        // if the principal has no roles or an empty set then
+        // we have nothing to check
+
+        final List<String> princRoles = principal.getRoles();
+        if (princRoles == null || princRoles.isEmpty()) {
+            return true;
+        }
+
+        // verify that every role we're returning in the response
+        // matches to a role from the principal object. the role
+        // list from the principal object (typically from a role
+        // certificate) expected to have full role resource names.
+
+        for (String role : roles) {
+            final String roleName = domainName + ":role." + role;
+            if (!princRoles.contains(roleName)) {
+                LOGGER.error("Principal Role list does not include '{}'", roleName);
+                return false;
+            }
+        }
+        return true;
     }
 }
