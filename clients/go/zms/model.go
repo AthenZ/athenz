@@ -651,6 +651,13 @@ type Role struct {
 	// an audit log for role membership changes
 	//
 	AuditLog []*RoleAuditLog `json:"auditLog,omitempty" rdl:"optional"`
+
+	//
+	// Flag indicates whether or not role updates should require GRC approval. If
+	// true, the auditRef parameter must be supplied(not empty) for any API defining
+	// it.
+	//
+	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional"`
 }
 
 //
@@ -1113,6 +1120,56 @@ func (self *DomainRoleMembers) Validate() error {
 	if self.Members == nil {
 		return fmt.Errorf("DomainRoleMembers: Missing required field: members")
 	}
+	return nil
+}
+
+//
+// RoleSystemMeta - Set of system metadata attributes that all roles may have
+// and can be changed by system admins.
+//
+type RoleSystemMeta struct {
+
+	//
+	// Flag indicates whether or not role updates should be approved by GRC. If
+	// true, the auditRef parameter must be supplied(not empty) for any API defining
+	// it.
+	//
+	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional"`
+}
+
+//
+// NewRoleSystemMeta - creates an initialized RoleSystemMeta instance, returns a pointer to it
+//
+func NewRoleSystemMeta(init ...*RoleSystemMeta) *RoleSystemMeta {
+	var o *RoleSystemMeta
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(RoleSystemMeta)
+	}
+	return o
+}
+
+type rawRoleSystemMeta RoleSystemMeta
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a RoleSystemMeta
+//
+func (self *RoleSystemMeta) UnmarshalJSON(b []byte) error {
+	var m rawRoleSystemMeta
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := RoleSystemMeta(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *RoleSystemMeta) Validate() error {
 	return nil
 }
 

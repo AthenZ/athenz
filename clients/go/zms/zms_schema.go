@@ -130,6 +130,7 @@ func init() {
 	tRole.ArrayField("roleMembers", "RoleMember", true, "members with expiration")
 	tRole.Field("trust", "DomainName", true, nil, "a trusted domain to delegate membership decisions to")
 	tRole.ArrayField("auditLog", "RoleAuditLog", true, "an audit log for role membership changes")
+	tRole.Field("auditEnabled", "Bool", true, false, "Flag indicates whether or not role updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it.")
 	sb.AddType(tRole.Build())
 
 	tRoles := rdl.NewStructTypeBuilder("Struct", "Roles")
@@ -164,6 +165,11 @@ func init() {
 	tDomainRoleMembers.Field("domainName", "DomainName", false, nil, "name of the domain")
 	tDomainRoleMembers.ArrayField("members", "DomainRoleMember", false, "role members")
 	sb.AddType(tDomainRoleMembers.Build())
+
+	tRoleSystemMeta := rdl.NewStructTypeBuilder("Struct", "RoleSystemMeta")
+	tRoleSystemMeta.Comment("Set of system metadata attributes that all roles may have and can be changed by system admins.")
+	tRoleSystemMeta.Field("auditEnabled", "Bool", true, false, "Flag indicates whether or not role updates should be approved by GRC. If true, the auditRef parameter must be supplied(not empty) for any API defining it.")
+	sb.AddType(tRoleSystemMeta.Build())
 
 	tAssertionEffect := rdl.NewEnumTypeBuilder("Enum", "AssertionEffect")
 	tAssertionEffect.Comment("Every assertion can have the effect of ALLOW or DENY.")
@@ -846,6 +852,23 @@ func init() {
 	mPutDefaultAdmins.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mPutDefaultAdmins.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mPutDefaultAdmins.Build())
+
+	mPutRoleSystemMeta := rdl.NewResourceBuilder("Role", "PUT", "/domain/{domainName}/role/{roleName}/meta/system/{attribute}")
+	mPutRoleSystemMeta.Comment("Set the specified role metadata. Caller must have update privileges on the sys.auth domain. If the system attribute is one of the string attributes, then the caller must also have delete action on the same resource in order to reset the configured value")
+	mPutRoleSystemMeta.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
+	mPutRoleSystemMeta.Input("roleName", "EntityName", true, "", "", false, nil, "name of the role")
+	mPutRoleSystemMeta.Input("attribute", "SimpleName", true, "", "", false, nil, "name of the system attribute to be modified")
+	mPutRoleSystemMeta.Input("auditRef", "String", false, "", "Y-Audit-Ref", false, nil, "Audit param required(not empty) if domain auditEnabled is true.")
+	mPutRoleSystemMeta.Input("detail", "RoleSystemMeta", false, "", "", false, nil, "RoleSystemMeta object with updated attribute values")
+	mPutRoleSystemMeta.Auth("update", "sys.auth:role.meta.{attribute}.{domainName}", false, "")
+	mPutRoleSystemMeta.Expected("NO_CONTENT")
+	mPutRoleSystemMeta.Exception("BAD_REQUEST", "ResourceError", "")
+	mPutRoleSystemMeta.Exception("CONFLICT", "ResourceError", "")
+	mPutRoleSystemMeta.Exception("FORBIDDEN", "ResourceError", "")
+	mPutRoleSystemMeta.Exception("NOT_FOUND", "ResourceError", "")
+	mPutRoleSystemMeta.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
+	mPutRoleSystemMeta.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mPutRoleSystemMeta.Build())
 
 	mGetPolicyList := rdl.NewResourceBuilder("PolicyList", "GET", "/domain/{domainName}/policy")
 	mGetPolicyList.Comment("List policies provisioned in this namespace.")

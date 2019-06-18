@@ -132,6 +132,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private static final String TYPE_PUBLIC_KEY_ENTRY = "PublicKeyEntry";
     private static final String TYPE_MEMBERSHIP = "Membership";
     private static final String TYPE_QUOTA = "Quota";
+    private static final String TYPE_ROLE_SYSTEM_META = "RoleSystemMeta";
     
     public static Metric metric;
     public static String serverHostName  = null;
@@ -6572,5 +6573,71 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         return ROOT_DIR;
+    }
+
+    boolean isAllowedRoleSystemMetaDelete(Principal principal, final String reqDomain,
+                                          final String attribute) {
+
+        // the authorization policy resides in official sys.auth domain
+        AthenzDomain domain = getAthenzDomain(SYS_AUTH, true);
+
+        // evaluate our domain's roles and policies to see if access
+        // is allowed or not for the given operation and resource
+        // our action are always converted to lowercase
+
+        String resource = SYS_AUTH + ":role.meta." + attribute + "." + reqDomain;
+        AccessStatus accessStatus = evaluateAccess(domain, principal.getFullName(), "delete",
+                resource, null, null);
+
+        return accessStatus == AccessStatus.ALLOWED;
+    }
+
+    @Override
+    public void putRoleSystemMeta(ResourceContext ctx, String domainName, String roleName, String attribute, String auditRef, RoleSystemMeta meta) {
+
+        final String caller = "putrolesystemmeta";
+        metric.increment(ZMSConsts.HTTP_PUT);
+        logPrincipal(ctx);
+
+        if (readOnlyMode) {
+            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+        }
+
+        validateRequest(ctx.request(), caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(roleName, TYPE_ENTITY_NAME, caller);
+        validate(meta, TYPE_ROLE_SYSTEM_META, caller);
+        validate(attribute, TYPE_SIMPLE_NAME, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+        roleName = roleName.toLowerCase();
+        attribute = attribute.toLowerCase();
+
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("putrolesystemmeta_timing", domainName, principalDomain);
+
+        // verify that request is properly authenticated for this request
+
+        Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        verifyAuthorizedServiceOperation(principal.getAuthorizedService(), caller);
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("putRoleSystemMeta: name={}, role={} attribute={}, meta={}",
+                    domainName, roleName, attribute, meta);
+        }
+
+        // if we are resetting the configured value then the caller
+        // must also have a delete action available for the same resource
+
+        boolean deleteAllowed = isAllowedRoleSystemMetaDelete(principal, domainName, attribute);
+
+        dbService.executePutRoleSystemMeta(ctx, domainName, roleName, meta, attribute, deleteAllowed, auditRef, caller);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
     }
 }

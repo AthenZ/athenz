@@ -49,7 +49,7 @@ public class ZMSCoreTest {
         assertTrue(result.valid);
 
         members = Arrays.asList("user.boynton"); // new
-        r = new Role().setName("sys.auth:role.admin").setMembers(members);
+        r = new Role().setName("sys.auth:role.admin").setMembers(members).setAuditEnabled(true);
         result = validator.validate(r, "Role");
         assertTrue(result.valid);
 
@@ -116,7 +116,7 @@ public class ZMSCoreTest {
         List<RoleMember> roleMembers = new ArrayList<>();
         roleMembers.add(new RoleMember().setMemberName("member1"));
 
-        Role r = new Role().setName("sys.auth:role.admin").setMembers(members).setRoleMembers(roleMembers)
+        Role r = new Role().setName("sys.auth:role.admin").setMembers(members).setRoleMembers(roleMembers).setAuditEnabled(true)
                 .setModified(Timestamp.fromMillis(123456789123L)).setTrust("domain.admin").setAuditLog(rall);
         Result result = validator.validate(r, "Role");
         assertTrue(result.valid);
@@ -127,9 +127,12 @@ public class ZMSCoreTest {
         assertEquals(r.getTrust(), "domain.admin");
         assertEquals(r.getAuditLog(), rall);
         assertEquals(r.getRoleMembers(), roleMembers);
+        assertTrue(r.getAuditEnabled());
 
         Role r2 = new Role().setName("sys.auth:role.admin").setMembers(members).setRoleMembers(roleMembers)
                 .setModified(Timestamp.fromMillis(123456789123L)).setTrust("domain.admin").setAuditLog(rall);
+        assertFalse(r2.equals(r));
+        r2.setAuditEnabled(true);
         assertTrue(r2.equals(r));
         assertTrue(r.equals(r));
         
@@ -2072,5 +2075,32 @@ public class ZMSCoreTest {
 
         tra2.setRole(null);
         assertFalse(tra2.equals(tra1));
+    }
+
+    @Test
+    public void testRoleSystemMetaMethod() {
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+
+
+        RoleSystemMeta rsm = new RoleSystemMeta();
+
+        Result result = validator.validate(rsm, "RoleSystemMeta");
+        assertTrue(result.valid);
+
+        assertFalse(rsm.getAuditEnabled());
+
+        RoleSystemMeta rsm2 = new RoleSystemMeta();
+        assertFalse(rsm2.equals(rsm));
+        rsm2.setAuditEnabled(false);
+        assertTrue(rsm2.equals(rsm));
+        assertTrue(rsm.equals(rsm));
+
+        rsm2.setAuditEnabled(null);
+        assertFalse(rsm2.equals(rsm));
+
+        assertFalse(rsm2.equals(null));
+        assertFalse(rsm.equals(new String()));
+
     }
 }

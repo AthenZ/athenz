@@ -111,7 +111,8 @@ public class ZMSSchema {
             .arrayField("members", "MemberName", true, "an explicit list of members. Might be empty or null, if trust is set")
             .arrayField("roleMembers", "RoleMember", true, "members with expiration")
             .field("trust", "DomainName", true, "a trusted domain to delegate membership decisions to")
-            .arrayField("auditLog", "RoleAuditLog", true, "an audit log for role membership changes");
+            .arrayField("auditLog", "RoleAuditLog", true, "an audit log for role membership changes")
+            .field("auditEnabled", "Bool", true, "Flag indicates whether or not role updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it.", false);
 
         sb.structType("Roles")
             .comment("The representation for a list of roles with full details")
@@ -139,6 +140,10 @@ public class ZMSSchema {
         sb.structType("DomainRoleMembers")
             .field("domainName", "DomainName", false, "name of the domain")
             .arrayField("members", "DomainRoleMember", false, "role members");
+
+        sb.structType("RoleSystemMeta")
+            .comment("Set of system metadata attributes that all roles may have and can be changed by system admins.")
+            .field("auditEnabled", "Bool", true, "Flag indicates whether or not role updates should be approved by GRC. If true, the auditRef parameter must be supplied(not empty) for any API defining it.", false);
 
         sb.enumType("AssertionEffect")
             .comment("Every assertion can have the effect of ALLOW or DENY.")
@@ -903,6 +908,28 @@ public class ZMSSchema {
             .auth("update", "sys.auth:domain")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("RoleSystemMeta", "PUT", "/domain/{domainName}/role/{roleName}/meta/system/{attribute}")
+            .comment("Set the specified role metadata. Caller must have update privileges on the sys.auth domain. If the system attribute is one of the string attributes, then the caller must also have delete action on the same resource in order to reset the configured value")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("roleName", "EntityName", "name of the role")
+            .pathParam("attribute", "SimpleName", "name of the system attribute to be modified")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .input("detail", "RoleSystemMeta", "RoleSystemMeta object with updated attribute values")
+            .auth("update", "sys.auth:role.meta.{attribute}.{domainName}")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
 
             .exception("FORBIDDEN", "ResourceError", "")
 

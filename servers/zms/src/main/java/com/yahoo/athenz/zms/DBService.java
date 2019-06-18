@@ -442,8 +442,12 @@ public class DBService {
         
         boolean requestSuccess;
         if (originalRole == null) {
+            // auditEnabled can only be set with system admin privileges
+            role.setAuditEnabled(false);
             requestSuccess = con.insertRole(domainName, role);
         } else {
+            // carrying over auditEnabled from original role
+            role.setAuditEnabled(originalRole.getAuditEnabled());
             requestSuccess = con.updateRole(domainName, role);
         }
         
@@ -2221,6 +2225,22 @@ public class DBService {
         }
     }
 
+    void updateRoleSystemMetaFields(Role role, final String attribute, boolean deleteAllowed, RoleSystemMeta meta) {
+
+        final String caller = "putrolesystemmeta";
+
+        // system attributes we'll only set if they're available
+        // in the given object
+
+        switch (attribute) {
+            case ZMSConsts.SYSTEM_META_AUDIT_ENABLED:
+                role.setAuditEnabled(meta.getAuditEnabled());
+                break;
+            default:
+                throw ZMSUtils.requestError("unknown role system meta attribute: " + attribute, caller);
+        }
+    }
+
     void executePutDomainTemplate(ResourceContext ctx, String domainName, DomainTemplate domainTemplate,
             String auditRef, String caller) {
 
@@ -3381,6 +3401,12 @@ public class DBService {
         .append("\"}");
     }
 
+    void auditLogRoleSystemMeta(StringBuilder auditDetails, Role role) {
+        auditDetails.append("{\"name\": \"").append(role.getName())
+                .append("\", \"auditEnabled\": \"").append(role.getAuditEnabled())
+                .append("\"}");
+    }
+
     void executePutQuota(ResourceContext ctx, String domainName, Quota quota,
             String auditRef, String caller) {
 
@@ -3454,4 +3480,61 @@ public class DBService {
             return quotaCheck.getDomainQuota(con, domainName);
         }
     }
+
+    public void executePutRoleSystemMeta(ResourceContext ctx, String domainName, String roleName, RoleSystemMeta meta, String attribute, boolean deleteAllowed, String auditRef, String caller) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
+
+                // first verify that auditing requirements are met
+
+                Domain domain = checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx));
+
+                if (!domain.getAuditEnabled()) {
+                    throw ZMSUtils.requestError(caller + ": auditenabled flag not set for domain: " + domainName + " to add it on the role: " + roleName, caller);
+                }
+
+                Role rolefromdb = getRole(domainName, roleName, false, false);
+
+                // now process the request. first we're going to make a
+                // copy of our role
+
+                Role updatedRole = new Role()
+                        .setName(rolefromdb.getName())
+                        .setAuditEnabled(rolefromdb.getAuditEnabled())
+                        .setTrust(rolefromdb.getTrust());
+
+                // then we're going to apply the updated fields
+                // from the given object
+
+                updateRoleSystemMetaFields(updatedRole, attribute, deleteAllowed, meta);
+
+                con.updateRole(domainName, updatedRole);
+                con.updateRoleModTimestamp(domainName, roleName);
+                saveChanges(con, domainName);
+                cacheStore.invalidate(roleName);
+
+                // audit log the request
+
+                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+                auditLogRoleSystemMeta(auditDetails, updatedRole);
+
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
+                        domainName, auditDetails.toString());
+
+                return;
+
+            } catch (ResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
+            }
+        }
+    }
+
 }

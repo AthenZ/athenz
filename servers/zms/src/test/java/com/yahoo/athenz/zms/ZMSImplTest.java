@@ -1178,7 +1178,6 @@ public class ZMSImplTest {
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "AddSubDom1", auditRef);
     }
 
-
     @Test
     public void testCreateUserDomain() {
 
@@ -15617,7 +15616,6 @@ public class ZMSImplTest {
 
         TestAuditLogger alogger = new TestAuditLogger();
         String storeFile = ZMS_DATA_STORE_FILE + "_overridecheck";
-
         System.setProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT, "true");
 
         ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
@@ -15646,6 +15644,7 @@ public class ZMSImplTest {
         System.clearProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT);
     }
 
+
     @Test
     public void testGetPrincipalDomain() {
         Principal principal = SimplePrincipal.create("sports", "api",
@@ -15660,6 +15659,144 @@ public class ZMSImplTest {
 
         ResourceContext ctx = createResourceContext(null);
         assertNull(zms.getPrincipalDomain(ctx));
+    }
+
+    private RoleSystemMeta createRoleSystemMetaObject(Boolean auditEnabled) {
+
+        RoleSystemMeta meta = new RoleSystemMeta();
+
+        if (auditEnabled != null) {
+            meta.setAuditEnabled(auditEnabled);
+        }
+        return meta;
+    }
+
+    private void setupPrincipalRoleSystemMetaDelete(ZMSImpl zms, final String principal,
+                                                    final String domainName, final String attributeName) {
+
+        Role role = createRoleObject("sys.auth", "metaroleadmin", null, principal, null);
+        zms.putRole(mockDomRsrcCtx, "sys.auth", "metaroleadmin", auditRef, role);
+
+        Policy policy = new Policy();
+        policy.setName("metaroleadmin");
+
+        Assertion assertion = new Assertion();
+        assertion.setAction("delete");
+        assertion.setEffect(AssertionEffect.ALLOW);
+        assertion.setResource("sys.auth:role.meta." + attributeName + "." + domainName);
+        assertion.setRole("sys.auth:role.metaroleadmin");
+
+        List<Assertion> assertList = new ArrayList<>();
+        assertList.add(assertion);
+
+        policy.setAssertions(assertList);
+
+        zms.putPolicy(mockDomRsrcCtx, "sys.auth", "metaroleadmin", auditRef, policy);
+    }
+
+    private void cleanupPrincipalRoleSystemMetaDelete(ZMSImpl zms) {
+
+        zms.deleteRole(mockDomRsrcCtx, "sys.auth", "metaroleadmin", auditRef);
+        zms.deletePolicy(mockDomRsrcCtx, "sys.auth", "metaroleadmin", auditRef);
+    }
+
+    @Test
+    public void testPutRoleSystemMeta() {
+
+        TopLevelDomain dom1 = createTopLevelDomainObject("RoleSystemMetaDom1",
+                "Role System Meta Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Domain resDom1 = zms.getDomain(mockDomRsrcCtx, "RoleSystemMetaDom1");
+
+        DomainMeta meta = createDomainMetaObject("Domain Meta for Role System Meta test", "NewOrg",
+                true, true, "12345", 1001);
+        zms.putDomainMeta(mockDomRsrcCtx, "RoleSystemMetaDom1", auditRef, meta);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, "RoleSystemMetaDom1", "auditenabled", auditRef, meta);
+
+        Role role1 = createRoleObject("RoleSystemMetaDom1", "Role1", null,
+                "user.john", "user.jane");
+        zms.putRole(mockDomRsrcCtx, "RoleSystemMetaDom1", "Role1", auditRef, role1);
+
+        RoleSystemMeta rsm = createRoleSystemMetaObject(true);
+        zms.putRoleSystemMeta(mockDomRsrcCtx, "RoleSystemMetaDom1", "Role1", "auditenabled", auditRef, rsm);
+
+        Role resRole1 = zms.getRole(mockDomRsrcCtx, "RoleSystemMetaDom1", "Role1", true, false);
+
+        assertNotNull(resRole1);
+        assertTrue(resRole1.getAuditEnabled());
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "RoleSystemMetaDom1", auditRef);
+
+    }
+
+    @Test
+    public void testPutRoleSystemMetaMissingAuditRef() {
+
+
+        TopLevelDomain dom1 = createTopLevelDomainObject("RoleSystemMetaDom1",
+                "Role System Meta Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Domain resDom1 = zms.getDomain(mockDomRsrcCtx, "RoleSystemMetaDom1");
+
+        DomainMeta meta = createDomainMetaObject("Domain Meta for Role System Meta test", "NewOrg",
+                true, true, "12345", 1001);
+        zms.putDomainMeta(mockDomRsrcCtx, "RoleSystemMetaDom1", auditRef, meta);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, "RoleSystemMetaDom1", "auditenabled", auditRef, meta);
+
+        Role role1 = createRoleObject("RoleSystemMetaDom1", "Role1", null,
+                "user.john", "user.jane");
+        zms.putRole(mockDomRsrcCtx, "RoleSystemMetaDom1", "Role1", auditRef, role1);
+
+        RoleSystemMeta rsm = createRoleSystemMetaObject(true);
+
+        try {
+            zms.putRoleSystemMeta(mockDomRsrcCtx, "RoleSystemMetaDom1", "Role1", "auditenabled", null, rsm);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Audit reference required"));
+        } finally {
+            zms.deleteTopLevelDomain(mockDomRsrcCtx, "RoleSystemMetaDom1", auditRef);
+        }
+
+    }
+
+    @Test
+    public void testPutRoleSystemMetaThrowException() {
+
+        TestAuditLogger alogger = new TestAuditLogger();
+        String storeFile = ZMS_DATA_STORE_FILE + "_putrolesysmetathrowexc";
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+        RoleSystemMeta rsm = new RoleSystemMeta();
+        rsm.setAuditEnabled(false);
+
+        try {
+            zmsImpl.putRoleSystemMeta(mockDomRsrcCtx, "RoleSystemMetaDom1", "Role1", "auditenabled", null, rsm);
+            fail("notfounderror not thrown.");
+        } catch (ResourceException e) {
+            assertEquals(404, e.getCode());
+        }
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
+    }
+
+    @Test
+    public void testIsAllowedRoleSystemMetaDelete(){
+
+        TestAuditLogger alogger = new TestAuditLogger();
+        String storeFile = ZMS_DATA_STORE_FILE + "_allowsRoleSystemMeta";
+        System.setProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT, "true");
+        ZMSImpl zmsImpl = getZmsImpl(storeFile, alogger);
+
+        assertFalse(zmsImpl.isAllowedRoleSystemMetaDelete(mockDomRsrcCtx.principal(), "mockdom1", "auditenabled"));
+        setupPrincipalRoleSystemMetaDelete(zmsImpl, mockDomRsrcCtx.principal().getFullName(), "mockdom1", "auditenabled");
+        assertTrue(zmsImpl.isAllowedRoleSystemMetaDelete(mockDomRsrcCtx.principal(), "mockdom1", "auditenabled"));
+        cleanupPrincipalRoleSystemMetaDelete(zmsImpl);
+
+        System.clearProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT);
+        FileConnection.deleteDirectory(new File("/tmp/zms_core_unit_tests/" + storeFile));
+
     }
 }
 
