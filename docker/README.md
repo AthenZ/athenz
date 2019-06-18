@@ -62,7 +62,6 @@ keytool -list -keystore docker/zts/var/certs/zts_truststore.jks
     1.  Warning message in docker log: `Loading class `com.mysql.jdbc.Driver'. This is deprecated. The new driver class is `com.mysql.cj.jdbc.Driver'. The driver is automatically registered via the SPI and manual loading of the driver class is generally unnecessary.`
 -   ZTS
     1.  `docker/zts/var/zts_store/` create as root user by docker for storing policy, better to change the default location folder outside the Athenz project folder
-    2.  should expose `ZTS_CERT_SIGNER_PK_PASS`  in docker file?
 -   ZTS-DB
     1.  `DEFAULT CHARSET = latin1`
 -   ZPU
@@ -71,6 +70,8 @@ keytool -list -keystore docker/zts/var/certs/zts_truststore.jks
     1.  build with separated docker files (add go.mod to support caching the dependency)
 -   common
     1.  file permission for keys (`chmod`)
+    1.  bootstrap without user token
+    1.  health check API entry point, no auth, `TODO: wait for Z`
 
 ## important files
 - [docker-stack.yaml](./docker-stack.yaml)

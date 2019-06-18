@@ -4,20 +4,20 @@
 ## Index
 <!-- TOC depthFrom:2 updateOnSave:true -->
 
-- [Deploy Athenz with docker (development environment)](#deploy-athenz-with-docker-development-environment)
-    - [Index](#index)
-    - [Component dependency](#component-dependency)
-    - [Build docker images](#build-docker-images)
-    - [Deploy ZMS & ZTS with docker stack](#deploy-zms--zts-with-docker-stack)
-    - [Prepare ZMS configuration](#prepare-zms-configuration)
+- [Deploy Athenz with docker (development environment)](#Deploy-Athenz-with-docker-development-environment)
+    - [Index](#Index)
+    - [Component dependency](#Component-dependency)
+    - [Build docker images](#Build-docker-images)
+    - [Deploy ZMS & ZTS with docker stack](#Deploy-ZMS--ZTS-with-docker-stack)
+    - [Prepare ZMS configuration](#Prepare-ZMS-configuration)
         - [details](#details)
-    - [Prepare ZTS configuration based on ZMS configuration](#prepare-zts-configuration-based-on-zms-configuration)
+    - [Prepare ZTS configuration based on ZMS configuration](#Prepare-ZTS-configuration-based-on-ZMS-configuration)
         - [details](#details-1)
-        - [setup ZMS for ZTS](#setup-zms-for-zts)
-    - [UI](#ui)
-        - [prepare UI configuration](#prepare-ui-configuration)
-        - [setup ZMS for UI](#setup-zms-for-ui)
-        - [deploy UI](#deploy-ui)
+        - [setup ZMS for ZTS](#setup-ZMS-for-ZTS)
+    - [UI](#UI)
+        - [prepare UI configuration](#prepare-UI-configuration)
+        - [setup ZMS for UI](#setup-ZMS-for-UI)
+        - [deploy UI](#deploy-UI)
 
 <!-- /TOC -->
 
@@ -58,8 +58,6 @@ make build-docker
     export ZMS_SSL_TRUSTSTORE_PASS=${ZMS_SSL_TRUSTSTORE_PASS:-athenz}
     export ZTS_SSL_TRUSTSTORE_PASS=${ZTS_SSL_TRUSTSTORE_PASS:-athenz}
     export ZTS_ZTS_SSL_TRUSTSTORE_PASS=${ZTS_SSL_TRUSTSTORE_PASS}
-    ### ZTS self cert signer private key password
-    export ZTS_CERT_SIGNER_PK_PASS=${ZTS_CERT_SIGNER_PK_PASS:-athenz}
     ```
 1. prepare keys, certificates, keystores and truststores
   
@@ -120,7 +118,6 @@ make build-docker
     ```bash
     # [DEV env. only] run setup scripts (6.1)
     docker run --rm --entrypoint /usr/bin/run.sh \
-      -e ZTS_CERT_SIGNER_PK_PASS=${ZTS_CERT_SIGNER_PK_PASS:-athenz} \
       -v `pwd`/docker:/usr/bin/docker \
       -v `pwd`/docker/setup-scripts/6.1.create-zts-cert-signer-pair.sh:/usr/bin/run.sh \
       openssl-alpine

@@ -11,12 +11,17 @@ build-docker:
 	docker build -t athenz-zms-cli -f docker/util/zms-cli/Dockerfile .
 	docker build -t athenz-cli-util -f docker/util/Dockerfile .
 
-run-docker:
-	sh docker/deploy-scripts/1.deploy-ZMS.sh
-	sh docker/deploy-scripts/2.register-ZTS-to-ZMS.dev.sh
-	sh docker/deploy-scripts/3.deploy-ZTS.sh
-	sh docker/deploy-scripts/4.register-UI-to-ZMS.dev.sh
-	sh docker/deploy-scripts/5.deploy-UI.sh
+run-zms-dev:
+	sh docker/deploy-scripts/1.1.deploy-ZMS.sh
+	sh docker/deploy-scripts/1.2.config-zms-domain-admin.dev.sh
+run-zts:
+	sh docker/deploy-scripts/2.1.register-ZTS-service.sh
+	sh docker/deploy-scripts/2.2.deploy-ZTS.sh
+run-ui:
+	sh docker/deploy-scripts/3.1.register-UI-service.dev.sh
+	sh docker/deploy-scripts/3.2.deploy-UI.sh
+
+run-docker-dev: run-zms-dev run-zts run-ui
 
 remove-docker:
 	docker ps -a | grep athenz- | awk '{print $$1}' | xargs docker stop

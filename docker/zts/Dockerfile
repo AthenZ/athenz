@@ -17,7 +17,6 @@ ENV ZTS_SSL_KEYSTORE_PASS=''
 ENV ZTS_SSL_TRUSTSTORE_PASS=''
 ENV ZTS_ZTS_SSL_KEYSTORE_PASS=''
 ENV ZTS_ZTS_SSL_TRUSTSTORE_PASS=''
-ENV ZTS_CERT_SIGNER_PK_PASS=''
 
 
 ENTRYPOINT ["sh", "-c", "eval $0 $@", "java"]
@@ -36,7 +35,6 @@ CMD [ \
   "-Dathenz.zts.ssl_key_store_password=${ZTS_ZTS_SSL_KEYSTORE_PASS}", \
   "-Dathenz.zts.ssl_trust_store_password=${ZTS_ZTS_SSL_TRUSTSTORE_PASS}", \
   "-Djavax.net.ssl.trustStorePassword=${ZTS_ZTS_SSL_TRUSTSTORE_PASS}", \
-  "-Dathenz.zts.self_signer_private_key_password=${ZTS_CERT_SIGNER_PK_PASS}", \
   # main class
   "com.yahoo.athenz.container.AthenzJettyContainer" \
 ]

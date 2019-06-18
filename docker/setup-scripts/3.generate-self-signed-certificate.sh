@@ -4,7 +4,7 @@
 cd "$(dirname "$0")"
 
 # certificate certified days
-X509_DAYS=${X509_DAYS:-365}
+X509_DAYS=${X509_DAYS:-3650}
 
 # server HTTPS private key path
 ZMS_PK_PATH=${ZMS_PK_PATH:-./docker/zms/var/certs/zms_key.pem}
