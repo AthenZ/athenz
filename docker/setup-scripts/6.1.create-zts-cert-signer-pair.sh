@@ -22,3 +22,5 @@ openssl req -newkey "rsa:${KEY_BITS}" \
   -new -x509 -extensions v3_ca -days "${X509_DAYS}" \
   -config "${ZTS_CERT_SIGNER_X509_CONFIG_PATH}" \
   -out "${ZTS_CERT_SIGNER_X509_OUT_PATH}"
+# unencrypted PKCS8 is not supported, need conversion
+openssl rsa -in "${ZTS_CERT_SIGNER_PK_PATH}" -out "${ZTS_CERT_SIGNER_PK_PATH}"
