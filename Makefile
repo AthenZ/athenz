@@ -11,12 +11,16 @@ build-docker:
 	docker build -t athenz-zms-cli -f docker/util/zms-cli/Dockerfile .
 	docker build -t athenz-cli-util -f docker/util/Dockerfile .
 
+setup-dev:
+	sh docker/setup-scripts/AIO.dev.sh
+
 run-zms-dev:
 	sh docker/deploy-scripts/1.1.deploy-ZMS.sh
 	sh docker/deploy-scripts/1.2.config-zms-domain-admin.dev.sh
 run-zts:
 	sh docker/deploy-scripts/2.1.register-ZTS-service.sh
-	sh docker/deploy-scripts/2.2.deploy-ZTS.sh
+	sh docker/deploy-scripts/2.2.create-athenz-conf.sh
+	sh docker/deploy-scripts/2.3.deploy-ZTS.sh
 run-ui:
 	sh docker/deploy-scripts/3.1.register-UI-service.dev.sh
 	sh docker/deploy-scripts/3.2.deploy-UI.sh
@@ -27,7 +31,8 @@ remove-docker:
 	docker ps -a | grep athenz- | awk '{print $$1}' | xargs docker stop
 	docker ps -a | grep athenz- | awk '{print $$1}' | xargs docker rm
 
-remove-log:
+remove-files:
 	sudo rm -rf ./docker/logs
+	sudo rm -rf ./docker/zts/var/zts_store
 
-remove-all: remove-docker remove-log
+remove-all: remove-docker remove-files
