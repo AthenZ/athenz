@@ -440,6 +440,14 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 1 {
 				return cli.ShowEntity(dn, args[0])
 			}
+		case "add-tenant":
+			if argc == 2 {
+				return cli.AddTenant(dn, args[0], args[1])
+			}
+		case "delete-tenant":
+			if argc == 2 {
+				return cli.DeleteTenant(dn, args[0], args[1])
+			}
 		case "add-tenancy":
 			if argc == 1 {
 				return cli.AddTenancy(dn, args[0])
@@ -1219,6 +1227,28 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   entity : name of the entity to be deleted\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domain_example + " delete-entity profile\n")
+	case "add-tenant":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domain_param + " add-tenant provider_service tenant_domain\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain           : name of the provider's domain\n")
+		}
+		buf.WriteString("   provider_service : provider's service name\n")
+		buf.WriteString("   tenant_domain    : tenant's domain name\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domain_example + " add-tenant api weather\n")
+	case "delete-tenant":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domain_param + " delete-tenant provider_service tenant_domain\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain           : name of the provider's domain\n")
+		}
+		buf.WriteString("   provider_service : provider's service name\n")
+		buf.WriteString("   tenant_domain    : tenant's domain name\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domain_example + " delete-tenant api weather\n")
 	case "add-tenancy":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domain_param + " add-tenancy provider\n")
@@ -1568,6 +1598,8 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   delete-entity entity\n")
 	buf.WriteString("\n")
 	buf.WriteString(" Tenancy commands:\n")
+	buf.WriteString("   add-tenant provider_service tenant_domain\n")
+	buf.WriteString("   delete-tenant provider_service tenant_domain\n")
 	buf.WriteString("   add-tenancy provider\n")
 	buf.WriteString("   delete-tenancy provider\n")
 	buf.WriteString("   show-tenant-resource-group-roles service tenant_domain resource_group\n")
