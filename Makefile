@@ -22,7 +22,7 @@ run-zts:
 	sh docker/deploy-scripts/2.2.create-athenz-conf.sh
 	sh docker/deploy-scripts/2.3.deploy-ZTS.sh
 run-ui:
-	sh docker/deploy-scripts/3.1.register-UI-service.dev.sh
+	sh docker/deploy-scripts/3.1.register-UI-service.sh
 	sh docker/deploy-scripts/3.2.deploy-UI.sh
 
 run-docker-dev: run-zms-dev run-zts run-ui

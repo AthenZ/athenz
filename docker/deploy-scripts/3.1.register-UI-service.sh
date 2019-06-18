@@ -27,14 +27,14 @@ docker run --rm --network="${DOCKER_NETWORK}" \
   -v "${N_TOKEN_PATH}:/etc/token/ntoken" \
   -v "`pwd`/docker/zms/var/certs/zms_cert.pem:/etc/certs/zms_cert.pem" \
   --name athenz-zms-cli athenz-zms-cli \
-  -f /etc/token/ntoken \
+  -f /etc/token/ntoken -i user.admin \
   -z "https://${ZMS_IP}:4443/zms/v1" -c /etc/certs/zms_cert.pem \
   add-domain athenz admin
 printf "\nWill add service \"athenz.ui-server\"...\n"
 docker run --rm --network="${DOCKER_NETWORK}" \
   -v "${N_TOKEN_PATH}:/etc/token/ntoken" \
   -v "`pwd`/docker/zms/var/certs/zms_cert.pem:/etc/certs/zms_cert.pem" \
-  -v "`pwd`/docker/ui/keys/athenz.ui-server_pub.pem:/etc/certs/athenz.ui-server_pub.pem" \
+  -v "`pwd`/docker/ui/var/keys/athenz.ui-server_pub.pem:/etc/certs/athenz.ui-server_pub.pem" \
   --name athenz-zms-cli athenz-zms-cli \
   -f /etc/token/ntoken \
   -z "https://${ZMS_IP}:4443/zms/v1" -c /etc/certs/zms_cert.pem \

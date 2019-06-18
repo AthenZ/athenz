@@ -72,7 +72,7 @@ keytool -list -keystore docker/zts/var/certs/zts_truststore.jks
     1.  file permission for keys (`chmod`)
     1.  bootstrap without user token
     1.  health check API entry point, no auth, `TODO: wait for Z`
-    1.  fix IP/hostname problem in PROD deployment using docker
+    1.  fix IP/hostname problem in PROD deployment using docker, `athenz.conf`
 
 ## important files
 - [docker-stack.yaml](./docker-stack.yaml)

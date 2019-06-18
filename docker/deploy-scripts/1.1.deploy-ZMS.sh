@@ -44,3 +44,4 @@ docker run -d -h localhost \
 
 # TODO: wait for ZMS to be ready
 printf "\nWill wait for ZMS to be ready...\n"
+sleep 5
