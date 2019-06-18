@@ -46,4 +46,4 @@ docker run -d -h localhost \
 
 # TODO: wait for ZTS to be ready
 printf "\nWill wait for ZTS to be ready...\n"
-sleep 5
+sleep 10
