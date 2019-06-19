@@ -132,7 +132,7 @@ sudo systemctl restart docker
     1.  NO retry on DB connection error when deploy with docker stack
     1.  Warning message in docker log: `Loading class `com.mysql.jdbc.Driver'. This is deprecated. The new driver class is `com.mysql.cj.jdbc.Driver'. The driver is automatically registered via the SPI and manual loading of the driver class is generally unnecessary.`
 -   ZTS
-    1.  `docker/zts/var/zts_store/` create as root user by docker for storing policy, better to change the default location folder outside the Athenz project folder
+    1.  `docker/zts/var/zts_store/` create as root user by docker for storing policy, better to change the default location folder outside the Athenz project folder
 -   ZTS-DB
     1.  `DEFAULT CHARSET = latin1`
 -   ZPU

@@ -9,9 +9,9 @@ ZTS_PK_PATH=${ZTS_PK_PATH:-./docker/zts/var/certs/zts_key.pem}
 UI_PK_PATH=${UI_PK_PATH:-./docker/ui/var/certs/ui_key.pem}
 
 # server HTTPS private key password
-ZMS_PK_PASS=${ZMS_PK_PASS:-athenz}
-ZTS_PK_PASS=${ZTS_PK_PASS:-athenz}
-UI_PK_PASS=${UI_PK_PASS:-athenz}
+# ZMS_PK_PASS=${ZMS_PK_PASS:-athenz}
+# ZTS_PK_PASS=${ZTS_PK_PASS:-athenz}
+# UI_PK_PASS=${UI_PK_PASS:-athenz}
 
 # server x509 certificate path
 ZMS_X509_OUT_PATH=${ZMS_X509_OUT_PATH:-./docker/zms/var/certs/zms_cert.pem}
@@ -29,8 +29,9 @@ ZTS_SSL_KEYSTORE_PASS=${ZTS_SSL_KEYSTORE_PASS:-athenz}
 
 
 # -------------------------------- ZMS --------------------------------
-openssl pkcs12 -export -noiter -nomaciter -out "${ZMS_SSL_KEYSTORE_PATH}" -passout "pass:${ZMS_SSL_KEYSTORE_PASS}" -in "${ZMS_X509_OUT_PATH}" -inkey "${ZMS_PK_PATH}" -passin "pass:${ZMS_PK_PASS}"
-
+# openssl pkcs12 -export -noiter -nomaciter -out "${ZMS_SSL_KEYSTORE_PATH}" -passout "pass:${ZMS_SSL_KEYSTORE_PASS}" -in "${ZMS_X509_OUT_PATH}" -inkey "${ZMS_PK_PATH}" -passin "pass:${ZMS_PK_PASS}"
+openssl pkcs12 -export -noiter -nomaciter -out "${ZMS_SSL_KEYSTORE_PATH}" -passout "pass:${ZMS_SSL_KEYSTORE_PASS}" -in "${ZMS_X509_OUT_PATH}" -inkey "${ZMS_PK_PATH}"
 
 # -------------------------------- ZTS --------------------------------
-openssl pkcs12 -export -noiter -nomaciter -out "${ZTS_SSL_KEYSTORE_PATH}" -passout "pass:${ZTS_SSL_KEYSTORE_PASS}" -in "${ZTS_X509_OUT_PATH}" -inkey "${ZTS_PK_PATH}" -passin "pass:${ZTS_PK_PASS}"
+# openssl pkcs12 -export -noiter -nomaciter -out "${ZTS_SSL_KEYSTORE_PATH}" -passout "pass:${ZTS_SSL_KEYSTORE_PASS}" -in "${ZTS_X509_OUT_PATH}" -inkey "${ZTS_PK_PATH}" -passin "pass:${ZTS_PK_PASS}"
+openssl pkcs12 -export -noiter -nomaciter -out "${ZTS_SSL_KEYSTORE_PATH}" -passout "pass:${ZTS_SSL_KEYSTORE_PASS}" -in "${ZTS_X509_OUT_PATH}" -inkey "${ZTS_PK_PATH}"

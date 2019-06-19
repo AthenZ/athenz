@@ -12,9 +12,6 @@ docker run --rm --name keytool-alpine keytool-alpine
 
 # run setup scripts (1)
 docker run --rm --entrypoint /usr/bin/run.sh \
-  -e ZMS_PK_PASS=${ZMS_PK_PASS:-athenz} \
-  -e ZTS_PK_PASS=${ZTS_PK_PASS:-athenz} \
-  -e UI_PK_PASS=${UI_PK_PASS:-athenz} \
   -v `pwd`/docker:/usr/bin/docker \
   -v `pwd`/docker/setup-scripts/1.create-private-key.sh:/usr/bin/run.sh \
   --name openssl-alpine openssl-alpine
@@ -27,18 +24,12 @@ docker run --rm --entrypoint /usr/bin/run.sh \
 
 # run setup scripts (3)
 docker run --rm --entrypoint /usr/bin/run.sh \
-  -e ZMS_PK_PASS=${ZMS_PK_PASS:-athenz} \
-  -e ZTS_PK_PASS=${ZTS_PK_PASS:-athenz} \
-  -e UI_PK_PASS=${UI_PK_PASS:-athenz} \
   -v `pwd`/docker:/usr/bin/docker \
   -v `pwd`/docker/setup-scripts/3.generate-self-signed-certificate.sh:/usr/bin/run.sh \
   --name openssl-alpine openssl-alpine
 
 # run setup scripts (4)
 docker run --rm --entrypoint /usr/bin/run.sh \
-  -e ZMS_PK_PASS=${ZMS_PK_PASS:-athenz} \
-  -e ZTS_PK_PASS=${ZTS_PK_PASS:-athenz} \
-  -e UI_PK_PASS=${UI_PK_PASS:-athenz} \
   -e ZMS_SSL_KEYSTORE_PASS=${ZMS_SSL_KEYSTORE_PASS:-athenz} \
   -e ZTS_SSL_KEYSTORE_PASS=${ZTS_SSL_KEYSTORE_PASS:-athenz} \
   -v `pwd`/docker:/usr/bin/docker \
@@ -67,3 +58,9 @@ docker run --rm --entrypoint /usr/bin/run.sh \
   -v `pwd`/docker:/usr/bin/docker \
   -v `pwd`/docker/setup-scripts/6.2.trust-zts-cert-signer-CA.sh:/usr/bin/run.sh \
   --name keytool-alpine keytool-alpine
+
+# [for backup only] pass private key passwords to docker env.
+# docker run --rm --entrypoint /usr/bin/run.sh \
+#   -e ZMS_PK_PASS=${ZMS_PK_PASS:-athenz} \
+#   -e ZTS_PK_PASS=${ZTS_PK_PASS:-athenz} \
+#   -e UI_PK_PASS=${UI_PK_PASS:-athenz} \
