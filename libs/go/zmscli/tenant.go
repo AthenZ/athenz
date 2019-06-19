@@ -33,6 +33,29 @@ func (cli Zms) AddTenancy(dn string, provider string) (*string, error) {
 	return &s, nil
 }
 
+func (cli Zms) AddTenant(provDomain string, provService string, tenantDomain string) (*string, error) {
+	tenancy := zms.Tenancy{
+		Domain:         zms.DomainName(tenantDomain),
+		Service:        zms.ServiceName(provDomain + "." + provService),
+		ResourceGroups: nil,
+	}
+	err := cli.Zms.PutTenant(zms.DomainName(provDomain), zms.SimpleName(provService), zms.DomainName(tenantDomain), cli.AuditRef, &tenancy)
+	if err != nil {
+		return nil, err
+	}
+	s := "[Successfully added tenant " + tenantDomain + " to provider " + provDomain + "." + provService + "]\n"
+	return &s, nil
+}
+
+func (cli Zms) DeleteTenant(provDomain string, provService string, tenantDomain string) (*string, error) {
+	err := cli.Zms.DeleteTenant(zms.DomainName(provDomain), zms.SimpleName(provService), zms.DomainName(tenantDomain), cli.AuditRef)
+	if err != nil {
+		return nil, err
+	}
+	s := "[Successfully deleted tenant " + tenantDomain + " from provider " + provDomain + "." + provService + "]\n"
+	return &s, nil
+}
+
 func (cli Zms) ShowTenantResourceGroupRoles(provDomain string, provService string, tenantDomain string, resourceGroup string) (*string, error) {
 	tenantRoles, err := cli.Zms.GetTenantResourceGroupRoles(zms.DomainName(provDomain), zms.SimpleName(provService), zms.DomainName(tenantDomain), zms.EntityName(resourceGroup))
 	if err != nil {
