@@ -86,8 +86,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN domain ON domain.domain_id=role.domain_id "
             + "WHERE domain.name=? AND role.name=?;";
     private static final String SQL_GET_ROLE_ID = "SELECT role_id FROM role WHERE domain_id=? AND name=?;";
-    private static final String SQL_INSERT_ROLE = "INSERT INTO role (name, domain_id, trust, auditenabled) VALUES (?,?,?,?);";
-    private static final String SQL_UPDATE_ROLE = "UPDATE role SET trust=?,auditenabled=? WHERE role_id=?;";
+    private static final String SQL_INSERT_ROLE = "INSERT INTO role (name, domain_id, trust, audit_enabled) VALUES (?,?,?,?);";
+    private static final String SQL_UPDATE_ROLE = "UPDATE role SET trust=?,audit_enabled=? WHERE role_id=?;";
     private static final String SQL_DELETE_ROLE = "DELETE FROM role WHERE domain_id=? AND name=?;";
     private static final String SQL_UPDATE_ROLE_MOD_TIMESTAMP = "UPDATE role "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE role_id=?;";
