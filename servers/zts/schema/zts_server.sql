@@ -32,7 +32,9 @@ CREATE TABLE IF NOT EXISTS `zts_store`.`certificates` (
   `prevIP` VARCHAR(64) NOT NULL,
   `clientCert` TINYINT(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`provider`, `instanceId`, `service`))
-ENGINE = InnoDB;
+ENGINE = InnoDB,
+ROW_FORMAT = DYNAMIC,
+DEFAULT CHARSET = latin1;
 
 
 SET SQL_MODE=@OLD_SQL_MODE;

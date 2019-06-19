@@ -1,0 +1,5 @@
+[mysqld] 
+port=3306
+
+[mysqladmin]
+port=3306

@@ -1,0 +1,148 @@
+version: '3.7'
+
+networks:
+  hostnet:
+    external: true
+    name: host
+
+services:
+
+  zms-db:
+    image: athenz-zms-db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${ZMS_JDBC_PASSWORD}
+    ports:
+      - target: 3306
+        published: 3306
+        protocol: tcp
+        mode: host
+    networks:
+      hostnet: {}
+    volumes:
+      - ./db/zms/zms-db.cnf:/etc/mysql/conf.d/zms-db.cnf
+      - ./db/zms/zms-db.cnf:/etc/my.cnf"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "--protocol=TCP", "--password=${ZMS_JDBC_PASSWORD}"]
+      start_period: 15s
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      restart_policy:
+        condition: any
+        max_attempts: 3
+      placement:
+        constraints:
+          - node.role==manager
+  zts-db:
+    image: athenz-zts-db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${ZTS_CERT_JDBC_PASSWORD}
+    ports:
+      - target: 3307
+        published: 3307
+        protocol: tcp
+        mode: host
+    networks:
+      hostnet: {}
+    volumes:
+      - ./db/zts/zts-db.cnf:/etc/mysql/conf.d/zts-db.cnf
+      - ./db/zts/zts-db.cnf:/etc/my.cnf"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "--protocol=TCP", "--password=${ZTS_CERT_JDBC_PASSWORD}"]
+      start_period: 15s
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      restart_policy:
+        condition: any
+        max_attempts: 3
+      placement:
+        constraints:
+          - node.role==manager
+
+  zms-server:
+    image: athenz-zms-server
+    depends_on:
+      - zms-db
+    environment:
+      ZMS_JDBC_PASSWORD: ${ZMS_JDBC_PASSWORD}
+      ZMS_SSL_KEYSTORE_PASS: ${ZMS_SSL_KEYSTORE_PASS}
+      ZMS_SSL_TRUSTSTORE_PASS: ${ZMS_SSL_TRUSTSTORE_PASS}
+    ports:
+      - target: 4443
+        published: 4443
+        protocol: tcp
+        mode: host
+    networks:
+      hostnet: {}
+    volumes:
+      - ./zms/var:/opt/athenz/zms/var
+      - ./zms/conf:/opt/athenz/zms/conf/zms_server
+      - ./logs/zms:/opt/athenz/zms/logs/zms_server
+    deploy:
+      restart_policy:
+        condition: any
+        max_attempts: 3
+      placement:
+        constraints:
+          - node.role==manager
+  zts-server:
+    image: athenz-zts-server
+    depends_on:
+      - zts-db
+      - zms-server
+    environment:
+      ZTS_CERT_JDBC_PASSWORD: ${ZTS_CERT_JDBC_PASSWORD}
+      ZTS_SSL_KEYSTORE_PASS: ${ZTS_SSL_KEYSTORE_PASS}
+      ZTS_SSL_TRUSTSTORE_PASS: ${ZTS_SSL_TRUSTSTORE_PASS}
+      ZTS_ZTS_SSL_KEYSTORE_PASS: ${ZTS_ZTS_SSL_KEYSTORE_PASS}
+      ZTS_ZTS_SSL_TRUSTSTORE_PASS: ${ZTS_ZTS_SSL_TRUSTSTORE_PASS}
+    ports:
+      - target: 8443
+        published: 8443
+        protocol: tcp
+        mode: host
+    networks:
+      hostnet: {}
+    volumes:
+      - ./zts/var:/opt/athenz/zts/var
+      - ./zts/conf:/opt/athenz/zts/conf/zts_server
+      - ./logs/zts:/opt/athenz/zts/logs/zts_server
+    deploy:
+      restart_policy:
+        condition: any
+        max_attempts: 3
+      placement:
+        constraints:
+          - node.role==manager
+
+  ui:
+    image: athenz-ui
+    depends_on:
+      - zms
+      - zts
+    environment:
+      ZMS_SERVER: ${HOSTNAME}
+      UI_SERVER: ${HOSTNAME}
+    ports:
+      - target: 443
+        published: 443
+        protocol: tcp
+        mode: host
+    networks:
+      hostnet: {}
+    volumes:
+      - ./zts/conf/athenz.conf:/opt/athenz/ui/config/athenz.conf
+      - ./ui/var/certs/ui_key.pem:/opt/athenz/ui/keys/ui_key.pem
+      - ./ui/var/certs/ui_cert.pem:/opt/athenz/ui/keys/ui_cert.pem
+      - ./ui/var/keys/athenz.ui-server.pem:/opt/athenz/ui/keys/athenz.ui-server.pem
+      - ./ui/var/keys/athenz.ui-server_pub.pem:/opt/athenz/ui/keys/athenz.ui-server_pub.pem
+    deploy:
+      restart_policy:
+        condition: any
+        max_attempts: 3
+      placement:
+        constraints:
+          - node.role==manager
