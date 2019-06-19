@@ -3496,7 +3496,7 @@ public class DBService {
                 Domain domain = checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx));
 
                 if (!domain.getAuditEnabled()) {
-                    throw ZMSUtils.requestError(caller + ": auditenabled flag not set for domain: " + domainName + " to add it on the role: " + roleName, caller);
+                    throw ZMSUtils.requestError(caller + ": auditEnabled flag not set for domain: " + domainName + " to add it on the role: " + roleName, caller);
                 }
 
                 Role rolefromdb = getRole(domainName, roleName, false, false);
