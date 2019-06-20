@@ -33,7 +33,7 @@ func main() {
 	var ztsURL, svcKeyFile, svcCertFile, roleKeyFile, dom, svc string
 	var caCertFile, roleCertFile, roleDomain, roleName, dnsDomain string
 	var subjC, subjO, subjOU, ip, uri string
-	var spiffe bool
+	var spiffe, csr bool
 
 	flag.StringVar(&roleKeyFile, "role-key-file", "", "role cert private key file (default: service identity private key)")
 	flag.StringVar(&roleCertFile, "role-cert-file", "", "output role certificate file")
@@ -51,6 +51,7 @@ func main() {
 	flag.StringVar(&subjOU, "subj-ou", "Athenz", "Subject OU/OrganizationalUnit field")
 	flag.StringVar(&ip, "ip", "", "IP address")
 	flag.BoolVar(&spiffe, "spiffe", false, "include spiffe uri in csr")
+	flag.BoolVar(&csr, "csr", false, "request csr only")
 	flag.Parse()
 
 	if svcKeyFile == "" || svcCertFile == "" || roleDomain == "" || roleName == "" ||
@@ -88,10 +89,6 @@ func main() {
 		Country:            []string{subjC},
 	}
 
-	client, err := ztsClient(ztsURL, svcKeyFile, svcCertFile, caCertFile)
-	if err != nil {
-		log.Fatalf("Unable to initialize ZTS Client for %s, err: %v\n", ztsURL, err)
-	}
 
 	// load private key
 	bytes, err := ioutil.ReadFile(roleKeyFile)
@@ -105,12 +102,24 @@ func main() {
 		log.Fatalf("Unable to retrieve private key %s, err: %v\n", svcKeyFile, err)
 	}
 
-	csr, err := generateCSR(pkSigner, subj, host, rfc822, ip, uri)
+	csrData, err := generateCSR(pkSigner, subj, host, rfc822, ip, uri)
 	if err != nil {
 		log.Fatalf("Unable to generate CSR for %s, err: %v\n", roleName, err)
 	}
 
-	getRoleCertificate(client, csr, roleDomain, roleName, roleCertFile)
+	// if we're provided the csr flag then we're going to display
+	// it and return right away
+	if csr {
+		fmt.Println(csrData)
+		return
+	}
+
+	client, err := ztsClient(ztsURL, svcKeyFile, svcCertFile, caCertFile)
+	if err != nil {
+		log.Fatalf("Unable to initialize ZTS Client for %s, err: %v\n", ztsURL, err)
+	}
+
+	getRoleCertificate(client, csrData, roleDomain, roleName, roleCertFile)
 }
 
 func extractServiceDetailsFromCert(certFile string) (string, string, error) {
@@ -184,7 +193,8 @@ func getRoleCertificate(client *zts.ZTSClient, csr, roleDomain, roleName, roleCe
 	}
 }
 
-func ztsClient(ztsURL, keyFile, certFile, caFile string) (*zts.ZTSClient, error) {
+func
+ztsClient(ztsURL, keyFile, certFile, caFile string) (*zts.ZTSClient, error) {
 	config, err := tlsConfiguration(keyFile, certFile, caFile)
 	if err != nil {
 		return nil, err
