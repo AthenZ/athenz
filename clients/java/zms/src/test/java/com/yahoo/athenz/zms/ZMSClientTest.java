@@ -15,7 +15,6 @@
  */
 package com.yahoo.athenz.zms;
 
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.*;
 
@@ -30,7 +29,6 @@ import com.yahoo.rdl.Timestamp;
 import static org.testng.Assert.*;
 
 import org.mockito.Mockito;
-import org.mockito.internal.matchers.Null;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -95,7 +93,6 @@ public class ZMSClientTest {
     private ZMSClient createClient(String userName) {
         ZMSClient client = new ZMSClient(getZMSUrl());
         client.addCredentials(createPrincipal(userName));
-        
         if (printURL) {
             System.out.println("ZMS Url set to: " + client.getZmsUrl());
             printURL = false;
@@ -3005,6 +3002,19 @@ public class ZMSClientTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
+        }
+    }
+    @Test
+    public void testGetRole() {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        try {
+            Mockito.when(c.getRole("domain1", "role1", true, false)).thenThrow(new ResourceException(400));
+            client.getRole("domain1", "role1", true, false);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(true);
         }
     }
 }

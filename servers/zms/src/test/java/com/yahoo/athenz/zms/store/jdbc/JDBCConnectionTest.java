@@ -6781,4 +6781,24 @@ public class JDBCConnectionTest {
 
         jdbcConn.close();
     }
+
+    @Test
+    public void testGetRoleDefaultAuditEnabledAsNull() throws Exception {
+
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.doReturn("role1").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_NAME);
+        Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_TRUST);
+        Mockito.doReturn(false).when(mockResultSet).getBoolean(ZMSConsts.DB_COLUMN_AUDIT_ENABLED);
+        Mockito.doReturn(new java.sql.Timestamp(1454358916)).when(mockResultSet).getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED);
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Role role = jdbcConn.getRole("my-domain", "role1");
+        assertNotNull(role);
+        assertEquals("my-domain:role.role1", role.getName());
+        assertNull(role.getAuditEnabled());
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "role1");
+        jdbcConn.close();
+    }
 }

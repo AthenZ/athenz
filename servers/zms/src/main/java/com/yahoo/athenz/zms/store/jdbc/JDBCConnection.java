@@ -1050,10 +1050,14 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(2, roleName);
             try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
-                    return new Role().setName(ZMSUtils.roleResourceName(domainName, roleName))
-                            .setModified(Timestamp.fromMillis(rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime()))
-                            .setTrust(saveValue(rs.getString(ZMSConsts.DB_COLUMN_TRUST)))
-                            .setAuditEnabled(rs.getBoolean(ZMSConsts.DB_COLUMN_AUDIT_ENABLED));
+                    Role r = new Role();
+                    r.setName(ZMSUtils.roleResourceName(domainName, roleName))
+                     .setModified(Timestamp.fromMillis(rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime()))
+                     .setTrust(saveValue(rs.getString(ZMSConsts.DB_COLUMN_TRUST)));
+                    if (rs.getBoolean(ZMSConsts.DB_COLUMN_AUDIT_ENABLED)) {
+                        r.setAuditEnabled(rs.getBoolean(ZMSConsts.DB_COLUMN_AUDIT_ENABLED));
+                    }
+                     return r;
                 }
             }
         } catch (SQLException ex) {

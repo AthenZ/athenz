@@ -29,7 +29,11 @@ import javax.net.ssl.SSLContext;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.jackson.internal.jackson.jaxrs.json.JacksonJaxbJsonProvider;
+import org.glassfish.jersey.jackson.internal.jackson.jaxrs.json.JacksonJsonProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -358,8 +362,13 @@ public class ZMSClient implements Closeable {
         if (sslContext != null) {
             builder = builder.sslContext(sslContext);
         }
+
+        final JacksonJsonProvider jacksonJsonProvider = new JacksonJaxbJsonProvider().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        ClientConfig clientConfig = new ClientConfig(jacksonJsonProvider);
+
         Client rsClient = builder.property(ClientProperties.CONNECT_TIMEOUT, connectTimeout)
             .property(ClientProperties.READ_TIMEOUT, readTimeout)
+            .withConfig(clientConfig)
             .build();
         client = new ZMSRDLGeneratedClient(zmsUrl, rsClient);
     }
