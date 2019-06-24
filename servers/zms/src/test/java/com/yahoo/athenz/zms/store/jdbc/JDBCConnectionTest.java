@@ -6801,4 +6801,11 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "role1");
         jdbcConn.close();
     }
+    @Test
+    public void testNullIfDefaultValue() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        assertNull(jdbcConn.nullIfDefaultValue(false, false));
+        assertTrue(jdbcConn.nullIfDefaultValue(true, false));
+        jdbcConn.close();
+    }
 }
