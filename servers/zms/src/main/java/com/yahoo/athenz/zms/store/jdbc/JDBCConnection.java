@@ -1051,9 +1051,10 @@ public class JDBCConnection implements ObjectStoreConnection {
             try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
                     return new Role().setName(ZMSUtils.roleResourceName(domainName, roleName))
-                            .setModified(Timestamp.fromMillis(rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime()))
-                            .setTrust(saveValue(rs.getString(ZMSConsts.DB_COLUMN_TRUST)))
-                            .setAuditEnabled(rs.getBoolean(ZMSConsts.DB_COLUMN_AUDIT_ENABLED));
+                     .setModified(Timestamp.fromMillis(rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime()))
+                     .setTrust(saveValue(rs.getString(ZMSConsts.DB_COLUMN_TRUST)))
+                     .setAuditEnabled(nullIfDefaultValue(rs.getBoolean(ZMSConsts.DB_COLUMN_AUDIT_ENABLED), false));
+
                 }
             }
         } catch (SQLException ex) {
@@ -3399,5 +3400,8 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
         rollbackChanges();
         return ZMSUtils.error(code, msg, caller);
+    }
+    Boolean nullIfDefaultValue(boolean flag, boolean defaultValue) {
+        return flag == defaultValue ? null : flag;
     }
 }

@@ -40,12 +40,15 @@ import javax.net.ssl.SSLSession;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.jackson.internal.jackson.jaxrs.json.JacksonJaxbJsonProvider;
+import org.glassfish.jersey.jackson.internal.jackson.jaxrs.json.JacksonJsonProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -627,8 +630,9 @@ public class ZTSClient implements Closeable {
         }
         
         // setup our client config object with timeouts
-        
-        final ClientConfig config = new ClientConfig();
+
+        final JacksonJsonProvider jacksonJsonProvider = new JacksonJaxbJsonProvider().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        final ClientConfig config = new ClientConfig(jacksonJsonProvider);
         config.property(ClientProperties.CONNECT_TIMEOUT, reqConnectTimeout);
         config.property(ClientProperties.READ_TIMEOUT, reqReadTimeout);
         config.connectorProvider(new ApacheConnectorProvider());

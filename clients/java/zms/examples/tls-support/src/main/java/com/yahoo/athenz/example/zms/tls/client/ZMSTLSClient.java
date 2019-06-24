@@ -52,6 +52,7 @@ public class ZMSTLSClient {
         final String certPath = cmd.getOptionValue("cert");
         final String trustStorePath = cmd.getOptionValue("trustStorePath");
         final String trustStorePassword = cmd.getOptionValue("trustStorePassword");
+        final String roleName = cmd.getOptionValue("role");
 
         // we are going to setup our service private key and
         // certificate into a ssl context that we can use with
@@ -79,6 +80,10 @@ public class ZMSTLSClient {
                         case "access":
                             Access access = zmsClient.getAccess(action, resource, null, principal);
                             System.out.println("Access: " + access.getGranted());
+                            break;
+                        case "getrole":
+                            Role sampleRole = zmsClient.getRole(domain, roleName);
+                            System.out.println("Role: " + sampleRole.getName());
                             break;
                     }
                 } catch (ZMSClientException ex) {
@@ -136,6 +141,10 @@ public class ZMSTLSClient {
         Option zmsUrl = new Option("z", "zmsurl", true, "ZMS Server url");
         zmsUrl.setRequired(true);
         options.addOption(zmsUrl);
+
+        Option role = new Option("ro", "role", true, "name of the role");
+        role.setRequired(false);
+        options.addOption(role);
         
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();

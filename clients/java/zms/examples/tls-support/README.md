@@ -22,6 +22,8 @@ usage: zms-tls-client
  -a,--action <arg>               action value
  -r,--resource <arg>             resource value
  -u,--principal <arg>            principal to authorize
+ -ro,--role <arg>                role name
+ -m,--method <arg>               ZMS API method name to call
 ```
 
 First build the example by executing `mvn clean package` and then run
