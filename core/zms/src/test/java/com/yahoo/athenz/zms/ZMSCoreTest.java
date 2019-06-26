@@ -490,18 +490,26 @@ public class ZMSCoreTest {
         assertEquals("101", dd.getApplicationId());
         assertTrue(dd.getEnabled());
         assertEquals(dd.getCertDnsDomain(), "athenz.cloud");
+        assertFalse(dd.getAuditEnabled());
 
         DomainData dd2 = new DomainData().setName("test.domain").setAccount("user.test").setYpmId(1).setRoles(rl)
                 .setPolicies(sp).setServices(sil).setEntities(elist).setModified(Timestamp.fromMillis(123456789123L))
-                .setEnabled(true).setApplicationId("101").setCertDnsDomain("athenz.cloud");
+                .setEnabled(true).setApplicationId("101").setCertDnsDomain("athenz.cloud").setAuditEnabled(false);
+
         assertTrue(dd.equals(dd2));
 
+        dd2.setAuditEnabled(true);
+        assertFalse(dd2.equals(dd));
+
+        dd2.setAuditEnabled(false);
         dd2.setCertDnsDomain(null);
         assertFalse(dd2.equals(dd));
 
+        dd2.setCertDnsDomain("athenz.cloud");
         dd2.setApplicationId(null);
         assertFalse(dd2.equals(dd));
 
+        dd2.setApplicationId("101");
         dd2.setModified(null);
         assertFalse(dd2.equals(dd));
         

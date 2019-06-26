@@ -4363,6 +4363,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (enabled == Boolean.FALSE) {
             domainData.setEnabled(enabled);
         }
+        // TODO: to be un-commented after dependent components are updated to not break backward compatibility
+        // domainData.setAuditEnabled(athenzDomain.getDomain().getAuditEnabled());
         domainData.setAccount(athenzDomain.getDomain().getAccount());
         domainData.setYpmId(athenzDomain.getDomain().getYpmId());
         domainData.setRoles(athenzDomain.getRoles());

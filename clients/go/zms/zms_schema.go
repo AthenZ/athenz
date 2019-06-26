@@ -400,6 +400,7 @@ func init() {
 	tDomainData.Field("modified", "Timestamp", false, nil, "last modification timestamp")
 	tDomainData.Field("applicationId", "String", true, nil, "associated application id")
 	tDomainData.Field("certDnsDomain", "String", true, nil, "domain certificate dns domain")
+	tDomainData.Field("auditEnabled", "Bool", true, false, "Flag indicates whether or not domain modifications should be logged for SOX+Auditing.")
 	sb.AddType(tDomainData.Build())
 
 	tSignedDomain := rdl.NewStructTypeBuilder("Struct", "SignedDomain")

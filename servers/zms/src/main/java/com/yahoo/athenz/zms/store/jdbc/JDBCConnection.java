@@ -360,7 +360,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     Domain saveDomainSettings(String domainName, ResultSet rs, String caller) {
         try {
             return new Domain().setName(domainName)
-                    .setAuditEnabled(rs.getBoolean(ZMSConsts.DB_COLUMN_AUDIT_ENABLED))
+                    .setAuditEnabled(nullIfDefaultValue(rs.getBoolean(ZMSConsts.DB_COLUMN_AUDIT_ENABLED), false))
                     .setEnabled(rs.getBoolean(ZMSConsts.DB_COLUMN_ENABLED))
                     .setModified(Timestamp.fromMillis(rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime()))
                     .setDescription(saveValue(rs.getString(ZMSConsts.DB_COLUMN_DESCRIPTION)))
@@ -2584,7 +2584,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                     String roleName = rs.getString(ZMSConsts.DB_COLUMN_NAME);
                     Role role = new Role().setName(ZMSUtils.roleResourceName(domainName, roleName))
                             .setModified(Timestamp.fromMillis(rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime()))
-                            .setTrust(saveValue(rs.getString(ZMSConsts.DB_COLUMN_TRUST)));
+                            .setTrust(saveValue(rs.getString(ZMSConsts.DB_COLUMN_TRUST)))
+                            .setAuditEnabled(nullIfDefaultValue(rs.getBoolean(ZMSConsts.DB_COLUMN_AUDIT_ENABLED), false));
                     roleMap.put(roleName, role);
                 }
             }

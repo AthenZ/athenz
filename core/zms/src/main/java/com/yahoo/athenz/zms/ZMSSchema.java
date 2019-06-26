@@ -339,7 +339,8 @@ public class ZMSSchema {
             .arrayField("entities", "Entity", false, "list of entities in the domain")
             .field("modified", "Timestamp", false, "last modification timestamp")
             .field("applicationId", "String", true, "associated application id")
-            .field("certDnsDomain", "String", true, "domain certificate dns domain");
+            .field("certDnsDomain", "String", true, "domain certificate dns domain")
+            .field("auditEnabled", "Bool", true, "Flag indicates whether or not domain modifications should be logged for SOX+Auditing.", false);
 
         sb.structType("SignedDomain")
             .comment("A domain object signed with server's private key. The signature and keyid are optional if the metaonly flag is set to true in the getSignedDomains api call")
