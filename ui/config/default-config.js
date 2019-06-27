@@ -91,7 +91,8 @@ module.exports = function() {
   let c = config[process.env.SERVICE_NAME || 'development'];
 
   c.zmshost = c.zmshost || 'localhost';
-  c.zms = process.env.ZMS_SERVER_URL || 'https://' + c.zmshost + ':4443/zms/v1/',
+  c.zms = process.env.ZMS_SERVER_URL || 'https://' + c.zmshost + ':4443/zms/v1/';
+  c.zms_ajax = process.env.ZMS_AJAX_URL || c.zms;
   c.userDomain = c.userDomain || 'user';
   c.authHeader = c.authHeader || 'Athenz-Principal-Auth';
   c.strictSSL = c.strictSSL || false;
