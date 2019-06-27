@@ -85,7 +85,33 @@ public class JDBCConnectionTest {
         assertNotNull(domain);
         assertEquals("my-domain", domain.getName());
         assertTrue(domain.getEnabled());
-        assertFalse(domain.getAuditEnabled());
+        assertNull(domain.getAuditEnabled());
+        assertNull(domain.getDescription());
+        assertNull(domain.getOrg());
+        assertNull(domain.getId());
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetDomainWithAuditEnabled() throws Exception {
+
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.doReturn("my-domain").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_NAME);
+        Mockito.doReturn(new java.sql.Timestamp(1454358916)).when(mockResultSet).getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED);
+        Mockito.doReturn(true).when(mockResultSet).getBoolean(ZMSConsts.DB_COLUMN_ENABLED);
+        Mockito.doReturn(true).when(mockResultSet).getBoolean(ZMSConsts.DB_COLUMN_AUDIT_ENABLED);
+        Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_DESCRIPTION);
+        Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_ORG);
+        Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_UUID);
+        Mockito.doReturn("12345").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_ACCOUNT);
+        Mockito.doReturn(1001).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_PRODUCT_ID);
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Domain domain = jdbcConn.getDomain("my-domain");
+        assertNotNull(domain);
+        assertEquals("my-domain", domain.getName());
+        assertTrue(domain.getEnabled());
+        assertTrue(domain.getAuditEnabled());
         assertNull(domain.getDescription());
         assertNull(domain.getOrg());
         assertNull(domain.getId());

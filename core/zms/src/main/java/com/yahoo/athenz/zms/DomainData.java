@@ -32,6 +32,9 @@ public class DomainData {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String certDnsDomain;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Boolean auditEnabled;
 
     public DomainData setName(String name) {
         this.name = name;
@@ -110,6 +113,13 @@ public class DomainData {
     public String getCertDnsDomain() {
         return certDnsDomain;
     }
+    public DomainData setAuditEnabled(Boolean auditEnabled) {
+        this.auditEnabled = auditEnabled;
+        return this;
+    }
+    public Boolean getAuditEnabled() {
+        return auditEnabled;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -149,6 +159,9 @@ public class DomainData {
                 return false;
             }
             if (certDnsDomain == null ? a.certDnsDomain != null : !certDnsDomain.equals(a.certDnsDomain)) {
+                return false;
+            }
+            if (auditEnabled == null ? a.auditEnabled != null : !auditEnabled.equals(a.auditEnabled)) {
                 return false;
             }
         }

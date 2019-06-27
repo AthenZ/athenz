@@ -69,6 +69,7 @@ public class SignUtils {
     private static final String ATTR_KEYID = "keyId";
     private static final String ATTR_CONTENTS = "contents";
     private static final String ATTR_CERT_DNS_DOMAIN = "certDnsDomain";
+    private static final String ATTR_AUDIT_ENABLED = "auditEnabled";
 
     private static Struct asStruct(DomainPolicies domainPolicies) {
         // all of our fields are in canonical order based
@@ -131,6 +132,7 @@ public class SignUtils {
         // all of our fields are in canonical order based
         // on their attribute name
         Struct struct = new Struct();
+        appendObject(struct, ATTR_AUDIT_ENABLED, role.getAuditEnabled());
         appendList(struct, ATTR_MEMBERS, role.getMembers());
         appendObject(struct, ATTR_MODIFIED, role.getModified());
         appendObject(struct, ATTR_NAME, role.getName());
@@ -238,6 +240,7 @@ public class SignUtils {
         // on their attribute name
         Struct struct = new Struct();
         appendObject(struct, ATTR_ACCOUNT, domainData.getAccount());
+        appendObject(struct, ATTR_AUDIT_ENABLED, domainData.getAuditEnabled());
         appendObject(struct, ATTR_CERT_DNS_DOMAIN, domainData.getCertDnsDomain());
         appendObject(struct, ATTR_ENABLED, domainData.getEnabled());
         appendObject(struct, ATTR_MODIFIED, domainData.getModified());

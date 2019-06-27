@@ -4012,6 +4012,12 @@ type DomainData struct {
 	// domain certificate dns domain
 	//
 	CertDnsDomain string `json:"certDnsDomain,omitempty" rdl:"optional"`
+
+	//
+	// Flag indicates whether or not domain modifications should be logged for
+	// SOX+Auditing.
+	//
+	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional"`
 }
 
 //
@@ -4042,6 +4048,10 @@ func (self *DomainData) Init() *DomainData {
 	}
 	if self.Entities == nil {
 		self.Entities = make([]*Entity, 0)
+	}
+	if self.AuditEnabled == nil {
+		d := false
+		self.AuditEnabled = &d
 	}
 	return self
 }
