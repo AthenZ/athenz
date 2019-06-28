@@ -85,7 +85,7 @@ public class JDBCConnectionTest {
         assertNotNull(domain);
         assertEquals("my-domain", domain.getName());
         assertTrue(domain.getEnabled());
-        assertNull(domain.getAuditEnabled());
+        assertFalse(domain.getAuditEnabled());
         assertNull(domain.getDescription());
         assertNull(domain.getOrg());
         assertNull(domain.getId());
