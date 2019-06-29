@@ -360,7 +360,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     Domain saveDomainSettings(String domainName, ResultSet rs, String caller) {
         try {
             return new Domain().setName(domainName)
-                    .setAuditEnabled(nullIfDefaultValue(rs.getBoolean(ZMSConsts.DB_COLUMN_AUDIT_ENABLED), false))
+                    .setAuditEnabled(rs.getBoolean(ZMSConsts.DB_COLUMN_AUDIT_ENABLED))
                     .setEnabled(rs.getBoolean(ZMSConsts.DB_COLUMN_ENABLED))
                     .setModified(Timestamp.fromMillis(rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime()))
                     .setDescription(saveValue(rs.getString(ZMSConsts.DB_COLUMN_DESCRIPTION)))
