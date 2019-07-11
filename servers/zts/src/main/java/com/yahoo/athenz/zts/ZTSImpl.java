@@ -96,6 +96,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected SignatureAlgorithm privateKeyAlg = null;
     protected int roleTokenDefaultTimeout;
     protected int roleTokenMaxTimeout;
+    protected int idTokenMaxTimeout;
     protected long x509CertRefreshResetTime;
     protected long signedPolicyTimeout;
     protected static String serverHostName = null;
@@ -354,7 +355,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         timeout = TimeUnit.SECONDS.convert(30, TimeUnit.DAYS);
         roleTokenMaxTimeout = Integer.parseInt(
                 System.getProperty(ZTSConsts.ZTS_PROP_ROLE_TOKEN_MAX_TIMEOUT, Long.toString(timeout)));
-        
+
+        // default id token timeout - 12 hours
+
+        timeout = TimeUnit.SECONDS.convert(12, TimeUnit.HOURS);
+        idTokenMaxTimeout = Integer.parseInt(
+                System.getProperty(ZTSConsts.ZTS_PROP_ID_TOKEN_MAX_TIMEOUT, Long.toString(timeout)));
+
         // signedPolicyTimeout is in milliseconds but the config setting should be in seconds
         // to be consistent with other configuration properties
         
@@ -1013,7 +1020,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             return value;
         }
     }
-    
+
+    long determineIdTokenTimeout(long tokenTimeout) {
+        return (tokenTimeout > idTokenMaxTimeout) ? idTokenMaxTimeout : tokenTimeout;
+    }
+
     long determineTokenTimeout(Integer minExpiryTime, Integer maxExpiryTime) {
         
         // we're going to default our return value to the default token
@@ -1585,16 +1596,20 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         String idJwts = null;
         if (tokenRequest.isOpenidScope()) {
 
-            // id tokens are only valid for 1 hour
-
             IdToken idToken = new IdToken();
             idToken.setVersion(1);
             idToken.setAudience(tokenRequest.getDomainName() + "." + tokenRequest.getServiceName());
-            idToken.setIssueTime(iat);
-            idToken.setExpiryTime(iat + 3600);
-            idToken.setAuthTime(iat);
             idToken.setSubject(principalName);
             idToken.setIssuer(ztsOAuthIssuer);
+
+            // id tokens are only valid for up to 12 hours max
+            // (value configured as a system property).
+            // we'll use the user specified timeout unless it's
+            // over the configured max
+
+            idToken.setIssueTime(iat);
+            idToken.setAuthTime(iat);
+            idToken.setExpiryTime(iat + determineIdTokenTimeout(tokenTimeout));
 
             idJwts = idToken.getSignedToken(privateKey, privateKeyId, privateKeyAlg);
         }

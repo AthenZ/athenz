@@ -16,7 +16,6 @@
 package com.yahoo.athenz.zts;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -35,8 +34,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.Response;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zms.Assertion;
@@ -2135,7 +2132,13 @@ public class ZTSImplTest {
         isEmitMonmetricError = ZTSUtils.emitMonmetricError(errorCode, " " + caller + " ", null, metric);
         assertTrue(isEmitMonmetricError);
     }
-    
+
+    @Test
+    public void testDetermineIdTokenTimoeout() {
+        assertEquals(zts.determineIdTokenTimeout(3600), 3600);
+        assertEquals(zts.determineIdTokenTimeout(360000), zts.idTokenMaxTimeout);
+    }
+
     @Test
     public void testDetermineTokenTimeoutBothNull() {
         assertEquals(zts.determineTokenTimeout(null, null), roleTokenDefaultTimeout);
@@ -8770,7 +8773,7 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(principal);
 
         AccessTokenResponse resp = zts.postAccessTokenRequest(context,
-                "grant_type=client_credentials&scope=coretech:domain openid coretech:service.api");
+                "grant_type=client_credentials&scope=coretech:domain openid coretech:service.api&expires_in=240");
         assertNotNull(resp);
         assertEquals("coretech:role.writers openid", resp.getScope());
 
@@ -8779,6 +8782,55 @@ public class ZTSImplTest {
 
         String idToken = resp.getId_token();
         assertNotNull(idToken);
+
+        Jws<Claims> claims;
+        try {
+            claims = Jwts.parser().setSigningKey(Crypto.extractPublicKey(privateKey))
+                    .parseClaimsJws(idToken);
+        } catch (SignatureException e) {
+            throw new ResourceException(ResourceException.UNAUTHORIZED);
+        }
+        assertNotNull(claims);
+
+        assertEquals(240 * 1000, claims.getBody().getExpiration().getTime() - claims.getBody().getIssuedAt().getTime());
+    }
+
+    @Test
+    public void testPostAccessTokenRequestOpenIdScopeMaxTimeout() {
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        // default max timeout is 12 hours so we'll pick a value
+        // bigger than that
+
+        AccessTokenResponse resp = zts.postAccessTokenRequest(context,
+                "grant_type=client_credentials&scope=coretech:domain openid coretech:service.api&expires_in=57600");
+        assertNotNull(resp);
+        assertEquals("coretech:role.writers openid", resp.getScope());
+
+        String accessToken = resp.getAccess_token();
+        assertNotNull(accessToken);
+
+        String idToken = resp.getId_token();
+        assertNotNull(idToken);
+
+        Jws<Claims> claims;
+        try {
+            claims = Jwts.parser().setSigningKey(Crypto.extractPublicKey(privateKey))
+                    .parseClaimsJws(idToken);
+        } catch (SignatureException e) {
+            throw new ResourceException(ResourceException.UNAUTHORIZED);
+        }
+        assertNotNull(claims);
+
+        // the value should be 12 hours - the default max
+
+        assertEquals(12 * 60 * 60 * 1000, claims.getBody().getExpiration().getTime() - claims.getBody().getIssuedAt().getTime());
     }
 
     @Test
