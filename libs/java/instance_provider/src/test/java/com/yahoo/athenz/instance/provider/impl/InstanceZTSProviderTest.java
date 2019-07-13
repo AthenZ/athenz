@@ -212,8 +212,8 @@ public class InstanceZTSProviderTest {
         confirmation.setProvider("sys.auth.zts");
 
         Map<String, String> attributes = new HashMap<>();
-        attributes.put(InstanceUtils.ZTS_INSTANCE_SAN_DNS, "api.sports.zts.athenz.cloud,inst1.instanceid.athenz.zts.athenz.cloud");
-        attributes.put(InstanceUtils.ZTS_INSTANCE_CSR_PUBLIC_KEY, servicePublicKeyStringK0);
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_DNS, "api.sports.zts.athenz.cloud,inst1.instanceid.athenz.zts.athenz.cloud");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CSR_PUBLIC_KEY, servicePublicKeyStringK0);
         confirmation.setAttributes(attributes);
 
         assertNotNull(provider.confirmInstance(confirmation));
@@ -244,8 +244,8 @@ public class InstanceZTSProviderTest {
         confirmation.setProvider("sys.auth.zts");
 
         Map<String, String> attributes = new HashMap<>();
-        attributes.put(InstanceUtils.ZTS_INSTANCE_SAN_DNS, "backend.sports.zts.athenz.cloud,inst1.instanceid.athenz.zts.athenz.cloud");
-        attributes.put(InstanceUtils.ZTS_INSTANCE_CSR_PUBLIC_KEY, servicePublicKeyStringK0);
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_DNS, "backend.sports.zts.athenz.cloud,inst1.instanceid.athenz.zts.athenz.cloud");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CSR_PUBLIC_KEY, servicePublicKeyStringK0);
         confirmation.setAttributes(attributes);
 
         try {
@@ -279,10 +279,10 @@ public class InstanceZTSProviderTest {
         confirmation.setProvider("sys.auth.zts");
 
         Map<String, String> attributes = new HashMap<>();
-        attributes.put(InstanceUtils.ZTS_INSTANCE_SAN_DNS, "api.sports.zts.athenz.cloud,inst1.instanceid.athenz.zts.athenz.cloud");
-        attributes.put(InstanceUtils.ZTS_INSTANCE_CLIENT_IP, "10.1.1.1");
-        attributes.put(InstanceUtils.ZTS_INSTANCE_SAN_IP, "10.1.1.2");
-        attributes.put(InstanceUtils.ZTS_INSTANCE_CSR_PUBLIC_KEY, servicePublicKeyStringK0);
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_DNS, "api.sports.zts.athenz.cloud,inst1.instanceid.athenz.zts.athenz.cloud");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CLIENT_IP, "10.1.1.1");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_IP, "10.1.1.2");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CSR_PUBLIC_KEY, servicePublicKeyStringK0);
         confirmation.setAttributes(attributes);
 
         try {
@@ -316,10 +316,10 @@ public class InstanceZTSProviderTest {
         confirmation.setProvider("sys.auth.zts");
 
         Map<String, String> attributes = new HashMap<>();
-        attributes.put(InstanceUtils.ZTS_INSTANCE_SAN_DNS, "api.weather.zts.athenz.cloud,inst1.instanceid.athenz.zts.athenz.cloud");
-        attributes.put(InstanceUtils.ZTS_INSTANCE_CLIENT_IP, "10.1.1.1");
-        attributes.put(InstanceUtils.ZTS_INSTANCE_SAN_IP, "10.1.1.1");
-        attributes.put(InstanceUtils.ZTS_INSTANCE_CSR_PUBLIC_KEY, servicePublicKeyStringK0);
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_DNS, "api.weather.zts.athenz.cloud,inst1.instanceid.athenz.zts.athenz.cloud");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CLIENT_IP, "10.1.1.1");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_IP, "10.1.1.1");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CSR_PUBLIC_KEY, servicePublicKeyStringK0);
         confirmation.setAttributes(attributes);
 
         try {

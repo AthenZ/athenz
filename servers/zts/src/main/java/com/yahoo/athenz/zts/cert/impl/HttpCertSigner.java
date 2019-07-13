@@ -24,6 +24,7 @@ import java.util.concurrent.TimeoutException;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.auth.PrivateKeyStoreFactory;
 import com.yahoo.athenz.common.server.cert.CertSigner;
+import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.cert.X509CertSignObject;
@@ -177,7 +178,7 @@ public class HttpCertSigner implements CertSigner {
         // we're only interested in ExtKeyUsageClientAuth - with value of 2
         
         List<Integer> extKeyUsage = null;
-        if (ZTSConsts.ZTS_CERT_USAGE_CLIENT.equals(keyUsage)) {
+        if (InstanceProvider.ZTS_CERT_USAGE_CLIENT.equals(keyUsage)) {
             extKeyUsage = new ArrayList<>();
             extKeyUsage.add(2);
         }

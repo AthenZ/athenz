@@ -20,6 +20,7 @@ import static org.testng.Assert.*;
 import java.util.concurrent.TimeoutException;
 
 import com.yahoo.athenz.common.server.cert.CertSigner;
+import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSConsts;
 
@@ -147,14 +148,14 @@ public class HttpCertSignerTest {
         String pem = certSigner.generateX509Certificate("csr", null, 0);
         assertEquals(pem, "pem-value");
 
-        pem = certSigner.generateX509Certificate("csr", ZTSConsts.ZTS_CERT_USAGE_CLIENT, 0);
+        pem = certSigner.generateX509Certificate("csr", InstanceProvider.ZTS_CERT_USAGE_CLIENT, 0);
         assertEquals(pem, "pem-value");
 
-        pem = certSigner.generateX509Certificate("csr", ZTSConsts.ZTS_CERT_USAGE_CLIENT, 30);
+        pem = certSigner.generateX509Certificate("csr", InstanceProvider.ZTS_CERT_USAGE_CLIENT, 30);
         assertEquals(pem, "pem-value");
 
         certSigner.requestTimeout = 120;
-        pem = certSigner.generateX509Certificate("csr", ZTSConsts.ZTS_CERT_USAGE_CLIENT, 30);
+        pem = certSigner.generateX509Certificate("csr", InstanceProvider.ZTS_CERT_USAGE_CLIENT, 30);
         assertEquals(pem, "pem-value");
 
         certSigner.close();

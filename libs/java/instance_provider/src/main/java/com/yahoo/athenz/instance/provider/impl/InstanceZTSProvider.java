@@ -84,7 +84,7 @@ public class InstanceZTSProvider implements InstanceProvider {
 
         final Map<String, String> instanceAttributes = confirmation.getAttributes();
         final String csrPublicKey = InstanceUtils.getInstanceProperty(instanceAttributes,
-                InstanceUtils.ZTS_INSTANCE_CSR_PUBLIC_KEY);
+                InstanceProvider.ZTS_INSTANCE_CSR_PUBLIC_KEY);
 
         // make sure this service has been configured to be supported
         // by this zts provider
@@ -110,8 +110,8 @@ public class InstanceZTSProvider implements InstanceProvider {
 
         // validate the IP address if one is provided
 
-        if (!validateIPAddress(InstanceUtils.getInstanceProperty(instanceAttributes, InstanceUtils.ZTS_INSTANCE_CLIENT_IP),
-                InstanceUtils.getInstanceProperty(instanceAttributes, InstanceUtils.ZTS_INSTANCE_SAN_IP))) {
+        if (!validateIPAddress(InstanceUtils.getInstanceProperty(instanceAttributes, InstanceProvider.ZTS_INSTANCE_CLIENT_IP),
+                InstanceUtils.getInstanceProperty(instanceAttributes, InstanceProvider.ZTS_INSTANCE_SAN_IP))) {
             throw forbiddenError("Unable to validate request IP address");
         }
 
@@ -119,7 +119,7 @@ public class InstanceZTSProvider implements InstanceProvider {
         // for ZTS we do not allow refresh of those certificates
 
         Map<String, String> attributes = new HashMap<>();
-        attributes.put(InstanceUtils.ZTS_CERT_REFRESH, "false");
+        attributes.put(InstanceProvider.ZTS_CERT_REFRESH, "false");
 
         confirmation.setAttributes(attributes);
         return confirmation;

@@ -1808,7 +1808,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
         
         final String x509Cert = instanceCertManager.generateX509Certificate(req.getCsr(),
-                ZTSConsts.ZTS_CERT_USAGE_CLIENT, (int) req.getExpiryTime());
+                InstanceProvider.ZTS_CERT_USAGE_CLIENT, (int) req.getExpiryTime());
         if (null == x509Cert || x509Cert.isEmpty()) {
             throw serverError("postRoleCertificateRequest: Unable to create certificate from the cert signer",
                     caller, domainName);
@@ -1981,7 +1981,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
 
         final String x509Cert = instanceCertManager.generateX509Certificate(req.getCsr(),
-                ZTSConsts.ZTS_CERT_USAGE_CLIENT, (int) req.getExpiryTime());
+                InstanceProvider.ZTS_CERT_USAGE_CLIENT, (int) req.getExpiryTime());
         if (null == x509Cert || x509Cert.isEmpty()) {
             throw serverError("postRoleCertificateRequest: Unable to create certificate from the cert signer",
                     caller, domainName);
@@ -2323,11 +2323,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         Map<String, String> instanceAttrs = instance.getAttributes();
         if (instanceAttrs != null) {
-            certUsage = instanceAttrs.remove(ZTSConsts.ZTS_CERT_USAGE);
-            certSubjectOU = instanceAttrs.remove(ZTSConsts.ZTS_CERT_SUBJECT_OU);
-            certExpiryTime = ZTSUtils.parseInt(instanceAttrs.remove(ZTSConsts.ZTS_CERT_EXPIRY_TIME), 0);
-            certRefresh = ZTSUtils.parseBoolean(instanceAttrs.remove(ZTSConsts.ZTS_CERT_REFRESH), true);
-            sshCertAllowed = ZTSUtils.parseBoolean(instanceAttrs.remove(ZTSConsts.ZTS_CERT_SSH), false);
+            certUsage = instanceAttrs.remove(InstanceProvider.ZTS_CERT_USAGE);
+            certSubjectOU = instanceAttrs.remove(InstanceProvider.ZTS_CERT_SUBJECT_OU);
+            certExpiryTime = ZTSUtils.parseInt(instanceAttrs.remove(InstanceProvider.ZTS_CERT_EXPIRY_TIME), 0);
+            certRefresh = ZTSUtils.parseBoolean(instanceAttrs.remove(InstanceProvider.ZTS_CERT_REFRESH), true);
+            sshCertAllowed = ZTSUtils.parseBoolean(instanceAttrs.remove(InstanceProvider.ZTS_CERT_SSH), false);
         }
 
         // validate the CSR subject ou field. We're doing this check here
@@ -2381,7 +2381,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             // able to validate the certificate during refresh operations
 
             if (insertX509CertRecord(ctx, cn, provider, certReqInstanceId, certSerial,
-                    ZTSConsts.ZTS_CERT_USAGE_CLIENT.equalsIgnoreCase(certUsage)) == null) {
+                    InstanceProvider.ZTS_CERT_USAGE_CLIENT.equalsIgnoreCase(certUsage)) == null) {
                 throw serverError("unable to update cert db", caller, domain);
             }
         }
@@ -2421,12 +2421,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // from the CSR for provider validation
         
         Map<String, String> attributes = new HashMap<>();
-        attributes.put(ZTSConsts.ZTS_INSTANCE_ID, instanceId);
-        attributes.put(ZTSConsts.ZTS_INSTANCE_SAN_DNS, String.join(",", certReq.getProviderDnsNames()));
-        attributes.put(ZTSConsts.ZTS_INSTANCE_CLIENT_IP, ServletRequestUtil.getRemoteAddress(ctx.request()));
+        attributes.put(InstanceProvider.ZTS_INSTANCE_ID, instanceId);
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_DNS, String.join(",", certReq.getProviderDnsNames()));
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CLIENT_IP, ServletRequestUtil.getRemoteAddress(ctx.request()));
         final List<String> certReqIps = certReq.getIpAddresses();
         if (certReqIps != null && !certReqIps.isEmpty()) {
-            attributes.put(ZTSConsts.ZTS_INSTANCE_SAN_IP, String.join(",", certReqIps));
+            attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_IP, String.join(",", certReqIps));
         }
 
         // we have verified our athenz and spiffe uris but we're going
@@ -2436,7 +2436,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         final List<String> certUris = certReq.getUris();
         if (certUris != null && !certUris.isEmpty()) {
-            attributes.put(ZTSConsts.ZTS_INSTANCE_SAN_URI, String.join(",", certUris));
+            attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_URI, String.join(",", certUris));
         }
         
         // if we have a cloud account setup for this domain, we're going
@@ -2444,20 +2444,20 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         final String account = cloudStore.getCloudAccount(domain);
         if (account != null) {
-            attributes.put(ZTSConsts.ZTS_INSTANCE_CLOUD_ACCOUNT, account);
+            attributes.put(InstanceProvider.ZTS_INSTANCE_CLOUD_ACCOUNT, account);
         }
 
         // if this is a class based provider then we're also going
         // to provide the public key in the CSR
 
         if (providerScheme == InstanceProvider.Scheme.CLASS) {
-            attributes.put(ZTSConsts.ZTS_INSTANCE_CSR_PUBLIC_KEY, Crypto.extractX509CSRPublicKey(certReq.getCertReq()));
+            attributes.put(InstanceProvider.ZTS_INSTANCE_CSR_PUBLIC_KEY, Crypto.extractX509CSRPublicKey(certReq.getCertReq()));
         }
 
         // include the hostname if one is specified
 
         if (instanceHostname != null && !instanceHostname.isEmpty()) {
-            attributes.put(ZTSConsts.ZTS_INSTANCE_HOSTNAME, instanceHostname);
+            attributes.put(InstanceProvider.ZTS_INSTANCE_HOSTNAME, instanceHostname);
         }
 
         instance.setAttributes(attributes);
@@ -2648,11 +2648,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         Map<String, String> instanceAttrs = instance.getAttributes();
         if (instanceAttrs != null) {
-            certUsage = instanceAttrs.remove(ZTSConsts.ZTS_CERT_USAGE);
-            certExpiryTime = ZTSUtils.parseInt(instanceAttrs.remove(ZTSConsts.ZTS_CERT_EXPIRY_TIME), 0);
-            certRefreshCheck = ZTSUtils.parseBoolean(instanceAttrs.remove(ZTSConsts.ZTS_CERT_REFRESH), true);
-            certSubjectOU = instanceAttrs.remove(ZTSConsts.ZTS_CERT_SUBJECT_OU);
-            sshCertAllowed = ZTSUtils.parseBoolean(instanceAttrs.remove(ZTSConsts.ZTS_CERT_SSH), false);
+            certUsage = instanceAttrs.remove(InstanceProvider.ZTS_CERT_USAGE);
+            certExpiryTime = ZTSUtils.parseInt(instanceAttrs.remove(InstanceProvider.ZTS_CERT_EXPIRY_TIME), 0);
+            certRefreshCheck = ZTSUtils.parseBoolean(instanceAttrs.remove(InstanceProvider.ZTS_CERT_REFRESH), true);
+            certSubjectOU = instanceAttrs.remove(InstanceProvider.ZTS_CERT_SUBJECT_OU);
+            sshCertAllowed = ZTSUtils.parseBoolean(instanceAttrs.remove(InstanceProvider.ZTS_CERT_SSH), false);
         }
 
         // validate the CSR subject ou field. We're doing this check here
@@ -2679,7 +2679,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
 
         if (x509CertRecord != null && x509CertRecord.getClientCert()) {
-            certUsage = ZTSConsts.ZTS_CERT_USAGE_CLIENT;
+            certUsage = InstanceProvider.ZTS_CERT_USAGE_CLIENT;
         }
 
         // update the expiry time if one is provided in the request

@@ -21,10 +21,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import com.yahoo.athenz.instance.provider.InstanceProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.yahoo.athenz.zts.ZTSConsts;
 
 public class HttpCertSigner extends AbstractHttpCertSigner {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpCertSigner.class);
@@ -43,7 +42,7 @@ public class HttpCertSigner extends AbstractHttpCertSigner {
     @Override
     public Object getX509CertSigningRequest(String csr, String keyUsage, int expireMins) {
         List<Integer> extKeyUsage = null;
-        if (ZTSConsts.ZTS_CERT_USAGE_CLIENT.equals(keyUsage)) {
+        if (InstanceProvider.ZTS_CERT_USAGE_CLIENT.equals(keyUsage)) {
             extKeyUsage = new ArrayList<>();
             extKeyUsage.add(2);
         }

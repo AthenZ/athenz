@@ -135,15 +135,6 @@ public final class ZTSConsts {
     public static final String ZTS_SSH_USER = "user";
     public static final String ZTS_SSH_TYPE = "certtype";
     
-    public static final String ZTS_CERT_USAGE        = "certUsage";
-    public static final String ZTS_CERT_EXPIRY_TIME  = "certExpiryTime";
-    public static final String ZTS_CERT_REFRESH      = "certRefresh";
-    public static final String ZTS_CERT_SUBJECT_OU   = "certSubjectOU";
-    public static final String ZTS_CERT_SSH          = "certSSH";
-
-    public static final String ZTS_CERT_USAGE_CLIENT = "client";
-    public static final String ZTS_CERT_USAGE_SERVER = "server";
-    
     public static final String ZTS_CERT_DNS_SUFFIX   = ".athenz.cloud";
     public static final String ZTS_ACTION_LAUNCH     = "launch";
     public static final String ZTS_RESOURCE_INSTANCE = "sys.auth:instance";
@@ -153,15 +144,6 @@ public final class ZTSConsts {
     public static final String ZTS_CERT_INSTANCE_ID_URI  = "athenz://instanceid/";
     public static final String ZTS_CERT_SPIFFE_URI       = "spiffe://";
     public static final String ZTS_CERT_ROLE_URI         = "athenz://role/";
-
-    public static final String ZTS_INSTANCE_SAN_DNS        = "sanDNS";
-    public static final String ZTS_INSTANCE_SAN_IP         = "sanIP";
-    public static final String ZTS_INSTANCE_SAN_URI        = "sanURI";
-    public static final String ZTS_INSTANCE_CLIENT_IP      = "clientIP";
-    public static final String ZTS_INSTANCE_CLOUD_ACCOUNT  = "cloudAccount";
-    public static final String ZTS_INSTANCE_ID             = "instanceId";
-    public static final String ZTS_INSTANCE_CSR_PUBLIC_KEY = "csrPublicKey";
-    public static final String ZTS_INSTANCE_HOSTNAME       = "hostname";
 
     public static final String RSA = "RSA";
     public static final String ECDSA = "ECDSA";

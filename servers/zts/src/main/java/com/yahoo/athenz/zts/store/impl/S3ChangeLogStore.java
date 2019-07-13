@@ -209,6 +209,7 @@ public class S3ChangeLogStore implements ChangeLogStore {
         
         ArrayList<String> domains = new ArrayList<>();
         listObjects(awsS3Client, domains, 0);
+
         return domains;
     }
 

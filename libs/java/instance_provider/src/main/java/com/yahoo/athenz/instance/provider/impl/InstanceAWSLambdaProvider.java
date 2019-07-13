@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
+import com.yahoo.athenz.instance.provider.InstanceProvider;
 
 public class InstanceAWSLambdaProvider extends InstanceAWSProvider {
 
@@ -40,7 +41,7 @@ public class InstanceAWSLambdaProvider extends InstanceAWSProvider {
         // and we always do not allow ssh certs
         
         Map<String, String> attributes = new HashMap<>();
-        attributes.put(InstanceUtils.ZTS_CERT_SSH, "false");
+        attributes.put(InstanceProvider.ZTS_CERT_SSH, "false");
         confirmation.setAttributes(attributes);
     }
 }
