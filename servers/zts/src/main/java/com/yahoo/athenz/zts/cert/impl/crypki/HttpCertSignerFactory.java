@@ -14,25 +14,15 @@
  * limitations under the License.
  */
 
-package com.yahoo.athenz.zts.cert.impl.v3;
+package com.yahoo.athenz.zts.cert.impl.crypki;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
+import com.yahoo.athenz.common.server.cert.CertSigner;
+import com.yahoo.athenz.common.server.cert.CertSignerFactory;
 
-@JsonInclude(JsonInclude.Include.ALWAYS)
-public class KeyMeta {
-    
-    public KeyMeta(String identifier) {
-        this.identifier = identifier;
+public class HttpCertSignerFactory implements CertSignerFactory {
+
+    @Override
+    public CertSigner create() {
+        return new HttpCertSigner();
     }
-    
-    private String identifier;
-
-    public String getIdentifier() {
-        return identifier;
-    }
-
-    public void setIdentifier(String identifier) {
-        this.identifier = identifier;
-    }
-
 }

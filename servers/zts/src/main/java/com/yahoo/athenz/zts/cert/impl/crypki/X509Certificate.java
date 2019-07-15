@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yahoo.athenz.zts.cert.impl.v3;
+package com.yahoo.athenz.zts.cert.impl.crypki;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 

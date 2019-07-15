@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zts.cert.impl.v3;
+package com.yahoo.athenz.zts.cert.impl.crypki;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,7 +25,14 @@ import com.yahoo.athenz.instance.provider.InstanceProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * This is an implementation of the Verizon Media's Crypki certificate signer.
+ *          https://github.com/yahoo/crypki
+ * Crypki is a service for interacting with an HSM or other PKCS #11 device.
+ * It supports minting and signing of both SSH and x509 certificates.
+ */
 public class HttpCertSigner extends AbstractHttpCertSigner {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpCertSigner.class);
 
     private static final String X509_CERTIFICATE_PATH = "/sig/x509-cert/keys/x509-key";
@@ -41,6 +48,10 @@ public class HttpCertSigner extends AbstractHttpCertSigner {
 
     @Override
     public Object getX509CertSigningRequest(String csr, String keyUsage, int expireMins) {
+
+        // Key Usage value used in Go - https://golang.org/src/crypto/x509/x509.go?s=18153:18173#L558
+        // we're only interested in ExtKeyUsageClientAuth - with value of 2
+
         List<Integer> extKeyUsage = null;
         if (InstanceProvider.ZTS_CERT_USAGE_CLIENT.equals(keyUsage)) {
             extKeyUsage = new ArrayList<>();
@@ -54,12 +65,13 @@ public class HttpCertSigner extends AbstractHttpCertSigner {
         csrCert.setValidity(DEFAULT_CERT_EXPIRE_SECS);
         
         if (expireMins > 0 && expireMins < getMaxCertExpiryTimeMins()) {
-            //Validity period of the certificate in seconds in V3 API.  Convert mins to seconds
+            //Validity period of the certificate in seconds in Crypki API.  Convert mins to seconds
             csrCert.setValidity((int) TimeUnit.SECONDS.convert(expireMins, TimeUnit.MINUTES));
         }
             
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("keyMeta: {} keyUsage: {} expireSec: {}", csrCert.getKeyMeta(), csrCert.getExtKeyUsage(), csrCert.getValidity());
+            LOGGER.debug("keyMeta: {} keyUsage: {} expireSec: {}", csrCert.getKeyMeta(),
+                    csrCert.getExtKeyUsage(), csrCert.getValidity());
         }
         return csrCert;
     }
