@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
+import com.yahoo.athenz.instance.provider.InstanceProvider;
 import org.apache.http.HttpEntity;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -129,13 +130,13 @@ public class HttpCertSignerTest {
 
         response = mockRequest(201, pemResponse);
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenReturn(response);
-        pem = certSigner.generateX509Certificate("csr", ZTSConsts.ZTS_CERT_USAGE_CLIENT, 0);
+        pem = certSigner.generateX509Certificate("csr", InstanceProvider.ZTS_CERT_USAGE_CLIENT, 0);
         assertEquals(pem, "pem-value");
         Mockito.verify(httpClient, times(2)).execute(Mockito.any(HttpPost.class));
 
         response = mockRequest(201, pemResponse);
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenReturn(response);
-        pem = certSigner.generateX509Certificate("csr", ZTSConsts.ZTS_CERT_USAGE_CLIENT, 30);
+        pem = certSigner.generateX509Certificate("csr", InstanceProvider.ZTS_CERT_USAGE_CLIENT, 30);
         assertEquals(pem, "pem-value");
         Mockito.verify(httpClient, times(3)).execute(Mockito.any(HttpPost.class));
 
@@ -318,7 +319,7 @@ public class HttpCertSignerTest {
     }
     
     @Test
-    public void testInvalidSSLContext() throws Exception {
+    public void testInvalidSSLContext() {
         System.setProperty(ZTSConsts.ZTS_PROP_KEYSTORE_PATH, "invalid.keystore");
         try {
             HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
@@ -331,7 +332,7 @@ public class HttpCertSignerTest {
     }
  
     @Test
-    public void tesKeyMeta() throws Exception {
+    public void tesKeyMeta() {
         KeyMeta keyMeta = new KeyMeta("keymeta");
         Assert.assertEquals(keyMeta.getIdentifier(), "keymeta");
         keyMeta.setIdentifier("");

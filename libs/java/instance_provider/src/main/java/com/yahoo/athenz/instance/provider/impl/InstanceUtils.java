@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.instance.provider.impl;
 
+import com.yahoo.athenz.instance.provider.InstanceProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,19 +25,7 @@ public class InstanceUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceUtils.class);
 
-    static final String ZTS_CERT_USAGE              = "certUsage";
-    static final String ZTS_CERT_EXPIRY_TIME        = "certExpiryTime";
-    static final String ZTS_CERT_SSH                = "certSSH";
-    static final String ZTS_CERT_USAGE_CLIENT       = "client";
-    static final String ZTS_CERT_REFRESH            = "certRefresh";
-
     static final String ZTS_CERT_INSTANCE_ID        = ".instanceid.athenz.";
-    static final String ZTS_INSTANCE_SAN_DNS        = "sanDNS";
-    static final String ZTS_INSTANCE_SAN_URI        = "sanURI";
-    static final String ZTS_INSTANCE_SAN_IP         = "sanIP";
-    static final String ZTS_INSTANCE_CLIENT_IP      = "clientIP";
-    static final String ZTS_INSTANCE_ID             = "instanceId";
-    static final String ZTS_INSTANCE_CSR_PUBLIC_KEY = "csrPublicKey";
     static final String ZTS_CERT_INSTANCE_ID_URI    = "athenz://instanceid/";
 
     public static String getInstanceProperty(final Map<String, String> attributes,
@@ -71,7 +60,7 @@ public class InstanceUtils {
         // if the list is empty then something is not right thus we'll
         // reject the request
 
-        final String hostnames = InstanceUtils.getInstanceProperty(attributes, ZTS_INSTANCE_SAN_DNS);
+        final String hostnames = InstanceUtils.getInstanceProperty(attributes, InstanceProvider.ZTS_INSTANCE_SAN_DNS);
         if (hostnames == null || hostnames.isEmpty()) {
             LOGGER.error("Request contains no SAN DNS entries for validation");
             return false;
@@ -143,7 +132,7 @@ public class InstanceUtils {
         // if the list is empty then something is not right thus we'll
         // reject the request
 
-        final String uriList = InstanceUtils.getInstanceProperty(attributes, ZTS_INSTANCE_SAN_URI);
+        final String uriList = InstanceUtils.getInstanceProperty(attributes, InstanceProvider.ZTS_INSTANCE_SAN_URI);
         if (uriList == null || uriList.isEmpty()) {
             LOGGER.error("Request contains no SAN URI entries for validation");
             return false;

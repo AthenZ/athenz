@@ -4912,7 +4912,7 @@ public class ZTSImplTest {
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
 
         Map<String, String> attrs = new HashMap<>();
-        attrs.put(ZTSConsts.ZTS_CERT_SUBJECT_OU, "Testing Domain");
+        attrs.put(InstanceProvider.ZTS_CERT_SUBJECT_OU, "Testing Domain");
         InstanceConfirmation confirmation = new InstanceConfirmation()
                 .setDomain("athenz").setService("production")
                 .setProvider("athenz.provider").setAttributes(attrs);
@@ -4970,8 +4970,8 @@ public class ZTSImplTest {
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
 
         Map<String, String> instanceAttrs = new HashMap<>();
-        instanceAttrs.put(ZTSConsts.ZTS_CERT_REFRESH, "false");
-        instanceAttrs.put(ZTSConsts.ZTS_CERT_EXPIRY_TIME, "20");
+        instanceAttrs.put(InstanceProvider.ZTS_CERT_REFRESH, "false");
+        instanceAttrs.put(InstanceProvider.ZTS_CERT_EXPIRY_TIME, "20");
 
         InstanceConfirmation confirmation = new InstanceConfirmation()
                 .setDomain("athenz").setService("production")
