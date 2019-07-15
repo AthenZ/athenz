@@ -1,4 +1,4 @@
-package com.yahoo.athenz.zts.cert.impl.v3;
+package com.yahoo.athenz.zts.cert.impl.crypki;
 
 import static org.mockito.Mockito.times;
 import static org.testng.Assert.assertEquals;
