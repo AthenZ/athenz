@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.zts.store;
 
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.*;
 
 import java.io.File;
@@ -3611,7 +3612,7 @@ public class DataStoreTest {
     public void testDataUpdaterException() {
 
         DataStore store = Mockito.mock(DataStore.class);
-        Mockito.when(store.processDomainUpdates()).thenThrow(new ResourceException(401, "exc"));
+        when(store.processDomainUpdates()).thenThrow(new ResourceException(401, "exc"));
 
         DataUpdater updater = store.new DataUpdater();
         updater.run();
@@ -3790,10 +3791,10 @@ public class DataStoreTest {
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
         ECParameterSpec spec = Mockito.mock(ECParameterSpec.class);
-        Mockito.when(spec.getCurve()).thenReturn(null);
-        Mockito.when(spec.getG()).thenReturn(null);
-        Mockito.when(spec.getH()).thenReturn(new BigInteger("100"));
-        Mockito.when(spec.getN()).thenReturn(new BigInteger("100"));
+        when(spec.getCurve()).thenReturn(null);
+        when(spec.getG()).thenReturn(null);
+        when(spec.getH()).thenReturn(new BigInteger("100"));
+        when(spec.getN()).thenReturn(new BigInteger("100"));
         assertNull(store.getCurveName(spec));
     }
 }
