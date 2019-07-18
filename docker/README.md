@@ -212,14 +212,14 @@ sudo systemctl restart docker
     1.  convert `default-config.js` parameters to ENV
     1.  `server.js`, `login.js`, `serviceFQN`; `keys` folder is hard coded
     1.  configurable listering port
-    1.  split `ZMS_SERVER` env. for browser to ZMS ajax call and internal connection from UI to ZMS
+    1.  ~~split `ZMS_SERVER` env. for browser to ZMS ajax call and internal connection from UI to ZMS~~
 -   ZMS
     1.  NO retry on DB connection error when deploy with docker stack
     1.  Warning message in docker log: `Loading class `com.mysql.jdbc.Driver'. This is deprecated. The new driver class is `com.mysql.cj.jdbc.Driver'. The driver is automatically registered via the SPI and manual loading of the driver class is generally unnecessary.`
 -   ZTS
     1.  `docker/zts/var/zts_store/` create as root user by docker for storing policy, better to change the default location folder outside the Athenz project folder
 -   ZTS-DB
-    1.  `DEFAULT CHARSET = latin1`
+    1.  ~~`DEFAULT CHARSET = latin1`~~
 -   ZPU
     1.  If volume not mount to `/home/athenz/tmp/zpe/`, will have error: `2019/06/12 06:34:09 Failed to get policies for domain: garm, Error:Unable to write Policies for domain:"garm" to file, Error:rename /home/athenz/tmp/zpe/garm.tmp /etc/acceptance-test/zpu/garm.pol: invalid cross-device link`
 -   athenz-cli
@@ -235,7 +235,7 @@ sudo systemctl restart docker
 ## Important Files
 - [zms Dockerfile](./zms/Dockerfile)
 - [zts Dockerfile](./zts/Dockerfile)
-- [Makefile](../Makefile)
+- [Makefile](./Makefile)
 - [setup-scripts](./setup-scripts)
 - [deploy-scripts](./deploy-scripts)
 - [docker-stack.yaml](./docker-stack.yaml)
