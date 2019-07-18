@@ -67,6 +67,7 @@ public class AccessTokenTest {
         accessToken.setAudience("coretech");
         accessToken.setVersion(1);
         accessToken.setIssuer("athenz");
+        accessToken.setProxyPrincipal("proxy.user");
         accessToken.setConfirmEntry("x5t#uri", "spiffe://athenz/sa/api");
 
         try {
@@ -93,6 +94,7 @@ public class AccessTokenTest {
         assertEquals("coretech", accessToken.getAudience());
         assertEquals(1, accessToken.getVersion());
         assertEquals("athenz", accessToken.getIssuer());
+        assertEquals("proxy.user", accessToken.getProxyPrincipal());
         LinkedHashMap<String, Object> confirm = accessToken.getConfirm();
         assertNotNull(confirm);
         assertEquals("A4DtL2JmUMhAsvJj5tKyn64SqzmuXbMrJa0n761y5v0", confirm.get("x5t#S256"));

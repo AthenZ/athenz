@@ -161,6 +161,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private static final String KEY_SCOPE = "scope";
     private static final String KEY_GRANT_TYPE = "grant_type";
     private static final String KEY_EXPIRES_IN = "expires_in";
+    private static final String KEY_PROXY_FOR_PRINCIPAL = "proxy_for_principal";
     private static final String KEY_ID = "kid";
 
     private static final String OAUTH_GRANT_CREDENTIALS = "client_credentials";
@@ -1429,6 +1430,28 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
     }
 
+    String getProxyForPrincipalValue(final String proxyName, final String principalName, final String caller) {
+
+        if (proxyName.isEmpty()) {
+            return null;
+        }
+
+        // validate name matches our schema
+
+        validate(proxyName, TYPE_ENTITY_NAME, caller);
+
+        // we can only have a proxy for principal request if the original
+        // caller is authorized for such operations
+
+        if (!isAuthorizedProxyUser(authorizedProxyUsers, principalName)) {
+            LOGGER.error("postAccessTokenRequest: Principal {} not authorized for proxy role token request", principalName);
+            throw forbiddenError("postAccessTokenRequest: Principal: " + principalName
+                    + " not authorized for proxy access token request", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+        }
+
+        return proxyName;
+    }
+
     @Override
     public AccessTokenResponse postAccessTokenRequest(ResourceContext ctx, String request) {
 
@@ -1447,7 +1470,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // get our principal's name
 
         final Principal principal = ((RsrcCtxWrapper) ctx).principal();
-        final String principalName = principal.getFullName();
+        String principalName = principal.getFullName();
 
         // update our metric with dimension
 
@@ -1462,6 +1485,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         String grantType = null;
         String scope = null;
+        String proxyForPrincipal = null;
         int expiryTime = 0;
 
         String[] comps = request.split("&");
@@ -1494,6 +1518,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 case KEY_EXPIRES_IN:
                     expiryTime = ZTSUtils.parseInt(value, 0);
                     break;
+                case KEY_PROXY_FOR_PRINCIPAL:
+                    proxyForPrincipal = getProxyForPrincipalValue(value.toLowerCase(), principalName, caller);
+                    break;
             }
         }
 
@@ -1511,17 +1538,29 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("postAccessTokenRequest(principal: {}, grant-type: {}, scope: {}, expires-in: {})",
-                    principalName, grantType, scope, expiryTime);
+            LOGGER.debug("postAccessTokenRequest(principal: {}, grant-type: {}, scope: {}, expires-in: {}, proxy-for-principal: {})",
+                    principalName, grantType, scope, expiryTime, proxyForPrincipal);
         }
 
         // our scopes are space separated list of values
 
         AccessTokenRequest tokenRequest = new AccessTokenRequest(scope);
 
-        // first retrieve our domain data object from the cache
+        // before using any of our values let's validate that they
+        // match our schema
 
         final String domainName = tokenRequest.getDomainName();
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+
+        String[] requestedRoles = tokenRequest.getRoleNames();
+        if (requestedRoles != null) {
+            for (String requestedRole : requestedRoles) {
+                validate(requestedRole, TYPE_ENTITY_NAME, caller);
+            }
+        }
+
+        // first retrieve our domain data object from the cache
+
         DataCache data = dataStore.getDataCache(domainName);
         if (data == null) {
             // just increment the request counter without any dimension
@@ -1549,13 +1588,45 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // process our request and retrieve the roles for the principal
 
         Set<String> roles = new HashSet<>();
-        String[] requestedRoles = tokenRequest.getRoleNames();
         dataStore.getAccessibleRoles(data, domainName, principalName, requestedRoles, roles, false);
 
         // we return failure if we don't have access to any roles
 
         if (roles.isEmpty()) {
             throw forbiddenError("No access to any roles in domain: " + domainName, caller, domainName);
+        }
+
+        // if this is proxy for operation then we want to make sure that
+        // both principals have access to the same set of roles so we'll
+        // remove any roles that are authorized by only one of the principals
+
+        String proxyUser = null;
+        if (proxyForPrincipal != null) {
+
+            // we also need to verify that we are not returning id tokens.
+            // proxy principal functionality is only valid for access tokens
+
+            if (tokenRequest.isOpenidScope()) {
+                throw requestError("Proxy Principal cannot request id tokens", caller, domainName);
+            }
+
+            // process the role lookup for the proxy principal
+
+            Set<String> rolesForProxy = new HashSet<>();
+            dataStore.getAccessibleRoles(data, domainName, proxyForPrincipal, requestedRoles, rolesForProxy, false);
+            roles.retainAll(rolesForProxy);
+
+            // check again in case we removed all the roles and ended up
+            // with an empty set
+
+            if (roles.isEmpty()) {
+                throw forbiddenError("No access to any roles by User and Proxy Principals", caller, domainName);
+            }
+
+            // we need to switch our principal and proxy for user
+
+            proxyUser = principalName;
+            principalName = proxyForPrincipal;
         }
 
         // if the request was done by a role certificate we need to make sure
@@ -1579,6 +1650,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         accessToken.setUserId(principalName);
         accessToken.setSubject(principalName);
         accessToken.setIssuer(ztsOAuthIssuer);
+        accessToken.setProxyPrincipal(proxyUser);
         accessToken.setScope(new ArrayList<>(roles));
 
         // if we have a certificate used for mTLS authentication then
@@ -1596,9 +1668,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         String idJwts = null;
         if (tokenRequest.isOpenidScope()) {
 
+            final String serviceName = tokenRequest.getServiceName();
+            validate(serviceName, TYPE_SIMPLE_NAME, caller);
+
             IdToken idToken = new IdToken();
             idToken.setVersion(1);
-            idToken.setAudience(tokenRequest.getDomainName() + "." + tokenRequest.getServiceName());
+            idToken.setAudience(tokenRequest.getDomainName() + "." + serviceName);
             idToken.setSubject(principalName);
             idToken.setIssuer(ztsOAuthIssuer);
 
