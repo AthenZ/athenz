@@ -63,17 +63,11 @@ public class AccessTokenRequest {
             if (idx != -1) {
                 final String scopeDomainName = scopeItem.substring(0, idx);
                 if (domainName != null && !scopeDomainName.equals(domainName)) {
-                    LOGGER.error("Multiple domains specified in scope {}", scope);
-                    throw new ResourceException(ResourceException.BAD_REQUEST,
-                            new ResourceError().code(ResourceException.BAD_REQUEST)
-                                    .message("Multiple domains in scope"));
+                    throw error("Multiple domains in scope", scope);
                 }
                 final String scopeServiceName = scopeItem.substring(idx + OBJECT_SERVICE.length());
                 if (serviceName != null && !scopeServiceName.equals(serviceName)) {
-                    LOGGER.error("Multiple domains specified in scope {}", scope);
-                    throw new ResourceException(ResourceException.BAD_REQUEST,
-                            new ResourceError().code(ResourceException.BAD_REQUEST)
-                                    .message("Multiple services in scope"));
+                    throw error("Multiple services in scope", scope);
                 }
                 domainName = scopeDomainName;
                 serviceName = scopeServiceName;
@@ -85,12 +79,7 @@ public class AccessTokenRequest {
             if (scopeItem.endsWith(OBJECT_DOMAIN)) {
                 final String scopeDomainName = scopeItem.substring(0, scopeItem.length() - OBJECT_DOMAIN.length());
                 if (domainName != null && !scopeDomainName.equals(domainName)) {
-                    if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug("Multiple domains specified in scope {}", scope);
-                    }
-                    throw new ResourceException(ResourceException.BAD_REQUEST,
-                            new ResourceError().code(ResourceException.BAD_REQUEST)
-                                    .message("Multiple domains in scope"));
+                    throw error("Multiple domains in scope", scope);
                 }
                 domainName = scopeDomainName;
                 sendScopeResponse = true;
@@ -103,10 +92,7 @@ public class AccessTokenRequest {
             if (idx != -1) {
                 final String scopeDomainName = scopeItem.substring(0, idx);
                 if (domainName != null && !scopeDomainName.equals(domainName)) {
-                    LOGGER.error("Multiple domains specified in scope {}", scope);
-                    throw new ResourceException(ResourceException.BAD_REQUEST,
-                            new ResourceError().code(ResourceException.BAD_REQUEST)
-                                    .message("Multiple domains in scope"));
+                    throw error("Multiple domains in scope", scope);
                 }
                 domainName = scopeDomainName;
                 scopeRoleNames.add(scopeItem.substring(idx + OBJECT_ROLE.length()));
@@ -121,10 +107,7 @@ public class AccessTokenRequest {
         // if we don't have a domain then it's invalid scope
 
         if (domainName == null || domainName.isEmpty()) {
-            LOGGER.error("No domains specified in scope {}", scope);
-            throw new ResourceException(ResourceException.BAD_REQUEST,
-                    new ResourceError().code(ResourceException.BAD_REQUEST)
-                            .message("No domains in scope"));
+            throw error("No domains in scope", scope);
         }
 
         // if the scope response is set to true then we had
@@ -140,10 +123,7 @@ public class AccessTokenRequest {
         // must be set for that service only
 
         if (openidScope && (serviceName == null || serviceName.isEmpty())) {
-            LOGGER.error("No audience service name specified in openid scope {}", scope);
-            throw new ResourceException(ResourceException.BAD_REQUEST,
-                    new ResourceError().code(ResourceException.BAD_REQUEST)
-                            .message("No audience service name for openid scope"));
+            throw error("No audience service name for openid scope", scope);
         }
     }
 
@@ -169,5 +149,11 @@ public class AccessTokenRequest {
 
     public static void setSupportOpenidScope(boolean value) {
         supportOpenidScope = value;
+    }
+
+    ResourceException error(final String message, final String scope) {
+        LOGGER.error("access token request error: {} - {}", message, scope);
+        return new ResourceException(ResourceException.BAD_REQUEST,
+                new ResourceError().code(ResourceException.BAD_REQUEST).message(message));
     }
 }

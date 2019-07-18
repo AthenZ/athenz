@@ -18,7 +18,9 @@ package com.yahoo.athenz.zts;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
+import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -8565,7 +8567,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostAccessTokenRequest() {
+    public void testPostAccessTokenRequest() throws UnsupportedEncodingException {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
@@ -8574,8 +8576,9 @@ public class ZTSImplTest {
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
         ResourceContext context = createResourceContext(principal);
 
+        final String scope = URLEncoder.encode("coretech:domain", "UTF-8");
         AccessTokenResponse resp = zts.postAccessTokenRequest(context,
-                "grant_type=client_credentials&scope=coretech:domain");
+                "grant_type=client_credentials&scope=" + scope);
         assertNotNull(resp);
         assertEquals("coretech:role.writers", resp.getScope());
 
@@ -8763,7 +8766,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostAccessTokenRequestOpenIdScope() {
+    public void testPostAccessTokenRequestOpenIdScope() throws UnsupportedEncodingException {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
@@ -8772,8 +8775,9 @@ public class ZTSImplTest {
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
         ResourceContext context = createResourceContext(principal);
 
+        final String scope = URLEncoder.encode("coretech:domain openid coretech:service.api", "UTF-8");
         AccessTokenResponse resp = zts.postAccessTokenRequest(context,
-                "grant_type=client_credentials&scope=coretech:domain openid coretech:service.api&expires_in=240");
+                "grant_type=client_credentials&scope=" + scope + "&expires_in=240");
         assertNotNull(resp);
         assertEquals("coretech:role.writers openid", resp.getScope());
 
@@ -8796,7 +8800,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostAccessTokenRequestOpenIdScopeMaxTimeout() {
+    public void testPostAccessTokenRequestOpenIdScopeMaxTimeout() throws UnsupportedEncodingException {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
@@ -8808,8 +8812,9 @@ public class ZTSImplTest {
         // default max timeout is 12 hours so we'll pick a value
         // bigger than that
 
+        final String scope = URLEncoder.encode("coretech:domain openid coretech:service.api", "UTF-8");
         AccessTokenResponse resp = zts.postAccessTokenRequest(context,
-                "grant_type=client_credentials&scope=coretech:domain openid coretech:service.api&expires_in=57600");
+                "grant_type=client_credentials&scope=" + scope + "&expires_in=57600");
         assertNotNull(resp);
         assertEquals("coretech:role.writers openid", resp.getScope());
 
@@ -8834,7 +8839,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostAccessTokenRequestOpenIdScopeOnly() {
+    public void testPostAccessTokenRequestOpenIdScopeOnly() throws UnsupportedEncodingException {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
@@ -8846,8 +8851,8 @@ public class ZTSImplTest {
         // we should only get back openid scope
 
         try {
-            zts.postAccessTokenRequest(context,
-                    "grant_type=client_credentials&scope=coretech:role.role999 openid coretech:service.api");
+            final String scope = URLEncoder.encode("coretech:role.role999 openid coretech:service.api", "UTF-8");
+            zts.postAccessTokenRequest(context, "grant_type=client_credentials&scope=" + scope);
             fail();
         } catch (ResourceException ex) {
             assertEquals(403, ex.getCode());
@@ -8855,7 +8860,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostAccessTokenRequestOpenIdScopeOnlyDisabled() {
+    public void testPostAccessTokenRequestOpenIdScopeOnlyDisabled() throws UnsupportedEncodingException {
 
         AccessTokenRequest.setSupportOpenidScope(false);
 
@@ -8868,8 +8873,8 @@ public class ZTSImplTest {
 
         // no role access and no openid - we should get back 403
         try {
-            zts.postAccessTokenRequest(context,
-                    "grant_type=client_credentials&scope=coretech:role.role999 openid coretech:service.api");
+            final String scope = URLEncoder.encode("coretech:role.role999 openid coretech:service.api", "UTF-8");
+            zts.postAccessTokenRequest(context, "grant_type=client_credentials&scope=" + scope);
             fail();
         } catch (ResourceException ex) {
             assertEquals(403, ex.getCode());
@@ -8991,6 +8996,200 @@ public class ZTSImplTest {
             assertEquals(400, ex.getCode());
             assertTrue(ex.getMessage().contains("no scope provided"));
         }
+    }
+
+    @Test
+    public void testPostAccessTokenRequestProxyUser() {
+
+        List<RoleMember> writers = new ArrayList<>();
+        writers.add(new RoleMember().setMemberName("user_domain.proxy-user1"));
+        writers.add(new RoleMember().setMemberName("user_domain.joe"));
+
+        List<RoleMember> readers = new ArrayList<>();
+        readers.add(new RoleMember().setMemberName("user_domain.proxy-user2"));
+        readers.add(new RoleMember().setMemberName("user_domain.jane"));
+
+        SignedDomain signedDomain = createSignedDomain("coretech-proxy2", "weather-proxy2", "storage",
+                writers, readers, true);
+        store.processDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=sig", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        AccessTokenResponse resp = zts.postAccessTokenRequest(context,
+                "grant_type=client_credentials&scope=coretech-proxy2:domain&proxy_for_principal=user_domain.joe");
+        assertNotNull(resp);
+        assertEquals("coretech-proxy2:role.writers", resp.getScope());
+
+        String accessTokenStr = resp.getAccess_token();
+        assertNotNull(accessTokenStr);
+
+        Jws<Claims> claims;
+        try {
+            claims = Jwts.parser().setSigningKey(Crypto.extractPublicKey(privateKey))
+                    .parseClaimsJws(accessTokenStr);
+        } catch (SignatureException e) {
+            throw new ResourceException(ResourceException.UNAUTHORIZED);
+        }
+        assertNotNull(claims);
+        assertEquals("user_domain.joe", claims.getBody().getSubject());
+        assertEquals("user_domain.proxy-user1", claims.getBody().get("proxy"));
+        assertEquals("coretech-proxy2", claims.getBody().getAudience());
+        assertEquals(zts.ztsOAuthIssuer, claims.getBody().getIssuer());
+        List<String> scopes = (List<String>) claims.getBody().get("scp");
+        assertNotNull(scopes);
+        assertEquals(1, scopes.size());
+        assertEquals("writers", scopes.get(0));
+    }
+
+    @Test
+    public void testPostAccessTokenRequestProxyUserMismatchRolesIntersection() {
+
+        List<RoleMember> writers = new ArrayList<>();
+        writers.add(new RoleMember().setMemberName("user_domain.proxy-user1"));
+        writers.add(new RoleMember().setMemberName("user_domain.joe"));
+
+        List<RoleMember> readers = new ArrayList<>();
+        readers.add(new RoleMember().setMemberName("user_domain.proxy-user2"));
+        readers.add(new RoleMember().setMemberName("user_domain.jane"));
+        readers.add(new RoleMember().setMemberName("user_domain.proxy-user1"));
+
+        SignedDomain signedDomain = createSignedDomain("coretech-proxy3", "weather-proxy3", "storage",
+                writers, readers, true);
+        store.processDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=sig", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        AccessTokenResponse resp = zts.postAccessTokenRequest(context,
+                "grant_type=client_credentials&scope=coretech-proxy3:domain&proxy_for_principal=user_domain.joe");
+        assertNotNull(resp);
+        assertEquals("coretech-proxy3:role.writers", resp.getScope());
+
+        String accessTokenStr = resp.getAccess_token();
+        assertNotNull(accessTokenStr);
+
+        Jws<Claims> claims;
+        try {
+            claims = Jwts.parser().setSigningKey(Crypto.extractPublicKey(privateKey))
+                    .parseClaimsJws(accessTokenStr);
+        } catch (SignatureException e) {
+            throw new ResourceException(ResourceException.UNAUTHORIZED);
+        }
+        assertNotNull(claims);
+        assertEquals("user_domain.joe", claims.getBody().getSubject());
+        assertEquals("user_domain.proxy-user1", claims.getBody().get("proxy"));
+        assertEquals("coretech-proxy3", claims.getBody().getAudience());
+        assertEquals(zts.ztsOAuthIssuer, claims.getBody().getIssuer());
+        List<String> scopes = (List<String>) claims.getBody().get("scp");
+        assertNotNull(scopes);
+        assertEquals(1, scopes.size());
+        assertEquals("writers", scopes.get(0));
+    }
+
+    @Test
+    public void testPostAccessTokenRequestProxyUserMismatchRolesEmptySet() {
+
+        List<RoleMember> writers = new ArrayList<>();
+        writers.add(new RoleMember().setMemberName("user_domain.joe"));
+
+        List<RoleMember> readers = new ArrayList<>();
+        readers.add(new RoleMember().setMemberName("user_domain.proxy-user2"));
+        readers.add(new RoleMember().setMemberName("user_domain.jane"));
+        readers.add(new RoleMember().setMemberName("user_domain.proxy-user1"));
+
+        SignedDomain signedDomain = createSignedDomain("coretech-proxy4", "weather-proxy4", "storage",
+                writers, readers, true);
+        store.processDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=sig", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            zts.postAccessTokenRequest(context,
+                    "grant_type=client_credentials&scope=coretech-proxy4:domain&proxy_for_principal=user_domain.joe");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+    }
+
+    @Test
+    public void testPostAccessTokenRequestProxyUserOpenidScope() throws UnsupportedEncodingException {
+
+        List<RoleMember> writers = new ArrayList<>();
+        writers.add(new RoleMember().setMemberName("user_domain.joe"));
+
+        List<RoleMember> readers = new ArrayList<>();
+        readers.add(new RoleMember().setMemberName("user_domain.proxy-user2"));
+        readers.add(new RoleMember().setMemberName("user_domain.jane"));
+        readers.add(new RoleMember().setMemberName("user_domain.proxy-user1"));
+
+        SignedDomain signedDomain = createSignedDomain("coretech-proxy4", "weather-proxy4", "storage",
+                writers, readers, true);
+        store.processDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=sig", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            final String scope = URLEncoder.encode("openid coretech-proxy4:domain coretech-proxy4:service.api", "UTF-8");
+            zts.postAccessTokenRequest(context, "grant_type=client_credentials&scope=" + scope +
+                    "&proxy_for_principal=user_domain.jane");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Proxy Principal cannot request id tokens"));
+        }
+    }
+
+    @Test
+    public void testPostAccessTokenRequestProxyUserSpecificRole() {
+
+        List<RoleMember> writers = new ArrayList<>();
+        writers.add(new RoleMember().setMemberName("user_domain.proxy-user1"));
+        writers.add(new RoleMember().setMemberName("user_domain.joe"));
+
+        List<RoleMember> readers = new ArrayList<>();
+        readers.add(new RoleMember().setMemberName("user_domain.proxy-user2"));
+        readers.add(new RoleMember().setMemberName("user_domain.jane"));
+        readers.add(new RoleMember().setMemberName("user_domain.proxy-user1"));
+
+        SignedDomain signedDomain = createSignedDomain("coretech-proxy4", "weather-proxy4", "storage",
+                writers, readers, true);
+        store.processDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=sig", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        AccessTokenResponse resp = zts.postAccessTokenRequest(context,
+                "grant_type=client_credentials&scope=coretech-proxy4:role.writers&proxy_for_principal=user_domain.joe");
+        assertNotNull(resp);
+
+        String accessTokenStr = resp.getAccess_token();
+        assertNotNull(accessTokenStr);
+
+        Jws<Claims> claims;
+        try {
+            claims = Jwts.parser().setSigningKey(Crypto.extractPublicKey(privateKey))
+                    .parseClaimsJws(accessTokenStr);
+        } catch (SignatureException e) {
+            throw new ResourceException(ResourceException.UNAUTHORIZED);
+        }
+        assertNotNull(claims);
+        assertEquals("user_domain.joe", claims.getBody().getSubject());
+        assertEquals("user_domain.proxy-user1", claims.getBody().get("proxy"));
+        assertEquals("coretech-proxy4", claims.getBody().getAudience());
+        assertEquals(zts.ztsOAuthIssuer, claims.getBody().getIssuer());
+        List<String> scopes = (List<String>) claims.getBody().get("scp");
+        assertNotNull(scopes);
+        assertEquals(1, scopes.size());
+        assertEquals("writers", scopes.get(0));
     }
 
     @Test
@@ -9522,5 +9721,36 @@ public class ZTSImplTest {
 
         assertTrue(zts.isPrincipalRoleCertificateAccessValid(principal, "domain1", roles));
         assertFalse(zts.isPrincipalRoleCertificateAccessValid(principal, "domain2", roles));
+    }
+
+    @Test
+    public void testGetProxyForPrincipalValue() {
+
+        // empty strings should return null
+
+        assertNull(zts.getProxyForPrincipalValue("", "athenz.syncer", "getToken"));
+
+        // invalid proxy users should return exception
+
+        try {
+            zts.getProxyForPrincipalValue("invalid user", "athenz.syncer", "getAccessToken");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        // valid authorized user should return the proxy user
+
+        assertEquals("user_domain.proxy", zts.getProxyForPrincipalValue("user_domain.proxy",
+                "user_domain.proxy-user1", "getAccessToken"));
+
+        // invalid authorized proxy user should return 403
+
+        try {
+            zts.getProxyForPrincipalValue("user_domain.proxy", "user_domain.proxy-unknown", "getAccessToken");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
     }
 }
