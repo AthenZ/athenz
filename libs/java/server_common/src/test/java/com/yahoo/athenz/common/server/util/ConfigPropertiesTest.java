@@ -16,11 +16,15 @@
 package com.yahoo.athenz.common.server.util;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertThrows;
 
 import org.testng.annotations.Test;
 
 public class ConfigPropertiesTest {
 
+    private static String ROOT_DIR;
+    public static final String STR_DEF_ROOT     = "/home/athenz";
+    private static final String CONFIG_TEST_PROP_ROOT_DIR = "athenz.config.properties.test.root.dir";
     @Test
     public void testGetPortNumberDefault() {
         assertEquals(ConfigProperties.getPortNumber("NotExistantProperty", 4080), 4080);
@@ -48,5 +52,27 @@ public class ConfigPropertiesTest {
     public void testGetPortNumberOutOfRangePositive() {
         System.setProperty("athenz.port", "65536");
         assertEquals(ConfigProperties.getPortNumber("athenz.port", 4080), 4080);
+    }
+
+    @Test
+    public void testLoadProperties() {
+        assertThrows(RuntimeException.class, () -> {
+            ConfigProperties.loadProperties("FailFile.txt");
+        });
+
+        assertThrows(RuntimeException.class, () -> {
+            ConfigProperties.loadProperties("/Users/craman/Desktop/forks/athenz/libs/java/server_common/src/test/resources/testFileConfigEmpty.properties");
+        });
+
+        ConfigProperties.loadProperties("/Users/craman/Desktop/forks/athenz/libs/java/server_common/src/test/resources/testFileConfig.properties");
+    }
+
+    public static String getRootDir() {
+
+        if (ROOT_DIR == null) {
+            ROOT_DIR = System.getProperty(CONFIG_TEST_PROP_ROOT_DIR, STR_DEF_ROOT);
+        }
+
+        return ROOT_DIR;
     }
 }

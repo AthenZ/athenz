@@ -37,10 +37,12 @@ public class DebugUserAuthorityTest {
         assertFalse(userAuthority.allowAuthorization());
         
         // invalid authenticate values
+        StringBuilder errMsg = new StringBuilder();
         assertNull(userAuthority.authenticate("Test Creds", "10.11.12.13", "GET", null));
         assertNull(userAuthority.authenticate("Basic !@#$#!@$#", "10.11.12.13", "GET", null));
         assertNull(userAuthority.authenticate("BasicdGVzdHVzZXI6dGVzdHB3ZA==", "10.11.12.13", "GET", null));
-        
+        assertNull(userAuthority.authenticate("BasicdGVzdHVzZXI6dGVzdHB3ZA==", "10.11.12.13", "GET", errMsg));
+
         // valid values
         
         String token = "Basic dGVzdHVzZXI6dGVzdHB3ZA==";
