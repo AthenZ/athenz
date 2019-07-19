@@ -44,6 +44,7 @@ public class SignUtilsTest {
     
     @Test
     public void testAsCanonicalStringDomainData() {
+        Mockito.when(mockDomain.getAuditEnabled()).thenReturn(null);
         Mockito.when(mockDomain.getEnabled()).thenReturn(null);
         Mockito.when(mockDomain.getRoles()).thenReturn(null);
         Mockito.when(mockDomain.getServices()).thenReturn(null);
@@ -121,6 +122,7 @@ public class SignUtilsTest {
     public void testAsStructRoleService() {
         List<Role> roles = new ArrayList<>();
         Role mRole = Mockito.mock(Role.class);
+        Mockito.when(mRole.getAuditEnabled()).thenReturn(null);
         roles.add(mRole);
         
         List<String> items = new ArrayList<>();
@@ -136,7 +138,8 @@ public class SignUtilsTest {
         publicKeys.add(mPublicKey);
         
         SignedPolicies signedPolicies = Mockito.mock(SignedPolicies.class);
-        
+
+        Mockito.when(mockDomain.getAuditEnabled()).thenReturn(null);
         Mockito.when(mockDomain.getEnabled()).thenReturn(null);
         Mockito.when(mockDomain.getAccount()).thenReturn("chk_string");
         Mockito.when(mockDomain.getRoles()).thenReturn(roles);
@@ -193,6 +196,32 @@ public class SignUtilsTest {
 
         final String check = SignUtils.asCanonicalString(struct);
         final String expected = "{\"float\":100.0,\"long\":100}";
+        assertEquals(check, expected);
+    }
+
+    @Test
+    public void testAsStructRoleDomainWithAuditEnabled() {
+
+        List<RoleMember> roleMembers1 = new ArrayList<>();
+        Role role1 = new Role().setName("role1").setRoleMembers(roleMembers1).setAuditEnabled(true);
+
+        List<RoleMember> roleMembers2 = new ArrayList<>();
+        roleMembers2.add(new RoleMember().setMemberName("user.joe").setExpiration(Timestamp.fromMillis(0)));
+        roleMembers2.add(new RoleMember().setMemberName("user.jane").setExpiration(Timestamp.fromMillis(0)));
+        Role role2 = new Role().setName("role2").setRoleMembers(roleMembers2);
+
+        List<Role> roles = new ArrayList<>();
+        roles.add(role1);
+        roles.add(role2);
+        roles.add(new Role().setName("role3"));
+        DomainData data = new DomainData().setRoles(roles).setYpmId(100)
+                .setEnabled(Boolean.TRUE).setAuditEnabled(true);
+
+        final String check = SignUtils.asCanonicalString(data);
+        final String expected = "{\"auditEnabled\":true,\"enabled\":true,\"roles\":[{\"auditEnabled\":true,\"name\":\"role1\",\"roleMembers\":[]},"
+                +"{\"name\":\"role2\",\"roleMembers\":[{\"expiration\":\"1970-01-01T00:00:00.000Z\","
+                +"\"memberName\":\"user.joe\"},{\"expiration\":\"1970-01-01T00:00:00.000Z\","
+                +"\"memberName\":\"user.jane\"}]},{\"name\":\"role3\"}],\"services\":[],\"ypmId\":100}";
         assertEquals(check, expected);
     }
 }

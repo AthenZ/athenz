@@ -115,7 +115,7 @@ app.use(function(req, res, next) {
   };
   res.locals.originalUrl = pageUtils.cleanupOriginalUrl(req.originalUrl || '');
   res.locals.msg = [];
-  res.locals.zms = req.config.zms;
+  res.locals.zms = req.config.zms_ajax || req.config.zms;
   res.locals.serviceFQN = req.config.serviceFQN;
   res.locals.athenzScript = req.config.athenzScript;
   res.locals.headerLinks = req.config.headerLinks;

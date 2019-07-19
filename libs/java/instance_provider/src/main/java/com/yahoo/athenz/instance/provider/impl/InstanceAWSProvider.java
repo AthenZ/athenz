@@ -342,7 +342,7 @@ public class InstanceAWSProvider implements InstanceProvider {
         // extract the instance id as well
 
         final String instanceId = InstanceUtils.getInstanceProperty(instanceAttributes,
-                InstanceUtils.ZTS_INSTANCE_ID);
+                InstanceProvider.ZTS_INSTANCE_ID);
         if (instanceId == null) {
             throw error("Unable to extract Instance Id");
         }
@@ -387,9 +387,9 @@ public class InstanceAWSProvider implements InstanceProvider {
     void setConfirmationAttributes(InstanceConfirmation confirmation, boolean instanceDocumentCreds) {
 
         Map<String, String> attributes = new HashMap<>();
-        attributes.put(InstanceUtils.ZTS_CERT_SSH, Boolean.toString(instanceDocumentCreds));
+        attributes.put(InstanceProvider.ZTS_CERT_SSH, Boolean.toString(instanceDocumentCreds));
         if (!instanceDocumentCreds) {
-            attributes.put(InstanceUtils.ZTS_CERT_EXPIRY_TIME, Long.toString(certValidityTime));
+            attributes.put(InstanceProvider.ZTS_CERT_EXPIRY_TIME, Long.toString(certValidityTime));
         }
         confirmation.setAttributes(attributes);
     }

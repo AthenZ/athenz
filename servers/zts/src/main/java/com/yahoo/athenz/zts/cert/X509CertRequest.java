@@ -171,7 +171,7 @@ public class X509CertRequest {
 
     boolean dnsSuffixCheck(final String dnsName, final List<String> providerDnsSuffixCheckList,
             final String serviceDnsSuffixCheck, final String instanceHostname,
-             HostnameResolver hostnameResolver) {
+            HostnameResolver hostnameResolver) {
 
         if (providerDnsSuffixCheckList != null) {
             for (String dnsSuffixCheck : providerDnsSuffixCheckList) {

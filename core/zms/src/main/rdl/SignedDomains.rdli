@@ -50,6 +50,7 @@ type DomainData Struct {
     Timestamp modified; //last modification timestamp
     String applicationId (optional); //associated application id
     String certDnsDomain (optional); //domain certificate dns domain
+    Bool auditEnabled (optional, default=false); //Flag indicates whether or not domain modifications should be logged for SOX+Auditing.
 }
 
 //A domain object signed with server's private key. The signature
