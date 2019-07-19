@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Yahoo Inc.
+ * Copyright 2019 Oath Holdings, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.yahoo.athenz.zts.store.CloudStore;
@@ -46,6 +44,9 @@ import com.yahoo.athenz.zms.SignedDomain;
 import com.yahoo.athenz.zms.SignedDomains;
 
 public class S3ChangeLogStoreTest {
+
+    private static final String DEFAULT_TIMEOUT_SECONDS = "athenz.zts.bucket.threads.timeout";
+    private int defaultTimeoutSeconds = Integer.valueOf(System.getProperty(DEFAULT_TIMEOUT_SECONDS, "1800"));
 
     @Test
     public void testFullRefreshSupport() {
@@ -72,7 +73,71 @@ public class S3ChangeLogStoreTest {
         store.setLastModificationTimestamp(null);
         assertEquals(store.lastModTime, 0);
     }
-    
+
+    @Test
+    public void testGetLocalDomainList() throws FileNotFoundException {
+
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore(null, 0);
+
+        InputStream is1 = new FileInputStream("src/test/resources/iaas.json");
+        MockS3ObjectInputStream s3Is1 = new MockS3ObjectInputStream(is1, null);
+
+        InputStream is2 = new FileInputStream("src/test/resources/iaas.json");
+        MockS3ObjectInputStream s3Is2 = new MockS3ObjectInputStream(is2, null);
+
+        S3Object object = mock(S3Object.class);
+        when(object.getObjectContent()).thenReturn(s3Is1).thenReturn(s3Is2);
+
+        when(store.awsS3Client.getObject("athenz-domain-sys.auth", "iaas")).thenReturn(object);
+        ObjectListing mockObjectListing = mock(ObjectListing.class);
+        when(store.awsS3Client.listObjects(any(ListObjectsRequest.class))).thenReturn(mockObjectListing);
+        List<S3ObjectSummary> tempList = new ArrayList<>();
+        S3ObjectSummary s3ObjectSummary = mock(S3ObjectSummary.class);
+        when(s3ObjectSummary.getKey()).thenReturn("iaas");
+        tempList.add(s3ObjectSummary);
+        when(mockObjectListing.getObjectSummaries()).thenReturn(tempList);
+
+
+            List<String> temp = store.getLocalDomainList();
+            assertNotNull(temp);
+            store.getSignedDomain("iaas");
+    }
+
+    @Test
+    public void testGetAllSignedDomainsException() throws FileNotFoundException {
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore(null, 1);
+
+        InputStream is1 = new FileInputStream("src/test/resources/iaas.json");
+        MockS3ObjectInputStream s3Is1 = new MockS3ObjectInputStream(is1, null);
+
+        InputStream is2 = new FileInputStream("src/test/resources/iaas.json");
+        MockS3ObjectInputStream s3Is2 = new MockS3ObjectInputStream(is2, null);
+
+        S3Object object = mock(S3Object.class);
+        when(object.getObjectContent()).thenReturn(s3Is1).thenReturn(s3Is2);
+
+        when(store.awsS3Client.getObject("athenz-domain-sys.auth", "iaas")).thenReturn(object);
+        ObjectListing mockObjectListing = mock(ObjectListing.class);
+        when(store.awsS3Client.listObjects(any(ListObjectsRequest.class))).thenReturn(mockObjectListing);
+        List<S3ObjectSummary> tempList = new ArrayList<>();
+        S3ObjectSummary s3ObjectSummary = mock(S3ObjectSummary.class);
+        when(s3ObjectSummary.getKey()).thenReturn("iaas");
+        tempList.add(s3ObjectSummary);
+        when(mockObjectListing.getObjectSummaries()).thenReturn(tempList);
+
+
+        List<String> temp = new LinkedList<>();
+        temp.add("iaas");
+
+        try {
+            when(store.executorService.awaitTermination(defaultTimeoutSeconds, TimeUnit.SECONDS)).thenThrow(new InterruptedException());
+            assertFalse(store.getAllSignedDomains(temp));
+            assertTrue(store.getLocalDomainList().size() > 0);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
     @Test
     public void testListObjectsAllObjectsNoPage() {
         

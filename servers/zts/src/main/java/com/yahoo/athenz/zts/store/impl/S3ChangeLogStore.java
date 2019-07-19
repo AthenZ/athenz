@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Yahoo Inc.
+ * Copyright 2019 Oath Holdings, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,10 @@
  */
 package com.yahoo.athenz.zts.store.impl;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -50,6 +49,12 @@ public class S3ChangeLogStore implements ChangeLogStore {
     private CloudStore cloudStore;
     private ObjectMapper jsonMapper;
 
+    private static final String NUMBER_OF_THREADS = "athenz.zts.bucket.threads";
+    private static final String DEFAULT_TIMEOUT_SECONDS = "athenz.zts.bucket.threads.timeout";
+    private int nThreads = Integer.valueOf(System.getProperty(NUMBER_OF_THREADS, "10"));
+    private int defaultTimeoutSeconds = Integer.valueOf(System.getProperty(DEFAULT_TIMEOUT_SECONDS, "1800"));
+    private volatile HashMap<String, SignedDomain> tempSignedDomainMap = new HashMap<>();
+
     public S3ChangeLogStore(CloudStore cloudStore) {
         this.cloudStore = cloudStore;
         s3BucketName = System.getProperty(ZTSConsts.ZTS_PROP_AWS_BUCKET_NAME, ZTS_BUCKET_DEFAULT);
@@ -71,23 +76,26 @@ public class S3ChangeLogStore implements ChangeLogStore {
     
     @Override
     public SignedDomain getSignedDomain(String domainName) {
-        
-        // make sure we have an aws s3 client for our request
-        
-        if (awsS3Client == null) {
-            awsS3Client = getS3Client();
-        }
-        
-        SignedDomain signedDomain = getSignedDomain(awsS3Client, domainName);
-
-        // if we got a failure for any reason, we're going
-        // get a new aws s3 client and try again
-        
+        // clear the mapping if present and value is stored else null is returned
+        SignedDomain signedDomain = tempSignedDomainMap.remove(domainName);
+        // when for some reason the getAllSignedDomains() was unsuccessful signedDomain will be null
         if (signedDomain == null) {
-            awsS3Client = getS3Client();
+            // make sure we have an aws s3 client for our request
+
+            if (awsS3Client == null) {
+                awsS3Client = getS3Client();
+            }
+
             signedDomain = getSignedDomain(awsS3Client, domainName);
+
+            // if we got a failure for any reason, we're going
+            // get a new aws s3 client and try again
+
+            if (signedDomain == null) {
+                awsS3Client = getS3Client();
+                signedDomain = getSignedDomain(awsS3Client, domainName);
+            }
         }
-        
         return signedDomain;
     }
     
@@ -209,8 +217,39 @@ public class S3ChangeLogStore implements ChangeLogStore {
         
         ArrayList<String> domains = new ArrayList<>();
         listObjects(awsS3Client, domains, 0);
-
+        tempSignedDomainMap.clear();
+        // we are trying to get the signed domain list from the s3 bucket twice here.
+        // The function get AllSignedDomains will return false when an InterruptedException
+        // is thrown. If it can't be done successfully then we thrown a RuntimeException.
+        if (!getAllSignedDomains(domains)) {
+            getAllSignedDomains(domains);
+        }
         return domains;
+    }
+
+    public boolean getAllSignedDomains(List<String> domains) {
+        ExecutorService threadPoolExecutor = getExecutorService();
+
+        AmazonS3 tempS3 = getS3Client();
+        for (String domain: domains) {
+            threadPoolExecutor.execute(new S3ChangeLogStore.ObjectS3Thread(domain, tempSignedDomainMap, tempS3));
+        }
+        // shutdown() ensures no further tasks can be submitted to the ExecutorService
+        threadPoolExecutor.shutdown();
+
+        // If an Exception is thrown then we clear the HashMap where the SignedDomains are stored
+        // and also we use the shutdownNow() function to cancel currently executing tasks.
+        try {
+            threadPoolExecutor.awaitTermination(defaultTimeoutSeconds, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            tempSignedDomainMap.clear();
+            threadPoolExecutor.shutdownNow();
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Interrupted Exception in getAllSignedDomains");
+            }
+            return false;
+        }
+        return true;
     }
 
     @Override
@@ -279,5 +318,40 @@ public class S3ChangeLogStore implements ChangeLogStore {
 
     AmazonS3 getS3Client() {
         return cloudStore.getS3Client();
+    }
+
+    public ExecutorService getExecutorService() {
+        return Executors.newFixedThreadPool(nThreads);
+    }
+
+    class ObjectS3Thread implements Runnable {
+
+        String domainName;
+        AmazonS3 s3;
+        HashMap<String, SignedDomain> signedDomainMap;
+
+        public ObjectS3Thread(String domainName, HashMap<String, SignedDomain> signedDomainMap, AmazonS3 s3) {
+            this.domainName = domainName;
+            this.s3 = s3;
+            this.signedDomainMap = signedDomainMap;
+        }
+
+        @Override
+        public void run() {
+            SignedDomain signedDomain = null;
+            try {
+                S3Object object = s3.getObject(s3BucketName, domainName);
+                try (S3ObjectInputStream s3is = object.getObjectContent()) {
+                    signedDomain = jsonMapper.readValue(s3is, SignedDomain.class);
+                }
+            } catch (Exception ex) {
+                LOGGER.error("AWSS3ChangeLogThread: ObjectS3Thread- getSignedDomain - unable to get domain {} error: {}",
+                        domainName, ex.getMessage());
+            }
+            if (signedDomain != null) {
+                signedDomainMap.put(domainName, signedDomain);
+            }
+        }
+
     }
 }
