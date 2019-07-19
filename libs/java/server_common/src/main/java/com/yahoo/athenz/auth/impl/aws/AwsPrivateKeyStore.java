@@ -52,7 +52,7 @@ import java.security.PrivateKey;
 public class AwsPrivateKeyStore implements PrivateKeyStore {
 
     private static final Logger LOG = LoggerFactory.getLogger(AwsPrivateKeyStore.class);
-    
+
     private static final String ATHENZ_PROP_AWS_S3_REGION   = "athenz.aws.s3.region";
     private static final String ATHENZ_PROP_AWS_KMS_DECRYPT = "athenz.aws.store_kms_decrypt";
     private static final String ATHENZ_PROP_ZMS_BUCKET_NAME = "athenz.aws.zms.bucket_name";
@@ -129,7 +129,7 @@ public class AwsPrivateKeyStore implements PrivateKeyStore {
     private String getDecryptedData(final String bucketName, final String keyName) {
         
         String keyValue = "";
-        S3Object s3Object = s3.getObject(bucketName, keyName);
+        S3Object s3Object = getS3().getObject(bucketName, keyName);
         
         if (LOG.isDebugEnabled()) {
             LOG.debug("retrieving appName {}, key {}", bucketName, keyName);
@@ -153,7 +153,7 @@ public class AwsPrivateKeyStore implements PrivateKeyStore {
 
             if (kmsDecrypt) {
                 DecryptRequest req = new DecryptRequest().withCiphertextBlob(ByteBuffer.wrap(result.toByteArray()));
-                ByteBuffer plainText = kms.decrypt(req).getPlaintext();
+                ByteBuffer plainText = getKMS().decrypt(req).getPlaintext();
                 keyValue = new String(plainText.array());
             } else {
                 keyValue = result.toString();
@@ -162,7 +162,15 @@ public class AwsPrivateKeyStore implements PrivateKeyStore {
         } catch (IOException e) {
             LOG.error("error getting application secret.", e);
         }
-        
+
         return keyValue.trim();
+    }
+
+    public AmazonS3 getS3() {
+        return s3;
+    }
+
+    public AWSKMS getKMS() {
+        return kms;
     }
 }

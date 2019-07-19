@@ -43,7 +43,8 @@ public class DebugPrincipalAuthorityTest {
         assertNull(principalAuthority.authenticate("abc", "10.11.12.13", "GET", null));
         assertNull(principalAuthority.authenticate("v=S1;d=coretech;s=signature", "10.11.12.13", "GET", null));
         assertNull(principalAuthority.authenticate("v=S1;n=storage;s=signature", "10.11.12.13", "GET", null));
-        
+        assertNull(principalAuthority.authenticate("v==S1;n=storage;s=signature", "10.11.12.13", "GET", null));
+
         // valid values
 
         String token = "v=S1;d=coretech;n=storage;s=signature";

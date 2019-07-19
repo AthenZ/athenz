@@ -45,9 +45,9 @@ public class DebugRoleAuthorityTest {
         assertNull(roleAuthority.authenticate("v=Z1;d=coretech;s=signature", "10.11.12.13", "GET", null));
         assertNull(roleAuthority.authenticate("v=Z1;r=role1,role2,role3;s=signature", "10.11.12.13", "GET", null));
         assertNull(roleAuthority.authenticate("v=U1;d=coretech;r=role1,role2,role3;s=signature", "10.11.12.13", "GET", null));
-        
+        assertNull(roleAuthority.authenticate("v==U1;d=coretech;r=role1,role2,role3;s=signature", "10.11.12.13", "GET", null));
+
         // valid values
-        
         String token = "v=Z1;d=coretech;r=role1,role2,role3;s=signature";
         Principal p = roleAuthority.authenticate(token, "10.11.12.13", "GET", null);
         assertNotNull(p);
