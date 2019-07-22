@@ -42,6 +42,7 @@ public class AwsPrivateKeyStoreTest {
 
     @Test
     public void testAwsPrivateKeyStore() {
+        System.setProperty("athenz.aws.s3.region", "us-east-1");
         String bucketName = "my_bucket";
         String keyName = "my_key";
         String expected = "my_value";
@@ -73,8 +74,8 @@ public class AwsPrivateKeyStoreTest {
 
     @Test
     public void testGetPrivateKey() {
-        AwsPrivateKeyStore awsPrivateKeyStore = new AwsPrivateKeyStore();
         System.setProperty("athenz.aws.s3.region", "us-east-1");
+        AwsPrivateKeyStore awsPrivateKeyStore = new AwsPrivateKeyStore();
         AwsPrivateKeyStoreFactory awsPrivateKeyStoreFactory = new AwsPrivateKeyStoreFactory();
         assertTrue(awsPrivateKeyStoreFactory.create() instanceof AwsPrivateKeyStore);
 
