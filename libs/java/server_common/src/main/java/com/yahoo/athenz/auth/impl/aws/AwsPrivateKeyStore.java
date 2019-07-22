@@ -78,6 +78,7 @@ public class AwsPrivateKeyStore implements PrivateKeyStore {
     }
     
     private static AmazonS3 initAmazonS3() {
+        System.out.println("####### region is " + System.getProperty(ATHENZ_PROP_AWS_S3_REGION));
         String s3Region = System.getProperty(ATHENZ_PROP_AWS_S3_REGION);
         if (null != s3Region && !s3Region.isEmpty()) {
             return AmazonS3ClientBuilder.standard().withRegion(s3Region).build();

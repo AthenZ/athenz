@@ -40,7 +40,7 @@ import static org.testng.Assert.assertTrue;
 public class AwsPrivateKeyStoreTest {
     private static final String ATHENZ_PROP_ZTS_BUCKET_NAME = "athenz.aws.zts.bucket_name";
 
-    @Test
+//    @Test
     public void testAwsPrivateKeyStore() {
         System.setProperty("athenz.aws.s3.region", "us-east-1");
         String bucketName = "my_bucket";
@@ -75,6 +75,7 @@ public class AwsPrivateKeyStoreTest {
     @Test
     public void testGetPrivateKey() {
         System.setProperty("athenz.aws.s3.region", "us-east-1");
+        System.out.println("***********");
         AwsPrivateKeyStore awsPrivateKeyStore = new AwsPrivateKeyStore();
         AwsPrivateKeyStoreFactory awsPrivateKeyStoreFactory = new AwsPrivateKeyStoreFactory();
         assertTrue(awsPrivateKeyStoreFactory.create() instanceof AwsPrivateKeyStore);
@@ -88,6 +89,7 @@ public class AwsPrivateKeyStoreTest {
     @Test
     public void testGetApplicationSecret() {
         System.setProperty("athenz.aws.s3.region", "us-east-1");
+        System.out.println("***********");
         String bucketName = "my_bucket";
         String keyName = "my_key";
         String expected = "my_value";
@@ -118,6 +120,7 @@ public class AwsPrivateKeyStoreTest {
     @Test
     public void testGetEncryptedDataException() {
         System.setProperty("athenz.aws.s3.region", "us-east-1");
+        System.out.println("***********");
         String bucketName = "my_bucket";
         String keyName = "my_key";
         String expected = "my_value";
