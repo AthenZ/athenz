@@ -86,6 +86,7 @@ public class AwsPrivateKeyStoreTest {
 
     @Test
     public void testGetApplicationSecret() {
+        System.setProperty("athenz.aws.s3.region", "us-east-1");
         String bucketName = "my_bucket";
         String keyName = "my_key";
         String expected = "my_value";
@@ -115,6 +116,7 @@ public class AwsPrivateKeyStoreTest {
 
     @Test
     public void testGetEncryptedDataException() {
+        System.setProperty("athenz.aws.s3.region", "us-east-1");
         String bucketName = "my_bucket";
         String keyName = "my_key";
         String expected = "my_value";

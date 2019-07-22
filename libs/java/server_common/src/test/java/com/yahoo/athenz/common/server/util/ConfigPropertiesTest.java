@@ -20,6 +20,9 @@ import static org.testng.Assert.assertThrows;
 
 import org.testng.annotations.Test;
 
+import java.io.File;
+import java.io.IOException;
+
 public class ConfigPropertiesTest {
 
     private static String ROOT_DIR;
@@ -55,16 +58,18 @@ public class ConfigPropertiesTest {
     }
 
     @Test
-    public void testLoadProperties() {
+    public void testLoadProperties() throws IOException {
         assertThrows(RuntimeException.class, () -> {
             ConfigProperties.loadProperties("FailFile.txt");
         });
 
+        File currentDirectory = new File(new File(".").getAbsolutePath());
+
         assertThrows(RuntimeException.class, () -> {
-            ConfigProperties.loadProperties("/Users/craman/Desktop/forks/athenz/libs/java/server_common/src/test/resources/testFileConfigEmpty.properties");
+            ConfigProperties.loadProperties(currentDirectory.getCanonicalPath() + "/src/test/resources/testFileConfigEmpty.properties");
         });
 
-        ConfigProperties.loadProperties("/Users/craman/Desktop/forks/athenz/libs/java/server_common/src/test/resources/testFileConfig.properties");
+        ConfigProperties.loadProperties(currentDirectory.getCanonicalPath() + "/src/test/resources/testFileConfig.properties");
     }
 
     public static String getRootDir() {
