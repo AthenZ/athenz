@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/yahoo/athenz/clients/go/zms"
@@ -94,7 +95,15 @@ func (cli Zms) AddService(dn string, sn string, keyID string, pubKey *string) (*
 		s := ""
 		return &s, nil
 	}
-	return cli.ShowService(dn, shortName)
+	output, err := cli.ShowService(dn, shortName)
+	if err != nil {
+		// due to mysql read after write issue it's possible that
+		// we'll get 404 after writing our object so in that
+		// case we're going to do a quick sleep and retry request
+		time.Sleep(500 * time.Millisecond)
+		output, err = cli.ShowService(dn, shortName)
+	}
+	return output, err
 }
 
 func (cli Zms) AddProviderService(dn string, sn string, keyID string, pubKey *string) (*string, error) {
@@ -184,7 +193,15 @@ func (cli Zms) AddProviderService(dn string, sn string, keyID string, pubKey *st
 		s := ""
 		return &s, nil
 	}
-	return cli.ShowService(dn, shortName)
+	output, err := cli.ShowService(dn, shortName)
+	if err != nil {
+		// due to mysql read after write issue it's possible that
+		// we'll get 404 after writing our object so in that
+		// case we're going to do a quick sleep and retry request
+		time.Sleep(500 * time.Millisecond)
+		output, err = cli.ShowService(dn, shortName)
+	}
+	return output, err
 }
 
 func (cli Zms) AddServiceWithKeys(dn string, sn string, publicKeys []*zms.PublicKeyEntry) (*string, error) {
@@ -212,7 +229,15 @@ func (cli Zms) AddServiceWithKeys(dn string, sn string, publicKeys []*zms.Public
 		s := ""
 		return &s, nil
 	}
-	return cli.ShowService(dn, shortName)
+	output, err := cli.ShowService(dn, shortName)
+	if err != nil {
+		// due to mysql read after write issue it's possible that
+		// we'll get 404 after writing our object so in that
+		// case we're going to do a quick sleep and retry request
+		time.Sleep(500 * time.Millisecond)
+		output, err = cli.ShowService(dn, shortName)
+	}
+	return output, err
 }
 
 func (cli Zms) SetServiceEndpoint(dn string, sn string, endpoint string) (*string, error) {

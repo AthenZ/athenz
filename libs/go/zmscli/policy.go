@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/yahoo/athenz/clients/go/zms"
@@ -102,7 +103,15 @@ func (cli Zms) AddPolicyWithAssertions(dn string, pn string, assertions []*zms.A
 		s := ""
 		return &s, nil
 	}
-	return cli.ShowPolicy(dn, pn)
+	output, err := cli.ShowPolicy(dn, pn)
+	if err != nil {
+		// due to mysql read after write issue it's possible that
+		// we'll get 404 after writing our object so in that
+		// case we're going to do a quick sleep and retry request
+		time.Sleep(500 * time.Millisecond)
+		output, err = cli.ShowPolicy(dn, pn)
+	}
+	return output, err
 }
 
 func (cli Zms) AddPolicy(dn string, pn string, assertion []string) (*string, error) {
@@ -137,7 +146,15 @@ func (cli Zms) AddPolicy(dn string, pn string, assertion []string) (*string, err
 		s := ""
 		return &s, nil
 	}
-	return cli.ShowPolicy(dn, pn)
+	output, err := cli.ShowPolicy(dn, pn)
+	if err != nil {
+		// due to mysql read after write issue it's possible that
+		// we'll get 404 after writing our object so in that
+		// case we're going to do a quick sleep and retry request
+		time.Sleep(500 * time.Millisecond)
+		output, err = cli.ShowPolicy(dn, pn)
+	}
+	return output, err
 }
 
 func (cli Zms) AddAssertion(dn string, pn string, assertion []string) (*string, error) {
