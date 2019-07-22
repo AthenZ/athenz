@@ -55,6 +55,7 @@ public class AwsPrivateKeyStore implements PrivateKeyStore {
 
     private static final String ATHENZ_PROP_AWS_S3_REGION   = "athenz.aws.s3.region";
     private static final String ATHENZ_PROP_AWS_KMS_DECRYPT = "athenz.aws.store_kms_decrypt";
+    private static final String ATHENZ_PROP_AWS_KMS_REGION  = "athenz.aws.store_kms.region";
     private static final String ATHENZ_PROP_ZMS_BUCKET_NAME = "athenz.aws.zms.bucket_name";
     private static final String ATHENZ_PROP_ZMS_KEY_NAME    = "athenz.aws.zms.key_name";
     private static final String ATHENZ_PROP_ZMS_KEY_ID_NAME = "athenz.aws.zms.key_id_name";
@@ -73,12 +74,19 @@ public class AwsPrivateKeyStore implements PrivateKeyStore {
     private boolean kmsDecrypt;
     
     public AwsPrivateKeyStore() {
-       this(initAmazonS3(), AWSKMSClientBuilder.defaultClient());
+       this(initAmazonS3(), initAWSKMS());
        kmsDecrypt = Boolean.parseBoolean(System.getProperty(ATHENZ_PROP_AWS_KMS_DECRYPT, "false"));
     }
-    
+
+    private static AWSKMS initAWSKMS() {
+        String s3Region = System.getProperty(ATHENZ_PROP_AWS_KMS_REGION);
+        if (null != s3Region && !s3Region.isEmpty()) {
+            return AWSKMSClientBuilder.standard().withRegion(s3Region).build();
+        }
+        return AWSKMSClientBuilder.defaultClient();
+    }
+
     private static AmazonS3 initAmazonS3() {
-        System.out.println("####### region is " + System.getProperty(ATHENZ_PROP_AWS_S3_REGION));
         String s3Region = System.getProperty(ATHENZ_PROP_AWS_S3_REGION);
         if (null != s3Region && !s3Region.isEmpty()) {
             return AmazonS3ClientBuilder.standard().withRegion(s3Region).build();

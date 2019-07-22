@@ -30,7 +30,11 @@ import javax.validation.constraints.AssertTrue;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doReturn;
@@ -40,9 +44,10 @@ import static org.testng.Assert.assertTrue;
 public class AwsPrivateKeyStoreTest {
     private static final String ATHENZ_PROP_ZTS_BUCKET_NAME = "athenz.aws.zts.bucket_name";
 
-//    @Test
+    @Test
     public void testAwsPrivateKeyStore() {
         System.setProperty("athenz.aws.s3.region", "us-east-1");
+        System.setProperty("athenz.aws.store_kms.region", "us-east-1");
         String bucketName = "my_bucket";
         String keyName = "my_key";
         String expected = "my_value";
@@ -70,26 +75,31 @@ public class AwsPrivateKeyStoreTest {
         awsPrivateKeyStore = new AwsPrivateKeyStore(s3, kms);
         Mockito.when(s3Object.getObjectContent()).thenAnswer(invocation -> { throw new IOException("abc msg"); });;
         awsPrivateKeyStore.getPrivateKey("zts", "testServerHostName", privateKeyId);
+        System.clearProperty("athenz.aws.s3.region");
+        System.clearProperty("athenz.aws.store_kms.region");
     }
 
     @Test
     public void testGetPrivateKey() {
         System.setProperty("athenz.aws.s3.region", "us-east-1");
-        System.out.println("***********");
-        AwsPrivateKeyStore awsPrivateKeyStore = new AwsPrivateKeyStore();
+        System.setProperty("athenz.aws.store_kms.region", "us-east-1");
         AwsPrivateKeyStoreFactory awsPrivateKeyStoreFactory = new AwsPrivateKeyStoreFactory();
         assertTrue(awsPrivateKeyStoreFactory.create() instanceof AwsPrivateKeyStore);
 
+
+        AwsPrivateKeyStore awsPrivateKeyStore = new AwsPrivateKeyStore();
         awsPrivateKeyStore = new AwsPrivateKeyStore();
         StringBuilder privateKeyId = new StringBuilder("testPrivateKeyId");
         awsPrivateKeyStore.getPrivateKey("zms", "testServerHostName", privateKeyId);
         awsPrivateKeyStore.getPrivateKey("testService", "testserverHostname", privateKeyId);
+        System.clearProperty("athenz.aws.s3.region");
+        System.clearProperty("athenz.aws.store_kms.region");
     }
 
     @Test
     public void testGetApplicationSecret() {
         System.setProperty("athenz.aws.s3.region", "us-east-1");
-        System.out.println("***********");
+        System.setProperty("athenz.aws.store_kms.region", "us-east-1");
         String bucketName = "my_bucket";
         String keyName = "my_key";
         String expected = "my_value";
@@ -114,13 +124,14 @@ public class AwsPrivateKeyStoreTest {
         doReturn(kms).when(spyAWS).getKMS();
         String actual = spyAWS.getApplicationSecret(bucketName, keyName);
         Assert.assertEquals(actual, expected);
-
+        System.clearProperty("athenz.aws.s3.region");
+        System.clearProperty("athenz.aws.store_kms.region");
     }
 
     @Test
     public void testGetEncryptedDataException() {
         System.setProperty("athenz.aws.s3.region", "us-east-1");
-        System.out.println("***********");
+        System.setProperty("athenz.aws.store_kms.region", "us-east-1");
         String bucketName = "my_bucket";
         String keyName = "my_key";
         String expected = "my_value";
@@ -145,5 +156,9 @@ public class AwsPrivateKeyStoreTest {
         doReturn(kms).when(spyAWS).getKMS();
         String actual = spyAWS.getApplicationSecret(bucketName, keyName);
         assertEquals(spyAWS.getKMS(), kms);
+
+        System.clearProperty("athenz.aws.s3.region");
+        System.clearProperty("athenz.aws.store_kms.region");
     }
+
 }
