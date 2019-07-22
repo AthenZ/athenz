@@ -73,12 +73,12 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN role ON role.domain_id=domain.domain_id "
             + "JOIN role_member ON role_member.role_id=role.role_id "
             + "JOIN principal ON principal.principal_id=role_member.principal_id "
-            + "WHERE principal.name=? AND role.name=?;";
+            + "WHERE principal.name=? AND role.name=? AND role_member.active=true;";
     private static final String SQL_LIST_DOMAIN_ROLE_MEMBER = "SELECT domain.name FROM domain "
             + "JOIN role ON role.domain_id=domain.domain_id "
             + "JOIN role_member ON role_member.role_id=role.role_id "
             + "JOIN principal ON principal.principal_id=role_member.principal_id "
-            + "WHERE principal.name=?;";
+            + "WHERE principal.name=? AND role_member.active=true;";
     private static final String SQL_LIST_DOMAIN_ROLE_NAME = "SELECT domain.name FROM domain "
             + "JOIN role ON role.domain_id=domain.domain_id WHERE role.name=?;";
     private static final String SQL_LIST_DOMAIN_AWS = "SELECT name, account FROM domain WHERE account!='';";
@@ -86,8 +86,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN domain ON domain.domain_id=role.domain_id "
             + "WHERE domain.name=? AND role.name=?;";
     private static final String SQL_GET_ROLE_ID = "SELECT role_id FROM role WHERE domain_id=? AND name=?;";
-    private static final String SQL_INSERT_ROLE = "INSERT INTO role (name, domain_id, trust, audit_enabled) VALUES (?,?,?,?);";
-    private static final String SQL_UPDATE_ROLE = "UPDATE role SET trust=?,audit_enabled=? WHERE role_id=?;";
+    private static final String SQL_INSERT_ROLE = "INSERT INTO role (name, domain_id, trust, audit_enabled, self_serve) VALUES (?,?,?,?,?);";
+    private static final String SQL_UPDATE_ROLE = "UPDATE role SET trust=?,audit_enabled=?,self_serve=? WHERE role_id=?;";
     private static final String SQL_DELETE_ROLE = "DELETE FROM role WHERE domain_id=? AND name=?;";
     private static final String SQL_UPDATE_ROLE_MOD_TIMESTAMP = "UPDATE role "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE role_id=?;";
@@ -96,12 +96,13 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_ROLE_MEMBER = "SELECT principal.principal_id, role_member.expiration FROM principal "
             + "JOIN role_member ON role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=role_member.role_id "
-            + "WHERE role.role_id=? AND principal.name=?;";
+            + "WHERE role.role_id=? AND principal.name=? AND role_member.active=TRUE;";
     private static final String SQL_GET_ROLE_MEMBER_EXISTS = "SELECT principal_id FROM role_member WHERE role_id=? AND principal_id=?;";
+    private static final String SQL_GET_ROLE_MEMBER_INACTIVE_EXISTS = "SELECT principal_id FROM role_member WHERE role_id=? AND principal_id=? AND active=FALSE;";
     private static final String SQL_LIST_ROLE_MEMBERS = "SELECT principal.name, role_member.expiration FROM principal "
             + "JOIN role_member ON role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=role_member.role_id "
-            + "WHERE role.role_id=?;";
+            + "WHERE role.role_id=? AND role_member.active=true;";
     private static final String SQL_COUNT_ROLE_MEMBERS = "SELECT COUNT(*) FROM role_member WHERE role_id=?;";
     private static final String SQL_GET_PRINCIPAL_ID = "SELECT principal_id FROM principal WHERE name=?;";
     private static final String SQL_INSERT_PRINCIPAL = "INSERT INTO principal (name) VALUES (?);";
@@ -110,9 +111,11 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_LIST_PRINCIPAL = "SELECT * FROM principal;";
     private static final String SQL_LIST_PRINCIPAL_DOMAIN = "SELECT * FROM principal WHERE name LIKE ?;";
     private static final String SQL_LAST_INSERT_ID = "SELECT LAST_INSERT_ID();";
-    private static final String SQL_INSERT_ROLE_MEMBER = "INSERT INTO role_member (role_id, principal_id, expiration) VALUES (?,?,?);";
+    private static final String SQL_INSERT_ROLE_MEMBER = "INSERT INTO role_member (role_id, principal_id, expiration, active) VALUES (?,?,?,?);";
     private static final String SQL_DELETE_ROLE_MEMBER = "DELETE FROM role_member WHERE role_id=? AND principal_id=?;";
+    private static final String SQL_DELETE_INACTIVE_ROLE_MEMBER = "DELETE FROM role_member WHERE role_id=? AND principal_id=? AND active=FALSE;";
     private static final String SQL_UPDATE_ROLE_MEMBER = "UPDATE role_member SET expiration=? WHERE role_id=? AND principal_id=?;";
+    private static final String SQL_APPROVE_ROLE_MEMBER = "UPDATE role_member SET expiration=?,active=? WHERE role_id=? AND principal_id=?;";
     private static final String SQL_INSERT_ROLE_AUDIT_LOG = "INSERT INTO role_audit_log "
             + "(role_id, admin, member, action, audit_ref) VALUES (?,?,?,?,?);";
     private static final String SQL_LIST_ROLE_AUDIT_LOGS = "SELECT * FROM role_audit_log WHERE role_id=?;";
@@ -179,7 +182,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_DOMAIN_ROLE_MEMBERS = "SELECT role.name, principal.name, role_member.expiration FROM principal "
             + "JOIN role_member ON role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=role_member.role_id "
-            + "WHERE role.domain_id=?;";
+            + "WHERE role.domain_id=? AND role_member.active=true;";
     private static final String SQL_GET_DOMAIN_POLICIES = "SELECT * FROM policy WHERE domain_id=?;";
     private static final String SQL_GET_DOMAIN_POLICY_ASSERTIONS = "SELECT policy.name, "
             + "assertion.effect, assertion.action, assertion.role, assertion.resource, "
@@ -1053,7 +1056,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                     return new Role().setName(ZMSUtils.roleResourceName(domainName, roleName))
                      .setModified(Timestamp.fromMillis(rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime()))
                      .setTrust(saveValue(rs.getString(ZMSConsts.DB_COLUMN_TRUST)))
-                     .setAuditEnabled(nullIfDefaultValue(rs.getBoolean(ZMSConsts.DB_COLUMN_AUDIT_ENABLED), false));
+                     .setAuditEnabled(nullIfDefaultValue(rs.getBoolean(ZMSConsts.DB_COLUMN_AUDIT_ENABLED), false))
+                     .setSelfserve(nullIfDefaultValue(rs.getBoolean(ZMSConsts.DB_COLUMN_SELF_SERVE), false));
 
                 }
             }
@@ -1107,6 +1111,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setInt(2, domainId);
             ps.setString(3, processInsertValue(role.getTrust()));
             ps.setBoolean(4, processInsertValue(role.getAuditEnabled(), false));
+            ps.setBoolean(5, processInsertValue(role.getSelfserve(), false));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -1138,7 +1143,8 @@ public class JDBCConnection implements ObjectStoreConnection {
         try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_ROLE)) {
             ps.setString(1, processInsertValue(role.getTrust()));
             ps.setBoolean(2, processInsertValue(role.getAuditEnabled(), false));
-            ps.setInt(3, roleId);
+            ps.setBoolean(3, processInsertValue(role.getSelfserve(), false));
+            ps.setInt(4, roleId);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -1589,6 +1595,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                 } else {
                     ps.setTimestamp(3, null);
                 }
+                ps.setBoolean(4, processInsertValue(roleMember.getActive(), false));
                 affectedRows = executeUpdate(ps, caller);
             } catch (SQLException ex) {
                 throw sqlError(ex, caller);
@@ -2585,7 +2592,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                     Role role = new Role().setName(ZMSUtils.roleResourceName(domainName, roleName))
                             .setModified(Timestamp.fromMillis(rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime()))
                             .setTrust(saveValue(rs.getString(ZMSConsts.DB_COLUMN_TRUST)))
-                            .setAuditEnabled(nullIfDefaultValue(rs.getBoolean(ZMSConsts.DB_COLUMN_AUDIT_ENABLED), false));
+                            .setAuditEnabled(nullIfDefaultValue(rs.getBoolean(ZMSConsts.DB_COLUMN_AUDIT_ENABLED), false))
+                            .setSelfserve(nullIfDefaultValue(rs.getBoolean(ZMSConsts.DB_COLUMN_SELF_SERVE), false));
                     roleMap.put(roleName, role);
                 }
             }
@@ -3353,6 +3361,89 @@ public class JDBCConnection implements ObjectStoreConnection {
             domainRoleMembers.setMembers(new ArrayList<>(memberMap.values()));
         }
         return domainRoleMembers;
+    }
+
+
+    @Override
+    public boolean confirmRoleMember(String domainName, String roleName, RoleMember roleMember,
+                                    String admin, String auditRef) {
+
+        final String caller = "confirmRoleMember";
+
+        String principal = roleMember.getMemberName();
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int roleId = getRoleId(domainId, roleName);
+        if (roleId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_ROLE, ZMSUtils.roleResourceName(domainName, roleName));
+        }
+        if (!validatePrincipalDomain(principal)) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, principal);
+        }
+        int principalId = getPrincipalId(principal);
+        if (principalId == 0) {
+            principalId = insertPrincipal(principal);
+            if (principalId == 0) {
+                throw internalServerError(caller, "Unable to insert principal: " + principal);
+            }
+        }
+        //need to check if entry already exists
+        int affectedRows;
+        boolean roleMemberExists = false;
+        boolean result;
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_ROLE_MEMBER_INACTIVE_EXISTS)) {
+            ps.setInt(1, roleId);
+            ps.setInt(2, principalId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                if (rs.next()) {
+                    roleMemberExists = true;
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        java.sql.Timestamp expiration = null;
+        if (roleMember.getExpiration() != null) {
+            expiration = new java.sql.Timestamp(roleMember.getExpiration().toDate().getTime());
+        }
+        if (roleMemberExists) {
+
+            if (roleMember.getActive() != null && roleMember.getActive() == Boolean.TRUE) {
+
+                try (PreparedStatement ps = con.prepareStatement(SQL_APPROVE_ROLE_MEMBER)) {
+                    ps.setTimestamp(1, expiration);
+                    ps.setBoolean(2, roleMember.getActive());
+                    ps.setInt(3, roleId);
+                    ps.setInt(4, principalId);
+                    affectedRows = executeUpdate(ps, caller);
+                } catch (SQLException ex) {
+                    throw sqlError(ex, caller);
+                }
+                result = (affectedRows > 0);
+                if (result) {
+                    result = insertRoleAuditLog(roleId, admin, principal, "UPDATE", auditRef);
+                }
+
+            } else {
+
+                try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_INACTIVE_ROLE_MEMBER)) {
+                    ps.setInt(1, roleId);
+                    ps.setInt(2, principalId);
+                    affectedRows = executeUpdate(ps, caller);
+                } catch (SQLException ex) {
+                    throw sqlError(ex, caller);
+                }
+                result = (affectedRows > 0);
+                if (result) {
+                    result = insertRoleAuditLog(roleId, admin, principal, "DELETE", auditRef);
+                }
+            }
+        } else {
+            throw internalServerError(caller, "Unable to confirm non-existing principal: " + principal);
+        }
+        return result;
     }
 
     RuntimeException notFoundError(String caller, String objectType, String objectName) {

@@ -102,7 +102,8 @@ public class ZMSSchema {
 
         sb.structType("RoleMember")
             .field("memberName", "MemberName", false, "name of the member")
-            .field("expiration", "Timestamp", true, "the expiration timestamp");
+            .field("expiration", "Timestamp", true, "the expiration timestamp")
+            .field("active", "Bool", true, "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )", true);
 
         sb.structType("Role")
             .comment("The representation for a Role with set of members.")
@@ -112,7 +113,8 @@ public class ZMSSchema {
             .arrayField("roleMembers", "RoleMember", true, "members with expiration")
             .field("trust", "DomainName", true, "a trusted domain to delegate membership decisions to")
             .arrayField("auditLog", "RoleAuditLog", true, "an audit log for role membership changes")
-            .field("auditEnabled", "Bool", true, "Flag indicates whether or not role updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it.", false);
+            .field("auditEnabled", "Bool", true, "Flag indicates whether or not role updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it.", false)
+            .field("selfserve", "Bool", true, "Flag indicates whether or not role allows self service. Users can add themselves in the role, but it has to be approved by domain admins to be effective.", false);
 
         sb.structType("Roles")
             .comment("The representation for a list of roles with full details")
@@ -123,7 +125,8 @@ public class ZMSSchema {
             .field("memberName", "MemberName", false, "name of the member")
             .field("isMember", "Bool", true, "flag to indicate whether or the user is a member or not", true)
             .field("roleName", "ResourceName", true, "name of the role")
-            .field("expiration", "Timestamp", true, "the expiration timestamp");
+            .field("expiration", "Timestamp", true, "the expiration timestamp")
+            .field("active", "Bool", true, "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )", true);
 
         sb.structType("DefaultAdmins")
             .comment("The list of domain administrators.")
@@ -131,7 +134,8 @@ public class ZMSSchema {
 
         sb.structType("MemberRole")
             .field("roleName", "ResourceName", false, "name of the role")
-            .field("expiration", "Timestamp", true, "the expiration timestamp");
+            .field("expiration", "Timestamp", true, "the expiration timestamp")
+            .field("active", "Bool", true, "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )", true);
 
         sb.structType("DomainRoleMember")
             .field("memberName", "MemberName", false, "name of the member")
@@ -144,6 +148,10 @@ public class ZMSSchema {
         sb.structType("RoleSystemMeta")
             .comment("Set of system metadata attributes that all roles may have and can be changed by system admins.")
             .field("auditEnabled", "Bool", true, "Flag indicates whether or not role updates should be approved by GRC. If true, the auditRef parameter must be supplied(not empty) for any API defining it.", false);
+
+        sb.structType("RoleMeta")
+            .comment("Set of metadata attributes that all roles may have and can be changed by domain admins.")
+            .field("selfserve", "Bool", true, "Flag indicates whether or not role allows self service. Users can add themselves in the role, but it has to be approved by domain admins to be effective.", false);
 
         sb.enumType("AssertionEffect")
             .comment("Every assertion can have the effect of ALLOW or DENY.")
@@ -859,13 +867,13 @@ public class ZMSSchema {
 ;
 
         sb.resource("Membership", "PUT", "/domain/{domainName}/role/{roleName}/member/{memberName}")
-            .comment("Add the specified user to the role's member list.")
+            .comment("Add the specified user to the role's member list. If the role is neither auditEnabled nor selfserve, then it will use authorize (\"update\", \"{domainName}:role.{roleName}\") otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled roles ) or to domain admins ( in case of selfserve roles )")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("roleName", "EntityName", "name of the role")
             .pathParam("memberName", "MemberName", "name of the user to be added as a member")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .input("membership", "Membership", "Membership object (must contain role/member names as specified in the URI)")
-            .auth("update", "{domainName}:role.{roleName}")
+            .auth("", "", true)
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 
@@ -927,6 +935,50 @@ public class ZMSSchema {
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .input("detail", "RoleSystemMeta", "RoleSystemMeta object with updated attribute values")
             .auth("update", "sys.auth:role.meta.{attribute}.{domainName}")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("RoleMeta", "PUT", "/domain/{domainName}/role/{roleName}/meta")
+            .comment("Update the specified role metadata. Caller must have update privileges on the domain itself.")
+            .pathParam("domainName", "DomainName", "name of the domain to be updated")
+            .pathParam("roleName", "EntityName", "name of the role")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .input("detail", "RoleMeta", "RoleMeta object with updated attribute values")
+            .auth("update", "{domainName}:")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("Membership", "PUT", "/domain/{domainName}/role/{roleName}/member/{memberName}/decision")
+            .comment("Approve or Reject the request to add specified user to role membership. This endpoint will be used by 2 use cases: 1. Audit enabled roles with authorize (\"update\", \"sys.auth:role.meta.{attribute}.{domainName}\") 2. Selfserve roles in any domain with authorize (\"update\", \"{domainName}:\")")
+            .name("PutMembershipDecision")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("roleName", "EntityName", "name of the role")
+            .pathParam("memberName", "MemberName", "name of the user to be added as a member")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .input("membership", "Membership", "Membership object (must contain role/member names as specified in the URI)")
+            .auth("", "", true)
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 

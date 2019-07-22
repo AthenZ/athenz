@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.zms;
 
+import com.yahoo.athenz.zms.audit.MockAuditReferenceValidatorImpl;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
 import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
 import org.mockito.ArgumentMatchers;
@@ -46,8 +47,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.*;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
@@ -3669,11 +3669,12 @@ public class DBServiceTest {
     @Test
     public void testProcessRoleInsert() {
         ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
-        Role role = new Role().setName("newRole").setAuditEnabled(true);
+        Role role = new Role().setName("newRole").setAuditEnabled(true).setSelfserve(true);
         StringBuilder auditDetails = new StringBuilder("testAudit");
         zms.dbService.processRole(conn, null, "auditedDomain", "testRole1",
                 role, adminUser, auditRef, false, auditDetails);
         assertFalse(role.getAuditEnabled());
+        assertTrue(role.getSelfserve());
     }
 
     @Test
@@ -3691,5 +3692,237 @@ public class DBServiceTest {
         zms.dbService.processRole(conn, originalRole, "auditedDomain", "newRole2",
                 role2, adminUser, auditRef, false, auditDetails);
         assertTrue(role2.getAuditEnabled()); // original role has auditEnabled
+
+        Role role3 = new Role().setName("newRole3").setAuditEnabled(false).setSelfserve(true);
+        zms.dbService.processRole(conn, originalRole, "auditedDomain", "newRole3",
+                role3, adminUser, auditRef, false, auditDetails);
+        assertTrue(role3.getSelfserve());
+
+        Role role4 = new Role().setName("newRole4").setAuditEnabled(false).setSelfserve(false);
+        zms.dbService.processRole(conn, originalRole, "auditedDomain", "newRole4",
+                role4, adminUser, auditRef, false, auditDetails);
+        assertFalse(role4.getSelfserve());
     }
+
+    @Test
+    public void testUpdateRoleMetaFields() {
+        Role role = new Role();
+        RoleMeta meta = new RoleMeta().setSelfserve(true);
+        zms.dbService.updateRoleMetaFields(role, meta);
+        assertTrue(role.getSelfserve());
+    }
+
+    @Test
+    public void testAuditLogRoleMeta() {
+        StringBuilder auditDetails = new StringBuilder();
+        Role role = new Role().setName("role1").setSelfserve(true);
+        zms.dbService.auditLogRoleMeta(auditDetails, role);
+        assertEquals("{\"name\": \"role1\", \"selfserve\": \"true\"}", auditDetails.toString());
+    }
+
+    @Test
+    public void testExecutePutRoleMeta() {
+
+        List<String> admins = new ArrayList<>();
+        admins.add(adminUser);
+
+        zms.dbService.makeDomain(mockDomRsrcCtx, "MetaDom1", "test desc", "testOrg", false, admins, "", 1234, "", null, auditRef);
+
+        Role role = createRoleObject("MetaDom1", "MetaRole1", null, "user.john", "user.jane");
+        zms.dbService.executePutRole(mockDomRsrcCtx, "MetaDom1", "MetaRole1", role, "test", "putrole");
+
+        RoleMeta rm = new RoleMeta();
+        rm.setSelfserve(true);
+
+        zms.dbService.executePutRoleMeta(mockDomRsrcCtx, "MetaDom1", "MetaRole1",
+                rm, auditRef, "putrolemeta");
+
+        Role resRole1 = zms.dbService.getRole("MetaDom1", "MetaRole1", false, true);
+        assertTrue(resRole1.getSelfserve());
+        zms.dbService.executeDeleteDomain(mockDomRsrcCtx, "MetaDom1", auditRef, "deletedomain");
+
+    }
+
+    @Test
+    public void testCheckRoleAuditEnabledFlagTrueRefNull() {
+
+        String domainName = "audit-test-domain-name";
+        String roleName = "testrole";
+        Role role = new Role().setAuditEnabled(true);
+        Mockito.doReturn(role).when(mockFileConn).getRole(domainName, roleName);
+
+        String caller = "testCheckRoleAuditEnabledFlagTrueRefNull";
+        String principal = "testprincipal";
+        try {
+            zms.dbService.checkRoleAuditEnabled(mockFileConn, domainName, roleName,null, caller, principal);
+        } catch (ResourceException ex) {
+            assertEquals(400, ex.getCode());
+            assertTrue(ex.getMessage().contains("Audit reference required"));
+        }
+    }
+
+    @Test
+    public void testCheckRoleAuditEnabledFlagTrueRefEmpty() {
+
+        String domainName = "audit-test-domain-name";
+        String roleName = "testrole";
+        Role role = new Role().setAuditEnabled(true);
+        Mockito.doReturn(role).when(mockFileConn).getRole(domainName, roleName);
+
+        String auditCheck = "";  // empty string
+        String caller = "testCheckRoleAuditEnabledFlagTrueRefEmpty";
+        String principal = "testprincipal";
+        try {
+            zms.dbService.checkRoleAuditEnabled(mockFileConn, domainName, roleName, auditCheck, caller, principal);
+        } catch (ResourceException ex) {
+            assertEquals(400, ex.getCode());
+            assertTrue(ex.getMessage().contains("Audit reference required"));
+        }
+    }
+
+    @Test
+    public void testCheckRoleAuditEnabledFlagFalseRefValid() {
+
+        String domainName = "audit-test-domain-name";
+        String roleName = "testrole";
+        Role role = new Role().setAuditEnabled(false);
+        Mockito.doReturn(role).when(mockFileConn).getRole(domainName, roleName);
+
+        String auditCheck = "testaudit";
+        String caller = "testCheckRoleAuditEnabledFlagFalseRefValid";
+        String principal = "testprincipal";
+        Role rol = zms.dbService.checkRoleAuditEnabled(mockFileConn, domainName, roleName, auditCheck, caller, principal);
+        assertNotNull(rol);
+    }
+
+    @Test
+    public void testCheckRoleAuditEnabledFlagFalseRefNull() {
+
+        String domainName = "audit-test-domain-name";
+        String roleName = "testrole";
+        Role role = new Role().setAuditEnabled(false);
+        Mockito.doReturn(role).when(mockFileConn).getRole(domainName, roleName);
+
+        String caller = "testCheckRoleAuditEnabledFlagFalseRefNull";
+        String principal = "testprincipal";
+        Role rol = zms.dbService.checkRoleAuditEnabled(mockFileConn, domainName, roleName,null, caller, principal);
+        assertNotNull(rol);
+    }
+
+    @Test
+    public void testCheckRoleAuditEnabledNullRole() {
+
+        String domainName = "audit-test-domain-name";
+        String roleName = "invalid";
+        Role role = new Role().setAuditEnabled(false);
+        Mockito.doReturn(null).when(mockFileConn).getRole(domainName, roleName);
+
+        String caller = "testCheckRoleAuditEnabledNullRole";
+        String principal = "testprincipal";
+        try{
+            zms.dbService.checkRoleAuditEnabled(mockFileConn, domainName, roleName,null, caller, principal);
+            fail();
+        }catch(ResourceException r){
+            assertEquals(r.getCode(), 404);
+        }
+
+    }
+
+    @Test
+    public void testCheckRoleAuditEnabledFlagTrueRefValidationFail() {
+
+        String domainName = "audit-test-domain-name";
+        String roleName = "testrole";
+        Role role = new Role().setAuditEnabled(true);
+        Mockito.doReturn(role).when(mockFileConn).getRole(domainName, roleName);
+
+        AuditReferenceValidator validator = new MockAuditReferenceValidatorImpl();
+        zms.dbService.auditReferenceValidator = validator;
+
+        String caller = "testCheckRoleAuditEnabledFlagTrueRefValidationFail";
+        String principal = "testprincipal";
+        try {
+            zms.dbService.checkRoleAuditEnabled(mockFileConn, domainName, roleName,"auditref", caller, principal);
+        } catch (ResourceException ex) {
+            assertEquals(400, ex.getCode());
+            assertTrue(ex.getMessage().contains("Audit reference validation failed "));
+        }
+        zms.dbService.auditReferenceValidator = null;
+    }
+
+    @Test
+    public void testExecutePutMembershipDecision() {
+
+        String domainName = "mgradddom1";
+        String roleName = "role1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Role role1 = createRoleObject(domainName, roleName, null,
+                "user.joe", "user.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, role1);
+
+        zms.dbService.executePutMembership(mockDomRsrcCtx, domainName, roleName,
+                new RoleMember().setMemberName("user.doe").setActive(false), auditRef, "putMembership");
+
+        zms.dbService.executePutMembership(mockDomRsrcCtx, domainName, roleName,
+                new RoleMember().setMemberName("user.bob").setActive(false), auditRef, "putMembership");
+
+        zms.dbService.executePutMembershipDecision(mockDomRsrcCtx, domainName, roleName,
+                new RoleMember().setMemberName("user.doe").setActive(true), auditRef, "putMembershipDecision");
+
+        zms.dbService.executePutMembershipDecision(mockDomRsrcCtx, domainName, roleName,
+                new RoleMember().setMemberName("user.bob").setActive(false), auditRef, "putMembershipDecision");
+
+        Role role = zms.getRole(mockDomRsrcCtx, domainName, roleName, false, false);
+        assertNotNull(role);
+
+        List<RoleMember> members = role.getRoleMembers();
+        assertNotNull(members);
+        assertEquals(members.size(), 3);
+
+        List<String> checkList = new ArrayList<>();
+        checkList.add("user.joe");
+        checkList.add("user.jane");
+        checkList.add("user.doe");
+        checkRoleMember(checkList, members);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testExecutePutMembershipDecisionFail() {
+
+        String domainName = "mgradddom1";
+        String roleName = "role1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Role role1 = createRoleObject(domainName, roleName, null,
+                "user.joe", "user.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, role1);
+
+        zms.dbService.executePutMembership(mockDomRsrcCtx, domainName, roleName,
+                new RoleMember().setMemberName("user.doe").setActive(false), auditRef, "putMembership");
+
+        zms.dbService.executePutMembership(mockDomRsrcCtx, domainName, roleName,
+                new RoleMember().setMemberName("user.bob").setActive(false), auditRef, "putMembership");
+
+        try {
+            zms.dbService.executePutMembershipDecision(mockDomRsrcCtx, domainName, "invalid",
+                    new RoleMember().setMemberName("user.doe").setActive(true), auditRef, "putMembershipDecision");
+            fail();
+        }catch (ResourceException r) {
+            assertEquals(r.getCode(), 404);
+        }
+
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+
 }

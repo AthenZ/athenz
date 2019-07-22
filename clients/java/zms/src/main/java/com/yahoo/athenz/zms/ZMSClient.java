@@ -2096,4 +2096,45 @@ public class ZMSClient implements Closeable {
             throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
         }
     }
+
+    /**
+     * Set the role meta parameters
+     * @param domainName domain name containing the role to be modified
+     * @param roleName role name to be modified
+     * @param auditRef string containing audit specification or ticket number
+     * @param meta meta parameters to be set on the role
+     */
+    public void putRoleMeta(String domainName, String roleName, String auditRef, RoleMeta meta) {
+        updatePrincipal();
+        try {
+            client.putRoleMeta(domainName, roleName, auditRef, meta);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Approve or reject addition of a member in the specified role optionally with expiration
+     * @param domainName name of the domain
+     * @param roleName name of the role
+     * @param memberName name of the member to be added
+     * @param expiration timestamp when this membership will expire (optional)
+     * @param auditRef string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
+     */
+    public void putMembershipDecision(String domainName, String roleName, String memberName,
+                              Timestamp expiration, boolean approval, String auditRef) {
+        Membership mbr = new Membership().setRoleName(roleName)
+                .setMemberName(memberName).setExpiration(expiration).setActive(approval);
+        updatePrincipal();
+        try {
+            client.putMembershipDecision(domainName, roleName, memberName, auditRef, mbr);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ZMSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
 }

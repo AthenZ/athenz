@@ -552,4 +552,18 @@ public class FileConnectionTest {
             assertFalse(fileconnection.assertionMatch(assertion11, assertion12));
         }
     }
+
+    @Test
+    public void testConfirmRoleMember() {
+        File fileDir = new File("/home/athenz/zms_store");
+        File quotaDir = new File("/home/athenz/zms_quota");
+        try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
+            try {
+                fileconnection.confirmRoleMember("DummyDomain1", "Role1",
+                        new RoleMember().setMemberName("principal1"), "audit1", "zmsjcltest");
+            } catch (Exception ex) {
+                assertTrue(true);
+            }
+        }
+    }
 }

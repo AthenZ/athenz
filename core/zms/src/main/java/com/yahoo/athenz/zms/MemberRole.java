@@ -14,6 +14,9 @@ public class MemberRole {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Timestamp expiration;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Boolean active;
 
     public MemberRole setRoleName(String roleName) {
         this.roleName = roleName;
@@ -29,6 +32,13 @@ public class MemberRole {
     public Timestamp getExpiration() {
         return expiration;
     }
+    public MemberRole setActive(Boolean active) {
+        this.active = active;
+        return this;
+    }
+    public Boolean getActive() {
+        return active;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -43,7 +53,20 @@ public class MemberRole {
             if (expiration == null ? a.expiration != null : !expiration.equals(a.expiration)) {
                 return false;
             }
+            if (active == null ? a.active != null : !active.equals(a.active)) {
+                return false;
+            }
         }
         return true;
+    }
+
+    //
+    // sets up the instance according to its default field values, if any
+    //
+    public MemberRole init() {
+        if (active == null) {
+            active = true;
+        }
+        return this;
     }
 }

@@ -30,6 +30,9 @@ public class Role {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean auditEnabled;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Boolean selfserve;
 
     public Role setName(String name) {
         this.name = name;
@@ -80,6 +83,13 @@ public class Role {
     public Boolean getAuditEnabled() {
         return auditEnabled;
     }
+    public Role setSelfserve(Boolean selfserve) {
+        this.selfserve = selfserve;
+        return this;
+    }
+    public Boolean getSelfserve() {
+        return selfserve;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -107,6 +117,9 @@ public class Role {
                 return false;
             }
             if (auditEnabled == null ? a.auditEnabled != null : !auditEnabled.equals(a.auditEnabled)) {
+                return false;
+            }
+            if (selfserve == null ? a.selfserve != null : !selfserve.equals(a.selfserve)) {
                 return false;
             }
         }

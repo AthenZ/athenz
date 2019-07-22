@@ -571,6 +571,13 @@ type RoleMember struct {
 	// the expiration timestamp
 	//
 	Expiration *rdl.Timestamp `json:"expiration,omitempty" rdl:"optional"`
+
+	//
+	// Flag to indicate whether membership is approved either by delegates ( in
+	// case of auditEnabled roles ) or by domain admins ( in case of selfserve roles
+	// )
+	//
+	Active *bool `json:"active,omitempty" rdl:"optional"`
 }
 
 //
@@ -583,7 +590,18 @@ func NewRoleMember(init ...*RoleMember) *RoleMember {
 	} else {
 		o = new(RoleMember)
 	}
-	return o
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *RoleMember) Init() *RoleMember {
+	if self.Active == nil {
+		d := true
+		self.Active = &d
+	}
+	return self
 }
 
 type rawRoleMember RoleMember
@@ -596,7 +614,7 @@ func (self *RoleMember) UnmarshalJSON(b []byte) error {
 	err := json.Unmarshal(b, &m)
 	if err == nil {
 		o := RoleMember(m)
-		*self = o
+		*self = *((&o).Init())
 		err = self.Validate()
 	}
 	return err
@@ -658,6 +676,13 @@ type Role struct {
 	// it.
 	//
 	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional"`
+
+	//
+	// Flag indicates whether or not role allows self service. Users can add
+	// themselves in the role, but it has to be approved by domain admins to be
+	// effective.
+	//
+	Selfserve *bool `json:"selfserve,omitempty" rdl:"optional"`
 }
 
 //
@@ -794,6 +819,13 @@ type Membership struct {
 	// the expiration timestamp
 	//
 	Expiration *rdl.Timestamp `json:"expiration,omitempty" rdl:"optional"`
+
+	//
+	// Flag to indicate whether membership is approved either by delegates ( in
+	// case of auditEnabled roles ) or by domain admins ( in case of selfserve roles
+	// )
+	//
+	Active *bool `json:"active,omitempty" rdl:"optional"`
 }
 
 //
@@ -816,6 +848,10 @@ func (self *Membership) Init() *Membership {
 	if self.IsMember == nil {
 		d := true
 		self.IsMember = &d
+	}
+	if self.Active == nil {
+		d := true
+		self.Active = &d
 	}
 	return self
 }
@@ -931,6 +967,13 @@ type MemberRole struct {
 	// the expiration timestamp
 	//
 	Expiration *rdl.Timestamp `json:"expiration,omitempty" rdl:"optional"`
+
+	//
+	// Flag to indicate whether membership is approved either by delegates ( in
+	// case of auditEnabled roles ) or by domain admins ( in case of selfserve roles
+	// )
+	//
+	Active *bool `json:"active,omitempty" rdl:"optional"`
 }
 
 //
@@ -943,7 +986,18 @@ func NewMemberRole(init ...*MemberRole) *MemberRole {
 	} else {
 		o = new(MemberRole)
 	}
-	return o
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *MemberRole) Init() *MemberRole {
+	if self.Active == nil {
+		d := true
+		self.Active = &d
+	}
+	return self
 }
 
 type rawMemberRole MemberRole
@@ -956,7 +1010,7 @@ func (self *MemberRole) UnmarshalJSON(b []byte) error {
 	err := json.Unmarshal(b, &m)
 	if err == nil {
 		o := MemberRole(m)
-		*self = o
+		*self = *((&o).Init())
 		err = self.Validate()
 	}
 	return err
@@ -1170,6 +1224,56 @@ func (self *RoleSystemMeta) UnmarshalJSON(b []byte) error {
 // Validate - checks for missing required fields, etc
 //
 func (self *RoleSystemMeta) Validate() error {
+	return nil
+}
+
+//
+// RoleMeta - Set of metadata attributes that all roles may have and can be
+// changed by domain admins.
+//
+type RoleMeta struct {
+
+	//
+	// Flag indicates whether or not role allows self service. Users can add
+	// themselves in the role, but it has to be approved by domain admins to be
+	// effective.
+	//
+	Selfserve *bool `json:"selfserve,omitempty" rdl:"optional"`
+}
+
+//
+// NewRoleMeta - creates an initialized RoleMeta instance, returns a pointer to it
+//
+func NewRoleMeta(init ...*RoleMeta) *RoleMeta {
+	var o *RoleMeta
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(RoleMeta)
+	}
+	return o
+}
+
+type rawRoleMeta RoleMeta
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a RoleMeta
+//
+func (self *RoleMeta) UnmarshalJSON(b []byte) error {
+	var m rawRoleMeta
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := RoleMeta(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *RoleMeta) Validate() error {
 	return nil
 }
 

@@ -284,3 +284,15 @@ func (cli Zms) SetRoleAuditEnabled(dn string, rn string, auditEnabled bool) (*st
 	s := "[domain " + dn + " role " + rn + " audit-enabled successfully updated]\n"
 	return &s, nil
 }
+
+func (cli Zms) SetRoleSelfserve(dn string, rn string, selfserve bool) (*string, error) {
+	meta := zms.RoleMeta{
+		Selfserve: &selfserve,
+	}
+	err := cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " role " + rn + " self-serve attribute successfully updated]\n"
+	return &s, nil
+}

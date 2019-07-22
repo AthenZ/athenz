@@ -133,6 +133,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private static final String TYPE_MEMBERSHIP = "Membership";
     private static final String TYPE_QUOTA = "Quota";
     private static final String TYPE_ROLE_SYSTEM_META = "RoleSystemMeta";
+    private static final String TYPE_ROLE_META = "RoleMeta";
+
+    private static final String SYS_AUTH_AUDIT = "sys.auth.audit";
     
     public static Metric metric;
     public static String serverHostName  = null;
@@ -2918,8 +2921,18 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         roleMember.setMemberName(memberName);
         roleMember.setExpiration(membership.getExpiration());
 
-        dbService.executePutMembership(ctx, domainName, roleName,
-                getNormalizedMember(roleMember), auditRef, caller);
+        //authorization check
+        if (isAllowedPutMembership(((RsrcCtxWrapper) ctx).principal(), domainName, roleName, memberName)) {
+            if (isAllowedPutMembershipWithoutApproval(((RsrcCtxWrapper) ctx).principal(), domainName, roleName)) {
+                roleMember.setActive(true);
+            } else {
+                roleMember.setActive(false);
+            }
+        } else {
+            throw ZMSUtils.forbiddenError("putMembership: principal is not authorized to add members", caller);
+        }
+
+        dbService.executePutMembership(ctx, domainName, roleName, getNormalizedMember(roleMember), auditRef, caller);
         metric.stopTiming(timerMetric, domainName, principalDomain);
     }
 
@@ -6644,4 +6657,198 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         dbService.executePutRoleSystemMeta(ctx, domainName, roleName, meta, attribute, deleteAllowed, auditRef, caller);
         metric.stopTiming(timerMetric, domainName, principalDomain);
     }
+
+    @Override
+    public void putRoleMeta(ResourceContext ctx, String domainName, String roleName, String auditRef, RoleMeta meta) {
+
+        final String caller = "putrolemeta";
+        metric.increment(ZMSConsts.HTTP_PUT);
+        logPrincipal(ctx);
+
+        if (readOnlyMode) {
+            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+        }
+
+        validateRequest(ctx.request(), caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(roleName, TYPE_ENTITY_NAME, caller);
+        validate(meta, TYPE_ROLE_META, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+        roleName = roleName.toLowerCase();
+
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("putrolemeta_timing", domainName, principalDomain);
+
+        // verify that request is properly authenticated for this request
+
+        Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        verifyAuthorizedServiceOperation(principal.getAuthorizedService(), caller);
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("putRoleMeta: name={}, role={} meta={}", domainName, roleName, meta);
+        }
+
+        dbService.executePutRoleMeta(ctx, domainName, roleName, meta, auditRef, caller);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
+    }
+
+    @Override
+    public void putMembershipDecision(ResourceContext ctx, String domainName, String roleName, String memberName, String auditRef, Membership membership) {
+
+        final String caller = "putmembershipdecision";
+        metric.increment(ZMSConsts.HTTP_PUT);
+        logPrincipal(ctx);
+
+        if (readOnlyMode) {
+            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+        }
+
+        validateRequest(ctx.request(), caller);
+
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(roleName, TYPE_ENTITY_NAME, caller);
+        validate(memberName, TYPE_MEMBER_NAME, caller);
+        validate(membership, TYPE_MEMBERSHIP, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+        roleName = roleName.toLowerCase();
+        memberName = memberName.toLowerCase();
+        AthenzObject.MEMBERSHIP.convertToLowerCase(membership);
+
+        final String principalDomain = getPrincipalDomain(ctx);
+        metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
+        metric.increment(caller, domainName, principalDomain);
+        Object timerMetric = metric.startTiming("putmembershipdecision_timing", domainName, principalDomain);
+
+        // verify that request is properly authenticated for this request
+
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(),
+                caller, "role", roleName);
+
+        // verify that the member name in the URI and object provided match
+
+        if (!memberName.equals(membership.getMemberName())) {
+            throw ZMSUtils.requestError("putMembershipDecision: Member name in URI and Membership object do not match", caller);
+        }
+
+        // role name is optional so we'll verify only if the value is present in the object
+
+        if (membership.getRoleName() != null && !roleName.equals(membership.getRoleName())) {
+            throw ZMSUtils.requestError("putMembershipDecision: Role name in URI and Membership object do not match", caller);
+        }
+
+        //authorization check
+        if (!isAllowedPutMembershipDecision(((RsrcCtxWrapper) ctx).principal(), domainName, roleName)) {
+            throw ZMSUtils.forbiddenError("putMembershipDecision: principal is not authorized to approve / reject members", caller);
+        }
+
+        RoleMember roleMember = new RoleMember();
+        roleMember.setMemberName(memberName);
+        roleMember.setExpiration(membership.getExpiration());
+        roleMember.setActive(membership.getActive());
+
+        dbService.executePutMembershipDecision(ctx, domainName, roleName, getNormalizedMember(roleMember), auditRef, caller);
+
+        metric.stopTiming(timerMetric, domainName, principalDomain);
+    }
+
+    private boolean isAllowedPutMembershipDecision(Principal principal, String domainName, String roleName) {
+        AthenzDomain domain = getAthenzDomain(domainName, false);
+        if (domain != null) {
+            if (isAuditEnabledRole(roleName, domain)) {
+                // check authorization in sys.auth.audit
+                return isAllowedAuditRoleMembershipApproval(principal, domain);
+            } else {
+                return isAllowedPutMembershipAccess(principal, domainName, roleName, domain);
+            }
+        }
+        return false;
+    }
+
+    boolean isAllowedAuditRoleMembershipApproval(Principal principal, final AthenzDomain reqDomain) {
+
+        // the authorization policy resides in official sys.auth.audit domain
+
+        AthenzDomain authdomain = getAthenzDomain(SYS_AUTH_AUDIT, true);
+
+        // evaluate our domain's roles and policies to see if access
+        // is allowed or not for the given operation and resource
+        // our action are always converted to lowercase
+        String resource = SYS_AUTH_AUDIT + ":grc." + reqDomain.getDomain().getOrg() + "_domain_" + reqDomain.getDomain().getName();
+        AccessStatus accessStatus = evaluateAccess(authdomain, principal.getFullName(), "update", resource, null, null);
+        return accessStatus == AccessStatus.ALLOWED;
+    }
+
+    Role getRoleFromDomain (final String roleName, AthenzDomain domain) {
+         if (domain != null && domain.getRoles() != null) {
+            for (Role role : domain.getRoles()) {
+                if (role != null && role.getName().equalsIgnoreCase(domain.getName() + ":role." + roleName)) {
+                    return role;
+                }
+            }
+        }
+        return null;
+    }
+
+
+    boolean isAuditEnabledRole (final String roleName, AthenzDomain domain) {
+        Role role = getRoleFromDomain(roleName, domain);
+        return role != null && role.getAuditEnabled() != null && role.getAuditEnabled();
+    }
+
+    boolean isSelfserveRole (final String roleName, AthenzDomain domain) {
+        Role role = getRoleFromDomain(roleName, domain);
+        return role != null && role.getSelfserve() != null && role.getSelfserve();
+    }
+
+    boolean isAllowedPutMembershipAccess(Principal principal, final String reqDomain, final String roleName, final AthenzDomain domain) {
+
+
+        if (domain != null) {
+            // evaluate our domain's roles and policies to see if access
+            // is allowed or not for the given operation and resource
+            // our action are always converted to lowercase
+            String resource = reqDomain + ":role." + roleName;
+            AccessStatus accessStatus = evaluateAccess(domain, principal.getFullName(), "update", resource, null, null);
+            return accessStatus == AccessStatus.ALLOWED;
+        }
+        return false;
+
+    }
+
+    boolean isAllowedPutMembershipWithoutApproval(Principal principal, final String reqDomain, final String roleName) {
+        AthenzDomain domain = getAthenzDomain(reqDomain, false);
+        if (isAuditEnabledRole(roleName, domain)) {
+            return false;
+        } else {
+            return isAllowedPutMembershipAccess(principal, reqDomain, roleName, domain);
+        }
+    }
+
+    boolean isAllowedPutMembershipSelfserve(final Principal principal, final String memberName) {
+        return principal.getFullName().equals(memberName);
+    }
+
+    boolean isAllowedPutMembership(Principal principal, final String reqDomain, final String roleName, final String memberName) {
+
+        AthenzDomain domain = getAthenzDomain(reqDomain, false);
+        if (isSelfserveRole(roleName, domain)) {
+            return isAllowedPutMembershipAccess(principal, reqDomain, roleName, domain) || isAllowedPutMembershipSelfserve(principal, memberName);
+        } else {
+            return isAllowedPutMembershipAccess(principal, reqDomain, roleName, domain);
+        }
+
+    }
+
 }

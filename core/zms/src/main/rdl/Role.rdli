@@ -115,13 +115,16 @@ resource DomainRoleMembers GET "/domain/{domainName}/member" {
 }
 
 //Add the specified user to the role's member list.
+//If the role is neither auditEnabled nor selfserve, then it will use authorize ("update", "{domainName}:role.{roleName}")
+//otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled roles ) or to
+//domain admins ( in case of selfserve roles )
 resource Membership PUT "/domain/{domainName}/role/{roleName}/member/{memberName}" {
     DomainName domainName; //name of the domain
     EntityName roleName; //name of the role
     MemberName memberName; //name of the user to be added as a member
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     Membership membership; //Membership object (must contain role/member names as specified in the URI)
-    authorize ("update", "{domainName}:role.{roleName}");
+    authenticate;
     expected NO_CONTENT;
     exceptions {
         ResourceError NOT_FOUND;
@@ -182,6 +185,46 @@ resource Role PUT "/domain/{domainName}/role/{roleName}/meta/system/{attribute}"
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     RoleSystemMeta detail; //RoleSystemMeta object with updated attribute values
     authorize ("update", "sys.auth:role.meta.{attribute}.{domainName}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+//Update the specified role metadata. Caller must have update privileges on the domain itself.
+resource Role PUT "/domain/{domainName}/role/{roleName}/meta" {
+    DomainName domainName; //name of the domain to be updated
+    EntityName roleName; //name of the role
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    RoleMeta detail; //RoleMeta object with updated attribute values
+    authorize ("update", "{domainName}:");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+//Approve or Reject the request to add specified user to role membership.
+// This endpoint will be used by 2 use cases:
+// 1. Audit enabled roles with authorize ("update", "sys.auth:role.meta.{attribute}.{domainName}")
+// 2. Selfserve roles in any domain with authorize ("update", "{domainName}:")
+resource Membership PUT "/domain/{domainName}/role/{roleName}/member/{memberName}/decision" (name=PutMembershipDecision) {
+    DomainName domainName; //name of the domain
+    EntityName roleName; //name of the role
+    MemberName memberName; //name of the user to be added as a member
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    Membership membership; //Membership object (must contain role/member names as specified in the URI)
+    authenticate;
     expected NO_CONTENT;
     exceptions {
         ResourceError NOT_FOUND;
