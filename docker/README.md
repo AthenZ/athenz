@@ -56,10 +56,22 @@ make build | tee ./athenz-docker-build.log
         make run-docker-dev
         ```
     - Note for UI
-        1. As the self-signed certificates are not trusted by the browser and do not have the `${HOSTNAME}` in the SAN field, you need to ignore the browsers warning message explicitly for UI to work.
-            - ZMS certificate: access `echo https://${HOSTNAME}:${ZMS_PORT:-4443}/zms/v1/status`
-            - UI certificate: access `echo https://${HOSTNAME}:${UI_PORT:-443}/`
-        1. UI login username/password
+        - Requires to explicitly ignore the browser certificate warning for both ZMS and UI
+            - To ignore the browser warning,
+                1. for ZMS server certificate,
+                    1. get ZMS URL by `echo https://${HOSTNAME}:${ZMS_PORT:-4443}/zms/v1/status`
+                    1. access ZMS using above URL in the browser
+                    1. ignore the browser warning (certificate authority invalid)
+                1. for UI server certificate,
+                    1. get UI URL by `echo https://${HOSTNAME}:${UI_PORT:-443}/`
+                    1. access UI using above URL in the browser
+                    1. ignore the browser warning (certificate authority invalid)
+            - Explanation
+                - The certificates generated in DEV. deployment are all self-signed certificates.
+                - They are not trusted by the browser.
+                - Also, they may not have the correct `${HOSTNAME}` in the SAN field depending on your DEV. deployment.
+                - Hence, explicitly ignoring the browsers warning message is needed.
+        - UI login username/password
             - username: `admin` ([zms.properties](./zms/conf/zms.properties#L37-L41))
             - password: `replace_me_with_a_strong_password` ([deploy script](./deploy-scripts/1.2.config-zms-domain-admin.dev.sh#L12))
 
