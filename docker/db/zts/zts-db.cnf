@@ -1,0 +1,8 @@
+[mysqld]
+port=3307
+#innodb_file_format=Barracuda
+#innodb_file_per_table=ON
+#innodb_large_prefix=1
+
+[mysqladmin]
+port=3307
