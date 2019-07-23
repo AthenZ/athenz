@@ -9,7 +9,7 @@ cd ../
 # variables
 DOCKER_NETWORK=${DOCKER_NETWORK:-athenz}
 USER_TOKEN_PATH=${USER_TOKEN_PATH:-"`pwd`/deploy-scripts/user-token.txt"}
-ZMS_ADMIN_PASS=${ZMS_ADMIN_PASS:-replace_me_with_a_strong_passowrd}
+ZMS_ADMIN_PASS=${ZMS_ADMIN_PASS:-replace_me_with_a_strong_password}
 ZMS_HOST=${ZMS_HOST:-athenz-zms-server}
 ZMS_PORT=${ZMS_PORT:-4443}
 CLI_STATIC_IP=${CLI_STATIC_IP:-172.21.255.254}

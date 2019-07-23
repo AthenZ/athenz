@@ -4,17 +4,17 @@
 ## Index
 <!-- TOC depthFrom:2 updateOnSave:true -->
 
-- [Athenz on Docker](#Athenz-on-Docker)
-    - [Index](#Index)
-    - [Prerequisite](#Prerequisite)
-    - [Build Athenz](#Build-Athenz)
-    - [Deploy Athenz](#Deploy-Athenz)
-    - [Cleanup](#Cleanup)
-    - [Configuration Details](#Configuration-Details)
-    - [Useful Commands](#Useful-Commands)
-    - [[WIP] deploy with docker-stack](#WIP-deploy-with-docker-stack)
-    - [TO-DO](#TO-DO)
-    - [Important Files](#Important-Files)
+- [Athenz on Docker](#athenz-on-docker)
+    - [Index](#index)
+    - [Prerequisite](#prerequisite)
+    - [Build Athenz](#build-athenz)
+    - [Deploy Athenz](#deploy-athenz)
+    - [Cleanup](#cleanup)
+    - [Configuration Details](#configuration-details)
+    - [Useful Commands](#useful-commands)
+    - [[WIP] deploy with docker-stack](#wip-deploy-with-docker-stack)
+    - [TO-DO](#to-do)
+    - [Important Files](#important-files)
 
 <!-- /TOC -->
 
@@ -36,7 +36,7 @@ make build | tee ./athenz-docker-build.log
 <a id="markdown-deploy-athenz" name="deploy-athenz"></a>
 ## Deploy Athenz
 
-- development evnvironment
+- development environment
     - deploy commands
         ```bash
         cd `git rev-parse --show-toplevel`/docker
@@ -61,7 +61,7 @@ make build | tee ./athenz-docker-build.log
             - UI certificate: access `echo https://${HOSTNAME}:${UI_PORT:-443}/`
         1. UI login username/password
             - username: `admin` ([zms.properties](./zms/conf/zms.properties#L37-L41))
-            - password: `replace_me_with_a_strong_passowrd` ([deploy script](./deploy-scripts/1.2.config-zms-domain-admin.dev.sh#L12))
+            - password: `replace_me_with_a_strong_password` ([deploy script](./deploy-scripts/1.2.config-zms-domain-admin.dev.sh#L12))
 
 <a id="markdown-cleanup" name="cleanup"></a>
 ## Cleanup
@@ -75,7 +75,7 @@ make clean
 
 <a id="markdown-configuration-details" name="configuration-details"></a>
 ## Configuration Details
-- development evnvironment
+- development environment
     - [configuration.dev.md](./docs/configuration.dev.md)
     - server ports
         - `3306`: ZMS DB
@@ -211,15 +211,12 @@ sudo systemctl restart docker
 -   UI
     1.  convert `default-config.js` parameters to ENV
     1.  `server.js`, `login.js`, `serviceFQN`; `keys` folder is hard coded
-    1.  configurable listering port
-    1.  ~~split `ZMS_SERVER` env. for browser to ZMS ajax call and internal connection from UI to ZMS~~
+    1.  configurable listening port
 -   ZMS
-    1.  NO retry on DB connection error when deploy with docker stack
-    1.  Warning message in docker log: `Loading class `com.mysql.jdbc.Driver'. This is deprecated. The new driver class is `com.mysql.cj.jdbc.Driver'. The driver is automatically registered via the SPI and manual loading of the driver class is generally unnecessary.`
+    1.  need server health check, e.g. readiness probe
+    1.  Warning message in docker log: `Loading class 'com.mysql.jdbc.Driver'. This is deprecated. The new driver class is 'com.mysql.cj.jdbc.Driver'. The driver is automatically registered via the SPI and manual loading of the driver class is generally unnecessary.`
 -   ZTS
     1.  `docker/zts/var/zts_store/` create as root user by docker for storing policy, better to change the default location folder outside the Athenz project folder
--   ZTS-DB
-    1.  ~~`DEFAULT CHARSET = latin1`~~
 -   ZPU
     1.  If volume not mount to `/home/athenz/tmp/zpe/`, will have error: `2019/06/12 06:34:09 Failed to get policies for domain: garm, Error:Unable to write Policies for domain:"garm" to file, Error:rename /home/athenz/tmp/zpe/garm.tmp /etc/acceptance-test/zpu/garm.pol: invalid cross-device link`
 -   athenz-cli
