@@ -187,6 +187,7 @@ public class X509CertRequest {
         }
 
         if (instanceHostnameCheck(dnsName, instanceHostname, hostnameResolver)) {
+            providerDnsNames.add(dnsName);
             return true;
         }
 
