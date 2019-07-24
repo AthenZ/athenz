@@ -12723,7 +12723,7 @@ public class ZMSImplTest {
 
         try {
             RoleSystemMeta rsm = createRoleSystemMetaObject(true);
-            zmsTest.putRoleSystemMeta(mockDomRsrcCtx, "domain", "Role1", "auditenabled", auditRef, rsm);
+            zmsTest.putRoleSystemMeta(mockDomRsrcCtx, "domain", "role1", "auditenabled", auditRef, rsm);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -12732,7 +12732,7 @@ public class ZMSImplTest {
 
         try {
             RoleMeta rm = createRoleMetaObject(true);
-            zmsTest.putRoleMeta(mockDomRsrcCtx, "domain", "Role1", "auditenabled", rm);
+            zmsTest.putRoleMeta(mockDomRsrcCtx, "domain", "role1", "auditenabled", rm);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -12740,7 +12740,7 @@ public class ZMSImplTest {
         }
 
         try {
-            zmsTest.putMembershipDecision(mockDomRsrcCtx, "ReadOnlyDom1", "Role1", "Member1", auditRef, null);
+            zmsTest.putMembershipDecision(mockDomRsrcCtx, "readonlydom1", "role1", "member1", auditRef, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -15730,30 +15730,30 @@ public class ZMSImplTest {
     @Test
     public void testPutRoleSystemMeta() {
 
-        TopLevelDomain dom1 = createTopLevelDomainObject("RoleSystemMetaDom1",
+        TopLevelDomain dom1 = createTopLevelDomainObject("rolesystemmetadom1",
                 "Role System Meta Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        Domain resDom1 = zms.getDomain(mockDomRsrcCtx, "RoleSystemMetaDom1");
+        Domain resDom1 = zms.getDomain(mockDomRsrcCtx, "rolesystemmetadom1");
 
         DomainMeta meta = createDomainMetaObject("Domain Meta for Role System Meta test", "NewOrg",
                 true, true, "12345", 1001);
-        zms.putDomainMeta(mockDomRsrcCtx, "RoleSystemMetaDom1", auditRef, meta);
-        zms.putDomainSystemMeta(mockDomRsrcCtx, "RoleSystemMetaDom1", "auditenabled", auditRef, meta);
+        zms.putDomainMeta(mockDomRsrcCtx, "rolesystemmetadom1", auditRef, meta);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, "rolesystemmetadom1", "auditenabled", auditRef, meta);
 
-        Role role1 = createRoleObject("RoleSystemMetaDom1", "Role1", null,
+        Role role1 = createRoleObject("rolesystemmetadom1", "role1", null,
                 "user.john", "user.jane");
-        zms.putRole(mockDomRsrcCtx, "RoleSystemMetaDom1", "Role1", auditRef, role1);
+        zms.putRole(mockDomRsrcCtx, "rolesystemmetadom1", "role1", auditRef, role1);
 
         RoleSystemMeta rsm = createRoleSystemMetaObject(true);
-        zms.putRoleSystemMeta(mockDomRsrcCtx, "RoleSystemMetaDom1", "Role1", "auditenabled", auditRef, rsm);
+        zms.putRoleSystemMeta(mockDomRsrcCtx, "rolesystemmetadom1", "role1", "auditenabled", auditRef, rsm);
 
-        Role resRole1 = zms.getRole(mockDomRsrcCtx, "RoleSystemMetaDom1", "Role1", true, false);
+        Role resRole1 = zms.getRole(mockDomRsrcCtx, "rolesystemmetadom1", "role1", true, false);
 
         assertNotNull(resRole1);
         assertTrue(resRole1.getAuditEnabled());
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "RoleSystemMetaDom1", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "rolesystemmetadom1", auditRef);
 
     }
 
@@ -15761,31 +15761,31 @@ public class ZMSImplTest {
     public void testPutRoleSystemMetaMissingAuditRef() {
 
 
-        TopLevelDomain dom1 = createTopLevelDomainObject("RoleSystemMetaDom1",
+        TopLevelDomain dom1 = createTopLevelDomainObject("rolesystemmetadom1",
                 "Role System Meta Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        Domain resDom1 = zms.getDomain(mockDomRsrcCtx, "RoleSystemMetaDom1");
+        Domain resDom1 = zms.getDomain(mockDomRsrcCtx, "rolesystemmetadom1");
 
         DomainMeta meta = createDomainMetaObject("Domain Meta for Role System Meta test", "NewOrg",
                 true, true, "12345", 1001);
-        zms.putDomainMeta(mockDomRsrcCtx, "RoleSystemMetaDom1", auditRef, meta);
-        zms.putDomainSystemMeta(mockDomRsrcCtx, "RoleSystemMetaDom1", "auditenabled", auditRef, meta);
+        zms.putDomainMeta(mockDomRsrcCtx, "rolesystemmetadom1", auditRef, meta);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, "rolesystemmetadom1", "auditenabled", auditRef, meta);
 
-        Role role1 = createRoleObject("RoleSystemMetaDom1", "Role1", null,
+        Role role1 = createRoleObject("rolesystemmetadom1", "role1", null,
                 "user.john", "user.jane");
-        zms.putRole(mockDomRsrcCtx, "RoleSystemMetaDom1", "Role1", auditRef, role1);
+        zms.putRole(mockDomRsrcCtx, "rolesystemmetadom1", "role1", auditRef, role1);
 
         RoleSystemMeta rsm = createRoleSystemMetaObject(true);
 
         try {
-            zms.putRoleSystemMeta(mockDomRsrcCtx, "RoleSystemMetaDom1", "Role1", "auditenabled", null, rsm);
+            zms.putRoleSystemMeta(mockDomRsrcCtx, "rolesystemmetadom1", "role1", "auditenabled", null, rsm);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Audit reference required"));
         } finally {
-            zms.deleteTopLevelDomain(mockDomRsrcCtx, "RoleSystemMetaDom1", auditRef);
+            zms.deleteTopLevelDomain(mockDomRsrcCtx, "rolesystemmetadom1", auditRef);
         }
 
     }
@@ -15800,7 +15800,7 @@ public class ZMSImplTest {
         rsm.setAuditEnabled(false);
 
         try {
-            zmsImpl.putRoleSystemMeta(mockDomRsrcCtx, "RoleSystemMetaDom1", "Role1", "auditenabled", null, rsm);
+            zmsImpl.putRoleSystemMeta(mockDomRsrcCtx, "rolesystemmetadom1", "role1", "auditenabled", null, rsm);
             fail("notfounderror not thrown.");
         } catch (ResourceException e) {
             assertEquals(404, e.getCode());
@@ -15839,23 +15839,23 @@ public class ZMSImplTest {
     @Test
     public void testPutRoleMeta() {
 
-        TopLevelDomain dom1 = createTopLevelDomainObject("RoleMetaDom1",
+        TopLevelDomain dom1 = createTopLevelDomainObject("rolemetadom1",
                 "Role Meta Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        Role role1 = createRoleObject("RoleMetaDom1", "Role1", null,
+        Role role1 = createRoleObject("rolemetadom1", "role1", null,
                 "user.john", "user.jane");
-        zms.putRole(mockDomRsrcCtx, "RoleMetaDom1", "Role1", auditRef, role1);
+        zms.putRole(mockDomRsrcCtx, "rolemetadom1", "role1", auditRef, role1);
 
         RoleMeta rm = createRoleMetaObject(true);
-        zms.putRoleMeta(mockDomRsrcCtx, "RoleMetaDom1", "Role1", auditRef, rm);
+        zms.putRoleMeta(mockDomRsrcCtx, "rolemetadom1", "role1", auditRef, rm);
 
-        Role resRole1 = zms.getRole(mockDomRsrcCtx, "RoleMetaDom1", "Role1", true, false);
+        Role resRole1 = zms.getRole(mockDomRsrcCtx, "rolemetadom1", "role1", true, false);
 
         assertNotNull(resRole1);
         assertTrue(resRole1.getSelfserve());
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "RoleMetaDom1", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "rolemetadom1", auditRef);
 
     }
 
@@ -15863,32 +15863,32 @@ public class ZMSImplTest {
     public void testPutRoleMetaMissingAuditRef() {
 
 
-        TopLevelDomain dom1 = createTopLevelDomainObject("RoleMetaDom1", "Role Meta Test Domain1", "testOrg", adminUser);
+        TopLevelDomain dom1 = createTopLevelDomainObject("rolemetadom1", "Role Meta Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        Domain resDom1 = zms.getDomain(mockDomRsrcCtx, "RoleMetaDom1");
+        Domain resDom1 = zms.getDomain(mockDomRsrcCtx, "rolemetadom1");
 
         DomainMeta meta = createDomainMetaObject("Domain Meta for Role Meta test", "NewOrg",
                 true, true, "12345", 1001);
-        zms.putDomainMeta(mockDomRsrcCtx, "RoleMetaDom1", auditRef, meta);
-        zms.putDomainSystemMeta(mockDomRsrcCtx, "RoleMetaDom1", "auditenabled", auditRef, meta);
+        zms.putDomainMeta(mockDomRsrcCtx, "rolemetadom1", auditRef, meta);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, "rolemetadom1", "auditenabled", auditRef, meta);
 
-        Role role1 = createRoleObject("RoleMetaDom1", "Role1", null,
+        Role role1 = createRoleObject("rolemetadom1", "role1", null,
                 "user.john", "user.jane");
-        zms.putRole(mockDomRsrcCtx, "RoleMetaDom1", "Role1", auditRef, role1);
+        zms.putRole(mockDomRsrcCtx, "rolemetadom1", "role1", auditRef, role1);
 
         RoleSystemMeta rsm = createRoleSystemMetaObject(true);
-        zms.putRoleSystemMeta(mockDomRsrcCtx, "RoleMetaDom1", "Role1", "auditenabled", auditRef, rsm);
+        zms.putRoleSystemMeta(mockDomRsrcCtx, "rolemetadom1", "role1", "auditenabled", auditRef, rsm);
 
         RoleMeta rm = createRoleMetaObject(true);
         try {
-            zms.putRoleMeta(mockDomRsrcCtx, "RoleMetaDom1", "Role1", null, rm);
+            zms.putRoleMeta(mockDomRsrcCtx, "rolemetadom1", "role1", null, rm);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Audit reference required"));
         } finally {
-            zms.deleteTopLevelDomain(mockDomRsrcCtx, "RoleMetaDom1", auditRef);
+            zms.deleteTopLevelDomain(mockDomRsrcCtx, "rolemetadom1", auditRef);
         }
 
     }
@@ -15903,7 +15903,7 @@ public class ZMSImplTest {
         rm.setSelfserve(false);
 
         try {
-            zmsImpl.putRoleMeta(mockDomRsrcCtx, "RoleMetaDom1", "Role1", auditRef, rm);
+            zmsImpl.putRoleMeta(mockDomRsrcCtx, "rolemetadom1", "role1", auditRef, rm);
             fail("notfounderror not thrown.");
         } catch (ResourceException e) {
             assertEquals(404, e.getCode());
@@ -15914,56 +15914,56 @@ public class ZMSImplTest {
     @Test
     public void testIsAuditEnabledRole() {
 
-        TopLevelDomain dom1 = createTopLevelDomainObject("TestDomain1",
+        TopLevelDomain dom1 = createTopLevelDomainObject("testdomain1",
                 "Role Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        Role role1 = createRoleObject("TestDomain1", "TestRole1", null,
+        Role role1 = createRoleObject("testdomain1", "testrole1", null,
                 "user.john", "user.jane");
-        zms.putRole(mockDomRsrcCtx, "TestDomain1", "TestRole1", auditRef, role1);
+        zms.putRole(mockDomRsrcCtx, "testdomain1", "testrole1", auditRef, role1);
 
-        AthenzDomain domain = zms.getAthenzDomain("TestDomain1", false);
+        AthenzDomain domain = zms.getAthenzDomain("testdomain1", false);
         assertFalse(zms.isAuditEnabledRole("testrole1", domain));
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "TestDomain1", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
 
-        TopLevelDomain dom2 = createTopLevelDomainObject("TestDomain2",
+        TopLevelDomain dom2 = createTopLevelDomainObject("testdomain2",
                 "Role Test Domain2", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
 
         DomainMeta meta = createDomainMetaObject("Domain Meta for Role Meta test", "NewOrg",
                 true, true, "12345", 1001);
-        zms.putDomainMeta(mockDomRsrcCtx, "TestDomain2", auditRef, meta);
-        zms.putDomainSystemMeta(mockDomRsrcCtx, "TestDomain2", "auditenabled", auditRef, meta);
+        zms.putDomainMeta(mockDomRsrcCtx, "testdomain2", auditRef, meta);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, "testdomain2", "auditenabled", auditRef, meta);
 
-        Role role2 = createRoleObject("TestDomain2", "TestRole2", null, "user.john", "user.jane");
-        zms.putRole(mockDomRsrcCtx, "TestDomain2", "TestRole2", auditRef, role2);
+        Role role2 = createRoleObject("testdomain2", "testrole2", null, "user.john", "user.jane");
+        zms.putRole(mockDomRsrcCtx, "testdomain2", "testrole2", auditRef, role2);
 
         RoleSystemMeta rsm = createRoleSystemMetaObject(true);
-        zms.putRoleSystemMeta(mockDomRsrcCtx, "TestDomain2", "TestRole2", "auditenabled", auditRef, rsm);
+        zms.putRoleSystemMeta(mockDomRsrcCtx, "testdomain2", "testrole2", "auditenabled", auditRef, rsm);
 
-        domain = zms.getAthenzDomain("TestDomain2", false);
+        domain = zms.getAthenzDomain("testdomain2", false);
         assertTrue(zms.isAuditEnabledRole("testrole2", domain));
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "TestDomain2", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain2", auditRef);
 
     }
 
     @Test
     public void testIsSelfserveRole() {
 
-        TopLevelDomain dom1 = createTopLevelDomainObject("TestDomain1",
+        TopLevelDomain dom1 = createTopLevelDomainObject("testdomain1",
                 "Role Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        Role role1 = createRoleObject("TestDomain1", "TestRole1", null,
+        Role role1 = createRoleObject("testdomain1", "testrole1", null,
                 "user.john", "user.jane");
-        zms.putRole(mockDomRsrcCtx, "TestDomain1", "TestRole1", auditRef, role1);
+        zms.putRole(mockDomRsrcCtx, "testdomain1", "testrole1", auditRef, role1);
 
-        AthenzDomain domain = zms.getAthenzDomain("TestDomain1", false);
+        AthenzDomain domain = zms.getAthenzDomain("testdomain1", false);
         assertFalse(zms.isSelfserveRole("testrole1", domain));
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "TestDomain1", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
 
         TopLevelDomain dom2 = createTopLevelDomainObject("testdomain2",
                 "Role Test Domain2", "testOrg", adminUser);
@@ -16334,7 +16334,7 @@ public class ZMSImplTest {
         mbr.setActive(true);
 
         try {
-            zms.putMembershipDecision(mockDomRsrcCtx, "testdomain1", "testrole1", "user.chris", auditRef, mbr);
+            zms.putMembershipDecision(mockDomRsrcCtx, "testdomain1", "testrole1", "user.chris", auditRef, mbr);//invalid member
             fail();
         }catch (ResourceException r){
             assertEquals(r.code, 400);
@@ -16343,7 +16343,7 @@ public class ZMSImplTest {
 
         mbr.setRoleName("invalidrole");
         try {
-            zms.putMembershipDecision(mockDomRsrcCtx, "testdomain1", "testrole1", "user.bob", auditRef, mbr);
+            zms.putMembershipDecision(mockDomRsrcCtx, "testdomain1", "testrole1", "user.bob", auditRef, mbr);//invalid role
             fail();
         }catch (ResourceException r){
             assertEquals(r.code, 400);
@@ -16352,7 +16352,7 @@ public class ZMSImplTest {
 
         mbr.setRoleName(null);
         try {
-            zms.putMembershipDecision(mockDomRsrcCtx, "testdomain2", "testrole1", "user.bob", auditRef, mbr);
+            zms.putMembershipDecision(mockDomRsrcCtx, "testdomain2", "testrole1", "user.bob", auditRef, mbr);//invalid domain name
             fail();
         }catch (ResourceException r){
             assertEquals(r.code, 403);

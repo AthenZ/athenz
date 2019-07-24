@@ -96,9 +96,9 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_ROLE_MEMBER = "SELECT principal.principal_id, role_member.expiration FROM principal "
             + "JOIN role_member ON role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=role_member.role_id "
-            + "WHERE role.role_id=? AND principal.name=? AND role_member.active=TRUE;";
+            + "WHERE role.role_id=? AND principal.name=? AND role_member.active=true;";
     private static final String SQL_GET_ROLE_MEMBER_EXISTS = "SELECT principal_id FROM role_member WHERE role_id=? AND principal_id=?;";
-    private static final String SQL_GET_ROLE_MEMBER_INACTIVE_EXISTS = "SELECT principal_id FROM role_member WHERE role_id=? AND principal_id=? AND active=FALSE;";
+    private static final String SQL_GET_ROLE_MEMBER_INACTIVE_EXISTS = "SELECT principal_id FROM role_member WHERE role_id=? AND principal_id=? AND active=false;";
     private static final String SQL_LIST_ROLE_MEMBERS = "SELECT principal.name, role_member.expiration FROM principal "
             + "JOIN role_member ON role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=role_member.role_id "
@@ -1595,7 +1595,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                 } else {
                     ps.setTimestamp(3, null);
                 }
-                ps.setBoolean(4, processInsertValue(roleMember.getActive(), false));
+                ps.setBoolean(4, processInsertValue(roleMember.getActive(), true));
                 affectedRows = executeUpdate(ps, caller);
             } catch (SQLException ex) {
                 throw sqlError(ex, caller);

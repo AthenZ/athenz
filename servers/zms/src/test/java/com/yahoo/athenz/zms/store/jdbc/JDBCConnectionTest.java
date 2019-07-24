@@ -7174,4 +7174,98 @@ public class JDBCConnectionTest {
 
         jdbcConn.close();
     }
+
+    @Test
+    public void testInsertRoleMemberDefaultActive() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // role id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for role id
+                .thenReturn(true) // validate principle domain
+                .thenReturn(true) // principal id
+                .thenReturn(false); // member exists
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        boolean requestSuccess = jdbcConn.insertRoleMember("my-domain", "role1",
+                new RoleMember().setMemberName("user.user1"), "user.admin", "audit-ref");
+
+        // this is combined for all operations above
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "role1");
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.user1");
+
+        // we need additional operation for the audit log
+        // additional operation to check for roleMember exist using roleID and principal ID.
+        Mockito.verify(mockPrepStmt, times(3)).setInt(1, 7);
+        Mockito.verify(mockPrepStmt, times(2)).setInt(2, 9);
+
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(4, true);
+
+        // the rest of the audit log details
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.admin");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "ADD");
+        Mockito.verify(mockPrepStmt, times(1)).setString(5, "audit-ref");
+
+        assertTrue(requestSuccess);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testInsertRoleMemberNotActiveByFlag() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // role id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for role id
+                .thenReturn(true) // validate principle domain
+                .thenReturn(true) // principal id
+                .thenReturn(false); // member exists
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        boolean requestSuccess = jdbcConn.insertRoleMember("my-domain", "role1",
+                new RoleMember().setMemberName("user.user1").setActive(false), "user.admin", "audit-ref");
+
+        // this is combined for all operations above
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "role1");
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.user1");
+
+        // we need additional operation for the audit log
+        // additional operation to check for roleMember exist using roleID and principal ID.
+        Mockito.verify(mockPrepStmt, times(3)).setInt(1, 7);
+        Mockito.verify(mockPrepStmt, times(2)).setInt(2, 9);
+
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(4, false);
+
+        // the rest of the audit log details
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.admin");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "ADD");
+        Mockito.verify(mockPrepStmt, times(1)).setString(5, "audit-ref");
+
+        assertTrue(requestSuccess);
+        jdbcConn.close();
+    }
 }

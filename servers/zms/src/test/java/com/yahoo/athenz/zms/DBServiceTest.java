@@ -3924,5 +3924,27 @@ public class DBServiceTest {
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
+    @Test
+    public void testProcessRoleUpdateAuditEnabled() {
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+        Role originalRole = new Role().setName("originalRole").setAuditEnabled(true);
+        StringBuilder auditDetails = new StringBuilder("testAudit");
+        Role role2 = new Role().setName("newRole2").setAuditEnabled(false);
+        List<RoleMember> members = new ArrayList<>();
+        RoleMember mem = new RoleMember().setMemberName("user.joe").setActive(true);
+        members.add(mem);
+        role2.setRoleMembers(members);
+        Mockito.when(conn.updateRole("auditedDomain", role2)).thenReturn(true);
+        try {
+            zms.dbService.processRole(conn, originalRole, "auditedDomain", "newRole2",
+                    role2, adminUser, auditRef, false, auditDetails);
+            fail();
+        } catch (ResourceException re) {
+            assertEquals(re.getCode(), 400);
+        } finally {
+            conn.close();
+        }
+    }
+
 
 }

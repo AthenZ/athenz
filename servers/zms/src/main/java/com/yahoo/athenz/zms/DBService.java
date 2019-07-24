@@ -490,8 +490,13 @@ public class DBService {
                 auditLogRoleMembers(auditDetails, "added-members", roleMembers);
             }
         } else {
-            processUpdateRoleMembers(con, originalRole, roleMembers, ignoreDeletes, 
-                    domainName, roleName, admin, auditRef, auditDetails);
+            if (originalRole.getAuditEnabled() == null || originalRole.getAuditEnabled() == Boolean.FALSE) {
+                processUpdateRoleMembers(con, originalRole, roleMembers, ignoreDeletes,
+                        domainName, roleName, admin, auditRef, auditDetails);
+            } else {
+                throw ZMSUtils.requestError("Can not update the auditEnabled role ", "processrole");
+            }
+
         }
         
         auditDetails.append('}');
