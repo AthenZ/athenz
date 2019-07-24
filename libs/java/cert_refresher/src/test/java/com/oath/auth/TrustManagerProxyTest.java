@@ -15,7 +15,6 @@
  */
 package com.oath.auth;
 
-import mockit.Deencapsulation;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Test;
@@ -31,80 +30,6 @@ import java.security.cert.X509Certificate;
 import static org.junit.Assert.*;
 
 public class TrustManagerProxyTest {
-
-    @Test
-    public void testTrustManagerProxySetTrustManger() {
-        TrustManager[] trustManagers = new TrustManager[] { new X509ExtendedTrustManager() {
-            @Override
-            public void checkClientTrusted(X509Certificate[] x509Certificates, String s) {
-            }
-
-            @Override
-            public void checkServerTrusted(X509Certificate[] x509Certificates, String s) {
-            }
-
-            @Override
-            public X509Certificate[] getAcceptedIssuers() {
-                return new X509Certificate[0];
-            }
-
-            @Override
-            public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket) {
-            }
-
-            @Override
-            public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine engine) {
-            }
-
-            @Override
-            public void checkServerTrusted(X509Certificate[] chain, String authType, Socket socket) {
-            }
-
-            @Override
-            public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine engine) {
-            }
-        }};
-
-        TrustManagerProxy trustManagerProxy = new TrustManagerProxy(trustManagers);
-        X509ExtendedTrustManager trustManagerFirst = Deencapsulation.getField(trustManagerProxy, "trustManager");
-
-        assertNotNull(trustManagerFirst);
-
-        trustManagerProxy.setTrustManager(new TrustManager[] { new X509ExtendedTrustManager() {
-            @Override
-            public void checkClientTrusted(X509Certificate[] x509Certificates, String s) {
-            }
-
-            @Override
-            public void checkServerTrusted(X509Certificate[] x509Certificates, String s) {
-            }
-
-            @Override
-            public X509Certificate[] getAcceptedIssuers() {
-                return new X509Certificate[0];
-            }
-
-            @Override
-            public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket) {
-            }
-
-            @Override
-            public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine engine) {
-            }
-
-            @Override
-            public void checkServerTrusted(X509Certificate[] chain, String authType, Socket socket) {
-            }
-
-            @Override
-            public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine engine) {
-            }
-        }});
-
-        X509ExtendedTrustManager trustManagerSecond = Deencapsulation.getField(trustManagerProxy, "trustManager");
-        assertNotNull(trustManagerSecond);
-        assertNotSame(trustManagerFirst, trustManagerSecond);
-    }
 
     @Test
     public void testTrustManagerProxyCheckClientTrusted(@Mocked X509ExtendedTrustManager mockedTrustManager) throws CertificateException {
