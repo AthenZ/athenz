@@ -6,6 +6,7 @@ package zmscli
 import (
 	"bytes"
 	"strings"
+	"time"
 
 	"github.com/yahoo/athenz/clients/go/zms"
 )
@@ -100,7 +101,15 @@ func (cli Zms) AddTenantResourceGroupRoles(provDomain string, provService string
 	if err != nil {
 		return nil, err
 	}
-	return cli.ShowTenantResourceGroupRoles(provDomain, provService, tenantDomain, resourceGroup)
+	output, err := cli.ShowTenantResourceGroupRoles(provDomain, provService, tenantDomain, resourceGroup)
+	if err != nil {
+		// due to mysql read after write issue it's possible that
+		// we'll get 404 after writing our object so in that
+		// case we're going to do a quick sleep and retry request
+		time.Sleep(500 * time.Millisecond)
+		output, err = cli.ShowTenantResourceGroupRoles(provDomain, provService, tenantDomain, resourceGroup)
+	}
+	return output, err
 }
 
 func (cli Zms) ShowProviderResourceGroupRoles(tenantDomain string, providerDomain string, providerService string, resourceGroup string) (*string, error) {
@@ -147,5 +156,13 @@ func (cli Zms) AddProviderResourceGroupRoles(tenantDomain string, providerDomain
 	if err != nil {
 		return nil, err
 	}
-	return cli.ShowProviderResourceGroupRoles(tenantDomain, providerDomain, providerService, resourceGroup)
+	output, err := cli.ShowProviderResourceGroupRoles(tenantDomain, providerDomain, providerService, resourceGroup)
+	if err != nil {
+		// due to mysql read after write issue it's possible that
+		// we'll get 404 after writing our object so in that
+		// case we're going to do a quick sleep and retry request
+		time.Sleep(500 * time.Millisecond)
+		output, err = cli.ShowProviderResourceGroupRoles(tenantDomain, providerDomain, providerService, resourceGroup)
+	}
+	return output, err
 }

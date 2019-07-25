@@ -6,6 +6,7 @@ package zmscli
 import (
 	"bytes"
 	"strings"
+	"time"
 
 	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/yahoo/athenz/clients/go/zms"
@@ -38,7 +39,15 @@ func (cli Zms) AddEntity(dn string, en string, values []string) (*string, error)
 	if err != nil {
 		return nil, err
 	}
-	return cli.ShowEntity(dn, en)
+	output, err := cli.ShowEntity(dn, en)
+	if err != nil {
+		// due to mysql read after write issue it's possible that
+		// we'll get 404 after writing our object so in that
+		// case we're going to do a quick sleep and retry request
+		time.Sleep(500 * time.Millisecond)
+		output, err = cli.ShowEntity(dn, en)
+	}
+	return output, err
 }
 
 func (cli Zms) DeleteEntity(dn string, en string) (*string, error) {

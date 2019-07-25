@@ -15,7 +15,6 @@
  */
 package com.oath.auth;
 
-import mockit.Deencapsulation;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Test;
@@ -64,24 +63,6 @@ public class KeyManagerProxyTest {
                 return null;
             }
         };
-    }
-
-    @Test
-    public void testKeyManagerProxySetKeyManger() {
-        KeyManager[] keyManagers = new KeyManager[] { generateNewKeyManger() };
-
-        KeyManagerProxy keyManagerProxy = new KeyManagerProxy(keyManagers);
-        X509ExtendedKeyManager keyManagerFirst = Deencapsulation.getField(keyManagerProxy, "keyManager");
-
-        assertNotNull(keyManagerFirst);
-
-
-        keyManagerProxy.setKeyManager(new KeyManager[] { generateNewKeyManger() });
-
-        X509ExtendedKeyManager keyManagerSecond = Deencapsulation.getField(keyManagerProxy, "keyManager");
-        assertNotNull(keyManagerSecond);
-
-        assertNotSame(keyManagerFirst, keyManagerSecond);
     }
 
     @Test

@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/yahoo/athenz/clients/go/zms"
@@ -91,7 +92,15 @@ func (cli Zms) AddDelegatedRole(dn string, rn string, trusted string) (*string, 
 		s := ""
 		return &s, nil
 	}
-	return cli.ShowRole(dn, rn, false, false)
+	output, err := cli.ShowRole(dn, rn, false, false)
+	if err != nil {
+		// due to mysql read after write issue it's possible that
+		// we'll get 404 after writing our object so in that
+		// case we're going to do a quick sleep and retry request
+		time.Sleep(500 * time.Millisecond)
+		output, err = cli.ShowRole(dn, rn, false, false)
+	}
+	return output, err
 }
 
 func (cli Zms) AddGroupRole(dn string, rn string, roleMembers []*zms.RoleMember) (*string, error) {
@@ -121,7 +130,15 @@ func (cli Zms) AddGroupRole(dn string, rn string, roleMembers []*zms.RoleMember)
 		s := ""
 		return &s, nil
 	}
-	return cli.ShowRole(dn, rn, false, false)
+	output, err := cli.ShowRole(dn, rn, false, false)
+	if err != nil {
+		// due to mysql read after write issue it's possible that
+		// we'll get 404 after writing our object so in that
+		// case we're going to do a quick sleep and retry request
+		time.Sleep(500 * time.Millisecond)
+		output, err = cli.ShowRole(dn, rn, false, false)
+	}
+	return output, err
 }
 
 func (cli Zms) DeleteRole(dn string, rn string) (*string, error) {

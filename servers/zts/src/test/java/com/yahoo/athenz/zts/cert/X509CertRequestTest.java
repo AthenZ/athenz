@@ -242,6 +242,31 @@ public class X509CertRequestTest {
     }
 
     @Test
+    public void testValidateProviderDnsNamesList() throws IOException {
+
+        Path path = Paths.get("src/test/resources/multi_dns_domain.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        StringBuilder errorMsg = new StringBuilder(256);
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertNotNull(certReq);
+        certReq.parseCertRequest(errorMsg);
+
+        // now add the hostname to the list
+
+        List<String> providerDnsSuffixList = new ArrayList<>();
+        providerDnsSuffixList.add("ostk.athenz.cloud");
+
+        assertTrue(certReq.validateDnsNames(providerDnsSuffixList, "zts.athenz.info",
+                "api.athenz.ostk.athenz.info", null));
+
+        List<String> dnsNames = certReq.getProviderDnsNames();
+        assertEquals(dnsNames.size(), 2);
+        assertTrue(dnsNames.contains("api.athenz.ostk.athenz.info"));
+        assertTrue(dnsNames.contains("production.athenz.ostk.athenz.cloud"));
+    }
+
+    @Test
     public void testValidateDnsNamesNoValues() throws IOException {
 
         Path path = Paths.get("src/test/resources/valid_cn_only.csr");

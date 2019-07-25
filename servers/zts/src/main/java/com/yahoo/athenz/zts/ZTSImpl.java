@@ -2535,6 +2535,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             attributes.put(InstanceProvider.ZTS_INSTANCE_HOSTNAME, instanceHostname);
         }
 
+        // finally we're going to include the principal if we have one in our request
+
+        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        if (principal != null) {
+            attributes.put(InstanceProvider.ZTS_REQUEST_PRINCIPAL, principal.getFullName());
+        }
+
         instance.setAttributes(attributes);
         return instance;
     }

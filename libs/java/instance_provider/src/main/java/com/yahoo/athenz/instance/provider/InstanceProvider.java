@@ -52,7 +52,7 @@ public interface InstanceProvider {
     String ZTS_INSTANCE_ID             = "instanceId";
     String ZTS_INSTANCE_CSR_PUBLIC_KEY = "csrPublicKey";
     String ZTS_INSTANCE_HOSTNAME       = "hostname";
-
+    String ZTS_REQUEST_PRINCIPAL       = "principal";
 
     enum Scheme {
         HTTP,
