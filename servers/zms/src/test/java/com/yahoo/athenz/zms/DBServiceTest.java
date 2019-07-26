@@ -3925,26 +3925,48 @@ public class DBServiceTest {
     }
 
     @Test
-    public void testProcessRoleUpdateAuditEnabled() {
-        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
-        Role originalRole = new Role().setName("originalRole").setAuditEnabled(true);
-        StringBuilder auditDetails = new StringBuilder("testAudit");
-        Role role2 = new Role().setName("newRole2").setAuditEnabled(false);
-        List<RoleMember> members = new ArrayList<>();
-        RoleMember mem = new RoleMember().setMemberName("user.joe").setActive(true);
-        members.add(mem);
-        role2.setRoleMembers(members);
-        Mockito.when(conn.updateRole("auditedDomain", role2)).thenReturn(true);
+    public void testExecutePutRoleAuditEnabled() {
+
+        String domainName = "executeputroledom1";
+        String roleName = "role1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        DomainMeta meta2 = new DomainMeta()
+                .setAccount("acct")
+                .setYpmId(1234)
+                .setCertDnsDomain("athenz.cloud")
+                .setAuditEnabled(true);
+        Domain d1 = zms.dbService.getDomain(domainName, false);
+        zms.dbService.updateSystemMetaFields(d1, "auditenabled", false, meta2);
+
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, domainName, meta2, "auditenabled", false, auditRef, "");
+
+        Role role1 = createRoleObject(domainName, roleName, null,"user.joe", "user.jane");
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, roleName, role1, auditRef, "putRole");
+
+        RoleSystemMeta meta = new RoleSystemMeta().setAuditEnabled(true);
+        zms.dbService.updateRoleSystemMetaFields(role1, "auditenabled", true, meta);
+
+        zms.dbService.executePutRoleSystemMeta(mockDomRsrcCtx, domainName, roleName, meta, "auditenabled", true, auditRef, "");
+
+        Role role3 = zms.dbService.getRole(domainName, roleName, false, false);
+        assertNotNull(role3);
+        assertTrue(role3.getAuditEnabled());
+
+        List<RoleMember> newMembers = new ArrayList<>();
+        RoleMember rm1 = new RoleMember().setMemberName("user.john").setActive(true);
+        newMembers.add(rm1);
+        role1.setRoleMembers(newMembers);
         try {
-            zms.dbService.processRole(conn, originalRole, "auditedDomain", "newRole2",
-                    role2, adminUser, auditRef, false, auditDetails);
+            zms.dbService.executePutRole(mockDomRsrcCtx, domainName, roleName, role1, auditRef, "putRole");
             fail();
         } catch (ResourceException re) {
             assertEquals(re.getCode(), 400);
-        } finally {
-            conn.close();
         }
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
-
 
 }

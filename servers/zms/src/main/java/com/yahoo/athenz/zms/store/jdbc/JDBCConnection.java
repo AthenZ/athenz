@@ -113,9 +113,9 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_LAST_INSERT_ID = "SELECT LAST_INSERT_ID();";
     private static final String SQL_INSERT_ROLE_MEMBER = "INSERT INTO role_member (role_id, principal_id, expiration, active) VALUES (?,?,?,?);";
     private static final String SQL_DELETE_ROLE_MEMBER = "DELETE FROM role_member WHERE role_id=? AND principal_id=?;";
-    private static final String SQL_DELETE_INACTIVE_ROLE_MEMBER = "DELETE FROM role_member WHERE role_id=? AND principal_id=? AND active=FALSE;";
+    private static final String SQL_DELETE_INACTIVE_ROLE_MEMBER = "DELETE FROM role_member WHERE role_id=? AND principal_id=? AND active=false;";
     private static final String SQL_UPDATE_ROLE_MEMBER = "UPDATE role_member SET expiration=? WHERE role_id=? AND principal_id=?;";
-    private static final String SQL_APPROVE_ROLE_MEMBER = "UPDATE role_member SET expiration=?,active=? WHERE role_id=? AND principal_id=?;";
+    private static final String SQL_APPROVE_ROLE_MEMBER = "UPDATE role_member SET expiration=?,active=true WHERE role_id=? AND principal_id=?;";
     private static final String SQL_INSERT_ROLE_AUDIT_LOG = "INSERT INTO role_audit_log "
             + "(role_id, admin, member, action, audit_ref) VALUES (?,?,?,?,?);";
     private static final String SQL_LIST_ROLE_AUDIT_LOGS = "SELECT * FROM role_audit_log WHERE role_id=?;";
@@ -3379,15 +3379,9 @@ public class JDBCConnection implements ObjectStoreConnection {
         if (roleId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_ROLE, ZMSUtils.roleResourceName(domainName, roleName));
         }
-        if (!validatePrincipalDomain(principal)) {
-            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, principal);
-        }
         int principalId = getPrincipalId(principal);
         if (principalId == 0) {
-            principalId = insertPrincipal(principal);
-            if (principalId == 0) {
-                throw internalServerError(caller, "Unable to insert principal: " + principal);
-            }
+            throw notFoundError(caller, ZMSConsts.OBJECT_PRINCIPAL, principal);
         }
         //need to check if entry already exists
         int affectedRows;
@@ -3404,45 +3398,46 @@ public class JDBCConnection implements ObjectStoreConnection {
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
+
+        if (!roleMemberExists) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_PRINCIPAL, principal);
+        }
+
         java.sql.Timestamp expiration = null;
         if (roleMember.getExpiration() != null) {
             expiration = new java.sql.Timestamp(roleMember.getExpiration().toDate().getTime());
         }
-        if (roleMemberExists) {
 
-            if (roleMember.getActive() != null && roleMember.getActive() == Boolean.TRUE) {
+        if (roleMember.getActive() == Boolean.TRUE) {
 
-                try (PreparedStatement ps = con.prepareStatement(SQL_APPROVE_ROLE_MEMBER)) {
-                    ps.setTimestamp(1, expiration);
-                    ps.setBoolean(2, roleMember.getActive());
-                    ps.setInt(3, roleId);
-                    ps.setInt(4, principalId);
-                    affectedRows = executeUpdate(ps, caller);
-                } catch (SQLException ex) {
-                    throw sqlError(ex, caller);
-                }
-                result = (affectedRows > 0);
-                if (result) {
-                    result = insertRoleAuditLog(roleId, admin, principal, "UPDATE", auditRef);
-                }
-
-            } else {
-
-                try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_INACTIVE_ROLE_MEMBER)) {
-                    ps.setInt(1, roleId);
-                    ps.setInt(2, principalId);
-                    affectedRows = executeUpdate(ps, caller);
-                } catch (SQLException ex) {
-                    throw sqlError(ex, caller);
-                }
-                result = (affectedRows > 0);
-                if (result) {
-                    result = insertRoleAuditLog(roleId, admin, principal, "DELETE", auditRef);
-                }
+            try (PreparedStatement ps = con.prepareStatement(SQL_APPROVE_ROLE_MEMBER)) {
+                ps.setTimestamp(1, expiration);
+                ps.setInt(2, roleId);
+                ps.setInt(3, principalId);
+                affectedRows = executeUpdate(ps, caller);
+            } catch (SQLException ex) {
+                throw sqlError(ex, caller);
             }
+            result = (affectedRows > 0);
+            if (result) {
+                result = insertRoleAuditLog(roleId, admin, principal, "APPROVE", auditRef);
+            }
+
         } else {
-            throw internalServerError(caller, "Unable to confirm non-existing principal: " + principal);
+
+            try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_INACTIVE_ROLE_MEMBER)) {
+                ps.setInt(1, roleId);
+                ps.setInt(2, principalId);
+                affectedRows = executeUpdate(ps, caller);
+            } catch (SQLException ex) {
+                throw sqlError(ex, caller);
+            }
+            result = (affectedRows > 0);
+            if (result) {
+                result = insertRoleAuditLog(roleId, admin, principal, "REJECT", auditRef);
+            }
         }
+
         return result;
     }
 

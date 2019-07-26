@@ -1514,9 +1514,6 @@ public class FileConnection implements ObjectStoreConnection {
         if (role == null) {
             throw ZMSUtils.error(ResourceException.NOT_FOUND, "role not found", "confirmRoleMember");
         }
-        if (!validatePrincipalDomain(member.getMemberName())) {
-            throw ZMSUtils.error(ResourceException.NOT_FOUND, "principal domain not found", "confirmRoleMember");
-        }
 
         if (role.getRoleMembers() != null && !role.getRoleMembers().isEmpty()) {
             // need to check if the member already exists
@@ -1528,7 +1525,7 @@ public class FileConnection implements ObjectStoreConnection {
                 // check whether the member exists and is in inactive state
                 if (roleMember.getMemberName().equals(member.getMemberName()) && !roleMember.getActive()) {
                     //if membership is approved, set rolemember to active
-                    if (member.getActive() != null && member.getActive() == Boolean.TRUE) {
+                    if (member.getActive() == Boolean.TRUE) {
                         roleMember.setExpiration(member.getExpiration());
                         roleMember.setActive(true);
                     } else {

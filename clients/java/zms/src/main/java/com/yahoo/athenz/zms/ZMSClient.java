@@ -2121,6 +2121,7 @@ public class ZMSClient implements Closeable {
      * @param roleName name of the role
      * @param memberName name of the member to be added
      * @param expiration timestamp when this membership will expire (optional)
+     * @param approval flag indicating whether this membership is approved or rejected
      * @param auditRef string containing audit specification or ticket number
      * @throws ZMSClientException in case of failure
      */

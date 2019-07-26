@@ -15,23 +15,14 @@
  */
 package com.yahoo.athenz.zms;
 
-import com.yahoo.rdl.JSON;
-import com.yahoo.rdl.Schema;
-import com.yahoo.rdl.Timestamp;
-import com.yahoo.rdl.Validator;
-import com.yahoo.rdl.Validator.Result;
-import com.yahoo.athenz.auth.Authority;
-import com.yahoo.athenz.auth.AuthorityKeyStore;
-import com.yahoo.athenz.auth.Authorizer;
-import com.yahoo.athenz.auth.KeyStore;
-import com.yahoo.athenz.auth.Principal;
-import com.yahoo.athenz.auth.PrivateKeyStore;
-import com.yahoo.athenz.auth.PrivateKeyStoreFactory;
+import com.yahoo.athenz.auth.*;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.metrics.MetricFactory;
+import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
+import com.yahoo.athenz.common.server.audit.AuditReferenceValidatorFactory;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
 import com.yahoo.athenz.common.server.rest.Http;
@@ -47,42 +38,33 @@ import com.yahoo.athenz.zms.config.SolutionTemplates;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.athenz.zms.store.ObjectStore;
 import com.yahoo.athenz.zms.store.ObjectStoreFactory;
-import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
-import com.yahoo.athenz.common.server.audit.AuditReferenceValidatorFactory;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
+import com.yahoo.rdl.JSON;
+import com.yahoo.rdl.Schema;
+import com.yahoo.rdl.Timestamp;
+import com.yahoo.rdl.Validator;
+import com.yahoo.rdl.Validator.Result;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.EntityTag;
+import javax.ws.rs.core.Response;
 import java.io.File;
-import java.util.HashSet;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Set;
-import java.util.TimeZone;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Pattern;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
-import javax.ws.rs.core.EntityTag;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.Response;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
 public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
@@ -2893,6 +2875,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         memberName = memberName.toLowerCase();
         AthenzObject.MEMBERSHIP.convertToLowerCase(membership);
 
+        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
+
         final String principalDomain = getPrincipalDomain(ctx);
         metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
         metric.increment(caller, domainName, principalDomain);
@@ -2900,8 +2884,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // verify that request is properly authenticated for this request
         
-        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(),
-                caller, "role", roleName);
+        verifyAuthorizedServiceOperation(principal.getAuthorizedService(), caller, "role", roleName);
         
         // verify that the member name in the URI and object provided match
         
@@ -2921,19 +2904,21 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         roleMember.setMemberName(memberName);
         roleMember.setExpiration(membership.getExpiration());
 
-        //authorization check
-        if (isAllowedPutMembership(((RsrcCtxWrapper) ctx).principal(), domainName, roleName, memberName)) {
-            if (isAllowedPutMembershipWithoutApproval(((RsrcCtxWrapper) ctx).principal(), domainName, roleName)) {
-                roleMember.setActive(true);
-            } else {
-                roleMember.setActive(false);
-            }
-        } else {
-            throw ZMSUtils.forbiddenError("putMembership: principal is not authorized to add members", caller);
+        AthenzDomain domain = getAthenzDomain(domainName, false);
+        Role role = getRoleFromDomain(roleName, domain);
+
+        if (role == null) {
+            throw ZMSUtils.requestError("Invalid rolename specified", caller);
         }
 
-        dbService.executePutMembership(ctx, domainName, roleName, getNormalizedMember(roleMember), auditRef, caller);
-        metric.stopTiming(timerMetric, domainName, principalDomain);
+        //authorization check
+        if (isAllowedPutMembership(principal, domain, role, memberName, roleMember)) {
+            dbService.executePutMembership(ctx, domainName, roleName, getNormalizedMember(roleMember), auditRef, caller);
+            metric.stopTiming(timerMetric, domainName, principalDomain);
+        } else {
+            metric.stopTiming(timerMetric, domainName, principalDomain);
+            throw ZMSUtils.forbiddenError("putMembership: principal is not authorized to add members", caller);
+        }
     }
 
     public void deleteMembership(ResourceContext ctx, String domainName, String roleName,
@@ -6726,6 +6711,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         memberName = memberName.toLowerCase();
         AthenzObject.MEMBERSHIP.convertToLowerCase(membership);
 
+        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
         final String principalDomain = getPrincipalDomain(ctx);
         metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
         metric.increment(caller, domainName, principalDomain);
@@ -6733,8 +6719,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // verify that request is properly authenticated for this request
 
-        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(),
-                caller, "role", roleName);
+        verifyAuthorizedServiceOperation(principal.getAuthorizedService(), caller, "role", roleName);
 
         // verify that the member name in the URI and object provided match
 
@@ -6748,8 +6733,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.requestError("putMembershipDecision: Role name in URI and Membership object do not match", caller);
         }
 
+        AthenzDomain domain = getAthenzDomain(domainName, false);
+        Role role = getRoleFromDomain(roleName, domain);
+        if (role == null) {
+            throw ZMSUtils.requestError("Invalid rolename specified", caller);
+        }
+
         //authorization check
-        if (!isAllowedPutMembershipDecision(((RsrcCtxWrapper) ctx).principal(), domainName, roleName)) {
+        if (!isAllowedPutMembershipDecision(principal, domain, role)) {
             throw ZMSUtils.forbiddenError("putMembershipDecision: principal is not authorized to approve / reject members", caller);
         }
 
@@ -6763,17 +6754,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.stopTiming(timerMetric, domainName, principalDomain);
     }
 
-    private boolean isAllowedPutMembershipDecision(Principal principal, String domainName, String roleName) {
-        AthenzDomain domain = getAthenzDomain(domainName, false);
-        if (domain != null) {
-            if (isAuditEnabledRole(roleName, domain)) {
-                // check authorization in sys.auth.audit
-                return isAllowedAuditRoleMembershipApproval(principal, domain);
-            } else {
-                return isAllowedPutMembershipAccess(principal, domainName, roleName, domain);
-            }
+    private boolean isAllowedPutMembershipDecision(final Principal principal, final AthenzDomain domain, final Role role) {
+        if (role.getAuditEnabled() == Boolean.TRUE) {
+            // check authorization in sys.auth.audit
+            return isAllowedAuditRoleMembershipApproval(principal, domain);
+        } else {
+            return isAllowedPutMembershipAccess(principal, domain, role);
         }
-        return false;
     }
 
     boolean isAllowedAuditRoleMembershipApproval(Principal principal, final AthenzDomain reqDomain) {
@@ -6785,7 +6772,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // evaluate our domain's roles and policies to see if access
         // is allowed or not for the given operation and resource
         // our action are always converted to lowercase
-        String resource = SYS_AUTH_AUDIT + ":grc." + reqDomain.getDomain().getOrg() + "_domain_" + reqDomain.getDomain().getName();
+        String resource = SYS_AUTH_AUDIT + ":audit." + reqDomain.getDomain().getOrg() + "_domain_" + reqDomain.getDomain().getName();
         AccessStatus accessStatus = evaluateAccess(authdomain, principal.getFullName(), "update", resource, null, null);
         return accessStatus == AccessStatus.ALLOWED;
     }
@@ -6801,38 +6788,21 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return null;
     }
 
+    boolean isAllowedPutMembershipAccess(Principal principal, final AthenzDomain domain, final Role role) {
 
-    boolean isAuditEnabledRole (final String roleName, AthenzDomain domain) {
-        Role role = getRoleFromDomain(roleName, domain);
-        return role != null && role.getAuditEnabled() != null && role.getAuditEnabled();
+        // evaluate our domain's roles and policies to see if access
+        // is allowed or not for the given operation and resource
+        // our action are always converted to lowercase
+        final String resource = domain.getName() + ":role." + role.getName();
+        AccessStatus accessStatus = evaluateAccess(domain, principal.getFullName(), "update", resource, null, null);
+        return accessStatus == AccessStatus.ALLOWED;
     }
 
-    boolean isSelfserveRole (final String roleName, AthenzDomain domain) {
-        Role role = getRoleFromDomain(roleName, domain);
-        return role != null && role.getSelfserve() != null && role.getSelfserve();
-    }
-
-    boolean isAllowedPutMembershipAccess(Principal principal, final String reqDomain, final String roleName, final AthenzDomain domain) {
-
-
-        if (domain != null) {
-            // evaluate our domain's roles and policies to see if access
-            // is allowed or not for the given operation and resource
-            // our action are always converted to lowercase
-            String resource = reqDomain + ":role." + roleName;
-            AccessStatus accessStatus = evaluateAccess(domain, principal.getFullName(), "update", resource, null, null);
-            return accessStatus == AccessStatus.ALLOWED;
-        }
-        return false;
-
-    }
-
-    boolean isAllowedPutMembershipWithoutApproval(Principal principal, final String reqDomain, final String roleName) {
-        AthenzDomain domain = getAthenzDomain(reqDomain, false);
-        if (isAuditEnabledRole(roleName, domain)) {
+    boolean isAllowedPutMembershipWithoutApproval(Principal principal, final AthenzDomain reqDomain, final Role role) {
+        if (role.getAuditEnabled() == Boolean.TRUE) {
             return false;
         } else {
-            return isAllowedPutMembershipAccess(principal, reqDomain, roleName, domain);
+            return isAllowedPutMembershipAccess(principal, reqDomain, role);
         }
     }
 
@@ -6840,15 +6810,24 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return principal.getFullName().equals(memberName);
     }
 
-    boolean isAllowedPutMembership(Principal principal, final String reqDomain, final String roleName, final String memberName) {
+    boolean isAllowedPutMembership(Principal principal, final AthenzDomain domain, final Role role, final String memberName, final RoleMember member) {
 
-        AthenzDomain domain = getAthenzDomain(reqDomain, false);
-        if (isSelfserveRole(roleName, domain)) {
-            return isAllowedPutMembershipAccess(principal, reqDomain, roleName, domain) || isAllowedPutMembershipSelfserve(principal, memberName);
-        } else {
-            return isAllowedPutMembershipAccess(principal, reqDomain, roleName, domain);
+        // first lets check if the principal has update access on the role
+        if (isAllowedPutMembershipAccess(principal, domain, role)) {
+            //even with update access, if the role is auditEnabled, member status can not be set to active. It has to be approved by audit admins.
+            if (role.getAuditEnabled() == Boolean.TRUE) {
+                member.setActive(false);
+            } else {
+                // for normal / selfserve roles, set member status to active immediately
+                member.setActive(true);
+            }
+            return true;
+        } else if (role.getSelfserve() == Boolean.TRUE && isAllowedPutMembershipSelfserve(principal, memberName)) {
+            // if the role is selfserve, and user is trying to add herself, allow it but with member status set to inactive. It has to be approved by domain admins.
+            member.setActive(false);
+            return true;
         }
-
+        return false;
     }
 
 }

@@ -6895,9 +6895,8 @@ public class JDBCConnectionTest {
         //get principal
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.user1");
 
-        Mockito.verify(mockPrepStmt, times(1)).setBoolean(2, true);
-        Mockito.verify(mockPrepStmt, times(1)).setInt(3, 7);
-        Mockito.verify(mockPrepStmt, times(1)).setInt(4, 9);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(2, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(3, 9);
 
         // we need additional operation for the audit log
         // additional operation to check for roleMember exist using roleID and principal ID.
@@ -6908,7 +6907,7 @@ public class JDBCConnectionTest {
 
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.admin");
         Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
-        Mockito.verify(mockPrepStmt, times(1)).setString(4, "UPDATE");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "APPROVE");
         Mockito.verify(mockPrepStmt, times(1)).setString(5, "audit-ref");
 
         assertTrue(requestSuccess);
@@ -6950,9 +6949,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.user1");
 
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(1, javaExpiration);
-        Mockito.verify(mockPrepStmt, times(1)).setBoolean(2, true);
-        Mockito.verify(mockPrepStmt, times(1)).setInt(3, 7);
-        Mockito.verify(mockPrepStmt, times(1)).setInt(4, 9);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(2, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(3, 9);
 
         // we need additional operation for the audit log
         // additional operation to check for roleMember exist using roleID and principal ID.
@@ -6963,7 +6961,7 @@ public class JDBCConnectionTest {
 
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.admin");
         Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
-        Mockito.verify(mockPrepStmt, times(1)).setString(4, "UPDATE");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "APPROVE");
         Mockito.verify(mockPrepStmt, times(1)).setString(5, "audit-ref");
 
         assertTrue(requestSuccess);
@@ -7011,7 +7009,7 @@ public class JDBCConnectionTest {
 
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.admin");
         Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
-        Mockito.verify(mockPrepStmt, times(1)).setString(4, "DELETE");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "REJECT");
         Mockito.verify(mockPrepStmt, times(1)).setString(5, "audit-ref");
 
         assertTrue(requestSuccess);

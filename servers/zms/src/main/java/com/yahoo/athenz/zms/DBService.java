@@ -490,13 +490,8 @@ public class DBService {
                 auditLogRoleMembers(auditDetails, "added-members", roleMembers);
             }
         } else {
-            if (originalRole.getAuditEnabled() == null || originalRole.getAuditEnabled() == Boolean.FALSE) {
-                processUpdateRoleMembers(con, originalRole, roleMembers, ignoreDeletes,
-                        domainName, roleName, admin, auditRef, auditDetails);
-            } else {
-                throw ZMSUtils.requestError("Can not update the auditEnabled role ", "processrole");
-            }
-
+            processUpdateRoleMembers(con, originalRole, roleMembers, ignoreDeletes,
+                    domainName, roleName, admin, auditRef, auditDetails);
         }
         
         auditDetails.append('}');
@@ -788,6 +783,10 @@ public class DBService {
                 // retrieve our original role
 
                 Role originalRole = getRole(con, domainName, roleName, false, false);
+
+                if (originalRole != null && originalRole.getAuditEnabled() == Boolean.TRUE) {
+                    throw ZMSUtils.requestError("Can not update the auditEnabled role ", caller);
+                }
 
                 // now process the request
 
@@ -3526,9 +3525,7 @@ public class DBService {
                 updateRoleSystemMetaFields(updatedRole, attribute, deleteAllowed, meta);
 
                 con.updateRole(domainName, updatedRole);
-                con.updateRoleModTimestamp(domainName, roleName);
                 saveChanges(con, domainName);
-                cacheStore.invalidate(roleName);
 
                 // audit log the request
 
@@ -3582,9 +3579,7 @@ public class DBService {
                 updateRoleMetaFields(updatedRole, meta);
 
                 con.updateRole(domainName, updatedRole);
-                con.updateRoleModTimestamp(domainName, roleName);
                 saveChanges(con, domainName);
-                cacheStore.invalidate(roleName);
 
                 // audit log the request
 
@@ -3646,7 +3641,7 @@ public class DBService {
 
                 String principal = getPrincipalName(ctx);
 
-                // process our insert role member support. since this is a "single"
+                // process our confirm role member support. since this is a "single"
                 // operation, we are not using any transactions.
 
                 if (!con.confirmRoleMember(domainName, roleName, roleMember,
@@ -3664,8 +3659,17 @@ public class DBService {
 
                 // audit log the request
 
+                String status = roleMember.getActive() ? "approved" : "rejected";
+
+                StringBuilder auditDetails = new StringBuilder("{\"member\": \"").append(roleMember.getMemberName())
+                        .append("\",\"decision\": \"").append(status).append("\"");
+                if (roleMember.getExpiration() != null) {
+                    auditDetails.append("\"expiry\": \"").append(roleMember.getExpiration()).append("\"");
+                }
+                auditDetails.append("}");
+
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
-                        roleName, "{\"member\": \"" + roleMember.getMemberName() + "\"}");
+                        roleName, auditDetails.toString());
 
                 return;
 
