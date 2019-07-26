@@ -218,7 +218,7 @@ public class DataStore implements DataCacheProvider {
         }
 
         JWK jwk = null;
-        final Base64.Encoder encoder = Base64.getUrlEncoder();
+        final Base64.Encoder encoder = Base64.getUrlEncoder().withoutPadding();
 
         switch (publicKey.getAlgorithm()) {
             case ZTSConsts.RSA:
