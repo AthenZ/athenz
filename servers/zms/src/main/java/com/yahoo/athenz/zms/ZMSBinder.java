@@ -15,7 +15,7 @@
  */
 package com.yahoo.athenz.zms;
 
-import org.glassfish.hk2.utilities.binding.AbstractBinder;
+import org.glassfish.jersey.internal.inject.AbstractBinder;
 
 class ZMSBinder extends AbstractBinder {
 
