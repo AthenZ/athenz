@@ -76,10 +76,24 @@ public class S3ChangeLogStore implements ChangeLogStore {
     
     @Override
     public SignedDomain getSignedDomain(String domainName) {
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("getSignedDomain: {}", domainName);
+        }
+
         // clear the mapping if present and value is stored else null is returned
+
         SignedDomain signedDomain = tempSignedDomainMap.remove(domainName);
-        // when for some reason the getAllSignedDomains() was unsuccessful signedDomain will be null
+
+        // when for some reason the getAllSignedDomains() was unsuccessful
+        // signedDomain will be null
+
         if (signedDomain == null) {
+
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("getSignedDomain: not present in cache, fetching from S3...");
+            }
+
             // make sure we have an aws s3 client for our request
 
             if (awsS3Client == null) {
@@ -102,7 +116,7 @@ public class S3ChangeLogStore implements ChangeLogStore {
     SignedDomain getSignedDomain(AmazonS3 s3, String domainName) {
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("AWSS3ChangeLog: getting signed domain {}", domainName);
+            LOGGER.debug("getSignedDomain with S3: {}", domainName);
         }
         
         SignedDomain signedDomain = null;
@@ -218,9 +232,11 @@ public class S3ChangeLogStore implements ChangeLogStore {
         ArrayList<String> domains = new ArrayList<>();
         listObjects(awsS3Client, domains, 0);
         tempSignedDomainMap.clear();
+
         // we are trying to get the signed domain list from the s3 bucket twice here.
         // The function get AllSignedDomains will return false when an InterruptedException
         // is thrown. If it can't be done successfully then we thrown a RuntimeException.
+
         if (!getAllSignedDomains(domains)) {
             getAllSignedDomains(domains);
         }
@@ -228,27 +244,42 @@ public class S3ChangeLogStore implements ChangeLogStore {
     }
 
     public boolean getAllSignedDomains(List<String> domains) {
-        ExecutorService threadPoolExecutor = getExecutorService();
 
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("Getting all domains from S3 with multiple threads...");
+        }
+
+        ExecutorService threadPoolExecutor = getExecutorService();
         AmazonS3 tempS3 = getS3Client();
         for (String domain: domains) {
             threadPoolExecutor.execute(new S3ChangeLogStore.ObjectS3Thread(domain, tempSignedDomainMap, tempS3));
         }
+
         // shutdown() ensures no further tasks can be submitted to the ExecutorService
+
         threadPoolExecutor.shutdown();
 
         // If an Exception is thrown then we clear the HashMap where the SignedDomains are stored
         // and also we use the shutdownNow() function to cancel currently executing tasks.
+
         try {
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Waiting for completion of all getdomain tasks...");
+            }
+
             threadPoolExecutor.awaitTermination(defaultTimeoutSeconds, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
+
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Executor completed all of its tasks");
+            }
+
+        } catch (InterruptedException ex) {
+            LOGGER.error("Interrupted Exception in getAllSignedDomains", ex);
             tempSignedDomainMap.clear();
             threadPoolExecutor.shutdownNow();
-            if (LOGGER.isInfoEnabled()) {
-                LOGGER.info("Interrupted Exception in getAllSignedDomains");
-            }
             return false;
         }
+
         return true;
     }
 
