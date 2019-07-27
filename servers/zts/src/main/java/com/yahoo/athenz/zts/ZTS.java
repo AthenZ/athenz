@@ -23,7 +23,7 @@ public class ZTS extends ResourceConfig {
         register(JsonMappingExceptionMapper.class, 1);
         register(JsonParseExceptionMapper.class, 1);
         register(JsonProcessingExceptionMapper.class, 1);
-        registerClasses(ZTSResources.class);
+        register(ZTSResources.class);
         register(new ZTSBinder());
     }
 }
