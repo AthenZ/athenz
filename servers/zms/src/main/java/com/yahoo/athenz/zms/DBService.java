@@ -490,7 +490,7 @@ public class DBService {
                 auditLogRoleMembers(auditDetails, "added-members", roleMembers);
             }
         } else {
-            processUpdateRoleMembers(con, originalRole, roleMembers, ignoreDeletes, 
+            processUpdateRoleMembers(con, originalRole, roleMembers, ignoreDeletes,
                     domainName, roleName, admin, auditRef, auditDetails);
         }
         
@@ -783,6 +783,10 @@ public class DBService {
                 // retrieve our original role
 
                 Role originalRole = getRole(con, domainName, roleName, false, false);
+
+                if (originalRole != null && originalRole.getAuditEnabled() == Boolean.TRUE) {
+                    throw ZMSUtils.requestError("Can not update the auditEnabled role ", caller);
+                }
 
                 // now process the request
 
@@ -3407,6 +3411,12 @@ public class DBService {
                 .append("\"}");
     }
 
+    void auditLogRoleMeta(StringBuilder auditDetails, Role role) {
+        auditDetails.append("{\"name\": \"").append(role.getName())
+                .append("\", \"selfserve\": \"").append(role.getSelfserve())
+                .append("\"}");
+    }
+
     void executePutQuota(ResourceContext ctx, String domainName, Quota quota,
             String auditRef, String caller) {
 
@@ -3515,9 +3525,7 @@ public class DBService {
                 updateRoleSystemMetaFields(updatedRole, attribute, deleteAllowed, meta);
 
                 con.updateRole(domainName, updatedRole);
-                con.updateRoleModTimestamp(domainName, roleName);
                 saveChanges(con, domainName);
-                cacheStore.invalidate(roleName);
 
                 // audit log the request
 
@@ -3536,5 +3544,145 @@ public class DBService {
             }
         }
     }
+
+    void updateRoleMetaFields(Role role, RoleMeta meta) {
+
+        role.setSelfserve(meta.getSelfserve());
+    }
+
+    public void executePutRoleMeta(ResourceContext ctx, String domainName, String roleName, RoleMeta meta, String auditRef, String caller) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
+
+                checkRoleAuditEnabled(con, domainName, roleName, auditRef, caller, getPrincipalName(ctx));
+
+                Role rolefromdb = getRole(domainName, roleName, false, false);
+
+                // now process the request. first we're going to make a
+                // copy of our role
+
+                Role updatedRole = new Role()
+                        .setName(rolefromdb.getName())
+                        .setAuditEnabled(rolefromdb.getAuditEnabled())
+                        .setTrust(rolefromdb.getTrust())
+                        .setSelfserve(rolefromdb.getSelfserve());
+
+                // then we're going to apply the updated fields
+                // from the given object
+
+                updateRoleMetaFields(updatedRole, meta);
+
+                con.updateRole(domainName, updatedRole);
+                saveChanges(con, domainName);
+
+                // audit log the request
+
+                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+                auditLogRoleMeta(auditDetails, updatedRole);
+
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
+                        domainName, auditDetails.toString());
+
+                return;
+
+            } catch (ResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
+            }
+        }
+    }
+
+    /**
+     * If the role has audit enabled, and user did not provide the auditRef,
+     * an exception will be thrown. This is the first check before any write
+     * operation is carried out so we don't really have anything to roll-back
+     **/
+    Role checkRoleAuditEnabled(ObjectStoreConnection con, String domainName, String roleName, String auditRef, String caller, String principal) {
+
+        Role role = con.getRole(domainName, roleName);
+        if (role == null) {
+            con.rollbackChanges();
+            throw ZMSUtils.notFoundError(caller + ": Unknown role: " + roleName + " in domain: " + domainName, caller);
+        }
+
+        if (role.getAuditEnabled()) {
+            if (auditRef == null || auditRef.length() == 0) {
+                con.rollbackChanges();
+                throw ZMSUtils.requestError(caller + ": Audit reference required for role: " + domainName, caller);
+            }
+
+            if (auditReferenceValidator != null && !auditReferenceValidator.validateReference(auditRef, principal, caller)) {
+                con.rollbackChanges();
+                throw ZMSUtils.requestError(caller + ": Audit reference validation failed for domain: " + domainName + " and role: " + roleName
+                        + ", auditRef: " + auditRef, caller);
+            }
+        }
+
+        return role;
+    }
+
+    void executePutMembershipDecision(ResourceContext ctx, String domainName, String roleName,
+                              RoleMember roleMember, String auditRef, String caller) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(true, true)) {
+
+                String principal = getPrincipalName(ctx);
+
+                // process our confirm role member support. since this is a "single"
+                // operation, we are not using any transactions.
+
+                if (!con.confirmRoleMember(domainName, roleName, roleMember,
+                        principal, auditRef)) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.requestError(caller + ": unable to apply role membership decision for member: " +
+                            roleMember.getMemberName() + " and role: " + roleName, caller);
+                }
+
+                // update our role and domain time-stamps, and invalidate local cache entry
+
+                con.updateRoleModTimestamp(domainName, roleName);
+                con.updateDomainModTimestamp(domainName);
+                cacheStore.invalidate(domainName);
+
+                // audit log the request
+
+                String status = roleMember.getActive() ? "approved" : "rejected";
+
+                StringBuilder auditDetails = new StringBuilder("{\"member\": \"").append(roleMember.getMemberName())
+                        .append("\",\"decision\": \"").append(status).append("\"");
+                if (roleMember.getExpiration() != null) {
+                    auditDetails.append("\"expiry\": \"").append(roleMember.getExpiration()).append("\"");
+                }
+                auditDetails.append("}");
+
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
+                        roleName, auditDetails.toString());
+
+                return;
+
+            } catch (ResourceException ex) {
+
+                // otherwise check if we need to retry or return failure
+
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
+            }
+        }
+    }
+
 
 }

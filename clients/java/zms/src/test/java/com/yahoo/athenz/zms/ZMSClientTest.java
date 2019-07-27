@@ -26,8 +26,10 @@ import com.yahoo.rdl.Array;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
 
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.testng.Assert.*;
 
+import static org.mockito.ArgumentMatchers.any;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -3016,5 +3018,58 @@ public class ZMSClientTest {
         } catch (ResourceException ex) {
             assertTrue(true);
         }
+    }
+
+    @Test
+    public void testPutRoleMeta() {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        RoleMeta meta = new RoleMeta().setSelfserve(true);
+        try {
+            Mockito.when(c.putRoleMeta("domain1", "role1", AUDIT_REF, meta)).thenThrow(new NullPointerException());
+            client.putRoleMeta("domain1", "role1", AUDIT_REF, meta);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+    }
+
+    @Test
+    public void testPutRoleMetaSuccess() {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        RoleMeta meta = new RoleMeta().setSelfserve(true);
+        Role r = new Role().setName("role1").setSelfserve(true);
+        Mockito.when(c.putRoleMeta("domain1", "role1", AUDIT_REF, meta)).thenReturn(r);
+        client.putRoleMeta("domain1", "role1", AUDIT_REF, meta);
+        assertTrue(true);
+    }
+
+    @Test
+    public void testPutMembershipDecision() {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+
+        try {
+            Mockito.when(c.putMembershipDecision(anyString(), anyString(), anyString(), anyString(), any(Membership.class))).thenThrow(new NullPointerException());
+            client.putMembershipDecision("domain1", "role1", "user.jane", null, true, AUDIT_REF);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+    }
+
+    @Test
+    public void testPutMembershipDecisionSuccess() {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        Membership mbr = new Membership().setActive(true).setMemberName("user.jane").setRoleName("role1");
+        Mockito.when(c.putMembershipDecision(anyString(), anyString(), anyString(), anyString(), any(Membership.class))).thenReturn(mbr);
+        client.putMembershipDecision("domain1", "role1", "user.jane", null, true, AUDIT_REF);
+        assertTrue(true);
     }
 }

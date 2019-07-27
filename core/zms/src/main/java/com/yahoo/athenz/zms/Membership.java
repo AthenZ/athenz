@@ -20,6 +20,9 @@ public class Membership {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Timestamp expiration;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Boolean active;
 
     public Membership setMemberName(String memberName) {
         this.memberName = memberName;
@@ -49,6 +52,13 @@ public class Membership {
     public Timestamp getExpiration() {
         return expiration;
     }
+    public Membership setActive(Boolean active) {
+        this.active = active;
+        return this;
+    }
+    public Boolean getActive() {
+        return active;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -69,6 +79,9 @@ public class Membership {
             if (expiration == null ? a.expiration != null : !expiration.equals(a.expiration)) {
                 return false;
             }
+            if (active == null ? a.active != null : !active.equals(a.active)) {
+                return false;
+            }
         }
         return true;
     }
@@ -79,6 +92,9 @@ public class Membership {
     public Membership init() {
         if (isMember == null) {
             isMember = true;
+        }
+        if (active == null) {
+            active = true;
         }
         return this;
     }

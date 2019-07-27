@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.zms.store.jdbc;
 
+import com.mysql.cj.jdbc.exceptions.SQLError;
 import com.yahoo.athenz.common.server.db.PoolableDataSource;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zms.store.AthenzDomain;
@@ -781,6 +782,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("role1").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_NAME);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_TRUST);
         Mockito.doReturn(true).when(mockResultSet).getBoolean(ZMSConsts.DB_COLUMN_AUDIT_ENABLED);
+        Mockito.doReturn(true).when(mockResultSet).getBoolean(ZMSConsts.DB_COLUMN_SELF_SERVE);
         Mockito.doReturn(new java.sql.Timestamp(1454358916)).when(mockResultSet).getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
@@ -788,7 +790,30 @@ public class JDBCConnectionTest {
         assertNotNull(role);
         assertEquals("my-domain:role.role1", role.getName());
         assertTrue(role.getAuditEnabled());
+        assertTrue(role.getSelfserve());
         
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "role1");
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetRoleWithoutSelfserve() throws Exception {
+
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.doReturn("role1").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_NAME);
+        Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_TRUST);
+        Mockito.doReturn(true).when(mockResultSet).getBoolean(ZMSConsts.DB_COLUMN_AUDIT_ENABLED);
+        Mockito.doReturn(false).when(mockResultSet).getBoolean(ZMSConsts.DB_COLUMN_SELF_SERVE);
+        Mockito.doReturn(new java.sql.Timestamp(1454358916)).when(mockResultSet).getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED);
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Role role = jdbcConn.getRole("my-domain", "role1");
+        assertNotNull(role);
+        assertEquals("my-domain:role.role1", role.getName());
+        assertTrue(role.getAuditEnabled());
+        assertNull(role.getSelfserve());
+
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "role1");
         jdbcConn.close();
@@ -841,7 +866,7 @@ public class JDBCConnectionTest {
         
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        Role role = new Role().setName("my-domain:role.role1").setAuditEnabled(true);
+        Role role = new Role().setName("my-domain:role.role1").setAuditEnabled(true).setSelfserve(true);
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
@@ -855,6 +880,7 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setInt(2, 5);
         Mockito.verify(mockPrepStmt, times(1)).setString(3, "");
         Mockito.verify(mockPrepStmt, times(1)).setBoolean(4, true);
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(5, true);
         jdbcConn.close();
     }
 
@@ -937,7 +963,7 @@ public class JDBCConnectionTest {
         
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        Role role = new Role().setName("my-domain:role.role1").setAuditEnabled(true);
+        Role role = new Role().setName("my-domain:role.role1").setAuditEnabled(true).setSelfserve(true);
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
@@ -955,7 +981,8 @@ public class JDBCConnectionTest {
         // update role
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "");
         Mockito.verify(mockPrepStmt, times(1)).setBoolean(2, true);
-        Mockito.verify(mockPrepStmt, times(1)).setInt(3, 4);
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(3, true);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(4, 4);
         jdbcConn.close();
     }
     
@@ -983,7 +1010,8 @@ public class JDBCConnectionTest {
         // update role
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "trust_domain");
         Mockito.verify(mockPrepStmt, times(1)).setBoolean(2, false);
-        Mockito.verify(mockPrepStmt, times(1)).setInt(3, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(3, false);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(4, 7);
         jdbcConn.close();
     }
     
@@ -6832,6 +6860,410 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         assertNull(jdbcConn.nullIfDefaultValue(false, false));
         assertTrue(jdbcConn.nullIfDefaultValue(true, false));
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testConfirmRoleMemberApprove() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // role id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for role id
+                .thenReturn(true) // validate principle domain
+                .thenReturn(true) // principal id
+                .thenReturn(true); // member exists
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        boolean requestSuccess = jdbcConn.confirmRoleMember("my-domain", "role1",
+                new RoleMember().setMemberName("user.user1").setActive(true), "user.admin", "audit-ref");
+
+        // this is combined for all operations above
+
+        // get domain id
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+
+        // get role id
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "role1");
+
+        //get principal
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.user1");
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(2, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(3, 9);
+
+        // we need additional operation for the audit log
+        // additional operation to check for roleMember exist using roleID and principal ID.
+        Mockito.verify(mockPrepStmt, times(2)).setInt(1, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(2, 9);
+
+        // the rest of the audit log details
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.admin");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "APPROVE");
+        Mockito.verify(mockPrepStmt, times(1)).setString(5, "audit-ref");
+
+        assertTrue(requestSuccess);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testConfirmRoleMemberApproveWithExpiry() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // role id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for role id
+                .thenReturn(true) // validate principle domain
+                .thenReturn(true) // principal id
+                .thenReturn(true); // member exists
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        Timestamp expiration = Timestamp.fromCurrentTime();
+        java.sql.Timestamp javaExpiration = new java.sql.Timestamp(expiration.toDate().getTime());
+        boolean requestSuccess = jdbcConn.confirmRoleMember("my-domain", "role1",
+                new RoleMember().setMemberName("user.user1").setActive(true).setExpiration(expiration), "user.admin", "audit-ref");
+
+        // this is combined for all operations above
+
+        // get domain id
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+
+        // get role id
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "role1");
+
+        //get principal
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.user1");
+
+        Mockito.verify(mockPrepStmt, times(1)).setTimestamp(1, javaExpiration);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(2, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(3, 9);
+
+        // we need additional operation for the audit log
+        // additional operation to check for roleMember exist using roleID and principal ID.
+        Mockito.verify(mockPrepStmt, times(2)).setInt(1, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(2, 9);
+
+        // the rest of the audit log details
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.admin");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "APPROVE");
+        Mockito.verify(mockPrepStmt, times(1)).setString(5, "audit-ref");
+
+        assertTrue(requestSuccess);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testConfirmRoleMemberReject() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // role id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for role id
+                .thenReturn(true) // validate principle domain
+                .thenReturn(true) // principal id
+                .thenReturn(true); // member exists
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        boolean requestSuccess = jdbcConn.confirmRoleMember("my-domain", "role1",
+                new RoleMember().setMemberName("user.user1").setActive(false), "user.admin", "audit-ref");
+
+        // this is combined for all operations above
+
+        // get domain id
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+
+        // get role id
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "role1");
+
+        //get principal
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.user1");
+
+        // we need additional operation for the audit log
+        // additional operation to check for roleMember exist using roleID and principal ID.
+        Mockito.verify(mockPrepStmt, times(3)).setInt(1, 7);
+        Mockito.verify(mockPrepStmt, times(2)).setInt(2, 9);
+
+        // the rest of the audit log details
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.admin");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "REJECT");
+        Mockito.verify(mockPrepStmt, times(1)).setString(5, "audit-ref");
+
+        assertTrue(requestSuccess);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testConfirmRoleMemberErrors() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(0); // domain id
+
+        try {
+
+            jdbcConn.confirmRoleMember("my-domain", "role1", new RoleMember().setMemberName("user.user1").setActive(false), "user.admin", "audit-ref");
+
+        }catch (ResourceException rx){
+            assertEquals(rx.getCode(), 404);
+            assertTrue(rx.getMessage().contains("unknown domain"));
+        }
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(0); // role id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true);
+
+        try {
+
+            jdbcConn.confirmRoleMember("my-domain", "role1", new RoleMember().setMemberName("user.user1").setActive(false), "user.admin", "audit-ref");
+
+        }catch (ResourceException rx){
+            assertEquals(rx.getCode(), 404);
+            assertTrue(rx.getMessage().contains("unknown role"));
+        }
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7); // role id
+
+        try {
+
+            jdbcConn.confirmRoleMember("my-domain", "role1", new RoleMember().setMemberName("user1").setActive(false), "user.admin", "audit-ref");
+
+        }catch (ResourceException rx){
+            assertEquals(rx.getCode(), 404);
+            assertTrue(rx.getMessage().contains("unknown domain"));
+        }
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // role id
+                .thenReturn(0); // principal id
+
+        try {
+
+            jdbcConn.confirmRoleMember("my-domain", "role1", new RoleMember().setMemberName("user.user1").setActive(false), "user.admin", "audit-ref");
+
+        }catch (ResourceException rx){
+            assertEquals(rx.getCode(), 500);
+            assertTrue(rx.getMessage().contains("Unable to insert principal"));
+        }
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // role id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for role id
+                .thenReturn(true) // validate principle domain
+                .thenReturn(true) // principal id
+                .thenReturn(false); // member exists
+
+        try {
+
+            jdbcConn.confirmRoleMember("my-domain", "role1", new RoleMember().setMemberName("user.user1").setActive(true), "user.admin", "audit-ref");
+
+        }catch (ResourceException rx){
+            assertEquals(rx.getCode(), 500);
+            assertTrue(rx.getMessage().contains("Unable to confirm non-existing principal"));
+        }
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // role id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for role id
+                .thenReturn(true) // validate principle domain
+                .thenReturn(true) // principal id
+                .thenReturn(true); // member exists
+
+        Mockito.doThrow(new SQLException("conflict", "08S01", 409)).when(mockPrepStmt).executeUpdate();
+
+        try {
+
+            jdbcConn.confirmRoleMember("my-domain", "role1", new RoleMember().setMemberName("user.user1").setActive(true), "user.admin", "audit-ref");
+
+        }catch (ResourceException rx){
+            assertEquals(rx.getCode(), 409);
+        }
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // role id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for role id
+                .thenReturn(true) // validate principle domain
+                .thenReturn(true) // principal id
+                .thenReturn(true); // member exists
+
+        Mockito.doReturn(0).when(mockPrepStmt).executeUpdate();
+
+        boolean result = jdbcConn.confirmRoleMember("my-domain", "role1", new RoleMember().setMemberName("user.user1").setActive(true), "user.admin", "audit-ref");
+        assertFalse(result);
+
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // role id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for role id
+                .thenReturn(true) // validate principle domain
+                .thenReturn(true) // principal id
+                .thenReturn(true); // member exists
+
+        Mockito.doThrow(new SQLException("conflict", "08S01", 409)).when(mockPrepStmt).executeUpdate();
+
+        try {
+
+            jdbcConn.confirmRoleMember("my-domain", "role1", new RoleMember().setMemberName("user.user1").setActive(false), "user.admin", "audit-ref");
+
+        }catch (ResourceException rx){
+            assertEquals(rx.getCode(), 409);
+        }
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // role id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for role id
+                .thenReturn(true) // validate principle domain
+                .thenReturn(true) // principal id
+                .thenReturn(true); // member exists
+
+        Mockito.doReturn(0).when(mockPrepStmt).executeUpdate();
+
+        result = jdbcConn.confirmRoleMember("my-domain", "role1", new RoleMember().setMemberName("user.user1").setActive(false), "user.admin", "audit-ref");
+        assertFalse(result);
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testInsertRoleMemberDefaultActive() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // role id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for role id
+                .thenReturn(true) // validate principle domain
+                .thenReturn(true) // principal id
+                .thenReturn(false); // member exists
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        boolean requestSuccess = jdbcConn.insertRoleMember("my-domain", "role1",
+                new RoleMember().setMemberName("user.user1"), "user.admin", "audit-ref");
+
+        // this is combined for all operations above
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "role1");
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.user1");
+
+        // we need additional operation for the audit log
+        // additional operation to check for roleMember exist using roleID and principal ID.
+        Mockito.verify(mockPrepStmt, times(3)).setInt(1, 7);
+        Mockito.verify(mockPrepStmt, times(2)).setInt(2, 9);
+
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(4, true);
+
+        // the rest of the audit log details
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.admin");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "ADD");
+        Mockito.verify(mockPrepStmt, times(1)).setString(5, "audit-ref");
+
+        assertTrue(requestSuccess);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testInsertRoleMemberNotActiveByFlag() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // role id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for role id
+                .thenReturn(true) // validate principle domain
+                .thenReturn(true) // principal id
+                .thenReturn(false); // member exists
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        boolean requestSuccess = jdbcConn.insertRoleMember("my-domain", "role1",
+                new RoleMember().setMemberName("user.user1").setActive(false), "user.admin", "audit-ref");
+
+        // this is combined for all operations above
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "role1");
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.user1");
+
+        // we need additional operation for the audit log
+        // additional operation to check for roleMember exist using roleID and principal ID.
+        Mockito.verify(mockPrepStmt, times(3)).setInt(1, 7);
+        Mockito.verify(mockPrepStmt, times(2)).setInt(2, 9);
+
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(4, false);
+
+        // the rest of the audit log details
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.admin");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "ADD");
+        Mockito.verify(mockPrepStmt, times(1)).setString(5, "audit-ref");
+
+        assertTrue(requestSuccess);
         jdbcConn.close();
     }
 }

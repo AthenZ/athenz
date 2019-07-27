@@ -1501,4 +1501,43 @@ public class FileConnection implements ObjectStoreConnection {
         }
         return domainRoleMembers;
     }
+
+    @Override
+    public boolean confirmRoleMember(String domainName, String roleName, RoleMember member,
+                                    String admin, String auditRef) {
+
+        DomainStruct domainStruct = getDomainStruct(domainName);
+        if (domainStruct == null) {
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "confirmRoleMember");
+        }
+        Role role = getRoleObject(domainStruct, roleName);
+        if (role == null) {
+            throw ZMSUtils.error(ResourceException.NOT_FOUND, "role not found", "confirmRoleMember");
+        }
+
+        if (role.getRoleMembers() != null && !role.getRoleMembers().isEmpty()) {
+            // need to check if the member already exists
+
+            Iterator<RoleMember> rmIter = role.getRoleMembers().iterator();
+            RoleMember roleMember;
+            while (rmIter.hasNext()) {
+                roleMember = rmIter.next();
+                // check whether the member exists and is in inactive state
+                if (roleMember.getMemberName().equals(member.getMemberName()) && !roleMember.getActive()) {
+                    //if membership is approved, set rolemember to active
+                    if (member.getActive() == Boolean.TRUE) {
+                        roleMember.setExpiration(member.getExpiration());
+                        roleMember.setActive(true);
+                    } else {
+                        // if membership is not approved, delete the role member from the role
+                        rmIter.remove();
+                    }
+                }
+            }
+            putDomainStruct(domainName, domainStruct);
+            return true;
+        }
+        return false;
+    }
+
 }
