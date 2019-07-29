@@ -158,12 +158,13 @@ public class SSLUtils {
         private static KeyStore loadStore(String store, String storeType, String storeProvider, char[] storePassword) throws Exception {
             KeyStore keystore = null;
             if (store != null && !store.isEmpty()) {
+                ///CLOVER:OFF
                 if (storeProvider == null) {
                     keystore = KeyStore.getInstance(storeType);
                 } else {
                     keystore = KeyStore.getInstance(storeType, storeProvider);
                 }
-                
+                ///CLOVER:ON
                 try (InputStream inStream = new FileInputStream(store)) {
                     keystore.load(inStream, storePassword);
                 }
@@ -172,12 +173,16 @@ public class SSLUtils {
         }
         
         private static KeyManager[] getAliasedKeyManagers(KeyManager[] managers, String alias) {
+            ///CLOVER:OFF
             if (managers != null) {
+                ///CLOVER:ON
                 if (alias != null) {
                     for (int idx = 0; idx < managers.length; idx++) {
+                        ///CLOVER:OFF
                         if (managers[idx] instanceof X509ExtendedKeyManager) {
                             managers[idx] = new ClientAliasedX509ExtendedKeyManager((X509ExtendedKeyManager) managers[idx], alias);
                         }
+                        ///CLOVER:ON
                     }
                 }
             }

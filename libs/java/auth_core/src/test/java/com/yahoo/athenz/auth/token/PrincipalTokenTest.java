@@ -119,11 +119,11 @@ public class PrincipalTokenTest {
 
         // Validate the signature and that expiration time had not elapsed
         assertTrue(serviceTokenToValidate.validate(servicePublicKeyStringK1, 300, false));
-        
+
         // Create ServiceToken with null keyVersion which should default to 0
         serviceTokenToValidate = createServiceToken();
         assertEquals(serviceTokenToValidate.getKeyId(), "0");
-        
+
         // Validate the signature using key(k0) and that expiration time had not elapsed
         assertTrue(serviceTokenToValidate.validate(servicePublicKeyStringK0, 300, false));
 
@@ -131,7 +131,7 @@ public class PrincipalTokenTest {
         assertEquals(svcToken2.getSignedToken(), serviceTokenToValidate.getSignedToken());
     }
 
-    
+
     @Test
     public void testUserToken() throws CryptoException {
         long issueTime = System.currentTimeMillis() / 1000;
@@ -195,10 +195,10 @@ public class PrincipalTokenTest {
         // Validate that the expiration time has elapsed
         assertFalse(serviceTokenToValidate.validate(servicePublicKeyStringK0, 300, false));
     }
-    
+
     @Test
     public void testEmptyToken() {
-        
+
         try {
             @SuppressWarnings("unused")
             PrincipalToken token = new PrincipalToken("");
@@ -207,10 +207,10 @@ public class PrincipalTokenTest {
             assertTrue(true);
         }
     }
-    
+
     @Test
     public void testNullToken() {
-        
+
         try {
             @SuppressWarnings("unused")
             PrincipalToken token = new PrincipalToken(null);
@@ -219,10 +219,10 @@ public class PrincipalTokenTest {
             assertTrue(true);
         }
     }
-    
+
     @Test
     public void testTokenDomainNull() {
-        
+
         try {
             @SuppressWarnings("unused")
             PrincipalToken token = new PrincipalToken("v=S1;n=storage;s=sig");
@@ -231,10 +231,10 @@ public class PrincipalTokenTest {
             assertTrue(true);
         }
     }
-    
+
     @Test
     public void testTokenDomainEmpty() {
-        
+
         try {
             @SuppressWarnings("unused")
             PrincipalToken token = new PrincipalToken("v=S1;d=;n=storage;s=sig");
@@ -243,10 +243,10 @@ public class PrincipalTokenTest {
             assertTrue(true);
         }
     }
-    
+
     @Test
     public void tesTokenNameNull() {
-        
+
         try {
             @SuppressWarnings("unused")
             PrincipalToken token = new PrincipalToken("v=S1;d=coretech;s=sig");
@@ -255,10 +255,10 @@ public class PrincipalTokenTest {
             assertTrue(true);
         }
     }
-    
+
     @Test
     public void testTokenNameEmpty() {
-        
+
         try {
             @SuppressWarnings("unused")
             PrincipalToken token = new PrincipalToken("v=S1;d=coretech;n=;s=sig");
@@ -267,29 +267,29 @@ public class PrincipalTokenTest {
             assertTrue(true);
         }
     }
-    
+
     @Test
     public void testTokenWithoutSignature() {
-        
+
         PrincipalToken token = new PrincipalToken("v=S1;d=coretech;n=storage");
         assertEquals(token.getDomain(), "coretech");
         assertEquals(token.getName(), "storage");
         assertEquals(token.getVersion(), "S1");
         assertNull(token.getUnsignedToken());
     }
-    
+
     @Test
     public void testTokenInvalidVersionValue() {
-        
+
         PrincipalToken token = new PrincipalToken("v=S1=S2;d=coretech;n=storage");
         assertEquals(token.getName(), "storage");
         assertEquals(token.getDomain(), "coretech");
         assertNull(token.getVersion());
     }
-    
+
     @Test
     public void testBuilderRequiredVersionNull() {
-        
+
         try {
             @SuppressWarnings("unused")
             PrincipalToken.Builder builder = new PrincipalToken.Builder(null, svcDomain, svcName);
@@ -298,10 +298,10 @@ public class PrincipalTokenTest {
             assertTrue(true);
         }
     }
-    
+
     @Test
     public void testBuilderRequiredVersionEmptyString() {
-        
+
         try {
             @SuppressWarnings("unused")
             PrincipalToken.Builder builder = new PrincipalToken.Builder("", svcDomain, svcName);
@@ -310,10 +310,10 @@ public class PrincipalTokenTest {
             assertTrue(true);
         }
     }
-    
+
     @Test
     public void testBuilderRequiredDomainNull() {
-        
+
         try {
             @SuppressWarnings("unused")
             PrincipalToken.Builder builder = new PrincipalToken.Builder(svcVersion, null, svcName);
@@ -322,10 +322,10 @@ public class PrincipalTokenTest {
             assertTrue(true);
         }
     }
-    
+
     @Test
     public void testBuilderRequiredDomainEmptyString() {
-        
+
         try {
             @SuppressWarnings("unused")
             PrincipalToken.Builder builder = new PrincipalToken.Builder(svcVersion, "", svcName);
@@ -334,10 +334,10 @@ public class PrincipalTokenTest {
             assertTrue(true);
         }
     }
-    
+
     @Test
     public void testBuilderRequiredNameNull() {
-        
+
         try {
             @SuppressWarnings("unused")
             PrincipalToken.Builder builder = new PrincipalToken.Builder(svcVersion, svcDomain, null);
@@ -346,10 +346,10 @@ public class PrincipalTokenTest {
             assertTrue(true);
         }
     }
-    
+
     @Test
     public void testBuilderRequiredNameEmptyString() {
-        
+
         try {
             @SuppressWarnings("unused")
             PrincipalToken.Builder builder = new PrincipalToken.Builder(svcVersion, svcDomain, "");
@@ -358,10 +358,10 @@ public class PrincipalTokenTest {
             assertTrue(true);
         }
     }
-    
+
     @Test
     public void testBuilderDefaultOptionalValues() {
-        
+
         PrincipalToken token = new PrincipalToken.Builder(svcVersion, svcDomain, svcName).build();
         assertEquals(token.getVersion(), svcVersion);
         assertEquals(token.getDomain(), svcDomain);
@@ -374,14 +374,14 @@ public class PrincipalTokenTest {
         assertTrue(timestamp != 0);
         assertEquals(token.getExpiryTime(), timestamp + 3600);
     }
-    
+
     @Test
     public void testBuilderAllValues() {
-        
+
         PrincipalToken token = new PrincipalToken.Builder(svcVersion, svcDomain, svcName)
             .issueTime(36000).expirationWindow(100).host("localhost").ip("127.0.0.1")
             .salt("salt").keyId("zone1").keyService("zts").originalRequestor("athenz.ci.service").build();
-        
+
         assertEquals(token.getVersion(), svcVersion);
         assertEquals(token.getDomain(), svcDomain);
         assertEquals(token.getName(), svcName);
@@ -394,26 +394,26 @@ public class PrincipalTokenTest {
         assertEquals(token.getTimestamp(), 36000);
         assertEquals(token.getExpiryTime(), 36000 + 100);
     }
-    
+
     @Test
     public void testUserTokenWithSingleAuthorizedService() throws CryptoException {
         long issueTime = System.currentTimeMillis() / 1000;
         // Create and sign token
         List<String> authorizedServices = new ArrayList<>();
         authorizedServices.add("coretech.storage");
-        
+
         PrincipalToken userTokenToSign = new PrincipalToken.Builder(usrVersion, usrDomain, usrName)
             .salt(salt).issueTime(issueTime).expirationWindow(expirationTime)
             .authorizedServices(authorizedServices).build();
 
         userTokenToSign.sign(servicePrivateKeyStringK0);
-        
+
         // now let's sign the token for an authorized service
-        
+
         userTokenToSign.signForAuthorizedService("coretech.storage", "1", servicePrivateKeyStringK1);
-        
+
         // Create a token for validation using the signed data
-        
+
         PrincipalToken userTokenToValidate = new PrincipalToken(userTokenToSign.getSignedToken());
 
         // Validate all input data
@@ -431,7 +431,7 @@ public class PrincipalTokenTest {
         // Validate the signature and that expiration time had not elapsed
         assertTrue(userTokenToValidate.validateForAuthorizedService(servicePublicKeyStringK1, null));
     }
-    
+
     @Test
     public void testUserTokenWithMultipleAuthorizedServices() throws CryptoException {
         long issueTime = System.currentTimeMillis() / 1000;
@@ -445,13 +445,13 @@ public class PrincipalTokenTest {
             .authorizedServices(authorizedServices).build();
 
         userTokenToSign.sign(servicePrivateKeyStringK0);
-        
+
         // now let's sign the token for an authorized service
-        
+
         userTokenToSign.signForAuthorizedService("coretech.storage", "1", servicePrivateKeyStringK1);
-        
+
         // Create a token for validation using the signed data
-        
+
         PrincipalToken userTokenToValidate = new PrincipalToken(userTokenToSign.getSignedToken());
 
         // Validate all input data
@@ -470,20 +470,20 @@ public class PrincipalTokenTest {
         StringBuilder errMsg = new StringBuilder();
         assertTrue(userTokenToValidate.validateForAuthorizedService(servicePublicKeyStringK1, errMsg));
     }
-    
+
     @Test
     public void testUserTokenWithNullAuthorizedService() throws CryptoException {
         long issueTime = System.currentTimeMillis() / 1000;
-        
+
         PrincipalToken userTokenToSign = new PrincipalToken.Builder(usrVersion, usrDomain, usrName)
             .salt(salt).issueTime(issueTime).expirationWindow(expirationTime)
             .build();
 
         userTokenToSign.sign(servicePrivateKeyStringK0);
-        
+
         // now let's sign the token for an authorized service. we must get
         // back illegal argument exception
-        
+
         try {
             userTokenToSign.signForAuthorizedService("coretech.storage", "0", servicePrivateKeyStringK0);
             fail();
@@ -491,40 +491,40 @@ public class PrincipalTokenTest {
             assertEquals(ex.getClass(), IllegalArgumentException.class);
         }
     }
-    
+
     @Test
     public void testUserTokenWithInvalidAuthorizedService() throws CryptoException {
         long issueTime = System.currentTimeMillis() / 1000;
         // Create and sign token
         List<String> authorizedServices = new ArrayList<>();
         authorizedServices.add("coretech.storage");
-        
+
         PrincipalToken userTokenToSign = new PrincipalToken.Builder(usrVersion, usrDomain, usrName)
             .salt(salt).issueTime(issueTime).expirationWindow(expirationTime)
             .authorizedServices(authorizedServices).build();
 
         userTokenToSign.sign(servicePrivateKeyStringK0);
-        
+
         // now let's sign the token for an authorized service. we must get
         // back illegal argument exception because of service name mismatch
-        
+
         try {
             userTokenToSign.signForAuthorizedService("weather.storage", "0", servicePrivateKeyStringK0);
             fail();
         } catch (Exception ex) {
             assertEquals(ex.getClass(), IllegalArgumentException.class);
         }
-        
+
         authorizedServices.add("media.storage");
         PrincipalToken userTokenToSign2 = new PrincipalToken.Builder(usrVersion, usrDomain, usrName)
             .salt(salt).issueTime(issueTime).expirationWindow(expirationTime)
             .authorizedServices(authorizedServices).build();
 
         userTokenToSign2.sign(servicePrivateKeyStringK0);
-            
+
         // now let's sign the token for an authorized service. we must get
         // back illegal argument exception because of service name mismatch
-            
+
         try {
             userTokenToSign2.signForAuthorizedService("weather.storage", "0", servicePrivateKeyStringK0);
             fail();
@@ -532,169 +532,169 @@ public class PrincipalTokenTest {
             assertEquals(ex.getClass(), IllegalArgumentException.class);
         }
     }
-    
+
     @Test
     public void testValidateForAuthorizedServiceInvalidSignature() throws CryptoException {
         long issueTime = System.currentTimeMillis() / 1000;
         // Create and sign token
         List<String> authorizedServices = new ArrayList<>();
         authorizedServices.add("coretech.storage");
-        
+
         PrincipalToken userTokenToSign = new PrincipalToken.Builder(usrVersion, usrDomain, usrName)
             .salt(salt).issueTime(issueTime).expirationWindow(expirationTime)
             .authorizedServices(authorizedServices).build();
 
         userTokenToSign.sign(servicePrivateKeyStringK0);
-        
+
         // now let's sign the token for an authorized service
-        
+
         userTokenToSign.signForAuthorizedService("coretech.storage", "1", servicePrivateKeyStringK1);
-        
+
         // Create a token for validation using the signed data
-        
+
         PrincipalToken userTokenToValidate = new PrincipalToken(userTokenToSign.getSignedToken());
         StringBuilder errMsg = new StringBuilder();
         assertTrue(userTokenToValidate.validateForAuthorizedService(servicePublicKeyStringK1, errMsg));
-        
+
         // now let's add a couple of extra characters to the signature
-        
+
         String tamperedToken = userTokenToSign.getSignedToken();
         userTokenToValidate = new PrincipalToken(tamperedToken.replace(";bs=", ";bs=ab"));
         errMsg = new StringBuilder();
         assertFalse(userTokenToValidate.validateForAuthorizedService(servicePublicKeyStringK1, errMsg));
         assertTrue(!errMsg.toString().isEmpty());
     }
-    
+
     @Test
     public void testValidateForAuthorizedServiceNoSignature() throws CryptoException {
         long issueTime = System.currentTimeMillis() / 1000;
         // Create and sign token
         List<String> authorizedServices = new ArrayList<>();
         authorizedServices.add("coretech.storage");
-        
+
         PrincipalToken userTokenToSign = new PrincipalToken.Builder(usrVersion, usrDomain, usrName)
             .salt(salt).issueTime(issueTime).expirationWindow(expirationTime)
             .authorizedServices(authorizedServices).build();
 
         userTokenToSign.sign(servicePrivateKeyStringK0);
-        
+
         // Create a token for validation using the signed data without
         // signing for authorized service so there won't be bs field.
-        
+
         PrincipalToken userTokenToValidate = new PrincipalToken(userTokenToSign.getSignedToken());
         StringBuilder errMsg = new StringBuilder();
         assertFalse(userTokenToValidate.validateForAuthorizedService(servicePublicKeyStringK1, errMsg));
         assertTrue(!errMsg.toString().isEmpty());
     }
-    
+
     @Test
     public void testIsValidAuthorizedServiceTokenStandardToken() {
-        
+
         // testing standard token
-        
+
         String token = "v=S1;d=domain;n=service;t=1234;e=1235;k=0;h=host1;i=1.2.3.4;s=signature";
         PrincipalToken svcToken = new PrincipalToken(token);
         StringBuilder errMsg = new StringBuilder();
         assertTrue(svcToken.isValidAuthorizedServiceToken(errMsg));
     }
-    
+
     @Test
     public void testIsValidAuthorizedServiceTokenValidSvcToken() {
-        
+
         // testing valid service token - we have multiple cases
         // to consider:
         // single service entry in list + service name
-        
+
         String token = "v=S1;d=domain;n=service;t=1234;e=1235;k=0;h=host1;i=1.2.3.4;b=svc1;s=signature;bk=0;bn=svc1;bs=signature";
         PrincipalToken svcToken = new PrincipalToken(token);
         StringBuilder errMsg = new StringBuilder();
         assertTrue(svcToken.isValidAuthorizedServiceToken(errMsg));
-        
+
         // single service entry in list + no service name
-        
+
         token = "v=S1;d=domain;n=service;t=1234;e=1235;k=0;h=host1;i=1.2.3.4;b=svc1;s=signature;bk=0;bs=signature";
         svcToken = new PrincipalToken(token);
         assertTrue(svcToken.isValidAuthorizedServiceToken(null));
-        
+
         // multiple service entries in list + service name
-        
+
         token = "v=S1;d=domain;n=service;t=1234;e=1235;k=0;h=host1;i=1.2.3.4;b=svc1,svc2;s=signature;bk=0;bn=svc1;bs=signature";
         svcToken = new PrincipalToken(token);
         assertTrue(svcToken.isValidAuthorizedServiceToken(errMsg));
     }
-    
+
     @Test
     public void testIsValidAuthorizedServiceTokenSvcYesSigNo() {
-        
+
         // we're going to test where we have an authorized service
         // name but no corresponding signature
-        
+
         String token = "v=S1;d=domain;n=service;t=1234;e=1235;k=0;h=host1;i=1.2.3.4;b=svc1;s=signature";
         PrincipalToken svcToken = new PrincipalToken(token);
         StringBuilder errMsg = new StringBuilder();
         assertFalse(svcToken.isValidAuthorizedServiceToken(errMsg));
         assertTrue(!errMsg.toString().isEmpty());
     }
-    
+
     @Test
     public void testIsValidAuthorizedServiceTokenSvcNoSigYes() {
-        
+
         // we're going to test where we have an authorized
         // service signature but no service name
-        
+
         String token = "v=S1;d=domain;n=service;t=1234;e=1235;k=0;h=host1;i=1.2.3.4;s=signature;bk=0;bs=signature";
         PrincipalToken svcToken = new PrincipalToken(token);
         StringBuilder errMsg = new StringBuilder();
         assertFalse(svcToken.isValidAuthorizedServiceToken(errMsg));
         assertTrue(!errMsg.toString().isEmpty());
     }
-    
+
     @Test
     public void testIsValidAuthorizedServiceTokenUnknownSvc() {
-        
+
         // we're going to test where we have both service name
         // and signature but the service name is not in the
         // service list (single entry)
-        
+
         String token = "v=S1;d=domain;n=service;t=1234;e=1235;k=0;h=host1;i=1.2.3.4;b=svc1;s=signature;bk=0;bn=svc3;bs=signature";
         PrincipalToken svcToken = new PrincipalToken(token);
         StringBuilder errMsg = new StringBuilder();
         assertFalse(svcToken.isValidAuthorizedServiceToken(errMsg));
         assertTrue(!errMsg.toString().isEmpty());
-        
+
         // service list (multiple entries)
-        
+
         token = "v=S1;d=domain;n=service;t=1234;e=1235;k=0;h=host1;i=1.2.3.4;b=svc1,svc2;s=signature;bk=0;bn=svc3;bs=signature";
         svcToken = new PrincipalToken(token);
         errMsg = new StringBuilder();
         assertFalse(svcToken.isValidAuthorizedServiceToken(errMsg));
         assertTrue(!errMsg.toString().isEmpty());
     }
-    
+
     @Test
     public void testIsValidAuthorizedServiceTokenNoSvcNotSingle() {
-        
+
         // we're going to test where we have a service list
         // and signature but no service name and our list
         // contains multiple entries
-        
+
         String token = "v=S1;d=domain;n=service;t=1234;e=1235;k=0;h=host1;i=1.2.3.4;b=svc1,svc2;s=signature;bk=0;bs=signature";
         PrincipalToken svcToken = new PrincipalToken(token);
         StringBuilder errMsg = new StringBuilder();
         assertFalse(svcToken.isValidAuthorizedServiceToken(errMsg));
         assertTrue(!errMsg.toString().isEmpty());
     }
-    
+
     @Test
     public void testPrincipalTokenParserKeyService() {
-        
+
         String token = "v=S1;d=domain;n=service;t=1234;e=1235;k=0;z=zms;o=athenz.ci.service;h=host1;i=1.2.3.4;s=signature";
         PrincipalToken svcToken = new PrincipalToken(token);
 
         assertEquals(svcToken.getKeyService(), "zms");
         assertEquals(svcToken.getOriginalRequestor(), "athenz.ci.service");
     }
-    
+
     @Test
     public void testPrincipalTokenGenerationKeyService() {
         PrincipalToken token = new PrincipalToken.Builder(svcVersion, svcDomain, svcName)
@@ -705,13 +705,13 @@ public class PrincipalTokenTest {
         String strToken = token.getSignedToken();
         int idx = strToken.indexOf(";z=zts;");
         assertTrue(idx != -1);
-        
+
         idx = strToken.indexOf(";o=athenz.ci.service;");
         assertTrue(idx != -1);
     }
 
     @Test
-    public void testValidateForAuthorizedServiceIlligal() {
+    public void testValidateForAuthorizedServiceIllegal() {
         PrincipalToken token = new PrincipalToken("bs=signature;v=S1;d=domain;n=service;t=1234;e=1235;k=0;h=host1;i=1.2.3.4;b=svc1;s=signature;bk=0;bn=svc1");
         assertFalse(token.validateForAuthorizedService(null, null));
         

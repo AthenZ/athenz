@@ -50,12 +50,15 @@ public class Token {
     static Boolean ATHENZ_TOKEN_NO_EXPIRY = Boolean.parseBoolean(
             System.getProperty(ATHENZ_PROP_TOKEN_NO_EXPIRY, "false"));
 
+    public String getDigestAlgorithm() {
+        return digestAlgorithm;
+    }
     public void sign(String privKey) throws CryptoException {
         sign(Crypto.loadPrivateKey(privKey));
     }
 
     public void sign(PrivateKey key) throws CryptoException {
-        signature = Crypto.sign(unsignedToken, key, digestAlgorithm);
+        signature = Crypto.sign(unsignedToken, key, getDigestAlgorithm());
         signedToken = unsignedToken + ";s=" + signature;
     }
     
@@ -155,7 +158,7 @@ public class Token {
         
         boolean verified = false; // fail safe
         try {
-            verified = Crypto.verify(unsignedToken, publicKey, signature, digestAlgorithm);
+            verified = Crypto.verify(unsignedToken, publicKey, signature, getDigestAlgorithm());
             if (!verified) {
                 errMsg.append("Token:validate: token=").append(unsignedToken).
                        append(" : authentication failed");

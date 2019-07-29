@@ -76,9 +76,11 @@ public class YBase64 {
         // but we need to mask off the sign bit.
         final int a = ((int) ba) & 0x00ff;
         final int i = (a >> 2);
+        ///CLOVER:OFF
         if (i < 0 || i >= Y64_DECODE_ARRAY.length) {
             return (byte) 0xee;
         }
+        ///CLOVER:ON
         return Y64_ARRAY[i];
     }
 
@@ -89,10 +91,11 @@ public class YBase64 {
         final int a = ((int) ba) & 0x00ff;
         final int b = ((int) bb) & 0x00ff;
         final int i = ((a << 4) & 0x30) + (b >> 4);
+        ///CLOVER:OFF
         if (i < 0 || i >= Y64_DECODE_ARRAY.length) {
             return (byte) 0xee;
         }
-
+        ///CLOVER:ON
         return Y64_ARRAY[i];
     }
 
@@ -103,10 +106,11 @@ public class YBase64 {
         final int b = ((int) bb) & 0x00ff;
         final int c = ((int) bc) & 0x00ff;
         final int i = ((b << 2) & 0x3C) + (c >> 6);
+        ///CLOVER:OFF
         if (i < 0 || i >= Y64_DECODE_ARRAY.length) {
             return (byte) 0xee;
         }
-
+        ///CLOVER:ON
         return Y64_ARRAY[i];
     }
 
@@ -115,10 +119,11 @@ public class YBase64 {
         // have to make value into an int so we can do shifts.
         // but we need to mask off the sign bit.
         final int i = ((int) bc) & 0x003f;
+        ///CLOVER:OFF
         if (i < 0 || i >= Y64_DECODE_ARRAY.length) {
             return (byte) 0xee;
         }
-
+        ///CLOVER:ON
         return Y64_ARRAY[i];
     }
 

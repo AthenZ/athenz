@@ -190,7 +190,7 @@ public class RoleTokenTest {
             assertTrue(true);
         }
     }
-    
+
     @Test
     public void testTokenWithoutSignature() {
         
@@ -457,6 +457,14 @@ public class RoleTokenTest {
         assertEquals(token.getDomain(), "coretech");
         assertEquals(token.getProxyUser(), "user.user3");
         assertTrue(token.getDomainCompleteRoleSet()); 
+    }
+
+    @Test
+    public void testRoleTokenWithNotCompleteRoleSet() {
+        RoleToken token = new RoleToken("v=S1;d=coretech;r=role1,role2;proxy=user.user3;c=0;s=signature");
+        assertEquals(token.getDomain(), "coretech");
+        assertEquals(token.getProxyUser(), "user.user3");
+        assertFalse(token.getDomainCompleteRoleSet());
     }
     
     @Test

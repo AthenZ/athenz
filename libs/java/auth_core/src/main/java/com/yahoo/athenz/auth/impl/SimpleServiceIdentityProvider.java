@@ -21,6 +21,7 @@ import com.yahoo.athenz.auth.ServiceIdentityProvider;
 import com.yahoo.athenz.auth.token.PrincipalToken;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.security.PrivateKey;
 
 /**
@@ -122,14 +123,20 @@ public class SimpleServiceIdentityProvider implements ServiceIdentityProvider {
         
         String urlhost;
         try {
-            InetAddress localhost = java.net.InetAddress.getLocalHost();
+            InetAddress localhost = getLocalHost();
             urlhost = localhost.getCanonicalHostName();
         } catch (java.net.UnknownHostException e) {
             urlhost = "localhost";
         }
-        
         return urlhost;
     }
+
+    InetAddress getLocalHost() throws UnknownHostException {
+        return java.net.InetAddress.getLocalHost();
+    }
+
+
+
 
     public String getHost() {
         return host;

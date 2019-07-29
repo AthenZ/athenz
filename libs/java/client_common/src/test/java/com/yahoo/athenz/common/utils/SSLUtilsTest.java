@@ -11,8 +11,12 @@ import java.net.ServerSocket;
 import java.net.URL;
 
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.X509ExtendedKeyManager;
 
+import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.impl.FilePrivateKeyStore;
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
@@ -26,12 +30,18 @@ import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.utils.SSLUtils.ClientSSLContextBuilder;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+import static org.testng.Assert.*;
 
 /**
  * ca.pkcs12 was generate with the following commands:
@@ -92,6 +102,7 @@ public class SSLUtilsTest {
     private static final String KEYSTORE_PASSWORD_APP_NAME = "testKeystorePassword";
     private static final String KEY_MANAGER_PASSWORD_APP_NAME = "testKeyManager";
     private static final String TRSUTSTORE_PASSWORD_APP_NAME = "testTruststorePassword";
+    private static final String TRUSTSTORE_PATH = "src/test/resources/testKeyStore.pkcs12";
 
     @Test
     public void testClientSSLContextBuilder() {
@@ -105,11 +116,99 @@ public class SSLUtilsTest {
                 .keyStorePasswordAppName(KEYSTORE_PASSWORD_APP_NAME)
                 .keyManagerPasswordAppName(KEY_MANAGER_PASSWORD_APP_NAME)
                 .trustStorePasswordAppName(TRSUTSTORE_PASSWORD_APP_NAME)
+                .privateKeyStore(new FilePrivateKeyStore())
                 .build();
-        Assert.assertEquals(sslContext.getProtocol(), protocol);
+        assertEquals(sslContext.getProtocol(), protocol);
 
         sslContext = new SSLUtils.ClientSSLContextBuilder(protocol).build();
         Assert.assertNull(sslContext);
+
+        //key manager password is null
+        assertThrows(RuntimeException.class, () -> {
+            SSLContext temp = new SSLUtils.ClientSSLContextBuilder(protocol)
+                    .keyStorePath(DEFAULT_SERVER_KEY_STORE)
+                    .keyManagerPassword(null)
+                    .keyStorePassword(DEFAULT_CERT_PWD.toCharArray())
+                    .keyStoreType(DEFAULT_KEY_STORE_TYPE)
+                    .trustStoreType(DEFAULT_TRUST_STORE_TYPE)
+                    .keyStorePasswordAppName(KEYSTORE_PASSWORD_APP_NAME)
+                    .keyManagerPasswordAppName(KEY_MANAGER_PASSWORD_APP_NAME)
+                    .trustStorePasswordAppName(TRSUTSTORE_PASSWORD_APP_NAME)
+                    .privateKeyStore(new FilePrivateKeyStore())
+                    .build();
+        });
+
+        //trust store password is null
+            SSLContext temp = new SSLUtils.ClientSSLContextBuilder(protocol)
+                    .keyStorePath(DEFAULT_SERVER_KEY_STORE)
+                    .keyManagerPassword(DEFAULT_CERT_PWD.toCharArray())
+                    .keyStorePassword(DEFAULT_CERT_PWD.toCharArray())
+                    .keyStoreType(DEFAULT_KEY_STORE_TYPE)
+                    .trustStoreType(DEFAULT_TRUST_STORE_TYPE)
+                    .keyStorePasswordAppName(KEYSTORE_PASSWORD_APP_NAME)
+                    .keyManagerPasswordAppName(KEY_MANAGER_PASSWORD_APP_NAME)
+                    .trustStorePasswordAppName(TRSUTSTORE_PASSWORD_APP_NAME)
+                    .trustStorePassword(null)
+                    .trustStorePath(TRUSTSTORE_PATH)
+                    .privateKeyStore(new FilePrivateKeyStore())
+                    .build();
+
+            temp = new SSLUtils.ClientSSLContextBuilder(protocol)
+                .keyStorePath("")
+                .keyManagerPassword(DEFAULT_CERT_PWD.toCharArray())
+                .keyStorePassword(DEFAULT_CERT_PWD.toCharArray())
+                .keyStoreType(DEFAULT_KEY_STORE_TYPE)
+                .trustStoreType(DEFAULT_TRUST_STORE_TYPE)
+                .keyStorePasswordAppName(KEYSTORE_PASSWORD_APP_NAME)
+                .keyManagerPasswordAppName(KEY_MANAGER_PASSWORD_APP_NAME)
+                .trustStorePasswordAppName(TRSUTSTORE_PASSWORD_APP_NAME)
+                .trustStorePassword(null)
+                .trustStorePath(TRUSTSTORE_PATH)
+                .privateKeyStore(new FilePrivateKeyStore())
+                .build();
+    }
+
+    @Test
+    public void testClientAliasedX509ExtendedKeyManager() {
+
+        SSLUtils.ClientAliasedX509ExtendedKeyManager keyManager = new SSLUtils.ClientAliasedX509ExtendedKeyManager(null, "testKeyAlias");
+        assertNull(keyManager.getDelegate());
+        assertThrows(RuntimeException.class, () -> {
+            keyManager.chooseEngineServerAlias(null, null, null);
+        });
+        assertThrows(RuntimeException.class, () -> {
+            keyManager.getServerAliases(null, null);
+        });
+        assertThrows(RuntimeException.class, () -> {
+            keyManager.chooseServerAlias(null, null, null);
+        });
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            SSLUtils.loadServicePrivateKey("testFactoryClassFail");
+        });
+        String[] temp = new String[1];
+        temp[0] = "tempTest";
+        String[] clientAliases  = new String[2];
+        clientAliases[0] = "testClientAlias1";
+        clientAliases[1] = "testClientAlias2";
+        X509ExtendedKeyManager mockKeyManager = Mockito.mock(X509ExtendedKeyManager.class);
+        when(mockKeyManager.chooseEngineClientAlias(any(), any(), any())).thenReturn("testPass");
+        when(mockKeyManager.chooseClientAlias(any(), any(), any())).thenReturn("testPass");
+        when(mockKeyManager.getClientAliases(anyString(), any())).thenReturn(clientAliases);
+        SSLUtils.ClientAliasedX509ExtendedKeyManager keyManagerTemp = new SSLUtils.ClientAliasedX509ExtendedKeyManager(mockKeyManager, null);
+        assertEquals(keyManagerTemp.chooseEngineClientAlias(temp, null, null), "testPass");
+        assertEquals(keyManagerTemp.chooseClientAlias(temp, null, null), "testPass");
+        assertEquals(keyManagerTemp.getClientAliases("testKeyType", null), clientAliases);
+
+
+        when(mockKeyManager.getClientAliases(anyString(), any())).thenReturn(clientAliases);
+        keyManagerTemp = new SSLUtils.ClientAliasedX509ExtendedKeyManager(mockKeyManager, "testClientAlias2");
+        assertEquals(keyManagerTemp.chooseEngineClientAlias(temp, null, null), "testClientAlias2");
+
+
+        when(mockKeyManager.getClientAliases(anyString(), any())).thenReturn(null);
+        assertNull(keyManagerTemp.chooseEngineClientAlias(temp, null, null));
+
     }
 
     @Test
@@ -118,10 +217,6 @@ public class SSLUtilsTest {
         Assert.assertNotNull(keyStore);
     }
 
-    @Test
-    public void testRandom() {
-
-    }
 
     @DataProvider(name = "ClientSSLContext")
     public static Object[][] clientSSLContext() {
@@ -168,6 +263,8 @@ public class SSLUtilsTest {
             jettyServer.server.stop();
         }
     }
+
+
 
     private static String handleInputStream(HttpURLConnection con) throws IOException {
         StringBuilder outPut = new StringBuilder();

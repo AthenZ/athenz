@@ -15,17 +15,27 @@
  */
 package com.yahoo.athenz.auth.impl;
 
+import javax.security.auth.Subject;
 import javax.security.auth.login.AppConfigurationEntry;
 import javax.security.auth.kerberos.KerberosPrincipal;
 import javax.security.auth.kerberos.KerberosTicket;
 
+import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.token.KerberosToken;
 
+import static com.yahoo.athenz.auth.impl.KerberosAuthority.KRB_PROP_LOGIN_TKT_CACHE_NAME;
+import static com.yahoo.athenz.auth.token.KerberosToken.KRB_PROP_TOKEN_PRIV_ACTION;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.*;
 import java.lang.reflect.Field;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class KerberosAuthorityTest {
     
@@ -36,6 +46,7 @@ public class KerberosAuthorityTest {
 
         KerberosAuthority.LoginConfig loginConfig = new KerberosAuthority.LoginConfig(null, null);
         assertFalse(loginConfig.isDebugEnabled());
+        System.setProperty(KRB_PROP_LOGIN_TKT_CACHE_NAME, "testCacheName");
         AppConfigurationEntry[] conf = loginConfig.getAppConfigurationEntry(null);
         AppConfigurationEntry entry = conf[0];
         java.util.Map<String, ?> options = entry.getOptions();
@@ -44,12 +55,13 @@ public class KerberosAuthorityTest {
         assertEquals(options.get("useTicketCache"), "true");
         assertEquals(options.get("renewTGT"), "true");
         assertNull(options.get("debug"));
-        assertNull(options.get("ticketCache"));
-        
+        assertEquals(options.get("ticketCache"), "testCacheName");
+        System.clearProperty(KRB_PROP_LOGIN_TKT_CACHE_NAME);
+
         // set properties and remake the login config
         System.setProperty(KerberosAuthority.KRB_PROP_LOGIN_RENEW_TGT, "false");
         System.setProperty(KerberosAuthority.KRB_PROP_LOGIN_USE_TKT_CACHE, "false");
-        System.setProperty(KerberosAuthority.KRB_PROP_LOGIN_TKT_CACHE_NAME, "/tmp/cache");
+        System.setProperty(KRB_PROP_LOGIN_TKT_CACHE_NAME, "/tmp/cache");
         System.setProperty(KerberosAuthority.KRB_PROP_DEBUG, "TRUE");
         String keyTabConfFile   = "my.keytab";
         String servicePrincipal = "juke";
@@ -67,8 +79,9 @@ public class KerberosAuthorityTest {
         assertEquals(options.get("keyTab"), "my.keytab");
         System.clearProperty(KerberosAuthority.KRB_PROP_LOGIN_RENEW_TGT);
         System.clearProperty(KerberosAuthority.KRB_PROP_LOGIN_USE_TKT_CACHE);
-        System.clearProperty(KerberosAuthority.KRB_PROP_LOGIN_TKT_CACHE_NAME);
+        System.clearProperty(KRB_PROP_LOGIN_TKT_CACHE_NAME);
         System.clearProperty(KerberosAuthority.KRB_PROP_DEBUG);
+
     }
 
     @Test(groups="kerberos-tests")
@@ -103,8 +116,8 @@ public class KerberosAuthorityTest {
     @Test(groups="kerberos-tests")
     public void testKerberosAuthorityMockPrivExcAction() {
 
-        System.setProperty(KerberosToken.KRB_PROP_TOKEN_PRIV_ACTION, "com.yahoo.athenz.auth.impl.MockPrivExcAction");
-        System.setProperty(KerberosToken.KRB_PROP_TOKEN_PRIV_ACTION + "_TEST_REALM", "USER_REALM");
+        System.setProperty(KRB_PROP_TOKEN_PRIV_ACTION, "com.yahoo.athenz.auth.impl.MockPrivExcAction");
+        System.setProperty(KRB_PROP_TOKEN_PRIV_ACTION + "_TEST_REALM", "USER_REALM");
         String token = "YWJjdGVzdA==";
         System.setProperty(KerberosAuthority.KRB_PROP_SVCPRPL, "myserver@EXAMPLE.COM");
         System.setProperty(KerberosAuthority.KRB_PROP_LOGIN_CB_CLASS, KRB_LOGIN_CB_CLASS);
@@ -133,7 +146,7 @@ public class KerberosAuthorityTest {
         assertNotNull(principal);
 
         // test with ygrid realm
-        System.setProperty(KerberosToken.KRB_PROP_TOKEN_PRIV_ACTION + "_TEST_REALM", KerberosToken.KRB_USER_REALM);
+        System.setProperty(KRB_PROP_TOKEN_PRIV_ACTION + "_TEST_REALM", KerberosToken.KRB_USER_REALM);
         ktoken = new KerberosToken(creds, remoteAddr);
         ret = ktoken.validate(null, null);
         assertTrue(ret);
@@ -152,7 +165,7 @@ public class KerberosAuthorityTest {
         assertNotNull(principal);
 
         // test with invalid realm
-        System.setProperty(KerberosToken.KRB_PROP_TOKEN_PRIV_ACTION + "_TEST_REALM", "REALM.SOMECOMPANY.COM");
+        System.setProperty(KRB_PROP_TOKEN_PRIV_ACTION + "_TEST_REALM", "REALM.SOMECOMPANY.COM");
         ktoken = new KerberosToken(creds, remoteAddr);
         ret = ktoken.validate(null, null);
         assertFalse(ret);
@@ -167,7 +180,10 @@ public class KerberosAuthorityTest {
         principal = authority.authenticate(null, null, "GET", null);
         assertNull(principal);
 
-        System.clearProperty(KerberosToken.KRB_PROP_TOKEN_PRIV_ACTION);
+        principal = authority.authenticate(null, null, "GET", errMsg);
+        assertNull(principal);
+
+        System.clearProperty(KRB_PROP_TOKEN_PRIV_ACTION);
         System.clearProperty(KerberosAuthority.KRB_PROP_SVCPRPL);
         System.clearProperty(KerberosAuthority.KRB_PROP_LOGIN_CB_CLASS);
         System.clearProperty(KerberosAuthority.KRB_PROP_KEYTAB);
@@ -371,5 +387,33 @@ public class KerberosAuthorityTest {
     public void testGetAuthenticateChallenge() {
         KerberosAuthority krbAuthority  = new KerberosAuthority();
         assertEquals(krbAuthority.getAuthenticateChallenge(), "Negotiate");
+    }
+
+    @Test
+    public void testKerberosAuthorityNullParametrs() {
+        KerberosAuthority kerbesrosAuthority = new KerberosAuthority(null, null, "jaas.conf");
+        assertNotNull(kerbesrosAuthority);
+    }
+
+    @Test
+    public void testKerberosToken() {
+        System.clearProperty(KRB_PROP_TOKEN_PRIV_ACTION);
+        System.setProperty(KRB_PROP_TOKEN_PRIV_ACTION + "_TEST_REALM", "USER_REALM");
+        String token = "YWJjdGVzdA==";
+        System.setProperty(KerberosAuthority.KRB_PROP_SVCPRPL, "myserver@EXAMPLE.COM");
+        System.setProperty(KerberosAuthority.KRB_PROP_LOGIN_CB_CLASS, KRB_LOGIN_CB_CLASS);
+        System.setProperty(KerberosAuthority.KRB_PROP_KEYTAB, "src/test/resources/example.keytab");
+
+        KerberosAuthority authority = new KerberosAuthority();
+        authority.initialize();
+
+        String creds = KerberosToken.KRB_AUTH_VAL_FLD + " " + token;
+        String remoteAddr = "localhost";
+        KerberosToken ktoken = new KerberosToken(creds, remoteAddr);
+        boolean ret = ktoken.validate(null, null);
+        assertFalse(ret);
+        StringBuilder errMsg = new StringBuilder();
+        ret = ktoken.validate(null, errMsg);
+        assertFalse(ret);
     }
 }

@@ -39,8 +39,10 @@ public class AthenzDataSource extends PoolingDataSource<PoolableConnection> impl
                         pool.getNumIdle() + ") connections from the pool");
             }
             pool.clear();
+            ///CLOVER:OFF
         } catch (Exception ex) {
             LOG.error("Unable to clear connections from the pool: " + ex.getMessage());
         }
+        ///CLOVER:ON
     }
 }

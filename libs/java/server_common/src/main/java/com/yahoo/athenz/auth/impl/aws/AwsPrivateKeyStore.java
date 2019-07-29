@@ -80,18 +80,22 @@ public class AwsPrivateKeyStore implements PrivateKeyStore {
 
     private static AWSKMS initAWSKMS() {
         String s3Region = System.getProperty(ATHENZ_PROP_AWS_KMS_REGION);
+        ///CLOVER:OFF
         if (null != s3Region && !s3Region.isEmpty()) {
             return AWSKMSClientBuilder.standard().withRegion(s3Region).build();
         }
         return AWSKMSClientBuilder.defaultClient();
+        ///CLOVER:ON
     }
 
     private static AmazonS3 initAmazonS3() {
         String s3Region = System.getProperty(ATHENZ_PROP_AWS_S3_REGION);
+        ///CLOVER:OFF
         if (null != s3Region && !s3Region.isEmpty()) {
             return AmazonS3ClientBuilder.standard().withRegion(s3Region).build();
        }
         return AmazonS3ClientBuilder.defaultClient();
+        ///CLOVER:ON
     }
     
     public AwsPrivateKeyStore(final AmazonS3 s3, final AWSKMS kms) {
@@ -154,10 +158,11 @@ public class AwsPrivateKeyStore implements PrivateKeyStore {
             
             byte[] buffer = new byte[1024];
             int length;
+            ///CLOVER:OFF
             while ((length = s3InputStream.read(buffer)) != -1) {
                 result.write(buffer, 0, length);
             }
-            
+            ///CLOVER:ON
             // if key should be decrypted, do so with KMS
 
             if (kmsDecrypt) {
