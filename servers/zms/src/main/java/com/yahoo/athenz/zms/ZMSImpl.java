@@ -6793,8 +6793,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // evaluate our domain's roles and policies to see if access
         // is allowed or not for the given operation and resource
         // our action are always converted to lowercase
-        final String resource = domain.getName() + ":role." + role.getName();
-        AccessStatus accessStatus = evaluateAccess(domain, principal.getFullName(), "update", resource, null, null);
+
+        AccessStatus accessStatus = evaluateAccess(domain, principal.getFullName(), "update", role.getName(), null, null);
         return accessStatus == AccessStatus.ALLOWED;
     }
 
