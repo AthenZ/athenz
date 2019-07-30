@@ -1668,11 +1668,52 @@ public class ZTSClientTest {
         assertEquals(jwkList.getKeys().get(0).getKty(), "RSA");
 
         try {
-            ztsClientMock.setJwkFailure(true);
+            ztsClientMock.setJwkFailure(403);
             client.getJWKList();
             fail();
         } catch (ZTSClientException ex) {
-            assertEquals(ex.getCode(), 500);
+            assertEquals(ex.getCode(), 403);
+        }
+
+        // with server exceptions we default back to 400
+
+        try {
+            ztsClientMock.setJwkFailure(500);
+            client.getJWKList();
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        client.close();
+    }
+
+    @Test
+    public void testGetJWKListRFC() {
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        ZTSClient.cancelPrefetch();
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        JWKList jwkList = client.getJWKList(true);
+        assertNotNull(jwkList);
+        assertEquals(jwkList.getKeys().size(), 1);
+        assertEquals(jwkList.getKeys().get(0).getKid(), "id1");
+        assertEquals(jwkList.getKeys().get(0).getKty(), "EC");
+        assertEquals(jwkList.getKeys().get(0).getX(), "x");
+        assertEquals(jwkList.getKeys().get(0).getY(), "y");
+        assertEquals(jwkList.getKeys().get(0).getCrv(), "P-256");
+
+        try {
+            ztsClientMock.setJwkFailure(403);
+            client.getJWKList(true);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(ex.getCode(), 403);
         }
 
         client.close();

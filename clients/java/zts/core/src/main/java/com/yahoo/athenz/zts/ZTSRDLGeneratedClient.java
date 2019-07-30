@@ -524,8 +524,11 @@ public class ZTSRDLGeneratedClient {
 
     }
 
-    public JWKList getJWKList() {
+    public JWKList getJWKList(Boolean rfc) {
         WebTarget target = base.path("/oauth2/keys");
+        if (rfc != null) {
+            target = target.queryParam("rfc", rfc);
+        }
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
             invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),

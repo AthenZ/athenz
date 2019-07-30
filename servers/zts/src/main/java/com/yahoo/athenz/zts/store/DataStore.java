@@ -62,7 +62,8 @@ public class DataStore implements DataCacheProvider {
     final Map<String, List<String>> hostCache;
     final Map<String, String> publicKeyCache;
     final JWKList ztsJWKList;
-    
+    final JWKList ztsJWKListStrictRFC;
+
     long updDomainRefreshTime;
     long delDomainRefreshTime ;
     long lastDeleteRunTime;
@@ -95,6 +96,7 @@ public class DataStore implements DataCacheProvider {
         zmsPublicKeyCache = CacheBuilder.newBuilder().concurrencyLevel(25).build();
 
         ztsJWKList = new JWKList();
+        ztsJWKListStrictRFC = new JWKList();
 
         hostCache = new HashMap<>();
         publicKeyCache = new HashMap<>();
@@ -117,7 +119,7 @@ public class DataStore implements DataCacheProvider {
         
         /* load the zms public key from configuration files */
         
-        if (!loadZMSPublicKeys()) {
+        if (!loadAthenzPublicKeys()) {
             throw new IllegalArgumentException("Unable to initialize public keys");
         }
     }
@@ -126,11 +128,11 @@ public class DataStore implements DataCacheProvider {
         return domain + "." + service + "_" + keyId;
     }
 
-    public JWKList getZtsJWKList() {
-        return ztsJWKList;
+    public JWKList getZtsJWKList(Boolean rfc) {
+        return rfc == Boolean.TRUE ? ztsJWKListStrictRFC : ztsJWKList;
     }
 
-    boolean loadZMSPublicKeys() {
+    boolean loadAthenzPublicKeys() {
 
         final String rootDir = ZTSImpl.getRootDir();
         String confFileName = System.getProperty(ZTSConsts.ZTS_PROP_ATHENZ_CONF,
@@ -163,6 +165,7 @@ public class DataStore implements DataCacheProvider {
                 return false;
             }
             final List<JWK> jwkList = new ArrayList<>();
+            final List<JWK> jwkListStrictRFC = new ArrayList<>();
             for (com.yahoo.athenz.zms.PublicKeyEntry publicKey : ztsPublicKeys) {
                 final String id = publicKey.getId();
                 final String key = publicKey.getKey();
@@ -170,16 +173,21 @@ public class DataStore implements DataCacheProvider {
                     LOGGER.error("Missing required zts public key attributes: {}/{}", id, key);
                     continue;
                 }
-                final JWK jwk = getJWK(key, id);
+                final JWK jwk = getJWK(key, id, false);
                 if (jwk != null) {
                     jwkList.add(jwk);
                 }
+                final JWK jwkRfc = getJWK(key, id, true);
+                if (jwkRfc != null) {
+                    jwkListStrictRFC.add(jwkRfc);
+                }
             }
-            if (jwkList.isEmpty()) {
+            if (jwkList.isEmpty() || jwkListStrictRFC.isEmpty()) {
                 LOGGER.error("No valid public ZTS keys in conf file: {}", confFileName);
                 return false;
             }
             ztsJWKList.setKeys(jwkList);
+            ztsJWKListStrictRFC.setKeys(jwkListStrictRFC);
         } catch (IOException ex) {
             LOGGER.error("Unable to parse conf file {}, error: {}", confFileName, ex.getMessage());
             return false;
@@ -187,7 +195,7 @@ public class DataStore implements DataCacheProvider {
         return true;
     }
 
-    String getCurveName(org.bouncycastle.jce.spec.ECParameterSpec ecParameterSpec) {
+    String getCurveName(org.bouncycastle.jce.spec.ECParameterSpec ecParameterSpec, boolean rfc) {
 
         String curveName = null;
         for (Enumeration names = ECNamedCurveTable.getNames(); names.hasMoreElements();) {
@@ -203,10 +211,11 @@ public class DataStore implements DataCacheProvider {
                 break;
             }
         }
-        return curveName;
+
+        return rfc ? rfcEllipticCurveName(curveName) : curveName;
     }
 
-    JWK getJWK(final String pemKey, final String keyId) {
+    JWK getJWK(final String pemKey, final String keyId, boolean rfc) {
 
         PublicKey publicKey;
 
@@ -241,11 +250,50 @@ public class DataStore implements DataCacheProvider {
                 final ECPoint ecPoint = ecPublicKey.getW();
                 jwk.setX(new String(encoder.encode(ecPoint.getAffineX().toByteArray())));
                 jwk.setY(new String(encoder.encode(ecPoint.getAffineY().toByteArray())));
-                jwk.setCrv(getCurveName(EC5Util.convertSpec(ecPublicKey.getParams(), false)));
+                jwk.setCrv(getCurveName(EC5Util.convertSpec(ecPublicKey.getParams(), false), rfc));
                 break;
         }
 
         return jwk;
+    }
+
+    /**
+     * Mapping from curve names used by the crypto libraries
+     * to RFC defined values. The valid values for JWKs are defined
+     *     https://tools.ietf.org/html/rfc7518
+     * and the mapping between alias curve names is taken from
+     *     https://tools.ietf.org/html/rfc4492
+     *              secp256r1   |  prime256v1   |   NIST P-256
+     *              secp384r1   |               |   NIST P-384
+     *              secp521r1   |               |   NIST P-521
+     * @param curveName curve name used by the crypt library
+     * @return rfc defined curve name
+     */
+    String rfcEllipticCurveName(final String curveName) {
+
+        if (curveName == null) {
+            return null;
+        }
+
+        String rfcCurveName;
+        switch (curveName) {
+            case "prime256v1":
+            case "secp256r1":
+                rfcCurveName = "P-256";
+                break;
+            case "secp384r1":
+                rfcCurveName = "P-384";
+                break;
+            case "secp521r1":
+                rfcCurveName = "P-521";
+                break;
+            default:
+                // if we have no defined rfc curve name
+                // then we'll just return the value as is
+                rfcCurveName = curveName;
+        }
+
+        return rfcCurveName;
     }
 
     boolean processLocalDomains(List<String> localDomainList) {

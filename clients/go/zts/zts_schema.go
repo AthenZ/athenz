@@ -633,6 +633,7 @@ func init() {
 	sb.AddResource(mPostSSHCertRequest.Build())
 
 	mGetJWKList := rdl.NewResourceBuilder("JWKList", "GET", "/oauth2/keys")
+	mGetJWKList.Input("rfc", "Bool", false, "rfc", "", true, false, "flag to indicate ec curve names are restricted to RFC values")
 	mGetJWKList.Auth("", "", true, "")
 	mGetJWKList.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetJWKList.Exception("NOT_FOUND", "ResourceError", "")

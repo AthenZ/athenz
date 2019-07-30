@@ -580,11 +580,11 @@ public class ZTSResources {
     @GET
     @Path("/oauth2/keys")
     @Produces(MediaType.APPLICATION_JSON)
-    public JWKList getJWKList() {
+    public JWKList getJWKList(@QueryParam("rfc") @DefaultValue("false") Boolean rfc) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            return this.delegate.getJWKList(context);
+            return this.delegate.getJWKList(context, rfc);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {
