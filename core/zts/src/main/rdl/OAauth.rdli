@@ -30,7 +30,8 @@ type JWKList Struct {
     Array<JWK> keys; //array of JWKs
 }
 
-resource JWKList GET "/oauth2/keys" {
+resource JWKList GET "/oauth2/keys?rfc={rfc}" {
+    Bool rfc (optional, default=false); //flag to indicate ec curve names are restricted to RFC values
     authenticate;
     expected OK;
     exceptions {

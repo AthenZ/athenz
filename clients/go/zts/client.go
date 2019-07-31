@@ -1023,9 +1023,9 @@ func (client ZTSClient) PostSSHCertRequest(certRequest *SSHCertRequest) (*SSHCer
 	}
 }
 
-func (client ZTSClient) GetJWKList() (*JWKList, error) {
+func (client ZTSClient) GetJWKList(rfc *bool) (*JWKList, error) {
 	var data *JWKList
-	url := client.URL + "/oauth2/keys"
+	url := client.URL + "/oauth2/keys" + encodeParams(encodeOptionalBoolParam("rfc", rfc))
 	resp, err := client.httpGet(url, nil)
 	if err != nil {
 		return data, err

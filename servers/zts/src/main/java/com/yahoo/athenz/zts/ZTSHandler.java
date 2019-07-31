@@ -34,7 +34,7 @@ public interface ZTSHandler {
     DomainMetrics postDomainMetrics(ResourceContext context, String domainName, DomainMetrics req);
     Status getStatus(ResourceContext context);
     Response postSSHCertRequest(ResourceContext context, SSHCertRequest certRequest);
-    JWKList getJWKList(ResourceContext context);
+    JWKList getJWKList(ResourceContext context, Boolean rfc);
     AccessTokenResponse postAccessTokenRequest(ResourceContext context, String request);
     RoleCertificate postRoleCertificateRequestExt(ResourceContext context, RoleCertificateRequest req);
     Schema getRdlSchema(ResourceContext context);

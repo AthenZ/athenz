@@ -1145,7 +1145,7 @@ public class ZTSImplTest {
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
         ResourceContext context = createResourceContext(principal);
 
-        JWKList list = zts.getJWKList(context);
+        JWKList list = zts.getJWKList(context, false);
         assertNotNull(list);
         List<JWK> keys = list.getKeys();
         assertEquals(keys.size(), 2);
@@ -1155,8 +1155,43 @@ public class ZTSImplTest {
         assertEquals(key1.getKid(), "0", key1.getKid());
 
         JWK key2 = keys.get(1);
-        assertEquals(key2.getKty(), "EC", key1.getKty());
-        assertEquals(key2.getKid(), "ec.0", key1.getKid());
+        assertEquals(key2.getKty(), "EC", key2.getKty());
+        assertEquals(key2.getKid(), "ec.0", key2.getKid());
+        assertEquals(key2.getCrv(), "prime256v1", key2.getCrv());
+
+        // execute the same test with argument passed as null
+        // for the Boolean rfc object so it should be same result
+
+        list = zts.getJWKList(context, null);
+        assertNotNull(list);
+        keys = list.getKeys();
+        assertEquals(keys.size(), 2);
+
+        key1 = keys.get(0);
+        assertEquals(key1.getKty(), "RSA", key1.getKty());
+        assertEquals(key1.getKid(), "0", key1.getKid());
+
+        key2 = keys.get(1);
+        assertEquals(key2.getKty(), "EC", key2.getKty());
+        assertEquals(key2.getKid(), "ec.0", key2.getKid());
+        assertEquals(key2.getCrv(), "prime256v1", key2.getCrv());
+
+        // now let's try with rfc option on in which case
+        // we'll get the curve name as P-256
+
+        list = zts.getJWKList(context, true);
+        assertNotNull(list);
+        keys = list.getKeys();
+        assertEquals(keys.size(), 2);
+
+        key1 = keys.get(0);
+        assertEquals(key1.getKty(), "RSA", key1.getKty());
+        assertEquals(key1.getKid(), "0", key1.getKid());
+
+        key2 = keys.get(1);
+        assertEquals(key2.getKty(), "EC", key2.getKty());
+        assertEquals(key2.getKid(), "ec.0", key2.getKid());
+        assertEquals(key2.getCrv(), "P-256", key2.getCrv());
     }
 
     @Test

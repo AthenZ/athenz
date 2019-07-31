@@ -808,17 +808,26 @@ public class ZTSClient implements Closeable {
 
     /**
      * Retrieve list of ZTS Server public keys in Json WEB Key (JWK) format
+     * @param rfcCurveNames EC curve names - use values defined in RFC only
      * @return list of public keys (JWKs) on success. ZTSClientException will be thrown in case of failure
      */
-    public JWKList getJWKList() {
+    public JWKList getJWKList(boolean rfcCurveNames) {
         updateServicePrincipal();
         try {
-            return ztsClient.getJWKList();
+            return ztsClient.getJWKList(rfcCurveNames);
         } catch (ResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
             throw new ZTSClientException(ZTSClientException.BAD_REQUEST, ex.getMessage());
         }
+    }
+
+    /**
+     * Retrieve list of ZTS Server public keys in Json WEB Key (JWK) format
+     * @return list of public keys (JWKs) on success. ZTSClientException will be thrown in case of failure
+     */
+    public JWKList getJWKList() {
+        return getJWKList(false);
     }
 
     /**

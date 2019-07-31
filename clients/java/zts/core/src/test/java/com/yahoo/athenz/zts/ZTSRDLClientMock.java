@@ -34,7 +34,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     private String roleName   = null;
     private String policyName = null;
     private List<String> tenantDomains = null;
-    private boolean jwkFailure = false;
+    private int jwkExcCode = 0;
 
     Map<String, AWSTemporaryCredentials> credsMap = new HashMap<>();
     
@@ -70,20 +70,28 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
                 .setNames(Arrays.asList("service1", "service2"));
     }
 
-    public void setJwkFailure(boolean jwkFailure) {
-        this.jwkFailure = jwkFailure;
+    public void setJwkFailure(int jwkExcCode) {
+        this.jwkExcCode = jwkExcCode;
     }
 
     @Override
-    public JWKList getJWKList() {
+    public JWKList getJWKList(Boolean rfc) {
 
-        if (jwkFailure) {
-            throw new ResourceException(500, "unable to retrieve jwk list");
+        if (jwkExcCode != 0) {
+            if (jwkExcCode < 500) {
+                throw new ResourceException(jwkExcCode, "unable to retrieve jwk list");
+            } else {
+                throw new IllegalArgumentException();
+            }
         }
 
         JWKList jwkList = new JWKList();
         List<JWK> list = new ArrayList<>();
-        list.add(new JWK().setKid("id1").setKty("RSA").setN("n").setE("e"));
+        if (rfc) {
+            list.add(new JWK().setKid("id1").setKty("EC").setX("x").setY("y").setCrv("P-256"));
+        } else {
+            list.add(new JWK().setKid("id1").setKty("RSA").setN("n").setE("e"));
+        }
         jwkList.setKeys(list);
 
         return jwkList;

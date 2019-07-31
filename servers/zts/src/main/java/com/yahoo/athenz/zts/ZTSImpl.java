@@ -3232,7 +3232,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     @Override
-    public JWKList getJWKList(ResourceContext ctx) {
+    public JWKList getJWKList(ResourceContext ctx, Boolean rfc) {
 
         final String caller = "getjwklist";
         final String callerTiming = "getjwklist_timing";
@@ -3247,7 +3247,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         validateRequest(ctx.request(), caller);
 
-        final JWKList jwkList = dataStore.getZtsJWKList();
+        final JWKList jwkList = dataStore.getZtsJWKList(rfc);
 
         metric.stopTiming(timerMetric, null, principalDomain);
         return jwkList;

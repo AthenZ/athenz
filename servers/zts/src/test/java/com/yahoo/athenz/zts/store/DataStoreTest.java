@@ -278,7 +278,7 @@ public class DataStoreTest {
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
-        store.loadZMSPublicKeys();
+        store.loadAthenzPublicKeys();
         PublicKey zmsKey = store.zmsPublicKeyCache.getIfPresent("0");
         assertNotNull(zmsKey);
         assertNull(store.zmsPublicKeyCache.getIfPresent("1"));
@@ -1717,7 +1717,7 @@ public class DataStoreTest {
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
-        store.loadZMSPublicKeys();
+        store.loadAthenzPublicKeys();
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather");
         assertTrue(store.validateSignedDomain(signedDomain));
@@ -1733,7 +1733,7 @@ public class DataStoreTest {
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
-        store.loadZMSPublicKeys();
+        store.loadAthenzPublicKeys();
 
         SignedDomain signedDomain = new SignedDomain();
         
@@ -1759,7 +1759,7 @@ public class DataStoreTest {
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
-        store.loadZMSPublicKeys();
+        store.loadAthenzPublicKeys();
 
         SignedDomain signedDomain = new SignedDomain();
         
@@ -1785,7 +1785,7 @@ public class DataStoreTest {
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
-        store.loadZMSPublicKeys();
+        store.loadAthenzPublicKeys();
 
         SignedDomain signedDomain = new SignedDomain();
         
@@ -1902,7 +1902,7 @@ public class DataStoreTest {
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
-        store.loadZMSPublicKeys();
+        store.loadAthenzPublicKeys();
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather");
         store.processDomain(signedDomain, true);
@@ -1920,7 +1920,7 @@ public class DataStoreTest {
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
-        store.loadZMSPublicKeys();
+        store.loadAthenzPublicKeys();
 
         SignedDomain signedDomain = createSignedDomainWildCardMembers("coretech", "weather");
         store.processDomain(signedDomain, true);
@@ -1984,7 +1984,7 @@ public class DataStoreTest {
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
-        store.loadZMSPublicKeys();
+        store.loadAthenzPublicKeys();
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather");
         store.processDomain(signedDomain, true);
@@ -2003,7 +2003,7 @@ public class DataStoreTest {
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
-        store.loadZMSPublicKeys();
+        store.loadAthenzPublicKeys();
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather");
         store.processDomain(signedDomain, true);
@@ -2020,7 +2020,7 @@ public class DataStoreTest {
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
-        store.loadZMSPublicKeys();
+        store.loadAthenzPublicKeys();
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather");
         store.processDomain(signedDomain, true);
@@ -2124,7 +2124,7 @@ public class DataStoreTest {
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
         DataStore setupStore = new DataStore(clogStore, null);
-        setupStore.loadZMSPublicKeys();
+        setupStore.loadAthenzPublicKeys();
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather");
         setupStore.processDomain(signedDomain, true);
@@ -2679,7 +2679,7 @@ public class DataStoreTest {
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
-        store.loadZMSPublicKeys();
+        store.loadAthenzPublicKeys();
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather");
         store.processDomain(signedDomain, true);
@@ -2699,7 +2699,7 @@ public class DataStoreTest {
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
-        store.loadZMSPublicKeys();
+        store.loadAthenzPublicKeys();
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather");
         store.processDomain(signedDomain, false);
@@ -2716,7 +2716,7 @@ public class DataStoreTest {
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
-        store.loadZMSPublicKeys();
+        store.loadAthenzPublicKeys();
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather");
         store.processDomain(signedDomain, true);
@@ -2743,7 +2743,7 @@ public class DataStoreTest {
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
         DataStore setupStore = new DataStore(clogStore, null);
-        setupStore.loadZMSPublicKeys();
+        setupStore.loadAthenzPublicKeys();
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather");
         setupStore.processDomain(signedDomain, true);
@@ -2770,7 +2770,7 @@ public class DataStoreTest {
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
         DataStore setupStore = new DataStore(clogStore, null);
-        setupStore.loadZMSPublicKeys();
+        setupStore.loadAthenzPublicKeys();
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather");
         setupStore.processDomain(signedDomain, true);
@@ -2794,7 +2794,7 @@ public class DataStoreTest {
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
         DataStore setupStore = new DataStore(clogStore, null);
-        setupStore.loadZMSPublicKeys();
+        setupStore.loadAthenzPublicKeys();
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather");
         setupStore.processDomain(signedDomain, true);
@@ -2825,7 +2825,7 @@ public class DataStoreTest {
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
         DataStore setupStore = new DataStore(clogStore, null);
-        setupStore.loadZMSPublicKeys();
+        setupStore.loadAthenzPublicKeys();
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather");
         setupStore.processDomain(signedDomain, true);
@@ -3342,7 +3342,7 @@ public class DataStoreTest {
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
-        store.loadZMSPublicKeys();
+        store.loadAthenzPublicKeys();
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather");
         store.processDomain(signedDomain, true);
@@ -3365,7 +3365,7 @@ public class DataStoreTest {
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
-        store.loadZMSPublicKeys();
+        store.loadAthenzPublicKeys();
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather");
         store.processDomain(signedDomain, true);
@@ -3390,7 +3390,7 @@ public class DataStoreTest {
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
-        store.loadZMSPublicKeys();
+        store.loadAthenzPublicKeys();
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather");
         store.processDomain(signedDomain, true);
@@ -3470,7 +3470,7 @@ public class DataStoreTest {
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
         ((MockZMSFileChangeLogStore) store.changeLogStore).setTagHeader("2014-01-01T12:00:00");
-        store.loadZMSPublicKeys();
+        store.loadAthenzPublicKeys();
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather");
         store.processDomain(signedDomain, true);
@@ -3531,7 +3531,7 @@ public class DataStoreTest {
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null);
         ((MockZMSFileChangeLogStore) store.changeLogStore).setTagHeader("2014-01-01T12:00:00");
-        store.loadZMSPublicKeys();
+        store.loadAthenzPublicKeys();
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather");
         store.processDomain(signedDomain, true);
@@ -3795,6 +3795,25 @@ public class DataStoreTest {
         when(spec.getG()).thenReturn(null);
         when(spec.getH()).thenReturn(new BigInteger("100"));
         when(spec.getN()).thenReturn(new BigInteger("100"));
-        assertNull(store.getCurveName(spec));
+        assertNull(store.getCurveName(spec, false));
+    }
+
+    @Test
+    public void testRfcEllipticCurveName() {
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+        DataStore store = new DataStore(clogStore, null);
+
+        assertNull(store.rfcEllipticCurveName(null));
+        assertEquals(store.rfcEllipticCurveName("prime256v1"), "P-256");
+        assertEquals(store.rfcEllipticCurveName("secp256r1"), "P-256");
+        assertEquals(store.rfcEllipticCurveName("secp384r1"), "P-384");
+        assertEquals(store.rfcEllipticCurveName("secp521r1"), "P-521");
+
+        // not defined in the spec thus considered as unknown so
+        // we keep the name as is
+
+        assertEquals(store.rfcEllipticCurveName("prime192v1"), "prime192v1");
+        assertEquals(store.rfcEllipticCurveName("newcurve"), "newcurve");
     }
 }
