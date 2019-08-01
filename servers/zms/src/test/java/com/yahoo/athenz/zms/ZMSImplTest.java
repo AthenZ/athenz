@@ -1701,7 +1701,7 @@ public class ZMSImplTest {
         Domain resDom3 = zms.getDomain(mockDomRsrcCtx, "MetaDom1");
         assertNotNull(resDom3);
         assertEquals(resDom3.getDescription(), "Test2 Domain");
-        assertEquals(resDom3.getOrg(), "NewOrg");
+        assertEquals(resDom3.getOrg(), "neworg");
         assertTrue(resDom3.getEnabled());
         assertTrue(resDom3.getAuditEnabled());
         assertEquals(resDom3.getAccount(), "12345");
@@ -1819,7 +1819,7 @@ public class ZMSImplTest {
         Domain resDom3 = zms.getDomain(mockDomRsrcCtx, "MetaDom2");
         assertNotNull(resDom3);
         assertEquals(resDom3.getDescription(), "Test2 Domain");
-        assertEquals(resDom3.getOrg(), "NewOrg");
+        assertEquals(resDom3.getOrg(), "neworg");
         assertTrue(resDom3.getEnabled());
         assertFalse(resDom3.getAuditEnabled());
         assertNull(resDom3.getAccount());

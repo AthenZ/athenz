@@ -362,6 +362,17 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 userDomain.setName(userDomain.getName().toLowerCase());
                 DOMAIN_TEMPLATE_LIST.convertToLowerCase(userDomain.getTemplates());
             }
+        },
+        DOMAIN_META {
+            void convertToLowerCase(Object obj) {
+                DomainMeta domainMeta = (DomainMeta) obj;
+                if (domainMeta.getCertDnsDomain() != null) {
+                    domainMeta.setCertDnsDomain(domainMeta.getCertDnsDomain().toLowerCase());
+                }
+                if (domainMeta.getOrg() != null) {
+                    domainMeta.setOrg(domainMeta.getOrg().toLowerCase());
+                }
+            }
         };
             
         abstract void convertToLowerCase(Object obj);
@@ -1517,6 +1528,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // policy, service, etc name)
         
         domainName = domainName.toLowerCase();
+        AthenzObject.DOMAIN_META.convertToLowerCase(meta);
+
         final String principalDomain = getPrincipalDomain(ctx);
         metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);
         metric.increment(caller, domainName, principalDomain);
@@ -1561,6 +1574,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         domainName = domainName.toLowerCase();
         attribute = attribute.toLowerCase();
+        AthenzObject.DOMAIN_META.convertToLowerCase(meta);
 
         final String principalDomain = getPrincipalDomain(ctx);
         metric.increment(ZMSConsts.HTTP_REQUEST, domainName, principalDomain);

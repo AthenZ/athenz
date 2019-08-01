@@ -18,6 +18,7 @@ package com.yahoo.athenz.zms;
 import com.yahoo.athenz.zms.audit.MockAuditReferenceValidatorImpl;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
 import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
+import com.yahoo.rdl.Timestamp;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.mockito.Mock;
@@ -42,7 +43,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -3667,6 +3671,45 @@ public class DBServiceTest {
     }
 
     @Test
+    public void testExecutePutRoleSystemMetaRetry() {
+
+
+        List<String> admins = new ArrayList<>();
+        admins.add(adminUser);
+
+        zms.dbService.makeDomain(mockDomRsrcCtx, "MetaDom1", "test desc", "testOrg", false, admins, "", 1234, "", null, auditRef);
+
+        Role role = createRoleObject("MetaDom1", "MetaRole1", null, "user.john", "user.jane");
+        zms.dbService.executePutRole(mockDomRsrcCtx, "MetaDom1", "MetaRole1", role, "test", "putrole");
+
+        RoleSystemMeta rsm = new RoleSystemMeta();
+        rsm.setAuditEnabled(true);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        zms.dbService.defaultRetryCount = 2;
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockFileConn);
+        ResourceException rex = new ResourceException(409);
+        Domain d = new Domain().setName("MetaDom1").setAuditEnabled(true);
+        Mockito.when(mockFileConn.getDomain(anyString())).thenReturn(d);
+        Mockito.when(mockFileConn.getRole(anyString(), anyString())).thenReturn(role);
+        Mockito.when(mockFileConn.updateRole(anyString(), any(Role.class))).thenThrow(rex);
+
+        try {
+            zms.dbService.executePutRoleSystemMeta(mockDomRsrcCtx, "MetaDom1", "MetaRole1", rsm,"auditenabled", true, auditRef, "putrolesystemmeta");
+            fail();
+        }catch (ResourceException r) {
+            assertEquals(r.getCode(), 409);
+            assertTrue(r.getMessage().contains("Conflict"));
+        }
+        zms.dbService.store = saveStore;
+        zms.dbService.defaultRetryCount = 120;
+
+        zms.dbService.executeDeleteDomain(mockDomRsrcCtx, "MetaDom1", auditRef, "deletedomain");
+
+    }
+
+    @Test
     public void testProcessRoleInsert() {
         ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
         Role role = new Role().setName("newRole").setAuditEnabled(true).setSelfserve(true);
@@ -3741,6 +3784,40 @@ public class DBServiceTest {
         assertTrue(resRole1.getSelfserve());
         zms.dbService.executeDeleteDomain(mockDomRsrcCtx, "MetaDom1", auditRef, "deletedomain");
 
+    }
+
+    @Test
+    public void testExecutePutRoleMetaRetry() {
+
+        List<String> admins = new ArrayList<>();
+        admins.add(adminUser);
+
+        zms.dbService.makeDomain(mockDomRsrcCtx, "MetaDom1", "test desc", "testOrg", false, admins, "", 1234, "", null, auditRef);
+
+        Role role = createRoleObject("MetaDom1", "MetaRole1", null, "user.john", "user.jane");
+        zms.dbService.executePutRole(mockDomRsrcCtx, "MetaDom1", "MetaRole1", role, "test", "putrole");
+
+        RoleMeta rm = new RoleMeta();
+        rm.setSelfserve(true);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        zms.dbService.defaultRetryCount = 2;
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockFileConn);
+        ResourceException rex = new ResourceException(409);
+        Mockito.when(mockFileConn.getRole(anyString(), anyString())).thenReturn(role);
+        Mockito.when(mockFileConn.updateRole(anyString(), any(Role.class))).thenThrow(rex);
+
+        try {
+            zms.dbService.executePutRoleMeta(mockDomRsrcCtx, "MetaDom1", "MetaRole1", rm, auditRef, "putrolemeta");
+            fail();
+        }catch (ResourceException r) {
+            assertEquals(r.getCode(), 409);
+            assertTrue(r.getMessage().contains("Conflict"));
+        }
+        zms.dbService.store = saveStore;
+        zms.dbService.defaultRetryCount = 120;
+        zms.dbService.executeDeleteDomain(mockDomRsrcCtx, "MetaDom1", auditRef, "deletedomain");
     }
 
     @Test
@@ -3843,12 +3920,30 @@ public class DBServiceTest {
         String principal = "testprincipal";
         try {
             zms.dbService.checkRoleAuditEnabled(mockFileConn, domainName, roleName,"auditref", caller, principal);
+            fail();
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
             assertTrue(ex.getMessage().contains("Audit reference validation failed "));
         }
         zms.dbService.auditReferenceValidator = null;
     }
+
+    @Test
+    public void testCheckRoleAuditEnabledFlagTrueValidatorNull() {
+
+        String domainName = "audit-test-domain-name";
+        String roleName = "testrole";
+        Role role = new Role().setAuditEnabled(true);
+        Mockito.doReturn(role).when(mockFileConn).getRole(domainName, roleName);
+
+        zms.dbService.auditReferenceValidator = null;
+
+        String caller = "testCheckRoleAuditEnabledFlagTrueValidatorNull";
+        String principal = "testprincipal";
+        Role r = zms.dbService.checkRoleAuditEnabled(mockFileConn, domainName, roleName,"auditref", caller, principal);
+        assertNotNull(r);
+    }
+
 
     @Test
     public void testExecutePutMembershipDecision() {
@@ -3968,5 +4063,115 @@ public class DBServiceTest {
         }
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
+
+    @Test
+    public void testExecutePutMembershipDecisionBadRequest() {
+
+        String domainName = "mgradddom1";
+        String roleName = "role1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,"Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Role role1 = createRoleObject(domainName, roleName, null,"user.joe", "user.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, role1);
+
+        zms.dbService.executePutMembership(mockDomRsrcCtx, domainName, roleName, new RoleMember().setMemberName("user.doe").setActive(false), auditRef, "putMembership");
+
+        zms.dbService.executePutMembership(mockDomRsrcCtx, domainName, roleName, new RoleMember().setMemberName("user.bob").setActive(false), auditRef, "putMembership");
+
+        RoleMember roleMem = new RoleMember().setMemberName("user.doe").setActive(true);
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockFileConn);
+        Mockito.when(mockFileConn.confirmRoleMember(anyString(), anyString(), any(), anyString(), anyString())).thenReturn(false);
+        try {
+            zms.dbService.executePutMembershipDecision(mockDomRsrcCtx, domainName, roleName, roleMem, auditRef, "putMembershipDecision");
+            fail();
+        }catch (ResourceException r) {
+            assertEquals(r.getCode(), 400);
+            assertTrue(r.getMessage().contains("unable to apply role membership"));
+        }
+        zms.dbService.store = saveStore;
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testExecutePutMembershipDecisionWithExpiry() {
+
+        String domainName = "mgradddom1";
+        String roleName = "role1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Role role1 = createRoleObject(domainName, roleName, null,
+                "user.joe", "user.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, role1);
+
+        zms.dbService.executePutMembership(mockDomRsrcCtx, domainName, roleName,
+                new RoleMember().setMemberName("user.doe").setActive(false), auditRef, "putMembership");
+
+        Date currentDate = new Date();
+        LocalDateTime localDateTime = currentDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        localDateTime = localDateTime.plusDays(7);
+
+        RoleMember member = new RoleMember().setMemberName("user.doe").setActive(true)
+                .setExpiration(Timestamp.fromMillis(Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant()).getTime()));
+        zms.dbService.executePutMembershipDecision(mockDomRsrcCtx, domainName, roleName, member, auditRef, "putMembershipDecision");
+
+        Role role = zms.getRole(mockDomRsrcCtx, domainName, roleName, false, false);
+        assertNotNull(role);
+
+        List<RoleMember> members = role.getRoleMembers();
+        assertNotNull(members);
+        assertEquals(members.size(), 3);
+
+        List<String> checkList = new ArrayList<>();
+        checkList.add("user.joe");
+        checkList.add("user.jane");
+        checkList.add("user.doe");
+        checkRoleMember(checkList, members);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testExecutePutMembershipDecisionRetry() {
+
+        String domainName = "mgradddom1";
+        String roleName = "role1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,"Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Role role1 = createRoleObject(domainName, roleName, null,"user.joe", "user.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, role1);
+
+        zms.dbService.executePutMembership(mockDomRsrcCtx, domainName, roleName, new RoleMember().setMemberName("user.doe").setActive(false), auditRef, "putMembership");
+
+        zms.dbService.executePutMembership(mockDomRsrcCtx, domainName, roleName, new RoleMember().setMemberName("user.bob").setActive(false), auditRef, "putMembership");
+
+        RoleMember roleMem = new RoleMember().setMemberName("user.doe").setActive(true);
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        zms.dbService.defaultRetryCount = 2;
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockFileConn);
+        ResourceException rex = new ResourceException(409);
+        Mockito.when(mockFileConn.confirmRoleMember(anyString(), anyString(), any(), anyString(), anyString())).thenThrow(rex);
+        try {
+            zms.dbService.executePutMembershipDecision(mockDomRsrcCtx, domainName, roleName, roleMem, auditRef, "putMembershipDecision");
+            fail();
+        }catch (ResourceException r) {
+            assertEquals(r.getCode(), 409);
+            assertTrue(r.getMessage().contains("Conflict"));
+        }
+        zms.dbService.store = saveStore;
+        zms.dbService.defaultRetryCount = 120;
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+
 
 }

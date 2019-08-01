@@ -7266,4 +7266,61 @@ public class JDBCConnectionTest {
         assertTrue(requestSuccess);
         jdbcConn.close();
     }
+
+    @Test
+    public void testConfirmRoleMemberPrincipalIdNotFound() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // role id
+                .thenReturn(0); // principal id
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        try {
+
+            jdbcConn.confirmRoleMember("my-domain", "role1", new RoleMember().setMemberName("user.user1").setActive(false), "user.admin", "audit-ref");
+
+        }catch (ResourceException rx){
+            assertEquals(rx.getCode(), 404);
+            assertTrue(rx.getMessage().contains("unknown principal"));
+        }
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testConfirmRoleMemberPrincipalNotExists() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // role id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next()).thenReturn(true,true,true,false);
+        try {
+
+            jdbcConn.confirmRoleMember("my-domain", "role1", new RoleMember().setMemberName("user.user1").setActive(false), "user.admin", "audit-ref");
+
+        }catch (ResourceException rx){
+            assertEquals(rx.getCode(), 404);
+            assertTrue(rx.getMessage().contains("unknown principal"));
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testConfirmRoleMemberPrincipalSqlError() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // role id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next()).thenReturn(true,true,true).thenThrow(new SQLException("sql error"));
+        try {
+
+            jdbcConn.confirmRoleMember("my-domain", "role1", new RoleMember().setMemberName("user.user1").setActive(false), "user.admin", "audit-ref");
+
+        }catch (RuntimeException rx){
+            assertTrue(rx.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
 }
