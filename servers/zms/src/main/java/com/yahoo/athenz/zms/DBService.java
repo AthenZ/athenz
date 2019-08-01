@@ -3612,7 +3612,7 @@ public class DBService {
             throw ZMSUtils.notFoundError(caller + ": Unknown role: " + roleName + " in domain: " + domainName, caller);
         }
 
-        if (role.getAuditEnabled()) {
+        if (role.getAuditEnabled() == Boolean.TRUE) {
             if (auditRef == null || auditRef.length() == 0) {
                 con.rollbackChanges();
                 throw ZMSUtils.requestError(caller + ": Audit reference required for role: " + domainName, caller);
