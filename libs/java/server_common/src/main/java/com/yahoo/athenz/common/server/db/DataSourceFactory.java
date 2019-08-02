@@ -53,7 +53,7 @@ public class DataSourceFactory {
         try {
             if (url.indexOf(":mysql:") > 0) {
                 
-                driver = System.getProperty(DRIVER_CLASS_NAME, "com.mysql.jdbc.Driver");
+                driver = System.getProperty(DRIVER_CLASS_NAME, "com.mysql.cj.jdbc.Driver");
                 Class.forName(driver);
                 
                 ConnectionFactory connectionFactory =

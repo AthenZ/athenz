@@ -55,7 +55,7 @@ public class AwsPrivateKeyStore implements PrivateKeyStore {
 
     private static final String ATHENZ_PROP_AWS_S3_REGION   = "athenz.aws.s3.region";
     private static final String ATHENZ_PROP_AWS_KMS_DECRYPT = "athenz.aws.store_kms_decrypt";
-    private static final String ATHENZ_PROP_AWS_KMS_REGION  = "athenz.aws.store_kms.region";
+    private static final String ATHENZ_PROP_AWS_KMS_REGION  = "athenz.aws.store_kms_region";
     private static final String ATHENZ_PROP_ZMS_BUCKET_NAME = "athenz.aws.zms.bucket_name";
     private static final String ATHENZ_PROP_ZMS_KEY_NAME    = "athenz.aws.zms.key_name";
     private static final String ATHENZ_PROP_ZMS_KEY_ID_NAME = "athenz.aws.zms.key_id_name";
@@ -180,11 +180,11 @@ public class AwsPrivateKeyStore implements PrivateKeyStore {
         return keyValue.trim();
     }
 
-    public AmazonS3 getS3() {
+    AmazonS3 getS3() {
         return s3;
     }
 
-    public AWSKMS getKMS() {
+    AWSKMS getKMS() {
         return kms;
     }
 }
