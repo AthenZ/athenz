@@ -157,4 +157,10 @@ public class YBase64Test {
         byte[] data = new byte[0];
         assertNotNull(YBase64.encode(data));
     }
+
+    @Test
+    public void testRandom() {
+        YBase64 temp = new YBase64();
+
+    }
 }

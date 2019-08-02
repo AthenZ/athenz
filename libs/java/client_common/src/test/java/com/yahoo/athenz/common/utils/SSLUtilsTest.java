@@ -11,8 +11,12 @@ import java.net.ServerSocket;
 import java.net.URL;
 
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.X509ExtendedKeyManager;
 
+import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.impl.FilePrivateKeyStore;
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
@@ -26,6 +30,7 @@ import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -33,50 +38,55 @@ import org.testng.annotations.Test;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.utils.SSLUtils.ClientSSLContextBuilder;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+import static org.testng.Assert.*;
+
 /**
  * ca.pkcs12 was generate with the following commands:
  * openssl genrsa -out ca.key 2048
  * openssl req -x509 -new -nodes -key ca.key -sha256 -days 1024 -out ca.pem
  * openssl pkcs12 -export -out ca.pkcs12 -in ca.pem -inkey ca.key
- * 
+ *
  * keytool -list -v -keystore ca/ca.pkcs12 
- * 
+ *
  * Certificate[1]:
  * Owner: CN=Self-CA, O=Oath, L=LA, ST=CA, C=US
  * Issuer: CN=Self-CA, O=Oath, L=LA, ST=CA, C=US
- * 
- * 
+ *
+ *
  * server.pkcs12 was generate with:
- * 
+ *
  * openssl genrsa -out server.key 2048
  * openssl req -new -key server.key -out server.csr
- * openssl x509 -req -in server.csr -CA ca.pem -CAkey ca.key -CAcreateserial -out server.pem -days 1024 -sha256
+ * openss x509 -req -in server.csr -CA ca.pem -CAkey ca.key -CAcreateserial -out server.pem -days 1024 -sha256
  * openssl pkcs12 -export -out server.pkcs12 -in server.pem -inkey server.key
- * 
+ *
  * keytool -list -v -keystore server/server.pkcs12
- * 
+ *
  * Certificate[1]:
  * Owner: CN=localhost, O=Internet Widgits Pty Ltd, ST=Some-State, C=AU
  * Issuer: CN=Self-CA, O=Oath, L=LA, ST=CA, C=US
- * 
+ *
  * client.pkcs12 was generate with:
- * 
+ *
  * openssl genrsa -out client.key 2048
  * openssl req -new -key client.key -out client.csr
  * openssl x509 -req -in client.csr -CA ca.pem -CAkey ca.key -CAcreateserial -out client.pem -days 1024 -sha256
  * openssl pkcs12 -export -out client.pkcs12 -in client.pem -inkey client.key
- * 
+ *
  * keytool -list -v -keystore client/client.pkcs12
- * 
+ *
  * Certificate[1]:
  * Owner: O=Internet Widgits Pty Ltd, ST=Some-State, C=AU
  * Issuer: CN=Self-CA, O=Oath, L=LA, ST=CA, C=US
- * 
+ *
  * client_multiple_keys.pkcs12 was generate by combining two pkcs12 files signed by two different CAs:
- * 
- * keytool -importkeystore -deststorepass changeit -destkeypass changeit -destkeystore 
+ *
+ * keytool -importkeystore -deststorepass changeit -destkeypass changeit -destkeystore
  * client_multiple_keys.pkcs12 -srckeystore client2.pkcs12 -srcstoretype PKCS12 -srcstorepass changeit -alias client2
- * 
+ *
  * @author charlesk
  *
  */
@@ -87,7 +97,13 @@ public class SSLUtilsTest {
     private static final String DEFAULT_SSL_STORE_TYPE = "pkcs12";
     private static final String DEFAULT_CA_TRUST_STORE = "src/test/resources/certs/ca/ca.pkcs12";
     private static final String DEFAULT_SERVER_KEY_STORE = "src/test/resources/certs/server/server.pkcs12";
-    
+    private static final String DEFAULT_KEY_STORE_TYPE = "pkcs12";
+    private static final String DEFAULT_TRUST_STORE_TYPE = "pkcs12";
+    private static final String KEYSTORE_PASSWORD_APP_NAME = "testKeystorePassword";
+    private static final String KEY_MANAGER_PASSWORD_APP_NAME = "testKeyManager";
+    private static final String TRSUTSTORE_PASSWORD_APP_NAME = "testTruststorePassword";
+    private static final String TRUSTSTORE_PATH = "src/test/resources/testKeyStore.pkcs12";
+
     @Test
     public void testClientSSLContextBuilder() {
         String protocol = DEFAULT_SSL_PROTOCOL;
@@ -95,32 +111,126 @@ public class SSLUtilsTest {
                 .keyStorePath(DEFAULT_SERVER_KEY_STORE)
                 .keyManagerPassword(DEFAULT_CERT_PWD.toCharArray())
                 .keyStorePassword(DEFAULT_CERT_PWD.toCharArray())
+                .keyStoreType(DEFAULT_KEY_STORE_TYPE)
+                .trustStoreType(DEFAULT_TRUST_STORE_TYPE)
+                .keyStorePasswordAppName(KEYSTORE_PASSWORD_APP_NAME)
+                .keyManagerPasswordAppName(KEY_MANAGER_PASSWORD_APP_NAME)
+                .trustStorePasswordAppName(TRSUTSTORE_PASSWORD_APP_NAME)
+                .privateKeyStore(new FilePrivateKeyStore())
                 .build();
-        Assert.assertEquals(sslContext.getProtocol(), protocol);
-        
+        assertEquals(sslContext.getProtocol(), protocol);
+
         sslContext = new SSLUtils.ClientSSLContextBuilder(protocol).build();
         Assert.assertNull(sslContext);
-    }    
-    
+
+        //key manager password is null
+        assertThrows(RuntimeException.class, () -> {
+            SSLContext temp = new SSLUtils.ClientSSLContextBuilder(protocol)
+                    .keyStorePath(DEFAULT_SERVER_KEY_STORE)
+                    .keyManagerPassword(null)
+                    .keyStorePassword(DEFAULT_CERT_PWD.toCharArray())
+                    .keyStoreType(DEFAULT_KEY_STORE_TYPE)
+                    .trustStoreType(DEFAULT_TRUST_STORE_TYPE)
+                    .keyStorePasswordAppName(KEYSTORE_PASSWORD_APP_NAME)
+                    .keyManagerPasswordAppName(KEY_MANAGER_PASSWORD_APP_NAME)
+                    .trustStorePasswordAppName(TRSUTSTORE_PASSWORD_APP_NAME)
+                    .privateKeyStore(new FilePrivateKeyStore())
+                    .build();
+        });
+
+        //trust store password is null
+            SSLContext temp = new SSLUtils.ClientSSLContextBuilder(protocol)
+                    .keyStorePath(DEFAULT_SERVER_KEY_STORE)
+                    .keyManagerPassword(DEFAULT_CERT_PWD.toCharArray())
+                    .keyStorePassword(DEFAULT_CERT_PWD.toCharArray())
+                    .keyStoreType(DEFAULT_KEY_STORE_TYPE)
+                    .trustStoreType(DEFAULT_TRUST_STORE_TYPE)
+                    .keyStorePasswordAppName(KEYSTORE_PASSWORD_APP_NAME)
+                    .keyManagerPasswordAppName(KEY_MANAGER_PASSWORD_APP_NAME)
+                    .trustStorePasswordAppName(TRSUTSTORE_PASSWORD_APP_NAME)
+                    .trustStorePassword(null)
+                    .trustStorePath(TRUSTSTORE_PATH)
+                    .privateKeyStore(new FilePrivateKeyStore())
+                    .build();
+
+            temp = new SSLUtils.ClientSSLContextBuilder(protocol)
+                .keyStorePath("")
+                .keyManagerPassword(DEFAULT_CERT_PWD.toCharArray())
+                .keyStorePassword(DEFAULT_CERT_PWD.toCharArray())
+                .keyStoreType(DEFAULT_KEY_STORE_TYPE)
+                .trustStoreType(DEFAULT_TRUST_STORE_TYPE)
+                .keyStorePasswordAppName(KEYSTORE_PASSWORD_APP_NAME)
+                .keyManagerPasswordAppName(KEY_MANAGER_PASSWORD_APP_NAME)
+                .trustStorePasswordAppName(TRSUTSTORE_PASSWORD_APP_NAME)
+                .trustStorePassword(null)
+                .trustStorePath(TRUSTSTORE_PATH)
+                .privateKeyStore(new FilePrivateKeyStore())
+                .build();
+    }
+
+    @Test
+    public void testClientAliasedX509ExtendedKeyManager() {
+
+        SSLUtils.ClientAliasedX509ExtendedKeyManager keyManager = new SSLUtils.ClientAliasedX509ExtendedKeyManager(null, "testKeyAlias");
+        assertNull(keyManager.getDelegate());
+        assertThrows(RuntimeException.class, () -> {
+            keyManager.chooseEngineServerAlias(null, null, null);
+        });
+        assertThrows(RuntimeException.class, () -> {
+            keyManager.getServerAliases(null, null);
+        });
+        assertThrows(RuntimeException.class, () -> {
+            keyManager.chooseServerAlias(null, null, null);
+        });
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            SSLUtils.loadServicePrivateKey("testFactoryClassFail");
+        });
+        String[] temp = new String[1];
+        temp[0] = "tempTest";
+        String[] clientAliases  = new String[2];
+        clientAliases[0] = "testClientAlias1";
+        clientAliases[1] = "testClientAlias2";
+        X509ExtendedKeyManager mockKeyManager = Mockito.mock(X509ExtendedKeyManager.class);
+        when(mockKeyManager.chooseEngineClientAlias(any(), any(), any())).thenReturn("testPass");
+        when(mockKeyManager.chooseClientAlias(any(), any(), any())).thenReturn("testPass");
+        when(mockKeyManager.getClientAliases(anyString(), any())).thenReturn(clientAliases);
+        SSLUtils.ClientAliasedX509ExtendedKeyManager keyManagerTemp = new SSLUtils.ClientAliasedX509ExtendedKeyManager(mockKeyManager, null);
+        assertEquals(keyManagerTemp.chooseEngineClientAlias(temp, null, null), "testPass");
+        assertEquals(keyManagerTemp.chooseClientAlias(temp, null, null), "testPass");
+        assertEquals(keyManagerTemp.getClientAliases("testKeyType", null), clientAliases);
+
+
+        when(mockKeyManager.getClientAliases(anyString(), any())).thenReturn(clientAliases);
+        keyManagerTemp = new SSLUtils.ClientAliasedX509ExtendedKeyManager(mockKeyManager, "testClientAlias2");
+        assertEquals(keyManagerTemp.chooseEngineClientAlias(temp, null, null), "testClientAlias2");
+
+
+        when(mockKeyManager.getClientAliases(anyString(), any())).thenReturn(null);
+        assertNull(keyManagerTemp.chooseEngineClientAlias(temp, null, null));
+
+    }
+
     @Test
     public void testLoadServicePrivateKey() {
         PrivateKeyStore keyStore = SSLUtils.loadServicePrivateKey("com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory");
         Assert.assertNotNull(keyStore);
     }
-    
+
+
     @DataProvider(name = "ClientSSLContext")
     public static Object[][] clientSSLContext() {
-          return new Object[][] { 
-              { false, DEFAULT_SSL_PROTOCOL, DEFAULT_CA_TRUST_STORE, "src/test/resources/certs/client/client.pkcs12", "", null }, 
-              { true, "TLS", DEFAULT_CA_TRUST_STORE, "src/test/resources/certs/client/client.pkcs12", "", null },
-              { true, DEFAULT_SSL_PROTOCOL, DEFAULT_CA_TRUST_STORE, "src/test/resources/certs/client/client.pkcs12", "", null },
-              { true, DEFAULT_SSL_PROTOCOL, DEFAULT_CA_TRUST_STORE, null, "bad_certificate", null },
-              { true, DEFAULT_SSL_PROTOCOL, DEFAULT_CA_TRUST_STORE, "src/test/resources/certs/client/client_wrong_ca.pkcs12", "bad_certificate", null },
-              { true, DEFAULT_SSL_PROTOCOL, DEFAULT_CA_TRUST_STORE, "src/test/resources/certs/client/client_multiple_keys.pkcs12", "", "client1" },
-              { true, DEFAULT_SSL_PROTOCOL, DEFAULT_CA_TRUST_STORE, "src/test/resources/certs/client/client_multiple_keys.pkcs12", "bad_certificate", "client2" },
-          };
+        return new Object[][] {
+                { false, DEFAULT_SSL_PROTOCOL, DEFAULT_CA_TRUST_STORE, "src/test/resources/certs/client/client.pkcs12", "", null },
+                { true, "TLS", DEFAULT_CA_TRUST_STORE, "src/test/resources/certs/client/client.pkcs12", "", null },
+                { true, DEFAULT_SSL_PROTOCOL, DEFAULT_CA_TRUST_STORE, "src/test/resources/certs/client/client.pkcs12", "", null },
+                { true, DEFAULT_SSL_PROTOCOL, DEFAULT_CA_TRUST_STORE, null, "bad_certificate", null },
+                { true, DEFAULT_SSL_PROTOCOL, DEFAULT_CA_TRUST_STORE, "src/test/resources/certs/client/client_wrong_ca.pkcs12", "bad_certificate", null },
+                { true, DEFAULT_SSL_PROTOCOL, DEFAULT_CA_TRUST_STORE, "src/test/resources/certs/client/client_multiple_keys.pkcs12", "", "client1" },
+                { true, DEFAULT_SSL_PROTOCOL, DEFAULT_CA_TRUST_STORE, "src/test/resources/certs/client/client_multiple_keys.pkcs12", "bad_certificate", "client2" },
+        };
     }
-    
+
     @Test(dataProvider = "ClientSSLContext")
     public void testSSLUtilsClient(boolean clientAuth, String sslProtocol, String trustPath, String keyStorePath, String expectedFailureMessage, String alias) throws Exception {
         JettyServer jettyServer = createHttpsJettyServer(clientAuth);
@@ -130,8 +240,8 @@ public class SSLUtilsTest {
                 .trustStorePassword(DEFAULT_CERT_PWD.toCharArray());
         if (null != keyStorePath) {
             builder.keyStorePath(keyStorePath)
-                .keyStorePassword(DEFAULT_CERT_PWD.toCharArray())
-                .keyManagerPassword("test".toCharArray());
+                    .keyStorePassword(DEFAULT_CERT_PWD.toCharArray())
+                    .keyManagerPassword("test".toCharArray());
         }
         if (null != alias && !alias.isEmpty()) {
             builder.certAlias(alias);
@@ -151,9 +261,11 @@ public class SSLUtilsTest {
             Assert.assertFalse(expectedFailureMessage.isEmpty());
         } finally {
             jettyServer.server.stop();
-       }
+        }
     }
-    
+
+
+
     private static String handleInputStream(HttpURLConnection con) throws IOException {
         StringBuilder outPut = new StringBuilder();
         String line;
@@ -181,8 +293,9 @@ public class SSLUtilsTest {
 
         return outPut.toString();
     }
-    
-    
+
+
+
     private static JettyServer createHttpsJettyServer(boolean clientAuth) throws IOException {
         Server server = new Server();
         HttpConfiguration https_config = new HttpConfiguration();
@@ -199,7 +312,7 @@ public class SSLUtilsTest {
         if (!keystoreFile.exists()) {
             throw new FileNotFoundException();
         }
-        
+
         String trustStorePath = DEFAULT_CA_TRUST_STORE;
         File trustStoreFile = new File(trustStorePath);
         if (!trustStoreFile.exists()) {
@@ -221,7 +334,7 @@ public class SSLUtilsTest {
 
         ServerConnector https = new ServerConnector(server,
                 new SslConnectionFactory(sslContextFactory,HttpVersion.HTTP_1_1.asString()),
-                    new HttpConnectionFactory(https_config));
+                new HttpConnectionFactory(https_config));
         https.setPort(port);
         https.setIdleTimeout(500000);
         server.setConnectors(new Connector[] { https });
@@ -229,11 +342,11 @@ public class SSLUtilsTest {
         ResourceHandler resourceHandler = new ResourceHandler();
         resourceHandler.setBaseResource(Resource.newResource("."));
         handlers.setHandlers(new Handler[]
-        { resourceHandler, new DefaultHandler() });
+                { resourceHandler, new DefaultHandler() });
         server.setHandler(handlers);
         return new JettyServer(server, port);
     }
-    
+
     static class JettyServer {
         public Server server;
         public int port;

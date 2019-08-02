@@ -56,21 +56,24 @@ public class FilePrivateKeyStore implements PrivateKeyStore {
         // a resource in our jar file
         
         String privKey;
+        ///CLOVER:OFF
         if (privKeyName.startsWith(ATHENZ_STR_JAR_RESOURCE)) {
             privKey = retrieveKeyFromResource(privKeyName.substring(ATHENZ_STR_JAR_RESOURCE.length()));
         } else {
+            ///CLOVER:ON
             File privKeyFile = new File(privKeyName);
             privKey = Crypto.encodedFile(privKeyFile);
         }
         
         PrivateKey pkey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
+        ///CLOVER:OFF
         if (pkey != null) {
             privateKeyId.append(System.getProperty(ATHENZ_PROP_PRIVATE_KEY_ID, "0"));
         }
-        
+        ///CLOVER:ON
         return pkey;
     }
-    
+    ///CLOVER:OFF
     private String retrieveKeyFromResource(String resourceName) {
         
         String key = null;
@@ -101,4 +104,5 @@ public class FilePrivateKeyStore implements PrivateKeyStore {
         }
         return sb.toString();
     }
+    ///CLOVER:ON
 }

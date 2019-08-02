@@ -46,13 +46,14 @@ public class DataSourceFactory {
     static final long MAX_TTL_CONN_MS = TimeUnit.MILLISECONDS.convert(10L, TimeUnit.MINUTES);
     static final String MYSQL_VALIDATION_QUERY = "/* ping */ SELECT 1";
 
+    static final String DRIVER_CLASS_NAME = "athenz.db.driver.class";
     public static PoolableDataSource create(String url, Properties mysqlConnectionProperties) {
         
         String driver = null;
         try {
             if (url.indexOf(":mysql:") > 0) {
                 
-                driver = "com.mysql.jdbc.Driver";
+                driver = System.getProperty(DRIVER_CLASS_NAME, "com.mysql.cj.jdbc.Driver");
                 Class.forName(driver);
                 
                 ConnectionFactory connectionFactory =

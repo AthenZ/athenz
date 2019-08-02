@@ -18,7 +18,6 @@ package com.yahoo.athenz.common.server.rest;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.sun.org.apache.xpath.internal.Arg;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
 import org.mockito.ArgumentMatchers;

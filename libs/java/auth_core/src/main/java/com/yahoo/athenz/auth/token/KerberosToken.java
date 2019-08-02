@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Yahoo Inc.
+ * Copyright 2019 Oath Holdings, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,7 +76,9 @@ public class KerberosToken extends Token {
             }
             userName = Subject.doAs(serviceSubject, privExcAction);
             int index = userName.indexOf('@');
+            ///CLOVER:OFF
             if (index != -1) {
+                ///CLOVER:ON
                 if (userName.indexOf(KRB_USER_REALM, index) == -1) {
                     if (userName.indexOf(USER_REALM, index) != -1) {
                         domain = USER_DOMAIN;
@@ -121,9 +123,11 @@ public class KerberosToken extends Token {
         public String run() throws Exception {
             GSSContext context = GSSManager.getInstance().createContext((GSSCredential) null);
             context.acceptSecContext(kerberosTicket, 0, kerberosTicket.length);
+            ///CLOVER:OFF
             String user = context.getSrcName().toString();
             context.dispose();
             return user;
+            ///CLOVER:ON
         }
     }
 }

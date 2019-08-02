@@ -198,6 +198,14 @@ public class CryptoTest {
         } catch (CryptoException ex) {
             assertTrue(true, "Caught expected CryptoException");
         }
+
+        File failX509Cert = new File("./src/test/resources/fail_x509.cert");
+        try {
+            Crypto.loadX509Certificate(failX509Cert);
+            fail();
+        } catch (CryptoException e) {
+            assertTrue(true, "Caught FileNotFoundException while");
+        }
     }
     
     @Test
@@ -325,7 +333,17 @@ public class CryptoTest {
         
         try {
             assertEquals(Crypto.getSignatureAlgorithm("DSA", "SHA256"), "SHA256withDSA");
+            fail();
+        } catch (NoSuchAlgorithmException e) {
+            assertTrue(true);
+        }
+        try {
             assertEquals(Crypto.getSignatureAlgorithm("RSA", "SHA555"), "SHA555withRSA");
+            fail();
+        } catch (NoSuchAlgorithmException e) {
+            assertTrue(true);
+        }
+        try {
             assertEquals(Crypto.getSignatureAlgorithm("ECDSA", "SHA999"), "SHA999withECDSA");
             fail();
         } catch (NoSuchAlgorithmException e) {
@@ -801,4 +819,16 @@ public class CryptoTest {
         PrivateKey pkey = Crypto.generateRSAPrivateKey(1024);
         assertNotNull(pkey);
     }
+
+    @Test
+    public void testHmacSign() {
+        assertNotNull(Crypto.hmac("testMessage", "testSharedSecret"));
+    }
+
+    @Test
+    public void testYBase64EncodeString() {
+        assertNotNull(Crypto.ybase64EncodeString("testString"));
+    }
+
+
 }

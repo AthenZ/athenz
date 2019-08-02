@@ -147,5 +147,28 @@ public class AuditLogMsgBuilderTest {
         Assert.assertTrue(msg.contains("UUID="), "Test string=" + msg);
         Assert.assertTrue(msg.contains("WHO-fullname=(null)"), "Test string=" + msg);
         Assert.assertTrue(msg.contains("WHEN-epoch="), "Test string=" + msg);
+        // when version tag is not null
+        Assert.assertTrue(msgBldr.versionTag().contains("VERS=(athenz-def-1.0);"));
+    }
+
+    @Test
+    public void testSetReplaceMethods() {
+        AuditLogMsgBuilder msgBldr = starter("testBuild");
+        Assert.assertTrue(msgBldr.whatDetails("testWhatDetails") instanceof AuditLogMsgBuilder);
+        Assert.assertEquals(msgBldr.whatDetails(), "testWhatDetails");
+
+        Assert.assertTrue(msgBldr.uuId("testUUID") instanceof AuditLogMsgBuilder);
+        Assert.assertEquals(msgBldr.uuId(), "testUUID");
+
+        Assert.assertTrue(msgBldr.whoFullName("testWhoFullName") instanceof AuditLogMsgBuilder);
+        Assert.assertEquals(msgBldr.whoFullName(), "testWhoFullName");
+    }
+
+    @Test
+    public void testDefaultAuditLogger() {
+        AuditLogger auditLogger = new DefaultAuditLogger("testLogger");
+        AuditLogMsgBuilder msgBldr = auditLogger.getMsgBuilder();
+        auditLogger.log(msgBldr);
+        auditLogger.log(null);
     }
 }

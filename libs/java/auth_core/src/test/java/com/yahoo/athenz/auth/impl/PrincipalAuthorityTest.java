@@ -23,6 +23,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.doReturn;
 import static org.testng.Assert.*;
 
 import org.mockito.Mockito;
@@ -597,5 +599,99 @@ public class PrincipalAuthorityTest {
     public void testGetAuthenticateChallenge() {
         PrincipalAuthority serviceAuthority = new PrincipalAuthority();
         assertEquals(serviceAuthority.getAuthenticateChallenge(), "AthenzPrincipalToken realm=\"athenz\"");
+    }
+
+    @Test
+    public void testPrincipalAuthorityWithNullAuthorizedService() throws IOException {
+        PrincipalAuthority authority = new PrincipalAuthority();
+        PrincipalAuthority serviceAuthority = Mockito.spy(authority);
+        KeyStore keyStore = new KeyStoreMock();
+        serviceAuthority.setKeyStore(keyStore);
+
+        // Create and sign token with key version 0
+
+        List<String> authorizedServices = new ArrayList<>();
+        authorizedServices.add("sports.fantasy");
+        authorizedServices.add("sports.hockey");
+
+        long issueTime = System.currentTimeMillis() / 1000;
+        PrincipalToken userTokenToSign = new PrincipalToken.Builder(usrVersion, usrDomain, usrName)
+                .salt(salt).ip("127.0.0.2").issueTime(issueTime).expirationWindow(expirationTime)
+                .authorizedServices(authorizedServices).build();
+
+        userTokenToSign.sign(servicePrivateKeyStringK0);
+
+        // now let's sign the token for an authorized service
+
+        userTokenToSign.signForAuthorizedService("sports.fantasy", "1", servicePrivateKeyStringK1);
+
+        // we're going to pass a different IP so we get the authorized service checks
+
+        doReturn(null).when(serviceAuthority).validateAuthorizeService(any(), any());
+        StringBuilder errMsg = new StringBuilder();
+        Principal principal = serviceAuthority.authenticate(userTokenToSign.getSignedToken(),
+                "127.0.0.3", "POST", errMsg);
+
+        assertNull(principal);
+    }
+
+    @Test
+    public void testAuthenticateWithRemoteIpCheck() throws IOException {
+        PrincipalAuthority authority = new PrincipalAuthority();
+        PrincipalAuthority serviceAuthority = Mockito.spy(authority);
+        KeyStore keyStore = new KeyStoreMock();
+        serviceAuthority.setKeyStore(keyStore);
+
+        // Create and sign token with key version 0
+
+        List<String> authorizedServices = new ArrayList<>();
+        authorizedServices.add("sports.fantasy");
+        authorizedServices.add("sports.hockey");
+
+        long issueTime = System.currentTimeMillis() / 1000;
+        PrincipalToken userTokenToSign = new PrincipalToken.Builder(usrVersion, usrDomain, usrName)
+                .salt(salt).ip("127.0.0.2").issueTime(issueTime).expirationWindow(expirationTime)
+                .authorizedServices(authorizedServices).build();
+
+        userTokenToSign.sign(servicePrivateKeyStringK0);
+
+        // now let's sign the token for an authorized service
+
+        userTokenToSign.signForAuthorizedService("sports.fantasy", "1", servicePrivateKeyStringK1);
+
+        // we're going to pass a different IP so we get the authorized service checks
+
+        doReturn(false).when(serviceAuthority).remoteIpCheck(anyString(), anyBoolean(), any(), any());
+        StringBuilder errMsg = new StringBuilder();
+        Principal principal = serviceAuthority.authenticate(userTokenToSign.getSignedToken(),
+                "127.0.0.3", "POST", errMsg);
+
+        assertNull(principal);
+    }
+
+//    @Test
+    public void testPrincipalTokenValidateForAuthorizedService() throws IOException {
+
+        PrincipalAuthority serviceAuthority = new PrincipalAuthority();
+        KeyStore keyStore = new KeyStoreMock();
+        serviceAuthority.setKeyStore(keyStore);
+
+        long issueTime = System.currentTimeMillis() / 1000;
+        // Create and sign token
+        List<String> authorizedServices = new ArrayList<>();
+        authorizedServices.add("test.fantasy");
+
+        PrincipalToken userTokenToSign = new PrincipalToken.Builder(usrVersion, usrDomain, usrName)
+                .salt(salt).issueTime(issueTime).expirationWindow(expirationTime)
+                .authorizedServices(authorizedServices).build();
+
+        userTokenToSign.sign(servicePrivateKeyStringK0);
+
+        // now let's sign the token for an authorized service
+
+        userTokenToSign.signForAuthorizedService("test.fantasy", "1", servicePrivateKeyStringK1);
+
+        // Create a token for validation using the signed data
+        serviceAuthority.validateAuthorizeService(userTokenToSign, null);
     }
 }

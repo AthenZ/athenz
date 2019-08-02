@@ -148,8 +148,7 @@ public class UserAuthority implements Authority {
         // sure our principal's name and domain are created with lower case as well
 
         long issueTime = 0;
-        SimplePrincipal princ = (SimplePrincipal) SimplePrincipal.create(getDomain().toLowerCase(),
-                userArray[0].toLowerCase(), creds, issueTime, this);
+        SimplePrincipal princ = getSimplePrincipal(userArray[0].toLowerCase(), creds, issueTime);
         if (princ == null) {
             errMsg.append("UserAuthority:authenticate: failed to create principal: user=")
                 .append(username);
@@ -158,5 +157,10 @@ public class UserAuthority implements Authority {
         }
         princ.setUnsignedCreds(creds);
         return princ;
+    }
+
+    SimplePrincipal getSimplePrincipal(String name, String creds, long issueTime) {
+        return (SimplePrincipal) SimplePrincipal.create(getDomain().toLowerCase(),
+                name, creds, issueTime, this);
     }
 }

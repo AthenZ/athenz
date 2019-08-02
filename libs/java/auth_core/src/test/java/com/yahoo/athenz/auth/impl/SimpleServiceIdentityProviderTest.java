@@ -23,13 +23,16 @@ import com.yahoo.athenz.auth.util.Crypto;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.PrivateKey;
 
+import static org.mockito.Mockito.doThrow;
 import static org.testng.Assert.*;
 
+import org.mockito.Mockito;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
@@ -125,5 +128,16 @@ public class SimpleServiceIdentityProviderTest {
         provider2.setAuthority(authority);
         provider2.setTokenTimeout(3600);
         assertEquals(provider2.getAuthority(), authority);
+    }
+
+    @Test
+    public void testGetServerHostName() throws UnknownHostException {
+        PrivateKey key = Crypto.loadPrivateKey(servicePrivateKeyStringK1);
+        SimpleServiceIdentityProvider simpleServiceIdentityProvider = new SimpleServiceIdentityProvider("coretech",
+                "athenz", key, "1");
+
+        SimpleServiceIdentityProvider provider = Mockito.spy(simpleServiceIdentityProvider);
+        doThrow(UnknownHostException.class).when(provider).getLocalHost();
+        assertEquals(provider.getServerHostName(), "localhost");
     }
 }

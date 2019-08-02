@@ -74,7 +74,11 @@ public class FilePrivateKeyStoreTest {
         } catch (Exception ex) {
             assertTrue(true);
         }
-        
+
+        System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
+        StringBuilder keyId = new StringBuilder(256);
+        assertNull(store.getPrivateKey("zts", "localhost", keyId));
+
         if (saveProp == null) {
             System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
         } else {

@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.auth.token;
 
+import static org.mockito.Mockito.doReturn;
 import static org.testng.Assert.*;
 
 import java.security.PublicKey;
@@ -43,6 +44,7 @@ public class TokenTest {
     private String servicePrivateKeyStringK0 = null;
     private String servicePrivateKeyStringK1 = null;
     private String servicePublicKeyStringK0 = null;
+    private String servicePublicKeyStringK1 = null;
 
     @BeforeTest
     private void loadKeys() throws IOException {
@@ -55,7 +57,11 @@ public class TokenTest {
         
         path = Paths.get("./src/test/resources/fantasy_private_k1.key");
         servicePrivateKeyStringK1 = new String(Files.readAllBytes(path));
+
+        path = Paths.get("./src/test/resources/fantasy_public_k1.key");
+        servicePublicKeyStringK1 = new String(Files.readAllBytes(path));
     }
+
     
     @Test
     public void testTokenValidateNullSignature() throws CryptoException {
@@ -214,5 +220,20 @@ public class TokenTest {
     public void testValidateFail() {
         Token token = new Token();
         assertFalse(token.validate((PublicKey) null, 3600, false, null));
+
+
+        long timestamp = System.currentTimeMillis() / 1000;
+        long expiration = TimeUnit.SECONDS.convert(30, TimeUnit.DAYS) + 11;
+        PrincipalToken token1 = new PrincipalToken.Builder(svcVersion, svcDomain, svcName)
+                .host(host).salt(salt).issueTime(timestamp).expirationWindow(expiration).build();
+        token1.sign(servicePrivateKeyStringK0);
+        Token spyToken = Mockito.spy(token1);
+        doReturn(null).when(spyToken).getDigestAlgorithm();
+
+        assertFalse(spyToken.validate(servicePublicKeyStringK0, 5, false));
+        assertFalse(spyToken.validate(servicePublicKeyStringK0, 20, false));
+
+
     }
+
 }
