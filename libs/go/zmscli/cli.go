@@ -32,6 +32,7 @@ type Zms struct {
 	HomeDomain       string
 	ProductIdSupport bool
 	Debug            bool
+	AddSelf          bool
 }
 
 func (cli *Zms) SetClient(tr *http.Transport, authHeader, ntoken *string) {
@@ -187,9 +188,9 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 					if err != nil {
 						return nil, fmt.Errorf("Top Level Domains require an integer number specified for the product id")
 					}
-					return cli.AddDomain(dn, &productID, args[2:])
+					return cli.AddDomain(dn, &productID, cli.AddSelf, args[2:])
 				}
-				return cli.AddDomain(dn, nil, args[1:])
+				return cli.AddDomain(dn, nil, cli.AddSelf, args[1:])
 			}
 			return cli.helpCommand(params)
 		case "delete-domain":

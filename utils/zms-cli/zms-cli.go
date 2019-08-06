@@ -175,6 +175,7 @@ func main() {
 	pVerbose := flag.Bool("v", false, "verbose mode. Full resource names are included in output")
 	pBulkmode := flag.Bool("b", false, "bulk mode. Do not display updated role/policy/service in output")
 	pProductIDSupport := flag.Bool("p", false, "Top Level Domain add operations require product ids")
+	pAddSelf := flag.Bool("addself", true, "Add self to domain admin role")
 	pDomain := flag.String("d", "", "The domain for the command to execute in. If not specified, only certain commands are available")
 	pUserDomain := flag.String("u", "user", "User domain name as configured in Athenz systems")
 	pHomeDomain := flag.String("h", "user", "Home domain name as configured in Athenz systems")
@@ -276,6 +277,7 @@ func main() {
 		HomeDomain:       *pHomeDomain,
 		ProductIdSupport: *pProductIDSupport,
 		Debug:            *pDebug,
+		AddSelf:          *pAddSelf,
 	}
 	cli.SetClient(tr, &authHeader, &ntoken)
 
