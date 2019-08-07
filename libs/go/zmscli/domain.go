@@ -66,7 +66,7 @@ func (cli Zms) ImportDomain(dn string, filename string, admins []string) (*strin
 		return nil, fmt.Errorf("Top Level Domains require an integer number specified for the Product ID")
 	}
 	productID32 := int32(productID)
-	_, err = cli.AddDomain(dn, &productID32, admins)
+	_, err = cli.AddDomain(dn, &productID32, true, admins)
 	if err != nil {
 		return nil, err
 	}
@@ -214,7 +214,7 @@ func (cli Zms) SystemBackup(dir string) (*string, error) {
 	return &s, nil
 }
 
-func (cli Zms) AddDomain(dn string, productID *int32, admins []string) (*string, error) {
+func (cli Zms) AddDomain(dn string, productID *int32, addSelf bool, admins []string) (*string, error) {
 	// sanity check cli usage: sub domain admin list should not contain a productID
 	if productID == nil && admins != nil && len(admins) > 0 {
 		// just checking the first admin to decide if productID was actually added
@@ -224,7 +224,7 @@ func (cli Zms) AddDomain(dn string, productID *int32, admins []string) (*string,
 			return nil, fmt.Errorf(s)
 		}
 	}
-	validatedAdmins := cli.validatedUsers(admins, true)
+	validatedAdmins := cli.validatedUsers(admins, addSelf)
 	s, err := cli.createDomain(dn, productID, validatedAdmins)
 	if err != nil {
 		return nil, err
