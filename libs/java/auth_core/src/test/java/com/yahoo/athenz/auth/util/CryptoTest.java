@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Yahoo Inc.
+ * Copyright 2019 Oath Holdings, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,29 +15,37 @@
  */
 package com.yahoo.athenz.auth.util;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
+import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 
+import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
 
 import org.bouncycastle.asn1.DERIA5String;
+import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.jce.X509Principal;
+import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.mockito.Mockito;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import javax.security.auth.x500.X500Principal;
 
 public class CryptoTest {
 
@@ -57,93 +65,142 @@ public class CryptoTest {
     private final File ecPrivateParamsKey = new File("./src/test/resources/ec_private_params.key");
     private final File ecPublicParamsKey = new File("./src/test/resources/ec_public_params.key");
     private final File argFile = new File("./src/test/resources/arg_file");
-    
+    private final File noFile = new File("./src/test/resources/ec_private_test_not_exist.key");
+
     private final File privateEncryptedKey = new File("./src/test/resources/private_encrypted.key");
     private final String encryptedKeyPassword = "athenz";
-    
+
     private final String serviceToken = "v=S1;d=coretech;n=storage;t=1234567000;e=123456800;h=localhost";
     private final String serviceRSASignature = "VsUlcNozK4as1FjPbowEE_DFDD8KWpQzphadfbt_TsMoCTLFpYrMzKTu_nHKemJmEi0bbPwj7hRLrIKEFu2VjQ--";
     private final String serviceECSignature = "MEQCIEBnyNCxp5GSeua3K9OenyetmVs4F68VB.Md1JRaU4OXAiBWAxlJLe74ZV4QDqapsD4FJm.MA3mv0FMcq.LEevJa0g--";
-    
+
     @Test
     public void testSignVerifyRSAKey() {
-        
+
         PrivateKey privateKey = Crypto.loadPrivateKey(rsaPrivateKey);
         assertNotNull(privateKey);
-        
+
         String signature = Crypto.sign(serviceToken, privateKey);
         assertEquals(signature, serviceRSASignature);
-        
+
         PublicKey publicKey = Crypto.loadPublicKey(rsaPublicKey);
         assertNotNull(publicKey);
-        
+
         assertTrue(Crypto.verify(serviceToken, publicKey, signature));
     }
 
     @Test
     public void testSignVerifyExtractedRSAKey() {
-        
+
         PrivateKey privateKey = Crypto.loadPrivateKey(rsaPrivateKey);
         assertNotNull(privateKey);
-        
+
         String signature = Crypto.sign(serviceToken, privateKey);
         assertEquals(signature, serviceRSASignature);
-        
+
         PublicKey publicKey = Crypto.extractPublicKey(privateKey);
         assertNotNull(publicKey);
-        
+
         assertTrue(Crypto.verify(serviceToken, publicKey, signature));
     }
-    
+
     @Test
     public void testSignVerifyRSAKey_Invalid() {
-        
+
         PublicKey publicKey = Crypto.loadPublicKey(rsaPublicInvalidKey);
         assertNotNull(publicKey);
-        
+
         assertFalse(Crypto.verify(serviceToken, publicKey, serviceRSASignature));
     }
-    
+
     @Test
     public void testSignVerifyRSAKey_X509() {
-        
+
         PublicKey publicKey = Crypto.loadPublicKey(rsaPublicX590Cert);
         assertNotNull(publicKey);
-        
+
         assertTrue(Crypto.verify(serviceToken, publicKey, serviceRSASignature));
     }
-    
+
     @Test
     public void testSignVerifyECKey() {
-        
+
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
         assertNotNull(privateKey);
-        
+
         String signature = Crypto.sign(serviceToken, privateKey);
-        
+
         PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
         assertNotNull(publicKey);
-        
+
         assertTrue(Crypto.verify(serviceToken, publicKey, signature));
     }
-    
+
     @Test
     public void testSignVerifyExtractedECKey() {
-        
+
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
         assertNotNull(privateKey);
-        
+
         String signature = Crypto.sign(serviceToken, privateKey);
-        
+
         PublicKey publicKey = Crypto.extractPublicKey(privateKey);
         assertNotNull(publicKey);
-        
+
         assertTrue(Crypto.verify(serviceToken, publicKey, signature));
     }
-    
+
+    @Test
+    public void testExtractPublicKeyECException() {
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        assertNotNull(privateKey);
+
+
+        System.setProperty(Crypto.ATHENZ_CRYPTO_ALGO_ECDSA, "abcd");
+        assertThrows(CryptoException.class, () -> {
+            Crypto.extractPublicKey(privateKey);
+        });
+        System.clearProperty(Crypto.ATHENZ_CRYPTO_ALGO_ECDSA);
+
+        System.setProperty(Crypto.ATHENZ_CRYPTO_BC_PROVIDER, "C");
+        assertThrows(CryptoException.class, () -> {
+            Crypto.extractPublicKey(privateKey);
+        });
+        System.clearProperty(Crypto.ATHENZ_CRYPTO_BC_PROVIDER);
+    }
+
+    @Test
+    public void testExtractPublicKeyRSAException() {
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(rsaPrivateKey);
+        assertNotNull(privateKey);
+
+        System.setProperty(Crypto.ATHENZ_CRYPTO_ALGO_RSA, "abcd");
+        assertThrows(CryptoException.class, () -> {
+            Crypto.extractPublicKey(privateKey);
+        });
+        System.clearProperty(Crypto.ATHENZ_CRYPTO_ALGO_RSA);
+
+        System.setProperty(Crypto.ATHENZ_CRYPTO_BC_PROVIDER, "C");
+        assertThrows(CryptoException.class, () -> {
+            Crypto.extractPublicKey(privateKey);
+        });
+        System.clearProperty(Crypto.ATHENZ_CRYPTO_BC_PROVIDER);
+    }
+
+    @Test
+    public void testExctractPublicKeyDefault() {
+        PrivateKey privateKey = mock(PrivateKey.class);
+        when(privateKey.getAlgorithm()).thenReturn("TestAlgo");
+
+        assertThrows(CryptoException.class, () -> {
+            Crypto.extractPublicKey(privateKey);
+        });
+    }
+
     @Test
     public void testSignVerifyECKey_Invalid() {
-        
+
         PublicKey publicKey = Crypto.loadPublicKey(ecPublicInvalidKey);
         assertNotNull(publicKey);
 
@@ -155,41 +212,42 @@ public class CryptoTest {
         }
         assertFalse(result);
     }
-    
+
     @Test
     public void testSignVerifyECKey_X509() {
-        
+
         PublicKey publicKey = Crypto.loadPublicKey(ecPublicX509Cert);
         assertNotNull(publicKey);
 
         assertTrue(Crypto.verify(serviceToken, publicKey, serviceECSignature));
     }
-    
+
     @Test
     public void testLoadX509CertificateFile() {
-        
+
         X509Certificate cert = Crypto.loadX509Certificate(ecPublicX509Cert);
         assertNotNull(cert);
-        
+
         assertEquals(cert.getSubjectX500Principal().getName(),
                 "CN=athenz.syncer,O=My Test Company,L=Sunnyvale,ST=CA,C=US");
     }
-    
+
     @Test
     public void testLoadX509CertificateString() throws IOException {
-        
+
         Path path = Paths.get("src/test/resources/valid_cn_x509.cert");
         String certStr = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(certStr);
         assertNotNull(cert);
-        
+
         assertEquals(cert.getSubjectX500Principal().getName(),
                 "CN=athenz.syncer,O=My Test Company,L=Sunnyvale,ST=CA,C=US");
     }
-    
+
+
     @Test
     public void testLoadX509CertificateInvalid() throws IOException {
-        
+
         Path path = Paths.get("src/test/resources/invalid_x509.cert");
         String certStr = new String(Files.readAllBytes(path));
         try {
@@ -207,27 +265,27 @@ public class CryptoTest {
             assertTrue(true, "Caught FileNotFoundException while");
         }
     }
-    
+
     @Test
     public void testLoadPrivateEncryptedKey() {
         PrivateKey privateKey = Crypto.loadPrivateKey(privateEncryptedKey, encryptedKeyPassword);
         assertNotNull(privateKey);
     }
-    
+
     @Test
     public void testLoadPrivateEncryptedKeyInvalidPassword() {
-        
+
         // first try with no password
-        
+
         try {
             Crypto.loadPrivateKey(privateEncryptedKey, null);
             fail();
         } catch (CryptoException ex) {
             assertTrue(ex.getMessage().contains("No password specified"));
         }
-        
+
         // now let's try with invalid password
-        
+
         try {
             Crypto.loadPrivateKey(privateEncryptedKey, "InvalidPassword");
             fail();
@@ -235,77 +293,112 @@ public class CryptoTest {
             assertTrue(true, "Invalid password specified");
         }
     }
-    
+
+    @Test
+    public void testLoadPrivateKeyInvalidFile() {
+        File temp = new File("test/Invalid/File/path.key");
+        assertThrows(CryptoException.class, () -> {
+            Crypto.loadPrivateKey(temp, "test");
+        });
+    }
+
+
     @Test
     public void testSignVerifyECParamPrime256v1Key() {
-        
+
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateParamPrime256v1Key);
         assertNotNull(privateKey);
-        
+
         String signature = Crypto.sign(serviceToken, privateKey);
-        
+
         PublicKey publicKey = Crypto.loadPublicKey(ecPublicParamPrime256v1Key);
         assertNotNull(publicKey);
-        
+
         assertTrue(Crypto.verify(serviceToken, publicKey, signature));
     }
-    
+
     @Test
     public void testSignVerifyECParamsKey() {
-        
+
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateParamsKey);
         assertNotNull(privateKey);
-        
+
         String signature = Crypto.sign(serviceToken, privateKey);
-        
+
         PublicKey publicKey = Crypto.loadPublicKey(ecPublicParamsKey);
         assertNotNull(publicKey);
-        
+
         assertTrue(Crypto.verify(serviceToken, publicKey, signature));
     }
-    
+    @Test
+    public void testSignVerifyECParamsKeyException() {
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateParamsKey);
+        assertNotNull(privateKey);
+
+        String signature = Crypto.sign(serviceToken, privateKey);
+
+        System.setProperty(Crypto.ATHENZ_CRYPTO_BC_PROVIDER, "C");
+        assertThrows(CryptoException.class, () -> {
+            Crypto.loadPublicKey(ecPublicParamsKey);
+        });
+        System.clearProperty(Crypto.ATHENZ_CRYPTO_BC_PROVIDER);
+
+        System.setProperty(Crypto.ATHENZ_CRYPTO_ALGO_ECDSA, "TESTAlgo");
+        assertThrows(CryptoException.class, () -> {
+            Crypto.loadPublicKey(ecPublicParamsKey);
+        });
+        System.clearProperty(Crypto.ATHENZ_CRYPTO_ALGO_ECDSA);
+
+    }
+
     @Test
     public void testSignVerifyECParamSecp384r1Key() {
-        
+
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateParamSecp384r1Key);
         assertNotNull(privateKey);
-        
+
         String signature = Crypto.sign(serviceToken, privateKey);
-        
+
         PublicKey publicKey = Crypto.loadPublicKey(ecPublicParamSecp384r1Key);
         assertNotNull(publicKey);
-        
+
         assertTrue(Crypto.verify(serviceToken, publicKey, signature));
     }
-    
+
+    @Test
+    public void testLoadPublicKeyException() {
+        assertThrows(CryptoException.class, () -> {
+            Crypto.loadPublicKey(noFile);
+        });
+    }
     @Test
     public void testSignVerifyECParamMixCurvesFail() {
-        
+
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateParamPrime256v1Key);
         assertNotNull(privateKey);
-        
+
         String signature = Crypto.sign(serviceToken, privateKey);
-        
+
         PublicKey publicKey = Crypto.loadPublicKey(ecPublicParamSecp384r1Key);
         assertNotNull(publicKey);
-        
+
         assertFalse(Crypto.verify(serviceToken, publicKey, signature));
     }
-    
+
     @Test
     public void testSignVerifyECParamKeyOpenssl() {
-        
+
         PublicKey publicKey = Crypto.loadPublicKey(ecPublicParamPrime256v1Key);
         assertNotNull(publicKey);
-        
+
         // this test case is from ysecure using openssl
-        
+
         String plainText = "This is a test of the ysecure public key interface.  This is only a test.";
         String signature = "MEUCIBjTLIhH_Rc3fkRXJ8CvzSqkIwxXqReg7nOe_q1t_C73AiEAky4NAP.CwlYKXlto93f_JTYOQqDpZSJeTYSe80fQ5vY-";
-        
+
         assertTrue(Crypto.verify(plainText, publicKey, signature));
     }
-    
+
     @Test
     public void testGetSignatureAlgorithmRSA() {
         try {
@@ -327,10 +420,10 @@ public class CryptoTest {
             fail();
         }
     }
-    
+
     @Test
     public void testGetSignatureAlgorithmUnknown() {
-        
+
         try {
             assertEquals(Crypto.getSignatureAlgorithm("DSA", "SHA256"), "SHA256withDSA");
             fail();
@@ -350,42 +443,44 @@ public class CryptoTest {
             assertTrue(true);
         }
     }
-    
+
     @Test
     public void testGetPKCS10CertRequest() throws IOException {
-        
+
         Path path = Paths.get("src/test/resources/valid.csr");
         String certStr = new String(Files.readAllBytes(path));
-        
+
         PKCS10CertificationRequest req = Crypto.getPKCS10CertRequest(certStr);
         assertNotNull(req);
         assertEquals(req.getSubject().toString(), "C=US,ST=CA,L=Sunnyvale,O=My Test Company,CN=athenz.syncer");
+
+        Crypto.extractX509CSRPublicKey(req);
     }
-    
+
     @Test
     public void testGetPKCS10CertRequestInvalid() throws IOException {
-        
+
         // first try with empty values
-        
+
         try {
             Crypto.getPKCS10CertRequest(null);
             fail();
         } catch (CryptoException ex) {
             assertTrue(ex.getMessage().contains("CSR is null"));
         }
-        
+
         try {
             Crypto.getPKCS10CertRequest("");
             fail();
         } catch (CryptoException ex) {
             assertTrue(ex.getMessage().contains("CSR is null"));
         }
-        
+
         // now let's try with invalid csr
-        
+
         Path path = Paths.get("src/test/resources/invalid.csr");
         String certStr = new String(Files.readAllBytes(path));
-        
+
         try {
             Crypto.getPKCS10CertRequest(certStr);
             fail();
@@ -393,13 +488,13 @@ public class CryptoTest {
             assertTrue(true, "Caught expected crypto exception");
         }
     }
-    
+
     @Test
     public void testGenerateX509Certificate() throws IOException {
-        
+
         Path path = Paths.get("src/test/resources/valid.csr");
         String certStr = new String(Files.readAllBytes(path));
-        
+
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(certStr);
         X509Certificate caCertificate = Crypto.loadX509Certificate(ecPublicX509Cert);
         PrivateKey caPrivateKey = Crypto.loadPrivateKey(privateEncryptedKey, encryptedKeyPassword);
@@ -409,18 +504,18 @@ public class CryptoTest {
         assertNotNull(cert);
         assertEquals(cert.getIssuerX500Principal().getName(),
                 "CN=athenz.syncer,O=My Test Company,L=Sunnyvale,ST=CA,C=US");
-        
+
         Date notAfter = cert.getNotAfter();
         long diff = notAfter.getTime() - System.currentTimeMillis();
         assertTrue(diff <= 600 * 60 * 1000); // convert minutes to milliseconds
     }
-    
+
     @Test
     public void testGenerateX509CertificateAltNames() throws IOException {
-        
+
         Path path = Paths.get("src/test/resources/csr_altnames.csr");
         String certStr = new String(Files.readAllBytes(path));
-        
+
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(certStr);
         X509Certificate caCertificate = Crypto.loadX509Certificate(ecPublicX509Cert);
         PrivateKey caPrivateKey = Crypto.loadPrivateKey(privateEncryptedKey, encryptedKeyPassword);
@@ -429,13 +524,13 @@ public class CryptoTest {
                 caCertificate, 600, true);
         assertNotNull(cert);
     }
-    
+
     @Test
     public void testGenerateX509CertificateReqPrivateKey() throws IOException {
-        
+
         Path path = Paths.get("src/test/resources/valid.csr");
         String certStr = new String(Files.readAllBytes(path));
-        
+
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(certStr);
         X509Certificate caCertificate = Crypto.loadX509Certificate(ecPublicX509Cert);
         PrivateKey caPrivateKey = Crypto.loadPrivateKey(rsaPrivateKey);
@@ -446,13 +541,13 @@ public class CryptoTest {
         assertEquals(cert.getIssuerX500Principal().getName(),
                 "CN=athenz.syncer,O=My Test Company,L=Sunnyvale,ST=CA,C=US");
     }
-    
+
     @Test
     public void testGenerateX509CertificateInvalid() throws IOException {
-        
+
         Path path = Paths.get("src/test/resources/valid.csr");
         String certStr = new String(Files.readAllBytes(path));
-        
+
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(certStr);
         PrivateKey caPrivateKey = Crypto.loadPrivateKey(rsaPrivateKey);
 
@@ -463,7 +558,7 @@ public class CryptoTest {
             assertTrue(true, "Caught excepted exception");
         }
     }
-    
+
     @Test
     public void testX509CertificateToPem() {
         X509Certificate cert = Crypto.loadX509Certificate(ecPublicX509Cert);
@@ -472,7 +567,7 @@ public class CryptoTest {
         assertTrue(pem.contains("BEGIN CERTIFICATE"), pem);
         assertTrue(pem.contains("END CERTIFICATE"), pem);
     }
-    
+
     @Test
     public void testLoadReaderPrivateKey() {
         try (java.io.FileReader fileReader = new java.io.FileReader(rsaPrivateKey)) {
@@ -482,14 +577,12 @@ public class CryptoTest {
             fail();
         }
     }
-    
+
     @Test
     public void testEnDecodedFile(){
         String encoded = Crypto.encodedFile(argFile);
         assertNotNull(encoded);
-        
-        String decoded = Crypto.ybase64DecodeString(encoded);
-        assertEquals(decoded, "check\n");
+
     }
 
     @Test
@@ -497,7 +590,7 @@ public class CryptoTest {
         try (FileInputStream in = new FileInputStream(argFile)) {
             String encoded = Crypto.encodedFile(in);
             assertNotNull(encoded);
-            
+
             String decoded = Crypto.ybase64DecodeString(encoded);
             assertEquals(decoded, "check");
         } catch (Exception e){
@@ -505,18 +598,19 @@ public class CryptoTest {
         }
     }
 
+
     @Test
     public void testSHA256() {
         byte [] checkByte = Crypto.sha256("check");
         assertNotNull(checkByte);
     }
-    
+
     @DataProvider
     public Object[][] x500Principal() {
         return new Object[][] {
                 {"CN=athenzcompany.com,O=foo", false},
                 {"CDDN=athenzcompany.com", true},
-            };
+        };
     }
 
     @Test(dataProvider = "x500Principal")
@@ -539,7 +633,7 @@ public class CryptoTest {
             Crypto.getPKCS10CertRequest(certRequest);
         }
     }
-    
+
     @Test(dataProvider = "x500Principal")
     public void testX509CSRrequestWithPrivateKeyOnly(String x500Principal, boolean badRequest) {
         PrivateKey privateKey = Crypto.loadPrivateKey(rsaPrivateKey);
@@ -559,14 +653,14 @@ public class CryptoTest {
             Crypto.getPKCS10CertRequest(certRequest);
         }
     }
-    
+
     @Test
     public void testExtractX509CertCommonName() throws Exception {
-        
+
         try (InputStream inStream = new FileInputStream("src/test/resources/valid_cn_x509.cert")) {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
-            
+
             String cn = Crypto.extractX509CertCommonName(cert);
             assertEquals("athenz.syncer", cn);
         }
@@ -606,44 +700,54 @@ public class CryptoTest {
 
     @Test
     public void testExtractX509CertIpAddressesNull() throws Exception {
-        
+
         try (InputStream inStream = new FileInputStream("src/test/resources/valid_cn_x509.cert")) {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
-            
+
             List<String> ips = Crypto.extractX509CertIPAddresses(cert);
             assertTrue(ips.isEmpty());
         }
-        
+
         try (InputStream inStream = new FileInputStream("src/test/resources/x509_altnames_noip.cert")) {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
-            
+
             List<String> ips = Crypto.extractX509CertIPAddresses(cert);
             assertTrue(ips.isEmpty());
         }
     }
-    
+
     @Test
     public void testExtractX509CertIpAddressesSingle() throws Exception {
-        
+
         try (InputStream inStream = new FileInputStream("src/test/resources/x509_altnames_singleip.cert")) {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
-            
+
             List<String> ips = Crypto.extractX509CertIPAddresses(cert);
             assertEquals(1, ips.size());
             assertEquals(ips.get(0), "10.11.12.13");
         }
     }
-    
+
+    @Test
+    public void testExtractX509CertPublicKey() throws Exception {
+        try (InputStream inStream = new FileInputStream("src/test/resources/x509_altnames_singleip.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+
+            Crypto.extractX509CertPublicKey(cert);
+        }
+    }
+
     @Test
     public void testExtractX509CertIpAddressesDouble() throws Exception {
-        
+
         try (InputStream inStream = new FileInputStream("src/test/resources/x509_altnames_doubleip.cert")) {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
-            
+
             List<String> ips = Crypto.extractX509CertIPAddresses(cert);
             assertEquals(2, ips.size());
             assertEquals(ips.get(0), "10.11.12.13");
@@ -700,21 +804,43 @@ public class CryptoTest {
 
     @Test
     public void testExtractX509CSRFields() throws IOException {
-        
+
         Path path = Paths.get("src/test/resources/valid.csr");
         String csr = new String(Files.readAllBytes(path));
-        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
+        PKCS10CertificationRequest certReq1 = Crypto.getPKCS10CertRequest(csr);
+        PKCS10CertificationRequest certReq = Mockito.spy(certReq1);
         assertNotNull(certReq);
-
         assertEquals(Crypto.extractX509CSRCommonName(certReq), "athenz.syncer");
         assertEquals(Crypto.extractX509CSRSubjectOField(certReq), "My Test Company");
         assertNull(Crypto.extractX509CSRSubjectOUField(certReq));
         assertNull(Crypto.extractX509CSREmail(certReq));
     }
 
+//    @Test
+//    public void testExtractX509CSRSubjectField() throws IOException {
+//        Path path = Paths.get("src/test/resources/valid.csr");
+//        String csr = new String(Files.readAllBytes(path));
+//        PKCS10CertificationRequest certReq1 = Crypto.getPKCS10CertRequest(csr);
+//        PKCS10CertificationRequest certReq = Mockito.spy(certReq1);
+//        assertNotNull(certReq);
+//
+//        X500Name x500Name = mock(X500Name.class);
+//        RDN[] rdns = new RDN[2];
+//        rdns[0] = mock(RDN.class);
+//        rdns[1] = mock(RDN.class);
+////        doReturn(x500Name).when(certReq1).getSubject();
+//        when(certReq1.getSubject()).thenReturn(x500Name);
+//
+//        doReturn(null).when(certReq).getSubject();
+//        assertNull(Crypto.extractX509CSRCommonName(certReq), "athenz.syncer");
+//        assertNull(Crypto.extractX509CSRSubjectOField(certReq));
+//        assertNull(Crypto.extractX509CSRSubjectOUField(certReq));
+//        assertNull(Crypto.extractX509CSREmail(certReq));
+//    }
+
     @Test
     public void testExtractX509CSRFieldsWithRfc822() throws IOException {
-        
+
         Path path = Paths.get("src/test/resources/valid_email.csr");
         String csr = new String(Files.readAllBytes(path));
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
@@ -737,6 +863,19 @@ public class CryptoTest {
         assertEquals(2, emails.size());
         assertEquals(emails.get(0), "sports.scores@aws.yahoo.cloud");
         assertEquals(emails.get(1), "nhl.scores@aws.yahoo.cloud");
+    }
+
+    @Test
+    public void testExtractX509CSRDnsNames() throws IOException {
+        Path path = Paths.get("src/test/resources/valid_emails.csr");
+        String csr = new String(Files.readAllBytes(path));
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
+        assertNotNull(certReq);
+
+        List<String> dnsNames = new LinkedList<>();
+        dnsNames.add("production.athenz.ostk.athenz.cloud");
+        dnsNames.add("1001.instanceid.athenz.ostk.athenz.cloud");
+        assertEquals(Crypto.extractX509CSRDnsNames(certReq), dnsNames);
     }
 
     @Test
@@ -791,7 +930,7 @@ public class CryptoTest {
 
     @Test
     public void testExtractX509IPAddressesNoAddresses() throws IOException {
-        
+
         Path path = Paths.get("src/test/resources/valid.csr");
         String csr = new String(Files.readAllBytes(path));
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
@@ -799,10 +938,10 @@ public class CryptoTest {
         List<String> ips = Crypto.extractX509CSRIPAddresses(certReq);
         assertTrue(ips.isEmpty());
     }
-    
+
     @Test
     public void testExtractX509IPAddressesMultipleAddresses() throws IOException {
-        
+
         Path path = Paths.get("src/test/resources/multiple_ips.csr");
         String csr = new String(Files.readAllBytes(path));
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
@@ -813,12 +952,63 @@ public class CryptoTest {
         assertEquals(ips.get(0), "10.11.12.13");
         assertEquals(ips.get(1), "10.11.12.14");
     }
-    
+
     @Test
     public void testGenerateRSAPrivateKey() {
         PrivateKey pkey = Crypto.generateRSAPrivateKey(1024);
         assertNotNull(pkey);
     }
+
+    @Test
+    public void testExtractX509CertDnsNmaes() throws Exception{
+        try (InputStream inStream = new FileInputStream("src/test/resources/x509_altnames_singleip.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+
+            List<String> dnsNames = Crypto.extractX509CertDnsNames(cert);
+            assertEquals(dnsNames.get(0), "production.athenz.ostk.athenz.cloud");
+            assertEquals(dnsNames.get(1), "1001.instanceid.athenz.ostk.athenz.cloud");
+        }
+    }
+
+    @Test
+    public void testExtractX509CSRSubjectField() throws IOException {
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String csr = new String(Files.readAllBytes(path));
+        PKCS10CertificationRequest certReq1 = Crypto.getPKCS10CertRequest(csr);
+        PKCS10CertificationRequest certReq = Mockito.spy(certReq1);
+        assertNotNull(certReq);
+        assertEquals(Crypto.extractX509CSRCommonName(certReq), "athenz.syncer");
+        assertEquals(Crypto.extractX509CSRSubjectOField(certReq), "My Test Company");
+        assertNull(Crypto.extractX509CSRSubjectOUField(certReq));
+        assertNull(Crypto.extractX509CSREmail(certReq));
+    }
+
+    @Test
+    public void testLoadPrivateKeyPem() throws IOException {
+        Path path = Paths.get("./src/test/resources/private_encrypted.key");
+        String keyStr = new String(Files.readAllBytes(path));
+        assertThrows(CryptoException.class, () -> {
+
+            Crypto.loadPrivateKey(keyStr, "testPWD");
+        });
+    }
+
+    @Test
+    public void testExtractX509CSRSubjectFieldNull() {
+        PKCS10CertificationRequest certReq = mock(PKCS10CertificationRequest.class);
+        when(certReq.getSubject()).thenReturn(null);
+        assertNull(Crypto.extractX509CSRSubjectField(certReq, null));
+
+        X500Name x500Name = mock(X500Name.class);
+        when(certReq.getSubject()).thenReturn(x500Name);
+        RDN[] rdns = new RDN[2];
+        when(x500Name.getRDNs(null)).thenReturn(rdns);
+        assertThrows(CryptoException.class, () -> {
+            Crypto.extractX509CSRSubjectField(certReq, null);
+        });
+    }
+
 
     @Test
     public void testHmacSign() {
