@@ -49,26 +49,83 @@ public class AccessToken extends OAuth2Token {
 
     private static final Logger LOG = LoggerFactory.getLogger(AccessToken.class);
 
+    // default offset is 1 hour = 3600 secs
+    private static long ACCESS_TOKEN_CERT_OFFSET = 3600;
+
     private String clientId;
     private String userId;
     private String proxyPrincipal;
     private List<String> scope;
     private LinkedHashMap<String, Object> confirm;
 
+    /**
+     * Creates an empty access token
+     */
     public AccessToken() {
         super();
     }
 
+    /**
+     * Parses and validates the given token based on the keyResolver
+     * @param token access token
+     * @param keyResolver JwtsSigningKeyResolver key resolver providing
+     *                    the public key for token signature validation
+     */
     public AccessToken(final String token, JwtsSigningKeyResolver keyResolver) {
-
         super(token, keyResolver);
         setAccessTokenFields();
     }
 
+    /**
+     * Parses and validates the given token based on the given public key
+     * @param token access token
+     * @param publicKey the public key for token signature validation
+     */
     public AccessToken(final String token, PublicKey publicKey) {
-
         super(token, publicKey);
         setAccessTokenFields();
+    }
+
+    /**
+     * Parses and validates the given token based on the keyResolver
+     * Once parsed, it verified that the token contains the x.509
+     * certificate hash based on given certificate: supporting
+     * mTLS bound access tokens.
+     * With mTLS bound access tokens it's possible that the application
+     * fetched and cached the access token which includes the x.509 cert
+     * hash. However, after that, the cert has been refreshed - so it
+     * has a new hash but the same principal/subject. In this case we
+     * want to provide a small offset period where we'll check that
+     * the certificate creation time is after the access token timestamp
+     * and if that's the case allow the access token to be validated
+     * as long as the principal/subject matches what's in the token.
+     * The offset is by default 3600secs before (since we always issue
+     * certs with start time of now - 3600secs) and 3600 secs after. The
+     * second value is configurable with setAccessTokenCertOffset api
+     * method.
+     * @param token access token
+     * @param keyResolver JwtsSigningKeyResolver key resolver providing
+     *                    the public key for token signature validation
+     * @param x509Cert x.509 certificate to validate confirmation claim
+     */
+    public AccessToken(final String token, JwtsSigningKeyResolver keyResolver, X509Certificate x509Cert) {
+        super(token, keyResolver);
+        setAccessTokenFields();
+        if (!confirmX509CertHash(x509Cert)) {
+
+            // check if the certificate principal matches and the
+            // creation time for our cert is within our configured
+            // offset timeouts
+
+            if (!confirmX509CertPrincipal(x509Cert)) {
+                LOG.error("AccessToken: X.509 Certificate Confirmation failure");
+                throw new CryptoException("X.509 Certificate Confirmation failure");
+            }
+        }
+    }
+
+    public static void setAccessTokenCertOffset(long offset) {
+        ACCESS_TOKEN_CERT_OFFSET = offset;
     }
 
     void setAccessTokenFields() {
@@ -132,12 +189,71 @@ public class AccessToken extends OAuth2Token {
     }
 
     public boolean confirmX509CertHash(X509Certificate cert) {
+        if (cert == null) {
+            LOG.error("confirmX509CertHash: null certificate");
+            return false;
+        }
         final String cnfHash = (String) getConfirmEntry(CLAIM_CONFIRM_X509_HASH);
         if (cnfHash == null) {
+            LOG.error("confirmX509CertHash: token does not have confirmation entry");
             return false;
         }
         final String certHash = getX509CertificateHash(cert);
         return cnfHash.equals(certHash);
+    }
+
+    public boolean confirmX509CertPrincipal(X509Certificate cert) {
+
+        // if our offset is 0 then the additional confirmation
+        // check is disabled
+
+        if (ACCESS_TOKEN_CERT_OFFSET == 0) {
+            LOG.error("confirmX509CertPrincipal: check disabled");
+            return false;
+        }
+
+        if (cert == null) {
+            LOG.error("confirmX509CertPrincipal: null certificate");
+            return false;
+        }
+
+        // our principal cn must be the client in the token
+
+        final String cn = Crypto.extractX509CertCommonName(cert);
+        if (cn == null) {
+            LOG.error("confirmX509CertPrincipal: null principal in certificate}");
+            return false;
+        }
+
+        if (!cn.equals(clientId)) {
+            LOG.error("confirmX509CertPrincipal: Principal mismatch {} vs {}", cn, clientId);
+            return false;
+        }
+
+        // now let's verify our offsets. the certificate must
+        // be issued before our token issue time. since athenz
+        // always issues certs with backdating one hour, we
+        // need to take into account that extra hour
+
+        long certIssueTime = Crypto.extractX509CertIssueTime(cert);
+        if (certIssueTime < issueTime - 3600) {
+            LOG.error("confirmX509CertPrincipal: Certificate: {} issued before token: {}",
+                    certIssueTime, issueTime);
+            return false;
+        }
+
+        // also the certificate must be issued after the configured
+        // number of seconds after our token issue time. again,
+        // since athenz issues certs with backdating one hour, we
+        // need to take into account that extra hour
+
+        if (certIssueTime > issueTime - 3600 + ACCESS_TOKEN_CERT_OFFSET) {
+            LOG.error("confirmX509CertPrincipal: Certificate: {} past configured offset {} for token: {}",
+                    certIssueTime, ACCESS_TOKEN_CERT_OFFSET, issueTime);
+            return false;
+        }
+
+        return true;
     }
 
     String getX509CertificateHash(X509Certificate cert) {
