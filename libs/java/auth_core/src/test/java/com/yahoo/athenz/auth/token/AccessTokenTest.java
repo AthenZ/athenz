@@ -63,7 +63,7 @@ public class AccessTokenTest {
         accessToken.setUserId("userid");
         accessToken.setExpiryTime(now + 3600);
         accessToken.setIssueTime(now);
-        accessToken.setClientId("clientid");
+        accessToken.setClientId("mtls");
         accessToken.setAudience("coretech");
         accessToken.setVersion(1);
         accessToken.setIssuer("athenz");
@@ -90,7 +90,7 @@ public class AccessTokenTest {
         assertEquals("userid", accessToken.getUserId());
         assertEquals(now + 3600, accessToken.getExpiryTime());
         assertEquals(now, accessToken.getIssueTime());
-        assertEquals("clientid", accessToken.getClientId());
+        assertEquals("mtls", accessToken.getClientId());
         assertEquals("coretech", accessToken.getAudience());
         assertEquals(1, accessToken.getVersion());
         assertEquals("athenz", accessToken.getIssuer());
@@ -143,6 +143,64 @@ public class AccessTokenTest {
         assertNotNull(scopes);
         assertEquals(1, scopes.size());
         assertEquals("readers", scopes.get(0));
+    }
+
+    @Test
+    public void testAccessTokenWithX509Cert() throws IOException {
+
+        long now = System.currentTimeMillis() / 1000;
+
+        AccessToken accessToken = createAccessToken(now);
+
+        // now get the signed token
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
+        assertNotNull(accessJws);
+
+        // now verify our signed token
+
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(null, null);
+        resolver.addPublicKey("eckey1", Crypto.loadPublicKey(ecPublicKey));
+
+        Path path = Paths.get("src/test/resources/mtls_token_spec.cert");
+        String certStr = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(certStr);
+
+        AccessToken checkToken = new AccessToken(accessJws, resolver, cert);
+        validateAccessToken(checkToken, now);
+    }
+
+    @Test
+    public void testAccessTokenWithMismatchX509Cert() throws IOException {
+
+        long now = System.currentTimeMillis() / 1000;
+
+        AccessToken accessToken = createAccessToken(now);
+
+        // now get the signed token
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
+        assertNotNull(accessJws);
+
+        // now verify our signed token
+
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(null, null);
+        resolver.addPublicKey("eckey1", Crypto.loadPublicKey(ecPublicKey));
+
+        // use a different cert than one used for signing
+
+        Path path = Paths.get("src/test/resources/rsa_public_x509.cert");
+        String certStr = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(certStr);
+
+        try {
+            new AccessToken(accessJws, resolver, cert);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("X.509 Certificate Confirmation failure"));
+        }
     }
 
     @Test
@@ -392,6 +450,14 @@ public class AccessTokenTest {
     }
 
     @Test
+    public void testConfirmNullX509Cert() {
+
+        long now = System.currentTimeMillis() / 1000;
+        AccessToken accessToken = createAccessToken(now);
+        assertFalse(accessToken.confirmX509CertHash(null));
+    }
+
+    @Test
     public void testConfirmX509CertHashNoHash() {
 
         AccessToken accessToken = new AccessToken();
@@ -407,5 +473,97 @@ public class AccessTokenTest {
         } catch (IOException ignored) {
             fail();
         }
+    }
+
+    @Test
+    public void testConfirmX509CertPrincipalNullCert() {
+
+        long now = System.currentTimeMillis() / 1000;
+        AccessToken accessToken = createAccessToken(now);
+        assertFalse(accessToken.confirmX509CertPrincipal(null));
+    }
+
+    @Test
+    public void testConfirmX509CertPrincipalCertNoCN() throws IOException {
+
+        long now = System.currentTimeMillis() / 1000;
+        AccessToken accessToken = createAccessToken(now);
+
+        Path path = Paths.get("src/test/resources/no_cn_x509.cert");
+        String certStr = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(certStr);
+        assertFalse(accessToken.confirmX509CertPrincipal(cert));
+    }
+
+    @Test
+    public void testConfirmX509CertPrincipalCertCNMismatch() throws IOException {
+
+        long now = System.currentTimeMillis() / 1000;
+        AccessToken accessToken = createAccessToken(now);
+
+        Path path = Paths.get("src/test/resources/rsa_public_x509.cert");
+        String certStr = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(certStr);
+        assertFalse(accessToken.confirmX509CertPrincipal(cert));
+    }
+
+    @Test
+    public void testConfirmX509CertPrincipalCertStartTime() throws IOException {
+
+        // our cert issue time is 1565245568
+        // so we're going to set token issue time to cert time + 3600 + 100
+
+        AccessToken accessToken = createAccessToken(1565245568 + 3600 + 100);
+
+        Path path = Paths.get("src/test/resources/mtls_token2_spec.cert");
+        String certStr = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(certStr);
+        assertFalse(accessToken.confirmX509CertPrincipal(cert));
+    }
+
+    @Test
+    public void testConfirmX509CertPrincipalCertStartTimePassOffset() throws IOException {
+
+        // our cert issue time is 1565245568
+        // so we're going to set token issue time to cert time + 3600 - ACCESS_TOKEN_CERT_OFFSET - 100
+
+        AccessToken accessToken = createAccessToken(1565245568 + 3600 - 3600 - 100);
+
+        Path path = Paths.get("src/test/resources/mtls_token2_spec.cert");
+        String certStr = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(certStr);
+        assertFalse(accessToken.confirmX509CertPrincipal(cert));
+    }
+
+    @Test
+    public void testConfirmX509CertPrincipal() throws IOException {
+
+        // our cert issue time is 1565245568
+        // so we're going to set token issue time to cert time + 3600 - 100
+
+        AccessToken accessToken = createAccessToken(1565245568 + 3600 - 100);
+
+        Path path = Paths.get("src/test/resources/mtls_token2_spec.cert");
+        String certStr = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(certStr);
+        assertTrue(accessToken.confirmX509CertPrincipal(cert));
+    }
+
+    @Test
+    public void testConfirmX509CertPrincipalDisable() throws IOException {
+
+        AccessToken.setAccessTokenCertOffset(0);
+
+        // our cert issue time is 1565245568
+        // so we're going to set token issue time to cert time + 3600 - 100
+
+        AccessToken accessToken = createAccessToken(1565245568 + 3600 - 100);
+
+        Path path = Paths.get("src/test/resources/mtls_token2_spec.cert");
+        String certStr = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(certStr);
+        assertFalse(accessToken.confirmX509CertPrincipal(cert));
+
+        AccessToken.setAccessTokenCertOffset(3600);
     }
 }

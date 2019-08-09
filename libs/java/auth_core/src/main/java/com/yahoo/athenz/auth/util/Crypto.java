@@ -957,6 +957,9 @@ public class Crypto {
         return IETFUtils.valueToString(rdns[0].getFirst().getValue());
     }
 
+    public static long extractX509CertIssueTime(X509Certificate x509Cert) {
+        return x509Cert.getNotBefore().getTime() / 1000;
+    }
     public static String extractX509CertCommonName(X509Certificate x509Cert) {
         
         // in case there are multiple CNs, we're only looking at the first one
