@@ -566,32 +566,4 @@ public class AccessTokenTest {
 
         AccessToken.setAccessTokenCertOffset(3600);
     }
-
-    @Test
-    public void testAccessTokenWithX509CertPrincipal() throws IOException {
-
-        // our cert issue time is 1565245568
-        // so we're going to set token issue time to cert time + 3600 - 100
-
-        long now = 1565245568 + 3600 - 100;
-        AccessToken accessToken = createAccessToken(now);
-
-        // now get the signed token
-
-        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
-        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
-        assertNotNull(accessJws);
-
-        // now verify our signed token
-
-        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(null, null);
-        resolver.addPublicKey("eckey1", Crypto.loadPublicKey(ecPublicKey));
-
-        Path path = Paths.get("src/test/resources/mtls_token2_spec.cert");
-        String certStr = new String(Files.readAllBytes(path));
-        X509Certificate cert = Crypto.loadX509Certificate(certStr);
-
-        AccessToken checkToken = new AccessToken(accessJws, resolver, cert);
-        validateAccessToken(checkToken, now);
-    }
 }

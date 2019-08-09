@@ -111,16 +111,9 @@ public class AccessToken extends OAuth2Token {
     public AccessToken(final String token, JwtsSigningKeyResolver keyResolver, X509Certificate x509Cert) {
         super(token, keyResolver);
         setAccessTokenFields();
-        if (!confirmX509CertHash(x509Cert)) {
-
-            // check if the certificate principal matches and the
-            // creation time for our cert is within our configured
-            // offset timeouts
-
-            if (!confirmX509CertPrincipal(x509Cert)) {
-                LOG.error("AccessToken: X.509 Certificate Confirmation failure");
-                throw new CryptoException("X.509 Certificate Confirmation failure");
-            }
+        if (!confirmMTLSBoundToken(x509Cert)) {
+            LOG.error("AccessToken: X.509 Certificate Confirmation failure");
+            throw new CryptoException("X.509 Certificate Confirmation failure");
         }
     }
 
@@ -186,6 +179,22 @@ public class AccessToken extends OAuth2Token {
 
     public void setConfirmX509CertHash(X509Certificate cert) {
         setConfirmEntry(CLAIM_CONFIRM_X509_HASH, getX509CertificateHash(cert));
+    }
+
+    boolean confirmMTLSBoundToken(X509Certificate x509Cert) {
+
+        // first we're goimng to verify our expected
+        // x.509 certificate hash
+
+        if (confirmX509CertHash(x509Cert)) {
+            return true;
+        }
+
+        // check if the certificate principal matches and the
+        // creation time for our cert is within our configured
+        // offset timeouts
+
+        return confirmX509CertPrincipal(x509Cert);
     }
 
     public boolean confirmX509CertHash(X509Certificate cert) {
