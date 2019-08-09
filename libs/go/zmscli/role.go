@@ -313,3 +313,42 @@ func (cli Zms) SetRoleSelfserve(dn string, rn string, selfserve bool) (*string, 
 	s := "[domain " + dn + " role " + rn + " self-serve attribute successfully updated]\n"
 	return &s, nil
 }
+
+func (cli Zms) PutTempMembershipDecision(dn string, rn string, mbr string, expiration rdl.Timestamp, approval bool) (*string, error) {
+	validatedUser := cli.validatedUser(mbr)
+	var member zms.Membership
+	member.MemberName = zms.MemberName(validatedUser)
+	member.RoleName = zms.ResourceName(rn)
+	member.Expiration = &expiration
+	member.Active = &approval
+	err := cli.Zms.PutMembershipDecision(zms.DomainName(dn), zms.EntityName(rn), zms.MemberName(validatedUser), cli.AuditRef, &member)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " role " + rn
+	if approval ==true {
+		s = s + " member " + mbr + "successfully approved temporarily.]\n"
+	} else {
+		s = s + " member " + mbr + "successfully rejected.]\n"
+	}
+	return &s, nil
+}
+
+func (cli Zms) PutMembershipDecision(dn string, rn string, mbr string, approval bool) (*string, error) {
+	validatedUser := cli.validatedUser(mbr)
+	var member zms.Membership
+	member.MemberName = zms.MemberName(validatedUser)
+	member.RoleName = zms.ResourceName(rn)
+	member.Active = &approval
+	err := cli.Zms.PutMembershipDecision(zms.DomainName(dn), zms.EntityName(rn), zms.MemberName(validatedUser), cli.AuditRef, &member)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " role " + rn
+	if approval ==true {
+		s = s + " member " + mbr + "successfully approved.]\n"
+	} else {
+		s = s + " member " + mbr + "successfully rejected.]\n"
+	}
+	return &s, nil
+}

@@ -3684,5 +3684,22 @@ public class DBService {
         }
     }
 
-
+    DomainRoleMembership getPendingDomainRoleMembersList(ResourceContext ctx) {
+        DomainRoleMembership domainRoleMembership = new DomainRoleMembership();
+        List<DomainRoleMembers> domainRoleMembersList = new ArrayList<>();
+        DomainRoleMembers domainRoleMembers;
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            Map<String, List<DomainRoleMember>> domainRoleMembersMap = con.getPendingDomainRoleMembersList(getPrincipalName(ctx));
+            if (domainRoleMembersMap != null) {
+                for (String domain : domainRoleMembersMap.keySet()) {
+                    domainRoleMembers = new DomainRoleMembers();
+                    domainRoleMembers.setDomainName(domain);
+                    domainRoleMembers.setMembers(domainRoleMembersMap.get(domain));
+                    domainRoleMembersList.add(domainRoleMembers);
+                }
+                domainRoleMembership.setDomainRoleMembersList(domainRoleMembersList);
+            }
+        }
+        return domainRoleMembership;
+    }
 }

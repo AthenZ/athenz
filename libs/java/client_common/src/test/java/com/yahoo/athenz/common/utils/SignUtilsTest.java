@@ -123,6 +123,7 @@ public class SignUtilsTest {
         List<Role> roles = new ArrayList<>();
         Role mRole = Mockito.mock(Role.class);
         Mockito.when(mRole.getAuditEnabled()).thenReturn(null);
+        Mockito.when(mRole.getSelfserve()).thenReturn(null);
         roles.add(mRole);
         
         List<String> items = new ArrayList<>();

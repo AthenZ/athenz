@@ -2146,4 +2146,47 @@ public class ZMSCoreTest {
         assertFalse(rm.equals(new String()));
 
     }
+
+    @Test
+    public void testDomainRoleMembership() {
+
+        DomainRoleMembership drm = new DomainRoleMembership();
+        List<DomainRoleMembers> domainRoleMembersList = new ArrayList<>();
+        List<DomainRoleMember> list = new ArrayList<>();
+        list.add(new DomainRoleMember().setMemberName("mbr"));
+        DomainRoleMembers domainRoleMembers = new DomainRoleMembers();
+        domainRoleMembers.setDomainName("testdom");
+        domainRoleMembers.setMembers(list);
+        domainRoleMembersList.add(domainRoleMembers);
+
+        drm.setDomainRoleMembersList(domainRoleMembersList);
+
+        assertNotNull(drm.getDomainRoleMembersList());
+
+        DomainRoleMembership drm1 = new DomainRoleMembership();
+        List<DomainRoleMembers> domainRoleMembersList1 = new ArrayList<>();
+        List<DomainRoleMember> list1 = new ArrayList<>();
+        list1.add(new DomainRoleMember().setMemberName("mbr1"));
+        DomainRoleMembers domainRoleMembers1 = new DomainRoleMembers();
+        domainRoleMembers1.setDomainName("testdom1");
+        domainRoleMembers1.setMembers(list1);
+        domainRoleMembersList1.add(domainRoleMembers1);
+
+        drm1.setDomainRoleMembersList(domainRoleMembersList1);
+
+        assertFalse(drm.equals(drm1));
+
+        DomainRoleMembership drm2 = new DomainRoleMembership();
+        List<DomainRoleMembers> domainRoleMembersList2 = new ArrayList<>();
+        List<DomainRoleMember> list2 = new ArrayList<>();
+        list2.add(new DomainRoleMember().setMemberName("mbr"));
+        DomainRoleMembers domainRoleMembers2 = new DomainRoleMembers();
+        domainRoleMembers2.setDomainName("testdom");
+        domainRoleMembers2.setMembers(list2);
+        domainRoleMembersList2.add(domainRoleMembers2);
+
+        drm2.setDomainRoleMembersList(domainRoleMembersList2);
+
+        assertTrue(drm.equals(drm2));
+    }
 }

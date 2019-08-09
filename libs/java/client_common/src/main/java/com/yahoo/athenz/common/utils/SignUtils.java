@@ -70,6 +70,7 @@ public class SignUtils {
     private static final String ATTR_CONTENTS = "contents";
     private static final String ATTR_CERT_DNS_DOMAIN = "certDnsDomain";
     private static final String ATTR_AUDIT_ENABLED = "auditEnabled";
+    private static final String ATTR_SELF_SERVE = "selfserve";
 
     private static Struct asStruct(DomainPolicies domainPolicies) {
         // all of our fields are in canonical order based
@@ -147,6 +148,7 @@ public class SignUtils {
             }
             appendArray(struct, ATTR_ROLE_MEMBERS, roleMembersArray);
         }
+        appendObject(struct, ATTR_SELF_SERVE, role.getSelfserve());
         appendObject(struct, ATTR_TRUST, role.getTrust());
         return struct;
     }
