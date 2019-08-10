@@ -89,7 +89,6 @@ func main() {
 		Country:            []string{subjC},
 	}
 
-
 	// load private key
 	bytes, err := ioutil.ReadFile(roleKeyFile)
 	if err != nil {
@@ -141,7 +140,7 @@ func generateCSR(keySigner *signer, subj pkix.Name, host, rfc822, ip, uri string
 
 	template := x509.CertificateRequest{
 		Subject:            subj,
-		SignatureAlgorithm: x509.SHA256WithRSA,
+		SignatureAlgorithm: keySigner.algorithm,
 	}
 	if host != "" {
 		template.DNSNames = []string{host}
@@ -193,8 +192,7 @@ func getRoleCertificate(client *zts.ZTSClient, csr, roleDomain, roleName, roleCe
 	}
 }
 
-func
-ztsClient(ztsURL, keyFile, certFile, caFile string) (*zts.ZTSClient, error) {
+func ztsClient(ztsURL, keyFile, certFile, caFile string) (*zts.ZTSClient, error) {
 	config, err := tlsConfiguration(keyFile, certFile, caFile)
 	if err != nil {
 		return nil, err
