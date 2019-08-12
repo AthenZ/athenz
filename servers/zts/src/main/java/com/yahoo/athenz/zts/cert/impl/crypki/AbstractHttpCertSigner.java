@@ -257,8 +257,11 @@ public abstract class AbstractHttpCertSigner implements CertSigner {
         // check for status code first
         int statusCode = response.getStatusLine().getStatusCode();
         if (statusCode != expectedStatusCode) {
-            // we have a response but not 201. Don't bother retry
             LOGGER.error("unable to fetch requested uri '{}' status: {}", x509CertUri, statusCode);
+            // Close an inputstream so that connections can go back to the pool.
+            if (response.getEntity().getContent() != null) {
+                response.getEntity().getContent().close();
+            }
             return null;
         }
         // check for content
