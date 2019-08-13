@@ -194,7 +194,7 @@ public class ZMSClientMockTest {
 
         String domName  = "johnnies-place";
         String roleName = "manager";
-        Mockito.doReturn(new Role()).when(mockZMS).getRole(domName, roleName, false, false);
+        Mockito.doReturn(new Role()).when(mockZMS).getRole(domName, roleName, false, false, false);
         Mockito.doReturn(new RoleList()).when(mockZMS).getRoleList(domName, null, null);
 
         RoleList roleList = zclt.getRoleList(domName);
@@ -231,7 +231,7 @@ public class ZMSClientMockTest {
         auditLogList.add(logEntry);
         
         retRole.setAuditLog(auditLogList);
-        Mockito.doReturn(retRole).when(mockZMS).getRole(domName, roleName, true, false);
+        Mockito.doReturn(retRole).when(mockZMS).getRole(domName, roleName, true, false, false);
 
         Role role = zclt.getRole(domName, roleName, true);
         assertNotNull(role);
@@ -258,8 +258,8 @@ public class ZMSClientMockTest {
         retRoleNoExpand.setName(domName + ":role." + roleName);
         retRoleNoExpand.setTrust("trusted-domain");
         
-        Mockito.doReturn(retRoleExpand).when(mockZMS).getRole(domName, roleName, false, true);
-        Mockito.doReturn(retRoleNoExpand).when(mockZMS).getRole(domName, roleName, false, false);
+        Mockito.doReturn(retRoleExpand).when(mockZMS).getRole(domName, roleName, false, true, false);
+        Mockito.doReturn(retRoleNoExpand).when(mockZMS).getRole(domName, roleName, false, false, false);
 
         // first request with expand option set
         

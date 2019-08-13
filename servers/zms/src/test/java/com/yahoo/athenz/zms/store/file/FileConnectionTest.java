@@ -149,7 +149,7 @@ public class FileConnectionTest {
         File quotaDir = new File("/home/athenz/zms_quota");
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
             try {
-                fileconnection.listRoleMembers("DummyDomain1", "Role1");
+                fileconnection.listRoleMembers("DummyDomain1", "Role1", false);
             } catch (Exception ex) {
                 assertTrue(true);
             }

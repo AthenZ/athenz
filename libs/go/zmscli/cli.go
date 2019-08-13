@@ -304,11 +304,11 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			return cli.ListRoles(dn)
 		case "show-role":
 			if argc == 1 {
-				return cli.ShowRole(dn, args[0], false, false)
+				return cli.ShowRole(dn, args[0], false, false, false)
 			} else if argc == 2 && args[1] == "log" {
-				return cli.ShowRole(dn, args[0], true, false)
+				return cli.ShowRole(dn, args[0], true, false, false)
 			} else if argc == 2 && args[1] == "expand" {
-				return cli.ShowRole(dn, args[0], false, true)
+				return cli.ShowRole(dn, args[0], false, true, false)
 			}
 		case "add-delegated-role", "add-trusted-role":
 			if argc == 2 {

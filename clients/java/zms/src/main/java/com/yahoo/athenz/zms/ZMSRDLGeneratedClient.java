@@ -527,7 +527,7 @@ public class ZMSRDLGeneratedClient {
 
     }
 
-    public Role getRole(String domainName, String roleName, Boolean auditLog, Boolean expand) {
+    public Role getRole(String domainName, String roleName, Boolean auditLog, Boolean expand, Boolean pending) {
         WebTarget target = base.path("/domain/{domainName}/role/{roleName}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("roleName", roleName);
@@ -536,6 +536,9 @@ public class ZMSRDLGeneratedClient {
         }
         if (expand != null) {
             target = target.queryParam("expand", expand);
+        }
+        if (pending != null) {
+            target = target.queryParam("pending", pending);
         }
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {

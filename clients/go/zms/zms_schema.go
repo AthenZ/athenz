@@ -753,6 +753,7 @@ func init() {
 	mGetRole.Input("roleName", "EntityName", true, "", "", false, nil, "name of the role to be retrieved")
 	mGetRole.Input("auditLog", "Bool", false, "auditLog", "", true, false, "flag to indicate whether or not to return role audit log")
 	mGetRole.Input("expand", "Bool", false, "expand", "", true, false, "expand delegated trust roles and return trusted members")
+	mGetRole.Input("pending", "Bool", false, "pending", "", true, false, "include pending members")
 	mGetRole.Auth("", "", true, "")
 	mGetRole.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetRole.Exception("FORBIDDEN", "ResourceError", "")

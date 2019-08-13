@@ -1456,7 +1456,7 @@ public class JDBCConnectionTest {
             .thenReturn(new java.sql.Timestamp(System.currentTimeMillis() + 200))
             .thenReturn(null);
         
-        List<RoleMember> roleMembers = jdbcConn.listRoleMembers("my-domain", "role1");
+        List<RoleMember> roleMembers = jdbcConn.listRoleMembers("my-domain", "role1", false);
         
         // data back is sorted
         
@@ -1481,7 +1481,7 @@ public class JDBCConnectionTest {
             .thenReturn(false); // invalid domain
         
         try {
-            jdbcConn.listRoleMembers("my-domain", "role1");
+            jdbcConn.listRoleMembers("my-domain", "role1", false);
             fail();
         } catch (Exception ex) {
             assertTrue(true);
@@ -1500,7 +1500,7 @@ public class JDBCConnectionTest {
             .thenReturn(false); // this one is for role id
         
         try {
-            jdbcConn.listRoleMembers("my-domain", "role1");
+            jdbcConn.listRoleMembers("my-domain", "role1", false);
             fail();
         } catch (Exception ex) {
             assertTrue(true);
@@ -1524,7 +1524,7 @@ public class JDBCConnectionTest {
             .thenThrow(new SQLException("failed operation", "state", 1001));
 
         try {
-            jdbcConn.listRoleMembers("my-domain", "role1");
+            jdbcConn.listRoleMembers("my-domain", "role1", false);
             fail();
         } catch (Exception ex) {
             assertTrue(true);

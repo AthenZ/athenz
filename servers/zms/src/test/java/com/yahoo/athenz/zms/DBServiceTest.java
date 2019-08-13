@@ -853,7 +853,7 @@ public class DBServiceTest {
         zms.dbService.executeDeleteMembership(mockDomRsrcCtx, domainName, roleName,
                 "user.joe", auditRef, "deleteMembership");
 
-        Role role = zms.getRole(mockDomRsrcCtx, domainName, roleName, true, false);
+        Role role = zms.getRole(mockDomRsrcCtx, domainName, roleName, true, false, false);
         assertNotNull(role);
 
         List<RoleMember> members = role.getRoleMembers();
@@ -1208,7 +1208,7 @@ public class DBServiceTest {
         zms.dbService.executePutMembership(mockDomRsrcCtx, domainName, roleName,
                 new RoleMember().setMemberName("coretech.storage"), auditRef, "putMembership");
 
-        Role role = zms.getRole(mockDomRsrcCtx, domainName, roleName, false, false);
+        Role role = zms.getRole(mockDomRsrcCtx, domainName, roleName, false, false, false);
         assertNotNull(role);
 
         List<RoleMember> members = role.getRoleMembers();
@@ -1360,7 +1360,7 @@ public class DBServiceTest {
                 "user.joe", "user.jane");
         zms.dbService.executePutRole(mockDomRsrcCtx, domainName, roleName, role1, auditRef, "putRole");
 
-        Role role3 = zms.getRole(mockDomRsrcCtx, domainName, roleName, false, false);
+        Role role3 = zms.getRole(mockDomRsrcCtx, domainName, roleName, false, false, false);
         assertNotNull(role3);
         assertEquals(role3.getName(), domainName + ":role." + roleName);
         assertNull(role3.getTrust());
@@ -1617,12 +1617,12 @@ public class DBServiceTest {
         assertTrue(names.contains("vip_admin"));
         assertTrue(names.contains("sys_network_super_vip_admin"));
         
-        Role role = zms.dbService.getRole(domainName, "vip_admin", false, false);
+        Role role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
         assertEquals(domainName + ":role.vip_admin", role.getName());
         assertNull(role.getTrust());
         assertNull(role.getRoleMembers());
         
-        role = zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false);
+        role = zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false);
         assertEquals(domainName + ":role.sys_network_super_vip_admin", role.getName());
         assertEquals("sys.network", role.getTrust());
         
@@ -1651,11 +1651,11 @@ public class DBServiceTest {
         zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "vipng", 
                 auditRef, caller);
         
-        assertNull(zms.dbService.getRole(domainName, "vip_admin", false, false));
-        assertNull(zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false));
+        assertNull(zms.dbService.getRole(domainName, "vip_admin", false, false, false));
+        assertNull(zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false));
         assertNull(zms.dbService.getPolicy(domainName, "vip_admin"));
         assertNull(zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin"));
-        assertNotNull(zms.dbService.getRole(domainName, "admin", false, false));
+        assertNotNull(zms.dbService.getRole(domainName, "admin", false, false, false));
         
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertTrue(domainTemplateList.getTemplateNames().isEmpty());
@@ -1665,11 +1665,11 @@ public class DBServiceTest {
         zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "vipng", 
                 auditRef, caller);
         
-        assertNull(zms.dbService.getRole(domainName, "vip_admin", false, false));
-        assertNull(zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false));
+        assertNull(zms.dbService.getRole(domainName, "vip_admin", false, false, false));
+        assertNull(zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false));
         assertNull(zms.dbService.getPolicy(domainName, "vip_admin"));
         assertNull(zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin"));
-        assertNotNull(zms.dbService.getRole(domainName, "admin", false, false));
+        assertNotNull(zms.dbService.getRole(domainName, "admin", false, false, false));
         
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertTrue(domainTemplateList.getTemplateNames().isEmpty());
@@ -1704,12 +1704,12 @@ public class DBServiceTest {
         assertTrue(names.contains("vip_admin"));
         assertTrue(names.contains("sys_network_super_vip_admin"));
         
-        Role role = zms.dbService.getRole(domainName, "vip_admin", false, false);
+        Role role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
         assertEquals(domainName + ":role.vip_admin", role.getName());
         assertNull(role.getTrust());
         assertNull(role.getRoleMembers());
         
-        role = zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false);
+        role = zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false);
         assertEquals(domainName + ":role.sys_network_super_vip_admin", role.getName());
         assertEquals("sys.network", role.getTrust());
         
@@ -1824,7 +1824,7 @@ public class DBServiceTest {
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
         
-        Role role = zms.dbService.getRole(domainName, "vip_admin", false, false);
+        Role role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
         assertEquals(domainName + ":role.vip_admin", role.getName());
         assertNull(role.getTrust());
         assertNull(role.getRoleMembers());
@@ -1899,7 +1899,7 @@ public class DBServiceTest {
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
         
-        Role role = zms.dbService.getRole(domainName, "vip_admin", false, false);
+        Role role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
         assertEquals(domainName + ":role.vip_admin", role.getName());
         assertNull(role.getTrust());
         assertNull(role.getRoleMembers());
@@ -1976,7 +1976,7 @@ public class DBServiceTest {
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
         
-        Role role = zms.dbService.getRole(domainName, "vip_admin", false, false);
+        Role role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
         assertEquals(domainName + ":role.vip_admin", role.getName());
         assertNull(role.getTrust());
         assertNull(role.getRoleMembers());
@@ -2059,12 +2059,12 @@ public class DBServiceTest {
         assertTrue(names.contains("vip_admin"));
         assertTrue(names.contains("sys_network_super_vip_admin"));
         
-        Role role = zms.dbService.getRole(domainName, "vip_admin", false, false);
+        Role role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
         assertEquals(domainName + ":role.vip_admin", role.getName());
         assertNull(role.getTrust());
         assertNull(role.getRoleMembers());
         
-        role = zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false);
+        role = zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false);
         assertEquals(domainName + ":role.sys_network_super_vip_admin", role.getName());
         assertEquals("sys.network", role.getTrust());
         
@@ -2101,11 +2101,11 @@ public class DBServiceTest {
         zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "vipng", 
                 auditRef, caller);
         
-        assertNull(zms.dbService.getRole(domainName, "vip_admin", false, false));
-        assertNull(zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false));
+        assertNull(zms.dbService.getRole(domainName, "vip_admin", false, false, false));
+        assertNull(zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false));
         assertNull(zms.dbService.getPolicy(domainName, "vip_admin"));
         assertNull(zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin"));
-        assertNotNull(zms.dbService.getRole(domainName, "admin", false, false));
+        assertNotNull(zms.dbService.getRole(domainName, "admin", false, false, false));
         
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertTrue(domainTemplateList.getTemplateNames().isEmpty());
@@ -2115,11 +2115,11 @@ public class DBServiceTest {
         zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "vipng", 
                 auditRef, caller);
         
-        assertNull(zms.dbService.getRole(domainName, "vip_admin", false, false));
-        assertNull(zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false));
+        assertNull(zms.dbService.getRole(domainName, "vip_admin", false, false, false));
+        assertNull(zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false));
         assertNull(zms.dbService.getPolicy(domainName, "vip_admin"));
         assertNull(zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin"));
-        assertNotNull(zms.dbService.getRole(domainName, "admin", false, false));
+        assertNotNull(zms.dbService.getRole(domainName, "admin", false, false, false));
         
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertTrue(domainTemplateList.getTemplateNames().isEmpty());
@@ -2158,12 +2158,12 @@ public class DBServiceTest {
         assertTrue(names.contains("vip_admin"));
         assertTrue(names.contains("sys_network_super_vip_admin"));
         
-        Role role = zms.dbService.getRole(domainName, "vip_admin", false, false);
+        Role role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
         assertEquals(domainName + ":role.vip_admin", role.getName());
         assertNull(role.getTrust());
         assertNull(role.getRoleMembers());
         
-        role = zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false);
+        role = zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false);
         assertEquals(domainName + ":role.sys_network_super_vip_admin", role.getName());
         assertEquals("sys.network", role.getTrust());
         
@@ -2196,11 +2196,11 @@ public class DBServiceTest {
         zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "vipng", 
                 auditRef, caller);
         
-        assertNull(zms.dbService.getRole(domainName, "vip_admin", false, false));
-        assertNull(zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false));
+        assertNull(zms.dbService.getRole(domainName, "vip_admin", false, false, false));
+        assertNull(zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false));
         assertNull(zms.dbService.getPolicy(domainName, "vip_admin"));
         assertNull(zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin"));
-        assertNotNull(zms.dbService.getRole(domainName, "admin", false, false));
+        assertNotNull(zms.dbService.getRole(domainName, "admin", false, false, false));
         
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertTrue(domainTemplateList.getTemplateNames().isEmpty());
@@ -2248,7 +2248,7 @@ public class DBServiceTest {
         
         // this should be our own role that we created previously
         
-        Role role = zms.dbService.getRole(domainName, "vip_admin", false, false);
+        Role role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
         assertEquals(domainName + ":role.vip_admin", role.getName());
         assertNull(role.getTrust());
         assertEquals(2, role.getRoleMembers().size());
@@ -2259,7 +2259,7 @@ public class DBServiceTest {
         
         // the rest should be whatever we had in the template
         
-        role = zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false);
+        role = zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false);
         assertEquals(domainName + ":role.sys_network_super_vip_admin", role.getName());
         assertEquals("sys.network", role.getTrust());
         
@@ -2292,11 +2292,11 @@ public class DBServiceTest {
         zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "vipng", 
                 auditRef, caller);
         
-        assertNull(zms.dbService.getRole(domainName, "vip_admin", false, false));
-        assertNull(zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false));
+        assertNull(zms.dbService.getRole(domainName, "vip_admin", false, false, false));
+        assertNull(zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false));
         assertNull(zms.dbService.getPolicy(domainName, "vip_admin"));
         assertNull(zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin"));
-        assertNotNull(zms.dbService.getRole(domainName, "admin", false, false));
+        assertNotNull(zms.dbService.getRole(domainName, "admin", false, false, false));
         
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertTrue(domainTemplateList.getTemplateNames().isEmpty());
@@ -2612,7 +2612,7 @@ public class DBServiceTest {
                 null, null);
         zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, role1);
         
-        Role role = zms.dbService.getRole(domainName, roleName, false, false);
+        Role role = zms.dbService.getRole(domainName, roleName, false, false, false);
         assertNotNull(role);
         assertEquals(role.getTrust(), "sys.auth");
         assertNull(role.getRoleMembers());
@@ -2660,7 +2660,7 @@ public class DBServiceTest {
         policy.getAssertions().add(assertion);
         zms.putPolicy(mockDomRsrcCtx, domainName2, "policy", auditRef, policy);
         
-        Role role = zms.dbService.getRole(domainName1, roleName, false, true);
+        Role role = zms.dbService.getRole(domainName1, roleName, false, true, false);
         assertNotNull(role);
         assertEquals(role.getTrust(), domainName2);
         List<RoleMember> members = role.getRoleMembers();
@@ -3039,7 +3039,7 @@ public class DBServiceTest {
         assertTrue(users.contains("user.joe"));
         assertFalse(users.contains("user.jack"));
         
-        Role testRole = zms.dbService.getRole("deleteusersports", "role5", false, false);
+        Role testRole = zms.dbService.getRole("deleteusersports", "role5", false, false, false);
         assertEquals(testRole.getRoleMembers().size(), 1);
         RoleMember roleMember = testRole.getRoleMembers().get(0);
         assertEquals(roleMember.getMemberName(), "user.jane.storage");
@@ -3660,7 +3660,7 @@ public class DBServiceTest {
         rsm2.setAuditEnabled(true);
         zms.dbService.executePutRoleSystemMeta(mockDomRsrcCtx, "MetaDom2", "MetaRole2",
                 rsm2,"auditenabled", true, auditRef, "putrolesystemmeta");
-        Role resRole2 = zms.dbService.getRole("MetaDom2", "MetaRole2", false, true);
+        Role resRole2 = zms.dbService.getRole("MetaDom2", "MetaRole2", false, true, false);
 
         assertTrue(resRole2.getAuditEnabled());
 
@@ -3780,7 +3780,7 @@ public class DBServiceTest {
         zms.dbService.executePutRoleMeta(mockDomRsrcCtx, "MetaDom1", "MetaRole1",
                 rm, auditRef, "putrolemeta");
 
-        Role resRole1 = zms.dbService.getRole("MetaDom1", "MetaRole1", false, true);
+        Role resRole1 = zms.dbService.getRole("MetaDom1", "MetaRole1", false, true, false);
         assertTrue(resRole1.getSelfserve());
         zms.dbService.executeDeleteDomain(mockDomRsrcCtx, "MetaDom1", auditRef, "deletedomain");
 
@@ -3971,7 +3971,7 @@ public class DBServiceTest {
         zms.dbService.executePutMembershipDecision(mockDomRsrcCtx, domainName, roleName,
                 new RoleMember().setMemberName("user.bob").setActive(false), auditRef, "putMembershipDecision");
 
-        Role role = zms.getRole(mockDomRsrcCtx, domainName, roleName, false, false);
+        Role role = zms.getRole(mockDomRsrcCtx, domainName, roleName, false, false, false);
         assertNotNull(role);
 
         List<RoleMember> members = role.getRoleMembers();
@@ -4047,7 +4047,7 @@ public class DBServiceTest {
 
         zms.dbService.executePutRoleSystemMeta(mockDomRsrcCtx, domainName, roleName, meta, "auditenabled", true, auditRef, "");
 
-        Role role3 = zms.dbService.getRole(domainName, roleName, false, false);
+        Role role3 = zms.dbService.getRole(domainName, roleName, false, false, false);
         assertNotNull(role3);
         assertTrue(role3.getAuditEnabled());
 
@@ -4121,7 +4121,7 @@ public class DBServiceTest {
                 .setExpiration(Timestamp.fromMillis(Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant()).getTime()));
         zms.dbService.executePutMembershipDecision(mockDomRsrcCtx, domainName, roleName, member, auditRef, "putMembershipDecision");
 
-        Role role = zms.getRole(mockDomRsrcCtx, domainName, roleName, false, false);
+        Role role = zms.getRole(mockDomRsrcCtx, domainName, roleName, false, false, false);
         assertNotNull(role);
 
         List<RoleMember> members = role.getRoleMembers();

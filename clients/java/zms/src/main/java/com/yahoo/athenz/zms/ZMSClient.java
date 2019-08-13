@@ -764,7 +764,7 @@ public class ZMSClient implements Closeable {
      * @throws ZMSClientException in case of failure
      */
     public Role getRole(String domainName, String roleName) {
-        return getRole(domainName, roleName, false, false);
+        return getRole(domainName, roleName, false, false, false);
     }
 
     /**
@@ -776,7 +776,7 @@ public class ZMSClient implements Closeable {
      * @throws ZMSClientException in case of failure
      */
     public Role getRole(String domainName, String roleName, boolean auditLog) {
-        return getRole(domainName, roleName, auditLog, false);
+        return getRole(domainName, roleName, auditLog, false, false);
     }
     
 
@@ -792,9 +792,26 @@ public class ZMSClient implements Closeable {
      * @throws ZMSClientException in case of failure
      */
     public Role getRole(String domainName, String roleName, boolean auditLog, boolean expand) {
+        return getRole(domainName, roleName, auditLog, expand, false);
+    }
+
+    /**
+     * Retrieve the specified role
+     * @param domainName name of the domain
+     * @param roleName name of the role
+     * @param auditLog include audit log for the role changes in the response
+     * @param expand if the requested role is a delegated/trust role, this flag
+     *               will instruct the ZMS server to automatically retrieve the members of the
+     *               role from the delegated domain and return as part of the role object
+     * @param pending if this flag is set, then all members for that role will be retrieved
+     *                including pending members
+     * @return role object
+     * @throws ZMSClientException in case of failure
+     */
+    public Role getRole(String domainName, String roleName, boolean auditLog, boolean expand, boolean pending) {
         updatePrincipal();
         try {
-            return client.getRole(domainName, roleName, auditLog, expand);
+            return client.getRole(domainName, roleName, auditLog, expand, pending);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {

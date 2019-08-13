@@ -666,7 +666,7 @@ public class FileConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public List<RoleMember> listRoleMembers(String domainName, String roleName) {
+    public List<RoleMember> listRoleMembers(String domainName, String roleName, Boolean pending) {
         DomainStruct domainStruct = getDomainStruct(domainName);
         if (domainStruct == null) {
             throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "listRoleMembers");
@@ -1424,7 +1424,7 @@ public class FileConnection implements ObjectStoreConnection {
 
     @Override
     public int countRoleMembers(String domainName, String roleName) {
-        final List<RoleMember> list = listRoleMembers(domainName, roleName);
+        final List<RoleMember> list = listRoleMembers(domainName, roleName, false);
         return list == null ? 0 : list.size();
     }
 

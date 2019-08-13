@@ -42,7 +42,7 @@ func (cli Zms) ListRoles(dn string) (*string, error) {
 	return &s, nil
 }
 
-func (cli Zms) ShowRole(dn string, rn string, auditLog, expand bool) (*string, error) {
+func (cli Zms) ShowRole(dn string, rn string, auditLog, expand bool, pending bool) (*string, error) {
 	var log *bool
 	if auditLog {
 		log = &auditLog
@@ -55,7 +55,14 @@ func (cli Zms) ShowRole(dn string, rn string, auditLog, expand bool) (*string, e
 	} else {
 		expnd = nil
 	}
-	role, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), log, expnd)
+
+	var pend *bool
+	if pending {
+		pend = &pending
+	} else {
+		pend = nil
+	}
+	role, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), log, expnd, pend)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +75,7 @@ func (cli Zms) ShowRole(dn string, rn string, auditLog, expand bool) (*string, e
 
 func (cli Zms) AddDelegatedRole(dn string, rn string, trusted string) (*string, error) {
 	fullResourceName := dn + ":role." + rn
-	_, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil)
+	_, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
 	if err == nil {
 		return nil, fmt.Errorf("Role already exists: %v", fullResourceName)
 	}
@@ -92,13 +99,13 @@ func (cli Zms) AddDelegatedRole(dn string, rn string, trusted string) (*string, 
 		s := ""
 		return &s, nil
 	}
-	output, err := cli.ShowRole(dn, rn, false, false)
+	output, err := cli.ShowRole(dn, rn, false, false, false)
 	if err != nil {
 		// due to mysql read after write issue it's possible that
 		// we'll get 404 after writing our object so in that
 		// case we're going to do a quick sleep and retry request
 		time.Sleep(500 * time.Millisecond)
-		output, err = cli.ShowRole(dn, rn, false, false)
+		output, err = cli.ShowRole(dn, rn, false, false, false)
 	}
 	return output, err
 }
@@ -106,7 +113,7 @@ func (cli Zms) AddDelegatedRole(dn string, rn string, trusted string) (*string, 
 func (cli Zms) AddGroupRole(dn string, rn string, roleMembers []*zms.RoleMember) (*string, error) {
 	fullResourceName := dn + ":role." + rn
 	var role zms.Role
-	_, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil)
+	_, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
 	if err == nil {
 		return nil, fmt.Errorf("Role already exists: %v", fullResourceName)
 	}
@@ -130,13 +137,13 @@ func (cli Zms) AddGroupRole(dn string, rn string, roleMembers []*zms.RoleMember)
 		s := ""
 		return &s, nil
 	}
-	output, err := cli.ShowRole(dn, rn, false, false)
+	output, err := cli.ShowRole(dn, rn, false, false, false)
 	if err != nil {
 		// due to mysql read after write issue it's possible that
 		// we'll get 404 after writing our object so in that
 		// case we're going to do a quick sleep and retry request
 		time.Sleep(500 * time.Millisecond)
-		output, err = cli.ShowRole(dn, rn, false, false)
+		output, err = cli.ShowRole(dn, rn, false, false, false)
 	}
 	return output, err
 }
@@ -160,7 +167,7 @@ func (cli Zms) AddProviderRoleMembers(dn string, provider string, group string, 
 
 func (cli Zms) ShowProviderRoleMembers(dn string, provider string, group string, action string) (*string, error) {
 	rn := providerRoleName(provider, group, action)
-	return cli.ShowRole(dn, rn, false, false)
+	return cli.ShowRole(dn, rn, false, false, false)
 }
 
 func (cli Zms) DeleteProviderRoleMembers(dn string, provider string, group string, action string, members []string) (*string, error) {

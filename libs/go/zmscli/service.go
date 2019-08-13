@@ -138,7 +138,7 @@ func (cli Zms) AddProviderService(dn string, sn string, keyID string, pubKey *st
 	rn := shortName + "_self_serve"
 	fullResourceName := dn + ":role." + rn
 	var role zms.Role
-	_, err = cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil)
+	_, err = cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
 	if err == nil {
 		return nil, fmt.Errorf("Provider Service created but Self Serve Role already exists: %v", fullResourceName)
 	}

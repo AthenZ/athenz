@@ -778,6 +778,7 @@ public class ZMSSchema {
             .pathParam("roleName", "EntityName", "name of the role to be retrieved")
             .queryParam("auditLog", "auditLog", "Bool", false, "flag to indicate whether or not to return role audit log")
             .queryParam("expand", "expand", "Bool", false, "expand delegated trust roles and return trusted members")
+            .queryParam("pending", "pending", "Bool", false, "include pending members")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")

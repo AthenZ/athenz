@@ -1631,13 +1631,13 @@ public class ZMSClientTest {
         Role role1Mock = Mockito.mock(Role.class);
         Role role1 = createRoleObject(client, "CreateRoleDom1", "Role1", null, "user.joe", "user.jane");
         Mockito.when(c.putRole("CreateRoleDom1", "Role1", AUDIT_REF, role1Mock)).thenReturn(role1Mock);
-        Mockito.when(c.getRole("CreateRoleDom1", "Role1", false, false)).thenReturn(role1Mock);
+        Mockito.when(c.getRole("CreateRoleDom1", "Role1", false, false, false)).thenReturn(role1Mock);
         Mockito.when(role1Mock.getName()).thenReturn("CreateRoleDom1:role.Role1".toLowerCase());
         Mockito.when(role1Mock.getTrust()).thenReturn(null);
         Mockito.when(c.putRole("CreateRoleDom1", "Role2", AUDIT_REF, role1)).thenThrow(new NullPointerException());
         Mockito.when(c.putRole("CreateRoleDom1", "Role3", AUDIT_REF, role1)).thenThrow(new ResourceException(400));
-        Mockito.when(c.getRole("CreateRoleDom1", "Role2", false, false)).thenThrow(new NullPointerException());
-        Mockito.when(c.getRole("CreateRoleDom1", "Role3", false, false)).thenThrow(new ResourceException(400));
+        Mockito.when(c.getRole("CreateRoleDom1", "Role2", false, false, false)).thenThrow(new NullPointerException());
+        Mockito.when(c.getRole("CreateRoleDom1", "Role3", false, false, false)).thenThrow(new ResourceException(400));
         testCreateRole(client, systemAdminFullUser);
     }
 
@@ -2051,7 +2051,7 @@ public class ZMSClientTest {
         Membership membershipMock = Mockito.mock(Membership.class);
         Mockito.when(c.putMembership("MbrAddDom1", "Role1", "user.doe", AUDIT_REF, mbr)).thenReturn(membershipMock);
         Mockito.when(c.putMembership("MbrAddDom1", "Role1", "user.temp", AUDIT_REF, mbrExp)).thenReturn(membershipMock);
-        Mockito.when(c.getRole("MbrAddDom1", "Role1", false, false)).thenReturn(roleMock);
+        Mockito.when(c.getRole("MbrAddDom1", "Role1", false, false, false)).thenReturn(roleMock);
         List<RoleMember> roleMembers = new ArrayList<>();
         roleMembers.add(new RoleMember().setMemberName("user.joe"));
         roleMembers.add(new RoleMember().setMemberName("user.jane"));
@@ -2073,7 +2073,7 @@ public class ZMSClientTest {
         Mockito.when(c.postTopLevelDomain(AUDIT_REF, dom1Mock)).thenReturn(domainMock);
         Role role1Mock = Mockito.mock(Role.class);
         Mockito.when(c.putRole("MbrDelDom1", "Role1", AUDIT_REF, role1Mock)).thenReturn(role1Mock);
-        Mockito.when(c.getRole("MbrDelDom1", "Role1", false, false)).thenReturn(role1Mock);
+        Mockito.when(c.getRole("MbrDelDom1", "Role1", false, false, false)).thenReturn(role1Mock);
         @SuppressWarnings("unchecked")
         List<String> membersMock = Mockito.mock(List.class);
         Mockito.when(role1Mock.getMembers()).thenReturn(membersMock);
@@ -3012,7 +3012,7 @@ public class ZMSClientTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         try {
-            Mockito.when(c.getRole("domain1", "role1", true, false)).thenThrow(new ResourceException(400));
+            Mockito.when(c.getRole("domain1", "role1", true, false, false)).thenThrow(new ResourceException(400));
             client.getRole("domain1", "role1", true, false);
             fail();
         } catch (ResourceException ex) {

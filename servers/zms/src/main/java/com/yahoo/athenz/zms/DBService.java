@@ -782,7 +782,7 @@ public class DBService {
 
                 // retrieve our original role
 
-                Role originalRole = getRole(con, domainName, roleName, false, false);
+                Role originalRole = getRole(con, domainName, roleName, false, false, false);
 
                 if (originalRole != null && originalRole.getAuditEnabled() == Boolean.TRUE) {
                     throw ZMSUtils.requestError("Can not update the auditEnabled role ", caller);
@@ -1138,7 +1138,7 @@ public class DBService {
                 // member in the role
 
                 if (ZMSConsts.ADMIN_ROLE_NAME.equals(roleName)) {
-                    List<RoleMember> members = con.listRoleMembers(domainName, roleName);
+                    List<RoleMember> members = con.listRoleMembers(domainName, roleName, false);
                     if (members.size() == 1 && members.get(0).getMemberName().equals(normalizedMember)) {
                         throw ZMSUtils.forbiddenError(caller +
                                 ": Cannot delete last member of 'admin' role", caller);
@@ -1837,15 +1837,15 @@ public class DBService {
         }
     }
 
-    Role getRole(String domainName, String roleName, Boolean auditLog, Boolean expand) {
+    Role getRole(String domainName, String roleName, Boolean auditLog, Boolean expand, Boolean pending) {
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            return getRole(con, domainName, roleName, auditLog, expand);
+            return getRole(con, domainName, roleName, auditLog, expand, pending);
         }
     }
     
     Role getRole(ObjectStoreConnection con, String domainName, String roleName,
-            Boolean auditLog, Boolean expand) {
+            Boolean auditLog, Boolean expand, Boolean pending) {
 
         Role role = con.getRole(domainName, roleName);
         if (role != null) {
@@ -1855,7 +1855,7 @@ public class DBService {
                 // if we have no trust field specified then we need to
                 // retrieve our standard group role members
                 
-                role.setRoleMembers(con.listRoleMembers(domainName, roleName));
+                role.setRoleMembers(con.listRoleMembers(domainName, roleName, pending));
                 
                 // still populate the members for old clients
 
@@ -2375,7 +2375,7 @@ public class DBService {
 
                 // retrieve our original role
                 
-                Role originalRole = getRole(con, domainName, roleName, false, false);
+                Role originalRole = getRole(con, domainName, roleName, false, false, false);
 
                 // now process the request
                 
@@ -2764,7 +2764,7 @@ public class DBService {
 
                     // retrieve our original role in case one exists
 
-                    Role originalRole = getRole(con, provSvcDomain, trustedName, false, false);
+                    Role originalRole = getRole(con, provSvcDomain, trustedName, false, false, false);
 
                     // now process the request
 
@@ -2838,7 +2838,7 @@ public class DBService {
         
         // retrieve our original role in case one exists
         
-        Role originalRole = getRole(con, tenantDomain, roleName, false, false);
+        Role originalRole = getRole(con, tenantDomain, roleName, false, false, false);
 
         // we need to add the original role members to the new one
         
@@ -3509,7 +3509,7 @@ public class DBService {
                     throw ZMSUtils.requestError(caller + ": auditEnabled flag not set for domain: " + domainName + " to add it on the role: " + roleName, caller);
                 }
 
-                Role rolefromdb = getRole(domainName, roleName, false, false);
+                Role rolefromdb = getRole(con, domainName, roleName, false, false, false);
 
                 // now process the request. first we're going to make a
                 // copy of our role
@@ -3562,7 +3562,7 @@ public class DBService {
 
                 checkRoleAuditEnabled(con, domainName, roleName, auditRef, caller, getPrincipalName(ctx));
 
-                Role rolefromdb = getRole(domainName, roleName, false, false);
+                Role rolefromdb = getRole(con, domainName, roleName, false, false, false);
 
                 // now process the request. first we're going to make a
                 // copy of our role

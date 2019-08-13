@@ -67,7 +67,7 @@ public interface ObjectStoreConnection extends Closeable {
     int countRoles(String domainName);
     List<RoleAuditLog> listRoleAuditLogs(String domainName, String roleName);
     
-    List<RoleMember> listRoleMembers(String domainName, String roleName);
+    List<RoleMember> listRoleMembers(String domainName, String roleName, Boolean pending);
     int countRoleMembers(String domainName, String roleName);
     Membership getRoleMember(String domainName, String roleName, String member);
     boolean insertRoleMember(String domainName, String roleName, RoleMember roleMember, String principal, String auditRef);
