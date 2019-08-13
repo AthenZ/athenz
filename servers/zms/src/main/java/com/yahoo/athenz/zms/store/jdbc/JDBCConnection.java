@@ -3464,40 +3464,24 @@ public class JDBCConnection implements ObjectStoreConnection {
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     domain = rs.getString(1);
-                    domainRoleMembers = domainRoleMembersMap.get(domain);
-                    if (domainRoleMembers != null) {
-                        domainRoleMember = new DomainRoleMember();
-                        domainRoleMember.setMemberName(rs.getString(3));
-                        memberRoles = new ArrayList<>();
-                        memberRole = new MemberRole();
-                        memberRole.setRoleName(rs.getString(2));
-                        java.sql.Timestamp expiration = rs.getTimestamp(4);
-                        if (expiration != null) {
-                            memberRole.setExpiration(Timestamp.fromMillis(expiration.getTime()));
-                        }
-                        memberRole.setActive(false);
-                        memberRoles.add(memberRole);
-                        domainRoleMember.setMemberRoles(memberRoles);
-
-                        domainRoleMembers.add(domainRoleMember);
-                    } else {
+                    if (!domainRoleMembersMap.containsKey(domain)) {
                         domainRoleMembers = new ArrayList<>();
-                        domainRoleMember = new DomainRoleMember();
-                        domainRoleMember.setMemberName(rs.getString(3));
-                        memberRoles = new ArrayList<>();
-                        memberRole = new MemberRole();
-                        memberRole.setRoleName(rs.getString(2));
-                        java.sql.Timestamp expiration = rs.getTimestamp(4);
-                        if (expiration != null) {
-                            memberRole.setExpiration(Timestamp.fromMillis(expiration.getTime()));
-                        }
-                        memberRole.setActive(false);
-                        memberRoles.add(memberRole);
-                        domainRoleMember.setMemberRoles(memberRoles);
-
-                        domainRoleMembers.add(domainRoleMember);
                         domainRoleMembersMap.put(domain, domainRoleMembers);
                     }
+                    domainRoleMembers = domainRoleMembersMap.get(domain);
+                    domainRoleMember = new DomainRoleMember();
+                    domainRoleMember.setMemberName(rs.getString(3));
+                    memberRoles = new ArrayList<>();
+                    memberRole = new MemberRole();
+                    memberRole.setRoleName(rs.getString(2));
+                    java.sql.Timestamp expiration = rs.getTimestamp(4);
+                    if (expiration != null) {
+                        memberRole.setExpiration(Timestamp.fromMillis(expiration.getTime()));
+                    }
+                    memberRole.setActive(false);
+                    memberRoles.add(memberRole);
+                    domainRoleMember.setMemberRoles(memberRoles);
+                    domainRoleMembers.add(domainRoleMember);
                 }
             }
         } catch (SQLException ex) {

@@ -1569,7 +1569,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		}
 		buf.WriteString("   role    : name of the role to be modified\n")
 		buf.WriteString("   member  : name of the member\n")
-		buf.WriteString("   approval: true/false depcting whether membership is approved or rejected\n")
+		buf.WriteString("   approval: true/false depicting whether membership is approved or rejected\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domain_example + " put-membership-decision readers user.john true\n")
 	default:

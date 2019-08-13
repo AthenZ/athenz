@@ -70,7 +70,7 @@ public class SignUtils {
     private static final String ATTR_CONTENTS = "contents";
     private static final String ATTR_CERT_DNS_DOMAIN = "certDnsDomain";
     private static final String ATTR_AUDIT_ENABLED = "auditEnabled";
-    private static final String ATTR_SELF_SERVE = "selfserve";
+    private static final String ATTR_SELF_SERVE = "selfServe";
 
     private static Struct asStruct(DomainPolicies domainPolicies) {
         // all of our fields are in canonical order based

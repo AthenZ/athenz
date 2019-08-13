@@ -325,12 +325,13 @@ func (cli Zms) PutTempMembershipDecision(dn string, rn string, mbr string, expir
 	if err != nil {
 		return nil, err
 	}
-	s := "[domain " + dn + " role " + rn
+	s := "[domain " + dn + " role " + rn + " member " + mbr + " successfully"
 	if approval ==true {
-		s = s + " member " + mbr + "successfully approved temporarily.]\n"
+		s = s + " approved temporarily."
 	} else {
-		s = s + " member " + mbr + "successfully rejected.]\n"
+		s = s + " rejected."
 	}
+	s = s + "]\n"
 	return &s, nil
 }
 
@@ -344,11 +345,12 @@ func (cli Zms) PutMembershipDecision(dn string, rn string, mbr string, approval 
 	if err != nil {
 		return nil, err
 	}
-	s := "[domain " + dn + " role " + rn
+	s := "[domain " + dn + " role " + rn + " member " + mbr + " successfully"
 	if approval ==true {
-		s = s + " member " + mbr + "successfully approved.]\n"
+		s = s + " approved."
 	} else {
-		s = s + " member " + mbr + "successfully rejected.]\n"
+		s = s + " rejected."
 	}
+	s = s + "]\n"
 	return &s, nil
 }
