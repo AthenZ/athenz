@@ -71,11 +71,14 @@
   <properties>
     <jetty.version>9.4.19.v20190610</jetty.version>
     <jersey.version>2.29</jersey.version>
-    <jackson.version>2.9.9</jackson.version>
-    <maven-surefire-plugin.version>2.22.0</maven-surefire-plugin.version>
+    <jackson.core.version>2.9.9</jackson.core.version>
+    <jackson.databind.version>2.9.9.3</jackson.databind.version>
+    <jackson.annotations.version>2.9.9</jackson.annotations.version>
+    <jackson.jaxrs.version>2.9.9</jackson.jaxrs.version>
+    <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
     <rdl.version>1.5.2</rdl.version>
     <bouncycastle.version>1.62</bouncycastle.version>
-    <aws.version>1.11.597</aws.version>
+    <aws.version>1.11.610</aws.version>
     <guava.version>28.0-jre</guava.version>
     <logback.version>1.2.3</logback.version>
     <javax.version>3.1.0</javax.version>
@@ -205,7 +208,7 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>1.7.26</version>
+      <version>1.7.28</version>
     </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
