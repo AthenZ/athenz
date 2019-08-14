@@ -17,6 +17,7 @@ package com.yahoo.athenz.zms.store;
 
 import java.io.Closeable;
 import java.util.List;
+import java.util.Map;
 
 import com.yahoo.athenz.zms.*;
 
@@ -129,4 +130,6 @@ public interface ObjectStoreConnection extends Closeable {
     boolean insertQuota(String domainName, Quota quota);
     boolean updateQuota(String domainName, Quota quota);
     boolean deleteQuota(String domainName);
+
+    Map<String, List<DomainRoleMember>> getPendingDomainRoleMembersList(String principal);
 }

@@ -492,3 +492,18 @@ func (cli Zms) SetDefaultAdmins(dn string, admins []string) (*string, error) {
 	s := "[domain " + dn + " administrators successfully set]\n"
 	return &s, nil
 }
+
+func (cli Zms) ListPendingDomainRoleMembers() (*string, error) {
+	domainMembership, err := cli.Zms.GetPendingDomainRoleMembersList()
+	if err != nil {
+		return nil, err
+	}
+	var buf bytes.Buffer
+	buf.WriteString("pending members:\n")
+	for _, domainRoleMembers := range domainMembership.DomainRoleMembersList {
+		cli.dumpDomainRoleMembers(&buf, domainRoleMembers)
+	}
+	s := buf.String()
+
+	return &s, nil
+}

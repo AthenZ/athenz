@@ -4172,6 +4172,12 @@ public class DBServiceTest {
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
+    @Test
+    public void testGetPendingDomainRoleMembersListNullMap() {
+        DomainRoleMembership domainRoleMembership = zms.dbService.getPendingDomainRoleMembersList(mockDomRsrcCtx);
+        assertNotNull(domainRoleMembership);
+        assertNull(domainRoleMembership.getDomainRoleMembersList());
+    }
 
 
 }
