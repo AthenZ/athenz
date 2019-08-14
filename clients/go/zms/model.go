@@ -4790,3 +4790,59 @@ func (self *Status) Validate() error {
 	}
 	return nil
 }
+
+//
+// DomainRoleMembership -
+//
+type DomainRoleMembership struct {
+	DomainRoleMembersList []*DomainRoleMembers `json:"domainRoleMembersList"`
+}
+
+//
+// NewDomainRoleMembership - creates an initialized DomainRoleMembership instance, returns a pointer to it
+//
+func NewDomainRoleMembership(init ...*DomainRoleMembership) *DomainRoleMembership {
+	var o *DomainRoleMembership
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(DomainRoleMembership)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *DomainRoleMembership) Init() *DomainRoleMembership {
+	if self.DomainRoleMembersList == nil {
+		self.DomainRoleMembersList = make([]*DomainRoleMembers, 0)
+	}
+	return self
+}
+
+type rawDomainRoleMembership DomainRoleMembership
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a DomainRoleMembership
+//
+func (self *DomainRoleMembership) UnmarshalJSON(b []byte) error {
+	var m rawDomainRoleMembership
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := DomainRoleMembership(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *DomainRoleMembership) Validate() error {
+	if self.DomainRoleMembersList == nil {
+		return fmt.Errorf("DomainRoleMembership: Missing required field: domainRoleMembersList")
+	}
+	return nil
+}

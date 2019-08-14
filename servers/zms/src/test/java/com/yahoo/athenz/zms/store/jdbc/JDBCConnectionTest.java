@@ -7323,4 +7323,97 @@ public class JDBCConnectionTest {
         }
         jdbcConn.close();
     }
+
+    @Test
+    public void testGetPendingDomainRoleMembersList() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(9) // principal id
+                .thenReturn(5); // sys.auth.audit domain id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for principal id
+                .thenReturn(true) // this one is for sys.auth.audit domain id
+                .thenReturn(true) // for the domain1, first member found
+                .thenReturn(true) // for the domain1, second member found
+                .thenReturn(true) // for the domain1, third member found
+                .thenReturn(true) // for domain2
+                .thenReturn(false);
+
+        Mockito.doReturn("domain1", "domain1", "domain1", "domain2").when(mockResultSet).getString(1);
+        Mockito.doReturn("role1", "role11", "role111", "role2").when(mockResultSet).getString(2);
+        Mockito.doReturn("user.member1", "user.member2", "user.member3", "user.member2").when(mockResultSet).getString(3);
+        Mockito.doReturn(new java.sql.Timestamp(1454358916), new java.sql.Timestamp(1454358916), null, null).when(mockResultSet).getTimestamp(4);
+
+        Map<String, List<DomainRoleMember>> domainRoleMembersMap = jdbcConn.getPendingDomainRoleMembersList("user.user1");
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.user1");
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "sys.auth.audit");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 9);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(2, 5);
+
+        assertNotNull(domainRoleMembersMap);
+        assertEquals(domainRoleMembersMap.size(), 2);
+
+        assertNotNull(domainRoleMembersMap.get("domain1"));
+        List<DomainRoleMember> domainRoleMembers = domainRoleMembersMap.get("domain1");
+        assertNotNull(domainRoleMembers);
+        assertEquals(domainRoleMembers.size(), 3);
+
+        assertEquals(domainRoleMembers.get(0).getMemberName(), "user.member1");
+        assertEquals(domainRoleMembers.get(0).getMemberRoles().size(), 1);
+        assertEquals(domainRoleMembers.get(0).getMemberRoles().get(0).getRoleName(), "role1");
+
+        assertEquals(domainRoleMembers.get(1).getMemberName(), "user.member2");
+        assertEquals(domainRoleMembers.get(1).getMemberRoles().size(), 1);
+        assertEquals(domainRoleMembers.get(1).getMemberRoles().get(0).getRoleName(), "role11");
+
+        assertEquals(domainRoleMembers.get(2).getMemberName(), "user.member3");
+        assertEquals(domainRoleMembers.get(2).getMemberRoles().size(), 1);
+        assertEquals(domainRoleMembers.get(2).getMemberRoles().get(0).getRoleName(), "role111");
+
+        assertNotNull(domainRoleMembersMap.get("domain2"));
+        domainRoleMembers = domainRoleMembersMap.get("domain2");
+        assertNotNull(domainRoleMembers);
+        assertEquals(domainRoleMembers.size(), 1);
+        assertEquals(domainRoleMembers.get(0).getMemberName(), "user.member2");
+        assertEquals(domainRoleMembers.get(0).getMemberRoles().size(), 1);
+        assertEquals(domainRoleMembers.get(0).getMemberRoles().get(0).getRoleName(), "role2");
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetPendingDomainRoleMembersListSqlError() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(9) // principal id
+                .thenReturn(5); // sys.auth.audit domain id
+        Mockito.when(mockResultSet.next()).thenReturn(true,true).thenThrow(new SQLException("sql error"));
+        try {
+
+            Map<String, List<DomainRoleMember>> domainRoleMembersMap = jdbcConn.getPendingDomainRoleMembersList("user.user1");
+
+        }catch (RuntimeException rx){
+            assertTrue(rx.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetPendingDomainRoleMembersListPrincipalNotExists() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(0); // principal id
+
+        Mockito.when(mockResultSet.next()).thenReturn(false);
+        try {
+
+            Map<String, List<DomainRoleMember>> domainRoleMembersMap = jdbcConn.getPendingDomainRoleMembersList("user.user1");
+
+        }catch (ResourceException rx){
+            assertEquals(rx.getCode(), 404);
+            assertTrue(rx.getMessage().contains("unknown principal"));
+        }
+        jdbcConn.close();
+    }
 }

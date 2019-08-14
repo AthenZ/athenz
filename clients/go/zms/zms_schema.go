@@ -467,6 +467,10 @@ func init() {
 	tStatus.Field("message", "String", false, nil, "status message of the server")
 	sb.AddType(tStatus.Build())
 
+	tDomainRoleMembership := rdl.NewStructTypeBuilder("Struct", "DomainRoleMembership")
+	tDomainRoleMembership.ArrayField("domainRoleMembersList", "DomainRoleMembers", false, "")
+	sb.AddType(tDomainRoleMembership.Build())
+
 	mGetDomain := rdl.NewResourceBuilder("Domain", "GET", "/domain/{domain}")
 	mGetDomain.Comment("Get info for the specified domain, by name. This request only returns the configured domain attributes and not any domain objects like roles, policies or service identities.")
 	mGetDomain.Input("domain", "DomainName", true, "", "", false, nil, "name of the domain")
@@ -1480,6 +1484,17 @@ func init() {
 	mGetStatus.Exception("NOT_FOUND", "ResourceError", "")
 	mGetStatus.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetStatus.Build())
+
+	mGetPendingDomainRoleMembersList := rdl.NewResourceBuilder("DomainRoleMembership", "GET", "/pendingDomainRoleMembersList")
+	mGetPendingDomainRoleMembersList.Comment("List of domains containing roles and corresponding members to be approved by calling principal")
+	mGetPendingDomainRoleMembersList.Name("getPendingDomainRoleMembersList")
+	mGetPendingDomainRoleMembersList.Auth("", "", true, "")
+	mGetPendingDomainRoleMembersList.Exception("BAD_REQUEST", "ResourceError", "")
+	mGetPendingDomainRoleMembersList.Exception("FORBIDDEN", "ResourceError", "")
+	mGetPendingDomainRoleMembersList.Exception("NOT_FOUND", "ResourceError", "")
+	mGetPendingDomainRoleMembersList.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
+	mGetPendingDomainRoleMembersList.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mGetPendingDomainRoleMembersList.Build())
 
 	var err error
 	schema, err = sb.BuildParanoid()

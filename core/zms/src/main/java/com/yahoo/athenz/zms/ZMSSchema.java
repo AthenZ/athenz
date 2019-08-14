@@ -397,6 +397,9 @@ public class ZMSSchema {
             .field("code", "Int32", false, "status message code")
             .field("message", "String", false, "status message of the server");
 
+        sb.structType("DomainRoleMembership")
+            .arrayField("domainRoleMembersList", "DomainRoleMembers", false, "");
+
 
         sb.resource("Domain", "GET", "/domain/{domain}")
             .comment("Get info for the specified domain, by name. This request only returns the configured domain attributes and not any domain objects like roles, policies or service identities.")
@@ -1746,6 +1749,22 @@ public class ZMSSchema {
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("DomainRoleMembership", "GET", "/pendingDomainRoleMembersList")
+            .comment("List of domains containing roles and corresponding members to be approved by calling principal")
+            .name("getPendingDomainRoleMembersList")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
 
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;

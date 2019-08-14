@@ -20,16 +20,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLTimeoutException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TimeZone;
+import java.util.*;
 
 import com.yahoo.athenz.zms.*;
 import org.slf4j.Logger;
@@ -243,6 +234,13 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "subdomain=? WHERE domain_id=?;";
     private static final String SQL_DELETE_QUOTA = "DELETE FROM quota WHERE domain_id=?;";
 
+    private static final String SQL_PENDING_DOMAIN_ROLE_MEMBER_LIST = "SELECT do.name AS domain, ro.name AS role, principal.name AS member, rmo.expiration FROM principal JOIN role_member rmo " +
+            "ON rmo.principal_id=principal.principal_id JOIN role ro ON ro.role_id=rmo.role_id JOIN domain do ON ro.domain_id=do.domain_id " +
+            "WHERE rmo.active=false AND ro.domain_id IN ( select domain_id FROM domain WHERE org IN ( " +
+            "SELECT DISTINCT IF ( INSTR(role.name,'.') > 1, SUBSTRING_INDEX(SUBSTRING_INDEX(role.name,'.', 2), '.', -1), SUBSTRING_INDEX(role.name, \".\", -1) ) AS org " +
+            "FROM role_member JOIN role ON role.role_id=role_member.role_id WHERE role_member.principal_id=? AND role.domain_id=? AND role_member.active=true " +
+            "AND role.name LIKE 'approver%') ) order by do.name, ro.name, principal.name;";
+
     private static final String CACHE_DOMAIN    = "d:";
     private static final String CACHE_ROLE      = "r:";
     private static final String CACHE_POLICY    = "p:";
@@ -259,6 +257,8 @@ public class JDBCConnection implements ObjectStoreConnection {
     boolean transactionCompleted;
     int queryTimeout = 60;
     Map<String, Integer> objectMap;
+
+    private static final String SYS_AUTH_AUDIT_DOMAIN = "sys.auth.audit";
     
     public JDBCConnection(Connection con, boolean autoCommit) throws SQLException {
         this.con = con;
@@ -3450,6 +3450,56 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
 
         return result;
+    }
+
+    @Override
+    public Map<String, List<DomainRoleMember>> getPendingDomainRoleMembersList(String principal) {
+
+        final String caller = "getPendingDomainRoleMembersList";
+        int principalId = getPrincipalId(principal);
+        if (principalId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_PRINCIPAL, principal);
+        }
+        int auditDomId = getDomainId(SYS_AUTH_AUDIT_DOMAIN);
+
+        Map<String, List<DomainRoleMember>> domainRoleMembersMap = new LinkedHashMap<>();
+        String domain;
+        List<DomainRoleMember> domainRoleMembers;
+        DomainRoleMember domainRoleMember;
+        List<MemberRole> memberRoles;
+        MemberRole memberRole;
+
+        try (PreparedStatement ps = con.prepareStatement(SQL_PENDING_DOMAIN_ROLE_MEMBER_LIST)) {
+            ps.setInt(1, principalId);
+            ps.setInt(2, auditDomId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    domain = rs.getString(1);
+                    if (!domainRoleMembersMap.containsKey(domain)) {
+                        domainRoleMembers = new ArrayList<>();
+                        domainRoleMembersMap.put(domain, domainRoleMembers);
+                    }
+                    domainRoleMembers = domainRoleMembersMap.get(domain);
+                    domainRoleMember = new DomainRoleMember();
+                    domainRoleMember.setMemberName(rs.getString(3));
+                    memberRoles = new ArrayList<>();
+                    memberRole = new MemberRole();
+                    memberRole.setRoleName(rs.getString(2));
+                    java.sql.Timestamp expiration = rs.getTimestamp(4);
+                    if (expiration != null) {
+                        memberRole.setExpiration(Timestamp.fromMillis(expiration.getTime()));
+                    }
+                    memberRole.setActive(false);
+                    memberRoles.add(memberRole);
+                    domainRoleMember.setMemberRoles(memberRoles);
+                    domainRoleMembers.add(domainRoleMember);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+
+        return domainRoleMembersMap;
     }
 
     RuntimeException notFoundError(String caller, String objectType, String objectName) {

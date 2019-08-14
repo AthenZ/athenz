@@ -1744,4 +1744,22 @@ public class ZMSRDLGeneratedClient {
 
     }
 
+    public DomainRoleMembership getPendingDomainRoleMembersList() {
+        WebTarget target = base.path("/pendingDomainRoleMembersList");
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        Response response = invocationBuilder.get();
+        int code = response.getStatus();
+        switch (code) {
+        case 200:
+            return response.readEntity(DomainRoleMembership.class);
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
 }

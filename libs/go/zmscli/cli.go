@@ -236,6 +236,8 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 1 {
 				return cli.DeleteUser(args[0])
 			}
+		case "list-pending-members":
+			return cli.ListPendingDomainRoleMembers()
 		case "help":
 			return cli.helpCommand(args)
 		default:
@@ -550,6 +552,24 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 					return nil, err
 				}
 				return cli.SetRoleSelfserve(dn, args[0], selfserve)
+			}
+		case "put-membership-decision":
+			if argc == 4 {
+				approval, err := strconv.ParseBool(args[3])
+				if err != nil {
+					return nil, err
+				}
+				value, err := getTimestamp(args[2])
+				if err != nil {
+					return nil, err
+				}
+				return cli.PutTempMembershipDecision(dn, args[0], args[1], value, approval)
+			} else {
+				approval, err := strconv.ParseBool(args[2])
+				if err != nil {
+					return nil, err
+				}
+				return cli.PutMembershipDecision(dn, args[0], args[1], approval)
 			}
 		default:
 			return nil, fmt.Errorf("Unrecognized command '%v'. Type 'zms-cli help' to see help information", cmd)
@@ -1530,6 +1550,28 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   self-serve : enable/disable self-serve flag for the role\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domain_example + " set-role-self-serve readers true\n")
+	case "list-pending-members":
+		buf.WriteString(" This command prints a list of pending members by domain and role which are yet to be approved / rejected.\n")
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   list-pending-members\n")
+	case "put-membership-decision":
+		buf.WriteString(" This command lets approvers to either approve or reject membership for given domain and role.\n")
+		buf.WriteString(" Applicable in case of audit enabled roles or selfserve roles.\n")
+		buf.WriteString(" Audit enabled roles can only be acted upon by delegated approvers in sys.auth.audit domain.\n")
+		buf.WriteString(" Selfserve roles can only be acted upon by domain admins.\n")
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domain_param + " put-membership-decision role member expiration approval \n")
+		buf.WriteString("   " + "or \n")
+		buf.WriteString("   " + domain_param + " put-membership-decision role member approval \n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain that role belongs to\n")
+		}
+		buf.WriteString("   role    : name of the role to be modified\n")
+		buf.WriteString("   member  : name of the member\n")
+		buf.WriteString("   approval: true/false depicting whether membership is approved or rejected\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domain_example + " put-membership-decision readers user.john true\n")
 	default:
 		if interactive {
 			buf.WriteString("Unknown command. Type 'help' to see available commands")
@@ -1594,8 +1636,9 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   list-domain-role-members\n")
 	buf.WriteString("   delete-domain-role-member member\n")
 	buf.WriteString("   delete-role role\n")
-	buf.WriteString("   set-role-audit-enabled role audit-enabled\n")
-	buf.WriteString("   set-role-self-serve role self-serve\n")
+	buf.WriteString("   set-role-audit-enabled group_role audit-enabled\n")
+	buf.WriteString("   set-role-self-serve group_role self-serve\n")
+	buf.WriteString("   put-membership-decision group_role user_or_service [expiration] decision\n")
 	buf.WriteString("\n")
 	buf.WriteString(" Service commands:\n")
 	buf.WriteString("   list-service\n")
@@ -1646,6 +1689,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   get-user-token [authorized_service]\n")
 	buf.WriteString("   repl\n")
 	buf.WriteString("   version\n")
+	buf.WriteString("   list-pending-members\n")
 	buf.WriteString("\n")
 	return buf.String()
 }

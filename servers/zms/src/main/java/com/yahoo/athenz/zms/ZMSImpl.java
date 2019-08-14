@@ -6844,4 +6844,23 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return false;
     }
 
+    @Override
+    public DomainRoleMembership getPendingDomainRoleMembersList(ResourceContext ctx) {
+        final String caller = "getpendingdomainrolememberslist";
+        metric.increment(ZMSConsts.HTTP_GET);
+        metric.increment(ZMSConsts.HTTP_REQUEST);
+        metric.increment(caller);
+        final String principalDomain = getPrincipalDomain(ctx);
+        Object timerMetric = metric.startTiming("getpendingdomainrolememberslist_timing", null, principalDomain);
+        logPrincipal(ctx);
+        validateRequest(ctx.request(), caller);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("getpendingdomainrolememberslist:(" + ((RsrcCtxWrapper) ctx).principal() + ")");
+        }
+        DomainRoleMembership domainRoleMembership = dbService.getPendingDomainRoleMembersList(ctx);
+        metric.stopTiming(timerMetric, null, principalDomain);
+        return domainRoleMembership;
+    }
+
+
 }

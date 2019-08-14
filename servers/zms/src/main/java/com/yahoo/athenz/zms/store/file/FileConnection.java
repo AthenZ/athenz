@@ -1540,4 +1540,66 @@ public class FileConnection implements ObjectStoreConnection {
         return false;
     }
 
+    @Override
+    public Map<String, List<DomainRoleMember>> getPendingDomainRoleMembersList(String principal) {
+
+        DomainStruct auditDom = getDomainStruct("sys.auth.audit");
+        List<String> orgs = new ArrayList<>();
+        DomainStruct domain;
+
+        DomainRoleMembers domainRoleMembers;
+        List<DomainRoleMember> domainRoleMemberList;
+        DomainRoleMember domainRoleMember;
+
+        List<MemberRole> memberRoles;
+        MemberRole memberRole;
+
+        Map<String, List<DomainRoleMember>> domainRoleMembersMap = null;
+
+        RoleMember rm = new RoleMember().setMemberName(principal).setActive(true);
+        if (auditDom != null && auditDom.getRoles() != null && !auditDom.getRoles().isEmpty()) {
+            for (Role role : auditDom.getRoles().values()) {
+                if (role.getName().startsWith("sys.auth.audit:role.approver.") && role.getRoleMembers().contains(rm)) {
+                    orgs.add(role.getName().substring(role.getName().indexOf(":role.") + 6).split("[.]")[1]);
+                }
+            }
+        }
+        if (!orgs.isEmpty()) {
+            domainRoleMembersMap = new HashMap<>();
+            List<String> domainNames = listDomains(null, 0);
+            for (String domainName : domainNames) {
+                domain = getDomainStruct(domainName);
+                if (domain == null) {
+                    continue;
+                }
+                if (domain.getMeta() != null && orgs.contains(domain.getMeta().getOrg())) {
+                    domainRoleMembers = new DomainRoleMembers();
+                    domainRoleMembers.setDomainName(domain.getName());
+                    domainRoleMemberList = new ArrayList<>();
+                    domainRoleMembers.setMembers(domainRoleMemberList);
+                    for (Role role : domain.getRoles().values()) {
+                        for (RoleMember roleMember : role.getRoleMembers()) {
+                            if (roleMember.getActive() == Boolean.FALSE) {
+                                domainRoleMember = new DomainRoleMember();
+                                domainRoleMember.setMemberName(roleMember.getMemberName());
+                                memberRoles = new ArrayList<>();
+                                memberRole = new MemberRole();
+                                memberRole.setActive(false);
+                                memberRole.setRoleName(role.getName());
+                                memberRole.setExpiration(roleMember.getExpiration());
+                                memberRoles.add(memberRole);
+                                domainRoleMember.setMemberRoles(memberRoles);
+                                domainRoleMemberList.add(domainRoleMember);
+                            }
+                        }
+                    }
+                    if (!domainRoleMemberList.isEmpty()) {
+                        domainRoleMembersMap.put(domain.getName(), domainRoleMemberList);
+                    }
+
+                }
+            }
+        }
+        return domainRoleMembersMap;
+    }
 }

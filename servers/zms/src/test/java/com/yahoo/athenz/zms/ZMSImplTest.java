@@ -16179,24 +16179,24 @@ public class ZMSImplTest {
         SubDomain auditdom = createSubDomainObject("audit", "sys.auth", "audit approval domain", "grc", "user.fury");
         zms.postSubDomain(mockDomRsrcCtx, "sys.auth", auditRef, auditdom);
 
-        Role role = createRoleObject("sys.auth.audit", "auditadmin", null, principal, null);
-        zms.putRole(mockDomRsrcCtx, "sys.auth.audit", "auditadmin", auditRef, role);
+        Role role = createRoleObject("sys.auth.audit", "approver." + org, null, principal, null);
+        zms.putRole(mockDomRsrcCtx, "sys.auth.audit", "approver." + org, auditRef, role);
 
         Policy policy = new Policy();
-        policy.setName("auditadmin");
+        policy.setName("approver." + org);
 
         Assertion assertion = new Assertion();
         assertion.setAction("update");
         assertion.setEffect(AssertionEffect.ALLOW);
         assertion.setResource("sys.auth.audit:audit." + org + "_domain_*");
-        assertion.setRole("sys.auth:role.auditadmin");
+        assertion.setRole("sys.auth:role.approver." + org);
 
         List<Assertion> assertList = new ArrayList<>();
         assertList.add(assertion);
 
         policy.setAssertions(assertList);
 
-        zms.putPolicy(mockDomRsrcCtx, "sys.auth.audit", "auditadmin", auditRef, policy);
+        zms.putPolicy(mockDomRsrcCtx, "sys.auth.audit", "approver." + org, auditRef, policy);
     }
 
     @Test
@@ -16322,6 +16322,80 @@ public class ZMSImplTest {
             assertTrue(r.getMessage().contains("Invalid rolename"));
         }
 
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
+    }
+
+    @Test
+    public void testGetPendingDomainRoleMembersList() {
+        TopLevelDomain dom1 = createTopLevelDomainObject("testdomain1","Approval Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        DomainMeta meta = createDomainMetaObject("Domain Meta for approval test", "testOrg",true, true, "12345", 1001);
+        zms.putDomainMeta(mockDomRsrcCtx, "testdomain1", auditRef, meta);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, "testdomain1", "auditenabled", auditRef, meta);
+
+        Role auditedRole = createRoleObject("testdomain1", "testrole1", null,"user.john", "user.jane");
+        zms.putRole(mockDomRsrcCtx, "testdomain1", "testrole1", auditRef, auditedRole);
+        RoleSystemMeta rsm = createRoleSystemMetaObject(true);
+        zms.putRoleSystemMeta(mockDomRsrcCtx, "testdomain1", "testrole1", "auditenabled", auditRef, rsm);
+
+        Membership mbr = new Membership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(false);
+        zms.putMembership(mockDomRsrcCtx, "testdomain1", "testrole1", "user.bob", auditRef, mbr);
+
+        setupPrincipalAuditedRoleApproval(zms, "user.fury", "testOrg");
+
+        mbr = new Membership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(true);
+
+        try {
+            zms.putMembershipDecision(mockDomRsrcCtx, "testdomain1", "testrole1", "user.bob", auditRef, mbr);
+            fail();
+        }catch (ResourceException r){
+            assertEquals(r.code, 403);
+        }
+
+        Authority auditAdminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String auditAdminUnsignedCreds = "v=U1;d=user;n=fury";
+        // used with the mockDomRestRsrcCtx
+        final Principal rsrcAuditAdminPrince = SimplePrincipal.create("user", "fury", auditAdminUnsignedCreds + ";s=signature",
+                0, auditAdminPrincipalAuthority);
+        ((SimplePrincipal) rsrcAuditAdminPrince).setUnsignedCreds(auditAdminUnsignedCreds);
+
+        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
+        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
+
+        DomainRoleMembership domainRoleMembership = zms.getPendingDomainRoleMembersList(mockDomRsrcCtx);
+
+        //revert back to admin principal
+        Authority adminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String adminUnsignedCreds = "v=U1;d=user;n=user1";
+        // used with the mockDomRestRsrcCtx
+        final Principal rsrcAdminPrince = SimplePrincipal.create("user", "user1", adminUnsignedCreds + ";s=signature",
+                0, adminPrincipalAuthority);
+        ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
+
+        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+
+        assertNotNull(domainRoleMembership);
+        assertNotNull(domainRoleMembership.getDomainRoleMembersList());
+        assertEquals(domainRoleMembership.getDomainRoleMembersList().size(), 1);
+        for (DomainRoleMembers drm : domainRoleMembership.getDomainRoleMembersList()) {
+            assertEquals(drm.getDomainName(), "testdomain1");
+            assertNotNull(drm.getMembers());
+            for ( DomainRoleMember mem : drm.getMembers()) {
+                assertNotNull(mem);
+                assertEquals(mem.getMemberName(), "user.bob");
+                for ( MemberRole mr : mem.getMemberRoles()) {
+                    assertNotNull(mr);
+                    assertEquals(mr.getRoleName(), "testdomain1:role.testrole1");
+                }
+            }
+        }
+
+        zms.deleteSubDomain(mockDomRsrcCtx, "sys.auth", "audit", auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
     }
 }
