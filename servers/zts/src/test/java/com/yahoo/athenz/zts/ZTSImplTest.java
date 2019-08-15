@@ -2098,14 +2098,14 @@ public class ZTSImplTest {
         com.yahoo.athenz.zts.ServiceIdentity service = new com.yahoo.athenz.zts.ServiceIdentity();
         service.setName(generateServiceIdentityName("coretech", "storage"));
         setServicePublicKey(service, "0", ZTS_Y64_CERT0);
-        zts.validate(service, "ServiceIdentity", "testValidate");
+        zts.validate(service, "ServiceIdentity", "principal-domain", "testValidate");
         assertTrue(true);
     }
     
     @Test
     public void testValidateObjNull() {
         try {
-            zts.validate(null, "SignedDomain", "testValidate");
+            zts.validate(null, "SignedDomain", "principal-domain", "testValidate");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -2118,7 +2118,7 @@ public class ZTSImplTest {
         service.setName(generateServiceIdentityName("coretech", "storage"));
         setServicePublicKey(service, "0", ZTS_Y64_CERT0);
         try {
-            zts.validate(service, "Policy", "testValidate");
+            zts.validate(service, "Policy", "principal-domain", "testValidate");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -2147,26 +2147,29 @@ public class ZTSImplTest {
         boolean isEmitMonmetricError;
         com.yahoo.athenz.common.metrics.Metric metric = getMetric();
         // negative tests
-        isEmitMonmetricError = ZTSUtils.emitMonmetricError(errorCode, null, ZTSConsts.ZTS_UNKNOWN_DOMAIN, metric);
+        isEmitMonmetricError = ZTSUtils.emitMonmetricError(errorCode, null, ZTSConsts.ZTS_UNKNOWN_DOMAIN,
+                "principal-domain", metric);
         assertFalse(isEmitMonmetricError);
 
-        isEmitMonmetricError = ZTSUtils.emitMonmetricError(errorCode, "", ZTSConsts.ZTS_UNKNOWN_DOMAIN, metric);
+        isEmitMonmetricError = ZTSUtils.emitMonmetricError(errorCode, "", ZTSConsts.ZTS_UNKNOWN_DOMAIN,
+                "principal-domain", metric);
         assertFalse(isEmitMonmetricError);
 
-        isEmitMonmetricError = ZTSUtils.emitMonmetricError(errorCode, "", null, metric);
+        isEmitMonmetricError = ZTSUtils.emitMonmetricError(errorCode, "", null, "principal-domain", metric);
         assertFalse(isEmitMonmetricError);
 
-        isEmitMonmetricError = ZTSUtils.emitMonmetricError(0, caller, null, metric);
+        isEmitMonmetricError = ZTSUtils.emitMonmetricError(0, caller, null, "principal-domain", metric);
         assertFalse(isEmitMonmetricError);
 
-        isEmitMonmetricError = ZTSUtils.emitMonmetricError(-100, caller, null, metric);
+        isEmitMonmetricError = ZTSUtils.emitMonmetricError(-100, caller, null, "principal-domain", metric);
         assertFalse(isEmitMonmetricError);
 
         // positive tests
-        isEmitMonmetricError = ZTSUtils.emitMonmetricError(errorCode, caller, null, metric);
+        isEmitMonmetricError = ZTSUtils.emitMonmetricError(errorCode, caller, null, "principal-domain", metric);
         assertTrue(isEmitMonmetricError);
 
-        isEmitMonmetricError = ZTSUtils.emitMonmetricError(errorCode, " " + caller + " ", null, metric);
+        isEmitMonmetricError = ZTSUtils.emitMonmetricError(errorCode, " " + caller + " ", null,
+                "principal-domain", metric);
         assertTrue(isEmitMonmetricError);
     }
 
@@ -4585,7 +4588,7 @@ public class ZTSImplTest {
     public void testLogPrincipalEmpty() {
         MockHttpServletRequest request = new MockHttpServletRequest();
         ResourceContext ctx = zts.newResourceContext(request, null);
-        zts.logPrincipal(ctx);
+        zts.logPrincipalAndGetDomain(ctx);
         assertTrue(request.attributes.isEmpty());
     }
     
@@ -5639,7 +5642,7 @@ public class ZTSImplTest {
 
         try {
             ztsImpl.getValidatedX509CertRecord(context, "athenz.provider", "1001",
-                    "athenz.production", cert, "caller", "athenz");
+                    "athenz.production", cert, "caller", "athenz", "athenz");
             fail();
         } catch (ResourceException ex) {
             assertEquals(403, ex.getCode());
@@ -5681,7 +5684,7 @@ public class ZTSImplTest {
         ztsImpl.x509CertRefreshResetTime = cert.getNotBefore().getTime() + 1;
 
         X509CertRecord certRecord =  ztsImpl.getValidatedX509CertRecord(context, "athenz.provider",
-                "1001", "athenz.production", cert, "caller", "athenz");
+                "1001", "athenz.production", cert, "caller", "athenz", "athenz");
         assertNotNull(certRecord);
     }
 
@@ -7231,16 +7234,16 @@ public class ZTSImplTest {
         
         // if secure requests is false, no check is done
         
-        ztsImpl.validateRequest(request, "test");
-        ztsImpl.validateRequest(request, "test", false);
-        ztsImpl.validateRequest(request, "test", true);
+        ztsImpl.validateRequest(request, "principal-domain", "test");
+        ztsImpl.validateRequest(request, "principal-domain", "test", false);
+        ztsImpl.validateRequest(request, "principal-domain", "test", true);
         
         // should complete successfully since our request is true
         
         ztsImpl.secureRequestsOnly = true;
-        ztsImpl.validateRequest(request, "test");
-        ztsImpl.validateRequest(request, "test", false);
-        ztsImpl.validateRequest(request, "test", true);
+        ztsImpl.validateRequest(request, "principal-domain", "test");
+        ztsImpl.validateRequest(request, "principal-domain", "test", false);
+        ztsImpl.validateRequest(request, "principal-domain", "test", true);
     }
     
     @Test
@@ -7260,17 +7263,17 @@ public class ZTSImplTest {
         
         Mockito.when(request.isSecure()).thenReturn(false);
         try {
-            ztsImpl.validateRequest(request, "test");
+            ztsImpl.validateRequest(request, "principal-domain", "test");
             fail();
         } catch (ResourceException ignored) {
         }
         try {
-            ztsImpl.validateRequest(request, "test", false);
+            ztsImpl.validateRequest(request, "principal-domain", "test", false);
             fail();
         } catch (ResourceException ignored) {
         }
         try {
-            ztsImpl.validateRequest(request, "test", true);
+            ztsImpl.validateRequest(request, "principal-domain", "test", true);
             fail();
         } catch (ResourceException ignored) {
         }
@@ -7294,13 +7297,13 @@ public class ZTSImplTest {
         
         // non-status requests are allowed on port 4443
         
-        ztsImpl.validateRequest(request, "test");
-        ztsImpl.validateRequest(request, "test", false);
+        ztsImpl.validateRequest(request, "principal-domain", "test");
+        ztsImpl.validateRequest(request, "principal-domain", "test", false);
 
         // status requests are not allowed on port 4443
         
         try {
-            ztsImpl.validateRequest(request, "test", true);
+            ztsImpl.validateRequest(request, "principal-domain", "test", true);
             fail();
         } catch (ResourceException ignored) {
         }
@@ -7324,18 +7327,18 @@ public class ZTSImplTest {
         
         // status requests are allowed on port 8443
         
-        ztsImpl.validateRequest(request, "test", true);
+        ztsImpl.validateRequest(request, "test", "principal-domain", true);
 
         // non-status requests are not allowed on port 8443
         
         try {
-            ztsImpl.validateRequest(request, "test");
+            ztsImpl.validateRequest(request, "principal-domain", "test");
             fail();
         } catch (ResourceException ignored) {
         }
         
         try {
-            ztsImpl.validateRequest(request, "test", false);
+            ztsImpl.validateRequest(request, "principal-domain", "test", false);
             fail();
         } catch (ResourceException ignored) {
         }
@@ -9675,14 +9678,14 @@ public class ZTSImplTest {
                 "creds", 0, new PrincipalAuthority());
         ResourceContext ctx = createResourceContext(principal);
 
-        assertEquals(zts.getPrincipalDomain(ctx), "sports");
+        assertEquals(zts.logPrincipalAndGetDomain(ctx), "sports");
     }
 
     @Test
     public void testGetPrincipalDomainNull() {
 
         ResourceContext ctx = createResourceContext(null);
-        assertNull(zts.getPrincipalDomain(ctx));
+        assertNull(zts.logPrincipalAndGetDomain(ctx));
     }
 
     @Test
@@ -9763,12 +9766,12 @@ public class ZTSImplTest {
 
         // empty strings should return null
 
-        assertNull(zts.getProxyForPrincipalValue("", "athenz.syncer", "getToken"));
+        assertNull(zts.getProxyForPrincipalValue("", "athenz.syncer", "athenz", "getToken"));
 
         // invalid proxy users should return exception
 
         try {
-            zts.getProxyForPrincipalValue("invalid user", "athenz.syncer", "getAccessToken");
+            zts.getProxyForPrincipalValue("invalid user", "athenz.syncer", "athenz", "getAccessToken");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -9777,12 +9780,13 @@ public class ZTSImplTest {
         // valid authorized user should return the proxy user
 
         assertEquals("user_domain.proxy", zts.getProxyForPrincipalValue("user_domain.proxy",
-                "user_domain.proxy-user1", "getAccessToken"));
+                "user_domain.proxy-user1", "user_domain", "getAccessToken"));
 
         // invalid authorized proxy user should return 403
 
         try {
-            zts.getProxyForPrincipalValue("user_domain.proxy", "user_domain.proxy-unknown", "getAccessToken");
+            zts.getProxyForPrincipalValue("user_domain.proxy", "user_domain.proxy-unknown",
+                    "user_domain", "getAccessToken");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
