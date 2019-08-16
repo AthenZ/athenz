@@ -121,6 +121,7 @@ func init() {
 	tRoleMember.Field("memberName", "MemberName", false, nil, "name of the member")
 	tRoleMember.Field("expiration", "Timestamp", true, nil, "the expiration timestamp")
 	tRoleMember.Field("active", "Bool", true, true, "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )")
+	tRoleMember.Field("auditRef", "String", true, nil, "audit reference string for the change as supplied by admin")
 	sb.AddType(tRoleMember.Build())
 
 	tRole := rdl.NewStructTypeBuilder("Struct", "Role")
@@ -147,6 +148,7 @@ func init() {
 	tMembership.Field("roleName", "ResourceName", true, nil, "name of the role")
 	tMembership.Field("expiration", "Timestamp", true, nil, "the expiration timestamp")
 	tMembership.Field("active", "Bool", true, true, "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )")
+	tMembership.Field("auditRef", "String", true, nil, "audit reference string for the change as supplied by admin")
 	sb.AddType(tMembership.Build())
 
 	tDefaultAdmins := rdl.NewStructTypeBuilder("Struct", "DefaultAdmins")
@@ -158,6 +160,7 @@ func init() {
 	tMemberRole.Field("roleName", "ResourceName", false, nil, "name of the role")
 	tMemberRole.Field("expiration", "Timestamp", true, nil, "the expiration timestamp")
 	tMemberRole.Field("active", "Bool", true, true, "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )")
+	tMemberRole.Field("auditRef", "String", true, nil, "audit reference string for the change as supplied by admin")
 	sb.AddType(tMemberRole.Build())
 
 	tDomainRoleMember := rdl.NewStructTypeBuilder("Struct", "DomainRoleMember")

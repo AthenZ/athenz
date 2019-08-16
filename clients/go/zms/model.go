@@ -578,6 +578,11 @@ type RoleMember struct {
 	// )
 	//
 	Active *bool `json:"active,omitempty" rdl:"optional"`
+
+	//
+	// audit reference string for the change as supplied by admin
+	//
+	AuditRef string `json:"auditRef,omitempty" rdl:"optional"`
 }
 
 //
@@ -630,6 +635,12 @@ func (self *RoleMember) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "MemberName", self.MemberName)
 		if !val.Valid {
 			return fmt.Errorf("RoleMember.memberName does not contain a valid MemberName (%v)", val.Error)
+		}
+	}
+	if self.AuditRef != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.AuditRef)
+		if !val.Valid {
+			return fmt.Errorf("RoleMember.auditRef does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil
@@ -826,6 +837,11 @@ type Membership struct {
 	// )
 	//
 	Active *bool `json:"active,omitempty" rdl:"optional"`
+
+	//
+	// audit reference string for the change as supplied by admin
+	//
+	AuditRef string `json:"auditRef,omitempty" rdl:"optional"`
 }
 
 //
@@ -888,6 +904,12 @@ func (self *Membership) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "ResourceName", self.RoleName)
 		if !val.Valid {
 			return fmt.Errorf("Membership.roleName does not contain a valid ResourceName (%v)", val.Error)
+		}
+	}
+	if self.AuditRef != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.AuditRef)
+		if !val.Valid {
+			return fmt.Errorf("Membership.auditRef does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil
@@ -974,6 +996,11 @@ type MemberRole struct {
 	// )
 	//
 	Active *bool `json:"active,omitempty" rdl:"optional"`
+
+	//
+	// audit reference string for the change as supplied by admin
+	//
+	AuditRef string `json:"auditRef,omitempty" rdl:"optional"`
 }
 
 //
@@ -1026,6 +1053,12 @@ func (self *MemberRole) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "ResourceName", self.RoleName)
 		if !val.Valid {
 			return fmt.Errorf("MemberRole.roleName does not contain a valid ResourceName (%v)", val.Error)
+		}
+	}
+	if self.AuditRef != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.AuditRef)
+		if !val.Valid {
+			return fmt.Errorf("MemberRole.auditRef does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil

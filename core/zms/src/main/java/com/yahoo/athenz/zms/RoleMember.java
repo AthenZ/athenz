@@ -17,6 +17,9 @@ public class RoleMember {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean active;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String auditRef;
 
     public RoleMember setMemberName(String memberName) {
         this.memberName = memberName;
@@ -39,6 +42,13 @@ public class RoleMember {
     public Boolean getActive() {
         return active;
     }
+    public RoleMember setAuditRef(String auditRef) {
+        this.auditRef = auditRef;
+        return this;
+    }
+    public String getAuditRef() {
+        return auditRef;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -54,6 +64,9 @@ public class RoleMember {
                 return false;
             }
             if (active == null ? a.active != null : !active.equals(a.active)) {
+                return false;
+            }
+            if (auditRef == null ? a.auditRef != null : !auditRef.equals(a.auditRef)) {
                 return false;
             }
         }
