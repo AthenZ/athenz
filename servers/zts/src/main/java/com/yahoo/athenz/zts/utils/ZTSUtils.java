@@ -164,7 +164,7 @@ public class ZTSUtils {
     }
     
     public static boolean emitMonmetricError(int errorCode, String caller,
-            String domainName, Metric metric) {
+            String requestDomain, String principalDomain, Metric metric) {
 
         if (errorCode < 1) {
             return false;
@@ -175,12 +175,12 @@ public class ZTSUtils {
 
         // Set 3 error metrics:
         // (1) cumulative "ERROR" (of all zts request and error types)
-        // (2) cumulative granular zts request and error type (eg- "getdomainlist_error_400")
+        // (2) cumulative granular zts request and error type (eg- "postaccesstoken_error_400")
         // (3) cumulative error type (of all zts requests) (eg- "error_404")
-        String errCode = Integer.toString(errorCode);
+        final String errCode = Integer.toString(errorCode);
         metric.increment("ERROR");
-        if (domainName != null) {
-            metric.increment(caller.toLowerCase() + "_error_" + errCode, domainName, domainName);
+        if (requestDomain != null) {
+            metric.increment(caller.toLowerCase() + "_error_" + errCode, requestDomain, principalDomain);
         } else {
             metric.increment(caller.toLowerCase() + "_error_" + errCode);
         }
