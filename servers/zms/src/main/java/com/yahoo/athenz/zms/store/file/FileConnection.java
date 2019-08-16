@@ -525,13 +525,31 @@ public class FileConnection implements ObjectStoreConnection {
         }
         return true;
     }
-    
+
     Role getRoleObject(DomainStruct domain, String roleName) {
         HashMap<String, Role> roles = domain.getRoles();
         if (roles == null) {
             return null;
         }
         return roles.get(roleName);
+    }
+
+    Role getRoleObject(DomainStruct domain, String roleName, Boolean pending) {
+
+        Role role = getRoleObject(domain, roleName);
+        if (pending == Boolean.FALSE) {
+            if (role != null && role.getRoleMembers() != null && !role.getRoleMembers().isEmpty()) {
+                Iterator<RoleMember> roleit = role.getRoleMembers().iterator();
+                RoleMember rm;
+                while (roleit.hasNext()) {
+                    rm = roleit.next();
+                    if (rm != null && rm.getActive() != null && rm.getActive() == Boolean.FALSE) {
+                        roleit.remove();
+                    }
+                }
+            }
+        }
+        return role;
     }
     
     Policy getPolicyObject(DomainStruct domain, String policyName) {
@@ -671,7 +689,7 @@ public class FileConnection implements ObjectStoreConnection {
         if (domainStruct == null) {
             throw ZMSUtils.error(ResourceException.NOT_FOUND, "domain not found", "listRoleMembers");
         }
-        Role role = getRoleObject(domainStruct, roleName);
+        Role role = getRoleObject(domainStruct, roleName, pending);
         if (role == null) {
             throw ZMSUtils.error(ResourceException.NOT_FOUND, "role not found", "listRoleMembers");
         }

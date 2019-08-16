@@ -154,10 +154,10 @@ public class DBServiceTest {
 
         List<RoleMember> members = new ArrayList<>();
         if (member1 != null) {
-            members.add(new RoleMember().setMemberName(member1));
+            members.add(new RoleMember().setMemberName(member1).setActive(true));
         }
         if (member2 != null) {
-            members.add(new RoleMember().setMemberName(member2));
+            members.add(new RoleMember().setMemberName(member2).setActive(true));
         }
         return createRoleObject(domainName, roleName, trust, members);
     }
@@ -4177,6 +4177,33 @@ public class DBServiceTest {
         DomainRoleMembership domainRoleMembership = zms.dbService.getPendingDomainRoleMembersList(mockDomRsrcCtx);
         assertNotNull(domainRoleMembership);
         assertNull(domainRoleMembership.getDomainRoleMembersList());
+    }
+
+    @Test
+    public void testGetRolePending() {
+        String domainName = "mgradddom1";
+        String roleName = "role1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,"Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        Role role1 = createRoleObject(domainName, roleName, null,"user.joe", "user.jane");
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, roleName, role1, auditRef, "testGetRolePending");
+        zms.dbService.executePutMembership(mockDomRsrcCtx, domainName, roleName, new RoleMember().setMemberName("user.doe").setActive(false), auditRef, "putMembership");
+
+        Role role = zms.dbService.getRole(domainName, roleName, false, false, true);
+        assertNotNull(role);
+
+        List<RoleMember> members = role.getRoleMembers();
+        assertNotNull(members);
+        assertEquals(members.size(), 3);
+
+        role = zms.dbService.getRole(domainName, roleName, false, false, false);
+        assertNotNull(role);
+        members = role.getRoleMembers();
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
 

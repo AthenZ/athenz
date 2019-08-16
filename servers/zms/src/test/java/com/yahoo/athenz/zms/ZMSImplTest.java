@@ -16078,7 +16078,7 @@ public class ZMSImplTest {
 
         addMemberToSelfServeRoleWithUserIdentity();
 
-        Role resrole = zms.getRole(mockDomRsrcCtx, "testdomain1", "testrole1", false, false, false);
+        Role resrole = zms.getRole(mockDomRsrcCtx, "testdomain1", "testrole1", false, false, true);
         assertEquals(resrole.getRoleMembers().size(), 3);
         for (RoleMember rmem : resrole.getRoleMembers()) {
             if ("user.bob".equals(rmem.getMemberName())) {
@@ -16129,7 +16129,7 @@ public class ZMSImplTest {
 
         addMemberToSelfServeRoleWithUserIdentity();
 
-        Role resrole = zms.getRole(mockDomRsrcCtx, "testdomain1", "testrole1", false, false, false);
+        Role resrole = zms.getRole(mockDomRsrcCtx, "testdomain1", "testrole1", false, false, true);
         assertEquals(resrole.getRoleMembers().size(), 3);
         for (RoleMember rmem : resrole.getRoleMembers()) {
             if ("user.bob".equals(rmem.getMemberName())) {
@@ -16156,7 +16156,7 @@ public class ZMSImplTest {
 
         addMemberToSelfServeRoleWithUserIdentity();
 
-        Role resrole = zms.getRole(mockDomRsrcCtx, "testdomain1", "testrole1", false, false, false);
+        Role resrole = zms.getRole(mockDomRsrcCtx, "testdomain1", "testrole1", false, false, true);
         assertEquals(resrole.getRoleMembers().size(), 3);
         for (RoleMember rmem : resrole.getRoleMembers()) {
             if ("user.bob".equals(rmem.getMemberName())) {
@@ -16217,7 +16217,7 @@ public class ZMSImplTest {
         mbr.setActive(false);
         zms.putMembership(mockDomRsrcCtx, "testdomain1", "testrole1", "user.bob", auditRef, mbr);
 
-        Role resrole = zms.getRole(mockDomRsrcCtx, "testdomain1", "testrole1", false, false, false);
+        Role resrole = zms.getRole(mockDomRsrcCtx, "testdomain1", "testrole1", false, false, true);
         assertEquals(resrole.getRoleMembers().size(), 3);
         for (RoleMember rmem : resrole.getRoleMembers()) {
             if ("user.bob".equals(rmem.getMemberName())) {
@@ -16396,6 +16396,39 @@ public class ZMSImplTest {
         }
 
         zms.deleteSubDomain(mockDomRsrcCtx, "sys.auth", "audit", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
+    }
+
+    @Test
+    public void testGetRoleWithPendingMembers() {
+        TopLevelDomain dom1 = createTopLevelDomainObject("testdomain1","Pending Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        DomainMeta meta = createDomainMetaObject("Domain Meta for approval test", "testOrg",true, true, "12345", 1001);
+        zms.putDomainMeta(mockDomRsrcCtx, "testdomain1", auditRef, meta);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, "testdomain1", "auditenabled", auditRef, meta);
+
+        Role auditedRole = createRoleObject("testdomain1", "testrole1", null,"user.john", "user.jane");
+        zms.putRole(mockDomRsrcCtx, "testdomain1", "testrole1", auditRef, auditedRole);
+        RoleSystemMeta rsm = createRoleSystemMetaObject(true);
+        zms.putRoleSystemMeta(mockDomRsrcCtx, "testdomain1", "testrole1", "auditenabled", auditRef, rsm);
+
+        Membership mbr = new Membership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(false);
+        zms.putMembership(mockDomRsrcCtx, "testdomain1", "testrole1", "user.bob", auditRef, mbr);
+
+        Role resRole = zms.getRole(mockDomRsrcCtx, "testdomain1", "testrole1", false, false, true);
+
+        assertNotNull(resRole);
+        assertEquals(resRole.getRoleMembers().size(), 3);
+
+        for ( RoleMember rm : resRole.getRoleMembers()) {
+            if ("user.bob".equals(rm.getMemberName())) {
+                assertFalse(rm.getActive());
+            }
+        }
+
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
     }
 }

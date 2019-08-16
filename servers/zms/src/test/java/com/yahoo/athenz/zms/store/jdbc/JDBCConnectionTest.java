@@ -7416,4 +7416,52 @@ public class JDBCConnectionTest {
         }
         jdbcConn.close();
     }
+
+    @Test
+    public void testListRoleMembersWithPending() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7); // return domain/role id
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for role id
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false);
+        Mockito.when(mockResultSet.getString(1))
+                .thenReturn("zdomain.user1")
+                .thenReturn("adomain.storage")
+                .thenReturn("bdomain.user2");
+        Mockito.when(mockResultSet.getTimestamp(2))
+                .thenReturn(new java.sql.Timestamp(System.currentTimeMillis() + 100))
+                .thenReturn(new java.sql.Timestamp(System.currentTimeMillis() + 200))
+                .thenReturn(null);
+        Mockito.when(mockResultSet.getBoolean(3))
+                .thenReturn(true)
+                .thenReturn(false)
+                .thenReturn(true);
+
+        List<RoleMember> roleMembers = jdbcConn.listRoleMembers("my-domain", "role1", true);
+
+        // data back is sorted
+
+        assertEquals(3, roleMembers.size());
+
+        assertNotNull(roleMembers.get(0).getExpiration());
+        assertNull(roleMembers.get(1).getExpiration());
+        assertNotNull(roleMembers.get(2).getExpiration());
+
+        assertEquals("adomain.storage", roleMembers.get(0).getMemberName());
+        assertEquals("bdomain.user2", roleMembers.get(1).getMemberName());
+        assertEquals("zdomain.user1", roleMembers.get(2).getMemberName());
+
+        assertFalse(roleMembers.get(0).getActive());
+        assertTrue(roleMembers.get(1).getActive());
+        assertTrue(roleMembers.get(2).getActive());
+
+        jdbcConn.close();
+    }
+
 }
