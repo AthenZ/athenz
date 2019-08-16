@@ -30,7 +30,6 @@ import org.bouncycastle.asn1.x500.style.IETFUtils;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 
 import java.io.*;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
@@ -2732,8 +2731,8 @@ public class ZTSClientTest {
 
     @Test
     public void testPrefetchRoleTokenScheduledItem() {
-        ZTSClient.PrefetchRoleTokenScheduledItem item1 = new ZTSClient.PrefetchRoleTokenScheduledItem();
-        ZTSClient.PrefetchRoleTokenScheduledItem item2 = new ZTSClient.PrefetchRoleTokenScheduledItem();
+        ZTSClient.PrefetchTokenScheduledItem item1 = new ZTSClient.PrefetchTokenScheduledItem();
+        ZTSClient.PrefetchTokenScheduledItem item2 = new ZTSClient.PrefetchTokenScheduledItem();
 
         // identity domain check
 

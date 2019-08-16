@@ -144,7 +144,7 @@ public class ZTSClient implements Closeable {
     final static ConcurrentHashMap<String, AWSTemporaryCredentials> AWS_CREDS_CACHE = new ConcurrentHashMap<>();
 
     private static final long FETCH_EPSILON = 60; // if cache expires in the next minute, fetch it.
-    private static final Queue<PrefetchRoleTokenScheduledItem> PREFETCH_SCHEDULED_ITEMS = new ConcurrentLinkedQueue<>();
+    private static final Queue<PrefetchTokenScheduledItem> PREFETCH_SCHEDULED_ITEMS = new ConcurrentLinkedQueue<>();
     private static Timer FETCH_TIMER;
     private static final Object TIMER_LOCK = new Object();
     static AtomicLong FETCHER_LAST_RUN_AT = new AtomicLong(-1);
@@ -154,6 +154,12 @@ public class ZTSClient implements Closeable {
     private static ServiceLoader<ZTSClientService> ztsTokenProviders;
     private static AtomicReference<Set<String>> svcLoaderCacheKeys;
     private static PrivateKeyStore PRIVATE_KEY_STORE = loadServicePrivateKey();
+
+    enum TokenType {
+        ROLE,
+        ACCESS,
+        AWS
+    }
 
     static boolean initConfigValues() {
 
@@ -747,7 +753,7 @@ public class ZTSClient implements Closeable {
             return false;
         }
         
-        String creds = principal.getCredentials();
+        final String creds = principal.getCredentials();
         if (creds == null) {
             return false;
         }
@@ -1052,6 +1058,17 @@ public class ZTSClient implements Closeable {
                 if (accessTokenResponse != null) {
                     return accessTokenResponse;
                 }
+                // start prefetch for this token if prefetch is enabled
+                if (enablePrefetch && prefetchAutoEnable) {
+                    if (prefetchAccessToken(domainName, roleNames, idTokenServiceName,
+                            proxyForPrincipal, expiryTime)) {
+                        accessTokenResponse = lookupAccessTokenResponseInCache(cacheKey, expiryTime);
+                    }
+                    if (accessTokenResponse != null) {
+                        return accessTokenResponse;
+                    }
+                    LOG.error("GetAccessToken: cache prefetch and lookup error");
+                }
             }
         }
 
@@ -1126,6 +1143,25 @@ public class ZTSClient implements Closeable {
         }
 
         return body.toString();
+    }
+
+    public boolean prefetchAccessToken(String domainName, List<String> roleNames,
+        String idTokenServiceName, String proxyForPrincipal, long expiryTime) {
+
+        if (domainName == null || domainName.trim().isEmpty()) {
+            throw new ZTSClientException(ZTSClientException.BAD_REQUEST, "Domain Name cannot be empty");
+        }
+
+        AccessTokenResponse tokenResponse = getAccessToken(domainName, roleNames, idTokenServiceName,
+            proxyForPrincipal, expiryTime, true);
+        if (tokenResponse == null) {
+            LOG.error("PrefetchToken: No access token fetchable using domain={}", domainName);
+            return false;
+        }
+        long expiryTimeUTC = System.currentTimeMillis() + tokenResponse.getExpires_in();
+
+        return prefetchToken(domainName, null, roleNames, null, (int) expiryTime,
+                proxyForPrincipal, idTokenServiceName, null, expiryTimeUTC, TokenType.ACCESS);
     }
 
     /**
@@ -1322,7 +1358,7 @@ public class ZTSClient implements Closeable {
     
     private static class RolePrefetchTask extends TimerTask {
         
-        ZTSClient getZTSClient(PrefetchRoleTokenScheduledItem item) {
+        ZTSClient getZTSClient(PrefetchTokenScheduledItem item) {
             
             ZTSClient client;
             if (item.sslContext != null) {
@@ -1351,12 +1387,12 @@ public class ZTSClient implements Closeable {
                 return;
             }
             
-            List<PrefetchRoleTokenScheduledItem> toFetch = new ArrayList<>(PREFETCH_SCHEDULED_ITEMS.size());
+            List<PrefetchTokenScheduledItem> toFetch = new ArrayList<>(PREFETCH_SCHEDULED_ITEMS.size());
             synchronized (PREFETCH_SCHEDULED_ITEMS) {
                 
                 // if this item is to be fetched now, add it to collection
                 
-                for (PrefetchRoleTokenScheduledItem item : PREFETCH_SCHEDULED_ITEMS) {
+                for (PrefetchTokenScheduledItem item : PREFETCH_SCHEDULED_ITEMS) {
                 
                     // see if item expires within next two minutes
                     
@@ -1387,7 +1423,7 @@ public class ZTSClient implements Closeable {
                 
                 // fetch items
                 
-                for (PrefetchRoleTokenScheduledItem item : toFetch) {
+                for (PrefetchTokenScheduledItem item : toFetch) {
                 
                     // create ZTS Client for this particular item
 
@@ -1401,40 +1437,60 @@ public class ZTSClient implements Closeable {
                         if (item.ztsClient != null) {
                             itemZtsClient.ztsClient = item.ztsClient;
                         }
-                        
-                        if (item.isRoleToken()) {
+
+                        switch (item.tokenType) {
+
+                            case ROLE:
                             
-                            // check if this came from service provider
-                            
-                            String key = itemZtsClient.getRoleTokenCacheKey(item.domainName, item.roleName,
-                                    item.proxyForPrincipal);
-                            if (oldSvcLoaderCache.contains(key)) {
-                                
-                                // if haven't gotten the new list of service
-                                // loader tokens then get it now 
-                                
-                                if (newSvcLoaderCache == null) {
-                                    newSvcLoaderCache = loadSvcProviderTokens();
+                                // check if this came from service provider
+
+                                String key = itemZtsClient.getRoleTokenCacheKey(item.domainName, item.roleName,
+                                        item.proxyForPrincipal);
+                                if (oldSvcLoaderCache.contains(key)) {
+
+                                    // if haven't gotten the new list of service
+                                    // loader tokens then get it now
+
+                                    if (newSvcLoaderCache == null) {
+                                        newSvcLoaderCache = loadSvcProviderTokens();
+                                    }
+
+                                    // check if the key is in the new key set
+                                    // - if not, mark the item as invalid
+
+                                    if (!newSvcLoaderCache.contains(key)) {
+                                        item.isInvalid(true);
+                                    }
+                                } else {
+                                    RoleToken token = itemZtsClient.getRoleToken(item.domainName, item.roleName,
+                                            item.minDuration, item.maxDuration, true, item.proxyForPrincipal);
+
+                                    // update the expiry time
+
+                                    item.expiresAtUTC(token.getExpiryTime());
                                 }
-                                
-                                // check if the key is in the new key set
-                                // - if not, mark the item as invalid
-                                
-                                if (!newSvcLoaderCache.contains(key)) {
-                                    item.isInvalid(true);
-                                }
-                            } else {
-                                RoleToken token = itemZtsClient.getRoleToken(item.domainName, item.roleName,
-                                        item.minDuration, item.maxDuration, true, item.proxyForPrincipal);
-                                
-                                // update the expire time
-                                
-                                item.expiresAtUTC(token.getExpiryTime());
-                            }
-                        } else {
-                            AWSTemporaryCredentials awsCred = itemZtsClient.getAWSTemporaryCredentials(item.domainName,
-                                    item.roleName, item.externalId, item.minDuration, item.maxDuration, true);
-                            item.expiresAtUTC(awsCred.getExpiration().millis() / 1000);
+                                break;
+
+
+                            case ACCESS:
+
+                                AccessTokenResponse response = itemZtsClient.getAccessToken(item.domainName, item.roleNames,
+                                        item.idTokenServiceName, item.proxyForPrincipal, item.maxDuration, true);
+
+                                // update the expiry time
+
+                                item.expiresAtUTC(System.currentTimeMillis() + response.getExpires_in());
+                                break;
+
+                            case AWS:
+
+                                AWSTemporaryCredentials awsCred = itemZtsClient.getAWSTemporaryCredentials(item.domainName,
+                                        item.roleName, item.externalId, item.minDuration, item.maxDuration, true);
+
+                                // update the expiry time
+
+                                item.expiresAtUTC(awsCred.getExpiration().millis() / 1000);
+                                break;
                         }
                         
                         // don't forget to restore the original client if case
@@ -1529,8 +1585,8 @@ public class ZTSClient implements Closeable {
         }
         long expiryTimeUTC = token.getExpiryTime();
         
-        return prefetchToken(domainName, roleName, minExpiryTime, maxExpiryTime,
-                proxyForPrincipal, null, expiryTimeUTC, true);
+        return prefetchToken(domainName, roleName, null, minExpiryTime, maxExpiryTime,
+                proxyForPrincipal, null, null, expiryTimeUTC, TokenType.ROLE);
     }
     
     boolean prefetchAwsCreds(String domainName, String roleName, String externalId,
@@ -1549,13 +1605,13 @@ public class ZTSClient implements Closeable {
         }
         long expiryTimeUTC = awsCred.getExpiration().millis() / 1000;
         
-        return prefetchToken(domainName, roleName, minExpiryTime, maxExpiryTime, null,
-                externalId, expiryTimeUTC, false);
+        return prefetchToken(domainName, roleName, null, minExpiryTime, maxExpiryTime, null,
+                externalId, null, expiryTimeUTC, TokenType.AWS);
     }
     
-    boolean prefetchToken(String domainName, String roleName, Integer minExpiryTime,
-            Integer maxExpiryTime, String proxyForPrincipal, String externalId,
-            long expiryTimeUTC, boolean isRoleToken) {
+    boolean prefetchToken(String domainName, String roleName, List<String> roleNames,
+            Integer minExpiryTime, Integer maxExpiryTime, String proxyForPrincipal,
+            String externalId, String idTokenServiceName, long expiryTimeUTC, TokenType tokenType) {
         
         // if we're given a ssl context then we don't have domain/service
         // settings configured otherwise those are required
@@ -1570,15 +1626,17 @@ public class ZTSClient implements Closeable {
             }
         }
         
-        PrefetchRoleTokenScheduledItem item = new PrefetchRoleTokenScheduledItem()
-            .isRoleToken(isRoleToken)
+        PrefetchTokenScheduledItem item = new PrefetchTokenScheduledItem()
+            .tokenType(tokenType)
             .domainName(domainName)
             .roleName(roleName)
+            .roleNames(roleNames)
             .proxyForPrincipal(proxyForPrincipal)
             .externalId(externalId)
             .minDuration(minExpiryTime)
             .maxDuration(maxExpiryTime)
             .expiresAtUTC(expiryTimeUTC)
+            .idTokenServiceName(idTokenServiceName)
             .identityDomain(domain)
             .identityName(service)
             .tokenMinExpiryTime(ZTSClient.tokenMinExpiryTime)
@@ -1662,7 +1720,6 @@ public class ZTSClient implements Closeable {
 
         return cacheKey.toString();
     }
-
 
     String getRoleTokenCacheKey(String domainName, String roleName, String proxyForPrincipal) {
 
@@ -2376,109 +2433,118 @@ public class ZTSClient implements Closeable {
         }
     }
     
-    static class PrefetchRoleTokenScheduledItem {
-        
-        boolean isRoleToken = true;
-        PrefetchRoleTokenScheduledItem isRoleToken(boolean isRole) {
-            isRoleToken = isRole;
+    static class PrefetchTokenScheduledItem {
+
+        TokenType tokenType = TokenType.ACCESS;
+        PrefetchTokenScheduledItem tokenType(TokenType type) {
+            tokenType = type;
             return this;
         }
-        boolean isRoleToken() {
-            return isRoleToken;
-        }
-        
+
         String providedZTSUrl;
-        PrefetchRoleTokenScheduledItem providedZTSUrl(String u) {
+        PrefetchTokenScheduledItem providedZTSUrl(String u) {
             providedZTSUrl = u;
             return this;
         }
         
         ServiceIdentityProvider siaProvider;
-        PrefetchRoleTokenScheduledItem siaIdentityProvider(ServiceIdentityProvider s) {
+        PrefetchTokenScheduledItem siaIdentityProvider(ServiceIdentityProvider s) {
             siaProvider = s;
             return this;
         }
         
         ZTSRDLGeneratedClient ztsClient;
-        PrefetchRoleTokenScheduledItem ztsClient(ZTSRDLGeneratedClient z) {
+        PrefetchTokenScheduledItem ztsClient(ZTSRDLGeneratedClient z) {
             ztsClient = z;
             return this;
         }
         
         boolean isInvalid = false;
-        PrefetchRoleTokenScheduledItem isInvalid(boolean invalid) {
+        PrefetchTokenScheduledItem isInvalid(boolean invalid) {
             isInvalid = invalid;
             return this;
         }
         
         String identityDomain;
-        PrefetchRoleTokenScheduledItem identityDomain(String d) {
+        PrefetchTokenScheduledItem identityDomain(String d) {
             identityDomain = d;
             return this;
         }
         
         String identityName;
-        PrefetchRoleTokenScheduledItem identityName(String d) {
+        PrefetchTokenScheduledItem identityName(String d) {
             identityName = d;
             return this;
         }
         
         String domainName;
-        PrefetchRoleTokenScheduledItem domainName(String d) {
+        PrefetchTokenScheduledItem domainName(String d) {
             domainName = d;
             return this;
         }
         
         String roleName;
-        PrefetchRoleTokenScheduledItem roleName(String s) {
+        PrefetchTokenScheduledItem roleName(String s) {
             roleName = s;
             return this;
         }
-        
+
+        List<String> roleNames;
+        PrefetchTokenScheduledItem roleNames(List<String> stringList) {
+            roleNames = stringList;
+            return this;
+        }
+
         String proxyForPrincipal;
-        PrefetchRoleTokenScheduledItem proxyForPrincipal(String u) {
+        PrefetchTokenScheduledItem proxyForPrincipal(String u) {
             proxyForPrincipal = u;
             return this;
         }
 
         String externalId;
-        PrefetchRoleTokenScheduledItem externalId(String id) {
+        PrefetchTokenScheduledItem externalId(String id) {
             externalId = id;
             return this;
         }
 
+        String idTokenServiceName;
+        PrefetchTokenScheduledItem idTokenServiceName(String serviceName) {
+            idTokenServiceName = serviceName;
+            return this;
+        }
+
         Integer minDuration;
-        PrefetchRoleTokenScheduledItem minDuration(Integer min) {
+        PrefetchTokenScheduledItem minDuration(Integer min) {
             minDuration = min;
             return this;
         }
         
         Integer maxDuration;
-        PrefetchRoleTokenScheduledItem maxDuration(Integer max) {
+        PrefetchTokenScheduledItem maxDuration(Integer max) {
             maxDuration = max;
             return this;
         }
         
         long expiresAtUTC;
-        PrefetchRoleTokenScheduledItem expiresAtUTC(long e) {
+        PrefetchTokenScheduledItem expiresAtUTC(long e) {
             expiresAtUTC = e;
             return this;
         }
         
         int tokenMinExpiryTime;
-        PrefetchRoleTokenScheduledItem tokenMinExpiryTime(int t) {
+        PrefetchTokenScheduledItem tokenMinExpiryTime(int t) {
             tokenMinExpiryTime = t;
             return this;
         }
 
         SSLContext sslContext;
-        PrefetchRoleTokenScheduledItem sslContext(SSLContext ctx) {
+        PrefetchTokenScheduledItem sslContext(SSLContext ctx) {
             sslContext = ctx;
             return this;
         }
         
         String proxyUrl;
-        PrefetchRoleTokenScheduledItem proxyUrl(String url) {
+        PrefetchTokenScheduledItem proxyUrl(String url) {
             proxyUrl = url;
             return this;
         }
@@ -2491,11 +2557,13 @@ public class ZTSClient implements Closeable {
             result = prime * result + ((identityDomain == null) ? 0 : identityDomain.hashCode());
             result = prime * result + ((identityName == null) ? 0 : identityName.hashCode());
             result = prime * result + ((roleName == null) ? 0 : roleName.hashCode());
+            result = prime * result + ((roleNames == null) ? 0 : roleNames.hashCode());
             result = prime * result + ((proxyForPrincipal == null) ? 0 : proxyForPrincipal.hashCode());
             result = prime * result + ((externalId == null) ? 0 : externalId.hashCode());
+            result = prime * result + ((idTokenServiceName == null) ? 0 : idTokenServiceName.hashCode());
             result = prime * result + ((sslContext == null) ? 0 : sslContext.hashCode());
             result = prime * result + ((proxyUrl == null) ? 0 : proxyUrl.hashCode());
-            result = prime * result + Boolean.hashCode(isRoleToken);
+            result = prime * result + tokenType.hashCode();
             result = prime * result + Boolean.hashCode(isInvalid);
 
             return result;
@@ -2512,7 +2580,7 @@ public class ZTSClient implements Closeable {
             if (getClass() != obj.getClass()) {
                 return false;
             }
-            PrefetchRoleTokenScheduledItem other = (PrefetchRoleTokenScheduledItem) obj;
+            PrefetchTokenScheduledItem other = (PrefetchTokenScheduledItem) obj;
             if (domainName == null) {
                 if (other.domainName != null) {
                     return false;
@@ -2541,6 +2609,13 @@ public class ZTSClient implements Closeable {
             } else if (!roleName.equals(other.roleName)) {
                 return false;
             }
+            if (roleNames == null) {
+                if (other.roleNames != null) {
+                    return false;
+                }
+            } else if (!roleNames.equals(other.roleNames)) {
+                return false;
+            }
             if (proxyForPrincipal == null) {
                 if (other.proxyForPrincipal != null) {
                     return false;
@@ -2555,10 +2630,17 @@ public class ZTSClient implements Closeable {
             } else if (!externalId.equals(other.externalId)) {
                 return false;
             }
+            if (idTokenServiceName == null) {
+                if (other.idTokenServiceName != null) {
+                    return false;
+                }
+            } else if (!idTokenServiceName.equals(other.idTokenServiceName)) {
+                return false;
+            }
             if (isInvalid != other.isInvalid) {
                 return false;
             }
-            if (isRoleToken != other.isRoleToken) {
+            if (tokenType != other.tokenType) {
                 return false;
             }
             if (sslContext == null) {
@@ -2737,7 +2819,7 @@ public class ZTSClient implements Closeable {
         }
 
         final String tenantDomain = principalName.substring(0, index);
-        final String tenantService  = principalName.substring(index + 1);
+        final String tenantService = principalName.substring(index + 1);
         Long expiryTime = rt.getExpiryTime();
 
         RoleToken roleToken = new RoleToken().setToken(desc.getSignedToken()).setExpiryTime(expiryTime);
@@ -2767,8 +2849,8 @@ public class ZTSClient implements Closeable {
             throw new ZTSClientException(ZTSClientException.BAD_REQUEST, "Domain Name cannot be empty");
         }
 
-        PrefetchRoleTokenScheduledItem item = new PrefetchRoleTokenScheduledItem()
-            .isRoleToken(true)
+        PrefetchTokenScheduledItem item = new PrefetchTokenScheduledItem()
+            .tokenType(TokenType.ROLE)
             .domainName(domainName)
             .roleName(roleName)
             .proxyForPrincipal(proxyForPrincipal)

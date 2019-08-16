@@ -148,7 +148,7 @@ public class X509CertRequest {
         // to keep track of those entries in a separate list so we can
         // send them to the provider for verification (provider does not
         // have knowledge about the additional service dns domain entries
-        // so it doesn't need to get those
+        // so it doesn't need to get those)
 
         final String serviceDnsSuffixCheck = (serviceDnsSuffix != null) ? "." + serviceDnsSuffix : null;
         List<String> providerDnsSuffixCheckList = null;
