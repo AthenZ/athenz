@@ -1291,8 +1291,10 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
         List<RoleMember> members = new ArrayList<>();
 
+        // When pending = true, we need all members, active as well as pending.
         String query = SQL_LIST_ROLE_MEMBERS;
         if (pending == Boolean.FALSE) {
+            //since pending is false, add a clause to select only active members
             query += SQL_ROLE_MEMBERS_ACTIVE_FLAG_CLAUSE;
         } else {
             query += SEMI_COLON;

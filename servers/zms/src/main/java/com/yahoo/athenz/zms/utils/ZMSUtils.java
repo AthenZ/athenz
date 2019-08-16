@@ -216,7 +216,10 @@ public class ZMSUtils {
             return memberList;
         }
         for (RoleMember member: members) {
-            memberList.add(member.getMemberName());
+            // only add active members to membername list
+            if (member.getActive() == Boolean.TRUE) {
+                memberList.add(member.getMemberName());
+            }
         }
         return memberList;
     }

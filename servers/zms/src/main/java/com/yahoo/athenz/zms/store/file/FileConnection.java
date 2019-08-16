@@ -543,7 +543,7 @@ public class FileConnection implements ObjectStoreConnection {
                 RoleMember rm;
                 while (roleit.hasNext()) {
                     rm = roleit.next();
-                    if (rm != null && rm.getActive() != null && rm.getActive() == Boolean.FALSE) {
+                    if (rm != null && rm.getActive() == Boolean.FALSE) {
                         roleit.remove();
                     }
                 }
