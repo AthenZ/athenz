@@ -40,7 +40,7 @@ func (cli Zms) importRoles(dn string, lstRoles []interface{}, validatedAdmins []
 			if rn == "admin" && validatedAdmins != nil {
 				// need to retrieve the current admin role
 				// and make sure to remove any existing admin
-				role, err := cli.Zms.GetRole(zms.DomainName(dn), "admin", nil, nil)
+				role, err := cli.Zms.GetRole(zms.DomainName(dn), "admin", nil, nil, nil)
 				if err != nil {
 					return err
 				}

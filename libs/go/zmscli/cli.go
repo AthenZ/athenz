@@ -306,11 +306,13 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			return cli.ListRoles(dn)
 		case "show-role":
 			if argc == 1 {
-				return cli.ShowRole(dn, args[0], false, false)
+				return cli.ShowRole(dn, args[0], false, false, false)
 			} else if argc == 2 && args[1] == "log" {
-				return cli.ShowRole(dn, args[0], true, false)
+				return cli.ShowRole(dn, args[0], true, false, false)
 			} else if argc == 2 && args[1] == "expand" {
-				return cli.ShowRole(dn, args[0], false, true)
+				return cli.ShowRole(dn, args[0], false, true, false)
+			} else if argc == 2 && args[1] == "pending" {
+				return cli.ShowRole(dn, args[0], false, false, true)
 			}
 		case "add-delegated-role", "add-trusted-role":
 			if argc == 2 {
@@ -918,7 +920,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domain_example + " list-role\n")
 	case "show-role":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domain_param + " show-role role [log | expand]\n")
+		buf.WriteString("   " + domain_param + " show-role role [log | expand | pending]\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain : name of the domain that role belongs to\n")
@@ -926,10 +928,12 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   role   : name of the role to be displayed\n")
 		buf.WriteString("   log    : option argument to specify to display audit logs for role\n")
 		buf.WriteString("   expand : option argument to specify to display delegated members\n")
+		buf.WriteString("   pending : option argument to specify to display pending members\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domain_example + " show-role admin\n")
 		buf.WriteString("   " + domain_example + " show-role admin log\n")
 		buf.WriteString("   " + domain_example + " show-role delegated-role expand\n")
+		buf.WriteString("   " + domain_example + " show-role myrole pending\n")
 	case "add-delegated-role":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domain_param + " add-delegated-role role trusted_domain\n")

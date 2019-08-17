@@ -90,10 +90,10 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "WHERE role.role_id=? AND principal.name=? AND role_member.active=true;";
     private static final String SQL_GET_ROLE_MEMBER_EXISTS = "SELECT principal_id FROM role_member WHERE role_id=? AND principal_id=?;";
     private static final String SQL_GET_ROLE_MEMBER_INACTIVE_EXISTS = "SELECT principal_id FROM role_member WHERE role_id=? AND principal_id=? AND active=false;";
-    private static final String SQL_LIST_ROLE_MEMBERS = "SELECT principal.name, role_member.expiration FROM principal "
+    private static final String SQL_LIST_ROLE_MEMBERS = "SELECT principal.name, role_member.expiration, role_member.active FROM principal "
             + "JOIN role_member ON role_member.principal_id=principal.principal_id "
-            + "JOIN role ON role.role_id=role_member.role_id "
-            + "WHERE role.role_id=? AND role_member.active=true;";
+            + "JOIN role ON role.role_id=role_member.role_id WHERE role.role_id=?";
+    private static final String SQL_ROLE_MEMBERS_ACTIVE_FLAG_CLAUSE = " AND role_member.active=true;";
     private static final String SQL_COUNT_ROLE_MEMBERS = "SELECT COUNT(*) FROM role_member WHERE role_id=?;";
     private static final String SQL_GET_PRINCIPAL_ID = "SELECT principal_id FROM principal WHERE name=?;";
     private static final String SQL_INSERT_PRINCIPAL = "INSERT INTO principal (name) VALUES (?);";
@@ -250,6 +250,8 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String ALL_PRINCIPALS  = "*";
 
     private static final String AWS_ARN_PREFIX  = "arn:aws:iam::";
+
+    private static final String SEMI_COLON = ";";
     
     Connection con;
     boolean transactionCompleted;
@@ -1275,7 +1277,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     };
 
     @Override
-    public List<RoleMember> listRoleMembers(String domainName, String roleName) {
+    public List<RoleMember> listRoleMembers(String domainName, String roleName, Boolean pending) {
         
         final String caller = "listRoleMembers";
 
@@ -1288,7 +1290,17 @@ public class JDBCConnection implements ObjectStoreConnection {
             throw notFoundError(caller, ZMSConsts.OBJECT_ROLE, ZMSUtils.roleResourceName(domainName, roleName));
         }
         List<RoleMember> members = new ArrayList<>();
-        try (PreparedStatement ps = con.prepareStatement(SQL_LIST_ROLE_MEMBERS)) {
+
+        // When pending = true, we need all members, active as well as pending.
+        String query = SQL_LIST_ROLE_MEMBERS;
+        if (pending == Boolean.FALSE) {
+            //since pending is false, add a clause to select only active members
+            query += SQL_ROLE_MEMBERS_ACTIVE_FLAG_CLAUSE;
+        } else {
+            query += SEMI_COLON;
+        }
+
+        try (PreparedStatement ps = con.prepareStatement(query)) {
             ps.setInt(1, roleId);
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
@@ -1298,6 +1310,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     if (expiration != null) {
                         roleMember.setExpiration(Timestamp.fromMillis(expiration.getTime()));
                     }
+                    roleMember.setActive(rs.getBoolean(3));
                     members.add(roleMember);
                 }
             }

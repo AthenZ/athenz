@@ -610,11 +610,11 @@ public class ZMSResources {
     @GET
     @Path("/domain/{domainName}/role/{roleName}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Role getRole(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @QueryParam("auditLog") @DefaultValue("false") Boolean auditLog, @QueryParam("expand") @DefaultValue("false") Boolean expand) {
+    public Role getRole(@PathParam("domainName") String domainName, @PathParam("roleName") String roleName, @QueryParam("auditLog") @DefaultValue("false") Boolean auditLog, @QueryParam("expand") @DefaultValue("false") Boolean expand, @QueryParam("pending") @DefaultValue("false") Boolean pending) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
             context.authenticate();
-            return this.delegate.getRole(context, domainName, roleName, auditLog, expand);
+            return this.delegate.getRole(context, domainName, roleName, auditLog, expand, pending);
         } catch (ResourceException e) {
             int code = e.getCode();
             switch (code) {

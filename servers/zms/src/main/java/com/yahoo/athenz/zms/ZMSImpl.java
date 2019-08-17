@@ -2568,7 +2568,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public Role getRole(ResourceContext ctx, String domainName, String roleName,
-            Boolean auditLog, Boolean expand) {
+            Boolean auditLog, Boolean expand, Boolean pending) {
         
         final String caller = "getrole";
         metric.increment(ZMSConsts.HTTP_GET);
@@ -2590,7 +2590,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.increment(caller, domainName, principalDomain);
         Object timerMetric = metric.startTiming("getrole_timing", domainName, principalDomain);
         
-        Role role = dbService.getRole(domainName, roleName, auditLog, expand);
+        Role role = dbService.getRole(domainName, roleName, auditLog, expand, pending);
         if (role == null) {
             throw ZMSUtils.notFoundError("getRole: Role not found: '" +
                     ZMSUtils.roleResourceName(domainName, roleName) + "'", caller);

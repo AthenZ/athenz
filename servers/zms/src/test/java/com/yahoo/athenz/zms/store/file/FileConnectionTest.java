@@ -149,7 +149,7 @@ public class FileConnectionTest {
         File quotaDir = new File("/home/athenz/zms_quota");
         try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
             try {
-                fileconnection.listRoleMembers("DummyDomain1", "Role1");
+                fileconnection.listRoleMembers("DummyDomain1", "Role1", false);
             } catch (Exception ex) {
                 assertTrue(true);
             }
@@ -579,4 +579,15 @@ public class FileConnectionTest {
             }
         }
     }
+
+    @Test
+    public void testGetRoleObjectWithPending() {
+        File fileDir = new File("/home/athenz/zms_store");
+        File quotaDir = new File("/home/athenz/zms_quota");
+        try (FileConnection fileconnection = new FileConnection(fileDir, quotaDir)) {
+            DomainStruct domain = new DomainStruct();
+            fileconnection.getRoleObject(domain, "role1", false);
+        }
+    }
+
 }

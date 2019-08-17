@@ -1951,7 +1951,7 @@ public class ZMSImplTest {
                 "user.joe", "user.jane");
         zms.putRole(mockDomRsrcCtx, "GetRoleDom1", "Role1", auditRef, role1);
 
-        Role role = zms.getRole(mockDomRsrcCtx, "GetRoleDom1", "Role1", false, false);
+        Role role = zms.getRole(mockDomRsrcCtx, "GetRoleDom1", "Role1", false, false, false);
         assertNotNull(role);
 
         assertEquals(role.getName(), "GetRoleDom1:role.Role1".toLowerCase());
@@ -1975,7 +1975,7 @@ public class ZMSImplTest {
         
         // Tests the getRole() condition: if (domain == null)...
         try {
-            zms.getRole(mockDomRsrcCtx, domainName, roleName, false, false);
+            zms.getRole(mockDomRsrcCtx, domainName, roleName, false, false, false);
             fail("notfounderror not thrown.");
         } catch (ResourceException e) {
             assertEquals(e.getCode(), 404);
@@ -1988,7 +1988,7 @@ public class ZMSImplTest {
         // Tests the getRole() condition: if (collection == null)...
         try {
             // Should fail because we did not create a role resource.
-            zms.getRole(mockDomRsrcCtx, domainName, roleName, false, false);
+            zms.getRole(mockDomRsrcCtx, domainName, roleName, false, false, false);
             fail("notfounderror not thrown.");
         } catch (ResourceException e) {
             assertEquals(e.getCode(), 404);
@@ -2001,7 +2001,7 @@ public class ZMSImplTest {
             zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, role1);
             
             // Should fail because we are trying to find a non-existent role.
-            zms.getRole(mockDomRsrcCtx, domainName, wrongRoleName, false, false);
+            zms.getRole(mockDomRsrcCtx, domainName, wrongRoleName, false, false, false);
             fail("notfounderror not thrown.");
         } catch (ResourceException e) {
             assertEquals(e.getCode(), 404);
@@ -2064,7 +2064,7 @@ public class ZMSImplTest {
                 "user.joe", "user.jane");
         zmsImpl.putRole(mockDomRsrcCtx, "CreateRoleDom1", "Role1", auditRef, role1);
 
-        Role role3 = zmsImpl.getRole(mockDomRsrcCtx, "CreateRoleDom1", "Role1", false, false);
+        Role role3 = zmsImpl.getRole(mockDomRsrcCtx, "CreateRoleDom1", "Role1", false, false, false);
         assertNotNull(role3);
         assertEquals(role3.getName(), "CreateRoleDom1:role.Role1".toLowerCase());
         assertNull(role3.getTrust());
@@ -2132,7 +2132,7 @@ public class ZMSImplTest {
         
         zms.putRole(mockDomRsrcCtx, "CreateRoleLocalNameOnly", "Role1", auditRef, role1);
 
-        Role role3 = zms.getRole(mockDomRsrcCtx, "CreateRoleLocalNameOnly", "Role1", false, false);
+        Role role3 = zms.getRole(mockDomRsrcCtx, "CreateRoleLocalNameOnly", "Role1", false, false, false);
         assertNotNull(role3);
         assertEquals(role3.getName(), "CreateRoleLocalNameOnly:role.Role1".toLowerCase());
 
@@ -2305,7 +2305,7 @@ public class ZMSImplTest {
                 "user.joe", "user.joe");
         zms.putRole(mockDomRsrcCtx, "CreateDuplicateMemberRoleDom1", "Role1", auditRef, role1);
 
-        Role role = zms.getRole(mockDomRsrcCtx, "CreateDuplicateMemberRoleDom1", "Role1", false, false);
+        Role role = zms.getRole(mockDomRsrcCtx, "CreateDuplicateMemberRoleDom1", "Role1", false, false, false);
         assertNotNull(role);
 
         assertEquals(role.getName(), "CreateDuplicateMemberRoleDom1:role.Role1".toLowerCase());
@@ -2335,7 +2335,7 @@ public class ZMSImplTest {
                 null, roleMembers);
         zms.putRole(mockDomRsrcCtx, "CreateNormalizedUserMemberRoleDom1", "Role1", auditRef, role1);
 
-        Role role = zms.getRole(mockDomRsrcCtx, "CreateNormalizedUserMemberRoleDom1", "Role1", false, false);
+        Role role = zms.getRole(mockDomRsrcCtx, "CreateNormalizedUserMemberRoleDom1", "Role1", false, false, false);
         assertNotNull(role);
 
         assertEquals(role.getName(), "CreateNormalizedUserMemberRoleDom1:role.Role1".toLowerCase());
@@ -2382,7 +2382,7 @@ public class ZMSImplTest {
                 null, roleMembers);
         zms.putRole(mockDomRsrcCtx, "CreateNormalizedServiceMemberRoleDom1", "Role1", auditRef, role1);
 
-        Role role = zms.getRole(mockDomRsrcCtx, "CreateNormalizedServiceMemberRoleDom1", "Role1", false, false);
+        Role role = zms.getRole(mockDomRsrcCtx, "CreateNormalizedServiceMemberRoleDom1", "Role1", false, false, false);
         assertNotNull(role);
 
         assertEquals(role.getName(), "CreateNormalizedServiceMemberRoleDom1:role.Role1".toLowerCase());
@@ -2437,7 +2437,7 @@ public class ZMSImplTest {
                 null, roleMembers);
         zms.putRole(mockDomRsrcCtx, "CreateNormalizedCombinedMemberRoleDom1", "Role1", auditRef, role1);
 
-        Role role = zms.getRole(mockDomRsrcCtx, "CreateNormalizedCombinedMemberRoleDom1", "Role1", false, false);
+        Role role = zms.getRole(mockDomRsrcCtx, "CreateNormalizedCombinedMemberRoleDom1", "Role1", false, false, false);
         assertNotNull(role);
 
         assertEquals(role.getName(), "CreateNormalizedCombinedMemberRoleDom1:role.Role1".toLowerCase());
@@ -2674,7 +2674,7 @@ public class ZMSImplTest {
         mbr = generateMembership("Role1", "coretech.storage");
         zmsImpl.putMembership(mockDomRsrcCtx, "MbrAddDom1", "Role1", "coretech.storage", auditRef, mbr);
 
-        Role role = zmsImpl.getRole(mockDomRsrcCtx, "MbrAddDom1", "Role1", false, false);
+        Role role = zmsImpl.getRole(mockDomRsrcCtx, "MbrAddDom1", "Role1", false, false, false);
         assertNotNull(role);
 
         List<RoleMember> members = role.getRoleMembers();
@@ -2747,7 +2747,7 @@ public class ZMSImplTest {
         Membership notExpiredMember = zms.getMembership(mockDomRsrcCtx, domainName,
                 "Role1", "coretech.storage");
 
-        Role role = zms.getRole(mockDomRsrcCtx, domainName, "Role1", false, false);
+        Role role = zms.getRole(mockDomRsrcCtx, domainName, "Role1", false, false, false);
         assertNotNull(role);
 
         List<RoleMember> members = role.getRoleMembers();
@@ -2796,7 +2796,7 @@ public class ZMSImplTest {
         Membership mbr = generateMembership("Role1", "user.doe");
         zms.putMembership(mockDomRsrcCtx, "MbrAddDom1EmptyRole", "Role1", "user.doe", auditRef, mbr);
 
-        Role role = zms.getRole(mockDomRsrcCtx, "MbrAddDom1EmptyRole", "Role1", false, false);
+        Role role = zms.getRole(mockDomRsrcCtx, "MbrAddDom1EmptyRole", "Role1", false, false, false);
         assertNotNull(role);
 
         List<RoleMember> members = role.getRoleMembers();
@@ -2859,7 +2859,7 @@ public class ZMSImplTest {
         Membership mbr = generateMembership("Role1", "user.doe");
         zms.putMembership(mockDomRsrcCtx, "MbrAddDom2", "Role1", "user.doe", auditRef, mbr);
 
-        Role role = zms.getRole(mockDomRsrcCtx, "MbrAddDom2", "Role1", false, false);
+        Role role = zms.getRole(mockDomRsrcCtx, "MbrAddDom2", "Role1", false, false, false);
         assertNotNull(role);
 
         List<RoleMember> members = role.getRoleMembers();
@@ -2899,7 +2899,7 @@ public class ZMSImplTest {
         Membership mbr = generateMembership("Role1", "user.doe");
         zms.putMembership(mockDomRsrcCtx, "MbrAddDom3", "Role1", "user.doe", auditRef, mbr);
 
-        Role role = zms.getRole(mockDomRsrcCtx, "MbrAddDom3", "Role1", false, false);
+        Role role = zms.getRole(mockDomRsrcCtx, "MbrAddDom3", "Role1", false, false, false);
         assertNotNull(role);
 
         List<RoleMember> members = role.getRoleMembers();
@@ -2947,7 +2947,7 @@ public class ZMSImplTest {
         Membership mbr = generateMembership("Role1", "weather.storage");
         zms.putMembership(mockDomRsrcCtx, "MbrAddDom4", "Role1", "weather.storage", auditRef, mbr);
 
-        Role role = zms.getRole(mockDomRsrcCtx, "MbrAddDom4", "Role1", false, false);
+        Role role = zms.getRole(mockDomRsrcCtx, "MbrAddDom4", "Role1", false, false, false);
         assertNotNull(role);
 
         List<RoleMember> members = role.getRoleMembers();
@@ -2993,7 +2993,7 @@ public class ZMSImplTest {
 
         zms.putMembership(mockDomRsrcCtx, "MbrAddDomNoRole", "Role1", "user.joe", auditRef, mbr);
 
-        Role role = zms.getRole(mockDomRsrcCtx, "MbrAddDomNoRole", "Role1", false, false);
+        Role role = zms.getRole(mockDomRsrcCtx, "MbrAddDomNoRole", "Role1", false, false, false);
         assertNotNull(role);
 
         List<RoleMember> members = role.getRoleMembers();
@@ -3156,7 +3156,7 @@ public class ZMSImplTest {
         zms.putRole(mockDomRsrcCtx, "MbrDelDom1", "Role1", auditRef, role1);
         zms.deleteMembership(mockDomRsrcCtx, "MbrDelDom1", "Role1", "user.joe", auditRef);
 
-        Role role = zms.getRole(mockDomRsrcCtx, "MbrDelDom1", "Role1", false, false);
+        Role role = zms.getRole(mockDomRsrcCtx, "MbrDelDom1", "Role1", false, false, false);
         assertNotNull(role);
 
         List<RoleMember> members = role.getRoleMembers();
@@ -3321,7 +3321,7 @@ public class ZMSImplTest {
         zms.putRole(mockDomRsrcCtx, "MbrDelDom1", "Role1", auditRef, role1);
         zms.deleteMembership(mockDomRsrcCtx, "MbrDelDom1", "Role1", "user.joe", auditRef);
 
-        Role role = zms.getRole(mockDomRsrcCtx, "MbrDelDom1", "Role1", false, false);
+        Role role = zms.getRole(mockDomRsrcCtx, "MbrDelDom1", "Role1", false, false, false);
         assertNotNull(role);
 
         List<RoleMember> members = role.getRoleMembers();
@@ -3344,7 +3344,7 @@ public class ZMSImplTest {
         zms.putRole(mockDomRsrcCtx, "MbrDelDom1", "Role1", auditRef, role1);
         zms.deleteMembership(mockDomRsrcCtx, "MbrDelDom1", "Role1", "user.joe", auditRef);
 
-        Role role = zms.getRole(mockDomRsrcCtx, "MbrDelDom1", "Role1", false, false);
+        Role role = zms.getRole(mockDomRsrcCtx, "MbrDelDom1", "Role1", false, false, false);
         assertNotNull(role);
 
         List<RoleMember> members = role.getRoleMembers();
@@ -3375,7 +3375,7 @@ public class ZMSImplTest {
         zms.putRole(mockDomRsrcCtx, "MbrDelDom1", "Role1", auditRef, role1);
         zms.deleteMembership(mockDomRsrcCtx, "MbrDelDom1", "Role1", "coretech.storage", auditRef);
 
-        Role role = zms.getRole(mockDomRsrcCtx, "MbrDelDom1", "Role1", false, false);
+        Role role = zms.getRole(mockDomRsrcCtx, "MbrDelDom1", "Role1", false, false, false);
         assertNotNull(role);
 
         List<RoleMember> members = role.getRoleMembers();
@@ -4641,7 +4641,7 @@ public class ZMSImplTest {
             assertEquals(ex.getCode(), 400);
         }
         
-        Role roleRes = zms.getRole(mockDomRsrcCtx, "EntityReservedNames", "Role1", false, false);
+        Role roleRes = zms.getRole(mockDomRsrcCtx, "EntityReservedNames", "Role1", false, false, false);
         assertNotNull(roleRes);
         
         Policy policyRes = zms.getPolicy(mockDomRsrcCtx, "EntityReservedNames", "Policy1");
@@ -5085,7 +5085,7 @@ public class ZMSImplTest {
         admins.setAdmins(adminList);
         zms.putDefaultAdmins(mockDomRsrcCtx, "sports", auditRef, admins);
 
-        Role role = zms.getRole(mockDomRsrcCtx, "sports", "admin", false, false);
+        Role role = zms.getRole(mockDomRsrcCtx, "sports", "admin", false, false, false);
         assertNotNull(role);
         assertEquals(role.getName(), "sports:role.admin");
         List<RoleMember> members = role.getRoleMembers();
@@ -5102,7 +5102,7 @@ public class ZMSImplTest {
         admins.setAdmins(adminList);
         zms.putDefaultAdmins(mockDomRsrcCtx, "sports", auditRef, admins);
 
-        role = zms.getRole(mockDomRsrcCtx, "sports", "admin", false, false);
+        role = zms.getRole(mockDomRsrcCtx, "sports", "admin", false, false, false);
         assertNotNull(role);
         assertEquals(role.getName(), "sports:role.admin");
         members = role.getRoleMembers();
@@ -5186,7 +5186,7 @@ public class ZMSImplTest {
         admins.setAdmins(adminList);
         zms.putDefaultAdmins(mockDomRsrcCtx, "sports", auditRef, admins);
 
-        Role role = zms.getRole(mockDomRsrcCtx, "sports", "admin", false, false);
+        Role role = zms.getRole(mockDomRsrcCtx, "sports", "admin", false, false, false);
         assertNotNull(role);
         assertEquals(role.getName(), "sports:role.admin");
         List<RoleMember> members = role.getRoleMembers();
@@ -5253,7 +5253,7 @@ public class ZMSImplTest {
         }
         assertTrue(foundAssertion);
 
-        Role role = zms.getRole(mockDomRsrcCtx, "sports", "admin", false, false);
+        Role role = zms.getRole(mockDomRsrcCtx, "sports", "admin", false, false, false);
         assertNotNull(role);
         assertEquals(role.getName(), "sports:role.admin");
         List<RoleMember> members = role.getRoleMembers();
@@ -5319,7 +5319,7 @@ public class ZMSImplTest {
             }
         }
 
-        Role role = zms.getRole(mockDomRsrcCtx, "sports", "admin", false, false);
+        Role role = zms.getRole(mockDomRsrcCtx, "sports", "admin", false, false, false);
         assertNotNull(role);
         assertEquals(role.getName(), "sports:role.admin");
         List<RoleMember> members = role.getRoleMembers();
@@ -5387,7 +5387,7 @@ public class ZMSImplTest {
         admins.setAdmins(adminList);
         zms.putDefaultAdmins(mockDomRsrcCtx, "sports", auditRef, admins);
 
-        role = zms.getRole(mockDomRsrcCtx, "sports", "indirectRole", false, false);
+        role = zms.getRole(mockDomRsrcCtx, "sports", "indirectRole", false, false, false);
         assertNotNull(role);
         assertEquals(role.getName(), "sports:role.indirectRole".toLowerCase());
         members = role.getRoleMembers();
@@ -5404,7 +5404,7 @@ public class ZMSImplTest {
             assertFalse(found);
         }
 
-        role = zms.getRole(mockDomRsrcCtx, "sports", "admin", false, false);
+        role = zms.getRole(mockDomRsrcCtx, "sports", "admin", false, false, false);
         assertNotNull(role);
         assertEquals(role.getName(), "sports:role.admin");
         members = role.getRoleMembers();
@@ -7011,16 +7011,16 @@ public class ZMSImplTest {
 
         // make sure our roles have been created
         
-        Role role = zms.getRole(mockDomRsrcCtx, "AddTenancyDom1", "tenancy.coretech.storage.admin", false, false);
+        Role role = zms.getRole(mockDomRsrcCtx, "AddTenancyDom1", "tenancy.coretech.storage.admin", false, false, false);
         assertNotNull(role);
 
-        role = zms.getRole(mockDomRsrcCtx, "AddTenancyDom1", "coretech.storage.res_group.set1.admin", false, false);
+        role = zms.getRole(mockDomRsrcCtx, "AddTenancyDom1", "coretech.storage.res_group.set1.admin", false, false, false);
         assertNotNull(role);
 
-        role = zms.getRole(mockDomRsrcCtx, "AddTenancyDom1", "coretech.storage.res_group.set1.reader", false, false);
+        role = zms.getRole(mockDomRsrcCtx, "AddTenancyDom1", "coretech.storage.res_group.set1.reader", false, false, false);
         assertNotNull(role);
         
-        role = zms.getRole(mockDomRsrcCtx, "AddTenancyDom1", "coretech.storage.res_group.set1.writer", false, false);
+        role = zms.getRole(mockDomRsrcCtx, "AddTenancyDom1", "coretech.storage.res_group.set1.writer", false, false, false);
         assertNotNull(role);
         
         // verify the policies have the correct roles
@@ -7158,7 +7158,7 @@ public class ZMSImplTest {
         }
         
         try {
-            zms.getRole(mockDomRsrcCtx, providerDomain, tenantRoleInProviderDomain, false, false);
+            zms.getRole(mockDomRsrcCtx, providerDomain, tenantRoleInProviderDomain, false, false, false);
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
         }
@@ -7236,21 +7236,21 @@ public class ZMSImplTest {
         // make sure our roles have not been created
         
         try {
-            zms.getRole(mockDomRsrcCtx, "AddTenancyDom1", "coretech.storage.admin", false, false);
+            zms.getRole(mockDomRsrcCtx, "AddTenancyDom1", "coretech.storage.admin", false, false, false);
             fail();
         } catch (ResourceException ex) {
             assertEquals(404, ex.getCode());
         }
         
         try {
-            zms.getRole(mockDomRsrcCtx, "AddTenancyDom1", "coretech.storage.reader", false, false);
+            zms.getRole(mockDomRsrcCtx, "AddTenancyDom1", "coretech.storage.reader", false, false, false);
             fail();
         } catch (ResourceException ex) {
             assertEquals(404, ex.getCode());
         }
         
         try {
-            zms.getRole(mockDomRsrcCtx, "AddTenancyDom1", "coretech.storage.writer", false, false);
+            zms.getRole(mockDomRsrcCtx, "AddTenancyDom1", "coretech.storage.writer", false, false, false);
             fail();
         } catch (ResourceException ex) {
             assertEquals(404, ex.getCode());
@@ -7391,25 +7391,25 @@ public class ZMSImplTest {
             
             // verify we didn't delete a role by mistake
             
-            assertNotNull(zms.getRole(mockDomRsrcCtx, tenantDomain, testRoleName, false, false));
+            assertNotNull(zms.getRole(mockDomRsrcCtx, tenantDomain, testRoleName, false, false, false));
             
             // verify that all roles and policies have been deleted
             
             try {
-                zms.getRole(mockDomRsrcCtx, tenantDomain, provService + ".admin", false, false);
+                zms.getRole(mockDomRsrcCtx, tenantDomain, provService + ".admin", false, false, false);
                 fail();
             } catch (ResourceException ex) {
                 assertEquals(ex.getCode(), 404);
             }
             
             try {
-                zms.getRole(mockDomRsrcCtx, tenantDomain, provService + ".reader", false, false);
+                zms.getRole(mockDomRsrcCtx, tenantDomain, provService + ".reader", false, false, false);
                 fail();
             } catch (ResourceException ex) {
                 assertEquals(ex.getCode(), 404);
             }
             try {
-                zms.getRole(mockDomRsrcCtx, tenantDomain, provService + ".writer", false, false);
+                zms.getRole(mockDomRsrcCtx, tenantDomain, provService + ".writer", false, false, false);
                 fail();
             } catch (ResourceException ex) {
                 assertEquals(ex.getCode(), 404);
@@ -10751,11 +10751,11 @@ public class ZMSImplTest {
         assertEquals(resourceGroup1.toLowerCase(), tRoles.getResourceGroup());
         assertEquals(RESOURCE_PROVIDER_ROLE_ACTIONS.size(), tRoles.getRoles().size());
 
-        Role roleW = zms.getRole(mockDomRsrcCtx, tenantDomain, roleWriter, false, false);
+        Role roleW = zms.getRole(mockDomRsrcCtx, tenantDomain, roleWriter, false, false, false);
         assertEquals(roleW.getRoleMembers().size(), 1);
         assertEquals(roleW.getRoleMembers().get(0).getMemberName(), mockDomRestRsrcCtx.principal().getFullName());
 
-        Role roleR = zms.getRole(mockDomRsrcCtx, tenantDomain, roleReader, false, false);
+        Role roleR = zms.getRole(mockDomRsrcCtx, tenantDomain, roleReader, false, false, false);
         assertEquals(roleR.getRoleMembers().size(), 1);
         assertEquals(roleR.getRoleMembers().get(0).getMemberName(), mockDomRestRsrcCtx.principal().getFullName());
 
@@ -10788,12 +10788,12 @@ public class ZMSImplTest {
         zms.putProviderResourceGroupRoles(mockDomRsrcCtx, tenantDomain, providerDomain, providerService,
                 resourceGroup1, auditRef, providerRoles);
 
-        roleW = zms.getRole(mockDomRsrcCtx, tenantDomain, roleWriter, false, false);
+        roleW = zms.getRole(mockDomRsrcCtx, tenantDomain, roleWriter, false, false, false);
         assertEquals(roleW.getRoleMembers().size(), 2);
         assertEquals(roleW.getRoleMembers().get(0).getMemberName(), mockDomRestRsrcCtx.principal().getFullName());
         assertEquals(roleW.getRoleMembers().get(1).getMemberName(), newMember);
 
-        roleR = zms.getRole(mockDomRsrcCtx, tenantDomain, roleReader, false, false);
+        roleR = zms.getRole(mockDomRsrcCtx, tenantDomain, roleReader, false, false, false);
         assertEquals(roleR.getRoleMembers().size(), 1);
         assertEquals(roleR.getRoleMembers().get(0).getMemberName(), mockDomRestRsrcCtx.principal().getFullName());
 
@@ -11610,12 +11610,12 @@ public class ZMSImplTest {
         assertTrue(names.contains("vip_admin"));
         assertTrue(names.contains("sys_network_super_vip_admin"));
         
-        Role role = zms.dbService.getRole(domainName, "vip_admin", false, false);
+        Role role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
         assertEquals(domainName + ":role.vip_admin", role.getName());
         assertNull(role.getTrust());
         assertNull(role.getRoleMembers());
         
-        role = zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false);
+        role = zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false);
         assertEquals(domainName + ":role.sys_network_super_vip_admin", role.getName());
         assertEquals("sys.network", role.getTrust());
         
@@ -11690,7 +11690,7 @@ public class ZMSImplTest {
         assertTrue(names.contains("superuser"));
         assertTrue(names.contains("openstack_readers"));
 
-        Role role = zms.dbService.getRole(domainName, "openstack_readers", false, false);
+        Role role = zms.dbService.getRole(domainName, "openstack_readers", false, false, false);
         assertEquals(domainName + ":role.openstack_readers", role.getName());
         assertNull(role.getTrust());
         assertEquals(2, role.getRoleMembers().size());
@@ -11700,7 +11700,7 @@ public class ZMSImplTest {
         checkList.add("sys.openstack");
         checkRoleMember(checkList, role.getRoleMembers());
         
-        role = zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false);
+        role = zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false);
         assertEquals(domainName + ":role.sys_network_super_vip_admin", role.getName());
         assertEquals("sys.network", role.getTrust());
         
@@ -11897,12 +11897,12 @@ public class ZMSImplTest {
         assertTrue(names.contains("vip_admin"));
         assertTrue(names.contains("sys_network_super_vip_admin"));
         
-        Role role = zms.dbService.getRole(domainName, "vip_admin", false, false);
+        Role role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
         assertEquals(domainName + ":role.vip_admin", role.getName());
         assertNull(role.getTrust());
         assertNull(role.getRoleMembers());
         
-        role = zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false);
+        role = zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false);
         assertEquals(domainName + ":role.sys_network_super_vip_admin", role.getName());
         assertEquals("sys.network", role.getTrust());
         
@@ -12077,7 +12077,7 @@ public class ZMSImplTest {
         assertTrue(names.contains("superuser"));
         assertTrue(names.contains("openstack_readers"));
 
-        Role role = zms.dbService.getRole(subDomainName, "openstack_readers", false, false);
+        Role role = zms.dbService.getRole(subDomainName, "openstack_readers", false, false, false);
         assertEquals(subDomainName + ":role.openstack_readers", role.getName());
         assertNull(role.getTrust());
         assertEquals(2, role.getRoleMembers().size());
@@ -12087,7 +12087,7 @@ public class ZMSImplTest {
         checkList.add("sys.openstack");
         checkRoleMember(checkList, role.getRoleMembers());
         
-        role = zms.dbService.getRole(subDomainName, "sys_network_super_vip_admin", false, false);
+        role = zms.dbService.getRole(subDomainName, "sys_network_super_vip_admin", false, false, false);
         assertEquals(subDomainName + ":role.sys_network_super_vip_admin", role.getName());
         assertEquals("sys.network", role.getTrust());
         
@@ -15383,7 +15383,7 @@ public class ZMSImplTest {
         Tenancy tenant = new Tenancy().setDomain("sports").setService("providerdomain.api");
         zms.putTenant(mockDomRsrcCtx, "providerdomain", "api", "sports", auditRef, tenant);
 
-        Role role = zms.getRole(mockDomRsrcCtx, "providerdomain", "api.tenant.sports.admin", false, false);
+        Role role = zms.getRole(mockDomRsrcCtx, "providerdomain", "api.tenant.sports.admin", false, false, false);
         assertNotNull(role);
         assertEquals(role.getTrust(), "sports");
 
@@ -15412,7 +15412,7 @@ public class ZMSImplTest {
         Tenancy tenant = new Tenancy().setDomain("sports").setService("providerdomaindelete.api");
         zms.putTenant(mockDomRsrcCtx, "providerdomaindelete", "api", "sports", auditRef, tenant);
 
-        Role role = zms.getRole(mockDomRsrcCtx, "providerdomaindelete", "api.tenant.sports.admin", false, false);
+        Role role = zms.getRole(mockDomRsrcCtx, "providerdomaindelete", "api.tenant.sports.admin", false, false, false);
         assertNotNull(role);
 
         Policy policy = zms.getPolicy(mockDomRsrcCtx, "providerdomaindelete", "api.tenant.sports.admin");
@@ -15421,7 +15421,7 @@ public class ZMSImplTest {
         zms.deleteTenant(mockDomRsrcCtx, "providerdomaindelete", "api", "sports", auditRef);
 
         try {
-            zms.getRole(mockDomRsrcCtx, "providerdomaindelete", "api.tenant.sports.admin", false, false);
+            zms.getRole(mockDomRsrcCtx, "providerdomaindelete", "api.tenant.sports.admin", false, false, false);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
@@ -15748,7 +15748,7 @@ public class ZMSImplTest {
         RoleSystemMeta rsm = createRoleSystemMetaObject(true);
         zms.putRoleSystemMeta(mockDomRsrcCtx, "rolesystemmetadom1", "role1", "auditenabled", auditRef, rsm);
 
-        Role resRole1 = zms.getRole(mockDomRsrcCtx, "rolesystemmetadom1", "role1", true, false);
+        Role resRole1 = zms.getRole(mockDomRsrcCtx, "rolesystemmetadom1", "role1", true, false, false);
 
         assertNotNull(resRole1);
         assertTrue(resRole1.getAuditEnabled());
@@ -15850,7 +15850,7 @@ public class ZMSImplTest {
         RoleMeta rm = createRoleMetaObject(true);
         zms.putRoleMeta(mockDomRsrcCtx, "rolemetadom1", "role1", auditRef, rm);
 
-        Role resRole1 = zms.getRole(mockDomRsrcCtx, "rolemetadom1", "role1", true, false);
+        Role resRole1 = zms.getRole(mockDomRsrcCtx, "rolemetadom1", "role1", true, false, false);
 
         assertNotNull(resRole1);
         assertTrue(resRole1.getSelfserve());
@@ -16078,7 +16078,7 @@ public class ZMSImplTest {
 
         addMemberToSelfServeRoleWithUserIdentity();
 
-        Role resrole = zms.getRole(mockDomRsrcCtx, "testdomain1", "testrole1", false, false);
+        Role resrole = zms.getRole(mockDomRsrcCtx, "testdomain1", "testrole1", false, false, true);
         assertEquals(resrole.getRoleMembers().size(), 3);
         for (RoleMember rmem : resrole.getRoleMembers()) {
             if ("user.bob".equals(rmem.getMemberName())) {
@@ -16129,7 +16129,7 @@ public class ZMSImplTest {
 
         addMemberToSelfServeRoleWithUserIdentity();
 
-        Role resrole = zms.getRole(mockDomRsrcCtx, "testdomain1", "testrole1", false, false);
+        Role resrole = zms.getRole(mockDomRsrcCtx, "testdomain1", "testrole1", false, false, true);
         assertEquals(resrole.getRoleMembers().size(), 3);
         for (RoleMember rmem : resrole.getRoleMembers()) {
             if ("user.bob".equals(rmem.getMemberName())) {
@@ -16141,7 +16141,7 @@ public class ZMSImplTest {
         mbr.setActive(true);
         zms.putMembershipDecision(mockDomRsrcCtx, "testdomain1", "testrole1", "user.bob", auditRef, mbr);
 
-        resrole = zms.getRole(mockDomRsrcCtx, "testdomain1", "testrole1", false, false);
+        resrole = zms.getRole(mockDomRsrcCtx, "testdomain1", "testrole1", false, false, false);
         assertEquals(resrole.getRoleMembers().size(), 3);
         for (RoleMember rmem : resrole.getRoleMembers()) {
             if ("user.bob".equals(rmem.getMemberName())) {
@@ -16156,7 +16156,7 @@ public class ZMSImplTest {
 
         addMemberToSelfServeRoleWithUserIdentity();
 
-        Role resrole = zms.getRole(mockDomRsrcCtx, "testdomain1", "testrole1", false, false);
+        Role resrole = zms.getRole(mockDomRsrcCtx, "testdomain1", "testrole1", false, false, true);
         assertEquals(resrole.getRoleMembers().size(), 3);
         for (RoleMember rmem : resrole.getRoleMembers()) {
             if ("user.bob".equals(rmem.getMemberName())) {
@@ -16168,7 +16168,7 @@ public class ZMSImplTest {
         mbr.setActive(false);
         zms.putMembershipDecision(mockDomRsrcCtx, "testdomain1", "testrole1", "user.bob", auditRef, mbr);
 
-        resrole = zms.getRole(mockDomRsrcCtx, "testdomain1", "testrole1", false, false);
+        resrole = zms.getRole(mockDomRsrcCtx, "testdomain1", "testrole1", false, false, false);
         assertEquals(resrole.getRoleMembers().size(), 2);
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
@@ -16217,7 +16217,7 @@ public class ZMSImplTest {
         mbr.setActive(false);
         zms.putMembership(mockDomRsrcCtx, "testdomain1", "testrole1", "user.bob", auditRef, mbr);
 
-        Role resrole = zms.getRole(mockDomRsrcCtx, "testdomain1", "testrole1", false, false);
+        Role resrole = zms.getRole(mockDomRsrcCtx, "testdomain1", "testrole1", false, false, true);
         assertEquals(resrole.getRoleMembers().size(), 3);
         for (RoleMember rmem : resrole.getRoleMembers()) {
             if ("user.bob".equals(rmem.getMemberName())) {
@@ -16261,7 +16261,7 @@ public class ZMSImplTest {
         Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
         Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
 
-        resrole = zms.getRole(mockDomRsrcCtx, "testdomain1", "testrole1", false, false);
+        resrole = zms.getRole(mockDomRsrcCtx, "testdomain1", "testrole1", false, false, false);
         assertEquals(resrole.getRoleMembers().size(), 3);
         for (RoleMember rmem : resrole.getRoleMembers()) {
             if ("user.bob".equals(rmem.getMemberName())) {
@@ -16396,6 +16396,39 @@ public class ZMSImplTest {
         }
 
         zms.deleteSubDomain(mockDomRsrcCtx, "sys.auth", "audit", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
+    }
+
+    @Test
+    public void testGetRoleWithPendingMembers() {
+        TopLevelDomain dom1 = createTopLevelDomainObject("testdomain1","Pending Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        DomainMeta meta = createDomainMetaObject("Domain Meta for approval test", "testOrg",true, true, "12345", 1001);
+        zms.putDomainMeta(mockDomRsrcCtx, "testdomain1", auditRef, meta);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, "testdomain1", "auditenabled", auditRef, meta);
+
+        Role auditedRole = createRoleObject("testdomain1", "testrole1", null,"user.john", "user.jane");
+        zms.putRole(mockDomRsrcCtx, "testdomain1", "testrole1", auditRef, auditedRole);
+        RoleSystemMeta rsm = createRoleSystemMetaObject(true);
+        zms.putRoleSystemMeta(mockDomRsrcCtx, "testdomain1", "testrole1", "auditenabled", auditRef, rsm);
+
+        Membership mbr = new Membership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(false);
+        zms.putMembership(mockDomRsrcCtx, "testdomain1", "testrole1", "user.bob", auditRef, mbr);
+
+        Role resRole = zms.getRole(mockDomRsrcCtx, "testdomain1", "testrole1", false, false, true);
+
+        assertNotNull(resRole);
+        assertEquals(resRole.getRoleMembers().size(), 3);
+
+        for ( RoleMember rm : resRole.getRoleMembers()) {
+            if ("user.bob".equals(rm.getMemberName())) {
+                assertFalse(rm.getActive());
+            }
+        }
+
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
     }
 }

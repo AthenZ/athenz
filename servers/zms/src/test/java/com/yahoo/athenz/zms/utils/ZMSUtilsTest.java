@@ -17,6 +17,7 @@ package com.yahoo.athenz.zms.utils;
 
 import static org.testng.Assert.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -307,5 +308,23 @@ public class ZMSUtilsTest {
                 "audit-ref", "unit-test", "putRole");
         assertNotNull(msgBuilder);
         assertTrue(msgBuilder.who().contains("who-roles=[role1, role2]"), msgBuilder.who());
+    }
+
+    @Test
+    public void testConvertRoleMembersToMembers() {
+        RoleMember member = new RoleMember().setMemberName("user.joe").setActive(true);
+        RoleMember member1 = new RoleMember().setMemberName("user.moe").setActive(false);
+        RoleMember member2 = new RoleMember().setMemberName("user.jane").setActive(true);
+
+        List<RoleMember> members = new ArrayList<>();
+        members.add(member);
+        members.add(member1);
+        members.add(member2);
+
+        List<String> stringMembers = ZMSUtils.convertRoleMembersToMembers(members);
+        assertNotNull(stringMembers);
+        assertEquals(stringMembers.size(), 2);
+        assertTrue(stringMembers.contains("user.joe"));
+        assertTrue(stringMembers.contains("user.jane"));
     }
 }

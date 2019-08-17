@@ -34,11 +34,12 @@ resource Roles GET "/domain/{domainName}/roles?members={members}" {
 }
 
 //Get the specified role in the domain.
-resource Role GET "/domain/{domainName}/role/{roleName}?auditLog={auditLog}&expand={expand}" {
+resource Role GET "/domain/{domainName}/role/{roleName}?auditLog={auditLog}&expand={expand}&pending={pending}" {
     DomainName domainName; //name of the domain
     EntityName roleName; //name of the role to be retrieved
     Bool auditLog (optional, default=false); //flag to indicate whether or not to return role audit log
     Bool expand (optional, default=false); // expand delegated trust roles and return trusted members
+    Bool pending (optional, default=false); // include pending members
     authenticate;
     exceptions {
         ResourceError BAD_REQUEST;
