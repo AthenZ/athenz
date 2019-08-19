@@ -1310,7 +1310,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     if (expiration != null) {
                         roleMember.setExpiration(Timestamp.fromMillis(expiration.getTime()));
                     }
-                    roleMember.setActive(rs.getBoolean(3));
+                    roleMember.setActive(nullIfDefaultValue(rs.getBoolean(3), true));
                     members.add(roleMember);
                 }
             }

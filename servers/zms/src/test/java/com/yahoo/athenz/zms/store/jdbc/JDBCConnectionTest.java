@@ -7463,8 +7463,8 @@ public class JDBCConnectionTest {
         assertEquals("zdomain.user1", roleMembers.get(2).getMemberName());
 
         assertFalse(roleMembers.get(0).getActive());
-        assertTrue(roleMembers.get(1).getActive());
-        assertTrue(roleMembers.get(2).getActive());
+        assertNull(roleMembers.get(1).getActive());
+        assertNull(roleMembers.get(2).getActive());
 
         jdbcConn.close();
     }
