@@ -1594,7 +1594,7 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.admin");
         Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
         Mockito.verify(mockPrepStmt, times(1)).setString(4, "ADD");
-        Mockito.verify(mockPrepStmt, times(1)).setString(5, "audit-ref");
+        Mockito.verify(mockPrepStmt, times(2)).setString(5, "audit-ref");
 
         assertTrue(requestSuccess);
         jdbcConn.close();
@@ -1700,7 +1700,7 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.admin");
         Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
         Mockito.verify(mockPrepStmt, times(1)).setString(4, "ADD");
-        Mockito.verify(mockPrepStmt, times(1)).setString(5, "audit-ref");
+        Mockito.verify(mockPrepStmt, times(2)).setString(5, "audit-ref");
         
         assertTrue(requestSuccess);
         jdbcConn.close();
@@ -7214,7 +7214,7 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.admin");
         Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
         Mockito.verify(mockPrepStmt, times(1)).setString(4, "ADD");
-        Mockito.verify(mockPrepStmt, times(1)).setString(5, "audit-ref");
+        Mockito.verify(mockPrepStmt, times(2)).setString(5, "audit-ref");
 
         assertTrue(requestSuccess);
         jdbcConn.close();
@@ -7261,7 +7261,7 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.admin");
         Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
         Mockito.verify(mockPrepStmt, times(1)).setString(4, "ADD");
-        Mockito.verify(mockPrepStmt, times(1)).setString(5, "audit-ref");
+        Mockito.verify(mockPrepStmt, times(2)).setString(5, "audit-ref");
 
         assertTrue(requestSuccess);
         jdbcConn.close();
@@ -7343,6 +7343,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("role1", "role11", "role111", "role2").when(mockResultSet).getString(2);
         Mockito.doReturn("user.member1", "user.member2", "user.member3", "user.member2").when(mockResultSet).getString(3);
         Mockito.doReturn(new java.sql.Timestamp(1454358916), new java.sql.Timestamp(1454358916), null, null).when(mockResultSet).getTimestamp(4);
+        Mockito.doReturn("required for proj1", null, "self serve audit-ref", null).when(mockResultSet).getString(5);
 
         Map<String, List<DomainRoleMember>> domainRoleMembersMap = jdbcConn.getPendingDomainRoleMembersList("user.user1");
 
@@ -7362,14 +7363,17 @@ public class JDBCConnectionTest {
         assertEquals(domainRoleMembers.get(0).getMemberName(), "user.member1");
         assertEquals(domainRoleMembers.get(0).getMemberRoles().size(), 1);
         assertEquals(domainRoleMembers.get(0).getMemberRoles().get(0).getRoleName(), "role1");
+        assertEquals(domainRoleMembers.get(0).getMemberRoles().get(0).getAuditRef(), "required for proj1");
 
         assertEquals(domainRoleMembers.get(1).getMemberName(), "user.member2");
         assertEquals(domainRoleMembers.get(1).getMemberRoles().size(), 1);
         assertEquals(domainRoleMembers.get(1).getMemberRoles().get(0).getRoleName(), "role11");
+        assertNull(domainRoleMembers.get(1).getMemberRoles().get(0).getAuditRef());
 
         assertEquals(domainRoleMembers.get(2).getMemberName(), "user.member3");
         assertEquals(domainRoleMembers.get(2).getMemberRoles().size(), 1);
         assertEquals(domainRoleMembers.get(2).getMemberRoles().get(0).getRoleName(), "role111");
+        assertEquals(domainRoleMembers.get(2).getMemberRoles().get(0).getAuditRef(), "self serve audit-ref");
 
         assertNotNull(domainRoleMembersMap.get("domain2"));
         domainRoleMembers = domainRoleMembersMap.get("domain2");
@@ -7378,6 +7382,7 @@ public class JDBCConnectionTest {
         assertEquals(domainRoleMembers.get(0).getMemberName(), "user.member2");
         assertEquals(domainRoleMembers.get(0).getMemberRoles().size(), 1);
         assertEquals(domainRoleMembers.get(0).getMemberRoles().get(0).getRoleName(), "role2");
+        assertNull(domainRoleMembers.get(0).getMemberRoles().get(0).getAuditRef());
 
         jdbcConn.close();
     }
@@ -7458,8 +7463,8 @@ public class JDBCConnectionTest {
         assertEquals("zdomain.user1", roleMembers.get(2).getMemberName());
 
         assertFalse(roleMembers.get(0).getActive());
-        assertTrue(roleMembers.get(1).getActive());
-        assertTrue(roleMembers.get(2).getActive());
+        assertNull(roleMembers.get(1).getActive());
+        assertNull(roleMembers.get(2).getActive());
 
         jdbcConn.close();
     }

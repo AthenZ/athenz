@@ -1047,7 +1047,7 @@ public class ZMSCoreTest {
         Schema schema = ZMSSchema.instance();
         Validator validator = new Validator(schema);
 
-        RoleMember rm = new RoleMember().setMemberName("user.test1").setExpiration(Timestamp.fromMillis(123456789123L));
+        RoleMember rm = new RoleMember().setMemberName("user.test1").setExpiration(Timestamp.fromMillis(123456789123L)).setAuditRef("audit-ref");
         assertTrue(rm.equals(rm));
 
         Result result = validator.validate(rm, "RoleMember");
@@ -1068,8 +1068,11 @@ public class ZMSCoreTest {
 
         rm2.setExpiration(Timestamp.fromMillis(123456789124L));
         assertFalse(rm2.equals(rm));
-        rm2.setExpiration(Timestamp.fromMillis(123456789123L));
 
+        rm2.setExpiration(Timestamp.fromMillis(123456789123L));
+        assertFalse(rm2.equals(rm));
+
+        rm2.setAuditRef("audit-ref");
         assertTrue(rm2.equals(rm));
 
         assertFalse(rm2.equals(null));
@@ -1211,7 +1214,7 @@ public class ZMSCoreTest {
         assertTrue(ms.getIsMember());
 
         ms.setMemberName("test.member").setIsMember(false).setRoleName("test.role")
-                .setExpiration(Timestamp.fromMillis(100));
+                .setExpiration(Timestamp.fromMillis(100)).setAuditRef("audit-ref");
 
         // init second time does not change state
         ms.init();
@@ -1227,7 +1230,7 @@ public class ZMSCoreTest {
         assertTrue(ms.getActive());
 
         Membership ms2 = new Membership().setMemberName("test.member").setIsMember(false)
-                .setExpiration(Timestamp.fromMillis(100)).setRoleName("test.role").setActive(true);
+                .setExpiration(Timestamp.fromMillis(100)).setRoleName("test.role").setActive(true).setAuditRef("audit-ref");
 
         assertTrue(ms2.equals(ms));
         assertTrue(ms.equals(ms));
@@ -1917,6 +1920,7 @@ public class ZMSCoreTest {
         mbr1.setRoleName("role1");
         mbr1.setExpiration(Timestamp.fromMillis(100));
         mbr1.setActive(false);
+        mbr1.setAuditRef("audit-ref");
 
         assertEquals("role1", mbr1.getRoleName());
         assertEquals(Timestamp.fromMillis(100), mbr1.getExpiration());
@@ -1941,6 +1945,9 @@ public class ZMSCoreTest {
         assertFalse(mbr2.equals(mbr1));
 
         mbr2.setActive(false);
+        assertFalse(mbr2.equals(mbr1));
+
+        mbr2.setAuditRef("audit-ref");
         assertTrue(mbr2.equals(mbr1));
     }
 

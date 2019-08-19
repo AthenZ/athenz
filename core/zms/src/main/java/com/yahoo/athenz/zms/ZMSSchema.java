@@ -103,7 +103,8 @@ public class ZMSSchema {
         sb.structType("RoleMember")
             .field("memberName", "MemberName", false, "name of the member")
             .field("expiration", "Timestamp", true, "the expiration timestamp")
-            .field("active", "Bool", true, "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )", true);
+            .field("active", "Bool", true, "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )", true)
+            .field("auditRef", "String", true, "audit reference string for the change as supplied by admin");
 
         sb.structType("Role")
             .comment("The representation for a Role with set of members.")
@@ -126,7 +127,8 @@ public class ZMSSchema {
             .field("isMember", "Bool", true, "flag to indicate whether or the user is a member or not", true)
             .field("roleName", "ResourceName", true, "name of the role")
             .field("expiration", "Timestamp", true, "the expiration timestamp")
-            .field("active", "Bool", true, "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )", true);
+            .field("active", "Bool", true, "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )", true)
+            .field("auditRef", "String", true, "audit reference string for the change as supplied by admin");
 
         sb.structType("DefaultAdmins")
             .comment("The list of domain administrators.")
@@ -135,7 +137,8 @@ public class ZMSSchema {
         sb.structType("MemberRole")
             .field("roleName", "ResourceName", false, "name of the role")
             .field("expiration", "Timestamp", true, "the expiration timestamp")
-            .field("active", "Bool", true, "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )", true);
+            .field("active", "Bool", true, "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )", true)
+            .field("auditRef", "String", true, "audit reference string for the change as supplied by admin");
 
         sb.structType("DomainRoleMember")
             .field("memberName", "MemberName", false, "name of the member")

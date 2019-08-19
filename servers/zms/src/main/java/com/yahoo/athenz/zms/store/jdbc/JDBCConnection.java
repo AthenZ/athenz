@@ -102,7 +102,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_LIST_PRINCIPAL = "SELECT * FROM principal;";
     private static final String SQL_LIST_PRINCIPAL_DOMAIN = "SELECT * FROM principal WHERE name LIKE ?;";
     private static final String SQL_LAST_INSERT_ID = "SELECT LAST_INSERT_ID();";
-    private static final String SQL_INSERT_ROLE_MEMBER = "INSERT INTO role_member (role_id, principal_id, expiration, active) VALUES (?,?,?,?);";
+    private static final String SQL_INSERT_ROLE_MEMBER = "INSERT INTO role_member (role_id, principal_id, expiration, active, audit_ref) VALUES (?,?,?,?,?);";
     private static final String SQL_DELETE_ROLE_MEMBER = "DELETE FROM role_member WHERE role_id=? AND principal_id=?;";
     private static final String SQL_DELETE_INACTIVE_ROLE_MEMBER = "DELETE FROM role_member WHERE role_id=? AND principal_id=? AND active=false;";
     private static final String SQL_UPDATE_ROLE_MEMBER = "UPDATE role_member SET expiration=? WHERE role_id=? AND principal_id=?;";
@@ -234,7 +234,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "subdomain=? WHERE domain_id=?;";
     private static final String SQL_DELETE_QUOTA = "DELETE FROM quota WHERE domain_id=?;";
 
-    private static final String SQL_PENDING_DOMAIN_ROLE_MEMBER_LIST = "SELECT do.name AS domain, ro.name AS role, principal.name AS member, rmo.expiration FROM principal JOIN role_member rmo " +
+    private static final String SQL_PENDING_DOMAIN_ROLE_MEMBER_LIST = "SELECT do.name AS domain, ro.name AS role, principal.name AS member, rmo.expiration, rmo.audit_ref FROM principal JOIN role_member rmo " +
             "ON rmo.principal_id=principal.principal_id JOIN role ro ON ro.role_id=rmo.role_id JOIN domain do ON ro.domain_id=do.domain_id " +
             "WHERE rmo.active=false AND ro.domain_id IN ( select domain_id FROM domain WHERE org IN ( " +
             "SELECT DISTINCT IF ( INSTR(role.name,'.') > 1, SUBSTRING_INDEX(SUBSTRING_INDEX(role.name,'.', 2), '.', -1), SUBSTRING_INDEX(role.name, \".\", -1) ) AS org " +
@@ -1310,7 +1310,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     if (expiration != null) {
                         roleMember.setExpiration(Timestamp.fromMillis(expiration.getTime()));
                     }
-                    roleMember.setActive(rs.getBoolean(3));
+                    roleMember.setActive(nullIfDefaultValue(rs.getBoolean(3), true));
                     members.add(roleMember);
                 }
             }
@@ -1609,6 +1609,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     ps.setTimestamp(3, null);
                 }
                 ps.setBoolean(4, processInsertValue(roleMember.getActive(), true));
+                ps.setString(5, processInsertValue(auditRef));
                 affectedRows = executeUpdate(ps, caller);
             } catch (SQLException ex) {
                 throw sqlError(ex, caller);
@@ -3492,6 +3493,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                         memberRole.setExpiration(Timestamp.fromMillis(expiration.getTime()));
                     }
                     memberRole.setActive(false);
+                    memberRole.setAuditRef(rs.getString(5));
                     memberRoles.add(memberRole);
                     domainRoleMember.setMemberRoles(memberRoles);
                     domainRoleMembers.add(domainRoleMember);
