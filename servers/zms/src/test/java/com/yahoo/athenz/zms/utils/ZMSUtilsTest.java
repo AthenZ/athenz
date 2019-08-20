@@ -314,7 +314,7 @@ public class ZMSUtilsTest {
     public void testConvertRoleMembersToMembers() {
         RoleMember member = new RoleMember().setMemberName("user.joe").setActive(true);
         RoleMember member1 = new RoleMember().setMemberName("user.moe").setActive(false);
-        RoleMember member2 = new RoleMember().setMemberName("user.jane").setActive(true);
+        RoleMember member2 = new RoleMember().setMemberName("user.jane").setActive(null);
 
         List<RoleMember> members = new ArrayList<>();
         members.add(member);
