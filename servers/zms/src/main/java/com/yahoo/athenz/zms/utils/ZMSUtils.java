@@ -217,7 +217,7 @@ public class ZMSUtils {
         }
         for (RoleMember member: members) {
             // only add active members to membername list. Active flag is optional for default value
-            if (member.getActive() == null || member.getActive() == Boolean.TRUE) {
+            if (member.getActive() != Boolean.FALSE) {
                 memberList.add(member.getMemberName());
             }
         }
