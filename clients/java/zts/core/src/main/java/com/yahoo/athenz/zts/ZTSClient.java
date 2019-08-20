@@ -143,7 +143,6 @@ public class ZTSClient implements Closeable {
     final static ConcurrentHashMap<String, AccessTokenResponseCacheEntry> ACCESS_TOKEN_CACHE = new ConcurrentHashMap<>();
     final static ConcurrentHashMap<String, AWSTemporaryCredentials> AWS_CREDS_CACHE = new ConcurrentHashMap<>();
 
-    private static final long FETCH_EPSILON = 60; // if cache expires in the next minute, fetch it.
     private static final Queue<PrefetchTokenScheduledItem> PREFETCH_SCHEDULED_ITEMS = new ConcurrentLinkedQueue<>();
     private static Timer FETCH_TIMER;
     private static final Object TIMER_LOCK = new Object();
@@ -158,7 +157,8 @@ public class ZTSClient implements Closeable {
     enum TokenType {
         ROLE,
         ACCESS,
-        AWS
+        AWS,
+        SVC_ROLE
     }
 
     static boolean initConfigValues() {
@@ -1145,25 +1145,6 @@ public class ZTSClient implements Closeable {
         return body.toString();
     }
 
-    public boolean prefetchAccessToken(String domainName, List<String> roleNames,
-        String idTokenServiceName, String proxyForPrincipal, long expiryTime) {
-
-        if (domainName == null || domainName.trim().isEmpty()) {
-            throw new ZTSClientException(ZTSClientException.BAD_REQUEST, "Domain Name cannot be empty");
-        }
-
-        AccessTokenResponse tokenResponse = getAccessToken(domainName, roleNames, idTokenServiceName,
-            proxyForPrincipal, expiryTime, true);
-        if (tokenResponse == null) {
-            LOG.error("PrefetchToken: No access token fetchable using domain={}", domainName);
-            return false;
-        }
-        long expiryTimeUTC = System.currentTimeMillis() + tokenResponse.getExpires_in();
-
-        return prefetchToken(domainName, null, roleNames, null, (int) expiryTime,
-                proxyForPrincipal, idTokenServiceName, null, expiryTimeUTC, TokenType.ACCESS);
-    }
-
     /**
      * For the specified requester(user/service) return the corresponding Role Certificate
      * @param domainName name of the domain
@@ -1356,7 +1337,7 @@ public class ZTSClient implements Closeable {
                 x509CsrDn, csrDomain, expiryTime);
     }
     
-    private static class RolePrefetchTask extends TimerTask {
+    static class TokenPrefetchTask extends TimerTask {
         
         ZTSClient getZTSClient(PrefetchTokenScheduledItem item) {
             
@@ -1369,7 +1350,31 @@ public class ZTSClient implements Closeable {
             }
             return client;
         }
-        
+
+        boolean shouldRefresh(long currentTime, long lastFetchTime, long lastFailTime, long expiryTime) {
+
+            // if we are still half way before the token expires then
+            // there is no need to refresh it
+
+            if ((expiryTime - lastFetchTime) / 2 + lastFetchTime > currentTime) {
+                return false;
+            }
+
+            // if we have no failures then we haven't refreshed so
+            // we should refresh it now
+
+            if (lastFailTime == 0) {
+                return true;
+            }
+
+            // otherwise we're going to do the same check to make sure
+            // we're half way since the last failed time so we'll
+            // progressively try to refresh frequently until we
+            // a successful response from ZTS Server
+
+            return (expiryTime - lastFailTime) / 2 + lastFailTime <= currentTime;
+        }
+
         @Override
         public void run() {
             
@@ -1377,161 +1382,188 @@ public class ZTSClient implements Closeable {
             FETCHER_LAST_RUN_AT.set(currentTime);
             
             if (LOG.isDebugEnabled()) {
-                LOG.debug("RolePrefetchTask: Fetching role token from the scheduled queue. Size={}",
+                LOG.debug("PrefetchTask: Fetching tokens from the scheduled queue. Size={}",
                         PREFETCH_SCHEDULED_ITEMS.size());
             }
             if (PREFETCH_SCHEDULED_ITEMS.isEmpty()) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("RolePrefetchTask: No items to fetch. Queue is empty");
+                    LOG.debug("PrefetchTask: No items to fetch. Queue is empty");
                 }
                 return;
             }
             
-            List<PrefetchTokenScheduledItem> toFetch = new ArrayList<>(PREFETCH_SCHEDULED_ITEMS.size());
-            synchronized (PREFETCH_SCHEDULED_ITEMS) {
-                
-                // if this item is to be fetched now, add it to collection
-                
-                for (PrefetchTokenScheduledItem item : PREFETCH_SCHEDULED_ITEMS) {
-                
-                    // see if item expires within next two minutes
-                    
-                    long expiryTime = item.expiresAtUTC - (currentTime + FETCH_EPSILON + prefetchInterval);
+            List<PrefetchTokenScheduledItem> toFetch = new ArrayList<>();
+
+            // if this item is to be fetched now, add it to collection
+            // special handling for service tokens so we'll keep track
+            // of if we have any expired service tokens
+
+            boolean svcTokenRefresh = false;
+            for (PrefetchTokenScheduledItem item : PREFETCH_SCHEDULED_ITEMS) {
+
+                // see if item expires within next two minutes
+
+                if (LOG.isDebugEnabled()) {
+                    final String itemName = item.sslContext == null ?
+                            item.identityDomain + "." + item.identityName : item.sslContext.toString();
+                    LOG.debug("PrefetchTask: item={} type={} domain={} roleName={} fetch/fail/expire times {}/{}/{}",
+                            itemName, item.tokenType, item.domainName, item.roleName, item.fetchTime,
+                            item.lastFailTime, item.expiresAtUTC);
+                }
+                if (shouldRefresh(currentTime, item.fetchTime, item.lastFailTime, item.expiresAtUTC)) {
                     if (LOG.isDebugEnabled()) {
-                        final String itemName = item.sslContext == null ?
-                                item.identityDomain + "." + item.identityName : item.sslContext.toString();
-                        LOG.debug("RolePrefetchTask: item={} domain={} roleName={} to be expired at {}",
-                                itemName, item.domainName, item.roleName, expiryTime);
+                        LOG.debug("PrefetchTask: domain={} roleName={}. Refresh this item.",
+                                item.domainName, item.roleName);
                     }
-                    if (isExpiredToken(expiryTime, item.minDuration, item.maxDuration, item.tokenMinExpiryTime)) {
-                        if (LOG.isDebugEnabled()) {
-                            final String itemName = item.sslContext == null ?
-                                    item.identityDomain + "." + item.identityName : item.sslContext.toString();
-                            LOG.debug("RolePrefetchTask: item={} domain={} roleName={} expired {}. Fetch this item.",
-                                    itemName, item.domainName, item.roleName, expiryTime);
-                        }
-                        toFetch.add(item);
+                    toFetch.add(item);
+                    if (item.tokenType == TokenType.SVC_ROLE) {
+                        svcTokenRefresh = true;
                     }
                 }
             }
             
-            // if toFetch is not empty, fetch those tokens, and add refreshed scheduled items back to the queue
+            // if toFetch is not empty, fetch those tokens, and add refreshed
+            // scheduled items back to the queue
             
-            if (!toFetch.isEmpty()) {
-                Set<String> oldSvcLoaderCache = svcLoaderCacheKeys.get();
-                Set<String> newSvcLoaderCache = null;
-                
-                // fetch items
-                
-                for (PrefetchTokenScheduledItem item : toFetch) {
-                
-                    // create ZTS Client for this particular item
+            if (toFetch.isEmpty()) {
+                return;
+            }
 
-                    try (ZTSClient itemZtsClient = getZTSClient(item)) {
-                        
-                        // use the zts client if one was given however we need
-                        // reset back to the original client so we don't close
-                        // our given client
+            // if we have any service tokens then we need to fetch
+            // the new set from the provider
 
-                        ZTSRDLGeneratedClient savedZtsClient = itemZtsClient.ztsClient;
-                        if (item.ztsClient != null) {
-                            itemZtsClient.ztsClient = item.ztsClient;
-                        }
-
-                        switch (item.tokenType) {
-
-                            case ROLE:
-                            
-                                // check if this came from service provider
-
-                                String key = itemZtsClient.getRoleTokenCacheKey(item.domainName, item.roleName,
-                                        item.proxyForPrincipal);
-                                if (oldSvcLoaderCache.contains(key)) {
-
-                                    // if haven't gotten the new list of service
-                                    // loader tokens then get it now
-
-                                    if (newSvcLoaderCache == null) {
-                                        newSvcLoaderCache = loadSvcProviderTokens();
-                                    }
-
-                                    // check if the key is in the new key set
-                                    // - if not, mark the item as invalid
-
-                                    if (!newSvcLoaderCache.contains(key)) {
-                                        item.isInvalid(true);
-                                    }
-                                } else {
-                                    RoleToken token = itemZtsClient.getRoleToken(item.domainName, item.roleName,
-                                            item.minDuration, item.maxDuration, true, item.proxyForPrincipal);
-
-                                    // update the expiry time
-
-                                    item.expiresAtUTC(token.getExpiryTime());
-                                }
-                                break;
-
-
-                            case ACCESS:
-
-                                AccessTokenResponse response = itemZtsClient.getAccessToken(item.domainName, item.roleNames,
-                                        item.idTokenServiceName, item.proxyForPrincipal, item.maxDuration, true);
-
-                                // update the expiry time
-
-                                item.expiresAtUTC(System.currentTimeMillis() + response.getExpires_in());
-                                break;
-
-                            case AWS:
-
-                                AWSTemporaryCredentials awsCred = itemZtsClient.getAWSTemporaryCredentials(item.domainName,
-                                        item.roleName, item.externalId, item.minDuration, item.maxDuration, true);
-
-                                // update the expiry time
-
-                                item.expiresAtUTC(awsCred.getExpiration().millis() / 1000);
-                                break;
-                        }
-                        
-                        // don't forget to restore the original client if case
-                        // we had overridden with the caller specified client
-                        
-                        itemZtsClient.ztsClient = savedZtsClient;
-                        
-                    } catch (Exception ex) {
-                        
-                        // any exception should remove this item from fetch queue
-                        
-                        item.isInvalid(true);
-                        PREFETCH_SCHEDULED_ITEMS.remove(item);
-                        LOG.error("RolePrefetchTask: Error while trying to prefetch token", ex);
-                    }
-                }
-                
-                // remove all invalid items.
-               
-                toFetch.removeIf(p -> p.isInvalid);
-                
-                // now, add items back.
-                
-                if (!toFetch.isEmpty()) {
-                    synchronized (PREFETCH_SCHEDULED_ITEMS) {
-                        // make sure there are no items of common
-                        PREFETCH_SCHEDULED_ITEMS.removeAll(toFetch);
-                        // add them back
-                        PREFETCH_SCHEDULED_ITEMS.addAll(toFetch);
-                    }
+            Set<String> svcLoaderCache = null;
+            if (svcTokenRefresh) {
+                try {
+                    svcLoaderCache = loadSvcProviderTokens();
+                } catch (Exception ex) {
+                    LOG.error("Unable to load service provider tokens", ex);
                 }
             }
+
+            // fetch items
+
+            for (PrefetchTokenScheduledItem item : toFetch) {
+
+                // create ZTS Client for this particular item
+
+                try (ZTSClient itemZtsClient = getZTSClient(item)) {
+                    processPrefetchTask(item, itemZtsClient, svcLoaderCache, currentTime);
+                }
+            }
+
+            // clean our temporary list
+
+            toFetch.clear();
         }
     }
-    
+
+    static void processPrefetchTask(PrefetchTokenScheduledItem item, ZTSClient itemZtsClient,
+            Set<String> svcLoaderCache, long currentTime) {
+
+        // use the zts client if one was given however we need
+        // reset back to the original client so we don't close
+        // our given client
+
+        ZTSRDLGeneratedClient savedZtsClient = itemZtsClient.ztsClient;
+        if (item.ztsClient != null) {
+            itemZtsClient.ztsClient = item.ztsClient;
+        }
+
+        try {
+            switch (item.tokenType) {
+
+                case ROLE:
+
+                    RoleToken token = itemZtsClient.getRoleToken(item.domainName, item.roleName,
+                            item.minDuration, item.maxDuration, true, item.proxyForPrincipal);
+
+                    // update the expiry time
+
+                    item.expiresAtUTC(token.getExpiryTime());
+                    break;
+
+                case ACCESS:
+
+                    AccessTokenResponse response = itemZtsClient.getAccessToken(item.domainName, item.roleNames,
+                            item.idTokenServiceName, item.proxyForPrincipal, item.maxDuration, true);
+
+                    // update the expiry time
+
+                    item.expiresAtUTC(System.currentTimeMillis() / 1000 + response.getExpires_in());
+                    break;
+
+                case AWS:
+
+                    AWSTemporaryCredentials awsCred = itemZtsClient.getAWSTemporaryCredentials(item.domainName,
+                            item.roleName, item.externalId, item.minDuration, item.maxDuration, true);
+
+                    // update the expiry time
+
+                    item.expiresAtUTC(awsCred.getExpiration().millis() / 1000);
+                    break;
+
+                case SVC_ROLE:
+
+                    // check if the key is in the new key set
+                    // if not, mark the item as invalid and
+                    // remove it from the fetch list
+
+                    if (svcLoaderCache != null && !svcLoaderCache.contains(item.cacheKey)) {
+                        item.isInvalid(true);
+                        PREFETCH_SCHEDULED_ITEMS.remove(item);
+                    }
+                    break;
+            }
+
+            // update the fetch/fail times
+
+            item.fetchTime(currentTime);
+            item.lastFailTime(0);
+
+        } catch (ZTSClientException ex) {
+
+            LOG.error("PrefetchTask: Error while trying to prefetch token", ex);
+
+            // if we get either invalid credential or the request
+            // is forbidden then there is no point of retrying
+            // so we'll mark the item as invalid otherwise we'll
+            // keep the item in the queue and retry later
+
+            int code = ex.getCode();
+            if (code == ZTSClientException.UNAUTHORIZED || code == ZTSClientException.FORBIDDEN) {
+
+                // we need to mark it as invalid and then remove it from
+                // our list so that we don't match other active requests
+                // that might have been already added to the queue
+
+                item.isInvalid(true);
+                PREFETCH_SCHEDULED_ITEMS.remove(item);
+            } else {
+                item.lastFailTime(currentTime);
+            }
+
+        } catch (Exception ex) {
+
+            // any other exception should remove this item from fetch queue
+            // we need to mark it as invalid and then remove it from
+            // our list so that we don't match other active requests
+            // that might have been already added to the queue
+
+            item.isInvalid(true);
+            PREFETCH_SCHEDULED_ITEMS.remove(item);
+            LOG.error("PrefetchTask: Error while trying to prefetch token", ex);
+        }
+
+        // don't forget to restore the original client if case
+        // we had overridden with the caller specified client
+
+        itemZtsClient.ztsClient = savedZtsClient;
+    }
+
     // method useful for test purposes only
     int getScheduledItemsSize() {
-        synchronized (PREFETCH_SCHEDULED_ITEMS) {
-            // ConcurrentLinkedQueue.size() method is typically not very useful in concurrent applications
-            return PREFETCH_SCHEDULED_ITEMS.size();
-        }
+        return PREFETCH_SCHEDULED_ITEMS.size();
     }
     
     /**
@@ -1608,7 +1640,26 @@ public class ZTSClient implements Closeable {
         return prefetchToken(domainName, roleName, null, minExpiryTime, maxExpiryTime, null,
                 externalId, null, expiryTimeUTC, TokenType.AWS);
     }
-    
+
+    public boolean prefetchAccessToken(String domainName, List<String> roleNames,
+            String idTokenServiceName, String proxyForPrincipal, long expiryTime) {
+
+        if (domainName == null || domainName.trim().isEmpty()) {
+            throw new ZTSClientException(ZTSClientException.BAD_REQUEST, "Domain Name cannot be empty");
+        }
+
+        AccessTokenResponse tokenResponse = getAccessToken(domainName, roleNames, idTokenServiceName,
+                proxyForPrincipal, expiryTime, true);
+        if (tokenResponse == null) {
+            LOG.error("PrefetchToken: No access token fetchable using domain={}", domainName);
+            return false;
+        }
+        long expiryTimeUTC = System.currentTimeMillis() / 1000 + tokenResponse.getExpires_in();
+
+        return prefetchToken(domainName, null, roleNames, null, (int) expiryTime,
+                proxyForPrincipal, idTokenServiceName, null, expiryTimeUTC, TokenType.ACCESS);
+    }
+
     boolean prefetchToken(String domainName, String roleName, List<String> roleNames,
             Integer minExpiryTime, Integer maxExpiryTime, String proxyForPrincipal,
             String externalId, String idTokenServiceName, long expiryTimeUTC, TokenType tokenType) {
@@ -1628,6 +1679,7 @@ public class ZTSClient implements Closeable {
         
         PrefetchTokenScheduledItem item = new PrefetchTokenScheduledItem()
             .tokenType(tokenType)
+            .fetchTime(System.currentTimeMillis() / 1000)
             .domainName(domainName)
             .roleName(roleName)
             .roleNames(roleNames)
@@ -1645,25 +1697,22 @@ public class ZTSClient implements Closeable {
             .sslContext(sslContext)
             .proxyUrl(proxyUrl);
         
-        // include our zts client only if it was overriden by
+        // include our zts client only if it was overridden by
         // the caller (most likely for unit test mock)
         
         if (ztsClientOverride) {
              item.ztsClient(this.ztsClient);
         }
-        
-        if (!PREFETCH_SCHEDULED_ITEMS.contains(item)) {
-            PREFETCH_SCHEDULED_ITEMS.add(item);
-        } else {
-            // contains item based on these 6 fields:
-            // domainName identityDomain identityName suffix trustDomain isRoleToken
-            //
-            // So need to remove and append since the new token expiry has changed
-            // .expiresAtUTC(token.getExpiryTime())
-            //
-            PREFETCH_SCHEDULED_ITEMS.remove(item);
-            PREFETCH_SCHEDULED_ITEMS.add(item);
-        }
+
+        // we need to make sure we don't have duplicates in
+        // our prefetch list so since we got a brand new
+        // token now we're going to remove any others we have
+        // in the list and add this one. Our items equals
+        // method defines what attributes we're looking for
+        // when comparing two items.
+
+        PREFETCH_SCHEDULED_ITEMS.remove(item);
+        PREFETCH_SCHEDULED_ITEMS.add(item);
 
         startPrefetch();
         return true;
@@ -1780,11 +1829,11 @@ public class ZTSClient implements Closeable {
 
         // we'll first make sure if we're given both min and max expiry
         // times then both conditions are satisfied
-        
+
         if (minExpiryTime != null && expiryTime < minExpiryTime) {
             return true;
         }
-        
+
         if (maxExpiryTime != null && expiryTime > maxExpiryTime) {
             return true;
         }
@@ -2175,7 +2224,8 @@ public class ZTSClient implements Closeable {
     }
 
     /**
-     * For a given domain and role return AWS temporary credentials
+     * For a given domain and role return AWS temporary credentials. If the token
+     * is present in the local cache and not expired, it will be returned.
      *
      * @param domainName name of the domain
      * @param roleName is the name of the role
@@ -2185,13 +2235,24 @@ public class ZTSClient implements Closeable {
         return getAWSTemporaryCredentials(domainName, roleName, null, null, null, false);
     }
 
+    /**
+     * For a given domain and role return AWS temporary credentials. If ignoreCache
+     * argument is true then the request will be carried against Athenz ZTS Server
+     * and ignore any possibly valid credentials from the local cache.
+     *
+     * @param domainName name of the domain
+     * @param roleName is the name of the role
+     * @param ignoreCache whether or not ignore the cache for this request
+     * @return AWSTemporaryCredentials AWS credentials
+     */
     public AWSTemporaryCredentials getAWSTemporaryCredentials(String domainName, String roleName,
             boolean ignoreCache) {
         return getAWSTemporaryCredentials(domainName, roleName, null, null, null, ignoreCache);
     }
 
     /**
-     * For a given domain and role return AWS temporary credentials
+     * For a given domain and role return AWS temporary credentials. If the token
+     * is present in the local cache and not expired, it will be returned.
      *
      * @param domainName name of the domain
      * @param roleName is the name of the role
@@ -2208,6 +2269,21 @@ public class ZTSClient implements Closeable {
                 minExpiryTime, maxExpiryTime, false);
     }
 
+    /**
+     * For a given domain and role return AWS temporary credentials. If ignoreCache
+     * argument is true then the request will be carried against Athenz ZTS Server
+     * and ignore any possibly valid credentials from the local cache.
+     *
+     * @param domainName name of the domain
+     * @param roleName is the name of the role
+     * @param minExpiryTime (optional) specifies that the returned RoleToken must be
+     *          at least valid (min/lower bound) for specified number of seconds,
+     * @param maxExpiryTime (optional) specifies that the returned RoleToken must be
+     *          at most valid (max/upper bound) for specified number of seconds.
+     * @param externalId (optional) external id to satisfy configured assume role condition
+     * @param ignoreCache whether or not ignore the cache for this request
+     * @return AWSTemporaryCredentials AWS credentials
+     */
     public AWSTemporaryCredentials getAWSTemporaryCredentials(String domainName, String roleName,
             String externalId, Integer minExpiryTime, Integer maxExpiryTime, boolean ignoreCache) {
 
@@ -2482,7 +2558,13 @@ public class ZTSClient implements Closeable {
             domainName = d;
             return this;
         }
-        
+
+        String cacheKey;
+        PrefetchTokenScheduledItem cacheKey(String key) {
+            cacheKey = key;
+            return this;
+        }
+
         String roleName;
         PrefetchTokenScheduledItem roleName(String s) {
             roleName = s;
@@ -2525,12 +2607,24 @@ public class ZTSClient implements Closeable {
             return this;
         }
         
-        long expiresAtUTC;
+        long expiresAtUTC = 0;
         PrefetchTokenScheduledItem expiresAtUTC(long e) {
             expiresAtUTC = e;
             return this;
         }
-        
+
+        long fetchTime = 0;
+        PrefetchTokenScheduledItem fetchTime(long time) {
+            fetchTime = time;
+            return this;
+        }
+
+        long lastFailTime = 0;
+        PrefetchTokenScheduledItem lastFailTime(long time) {
+            lastFailTime = time;
+            return this;
+        }
+
         int tokenMinExpiryTime;
         PrefetchTokenScheduledItem tokenMinExpiryTime(int t) {
             tokenMinExpiryTime = t;
@@ -2824,7 +2918,7 @@ public class ZTSClient implements Closeable {
 
         RoleToken roleToken = new RoleToken().setToken(desc.getSignedToken()).setExpiryTime(expiryTime);
 
-        String key = getRoleTokenCacheKey(tenantDomain, tenantService, domainName, roleName, null);
+        final String key = getRoleTokenCacheKey(tenantDomain, tenantService, domainName, roleName, null);
 
         if (LOG.isInfoEnabled()) {
             LOG.info("cacheSvcProvRoleToken: cache-add key: {} expiry: {}", key, expiryTime);
@@ -2834,15 +2928,14 @@ public class ZTSClient implements Closeable {
 
         // setup prefetch task
         
-        Long expiryTimeUTC = roleToken.getExpiryTime();
         prefetchSvcProvTokens(tenantDomain, tenantService, domainName,
-            roleName, null, null, expiryTimeUTC, null);
+            key, roleName, null, null, expiryTime, null);
 
         return key;
     }
     
     static void prefetchSvcProvTokens(String domain, String service, String domainName,
-            String roleName, Integer minExpiryTime, Integer maxExpiryTime,
+            String cacheKey, String roleName, Integer minExpiryTime, Integer maxExpiryTime,
             Long expiryTimeUTC, String proxyForPrincipal) {
         
         if (domainName == null || domainName.trim().isEmpty()) {
@@ -2850,7 +2943,8 @@ public class ZTSClient implements Closeable {
         }
 
         PrefetchTokenScheduledItem item = new PrefetchTokenScheduledItem()
-            .tokenType(TokenType.ROLE)
+            .tokenType(TokenType.SVC_ROLE)
+            .cacheKey(cacheKey)
             .domainName(domainName)
             .roleName(roleName)
             .proxyForPrincipal(proxyForPrincipal)
@@ -2861,17 +2955,16 @@ public class ZTSClient implements Closeable {
             .identityName(service)
             .tokenMinExpiryTime(ZTSClient.tokenMinExpiryTime);
 
-        //noinspection RedundantCollectionOperation
-        if (PREFETCH_SCHEDULED_ITEMS.contains(item)) {
-            // contains item based on these 5 fields:
-            // domainName identityDomain identityName roleName proxyForProfile isRoleToken
-            //
-            // So need to remove and append since the new token expiry has changed
-            // .expiresAtUTC(token.getExpiryTime())
-            //
-            PREFETCH_SCHEDULED_ITEMS.remove(item);
-        }
+        // we need to make sure we don't have duplicates in
+        // our prefetch list so since we got a brand new
+        // token now we're going to remove any others we have
+        // in the list and add this one. Our items equals
+        // method defines what attributes we're looking for
+        // when comparing two items
+
+        PREFETCH_SCHEDULED_ITEMS.remove(item);
         PREFETCH_SCHEDULED_ITEMS.add(item);
+
         startPrefetch();
     }
 
@@ -2885,7 +2978,7 @@ public class ZTSClient implements Closeable {
             if (FETCH_TIMER == null) {
                 FETCH_TIMER = new Timer();
                 // check the fetch items every prefetchInterval seconds.
-                FETCH_TIMER.schedule(new RolePrefetchTask(), 0, prefetchInterval * 1000);
+                FETCH_TIMER.schedule(new TokenPrefetchTask(), 0, prefetchInterval * 1000);
             }
         }
     }
