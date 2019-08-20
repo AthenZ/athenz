@@ -37,9 +37,10 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     private int jwkExcCode = 0;
 
     Map<String, AWSTemporaryCredentials> credsMap = new HashMap<>();
-    
+
     private Map<String, Long> lastRoleTokenFetchedTime = new HashMap<>();
-    
+    private Map<String, Long> lastAccessTokenFetchedTime = new HashMap<>();
+
     static String getKey(String domain, String roleName, String proxyForPrincipal) {
         return domain + "-" + roleName + "-" + proxyForPrincipal;
     }
@@ -47,11 +48,23 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     long getLastRoleTokenFetchedTime(String domain, String roleName) {
         return getLastRoleTokenFetchedTime(domain, roleName, null);
     }
-    
+
+    long getLastAccessTokenFetchedTime(String domain, String roleName) {
+        return getLastAccessTokenFetchedTime(domain, roleName, null);
+    }
+
     long getLastRoleTokenFetchedTime(String domain, String roleName, String proxyForPrincipal) {
         String key = getKey(domain, roleName, proxyForPrincipal);
         if (lastRoleTokenFetchedTime.containsKey(key)) {
             return lastRoleTokenFetchedTime.get(key);
+        }
+        return -1;
+    }
+
+    long getLastAccessTokenFetchedTime(String domain, String roleName, String proxyForPrincipal) {
+        String key = getKey(domain, roleName, proxyForPrincipal);
+        if (lastAccessTokenFetchedTime.containsKey(key)) {
+            return lastAccessTokenFetchedTime.get(key);
         }
         return -1;
     }
@@ -160,6 +173,14 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
 
         if (request.equals("grant_type=client_credentials&expires_in=3600&scope=coretech%3Adomain")) {
             tokenResponse.setScope("coretech:role.role1");
+        } else if (request.equals("grant_type=client_credentials&expires_in=8&scope=coretech%3Adomain")) {
+            tokenResponse.setScope("coretech:role.role1");
+            tokenResponse.setExpires_in(8);
+        } else if (request.equals("grant_type=client_credentials&expires_in=3600&scope=coretech2%3Adomain")) {
+            tokenResponse.setScope("coretech2:role.role1");
+        } else if (request.equals("grant_type=client_credentials&expires_in=8&scope=coretech2%3Adomain")) {
+            tokenResponse.setScope("coretech2:role.role1");
+            tokenResponse.setExpires_in(8);
         } else if (request.equals("grant_type=client_credentials&expires_in=3600&scope=coretech%3Arole.role1")) {
             tokenResponse.setScope("coretech:role.role1");
         } else if (request.equals("grant_type=client_credentials&expires_in=3600&scope=coretech%3Adomain+openid+coretech%3Aservice.backend")) {
@@ -172,6 +193,18 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
         } else {
             throw new ResourceException(404, "domain not found");
         }
+
+        int idxScope = request.indexOf("scope=");
+        if (idxScope != -1) {
+            int domainScope = request.indexOf("%3Adomain", idxScope);
+            if (domainScope != -1) {
+                final String domainName = request.substring(idxScope + 6, domainScope);
+                String key = getKey(domainName, null, null);
+                long lastUpdatedTime = System.currentTimeMillis();
+                lastAccessTokenFetchedTime.put(key, lastUpdatedTime);
+            }
+        }
+
         return tokenResponse;
     }
 

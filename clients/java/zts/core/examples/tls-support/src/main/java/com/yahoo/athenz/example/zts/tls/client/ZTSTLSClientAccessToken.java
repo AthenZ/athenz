@@ -50,6 +50,7 @@ public class ZTSTLSClientAccessToken {
         final String trustStorePath = cmd.getOptionValue("trustStorePath");
         final String trustStorePassword = cmd.getOptionValue("trustStorePassword");
         final String idTokenService = cmd.getOptionValue("idTokenService");
+        final String expiryTime = cmd.getOptionValue("expiryTime");
 
         // we are going to setup our service private key and
         // certificate into a ssl context that we can use with
@@ -63,13 +64,16 @@ public class ZTSTLSClientAccessToken {
             
             try (ZTSClient ztsClient = new ZTSClient(ztsUrl, sslContext)) {
 
+                long expiryTimeSeconds = (expiryTime != null) ? Long.parseLong(expiryTime) : 0;
+
                 try {
-                    AccessTokenResponse tokenResponse = ztsClient.getAccessToken(domainName, null, idTokenService, 3600, false);
-                    tokenResponse = ztsClient.getAccessToken(domainName, null, "backend", 3600, false);
+                    AccessTokenResponse tokenResponse = ztsClient.getAccessToken(domainName, null,
+                            idTokenService, expiryTimeSeconds, false);
+
                     System.out.println("AccessToken: " + tokenResponse.getAccess_token());
                     System.out.println("IDToken: " + tokenResponse.getId_token());
                     System.out.println("Scope: " + tokenResponse.getScope());
-                    System.out.println("ExpriresIn: " + tokenResponse.getExpires_in());
+                    System.out.println("ExpiresIn: " + tokenResponse.getExpires_in());
                     System.out.println("TokenType: " + tokenResponse.getToken_type());
 
                 } catch (ZTSClientException ex) {
@@ -115,7 +119,11 @@ public class ZTSTLSClientAccessToken {
         Option idTokenService = new Option("s", "idTokenService", true, "ID Token Service Name");
         idTokenService.setRequired(false);
         options.addOption(idTokenService);
-        
+
+        Option expiryTime = new Option("e", "expiryTime", true, "Expiry Time in seconds");
+        expiryTime.setRequired(false);
+        options.addOption(expiryTime);
+
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
         CommandLine cmd = null;
