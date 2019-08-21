@@ -48,6 +48,8 @@ public class KeyRefresher {
     private final TrustManagerProxy trustManagerProxy;
 
     private int retryFrequency = DEFAULT_RETRY_CHECK_FREQUENCY;
+    
+    private final KeyRefresherListener keyRefresherListener;
 
     /**
      * this method should be used in the following way
@@ -77,13 +79,30 @@ public class KeyRefresher {
      * @throws NoSuchAlgorithmException this is only thrown if we cannot use MD5 hashing
      */
     public KeyRefresher(final String athenzPublicCert, final String athenzPrivateKey, final TrustStore trustStore,
-                        final KeyManagerProxy keyManagerProxy, final TrustManagerProxy trustManagerProxy)
+            final KeyManagerProxy keyManagerProxy, final TrustManagerProxy trustManagerProxy) throws NoSuchAlgorithmException {
+        this(athenzPublicCert, athenzPrivateKey, trustStore, keyManagerProxy, trustManagerProxy, null);
+        
+    }
+    
+    /**
+     * 
+     * @param athenzPublicCert
+     * @param athenzPrivateKey
+     * @param trustStore
+     * @param keyManagerProxy
+     * @param trustManagerProxy
+     * @param keyRefresherListener
+     * @throws NoSuchAlgorithmException
+     */
+    public KeyRefresher(final String athenzPublicCert, final String athenzPrivateKey, final TrustStore trustStore,
+                        final KeyManagerProxy keyManagerProxy, final TrustManagerProxy trustManagerProxy, final KeyRefresherListener keyRefresherListener)
             throws NoSuchAlgorithmException {
         this.athenzPublicCert = athenzPublicCert;
         this.athenzPrivateKey = athenzPrivateKey;
         this.trustStore = trustStore;
         this.keyManagerProxy = keyManagerProxy;
         this.trustManagerProxy = trustManagerProxy;
+        this.keyRefresherListener = keyRefresherListener;
     }
 
     public KeyManagerProxy getKeyManagerProxy() {
@@ -109,9 +128,14 @@ public class KeyRefresher {
                     boolean keyFilesChanged = haveFilesBeenChanged(athenzPrivateKey, lastPrivateKeyManagerChecksum);
                     keyFilesChanged = haveFilesBeenChanged(athenzPublicCert, lastPublicCertManagerChecksum) || keyFilesChanged;
                     if (keyFilesChanged) {
+                        
                         keyManagerProxy.setKeyManager(Utils.getKeyManagers(athenzPublicCert, athenzPrivateKey));
                         if (LOGGER.isDebugEnabled()) {
                             LOGGER.debug("KeyRefresher detected changes. Reloaded Key managers");
+                        }
+                        //Signal key change event
+                        if (keyRefresherListener != null) {
+                            keyRefresherListener.onKeyChangeEvent();
                         }
                     }
                 } catch (Exception ex) {

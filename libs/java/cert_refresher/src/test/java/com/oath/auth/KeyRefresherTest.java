@@ -18,6 +18,7 @@ package com.oath.auth;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Test;
+import org.testng.Assert;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.TrustManager;
@@ -123,6 +124,8 @@ public class KeyRefresherTest {
         @Mocked TrustManagerProxy mockedTrustManagerProxy)
         throws Exception {
 
+        TestKeyRefresherListener listener = new TestKeyRefresherListener();
+
         new Expectations() {{
             mockedKeyManagerProxy.setKeyManager((KeyManager[]) any); minTimes = 1;
             mockedTrustManagerProxy.setTrustManager((TrustManager[]) any);
@@ -133,7 +136,7 @@ public class KeyRefresherTest {
         String keyFile = classLoader.getResource("gdpr.aws.core.key.pem").getFile();
 
         KeyRefresher keyRefresher = new KeyRefresher(certFile, keyFile,
-            mockedTrustStore, mockedKeyManagerProxy, mockedTrustManagerProxy) {
+            mockedTrustStore, mockedKeyManagerProxy, mockedTrustManagerProxy, listener) {
             @Override
             protected boolean haveFilesBeenChanged(String filePath, byte[] checksum) {
                 return true;
@@ -142,6 +145,7 @@ public class KeyRefresherTest {
 
         keyRefresher.startup(1);
         Thread.sleep(1000);
+        Assert.assertTrue(listener.keyChanged);
         keyRefresher.shutdown();
     }
 
@@ -159,4 +163,13 @@ public class KeyRefresherTest {
         assertNotNull(keyRefresher);
         keyRefresher.shutdown();
     }
+    
+    class TestKeyRefresherListener implements KeyRefresherListener {
+        public boolean keyChanged = false;
+        @Override
+        public void onKeyChangeEvent() {
+            keyChanged = true;
+        }
+    }
+
 }
