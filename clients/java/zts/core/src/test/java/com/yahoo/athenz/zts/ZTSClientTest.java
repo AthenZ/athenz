@@ -3073,10 +3073,10 @@ public class ZTSClientTest {
         // current time 1400 - refresh
         // current time 1500 - refresh
 
-        assertFalse(task.shouldRefresh(1200, 1000, 0, 1800));
-        assertFalse(task.shouldRefresh(1300, 1000, 0, 1800));
-        assertTrue(task.shouldRefresh(1400, 1000, 0, 1800));
-        assertTrue(task.shouldRefresh(1500, 1000, 0, 1800));
+        assertFalse(task.shouldRefresh(ZTSClient.TokenType.ACCESS, 1200, 1000, 0, 1800));
+        assertFalse(task.shouldRefresh(ZTSClient.TokenType.ACCESS, 1300, 1000, 0, 1800));
+        assertTrue(task.shouldRefresh(ZTSClient.TokenType.ACCESS, 1400, 1000, 0, 1800));
+        assertTrue(task.shouldRefresh(ZTSClient.TokenType.ACCESS, 1500, 1000, 0, 1800));
 
         // last fetch is 1000
         // last fail time 1400
@@ -3085,8 +3085,24 @@ public class ZTSClientTest {
         // current time 1500 - no refresh
         // current time 1600 - refresh
 
-        assertFalse(task.shouldRefresh(1500, 1000, 1400, 1800));
-        assertTrue(task.shouldRefresh(1600, 1000, 1400, 1800));
+        assertFalse(task.shouldRefresh(ZTSClient.TokenType.ROLE, 1500, 1000, 1400, 1800));
+        assertTrue(task.shouldRefresh(ZTSClient.TokenType.ROLE, 1600, 1000, 1400, 1800));
+
+        // tests using last refresh time
+
+        long currentTime = System.currentTimeMillis() / 1000;
+        long lastFetchTime = System.currentTimeMillis() / 1000 - 100;
+        long expiryTime = System.currentTimeMillis() / 1000 + 24 * 60 * 60;
+
+        assertFalse(task.shouldRefresh(ZTSClient.TokenType.ROLE, currentTime, lastFetchTime, 0, expiryTime));
+        assertFalse(task.shouldRefresh(ZTSClient.TokenType.ACCESS, currentTime, lastFetchTime, 0, expiryTime));
+
+        // now set the key refresher which should make it enabled for refresh
+        // but only for access tokens
+
+        ZTSClient.KEY_REFRESHER_LISTENER.onKeyChangeEvent();
+        assertTrue(task.shouldRefresh(ZTSClient.TokenType.ACCESS, currentTime, lastFetchTime, 0, expiryTime));
+        assertFalse(task.shouldRefresh(ZTSClient.TokenType.ROLE, currentTime, lastFetchTime, 0, expiryTime));
     }
 
     @Test

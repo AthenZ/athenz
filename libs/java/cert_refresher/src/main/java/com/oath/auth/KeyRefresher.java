@@ -95,7 +95,8 @@ public class KeyRefresher {
      * @throws NoSuchAlgorithmException
      */
     public KeyRefresher(final String athenzPublicCert, final String athenzPrivateKey, final TrustStore trustStore,
-                        final KeyManagerProxy keyManagerProxy, final TrustManagerProxy trustManagerProxy, final KeyRefresherListener keyRefresherListener)
+                        final KeyManagerProxy keyManagerProxy, final TrustManagerProxy trustManagerProxy,
+                        final KeyRefresherListener keyRefresherListener)
             throws NoSuchAlgorithmException {
         this.athenzPublicCert = athenzPublicCert;
         this.athenzPrivateKey = athenzPrivateKey;
