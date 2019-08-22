@@ -135,9 +135,10 @@ public class Utils {
      * @throws FileNotFoundException 
      */
     public static KeyRefresher generateKeyRefresher(final String trustStorePath,
-            final String athenzPublicCert, final String athenzPrivateKey) throws FileNotFoundException, IOException, InterruptedException, KeyRefresherException {
+            final String athenzPublicCert, final String athenzPrivateKey)
+            throws FileNotFoundException, IOException, InterruptedException, KeyRefresherException {
         return generateKeyRefresher(trustStorePath, KEYSTORE_PASSWORD, athenzPublicCert,
-                athenzPrivateKey);
+                athenzPrivateKey, null);
     }
 
     /**
@@ -158,10 +159,10 @@ public class Utils {
      * @throws FileNotFoundException 
      */
     public static KeyRefresher generateKeyRefresher(final String trustStorePath,
-            final String trustStorePassword, final String athenzPublicCert,
-            final String athenzPrivateKey) throws FileNotFoundException, IOException, InterruptedException, KeyRefresherException {
+            final String trustStorePassword, final String athenzPublicCert, final String athenzPrivateKey)
+            throws FileNotFoundException, IOException, InterruptedException, KeyRefresherException {
         return generateKeyRefresher(trustStorePath, trustStorePassword.toCharArray(),
-                athenzPublicCert, athenzPrivateKey);
+                athenzPublicCert, athenzPrivateKey, null);
     }
     
     /**
@@ -182,13 +183,39 @@ public class Utils {
      * @throws FileNotFoundException 
      */
     public static KeyRefresher generateKeyRefresher(final String trustStorePath,
+            final char[] trustStorePassword, final String athenzPublicCert, final String athenzPrivateKey)
+            throws FileNotFoundException, IOException, InterruptedException, KeyRefresherException {
+        return generateKeyRefresher(trustStorePath, trustStorePassword,
+                athenzPublicCert, athenzPrivateKey, null);
+    }
+
+    /**
+     * Generate the KeyRefresher object first as the server will need access to
+     * it (to turn it off and on as needed). It requires that the proxies are
+     * created which are then stored in the KeyRefresher. This method requires
+     * the paths to the private key and certificate files along with the
+     * trust-store path which has been created already and just needs to be
+     * monitored for changes.
+     * @param trustStorePath path to the trust-store
+     * @param trustStorePassword trust store password
+     * @param athenzPublicCert path to the certificate file
+     * @param athenzPrivateKey path to the private key file
+     * @param keyRefresherListener notify listener that key/cert has changed
+     * @return KeyRefresher object
+     * @throws KeyRefresherException
+     * @throws InterruptedException
+     * @throws IOException
+     * @throws FileNotFoundException
+     */
+    public static KeyRefresher generateKeyRefresher(final String trustStorePath,
             final char[] trustStorePassword, final String athenzPublicCert,
-            final String athenzPrivateKey) throws FileNotFoundException, IOException, InterruptedException, KeyRefresherException {
+            final String athenzPrivateKey, final KeyRefresherListener keyRefresherListener)
+            throws FileNotFoundException, IOException, InterruptedException, KeyRefresherException {
         TrustStore trustStore = new TrustStore(trustStorePath,
                 new JavaKeyStoreProvider(trustStorePath, trustStorePassword));
         return getKeyRefresher(athenzPublicCert, athenzPrivateKey, trustStore);
     }
-    
+
     /**
      * Generate the KeyRefresher object first as the server will need access to
      * it (to turn it off and on as needed). It requires that the proxies are
@@ -213,17 +240,25 @@ public class Utils {
     
     static KeyRefresher getKeyRefresher(String athenzPublicCert, String athenzPrivateKey,
             TrustStore trustStore) throws FileNotFoundException, IOException, InterruptedException, KeyRefresherException {
+        return getKeyRefresher(athenzPublicCert, athenzPrivateKey, trustStore, null);
+    }
+
+    static KeyRefresher getKeyRefresher(String athenzPublicCert, String athenzPrivateKey,
+            TrustStore trustStore, final KeyRefresherListener keyRefresherListener)
+            throws FileNotFoundException, IOException, InterruptedException, KeyRefresherException {
         KeyRefresher keyRefresher = null;
         KeyManagerProxy keyManagerProxy =
                 new KeyManagerProxy(getKeyManagers(athenzPublicCert, athenzPrivateKey));
         TrustManagerProxy trustManagerProxy = new TrustManagerProxy(trustStore.getTrustManagers());
         try {
-            keyRefresher = new KeyRefresher(athenzPublicCert, athenzPrivateKey, trustStore, keyManagerProxy, trustManagerProxy);
+            keyRefresher = new KeyRefresher(athenzPublicCert, athenzPrivateKey, trustStore,
+                    keyManagerProxy, trustManagerProxy, keyRefresherListener);
         } catch (NoSuchAlgorithmException e) {
             throw new KeyRefresherException(e);
         }
         return keyRefresher;
     }
+
     /**
      * this method will create a new SSLContext object that can be updated on the fly should the
      * public/private keys / trustStore change.

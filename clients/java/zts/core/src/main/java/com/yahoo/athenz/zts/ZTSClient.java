@@ -41,6 +41,10 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.oath.auth.KeyRefresher;
+import com.oath.auth.KeyRefresherException;
+import com.oath.auth.KeyRefresherListener;
+import com.oath.auth.Utils;
 import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.operator.OperatorCreationException;
@@ -98,7 +102,7 @@ public class ZTSClient implements Closeable {
     
     private boolean enablePrefetch = true;
     private boolean ztsClientOverride = false;
-    
+
     @SuppressWarnings("unused")
     static private boolean initialized = initConfigValues();
     
@@ -147,7 +151,8 @@ public class ZTSClient implements Closeable {
     private static Timer FETCH_TIMER;
     private static final Object TIMER_LOCK = new Object();
     static AtomicLong FETCHER_LAST_RUN_AT = new AtomicLong(-1);
-    
+    static final ClientKeyRefresherListener KEY_REFRESHER_LISTENER = new ClientKeyRefresherListener();
+
     // allows outside implementations to get role tokens for special environments - ex. hadoop
     
     private static ServiceLoader<ZTSClientService> ztsTokenProviders;
@@ -520,7 +525,35 @@ public class ZTSClient implements Closeable {
         this.ztsClient = client;
         ztsClientOverride = true;
     }
-    
+
+    /**
+     * Generate the SSLContext object based on give key/cert and trusttore
+     * files. If configured, the method will monitor any changes in the given
+     * key/cert files and automatically update the ssl context.
+     * @param trustStorePath path to the trust-store
+     * @param trustStorePassword trust store password
+     * @param publicCertFile path to the certificate file
+     * @param privateKeyFile path to the private key file
+     * @param monitorKeyCertUpdates boolean flag whether or not monitor file updates
+     * @return SSLContext object
+     */
+    public SSLContext createSSLContext(final String trustStorePath, final char[] trustStorePassword,
+                 final String publicCertFile, final String privateKeyFile, boolean monitorKeyCertUpdates)
+            throws InterruptedException, KeyRefresherException, IOException {
+
+        // Create our SSL Context object based on our private key and
+        // certificate and jdk truststore
+
+        KeyRefresher keyRefresher = Utils.generateKeyRefresher(trustStorePath, trustStorePassword,
+                publicCertFile, privateKeyFile, KEY_REFRESHER_LISTENER);
+        SSLContext sslContext = Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(),
+                keyRefresher.getTrustManagerProxy());
+        if (monitorKeyCertUpdates) {
+            keyRefresher.startup();
+        }
+        return sslContext;
+    }
+
     private SSLContext createSSLContext() {
         
         // to create the SSL context we must have the keystore path
@@ -637,7 +670,8 @@ public class ZTSClient implements Closeable {
         
         // setup our client config object with timeouts
 
-        final JacksonJsonProvider jacksonJsonProvider = new JacksonJaxbJsonProvider().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        final JacksonJsonProvider jacksonJsonProvider = new JacksonJaxbJsonProvider()
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         final ClientConfig config = new ClientConfig(jacksonJsonProvider);
         config.property(ClientProperties.CONNECT_TIMEOUT, reqConnectTimeout);
         config.property(ClientProperties.READ_TIMEOUT, reqReadTimeout);
@@ -1351,7 +1385,15 @@ public class ZTSClient implements Closeable {
             return client;
         }
 
-        boolean shouldRefresh(long currentTime, long lastFetchTime, long lastFailTime, long expiryTime) {
+        boolean shouldRefresh(TokenType tokenType, long currentTime, long lastFetchTime,
+                long lastFailTime, long expiryTime) {
+
+            // if the ssl context has been modified since the fetch time
+            // we are going to refresh all access tokens since they are cert bound
+
+            if (tokenType == TokenType.ACCESS && lastFetchTime < KEY_REFRESHER_LISTENER.getLastCertRefreshTime()) {
+                return true;
+            }
 
             // if we are still half way before the token expires then
             // there is no need to refresh it
@@ -1410,7 +1452,7 @@ public class ZTSClient implements Closeable {
                             itemName, item.tokenType, item.domainName, item.roleName, item.fetchTime,
                             item.lastFailTime, item.expiresAtUTC);
                 }
-                if (shouldRefresh(currentTime, item.fetchTime, item.lastFailTime, item.expiresAtUTC)) {
+                if (shouldRefresh(item.tokenType, currentTime, item.fetchTime, item.lastFailTime, item.expiresAtUTC)) {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("PrefetchTask: domain={} roleName={}. Refresh this item.",
                                 item.domainName, item.roleName);
@@ -2508,7 +2550,21 @@ public class ZTSClient implements Closeable {
             throw new ZTSClientException(ZTSClientException.BAD_REQUEST, ex.getMessage());
         }
     }
-    
+
+    static class ClientKeyRefresherListener implements KeyRefresherListener {
+
+        long lastCertRefreshTime = 0;
+
+        @Override
+        public void onKeyChangeEvent() {
+            lastCertRefreshTime = System.currentTimeMillis() / 1000;
+        }
+
+        long getLastCertRefreshTime() {
+            return lastCertRefreshTime;
+        }
+    }
+
     static class PrefetchTokenScheduledItem {
 
         TokenType tokenType = TokenType.ACCESS;
