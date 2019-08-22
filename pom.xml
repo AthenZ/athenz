@@ -69,7 +69,7 @@
   </ciManagement>
 
   <properties>
-    <jetty.version>9.4.19.v20190610</jetty.version>
+    <jetty.version>9.4.20.v20190813</jetty.version>
     <jersey.version>2.29</jersey.version>
     <jackson.core.version>2.9.9</jackson.core.version>
     <jackson.databind.version>2.9.9.3</jackson.databind.version>
@@ -78,7 +78,7 @@
     <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
     <rdl.version>1.5.2</rdl.version>
     <bouncycastle.version>1.62</bouncycastle.version>
-    <aws.version>1.11.610</aws.version>
+    <aws.version>1.11.616</aws.version>
     <guava.version>28.0-jre</guava.version>
     <logback.version>1.2.3</logback.version>
     <javax.version>3.1.0</javax.version>
@@ -219,7 +219,7 @@
     <dependency>
       <groupId>org.testng</groupId>
       <artifactId>testng</artifactId>
-      <version>6.14.3</version>
+      <version>7.0.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
