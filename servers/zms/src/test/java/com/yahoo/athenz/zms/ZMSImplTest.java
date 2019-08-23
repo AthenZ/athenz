@@ -519,7 +519,7 @@ public class ZMSImplTest {
     }
 
     private void setupPrincipalSystemMetaDelete(ZMSImpl zms, final String principal,
-            final String domainName, final String attributeName) {
+            final String domainName, final String ...attributeNames) {
 
         Role role = createRoleObject("sys.auth", "metaadmin", null, principal, null);
         zms.putRole(mockDomRsrcCtx, "sys.auth", "metaadmin", auditRef, role);
@@ -527,14 +527,17 @@ public class ZMSImplTest {
         Policy policy = new Policy();
         policy.setName("metaadmin");
 
-        Assertion assertion = new Assertion();
-        assertion.setAction("delete");
-        assertion.setEffect(AssertionEffect.ALLOW);
-        assertion.setResource("sys.auth:meta." + attributeName + "." + domainName);
-        assertion.setRole("sys.auth:role.metaadmin");
-
         List<Assertion> assertList = new ArrayList<>();
-        assertList.add(assertion);
+        Assertion assertion;
+
+        for (String attributeName : attributeNames) {
+            assertion = new Assertion();
+            assertion.setAction("delete");
+            assertion.setEffect(AssertionEffect.ALLOW);
+            assertion.setResource("sys.auth:meta." + attributeName + "." + domainName);
+            assertion.setRole("sys.auth:role.metaadmin");
+            assertList.add(assertion);
+        }
 
         policy.setAssertions(assertList);
 
@@ -1139,13 +1142,14 @@ public class ZMSImplTest {
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
         SubDomain dom2 = createSubDomainObject("AddSubDom2", "AddSubDom1",
-                "Test Domain2", "testOrg", adminUser);
+                "Test Domain2", null, adminUser);
         Domain resDom1 = zms.postSubDomain(mockDomRsrcCtx, "AddSubDom1", auditRef, dom2);
         assertNotNull(resDom1);
 
         Domain resDom2 = zms.getDomain(mockDomRsrcCtx, "AddSubDom1.AddSubDom2");
         assertNotNull(resDom2);
 
+        assertEquals(dom2.getOrg(), "testorg");
         assertFalse(resDom2.getAuditEnabled());
 
         zms.deleteSubDomain(mockDomRsrcCtx, "AddSubDom1", "AddSubDom2", auditRef);
@@ -1685,17 +1689,20 @@ public class ZMSImplTest {
         Domain resDom1 = zms.getDomain(mockDomRsrcCtx, "MetaDom1");
         assertNotNull(resDom1);
         assertEquals(resDom1.getDescription(), "Test Domain1");
-        assertEquals(resDom1.getOrg(), "testOrg");
+        assertEquals(resDom1.getOrg(), "testorg");
         assertTrue(resDom1.getEnabled());
         assertFalse(resDom1.getAuditEnabled());
 
         DomainMeta meta = createDomainMetaObject("Test2 Domain", "NewOrg",
                 true, true, "12345", 1001);
+        meta.setCertDnsDomain("YAHOO.cloud");
         zms.putDomainMeta(mockDomRsrcCtx, "MetaDom1", auditRef, meta);
         zms.putDomainSystemMeta(mockDomRsrcCtx, "MetaDom1", "auditenabled", auditRef, meta);
         zms.putDomainSystemMeta(mockDomRsrcCtx, "MetaDom1", "account", auditRef, meta);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, "MetaDom1", "certdnsdomain", auditRef, meta);
 
-        setupPrincipalSystemMetaDelete(zms, mockDomRsrcCtx.principal().getFullName(), "metadom1", "productid");
+        setupPrincipalSystemMetaDelete(zms, mockDomRsrcCtx.principal().getFullName(), "metadom1", "productid", "org", "certdnsdomain");
+        zms.putDomainSystemMeta(mockDomRsrcCtx, "MetaDom1", "org", auditRef, meta);
         zms.putDomainSystemMeta(mockDomRsrcCtx, "MetaDom1", "productid", auditRef, meta);
 
         Domain resDom3 = zms.getDomain(mockDomRsrcCtx, "MetaDom1");
@@ -1706,6 +1713,7 @@ public class ZMSImplTest {
         assertTrue(resDom3.getAuditEnabled());
         assertEquals(resDom3.getAccount(), "12345");
         assertEquals(Integer.valueOf(1001), resDom3.getYpmId());
+        assertEquals(resDom3.getCertDnsDomain(), "yahoo.cloud");
 
         // put the meta data using same product id
 
@@ -1716,11 +1724,17 @@ public class ZMSImplTest {
         resDom3 = zms.getDomain(mockDomRsrcCtx, "MetaDom1");
         assertNotNull(resDom3);
         assertEquals(resDom3.getDescription(), "just a new desc");
-        assertEquals(resDom3.getOrg(), "organs");
+        //org is system attr. so it wont be changed by putdomainmeta call
+        assertEquals(resDom3.getOrg(), "neworg");
         assertTrue(resDom3.getEnabled());
         assertTrue(resDom3.getAuditEnabled());
         assertEquals(resDom3.getAccount(), "12345");
         assertEquals(Integer.valueOf(1001), resDom3.getYpmId());
+
+        zms.putDomainSystemMeta(mockDomRsrcCtx, "MetaDom1", "org", auditRef, meta);
+        resDom3 = zms.getDomain(mockDomRsrcCtx, "MetaDom1");
+        assertNotNull(resDom3);
+        assertEquals(resDom3.getOrg(), "organs");
 
         // put the meta data using new product
         meta = createDomainMetaObject("just a new desc", "organs",
@@ -1757,7 +1771,7 @@ public class ZMSImplTest {
         Domain resDom = zmsImpl.getDomain(mockDomRsrcCtx, "MetaDomProductid");
         assertNotNull(resDom);
         assertEquals(resDom.getDescription(), "Test Domain");
-        assertEquals(resDom.getOrg(), "testOrg");
+        assertEquals(resDom.getOrg(), "testorg");
         assertTrue(resDom.getEnabled());
         assertFalse(resDom.getAuditEnabled());
         Integer productId = resDom.getYpmId();
@@ -1816,6 +1830,8 @@ public class ZMSImplTest {
                 true, false, null, 0);
         zms.putDomainMeta(mockDomRsrcCtx, "MetaDom2", auditRef, meta);
 
+        zms.putDomainSystemMeta(mockDomRsrcCtx, "MetaDom2", "org", auditRef, meta);
+
         Domain resDom3 = zms.getDomain(mockDomRsrcCtx, "MetaDom2");
         assertNotNull(resDom3);
         assertEquals(resDom3.getDescription(), "Test2 Domain");
@@ -1839,7 +1855,7 @@ public class ZMSImplTest {
         Domain resDom = zms.getDomain(mockDomRsrcCtx, domain);
         assertNotNull(resDom);
         assertEquals(resDom.getDescription(), "Test1 Domain");
-        assertEquals(resDom.getOrg(), "testOrg");
+        assertEquals(resDom.getOrg(), "testorg");
         assertTrue(resDom.getAuditEnabled());
 
         DomainMeta meta = createDomainMetaObject("Test2 Domain", "NewOrg", false, true, null, 0);
@@ -16332,6 +16348,8 @@ public class ZMSImplTest {
         DomainMeta meta = createDomainMetaObject("Domain Meta for approval test", "testOrg",true, true, "12345", 1001);
         zms.putDomainMeta(mockDomRsrcCtx, "testdomain1", auditRef, meta);
         zms.putDomainSystemMeta(mockDomRsrcCtx, "testdomain1", "auditenabled", auditRef, meta);
+        setupPrincipalSystemMetaDelete(zms, mockDomRsrcCtx.principal().getFullName(), "testdomain1", "org");
+        zms.putDomainSystemMeta(mockDomRsrcCtx, "testdomain1", "org", auditRef, meta);
 
         Role auditedRole = createRoleObject("testdomain1", "testrole1", null,"user.john", "user.jane");
         zms.putRole(mockDomRsrcCtx, "testdomain1", "testrole1", auditRef, auditedRole);
@@ -16394,6 +16412,8 @@ public class ZMSImplTest {
                 }
             }
         }
+
+        cleanupPrincipalSystemMetaDelete(zms);
 
         zms.deleteSubDomain(mockDomRsrcCtx, "sys.auth", "audit", auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);

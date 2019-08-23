@@ -1101,7 +1101,7 @@ public class DBServiceTest {
         Domain resDom1 = zms.getDomain(mockDomRsrcCtx, "MetaDom1");
         assertNotNull(resDom1);
         assertEquals("Test Domain1", resDom1.getDescription());
-        assertEquals("testOrg", resDom1.getOrg());
+        assertEquals("testorg", resDom1.getOrg());
         assertTrue(resDom1.getEnabled());
         assertFalse(resDom1.getAuditEnabled());
         
@@ -1114,6 +1114,7 @@ public class DBServiceTest {
         zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, "productid", true, auditRef, "putDomainMeta");
         zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, "account", true, auditRef, "putDomainMeta");
         zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, "certdnsdomain", true, auditRef, "putDomainMeta");
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, "org", true, auditRef, "putDomainMeta");
 
         Domain resDom2 = zms.getDomain(mockDomRsrcCtx, "MetaDom1");
         assertNotNull(resDom2);
@@ -1130,6 +1131,7 @@ public class DBServiceTest {
         meta = new DomainMeta().setDescription("Test2 Domain-New").setOrg("NewOrg-New")
                 .setEnabled(true).setAuditEnabled(false);
         zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, null, false, auditRef, "putDomainMeta");
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, "org", true, auditRef, "putDomainMeta");
 
         Domain resDom3 = zms.getDomain(mockDomRsrcCtx, "MetaDom1");
         assertNotNull(resDom3);
@@ -4204,6 +4206,36 @@ public class DBServiceTest {
         assertEquals(members.size(), 2);
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testExecutePutDomainMetaForbidden() {
+
+        TopLevelDomain dom1 = createTopLevelDomainObject("MetaDom1",
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Domain resDom1 = zms.getDomain(mockDomRsrcCtx, "MetaDom1");
+        assertNotNull(resDom1);
+        assertEquals("Test Domain1", resDom1.getDescription());
+        assertEquals("testorg", resDom1.getOrg());
+        assertTrue(resDom1.getEnabled());
+        assertFalse(resDom1.getAuditEnabled());
+
+        // update meta with values for account and product ids
+
+        DomainMeta meta = new DomainMeta().setDescription("Test2 Domain").setOrg("NewOrg")
+                .setEnabled(true).setAuditEnabled(false).setAccount("12345").setYpmId(1001)
+                .setCertDnsDomain("athenz1.cloud");
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, null, false, auditRef, "putDomainMeta");
+        try {
+            zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, "org", false, auditRef, "putDomainMeta");
+            fail();
+        }catch (ResourceException re) {
+            assertEquals(re.getCode(), 403);
+        }
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "MetaDom1", auditRef);
     }
 
 
