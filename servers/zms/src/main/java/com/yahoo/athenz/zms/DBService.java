@@ -2173,7 +2173,6 @@ public class DBService {
 
         domain.setApplicationId(meta.getApplicationId());
         domain.setDescription(meta.getDescription());
-        domain.setOrg(meta.getOrg());
     }
 
     boolean isDeleteSystemMetaAllowed(boolean deleteAllowed, Object oldValue, Object newValue) {
@@ -2202,21 +2201,27 @@ public class DBService {
         switch (attribute) {
             case ZMSConsts.SYSTEM_META_ACCOUNT:
                 if (!isDeleteSystemMetaAllowed(deleteAllowed, domain.getAccount(), meta.getAccount())) {
-                    throw ZMSUtils.forbiddenError("unuathorized to reset system meta attribute: " + attribute, caller);
+                    throw ZMSUtils.forbiddenError("unauthorized to reset system meta attribute: " + attribute, caller);
                 }
                 domain.setAccount(meta.getAccount());
                 break;
             case ZMSConsts.SYSTEM_META_PRODUCT_ID:
                 if (!isDeleteSystemMetaAllowed(deleteAllowed, domain.getYpmId(), meta.getYpmId())) {
-                    throw ZMSUtils.forbiddenError("unuathorized to reset system meta attribute: " + attribute, caller);
+                    throw ZMSUtils.forbiddenError("unauthorized to reset system meta attribute: " + attribute, caller);
                 }
                 domain.setYpmId(meta.getYpmId());
                 break;
             case ZMSConsts.SYSTEM_META_CERT_DNS_DOMAIN:
                 if (!isDeleteSystemMetaAllowed(deleteAllowed, domain.getCertDnsDomain(), meta.getCertDnsDomain())) {
-                    throw ZMSUtils.forbiddenError("unuathorized to reset system meta attribute: " + attribute, caller);
+                    throw ZMSUtils.forbiddenError("unauthorized to reset system meta attribute: " + attribute, caller);
                 }
                 domain.setCertDnsDomain(meta.getCertDnsDomain());
+                break;
+            case ZMSConsts.SYSTEM_META_ORG:
+                if (!isDeleteSystemMetaAllowed(deleteAllowed, domain.getOrg(), meta.getOrg())) {
+                    throw ZMSUtils.forbiddenError("unauthorized to reset system meta attribute: " + attribute, caller);
+                }
+                domain.setOrg(meta.getOrg());
                 break;
             case ZMSConsts.SYSTEM_META_AUDIT_ENABLED:
                 domain.setAuditEnabled(meta.getAuditEnabled());

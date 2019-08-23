@@ -209,6 +209,7 @@ public final class ZMSConsts {
     public static final String SYSTEM_META_CERT_DNS_DOMAIN = "certdnsdomain";
     public static final String SYSTEM_META_AUDIT_ENABLED   = "auditenabled";
     public static final String SYSTEM_META_ENABLED         = "enabled";
+    public static final String SYSTEM_META_ORG             = "org";
 
     // HTTP operation types used in metrics
     public static final String HTTP_GET     = "GET";

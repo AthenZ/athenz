@@ -348,6 +348,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 domain.setName(domain.getName().toLowerCase());
                 LIST.convertToLowerCase(domain.getAdminUsers());
                 DOMAIN_TEMPLATE_LIST.convertToLowerCase(domain.getTemplates());
+                if (domain.getOrg() != null) {
+                    domain.setOrg(domain.getOrg().toLowerCase());
+                }
             }
         },
         QUOTA {
@@ -1268,6 +1271,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         AthenzDomain parentDomain = getAthenzDomain(parent, false);
         if (parentDomain != null && parentDomain.getDomain() != null) {
             detail.setAuditEnabled(parentDomain.getDomain().getAuditEnabled());
+            detail.setOrg(parentDomain.getDomain().getOrg());
         }
 
         Domain domain = createSubDomain(ctx, detail.getParent(), detail.getName(), detail.getDescription(),
