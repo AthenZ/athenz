@@ -1046,7 +1046,7 @@ public class DataCacheTest {
         List<String> suffixList = cache.getProviderDnsSuffixList("athenz.provider");
         assertNotNull(suffixList);
         assertEquals(suffixList.size(), 1);
-        assertTrue(suffixList.contains("athenz.cloud"));
+        assertTrue(suffixList.contains(".athenz.cloud"));
 
         // another assertion with different suffix
 
@@ -1055,8 +1055,8 @@ public class DataCacheTest {
         suffixList = cache.getProviderDnsSuffixList("athenz.provider");
         assertNotNull(suffixList);
         assertEquals(suffixList.size(), 2);
-        assertTrue(suffixList.contains("athenz.cloud"));
-        assertTrue(suffixList.contains("athenz.info"));
+        assertTrue(suffixList.contains(".athenz.cloud"));
+        assertTrue(suffixList.contains(".athenz.info"));
     }
 }
 

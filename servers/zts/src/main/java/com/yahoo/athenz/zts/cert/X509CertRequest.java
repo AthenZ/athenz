@@ -126,11 +126,16 @@ public class X509CertRequest {
     /**
      * Verifies that the CSR contains dnsName entries that have
      * one of the following provided dns suffixes.
+     * @param domainName name of the domain
+     * @param serviceName name of the service
      * @param providerDnsSuffixList dns suffixes registered for the provider
      * @param serviceDnsSuffix dns suffix registered for the service
+     * @param instanceHostname instance hostname
+     * @param hostnameResolver resolver to verify hostname is correct
      * @return true if all dnsNames in the CSR end with given suffixes
      */
-    public boolean validateDnsNames(final List<String> providerDnsSuffixList, final String serviceDnsSuffix,
+    public boolean validateDnsNames(final String domainName, final String serviceName,
+            final List<String> providerDnsSuffixList, final String serviceDnsSuffix,
             final String instanceHostname, HostnameResolver hostnameResolver) {
 
         // if the CSR has no dns names then we have nothing to check
@@ -148,20 +153,17 @@ public class X509CertRequest {
         // to keep track of those entries in a separate list so we can
         // send them to the provider for verification (provider does not
         // have knowledge about the additional service dns domain entries
-        // so it doesn't need to get those)
+        // so it doesn't need to get those). We also support the case of
+        // wildcard based on the service name in the format of:
+        // *.<service>.<domain-with-dashes>.<provider-dns-suffix>
+        // so we'll generate and pass the prefix to the function to verify
+        // and automatically skip those from sending to the provider
 
+        final String wildCardPrefix = "*." + serviceName + "." + domainName.replace('.', '-') + ".";
         final String serviceDnsSuffixCheck = (serviceDnsSuffix != null) ? "." + serviceDnsSuffix : null;
-        List<String> providerDnsSuffixCheckList = null;
-        if (providerDnsSuffixList != null && !providerDnsSuffixList.isEmpty()) {
-            providerDnsSuffixCheckList = new ArrayList<>();
-            for (String dnsSuffix : providerDnsSuffixList) {
-                providerDnsSuffixCheckList.add("." + dnsSuffix);
-            }
-        }
-
         for (String dnsName : dnsNames) {
-            if (!dnsSuffixCheck(dnsName, providerDnsSuffixCheckList, serviceDnsSuffixCheck,
-                    instanceHostname, hostnameResolver)) {
+            if (!dnsSuffixCheck(dnsName, providerDnsSuffixList, serviceDnsSuffixCheck,
+                    wildCardPrefix, instanceHostname, hostnameResolver)) {
                 return false;
             }
         }
@@ -170,13 +172,20 @@ public class X509CertRequest {
     }
 
     boolean dnsSuffixCheck(final String dnsName, final List<String> providerDnsSuffixCheckList,
-            final String serviceDnsSuffixCheck, final String instanceHostname,
-            HostnameResolver hostnameResolver) {
+            final String serviceDnsSuffixCheck, final String wildCardPrefix,
+            final String instanceHostname, HostnameResolver hostnameResolver) {
 
         if (providerDnsSuffixCheckList != null) {
             for (String dnsSuffixCheck : providerDnsSuffixCheckList) {
                 if (dnsName.endsWith(dnsSuffixCheck)) {
-                    providerDnsNames.add(dnsName);
+
+                    // if the hostname has the wildcard prefix based on the
+                    // service identity, we're going to skip sending that to
+                    // the provider for verification
+
+                    if (!dnsName.startsWith(wildCardPrefix)) {
+                        providerDnsNames.add(dnsName);
+                    }
                     return true;
                 }
             }

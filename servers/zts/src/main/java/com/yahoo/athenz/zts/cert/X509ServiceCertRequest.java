@@ -26,7 +26,7 @@ public class X509ServiceCertRequest extends X509CertRequest {
         super(csr);
     }
 
-    public boolean validate(final String domain, final String service,
+    public boolean validate(final String domainName, final String serviceName,
             final Set<String> validSubjectOValues, final List<String> providerDnsSuffixList,
             final String serviceDnsSuffix, final String instanceHostname,
             HostnameResolver hostnameResolver, StringBuilder errorMsg) {
@@ -43,7 +43,7 @@ public class X509ServiceCertRequest extends X509CertRequest {
         // validate the common name in CSR and make sure it
         // matches to the values specified in the info object
 
-        final String infoCommonName = domain + "." + service;
+        final String infoCommonName = domainName + "." + serviceName;
         if (!validateCommonName(infoCommonName)) {
             errorMsg.append("Unable to validate CSR common name");
             return false;
@@ -52,7 +52,8 @@ public class X509ServiceCertRequest extends X509CertRequest {
         // validate that the dnsSuffix used in the dnsName attribute has
         // been authorized to be used by the given provider
 
-        if (!validateDnsNames(providerDnsSuffixList, serviceDnsSuffix, instanceHostname, hostnameResolver)) {
+        if (!validateDnsNames(domainName, serviceName, providerDnsSuffixList, serviceDnsSuffix,
+                instanceHostname, hostnameResolver)) {
             errorMsg.append("Unable to validate CSR SAN dnsNames - invalid dns suffix");
             return false;
         }
@@ -66,7 +67,7 @@ public class X509ServiceCertRequest extends X509CertRequest {
 
         // validate spiffe uri if one is provided
 
-        if (!validateSpiffeURI(domain, "sa", service)) {
+        if (!validateSpiffeURI(domainName, "sa", serviceName)) {
             errorMsg.append("Unable to validate Service SPIFFE URI");
             return false;
         }

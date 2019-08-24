@@ -165,6 +165,12 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
+      <groupId>com.yahoo.rdl</groupId>
+      <artifactId>rdl-java</artifactId>
+      <version>${rdl.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
       <version>4.5.9</version>
