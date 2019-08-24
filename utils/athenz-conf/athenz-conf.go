@@ -83,7 +83,7 @@ func getCachedNToken() string {
 
 const identityPrefix = "user."
 
-func getAuthNToken(identity, authorizedServices, zmsURL string, tr *http.Transport) (string, error) {
+func getAuthNToken(identity, authorizedServices, zmsURL string, tr *http.Transport, timeout time.Duration) (string, error) {
 	// our identity must be user
 	if !strings.HasPrefix(identity, identityPrefix) {
 		return "", errors.New("identity must start with " + identityPrefix)
@@ -114,7 +114,7 @@ func getAuthNToken(identity, authorizedServices, zmsURL string, tr *http.Transpo
 		Transport:   tr,
 		CredsHeader: &authHeader,
 		CredsToken:  &authCreds,
-		Timeout:     0,
+		Timeout:     timeout,
 	}
 	tok, err := zmsClient.GetUserToken(zms.SimpleName(user), authorizedServices, nil)
 	if err != nil {
@@ -145,6 +145,7 @@ func usage() string {
 	buf.WriteString("                            (default ZTS=" + defaultZtsURL() + ")\n")
 	buf.WriteString("   -z zms_url               Base URL of the ZS server to use\n")
 	buf.WriteString("                            (default ZMS=" + defaultZmsURL() + ")\n")
+	buf.WriteString("   -m timeout               Timeout in seconds for connection requests")
 	buf.WriteString("\n")
 	return buf.String()
 }
@@ -169,6 +170,7 @@ func main() {
 	pOutputFile := flag.String("o", "athenz.conf", "config filename")
 	pSocks := flag.String("s", defaultSocksProxy(), "The SOCKS5 proxy to route requests through, i.e. 127.0.0.1:1080")
 	pSkipVerify := flag.Bool("k", false, "Disable peer verification of SSL certificates")
+	pTimeout := flag.Int("m", 15, "Timeout in seconds for connection requests")
 	flag.Usage = func() {
 		fmt.Println(usage())
 	}
@@ -224,7 +226,7 @@ func main() {
 	var err error
 	if *pNtokenFile == "" {
 		if pKey == nil {
-			ntoken, err = getAuthNToken(identity, "", zmsURL, tr)
+			ntoken, err = getAuthNToken(identity, "", zmsURL, tr, time.Duration(time.Duration(*pTimeout) * time.Second))
 			if err != nil {
 				log.Fatalf("Unable to get NToken: %v", err)
 			}
@@ -236,6 +238,7 @@ func main() {
 		}
 	}
 	zmsClient := zms.NewClient(zmsURL, tr)
+	zmsClient.Timeout = time.Duration(time.Duration(*pTimeout) * time.Second)
 	if ntoken != "" {
 		zmsClient.AddCredentials(*pHdr, ntoken)
 	}
