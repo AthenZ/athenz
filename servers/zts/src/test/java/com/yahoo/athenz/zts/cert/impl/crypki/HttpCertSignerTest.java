@@ -201,7 +201,7 @@ public class HttpCertSignerTest {
         HttpCertSigner certSigner = (HttpCertSigner) certFactory.create();
         certSigner.setHttpClient(httpClient);
 
-        CloseableHttpResponse response = mockRequest(400, null);
+        CloseableHttpResponse response = mockRequest(400, "invalid-status");
         Mockito.when(httpClient.execute(Mockito.any(HttpGet.class))).thenReturn(response);
         
         assertNull(certSigner.getCACertificate());

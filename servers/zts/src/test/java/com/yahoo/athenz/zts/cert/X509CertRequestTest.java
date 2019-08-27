@@ -161,30 +161,38 @@ public class X509CertRequestTest {
         assertNotNull(certReq);
         certReq.parseCertRequest(errorMsg);
 
-        assertTrue(certReq.validateDnsNames(null, "ostk.athenz.cloud", null, null));
+        assertTrue(certReq.validateDnsNames("athenz", "production", null, "ostk.athenz.cloud", null, null));
 
         // empty provider suffix list
 
         List<String> providerDnsSuffixList = new ArrayList<>();
-        assertTrue(certReq.validateDnsNames(providerDnsSuffixList, "ostk.athenz.cloud", null, null));
+        assertTrue(certReq.validateDnsNames("athenz", "production", providerDnsSuffixList,
+                "ostk.athenz.cloud", null, null));
 
         // provider suffix list with no match
 
         providerDnsSuffixList.add("ostk.myathenz.cloud");
-        assertTrue(certReq.validateDnsNames(providerDnsSuffixList, "ostk.athenz.cloud", null, null));
-        assertTrue(certReq.validateDnsNames(providerDnsSuffixList, "ostk.athenz.cloud", "host1.athenz.cloud", null));
+        assertTrue(certReq.validateDnsNames("athenz", "production", providerDnsSuffixList,
+                "ostk.athenz.cloud", null, null));
+        assertTrue(certReq.validateDnsNames("athenz", "production", providerDnsSuffixList,
+                "ostk.athenz.cloud", "host1.athenz.cloud", null));
 
         // no match if service list does not match
 
-        assertFalse(certReq.validateDnsNames(providerDnsSuffixList, "ostk.athenz2.cloud", null, null));
+        assertFalse(certReq.validateDnsNames("athenz", "production", providerDnsSuffixList,
+                "ostk.athenz2.cloud", null, null));
 
         // add the same domain to the provider suffix list
 
         providerDnsSuffixList.add("ostk.athenz.cloud");
-        assertTrue(certReq.validateDnsNames(providerDnsSuffixList, "ostk.athenz2.cloud", null, null));
-        assertTrue(certReq.validateDnsNames(providerDnsSuffixList, "ostk.athenz.cloud", null, null));
-        assertTrue(certReq.validateDnsNames(providerDnsSuffixList, "", null, null));
-        assertTrue(certReq.validateDnsNames(providerDnsSuffixList, null, null, null));
+        assertTrue(certReq.validateDnsNames("athenz", "production", providerDnsSuffixList,
+                "ostk.athenz2.cloud", null, null));
+        assertTrue(certReq.validateDnsNames("athenz", "production", providerDnsSuffixList,
+                "ostk.athenz.cloud", null, null));
+        assertTrue(certReq.validateDnsNames("athenz", "production", providerDnsSuffixList,
+                "", null, null));
+        assertTrue(certReq.validateDnsNames("athenz", "production", providerDnsSuffixList,
+                null, null, null));
     }
 
     @Test
@@ -200,45 +208,48 @@ public class X509CertRequestTest {
 
         // only one domain will not match
 
-        assertFalse(certReq.validateDnsNames(null, "ostk.athenz.info", null, null));
+        assertFalse(certReq.validateDnsNames("athenz", "api", null, "ostk.athenz.info", null, null));
 
         // only provider suffix list will not match
 
         List<String> providerDnsSuffixList = new ArrayList<>();
         providerDnsSuffixList.add("ostk.athenz.cloud");
-        assertFalse(certReq.validateDnsNames(providerDnsSuffixList, null, null, null));
+        assertFalse(certReq.validateDnsNames("athenz", "api", providerDnsSuffixList,
+                null, null, null));
 
         // specifying both values match
 
-        assertTrue(certReq.validateDnsNames(providerDnsSuffixList, "ostk.athenz.info", null, null));
+        assertTrue(certReq.validateDnsNames("athenz", "api", providerDnsSuffixList,
+                "ostk.athenz.info", null, null));
 
         // tests with hostname field
 
-        assertFalse(certReq.validateDnsNames(providerDnsSuffixList, "zts.athenz.info", null, null));
-        assertFalse(certReq.validateDnsNames(providerDnsSuffixList, "zts.athenz.info",
-                "host1.athenz.info", null));
-        assertFalse(certReq.validateDnsNames(providerDnsSuffixList, "zts.athenz.info",
-                "athenz.ostk.athenz.info", null));
-        assertTrue(certReq.validateDnsNames(providerDnsSuffixList, "zts.athenz.info",
-                "api.athenz.ostk.athenz.info", null));
+        assertFalse(certReq.validateDnsNames("athenz", "api", providerDnsSuffixList,
+                "zts.athenz.info", null, null));
+        assertFalse(certReq.validateDnsNames("athenz", "api", providerDnsSuffixList,
+                "zts.athenz.info", "host1.athenz.info", null));
+        assertFalse(certReq.validateDnsNames("athenz", "api", providerDnsSuffixList,
+                "zts.athenz.info", "athenz.ostk.athenz.info", null));
+        assertTrue(certReq.validateDnsNames("athenz", "api", providerDnsSuffixList,
+                "zts.athenz.info", "api.athenz.ostk.athenz.info", null));
 
         // now specify a resolver for the hostname check
 
         HostnameResolver resolver = new TestHostnameResolver();
-        assertFalse(certReq.validateDnsNames(providerDnsSuffixList, "zts.athenz.info",
-                "api.athenz.ostk.athenz.info", resolver));
+        assertFalse(certReq.validateDnsNames("athenz", "api", providerDnsSuffixList,
+                "zts.athenz.info", "api.athenz.ostk.athenz.info", resolver));
 
         // include resolver with invalid hostname
 
         ((TestHostnameResolver) resolver).addValidHostname("api1.athenz.ostk.athenz.info");
-        assertFalse(certReq.validateDnsNames(providerDnsSuffixList, "zts.athenz.info",
-                "api.athenz.ostk.athenz.info", resolver));
+        assertFalse(certReq.validateDnsNames("athenz", "api", providerDnsSuffixList,
+                "zts.athenz.info", "api.athenz.ostk.athenz.info", resolver));
 
         // now add the hostname to the list
 
         ((TestHostnameResolver) resolver).addValidHostname("api.athenz.ostk.athenz.info");
-        assertTrue(certReq.validateDnsNames(providerDnsSuffixList, "zts.athenz.info",
-                "api.athenz.ostk.athenz.info", resolver));
+        assertTrue(certReq.validateDnsNames("athenz", "api", providerDnsSuffixList,
+                "zts.athenz.info", "api.athenz.ostk.athenz.info", resolver));
     }
 
     @Test
@@ -257,13 +268,71 @@ public class X509CertRequestTest {
         List<String> providerDnsSuffixList = new ArrayList<>();
         providerDnsSuffixList.add("ostk.athenz.cloud");
 
-        assertTrue(certReq.validateDnsNames(providerDnsSuffixList, "zts.athenz.info",
+        assertTrue(certReq.validateDnsNames("athenz", "api", providerDnsSuffixList, "zts.athenz.info",
                 "api.athenz.ostk.athenz.info", null));
 
         List<String> dnsNames = certReq.getProviderDnsNames();
         assertEquals(dnsNames.size(), 2);
         assertTrue(dnsNames.contains("api.athenz.ostk.athenz.info"));
         assertTrue(dnsNames.contains("production.athenz.ostk.athenz.cloud"));
+    }
+
+    @Test
+    public void testValidateProviderDnsNamesListWithWildcard() throws IOException {
+
+        Path path = Paths.get("src/test/resources/multi_dns_domain_wildcard.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        StringBuilder errorMsg = new StringBuilder(256);
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertNotNull(certReq);
+        certReq.parseCertRequest(errorMsg);
+
+        // now add the hostname to the list
+
+        List<String> providerDnsSuffixList = new ArrayList<>();
+        providerDnsSuffixList.add("ostk.athenz.cloud");
+
+        assertTrue(certReq.validateDnsNames("athenz", "api", providerDnsSuffixList, null,
+                null, null));
+
+        // we should automatically skip the *.api.athenz
+        // dns name from provider dns name review list
+
+        List<String> dnsNames = certReq.getProviderDnsNames();
+        assertEquals(dnsNames.size(), 2);
+        assertTrue(dnsNames.contains("api.athenz.ostk.athenz.cloud"));
+        assertTrue(dnsNames.contains("uuid.instanceid.athenz.ostk.athenz.cloud"));
+    }
+
+    @Test
+    public void testValidateProviderDnsNamesListWithWildcardMismatch() throws IOException {
+
+        Path path = Paths.get("src/test/resources/multi_dns_domain_wildcard_mismatch.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        StringBuilder errorMsg = new StringBuilder(256);
+        X509CertRequest certReq = new X509CertRequest(csr);
+        assertNotNull(certReq);
+        certReq.parseCertRequest(errorMsg);
+
+        // now add the hostname to the list
+
+        List<String> providerDnsSuffixList = new ArrayList<>();
+        providerDnsSuffixList.add("ostk.athenz.cloud");
+
+        assertTrue(certReq.validateDnsNames("athenz.prod", "api", providerDnsSuffixList,
+                null, null, null));
+
+        // we should automatically skip the *.api.athenz
+        // however it doesn't match the prefix so we're going
+        // to keep it here and require the provider to verify it
+
+        List<String> dnsNames = certReq.getProviderDnsNames();
+        assertEquals(dnsNames.size(), 3);
+        assertTrue(dnsNames.contains("api.athenz-prod.ostk.athenz.cloud"));
+        assertTrue(dnsNames.contains("*.api.athenz.ostk.athenz.cloud"));
+        assertTrue(dnsNames.contains("uuid.instanceid.athenz.ostk.athenz.cloud"));
     }
 
     @Test
@@ -277,7 +346,7 @@ public class X509CertRequestTest {
         assertNotNull(certReq);
         certReq.parseCertRequest(errorMsg);
 
-        assertTrue(certReq.validateDnsNames(null, null, null, null));
+        assertTrue(certReq.validateDnsNames("domain", "service1", null, null, null, null));
     }
 
     @Test

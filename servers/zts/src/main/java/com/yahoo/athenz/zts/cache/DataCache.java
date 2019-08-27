@@ -164,7 +164,13 @@ public class DataCache {
             return;
         }
 
-        final String dnsSuffix = resource.substring(RESOURCE_DNS_PREFIX.length());
+        // our dns suffix is in the format sys.auth.dns.<dns-suffix>
+        // when storing the value we want must check for sys.auth.dns.
+        // but we want to keep the .<dns-suffix> part so later on
+        // we don't check to make sure there is . in front of it.
+        // so we're going to reduce the length by 1 to get the .
+
+        final String dnsSuffix = resource.substring(RESOURCE_DNS_PREFIX.length() - 1);
         for (RoleMember roleMember : role.getRoleMembers()) {
 
             final String memberName = roleMember.getMemberName();
