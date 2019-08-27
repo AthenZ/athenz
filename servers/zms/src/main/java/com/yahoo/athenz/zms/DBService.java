@@ -837,7 +837,7 @@ public class DBService {
 
                 // retrieve our original service identity object
 
-                ServiceIdentity originalService = getServiceIdentity(con, domainName, serviceName);
+                ServiceIdentity originalService = getServiceIdentity(con, domainName, serviceName, false);
 
                 // now process the request
 
@@ -1661,10 +1661,10 @@ public class DBService {
         }
     }
     
-    ServiceIdentity getServiceIdentity(String domainName, String serviceName) {
+    ServiceIdentity getServiceIdentity(String domainName, String serviceName, boolean attrsOnly) {
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            return getServiceIdentity(con, domainName, serviceName);
+            return getServiceIdentity(con, domainName, serviceName, attrsOnly);
         }
     }
     
@@ -1677,10 +1677,11 @@ public class DBService {
         }
     }
     
-    ServiceIdentity getServiceIdentity(ObjectStoreConnection con, String domainName, String serviceName) {
+    ServiceIdentity getServiceIdentity(ObjectStoreConnection con, String domainName,
+            String serviceName, boolean attrsOnly) {
 
         ServiceIdentity service = con.getServiceIdentity(domainName, serviceName);
-        if (service != null) {
+        if (service != null && !attrsOnly) {
             service.setPublicKeys(con.listPublicKeys(domainName, serviceName));
             List<String> hosts = con.listServiceHosts(domainName, serviceName);
             if (hosts != null && !hosts.isEmpty()) {
@@ -2438,7 +2439,7 @@ public class DBService {
                 // retrieve our original service
                 
                 ServiceIdentity originalServiceIdentity = getServiceIdentity(con, domainName,
-                        serviceIdentityName);
+                        serviceIdentityName, false);
                 
                 // now process the request
                 

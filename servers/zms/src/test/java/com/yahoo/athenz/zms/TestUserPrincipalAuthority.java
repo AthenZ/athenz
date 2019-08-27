@@ -11,4 +11,9 @@ class TestUserPrincipalAuthority extends PrincipalAuthority {
     public String getUserDomainName(String userName) {
         return userName.replace('.', '-');
     }
+
+    @Override
+    public boolean isValidUser(String user) {
+        return user.equals("user.joe") || user.equals("user.jane");
+    }
 }

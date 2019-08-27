@@ -1857,7 +1857,7 @@ public class DBServiceTest {
         zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "templateWithService", 
                 auditRef, caller);
         
-        assertNull(zms.dbService.getServiceIdentity(domainName, "testService"));
+        assertNull(zms.dbService.getServiceIdentity(domainName, "testService", false));
         
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertTrue(domainTemplateList.getTemplateNames().isEmpty());
@@ -1867,7 +1867,7 @@ public class DBServiceTest {
         zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "templateWithService", 
                 auditRef, caller);
         
-        assertNull(zms.dbService.getServiceIdentity(domainName, "testService"));
+        assertNull(zms.dbService.getServiceIdentity(domainName, "testService", false));
         
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertTrue(domainTemplateList.getTemplateNames().isEmpty());
@@ -1933,7 +1933,7 @@ public class DBServiceTest {
         zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "templateWithMultipleServices", 
                 auditRef, caller);
         
-        assertNull(zms.dbService.getServiceIdentity(domainName, "testService"));
+        assertNull(zms.dbService.getServiceIdentity(domainName, "testService", false));
         
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertTrue(domainTemplateList.getTemplateNames().isEmpty());
@@ -1943,7 +1943,7 @@ public class DBServiceTest {
         zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "templateWithMultipleServices", 
                 auditRef, caller);
         
-        assertNull(zms.dbService.getServiceIdentity(domainName, "testService"));
+        assertNull(zms.dbService.getServiceIdentity(domainName, "testService", false));
         
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertTrue(domainTemplateList.getTemplateNames().isEmpty());
@@ -2005,7 +2005,7 @@ public class DBServiceTest {
         assertTrue(names.contains("vip_admin"));
         
         //trying to check for the keys
-        ServiceIdentity serviceIdentity = zms.dbService.getServiceIdentity(domainName, "testService3");
+        ServiceIdentity serviceIdentity = zms.dbService.getServiceIdentity(domainName, "testService3", false);
         assertEquals(1, serviceIdentity.getPublicKeys().size());
         assertEquals("0", serviceIdentity.getPublicKeys().get(0).getId());
         
@@ -2014,7 +2014,7 @@ public class DBServiceTest {
         zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "templateWithServiceWithKey", 
                 auditRef, caller);
         
-        assertNull(zms.dbService.getServiceIdentity(domainName, "testService3"));
+        assertNull(zms.dbService.getServiceIdentity(domainName, "testService3", false));
         
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertTrue(domainTemplateList.getTemplateNames().isEmpty());
@@ -2024,15 +2024,13 @@ public class DBServiceTest {
         zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "templateWithServiceWithKey", 
                 auditRef, caller);
         
-        assertNull(zms.dbService.getServiceIdentity(domainName, "testService3"));
+        assertNull(zms.dbService.getServiceIdentity(domainName, "testService3", false));
         
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertTrue(domainTemplateList.getTemplateNames().isEmpty());
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
-    
-    
 
     @Test
     public void testApplySolutionTemplateEmptyDomain() {

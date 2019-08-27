@@ -2718,8 +2718,27 @@ public class ZMSImplTest {
             break;
         }
         assertTrue(foundError);
-        
-        
+
+        // enable user validation for the test
+
+        zmsImpl.userAuthority = new TestUserPrincipalAuthority();
+        zmsImpl.validateUserRoleMembers = true;
+
+        // valid users no exception
+
+        mbr = generateMembership("role1", "user.joe");
+        zmsImpl.putMembership(mockDomRsrcCtx, "MbrAddDom1", "role1", "user.joe", auditRef, mbr);
+
+        // invalid user with exception
+
+        mbr = generateMembership("role1", "user.john");
+        try {
+            zmsImpl.putMembership(mockDomRsrcCtx, "MbrAddDom1", "role1", "user.john", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
         zmsImpl.deleteSubDomain(mockDomRsrcCtx, "coretech", "storage", auditRef);
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, "coretech", auditRef);
         zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx,"MbrAddDom1", auditRef);
@@ -8185,51 +8204,36 @@ public class ZMSImplTest {
     @Test
     public void testGetNormalizedMemberNoSplit() {
         
-        assertEquals(zms.getNormalizedMember(
-                new RoleMember().setMemberName("user.user")).getMemberName(), "user.user");
-        assertEquals(zms.getNormalizedMember(
-                new RoleMember().setMemberName("user.user2")).getMemberName(), "user.user2");
-        assertEquals(zms.getNormalizedMember(
-                new RoleMember().setMemberName("user.user1")).getMemberName(), "user.user1");
-        assertEquals(zms.getNormalizedMember(
-                new RoleMember().setMemberName("coretech.storage")).getMemberName(), "coretech.storage");
-        assertEquals(zms.getNormalizedMember(
-                new RoleMember().setMemberName("user1")).getMemberName(), "user1");
+        assertEquals(zms.normalizeDomainAliasUser("user.user"), "user.user");
+        assertEquals(zms.normalizeDomainAliasUser("user.user2"), "user.user2");
+        assertEquals(zms.normalizeDomainAliasUser("user.user1"), "user.user1");
+        assertEquals(zms.normalizeDomainAliasUser("coretech.storage"), "coretech.storage");
+        assertEquals(zms.normalizeDomainAliasUser("user1"), "user1");
     }
     
     @Test
     public void testGetNormalizedMemberInvalidFormat() {
         
-        assertEquals(zms.getNormalizedMember(
-                new RoleMember().setMemberName("user:user:user1")).getMemberName(), "user:user:user1");
-        assertEquals(zms.getNormalizedMember(
-                new RoleMember().setMemberName("user:")).getMemberName(), "user:");
-        assertEquals(zms.getNormalizedMember(
-                new RoleMember().setMemberName("coretech:storage:api")).getMemberName(), "coretech:storage:api");
+        assertEquals(zms.normalizeDomainAliasUser("user:user:user1"), "user:user:user1");
+        assertEquals(zms.normalizeDomainAliasUser("user:"), "user:");
+        assertEquals(zms.normalizeDomainAliasUser("coretech:storage:api"), "coretech:storage:api");
     }
     
     @Test
     public void testGetNormalizedMemberUsersWithSplit() {
         
-        assertEquals(zms.getNormalizedMember(
-                new RoleMember().setMemberName("user.user")).getMemberName(), "user.user");
-        assertEquals(zms.getNormalizedMember(
-                new RoleMember().setMemberName("user.user2")).getMemberName(), "user.user2");
-        assertEquals(zms.getNormalizedMember(
-                new RoleMember().setMemberName("user.user1")).getMemberName(), "user.user1");
+        assertEquals(zms.normalizeDomainAliasUser("user.user"), "user.user");
+        assertEquals(zms.normalizeDomainAliasUser("user.user2"), "user.user2");
+        assertEquals(zms.normalizeDomainAliasUser("user.user1"), "user.user1");
     }
     
     @Test
     public void testGetNormalizedMemberServiceWithSplit() {
         
-        assertEquals(zms.getNormalizedMember(
-                new RoleMember().setMemberName("coretech.storage")).getMemberName(), "coretech.storage");
-        assertEquals(zms.getNormalizedMember(
-                new RoleMember().setMemberName("weather.storage.api")).getMemberName(), "weather.storage.api");
-        assertEquals(zms.getNormalizedMember(
-                new RoleMember().setMemberName("weather.entity.api")).getMemberName(), "weather.entity.api");
-        assertEquals(zms.getNormalizedMember(
-                new RoleMember().setMemberName("weather.storage.service.*")).getMemberName(), "weather.storage.service.*");
+        assertEquals(zms.normalizeDomainAliasUser("coretech.storage"), "coretech.storage");
+        assertEquals(zms.normalizeDomainAliasUser("weather.storage.api"), "weather.storage.api");
+        assertEquals(zms.normalizeDomainAliasUser("weather.entity.api"), "weather.entity.api");
+        assertEquals(zms.normalizeDomainAliasUser("weather.storage.service.*"), "weather.storage.service.*");
     }
     
     @Test
@@ -8241,25 +8245,17 @@ public class ZMSImplTest {
         zmsImpl.userDomainAlias = null;
         zmsImpl.userDomainAliasPrefix = null;
         
-        assertEquals(zmsImpl.getNormalizedMember(
-                new RoleMember().setMemberName("user-alias.user1")).getMemberName(), "user-alias.user1");
-        assertEquals(zmsImpl.getNormalizedMember(
-                new RoleMember().setMemberName("user-alias.user1.svc")).getMemberName(), "user-alias.user1.svc");
-        assertEquals(zmsImpl.getNormalizedMember(
-                new RoleMember().setMemberName("user.user1")).getMemberName(), "user.user1");
-        assertEquals(zmsImpl.getNormalizedMember(
-                new RoleMember().setMemberName("user.user1.svc")).getMemberName(), "user.user1.svc");
+        assertEquals(zmsImpl.normalizeDomainAliasUser("user-alias.user1"), "user-alias.user1");
+        assertEquals(zmsImpl.normalizeDomainAliasUser("user-alias.user1.svc"), "user-alias.user1.svc");
+        assertEquals(zmsImpl.normalizeDomainAliasUser("user.user1"), "user.user1");
+        assertEquals(zmsImpl.normalizeDomainAliasUser("user.user1.svc"), "user.user1.svc");
         
         zmsImpl.userDomainAlias = "user-alias";
         zmsImpl.userDomainAliasPrefix = "user-alias.";
-        assertEquals(zmsImpl.getNormalizedMember(
-                new RoleMember().setMemberName("user-alias.user1")).getMemberName(), "user.user1");
-        assertEquals(zmsImpl.getNormalizedMember(
-                new RoleMember().setMemberName("user-alias.user1.svc")).getMemberName(), "user-alias.user1.svc");
-        assertEquals(zmsImpl.getNormalizedMember(
-                new RoleMember().setMemberName("user.user1")).getMemberName(), "user.user1");
-        assertEquals(zmsImpl.getNormalizedMember(
-                new RoleMember().setMemberName("user.user1.svc")).getMemberName(), "user.user1.svc");
+        assertEquals(zmsImpl.normalizeDomainAliasUser("user-alias.user1"), "user.user1");
+        assertEquals(zmsImpl.normalizeDomainAliasUser("user-alias.user1.svc"), "user-alias.user1.svc");
+        assertEquals(zmsImpl.normalizeDomainAliasUser("user.user1"), "user.user1");
+        assertEquals(zmsImpl.normalizeDomainAliasUser("user.user1.svc"), "user.user1.svc");
     }
     
     @Test
@@ -8274,17 +8270,24 @@ public class ZMSImplTest {
         roleMembers.add(new RoleMember().setMemberName("coretech.storage"));
         roleMembers.add(new RoleMember().setMemberName("weather.storage"));
         roleMembers.add(new RoleMember().setMemberName("weather.api.access"));
-        
+
+        ArrayList<String> membersList = new ArrayList<>();
+        membersList.add("coretech.storage");
+        membersList.add("user.john");
+
         Role role = createRoleObject("TestRole", "Role1", null, roleMembers);
+        role.setMembers(membersList);
+
         zms.normalizeRoleMembers(role);
 
         List<RoleMember> members = role.getRoleMembers();
         assertNotNull(members);
-        assertEquals(members.size(), 5);
+        assertEquals(members.size(), 6);
         
         List<String> checkList = new ArrayList<>();
         checkList.add("user.joe");
         checkList.add("user.jane");
+        checkList.add("user.john");
         checkList.add("weather.api.access");
         checkList.add("coretech.storage");
         checkList.add("weather.storage");
@@ -15970,7 +15973,7 @@ public class ZMSImplTest {
 
         assertFalse(zms.isAllowedPutMembershipAccess(mockDomRestRsrcCtx.principal(), domain, role)); // user.user1 does not have role access
         assertTrue(zms.isAllowedPutMembershipSelfserve(mockDomRestRsrcCtx.principal(), "user.user1")); // user.user1 is allowed to put itself since its selfserve
-        assertTrue(zms.isAllowedPutMembership(mockDomRestRsrcCtx.principal(),domain, role, "user.user1", roleMember));// putmembership is allowed for user.user1
+        assertTrue(zms.isAllowedPutMembership(mockDomRestRsrcCtx.principal(),domain, role, roleMember));// putmembership is allowed for user.user1
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
     }
@@ -16033,7 +16036,7 @@ public class ZMSImplTest {
 
         RoleMember roleMember = new RoleMember().setMemberName("user.user1");
 
-        assertTrue(zms.isAllowedPutMembership(mockDomRestRsrcCtx.principal(), domain, role, "user.user1", roleMember));//admin allowed
+        assertTrue(zms.isAllowedPutMembership(mockDomRestRsrcCtx.principal(), domain, role, roleMember));//admin allowed
         assertTrue(roleMember.getActive());
 
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
@@ -16042,10 +16045,10 @@ public class ZMSImplTest {
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
 
         roleMember = new RoleMember().setMemberName("user.bob");
-        assertFalse(zms.isAllowedPutMembership(rsrcPrince, domain, role, "user.bob", roleMember));//bob trying to add himself
+        assertFalse(zms.isAllowedPutMembership(rsrcPrince, domain, role, roleMember));//bob trying to add himself
 
         roleMember = new RoleMember().setMemberName("user.dave");
-        assertFalse(zms.isAllowedPutMembership(rsrcPrince, domain, role, "user.dave", roleMember));//bob trying to add dave
+        assertFalse(zms.isAllowedPutMembership(rsrcPrince, domain, role, roleMember));//bob trying to add dave
 
         Role selfserverole = createRoleObject("testdomain1", "testrole2", null,"user.john", "user.jane");
         zms.putRole(mockDomRsrcCtx, "testdomain1", "testrole2", auditRef, selfserverole);
@@ -16057,10 +16060,11 @@ public class ZMSImplTest {
         role = zms.getRoleFromDomain("testrole2", domain);
 
         roleMember = new RoleMember().setMemberName("user.bob");
-        assertTrue(zms.isAllowedPutMembership(rsrcPrince, domain, role, "user.bob", roleMember));//bob trying to add himself
+        assertTrue(zms.isAllowedPutMembership(rsrcPrince, domain, role, roleMember));//bob trying to add himself
         assertFalse(roleMember.getActive());
 
-        assertFalse(zms.isAllowedPutMembership(rsrcPrince, domain, role, "user.dave", roleMember));//bob trying to add dave
+        roleMember.setMemberName("user.dave");
+        assertFalse(zms.isAllowedPutMembership(rsrcPrince, domain, role, roleMember));//bob trying to add dave
 
         DomainMeta meta = createDomainMetaObject("Domain Meta for Role Meta test", "testOrg",
                 true, true, "12345", 1001);
@@ -16077,14 +16081,14 @@ public class ZMSImplTest {
         role = zms.getRoleFromDomain("testrole3", domain);
 
         roleMember = new RoleMember().setMemberName("user.user1");
-        assertTrue(zms.isAllowedPutMembership(mockDomRestRsrcCtx.principal(), domain, role,"user.user1", roleMember));//admin allowed
+        assertTrue(zms.isAllowedPutMembership(mockDomRestRsrcCtx.principal(), domain, role, roleMember));//admin allowed
         assertFalse(roleMember.getActive());
 
         roleMember = new RoleMember().setMemberName("user.bob");
-        assertFalse(zms.isAllowedPutMembership(rsrcPrince, domain, role, "user.bob", roleMember));//bob trying to add himself not allowed
+        assertFalse(zms.isAllowedPutMembership(rsrcPrince, domain, role, roleMember));//bob trying to add himself not allowed
 
         roleMember = new RoleMember().setMemberName("user.dave");
-        assertFalse(zms.isAllowedPutMembership(rsrcPrince, domain, role, "user.dave", roleMember));//bob trying to add dave not allowed
+        assertFalse(zms.isAllowedPutMembership(rsrcPrince, domain, role, roleMember));//bob trying to add dave not allowed
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
     }
@@ -16217,13 +16221,15 @@ public class ZMSImplTest {
 
     @Test
     public void testPutMembershipDecisionAuditEnabledRole() {
-        TopLevelDomain dom1 = createTopLevelDomainObject("testdomain1","Approval Test Domain1", "testOrg", "user.user1");
+        TopLevelDomain dom1 = createTopLevelDomainObject("testdomain1", "Approval Test Domain1",
+                "testOrg", "user.user1");
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
-        DomainMeta meta = createDomainMetaObject("Domain Meta for approval test", "testOrg",true, true, "12345", 1001);
+        DomainMeta meta = createDomainMetaObject("Domain Meta for approval test", "testOrg",
+                true, true, "12345", 1001);
         zms.putDomainMeta(mockDomRsrcCtx, "testdomain1", auditRef, meta);
         zms.putDomainSystemMeta(mockDomRsrcCtx, "testdomain1", "auditenabled", auditRef, meta);
 
-        Role auditedRole = createRoleObject("testdomain1", "testrole1", null,"user.john", "user.jane");
+        Role auditedRole = createRoleObject("testdomain1", "testrole1", null, "user.john", "user.jane");
         zms.putRole(mockDomRsrcCtx, "testdomain1", "testrole1", auditRef, auditedRole);
         RoleSystemMeta rsm = createRoleSystemMetaObject(true);
         zms.putRoleSystemMeta(mockDomRsrcCtx, "testdomain1", "testrole1", "auditenabled", auditRef, rsm);
@@ -16257,8 +16263,8 @@ public class ZMSImplTest {
         Authority auditAdminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         String auditAdminUnsignedCreds = "v=U1;d=user;n=fury";
         // used with the mockDomRestRsrcCtx
-        final Principal rsrcAuditAdminPrince = SimplePrincipal.create("user", "fury", auditAdminUnsignedCreds + ";s=signature",
-                0, auditAdminPrincipalAuthority);
+        final Principal rsrcAuditAdminPrince = SimplePrincipal.create("user", "fury",
+                auditAdminUnsignedCreds + ";s=signature", 0, auditAdminPrincipalAuthority);
         ((SimplePrincipal) rsrcAuditAdminPrince).setUnsignedCreds(auditAdminUnsignedCreds);
 
         Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
@@ -16270,8 +16276,8 @@ public class ZMSImplTest {
         Authority adminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         String adminUnsignedCreds = "v=U1;d=user;n=user1";
         // used with the mockDomRestRsrcCtx
-        final Principal rsrcAdminPrince = SimplePrincipal.create("user", "user1", adminUnsignedCreds + ";s=signature",
-                0, adminPrincipalAuthority);
+        final Principal rsrcAdminPrince = SimplePrincipal.create("user", "user1",
+                adminUnsignedCreds + ";s=signature", 0, adminPrincipalAuthority);
         ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
 
         Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
@@ -16284,6 +16290,81 @@ public class ZMSImplTest {
                 assertTrue(rmem.getActive());
             }
         }
+
+        zms.deleteSubDomain(mockDomRsrcCtx, "sys.auth", "audit", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
+    }
+
+    @Test
+    public void testPutMembershipDecisionAuditEnabledRoleInvalidUser() {
+
+        TopLevelDomain dom1 = createTopLevelDomainObject("testdomain1", "Approval Test Domain1",
+                "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        DomainMeta meta = createDomainMetaObject("Domain Meta for approval test", "testOrg",
+                true, true, "12345", 1001);
+        zms.putDomainMeta(mockDomRsrcCtx, "testdomain1", auditRef, meta);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, "testdomain1", "auditenabled", auditRef, meta);
+
+        Role auditedRole = createRoleObject("testdomain1", "testrole1", null, "user.john", "user.jane");
+        zms.putRole(mockDomRsrcCtx, "testdomain1", "testrole1", auditRef, auditedRole);
+        RoleSystemMeta rsm = createRoleSystemMetaObject(true);
+        zms.putRoleSystemMeta(mockDomRsrcCtx, "testdomain1", "testrole1", "auditenabled", auditRef, rsm);
+
+        Membership mbr = new Membership();
+        mbr.setMemberName("user.joe");
+        mbr.setActive(false);
+        zms.putMembership(mockDomRsrcCtx, "testdomain1", "testrole1", "user.joe", auditRef, mbr);
+
+        mbr = new Membership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(false);
+        zms.putMembership(mockDomRsrcCtx, "testdomain1", "testrole1", "user.bob", auditRef, mbr);
+
+        setupPrincipalAuditedRoleApproval(zms, "user.fury", "testOrg");
+
+        Authority auditAdminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String auditAdminUnsignedCreds = "v=U1;d=user;n=fury";
+
+        final Principal rsrcAuditAdminPrince = SimplePrincipal.create("user", "fury",
+                auditAdminUnsignedCreds + ";s=signature", 0, auditAdminPrincipalAuthority);
+        ((SimplePrincipal) rsrcAuditAdminPrince).setUnsignedCreds(auditAdminUnsignedCreds);
+
+        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
+
+        // enable user authority check - joe and jane are the only
+        // valid users in the system
+
+        zms.userAuthority = new TestUserPrincipalAuthority();
+        zms.validateUserRoleMembers = true;
+
+        // first let's approve user.joe which should be ok since user joe
+        // is a valid user based on our test authority
+
+        mbr = new Membership();
+        mbr.setMemberName("user.joe");
+        mbr.setActive(true);
+
+        zms.putMembershipDecision(mockDomRsrcCtx, "testdomain1", "testrole1", "user.joe", auditRef, mbr);
+
+        // now let's approve our bob user which is going to be rejected
+        // since bob is not a valid user based on our test authority
+
+        mbr.setMemberName("user.bob");
+
+        try {
+            zms.putMembershipDecision(mockDomRsrcCtx, "testdomain1", "testrole1", "user.bob", auditRef, mbr);
+            fail();
+        }catch (ResourceException ex) {
+            assertEquals(ex.code, 400);
+        }
+
+        // now let's just reject user bob which should work
+        // ok because we no longer validate users when we
+        // are rejecting thus deleting role members
+
+        mbr.setActive(false);
+        zms.putMembershipDecision(mockDomRsrcCtx, "testdomain1", "testrole1", "user.bob", auditRef, mbr);
 
         zms.deleteSubDomain(mockDomRsrcCtx, "sys.auth", "audit", auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
@@ -16377,8 +16458,8 @@ public class ZMSImplTest {
         Authority auditAdminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         String auditAdminUnsignedCreds = "v=U1;d=user;n=fury";
         // used with the mockDomRestRsrcCtx
-        final Principal rsrcAuditAdminPrince = SimplePrincipal.create("user", "fury", auditAdminUnsignedCreds + ";s=signature",
-                0, auditAdminPrincipalAuthority);
+        final Principal rsrcAuditAdminPrince = SimplePrincipal.create("user", "fury",
+                auditAdminUnsignedCreds + ";s=signature", 0, auditAdminPrincipalAuthority);
         ((SimplePrincipal) rsrcAuditAdminPrince).setUnsignedCreds(auditAdminUnsignedCreds);
 
         Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
@@ -16390,8 +16471,8 @@ public class ZMSImplTest {
         Authority adminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         String adminUnsignedCreds = "v=U1;d=user;n=user1";
         // used with the mockDomRestRsrcCtx
-        final Principal rsrcAdminPrince = SimplePrincipal.create("user", "user1", adminUnsignedCreds + ";s=signature",
-                0, adminPrincipalAuthority);
+        final Principal rsrcAdminPrince = SimplePrincipal.create("user", "user1",
+                adminUnsignedCreds + ";s=signature", 0, adminPrincipalAuthority);
         ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
 
         Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
@@ -16421,10 +16502,13 @@ public class ZMSImplTest {
 
     @Test
     public void testGetRoleWithPendingMembers() {
-        TopLevelDomain dom1 = createTopLevelDomainObject("testdomain1","Pending Test Domain1", "testOrg", "user.user1");
+
+        TopLevelDomain dom1 = createTopLevelDomainObject("testdomain1","Pending Test Domain1",
+                "testOrg", "user.user1");
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        DomainMeta meta = createDomainMetaObject("Domain Meta for approval test", "testOrg",true, true, "12345", 1001);
+        DomainMeta meta = createDomainMetaObject("Domain Meta for approval test", "testOrg",
+                true, true, "12345", 1001);
         zms.putDomainMeta(mockDomRsrcCtx, "testdomain1", auditRef, meta);
         zms.putDomainSystemMeta(mockDomRsrcCtx, "testdomain1", "auditenabled", auditRef, meta);
 
@@ -16450,6 +16534,152 @@ public class ZMSImplTest {
         }
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
+    }
+
+    @Test
+    public void testValidateRoleMemberPrincipals() {
+
+        zms.validateUserRoleMembers = false;
+        zms.validateServiceRoleMembers = false;
+
+        // if both are false then any invalid users are ok
+
+        List<RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user"));
+        roleMembers.add(new RoleMember().setMemberName("user.john"));
+        roleMembers.add(new RoleMember().setMemberName("user.jane"));
+        roleMembers.add(new RoleMember().setMemberName("coretech.api"));
+        roleMembers.add(new RoleMember().setMemberName("coretech.backend"));
+
+        Role role = new Role().setRoleMembers(roleMembers);
+        zms.validateRoleMemberPrincipals(role, "unittest");
+
+        // enable user authority check
+
+        zms.userAuthority = new TestUserPrincipalAuthority();
+        zms.validateUserRoleMembers = true;
+
+        // include all valid principals
+
+        roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user.joe"));
+        roleMembers.add(new RoleMember().setMemberName("user.jane"));
+        role.setRoleMembers(roleMembers);
+
+        zms.validateRoleMemberPrincipals(role, "unittest");
+
+        // add one more invalid user
+
+        roleMembers.add(new RoleMember().setMemberName("user.john"));
+        try {
+            zms.validateRoleMemberPrincipals(role, "unittest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+    }
+
+    @Test
+    public void testValidateRoleMemberPrincipalUser() {
+
+        zms.userAuthority = new TestUserPrincipalAuthority();
+        zms.validateUserRoleMembers = true;
+
+        // valid users no exception
+
+        zms.validateRoleMemberPrincipal("user.joe", "unittest");
+        zms.validateRoleMemberPrincipal("user.jane", "unittest");
+
+        // invalid user request error
+
+        try {
+            zms.validateRoleMemberPrincipal("user.john", "unittest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        // non - user principals by default are accepted
+
+        zms.validateRoleMemberPrincipal("coretech.api", "unittest");
+    }
+
+    @Test
+    public void testValidateRoleMemberPrincipalService() {
+
+        zms.validateServiceRoleMembers = true;
+
+        // wildcards are always valid with no exception
+
+        zms.validateRoleMemberPrincipal("athenz.api*", "unittest");
+        zms.validateRoleMemberPrincipal("coretech.*", "unittest");
+
+        // invalid service request error
+
+        try {
+            zms.validateRoleMemberPrincipal("coretech", "unittest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        TopLevelDomain dom1 = createTopLevelDomainObject("coretech",
+                "Test Domain1", "testorg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        TopLevelDomain dom2 = createTopLevelDomainObject("coretech2",
+                "Test Domain2", "testorg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
+
+        ServiceIdentity service1 = createServiceObject("coretech",
+                "api", "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+
+        zms.putServiceIdentity(mockDomRsrcCtx, "coretech", "api", auditRef, service1);
+
+        // known service - no exception
+
+        zms.validateRoleMemberPrincipal("coretech.api", "unittest");
+
+        // unknown service - exception
+
+        try {
+            zms.validateRoleMemberPrincipal("coretech.backend", "unittest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        // include coretech in the skip domain list and try
+        // the operation again
+
+        System.setProperty(ZMSConsts.ZMS_PROP_VALIDATE_SERVICE_MEMBERS_SKIP_DOMAINS,
+                "unix,coretech");
+        zms.loadConfigurationSettings();
+        zms.validateServiceRoleMembers = true;
+
+        // coretech is now accepted
+
+        zms.validateRoleMemberPrincipal("coretech.backend", "unittest");
+
+        // but coretech2 is rejected
+
+        try {
+            zms.validateRoleMemberPrincipal("coretech2.backend", "unittest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        // user principals by default are accepted
+
+        zms.validateRoleMemberPrincipal("user.john", "unittest");
+
+        // reset our setting
+
+        System.clearProperty(ZMSConsts.ZMS_PROP_VALIDATE_SERVICE_MEMBERS_SKIP_DOMAINS);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "coretech", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "coretech2", auditRef);
     }
 }
 
