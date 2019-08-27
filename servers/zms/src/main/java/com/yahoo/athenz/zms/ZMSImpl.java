@@ -118,7 +118,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private static final String TYPE_ROLE_META = "RoleMeta";
 
     private static final String SYS_AUTH_AUDIT = "sys.auth.audit";
-    
+    private static final String SERVER_READ_ONLY_MESSAGE = "Server in Maintenance Read-Only mode. Please try your request later";
+
     public static Metric metric;
     public static String serverHostName  = null;
 
@@ -136,6 +137,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected static SolutionTemplates serverSolutionTemplates = null;
     protected Map<String, String> serverPublicKeyMap = null;
     protected boolean readOnlyMode = false;
+    protected boolean validateUserRoleMembers = false;
+    protected boolean validateServiceRoleMembers = false;
+    protected Set<String> validateServiceMemberSkipDomains;
     protected static Validator validator;
     protected String userDomain;
     protected String userDomainPrefix;
@@ -506,7 +510,23 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         readOnlyMode = Boolean.parseBoolean(
                 System.getProperty(ZMSConsts.ZMS_PROP_READ_ONLY_MODE, "false"));
-        
+
+        // check to see if we need to validate all user and service members
+        // when adding them to roles
+
+        validateUserRoleMembers = Boolean.parseBoolean(
+                System.getProperty(ZMSConsts.ZMS_PROP_VALIDATE_USER_MEMBERS, "false"));
+        validateServiceRoleMembers = Boolean.parseBoolean(
+                System.getProperty(ZMSConsts.ZMS_PROP_VALIDATE_SERVICE_MEMBERS, "false"));
+
+        // there are going to be domains like our ci/cd dynamic project domain
+        // where we can't verify the service role members so for those we're
+        // going to skip specific domains from validation checks
+
+        final String skipDomains = System.getProperty(
+                ZMSConsts.ZMS_PROP_VALIDATE_SERVICE_MEMBERS_SKIP_DOMAINS, "");
+        validateServiceMemberSkipDomains = new HashSet<>(Arrays.asList(skipDomains.split(",")));
+
         // check to see if we need to support product ids as required
         // for top level domains
         
@@ -681,7 +701,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
             if (authorityClass.equals(principalAuthorityClass)) {
                 principalAuthority = authority;
-            } else if (authorityClass.equals(userAuthorityClass)) {
+            }
+            if (authorityClass.equals(userAuthorityClass)) {
                 userAuthority = authority;
             }
             authority.initialize();
@@ -736,7 +757,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         // retrieve our zms service identity object
         
-        ServiceIdentity identity = dbService.getServiceIdentity(SYS_AUTH, ZMSConsts.ZMS_SERVICE);
+        ServiceIdentity identity = dbService.getServiceIdentity(SYS_AUTH, ZMSConsts.ZMS_SERVICE, false);
         if (identity != null) {
             
             // process all the public keys and add them to the map
@@ -978,7 +999,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
         
         validateRequest(ctx.request(), caller);
@@ -1055,7 +1076,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -1142,7 +1163,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -1202,7 +1223,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
         
         validateRequest(ctx.request(), caller);
@@ -1348,7 +1369,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -1384,7 +1405,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -1438,7 +1459,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -1473,7 +1494,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -1519,7 +1540,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -1563,7 +1584,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -1660,7 +1681,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -1709,7 +1730,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -1762,7 +1783,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
         
         validateRequest(ctx.request(), caller);
@@ -2268,7 +2289,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -2367,7 +2388,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
         
         validateRequest(ctx.request(), caller);
@@ -2621,29 +2642,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return user;
     }
     
-    RoleMember getNormalizedMember(RoleMember member) {
-        
-        // we're going to check for the domain alias
-        // and handle accordingly - user-alias.hga will become user.hga
-        
-        final String memberName = member.getMemberName();
-        final String aliasMemberName = normalizeDomainAliasUser(memberName);
-        if (!aliasMemberName.equals(memberName)) {
-            member.setMemberName(aliasMemberName);
-        }
-
-        return member;
-    }
-    
     private void addNormalizedRoleMember(Map<String, RoleMember> normalizedMembers,
             RoleMember member) {
-        
-        RoleMember normalizedMember = getNormalizedMember(member);
-        
+
+        member.setMemberName(normalizeDomainAliasUser(member.getMemberName()));
+
         // we'll automatically ignore any duplicates
         
-        if (!normalizedMembers.containsKey(normalizedMember.getMemberName())) {
-            normalizedMembers.put(normalizedMember.getMemberName(), normalizedMember);
+        if (!normalizedMembers.containsKey(member.getMemberName())) {
+            normalizedMembers.put(member.getMemberName(), member);
         }
     }
     
@@ -2704,7 +2711,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -2745,13 +2752,77 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // normalize and remove duplicate members
         
         normalizeRoleMembers(role);
-        
+
+        // check to see if we need to validate user and service members
+
+        validateRoleMemberPrincipals(role, caller);
+
         // process our request
         
         dbService.executePutRole(ctx, domainName, roleName, role, auditRef, caller);
         metric.stopTiming(timerMetric, domainName, principalDomain);
     }
-    
+
+    void validateRoleMemberPrincipals(final Role role, final String caller) {
+
+        // make sure we have either one of the options enabled for verification
+
+        if (!validateUserRoleMembers && !validateServiceRoleMembers) {
+            return;
+        }
+
+        for (RoleMember roleMember : role.getRoleMembers()) {
+            validateRoleMemberPrincipal(roleMember.getMemberName(), caller);
+        }
+    }
+
+    void validateRoleMemberPrincipal(final String memberName, final String caller) {
+
+        boolean bUser = memberName.startsWith(userDomainPrefix);
+        boolean bValidPrincipal = true;
+        if (bUser) {
+
+            // if the account contains a wildcard then we're going
+            // to let the user authority decide if it's valid or not
+
+            if (validateUserRoleMembers && userAuthority != null) {
+                bValidPrincipal = userAuthority.isValidUser(memberName);
+            }
+
+        } else {
+
+            if (validateServiceRoleMembers) {
+
+                // if the account contains a wildcard character then
+                // we're going to assume it's valid
+
+                int idx = memberName.indexOf('*');
+                if (idx == -1) {
+                    idx = memberName.lastIndexOf('.');
+                    if (idx != -1) {
+                        final String domainName = memberName.substring(0, idx);
+                        final String serviceName = memberName.substring(idx + 1);
+
+                        // first we need to check if the domain is on the list of
+                        // our skip domains for service member validation. these
+                        // are typically domains (like for ci/cd) where services
+                        // are dynamic and do not need to be registered in Athenz
+
+                        if (!validateServiceMemberSkipDomains.contains(domainName)) {
+                            bValidPrincipal = dbService.getServiceIdentity(domainName, serviceName, true) != null;
+                        }
+                    } else {
+                        bValidPrincipal = false;
+                    }
+                }
+            }
+        }
+
+        if (!bValidPrincipal) {
+            throw ZMSUtils.requestError("Principal " + memberName + " is not valid", caller);
+        }
+    }
+
     public void deleteRole(ResourceContext ctx, String domainName, String roleName, String auditRef) {
         
         final String caller = "deleterole";
@@ -2759,7 +2830,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -2874,7 +2945,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -2916,11 +2987,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.requestError("putMembership: Role name in URI and Membership object do not match", caller);
         }
         
-        // add the member to the specified role
-        
-        RoleMember roleMember = new RoleMember();
-        roleMember.setMemberName(memberName);
-        roleMember.setExpiration(membership.getExpiration());
+        // extract our role object to get its attributes
 
         AthenzDomain domain = getAthenzDomain(domainName, false);
         Role role = getRoleFromDomain(roleName, domain);
@@ -2929,14 +2996,30 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.requestError("Invalid rolename specified", caller);
         }
 
-        //authorization check
-        if (isAllowedPutMembership(principal, domain, role, memberName, roleMember)) {
-            dbService.executePutMembership(ctx, domainName, roleName, getNormalizedMember(roleMember), auditRef, caller);
-            metric.stopTiming(timerMetric, domainName, principalDomain);
-        } else {
+        // create and normalize the role member object
+
+        RoleMember roleMember = new RoleMember();
+        roleMember.setMemberName(normalizeDomainAliasUser(memberName));
+        roleMember.setExpiration(membership.getExpiration());
+
+        // check to see if we need to validate the principal
+
+        if (validateUserRoleMembers || validateServiceRoleMembers) {
+            validateRoleMemberPrincipal(roleMember.getMemberName(), caller);
+        }
+
+        // authorization check
+
+        if (!isAllowedPutMembership(principal, domain, role, roleMember)) {
             metric.stopTiming(timerMetric, domainName, principalDomain);
             throw ZMSUtils.forbiddenError("putMembership: principal is not authorized to add members", caller);
         }
+
+        // add the member to the specified role
+
+        dbService.executePutMembership(ctx, domainName, roleName, roleMember,
+                auditRef, caller);
+        metric.stopTiming(timerMetric, domainName, principalDomain);
     }
 
     public void deleteMembership(ResourceContext ctx, String domainName, String roleName,
@@ -2947,7 +3030,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -2972,11 +3055,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // verify that request is properly authenticated for this request
         
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
-        
-        RoleMember roleMember = new RoleMember();
-        roleMember.setMemberName(memberName);
-        String normalizedMember = getNormalizedMember(roleMember).getMemberName();
-        dbService.executeDeleteMembership(ctx, domainName, roleName, normalizedMember, auditRef, caller);
+
+        dbService.executeDeleteMembership(ctx, domainName, roleName,
+                normalizeDomainAliasUser(memberName), auditRef, caller);
         metric.stopTiming(timerMetric, domainName, principalDomain);
     }
 
@@ -3014,7 +3095,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -3056,7 +3137,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -3297,7 +3378,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -3348,7 +3429,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -3468,7 +3549,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -3525,7 +3606,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -3896,7 +3977,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -3967,7 +4048,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.increment(caller, domainName, principalDomain);
         Object timerMetric = metric.startTiming("getserviceidentity_timing", domainName, principalDomain);
 
-        ServiceIdentity service = dbService.getServiceIdentity(domainName, serviceName);
+        ServiceIdentity service = dbService.getServiceIdentity(domainName, serviceName, false);
         if (service == null) {
             throw ZMSUtils.notFoundError("getServiceIdentity: Service not found: '" +
                     ZMSUtils.serviceResourceName(domainName, serviceName) + "'", caller);
@@ -3985,7 +4066,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -4153,7 +4234,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
         
         validateRequest(ctx.request(), caller);
@@ -4191,7 +4272,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -4802,7 +4883,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -4844,7 +4925,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.requestError("Provider and tenant domains cannot be the same", caller);
         }
 
-        if (dbService.getServiceIdentity(provSvcDomain, provSvcName) == null) {
+        if (dbService.getServiceIdentity(provSvcDomain, provSvcName, true) == null) {
             throw ZMSUtils.notFoundError("Unable to retrieve service=" + provider, caller);
         }
 
@@ -4884,7 +4965,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -4914,7 +4995,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         String provSvcDomain = providerServiceDomain(provider);
         String provSvcName   = providerServiceName(provider);
 
-        if (dbService.getServiceIdentity(provSvcDomain, provSvcName) == null) {
+        if (dbService.getServiceIdentity(provSvcDomain, provSvcName, true) == null) {
             throw ZMSUtils.notFoundError("Unable to retrieve service: " + provider, caller);
         }
 
@@ -4947,7 +5028,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -4987,7 +5068,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
 
-        if (dbService.getServiceIdentity(providerDomain, providerService) == null) {
+        if (dbService.getServiceIdentity(providerDomain, providerService, true) == null) {
             throw ZMSUtils.notFoundError("Unable to retrieve service=" + providerService, caller);
         }
 
@@ -5006,7 +5087,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -5032,7 +5113,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
 
-        if (dbService.getServiceIdentity(providerDomain, providerService) == null) {
+        if (dbService.getServiceIdentity(providerDomain, providerService, true) == null) {
             throw ZMSUtils.notFoundError("Unable to retrieve service=" + providerService, caller);
         }
 
@@ -5106,7 +5187,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -5462,7 +5543,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
         
         validateRequest(ctx.request(), caller);
@@ -5621,7 +5702,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -5821,7 +5902,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -6090,7 +6171,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -6620,7 +6701,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -6669,7 +6750,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -6710,7 +6791,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (readOnlyMode) {
-            throw ZMSUtils.requestError("Server in Maintenance Read-Only mode. Please try your request later", caller);
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
         validateRequest(ctx.request(), caller);
@@ -6757,22 +6838,34 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.requestError("Invalid rolename specified", caller);
         }
 
-        //authorization check
+        // authorization check
+
         if (!isAllowedPutMembershipDecision(principal, domain, role)) {
             throw ZMSUtils.forbiddenError("putMembershipDecision: principal is not authorized to approve / reject members", caller);
         }
 
         RoleMember roleMember = new RoleMember();
-        roleMember.setMemberName(memberName);
+        roleMember.setMemberName(normalizeDomainAliasUser(memberName));
         roleMember.setExpiration(membership.getExpiration());
         roleMember.setActive(membership.getActive());
 
-        dbService.executePutMembershipDecision(ctx, domainName, roleName, getNormalizedMember(roleMember), auditRef, caller);
+        // check to see if we need to validate the principal
+        // but only if the decision is to approve. We don't
+        // want to block removal of inactive user requests
 
+        if (roleMember.getActive() == Boolean.TRUE &&
+                (validateUserRoleMembers || validateServiceRoleMembers)) {
+            validateRoleMemberPrincipal(roleMember.getMemberName(), caller);
+        }
+
+        dbService.executePutMembershipDecision(ctx, domainName, roleName,
+                roleMember, auditRef, caller);
         metric.stopTiming(timerMetric, domainName, principalDomain);
     }
 
-    private boolean isAllowedPutMembershipDecision(final Principal principal, final AthenzDomain domain, final Role role) {
+    private boolean isAllowedPutMembershipDecision(final Principal principal, final AthenzDomain domain,
+            final Role role) {
+
         if (role.getAuditEnabled() == Boolean.TRUE) {
             // check authorization in sys.auth.audit
             return isAllowedAuditRoleMembershipApproval(principal, domain);
@@ -6790,15 +6883,18 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // evaluate our domain's roles and policies to see if access
         // is allowed or not for the given operation and resource
         // our action are always converted to lowercase
-        String resource = SYS_AUTH_AUDIT + ":audit." + reqDomain.getDomain().getOrg() + "_domain_" + reqDomain.getDomain().getName();
-        AccessStatus accessStatus = evaluateAccess(authdomain, principal.getFullName(), "update", resource, null, null);
+
+        String resource = SYS_AUTH_AUDIT + ":audit." + reqDomain.getDomain().getOrg()
+                + "_domain_" + reqDomain.getDomain().getName();
+        AccessStatus accessStatus = evaluateAccess(authdomain, principal.getFullName(),
+                "update", resource, null, null);
         return accessStatus == AccessStatus.ALLOWED;
     }
 
     Role getRoleFromDomain (final String roleName, AthenzDomain domain) {
          if (domain != null && domain.getRoles() != null) {
             for (Role role : domain.getRoles()) {
-                if (role != null && role.getName().equalsIgnoreCase(domain.getName() + ":role." + roleName)) {
+                if (role.getName().equalsIgnoreCase(domain.getName() + ":role." + roleName)) {
                     return role;
                 }
             }
@@ -6828,11 +6924,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return principal.getFullName().equals(memberName);
     }
 
-    boolean isAllowedPutMembership(Principal principal, final AthenzDomain domain, final Role role, final String memberName, final RoleMember member) {
+    boolean isAllowedPutMembership(Principal principal, final AthenzDomain domain, final Role role,
+            final RoleMember member) {
 
         // first lets check if the principal has update access on the role
+
         if (isAllowedPutMembershipAccess(principal, domain, role)) {
-            //even with update access, if the role is auditEnabled, member status can not be set to active. It has to be approved by audit admins.
+
+            // even with update access, if the role is auditEnabled, member status
+            // can not be set to active. It has to be approved by audit admins.
+
             if (role.getAuditEnabled() == Boolean.TRUE) {
                 member.setActive(false);
             } else {
@@ -6840,8 +6941,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 member.setActive(true);
             }
             return true;
-        } else if (role.getSelfserve() == Boolean.TRUE && isAllowedPutMembershipSelfserve(principal, memberName)) {
-            // if the role is selfserve, and user is trying to add herself, allow it but with member status set to inactive. It has to be approved by domain admins.
+
+        } else if (role.getSelfserve() == Boolean.TRUE && isAllowedPutMembershipSelfserve(principal, member.getMemberName())) {
+
+            // if the role is selfserve, and user is trying to add herself, allow it
+            // but with member status set to inactive. It has to be approved by domain admins.
+
             member.setActive(false);
             return true;
         }

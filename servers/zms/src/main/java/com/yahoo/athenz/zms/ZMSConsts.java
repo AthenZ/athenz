@@ -88,6 +88,10 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_RESERVED_SERVICE_NAMES  = "athenz.zms.reserved_service_names";
     public static final String ZMS_PROP_SERVICE_NAME_MIN_LENGTH = "athenz.zms.service_name_min_length";
 
+    public static final String ZMS_PROP_VALIDATE_USER_MEMBERS    = "athenz.zms.validate_user_members";
+    public static final String ZMS_PROP_VALIDATE_SERVICE_MEMBERS = "athenz.zms.validate_service_members";
+    public static final String ZMS_PROP_VALIDATE_SERVICE_MEMBERS_SKIP_DOMAINS = "athenz.zms.validate_service_members_skip_domains";
+
     // properties used to over-ride default Audit logger
  
     public static final String ZMS_PROP_METRIC_FACTORY_CLASS            = "athenz.zms.metric_factory_class";
