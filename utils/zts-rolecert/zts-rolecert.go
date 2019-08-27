@@ -34,6 +34,7 @@ func main() {
 	var caCertFile, roleCertFile, roleDomain, roleName, dnsDomain string
 	var subjC, subjO, subjOU, ip, uri string
 	var spiffe, csr bool
+	var expiryTime int
 
 	flag.StringVar(&roleKeyFile, "role-key-file", "", "role cert private key file (default: service identity private key)")
 	flag.StringVar(&roleCertFile, "role-cert-file", "", "output role certificate file")
@@ -52,6 +53,8 @@ func main() {
 	flag.StringVar(&ip, "ip", "", "IP address")
 	flag.BoolVar(&spiffe, "spiffe", false, "include spiffe uri in csr")
 	flag.BoolVar(&csr, "csr", false, "request csr only")
+	flag.IntVar(&expiryTime, "expiry-time", 0, "expiry time in minutes")
+
 	flag.Parse()
 
 	if svcKeyFile == "" || svcCertFile == "" || roleDomain == "" || roleName == "" ||
@@ -118,7 +121,7 @@ func main() {
 		log.Fatalf("Unable to initialize ZTS Client for %s, err: %v\n", ztsURL, err)
 	}
 
-	getRoleCertificate(client, csrData, roleDomain, roleName, roleCertFile)
+	getRoleCertificate(client, csrData, roleDomain, roleName, roleCertFile, int64(expiryTime))
 }
 
 func extractServiceDetailsFromCert(certFile string) (string, string, error) {
@@ -173,10 +176,12 @@ func generateCSR(keySigner *signer, subj pkix.Name, host, rfc822, ip, uri string
 	return buf.String(), nil
 }
 
-func getRoleCertificate(client *zts.ZTSClient, csr, roleDomain, roleName, roleCertFile string) {
+func getRoleCertificate(client *zts.ZTSClient, csr, roleDomain, roleName, roleCertFile string, expiryTime int64) {
 
-	var roleRequest = new(zts.RoleCertificateRequest)
-	roleRequest.Csr = csr
+	roleRequest := &zts.RoleCertificateRequest{
+		Csr:        csr,
+		ExpiryTime: expiryTime,
+	}
 	roleToken, err := client.PostRoleCertificateRequest(zts.DomainName(roleDomain), zts.EntityName(roleName), roleRequest)
 	if err != nil {
 		log.Fatalf("PostRoleCertificateRequest failed for %s, err: %v\n", roleName, err)
