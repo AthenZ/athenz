@@ -29,10 +29,7 @@ import java.security.PublicKey;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
-import java.util.Base64;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 
 public class AccessToken extends OAuth2Token {
 
@@ -51,6 +48,9 @@ public class AccessToken extends OAuth2Token {
 
     // default offset is 1 hour = 3600 secs
     private static long ACCESS_TOKEN_CERT_OFFSET = 3600;
+
+    // default no check on access token proxy principals
+    private static Set<String> ACCESS_TOKEN_PROXY_PRINCIPALS = null;
 
     private String clientId;
     private String userId;
@@ -108,17 +108,81 @@ public class AccessToken extends OAuth2Token {
      *                    the public key for token signature validation
      * @param x509Cert x.509 certificate to validate confirmation claim
      */
-    public AccessToken(final String token, JwtsSigningKeyResolver keyResolver, X509Certificate x509Cert) {
+    public AccessToken(final String token, JwtsSigningKeyResolver keyResolver,
+                       X509Certificate x509Cert) {
+        this(token, keyResolver, x509Cert, null);
+    }
+
+    /**
+     * Parses and validates the given token based on the keyResolver
+     * Once parsed, it verified that the token contains the x.509
+     * certificate hash based on given certificate: supporting
+     * mTLS bound access tokens.
+     * With mTLS bound access tokens it's possible that the application
+     * fetched and cached the access token which includes the x.509 cert
+     * hash. However, after that, the cert has been refreshed - so it
+     * has a new hash but the same principal/subject. In this case we
+     * want to provide a small offset period where we'll check that
+     * the certificate creation time is after the access token timestamp
+     * and if that's the case allow the access token to be validated
+     * as long as the principal/subject matches what's in the token.
+     * The offset is by default 3600secs before (since we always issue
+     * certs with start time of now - 3600secs) and 3600 secs after. The
+     * second value is configurable with setAccessTokenCertOffset api
+     * method.
+     * If the request is going through a proxy server which handles
+     * tls termination then the certificate hash will no longer match.
+     * In this case, the proxy is required to calculate and forward
+     * the certificate hash in a header that the client can extract
+     * and ask the library to validate based on that value. Additionally,
+     * the client can configure what service identity names it will
+     * accept proxy requests from for further security checks.
+     * @param token access token
+     * @param keyResolver JwtsSigningKeyResolver key resolver providing
+     *                    the public key for token signature validation
+     * @param x509Cert x.509 certificate to validate confirmation claim
+     */
+    public AccessToken(final String token, JwtsSigningKeyResolver keyResolver,
+                       X509Certificate x509Cert, final String x509CertHash) {
         super(token, keyResolver);
         setAccessTokenFields();
-        if (!confirmMTLSBoundToken(x509Cert)) {
+        if (!confirmMTLSBoundToken(x509Cert, x509CertHash)) {
             LOG.error("AccessToken: X.509 Certificate Confirmation failure");
             throw new CryptoException("X.509 Certificate Confirmation failure");
         }
     }
 
+    /**
+     * With mTLS bound access tokens it's possible that the application
+     * fetched and cached the access token which includes the x.509 cert
+     * hash. However, after that, the cert has been refreshed - so it
+     * has a new hash but the same principal/subject. In this case we
+     * want to provide a small offset period where we'll check that
+     * the certificate creation time is after the access token timestamp
+     * and if that's the case allow the access token to be validated
+     * as long as the principal/subject matches what's in the token.
+     * The offset is by default 3600secs before (since we always issue
+     * certs with start time of now - 3600secs) and 3600 secs after.
+     * @param offset number of seconds to allow access token validation
+     *               based on principal/subject name
+     */
     public static void setAccessTokenCertOffset(long offset) {
         ACCESS_TOKEN_CERT_OFFSET = offset;
+    }
+
+    /**
+     * If the request is going through a proxy server which handles
+     * tls termination then the certificate hash will no longer match.
+     * In this case, the proxy is required to calculate and forward
+     * the certificate hash in a header that the client can extract
+     * and ask the library to validate based on that value. Additionally,
+     * the client can configure what service identity names it will
+     * accept proxy requests from for further security checks.
+     * @param proxyPrincipals set of certificate principals that are allowed
+     *                        to proxy access token requests
+     */
+    public static void setAccessTokenProxyPrincipals(Set<String> proxyPrincipals) {
+        ACCESS_TOKEN_PROXY_PRINCIPALS = proxyPrincipals;
     }
 
     void setAccessTokenFields() {
@@ -181,37 +245,71 @@ public class AccessToken extends OAuth2Token {
         setConfirmEntry(CLAIM_CONFIRM_X509_HASH, getX509CertificateHash(cert));
     }
 
-    boolean confirmMTLSBoundToken(X509Certificate x509Cert) {
+    boolean confirmMTLSBoundToken(X509Certificate x509Cert, final String x509CertHash) {
 
-        // first we're goimng to verify our expected
+        if (x509Cert == null) {
+            LOG.error("confirmMTLSBoundToken: null certificate");
+            return false;
+        }
+
+        // extract our confirmation hash claim
+
+        final String cnfHash = (String) getConfirmEntry(CLAIM_CONFIRM_X509_HASH);
+        if (cnfHash == null) {
+            LOG.error("confirmMTLSBoundToken: token does not have confirmation entry");
+            return false;
+        }
+
+        // first we're going to verify our expected
         // x.509 certificate hash
 
-        if (confirmX509CertHash(x509Cert)) {
+        if (confirmX509CertHash(x509Cert, cnfHash)) {
             return true;
+        }
+
+        // extract the certificate service identity for our
+        // next set of checks
+
+        final String cn = Crypto.extractX509CertCommonName(x509Cert);
+        if (cn == null) {
+            LOG.error("confirmMTLSBoundToken: null principal in certificate}");
+            return false;
         }
 
         // check if the certificate principal matches and the
         // creation time for our cert is within our configured
         // offset timeouts
 
-        return confirmX509CertPrincipal(x509Cert);
+        if (confirmX509CertPrincipal(x509Cert, cn)) {
+            return true;
+        }
+
+        // direct comparison of certificate cn and provided hash
+
+        return confirmX509ProxyPrincipal(cn, x509CertHash, cnfHash);
     }
 
-    public boolean confirmX509CertHash(X509Certificate cert) {
-        if (cert == null) {
-            LOG.error("confirmX509CertHash: null certificate");
-            return false;
-        }
-        final String cnfHash = (String) getConfirmEntry(CLAIM_CONFIRM_X509_HASH);
-        if (cnfHash == null) {
-            LOG.error("confirmX509CertHash: token does not have confirmation entry");
-            return false;
-        }
+    boolean confirmX509CertHash(X509Certificate cert, final String cnfHash) {
+
         final String certHash = getX509CertificateHash(cert);
         return cnfHash.equals(certHash);
     }
 
-    public boolean confirmX509CertPrincipal(X509Certificate cert) {
+    boolean confirmX509ProxyPrincipal(final String cn, final String certHash, final String cnfHash) {
+
+        // if the proxy principal set is not null then the client
+        // has specified some value so we'll enforce it (even if
+        // the set is empty thus rejecting all requests)
+
+        if (ACCESS_TOKEN_PROXY_PRINCIPALS != null && !ACCESS_TOKEN_PROXY_PRINCIPALS.contains(cn)) {
+            LOG.error("confirmX509ProxyPrincipal: unauthorized proxy principal: {}", cn);
+            return false;
+        }
+
+        return cnfHash.equals(certHash);
+    }
+
+    boolean confirmX509CertPrincipal(X509Certificate cert, final String cn) {
 
         // if our offset is 0 then the additional confirmation
         // check is disabled
@@ -221,18 +319,7 @@ public class AccessToken extends OAuth2Token {
             return false;
         }
 
-        if (cert == null) {
-            LOG.error("confirmX509CertPrincipal: null certificate");
-            return false;
-        }
-
         // our principal cn must be the client in the token
-
-        final String cn = Crypto.extractX509CertCommonName(cert);
-        if (cn == null) {
-            LOG.error("confirmX509CertPrincipal: null principal in certificate}");
-            return false;
-        }
 
         if (!cn.equals(clientId)) {
             LOG.error("confirmX509CertPrincipal: Principal mismatch {} vs {}", cn, clientId);
@@ -256,7 +343,7 @@ public class AccessToken extends OAuth2Token {
         // since athenz issues certs with backdating one hour, we
         // need to take into account that extra hour
 
-        if (certIssueTime > issueTime - 3600 + ACCESS_TOKEN_CERT_OFFSET) {
+        if (certIssueTime > issueTime + ACCESS_TOKEN_CERT_OFFSET - 3600) {
             LOG.error("confirmX509CertPrincipal: Certificate: {} past configured offset {} for token: {}",
                     certIssueTime, ACCESS_TOKEN_CERT_OFFSET, issueTime);
             return false;
