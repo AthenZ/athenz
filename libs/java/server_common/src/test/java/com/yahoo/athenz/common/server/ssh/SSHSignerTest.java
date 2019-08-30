@@ -36,6 +36,18 @@ public class SSHSignerTest {
     }
 
     @Test
+    public void testSSHSignerDefaultMethods() {
+
+        SSHSigner signer = new SSHSigner() {
+        };
+
+        assertNull(signer.generateCertificate(null, null, "client"));
+        assertNull(signer.getSignerCertificate("host"));
+        signer.setAuthorizer(null);
+        signer.close();
+    }
+
+    @Test
     public void testSSHSigner() {
 
         SSHSigner signer = Mockito.mock(SSHSigner.class);

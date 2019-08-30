@@ -31,6 +31,9 @@ import org.testng.annotations.Test;
 
 import com.yahoo.athenz.auth.Authorizer;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class ResourceContextTest {
 
     @Test
@@ -143,16 +146,39 @@ public class ResourceContextTest {
     }
 
     @Test
-    public void testSendAuthenticateChallenges() {
+    public void testSendAuthenticateChallengesMultipleHeaders() {
         HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
         HttpServletResponse httpServletResponse = Mockito.mock(HttpServletResponse.class);
         Authorizer authorizer = Mockito.mock(Authorizer.class);
         Http.AuthorityList authorities = new Http.AuthorityList();
         ResourceContext context = new ResourceContext(httpServletRequest, httpServletResponse, authorities, authorizer);
         ResourceException exc = new ResourceException(401);
-        Mockito.when(httpServletRequest.getAttribute("com.yahoo.athenz.auth.credential.challenges")).thenReturn("Negotiate");
+        Set<String> challenges = new HashSet<>();
+        challenges.add("Negotiate");
+        challenges.add("AthenzX509Certificate");
+        Mockito.when(httpServletRequest.getAttribute("com.yahoo.athenz.auth.credential.challenges")).thenReturn(challenges);
         context.sendAuthenticateChallenges(exc);
         Mockito.verify(httpServletRequest, times(1)).getAttribute("com.yahoo.athenz.auth.credential.challenges");
         Mockito.verify(httpServletResponse, times(1)).addHeader("WWW-Authenticate", "Negotiate");
+        Mockito.verify(httpServletResponse, times(1)).addHeader("WWW-Authenticate", "AthenzX509Certificate");
+    }
+
+    @Test
+    public void testSendAuthenticateChallengesMultipleValues() {
+        HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
+        HttpServletResponse httpServletResponse = Mockito.mock(HttpServletResponse.class);
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        Http.AuthorityList authorities = new Http.AuthorityList();
+        ResourceContext.setSendMultipleWwwAuthenticateHeaders(false);
+        ResourceContext context = new ResourceContext(httpServletRequest, httpServletResponse, authorities, authorizer);
+        ResourceException exc = new ResourceException(401);
+        Set<String> challenges = new HashSet<>();
+        challenges.add("Negotiate");
+        challenges.add("AthenzX509Certificate");
+        Mockito.when(httpServletRequest.getAttribute("com.yahoo.athenz.auth.credential.challenges")).thenReturn(challenges);
+        context.sendAuthenticateChallenges(exc);
+        Mockito.verify(httpServletRequest, times(1)).getAttribute("com.yahoo.athenz.auth.credential.challenges");
+        Mockito.verify(httpServletResponse, times(1)).addHeader("WWW-Authenticate", "AthenzX509Certificate, Negotiate");
+        ResourceContext.setSendMultipleWwwAuthenticateHeaders(true);
     }
 }
