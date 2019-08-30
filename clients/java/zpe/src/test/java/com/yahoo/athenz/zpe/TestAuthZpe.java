@@ -168,6 +168,9 @@ public class TestAuthZpe {
 
         renamedFile = new File("./src/test/resources/pol_dir/empty.pol");
         file.renameTo(renamedFile);
+        
+        String issuers = "InvalidToBeSkipped | C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public | C=US, ST=CA, O=Athenz, OU=Testing Domain2, CN=angler:role.public | C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler.test:role.public";
+        System.setProperty(ZpeConsts.ZPE_PROP_X509_CA_ISSUERS, issuers);
     }
     
     @BeforeMethod
@@ -235,15 +238,6 @@ public class TestAuthZpe {
         token.setIssuer("athenz");
         token.setIssueTime(now);
         token.setExpiryTime(now + expiry);
-
-        try {
-            Path path = Paths.get("src/test/resources/mtls_token_spec.cert");
-            String certStr = new String(Files.readAllBytes(path));
-            X509Certificate cert = Crypto.loadX509Certificate(certStr);
-            token.setConfirmX509CertHash(cert);
-        } catch (IOException ignored) {
-            fail();
-        }
 
         PrivateKey key = null;
         if ("1".equals(keyId)) {
@@ -857,29 +851,19 @@ public class TestAuthZpe {
     }
 
     @Test
-    public void testAllowAccessMatchAllAccessToken() throws IOException {
+    public void testAllowAccessMatchAllAccessToken() {
 
         String action = "all";
         String resource = "angler:stuff";
         StringBuilder roleName = new StringBuilder();
 
-        Path path = Paths.get("src/test/resources/mtls_token_spec.cert");
-        String certStr = new String(Files.readAllBytes(path));
-        X509Certificate cert = Crypto.loadX509Certificate(certStr);
-
-        AccessCheckStatus status = AuthZpeClient.allowAccess(accessToken0AnglerRegex, cert, null, resource, action, roleName);
+        AccessCheckStatus status = AuthZpeClient.allowAccess(accessToken0AnglerRegex, resource, action, roleName);
         Assert.assertEquals(status, AccessCheckStatus.ALLOW);
         Assert.assertEquals(roleName.toString(), "matchall");
 
         // second time for the same token we should get from the cache
 
         status = AuthZpeClient.allowAccess(accessToken0AnglerRegex, resource, action, roleName);
-        Assert.assertEquals(status, AccessCheckStatus.ALLOW);
-        Assert.assertEquals(roleName.toString(), "matchall");
-
-        // now we're going to include the Bearer part
-
-        status = AuthZpeClient.allowAccess("Bearer " + accessToken0AnglerRegex, resource, action, roleName);
         Assert.assertEquals(status, AccessCheckStatus.ALLOW);
         Assert.assertEquals(roleName.toString(), "matchall");
     }
@@ -1187,7 +1171,7 @@ public class TestAuthZpe {
         PublicKey key = AuthZpeClient.getZtsPublicKey("notexist");
         assertNull(key);
     }
-
+    
     @DataProvider(name = "x509CertData")
     public static Object[][] x509CertData() {
         return new Object[][] { 
@@ -1205,10 +1189,6 @@ public class TestAuthZpe {
     
     @Test(dataProvider = "x509CertData")
     public void testX509CertificateReadAllowed(String issuer, String subject, AccessCheckStatus expectedStatus, String angResource) {
-
-        final String issuers = "InvalidToBeSkipped | C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public | C=US, ST=CA, O=Athenz, OU=Testing Domain2, CN=angler:role.public | C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler.test:role.public";
-        AuthZpeClient.setX509CAIssuers(issuers);
-
         final String action = "read";
         X509Certificate cert = Mockito.mock(X509Certificate.class);
         X500Principal x500Principal = Mockito.mock(X500Principal.class);
@@ -1224,22 +1204,17 @@ public class TestAuthZpe {
     @Test
     public void testIssuerMatch() {
 
-        // passing null or empty list to the set method has no impact
-        // make sure no exceptions are thrown
-
-        AuthZpeClient.setX509CAIssuers(null);
-        AuthZpeClient.setX509CAIssuers("");
-
-        assertTrue(AuthZpeClient.certIssuerMatch(null));
-
         // our default set contains the following issuers:
 
         // C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public
         // C=US, ST=CA, O=Athenz, OU=Testing Domain2, CN=angler:role.public
         // C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler.test:role.public";
 
-        final String issuers = "InvalidToBeSkipped | C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler:role.public | C=US, ST=CA, O=Athenz, OU=Testing Domain2, CN=angler:role.public | C=US, ST=CA, O=Athenz, OU=Testing Domain, CN=angler.test:role.public";
-        AuthZpeClient.setX509CAIssuers(issuers);
+        // passing null or empty list to the set method has no impact
+        // make sure no exceptions are thrown
+
+        AuthZpeClient.setX509CAIssuers(null);
+        AuthZpeClient.setX509CAIssuers("");
 
         // add a new entry in our list
 

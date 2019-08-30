@@ -22,7 +22,9 @@ import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
+import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.LinkedList;
@@ -35,10 +37,15 @@ import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.jce.X509Principal;
+import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.mockito.Mockito;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import javax.security.auth.x500.X500Principal;
 
 public class CryptoTest {
 
@@ -808,6 +815,28 @@ public class CryptoTest {
         assertNull(Crypto.extractX509CSRSubjectOUField(certReq));
         assertNull(Crypto.extractX509CSREmail(certReq));
     }
+
+//    @Test
+//    public void testExtractX509CSRSubjectField() throws IOException {
+//        Path path = Paths.get("src/test/resources/valid.csr");
+//        String csr = new String(Files.readAllBytes(path));
+//        PKCS10CertificationRequest certReq1 = Crypto.getPKCS10CertRequest(csr);
+//        PKCS10CertificationRequest certReq = Mockito.spy(certReq1);
+//        assertNotNull(certReq);
+//
+//        X500Name x500Name = mock(X500Name.class);
+//        RDN[] rdns = new RDN[2];
+//        rdns[0] = mock(RDN.class);
+//        rdns[1] = mock(RDN.class);
+////        doReturn(x500Name).when(certReq1).getSubject();
+//        when(certReq1.getSubject()).thenReturn(x500Name);
+//
+//        doReturn(null).when(certReq).getSubject();
+//        assertNull(Crypto.extractX509CSRCommonName(certReq), "athenz.syncer");
+//        assertNull(Crypto.extractX509CSRSubjectOField(certReq));
+//        assertNull(Crypto.extractX509CSRSubjectOUField(certReq));
+//        assertNull(Crypto.extractX509CSREmail(certReq));
+//    }
 
     @Test
     public void testExtractX509CSRFieldsWithRfc822() throws IOException {

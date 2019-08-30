@@ -59,8 +59,7 @@ public class AuthZpeClient {
     
     public static final String DEFAULT_DOMAIN = "sys.auth";
     public static final String UNKNOWN_DOMAIN = "unknown";
-    public static final String BEARER_TOKEN = "Bearer ";
-
+    
     public static ZpeMetric zpeMetric = new ZpeMetric();
 
     private static String zpeClientImplName;
@@ -293,8 +292,8 @@ public class AuthZpeClient {
     /**
      * Determine if access(action) is allowed against the specified resource by
      * a user represented by the X509Certificate
+     * @param cert - X509Certificate
      *
-     * @param cert - X509 Role Certificate
      * @param resource is a domain qualified resource the calling service
      *        will check access for.  ex: my_domain:my_resource
      *        ex: "angler:pondsKernCounty"
@@ -314,8 +313,8 @@ public class AuthZpeClient {
     /**
      * Determine if access(action) is allowed against the specified resource by
      * a user represented by the X509Certificate
+     * @param cert - X509Certificate
      *
-     * @param cert - X509 Role Certificate
      * @param resource is a domain qualified resource the calling service
      *        will check access for.  ex: my_domain:my_resource
      *        ex: "angler:pondsKernCounty"
@@ -378,11 +377,8 @@ public class AuthZpeClient {
     /**
      * Determine if access(action) is allowed against the specified resource by
      * a user represented by the user (cltToken, cltTokenName).
-     *
-     * @param token - either role or access token. For role tokens:
-     *        value for the HTTP header: Athenz-Role-Auth
+     * @param roleToken - value for the REST header: Athenz-Role-Auth
      *        ex: "v=Z1;d=angler;r=admin;a=aAkjbbDMhnLX;t=1431974053;e=1431974153;k=0"
-     *        For access tokens: value for HTTP header: Authorization: Bearer access-token
      * @param resource is a domain qualified resource the calling service
      *        will check access for.  ex: my_domain:my_resource
      *        ex: "angler:pondsKernCounty"
@@ -394,15 +390,15 @@ public class AuthZpeClient {
      *        the result is ALLOW otherwise one of the DENY_* values specifies the exact
      *        reason why the access was denied
      */
-    public static AccessCheckStatus allowAccess(String token, String resource, String action) {
+    public static AccessCheckStatus allowAccess(String roleToken, String resource, String action) {
         StringBuilder matchRoleName = new StringBuilder(256);
-        return allowAccess(token, null, null, resource, action, matchRoleName);
+        return allowAccess(roleToken, resource, action, matchRoleName);
     }
     
     /**
      * Determine if access(action) is allowed against the specified resource by
      * a user represented by the user (cltToken, cltTokenName).
-     * @param token - either role or access token. For role tokens:
+     * @param token - either role of access token. For role tokens:
      *        value for the HTTP header: Athenz-Role-Auth
      *        ex: "v=Z1;d=angler;r=admin;a=aAkjbbDMhnLX;t=1431974053;e=1431974153;k=0"
      *        For access tokens: value for HTTP header: Authorization: Bearer access-token
@@ -422,37 +418,6 @@ public class AuthZpeClient {
      */
     public static AccessCheckStatus allowAccess(String token, String resource, String action,
             StringBuilder matchRoleName) {
-        return allowAccess(token, null, null, resource, action, matchRoleName);
-    }
-
-    /**
-     * Determine if access(action) is allowed against the specified resource by
-     * a user represented by the user (cltToken, cltTokenName).
-     * @param token either role or access token. For role tokens:
-     *        value for the HTTP header: Athenz-Role-Auth
-     *        ex: "v=Z1;d=angler;r=admin;a=aAkjbbDMhnLX;t=1431974053;e=1431974153;k=0"
-     *        For access tokens: value for HTTP header: Authorization: Bearer access-token
-     * @param cert X509 Client Certificate used to establish the mTLS connection
-     *        submitting this request
-     * @param certHash If the connection is coming through a proxy, this includes
-     *        the certificate hash of the client certificate that was calculated
-     *        by the proxy and forwarded in a http header
-     * @param resource is a domain qualified resource the calling service
-     *        will check access for.  ex: my_domain:my_resource
-     *        ex: "angler:pondsKernCounty"
-     *        ex: "sports:service.storage.tenant.Activator.ActionMap"
-     * @param action is the type of access attempted by a client
-     *        ex: "read"
-     *        ex: "scan"
-     * @param matchRoleName - [out] will include the role name that the result was based on
-     *        it will be not be set if the failure is due to expired/invalid tokens or
-     *        there were no matches thus a default value of DENY_NO_MATCH is returned
-     * @return AccessCheckStatus if the user can access the resource via the specified action
-     *        the result is ALLOW otherwise one of the DENY_* values specifies the exact
-     *        reason why the access was denied
-     */
-    public static AccessCheckStatus allowAccess(String token, X509Certificate cert, String certHash,
-            String resource, String action, StringBuilder matchRoleName) {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("allowAccess: action={} resource={}", action, resource);
@@ -464,7 +429,7 @@ public class AuthZpeClient {
         if (token.startsWith("v=Z1;")) {
             return allowRoleTokenAccess(token, resource, action, matchRoleName);
         } else {
-            return allowAccessTokenAccess(token, cert, certHash, resource, action, matchRoleName);
+            return allowAccessTokenAccess(token, resource, action, matchRoleName);
         }
     }
 
@@ -505,8 +470,8 @@ public class AuthZpeClient {
         return allowAccess(rToken, resource, action, matchRoleName);
     }
 
-    static AccessCheckStatus allowAccessTokenAccess(String accessToken, X509Certificate cert, String certHash,
-            String resource, String action, StringBuilder matchRoleName) {
+    static AccessCheckStatus allowAccessTokenAccess(String accessToken, String resource,
+            String action, StringBuilder matchRoleName) {
 
         Map<String, AccessToken> tokenCache = zpeClt.getAccessTokenCacheMap();;
         AccessToken acsToken = tokenCache.get(accessToken);
@@ -516,18 +481,7 @@ public class AuthZpeClient {
             zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_CACHE_NOT_FOUND, DEFAULT_DOMAIN);
 
             try {
-                // if our client sent the full header including Bearer part
-                // we're going to strip that out
-
-                if (accessToken.startsWith(BEARER_TOKEN)) {
-                    accessToken = accessToken.substring(BEARER_TOKEN.length());
-                }
-
-                if (cert == null && certHash == null) {
-                    acsToken = new AccessToken(accessToken, accessSignKeyResolver);
-                } else {
-                    acsToken = new AccessToken(accessToken, accessSignKeyResolver, cert, certHash);
-                }
+                acsToken = new AccessToken(accessToken, accessSignKeyResolver);
             } catch (Exception ex) {
 
                 LOG.error("allowAccess: Authorization denied. Authentication failed for token={}",
@@ -544,6 +498,7 @@ public class AuthZpeClient {
 
         return allowAccess(acsToken, resource, action, matchRoleName);
     }
+
     /**
      * Determine if access(action) is allowed against the specified resource by
      * a user represented by the RoleToken.
@@ -627,11 +582,8 @@ public class AuthZpeClient {
     /**
      * Determine if access(action) is allowed against the specified resource by
      * a user represented by the list of role tokens.
-     * @param tokenList - list of tokens either role or access. For role tokens
-     *        values are from the REST header(s): Athenz-Role-Auth
+     * @param roleTokenList - values from the REST header(s): Athenz-Role-Auth
      *        ex: "v=Z1;d=angler;r=admin;a=aAkjbbDMhnLX;t=1431974053;e=1431974153;k=0"
-     *        For access tokens values are from the REST header: Authorization
-     *        ex: Bearer 123asf341...q234se
      * @param resource is a domain qualified resource the calling service
      *        will check access for.  ex: my_domain:my_resource
      *        ex: "angler:pondsKernCounty"
@@ -646,13 +598,13 @@ public class AuthZpeClient {
      *        the result is ALLOW otherwise one of the DENY_* values specifies the exact
      *        reason why the access was denied
      */
-    public static AccessCheckStatus allowAccess(List<String> tokenList,
+    public static AccessCheckStatus allowAccess(List<String> roleTokenList,
             String resource, String action, StringBuilder matchRoleName) {
 
         AccessCheckStatus retStatus = AccessCheckStatus.DENY_NO_MATCH;
         StringBuilder roleName = null;
 
-        for (String roleToken: tokenList) {
+        for (String roleToken: roleTokenList) {
             StringBuilder rName = new StringBuilder(256);
             AccessCheckStatus status = allowAccess(roleToken, resource, action, rName);
             if (status == AccessCheckStatus.DENY) {
@@ -1128,6 +1080,7 @@ public class AuthZpeClient {
         }
 
         // we're going to do more expensive rdn match
+
 
         try {
             X500Principal issuerCheck = new X500Principal(issuer);
