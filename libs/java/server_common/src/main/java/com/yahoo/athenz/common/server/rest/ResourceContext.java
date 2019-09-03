@@ -21,7 +21,12 @@ import javax.servlet.http.HttpServletResponse;
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
 
+import java.util.Set;
+
 public class ResourceContext  {
+
+    private static boolean SEND_MULTIPLE_WWW_AUTHENTICATE_HEADERS = Boolean.parseBoolean(
+            System.getProperty("athenz.http.www-authenticate.multiple-headers", "true"));
 
     private final HttpServletRequest request;
     private final HttpServletResponse response;
@@ -39,6 +44,10 @@ public class ResourceContext  {
         this.authorizer = authorizer;
         this.principal = null;
         this.checked = false;
+    }
+
+    public static void setSendMultipleWwwAuthenticateHeaders(boolean bSendMultipleHeaders) {
+        SEND_MULTIPLE_WWW_AUTHENTICATE_HEADERS = bSendMultipleHeaders;
     }
 
     public HttpServletRequest request() {
@@ -110,11 +119,22 @@ public class ResourceContext  {
             return;
         }
 
-        Object authChallenges = request.getAttribute(Http.AUTH_CHALLENGES);
+        Set<String> authChallenges = (Set<String>) request.getAttribute(Http.AUTH_CHALLENGES);
         if (authChallenges == null) {
             return;
         }
 
-        response.addHeader(Http.WWW_AUTHENTICATE, authChallenges.toString());
+        // check if we're going to return multiple WWW-Authenticate headers
+        // or combine them into a single comma separated value
+        // One issue: with Kerberos curl supports auto negotiate only
+        // the value is passed in a separate header
+
+        if (SEND_MULTIPLE_WWW_AUTHENTICATE_HEADERS) {
+            for (String challenge : authChallenges) {
+                response.addHeader(Http.WWW_AUTHENTICATE, challenge);
+            }
+        } else {
+            response.addHeader(Http.WWW_AUTHENTICATE, String.join(", ", authChallenges));
+        }
     }
 }

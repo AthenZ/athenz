@@ -169,10 +169,7 @@ public class Http {
         // attribute and let the caller decide if they want to add it to the
         // response as a header in its context handler
 
-        if (authChallenges != null) {
-            request.setAttribute(AUTH_CHALLENGES,  String.join(", ", authChallenges));
-        }
-
+        request.setAttribute(AUTH_CHALLENGES, authChallenges);
         throw new ResourceException(ResourceException.UNAUTHORIZED, "Invalid credentials");
     }
 

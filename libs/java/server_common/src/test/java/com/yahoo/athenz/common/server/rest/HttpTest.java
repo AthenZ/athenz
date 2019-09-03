@@ -31,6 +31,8 @@ import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.Authority.CredSource;
 
 import java.security.cert.X509Certificate;
+import java.util.HashSet;
+import java.util.Set;
 
 public class HttpTest {
 
@@ -107,8 +109,10 @@ public class HttpTest {
         } catch (ResourceException expected) {
             assertEquals(expected.getCode(), 401);
         }
+        Set<String> challenges = new HashSet<>();
+        challenges.add("Basic realm=\"athenz\"");
         Mockito.verify(httpServletRequest, times(1))
-                .setAttribute("com.yahoo.athenz.auth.credential.challenges", "Basic realm=\"athenz\"");
+                .setAttribute("com.yahoo.athenz.auth.credential.challenges", challenges);
     }
 
     @Test
@@ -125,8 +129,10 @@ public class HttpTest {
         } catch (ResourceException expected) {
             assertEquals(expected.getCode(), 401);
         }
-        Mockito.verify(httpServletRequest, times(2))
+        Mockito.verify(httpServletRequest, times(1))
                 .setAttribute(ArgumentMatchers.anyString(), ArgumentMatchers.anyString());
+        Mockito.verify(httpServletRequest, times(1))
+                .setAttribute(ArgumentMatchers.anyString(), ArgumentMatchers.anyIterable());
     }
 
     @Test
@@ -147,8 +153,11 @@ public class HttpTest {
         } catch (ResourceException expected) {
             assertEquals(expected.getCode(), 401);
         }
+        Set<String> challenges = new HashSet<>();
+        challenges.add("Basic realm=\"athenz\"");
+        challenges.add("AthenzRequest realm=\"athenz\"");
         Mockito.verify(httpServletRequest, times(1))
-                .setAttribute("com.yahoo.athenz.auth.credential.challenges", "Basic realm=\"athenz\", AthenzRequest realm=\"athenz\"");
+                .setAttribute("com.yahoo.athenz.auth.credential.challenges", challenges);
     }
 
     @Test

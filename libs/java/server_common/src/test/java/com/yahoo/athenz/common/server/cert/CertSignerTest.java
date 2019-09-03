@@ -34,6 +34,18 @@ public class CertSignerTest {
     }
 
     @Test
+    public void testCertSignerDefaultMethods() {
+
+        CertSigner signer = new CertSigner() {
+        };
+
+        assertNull(signer.generateX509Certificate("csr", "client", 60));
+        assertNull(signer.getCACertificate());
+        assertEquals(signer.getMaxCertExpiryTimeMins(), 0);
+        signer.close();
+    }
+
+    @Test
     public void testCertSigner() {
 
         CertSigner signer = Mockito.mock(CertSigner.class);
