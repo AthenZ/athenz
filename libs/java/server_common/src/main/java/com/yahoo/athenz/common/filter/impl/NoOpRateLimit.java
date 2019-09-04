@@ -28,9 +28,6 @@ public class NoOpRateLimit implements RateLimit {
 
     @Override
     public boolean filter(ServletRequest servletRequest, ServletResponse servletResponse) {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("NoOpRateLimit called");
-        }
         return false;
     }
 
