@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"crypto"
 	"crypto/rand"
-	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
@@ -16,11 +15,11 @@ import (
 	"io/ioutil"
 	"log"
 	"net"
-	"net/http"
 	"net/url"
 	"strings"
 
 	"github.com/yahoo/athenz/clients/go/zts"
+	"github.com/yahoo/athenz/libs/go/athenzutils"
 )
 
 type signer struct {
@@ -33,7 +32,7 @@ func main() {
 	var ztsURL, svcKeyFile, svcCertFile, roleKeyFile, dom, svc string
 	var caCertFile, roleCertFile, roleDomain, roleName, dnsDomain string
 	var subjC, subjO, subjOU, ip, uri string
-	var spiffe, csr bool
+	var spiffe, csr, proxy bool
 	var expiryTime int
 
 	flag.StringVar(&roleKeyFile, "role-key-file", "", "role cert private key file (default: service identity private key)")
@@ -54,6 +53,7 @@ func main() {
 	flag.BoolVar(&spiffe, "spiffe", false, "include spiffe uri in csr")
 	flag.BoolVar(&csr, "csr", false, "request csr only")
 	flag.IntVar(&expiryTime, "expiry-time", 0, "expiry time in minutes")
+	flag.BoolVar(&proxy, "proxy", true, "enable proxy mode for request")
 
 	flag.Parse()
 
@@ -116,7 +116,7 @@ func main() {
 		return
 	}
 
-	client, err := ztsClient(ztsURL, svcKeyFile, svcCertFile, caCertFile)
+	client, err := athenzutils.ZtsClient(ztsURL, svcKeyFile, svcCertFile, caCertFile, proxy)
 	if err != nil {
 		log.Fatalf("Unable to initialize ZTS Client for %s, err: %v\n", ztsURL, err)
 	}
@@ -195,83 +195,6 @@ func getRoleCertificate(client *zts.ZTSClient, csr, roleDomain, roleName, roleCe
 	} else {
 		fmt.Println(roleToken.Token)
 	}
-}
-
-func ztsClient(ztsURL, keyFile, certFile, caFile string) (*zts.ZTSClient, error) {
-	config, err := tlsConfiguration(keyFile, certFile, caFile)
-	if err != nil {
-		return nil, err
-	}
-	tr := &http.Transport{
-		TLSClientConfig: config,
-	}
-	client := zts.NewClient(ztsURL, tr)
-	return &client, nil
-}
-
-func tlsConfiguration(keyFile, certFile, caFile string) (*tls.Config, error) {
-	var capem []byte
-	var err error
-	if caFile != "" {
-		capem, err = ioutil.ReadFile(caFile)
-		if err != nil {
-			return nil, err
-		}
-	}
-	var keypem []byte
-	var certpem []byte
-	if keyFile != "" && certFile != "" {
-		keypem, err = ioutil.ReadFile(keyFile)
-		if err != nil {
-			return nil, err
-		}
-		certpem, err = ioutil.ReadFile(certFile)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return tlsConfigurationFromPEM(keypem, certpem, capem)
-}
-
-func tlsConfigurationFromPEM(keypem, certpem, capem []byte) (*tls.Config, error) {
-	config := &tls.Config{}
-
-	certPool := x509.NewCertPool()
-	if capem != nil {
-		if !certPool.AppendCertsFromPEM(capem) {
-			return nil, fmt.Errorf("Failed to append certs to pool")
-		}
-		config.RootCAs = certPool
-	}
-
-	if certpem != nil && keypem != nil {
-		mycert, err := tls.X509KeyPair(certpem, keypem)
-		if err != nil {
-			return nil, err
-		}
-		config.Certificates = make([]tls.Certificate, 1)
-		config.Certificates[0] = mycert
-
-		config.ClientCAs = certPool
-		config.ClientAuth = tls.VerifyClientCertIfGiven
-	}
-
-	//Use only modern ciphers
-	config.CipherSuites = []uint16{tls.TLS_RSA_WITH_AES_128_CBC_SHA,
-		tls.TLS_RSA_WITH_AES_256_CBC_SHA,
-		tls.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
-		tls.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
-		tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
-		tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
-		tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
-		tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256}
-
-	//Use only TLS v1.2
-	config.MinVersion = tls.VersionTLS12
-
-	//Don't allow session resumption
-	config.SessionTicketsDisabled = true
-	return config, nil
 }
 
 func newSigner(privateKeyPEM []byte) (*signer, error) {

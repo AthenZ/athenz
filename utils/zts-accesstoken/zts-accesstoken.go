@@ -36,7 +36,7 @@ func main() {
 	flag.StringVar(&ztsURL, "zts", "", "url of the ZTS Service")
 	flag.StringVar(&hdr, "hdr", "Athenz-Principal-Auth", "Header name")
 	flag.IntVar(&expireTime, "expire-time", 120, "token expire time in minutes")
-	flag.BoolVar(&proxy, "proxy", false, "enable proxy mode for request")
+	flag.BoolVar(&proxy, "proxy", true, "enable proxy mode for request")
 	flag.Parse()
 
 	fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, ntokenFile, hdr, proxy, expireTime)
