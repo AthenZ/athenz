@@ -1,0 +1,3 @@
+Label,# Samples,Average,Min,Max,Std. Dev.,Error %,Throughput,Received KB/sec,Sent KB/sec,Avg. Bytes
+get metrics,5372,22,18,646,10.21,0.000%,44.76443,421.94,6.25,9651.9
+TOTAL,5372,22,18,646,10.21,0.000%,44.76443,421.94,6.25,9651.9

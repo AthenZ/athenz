@@ -1,0 +1,5 @@
+Label,# Samples,Average,Min,Max,Std. Dev.,Error %,Throughput,Received KB/sec,Sent KB/sec,Avg. Bytes
+get user token,48,429,162,707,153.93,0.000%,30.88803,22.50,6.94,745.9
+get domain list,61130,26,10,333,13.96,0.026%,510.33953,75.11,392.08,150.7
+get role list,61113,66,33,576,22.58,0.034%,510.39361,57.79,401.56,115.9
+TOTAL,122291,46,10,707,28.67,0.030%,1018.69268,132.88,791.83,133.6
