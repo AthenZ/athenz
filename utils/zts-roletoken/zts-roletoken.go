@@ -40,7 +40,7 @@ func main() {
 	flag.StringVar(&ztsURL, "zts", "", "url of the ZTS Service")
 	flag.StringVar(&hdr, "hdr", "Athenz-Principal-Auth", "Header name")
 	flag.IntVar(&expireTime, "expire-time", 120, "token expire time in minutes")
-	flag.BoolVar(&proxy, "proxy", false, "enable proxy mode for request")
+	flag.BoolVar(&proxy, "proxy", true, "enable proxy mode for request")
 	flag.BoolVar(&validate, "validate", false, "validate role token")
 	flag.StringVar(&roleToken, "role-token", "", "role token to validate")
 	flag.StringVar(&conf, "conf", "/home/athenz/conf/athenz.conf", "path to configuration file with public keys")

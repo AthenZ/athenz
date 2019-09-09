@@ -302,6 +302,7 @@ func getHttpTransport(socksProxy, keyFile, certFile, caCertFile *string, skipVer
 		if skipVerify {
 			config.InsecureSkipVerify = skipVerify
 		}
+		tr.Proxy = http.ProxyFromEnvironment
 		tr.TLSClientConfig = config
 	}
 	return &tr
