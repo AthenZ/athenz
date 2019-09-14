@@ -245,7 +245,7 @@ public class AccessToken extends OAuth2Token {
         setConfirmEntry(CLAIM_CONFIRM_X509_HASH, getX509CertificateHash(cert));
     }
 
-    boolean confirmMTLSBoundToken(X509Certificate x509Cert, final String x509CertHash) {
+    public boolean confirmMTLSBoundToken(X509Certificate x509Cert, final String x509CertHash) {
 
         if (x509Cert == null) {
             LOG.error("confirmMTLSBoundToken: null certificate");
