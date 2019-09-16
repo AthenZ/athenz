@@ -511,6 +511,16 @@ public class AuthZpeClient {
         Map<String, AccessToken> tokenCache = zpeClt.getAccessTokenCacheMap();;
         AccessToken acsToken = tokenCache.get(accessToken);
 
+        // if we have a x.509 certificate provided then we need to
+        // validate our mtls client certificate confirmation value
+        // before accepting the token from the cache
+
+        if (acsToken != null && cert != null && !acsToken.confirmMTLSBoundToken(cert, certHash)) {
+            LOG.error("allowAccess: mTLS Client certificate confirmation failed");
+            zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_INVALID_TOKEN, DEFAULT_DOMAIN);
+            return AccessCheckStatus.DENY_ROLETOKEN_INVALID;
+        }
+
         if (acsToken == null) {
 
             zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_CACHE_NOT_FOUND, DEFAULT_DOMAIN);
