@@ -508,6 +508,13 @@ public class AuthZpeClient {
     static AccessCheckStatus allowAccessTokenAccess(String accessToken, X509Certificate cert, String certHash,
             String resource, String action, StringBuilder matchRoleName) {
 
+        // if our client sent the full header including Bearer part
+        // we're going to strip that out
+
+        if (accessToken.startsWith(BEARER_TOKEN)) {
+            accessToken = accessToken.substring(BEARER_TOKEN.length());
+        }
+
         Map<String, AccessToken> tokenCache = zpeClt.getAccessTokenCacheMap();;
         AccessToken acsToken = tokenCache.get(accessToken);
 
@@ -526,13 +533,6 @@ public class AuthZpeClient {
             zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_CACHE_NOT_FOUND, DEFAULT_DOMAIN);
 
             try {
-                // if our client sent the full header including Bearer part
-                // we're going to strip that out
-
-                if (accessToken.startsWith(BEARER_TOKEN)) {
-                    accessToken = accessToken.substring(BEARER_TOKEN.length());
-                }
-
                 if (cert == null && certHash == null) {
                     acsToken = new AccessToken(accessToken, accessSignKeyResolver);
                 } else {
