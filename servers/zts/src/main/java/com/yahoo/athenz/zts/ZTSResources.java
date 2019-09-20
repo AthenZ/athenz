@@ -421,6 +421,7 @@ public class ZTSResources {
     public Response postInstanceRegisterInformation(InstanceRegisterInformation info) {
         try {
             ResourceContext context = this.delegate.newResourceContext(this.request, this.response);
+            context.authenticate();
             return this.delegate.postInstanceRegisterInformation(context, info);
         } catch (ResourceException e) {
             int code = e.getCode();

@@ -565,8 +565,10 @@ public class ZTSSchema {
 ;
 
         sb.resource("InstanceRegisterInformation", "POST", "/instance")
+            .comment("we have an authenticate enabled for this endpoint but in most cases the service owner might need to make it optional by setting the zts servers no_auth_uri list to include this endpoint. We need the authenticate in case the request comes with a client certificate and the provider needs to know who that principal was in the client certificate")
             .input("info", "InstanceRegisterInformation", "")
             .output("Location", "location", "String", "return location for subsequent patch requests")
+            .auth("", "", true)
             .expected("CREATED")
             .exception("BAD_REQUEST", "ResourceError", "")
 
