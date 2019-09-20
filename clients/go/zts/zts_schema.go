@@ -564,8 +564,10 @@ func init() {
 	sb.AddResource(mPostOSTKInstanceRefreshRequest.Build())
 
 	mPostInstanceRegisterInformation := rdl.NewResourceBuilder("InstanceIdentity", "POST", "/instance")
+	mPostInstanceRegisterInformation.Comment("we have an authenticate enabled for this endpoint but in most cases the service owner might need to make it optional by setting the zts servers no_auth_uri list to include this endpoint. We need the authenticate in case the request comes with a client certificate and the provider needs to know who that principal was in the client certificate")
 	mPostInstanceRegisterInformation.Input("info", "InstanceRegisterInformation", false, "", "", false, nil, "")
 	mPostInstanceRegisterInformation.Output("location", "String", "Location", false, "return location for subsequent patch requests")
+	mPostInstanceRegisterInformation.Auth("", "", true, "")
 	mPostInstanceRegisterInformation.Expected("CREATED")
 	mPostInstanceRegisterInformation.Exception("BAD_REQUEST", "ResourceError", "")
 	mPostInstanceRegisterInformation.Exception("FORBIDDEN", "ResourceError", "")
