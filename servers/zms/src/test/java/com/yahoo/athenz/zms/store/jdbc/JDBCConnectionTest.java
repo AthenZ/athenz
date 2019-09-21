@@ -5711,6 +5711,7 @@ public class JDBCConnectionTest {
             .thenReturn(true)
             .thenReturn(true)
             .thenReturn(true)
+            .thenReturn(true)
             .thenReturn(false) // up to here is role principals
             .thenReturn(true)
             .thenReturn(true)
@@ -5720,14 +5721,15 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_NAME))
             .thenReturn("user.user1")
             .thenReturn("user.user2")
-            .thenReturn("user.user3") // up to here is role principals
+            .thenReturn("user.user3")
+            .thenReturn("user.user4") // up to here is role principals
             .thenReturn("dom1")
             .thenReturn("dom1")
             .thenReturn("dom2");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_DOMAIN_ID))
             .thenReturn("101")
             .thenReturn("101")
-            .thenReturn("102") // up to here is role principals
+            .thenReturn("102") // up to here is role principals (we'll skip user4 since it's expired)
             .thenReturn("101")
             .thenReturn("101")
             .thenReturn("102");
@@ -5735,14 +5737,27 @@ public class JDBCConnectionTest {
             .thenReturn("role1")
             .thenReturn("role1")
             .thenReturn("role3");
+
+        // expired and non-expired timestamps
+
+        java.sql.Timestamp expiredTime = new java.sql.Timestamp(System.currentTimeMillis() - 100000);
+        java.sql.Timestamp nonExpiredTime = new java.sql.Timestamp(System.currentTimeMillis() + 1000000);
+
+        Mockito.when(mockResultSet.getTimestamp(ZMSConsts.DB_COLUMN_EXPIRATION))
+            .thenReturn(null)
+            .thenReturn(nonExpiredTime)
+            .thenReturn(null)
+            .thenReturn(expiredTime);
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ROLE))
             .thenReturn("role1")
             .thenReturn("role1")
-            .thenReturn("role3");
+            .thenReturn("role3")
+            .thenReturn("role4");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_RESOURCE))
             .thenReturn("resource1")
             .thenReturn("resource2")
-            .thenReturn("resource3");
+            .thenReturn("resource3")
+            .thenReturn("resource4");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ACTION))
             .thenReturn("update");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_EFFECT))
