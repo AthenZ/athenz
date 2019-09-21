@@ -198,7 +198,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN domain ON policy.domain_id=domain.domain_id";
     private static final String SQL_LIST_ROLE_ASSERTION_QUERY_ACTION = " WHERE assertion.action=?;";
     private static final String SQL_LIST_ROLE_ASSERTION_NO_ACTION = " WHERE assertion.action!='assume_role';";
-    private static final String SQL_LIST_ROLE_PRINCIPALS = "SELECT principal.name, role.domain_id, "
+    private static final String SQL_LIST_ROLE_PRINCIPALS = "SELECT principal.name, role_member.expiration, role.domain_id, "
             + "role.name AS role_name FROM principal "
             + "JOIN role_member ON principal.principal_id=role_member.principal_id "
             + "JOIN role ON role_member.role_id=role.role_id";
@@ -2903,16 +2903,27 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         Map<String, List<String>> rolePrincipals = new HashMap<>();
         try (PreparedStatement ps = prepareRolePrincipalsStatement(principal, userDomain, awsQuery)) {
+            long now = System.currentTimeMillis();
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
-                    String principalName = rs.getString(ZMSConsts.DB_COLUMN_NAME);
-                    String roleName = rs.getString(ZMSConsts.DB_COLUMN_ROLE_NAME);
 
+                    // first check make sure the member is not expired
+
+                    String principalName = rs.getString(ZMSConsts.DB_COLUMN_NAME);
+                    java.sql.Timestamp expiration = rs.getTimestamp(ZMSConsts.DB_COLUMN_EXPIRATION);
+                    if (expiration != null && now > expiration.getTime()) {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("{}: skipping expired principal {}", caller, principalName);
+                        }
+                        continue;
+                    }
+
+                    String roleName = rs.getString(ZMSConsts.DB_COLUMN_ROLE_NAME);
                     String index = roleIndex(rs.getString(ZMSConsts.DB_COLUMN_DOMAIN_ID), roleName);
                     List<String> principals = rolePrincipals.computeIfAbsent(index, k -> new ArrayList<>());
 
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug(caller + ": adding principal " + principalName + " for " + index);
+                        LOG.debug("{}: adding principal {} for {}", caller, principalName, index);
                     }
                     
                     principals.add(principalName);
