@@ -21,6 +21,7 @@ import com.yahoo.athenz.common.server.notification.NotificationService;
 import com.yahoo.athenz.common.server.notification.NotificationServiceFactory;
 import com.yahoo.athenz.zms.DBService;
 import com.yahoo.athenz.zms.Role;
+import com.yahoo.athenz.zms.RoleMember;
 import com.yahoo.athenz.zms.ZMSConsts;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import org.slf4j.Logger;
@@ -79,10 +80,15 @@ public class NotificationManager {
         }
     }
 
-    public List<Notification> createNotifications(String notificationType, Set<String> recipients, Map<String, String> details) {
-        List<Notification> notifications = new ArrayList<>();
+    public Set<String> sendPutMembershipNotification (String domain, String org, Boolean auditEnabled, Boolean selfserve) {
+        return null;
+    }
+
+    public Notification createNotification(String notificationType, Set<String> recipients, Map<String, String> details) {
         String recDomain, recRole;
         AthenzDomain domain;
+        Notification notification = new Notification(notificationType);
+        notification.setDetails(details);
         for (String recipient : recipients) {
             if (recipient.contains(":role.")) {
                 //recipient is of type role. Extract role members
@@ -91,23 +97,19 @@ public class NotificationManager {
                 domain = dbService.getAthenzDomain(recDomain, false);
                 for (Role role : domain.getRoles()) {
                     if (role.getName().equalsIgnoreCase(domain.getName() + ":role." + recRole)) {
-                        notifications.add(new Notification(notificationType)
-                                .setRecipients(new HashSet<>(role.getMembers()))
-                                .setDetails(details));
+                        for (RoleMember member : role.getRoleMembers()) {
+                            notification.addRecipient(member.getMemberName());
+                        }
                     }
                 }
             } else if (recipient.startsWith("user.")) {
-                Set<String> recSet = new HashSet<>();
-                recSet.add(recipient);
-                notifications.add(new Notification(notificationType)
-                        .setRecipients(recSet)
-                        .setDetails(details));
+                notification.addRecipient(recipient);
             }
         }
-        return notifications;
+        return notification;
     }
 
-    public void sendNotification (Notification notification) {
+    public void sendNotification(Notification notification) {
         notificationService.notify(notification);
     }
 
@@ -115,26 +117,19 @@ public class NotificationManager {
         @Override
         public void run() {
             LOGGER.info("PendingMembershipApprovalReminder: Starting pending membership approval reminder thread...");
-            int remindersSent = 0;
             try {
-                remindersSent = sendPendingMembershipApprovalReminders();
+                sendPendingMembershipApprovalReminders();
             } catch (Throwable t) {
                 LOGGER.error("PendingMembershipApprovalReminder: unable to send pending membership approval reminders: {}",
                         t.getMessage());
             }
-            LOGGER.info("PendingMembershipApprovalReminder: Sent {} reminders for pending membership approvals", remindersSent);
+            LOGGER.info("PendingMembershipApprovalReminder: Sent reminder for pending membership approvals.");
         }
 
-        private int sendPendingMembershipApprovalReminders() {
-            Set<String> recipients = dbService.getPendingMembershipNotifications();
-            List<Notification> notifications = createNotifications(ZMSConsts.NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL, recipients, null);
-            int counter = 0;
-            for (Notification notification : notifications) {
-                if (notificationService.notify(notification)) {
-                    counter++;
-                }
-            }
-            return counter;
+        private void sendPendingMembershipApprovalReminders() {
+            Set<String> recipients = dbService.getPendingMembershipApproverRoles();
+            Notification notification = createNotification(ZMSConsts.NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL, recipients, null);
+            notificationService.notify(notification);
         }
     }
 }

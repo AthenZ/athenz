@@ -134,5 +134,5 @@ public interface ObjectStoreConnection extends Closeable {
 
     Map<String, List<DomainRoleMember>> getPendingDomainRoleMembersList(String principal);
     Set<String> getPendingMembershipApproverRoles();
-    Set<String> getPendingMembershipApproverRolesForDomain(String domain, String org, Boolean auditEnabled, Boolean selfserve);
+    Set<String> getPendingMembershipApproverRolesForDomain(String domain, String org, Boolean auditEnabled, Boolean selfserve, Set<String> targetRoles);
 }

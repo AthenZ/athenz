@@ -1,31 +1,27 @@
 package com.yahoo.athenz.zms.notification;
 
 import com.yahoo.athenz.common.server.notification.Notification;
-import com.yahoo.athenz.common.server.notification.NotificationService;
 import com.yahoo.athenz.common.server.notification.NotificationServiceFactory;
 import com.yahoo.athenz.zms.DBService;
+import com.yahoo.athenz.zms.Role;
+import com.yahoo.athenz.zms.RoleMember;
 import com.yahoo.athenz.zms.ZMSConsts;
-import com.yahoo.athenz.zms.store.ObjectStore;
-import com.yahoo.athenz.zms.store.file.FileConnection;
+import com.yahoo.athenz.zms.store.AthenzDomain;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
 import static org.testng.Assert.*;
 
 public class NotificationManagerTest {
 
-    @Mock private FileConnection mockFileConn;
-    @Mock private ObjectStore mockObjStore;
     @Mock private DBService dbService;
+    @Mock private AthenzDomain mockAthenzDomain;
 
     @BeforeClass
     public void setUp() throws Exception {
@@ -43,11 +39,39 @@ public class NotificationManagerTest {
 
         notifications.add(notification);
 
-        Mockito.when(dbService.getPendingMembershipNotifications()).thenReturn(recipients);
+        Mockito.when(dbService.getPendingMembershipApproverRoles()).thenReturn(recipients);
         NotificationManager notificationManager = new NotificationManager(dbService);
         notificationManager.sendNotification(notification);
         notificationManager.shutdown();
         assertTrue(true);
+    }
+
+    @Test
+    public void testCreateNotification() {
+        Mockito.when(dbService.getAthenzDomain("testdom", false)).thenReturn(mockAthenzDomain);
+        List<Role> roles = new ArrayList<>();
+        List<RoleMember> members = new ArrayList<>();
+        RoleMember rm = new RoleMember().setMemberName("user.use1");
+        members.add(rm);
+        rm = new RoleMember().setMemberName("user.use2");
+        members.add(rm);
+        Role r = new Role().setName("testdom:role.role1").setRoleMembers(members);
+        roles.add(r);
+        Mockito.when(mockAthenzDomain.getName()).thenReturn("testdom");
+        Mockito.when(mockAthenzDomain.getRoles()).thenReturn(roles);
+
+        Set<String> recipients = new HashSet<>();
+        recipients.add("testdom:role.role1");
+        recipients.add("user.user3");
+
+        Map<String, String> details = new HashMap<>();
+        details.put("domain", "testdom");
+        details.put("role", "role1");
+
+        NotificationManager notificationManager = new NotificationManager(dbService);
+        Notification notification = notificationManager.createNotification("MEMBERSHIP_APPROVAL", recipients, details);
+
+        assertNotNull(notification);
     }
 
     @Test

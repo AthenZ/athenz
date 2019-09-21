@@ -5707,6 +5707,7 @@ public class JDBCConnectionTest {
             .thenReturn(true)
             .thenReturn(true)
             .thenReturn(true)
+            .thenReturn(true)
             .thenReturn(false) // up to here is role principals
             .thenReturn(true)
             .thenReturn(true)
@@ -5716,14 +5717,15 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_NAME))
             .thenReturn("user.user1")
             .thenReturn("user.user2")
-            .thenReturn("user.user3") // up to here is role principals
+            .thenReturn("user.user3")
+            .thenReturn("user.user4") // up to here is role principals
             .thenReturn("dom1")
             .thenReturn("dom1")
             .thenReturn("dom2");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_DOMAIN_ID))
             .thenReturn("101")
             .thenReturn("101")
-            .thenReturn("102") // up to here is role principals
+            .thenReturn("102") // up to here is role principals (we'll skip user4 since it's expired)
             .thenReturn("101")
             .thenReturn("101")
             .thenReturn("102");
@@ -5731,14 +5733,27 @@ public class JDBCConnectionTest {
             .thenReturn("role1")
             .thenReturn("role1")
             .thenReturn("role3");
+
+        // expired and non-expired timestamps
+
+        java.sql.Timestamp expiredTime = new java.sql.Timestamp(System.currentTimeMillis() - 100000);
+        java.sql.Timestamp nonExpiredTime = new java.sql.Timestamp(System.currentTimeMillis() + 1000000);
+
+        Mockito.when(mockResultSet.getTimestamp(ZMSConsts.DB_COLUMN_EXPIRATION))
+            .thenReturn(null)
+            .thenReturn(nonExpiredTime)
+            .thenReturn(null)
+            .thenReturn(expiredTime);
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ROLE))
             .thenReturn("role1")
             .thenReturn("role1")
-            .thenReturn("role3");
+            .thenReturn("role3")
+            .thenReturn("role4");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_RESOURCE))
             .thenReturn("resource1")
             .thenReturn("resource2")
-            .thenReturn("resource3");
+            .thenReturn("resource3")
+            .thenReturn("resource4");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ACTION))
             .thenReturn("update");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_EFFECT))
@@ -7523,12 +7538,14 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockResultSet.next())
                 .thenReturn(true)//first org found
+                .thenReturn(true)//one audit enabled role found for first org
                 .thenReturn(false)
-                .thenReturn(true)//one audit enabled role found
-                .thenReturn(false)
+                .thenReturn(true)//null org
+                .thenReturn(true)//empty org
+                .thenReturn(false)//org loop ends
                 .thenReturn(true)//one self serve role found
                 .thenReturn(false);
-        Mockito.when(mockResultSet.getString(1)).thenReturn("org1","sys.auth.audit:role.audit_enabled_role", "mytestdomain:role.self_serve_role");
+        Mockito.when(mockResultSet.getString(1)).thenReturn("org1",  "sys.auth.audit:role.audit_enabled_role", null, "", "mytestdomain:role.self_serve_role");
 
         Set<String> roles = jdbcConn.getPendingMembershipApproverRoles();
 
@@ -7564,7 +7581,7 @@ public class JDBCConnectionTest {
     @Test
     public void testGetPendingMembershipApproverRolesAuditEnabledError() throws Exception {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        Mockito.when(mockResultSet.next()).thenReturn(true, false, true).thenThrow(new SQLException("sql error"));
+        Mockito.when(mockResultSet.next()).thenReturn(true, true).thenThrow(new SQLException("sql error"));
         try {
 
             Set<String> roles = jdbcConn.getPendingMembershipApproverRoles();
@@ -7578,7 +7595,7 @@ public class JDBCConnectionTest {
     @Test
     public void testGetPendingMembershipApproverRolesSelfServeError() throws Exception {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        Mockito.when(mockResultSet.next()).thenReturn(true, false, true, false, true).thenThrow(new SQLException("sql error"));
+        Mockito.when(mockResultSet.next()).thenReturn(true, true, false, false, true).thenThrow(new SQLException("sql error"));
         try {
 
             Set<String> roles = jdbcConn.getPendingMembershipApproverRoles();
@@ -7586,6 +7603,61 @@ public class JDBCConnectionTest {
         }catch (RuntimeException rx){
             assertTrue(rx.getMessage().contains("sql error"));
         }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetPendingMembershipApproverRolesForDomain() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next()).thenReturn(true, false, true, true, false);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5);//return domain id
+        Mockito.when(mockResultSet.getString(1)).thenReturn("sys.auth.audit:role.audit_enabled_role", "dom2:role.admin");
+
+        Set<String> targetAuditRoles = new HashSet<>();
+        Set<String> auditRoles = jdbcConn.getPendingMembershipApproverRolesForDomain("dom1", "org1", true, true, targetAuditRoles);
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "sys.auth.audit");
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, " CONCAT('approver.','org1','%')");
+
+        assertNotNull(auditRoles);
+        assertEquals(auditRoles.size(), 1);
+        List<String> auditRolesList = new ArrayList<>(auditRoles);
+        assertNotNull(auditRolesList.get(0));
+        assertEquals(auditRolesList.get(0), "sys.auth.audit:role.audit_enabled_role");
+
+        Set<String> targetSelfserveRoles = new HashSet<>();
+        Set<String> selfserveRoles = jdbcConn.getPendingMembershipApproverRolesForDomain("dom2", "org2", false, true, targetSelfserveRoles);
+        assertNotNull(selfserveRoles);
+        assertEquals(selfserveRoles.size(), 1);
+        List<String> selfserveRolesList = new ArrayList<>(selfserveRoles);
+        assertNotNull(selfserveRolesList.get(0));
+        assertEquals(selfserveRolesList.get(0), "dom2:role.admin");
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetPendingMembershipApproverRolesForInvalidDomain() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next()).thenReturn(false);
+        Set<String> targetRoles = new HashSet<>();
+        try {
+            Set<String> roles = jdbcConn.getPendingMembershipApproverRolesForDomain("invaliddom", null, false, true, targetRoles);
+        }catch (ResourceException rx){
+            assertEquals(rx.getCode(), 404);
+            assertTrue(rx.getMessage().contains("unknown domain"));
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetPendingMembershipApproverRolesForInvalidParams() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Set<String> targetRoles = new HashSet<>();
+
+        Set<String> roles = jdbcConn.getPendingMembershipApproverRolesForDomain("invaliddom", null, false, false, targetRoles);
+        assertEquals(roles.size(), 0);
+
         jdbcConn.close();
     }
 }

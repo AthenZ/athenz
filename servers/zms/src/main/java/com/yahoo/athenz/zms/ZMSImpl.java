@@ -3032,14 +3032,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         //send notification
         if (roleMember.getActive() == Boolean.FALSE) {
             // new role member with pending status. Notify approvers
-            notificationManager.sendNotification(createMembershipApprovalNotification(domainName, domain.getDomain().getOrg(), roleName, roleMember.getMemberName(),
-                    auditRef, principal.getFullName(), role.getAuditEnabled(), role.getSelfserve()));
+            sendMembershipApprovalNotification(domainName, domain.getDomain().getOrg(), roleName, roleMember.getMemberName(),
+                    auditRef, principal.getFullName(), role.getAuditEnabled(), role.getSelfserve());
         }
         metric.stopTiming(timerMetric, domainName, principalDomain);
     }
 
-    private Notification createMembershipApprovalNotification(String domain, String org, String role, String member, String auditRef,
-                                                              String principal, Boolean auditEnabled, Boolean selfserve) {
+     void sendMembershipApprovalNotification(String domain, String org, String role, String member, String auditRef,
+                                                    String principal, Boolean auditEnabled, Boolean selfserve) {
         Map<String, String> details = new HashMap<>();
         details.put(ZMSConsts.NOTIFICATION_DETAILS_DOMAIN, domain);
         details.put(ZMSConsts.NOTIFICATION_DETAILS_ROLE, role);
@@ -3047,8 +3047,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         details.put(ZMSConsts.NOTIFICATION_DETAILS_REASON, auditRef);
         details.put(ZMSConsts.NOTIFICATION_DETAILS_REQUESTOR, principal);
 
-        return notificationManager.createNotifications(ZMSConsts.NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL,
-                dbService.getRecipientsForDomainMembershipApproval(domain, org, auditEnabled, selfserve), details).get(0);
+        Set<String> recipientRoles = new HashSet<>();
+        Notification notification = notificationManager.createNotification(ZMSConsts.NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL,
+                dbService.getPendingMembershipApproverRolesForDomain(domain, org, auditEnabled, selfserve, recipientRoles), details);
+
+         if (LOG.isDebugEnabled()) {
+             LOG.debug("Sending Membership Approval notification after putMembership: {}", notification);
+         }
+         notificationManager.sendNotification(notification);
     }
 
     public void deleteMembership(ResourceContext ctx, String domainName, String roleName,

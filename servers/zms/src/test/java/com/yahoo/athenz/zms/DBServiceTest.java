@@ -15,12 +15,10 @@
  */
 package com.yahoo.athenz.zms;
 
-import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.zms.audit.MockAuditReferenceValidatorImpl;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
 import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
 import com.yahoo.rdl.Timestamp;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -4285,11 +4283,11 @@ public class DBServiceTest {
         Role auditApproverRole = createRoleObject("sys.auth.audit", "approver.testorg", null,"user.boe", adminUser);
         zms.dbService.executePutRole(mockDomRsrcCtx, "sys.auth.audit", "approver.testorg", auditApproverRole, "test", "putrole");
 
-        Set<String> recipients = zms.dbService.getPendingMembershipNotifications();
+        Set<String> recipientRoles = zms.dbService.getPendingMembershipApproverRoles();
 
-        assertNotNull(recipients);
-        assertTrue(recipients.contains(adminUser));
-        assertTrue(recipients.contains("user.boe"));
+        assertNotNull(recipientRoles);
+        assertTrue(recipientRoles.contains("dom1:role.admin"));
+        assertTrue(recipientRoles.contains("sys.auth.audit:role.approver.testorg"));
 
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "dom1", auditRef);
@@ -4309,7 +4307,7 @@ public class DBServiceTest {
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
 
-        Set<String> recipientsRes = zms.dbService.getPendingMembershipNotifications();
+        Set<String> recipientsRes = zms.dbService.getPendingMembershipApproverRoles();
 
         assertNotNull(recipientsRes);
         assertTrue(recipientsRes.contains("user.joe"));

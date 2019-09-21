@@ -193,7 +193,8 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_ASSERT_DOMAIN_ID  = "assert_domain_id";
     public static final String DB_COLUMN_ASSERT_ID         = "assertion_id";
     public static final String DB_COLUMN_CERT_DNS_DOMAIN   = "cert_dns_domain";
-    public static final String DB_COLUMN_SELF_SERVE     = "self_serve";
+    public static final String DB_COLUMN_SELF_SERVE        = "self_serve";
+    public static final String DB_COLUMN_EXPIRATION        = "expiration";
 
     public static final String ADMIN_POLICY_NAME = "admin";
     public static final String ADMIN_ROLE_NAME   = "admin";

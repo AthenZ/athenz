@@ -198,7 +198,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN domain ON policy.domain_id=domain.domain_id";
     private static final String SQL_LIST_ROLE_ASSERTION_QUERY_ACTION = " WHERE assertion.action=?;";
     private static final String SQL_LIST_ROLE_ASSERTION_NO_ACTION = " WHERE assertion.action!='assume_role';";
-    private static final String SQL_LIST_ROLE_PRINCIPALS = "SELECT principal.name, role.domain_id, "
+    private static final String SQL_LIST_ROLE_PRINCIPALS = "SELECT principal.name, role_member.expiration, role.domain_id, "
             + "role.name AS role_name FROM principal "
             + "JOIN role_member ON principal.principal_id=role_member.principal_id "
             + "JOIN role ON role_member.role_id=role.role_id";
@@ -248,7 +248,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             "WHERE role_member.principal_id=? AND role_member.active=true AND role.name='admin' ) " +
             "order by do.name, ro.name, principal.name;";
 
-    private static final String SQL_AUDIT_ENABLED_PENDING_MEMBERSHIP_REMINDER_ORG = "SELECT distinct d.org FROM role_member rm JOIN role r ON r.role_id=rm.role_id JOIN domain d ON r.domain_id=d.domain_id WHERE rm.active=false AND r.audit_enabled=true;";
+    private static final String SQL_AUDIT_ENABLED_PENDING_MEMBERSHIP_REMINDER_ORG = "SELECT distinct d.org, d.name AS domain_name, r.name as role_name FROM role_member rm JOIN role r ON r.role_id=rm.role_id JOIN domain d ON r.domain_id=d.domain_id WHERE rm.active=false AND r.audit_enabled=true;";
 
     private static final String SQL_AUDIT_ENABLED_PENDING_MEMBERSHIP_REMINDER_ROLES = "SELECT CONCAT (domain.name, ':role.', role.name) AS target FROM role JOIN domain ON role.domain_id=domain.domain_id WHERE domain.name=? AND role.name LIKE ?;";
 
@@ -2920,16 +2920,27 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         Map<String, List<String>> rolePrincipals = new HashMap<>();
         try (PreparedStatement ps = prepareRolePrincipalsStatement(principal, userDomain, awsQuery)) {
+            long now = System.currentTimeMillis();
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
-                    String principalName = rs.getString(ZMSConsts.DB_COLUMN_NAME);
-                    String roleName = rs.getString(ZMSConsts.DB_COLUMN_ROLE_NAME);
 
+                    // first check make sure the member is not expired
+
+                    String principalName = rs.getString(ZMSConsts.DB_COLUMN_NAME);
+                    java.sql.Timestamp expiration = rs.getTimestamp(ZMSConsts.DB_COLUMN_EXPIRATION);
+                    if (expiration != null && now > expiration.getTime()) {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("{}: skipping expired principal {}", caller, principalName);
+                        }
+                        continue;
+                    }
+
+                    String roleName = rs.getString(ZMSConsts.DB_COLUMN_ROLE_NAME);
                     String index = roleIndex(rs.getString(ZMSConsts.DB_COLUMN_DOMAIN_ID), roleName);
                     List<String> principals = rolePrincipals.computeIfAbsent(index, k -> new ArrayList<>());
 
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug(caller + ": adding principal " + principalName + " for " + index);
+                        LOG.debug("{}: adding principal {} for {}", caller, principalName, index);
                     }
                     
                     principals.add(principalName);
@@ -3542,24 +3553,25 @@ public class JDBCConnection implements ObjectStoreConnection {
     public Set<String> getPendingMembershipApproverRoles() {
 
         final String caller = "getPendingMembershipApproverRoles";
-        List<String> orgNamesList = new ArrayList<>();
+        Set<String> orgNames = new HashSet<>();
         Set<String> targetRoles = new HashSet<>();
+        String org;
 
         //Get orgs for audit enabled roles with pending membership
         try (PreparedStatement ps = con.prepareStatement(SQL_AUDIT_ENABLED_PENDING_MEMBERSHIP_REMINDER_ORG)) {
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
-                    orgNamesList.add(rs.getString(1));
+                    org = rs.getString(1);
+                    // for each org find out the names of roles in sys.auth.audit responsible for approval
+                    if (org != null && !org.isEmpty()) {
+                        getRecipientRoleForAuditEnabledMembershipApproval(caller, targetRoles, org);
+                    }
                 }
             }
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
 
-        // for each org find out the names of roles in sys.auth.audit responsible for approval
-        for (String org : orgNamesList) {
-            getRecipientRoleForAuditEnabledMembershipApproval(caller, targetRoles, org);
-        }
         // get admin roles of pending selfserve requests
         getRecipientRoleForSelfserveMembershipApproval(caller, targetRoles, null);
 
@@ -3609,9 +3621,8 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public Set<String> getPendingMembershipApproverRolesForDomain(String domain, String org, Boolean auditEnabled, Boolean selfserve) {
+    public Set<String> getPendingMembershipApproverRolesForDomain(String domain, String org, Boolean auditEnabled, Boolean selfserve, Set<String> targetRoles) {
         final String caller = "getPendingMembershipApproverRolesForDomain";
-        Set<String> targetRoles = new HashSet<>();
         if (auditEnabled == Boolean.TRUE) {
             getRecipientRoleForAuditEnabledMembershipApproval(caller, targetRoles, org);
         } else if (selfserve == Boolean.TRUE) {

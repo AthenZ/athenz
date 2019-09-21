@@ -17,7 +17,6 @@ package com.yahoo.athenz.zms;
 
 import java.util.*;
 
-import com.yahoo.athenz.common.server.notification.Notification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -3710,15 +3709,15 @@ public class DBService {
         return domainRoleMembership;
     }
 
-    public Set<String> getPendingMembershipNotifications() {
+    public Set<String> getPendingMembershipApproverRoles() {
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.getPendingMembershipApproverRoles();
         }
     }
 
-    public Set<String> getRecipientsForDomainMembershipApproval(String domain, String org, Boolean auditEnabled, Boolean selfserve) {
+    Set<String> getPendingMembershipApproverRolesForDomain(String domain, String org, Boolean auditEnabled, Boolean selfserve, Set<String> targetRoles) {
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            return con.getPendingMembershipApproverRolesForDomain(domain, org, auditEnabled, selfserve);
+            return con.getPendingMembershipApproverRolesForDomain(domain, org, auditEnabled, selfserve, targetRoles);
         }
     }
 

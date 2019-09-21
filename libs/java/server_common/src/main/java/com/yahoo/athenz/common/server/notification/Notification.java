@@ -17,19 +17,20 @@
 package com.yahoo.athenz.common.server.notification;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 public class Notification {
 
     // Denotes notification type. MEMBERSHIP_APPROVAL, MEMBERSHIP_EXPIRY etc.
-    String type;
+    private String type;
 
     // Intended recipients of notification
-    Set<String> recipients;
+    private Set<String> recipients;
 
     // key value pair describing additional details about notification
-    Map<String, String> details;
+    private Map<String, String> details;
 
     public Notification (String type, Set<String> recipients, Map<String, String> details) {
         this.type = type;
@@ -68,6 +69,14 @@ public class Notification {
             details = new HashMap<>();
         }
         details.put(name, value);
+        return this;
+    }
+
+    public Notification addRecipient(String recipient) {
+        if (recipients == null) {
+            recipients = new HashSet<>();
+        }
+        recipients.add(recipient);
         return this;
     }
 
