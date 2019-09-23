@@ -1620,4 +1620,54 @@ public class FileConnection implements ObjectStoreConnection {
         }
         return domainRoleMembersMap;
     }
+
+    @Override
+    public Set<String> getPendingMembershipApproverRoles() {
+
+        String[] fnames = getDomainList();
+        Set<String> roleNames = null;
+        List<String> slist = new ArrayList<>(java.util.Arrays.asList(fnames));
+
+        for (String name : slist) {
+            roleNames = getPendingMembershipApproverRolesForDomain(name, null, null, null);
+        }
+        return roleNames;
+    }
+
+    @Override
+    public Set<String> getPendingMembershipApproverRolesForDomain(String domain, String org, Boolean auditEnabled, Boolean selfserve) {
+
+        Set<String> roleNames = new HashSet<>();
+        DomainStruct dom;
+        DomainStruct auditDom = getDomainStruct("sys.auth.audit");
+        dom = getDomainStruct(domain);
+        if (dom != null) {
+            for (Role role : dom.getRoles().values()) {
+                if (role != null) {
+                    if (role.getAuditEnabled() == Boolean.TRUE) {
+                        for (RoleMember roleMember : role.getRoleMembers()) {
+                            if (roleMember != null && roleMember.getActive() == Boolean.FALSE) {
+                                if (auditDom != null && auditDom.getRoles() != null && !auditDom.getRoles().isEmpty()) {
+                                    for (Role arole : auditDom.getRoles().values()) {
+                                        if (arole != null && arole.getName().contains("approver." + dom.getMeta().getOrg())) {
+                                            roleNames.add(arole.getName());
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else if (role.getSelfserve() == Boolean.TRUE) {
+                        for (RoleMember roleMember : role.getRoleMembers()) {
+                            if (roleMember != null && roleMember.getActive() == Boolean.FALSE) {
+                                roleNames.add(dom.getName() + ":role.admin");
+                            }
+                        }
+                    }
+                }
+
+            }
+        }
+        return roleNames;
+    }
+
 }

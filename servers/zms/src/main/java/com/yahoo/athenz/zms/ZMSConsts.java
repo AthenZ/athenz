@@ -108,6 +108,8 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_OBJECT_STORE_FACTORY_CLASS      = "athenz.zms.object_store_factory_class";
     public static final String ZMS_OBJECT_STORE_FACTORY_CLASS           = "com.yahoo.athenz.zms.store.impl.FileObjectStoreFactory";
 
+    public static final String ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS = "athenz.zms.notification_service_factory_class";
+
     // properties for our default quota limits
     
     public static final String ZMS_PROP_QUOTA_CHECK        = "athenz.zms.quota_check";
@@ -228,5 +230,12 @@ public final class ZMSConsts {
     public static final int STRING_BLDR_SIZE_DEFAULT = 512;
 
     public static final String ZMS_JSON_PARSER_ERROR_RESPONSE = "{\"code\":400,\"message\":\"Invalid Object: checkout https://github.com/yahoo/athenz/core/zms for object defintions\"}";
+
+    public static final String NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL = "MEMBERSHIP_APPROVAL";
+    public static final String NOTIFICATION_DETAILS_DOMAIN = "domain";
+    public static final String NOTIFICATION_DETAILS_ROLE = "role";
+    public static final String NOTIFICATION_DETAILS_MEMBER = "member";
+    public static final String NOTIFICATION_DETAILS_REASON = "reason";
+    public static final String NOTIFICATION_DETAILS_REQUESTOR = "requestor";
 }
 

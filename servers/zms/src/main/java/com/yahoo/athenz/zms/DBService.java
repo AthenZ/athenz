@@ -17,6 +17,7 @@ package com.yahoo.athenz.zms;
 
 import java.util.*;
 
+import com.yahoo.athenz.common.server.notification.Notification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -3244,7 +3245,7 @@ public class DBService {
 
     }
     
-    AthenzDomain getAthenzDomain(String domainName, boolean masterCopy) {
+    public AthenzDomain getAthenzDomain(String domainName, boolean masterCopy) {
         
         // first check to see if we our data is in the cache
         
@@ -3708,4 +3709,17 @@ public class DBService {
         }
         return domainRoleMembership;
     }
+
+    public Set<String> getPendingMembershipNotifications() {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            return con.getPendingMembershipApproverRoles();
+        }
+    }
+
+    public Set<String> getRecipientsForDomainMembershipApproval(String domain, String org, Boolean auditEnabled, Boolean selfserve) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            return con.getPendingMembershipApproverRolesForDomain(domain, org, auditEnabled, selfserve);
+        }
+    }
+
 }

@@ -25,6 +25,7 @@ import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
 import com.yahoo.athenz.common.server.audit.AuditReferenceValidatorFactory;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
+import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
@@ -35,6 +36,7 @@ import com.yahoo.athenz.zms.config.AllowedOperation;
 import com.yahoo.athenz.zms.config.AuthorizedService;
 import com.yahoo.athenz.zms.config.AuthorizedServices;
 import com.yahoo.athenz.zms.config.SolutionTemplates;
+import com.yahoo.athenz.zms.notification.NotificationManager;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.athenz.zms.store.ObjectStore;
 import com.yahoo.athenz.zms.store.ObjectStoreFactory;
@@ -166,6 +168,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected Set<String> reservedSystemDomains = null;
     protected File healthCheckFile = null;
     protected AuditReferenceValidator auditReferenceValidator = null;
+    protected NotificationManager notificationManager = null;
 
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
@@ -451,8 +454,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // make sure to set the keystore for any instance that requires it
         
         setAuthorityKeyStore();
+
+        // Initialize Notification Manager
+
+        setNotificationManager();
     }
-    
+
+    private void setNotificationManager() {
+        notificationManager = new NotificationManager(dbService);
+    }
+
     void loadSystemProperties() {
         String propFile = System.getProperty(ZMSConsts.ZMS_PROP_FILE_NAME,
                 getRootDir() + "/conf/zms_server/zms.properties");
@@ -3016,10 +3027,28 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         // add the member to the specified role
+        dbService.executePutMembership(ctx, domainName, roleName, roleMember, auditRef, caller);
 
-        dbService.executePutMembership(ctx, domainName, roleName, roleMember,
-                auditRef, caller);
+        //send notification
+        if (roleMember.getActive() == Boolean.FALSE) {
+            // new role member with pending status. Notify approvers
+            notificationManager.sendNotification(createMembershipApprovalNotification(domainName, domain.getDomain().getOrg(), roleName, roleMember.getMemberName(),
+                    auditRef, principal.getFullName(), role.getAuditEnabled(), role.getSelfserve()));
+        }
         metric.stopTiming(timerMetric, domainName, principalDomain);
+    }
+
+    private Notification createMembershipApprovalNotification(String domain, String org, String role, String member, String auditRef,
+                                                              String principal, Boolean auditEnabled, Boolean selfserve) {
+        Map<String, String> details = new HashMap<>();
+        details.put(ZMSConsts.NOTIFICATION_DETAILS_DOMAIN, domain);
+        details.put(ZMSConsts.NOTIFICATION_DETAILS_ROLE, role);
+        details.put(ZMSConsts.NOTIFICATION_DETAILS_MEMBER, member);
+        details.put(ZMSConsts.NOTIFICATION_DETAILS_REASON, auditRef);
+        details.put(ZMSConsts.NOTIFICATION_DETAILS_REQUESTOR, principal);
+
+        return notificationManager.createNotifications(ZMSConsts.NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL,
+                dbService.getRecipientsForDomainMembershipApproval(domain, org, auditEnabled, selfserve), details).get(0);
     }
 
     public void deleteMembership(ResourceContext ctx, String domainName, String roleName,

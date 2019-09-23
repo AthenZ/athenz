@@ -156,6 +156,7 @@ public class ZMSImplTest {
                 "src/test/resources/solution_templates.json");
         System.setProperty(ZMSConsts.ZMS_PROP_NOAUTH_URI_LIST,
                 "uri1,uri2,uri3+uri4");
+        System.setProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS, "com.yahoo.athenz.zms.notification.impl.MockNotificationServiceFactory");
         auditLogger = new DefaultAuditLogger();
         
         initializeZms();
@@ -16426,6 +16427,9 @@ public class ZMSImplTest {
     public void testGetPendingDomainRoleMembersList() {
         TopLevelDomain dom1 = createTopLevelDomainObject("testdomain1","Approval Test Domain1", "testOrg", "user.user1");
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        setupPrincipalAuditedRoleApproval(zms, "user.fury", "testOrg");
+
         DomainMeta meta = createDomainMetaObject("Domain Meta for approval test", "testOrg",true, true, "12345", 1001);
         zms.putDomainMeta(mockDomRsrcCtx, "testdomain1", auditRef, meta);
         zms.putDomainSystemMeta(mockDomRsrcCtx, "testdomain1", "auditenabled", auditRef, meta);
@@ -16441,8 +16445,6 @@ public class ZMSImplTest {
         mbr.setMemberName("user.bob");
         mbr.setActive(false);
         zms.putMembership(mockDomRsrcCtx, "testdomain1", "testrole1", "user.bob", auditRef, mbr);
-
-        setupPrincipalAuditedRoleApproval(zms, "user.fury", "testOrg");
 
         mbr = new Membership();
         mbr.setMemberName("user.bob");
