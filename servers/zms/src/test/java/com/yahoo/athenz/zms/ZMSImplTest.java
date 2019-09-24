@@ -16717,8 +16717,6 @@ public class ZMSImplTest {
         mockRecipients.add("user.dummy");
         Notification notification = new Notification("TEST_TYPE", mockRecipients, null);
 
-        Mockito.when(mockNotificationManager.createNotification(anyString(), any(), any())).thenReturn(notification);
-
         zms.putMembership(mockDomRsrcCtx, "testdomain1", "testrole2", "user.fury", "adding fury", membership);
 
         //revert back to admin principal
@@ -16744,8 +16742,7 @@ public class ZMSImplTest {
 
 
 
-        Mockito.verify(mockNotificationManager, times(1)).createNotification("MEMBERSHIP_APPROVAL", recipientsExp, detailsExp);
-        Mockito.verify(mockNotificationManager, times(1)).sendNotification(notification);
+        Mockito.verify(mockNotificationManager, times(1)).generateAndSendPostPutMembershipNotification("testdomain1", "testorg", false, true, detailsExp);
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
     }

@@ -1838,7 +1838,7 @@ public class DBService {
         }
     }
 
-    Role getRole(String domainName, String roleName, Boolean auditLog, Boolean expand, Boolean pending) {
+    public Role getRole(String domainName, String roleName, Boolean auditLog, Boolean expand, Boolean pending) {
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return getRole(con, domainName, roleName, auditLog, expand, pending);
@@ -3714,11 +3714,4 @@ public class DBService {
             return con.getPendingMembershipApproverRoles();
         }
     }
-
-    Set<String> getPendingMembershipApproverRolesForDomain(String domain, String org, Boolean auditEnabled, Boolean selfserve, Set<String> targetRoles) {
-        try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            return con.getPendingMembershipApproverRolesForDomain(domain, org, auditEnabled, selfserve, targetRoles);
-        }
-    }
-
 }

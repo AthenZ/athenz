@@ -16,10 +16,7 @@
 
 package com.yahoo.athenz.common.server.notification;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class Notification {
 
@@ -78,6 +75,25 @@ public class Notification {
         }
         recipients.add(recipient);
         return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Notification that = (Notification) o;
+        return getType().equals(that.getType()) &&
+                Objects.equals(getRecipients(), that.getRecipients()) &&
+                Objects.equals(getDetails(), that.getDetails());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getType(), getRecipients(), getDetails());
     }
 
     @Override

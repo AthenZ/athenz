@@ -19,10 +19,7 @@ package com.yahoo.athenz.zms.notification;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationService;
 import com.yahoo.athenz.common.server.notification.NotificationServiceFactory;
-import com.yahoo.athenz.zms.DBService;
-import com.yahoo.athenz.zms.Role;
-import com.yahoo.athenz.zms.RoleMember;
-import com.yahoo.athenz.zms.ZMSConsts;
+import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,13 +28,14 @@ import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class NotificationManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NotificationManager.class);
 
-    private NotificationServiceFactory notificationServiceFactory;
-    private NotificationService notificationService;
+    NotificationServiceFactory notificationServiceFactory;
+    NotificationService notificationService;
     ScheduledExecutorService scheduledExecutor;
     private DBService dbService;
 
@@ -80,8 +78,29 @@ public class NotificationManager {
         }
     }
 
-    public Set<String> sendPutMembershipNotification (String domain, String org, Boolean auditEnabled, Boolean selfserve) {
-        return null;
+    public void generateAndSendPostPutMembershipNotification(String domain, String org, Boolean auditEnabled, Boolean selfserve, Map<String, String> details) {
+
+        Set<String> recipients = new HashSet<>();
+        if (auditEnabled == Boolean.TRUE) {
+            //get recipient role(s) from audit domain
+            Role domainRole = dbService.getRole(ZMSConsts.SYS_AUTH_AUDIT_DOMAIN, ZMSConsts.AUDIT_APPROVER_ROLE_PREFIX + org + "." + domain, false, true, false);
+            Role orgRole = dbService.getRole(ZMSConsts.SYS_AUTH_AUDIT_DOMAIN, ZMSConsts.AUDIT_APPROVER_ROLE_PREFIX + org, false, true, false);
+            if (domainRole != null) {
+                recipients.addAll(domainRole.getRoleMembers().stream()
+                        .map(RoleMember::getMemberName).collect(Collectors.toSet()));
+            }
+            if (orgRole != null) {
+                recipients.addAll(orgRole.getRoleMembers().stream()
+                        .map(RoleMember::getMemberName).collect(Collectors.toSet()));
+            }
+        } else if (selfserve == Boolean.TRUE) {
+            // get admin role from the request domain
+            Role adminRole = dbService.getRole(domain, "admin", false, true, false);
+            recipients.addAll(adminRole.getRoleMembers().stream()
+                    .map(RoleMember::getMemberName).collect(Collectors.toSet()));
+        }
+        Notification notification = createNotification(ZMSConsts.NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL, recipients, details);
+        notificationService.notify(notification);
     }
 
     public Notification createNotification(String notificationType, Set<String> recipients, Map<String, String> details) {
@@ -106,6 +125,9 @@ public class NotificationManager {
                 notification.addRecipient(recipient);
             }
         }
+        if (notification.getRecipients() == null || notification.getRecipients().isEmpty()) {
+            throw new ResourceException(400, "Notification requires atleast 1 recipient.");
+        }
         return notification;
     }
 
@@ -116,14 +138,19 @@ public class NotificationManager {
     class PendingMembershipApprovalReminder implements Runnable {
         @Override
         public void run() {
-            LOGGER.info("PendingMembershipApprovalReminder: Starting pending membership approval reminder thread...");
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("PendingMembershipApprovalReminder: Starting pending membership approval reminder thread...");
+            }
             try {
                 sendPendingMembershipApprovalReminders();
             } catch (Throwable t) {
                 LOGGER.error("PendingMembershipApprovalReminder: unable to send pending membership approval reminders: {}",
                         t.getMessage());
             }
-            LOGGER.info("PendingMembershipApprovalReminder: Sent reminder for pending membership approvals.");
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("PendingMembershipApprovalReminder: Sent reminder for pending membership approvals.");
+            }
+
         }
 
         private void sendPendingMembershipApprovalReminders() {

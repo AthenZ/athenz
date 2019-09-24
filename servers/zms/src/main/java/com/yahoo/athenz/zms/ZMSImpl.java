@@ -25,7 +25,6 @@ import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
 import com.yahoo.athenz.common.server.audit.AuditReferenceValidatorFactory;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
-import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
@@ -3047,14 +3046,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         details.put(ZMSConsts.NOTIFICATION_DETAILS_REASON, auditRef);
         details.put(ZMSConsts.NOTIFICATION_DETAILS_REQUESTOR, principal);
 
-        Set<String> recipientRoles = new HashSet<>();
-        Notification notification = notificationManager.createNotification(ZMSConsts.NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL,
-                dbService.getPendingMembershipApproverRolesForDomain(domain, org, auditEnabled, selfserve, recipientRoles), details);
-
          if (LOG.isDebugEnabled()) {
-             LOG.debug("Sending Membership Approval notification after putMembership: {}", notification);
+             LOG.debug("Sending Membership Approval notification after putMembership");
          }
-         notificationManager.sendNotification(notification);
+        notificationManager.generateAndSendPostPutMembershipNotification(domain, org, auditEnabled, selfserve, details);
     }
 
     public void deleteMembership(ResourceContext ctx, String domainName, String roleName,

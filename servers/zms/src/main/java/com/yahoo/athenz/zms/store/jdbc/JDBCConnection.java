@@ -252,8 +252,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
     private static final String SQL_AUDIT_ENABLED_PENDING_MEMBERSHIP_REMINDER_ROLES = "SELECT CONCAT (domain.name, ':role.', role.name) AS target FROM role JOIN domain ON role.domain_id=domain.domain_id WHERE domain.name=? AND role.name LIKE ?;";
 
-    private static final String SQL_SELF_SERVE_PENDING_MEMBERSHIP_REMINDER_ROLES = "SELECT distinct CONCAT (d.name, ':role.admin') AS target FROM role_member rm JOIN role r ON r.role_id=rm.role_id JOIN domain d ON r.domain_id=d.domain_id WHERE rm.active=false AND r.self_serve=true";
-    private static final String SQL_SELF_SERVE_PENDING_MEMBERSHIP_DOMAIN_CLAUSE = " AND d.domain_id = ?;";
+    private static final String SQL_SELF_SERVE_PENDING_MEMBERSHIP_REMINDER_ROLES = "SELECT distinct CONCAT (d.name, ':role.admin') AS target FROM role_member rm JOIN role r ON r.role_id=rm.role_id JOIN domain d ON r.domain_id=d.domain_id WHERE rm.active=false AND r.self_serve=true;";
 
 
     private static final String CACHE_DOMAIN    = "d:";
@@ -3573,29 +3572,15 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
 
         // get admin roles of pending selfserve requests
-        getRecipientRoleForSelfserveMembershipApproval(caller, targetRoles, null);
+        getRecipientRoleForSelfserveMembershipApproval(caller, targetRoles);
 
         return targetRoles;
     }
 
-    private void getRecipientRoleForSelfserveMembershipApproval(String caller, Set<String> targetRoles, String domainName) {
+    private void getRecipientRoleForSelfserveMembershipApproval(String caller, Set<String> targetRoles) {
 
         String query = SQL_SELF_SERVE_PENDING_MEMBERSHIP_REMINDER_ROLES;
-        int domainId = 0;
-        if (domainName != null) {
-            domainId = getDomainId(domainName);
-            if (domainId == 0) {
-                throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
-            }
-            query += SQL_SELF_SERVE_PENDING_MEMBERSHIP_DOMAIN_CLAUSE;
-        } else {
-            query += SEMI_COLON;
-        }
-
         try (PreparedStatement ps = con.prepareStatement(query)) {
-            if (domainId != 0) {
-                ps.setInt(1, domainId);
-            }
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     targetRoles.add(rs.getString(1));
@@ -3619,18 +3604,6 @@ public class JDBCConnection implements ObjectStoreConnection {
             throw sqlError(ex, caller);
         }
     }
-
-    @Override
-    public Set<String> getPendingMembershipApproverRolesForDomain(String domain, String org, Boolean auditEnabled, Boolean selfserve, Set<String> targetRoles) {
-        final String caller = "getPendingMembershipApproverRolesForDomain";
-        if (auditEnabled == Boolean.TRUE) {
-            getRecipientRoleForAuditEnabledMembershipApproval(caller, targetRoles, org);
-        } else if (selfserve == Boolean.TRUE) {
-            getRecipientRoleForSelfserveMembershipApproval(caller, targetRoles, domain);
-        }
-        return targetRoles;
-    }
-
 
     RuntimeException notFoundError(String caller, String objectType, String objectName) {
         rollbackChanges();

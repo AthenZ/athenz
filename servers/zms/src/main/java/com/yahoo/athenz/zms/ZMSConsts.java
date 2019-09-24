@@ -238,5 +238,8 @@ public final class ZMSConsts {
     public static final String NOTIFICATION_DETAILS_MEMBER = "member";
     public static final String NOTIFICATION_DETAILS_REASON = "reason";
     public static final String NOTIFICATION_DETAILS_REQUESTOR = "requestor";
+
+    public static final String AUDIT_APPROVER_ROLE_PREFIX = "approver.";
+    public static final String SYS_AUTH_AUDIT_DOMAIN = "sys.auth.audit";
 }
 

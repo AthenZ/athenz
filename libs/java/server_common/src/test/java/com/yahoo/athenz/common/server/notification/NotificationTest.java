@@ -49,5 +49,18 @@ public class NotificationTest {
         assertFalse(obj.equals(obj2));
         assertTrue(obj2.getRecipients().contains("user.user5"));
         assertTrue(obj2.getRecipients().contains("user.user6"));
+
+        Notification obj3 = new Notification("TEST_TYPE", null, null);
+        obj3.addDetails("domain", "dom1").addDetails("role", "role1");
+        obj3.addRecipient("user.user1");
+
+        assertTrue(obj.equals(obj));
+        String a = "";
+        assertFalse(obj.equals(a));
+        assertTrue(obj.equals(obj3));
+
+        assertEquals(obj.hashCode(), obj3.hashCode());
+
+
     }
 }

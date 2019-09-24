@@ -1634,7 +1634,6 @@ public class FileConnection implements ObjectStoreConnection {
         return roleNames;
     }
 
-    @Override
     public Set<String> getPendingMembershipApproverRolesForDomain(String domain, String org, Boolean auditEnabled, Boolean selfserve, Set<String> roleNames) {
 
         DomainStruct dom;
@@ -1645,11 +1644,9 @@ public class FileConnection implements ObjectStoreConnection {
                 if (role.getAuditEnabled() == Boolean.TRUE) {
                     for (RoleMember roleMember : role.getRoleMembers()) {
                         if (roleMember != null && roleMember.getActive() == Boolean.FALSE) {
-                            if (auditDom != null && auditDom.getRoles() != null && !auditDom.getRoles().isEmpty()) {
-                                for (Role arole : auditDom.getRoles().values()) {
-                                    if (arole != null && arole.getName().contains("approver." + dom.getMeta().getOrg())) {
-                                        roleNames.add(arole.getName());
-                                    }
+                            for (Role arole : auditDom.getRoles().values()) {
+                                if (arole != null && arole.getName().contains("approver." + dom.getMeta().getOrg())) {
+                                    roleNames.add(arole.getName());
                                 }
                             }
                         }
