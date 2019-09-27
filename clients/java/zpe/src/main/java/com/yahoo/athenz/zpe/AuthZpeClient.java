@@ -168,7 +168,7 @@ public class AuthZpeClient {
 
         // initialize the access token signing key resolver
 
-        setAccessTokenSingKeyResolver(null, null);
+        setAccessTokenSignKeyResolver(null, null);
     }
     
     public static void init() {
@@ -250,7 +250,7 @@ public class AuthZpeClient {
      * @param serverUrl server url to fetch json web keys
      * @param sslContext ssl context to be used when establishing connection
      */
-    public static void setAccessTokenSingKeyResolver(final String serverUrl, SSLContext sslContext) {
+    public static void setAccessTokenSignKeyResolver(final String serverUrl, SSLContext sslContext) {
         accessSignKeyResolver = new JwtsSigningKeyResolver(serverUrl, sslContext);
     }
 
@@ -260,7 +260,7 @@ public class AuthZpeClient {
      * @param keyId public key id
      * @param key public key for the given id
      */
-    public static void addAccessTokenSingKeyResolverKey(final String keyId, PublicKey key) {
+    public static void addAccessTokenSignKeyResolverKey(final String keyId, PublicKey key) {
         accessSignKeyResolver.addPublicKey(keyId, key);
     }
 

@@ -195,10 +195,10 @@ public class TestAuthZpe {
 
         // setup our public keys for access tokens
 
-        AuthZpeClient.addAccessTokenSingKeyResolverKey("0", Crypto.extractPublicKey(ztsPrivateKeyK0));
-        AuthZpeClient.addAccessTokenSingKeyResolverKey("1", Crypto.extractPublicKey(ztsPrivateKeyK1));
-        AuthZpeClient.addAccessTokenSingKeyResolverKey("17", Crypto.extractPublicKey(ztsPrivateKeyK17));
-        AuthZpeClient.addAccessTokenSingKeyResolverKey("99", Crypto.extractPublicKey(ztsPrivateKeyK99));
+        AuthZpeClient.addAccessTokenSignKeyResolverKey("0", Crypto.extractPublicKey(ztsPrivateKeyK0));
+        AuthZpeClient.addAccessTokenSignKeyResolverKey("1", Crypto.extractPublicKey(ztsPrivateKeyK1));
+        AuthZpeClient.addAccessTokenSignKeyResolverKey("17", Crypto.extractPublicKey(ztsPrivateKeyK17));
+        AuthZpeClient.addAccessTokenSignKeyResolverKey("99", Crypto.extractPublicKey(ztsPrivateKeyK99));
     }
     
     private RoleToken createRoleToken(String svcDomain, List<String> roles, String keyId, long expiry) {

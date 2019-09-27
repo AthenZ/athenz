@@ -47,7 +47,7 @@ public class TestJwtsSigningKeyResolver {
     }
 
     @Test
-    public void testResolveSingingKey() {
+    public void testResolveSigningKey() {
 
         final String oldConf = System.setProperty(JwtsSigningKeyResolver.ZTS_PROP_ATHENZ_CONF,
                 "src/test/resources/athenz.conf");
