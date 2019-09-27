@@ -19,7 +19,6 @@ import com.yahoo.athenz.zms.audit.MockAuditReferenceValidatorImpl;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
 import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
 import com.yahoo.rdl.Timestamp;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -45,9 +44,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -102,6 +99,7 @@ public class DBServiceTest {
         Mockito.when(mockServletRequest.isSecure()).thenReturn(true);
         
         System.setProperty(ZMSConsts.ZMS_PROP_FILE_NAME, "src/test/resources/zms.properties");
+        System.setProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS, "com.yahoo.athenz.zms.notification.MockNotificationServiceFactory");
         initializeZms();
     }
 
@@ -4237,4 +4235,84 @@ public class DBServiceTest {
     }
 
 
+    @Test
+    public void testGetPendingMembershipNotifications() {
+
+        TopLevelDomain dom1 = createTopLevelDomainObject("dom1", "Test Domain1", "testorg", adminUser);
+        TopLevelDomain dom2 = createTopLevelDomainObject("dom2", "Test Domain2", "testorg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        List<String> admins = new ArrayList<>();
+        admins.add(adminUser);
+        zms.dbService.makeDomain(mockDomRsrcCtx, "dom2", "test dom2", "testorg", true,
+                admins, "acct", 1234, "", null, auditRef);
+
+        DomainMeta meta2 = new DomainMeta()
+                .setAccount("acct")
+                .setYpmId(1234)
+                .setOrg("testorg")
+                .setAuditEnabled(true)
+                .setCertDnsDomain("athenz.cloud");
+
+        Domain domres2 = new Domain()
+                .setName("dom2")
+                .setAuditEnabled(true)
+                .setYpmId(1234)
+                .setCertDnsDomain("athenz.cloud");
+
+        zms.dbService.updateSystemMetaFields(domres2, "auditenabled", false, meta2);
+        Role role2 = createRoleObject("dom2", "role2", null, "user.john", "user.jane");
+        zms.dbService.executePutRole(mockDomRsrcCtx, "dom2", "role2", role2, "test", "putrole");
+        RoleSystemMeta rsm2 = new RoleSystemMeta();
+        rsm2.setAuditEnabled(true);
+        zms.dbService.executePutRoleSystemMeta(mockDomRsrcCtx, "dom2", "role2",
+                rsm2,"auditenabled", true, auditRef, "putrolesystemmeta");
+
+        zms.dbService.executePutMembership(mockDomRsrcCtx, "dom2", "role2", new RoleMember().setMemberName("user.poe").setActive(false), auditRef, "putMembership");
+
+        Role resrole2 = zms.dbService.getRole("dom2", "role2", false, false, true);
+
+        Role role1 = createRoleObject("dom1", "role1", null,"user.joe", "user.jane");
+        role1.setSelfserve(true);
+        zms.dbService.executePutRole(mockDomRsrcCtx, "dom1", "role1", role1, auditRef, "testGetPendingMembershipNotifications");
+        zms.dbService.executePutMembership(mockDomRsrcCtx, "dom1", "role1", new RoleMember().setMemberName("user.doe").setActive(false), auditRef, "putMembership");
+
+        SubDomain auditdom = createSubDomainObject("audit", "sys.auth", "audit domain", "testorg", adminUser);
+        zms.postSubDomain(mockDomRsrcCtx, "sys.auth", auditRef, auditdom);
+
+        Role auditApproverRole = createRoleObject("sys.auth.audit", "approver.testorg", null,"user.boe", adminUser);
+        zms.dbService.executePutRole(mockDomRsrcCtx, "sys.auth.audit", "approver.testorg", auditApproverRole, "test", "putrole");
+
+        Set<String> recipientRoles = zms.dbService.getPendingMembershipApproverRoles();
+
+        assertNotNull(recipientRoles);
+        assertTrue(recipientRoles.contains("dom1:role.admin"));
+        assertTrue(recipientRoles.contains("sys.auth.audit:role.approver.testorg"));
+
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "dom1", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "dom2", auditRef);
+        zms.deleteSubDomain(mockDomRsrcCtx, "sys.auth", "audit", auditRef);
+    }
+
+    @Test
+    public void testGetPendingMembershipNotificationsEdge() {
+
+        Set<String> recipients = new HashSet<>();
+        recipients.add("user.joe");
+        recipients.add("unix.moe");
+        Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(mockFileConn);
+        Mockito.when(mockFileConn.getPendingMembershipApproverRoles()).thenReturn(recipients);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        Set<String> recipientsRes = zms.dbService.getPendingMembershipApproverRoles();
+
+        assertNotNull(recipientsRes);
+        assertTrue(recipientsRes.contains("user.joe"));
+
+        zms.dbService.store = saveStore;
+
+    }
 }

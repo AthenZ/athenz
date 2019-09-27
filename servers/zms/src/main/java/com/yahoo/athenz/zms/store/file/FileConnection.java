@@ -1561,7 +1561,7 @@ public class FileConnection implements ObjectStoreConnection {
     @Override
     public Map<String, List<DomainRoleMember>> getPendingDomainRoleMembersList(String principal) {
 
-        DomainStruct auditDom = getDomainStruct("sys.auth.audit");
+        DomainStruct auditDom = getDomainStruct(ZMSConsts.SYS_AUTH_AUDIT_DOMAIN);
         List<String> orgs = new ArrayList<>();
         DomainStruct domain;
 
@@ -1577,7 +1577,8 @@ public class FileConnection implements ObjectStoreConnection {
         RoleMember rm = new RoleMember().setMemberName(principal).setActive(true);
         if (auditDom != null && auditDom.getRoles() != null && !auditDom.getRoles().isEmpty()) {
             for (Role role : auditDom.getRoles().values()) {
-                if (role.getName().startsWith("sys.auth.audit:role.approver.") && role.getRoleMembers().contains(rm)) {
+                if (role.getName().startsWith(ZMSConsts.SYS_AUTH_AUDIT_DOMAIN + ":role." + ZMSConsts.AUDIT_APPROVER_ROLE_PREFIX)
+                        && role.getRoleMembers().contains(rm)) {
                     orgs.add(role.getName().substring(role.getName().indexOf(":role.") + 6).split("[.]")[1]);
                 }
             }
@@ -1620,4 +1621,45 @@ public class FileConnection implements ObjectStoreConnection {
         }
         return domainRoleMembersMap;
     }
+
+    @Override
+    public Set<String> getPendingMembershipApproverRoles() {
+
+        String[] fnames = getDomainList();
+        Set<String> roleNames = new HashSet<>();
+        for (String name : fnames) {
+            roleNames = getPendingMembershipApproverRolesForDomain(name, roleNames);
+        }
+        return roleNames;
+    }
+
+    public Set<String> getPendingMembershipApproverRolesForDomain(String domain, Set<String> roleNames) {
+
+        DomainStruct dom;
+        DomainStruct auditDom = getDomainStruct(ZMSConsts.SYS_AUTH_AUDIT_DOMAIN);
+        dom = getDomainStruct(domain);
+        if (dom != null) {
+            for (Role role : dom.getRoles().values()) {
+                if (role.getAuditEnabled() == Boolean.TRUE) {
+                    for (RoleMember roleMember : role.getRoleMembers()) {
+                        if (roleMember != null && roleMember.getActive() == Boolean.FALSE) {
+                            for (Role arole : auditDom.getRoles().values()) {
+                                if (arole != null && arole.getName().contains(ZMSConsts.AUDIT_APPROVER_ROLE_PREFIX + dom.getMeta().getOrg())) {
+                                    roleNames.add(arole.getName());
+                                }
+                            }
+                        }
+                    }
+                } else if (role.getSelfserve() == Boolean.TRUE) {
+                    for (RoleMember roleMember : role.getRoleMembers()) {
+                        if (roleMember != null && roleMember.getActive() == Boolean.FALSE) {
+                            roleNames.add(dom.getName() + ":role.admin");
+                        }
+                    }
+                }
+            }
+        }
+        return roleNames;
+    }
+
 }

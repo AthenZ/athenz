@@ -66,6 +66,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
+import static com.yahoo.athenz.common.server.notification.NotificationService.*;
+
 public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(ZMSImpl.class);
@@ -166,6 +168,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected Set<String> reservedSystemDomains = null;
     protected File healthCheckFile = null;
     protected AuditReferenceValidator auditReferenceValidator = null;
+    protected NotificationManager notificationManager = null;
 
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
@@ -451,8 +454,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // make sure to set the keystore for any instance that requires it
         
         setAuthorityKeyStore();
+
+        // Initialize Notification Manager
+
+        setNotificationManager();
     }
-    
+
+    private void setNotificationManager() {
+        notificationManager = new NotificationManager(dbService, userDomainPrefix);
+    }
+
     void loadSystemProperties() {
         String propFile = System.getProperty(ZMSConsts.ZMS_PROP_FILE_NAME,
                 getRootDir() + "/conf/zms_server/zms.properties");
@@ -3016,10 +3027,30 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         // add the member to the specified role
+        dbService.executePutMembership(ctx, domainName, roleName, roleMember, auditRef, caller);
 
-        dbService.executePutMembership(ctx, domainName, roleName, roleMember,
-                auditRef, caller);
+        //send notification
+        if (roleMember.getActive() == Boolean.FALSE) {
+            // new role member with pending status. Notify approvers
+            sendMembershipApprovalNotification(domainName, domain.getDomain().getOrg(), roleName, roleMember.getMemberName(),
+                    auditRef, principal.getFullName(), role.getAuditEnabled(), role.getSelfserve());
+        }
         metric.stopTiming(timerMetric, domainName, principalDomain);
+    }
+
+     void sendMembershipApprovalNotification(String domain, String org, String role, String member, String auditRef,
+                                                    String principal, Boolean auditEnabled, Boolean selfserve) {
+        Map<String, String> details = new HashMap<>();
+        details.put(NOTIFICATION_DETAILS_DOMAIN, domain);
+        details.put(NOTIFICATION_DETAILS_ROLE, role);
+        details.put(NOTIFICATION_DETAILS_MEMBER, member);
+        details.put(NOTIFICATION_DETAILS_REASON, auditRef);
+        details.put(NOTIFICATION_DETAILS_REQUESTOR, principal);
+
+         if (LOG.isDebugEnabled()) {
+             LOG.debug("Sending Membership Approval notification after putMembership");
+         }
+        notificationManager.generateAndSendPostPutMembershipNotification(domain, org, auditEnabled, selfserve, details);
     }
 
     public void deleteMembership(ResourceContext ctx, String domainName, String roleName,

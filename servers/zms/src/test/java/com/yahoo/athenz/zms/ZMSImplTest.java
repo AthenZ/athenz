@@ -25,18 +25,19 @@ import java.nio.file.Paths;
 import java.security.PrivateKey;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.HashSet;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Strings;
+import com.yahoo.athenz.common.server.notification.Notification;
 import org.mockito.Mockito;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.*;
 
+import static com.yahoo.athenz.common.server.notification.NotificationService.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
@@ -97,7 +98,8 @@ public class ZMSImplTest {
     
     @Mock private HttpServletRequest mockServletRequest;
     @Mock private HttpServletResponse mockServletResponse;
-    
+    @Mock private NotificationManager mockNotificationManager;
+
     private static final String ZMS_DATA_STORE_PATH = "/tmp/zms_core_unit_tests/zms_root";
 
     private static final Struct TABLE_PROVIDER_ROLE_ACTIONS = new Struct()
@@ -156,6 +158,7 @@ public class ZMSImplTest {
                 "src/test/resources/solution_templates.json");
         System.setProperty(ZMSConsts.ZMS_PROP_NOAUTH_URI_LIST,
                 "uri1,uri2,uri3+uri4");
+        System.setProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS, "com.yahoo.athenz.zms.notification.MockNotificationServiceFactory");
         auditLogger = new DefaultAuditLogger();
         
         initializeZms();
@@ -241,6 +244,7 @@ public class ZMSImplTest {
         zmsObj.serverPublicKeyMap.put("1", pubKeyK1);
         zmsObj.serverPublicKeyMap.put("2", pubKeyK2);
         ZMSImpl.serverHostName = "localhost";
+        zmsObj.notificationManager = mockNotificationManager;
 
         return zmsObj;
     }
@@ -16426,6 +16430,9 @@ public class ZMSImplTest {
     public void testGetPendingDomainRoleMembersList() {
         TopLevelDomain dom1 = createTopLevelDomainObject("testdomain1","Approval Test Domain1", "testOrg", "user.user1");
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        setupPrincipalAuditedRoleApproval(zms, "user.fury", "testOrg");
+
         DomainMeta meta = createDomainMetaObject("Domain Meta for approval test", "testOrg",true, true, "12345", 1001);
         zms.putDomainMeta(mockDomRsrcCtx, "testdomain1", auditRef, meta);
         zms.putDomainSystemMeta(mockDomRsrcCtx, "testdomain1", "auditenabled", auditRef, meta);
@@ -16441,8 +16448,6 @@ public class ZMSImplTest {
         mbr.setMemberName("user.bob");
         mbr.setActive(false);
         zms.putMembership(mockDomRsrcCtx, "testdomain1", "testrole1", "user.bob", auditRef, mbr);
-
-        setupPrincipalAuditedRoleApproval(zms, "user.fury", "testOrg");
 
         mbr = new Membership();
         mbr.setMemberName("user.bob");
@@ -16680,6 +16685,65 @@ public class ZMSImplTest {
         System.clearProperty(ZMSConsts.ZMS_PROP_VALIDATE_SERVICE_MEMBERS_SKIP_DOMAINS);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "coretech", auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "coretech2", auditRef);
+    }
+
+    @Test
+    public void testCreateMembershipApprovalNotification() {
+
+        TopLevelDomain dom1 = createTopLevelDomainObject("testdomain1","Role Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Role selfserverole = createRoleObject("testdomain1", "testrole2", null,"user.john", "user.jane");
+        zms.putRole(mockDomRsrcCtx, "testdomain1", "testrole2", auditRef, selfserverole);
+
+        RoleMeta rm = createRoleMetaObject(true);
+        zms.putRoleMeta(mockDomRsrcCtx, "testdomain1", "testrole2",  auditRef, rm);
+
+        Authority auditAdminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String auditAdminUnsignedCreds = "v=U1;d=user;n=fury";
+        // used with the mockDomRestRsrcCtx
+        final Principal rsrcAuditAdminPrince = SimplePrincipal.create("user", "fury",
+                auditAdminUnsignedCreds + ";s=signature", 0, auditAdminPrincipalAuthority);
+        ((SimplePrincipal) rsrcAuditAdminPrince).setUnsignedCreds(auditAdminUnsignedCreds);
+
+        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
+        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
+
+        Membership membership = new Membership().setActive(false).setMemberName("user.fury").setRoleName("testrole2");
+
+
+        Set<String> mockRecipients = new HashSet<>();
+        mockRecipients.add("user.dummy");
+        Notification notification = new Notification("TEST_TYPE", mockRecipients, null);
+
+        zms.putMembership(mockDomRsrcCtx, "testdomain1", "testrole2", "user.fury", "adding fury", membership);
+
+        //revert back to admin principal
+        Authority adminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String adminUnsignedCreds = "v=U1;d=user;n=user1";
+        // used with the mockDomRestRsrcCtx
+        final Principal rsrcAdminPrince = SimplePrincipal.create("user", "user1",
+                adminUnsignedCreds + ";s=signature", 0, adminPrincipalAuthority);
+        ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
+
+        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+
+        Set<String> recipientsExp = new HashSet<>();
+        recipientsExp.add("testdomain1:role.admin");
+
+        Map<String, String> detailsExp = new HashMap<>();
+        detailsExp.put(NOTIFICATION_DETAILS_DOMAIN, "testdomain1");
+        detailsExp.put(NOTIFICATION_DETAILS_ROLE, "testrole2");
+        detailsExp.put(NOTIFICATION_DETAILS_MEMBER, "user.fury");
+        detailsExp.put(NOTIFICATION_DETAILS_REASON, "adding fury");
+        detailsExp.put(NOTIFICATION_DETAILS_REQUESTOR, "user.fury");
+
+
+
+        Mockito.verify(mockNotificationManager, times(1)).generateAndSendPostPutMembershipNotification("testdomain1", "testorg", false, true, detailsExp);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
     }
 }
 

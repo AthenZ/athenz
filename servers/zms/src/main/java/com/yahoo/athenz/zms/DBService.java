@@ -3708,4 +3708,10 @@ public class DBService {
         }
         return domainRoleMembership;
     }
+
+    public Set<String> getPendingMembershipApproverRoles() {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            return con.getPendingMembershipApproverRoles();
+        }
+    }
 }
