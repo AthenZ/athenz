@@ -99,7 +99,7 @@ public class DBServiceTest {
         Mockito.when(mockServletRequest.isSecure()).thenReturn(true);
         
         System.setProperty(ZMSConsts.ZMS_PROP_FILE_NAME, "src/test/resources/zms.properties");
-        System.setProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS, "com.yahoo.athenz.zms.notification.impl.MockNotificationServiceFactory");
+        System.setProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS, "com.yahoo.athenz.zms.notification.MockNotificationServiceFactory");
         initializeZms();
     }
 

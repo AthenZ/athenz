@@ -30,14 +30,13 @@ import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Strings;
 import com.yahoo.athenz.common.server.notification.Notification;
-import com.yahoo.athenz.zms.notification.NotificationManager;
 import org.mockito.Mockito;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.*;
 
+import static com.yahoo.athenz.common.server.notification.NotificationService.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertFalse;
@@ -159,7 +158,7 @@ public class ZMSImplTest {
                 "src/test/resources/solution_templates.json");
         System.setProperty(ZMSConsts.ZMS_PROP_NOAUTH_URI_LIST,
                 "uri1,uri2,uri3+uri4");
-        System.setProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS, "com.yahoo.athenz.zms.notification.impl.MockNotificationServiceFactory");
+        System.setProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS, "com.yahoo.athenz.zms.notification.MockNotificationServiceFactory");
         auditLogger = new DefaultAuditLogger();
         
         initializeZms();
@@ -16734,11 +16733,11 @@ public class ZMSImplTest {
         recipientsExp.add("testdomain1:role.admin");
 
         Map<String, String> detailsExp = new HashMap<>();
-        detailsExp.put(ZMSConsts.NOTIFICATION_DETAILS_DOMAIN, "testdomain1");
-        detailsExp.put(ZMSConsts.NOTIFICATION_DETAILS_ROLE, "testrole2");
-        detailsExp.put(ZMSConsts.NOTIFICATION_DETAILS_MEMBER, "user.fury");
-        detailsExp.put(ZMSConsts.NOTIFICATION_DETAILS_REASON, "adding fury");
-        detailsExp.put(ZMSConsts.NOTIFICATION_DETAILS_REQUESTOR, "user.fury");
+        detailsExp.put(NOTIFICATION_DETAILS_DOMAIN, "testdomain1");
+        detailsExp.put(NOTIFICATION_DETAILS_ROLE, "testrole2");
+        detailsExp.put(NOTIFICATION_DETAILS_MEMBER, "user.fury");
+        detailsExp.put(NOTIFICATION_DETAILS_REASON, "adding fury");
+        detailsExp.put(NOTIFICATION_DETAILS_REQUESTOR, "user.fury");
 
 
 

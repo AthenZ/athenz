@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yahoo.athenz.zms.notification.impl;
+package com.yahoo.athenz.zms.notification;
 
 import com.yahoo.athenz.common.server.notification.NotificationService;
 import com.yahoo.athenz.common.server.notification.NotificationServiceFactory;

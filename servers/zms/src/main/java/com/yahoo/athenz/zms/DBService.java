@@ -1838,7 +1838,7 @@ public class DBService {
         }
     }
 
-    public Role getRole(String domainName, String roleName, Boolean auditLog, Boolean expand, Boolean pending) {
+    Role getRole(String domainName, String roleName, Boolean auditLog, Boolean expand, Boolean pending) {
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return getRole(con, domainName, roleName, auditLog, expand, pending);
@@ -3244,7 +3244,7 @@ public class DBService {
 
     }
     
-    public AthenzDomain getAthenzDomain(String domainName, boolean masterCopy) {
+    AthenzDomain getAthenzDomain(String domainName, boolean masterCopy) {
         
         // first check to see if we our data is in the cache
         

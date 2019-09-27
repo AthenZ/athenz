@@ -35,7 +35,6 @@ import com.yahoo.athenz.zms.config.AllowedOperation;
 import com.yahoo.athenz.zms.config.AuthorizedService;
 import com.yahoo.athenz.zms.config.AuthorizedServices;
 import com.yahoo.athenz.zms.config.SolutionTemplates;
-import com.yahoo.athenz.zms.notification.NotificationManager;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.athenz.zms.store.ObjectStore;
 import com.yahoo.athenz.zms.store.ObjectStoreFactory;
@@ -66,6 +65,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
+
+import static com.yahoo.athenz.common.server.notification.NotificationService.*;
 
 public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
@@ -3040,11 +3041,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
      void sendMembershipApprovalNotification(String domain, String org, String role, String member, String auditRef,
                                                     String principal, Boolean auditEnabled, Boolean selfserve) {
         Map<String, String> details = new HashMap<>();
-        details.put(ZMSConsts.NOTIFICATION_DETAILS_DOMAIN, domain);
-        details.put(ZMSConsts.NOTIFICATION_DETAILS_ROLE, role);
-        details.put(ZMSConsts.NOTIFICATION_DETAILS_MEMBER, member);
-        details.put(ZMSConsts.NOTIFICATION_DETAILS_REASON, auditRef);
-        details.put(ZMSConsts.NOTIFICATION_DETAILS_REQUESTOR, principal);
+        details.put(NOTIFICATION_DETAILS_DOMAIN, domain);
+        details.put(NOTIFICATION_DETAILS_ROLE, role);
+        details.put(NOTIFICATION_DETAILS_MEMBER, member);
+        details.put(NOTIFICATION_DETAILS_REASON, auditRef);
+        details.put(NOTIFICATION_DETAILS_REQUESTOR, principal);
 
          if (LOG.isDebugEnabled()) {
              LOG.debug("Sending Membership Approval notification after putMembership");

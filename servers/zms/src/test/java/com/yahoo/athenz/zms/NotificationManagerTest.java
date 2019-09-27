@@ -1,4 +1,4 @@
-package com.yahoo.athenz.zms.notification;
+package com.yahoo.athenz.zms;
 
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationService;
@@ -15,7 +15,7 @@ import org.testng.annotations.Test;
 import java.util.*;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
 
 public class NotificationManagerTest {
@@ -26,7 +26,7 @@ public class NotificationManagerTest {
     @BeforeClass
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        System.setProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS, "com.yahoo.athenz.zms.notification.impl.MockNotificationServiceFactory");
+        System.setProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS, "com.yahoo.athenz.zms.notification.MockNotificationServiceFactory");
     }
 
     @Test
@@ -39,8 +39,24 @@ public class NotificationManagerTest {
 
         Mockito.when(dbService.getPendingMembershipApproverRoles()).thenReturn(recipients);
         NotificationManager notificationManager = new NotificationManager(dbService);
-        notificationManager.sendNotification(notification);
         notificationManager.shutdown();
+        notificationManager.sendNotification(notification);
+        assertTrue(true);
+    }
+
+    @Test
+    public void testSendNotificationNullService() {
+
+        NotificationServiceFactory testfact = () -> null;
+        Notification notification = new Notification("MEMBERSHIP_APPROVAL");
+        Set<String> recipients = new HashSet<>();
+        recipients.add("user.joe");
+        notification.setRecipients(recipients);
+
+        Mockito.when(dbService.getPendingMembershipApproverRoles()).thenReturn(recipients);
+        NotificationManager notificationManager = new NotificationManager(dbService, testfact);
+        notificationManager.shutdown();
+        notificationManager.sendNotification(notification);
         assertTrue(true);
     }
 
@@ -91,11 +107,9 @@ public class NotificationManagerTest {
         Mockito.when(mockAthenzDomain.getRoles()).thenReturn(roles);
 
         NotificationManager notificationManager = new NotificationManager(dbService);
-        try {
-            Notification notification = notificationManager.createNotification("MEMBERSHIP_APPROVAL", recipients, null);
-        } catch (ResourceException re) {
-            assertEquals(re.getCode(), 400);
-        }
+
+        Notification notification = notificationManager.createNotification("MEMBERSHIP_APPROVAL", recipients, null);
+        assertNull(notification);
     }
 
     @Test
@@ -106,7 +120,18 @@ public class NotificationManagerTest {
         } catch (Exception ex) {
             assertTrue(ex.getMessage().contains("Invalid notification service factory"));
         }
-        System.setProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS, "com.yahoo.athenz.zms.notification.impl.MockNotificationServiceFactory");
+        System.setProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS, "com.yahoo.athenz.zms.notification.MockNotificationServiceFactory");
+    }
+
+    @Test
+    public void testNotificationManagerNullFactoryClass() {
+        System.clearProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS);
+        try {
+            NotificationManager notificationManager = new NotificationManager(dbService);
+        } catch (Exception ex) {
+            fail();
+        }
+        System.setProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_SERVICE_FACTORY_CLASS, "com.yahoo.athenz.zms.notification.MockNotificationServiceFactory");
     }
 
     @Test
@@ -114,7 +139,6 @@ public class NotificationManagerTest {
         try {
             NotificationServiceFactory testfact = () -> null;
             NotificationManager notificationManager = new NotificationManager(dbService, testfact);
-            assertNull(notificationManager.scheduledExecutor);
             notificationManager.shutdown();
             assertTrue(true);
         } catch (Exception ex) {
@@ -126,7 +150,7 @@ public class NotificationManagerTest {
     public void testGenerateAndSendPostPutMembershipNotification() {
 
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
-        NotificationServiceFactory testfact = () -> null;
+        NotificationServiceFactory testfact = () -> mockNotificationService;
         NotificationManager notificationManager = new NotificationManager(dbService, testfact);
         Map<String, String> details = new HashMap<>();
         details.put("domain", "testdomain1");
@@ -153,8 +177,6 @@ public class NotificationManagerTest {
         Mockito.when(dbService.getRole("sys.auth.audit", "approver.neworg.testdomain1", false, true, false)).thenReturn(domainRole);
         Mockito.when(dbService.getRole("sys.auth.audit", "approver.neworg", false, true, false)).thenReturn(orgRole);
 
-        notificationManager.notificationService = mockNotificationService;
-
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         notificationManager.generateAndSendPostPutMembershipNotification("testdomain1", "neworg", true, false, details);
@@ -166,7 +188,7 @@ public class NotificationManagerTest {
                 .addRecipient("user.orgapprover2");
         notification.addDetails("domain", "testdomain1").addDetails("role", "role1");
 
-        Mockito.verify(mockNotificationService).notify(captor.capture());
+        Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
         Notification actualNotification = captor.getValue();
 
         assertEquals(notification, actualNotification);
@@ -175,7 +197,7 @@ public class NotificationManagerTest {
     @Test
     public void testGenerateAndSendPostPutMembershipNotificationNullDomainRole() {
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
-        NotificationServiceFactory testfact = () -> null;
+        NotificationServiceFactory testfact = () -> mockNotificationService;
         NotificationManager notificationManager = new NotificationManager(dbService, testfact);
         Map<String, String> details = new HashMap<>();
         details.put("domain", "testdomain1");
@@ -193,8 +215,6 @@ public class NotificationManagerTest {
         Mockito.when(dbService.getRole("sys.auth.audit", "approver.neworg.testdomain1", false, true, false)).thenReturn(null);
         Mockito.when(dbService.getRole("sys.auth.audit", "approver.neworg", false, true, false)).thenReturn(orgRole);
 
-        notificationManager.notificationService = mockNotificationService;
-
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         notificationManager.generateAndSendPostPutMembershipNotification("testdomain1", "neworg", true, false, details);
@@ -205,7 +225,7 @@ public class NotificationManagerTest {
                 .addRecipient("user.orgapprover2");
         notification.addDetails("domain", "testdomain1").addDetails("role", "role1");
 
-        Mockito.verify(mockNotificationService).notify(captor.capture());
+        Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
         Notification actualNotification = captor.getValue();
 
         assertEquals(notification, actualNotification);
@@ -214,7 +234,7 @@ public class NotificationManagerTest {
     @Test
     public void testGenerateAndSendPostPutMembershipNotificationNullOrgRole() {
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
-        NotificationServiceFactory testfact = () -> null;
+        NotificationServiceFactory testfact = () -> mockNotificationService;
         NotificationManager notificationManager = new NotificationManager(dbService, testfact);
         Map<String, String> details = new HashMap<>();
         details.put("domain", "testdomain1");
@@ -232,8 +252,6 @@ public class NotificationManagerTest {
         Mockito.when(dbService.getRole("sys.auth.audit", "approver.neworg.testdomain1", false, true, false)).thenReturn(domainRole);
         Mockito.when(dbService.getRole("sys.auth.audit", "approver.neworg", false, true, false)).thenReturn(null);
 
-        notificationManager.notificationService = mockNotificationService;
-
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         notificationManager.generateAndSendPostPutMembershipNotification("testdomain1", "neworg", true, false, details);
@@ -244,7 +262,7 @@ public class NotificationManagerTest {
                 .addRecipient("user.domapprover2");
         notification.addDetails("domain", "testdomain1").addDetails("role", "role1");
 
-        Mockito.verify(mockNotificationService).notify(captor.capture());
+        Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
         Notification actualNotification = captor.getValue();
 
         assertEquals(notification, actualNotification);
@@ -253,7 +271,7 @@ public class NotificationManagerTest {
     @Test
     public void testGenerateAndSendPostPutMembershipNotificationSelfserve() {
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
-        NotificationServiceFactory testfact = () -> null;
+        NotificationServiceFactory testfact = () -> mockNotificationService;
         NotificationManager notificationManager = new NotificationManager(dbService, testfact);
         Map<String, String> details = new HashMap<>();
         details.put("domain", "testdomain1");
@@ -270,8 +288,6 @@ public class NotificationManagerTest {
 
         Mockito.when(dbService.getRole("testdomain1", "admin", false, true, false)).thenReturn(adminRole);
 
-        notificationManager.notificationService = mockNotificationService;
-
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         notificationManager.generateAndSendPostPutMembershipNotification("testdomain1", "neworg", false, true, details);
@@ -282,7 +298,7 @@ public class NotificationManagerTest {
                 .addRecipient("user.domadmin2");
         notification.addDetails("domain", "testdomain1").addDetails("role", "role1");
 
-        Mockito.verify(mockNotificationService).notify(captor.capture());
+        Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
         Notification actualNotification = captor.getValue();
 
         assertEquals(notification, actualNotification);
@@ -290,12 +306,23 @@ public class NotificationManagerTest {
 
     @Test
     public void testGenerateAndSendPostPutMembershipNotificationException() {
-        NotificationServiceFactory testfact = () -> null;
+        NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
+        NotificationServiceFactory testfact = () -> mockNotificationService;
         NotificationManager notificationManager = new NotificationManager(dbService, testfact);
-        try {
-            notificationManager.generateAndSendPostPutMembershipNotification("testdomain1", "neworg", false, false, null);
-        } catch (ResourceException r) {
-            assertEquals(r.getCode(), 400);
-        }
+        notificationManager.generateAndSendPostPutMembershipNotification("testdomain1", "neworg", false, false, null);
+        ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
+        Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
+        Notification actualNotification = captor.getValue();
+        assertNull(actualNotification);
+
+    }
+
+    @Test
+    public void testGenerateAndSendPostPutMembershipNotificationNullNotificationSvc() {
+        NotificationServiceFactory testfact = () -> null;
+        NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
+        NotificationManager notificationManager = new NotificationManager(dbService, testfact);
+        notificationManager.generateAndSendPostPutMembershipNotification("testdomain1", "neworg", false, false, null);
+        verify(mockNotificationService, never()).notify(any(Notification.class));
     }
 }

@@ -1561,7 +1561,7 @@ public class FileConnection implements ObjectStoreConnection {
     @Override
     public Map<String, List<DomainRoleMember>> getPendingDomainRoleMembersList(String principal) {
 
-        DomainStruct auditDom = getDomainStruct("sys.auth.audit");
+        DomainStruct auditDom = getDomainStruct(ZMSConsts.SYS_AUTH_AUDIT_DOMAIN);
         List<String> orgs = new ArrayList<>();
         DomainStruct domain;
 
@@ -1577,7 +1577,8 @@ public class FileConnection implements ObjectStoreConnection {
         RoleMember rm = new RoleMember().setMemberName(principal).setActive(true);
         if (auditDom != null && auditDom.getRoles() != null && !auditDom.getRoles().isEmpty()) {
             for (Role role : auditDom.getRoles().values()) {
-                if (role.getName().startsWith("sys.auth.audit:role.approver.") && role.getRoleMembers().contains(rm)) {
+                if (role.getName().startsWith(ZMSConsts.SYS_AUTH_AUDIT_DOMAIN + ":role." + ZMSConsts.AUDIT_APPROVER_ROLE_PREFIX)
+                        && role.getRoleMembers().contains(rm)) {
                     orgs.add(role.getName().substring(role.getName().indexOf(":role.") + 6).split("[.]")[1]);
                 }
             }
@@ -1626,18 +1627,16 @@ public class FileConnection implements ObjectStoreConnection {
 
         String[] fnames = getDomainList();
         Set<String> roleNames = new HashSet<>();
-        List<String> slist = new ArrayList<>(java.util.Arrays.asList(fnames));
-
-        for (String name : slist) {
-            roleNames = getPendingMembershipApproverRolesForDomain(name, null, null, null, roleNames);
+        for (String name : fnames) {
+            roleNames = getPendingMembershipApproverRolesForDomain(name, roleNames);
         }
         return roleNames;
     }
 
-    public Set<String> getPendingMembershipApproverRolesForDomain(String domain, String org, Boolean auditEnabled, Boolean selfserve, Set<String> roleNames) {
+    public Set<String> getPendingMembershipApproverRolesForDomain(String domain, Set<String> roleNames) {
 
         DomainStruct dom;
-        DomainStruct auditDom = getDomainStruct("sys.auth.audit");
+        DomainStruct auditDom = getDomainStruct(ZMSConsts.SYS_AUTH_AUDIT_DOMAIN);
         dom = getDomainStruct(domain);
         if (dom != null) {
             for (Role role : dom.getRoles().values()) {
@@ -1645,7 +1644,7 @@ public class FileConnection implements ObjectStoreConnection {
                     for (RoleMember roleMember : role.getRoleMembers()) {
                         if (roleMember != null && roleMember.getActive() == Boolean.FALSE) {
                             for (Role arole : auditDom.getRoles().values()) {
-                                if (arole != null && arole.getName().contains("approver." + dom.getMeta().getOrg())) {
+                                if (arole != null && arole.getName().contains(ZMSConsts.AUDIT_APPROVER_ROLE_PREFIX + dom.getMeta().getOrg())) {
                                     roleNames.add(arole.getName());
                                 }
                             }

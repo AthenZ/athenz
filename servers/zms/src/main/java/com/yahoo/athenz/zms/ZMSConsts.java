@@ -232,13 +232,6 @@ public final class ZMSConsts {
 
     public static final String ZMS_JSON_PARSER_ERROR_RESPONSE = "{\"code\":400,\"message\":\"Invalid Object: checkout https://github.com/yahoo/athenz/core/zms for object defintions\"}";
 
-    public static final String NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL = "MEMBERSHIP_APPROVAL";
-    public static final String NOTIFICATION_DETAILS_DOMAIN = "domain";
-    public static final String NOTIFICATION_DETAILS_ROLE = "role";
-    public static final String NOTIFICATION_DETAILS_MEMBER = "member";
-    public static final String NOTIFICATION_DETAILS_REASON = "reason";
-    public static final String NOTIFICATION_DETAILS_REQUESTOR = "requestor";
-
     public static final String AUDIT_APPROVER_ROLE_PREFIX = "approver.";
     public static final String SYS_AUTH_AUDIT_DOMAIN = "sys.auth.audit";
 }

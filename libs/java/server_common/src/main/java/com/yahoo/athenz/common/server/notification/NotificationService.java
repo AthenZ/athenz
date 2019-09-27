@@ -18,6 +18,13 @@ package com.yahoo.athenz.common.server.notification;
 
 public interface NotificationService {
 
+    String NOTIFICATION_TYPE_MEMBERSHIP_APPROVAL = "MEMBERSHIP_APPROVAL";
+    String NOTIFICATION_DETAILS_DOMAIN = "domain";
+    String NOTIFICATION_DETAILS_ROLE = "role";
+    String NOTIFICATION_DETAILS_MEMBER = "member";
+    String NOTIFICATION_DETAILS_REASON = "reason";
+    String NOTIFICATION_DETAILS_REQUESTOR = "requestor";
+
     /**
      * send out the notification
      * @param notification - notification to be sent containing notification type, recipients and additional details
