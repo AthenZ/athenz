@@ -4,63 +4,49 @@
 package athenzutils
 
 import (
-	"crypto/x509"
-	"encoding/pem"
-	"io/ioutil"
 	"testing"
 )
 
-func TestExtractServicePrincipal(test *testing.T) {
+func TestExtractServicePrincipalValid(test *testing.T) {
 
-	x509Cert, _ := getCertFromFile("data/service_identity1.cert")
-	principal, _ := ExtractServicePrincipal(*x509Cert)
-	if principal != "athenz.production" {
-		test.Errorf("invalid principal %s from data/service_identity1.cert", principal)
+	tests := []struct {
+		name      string
+		certFile  string
+		principal string
+	}{
+		{"id1", "data/service_identity1.cert", "athenz.production"},
+		{"id2", "data/service_identity2.cert", "athenz.syncer"},
+		{"email", "data/valid_email_x509.cert", "athens.zts"},
 	}
-
-	x509Cert, _ = getCertFromFile("data/service_identity2.cert")
-	principal, _ = ExtractServicePrincipal(*x509Cert)
-	if principal != "athenz.syncer" {
-		test.Errorf("invalid principal %s from data/service_identity2.cert", principal)
-	}
-
-	x509Cert, _ = getCertFromFile("data/valid_email_x509.cert")
-	principal, _ = ExtractServicePrincipal(*x509Cert)
-	if principal != "athens.zts" {
-		test.Errorf("invalid principal %s from data/valid_email.cert", principal)
-	}
-
-	x509Cert, _ = getCertFromFile("data/no_cn_x509.cert")
-	principal, err := ExtractServicePrincipal(*x509Cert)
-	if err == nil {
-		test.Errorf("no error from invalid file data/no_cn_x509.cert: %s", principal)
-	}
-
-	x509Cert, _ = getCertFromFile("data/invalid_email_x509.cert")
-	principal, err = ExtractServicePrincipal(*x509Cert)
-	if err == nil {
-		test.Errorf("no error from invalid file data/invalid_email_x509.cert: %s", principal)
-	}
-
-	x509Cert, _ = getCertFromFile("data/multiple_email_x509.cert")
-	principal, err = ExtractServicePrincipal(*x509Cert)
-	if err == nil {
-		test.Errorf("no error from invalid file data/multiple_email_x509.cert: %s", principal)
-	}
-
-	x509Cert, _ = getCertFromFile("data/no_email_x509.cert")
-	principal, err = ExtractServicePrincipal(*x509Cert)
-	if err == nil {
-		test.Errorf("no error from invalid file data/no_email_x509.cert: %s", principal)
+	for _, tt := range tests {
+		test.Run(tt.name, func(t *testing.T) {
+			x509Cert, _ := LoadX509Certificate(tt.certFile)
+			principal, _ := ExtractServicePrincipal(*x509Cert)
+			if principal != tt.principal {
+				test.Errorf("invalid principal %s from %s", principal, tt.certFile)
+			}
+		})
 	}
 }
 
-func getCertFromFile(certFile string) (*x509.Certificate, error) {
-	data, err := ioutil.ReadFile(certFile)
-	if err != nil {
-		return nil, err
+func TestExtractServicePrincipalInValid(test *testing.T) {
+
+	tests := []struct {
+		name      string
+		certFile  string
+	}{
+		{"nocn", "data/no_cn_x509.cert"},
+		{"invalidemail", "data/invalid_email_x509.cert"},
+		{"multiplemeail", "data/multiple_email_x509.cert"},
+		{"noemail", "data/no_email_x509.cert"},
 	}
-	var block *pem.Block
-	block, _ = pem.Decode(data)
-	return x509.ParseCertificate(block.Bytes)
+	for _, tt := range tests {
+		test.Run(tt.name, func(t *testing.T) {
+			x509Cert, _ := LoadX509Certificate(tt.certFile)
+			principal, err := ExtractServicePrincipal(*x509Cert)
+			if err == nil {
+				test.Errorf("no error from invalid file %s: %s", tt.certFile, principal)
+			}
+		})
+	}
 }
