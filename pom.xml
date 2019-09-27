@@ -71,10 +71,10 @@
   <properties>
     <jetty.version>9.4.20.v20190813</jetty.version>
     <jersey.version>2.29</jersey.version>
-    <jackson.core.version>2.9.9</jackson.core.version>
-    <jackson.databind.version>2.9.9.3</jackson.databind.version>
-    <jackson.annotations.version>2.9.9</jackson.annotations.version>
-    <jackson.jaxrs.version>2.9.9</jackson.jaxrs.version>
+    <jackson.core.version>2.9.10</jackson.core.version>
+    <jackson.databind.version>2.9.10</jackson.databind.version>
+    <jackson.annotations.version>2.9.10</jackson.annotations.version>
+    <jackson.jaxrs.version>2.9.10</jackson.jaxrs.version>
     <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
     <rdl.version>1.5.2</rdl.version>
     <bouncycastle.version>1.62</bouncycastle.version>
